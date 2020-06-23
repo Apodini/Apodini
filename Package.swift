@@ -1,4 +1,4 @@
-// swift-tools-version:5.2
+// swift-tools-version:5.3
 
 import PackageDescription
 
@@ -13,10 +13,14 @@ let package = Package(
         // .package(url: /* package url */, from: "1.0.0"),
     ],
     targets: [
-        .target(name: "Apodini"),
-        .testTarget(name: "ApodiniTests",
-                    dependencies: [
-                        .target(name: "Apodini")
-                    ])
+        .target(
+            name: "Apodini"
+        ),
+        .testTarget(
+            name: "ApodiniTests",
+            dependencies: [
+                .target(name: "Apodini")
+            ]
+        )
     ]
 )

@@ -1,7 +1,7 @@
-module: PROJECT_NAME
-author: Apodini
+module: Apodini
+author: Paul Schmiedmayer
 theme: fullwidth
 output: ./docs
 documentation: ./*.md
 author_url: https://github.com/Apodini
-github_url: https://github.com/Apodini/PROJECT_NAME
+github_url: https://github.com/Apodini/Apodini
