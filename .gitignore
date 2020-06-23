@@ -1,0 +1,19 @@
+# Apodini .gitignore File
+
+# Swift Package Manager
+Package.resolved
+*.xcodeproj
+.swiftpm
+.build/
+
+# Xcode User settings
+xcuserdata/
+
+# Other files
+.DS_Store
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output

@@ -1,0 +1,36 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ develop, release ]
+  pull_request:
+    branches: [ develop, release ]
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Xcode version check
+      run: xcodebuild -version
+    - name: Check Swift version
+      run: swift --version
+    - name: Build
+      run: swift build
+    - name: Test
+      run: swift test
+  linux:
+    container:
+      image: swift:${{ matrix.linux }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        linux: [latest, xenial, focal, amazonlinux2, centos8]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Check Swift version
+      run: swift --version
+    - name: Build
+      run: swift build
+    - name: Test
+      run: swift test --enable-test-discovery --sanitize=thread
