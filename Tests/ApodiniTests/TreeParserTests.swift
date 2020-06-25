@@ -2,7 +2,7 @@ import XCTest
 @testable import Apodini
 
 
-final class ApodiniTests: XCTestCase {
+final class TreeParserTests: XCTestCase {
     struct TestResponseMediator: ResponseMediator {
         let text: String
         
@@ -11,7 +11,7 @@ final class ApodiniTests: XCTestCase {
         }
     }
     
-    func testExample() {
+    func testTreeParser() {
         let treeParser = TreeParser()
         treeParser.parse(
             API {
