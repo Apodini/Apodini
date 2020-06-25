@@ -5,16 +5,21 @@ import PackageDescription
 
 let package = Package(
     name: "Apodini",
+    platforms: [
+        .iOS(.v13), .macOS(.v10_15)
+    ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"])
     ],
     dependencies: [
-        // Dependencies declare other packages that this package depends on.
-        // .package(url: /* package url */, from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.18.0"),
     ],
     targets: [
         .target(
-            name: "Apodini"
+            name: "Apodini",
+            dependencies: [
+                .product(name: "NIO", package: "swift-nio")
+            ]
         ),
         .testTarget(
             name: "ApodiniTests",
