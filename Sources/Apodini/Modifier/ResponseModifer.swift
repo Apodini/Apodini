@@ -4,17 +4,26 @@ protocol ResponseMediator {
     init(_ response: Response)
 }
 
-struct ResponseModifier<M: ResponseMediator>: ComponentModifier {
-    init(_ type: M.Type) {}
+
+struct ResponseModifier<C: Component, M: ResponseMediator>: Modifier {
+    let component: C
+    let mediator = M.self
     
-    func modify(content: Self.ModifiedComponent) -> some Component {
-        content
+    
+    init(_ component: C, mediator: M.Type) {
+        self.component = component
+    }
+    
+    
+    func visit<V>(_ visitor: inout V) where V : Visitor {
+        visitor.addContext(label: "mediator", "\(mediator.self)")
+        component.visit(&visitor)
     }
 }
 
+
 extension Component {
     func response<M: ResponseMediator>(_ modifier: M.Type) -> some Component {
-        ModifiedComponent(modifiedComponent: self,
-                          modifier: ResponseModifier(M.self))
+        ResponseModifier(self, mediator: M.self)
     }
 }

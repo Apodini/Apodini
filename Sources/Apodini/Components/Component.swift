@@ -1,10 +1,7 @@
 import NIO
 
-protocol AnyComponent {
-    #warning("(Associated with Question 3.1) A protocol that Component confroms to that I use in the TupleComponent --> Question there")
-}
 
-protocol Component: AnyComponent {
+protocol Component: Visitable {
     associatedtype Content: Component
     associatedtype Response: Codable
     
@@ -17,4 +14,8 @@ extension Component {
     func executeInContext(of request: Request) -> EventLoopFuture<Response> {
         request.executeInContext(self)
     }
+}
+
+extension Component {
+    // func visit<V: Visitor>(_ visitor: inout V) { }
 }

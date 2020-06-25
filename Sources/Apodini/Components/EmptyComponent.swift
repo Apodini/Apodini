@@ -8,6 +8,8 @@ extension Never: Component {
     func handle(_ request: Request) -> EventLoopFuture<Never> {
         request.eventLoop.makeFailedFuture(HTTPError.notImplemented)
     }
+    
+    func visit<V>(_ visitor: inout V) where V: Visitor { }
 }
 
 extension Never: Codable {
@@ -30,6 +32,10 @@ extension Component where Response == Never {
     func handle(_ request: Request) -> EventLoopFuture<Never> {
         request.eventLoop.makeFailedFuture(HTTPError.notImplemented)
     }
+}
+
+extension Component {
+    func visit<V>(_ visitor: inout V) where V: Visitor { }
 }
 
 struct EmptyComponent: Component {
