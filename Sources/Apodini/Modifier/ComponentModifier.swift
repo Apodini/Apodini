@@ -7,6 +7,7 @@ protocol ComponentModifier {
 }
 
 
+#warning("Some modifiers can only be applied to Text in SwiftUI and seem to be defined as part of the Text struct and return a Text. These modifiers adapt properties of a Text? Font e.g. can be passed down a group, this functionality is located in the View Tree parsing? ... What would be the best way to restrict a modifier to a certain group of Components? A protocol they all internally conform to?")
 struct ComponentModifierComponent<V: ComponentModifier>: Component {
     init<C: Component>(_ component: C) {
         fatalError("Not implemented. And not sure how we could do that ...? I guess I can use it to only store the type information and provide some constraints on what can be done in a ComponentModifier?")
