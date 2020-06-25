@@ -18,7 +18,8 @@ let package = Package(
         .target(
             name: "Apodini",
             dependencies: [
-                .product(name: "NIO", package: "swift-nio")
+                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "NIOFoundationCompat", package: "swift-nio")
             ]
         ),
         .testTarget(
