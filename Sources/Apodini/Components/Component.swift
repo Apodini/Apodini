@@ -1,7 +1,7 @@
 import NIO
 
 protocol AnyComponent {
-    #warning("A protocol that Component confroms to that I use in the TupleComponent --> Question there")
+    #warning("(Associated with Question 3.1) A protocol that Component confroms to that I use in the TupleComponent --> Question there")
 }
 
 protocol Component: AnyComponent {

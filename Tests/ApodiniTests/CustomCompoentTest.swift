@@ -58,7 +58,7 @@ final class CustomComponentTests: XCTestCase {
         
         let request = Request(body: birdData, context: context)
         
-        #warning("Question: I solved the problem of injecting the contect of the request using a Mirror and iterating over the values and making them conform to a protocol (see executeInContext). Is this a reasonable approach? How do you handle this in SwiftUI?")
+        #warning("Question 4: I solved the problem of injecting the content of the request using a Mirror and iterating over the values and making them conform to a protocol (see executeInContext). Is this a reasonable approach? How do you handle this in SwiftUI?")
         let addBirdsComponent = AddBirdsComponent()
         let birds = try addBirdsComponent
             .executeInContext(of: request)

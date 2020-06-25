@@ -1,11 +1,9 @@
 struct TreeParser {
+    #warning("Question 3.1: How does SwiftUI iterate over the tree structure of the views that it has in the view tree? If iterating over the mirror's children is the right approach, how do we manage to cast the elements to be Components? Use Any and then cast back, is that a suitable approach?")
     func parse(_ component: Any, indentation: Int = 0) {
-        #warning("General problem/question: How can we print a \"Tree Like Structure\" of the components that we have in the View Tree? and interpert it the Best?")
         let mirror = Mirror(reflecting: component)
         
-        
         for child in mirror.children {
-            #warning("More concrete question: If iterating over the mirror's children is the right approach, how do we manage to cast the elements to be Components? Use Any and then cast back, is that a suitable approach?")
             if child.value is AnyComponent {
                 
                 printLabelAndBaseType(child, indentation: indentation)
