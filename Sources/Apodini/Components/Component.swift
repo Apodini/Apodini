@@ -1,7 +1,10 @@
 import NIO
 
+protocol AnyComponent {
+    #warning("A protocol that Component confroms to that I use in the TupleComponent --> Question there")
+}
 
-protocol Component {
+protocol Component: AnyComponent {
     associatedtype Content: Component
     associatedtype Response: Codable
     

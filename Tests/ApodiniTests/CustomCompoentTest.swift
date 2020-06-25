@@ -31,8 +31,6 @@ final class CustomComponentTests: XCTestCase {
         }
     }
 
-    // Question: How would I construct the property wrapper so the whole SaveSwiftComponent can be
-    //           instanciated with one Request and the properties are all filled in.
     struct AddBirdsComponent: Component {
         @CurrentDatabase
         var database: BirdDatabase
@@ -53,14 +51,14 @@ final class CustomComponentTests: XCTestCase {
     var context = Context(database: BirdDatabase(),
                           eventLoop: EmbeddedEventLoop())
     
+    
     func testComponentCreation() throws {
         let bird = Bird(name: "New", age: 0)
         let birdData = ByteBuffer(data: try JSONEncoder().encode(bird))
         
         let request = Request(body: birdData, context: context)
         
-        // Question:
-        // I solved the problem of injecting the contect of the request using a Mirror and iterating over the values and making them conform to a protocol. Is this a reasonable approach? How do you handle this in SwiftUI?
+        #warning("Question: I solved the problem of injecting the contect of the request using a Mirror and iterating over the values and making them conform to a protocol (see executeInContext). Is this a reasonable approach? How do you handle this in SwiftUI?")
         let addBirdsComponent = AddBirdsComponent()
         let birds = try addBirdsComponent
             .executeInContext(of: request)

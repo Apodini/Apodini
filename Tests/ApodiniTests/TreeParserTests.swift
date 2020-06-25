@@ -16,10 +16,9 @@ final class TreeParserTests: XCTestCase {
         treeParser.parse(
             API(version: 1) {
                 Group("Test") {
-                    // Question: How do I achieve that this is possible? I would suspect this is connected to the issue that I can only define a modifier with a concrete type ...
-                    //     .response(TestResponseMediator.self)
                     Text("Hallo")
                         .httpType(.put)
+                        .response(TestResponseMediator.self)
                 }
                 Group("Greetings") {
                     Group("Human") {

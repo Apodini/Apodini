@@ -1,12 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Paul Schmiedmayer on 6/24/20.
-//
-
-import Foundation
-
 struct TreeParser {
     func parse<C: Component>(_ component: C) {
         // Question: How can we print a "Tree Like Structure" of the components that we have in the View Tree?

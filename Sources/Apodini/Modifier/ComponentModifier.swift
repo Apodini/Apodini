@@ -1,19 +1,18 @@
-//
-//  File.swift
-//  
-//
-//  Created by Paul Schmiedmayer on 6/24/20.
-//
-
-import Foundation
-
-// Question: How does the typealias in `ViewModifier` public interface work? I don't see any public constraint to component to be View. Am I missing something? I could only model the behavioud with two associatedtypes.
+#warning("Question: How does the typealias in `ViewModifier` public interface work? From some digging around and StackOverflow I have found that there seems to be a private _ViewModifier_Content<Self> struct that is used. How would you replicate that in my implementation of a ComponentModifier? Can somehow pass a Component into a `ComponentModifierContent` but where should we go from here?")
 protocol ComponentModifier {
-    associatedtype ModifiedComponent: Component
+    typealias ModifiedComponent = ComponentModifierComponent<Self>
     associatedtype Content: Component
     
     func modify(content: Self.ModifiedComponent) -> Self.Content
 }
+
+
+struct ComponentModifierComponent<V: ComponentModifier>: Component {
+    init<C: Component>(_ component: C) {
+        fatalError("Not implemented. And not sure how we could do that ...? I guess I can use it to only store the type information and provide some constraints on what can be done in a ComponentModifier?")
+    }
+}
+
 
 extension ComponentModifier where ModifiedComponent == Content {
     func body(content: Self.ModifiedComponent) -> Self.Content {
@@ -21,12 +20,18 @@ extension ComponentModifier where ModifiedComponent == Content {
     }
 }
 
-// Question: Is this how all modifiers are applied to Swift UI Views?
-struct ModifiedComponent<Content, Modifier>: Component where Modifier: ComponentModifier, Modifier.Content == Content {
-    let modifiedComponent: Modifier.ModifiedComponent
+
+#warning("Question: Is it a general workflow in SwiftUI to use a ModifiedView struct to encapsulate Views and Modifier in the view tree?")
+struct ModifiedComponent<
+    Content,
+    ModifiedComponent: Component,
+    Modifier: ComponentModifier
+>: Component where Modifier.Content == Content {
+    
+    let modifiedComponent: ModifiedComponent
     let modifier: Modifier
     
     var content: Content {
-        modifier.modify(content: modifiedComponent)
+        modifier.modify(content: ComponentModifierComponent(modifiedComponent))
     }
 }
