@@ -1,7 +1,9 @@
 class API<Content: Component>: Component {
-    public var content: Content
+    let version: Int
+    let content: Content
     
-    init(@ComponentBuilder content: () -> Content) {
+    init(version: Int, @ComponentBuilder content: () -> Content) {
+        self.version = version
         self.content = content()
     }
 }

@@ -1,5 +1,5 @@
 // Question: How do we access the Components in the TupleComponent?
-public struct TupleComponent<T>: Component {
+struct TupleComponent<T>: Component {
     typealias Content = Never
     
     private let tuple: T

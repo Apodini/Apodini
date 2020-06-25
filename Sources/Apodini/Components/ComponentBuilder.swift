@@ -1,5 +1,5 @@
 @_functionBuilder
-public struct ComponentBuilder {
+struct ComponentBuilder {
     static func buildBlock<Content>(_ content: Content) -> Content where Content: Component {
         content
     }
