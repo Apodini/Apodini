@@ -59,6 +59,7 @@ final class CustomComponentTests: XCTestCase {
         let request = Request(body: birdData, context: context)
         
         #warning("Question 4: I solved the problem of injecting the content of the request using a Mirror and iterating over the values and making them conform to a protocol (see executeInContext). Is this a reasonable approach? How do you handle this in SwiftUI?")
+        #warning("Question 5: How does SwiftUI instanciate the View structs dynamically, e.g., when using SwiftUI some View structs mnight be recreated if a part of the view tree is invalidated. I do not rely on computed properties (body) but might need to instanciate e.g. a AddBirdsComponent() on runtime if I recieve a request for it. Can you achieve something like this using reclection even if the initializer has some paramaters passed in from the parent Component?")
         let addBirdsComponent = AddBirdsComponent()
         let birds = try addBirdsComponent
             .executeInContext(of: request)
