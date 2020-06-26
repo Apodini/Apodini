@@ -1,4 +1,14 @@
-struct HTTPTypeModifier<ModifiedComponent: Component>: Modifier {
+//
+//  HTTPTypeModifier.swift
+//  Apodini
+//
+//  Created by Paul Schmiedmayer on 6/26/20.
+//
+
+import NIO
+
+
+public struct HTTPTypeModifier<ModifiedComponent: Component>: Modifier {
     let component: ModifiedComponent
     let httpType: HTTPType
     
@@ -9,7 +19,7 @@ struct HTTPTypeModifier<ModifiedComponent: Component>: Modifier {
     }
     
     
-    func visit<V>(_ visitor: inout V) where V : Visitor {
+    public func visit<V>(_ visitor: inout V) where V : Visitor {
         visitor.addContext(label: "httpType", httpType)
         component.visit(&visitor)
     }
@@ -17,7 +27,7 @@ struct HTTPTypeModifier<ModifiedComponent: Component>: Modifier {
 
 
 extension Component {
-    func httpType(_ httpType: HTTPType) -> some Component {
+    public func httpType(_ httpType: HTTPType) -> HTTPTypeModifier<Self> {
         HTTPTypeModifier(self, httpType: httpType)
     }
 }

@@ -1,19 +1,30 @@
+//
+//  Database.swift
+//  Apodini
+//
+//  Created by Paul Schmiedmayer on 6/26/20.
+//
+
 import NIO
 
-protocol Model {
+
+public protocol Model {
     static var tableName: String { get }
 }
 
-protocol Database: AnyObject {
+
+public protocol Database: AnyObject {
     func store<M: Model>(_ model: M, on eventLoop: EventLoop) -> EventLoopFuture<M>
     func fetch<M: Model>(on eventLoop: EventLoop) -> EventLoopFuture<[M]>
 }
 
+
 @propertyWrapper
-class CurrentDatabase<D: Database>: RequestInjectable {
+public class CurrentDatabase<D: Database>: RequestInjectable {
     private var database: D?
     
-    var wrappedValue: D {
+    
+    public var wrappedValue: D {
         guard let database = database else {
             fatalError("You can only access the database while you handle a request")
         }
@@ -21,7 +32,9 @@ class CurrentDatabase<D: Database>: RequestInjectable {
         return database
     }
     
-    init() { }
+    
+    public init() { }
+    
     
     func inject(using request: Request) throws {
         guard let database = request.context.database as? D else {

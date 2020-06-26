@@ -1,4 +1,12 @@
-struct TupleComponent<T>: Component {
+//
+//  TupleComponent.swift
+//  Apodini
+//
+//  Created by Paul Schmiedmayer on 6/26/20.
+//
+
+
+public struct TupleComponent<T>: Component, Visitable {
     private let tuple: T
     
 
@@ -7,7 +15,7 @@ struct TupleComponent<T>: Component {
     }
     
     
-    func visit<V>(_ visitor: inout V) where V: Visitor {
+    public func visit<V>(_ visitor: inout V) where V: Visitor {
         for child in Mirror(reflecting: tuple).children {
             guard let visitableComponent = child.value as? Visitable else {
                 fatalError("TupleComponent must contain a tuple of Components")

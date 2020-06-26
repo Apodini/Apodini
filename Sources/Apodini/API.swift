@@ -1,15 +1,23 @@
-class API<Content: Component>: Component {
+//
+//  API.swift
+//  Apodini
+//
+//  Created by Paul Schmiedmayer on 6/26/20.
+//
+
+
+public class API<Content: Component>: Component {
     let version: Int
-    let content: Content
+    public let content: Content
     
     
-    init(version: Int, @ComponentBuilder content: () -> Content) {
+    public init(version: Int, @ComponentBuilder content: () -> Content) {
         self.version = version
         self.content = content()
     }
     
     
-    func visit<V>(_ visitor: inout V) where V : Visitor {
+    public func visit<V>(_ visitor: inout V) where V : Visitor {
         visitor.enter(self)
         visitor.addContext(label: "version", version)
         content.visit(&visitor)

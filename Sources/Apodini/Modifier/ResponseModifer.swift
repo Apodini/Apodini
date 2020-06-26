@@ -1,11 +1,22 @@
-protocol ResponseMediator {
+//
+//  ResponseModifier.swift
+//  Apodini
+//
+//  Created by Paul Schmiedmayer on 6/26/20.
+//
+
+import NIO
+
+
+public protocol ResponseMediator: Codable {
     associatedtype Response
+    
     
     init(_ response: Response)
 }
 
 
-struct ResponseModifier<C: Component, M: ResponseMediator>: Modifier {
+public struct ResponseModifier<C: Component, M: ResponseMediator>: Modifier where M.Response == C.Response {
     let component: C
     let mediator = M.self
     
@@ -15,15 +26,21 @@ struct ResponseModifier<C: Component, M: ResponseMediator>: Modifier {
     }
     
     
-    func visit<V>(_ visitor: inout V) where V : Visitor {
-        visitor.addContext(label: "mediator", "\(mediator.self)")
+    public func visit<V>(_ visitor: inout V) where V : Visitor {
         component.visit(&visitor)
+    }
+    
+    public func handle(_ request: Request) -> EventLoopFuture<M> {
+        component.executeInContext(of: request)
+            .map { response in
+                M(response)
+            }
     }
 }
 
 
 extension Component {
-    func response<M: ResponseMediator>(_ modifier: M.Type) -> some Component {
+    public func response<M: ResponseMediator>(_ modifier: M.Type) -> ResponseModifier<Self, M> where Self.Response == M.Response {
         ResponseModifier(self, mediator: M.self)
     }
 }

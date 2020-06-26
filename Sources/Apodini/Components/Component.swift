@@ -1,7 +1,14 @@
+//
+//  Component.swift
+//  Apodini
+//
+//  Created by Paul Schmiedmayer on 6/26/20.
+//
+
 import NIO
 
 
-protocol Component: Visitable {
+public protocol Component: Visitable {
     associatedtype Content: Component
     associatedtype Response: Codable
     
@@ -10,12 +17,16 @@ protocol Component: Visitable {
     func handle(_ request: Request) -> EventLoopFuture<Response>
 }
 
+
 extension Component {
     func executeInContext(of request: Request) -> EventLoopFuture<Response> {
         request.executeInContext(self)
     }
 }
 
-extension Component {
-    // func visit<V: Visitor>(_ visitor: inout V) { }
+
+extension Component where Content: Visitable {
+    func visit<V: Visitor>(_ visitor: inout V) {
+        content.visit(&visitor)
+    }
 }

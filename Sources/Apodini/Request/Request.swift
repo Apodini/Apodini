@@ -1,3 +1,10 @@
+//
+//  Request.swift
+//  Apodini
+//
+//  Created by Paul Schmiedmayer on 6/26/20.
+//
+
 import NIO
 
 protocol RequestInjectable {
@@ -5,14 +12,15 @@ protocol RequestInjectable {
     func disconnect()
 }
 
-struct Request {
-    let httpType: HTTPType
-    let headers: [String: String]
-    let body: ByteBuffer
-    let context: Context
+
+public struct Request {
+    public let httpType: HTTPType
+    public let headers: [String: String]
+    public let body: ByteBuffer
+    public let context: Context
     
     
-    var eventLoop: EventLoop {
+    public var eventLoop: EventLoop {
         context.eventLoop
     }
     

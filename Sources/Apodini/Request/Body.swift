@@ -1,13 +1,21 @@
+//
+//  Body.swift
+//  Apodini
+//
+//  Created by Paul Schmiedmayer on 6/26/20.
+//
+
 import NIO
 import NIOFoundationCompat
 import Foundation
 
 
 @propertyWrapper
-class Body<Element: Codable>: RequestInjectable {
+public class Body<Element: Codable>: RequestInjectable {
     private var element: Element?
     
-    var wrappedValue: Element {
+    
+    public var wrappedValue: Element {
         guard let element = element else {
             fatalError("You can only access the body while you handle a request")
         }
@@ -15,7 +23,9 @@ class Body<Element: Codable>: RequestInjectable {
         return element
     }
     
-    init() { }
+    
+    public init() { }
+    
     
     func inject(using request: Request) throws {
         guard let data = request.body.getData(at: request.body.readerIndex, length: request.body.readableBytes) else {
