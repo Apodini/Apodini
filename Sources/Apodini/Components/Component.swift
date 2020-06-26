@@ -18,6 +18,9 @@ public protocol Component: Visitable {
 }
 
 
+public protocol ComponentCollection: Component { }
+
+
 extension Component {
     func executeInContext(of request: Request) -> EventLoopFuture<Response> {
         request.executeInContext(self)

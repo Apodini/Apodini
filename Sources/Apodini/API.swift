@@ -5,8 +5,15 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
+struct APIVersionContextKey: ContextKey {
+    static var defaultValue: Int = 1
+    
+    static func reduce(value: inout Int, nextValue: () -> Int) {
+        value = nextValue()
+    }
+}
 
-public class API<Content: Component>: Component {
+public class API<Content: Component>: ComponentCollection {
     let version: Int
     public let content: Content
     
@@ -18,9 +25,9 @@ public class API<Content: Component>: Component {
     
     
     public func visit<V>(_ visitor: inout V) where V : Visitor {
-        visitor.enter(self)
-        visitor.addContext(label: "version", version)
+        visitor.enter(collection: self)
+        visitor.addContext(APIVersionContextKey.self, value: version, scope: .environment)
         content.visit(&visitor)
-        visitor.exit(self)
+        visitor.exit(collection: self)
     }
 }

@@ -5,11 +5,34 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-public protocol Visitor {
-    mutating func enter<C: Component>(_ component: C)
-    mutating func addContext<P: CustomStringConvertible>(label: String?, _ property: P)
-    mutating func register<C: Component>(_ component: C)
-    mutating func exit<C: Component>(_ component: C)
+public enum Scope {
+    case nextComponent
+    case environment
+}
+
+
+public class Visitor {
+    private(set) var currentNode: ContextNode = ContextNode()
+    
+    func enter<C: ComponentCollection>(collection: C) {
+        currentNode = currentNode.newContextNode()
+    }
+    
+    func addContext<C: ContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
+        currentNode.addContext(contextKey, value: value, scope: scope)
+    }
+    
+    func register<C: Component>(component: C) { }
+    
+    func removeCurrentNodeContext() {
+        currentNode.removeCurrentNodeContext()
+    }
+    
+    func exit<C: ComponentCollection>(collection: C) {
+        if let parentNode = currentNode.nodeLink {
+            currentNode = parentNode
+        }
+    }
 }
 
 

@@ -7,6 +7,13 @@
 
 import NIO
 
+struct HTTPMethodContextKey: ContextKey {
+    static var defaultValue: HTTPType = .get
+    
+    static func reduce(value: inout HTTPType, nextValue: () -> HTTPType) {
+        value = nextValue()
+    }
+}
 
 public struct HTTPTypeModifier<ModifiedComponent: Component>: Modifier {
     let component: ModifiedComponent
@@ -20,7 +27,7 @@ public struct HTTPTypeModifier<ModifiedComponent: Component>: Modifier {
     
     
     public func visit<V>(_ visitor: inout V) where V : Visitor {
-        visitor.addContext(label: "httpType", httpType)
+        visitor.addContext(HTTPMethodContextKey.self, value: httpType, scope: .nextComponent)
         component.visit(&visitor)
     }
 }

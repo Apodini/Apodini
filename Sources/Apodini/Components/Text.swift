@@ -22,6 +22,6 @@ public struct Text: Component, Visitable {
     }
     
     public func visit<V>(_ visitor: inout V) where V : Visitor {
-        visitor.register(self)
+        visitor.register(component: self)
     }
 }

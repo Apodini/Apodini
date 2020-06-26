@@ -5,8 +5,16 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
+struct PathComponentContextKey: ContextKey {
+    static var defaultValue: [PathComponent] = []
+    
+    static func reduce(value: inout [PathComponent], nextValue: () -> [PathComponent]) {
+        value.append(contentsOf: nextValue())
+    }
+}
 
-public struct Group<Content: Component>: Component, Visitable {
+
+public struct Group<Content: Component>: ComponentCollection {
     private let pathComponents: [PathComponent]
     public let content: Content
     
@@ -19,9 +27,9 @@ public struct Group<Content: Component>: Component, Visitable {
     
     
     public func visit<V>(_ visitor: inout V) where V: Visitor {
-        visitor.enter(self)
-        visitor.addContext(label: "pathComponents", pathComponents)
+        visitor.enter(collection: self)
+        visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)
         content.visit(&visitor)
-        visitor.exit(self)
+        visitor.exit(collection: self)
     }
 }
