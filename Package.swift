@@ -28,11 +28,32 @@ let package = Package(
                 .target(name: "Apodini")
             ]
         ),
+        .target(
+            name: "ApodiniGraphQL",
+            dependencies: [
+                .target(name: "Apodini")
+            ]
+        ),
+        .target(
+            name: "ApodiniGRPC",
+            dependencies: [
+                .target(name: "Apodini")
+            ]
+        ),
+        .target(
+            name: "ApodiniWebSocket",
+            dependencies: [
+                .target(name: "Apodini")
+            ]
+        ),
         .testTarget(
             name: "ApodiniTests",
             dependencies: [
                 .target(name: "Apodini"),
-                .target(name: "ApodiniREST")
+                .target(name: "ApodiniREST"),
+                .target(name: "ApodiniGraphQL"),
+                .target(name: "ApodiniGRPC"),
+                .target(name: "ApodiniWebSocket")
             ]
         )
     ]

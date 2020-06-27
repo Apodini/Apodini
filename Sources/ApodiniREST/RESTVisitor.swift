@@ -13,7 +13,7 @@ public class RESTVisitor: Visitor {
         var pathDescription: String = ""
         
         mutating func append(_ string: String) {
-            pathDescription.append("/\(string)")
+            pathDescription.append("/\(string.lowercased())")
         }
         
         mutating func append<T>(_ identifiier: Identifier<T>) where T : Identifiable {

@@ -1,6 +1,9 @@
 import XCTest
 @testable import Apodini
 @testable import ApodiniREST
+@testable import ApodiniGraphQL
+@testable import ApodiniGRPC
+@testable import ApodiniWebSocket
 
 
 final class VisitorTests: XCTestCase {
@@ -40,6 +43,24 @@ final class VisitorTests: XCTestCase {
     
     func testRESTVisitor() {
         var printVisitor = RESTVisitor()
+        let testAPI = api()
+        testAPI.visit(&printVisitor)
+    }
+    
+    func testGraphQLVisitor() {
+        var printVisitor = GraphQLVisitor()
+        let testAPI = api()
+        testAPI.visit(&printVisitor)
+    }
+    
+    func testGRPCVisitor() {
+        var printVisitor = GRPCVisitor()
+        let testAPI = api()
+        testAPI.visit(&printVisitor)
+    }
+    
+    func testWebSocketVisitor() {
+        var printVisitor = WebSocketVisitor()
         let testAPI = api()
         testAPI.visit(&printVisitor)
     }
