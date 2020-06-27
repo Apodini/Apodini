@@ -18,6 +18,6 @@ protocol Modifier: Component {
 
 extension Modifier {
     public func handle(_ request: Request) -> EventLoopFuture<ModifiedComponent.Response> {
-        component.executeInContext(of: request)
+        component.handleInContext(of: request)
     }
 }

@@ -41,7 +41,7 @@ public struct ResponseModifier<C: Component, M: ResponseMediator>: Modifier wher
     }
     
     public func handle(_ request: Request) -> EventLoopFuture<M> {
-        component.executeInContext(of: request)
+        component.handleInContext(of: request)
             .map { response in
                 M(response)
             }

@@ -31,13 +31,14 @@ class PrintVisitor: Visitor {
         print("\(intendation)\(component)")
         printContext()
         
-        super.removeCurrentNodeContext()
+        finishedRegisteringContext()
     }
     
     func printContext() {
         print("\(intendation) -> \(className(HTTPMethodContextKey.self)) = \(currentNode.getContextValue(for: HTTPMethodContextKey.self))")
         print("\(intendation) -> \(className(APIVersionContextKey.self)) = \(currentNode.getContextValue(for: APIVersionContextKey.self))")
         print("\(intendation) -> \(className(PathComponentContextKey.self)) = \(currentNode.getContextValue(for: PathComponentContextKey.self))")
+        print("\(intendation) -> \(className(GuardContextKey.self)) = \(currentNode.getContextValue(for: GuardContextKey.self))")
         if currentNode.getContextValue(for: ResponseContextKey.self) != Never.self {
             print("\(intendation) -> \(className(ResponseContextKey.self)) = \(currentNode.getContextValue(for: ResponseContextKey.self))")
         }

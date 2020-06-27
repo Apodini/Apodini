@@ -1,3 +1,10 @@
+//
+//  CustomCompoentTest.swift
+//
+//
+//  Created by Paul Schmiedmayer on 6/27/20.
+//
+
 import XCTest
 import NIO
 @testable import Apodini
@@ -60,7 +67,7 @@ final class CustomComponentTests: XCTestCase {
         
         let addBirdsComponent = AddBirdsComponent()
         let birds = try addBirdsComponent
-            .executeInContext(of: request)
+            .handleInContext(of: request)
             .wait()
             
         XCTAssert(birds.count == 2)

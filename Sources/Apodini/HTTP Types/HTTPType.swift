@@ -6,11 +6,14 @@
 //
 
 
-public enum HTTPType: String, LosslessStringConvertible {
-    case get = "GET"
-    case post = "POST"
-    case put = "PUT"
-    case delete = "DELETE"
+public struct HTTPType: LosslessStringConvertible {
+    static let get: HTTPType = HTTPType("GET")
+    static let post: HTTPType = HTTPType("POST")
+    static let put: HTTPType = HTTPType("PUT")
+    static let delete: HTTPType = HTTPType("DELETE")
+    
+    
+    public let rawValue: String
     
     
     public var description: String {
@@ -18,18 +21,7 @@ public enum HTTPType: String, LosslessStringConvertible {
     }
     
     
-    public init?(_ description: String) {
-        switch description.lowercased() {
-        case HTTPType.get.rawValue.lowercased():
-            self = .get
-        case HTTPType.post.rawValue.lowercased():
-            self = .post
-        case HTTPType.put.rawValue.lowercased():
-            self = .put
-        case HTTPType.delete.rawValue.lowercased():
-            self = .delete
-        default:
-            return nil
-        }
+    public init(_ rawValue: String) {
+        self.rawValue = rawValue
     }
 }

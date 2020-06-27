@@ -27,7 +27,7 @@ public struct HTTPTypeModifier<ModifiedComponent: Component>: Modifier {
     
     
     public func visit<V>(_ visitor: inout V) where V : Visitor {
-        visitor.addContext(HTTPMethodContextKey.self, value: httpType, scope: .nextComponent)
+        visitor.addContext(HTTPMethodContextKey.self, value: httpType, scope: .environment)
         component.visit(&visitor)
     }
 }

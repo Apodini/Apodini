@@ -32,8 +32,8 @@ open class Visitor {
     
     open func register<C: Component>(component: C) { }
     
-    public func removeCurrentNodeContext() {
-        currentNode.removeCurrentNodeContext()
+    public func finishedRegisteringContext() {
+        currentNode.resetContextNode()
     }
     
     open func exit<C: ComponentCollection>(collection: C) {

@@ -1,3 +1,10 @@
+//
+//  VisitorTests.swift
+//
+//
+//  Created by Paul Schmiedmayer on 6/27/20.
+//
+
 import XCTest
 @testable import Apodini
 @testable import ApodiniREST
@@ -16,7 +23,7 @@ final class VisitorTests: XCTestCase {
     }
     
     
-    func api() -> some Component {
+    var api: some Component {
         API {
             Group("Test") {
                 Text("Hallo")
@@ -37,31 +44,26 @@ final class VisitorTests: XCTestCase {
     
     func testPrintVisitor() {
         var printVisitor = PrintVisitor()
-        let testAPI = api()
-        testAPI.visit(&printVisitor)
+        api.visit(&printVisitor)
     }
     
     func testRESTVisitor() {
-        var printVisitor = RESTVisitor()
-        let testAPI = api()
-        testAPI.visit(&printVisitor)
+        var restVisitor = RESTVisitor()
+        api.visit(&restVisitor)
     }
     
     func testGraphQLVisitor() {
-        var printVisitor = GraphQLVisitor()
-        let testAPI = api()
-        testAPI.visit(&printVisitor)
+        var graphQLVisitor = GraphQLVisitor()
+        api.visit(&graphQLVisitor)
     }
     
     func testGRPCVisitor() {
-        var printVisitor = GRPCVisitor()
-        let testAPI = api()
-        testAPI.visit(&printVisitor)
+        var gRPCVisitor = GRPCVisitor()
+        api.visit(&gRPCVisitor)
     }
     
     func testWebSocketVisitor() {
-        var printVisitor = WebSocketVisitor()
-        let testAPI = api()
-        testAPI.visit(&printVisitor)
+        var webSocketVisitor = WebSocketVisitor()
+        api.visit(&webSocketVisitor)
     }
 }

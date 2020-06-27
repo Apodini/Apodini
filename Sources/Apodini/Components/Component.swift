@@ -22,8 +22,10 @@ public protocol ComponentCollection: Component { }
 
 
 extension Component {
-    func executeInContext(of request: Request) -> EventLoopFuture<Response> {
-        request.executeInContext(self)
+    func handleInContext(of request: Request) -> EventLoopFuture<Response> {
+        request.enterRequestContext(with: self) { component in
+            component.handle(request)
+        }
     }
 }
 

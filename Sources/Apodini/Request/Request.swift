@@ -35,9 +35,8 @@ public struct Request {
         self.context = context
     }
     
-    
-    func executeInContext<C: Component>(_ component: C) -> EventLoopFuture<C.Response> {
-        let viewMirror = Mirror(reflecting: component)
+    func enterRequestContext<E, T>(with element: E, executing method: (E) -> EventLoopFuture<T>) -> EventLoopFuture<T> {
+        let viewMirror = Mirror(reflecting: element)
         
         defer {
             for child in viewMirror.children {
@@ -58,6 +57,6 @@ public struct Request {
             }
         }
         
-        return component.handle(self)
+        return method(element)
     }
 }

@@ -44,6 +44,6 @@ public class RESTVisitor: Visitor {
         
         print("\(restPathBuilder.pathDescription) \(httpType.description) -> \(returnType)")
         
-        super.removeCurrentNodeContext()
+        super.finishedRegisteringContext()
     }
 }
