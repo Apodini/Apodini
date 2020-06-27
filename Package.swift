@@ -22,10 +22,17 @@ let package = Package(
                 .product(name: "NIOFoundationCompat", package: "swift-nio")
             ]
         ),
+        .target(
+            name: "ApodiniREST",
+            dependencies: [
+                .target(name: "Apodini")
+            ]
+        ),
         .testTarget(
             name: "ApodiniTests",
             dependencies: [
-                .target(name: "Apodini")
+                .target(name: "Apodini"),
+                .target(name: "ApodiniREST")
             ]
         )
     ]

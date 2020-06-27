@@ -29,10 +29,18 @@ class PrintVisitor: Visitor {
         super.register(component: component)
         
         print("\(intendation)\(component)")
+        printContext()
+        
+        super.removeCurrentNodeContext()
+    }
+    
+    func printContext() {
         print("\(intendation) -> \(className(HTTPMethodContextKey.self)) = \(currentNode.getContextValue(for: HTTPMethodContextKey.self))")
         print("\(intendation) -> \(className(APIVersionContextKey.self)) = \(currentNode.getContextValue(for: APIVersionContextKey.self))")
         print("\(intendation) -> \(className(PathComponentContextKey.self)) = \(currentNode.getContextValue(for: PathComponentContextKey.self))")
-        super.removeCurrentNodeContext()
+        if currentNode.getContextValue(for: ResponseContextKey.self) != Never.self {
+            print("\(intendation) -> \(className(ResponseContextKey.self)) = \(currentNode.getContextValue(for: ResponseContextKey.self))")
+        }
     }
     
     override func exit<C>(collection: C) where C : ComponentCollection {

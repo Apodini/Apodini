@@ -1,5 +1,6 @@
 import XCTest
 @testable import Apodini
+@testable import ApodiniREST
 
 
 final class VisitorTests: XCTestCase {
@@ -13,7 +14,7 @@ final class VisitorTests: XCTestCase {
     
     
     func api() -> some Component {
-        API(version: 1) {
+        API {
             Group("Test") {
                 Text("Hallo")
                     .httpType(.put)
@@ -31,8 +32,14 @@ final class VisitorTests: XCTestCase {
         }
     }
     
-    func testTreeParser() {
+    func testPrintVisitor() {
         var printVisitor = PrintVisitor()
+        let testAPI = api()
+        testAPI.visit(&printVisitor)
+    }
+    
+    func testRESTVisitor() {
+        var printVisitor = RESTVisitor()
         let testAPI = api()
         testAPI.visit(&printVisitor)
     }

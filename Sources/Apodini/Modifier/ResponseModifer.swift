@@ -16,6 +16,15 @@ public protocol ResponseMediator: Codable {
 }
 
 
+public struct ResponseContextKey: ContextKey {
+    public static var defaultValue: Codable.Type = Never.self
+    
+    public static func reduce(value: inout Codable.Type, nextValue: () -> Codable.Type) {
+        value = nextValue()
+    }
+}
+
+
 public struct ResponseModifier<C: Component, M: ResponseMediator>: Modifier where M.Response == C.Response {
     let component: C
     let mediator = M.self
@@ -27,6 +36,7 @@ public struct ResponseModifier<C: Component, M: ResponseMediator>: Modifier wher
     
     
     public func visit<V>(_ visitor: inout V) where V : Visitor {
+        visitor.addContext(ResponseContextKey.self, value: M.self, scope: .nextComponent)
         component.visit(&visitor)
     }
     

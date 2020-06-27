@@ -11,24 +11,32 @@ public enum Scope {
 }
 
 
-public class Visitor {
+open class Visitor {
     private(set) var currentNode: ContextNode = ContextNode()
     
-    func enter<C: ComponentCollection>(collection: C) {
+    
+    public init() {}
+    
+    
+    open func enter<C: ComponentCollection>(collection: C) {
         currentNode = currentNode.newContextNode()
     }
     
-    func addContext<C: ContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
+    open func addContext<C: ContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
         currentNode.addContext(contextKey, value: value, scope: scope)
     }
     
-    func register<C: Component>(component: C) { }
+    public func getContextValue<C: ContextKey>(for contextKey: C.Type = C.self) -> C.Value {
+        currentNode.getContextValue(for: C.self)
+    }
     
-    func removeCurrentNodeContext() {
+    open func register<C: Component>(component: C) { }
+    
+    public func removeCurrentNodeContext() {
         currentNode.removeCurrentNodeContext()
     }
     
-    func exit<C: ComponentCollection>(collection: C) {
+    open func exit<C: ComponentCollection>(collection: C) {
         if let parentNode = currentNode.nodeLink {
             currentNode = parentNode
         }

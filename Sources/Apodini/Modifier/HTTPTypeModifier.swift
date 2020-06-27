@@ -7,10 +7,10 @@
 
 import NIO
 
-struct HTTPMethodContextKey: ContextKey {
-    static var defaultValue: HTTPType = .get
+public struct HTTPMethodContextKey: ContextKey {
+    public static var defaultValue: HTTPType = .get
     
-    static func reduce(value: inout HTTPType, nextValue: () -> HTTPType) {
+    public static func reduce(value: inout HTTPType, nextValue: () -> HTTPType) {
         value = nextValue()
     }
 }

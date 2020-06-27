@@ -5,21 +5,53 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-struct APIVersionContextKey: ContextKey {
-    static var defaultValue: Int = 1
+public struct Version: PathComponent {
+    public enum Defaults {
+        public static let prefix: String = "v"
+        public static let major: UInt = 1
+        public static let minor: UInt = 0
+        public static let patch: UInt = 0
+    }
     
-    static func reduce(value: inout Int, nextValue: () -> Int) {
+    
+    public let prefix: String
+    public let major: UInt
+    public let minor: UInt
+    public let patch: UInt
+    
+    
+    public init(prefix: String = Defaults.prefix,
+                major: UInt = Defaults.major,
+                minor: UInt = Defaults.minor,
+                patch: UInt = Defaults.patch) {
+        self.prefix = prefix
+        self.major = major
+        self.minor = minor
+        self.patch = patch
+    }
+    
+    
+    public func append<P>(to pathBuilder: inout P) where P : PathBuilder {
+        pathBuilder.append("\(prefix)\(major)")
+    }
+}
+
+public struct APIVersionContextKey: ContextKey {
+    public static var defaultValue: Version = Version()
+    
+    public static func reduce(value: inout Version, nextValue: () -> Version) {
         value = nextValue()
     }
 }
 
 public class API<Content: Component>: ComponentCollection {
-    let version: Int
+    let version: Version
     public let content: Content
     
     
-    public init(version: Int, @ComponentBuilder content: () -> Content) {
-        self.version = version
+    public init(majorVersionNumber: UInt = 1,
+                @ComponentBuilder content: () -> Content) {
+        self.version = Version(major: majorVersionNumber)
         self.content = content()
     }
     
@@ -27,6 +59,7 @@ public class API<Content: Component>: ComponentCollection {
     public func visit<V>(_ visitor: inout V) where V : Visitor {
         visitor.enter(collection: self)
         visitor.addContext(APIVersionContextKey.self, value: version, scope: .environment)
+        visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
         content.visit(&visitor)
         visitor.exit(collection: self)
     }
