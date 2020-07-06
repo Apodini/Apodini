@@ -9,51 +9,28 @@ let package = Package(
         .iOS(.v13), .macOS(.v10_15)
     ],
     products: [
-        .library(name: "Apodini", targets: ["Apodini"])
+        .executable(name: "TestServer", targets: ["TestServer"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-nio.git", from: "2.18.0"),
+        .package(url: "https://github.com/vapor/vapor.git", from: "4.14.0"),
     ],
     targets: [
         .target(
             name: "Apodini",
             dependencies: [
-                .product(name: "NIO", package: "swift-nio"),
-                .product(name: "NIOFoundationCompat", package: "swift-nio")
-            ]
-        ),
-        .target(
-            name: "ApodiniREST",
-            dependencies: [
-                .target(name: "Apodini")
-            ]
-        ),
-        .target(
-            name: "ApodiniGraphQL",
-            dependencies: [
-                .target(name: "Apodini")
-            ]
-        ),
-        .target(
-            name: "ApodiniGRPC",
-            dependencies: [
-                .target(name: "Apodini")
-            ]
-        ),
-        .target(
-            name: "ApodiniWebSocket",
-            dependencies: [
-                .target(name: "Apodini")
+                .product(name: "Vapor", package: "vapor")
             ]
         ),
         .testTarget(
             name: "ApodiniTests",
             dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniREST"),
-                .target(name: "ApodiniGraphQL"),
-                .target(name: "ApodiniGRPC"),
-                .target(name: "ApodiniWebSocket")
+                .target(name: "Apodini")
+            ]
+        ),
+        .target(
+            name: "TestServer",
+            dependencies: [
+                .target(name: "Apodini")
             ]
         )
     ]

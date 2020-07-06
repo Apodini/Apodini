@@ -6,11 +6,8 @@
 //
 
 import XCTest
+import Vapor
 @testable import Apodini
-@testable import ApodiniREST
-@testable import ApodiniGraphQL
-@testable import ApodiniGRPC
-@testable import ApodiniWebSocket
 
 
 final class VisitorTests: XCTestCase {
@@ -23,10 +20,13 @@ final class VisitorTests: XCTestCase {
     }
     
     
+    var app: Application!
+    
+    
     var api: some Component {
         API {
             Group("Test") {
-                Text("Hallo")
+                Text("Hallo Bernd")
                     .httpType(.put)
                     .response(TestResponseMediator.self)
             }
@@ -42,28 +42,36 @@ final class VisitorTests: XCTestCase {
         }
     }
     
+    override func setUp() {
+        app = Application(.testing)
+    }
+    
+    override func tearDown() {
+        app.shutdown()
+    }
+    
     func testPrintVisitor() {
         var printVisitor = PrintVisitor()
         api.visit(&printVisitor)
     }
     
     func testRESTVisitor() {
-        var restVisitor = RESTVisitor()
+        var restVisitor = RESTVisitor(app)
         api.visit(&restVisitor)
     }
     
     func testGraphQLVisitor() {
-        var graphQLVisitor = GraphQLVisitor()
+        var graphQLVisitor = GraphQLVisitor(app)
         api.visit(&graphQLVisitor)
     }
     
     func testGRPCVisitor() {
-        var gRPCVisitor = GRPCVisitor()
+        var gRPCVisitor = GRPCVisitor(app)
         api.visit(&gRPCVisitor)
     }
     
     func testWebSocketVisitor() {
-        var webSocketVisitor = WebSocketVisitor()
+        var webSocketVisitor = WebSocketVisitor(app)
         api.visit(&webSocketVisitor)
     }
 }

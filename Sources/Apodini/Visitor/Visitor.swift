@@ -5,38 +5,43 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-public enum Scope {
+import Vapor
+
+enum Scope {
     case nextComponent
     case environment
 }
 
 
-open class Visitor {
+public class Visitor {
     private(set) var currentNode: ContextNode = ContextNode()
+    private(set) var app: Application
     
     
-    public init() {}
+    init(_ app: Application) {
+        self.app = app
+    }
     
     
-    open func enter<C: ComponentCollection>(collection: C) {
+    func enter<C: ComponentCollection>(collection: C) {
         currentNode = currentNode.newContextNode()
     }
     
-    open func addContext<C: ContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
+    func addContext<C: ContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
         currentNode.addContext(contextKey, value: value, scope: scope)
     }
     
-    public func getContextValue<C: ContextKey>(for contextKey: C.Type = C.self) -> C.Value {
+    func getContextValue<C: ContextKey>(for contextKey: C.Type = C.self) -> C.Value {
         currentNode.getContextValue(for: C.self)
     }
     
-    open func register<C: Component>(component: C) { }
+    func register<C: Component>(component: C) { }
     
-    public func finishedRegisteringContext() {
+    func finishedRegisteringContext() {
         currentNode.resetContextNode()
     }
     
-    open func exit<C: ComponentCollection>(collection: C) {
+    func exit<C: ComponentCollection>(collection: C) {
         if let parentNode = currentNode.nodeLink {
             currentNode = parentNode
         }

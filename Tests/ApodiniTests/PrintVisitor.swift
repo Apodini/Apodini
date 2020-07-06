@@ -5,12 +5,24 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
+@testable import Apodini
+import Vapor
+
+
 class PrintVisitor: Visitor {
     private var intendationLevel: UInt = 0
     
     
     private var intendation: String {
         String(repeating: "  ", count: Int(intendationLevel))
+    }
+    
+    init() {
+        super.init(Application(.testing))
+    }
+    
+    deinit {
+        app.shutdown()
     }
     
     

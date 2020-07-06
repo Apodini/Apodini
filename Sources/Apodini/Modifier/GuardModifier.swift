@@ -14,13 +14,15 @@ private struct ResetGuard: Guard {
     }
 }
 
+public typealias LazyGuard = () -> (Guard)
+
 public struct GuardContextKey: ContextKey {
-    public static var defaultValue: [Guard] = []
+    public static var defaultValue: [LazyGuard] = []
     
-    public static func reduce(value: inout [Guard], nextValue: () -> [Guard]) {
+    public static func reduce(value: inout [LazyGuard], nextValue: () -> [LazyGuard]) {
         let nextGuards = nextValue()
         for `guard` in nextGuards {
-            if `guard`.self is ResetGuard {
+            if `guard`().self is ResetGuard {
                 value = []
             } else {
                 value.append(`guard`)
@@ -32,10 +34,10 @@ public struct GuardContextKey: ContextKey {
 
 public struct GuardModifier<C: Component>: Modifier {
     let component: C
-    let `guard`: Guard
+    let `guard`: LazyGuard
     
     
-    init(_ component: C, guard: Guard) {
+    init(_ component: C, guard: @escaping @autoclosure LazyGuard) {
         self.component = component
         self.guard = `guard`
     }
@@ -47,7 +49,7 @@ public struct GuardModifier<C: Component>: Modifier {
     }
     
     public func handle(_ request: Request) -> EventLoopFuture<C.Response> {
-        `guard`.checkInContext(of: request)
+        `guard`().checkInContext(of: request)
             .flatMap {
                 component.handleInContext(of: request)
             }
@@ -56,8 +58,8 @@ public struct GuardModifier<C: Component>: Modifier {
 
 
 extension Component {
-    public func `guard`(_ guard: Guard) -> GuardModifier<Self> {
-        GuardModifier(self, guard: `guard`)
+    public func `guard`(_ guard: @escaping @autoclosure () -> (Guard)) -> GuardModifier<Self> {
+        GuardModifier(self, guard: `guard`())
     }
     
     public func resetGuards() -> GuardModifier<Self> {

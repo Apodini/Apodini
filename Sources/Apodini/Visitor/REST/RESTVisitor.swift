@@ -5,10 +5,10 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-import Apodini
+import Vapor
 
 
-public class RESTVisitor: Visitor {
+class RESTVisitor: Visitor {
     struct RESTPathBuilder: PathBuilder {
         var pathDescription: String = ""
         
@@ -21,8 +21,8 @@ public class RESTVisitor: Visitor {
         }
     }
     
-    public override init() {
-        super.init()
+    override init(_ app: Application) {
+        super.init(app)
     }
     
     public override func register<C>(component: C) where C: Component {

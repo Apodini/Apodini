@@ -8,7 +8,7 @@
 import NIO
 
 
-public protocol Model {
+public protocol Model: Identifiable where ID: LosslessStringConvertible {
     static var tableName: String { get }
 }
 

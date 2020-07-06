@@ -14,13 +14,14 @@ final class CustomComponentTests: XCTestCase {
     struct Bird: Model, Equatable, Codable {
         static var tableName: String = "Birds"
         
+        let id: Int
         let name: String
         let age: Int
     }
     
     class BirdDatabase: Database {
         var birds: [Bird] = [
-            Bird(name: "Swift", age: 5)
+            Bird(id: 1, name: "Swift", age: 5)
         ]
         
         func store<M>(_ model: M, on eventLoop: EventLoop) -> EventLoopFuture<M> where M : Model {
@@ -60,7 +61,7 @@ final class CustomComponentTests: XCTestCase {
     
     
     func testComponentCreation() throws {
-        let bird = Bird(name: "New", age: 0)
+        let bird = Bird(id: 2, name: "New", age: 0)
         let birdData = ByteBuffer(data: try JSONEncoder().encode(bird))
         
         let request = Request(body: birdData, context: context)
