@@ -51,7 +51,7 @@ public struct GuardModifier<C: Component>: Modifier {
     public func handle(_ request: Request) -> EventLoopFuture<C.Response> {
         `guard`().checkInContext(of: request)
             .flatMap {
-                component.handleInContext(of: request)
+                self.component.handleInContext(of: request)
             }
     }
 }

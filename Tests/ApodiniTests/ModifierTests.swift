@@ -7,6 +7,7 @@
 
 import XCTest
 import NIO
+import Vapor
 @testable import Apodini
 
 
@@ -34,7 +35,7 @@ final class ModifierTests: XCTestCase {
     }
     
     func testResponseModifer() {
-        struct FirstTestResponseMediator: ResponseMediator {
+        struct FirstTestResponseMediator: Codable, Content, ResponseMediator {
             let text: String
             
             init(_ response: String) {
@@ -42,7 +43,7 @@ final class ModifierTests: XCTestCase {
             }
         }
         
-        struct SecondTestResponseMediator: ResponseMediator {
+        struct SecondTestResponseMediator: Codable, Content, ResponseMediator {
             let text: String
             
             init(_ response: FirstTestResponseMediator) {

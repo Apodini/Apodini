@@ -11,7 +11,7 @@ import Vapor
 
 
 final class VisitorTests: XCTestCase {
-    struct TestResponseMediator: ResponseMediator {
+    struct TestResponseMediator: Codable, Content, ResponseMediator {
         let text: String
         
         init(_ response: String) {

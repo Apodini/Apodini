@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-import NIO
+import Vapor
 
 
 public struct Text: Component, Visitable {

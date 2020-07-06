@@ -17,7 +17,7 @@ protocol Modifier: Component {
 
 
 extension Modifier {
-    public func handle(_ request: Request) -> EventLoopFuture<ModifiedComponent.Response> {
+    public func handle(_ request: Apodini.Request) -> EventLoopFuture<ModifiedComponent.Response> {
         component.handleInContext(of: request)
     }
 }

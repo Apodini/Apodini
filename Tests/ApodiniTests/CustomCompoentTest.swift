@@ -7,11 +7,12 @@
 
 import XCTest
 import NIO
+import Vapor
 @testable import Apodini
 
 
 final class CustomComponentTests: XCTestCase {
-    struct Bird: Model, Equatable, Codable {
+    struct Bird: Model, Equatable, Content {
         static var tableName: String = "Birds"
         
         let id: Int
@@ -47,7 +48,7 @@ final class CustomComponentTests: XCTestCase {
         var bird: Bird
         
         
-        func handle(_ request: Request) -> EventLoopFuture<[Bird]> {
+        func handle(_ request: Apodini.Request) -> EventLoopFuture<[CustomComponentTests.Bird]> {
             database.store(bird, on: request.eventLoop)
                 .flatMap { _ in
                     database.fetch(on: request.eventLoop)

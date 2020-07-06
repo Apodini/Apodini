@@ -6,15 +6,16 @@
 //
 
 import NIO
+import Vapor
 
 
 public protocol Component: Visitable {
-    associatedtype Content: Component
-    associatedtype Response: Codable
+    associatedtype Content: Component = Never
+    associatedtype Response: ResponseEncodable = Never
     
-    var content: Content { get }
+    var content: Self.Content { get }
     
-    func handle(_ request: Request) -> EventLoopFuture<Response>
+    func handle(_ request: Apodini.Request) -> EventLoopFuture<Self.Response>
 }
 
 
@@ -22,7 +23,7 @@ public protocol ComponentCollection: Component { }
 
 
 extension Component {
-    func handleInContext(of request: Request) -> EventLoopFuture<Response> {
+    func handleInContext(of request: Apodini.Request) -> EventLoopFuture<Self.Response> {
         request.enterRequestContext(with: self) { component in
             component.handle(request)
         }

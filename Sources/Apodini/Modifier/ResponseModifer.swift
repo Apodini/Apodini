@@ -6,9 +6,10 @@
 //
 
 import NIO
+import Vapor
 
 
-public protocol ResponseMediator: Codable {
+public protocol ResponseMediator: ResponseEncodable {
     associatedtype Response
     
     
@@ -17,9 +18,9 @@ public protocol ResponseMediator: Codable {
 
 
 public struct ResponseContextKey: ContextKey {
-    public static var defaultValue: Codable.Type = Never.self
+    public static var defaultValue: ResponseEncodable.Type = Never.self
     
-    public static func reduce(value: inout Codable.Type, nextValue: () -> Codable.Type) {
+    public static func reduce(value: inout ResponseEncodable.Type, nextValue: () -> ResponseEncodable.Type) {
         value = nextValue()
     }
 }

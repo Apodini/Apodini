@@ -6,43 +6,43 @@
 //
 
 import NIO
+import Vapor
 
 
 extension Never: Component {
-    public var content: Never {
+    public typealias Content = Never
+    public typealias Response = Never
+    
+    public var content: Self.Content {
         fatalError("Never Type has no body")
     }
     
     
-    public func handle(_ request: Request) -> EventLoopFuture<Never> {
-        request.eventLoop.makeFailedFuture(HTTPError.notImplemented)
+    public func handle(_ request: Request) -> EventLoopFuture<Self.Response> {
+        fatalError("Never should never be handled")
     }
     
     public func visit<V>(_ visitor: inout V) where V: Visitor { }
 }
 
 
-extension Never: Codable {
-    public init(from decoder: Decoder) throws {
-        fatalError("Never should never be decoded")
-    }
-    
-    public func encode(to encoder: Encoder) throws {
+extension Never: ResponseEncodable {
+    public func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         fatalError("Never should never be encoded")
     }
 }
 
 
-extension Component where Content == Never {
-    public var content: Never {
+extension Component where Self.Content == Never {
+    public var content: Content {
         fatalError("\(type(of: self)) has no body")
     }
 }
 
 
-extension Component where Response == Never {
-    public func handle(_ request: Request) -> EventLoopFuture<Never> {
-        request.eventLoop.makeFailedFuture(HTTPError.notImplemented)
+extension Component where Self.Response == Never {
+    public func handle(_ request: Apodini.Request) -> EventLoopFuture<Self.Response> {
+        fatalError("Never should never be handled")
     }
 }
 

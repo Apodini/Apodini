@@ -6,6 +6,8 @@
 //
 
 import NIO
+import Vapor
+
 
 protocol RequestInjectable {
     func inject(using request: Request) throws
@@ -35,7 +37,7 @@ public struct Request {
         self.context = context
     }
     
-    func enterRequestContext<E, T>(with element: E, executing method: (E) -> EventLoopFuture<T>) -> EventLoopFuture<T> {
+    func enterRequestContext<E, R>(with element: E, executing method: (E) -> R) -> R {
         let viewMirror = Mirror(reflecting: element)
         
         defer {
@@ -52,7 +54,7 @@ public struct Request {
                 do {
                     try anyCurrentDatabase.inject(using: self)
                 } catch {
-                    return context.eventLoop.makeFailedFuture(error)
+                    fatalError("Could not inject a value into a \(child.label ?? "UNKNOWN") property wrapper.")
                 }
             }
         }

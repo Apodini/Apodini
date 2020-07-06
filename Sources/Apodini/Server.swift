@@ -15,7 +15,7 @@ public protocol Server: ComponentCollection {
 }
 
 
-extension Server {
+extension Server {    
     public static func main() {
         do {
             var env = try Environment.detect()
@@ -50,7 +50,7 @@ extension Server {
     }
     
     public var version: Version {
-        Version(prefix: "api", major: 1)
+        Version()
     }
     
     

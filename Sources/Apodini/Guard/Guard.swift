@@ -6,6 +6,7 @@
 //
 
 import NIO
+import Vapor
 
 
 public protocol Guard {

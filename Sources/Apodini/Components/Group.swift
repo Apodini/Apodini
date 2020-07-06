@@ -5,10 +5,10 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-public struct PathComponentContextKey: ContextKey {
-    public static var defaultValue: [PathComponent] = []
+struct PathComponentContextKey: ContextKey {
+    static var defaultValue: [PathComponent] = []
     
-    public static func reduce(value: inout [PathComponent], nextValue: () -> [PathComponent]) {
+    static func reduce(value: inout [PathComponent], nextValue: () -> [PathComponent]) {
         value.append(contentsOf: nextValue())
     }
 }
