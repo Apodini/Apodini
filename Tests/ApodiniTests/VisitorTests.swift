@@ -19,12 +19,8 @@ final class VisitorTests: XCTestCase {
         }
     }
     
-    
-    var app: Application!
-    
-    
-    var api: some Component {
-        API {
+    struct TestServer: Apodini.Server {
+        @ComponentBuilder var content: some Component {
             Group("Test") {
                 Text("Hallo Bernd")
                     .httpType(.put)
@@ -42,6 +38,9 @@ final class VisitorTests: XCTestCase {
         }
     }
     
+    var app: Application!
+    
+    
     override func setUp() {
         app = Application(.testing)
     }
@@ -52,26 +51,26 @@ final class VisitorTests: XCTestCase {
     
     func testPrintVisitor() {
         var printVisitor = PrintVisitor()
-        api.visit(&printVisitor)
+        TestServer().visit(&printVisitor)
     }
     
     func testRESTVisitor() {
         var restVisitor = RESTVisitor(app)
-        api.visit(&restVisitor)
+        TestServer().visit(&restVisitor)
     }
     
     func testGraphQLVisitor() {
         var graphQLVisitor = GraphQLVisitor(app)
-        api.visit(&graphQLVisitor)
+        TestServer().visit(&graphQLVisitor)
     }
     
     func testGRPCVisitor() {
         var gRPCVisitor = GRPCVisitor(app)
-        api.visit(&gRPCVisitor)
+        TestServer().visit(&gRPCVisitor)
     }
     
     func testWebSocketVisitor() {
         var webSocketVisitor = WebSocketVisitor(app)
-        api.visit(&webSocketVisitor)
+        TestServer().visit(&webSocketVisitor)
     }
 }

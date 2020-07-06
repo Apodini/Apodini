@@ -41,7 +41,7 @@ class RESTVisitor: Visitor {
                 return C.Response.self
             }
         }()
-        
+
         print("\(restPathBuilder.pathDescription) \(httpType.description) -> \(returnType)")
         
         super.finishedRegisteringContext()

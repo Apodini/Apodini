@@ -43,24 +43,3 @@ public struct APIVersionContextKey: ContextKey {
         value = nextValue()
     }
 }
-
-public class API<Content: Component>: ComponentCollection {
-    let version: Version
-    public let content: Content
-    
-    
-    public init(majorVersionNumber: UInt = 1,
-                @ComponentBuilder content: () -> Content) {
-        self.version = Version(major: majorVersionNumber)
-        self.content = content()
-    }
-    
-    
-    public func visit<V>(_ visitor: inout V) where V : Visitor {
-        visitor.enter(collection: self)
-        visitor.addContext(APIVersionContextKey.self, value: version, scope: .environment)
-        visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
-        content.visit(&visitor)
-        visitor.exit(collection: self)
-    }
-}

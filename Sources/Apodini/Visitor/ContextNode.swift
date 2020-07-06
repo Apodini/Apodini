@@ -32,18 +32,14 @@ class ContextNode {
     }
     
     private func getGlobalContextValue<C: ContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
-        if let localContextValue = context[ObjectIdentifier(contextKey)] as? C.Value {
-            return localContextValue
-        }
-        
-        return nodeLink?.getGlobalContextValue(for: contextKey)
+        getNodeContextValue(for: contextKey) ?? nodeLink?.getGlobalContextValue(for: contextKey)
     }
     
     func addContext<C: ContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
         var newValue: C.Value
         
         if let currentLocalValue = getNodeOnlyContextValue(for: C.self) ?? getNodeContextValue(for: C.self) {
-            // Already existing values in the ContextNode have a higher priprity as the modifier for a
+            // Already existing values in the ContextNode have a higher priority as the modifier for a
             // Component are parsed in a reverse order:
             //
             // Component()
