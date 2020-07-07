@@ -23,7 +23,7 @@ jobs:
       run: swift test
   linux:
     container:
-      image: swift:nightly-5.3
+      image: swiftlang/swift:nightly-5.3
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
