@@ -11,6 +11,8 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Xcode 12.0
+      run: sudo xcode-select -s /Applications/Xcode_12_beta.app/Contents/Developer
     - name: Xcode version check
       run: xcodebuild -version
     - name: Check Swift version
@@ -21,11 +23,11 @@ jobs:
       run: swift test
   linux:
     container:
-      image: swift:${{ matrix.linux }}
+      image: swift:nightly-5.3-${{ matrix.linux }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        linux: [latest, xenial, focal, amazonlinux2, centos8]
+        linux: [bionic, xenial]
     steps:
     - uses: actions/checkout@v2
     - name: Check Swift version
