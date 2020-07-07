@@ -29,7 +29,7 @@ public class Body<Element: Codable>: RequestInjectable {
     
     func inject(using request: Request) throws {
         guard let byteBuffer = request.body.data, let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
-            throw HTTPError.internalServerError(reason: "Could not read the HTTP request's body")
+            throw Vapor.Abort(.internalServerError, reason: "Could not read the HTTP request's body")
         }
         
         element = try JSONDecoder().decode(Element.self, from: data)
