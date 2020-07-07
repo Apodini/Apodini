@@ -6,6 +6,7 @@
 //
 
 import NIOFoundationCompat
+import Vapor
 import Foundation
 
 
@@ -27,7 +28,7 @@ public class Body<Element: Codable>: RequestInjectable {
     
     
     func inject(using request: Request) throws {
-        guard let data = request.body.getData(at: request.body.readerIndex, length: request.body.readableBytes) else {
+        guard let byteBuffer = request.body.data, let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
             throw HTTPError.internalServerError(reason: "Could not read the HTTP request's body")
         }
         

@@ -7,4 +7,4 @@
 
 import Foundation
 
-// An @Configuration(\.httpType) Property wrapper that allows access to the configured modifier that are applied to the Component within a component.
+// An @Configuration(\.httpMethod) Property wrapper that allows access to the configured modifier that are applied to the Component within a component.

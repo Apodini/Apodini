@@ -5,11 +5,11 @@
 //  Created by Paul Schmiedmayer on 6/27/20.
 //
 
-import NIO
+import Vapor
 
 
 private struct ResetGuard: Guard {
-    public func check(_ request: Request) -> EventLoopFuture<Void> {
+    public func check(_ request: Vapor.Request) -> EventLoopFuture<Void> {
         fatalError("The ResetGuard is used to reset the Guards for a Component and should never be called")
     }
 }

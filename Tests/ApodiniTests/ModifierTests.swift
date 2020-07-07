@@ -16,18 +16,18 @@ final class ModifierTests: XCTestCase {
         var component: some Component {
             Group {
                 Text("Post")
-                    .httpType(.get)
-                    .httpType(.post)
+                    .httpMethod(.GET)
+                    .httpMethod(.POST)
                 Group {
                     Text("Put")
-                        .httpType(.delete)
-                        .httpType(.put)
+                        .httpMethod(.DELETE)
+                        .httpMethod(.PUT)
                     Text("Delete")
                     Text("Post")
-                        .httpType(.get)
-                        .httpType(.post)
-                }.httpType(.delete)
-            }.httpType(.put)
+                        .httpMethod(.GET)
+                        .httpMethod(.POST)
+                }.httpMethod(.DELETE)
+            }.httpMethod(.PUT)
         }
         
         var printVisitor = PrintVisitor()

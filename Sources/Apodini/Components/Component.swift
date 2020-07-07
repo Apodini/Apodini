@@ -15,7 +15,7 @@ public protocol Component: Visitable {
     
     var content: Self.Content { get }
     
-    func handle(_ request: Apodini.Request) -> EventLoopFuture<Self.Response>
+    func handle(_ request: Vapor.Request) -> EventLoopFuture<Self.Response>
 }
 
 
@@ -23,7 +23,7 @@ public protocol ComponentCollection: Component { }
 
 
 extension Component {
-    func handleInContext(of request: Apodini.Request) -> EventLoopFuture<Self.Response> {
+    func handleInContext(of request: Vapor.Request) -> EventLoopFuture<Self.Response> {
         request.enterRequestContext(with: self) { component in
             component.handle(request)
         }

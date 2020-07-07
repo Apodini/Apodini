@@ -6,25 +6,16 @@
 //
 
 import NIO
-
-
-public protocol Model: Identifiable where ID: LosslessStringConvertible {
-    static var tableName: String { get }
-}
-
-
-public protocol Database: AnyObject {
-    func store<M: Model>(_ model: M, on eventLoop: EventLoop) -> EventLoopFuture<M>
-    func fetch<M: Model>(on eventLoop: EventLoop) -> EventLoopFuture<[M]>
-}
+import Vapor
+import Fluent
 
 
 @propertyWrapper
-public class CurrentDatabase<D: Database>: RequestInjectable {
-    private var database: D?
+public class CurrentDatabase: RequestInjectable {
+    private var database: Fluent.Database?
     
     
-    public var wrappedValue: D {
+    public var wrappedValue: Fluent.Database {
         guard let database = database else {
             fatalError("You can only access the database while you handle a request")
         }
@@ -36,12 +27,8 @@ public class CurrentDatabase<D: Database>: RequestInjectable {
     public init() { }
     
     
-    func inject(using request: Request) throws {
-        guard let database = request.context.database as? D else {
-            throw HTTPError.internalServerError(reason: "Expected a database with the type of \(D.self)")
-        }
-        
-        self.database = database
+    func inject(using request: Vapor.Request) throws {
+        self.database = request.db
     }
     
     func disconnect() {

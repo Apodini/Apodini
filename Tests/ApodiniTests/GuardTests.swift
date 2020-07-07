@@ -6,13 +6,13 @@
 //
 
 import XCTest
-import NIO
+import Vapor
 @testable import Apodini
 
 
 final class GuardTests: XCTestCase {
     struct TestGuard: Guard {
-        func check(_ request: Request) -> EventLoopFuture<Void> {
+        func check(_ request: Vapor.Request) -> EventLoopFuture<Void> {
             print("Execute Guard")
             return request.eventLoop.makeSucceededFuture(Void())
         }
@@ -21,9 +21,9 @@ final class GuardTests: XCTestCase {
     
     var component: some Component {
         Text("Hallo")
-            .httpType(.get)
+            .httpMethod(.GET)
             .guard(TestGuard())
-            .httpType(.post)
+            .httpMethod(.POST)
     }
     
     func testPrintComponent() {

@@ -8,71 +8,57 @@
 import XCTest
 import NIO
 import Vapor
+import Fluent
 @testable import Apodini
 
 
 final class CustomComponentTests: XCTestCase {
-    struct Bird: Model, Equatable, Content {
-        static var tableName: String = "Birds"
+    final class Bird: Model, Content {
+        static var schema: String = "Birds"
         
-        let id: Int
-        let name: String
-        let age: Int
-    }
-    
-    class BirdDatabase: Database {
-        var birds: [Bird] = [
-            Bird(id: 1, name: "Swift", age: 5)
-        ]
+        @ID
+        var id: UUID?
+        @Field(key: "name")
+        var name: String
+        @Field(key: "age")
+        var age: Int
         
-        func store<M>(_ model: M, on eventLoop: EventLoop) -> EventLoopFuture<M> where M : Model {
-            guard let model = model as? Bird else {
-                fatalError("Sorry, the BirdDatabase can only store Birds 🦅")
-            }
-            
-            birds.append(model)
-            return eventLoop.makeSucceededFuture(model as! M)
+        
+        init(name: String, age: Int) {
+            self.id = nil
+            self.name = name
+            self.age = age
         }
         
-        func fetch<M>(on eventLoop: EventLoop) -> EventLoopFuture<[M]> where M: Model {
-            precondition(M.self is Bird.Type, "Sorry, the BirdDatabase can only fetch Birds 🦅")
-            return eventLoop.makeSucceededFuture(birds as! Array<M>)
-        }
+        init() {}
     }
 
     struct AddBirdsComponent: Component {
         @CurrentDatabase
-        var database: BirdDatabase
+        var database: Fluent.Database
         
         @Body
         var bird: Bird
         
         
-        func handle(_ request: Apodini.Request) -> EventLoopFuture<[CustomComponentTests.Bird]> {
-            database.store(bird, on: request.eventLoop)
+        func handle(_ request: Vapor.Request) -> EventLoopFuture<[CustomComponentTests.Bird]> {
+            Bird.query(on: database)
+                .all()
                 .flatMap { _ in
-                    database.fetch(on: request.eventLoop)
+                    Bird.query(on: database)
+                        .all()
                 }
         }
     }
     
-    
-    var context = Context(database: BirdDatabase(),
-                          eventLoop: EmbeddedEventLoop())
+    var app: Application!
     
     
-    func testComponentCreation() throws {
-        let bird = Bird(id: 2, name: "New", age: 0)
-        let birdData = ByteBuffer(data: try JSONEncoder().encode(bird))
-        
-        let request = Request(body: birdData, context: context)
-        
-        let addBirdsComponent = AddBirdsComponent()
-        let birds = try addBirdsComponent
-            .handleInContext(of: request)
-            .wait()
-            
-        XCTAssert(birds.count == 2)
-        XCTAssert(birds[1] == bird)
+    override func setUp() {
+        app = Application(.testing)
+    }
+    
+    override func tearDown() {
+        app.shutdown()
     }
 }

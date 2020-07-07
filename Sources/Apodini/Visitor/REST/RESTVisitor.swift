@@ -49,7 +49,7 @@ class RESTVisitor: Visitor {
             }
         }()
 
-        print("\(restPathBuilder.pathDescription) \(httpType.description) -> \(returnType)")
+        print("\(restPathBuilder.pathDescription) \(httpType.rawValue) -> \(returnType)")
         
         let routesBuilder = restPathBuilder.pathComponents.reduce(app.routes.grouped([])) { routesBuilder, pathComponent in
             routesBuilder.grouped(pathComponent)

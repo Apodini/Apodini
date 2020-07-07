@@ -23,13 +23,13 @@ final class VisitorTests: XCTestCase {
         @ComponentBuilder var content: some Component {
             Group("Test") {
                 Text("Hallo Bernd")
-                    .httpType(.put)
+                    .httpMethod(.PUT)
                     .response(TestResponseMediator.self)
             }
             Group("Greetings") {
                 Group("Human") {
                     Text("👋")
-                        .httpType(.get)
+                        .httpMethod(.GET)
                 }
                 Group("Plant") {
                     Text("🍀")
