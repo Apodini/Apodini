@@ -27,15 +27,15 @@ let package = Package(
         .testTarget(
             name: "ApodiniTests",
             dependencies: [
-                .target(name: "Apodini")
+                .target(name: "Apodini"),
+                .product(name: "XCTVapor", package: "vapor"),
+                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver")
             ]
         ),
         .target(
             name: "TestServer",
             dependencies: [
-                .target(name: "Apodini"),
-                .product(name: "XCTVapor", package: "vapor"),
-                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver")
+                .target(name: "Apodini")
             ]
         )
     ]

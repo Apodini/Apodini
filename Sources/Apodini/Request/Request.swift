@@ -16,16 +16,8 @@ protocol RequestInjectable {
 
 
 extension Vapor.Request {
-    func enterRequestContext<E, R>(with element: E, executing method: (E) -> R) -> R {
+    func enterRequestContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>) -> EventLoopFuture<R> {
         let viewMirror = Mirror(reflecting: element)
-        
-        defer {
-            for child in viewMirror.children {
-                if let requestInjectable = child.value as? RequestInjectable {
-                    requestInjectable.disconnect()
-                }
-            }
-        }
         
         // Inject all properties that can be injected using RequestInjectable
         for child in viewMirror.children {
@@ -39,5 +31,14 @@ extension Vapor.Request {
         }
         
         return method(element)
+            .map { response in
+                for child in viewMirror.children {
+                    if let requestInjectable = child.value as? RequestInjectable {
+                        requestInjectable.disconnect()
+                    }
+                }
+                
+                return response
+            }
     }
 }

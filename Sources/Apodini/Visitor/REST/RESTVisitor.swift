@@ -56,7 +56,7 @@ class RESTVisitor: Visitor {
         }
         
         routesBuilder.on(HTTPMethod.init(rawValue: httpType.rawValue), []) { request in
-            ""
+            component.handleInContext(of: request)
         }
         
         super.finishedRegisteringContext()
