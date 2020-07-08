@@ -15,20 +15,22 @@ public protocol Component: Visitable {
     
     var content: Self.Content { get }
     
-    func handle(_ request: Vapor.Request) -> EventLoopFuture<Self.Response>
+    func handle() -> EventLoopFuture<Self.Response>
+    
+    func handleInContext(of request: Vapor.Request) -> EventLoopFuture<Self.Response>
+}
+
+
+extension Component {
+    public func handleInContext(of request: Vapor.Request) -> EventLoopFuture<Self.Response> {
+        request.enterRequestContext(with: self) { component in
+            component.handle()
+        }
+    }
 }
 
 
 public protocol ComponentCollection: Component { }
-
-
-extension Component {
-    func handleInContext(of request: Vapor.Request) -> EventLoopFuture<Self.Response> {
-        request.enterRequestContext(with: self) { component in
-            component.handle(request)
-        }
-    }
-}
 
 
 extension Component where Content: Visitable {

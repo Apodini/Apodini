@@ -9,6 +9,8 @@ import Vapor
 
 
 public struct Text: Component, Visitable {
+    public typealias Response = String
+    
     private let text: String
     
     
@@ -16,9 +18,8 @@ public struct Text: Component, Visitable {
         self.text = text
     }
     
-    
-    public func handle(_ request: Request) -> EventLoopFuture<String> {
-        request.eventLoop.makeSucceededFuture(text)
+    public func handle() -> EventLoopFuture<String> {
+        fatalError("Not implemented")
     }
     
     public func visit<V>(_ visitor: inout V) where V : Visitor {

@@ -21,7 +21,7 @@ final class CustomComponentTests: ApodiniTests {
         var bird: Bird
         
         
-        func handle(_ request: Vapor.Request) -> EventLoopFuture<[Bird]> {
+        func handle() -> EventLoopFuture<[Bird]> {
             bird.save(on: database)
                 .flatMap { _ in
                     Bird.query(on: database)

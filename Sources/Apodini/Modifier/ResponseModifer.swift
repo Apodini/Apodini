@@ -13,7 +13,7 @@ public protocol ResponseMediator: ResponseEncodable {
     associatedtype Response
     
     
-    init(_ response: Response)
+    init(_ response: Self.Response)
 }
 
 
@@ -41,14 +41,17 @@ public struct ResponseModifier<C: Component, M: ResponseMediator>: Modifier wher
         component.visit(&visitor)
     }
     
-    public func handle(_ request: Request) -> EventLoopFuture<M> {
+    public func handle() -> EventLoopFuture<M> {
+        fatalError("The handle method of a Modifier should never be directly called. Call `handleInContext(of request: Request)` instead.")
+    }
+    
+    public func handleInContext(of request: Request) -> EventLoopFuture<M> {
         component.handleInContext(of: request)
             .map { response in
                 M(response)
             }
     }
 }
-
 
 extension Component {
     public func response<M: ResponseMediator>(_ modifier: M.Type) -> ResponseModifier<Self, M> where Self.Response == M.Response {

@@ -18,7 +18,11 @@ extension Never: Component {
     }
     
     
-    public func handle(_ request: Vapor.Request) -> EventLoopFuture<Self.Response> {
+    public func handle() -> EventLoopFuture<Self.Response> {
+        fatalError("Never should never be handled")
+    }
+    
+    public func handleInContext(of request: Request) -> EventLoopFuture<Never> {
         fatalError("Never should never be handled")
     }
     
@@ -34,14 +38,14 @@ extension Never: ResponseEncodable {
 
 
 extension Component where Self.Content == Never {
-    public var content: Self.Content {
+    public var content: Never {
         fatalError("\(type(of: self)) has no body")
     }
 }
 
 
 extension Component where Self.Response == Never {
-    public func handle(_ request: Vapor.Request) -> EventLoopFuture<Self.Response> {
+    public func handle() -> EventLoopFuture<Never> {
         fatalError("Never should never be handled")
     }
 }
@@ -49,7 +53,6 @@ extension Component where Self.Response == Never {
 
 public struct EmptyComponent: Component {
     public init() {}
-    
     
     public func visit<V>(_ visitor: inout V) where V: Visitor { }
 }
