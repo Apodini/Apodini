@@ -38,11 +38,13 @@ final class CustomComponentTests: ApodiniTests {
         let request = Request(application: app, collectedBody: birdData, on: app.eventLoopGroup.next())
         
         let addBirdsComponent = AddBirdsComponent()
-        let birds = try addBirdsComponent
+        let response = try addBirdsComponent
             .handleInContext(of: request)
             .wait()
-            
-        XCTAssert(birds.count == 3)
-        XCTAssert(birds[2] == bird)
+        
+        let responseData = try XCTUnwrap(response.body.data)
+        let responseBirds = try JSONDecoder().decode([Bird].self, from: responseData)
+        XCTAssert(responseBirds.count == 3)
+        XCTAssert(responseBirds[2] == bird)
     }
 }

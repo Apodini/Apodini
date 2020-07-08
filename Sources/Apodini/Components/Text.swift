@@ -16,7 +16,7 @@ public struct Text: _Component {
         self.text = text
     }
     
-    public func handle() -> EventLoopFuture<String> {
-        fatalError("Not implemented")
+    public func handle() -> String {
+        text
     }
 }

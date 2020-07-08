@@ -43,16 +43,16 @@ public struct ResponseModifier<C: Component, M: ResponseMediator>: _Modifier whe
         }
     }
     
-    public func handle() -> EventLoopFuture<M> {
+    public func handle() -> M {
         fatalError("The handle method of a Modifier should never be directly called. Call `handleInContext(of request: Request)` instead.")
     }
     
-    func handleInContext(of request: Request) -> EventLoopFuture<M> {
-        component.handleInContext(of: request)
-            .map { response in
-                M(response)
-            }
-    }
+//    func handleInContext(of request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+//        component.handleInContext(of: request)
+//            .map { response in
+//                M(response)
+//            }
+//    }
 }
 
 extension Component {

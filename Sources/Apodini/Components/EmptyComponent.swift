@@ -18,7 +18,7 @@ extension Never: Component {
     }
     
     
-    public func handle() -> EventLoopFuture<Self.Response> {
+    public func handle() -> Self.Response {
         fatalError("Never should never be handled")
     }
 }
@@ -39,7 +39,7 @@ extension Component where Self.Content == Never {
 
 
 extension Component where Self.Response == Never {
-    public func handle() -> EventLoopFuture<Never> {
+    public func handle() -> Never {
         fatalError("Never should never be handled")
     }
 }

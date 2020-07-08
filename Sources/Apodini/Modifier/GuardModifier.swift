@@ -52,11 +52,11 @@ public struct GuardModifier<C: Component>: _Modifier {
         }
     }
     
-    public func handle() -> EventLoopFuture<C.Response> {
-        fatalError()
+    public func handle() -> C.Response {
+        fatalError("The handle method of a Modifier should never be directly called. Call `handleInContext(of request: Request)` instead.")
     }
     
-    func handleInContext(of request: Request) -> EventLoopFuture<C.Response> {
+    func handleInContext(of request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         `guard`().checkInContext(of: request)
             .flatMap {
                 component.handleInContext(of: request)
