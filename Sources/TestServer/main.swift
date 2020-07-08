@@ -9,7 +9,7 @@ import Apodini
 
 
 struct TestServer: Server {    
-    @ComponentBuilder var content: some Component {
+    var content: some Component {
         Text("Hallo World! 👋")
         Group("swift") {
             Text("Hallo Swift! 💻")

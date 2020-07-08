@@ -56,7 +56,7 @@ public struct GuardModifier<C: Component>: _Modifier {
         fatalError()
     }
     
-    public func handleInContext(of request: Request) -> EventLoopFuture<C.Response> {
+    func handleInContext(of request: Request) -> EventLoopFuture<C.Response> {
         `guard`().checkInContext(of: request)
             .flatMap {
                 component.handleInContext(of: request)

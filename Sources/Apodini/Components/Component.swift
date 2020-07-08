@@ -16,8 +16,6 @@ public protocol Component {
     @ComponentBuilder var content: Self.Content { get }
     
     func handle() -> EventLoopFuture<Self.Response>
-    
-    func handleInContext(of request: Vapor.Request) -> EventLoopFuture<Self.Response>
 }
 
 extension Component where Self.Content: Visitable {
@@ -27,7 +25,7 @@ extension Component where Self.Content: Visitable {
 }
 
 extension Component {
-    public func handleInContext(of request: Vapor.Request) -> EventLoopFuture<Self.Response> {
+    func handleInContext(of request: Vapor.Request) -> EventLoopFuture<Self.Response> {
         request.enterRequestContext(with: self) { component in
             component.handle()
         }
