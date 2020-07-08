@@ -19,7 +19,7 @@ protocol Visitable {
 }
 
 
-public class Visitor {
+class Visitor {
     private(set) var currentNode: ContextNode = ContextNode()
     private(set) var app: Application
     

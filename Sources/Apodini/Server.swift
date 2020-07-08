@@ -54,7 +54,7 @@ extension Server {
     }
     
     
-    public func visit<V>(_ visitor: inout V) where V : Visitor {
+    func visit<V>(_ visitor: inout V) where V : Visitor {
         visitor.enter(collection: self)
         visitor.addContext(APIVersionContextKey.self, value: version, scope: .environment)
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)

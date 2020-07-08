@@ -26,7 +26,7 @@ public struct Group<Content: Component>: _ComponentCollection {
     }
     
     
-    public func visit<V>(_ visitor: inout V) where V: Visitor {
+    func visit<V>(_ visitor: inout V) where V: Visitor {
         visitor.enter(collection: self)
         visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)
         if let visitableContent = content as? Visitable {

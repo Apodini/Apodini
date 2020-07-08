@@ -45,7 +45,7 @@ public struct GuardModifier<C: Component>: _Modifier {
     }
     
     
-    public func visit<V>(_ visitor: inout V) where V : Visitor {
+    func visit<V>(_ visitor: inout V) where V : Visitor {
         visitor.addContext(GuardContextKey.self, value: [`guard`], scope: .environment)
         if let visitableComponent = component as? Visitable {
             visitableComponent.visit(&visitor)

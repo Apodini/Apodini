@@ -15,7 +15,7 @@ public struct TupleComponent<T>: _Component {
     }
     
     
-    public func visit<V>(_ visitor: inout V) where V: Visitor {
+    func visit<V>(_ visitor: inout V) where V: Visitor {
         for child in Mirror(reflecting: tuple).children {
             guard let visitableComponent = child.value as? Visitable else {
                 fatalError("TupleComponent must contain a tuple of Components")

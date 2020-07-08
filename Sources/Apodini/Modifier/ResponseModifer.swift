@@ -36,7 +36,7 @@ public struct ResponseModifier<C: Component, M: ResponseMediator>: _Modifier whe
     }
     
     
-    public func visit<V>(_ visitor: inout V) where V : Visitor {
+    func visit<V>(_ visitor: inout V) where V : Visitor {
         visitor.addContext(ResponseContextKey.self, value: M.self, scope: .nextComponent)
         if let visitableComponent = component as? Visitable {
             visitableComponent.visit(&visitor)

@@ -26,7 +26,7 @@ public struct HTTPMethodModifier<ModifiedComponent: Component>: _Modifier {
     }
     
     
-    public func visit<V>(_ visitor: inout V) where V : Visitor {
+    func visit<V>(_ visitor: inout V) where V : Visitor {
         visitor.addContext(HTTPMethodContextKey.self, value: httpMethod, scope: .environment)
         if let visitableComponent = component as? Visitable {
             visitableComponent.visit(&visitor)
