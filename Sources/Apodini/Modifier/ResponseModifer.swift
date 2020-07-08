@@ -17,10 +17,10 @@ public protocol ResponseMediator: ResponseEncodable {
 }
 
 
-public struct ResponseContextKey: ContextKey {
-    public static var defaultValue: ResponseEncodable.Type = Never.self
+struct ResponseContextKey: ContextKey {
+    static var defaultValue: ResponseEncodable.Type = Never.self
     
-    public static func reduce(value: inout ResponseEncodable.Type, nextValue: () -> ResponseEncodable.Type) {
+    static func reduce(value: inout ResponseEncodable.Type, nextValue: () -> ResponseEncodable.Type) {
         value = nextValue()
     }
 }

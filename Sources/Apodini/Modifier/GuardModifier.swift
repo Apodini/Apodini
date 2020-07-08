@@ -9,17 +9,17 @@ import Vapor
 
 
 private struct ResetGuard: Guard {
-    public func check(_ request: Vapor.Request) -> EventLoopFuture<Void> {
+    func check(_ request: Vapor.Request) -> EventLoopFuture<Void> {
         fatalError("The ResetGuard is used to reset the Guards for a Component and should never be called")
     }
 }
 
-public typealias LazyGuard = () -> (Guard)
+typealias LazyGuard = () -> (Guard)
 
-public struct GuardContextKey: ContextKey {
-    public static var defaultValue: [LazyGuard] = []
+struct GuardContextKey: ContextKey {
+    static var defaultValue: [LazyGuard] = []
     
-    public static func reduce(value: inout [LazyGuard], nextValue: () -> [LazyGuard]) {
+    static func reduce(value: inout [LazyGuard], nextValue: () -> [LazyGuard]) {
         let nextGuards = nextValue()
         for `guard` in nextGuards {
             if `guard`().self is ResetGuard {

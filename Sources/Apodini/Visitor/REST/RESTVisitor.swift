@@ -32,12 +32,14 @@ class RESTVisitor: Visitor {
         super.init(app)
     }
     
-    public override func register<C>(component: C) where C: Component {
+    override func register<C>(component: C) where C: Component {
         super.register(component: component)
         
         var restPathBuilder = RESTPathBuilder()
         for pathComponent in getContextValue(for: PathComponentContextKey.self) {
-            pathComponent.append(to: &restPathBuilder)
+            if let pathComponent = pathComponent as? _PathComponent {
+                pathComponent.append(to: &restPathBuilder)
+            }
         }
         let httpType = getContextValue(for: HTTPMethodContextKey.self)
         let returnType: ResponseEncodable.Type = {

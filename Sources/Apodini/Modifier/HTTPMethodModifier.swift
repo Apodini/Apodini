@@ -7,10 +7,10 @@
 
 import Vapor
 
-public struct HTTPMethodContextKey: ContextKey {
-    public static var defaultValue: Vapor.HTTPMethod = .GET
+struct HTTPMethodContextKey: ContextKey {
+    static var defaultValue: Vapor.HTTPMethod = .GET
     
-    public static func reduce(value: inout Vapor.HTTPMethod, nextValue: () -> Vapor.HTTPMethod) {
+    static func reduce(value: inout Vapor.HTTPMethod, nextValue: () -> Vapor.HTTPMethod) {
         value = nextValue()
     }
 }

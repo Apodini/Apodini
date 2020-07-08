@@ -9,8 +9,6 @@ import Vapor
 
 
 public struct Text: _Component {
-    public typealias Response = String
-    
     private let text: String
     
     

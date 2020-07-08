@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-public struct Version: PathComponent {
+public struct Version {
     public enum Defaults {
         public static let prefix: String = "v"
         public static let major: UInt = 1
@@ -29,17 +29,19 @@ public struct Version: PathComponent {
         self.minor = minor
         self.patch = patch
     }
-    
-    
-    public func append<P>(to pathBuilder: inout P) where P : PathBuilder {
+}
+
+
+extension Version: _PathComponent {
+    func append<P>(to pathBuilder: inout P) where P : PathBuilder {
         pathBuilder.append("\(prefix)\(major)")
     }
 }
 
-public struct APIVersionContextKey: ContextKey {
-    public static var defaultValue: Version = Version()
+struct APIVersionContextKey: ContextKey {
+    static var defaultValue: Version = Version()
     
-    public static func reduce(value: inout Version, nextValue: () -> Version) {
+    static func reduce(value: inout Version, nextValue: () -> Version) {
         value = nextValue()
     }
 }

@@ -21,8 +21,6 @@ extension Never: Component {
     public func handle() -> EventLoopFuture<Self.Response> {
         fatalError("Never should never be handled")
     }
-    
-    func visit<V>(_ visitor: inout V) where V: Visitor { }
 }
 
 

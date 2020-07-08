@@ -58,7 +58,7 @@ protocol _ComponentCollection: ComponentCollection, _Component { }
 
 
 extension _ComponentCollection {
-    public func visit<V>(_ visitor: inout V) where V: Visitor {
+    func visit<V>(_ visitor: inout V) where V: Visitor {
         visitor.enter(collection: self)
         if let visitableContent = content as? Visitable {
             visitableContent.visit(&visitor)

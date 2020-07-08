@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-public protocol ContextKey {
+protocol ContextKey {
     associatedtype Value
     
     static var defaultValue: Self.Value { get }
