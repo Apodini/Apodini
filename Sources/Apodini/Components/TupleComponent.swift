@@ -6,7 +6,7 @@
 //
 
 
-public struct TupleComponent<T>: Component, Visitable {
+public struct TupleComponent<T>: _Component {
     private let tuple: T
     
 

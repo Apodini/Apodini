@@ -22,10 +22,6 @@ extension Never: Component {
         fatalError("Never should never be handled")
     }
     
-    public func handleInContext(of request: Request) -> EventLoopFuture<Never> {
-        fatalError("Never should never be handled")
-    }
-    
     public func visit<V>(_ visitor: inout V) where V: Visitor { }
 }
 
@@ -51,7 +47,7 @@ extension Component where Self.Response == Never {
 }
 
 
-public struct EmptyComponent: Component {
+public struct EmptyComponent: _Component {
     public init() {}
     
     public func visit<V>(_ visitor: inout V) where V: Visitor { }

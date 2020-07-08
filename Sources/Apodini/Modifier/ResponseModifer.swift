@@ -26,7 +26,7 @@ public struct ResponseContextKey: ContextKey {
 }
 
 
-public struct ResponseModifier<C: Component, M: ResponseMediator>: Modifier where M.Response == C.Response {
+public struct ResponseModifier<C: Component, M: ResponseMediator>: _Modifier where M.Response == C.Response {
     let component: C
     let mediator = M.self
     
@@ -38,7 +38,9 @@ public struct ResponseModifier<C: Component, M: ResponseMediator>: Modifier wher
     
     public func visit<V>(_ visitor: inout V) where V : Visitor {
         visitor.addContext(ResponseContextKey.self, value: M.self, scope: .nextComponent)
-        component.visit(&visitor)
+        if let visitableComponent = component as? Visitable {
+            visitableComponent.visit(&visitor)
+        }
     }
     
     public func handle() -> EventLoopFuture<M> {

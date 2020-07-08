@@ -28,7 +28,9 @@ final class GuardTests: XCTestCase {
     
     func testPrintComponent() {
         var printVisitor = PrintVisitor()
-        component.visit(&printVisitor)
+        if let visitableComponent = component as? Visitable {
+            visitableComponent.visit(&printVisitor)
+        }
     }
 }
 

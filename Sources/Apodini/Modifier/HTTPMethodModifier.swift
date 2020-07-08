@@ -15,7 +15,7 @@ public struct HTTPMethodContextKey: ContextKey {
     }
 }
 
-public struct HTTPMethodModifier<ModifiedComponent: Component>: Modifier {
+public struct HTTPMethodModifier<ModifiedComponent: Component>: _Modifier {
     let component: ModifiedComponent
     let httpMethod: Vapor.HTTPMethod
     
@@ -28,7 +28,9 @@ public struct HTTPMethodModifier<ModifiedComponent: Component>: Modifier {
     
     public func visit<V>(_ visitor: inout V) where V : Visitor {
         visitor.addContext(HTTPMethodContextKey.self, value: httpMethod, scope: .environment)
-        component.visit(&visitor)
+        if let visitableComponent = component as? Visitable {
+            visitableComponent.visit(&visitor)
+        }
     }
 }
 

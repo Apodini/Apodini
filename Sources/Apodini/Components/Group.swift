@@ -14,7 +14,7 @@ struct PathComponentContextKey: ContextKey {
 }
 
 
-public struct Group<Content: Component>: ComponentCollection {
+public struct Group<Content: Component>: _ComponentCollection {
     private let pathComponents: [PathComponent]
     public let content: Content
     
@@ -29,7 +29,9 @@ public struct Group<Content: Component>: ComponentCollection {
     public func visit<V>(_ visitor: inout V) where V: Visitor {
         visitor.enter(collection: self)
         visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)
-        content.visit(&visitor)
+        if let visitableContent = content as? Visitable {
+            visitableContent.visit(&visitor)
+        }
         visitor.exit(collection: self)
     }
 }

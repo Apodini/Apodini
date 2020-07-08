@@ -32,7 +32,9 @@ public struct GuardContextKey: ContextKey {
 }
 
 
-public struct GuardModifier<C: Component>: Modifier {
+public struct GuardModifier<C: Component>: _Modifier {
+    public typealias Response = C.Response
+    
     let component: C
     let `guard`: LazyGuard
     
@@ -45,13 +47,19 @@ public struct GuardModifier<C: Component>: Modifier {
     
     public func visit<V>(_ visitor: inout V) where V : Visitor {
         visitor.addContext(GuardContextKey.self, value: [`guard`], scope: .environment)
-        component.visit(&visitor)
+        if let visitableComponent = component as? Visitable {
+            visitableComponent.visit(&visitor)
+        }
     }
     
-    public func handle(_ request: Request) -> EventLoopFuture<C.Response> {
+    public func handle() -> EventLoopFuture<C.Response> {
+        fatalError()
+    }
+    
+    public func handleInContext(of request: Request) -> EventLoopFuture<C.Response> {
         `guard`().checkInContext(of: request)
             .flatMap {
-                self.component.handleInContext(of: request)
+                component.handleInContext(of: request)
             }
     }
 }

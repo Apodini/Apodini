@@ -7,9 +7,15 @@
 
 import Vapor
 
+
 enum Scope {
     case nextComponent
     case environment
+}
+
+
+protocol Visitable {
+    func visit<V: Visitor>(_ visitor: inout V)
 }
 
 
@@ -46,9 +52,4 @@ public class Visitor {
             currentNode = parentNode
         }
     }
-}
-
-
-public protocol Visitable {
-    func visit<V: Visitor>(_ visitor: inout V)
 }
