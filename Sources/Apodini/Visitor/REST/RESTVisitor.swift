@@ -51,6 +51,8 @@ class RESTVisitor: Visitor {
             }
         }()
         
+        let guards = currentNode.getContextValue(for: GuardContextKey.self)
+        
         print("\(restPathBuilder.pathDescription) \(httpType.rawValue) -> \(returnType)")
         
         let routesBuilder = restPathBuilder.pathComponents.reduce(app.routes.grouped([])) { routesBuilder, pathComponent in
@@ -58,13 +60,20 @@ class RESTVisitor: Visitor {
         }
         
         routesBuilder.on(HTTPMethod.init(rawValue: httpType.rawValue), []) { request -> EventLoopFuture<Vapor.Response> in
-            request.enterRequestContext(with: component) { component in
-                var response: ResponseEncodable = component.handle()
-                for responseTransformer in responseTransformerTypes {
-                    response = responseTransformer().transform(response: response)
-                }
-                return response.encodeResponse(for: request)
+            let guardEventLoopFutures = guards.map { requestGuard in
+                requestGuard().check(request)
             }
+            return EventLoopFuture<Void>
+                .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
+                .flatMap { _ in
+                    request.enterRequestContext(with: component) { component in
+                        var response: ResponseEncodable = component.handle()
+                        for responseTransformer in responseTransformerTypes {
+                            response = responseTransformer().transform(response: response)
+                        }
+                        return response.encodeResponse(for: request)
+                    }
+                }
         }
         
         super.finishedRegisteringContext()

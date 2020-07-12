@@ -11,6 +11,19 @@ import NIO
 
 
 struct TestServer: Apodini.Server {
+    struct PrintGuard: Guard {
+        private let message: String?
+        
+        init(_ message: String? = nil) {
+            self.message = message
+        }
+        
+        func check(_ request: Vapor.Request) -> EventLoopFuture<Void> {
+            print(message ?? request)
+            return request.eventLoop.makeSucceededFuture(Void())
+        }
+    }
+    
     struct EmojiMediator: ResponseTransformer {
         private let emojis: String
         
@@ -30,10 +43,12 @@ struct TestServer: Apodini.Server {
         Text("Hallo World! 👋")
             .response(EmojiMediator(emojis: "🎉"))
             .response(EmojiMediator())
+            .guard(PrintGuard())
         Group("swift") {
             Text("Hallo Swift! 💻")
                 .response(EmojiMediator())
-        }
+                .guard(PrintGuard())
+        }.guard(PrintGuard("Someone is accessng Swift 😎!!"))
     }
 }
 
