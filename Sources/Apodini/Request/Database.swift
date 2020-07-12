@@ -11,7 +11,7 @@ import Fluent
 
 
 @propertyWrapper
-public class CurrentDatabase: RequestInjectable {
+public class Database: RequestInjectable {
     private var database: Fluent.Database?
     
     

@@ -13,12 +13,14 @@ import NIO
 struct TestServer: Apodini.Server {
     struct PrintGuard: Guard {
         private let message: String?
+        @Apodini.Request
+        var request: Vapor.Request
         
         init(_ message: String? = nil) {
             self.message = message
         }
         
-        func check(_ request: Vapor.Request) -> EventLoopFuture<Void> {
+        func check() -> EventLoopFuture<Void> {
             print(message ?? request)
             return request.eventLoop.makeSucceededFuture(Void())
         }

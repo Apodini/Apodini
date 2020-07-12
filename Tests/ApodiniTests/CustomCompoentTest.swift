@@ -14,7 +14,7 @@ import Fluent
 
 final class CustomComponentTests: ApodiniTests {
     struct AddBirdsComponent: Component {
-        @CurrentDatabase
+        @Apodini.Database
         var database: Fluent.Database
         
         @Body

@@ -55,7 +55,7 @@ class Visitor {
             let guardEventLoopFutures = currentContextNode.getContextValue(for: GuardContextKey.self)
                 .map { requestGuard in
                     request.enterRequestContext(with: requestGuard()) { requestGuard in
-                        requestGuard.check(request)
+                        requestGuard.check()
                     }
                 }
             return EventLoopFuture<Void>
@@ -64,7 +64,9 @@ class Visitor {
                     request.enterRequestContext(with: component) { component in
                         var response: ResponseEncodable = component.handle()
                         for responseTransformer in currentContextNode.getContextValue(for: ResponseContextKey.self) {
-                            response = responseTransformer().transform(response: response)
+                            response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
+                                responseTransformer.transform(response: response)
+                            }
                         }
                         return response.encodeResponse(for: request)
                     }

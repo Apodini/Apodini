@@ -9,7 +9,7 @@ import Vapor
 
 
 private struct ResetGuard: Guard {
-    func check(_ request: Vapor.Request) -> EventLoopFuture<Void> {
+    func check() -> EventLoopFuture<Void> {
         fatalError("The ResetGuard is used to reset the Guards for a Component and should never be called")
     }
 }

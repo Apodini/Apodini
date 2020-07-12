@@ -1,44 +1,35 @@
 //
 //  Request.swift
-//  Apodini
+//  
 //
-//  Created by Paul Schmiedmayer on 6/26/20.
+//  Created by Paul Schmiedmayer on 7/12/20.
 //
 
-import NIO
 import Vapor
 
 
-protocol RequestInjectable {
-    func inject(using request: Request) throws
-    func disconnect()
-}
-
-
-extension Vapor.Request {
-    func enterRequestContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>) -> EventLoopFuture<R> {
-        let viewMirror = Mirror(reflecting: element)
-        
-        // Inject all properties that can be injected using RequestInjectable
-        for child in viewMirror.children {
-            if let requestInjectable = child.value as? RequestInjectable {
-                do {
-                    try requestInjectable.inject(using: self)
-                } catch {
-                    fatalError("Could not inject a value into a \(child.label ?? "UNKNOWN") property wrapper.")
-                }
-            }
+@propertyWrapper
+public class Request: RequestInjectable {
+    private var request: Vapor.Request?
+    
+    
+    public var wrappedValue: Vapor.Request {
+        guard let request = request else {
+            fatalError("You can only access the request while you handle a request")
         }
         
-        return method(element)
-            .map { response in
-                for child in viewMirror.children {
-                    if let requestInjectable = child.value as? RequestInjectable {
-                        requestInjectable.disconnect()
-                    }
-                }
-                
-                return response
-            }
+        return request
+    }
+    
+    
+    public init() { }
+    
+    
+    func inject(using request: Vapor.Request) throws {
+        self.request = request
+    }
+    
+    func disconnect() {
+        self.request = nil
     }
 }
