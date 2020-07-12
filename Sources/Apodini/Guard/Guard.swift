@@ -10,14 +10,6 @@ import Vapor
 
 
 public protocol Guard {
+    #warning("Consider removing the request parameter once we have a @Request Property Wrapper")
     func check(_ request: Request) -> EventLoopFuture<Void>
-}
-
-
-extension Guard {
-    func checkInContext(of request: Request) -> EventLoopFuture<Void> {
-        request.enterRequestContext(with: self) { component in
-            component.check(request)
-        }
-    }
 }

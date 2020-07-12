@@ -16,6 +16,12 @@ class ContextNode {
         self.nodeLink = nodeLink
     }
     
+    func copy() -> ContextNode {
+        let newContextNode = ContextNode(nodeLink: nodeLink)
+        newContextNode.nodeOnlyContext = nodeOnlyContext
+        newContextNode.context = context
+        return newContextNode
+    }
     
     func getContextValue<C: ContextKey>(for contextKey: C.Type = C.self) -> C.Value {
         getNodeOnlyContextValue(for: contextKey)

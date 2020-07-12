@@ -40,15 +40,15 @@ struct TestServer: Apodini.Server {
     
     
     var content: some Component {
-        Text("Hallo World! 👋")
+        Text("Hello World! 👋")
             .response(EmojiMediator(emojis: "🎉"))
             .response(EmojiMediator())
             .guard(PrintGuard())
         Group("swift") {
-            Text("Hallo Swift! 💻")
+            Text("Hello Swift! 💻")
                 .response(EmojiMediator())
                 .guard(PrintGuard())
-        }.guard(PrintGuard("Someone is accessng Swift 😎!!"))
+        }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
     }
 }
 

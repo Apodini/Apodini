@@ -43,6 +43,35 @@ class Visitor {
     
     func register<C: Component>(component: C) { }
     
+    func createRequestHandler<C: Component>(withComponent component: C)
+    -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+        // We capture the currentContextNode and make a copy that will be used when execuring the request as
+        // direcly capturing the currentNode would be influenced by the `resetContextNode()` call and using the
+        // currentNode would always result in the last currentNode that was used when visiting the component tree.
+        let currentContextNode = currentNode.copy()
+        
+        return { (request: Vapor.Request) in
+            print(currentContextNode)
+            let guardEventLoopFutures = currentContextNode.getContextValue(for: GuardContextKey.self)
+                .map { requestGuard in
+                    request.enterRequestContext(with: requestGuard()) { requestGuard in
+                        requestGuard.check(request)
+                    }
+                }
+            return EventLoopFuture<Void>
+                .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
+                .flatMap { _ in
+                    request.enterRequestContext(with: component) { component in
+                        var response: ResponseEncodable = component.handle()
+                        for responseTransformer in currentContextNode.getContextValue(for: ResponseContextKey.self) {
+                            response = responseTransformer().transform(response: response)
+                        }
+                        return response.encodeResponse(for: request)
+                    }
+                }
+        }
+    }
+    
     func finishedRegisteringContext() {
         currentNode.resetContextNode()
     }
