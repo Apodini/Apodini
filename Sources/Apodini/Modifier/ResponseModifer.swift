@@ -9,47 +9,55 @@ import NIO
 import Vapor
 
 
-public protocol AnyResponseMediator {
-    init(_ response: ResponseEncodable)
+public protocol AnyResponseTransformer {
+    var transformedResponseType: ResponseEncodable.Type { get }
+    
+    func transform(response: ResponseEncodable) -> ResponseEncodable
 }
 
 
-public protocol ResponseMediator: AnyResponseMediator, ResponseEncodable {
+public protocol ResponseTransformer: AnyResponseTransformer {
     associatedtype Response
+    associatedtype TransformedResponse: ResponseEncodable
     
     
-    init(_ response: Self.Response)
+    func transform(response: Self.Response) -> TransformedResponse
 }
 
 
-extension ResponseMediator {
-    public init(_ response: ResponseEncodable) {
+extension ResponseTransformer {
+    public var transformedResponseType: ResponseEncodable.Type {
+        Self.TransformedResponse.self
+    }
+    
+    public func transform(response: ResponseEncodable) -> ResponseEncodable {
         guard let response = response as? Self.Response else {
-            fatalError("Coult not cast the `ResponseEncodable` passed to the `AnyResponseMediator` to the expected \(Response.self) type")
+            fatalError("Coult not cast the `ResponseEncodable` passed to the `AnyResponseTransformer` to the expected \(Response.self) type")
         }
-        self.init(response)
+        return self.transform(response: response)
     }
 }
 
 
 struct ResponseContextKey: ContextKey {
-    static var defaultValue: [AnyResponseMediator.Type] = []
+    static var defaultValue: [() -> (AnyResponseTransformer)] = []
     
-    static func reduce(value: inout [AnyResponseMediator.Type], nextValue: () -> [AnyResponseMediator.Type]) {
+    static func reduce(value: inout [() -> (AnyResponseTransformer)], nextValue: () -> [() -> (AnyResponseTransformer)]) {
         value.append(contentsOf: nextValue())
     }
 }
 
 
-public struct ResponseModifier<C: Component, M: ResponseMediator>: Modifier where M.Response == C.Response {    
-    public typealias Response = M
+public struct ResponseModifier<C: Component, T: ResponseTransformer>: Modifier where T.Response == C.Response {    
+    public typealias Response = T.TransformedResponse
     
     let component: C
-    let mediator = M.self
+    let responseTransformer: () -> (T)
     
     
-    init(_ component: C, mediator: M.Type) {
+    init(_ component: C, responseTransformer: @escaping () -> (T)) {
         self.component = component
+        self.responseTransformer = responseTransformer
     }
     
     
@@ -61,13 +69,13 @@ public struct ResponseModifier<C: Component, M: ResponseMediator>: Modifier wher
 
 extension ResponseModifier: Visitable {
     func visit(_ visitor: Visitor) {
-        visitor.addContext(ResponseContextKey.self, value: [M.self], scope: .nextComponent)
+        visitor.addContext(ResponseContextKey.self, value: [responseTransformer], scope: .nextComponent)
         component.visit(visitor)
     }
 }
 
 extension Component {
-    public func response<M: ResponseMediator>(_ modifier: M.Type) -> ResponseModifier<Self, M> where Self.Response == M.Response {
-        ResponseModifier(self, mediator: M.self)
+    public func response<T: ResponseTransformer>(_ responseTransformer: @escaping @autoclosure () -> (T)) -> ResponseModifier<Self, T> where Self.Response == T.Response {
+        ResponseModifier(self, responseTransformer: responseTransformer)
     }
 }

@@ -35,19 +35,15 @@ final class ModifierTests: XCTestCase {
     }
     
     func testResponseModifer() {
-        struct FirstTestResponseMediator: Codable, Content, ResponseMediator {
-            let text: String
-            
-            init(_ response: String) {
-                text = response
+        struct FirstTestResponseMediator: ResponseTransformer {
+            func transform(response: String) -> String {
+                response
             }
         }
         
-        struct SecondTestResponseMediator: Codable, Content, ResponseMediator {
-            let text: String
-            
-            init(_ response: FirstTestResponseMediator) {
-                text = response.text
+        struct SecondTestResponseMediator: ResponseTransformer {
+            func transform(response: String) -> String {
+                response
             }
         }
         
@@ -55,8 +51,8 @@ final class ModifierTests: XCTestCase {
         
         var component: some Component {
             Text("Hallo")
-                .response(FirstTestResponseMediator.self)
-                .response(SecondTestResponseMediator.self)
+                .response(FirstTestResponseMediator())
+                .response(SecondTestResponseMediator())
         }
         
         let printVisitor = PrintVisitor()

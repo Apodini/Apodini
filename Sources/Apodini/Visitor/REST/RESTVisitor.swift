@@ -42,12 +42,12 @@ class RESTVisitor: Visitor {
             }
         }
         let httpType = getContextValue(for: HTTPMethodContextKey.self)
+        let responseTransformerTypes = getContextValue(for: ResponseContextKey.self)
         let returnType: ResponseEncodable.Type = {
-            let modifiedResponseTypes = getContextValue(for: ResponseContextKey.self)
-            if modifiedResponseTypes.isEmpty {
+            if responseTransformerTypes.isEmpty {
                 return C.Response.self
             } else {
-                return modifiedResponseTypes.last! as! ResponseEncodable.Type
+                return responseTransformerTypes.last!().transformedResponseType
             }
         }()
         
@@ -59,7 +59,10 @@ class RESTVisitor: Visitor {
         
         routesBuilder.on(HTTPMethod.init(rawValue: httpType.rawValue), []) { request -> EventLoopFuture<Vapor.Response> in
             request.enterRequestContext(with: component) { component in
-                let response = component.handle()
+                var response: ResponseEncodable = component.handle()
+                for responseTransformer in responseTransformerTypes {
+                    response = responseTransformer().transform(response: response)
+                }
                 return response.encodeResponse(for: request)
             }
         }

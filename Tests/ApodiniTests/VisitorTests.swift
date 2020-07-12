@@ -11,11 +11,9 @@ import Vapor
 
 
 final class VisitorTests: XCTestCase {
-    struct TestResponseMediator: Codable, Content, ResponseMediator {
-        let text: String
-        
-        init(_ response: String) {
-            text = response
+    struct TestResponseMediator: ResponseTransformer {
+        func transform(response: String) -> String {
+            response
         }
     }
     
@@ -24,7 +22,7 @@ final class VisitorTests: XCTestCase {
             Group("Test") {
                 Text("Hallo Bernd")
                     .httpMethod(.PUT)
-                    .response(TestResponseMediator.self)
+                    .response(TestResponseMediator())
             }
             Group("Greetings") {
                 Group("Human") {

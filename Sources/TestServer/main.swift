@@ -11,25 +11,28 @@ import NIO
 
 
 struct TestServer: Apodini.Server {
-    struct EmojiMediator: ResponseMediator {
-        let emojiString: String
+    struct EmojiMediator: ResponseTransformer {
+        private let emojis: String
         
-        init(_ response: String) {
-            emojiString = "✅ \(response) ✅"
+        
+        init(emojis: String = "✅") {
+            self.emojis = emojis
         }
         
-        func encodeResponse(for request: Request) -> EventLoopFuture<Response> {
-            emojiString.encodeResponse(for: request)
+        
+        func transform(response: String) -> String {
+            "\(emojis) \(response) \(emojis)"
         }
     }
     
     
     var content: some Component {
         Text("Hallo World! 👋")
-            .response(EmojiMediator.self)
+            .response(EmojiMediator(emojis: "🎉"))
+            .response(EmojiMediator())
         Group("swift") {
             Text("Hallo Swift! 💻")
-                .response(EmojiMediator.self)
+                .response(EmojiMediator())
         }
     }
 }
