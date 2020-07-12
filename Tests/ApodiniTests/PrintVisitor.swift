@@ -51,7 +51,7 @@ class PrintVisitor: Visitor {
         print("\(intendation) -> \(className(APIVersionContextKey.self)) = \(currentNode.getContextValue(for: APIVersionContextKey.self))")
         print("\(intendation) -> \(className(PathComponentContextKey.self)) = \(currentNode.getContextValue(for: PathComponentContextKey.self))")
         print("\(intendation) -> \(className(GuardContextKey.self)) = \(currentNode.getContextValue(for: GuardContextKey.self))")
-        if currentNode.getContextValue(for: ResponseContextKey.self) != Never.self {
+        if !currentNode.getContextValue(for: ResponseContextKey.self).isEmpty {
             print("\(intendation) -> \(className(ResponseContextKey.self)) = \(currentNode.getContextValue(for: ResponseContextKey.self))")
         }
     }

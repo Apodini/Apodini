@@ -43,14 +43,14 @@ class RESTVisitor: Visitor {
         }
         let httpType = getContextValue(for: HTTPMethodContextKey.self)
         let returnType: ResponseEncodable.Type = {
-            let modifiedResponseType = getContextValue(for: ResponseContextKey.self)
-            if modifiedResponseType != Never.self {
-                return modifiedResponseType
-            } else {
+            let modifiedResponseTypes = getContextValue(for: ResponseContextKey.self)
+            if modifiedResponseTypes.isEmpty {
                 return C.Response.self
+            } else {
+                return modifiedResponseTypes.last! as! ResponseEncodable.Type
             }
         }()
-
+        
         print("\(restPathBuilder.pathDescription) \(httpType.rawValue) -> \(returnType)")
         
         let routesBuilder = restPathBuilder.pathComponents.reduce(app.routes.grouped([])) { routesBuilder, pathComponent in
@@ -59,7 +59,8 @@ class RESTVisitor: Visitor {
         
         routesBuilder.on(HTTPMethod.init(rawValue: httpType.rawValue), []) { request -> EventLoopFuture<Vapor.Response> in
             request.enterRequestContext(with: component) { component in
-                component.handle().encodeResponse(for: request)
+                let response = component.handle()
+                return response.encodeResponse(for: request)
             }
         }
         
