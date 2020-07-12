@@ -15,7 +15,7 @@ enum Scope {
 
 
 protocol Visitable {
-    func visit<V: Visitor>(_ visitor: inout V)
+    func visit(_ visitor: Visitor)
 }
 
 

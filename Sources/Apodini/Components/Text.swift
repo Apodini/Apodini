@@ -8,7 +8,7 @@
 import Vapor
 
 
-public struct Text: _Component {
+public struct Text: Component {
     private let text: String
     
     

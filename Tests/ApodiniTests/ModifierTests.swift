@@ -30,10 +30,8 @@ final class ModifierTests: XCTestCase {
             }.httpMethod(.PUT)
         }
         
-        var printVisitor = PrintVisitor()
-        if let visitableComponent = component as? Visitable {
-            visitableComponent.visit(&printVisitor)
-        }
+        let printVisitor = PrintVisitor()
+        component.visit(printVisitor)
     }
     
     func testResponseModifer() {
@@ -61,9 +59,7 @@ final class ModifierTests: XCTestCase {
                 .response(SecondTestResponseMediator.self)
         }
         
-        var printVisitor = PrintVisitor()
-        if let visitableComponent = component as? Visitable {
-            visitableComponent.visit(&printVisitor)
-        }
+        let printVisitor = PrintVisitor()
+        component.visit(printVisitor)
     }
 }

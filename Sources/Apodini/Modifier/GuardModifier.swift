@@ -32,7 +32,7 @@ struct GuardContextKey: ContextKey {
 }
 
 
-public struct GuardModifier<C: Component>: _Modifier {
+public struct GuardModifier<C: Component>: Modifier {
     public typealias Response = C.Response
     
     let component: C
@@ -43,24 +43,12 @@ public struct GuardModifier<C: Component>: _Modifier {
         self.component = component
         self.guard = `guard`
     }
-    
-    
-    func visit<V>(_ visitor: inout V) where V : Visitor {
+}
+
+extension GuardModifier: Visitable {
+    func visit(_ visitor: Visitor) {
         visitor.addContext(GuardContextKey.self, value: [`guard`], scope: .environment)
-        if let visitableComponent = component as? Visitable {
-            visitableComponent.visit(&visitor)
-        }
-    }
-    
-    public func handle() -> C.Response {
-        fatalError("The handle method of a Modifier should never be directly called. Call `handleInContext(of request: Request)` instead.")
-    }
-    
-    func handleInContext(of request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        `guard`().checkInContext(of: request)
-            .flatMap {
-                component.handleInContext(of: request)
-            }
+        component.visit(visitor)
     }
 }
 

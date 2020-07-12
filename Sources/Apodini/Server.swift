@@ -24,17 +24,17 @@ extension Server {
             
             let server = Self()
             
-            var graphQLVisitor = GraphQLVisitor(app)
-            server.visit(&graphQLVisitor)
+            let graphQLVisitor = GraphQLVisitor(app)
+            server.visit(graphQLVisitor)
             
-            var gRPCVisitor = GRPCVisitor(app)
-            server.visit(&gRPCVisitor)
+            let gRPCVisitor = GRPCVisitor(app)
+            server.visit(gRPCVisitor)
             
-            var restVisitor = RESTVisitor(app)
-            server.visit(&restVisitor)
+            let restVisitor = RESTVisitor(app)
+            server.visit(restVisitor)
             
-            var webSocketVisitor = WebSocketVisitor(app)
-            server.visit(&webSocketVisitor)
+            let webSocketVisitor = WebSocketVisitor(app)
+            server.visit(webSocketVisitor)
             
             defer {
                 app.shutdown()
@@ -52,15 +52,17 @@ extension Server {
     public var version: Version {
         Version()
     }
-    
-    
-    func visit<V>(_ visitor: inout V) where V : Visitor {
+}
+
+
+extension Server {
+    func visit(_ visitor: Visitor) {
         visitor.enter(collection: self)
         visitor.addContext(APIVersionContextKey.self, value: version, scope: .environment)
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
         Group {
             content
-        }.visit(&visitor)
+        }.visit(visitor)
         visitor.exit(collection: self)
     }
 }

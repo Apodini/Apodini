@@ -18,47 +18,30 @@ public protocol Component {
     func handle() -> Self.Response
 }
 
-extension Component where Self.Content: Visitable {
-    func visit<V: Visitor>(_ visitor: inout V) {
-        content.visit(&visitor)
-    }
-}
 
 extension Component {
-    func handleInContext(of request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        request.enterRequestContext(with: self) { component in
-            component.handle().encodeResponse(for: request)
-        }
+    func visit(_ visitor: Visitor) {
+        visitContentOrRegisterComponentIfNotNever(visitor)
     }
-}
-
-
-protocol _Component: Component, Visitable { }
-
-
-extension _Component {
-    func visit<V: Visitor>(_ visitor: inout V) {
-        if Self.Content.self != Never.self, let visitableContent = content as? Visitable {
-            visitableContent.visit(&visitor)
+    
+    fileprivate func visitContentOrRegisterComponentIfNotNever(_ visitor: Visitor) {
+        if let visitable = self as? Visitable {
+            visitable.visit(visitor)
+        } else if Self.Content.self != Never.self {
+            content.visit(visitor)
         } else {
             visitor.register(component: self)
         }
     }
 }
 
-
 public protocol ComponentCollection: Component { }
 
 
-protocol _ComponentCollection: ComponentCollection, _Component { }
-
-
-extension _ComponentCollection {
-    func visit<V>(_ visitor: inout V) where V: Visitor {
+extension ComponentCollection {
+    func visit(_ visitor: Visitor) {
         visitor.enter(collection: self)
-        if let visitableContent = content as? Visitable {
-            visitableContent.visit(&visitor)
-        }
+        visitContentOrRegisterComponentIfNotNever(visitor)
         visitor.exit(collection: self)
     }
 }

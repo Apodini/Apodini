@@ -37,7 +37,6 @@ extension Component where Self.Content == Never {
     }
 }
 
-
 extension Component where Self.Response == Never {
     public func handle() -> Never {
         fatalError("Never should never be handled")
@@ -45,8 +44,11 @@ extension Component where Self.Response == Never {
 }
 
 
-public struct EmptyComponent: _Component {
+public struct EmptyComponent: Component {
     public init() {}
-    
-    func visit<V>(_ visitor: inout V) where V: Visitor { }
+}
+
+
+extension EmptyComponent: Visitable {
+    func visit(_ visitor: Visitor) {}
 }

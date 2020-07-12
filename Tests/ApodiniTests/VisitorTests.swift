@@ -50,27 +50,27 @@ final class VisitorTests: XCTestCase {
     }
     
     func testPrintVisitor() {
-        var printVisitor = PrintVisitor()
-        TestServer().visit(&printVisitor)
+        let printVisitor = PrintVisitor()
+        TestServer().visit(printVisitor)
     }
     
     func testRESTVisitor() {
-        var restVisitor = RESTVisitor(app)
-        TestServer().visit(&restVisitor)
+        let restVisitor = RESTVisitor(app)
+        TestServer().visit(restVisitor)
     }
     
     func testGraphQLVisitor() {
-        var graphQLVisitor = GraphQLVisitor(app)
-        TestServer().visit(&graphQLVisitor)
+        let graphQLVisitor = GraphQLVisitor(app)
+        TestServer().visit(graphQLVisitor)
     }
     
     func testGRPCVisitor() {
-        var gRPCVisitor = GRPCVisitor(app)
-        TestServer().visit(&gRPCVisitor)
+        let gRPCVisitor = GRPCVisitor(app)
+        TestServer().visit(gRPCVisitor)
     }
     
     func testWebSocketVisitor() {
-        var webSocketVisitor = WebSocketVisitor(app)
-        TestServer().visit(&webSocketVisitor)
+        let webSocketVisitor = WebSocketVisitor(app)
+        TestServer().visit(webSocketVisitor)
     }
 }

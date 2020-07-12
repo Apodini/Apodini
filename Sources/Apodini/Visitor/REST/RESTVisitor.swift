@@ -57,8 +57,10 @@ class RESTVisitor: Visitor {
             routesBuilder.grouped(pathComponent)
         }
         
-        routesBuilder.on(HTTPMethod.init(rawValue: httpType.rawValue), []) { request in
-            component.handleInContext(of: request)
+        routesBuilder.on(HTTPMethod.init(rawValue: httpType.rawValue), []) { request -> EventLoopFuture<Vapor.Response> in
+            request.enterRequestContext(with: component) { component in
+                component.handle().encodeResponse(for: request)
+            }
         }
         
         super.finishedRegisteringContext()

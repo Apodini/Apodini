@@ -37,9 +37,10 @@ final class CustomComponentTests: ApodiniTests {
         
         let request = Request(application: app, collectedBody: birdData, on: app.eventLoopGroup.next())
         
-        let addBirdsComponent = AddBirdsComponent()
-        let response = try addBirdsComponent
-            .handleInContext(of: request)
+        let response = try request
+            .enterRequestContext(with: AddBirdsComponent()) { component in
+                component.handle().encodeResponse(for: request)
+            }
             .wait()
         
         let responseData = try XCTUnwrap(response.body.data)

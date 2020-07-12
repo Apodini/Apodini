@@ -15,16 +15,9 @@ protocol Modifier: Component {
     var component: Self.ModifiedComponent { get }
 }
 
-protocol _Modifier: Modifier, _Component { }
 
-extension _Modifier {
+extension Modifier {
     public func handle() -> Self.ModifiedComponent.Response {
-        fatalError("The handle method of a Modifier should never be directly called. Call `handleInContext(of request: Request)` instead.")
-    }
-    
-    func handleInContext(of request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        request.enterRequestContext(with: component) { component in
-            component.handleInContext(of: request)
-        }
+        fatalError("A Modifier's handle method should never be called!")
     }
 }

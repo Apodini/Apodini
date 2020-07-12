@@ -26,7 +26,9 @@ struct ResponseContextKey: ContextKey {
 }
 
 
-public struct ResponseModifier<C: Component, M: ResponseMediator>: _Modifier where M.Response == C.Response {
+public struct ResponseModifier<C: Component, M: ResponseMediator>: Modifier where M.Response == C.Response {    
+    public typealias Response = M
+    
     let component: C
     let mediator = M.self
     
@@ -36,23 +38,17 @@ public struct ResponseModifier<C: Component, M: ResponseMediator>: _Modifier whe
     }
     
     
-    func visit<V>(_ visitor: inout V) where V : Visitor {
+    public func handle() -> Self.Response {
+        fatalError("A Modifier's handle method should never be called!")
+    }
+}
+
+
+extension ResponseModifier: Visitable {
+    func visit(_ visitor: Visitor) {
         visitor.addContext(ResponseContextKey.self, value: M.self, scope: .nextComponent)
-        if let visitableComponent = component as? Visitable {
-            visitableComponent.visit(&visitor)
-        }
+        component.visit(visitor)
     }
-    
-    public func handle() -> M {
-        fatalError("The handle method of a Modifier should never be directly called. Call `handleInContext(of request: Request)` instead.")
-    }
-    
-//    func handleInContext(of request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-//        component.handleInContext(of: request)
-//            .map { response in
-//                M(response)
-//            }
-//    }
 }
 
 extension Component {
