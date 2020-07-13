@@ -51,11 +51,10 @@ class Visitor {
         let currentContextNode = currentNode.copy()
         
         return { (request: Vapor.Request) in
-            print(currentContextNode)
             let guardEventLoopFutures = currentContextNode.getContextValue(for: GuardContextKey.self)
                 .map { requestGuard in
                     request.enterRequestContext(with: requestGuard()) { requestGuard in
-                        requestGuard.check()
+                        requestGuard.executeGuardCheck(on: request)
                     }
                 }
             return EventLoopFuture<Void>

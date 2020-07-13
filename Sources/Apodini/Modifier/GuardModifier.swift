@@ -8,13 +8,13 @@
 import Vapor
 
 
-private struct ResetGuard: Guard {
-    func check() -> EventLoopFuture<Void> {
+private struct ResetGuard: SyncGuard {
+    func check() {
         fatalError("The ResetGuard is used to reset the Guards for a Component and should never be called")
     }
 }
 
-typealias LazyGuard = () -> (Guard)
+typealias LazyGuard = () -> (AnyGuard)
 
 struct GuardContextKey: ContextKey {
     static var defaultValue: [LazyGuard] = []
@@ -22,7 +22,7 @@ struct GuardContextKey: ContextKey {
     static func reduce(value: inout [LazyGuard], nextValue: () -> [LazyGuard]) {
         let nextGuards = nextValue()
         for `guard` in nextGuards {
-            if `guard`().self is ResetGuard {
+            if `guard`().guardType == ObjectIdentifier(ResetGuard.self) {
                 value = []
             } else {
                 value.append(`guard`)
@@ -54,11 +54,15 @@ extension GuardModifier: Visitable {
 
 
 extension Component {
-    public func `guard`(_ guard: @escaping @autoclosure () -> (Guard)) -> GuardModifier<Self> {
-        GuardModifier(self, guard: `guard`())
+    public func `guard`<G: Guard>(_ guard: @escaping @autoclosure () -> (G)) -> GuardModifier<Self> {
+        GuardModifier(self, guard: AnyGuard(`guard`()))
+    }
+    
+    public func `guard`<G: SyncGuard>(_ guard: @escaping @autoclosure () -> (G)) -> GuardModifier<Self> {
+        GuardModifier(self, guard: AnyGuard(`guard`()))
     }
     
     public func resetGuards() -> GuardModifier<Self> {
-        GuardModifier(self, guard: ResetGuard())
+        GuardModifier(self, guard: AnyGuard(ResetGuard()))
     }
 }

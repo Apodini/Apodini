@@ -84,6 +84,6 @@ class RESTVisitor: Visitor {
         
         let guards = getContextValue(for: GuardContextKey.self)
         
-        print("\(restPathBuilder.pathDescription) + \(httpType.rawValue) -> \(returnType) with \(guards.count) guards.")
+        app.logger.info("\(restPathBuilder.pathDescription) + \(httpType.rawValue) -> \(returnType) with \(guards.count) guards.")
     }
 }

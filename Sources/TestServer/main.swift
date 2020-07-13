@@ -11,18 +11,19 @@ import NIO
 
 
 struct TestServer: Apodini.Server {
-    struct PrintGuard: Guard {
+    struct PrintGuard: SyncGuard {
         private let message: String?
         @Apodini.Request
         var request: Vapor.Request
+        
         
         init(_ message: String? = nil) {
             self.message = message
         }
         
-        func check() -> EventLoopFuture<Void> {
-            print(message ?? request)
-            return request.eventLoop.makeSucceededFuture(Void())
+        
+        func check() {
+            request.logger.info("\(message?.description ?? request.description)")
         }
     }
     

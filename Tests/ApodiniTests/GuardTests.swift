@@ -11,13 +11,12 @@ import Vapor
 
 
 final class GuardTests: XCTestCase {
-    struct TestGuard: Guard {
+    struct TestGuard: SyncGuard {
         @Apodini.Request
         var request: Vapor.Request
         
-        func check() -> EventLoopFuture<Void> {
-            print("Execute Guard")
-            return request.eventLoop.makeSucceededFuture(Void())
+        func check() {
+            request.logger.info("Execute Guard")
         }
     }
     
