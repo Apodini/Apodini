@@ -30,6 +30,8 @@ jobs:
         linux: [bionic, xenial]
     steps:
     - uses: actions/checkout@v2
+    - name: Install libsqlite3
+      run: apt-get update && apt-get install -y --no-install-recommends libsqlite3-dev
     - name: Check Swift version
       run: swift --version
     - name: Build
