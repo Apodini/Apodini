@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        linux: [bionic, xenial, focal, centos8, centos7, amazonlinux2]
+        linux: [bionic, xenial, focal]
     steps:
     - uses: actions/checkout@v2
     - name: Install libsqlite3
