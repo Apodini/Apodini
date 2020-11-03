@@ -39,10 +39,7 @@ struct RESTPathBuilder: PathBuilder {
     }
     
     func routesBuilder(_ app: Vapor.Application) -> Vapor.RoutesBuilder {
-        pathComponents
-            .reduce(app.routes.grouped([])) { routesBuilder, pathComponent in
-                routesBuilder.grouped(pathComponent)
-            }
+        app.routes.grouped(pathComponents)
     }
 }
 
