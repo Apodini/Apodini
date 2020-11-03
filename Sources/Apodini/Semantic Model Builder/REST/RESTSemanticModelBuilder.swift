@@ -1,5 +1,5 @@
 //
-//  RESTVisitor.swift
+//  RESTSemanticModelBuilder.swift
 //  
 //
 //  Created by Paul Schmiedmayer on 6/26/20.
@@ -44,33 +44,36 @@ struct RESTPathBuilder: PathBuilder {
 }
 
 
-class RESTVisitor: Visitor {
+class RESTSemanticModelBuilder: SemanticModelBuilder {
     override init(_ app: Application) {
         super.init(app)
     }
     
-    override func register<C: Component>(component: C) {
-        super.register(component: component)
+    override func register<C>(component: C, withContext context: Context) where C: Component {
+        super.register(component: component, withContext: context)
+        
         
         #if DEBUG
-        self.printRESTPath(of: component)
+        self.printRESTPath(of: component, withContext: context)
         #endif
         
-        let requestHandler = createRequestHandler(withComponent: component)
-        RESTPathBuilder(getContextValue(for: PathComponentContextKey.self))
-            .routesBuilder(app)
-            .on(getContextValue(for: HTTPMethodContextKey.self), [], use: requestHandler)
+        // Note:
+        // We currently just register the component here using the functionality based of Vapor.
+        // The next step would be to create a sophisticated semantic model based on the Context and Components and use this to register the components in a structured way and e.g. provide HATEOS information.
         
-        super.finishedRegisteringContext()
+        let requestHandler = context.createRequestHandler(withComponent: component)
+        RESTPathBuilder(context.get(valueFor: PathComponentContextKey.self))
+            .routesBuilder(app)
+            .on(context.get(valueFor: HTTPMethodContextKey.self), [], use: requestHandler)
     }
     
     
-    private func printRESTPath<C: Component>(of component: C) {
-        let httpType = getContextValue(for: HTTPMethodContextKey.self)
+    private func printRESTPath<C>(of component: C, withContext context: Context) where C: Component {
+        let httpType = context.get(valueFor: HTTPMethodContextKey.self)
         
-        let restPathBuilder = RESTPathBuilder(getContextValue(for: PathComponentContextKey.self))
+        let restPathBuilder = RESTPathBuilder(context.get(valueFor: PathComponentContextKey.self))
         
-        let responseTransformerTypes = getContextValue(for: ResponseContextKey.self)
+        let responseTransformerTypes = context.get(valueFor: ResponseContextKey.self)
         let returnType: ResponseEncodable.Type = {
             if responseTransformerTypes.isEmpty {
                 return C.Response.self
@@ -79,7 +82,7 @@ class RESTVisitor: Visitor {
             }
         }()
         
-        let guards = getContextValue(for: GuardContextKey.self)
+        let guards = context.get(valueFor: GuardContextKey.self)
         
         app.logger.info("\(restPathBuilder.pathDescription) + \(httpType.rawValue) -> \(returnType) with \(guards.count) guards.")
     }

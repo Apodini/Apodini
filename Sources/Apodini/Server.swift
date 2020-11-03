@@ -24,17 +24,12 @@ extension Server {
             
             let server = Self()
             
-            let graphQLVisitor = GraphQLVisitor(app)
-            server.visit(graphQLVisitor)
-            
-            let gRPCVisitor = GRPCVisitor(app)
-            server.visit(gRPCVisitor)
-            
-            let restVisitor = RESTVisitor(app)
-            server.visit(restVisitor)
-            
-            let webSocketVisitor = WebSocketVisitor(app)
-            server.visit(webSocketVisitor)
+            server.register(
+                RESTSemanticModelBuilder(app),
+                GraphQLSemanticModelBuilder(app),
+                GRPCSemanticModelBuilder(app),
+                WebSocketSemanticModelBuilder(app)
+            )
             
             defer {
                 app.shutdown()
@@ -56,7 +51,12 @@ extension Server {
 
 
 extension Server {
-    func visit(_ visitor: Visitor) {
+    func register(_ semanticModelBuilders: SemanticModelBuilder...) {
+        let visitor = SynaxTreeVisitor(semanticModelBuilders: semanticModelBuilders)
+        self.visit(visitor)
+    }
+    
+    private func visit(_ visitor: SynaxTreeVisitor) {
         visitor.enter(collection: self)
         visitor.addContext(APIVersionContextKey.self, value: version, scope: .environment)
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)

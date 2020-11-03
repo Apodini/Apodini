@@ -9,20 +9,12 @@
 import Vapor
 
 
-class PrintVisitor: Visitor {
+class PrintVisitor: SynaxTreeVisitor {
     private var intendationLevel: UInt = 0
     
     
     private var intendation: String {
         String(repeating: "  ", count: Int(intendationLevel))
-    }
-    
-    init() {
-        super.init(Application(.testing))
-    }
-    
-    deinit {
-        app.shutdown()
     }
     
     
@@ -42,8 +34,6 @@ class PrintVisitor: Visitor {
         
         print("\(intendation)\(component)")
         printContext()
-        
-        finishedRegisteringContext()
     }
     
     func printContext() {

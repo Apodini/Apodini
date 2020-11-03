@@ -46,7 +46,7 @@ public struct GuardModifier<C: Component>: Modifier {
 }
 
 extension GuardModifier: Visitable {
-    func visit(_ visitor: Visitor) {
+    func visit(_ visitor: SynaxTreeVisitor) {
         visitor.addContext(GuardContextKey.self, value: [`guard`], scope: .environment)
         component.visit(visitor)
     }

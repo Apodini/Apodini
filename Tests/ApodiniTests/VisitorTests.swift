@@ -53,22 +53,22 @@ final class VisitorTests: XCTestCase {
     }
     
     func testRESTVisitor() {
-        let restVisitor = RESTVisitor(app)
-        TestServer().visit(restVisitor)
+        TestServer().register(RESTSemanticModelBuilder(app))
     }
     
     func testGraphQLVisitor() {
-        let graphQLVisitor = GraphQLVisitor(app)
-        TestServer().visit(graphQLVisitor)
+        TestServer().register(GraphQLSemanticModelBuilder(app))
     }
     
     func testGRPCVisitor() {
-        let gRPCVisitor = GRPCVisitor(app)
-        TestServer().visit(gRPCVisitor)
+        TestServer().register(GRPCSemanticModelBuilder(app))
     }
     
     func testWebSocketVisitor() {
-        let webSocketVisitor = WebSocketVisitor(app)
-        TestServer().visit(webSocketVisitor)
+        TestServer().register(WebSocketSemanticModelBuilder(app))
+    }
+    
+    func testOpenAPIVisitor() {
+        TestServer().register(OpenAPISemanticModelBuilder(app))
     }
 }

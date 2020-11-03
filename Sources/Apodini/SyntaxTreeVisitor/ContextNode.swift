@@ -8,16 +8,16 @@
 
 class ContextNode {
     private var nodeOnlyContext: [ObjectIdentifier: Any] = [:]
-    let nodeLink: ContextNode?
+    let parentContextNode: ContextNode?
     private var context: [ObjectIdentifier: Any] = [:]
     
     
     init(nodeLink: ContextNode? = nil) {
-        self.nodeLink = nodeLink
+        self.parentContextNode = nodeLink
     }
     
     func copy() -> ContextNode {
-        let newContextNode = ContextNode(nodeLink: nodeLink)
+        let newContextNode = ContextNode(nodeLink: parentContextNode)
         newContextNode.nodeOnlyContext = nodeOnlyContext
         newContextNode.context = context
         return newContextNode
@@ -38,7 +38,7 @@ class ContextNode {
     }
     
     private func getGlobalContextValue<C: ContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
-        getNodeContextValue(for: contextKey) ?? nodeLink?.getGlobalContextValue(for: contextKey)
+        getNodeContextValue(for: contextKey) ?? parentContextNode?.getGlobalContextValue(for: contextKey)
     }
     
     func addContext<C: ContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {

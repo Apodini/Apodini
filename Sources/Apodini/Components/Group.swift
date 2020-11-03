@@ -28,7 +28,7 @@ public struct Group<Content: Component>: ComponentCollection {
 
 
 extension Group: Visitable {
-    func visit(_ visitor: Visitor) {
+    func visit(_ visitor: SynaxTreeVisitor) {
         visitor.enter(collection: self)
         visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)
         content.visit(visitor)

@@ -28,7 +28,7 @@ public struct HTTPMethodModifier<ModifiedComponent: Component>: Modifier {
 
 
 extension HTTPMethodModifier: Visitable {
-    func visit(_ visitor: Visitor) {
+    func visit(_ visitor: SynaxTreeVisitor) {
         visitor.addContext(HTTPMethodContextKey.self, value: httpMethod, scope: .environment)
         component.visit(visitor)
     }
