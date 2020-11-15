@@ -51,7 +51,16 @@ struct TestServer: Apodini.Server {
             Text("Hello Swift! 💻")
                 .response(EmojiMediator())
                 .guard(PrintGuard())
+        
+            Group("bye") {
+                Text("Bye! 👋")
+                    .webSocketOnSuccess(.close())
+                    .httpMethod(.DELETE)
+                    .webSocketOnError(.default)
+            }
         }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
+        .webSocketOnError(.close())
+        .httpMethod(.POST)
     }
 }
 
