@@ -8,7 +8,7 @@
 import Vapor
 
 
-public protocol Server: ComponentCollection {
+public protocol Server: Component {
     var version: Version { get }
     
     init()
@@ -57,12 +57,10 @@ extension Server {
     }
     
     private func visit(_ visitor: SynaxTreeVisitor) {
-        visitor.enter(collection: self)
         visitor.addContext(APIVersionContextKey.self, value: version, scope: .environment)
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
         Group {
             content
         }.visit(visitor)
-        visitor.exit(collection: self)
     }
 }

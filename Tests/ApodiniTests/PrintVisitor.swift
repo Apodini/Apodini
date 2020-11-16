@@ -18,9 +18,9 @@ class PrintVisitor: SynaxTreeVisitor {
     }
     
     
-    override func enter<C>(collection: C) where C : ComponentCollection {
-        super.enter(collection: collection)
-        print("\(intendation)\(className(C.self)) {")
+    override func enterCollectionItem() {
+        super.enterCollectionItem()
+        print("\(intendation){")
         intendationLevel += 1
     }
     
@@ -30,10 +30,10 @@ class PrintVisitor: SynaxTreeVisitor {
     }
     
     override func register<C>(component: C) where C: Component {
-        super.register(component: component)
-        
         print("\(intendation)\(component)")
         printContext()
+        
+        currentNode.resetContextNode()
     }
     
     func printContext() {
@@ -46,8 +46,8 @@ class PrintVisitor: SynaxTreeVisitor {
         }
     }
     
-    override func exit<C>(collection: C) where C : ComponentCollection {
-        super.exit(collection: collection)
+    override func exitCollectionItem() {
+        super.exitCollectionItem()
         intendationLevel = max(0, intendationLevel - 1)
         print("\(intendation)}")
     }

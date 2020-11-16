@@ -34,14 +34,3 @@ extension Component {
         }
     }
 }
-
-public protocol ComponentCollection: Component { }
-
-
-extension ComponentCollection {
-    func visit(_ visitor: SynaxTreeVisitor) {
-        visitor.enter(collection: self)
-        visitContentOrRegisterComponentIfNotNever(visitor)
-        visitor.exit(collection: self)
-    }
-}

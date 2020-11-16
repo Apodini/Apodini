@@ -27,7 +27,7 @@ class SynaxTreeVisitor {
         self.semanticModelBuilders = semanticModelBuilders
     }
     
-    func enter<C: ComponentCollection>(collection: C) {
+    func enterCollectionItem() {
         currentNode = currentNode.newContextNode()
     }
     
@@ -56,7 +56,7 @@ class SynaxTreeVisitor {
         currentNode.resetContextNode()
     }
     
-    func exit<C: ComponentCollection>(collection: C) {
+    func exitCollectionItem() {
         if let parentNode = currentNode.parentContextNode {
             currentNode = parentNode
         }
