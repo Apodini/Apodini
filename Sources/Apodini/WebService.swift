@@ -43,13 +43,16 @@ extension WebService {
         }
     }
     
+    
+    /// The currennt version of the `WebService`
+    public var version: Version {
+        Version()
+    }
+    
+    
     /// An empty initializer used to create an Apodini `WebService`
     public init() {
         self.init()
-    }
-    
-    public var version: Version {
-        Version()
     }
 }
 
