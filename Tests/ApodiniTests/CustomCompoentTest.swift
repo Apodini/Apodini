@@ -17,7 +17,7 @@ final class CustomComponentTests: ApodiniTests {
         @Apodini.Database
         var database: Fluent.Database
         
-        @Body
+        @Body(decoder: JSONDecoder())
         var bird: Bird
         
         
