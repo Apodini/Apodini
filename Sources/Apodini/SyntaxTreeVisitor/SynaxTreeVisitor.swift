@@ -40,7 +40,7 @@ class SynaxTreeVisitor {
     }
     
     func register<C: Component>(component: C) {
-        // We capture the currentContextNode and make a copy that will be used when execuring the request as
+        // We capture the currentContextNode and make a copy that will be used when executing the request as
         // direcly capturing the currentNode would be influenced by the `resetContextNode()` call and using the
         // currentNode would always result in the last currentNode that was used when visiting the component tree.
         let context = Context(contextNode: currentNode.copy())

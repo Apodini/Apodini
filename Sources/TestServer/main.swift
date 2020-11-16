@@ -41,17 +41,46 @@ struct TestServer: Apodini.Server {
         }
     }
     
+    struct TestComponent: Component {
+        
+        @Body
+        var device: Device
+        
+        @APNSNotification
+        var notification: ApodiniAPNS
+        
+        func handle() -> EventLoopFuture<HTTPStatus> {
+            notification
+                .send(.init(title: "Test"), to: device.deviceID)
+                .map { .ok }
+                
+        }
+    }
+    
+    struct TestJob: Job {
+        var expression = "*/1 * * * *"
+
+        func task() {
+            print("Hello World")
+        }
+    }
     
     var content: some Component {
         Text("Hello World! 👋")
             .response(EmojiMediator(emojis: "🎉"))
             .response(EmojiMediator())
             .guard(PrintGuard())
+            .schedule(TestJob())
         Group("swift") {
+            TestComponent()
             Text("Hello Swift! 💻")
                 .response(EmojiMediator())
                 .guard(PrintGuard())
-        }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
+        }.guard(PrintGuard("Someone is accessing Swift 😎!!")).httpMethod(.POST)
+        Group("test") {
+            Text("Hello Swift! 💻")
+        }
+        
     }
 }
 

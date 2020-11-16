@@ -14,14 +14,20 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.35.0"),
         .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0"),
-        .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.0.1")
+        .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.0.1"),
+        .package(url: "https://github.com/vapor/apns.git", from: "1.0.0"),
+        .package(url: "https://github.com/MihaelIsaev/VaporCron.git", from:"2.0.0"),
+        .package(url: "https://github.com/MihaelIsaev/NIOCronScheduler.git", from:"2.0.0")
     ],
     targets: [
         .target(
             name: "Apodini",
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
-                .product(name: "Fluent", package: "fluent")
+                .product(name: "Fluent", package: "fluent"),
+                .product(name: "APNS", package: "apns"),
+                .product(name: "VaporCron", package: "VaporCron"),
+                .product(name: "NIOCronScheduler", package: "NIOCronScheduler")
             ]
         ),
         .testTarget(

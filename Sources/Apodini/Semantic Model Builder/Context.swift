@@ -21,6 +21,7 @@ class Context {
         contextNode.getContextValue(for: contextKey)
     }
     
+    // TODO: Schedule context key
     func createRequestHandler<C: Component>(withComponent component: C)
     -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         return { (request: Vapor.Request) in

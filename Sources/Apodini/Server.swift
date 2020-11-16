@@ -15,7 +15,7 @@ public protocol Server: ComponentCollection {
 }
 
 
-extension Server {    
+extension Server {
     public static func main() {
         do {
             var env = try Environment.detect()
@@ -30,6 +30,17 @@ extension Server {
                 GRPCSemanticModelBuilder(app),
                 WebSocketSemanticModelBuilder(app)
             )
+            
+            // APNS Configuration
+//            app.apns.configuration = try .init(
+//                authenticationMethod: .tls(
+//                    privateKeyPath: ,
+//                    pemPath:
+//                ),
+//                // Bundle Identifier
+//                topic: "de.tum.in.www1.ios.Action-Based-Events-Sample",
+//                environment: .sandbox
+//            )
             
             defer {
                 app.shutdown()
