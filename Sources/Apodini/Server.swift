@@ -28,7 +28,8 @@ extension Server {
                 RESTSemanticModelBuilder(app),
                 GraphQLSemanticModelBuilder(app),
                 GRPCSemanticModelBuilder(app),
-                WebSocketSemanticModelBuilder(app)
+                WebSocketSemanticModelBuilder(app),
+                OpenAPISemanticModelBuilder(app)
             )
             
             defer {
