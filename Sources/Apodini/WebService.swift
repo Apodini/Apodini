@@ -43,7 +43,7 @@ extension WebService {
         }
     }
     
-
+    /// An empty initializer used to create an Apodini `WebService`
     public init() {
         self.init()
     }

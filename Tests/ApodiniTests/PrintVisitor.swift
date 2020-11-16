@@ -24,7 +24,7 @@ class PrintVisitor: SynaxTreeVisitor {
         intendationLevel += 1
     }
     
-    override func addContext<C>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) where C : ContextKey {
+    override func addContext<C>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) where C: ContextKey {
         super.addContext(contextKey, value: value, scope: scope)
         print("\(intendation) + \(contextKey.self) = \(value)")
     }

@@ -36,14 +36,18 @@ final class VisitorTests: XCTestCase {
         }
     }
     
+    
+    // swiftlint:disable:next implicitly_unwrapped_optional
     var app: Application!
     
     
     override func setUp() {
+        super.setUp()
         app = Application(.testing)
     }
     
     override func tearDown() {
+        super.tearDown()
         app.shutdown()
     }
     
