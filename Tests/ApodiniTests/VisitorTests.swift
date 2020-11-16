@@ -17,7 +17,7 @@ final class VisitorTests: XCTestCase {
         }
     }
     
-    struct TestServer: Apodini.Server {
+    struct TestWebService: Apodini.WebService {
         @ComponentBuilder var content: some Component {
             Group("Test") {
                 Text("Hallo Bernd")
@@ -49,31 +49,31 @@ final class VisitorTests: XCTestCase {
     
     func testPrintVisitor() {
         let printVisitor = PrintVisitor()
-        TestServer().visit(printVisitor)
+        TestWebService().visit(printVisitor)
     }
     
     func testRESTVisitor() {
         let visitor = SynaxTreeVisitor(semanticModelBuilders: [RESTSemanticModelBuilder(app)])
-        TestServer().visit(visitor)
+        TestWebService().visit(visitor)
     }
     
     func testGraphQLVisitor() {
         let visitor = SynaxTreeVisitor(semanticModelBuilders: [GraphQLSemanticModelBuilder(app)])
-        TestServer().visit(visitor)
+        TestWebService().visit(visitor)
     }
     
     func testGRPCVisitor() {
         let visitor = SynaxTreeVisitor(semanticModelBuilders: [GRPCSemanticModelBuilder(app)])
-        TestServer().visit(visitor)
+        TestWebService().visit(visitor)
     }
     
     func testWebSocketVisitor() {
         let visitor = SynaxTreeVisitor(semanticModelBuilders: [WebSocketSemanticModelBuilder(app)])
-        TestServer().visit(visitor)
+        TestWebService().visit(visitor)
     }
     
     func testOpenAPIVisitor() {
         let visitor = SynaxTreeVisitor(semanticModelBuilders: [OpenAPISemanticModelBuilder(app)])
-        TestServer().visit(visitor)
+        TestWebService().visit(visitor)
     }
 }

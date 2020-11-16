@@ -21,7 +21,7 @@ protocol Visitable {
 
 class SynaxTreeVisitor {
     private let semanticModelBuilders: [SemanticModelBuilder]
-    private(set) var currentNode: ContextNode = ContextNode()
+    private(set) var currentNode = ContextNode()
     
     init(semanticModelBuilders: [SemanticModelBuilder] = []) {
         self.semanticModelBuilders = semanticModelBuilders
