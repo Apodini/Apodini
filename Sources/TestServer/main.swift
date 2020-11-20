@@ -53,6 +53,10 @@ struct TestServer: Apodini.Server {
                 .guard(PrintGuard())
         }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
     }
+    
+    var configure: some Configuration {
+        APNSConfiguration("test")
+    }
 }
 
 TestServer.main()

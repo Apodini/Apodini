@@ -53,7 +53,14 @@ extension Server {
 extension Server {
     func register(_ semanticModelBuilders: SemanticModelBuilder...) {
         let visitor = SynaxTreeVisitor(semanticModelBuilders: semanticModelBuilders)
+        self.configure(visitor)
         self.visit(visitor)
+    }
+    
+    func configure(_ visitor: SynaxTreeVisitor) {
+//        ConfigurationGroup {
+//            configure
+//        }.visitMe(visitor)
     }
     
     private func visit(_ visitor: SynaxTreeVisitor) {
