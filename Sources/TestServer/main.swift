@@ -54,8 +54,9 @@ struct TestServer: Apodini.Server {
         }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
     }
     
-    var configure: some Configuration {
-        APNSConfiguration("test")
+    var configuration: some Configuration {
+        DatabaseConfiguration("123")
+        DatabaseConfiguration("abc")
     }
 }
 

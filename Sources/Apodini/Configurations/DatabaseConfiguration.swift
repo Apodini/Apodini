@@ -1,15 +1,16 @@
 //
-//  APNSConfiguration.swift
+//  File.swift
 //  
 //
-//  Created by Alexander Collins on 18.11.20.
+//  Created by Felix Desiderato on 21.11.20.
 //
 
+import Vapor
+import Fluent
 
-public struct APNSConfiguration: Configuration {
+public struct DatabaseConfiguration: Configuration {
     
     private let text: String
-    
     
     public init(_ text: String) {
         self.text = text
@@ -19,4 +20,5 @@ public struct APNSConfiguration: Configuration {
         print(text)
         return text
     }
+    
 }

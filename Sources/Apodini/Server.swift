@@ -6,9 +6,10 @@
 //
 
 import Vapor
+import Fluent
 
 
-public protocol Server: ComponentCollection {
+public protocol Server: ComponentCollection, ConfigurationCollection {
     var version: Version { get }
     
     init()
@@ -30,6 +31,8 @@ extension Server {
                 GRPCSemanticModelBuilder(app),
                 WebSocketSemanticModelBuilder(app)
             )
+            
+            server.configure(app)
             
             defer {
                 app.shutdown()
@@ -53,11 +56,15 @@ extension Server {
 extension Server {
     func register(_ semanticModelBuilders: SemanticModelBuilder...) {
         let visitor = SynaxTreeVisitor(semanticModelBuilders: semanticModelBuilders)
-        self.configure(visitor)
         self.visit(visitor)
     }
     
-    func configure(_ visitor: SynaxTreeVisitor) {
+    func configure(_ app: Application) {
+        let configurator = Configurator(app)
+        configurator.enter(collection: self)
+        ConfigurationGroup {
+            configuration
+        }.configurable(by: configurator)
 //        ConfigurationGroup {
 //            configure
 //        }.visitMe(visitor)

@@ -7,18 +7,23 @@
 
 import Foundation
 
-public struct ConfigurationGroup: ConfigurationCollection {
-    public let configure: Configuration
+public struct ConfigurationGroup<Content: Configuration>: ConfigurationCollection {
+    public func configure() {
+        print("grouphandle")
+    }
     
+    public let content: Content
     
-    public init(@ConfigurationBuilder configure: () -> Configuration) {
-        self.configure = configure()
+    public init(@ConfigurationBuilder content: () -> Content) {
+        self.content = content()
     }
 }
 
-
-extension ConfigurationGroup: Visitable {
-    func visit(_ visitor: SynaxTreeVisitor) {
-
+extension ConfigurationGroup: Configurable {
+    
+    func configurable(by configurator: Configurator) {
+        configurator.enter(collection: self)
+        content.configurable(by: configurator)
+        configurator.exit(collection: self)
     }
 }

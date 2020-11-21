@@ -4,35 +4,67 @@
 //
 //  Created by Alexander Collins on 18.11.20.
 //
-
+import NIO
+import Vapor
 
 public protocol Configuration {
+    associatedtype Config: Configuration = Never
+    associatedtype ReturnType: Any = Never
+    @ConfigurationBuilder var configuration: Self.Config { get }
     
-    @ConfigurationBuilder var configure: Configuration { get }
-    
-    func handle() -> ()
+    func configure() -> Self.ReturnType
 }
 
+
+extension Never: Configuration {
+    public typealias Config = Never
+    public typealias ReturnType = Never
+    
+    public func configure() -> Self.ReturnType {
+        fatalError("should not happen")
+    }
+    
+    public var configuration: Never {
+        fatalError("should not happen")
+    }
+}
+
+extension Configuration where Self.Config == Never {
+    public var configuration: Never {
+        fatalError("should not happen")
+    }
+}
+
+extension Configuration where Self.ReturnType == Never {
+    public func configure() -> Never {
+        print(Self.ReturnType.self)
+        fatalError("should not happen")
+    }
+}
 
 extension Configuration {
-    func visit(_ visitor: SynaxTreeVisitor) {
-//        (visitor)
+    
+    func configurable(by configurator: Configurator) {
+        if let configurable = self as? Configurable {
+            configurable.configurable(by: configurator)
+        } else if Self.Config.self != Never.self {
+            configuration.configurable(by: configurator)
+        } else {
+            configurator.register(configuration: self)
+        }
     }
-}
-
-
-extension SynaxTreeVisitor {
-    func register<C: Configuration>(configuration: C) {
-    }
-}
-
-public protocol ConfigurationCollection: Configuration {
     
 }
 
+public protocol ConfigurationCollection: Configuration {}
 
-extension ConfigurationCollection {
-    func visitMe(_ visitor: SynaxTreeVisitor) {
-        
+public struct EmptyConfiguration: Configuration {
+    public func configure() {
     }
+    
+    public init() {}
+}
+
+public protocol Test {
+    func test()
 }
