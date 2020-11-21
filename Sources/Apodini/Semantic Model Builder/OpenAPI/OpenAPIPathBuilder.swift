@@ -14,6 +14,7 @@ struct OpenAPIPathBuilder: PathBuilder {
     public private(set) var pathComponents: [Vapor.PathComponent] = []
     
     var fullPath: String {
+        // pathComponents.string
         pathComponents.map { pathComponent in
             var pathValue = pathComponent.description
             // TODO: hacky! we are using the internals of `Vapor.PathComponent` here (e.g., offset: 2)...
@@ -42,13 +43,7 @@ struct OpenAPIPathBuilder: PathBuilder {
     
     mutating func append(_ string: String) {
         let pathComponent = string.lowercased()
-        // TODO: this is a hack because pathComponents in `Group`s
-        // don't seem to check for `identifiers` (i.e., parameters yet)
-        if pathComponent.contains(":") {
-            pathComponents.append(.parameter(pathComponent))
-        } else {
-            pathComponents.append(.constant(pathComponent))
-        }
+        pathComponents.append(Vapor.PathComponent(stringLiteral: pathComponent))
     }
     
     mutating func append<T>(_ identifier: Identifier<T>) where T : Identifiable {

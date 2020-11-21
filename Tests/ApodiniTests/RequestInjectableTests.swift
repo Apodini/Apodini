@@ -11,18 +11,10 @@ import Vapor
 
 final class RequestInjectableTests: XCTestCase {
     
-    var app: Application!
-    
-    override func setUp() {
-        app = Application(.testing)
-    }
-    
-    override func tearDown() {
-        app.shutdown()
-    }
-    
     func testQueryParameterInjectable() throws {
-        
+        let app = Application(.testing)
+        defer { app.shutdown() }
+               
         struct SomeComponent: Component {
             
             @QueryParameter(key: "query")
@@ -33,18 +25,47 @@ final class RequestInjectableTests: XCTestCase {
             }
         }
         
-        let expectedQuery = "test"
-        let request = Vapor.Request(application: app, url: "/some?query=\(expectedQuery)", on: app.eventLoopGroup.next())
+        let expectedQueryKey = "query"
+        let expectedQueryValue = "test"
         
-        let response = try request
-            .enterRequestContext(with: SomeComponent()) { component in
-                component.handle().encodeResponse(for: request)
+        app.routes.get("some") {req in
+            req.enterRequestContext(with: SomeComponent()) { component in
+                return component.handle().encodeResponse(for: req)
             }
-            .wait()
+        }
         
-        let responseData = try XCTUnwrap(response.body.data)
-        let responseString = String(decoding: responseData, as: UTF8.self)
-        XCTAssert(responseString == expectedQuery)
+        try app.testable().test(.GET, "/some?\(expectedQueryKey)=\(expectedQueryValue)") { res in
+            XCTAssertEqual(res.status, .ok)
+            XCTAssertEqual(res.body.string, expectedQueryValue)
+        }
+    }
+    
+    func testPathParameterInjectable() throws {
+        let app = Application(.testing)
+        defer { app.shutdown() }
+        
+        struct SomeComponent: Component {
+            
+            @PathParameter(key: "pathId")
+            var pathId: String
+            
+            func handle() -> String {
+                "\(pathId)"
+            }
+        }
+        
+        let expectedPathParameter = "123"
+        
+        app.routes.get("some", ":pathId") {req in
+            req.enterRequestContext(with: SomeComponent()) { component in
+                return component.handle().encodeResponse(for: req)
+            }
+        }
+        
+        try app.testable().test(.GET, "/some/\(expectedPathParameter)") { res in
+            XCTAssertEqual(res.status, .ok)
+            XCTAssertEqual(res.body.string, expectedPathParameter)
+        }
     }
     
 }
