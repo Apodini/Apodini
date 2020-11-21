@@ -6,9 +6,10 @@
 //
 
 import Foundation
+import Vapor
 
 public struct ConfigurationGroup<Content: Configuration>: ConfigurationCollection {
-    public func configure() {
+    public func configure(_ app: Application) {
         print("grouphandle")
     }
     

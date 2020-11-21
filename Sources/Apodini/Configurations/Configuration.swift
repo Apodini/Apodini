@@ -12,7 +12,7 @@ public protocol Configuration {
     associatedtype ReturnType: Any = Never
     @ConfigurationBuilder var configuration: Self.Config { get }
     
-    func configure() -> Self.ReturnType
+    func configure(_ app: Application) -> Self.ReturnType
 }
 
 
@@ -20,7 +20,7 @@ extension Never: Configuration {
     public typealias Config = Never
     public typealias ReturnType = Never
     
-    public func configure() -> Self.ReturnType {
+    public func configure(_ app: Application) -> Self.ReturnType {
         fatalError("should not happen")
     }
     
@@ -36,7 +36,7 @@ extension Configuration where Self.Config == Never {
 }
 
 extension Configuration where Self.ReturnType == Never {
-    public func configure() -> Never {
+    public func configure(_ app: Application) -> Never {
         print(Self.ReturnType.self)
         fatalError("should not happen")
     }
@@ -59,7 +59,7 @@ extension Configuration {
 public protocol ConfigurationCollection: Configuration {}
 
 public struct EmptyConfiguration: Configuration {
-    public func configure() {
+    public func configure(_ app: Application) {
     }
     
     public init() {}

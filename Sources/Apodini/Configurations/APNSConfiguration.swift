@@ -4,7 +4,7 @@
 //
 //  Created by Alexander Collins on 18.11.20.
 //
-
+import Vapor
 
 public struct APNSConfiguration: Configuration {
     
@@ -15,7 +15,7 @@ public struct APNSConfiguration: Configuration {
         self.text = text
     }
     
-    public func configure() -> String {
+    public func configure(_ app: Application) -> String {
         print(text)
         return text
     }

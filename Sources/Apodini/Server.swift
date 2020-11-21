@@ -7,6 +7,7 @@
 
 import Vapor
 import Fluent
+import FluentMongoDriver
 
 
 public protocol Server: ComponentCollection, ConfigurationCollection {
@@ -32,7 +33,7 @@ extension Server {
                 WebSocketSemanticModelBuilder(app)
             )
             
-            server.configure(app)
+            server.loadConfiguration(app)
             
             defer {
                 app.shutdown()
@@ -59,7 +60,7 @@ extension Server {
         self.visit(visitor)
     }
     
-    func configure(_ app: Application) {
+    func loadConfiguration(_ app: Application) {
         let configurator = Configurator(app)
         configurator.enter(collection: self)
         ConfigurationGroup {

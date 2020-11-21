@@ -39,7 +39,8 @@ extension Vapor.Request {
             if let requestInjectable = child.value as? RequestInjectable {
                 do {
                     try requestInjectable.inject(using: self)
-                } catch {
+                } catch(let error) {
+                    print(error.localizedDescription)
                     fatalError("Could not inject a value into a \(child.label ?? "UNKNOWN") property wrapper.")
                 }
             }
