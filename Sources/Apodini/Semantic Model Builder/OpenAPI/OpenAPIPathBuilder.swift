@@ -51,8 +51,8 @@ struct OpenAPIPathBuilder: PathBuilder {
         }
     }
     
-    mutating func append<T>(_ identifiier: Identifier<T>) where T : Identifiable {
-        let pathComponent = identifiier.identifier
+    mutating func append<T>(_ identifier: Identifier<T>) where T : Identifiable {
+        let pathComponent = identifier.identifier
         pathComponents.append(.parameter(pathComponent))
     }
 }

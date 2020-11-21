@@ -33,8 +33,8 @@ class Context {
             return EventLoopFuture<Void>
                 .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
                 .flatMap { _ in
-                    request.enterRequestContext(with: component) { component in
-                        var response: ResponseEncodable = component.handle()
+                    request.enterRequestContext(with: component) { c in
+                        var response: ResponseEncodable = c.handle()
                         for responseTransformer in self.contextNode.getContextValue(for: ResponseContextKey.self) {
                             response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
                                 responseTransformer.transform(response: response)
