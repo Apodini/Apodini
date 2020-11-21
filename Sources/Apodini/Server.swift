@@ -66,9 +66,6 @@ extension Server {
         ConfigurationGroup {
             configuration
         }.configurable(by: configurator)
-//        ConfigurationGroup {
-//            configure
-//        }.visitMe(visitor)
     }
     
     private func visit(_ visitor: SynaxTreeVisitor) {

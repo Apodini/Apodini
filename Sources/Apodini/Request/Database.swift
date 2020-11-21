@@ -27,7 +27,7 @@ public class Database: RequestInjectable {
     public init() { }
     
     
-    func inject(using request: Vapor.Request) throws {git 
+    func inject(using request: Vapor.Request) throws { 
         self.database = request.db
     }
     
