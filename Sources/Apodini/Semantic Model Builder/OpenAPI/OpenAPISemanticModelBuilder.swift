@@ -22,10 +22,20 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
         )
         super.init(app)
         
-        // TODO: should we create a vapor endpoint (if defined in configuration) here?
-        // if yes, define request handler which returns representation of
-        // `self.document` (or &self.document)
-        
+        // TODO: add YAML and default case?
+        // TODO: add file export?
+        if let outputRoute = self.configuration.outputEndpoint {
+            switch self.configuration.outputFormat {
+            case .JSON:
+                app.get(outputRoute.pathComponents) { (req: Vapor.Request) in
+                    self.document
+                }
+            case .YAML:
+                print("Not implemented yet.")
+            default:
+                print("Not implemented yet.")
+            }
+        }
     }
     
     override func register<C>(component: C, withContext context: Context) where C: Component {
@@ -41,11 +51,6 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
         }
         
         // if new schema detected, add to components
-        
-        // 
-        //#if DEBUG
-        //self.printRESTPath(of: component, withContext: context)
-        //#endif
 
     }
     

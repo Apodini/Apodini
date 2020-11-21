@@ -25,6 +25,6 @@ struct OpenAPIConfiguration {
         case YAML
     }
     var outputPath: String?
-    var outputEndpoint: String?
+    var outputEndpoint: String? = "openapi"
     var outputFormat: OutputFormat = .JSON
 }
