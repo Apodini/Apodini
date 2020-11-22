@@ -6,9 +6,11 @@
 //
 
 import Vapor
+import Fluent
+import FluentMongoDriver
 
 
-public protocol Server: ComponentCollection {
+public protocol Server: ComponentCollection, ConfigurationCollection {
     var version: Version { get }
     
     init()
@@ -31,16 +33,7 @@ extension Server {
                 WebSocketSemanticModelBuilder(app)
             )
             
-            // APNS Configuration
-//            app.apns.configuration = try .init(
-//                authenticationMethod: .tls(
-//                    privateKeyPath: ,
-//                    pemPath:
-//                ),
-//                // Bundle Identifier
-//                topic: "de.tum.in.www1.ios.Action-Based-Events-Sample",
-//                environment: .sandbox
-//            )
+            server.loadConfiguration(app)
             
             defer {
                 app.shutdown()
@@ -65,6 +58,14 @@ extension Server {
     func register(_ semanticModelBuilders: SemanticModelBuilder...) {
         let visitor = SynaxTreeVisitor(semanticModelBuilders: semanticModelBuilders)
         self.visit(visitor)
+    }
+    
+    func loadConfiguration(_ app: Application) {
+        let configurator = Configurator(app)
+        configurator.enter(collection: self)
+        ConfigurationGroup {
+            configuration
+        }.configurable(by: configurator)
     }
     
     private func visit(_ visitor: SynaxTreeVisitor) {

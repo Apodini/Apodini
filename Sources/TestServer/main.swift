@@ -80,7 +80,13 @@ struct TestServer: Apodini.Server {
         Group("test") {
             Text("Hello Swift! 💻")
         }
-        
+    }
+    
+    var configuration: some Configuration {
+        APNSConfiguration(.pem(pemPath: "/Users/awocatmac/Developer/Action Based Events Sample/backend/Certificates/apns.pem"),
+                                  topic: "de.tum.in.www1.ios.Action-Based-Events-Sample",
+                                  environment: .sandbox)
+
     }
 }
 
