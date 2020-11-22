@@ -23,9 +23,9 @@ final class GuardTests: XCTestCase {
     
     var component: some Component {
         Text("Hallo")
-            .httpMethod(.GET)
+            .operation(.READ)
             .guard(TestGuard())
-            .httpMethod(.POST)
+            .operation(.CREATE)
     }
     
     func testPrintComponent() {

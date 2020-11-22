@@ -43,6 +43,20 @@ struct RESTPathBuilder: PathBuilder {
     }
 }
 
+extension Operation {
+    var httpMethod: Vapor.HTTPMethod {
+        switch self {
+        case .CREATE:
+             return .POST
+        case .READ:
+            return .GET
+        case .UPDATE: // TODO for rest there are PUT (overriding the whole resource) and PATCH (applying partial updates)
+            return .PUT // TODO maybe automatically handle PATCH?
+        case .DELETE:
+            return .DELETE
+        }
+    }
+}
 
 class RESTSemanticModelBuilder: SemanticModelBuilder {
     override init(_ app: Application) {
@@ -64,12 +78,12 @@ class RESTSemanticModelBuilder: SemanticModelBuilder {
         let requestHandler = context.createRequestHandler(withComponent: component)
         RESTPathBuilder(context.get(valueFor: PathComponentContextKey.self))
             .routesBuilder(app)
-            .on(context.get(valueFor: HTTPMethodContextKey.self), [], use: requestHandler)
+            .on(context.get(valueFor: OperationContextKey.self).httpMethod, [], use: requestHandler)
     }
     
     
     private func printRESTPath<C>(of component: C, withContext context: Context) where C: Component {
-        let httpType = context.get(valueFor: HTTPMethodContextKey.self)
+        let operationType = context.get(valueFor: OperationContextKey.self)
         
         let restPathBuilder = RESTPathBuilder(context.get(valueFor: PathComponentContextKey.self))
         
@@ -84,6 +98,6 @@ class RESTSemanticModelBuilder: SemanticModelBuilder {
         
         let guards = context.get(valueFor: GuardContextKey.self)
         
-        app.logger.info("\(restPathBuilder.pathDescription) + \(httpType.rawValue) -> \(returnType) with \(guards.count) guards.")
+        app.logger.info("\(restPathBuilder.pathDescription) + \(String(reflecting: operationType)) -> \(returnType) with \(guards.count) guards.")
     }
 }
