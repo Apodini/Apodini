@@ -11,7 +11,7 @@ import Foundation
 
 
 @propertyWrapper
-public class Body<Element: DatabaseModel>: RequestInjectable {
+public class Body<Element: Codable>: RequestInjectable {
     private var element: Element?
     
     
@@ -31,8 +31,7 @@ public class Body<Element: DatabaseModel>: RequestInjectable {
         guard let byteBuffer = request.body.data, let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
             throw Vapor.Abort(.internalServerError, reason: "Could not read the HTTP request's body")
         }
-        element = try request.content.decode(Element.self)
-//        element = try JSONDecoder().decode(Element.self, from: request.content)
+        element = try JSONDecoder().decode(Element.self, from: data)
     }
     
     func disconnect() {
