@@ -11,11 +11,12 @@ import Vapor
 class SemanticModelBuilder {
     private(set) var app: Application
     
-    
     init(_ app: Application) {
         self.app = app
     }
     
     
     func register<C: Component>(component: C, withContext context: Context) { }
+
+    func finishedProcessing() {}
 }

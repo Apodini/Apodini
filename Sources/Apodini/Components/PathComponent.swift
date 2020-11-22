@@ -12,6 +12,8 @@ import Foundation
 public protocol PathComponent {}
 
 protocol _PathComponent: PathComponent {
+    var description: String { get }
+
     func append<P: PathBuilder>(to pathBuilder: inout P)
 }
 
@@ -39,7 +41,7 @@ struct StringPathBuilder: PathBuilder {
     }
 
     mutating func append<T>(_ identifier: Identifier<T>) where T: Identifiable {
-        paths.append(identifier.identifier)
+        paths.append(identifier.description)
     }
 
     func build() -> String {
@@ -47,8 +49,11 @@ struct StringPathBuilder: PathBuilder {
     }
 }
 
-
 extension String: _PathComponent {
+    var description: String {
+        self
+    }
+
     func append<P>(to pathBuilder: inout P) where P: PathBuilder {
         pathBuilder.append(self)
     }
@@ -56,17 +61,23 @@ extension String: _PathComponent {
 
 /// Used to define parameter in a path
 public struct Identifier<T: Identifiable> {
-    let identifier: String
+    let description: String
 
     /// This initializes a new Identifier which is used to identify the given `type`.
     public init(_ type: T.Type = T.self) {
         let typeName = String(describing: T.self).uppercased()
-        identifier = "\(typeName)-\(UUID())"
+        description = "\(typeName)-\(UUID())"
     }
 }
 
 extension Identifier: _PathComponent {
     func append<P>(to pathBuilder: inout P) where P: PathBuilder {
         pathBuilder.append(self)
+    }
+}
+
+extension Array where Element == _PathComponent {
+    func joinPathComponents(separator: String = "/") -> String {
+        self.map(\.description).joined(separator: separator)
     }
 }
