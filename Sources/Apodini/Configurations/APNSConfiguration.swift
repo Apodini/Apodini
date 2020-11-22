@@ -23,7 +23,7 @@ public struct APNSConfiguration: Configuration {
         self.environment = environment
     }
     
-    public func configure(_ app: Application) -> Bool {
+    public func configure(_ app: Application) {
         do {
         switch authentication {
         case .pem(let pemPath, let privateKeyPath, let pemPassword):
@@ -50,7 +50,6 @@ public struct APNSConfiguration: Configuration {
         } catch {
             fatalError("Error setting up APNS")
         }
-        return true
     }
 }
 

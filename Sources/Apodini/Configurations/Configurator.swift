@@ -27,7 +27,7 @@ public class Configurator {
     }
     
     private func executeConfiguration<C: Configuration>(config: C, context: Context) {
-        let _ = config.configure(app)
+        config.configure(app)
     }
     
     func enter<C: ConfigurationCollection>(collection: C) {

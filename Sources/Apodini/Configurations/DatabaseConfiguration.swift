@@ -23,7 +23,7 @@ public class DatabaseConfiguration: Configuration {
         self.type = type
     }
     
-    public func configure(_ app: Application) -> Bool {
+    public func configure(_ app: Application) {
         do {
             let databases = app.databases
             
@@ -39,7 +39,6 @@ public class DatabaseConfiguration: Configuration {
         } catch(let error) {
             fatalError(error.localizedDescription)
         }
-        return true
     }
     
     public func connectionString(_ string: String) -> Self {

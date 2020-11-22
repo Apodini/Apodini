@@ -9,18 +9,17 @@ import Vapor
 
 public protocol Configuration {
     associatedtype Config: Configuration = Never
-    associatedtype ReturnType: Any = Never
+
     @ConfigurationBuilder var configuration: Self.Config { get }
     
-    func configure(_ app: Application) -> Self.ReturnType
+    func configure(_ app: Application)
 }
 
 
 extension Never: Configuration {
     public typealias Config = Never
-    public typealias ReturnType = Never
     
-    public func configure(_ app: Application) -> Self.ReturnType {
+    public func configure(_ app: Application) {
         fatalError("should not happen")
     }
     
@@ -28,6 +27,7 @@ extension Never: Configuration {
         fatalError("should not happen")
     }
 }
+
 
 extension Configuration where Self.Config == Never {
     public var configuration: Never {
@@ -35,12 +35,13 @@ extension Configuration where Self.Config == Never {
     }
 }
 
-extension Configuration where Self.ReturnType == Never {
-    public func configure(_ app: Application) -> Never {
-        print(Self.ReturnType.self)
+
+extension Configuration {
+    public func configure(_ app: Application) {
         fatalError("should not happen")
     }
 }
+
 
 extension Configuration {
     
@@ -56,15 +57,12 @@ extension Configuration {
     
 }
 
+
 public protocol ConfigurationCollection: Configuration {}
 
+
 public struct EmptyConfiguration: Configuration {
-    public func configure(_ app: Application) {
-    }
+    public func configure(_ app: Application) {}
     
     public init() {}
-}
-
-public protocol Test {
-    func test()
 }
