@@ -1,11 +1,3 @@
-//
-//  ConfigurationConvertible.swift
-//  
-//
-//  Created by Alexander Collins on 22.11.20.
-//
-
-
 public protocol ConfigurationConvertible {
     func eraseToAnyConfiguration() -> AnyConfiguration
 }
@@ -18,14 +10,14 @@ extension EmptyConfiguration: ConfigurationConvertible {
 }
 
 
-extension DatabaseConfiguration: ConfigurationConvertible  {
+extension DatabaseConfiguration: ConfigurationConvertible {
     public func eraseToAnyConfiguration() -> AnyConfiguration {
         AnyConfiguration(self)
     }
 }
 
 
-extension APNSConfiguration: ConfigurationConvertible  {
+extension APNSConfiguration: ConfigurationConvertible {
     public func eraseToAnyConfiguration() -> AnyConfiguration {
         AnyConfiguration(self)
     }

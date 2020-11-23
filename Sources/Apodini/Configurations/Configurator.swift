@@ -1,10 +1,3 @@
-//
-//  Configurator.swift
-//  
-//
-//  Created by Alexander Collins on 19.11.20.
-//
-
 import Vapor
 
 protocol Configurable {

@@ -1,14 +1,5 @@
-//
-//  ConfigurationBuilder.swift
-//  
-//
-//  Created by Alexander Collins on 18.11.20.
-//
-
-
 @_functionBuilder
 public struct ConfigurationBuilder {
-    
     public static func buildBlock() -> EmptyConfiguration {
         EmptyConfiguration()
     }

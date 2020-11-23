@@ -1,9 +1,3 @@
-//
-//  Configuration.swift
-//  
-//
-//  Created by Alexander Collins on 18.11.20.
-//
 import NIO
 import Vapor
 
@@ -44,7 +38,6 @@ extension Configuration {
 
 
 extension Configuration {
-    
     func configurable(by configurator: Configurator) {
         if let configurable = self as? Configurable {
             configurable.configurable(by: configurator)
@@ -54,15 +47,14 @@ extension Configuration {
             configurator.register(configuration: self)
         }
     }
-    
 }
 
 
-public protocol ConfigurationCollection: Configuration {}
+public protocol ConfigurationCollection: Configuration { }
 
 
 public struct EmptyConfiguration: Configuration {
-    public func configure(_ app: Application) {}
+    public func configure(_ app: Application) { }
     
-    public init() {}
+    public init() { }
 }

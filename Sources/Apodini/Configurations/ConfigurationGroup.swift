@@ -1,11 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Alexander Collins on 19.11.20.
-//
-
-import Foundation
 import Vapor
 
 public struct ConfigurationGroup<Content: Configuration>: ConfigurationCollection {
@@ -21,7 +13,6 @@ public struct ConfigurationGroup<Content: Configuration>: ConfigurationCollectio
 }
 
 extension ConfigurationGroup: Configurable {
-    
     func configurable(by configurator: Configurator) {
         configurator.enter(collection: self)
         content.configurable(by: configurator)

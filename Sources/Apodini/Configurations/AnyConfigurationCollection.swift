@@ -1,12 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Felix Desiderato on 21.11.20.
-//
-
-import Foundation
-
 public struct AnyConfigurationCollection: Configuration {
     public var configurations: [AnyConfiguration]
     
@@ -45,5 +36,3 @@ extension AnyConfiguration: Configurable {
         _configurable(configurator)
     }
 }
-
-

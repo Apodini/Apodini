@@ -1,14 +1,7 @@
-//
-//  File.swift
-//  
-//
-//  Created by Felix Desiderato on 21.11.20.
-//
 import Vapor
 import Fluent
 
 public class DatabaseConfiguration: Configuration {
-    
     private let type: DatabaseType
     
     private var migrations: [Migration] = []

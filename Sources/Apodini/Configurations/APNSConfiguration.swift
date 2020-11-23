@@ -1,10 +1,3 @@
-//
-//  APNSConfiguration.swift
-//  
-//
-//  Created by Alexander Collins on 18.11.20.
-//
-
 import Vapor
 import APNS
 import JWTKit
