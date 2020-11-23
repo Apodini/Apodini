@@ -14,13 +14,12 @@ struct PathComponentContextKey: ContextKey {
 }
 
 
-public struct Group<Content: Component>: ComponentCollection {
+public struct Group<Content: Component>: Component {
     private let pathComponents: [PathComponent]
     public let content: Content
     
     
-    public init(_ pathComponents: PathComponent...,
-         @ComponentBuilder content: () -> Content) {
+    public init(_ pathComponents: PathComponent..., @ComponentBuilder content: () -> Content) {
         self.pathComponents = pathComponents
         self.content = content()
     }
@@ -29,9 +28,9 @@ public struct Group<Content: Component>: ComponentCollection {
 
 extension Group: Visitable {
     func visit(_ visitor: SynaxTreeVisitor) {
-        visitor.enter(collection: self)
+        visitor.enterCollectionItem()
         visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)
         content.visit(visitor)
-        visitor.exit(collection: self)
+        visitor.exitCollectionItem()
     }
 }

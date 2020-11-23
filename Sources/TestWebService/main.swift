@@ -1,5 +1,5 @@
 //
-//  TestRESTServer.swift
+//  TestWebService.swift
 //  
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
@@ -10,7 +10,7 @@ import Vapor
 import NIO
 
 
-struct TestServer: Apodini.Server {
+struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
         private let message: String?
         @Apodini.Request
@@ -54,4 +54,4 @@ struct TestServer: Apodini.Server {
     }
 }
 
-TestServer.main()
+TestWebService.main()

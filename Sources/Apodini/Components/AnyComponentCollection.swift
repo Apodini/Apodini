@@ -23,7 +23,9 @@ public struct AnyComponentCollection: Component {
 extension AnyComponentCollection: Visitable {
     func visit(_ visitor: SynaxTreeVisitor) {
         for component in components {
+            visitor.enterCollectionItem()
             component.visit(visitor)
+            visitor.exitCollectionItem()
         }
     }
 }

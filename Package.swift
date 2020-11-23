@@ -37,7 +37,7 @@ let package = Package(
             ]
         ),
         .target(
-            name: "TestServer",
+            name: "TestWebService",
             dependencies: [
                 .target(name: "Apodini")
             ]
