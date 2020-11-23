@@ -22,11 +22,12 @@ final class ModifierTests: XCTestCase {
                         .operation(.delete)
                         .operation(.update)
                     Text("Delete")
+                        .operation(.delete)
                     Text("Create")
                         .operation(.read)
                         .operation(.create)
-                }.operation(.delete)
-            }.operation(.update)
+                }
+            }
         }
         
         let printVisitor = PrintVisitor()

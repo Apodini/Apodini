@@ -58,7 +58,7 @@ struct IntModifier<ModifiedComponent: Component>: Modifier, Visitable {
 
 extension Component {
     func modifier(_ scope: Scope, value: Int) -> IntModifier<Self> {
-        IntModifier(self,scope: scope, value: value)
+        IntModifier(self, scope: scope, value: value)
     }
 }
 
