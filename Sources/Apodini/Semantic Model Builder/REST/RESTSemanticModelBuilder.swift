@@ -13,9 +13,11 @@ struct RESTPathBuilder: PathBuilder {
     
     
     fileprivate var pathDescription: String {
-        pathComponents.map { pathComponent in
-            pathComponent.description
-        }.joined(separator: "/")
+        pathComponents
+                .map { pathComponent in
+                    pathComponent.description
+                }
+                .joined(separator: "/")
     }
     
     
@@ -33,7 +35,7 @@ struct RESTPathBuilder: PathBuilder {
         pathComponents.append(.constant(pathComponent))
     }
     
-    mutating func append<T>(_ identifiier: Identifier<T>) where T : Identifiable {
+    mutating func append<T>(_ identifiier: Identifier<T>) where T: Identifiable {
         let pathComponent = identifiier.identifier
         pathComponents.append(.parameter(pathComponent))
     }
@@ -46,13 +48,13 @@ struct RESTPathBuilder: PathBuilder {
 extension Operation {
     var httpMethod: Vapor.HTTPMethod {
         switch self {
-        case .CREATE:
+        case .create:
              return .POST
-        case .READ:
+        case .read:
             return .GET
-        case .UPDATE: // TODO for rest there are PUT (overriding the whole resource) and PATCH (applying partial updates)
-            return .PUT // TODO maybe automatically handle PATCH?
-        case .DELETE:
+        case .update:
+            return .PUT
+        case .delete:
             return .DELETE
         }
     }
@@ -92,6 +94,7 @@ class RESTSemanticModelBuilder: SemanticModelBuilder {
             if responseTransformerTypes.isEmpty {
                 return C.Response.self
             } else {
+                // swiftlint:disable:next force_unwrapping
                 return responseTransformerTypes.last!().transformedResponseType
             }
         }()

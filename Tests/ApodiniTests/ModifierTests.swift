@@ -15,18 +15,18 @@ final class ModifierTests: XCTestCase {
         var component: some Component {
             Group {
                 Text("Create")
-                    .operation(.READ)
-                    .operation(.CREATE)
+                    .operation(.read)
+                    .operation(.create)
                 Group {
                     Text("Update")
-                        .operation(.DELETE)
-                        .operation(.UPDATE)
+                        .operation(.delete)
+                        .operation(.update)
                     Text("Delete")
                     Text("Create")
-                        .operation(.READ)
-                        .operation(.CREATE)
-                }.operation(.DELETE)
-            }.operation(.UPDATE)
+                        .operation(.read)
+                        .operation(.create)
+                }.operation(.delete)
+            }.operation(.update)
         }
         
         let printVisitor = PrintVisitor()
@@ -46,8 +46,7 @@ final class ModifierTests: XCTestCase {
             }
         }
         
-        
-        
+
         var component: some Component {
             Text("Hallo")
                 .response(FirstTestResponseMediator())

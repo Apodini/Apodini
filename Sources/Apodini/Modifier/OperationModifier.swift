@@ -5,43 +5,20 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-public enum Operation: RawRepresentable {
-    case CREATE
-    case READ
-    case UPDATE
-    case DELETE
-
-    public var rawValue: String {
-        switch self {
-        case .CREATE:
-            return "CREATE"
-        case .READ:
-            return "READ"
-        case .UPDATE:
-            return "UPDATE"
-        case .DELETE:
-            return "DELETE"
-        }
-    }
-
-    public init?(rawValue: String) {
-        switch rawValue {
-        case "CREATE":
-            self = .CREATE
-        case "READ":
-            self = .READ
-        case "UPDATE":
-            self = .UPDATE
-        case "DELETE":
-            self = .DELETE
-        default:
-            return nil
-        }
-    }
+/// Defines the Operation of a given endpoint
+public enum Operation {
+    /// The associated endpoint is used for a `create` operation
+    case create
+    /// The associated endpoint is used for a `read` operation
+    case read
+    /// The associated endpoint is used for a `update` operation
+    case update
+    /// The associated endpoint is used for a `delete` operation
+    case delete
 }
 
 struct OperationContextKey: ContextKey {
-    static var defaultValue: Operation = .READ
+    static var defaultValue: Operation = .read
     
     static func reduce(value: inout Operation, nextValue: () -> Operation) {
         value = nextValue()
@@ -62,13 +39,14 @@ public struct OperationModifier<ModifiedComponent: Component>: Modifier {
 
 extension OperationModifier: Visitable {
     func visit(_ visitor: SynaxTreeVisitor) {
-        visitor.addContext(OperationContextKey.self, value: operation, scope: .environment) // TODO issue #15, change that to .nextComponent?
+        visitor.addContext(OperationContextKey.self, value: operation, scope: .nextComponent)
         component.visit(visitor)
     }
 }
 
 
 extension Component {
+    /// Sets the `Operation` for the given `Component`
     public func operation(_ operation: Operation) -> OperationModifier<Self> {
         OperationModifier(self, operation: operation)
     }
