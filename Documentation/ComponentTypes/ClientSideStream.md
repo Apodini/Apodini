@@ -1,5 +1,7 @@
 # Client-Side Stream
 
+## Version A: Connection Based Approach
+
 Client-side stream `Component`s are very similar to request-response `Component`s with the difference that they rely on a constant connection that can be observed using the `@Environment` property wrapper:
 You can access the connection state using the `Connection`'s `state` property that is retrieved by the `@Environment(\.connection)` property wrapper:
 
@@ -39,3 +41,53 @@ struct SingleParameterComponent: Component {
     }
 }
 ```
+
+## Version B: Collection Based Approach
+
+Client-side stream `Component`s are very similar to request-response `Component`s with the difference that they collect the content from the client before calling the handle method. To indicate that a message can be collected, we mark the property with the `@CollectableParameter`.
+
+```swift
+struct SingleParameterComponent: Component {
+    @CollectableParameter var names: [String]
+
+
+    func handle() -> String {
+        // Joins all names in the array using commas.
+        return "Hello \(names.joined(", "))!"
+    }
+}
+```
+
+ Middlewares and Protocols that don't implement client-side streaming only accept a single request that can include the `@CollectableParameter` as a collection.
+ In addition some types might conform to `Collectable` that requires a reduce function:
+ ```swift
+protocol Collectable {
+    associatedtype Value
+ 
+
+    static var defaultValue: Self.Value { get }
+
+
+    static func reduce(value: inout Self.Value, nextValue: () -> Self.Value)
+}
+ ```
+This enables `Components` to expose the `@CollectableParameter` as a single type:
+```swift
+struct NameCollector: Collectable {
+    static var defaultValue: String = ""
+ 
+
+    static func reduce(value: inout String, nextValue: () -> String) {
+        value.append(", \(nextValue())")
+    }
+}
+
+struct SingleParameterComponent: Component {
+    @CollectableParameter(NameCollector.self) var names: String
+
+
+    func handle() -> String {
+        return "Hello \(names)!"
+    }
+}
+ ```
