@@ -2,7 +2,7 @@ import Vapor
 import APNS
 import JWTKit
 
-
+/// A `Configuration` used for APNS authentication
 public struct APNSConfiguration: Configuration {
     private let authentication: APNSAuthentication
     private let topic: String

@@ -24,7 +24,7 @@ extension AnyConfigurationCollection: Configurable {
 }
 
 public struct AnyConfiguration: Configuration {
-    private let _configurable: (_ configurator: Configurator) -> ()
+    private let _configurable: (_ configurator: Configurator) -> Void
     
     init<C: Configuration>(_ config: C) {
         self._configurable = config.configurable(by:)

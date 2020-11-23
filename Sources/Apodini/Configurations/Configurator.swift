@@ -4,9 +4,11 @@ protocol Configurable {
     func configurable(by configurator: Configurator)
 }
 
+
+/// A class that is responsible for the `Configuration` in Apodini
 public class Configurator {
     private(set) var app: Application
-    private(set) var currentNode: ContextNode = ContextNode()
+    private(set) var currentNode = ContextNode()
     
     init(_ app: Application) {
         self.app = app

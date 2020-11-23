@@ -23,7 +23,6 @@ public class DatabaseConfiguration: Configuration {
             switch type {
             case .mongo:
                 try databases.use(.mongo(connectionString: self.connectionString), as: .mongo)
-                break
             default:
                 break
             }
