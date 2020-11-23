@@ -91,3 +91,4 @@ struct SingleParameterComponent: Component {
     }
 }
  ```
+*Question: The Connection based approach could enable Apodini Web Services to perform work on every request recieved from the client ... could we model a similiar behaviour in the collection-based approach?*
