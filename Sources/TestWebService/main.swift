@@ -44,20 +44,13 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @_Request
-        var req: Apodini.Request
+        @Parameter var name: String
         
         func handle() -> String {
-            do {
-                let result: String? = try req.parameter(for: "name")
-                print("Query name")
-                return result ?? ""
-            } catch {
-                return "World"
-            }
+            "Hello \(name)!"
         }
     }
-    
+
     
     var content: some Component {
         Text("Hello World! 👋")

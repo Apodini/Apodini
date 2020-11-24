@@ -21,7 +21,7 @@ class Context {
         contextNode.getContextValue(for: contextKey)
     }
     
-    func createRequestHandler<C: Component, Req: Request, Res: Response>(withComponent component: C, using responseEncoder: EncoderProtocol)
+    func createRequestHandler<C: Component, Req: Request, Res: Response>(withComponent component: C)
     -> (Req) -> EventLoopFuture<Res> {
         { (request: Req) in
             let guardEventLoopFutures = self.contextNode.getContextValue(for: GuardContextKey.self)
@@ -41,7 +41,7 @@ class Context {
                             }
                         }
 
-                        let vaporResponse = try! Res(body: response, encoder: responseEncoder)
+                        let vaporResponse = try! Res(body: response)
                         return request.eventLoop.makeSucceededFuture(vaporResponse)
                     }
                 }

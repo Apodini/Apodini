@@ -11,20 +11,14 @@ import NIO
 
 
 protocol Response {
-    init<T: Encodable>(body: T, encoder: EncoderProtocol) throws
-
-    func payload<T: Decodable>(using decoder: DecoderProtocol) throws -> T?
+    init<T: Encodable>(body: T) throws
 }
 
-extension Vapor.Response: Response {
-  convenience init<T: Encodable>(body: T, encoder: EncoderProtocol) throws {
-        let data = try encoder.encode(body)
-        self.init(status: .ok, headers: HTTPHeaders(), body: Body(data: data))
-    }
+typealias VaporResponse = Vapor.Response
 
-    func payload<T: Decodable>(using decoder: DecoderProtocol) throws -> T? {
-        guard let data = self.body.data else { return nil }
-        let result = try decoder.decode(T.self, from: data)
-        return result
+extension VaporResponse: Response {
+    convenience init<T: Encodable>(body: T) throws {
+        let data = try JSONEncoder().encode(body)
+        self.init(body: Body(data: data))
     }
 }

@@ -15,12 +15,10 @@ import Fluent
 
 final class ThreadSafetyTests: ApodiniTests {
     struct Greeter: Component {
-        @_Request
-        var req: Apodini.Request
-        
+        @Parameter("name", .http(.body)) var name: String
+
         func handle() -> String {
-            let body: String? = try? req.bodyParameter()
-            return body ?? "World"
+            name
         }
     }
     
