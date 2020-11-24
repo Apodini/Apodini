@@ -5,17 +5,17 @@ This document provides an overview of different compoenent types that are part o
 ## Component Types
 
  1. **Request-Response Component**: A single request is answered by a single response (`Request -> Response`)
- 2. **[Service-Side Stream Component](/ComponentTypes/ServiceSideStream.md)**: A single response is answered by multiple responses that are terminated by the web service (`Request -> [Response]`) 
- 3. **[Client-Side Stream Component](/ComponentTypes/ClientSideStream.md)**: Multiple requests by a client that are terminated by a single response from the web service (`[Request] -> Response`)
- 4. **[Bidirectional Stream Component](/ComponentTypes/BidirectionalStream.md)**: An open communication channel where both parties can send messages at any time. The connection is terminated by either the client or web service (`[Request] -> [Response]`)
+ 2. **[Service-Side Stream Component](ComponentTypes/ServiceSideStream.md)**: A single response is answered by multiple responses that are terminated by the web service (`Request -> [Response]`) 
+ 3. **[Client-Side Stream Component](ComponentTypes/ClientSideStream.md)**: Multiple requests by a client that are terminated by a single response from the web service (`[Request] -> Response`)
+ 4. **[Bidirectional Stream Component](ComponentTypes/BidirectionalStream.md)**: An open communication channel where both parties can send messages at any time. The connection is terminated by either the client or web service (`[Request] -> [Response]`)
  
 All request and response types could also be `Void` or `nil`. We consider `Request -> ()` or `[Request] -> ()` no separate components as this is achieved using an `Request -> Response` or `[Request] -> Response` component with a `Void` return type or returning `nil`.  
 How a specific protocol or middleware handles `Void` or `nil` is up to the implementation of the specific exporter.
 
 Components that are not request and response based are discussed in the [Component Type documentation](/ComponentTypes).
-* [Service Side Streams](/ComponentTypes/ServiceSideStream.md)
-* [Client Side Streams](/ComponentTypes/ClientSideStream.md)
-* [Bidirectional Streams](/ComponentTypes/BidirectionalStream.md)
+* [Service Side Streams](ComponentTypes/ServiceSideStream.md)
+* [Client Side Streams](ComponentTypes/ClientSideStream.md)
+* [Bidirectional Streams](ComponentTypes/BidirectionalStream.md)
 
 In addition Apodini also offers a way to send out unsolicited events that is sent to the client from the web service based on some event (`() -> Response`) without a request such as push notifications. Further details are described in the [Push Notifications documentation](AdditionalFunctionality/PushNotifications).
 
@@ -23,7 +23,7 @@ In addition Apodini also offers a way to send out unsolicited events that is sen
 ## Apodini `Component`s
 
 Simple request-response `Component`s include `@Parameters` that are injected based on the request structure and include a `handle` method that returns the response that is computed by the `Component`.
-The [`@Parameter`](/PropertyWrapper/Parameter.md), [`@Environment` and `@Request`](/PropertyWrapper/RequestAndEnvironment.md) property wrappers are explained in more detail in thier [respective documentation](/PropertyWrapper).
+The [`@Parameter`](PropertyWrapper/Parameter.md), [`@Environment` and `@Request`](PropertyWrapper/RequestAndEnvironment.md) property wrappers are explained in more detail in thier [respective documentation](PropertyWrapper).
 
 Request-response components can include more complicated logic such as async operations to save elements into a database. In addition to `Strings` or other primitive types, the handle function can also return `EventLoopFuture`s to indicate async tasks.
 
