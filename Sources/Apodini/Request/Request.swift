@@ -25,7 +25,7 @@ public class Request: RequestInjectable {
     public init() { }
     
     
-    func inject(using request: Vapor.Request) throws {
+    func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder? = nil) throws {
         self.request = request
     }
     
