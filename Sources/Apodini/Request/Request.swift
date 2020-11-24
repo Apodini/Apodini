@@ -9,8 +9,8 @@ import Vapor
 
 
 @propertyWrapper
-public class Request: RequestInjectable {
-    private var request: Vapor.Request?
+public struct Request: RequestInjectable {
+    internal var request: Vapor.Request? = nil
     
     
     public var wrappedValue: Vapor.Request {
@@ -25,11 +25,7 @@ public class Request: RequestInjectable {
     public init() { }
     
     
-    func inject(using request: Vapor.Request) throws {
+    mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder? = nil) throws {
         self.request = request
-    }
-    
-    func disconnect() {
-        self.request = nil
     }
 }
