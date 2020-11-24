@@ -14,31 +14,27 @@ import Fluent
 
 
 final class ThreadSafetyTests: ApodiniTests {
-    
     struct Greeter: Component {
-            
         @Apodini.Request
         var req: Vapor.Request
         
         func handle() -> String {
-            return req.body.string ?? "World"
+            req.body.string ?? "World"
         }
-        
     }
     
     func testRequestInjectableUnlimitedConcurrency() throws {
-        let g = Greeter()
+        let greeter = Greeter()
         var count = 1000
         let countMutex = NSLock()
         
         DispatchQueue.concurrentPerform(iterations: count) { _ in
-            
             let id = randomString(length: 40)
             let request = Request(application: app, collectedBody: ByteBuffer(string: id), on: app.eventLoopGroup.next())
             
             do {
                 let response = try request
-                    .enterRequestContext(with: g) { component in
+                    .enterRequestContext(with: greeter) { component in
                         component.handle().encodeResponse(for: request)
                     }
                     .wait()
@@ -49,7 +45,6 @@ final class ThreadSafetyTests: ApodiniTests {
                 countMutex.lock()
                 count -= 1
                 countMutex.unlock()
-                
             } catch {
                 XCTFail(error.localizedDescription)
             }
@@ -59,7 +54,7 @@ final class ThreadSafetyTests: ApodiniTests {
     }
     
     func testRequestInjectableSingleThreaded() throws {
-        let g = Greeter()
+        let greeter = Greeter()
         var count = 1000
         
         for _ in 0..<count {
@@ -68,7 +63,7 @@ final class ThreadSafetyTests: ApodiniTests {
             
             do {
                 let response = try request
-                    .enterRequestContext(with: g) { component in
+                    .enterRequestContext(with: greeter) { component in
                         component.handle().encodeResponse(for: request)
                     }
                     .wait()
@@ -77,7 +72,6 @@ final class ThreadSafetyTests: ApodiniTests {
                 XCTAssert(String(data: responseData, encoding: .utf8) == id)
                 
                 count -= 1
-                
             } catch {
                 XCTFail(error.localizedDescription)
             }
@@ -86,8 +80,10 @@ final class ThreadSafetyTests: ApodiniTests {
         XCTAssertEqual(count, 0)
     }
     
+    // swiftlint:disable force_unwrapping
     private func randomString(length: Int) -> String {
         let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        return String((0..<length).map{ _ in letters.randomElement()! })
+        return String((0..<length).map { _ in letters.randomElement()! })
     }
+    // swiftlint:enable force_unwrapping
 }

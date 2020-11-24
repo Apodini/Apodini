@@ -10,7 +10,7 @@ import Vapor
 
 @propertyWrapper
 public struct Request: RequestInjectable {
-    internal var request: Vapor.Request? = nil
+    internal var request: Vapor.Request?
     
     
     public var wrappedValue: Vapor.Request {

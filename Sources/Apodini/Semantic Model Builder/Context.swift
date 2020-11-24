@@ -23,8 +23,7 @@ class Context {
     
     func createRequestHandler<C: Component>(withComponent component: C, using decoder: SemanticModelBuilder)
     -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        
-        return { (request: Vapor.Request) in
+        { (request: Vapor.Request) in
             let guardEventLoopFutures = self.contextNode.getContextValue(for: GuardContextKey.self)
                 .map { requestGuard in
                     request.enterRequestContext(with: requestGuard(), using: decoder) { requestGuard in

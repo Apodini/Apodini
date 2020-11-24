@@ -21,9 +21,6 @@ extension Vapor.Request {
         inject(in: &element, using: decoder)
         
         return method(element)
-            .map { response in
-                return response
-            }
     }
     
     func enterRequestContext<E, R>(with element: E, using decoder: SemanticModelBuilder? = nil, executing method: (E) -> R) -> R {
@@ -38,8 +35,8 @@ extension Vapor.Request {
             let info = try typeInfo(of: E.self)
             
             for property in info.properties {
-                if var child = (try! property.get(from: element)) as? RequestInjectable {
-                    assert(try! typeInfo(of: property.type).kind == .struct, "RequestInjectable \(property.name) on Component \(info.name) must be a struct.")
+                if var child = (try property.get(from: element)) as? RequestInjectable {
+                    assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "RequestInjectable \(property.name) on Component \(info.name) must be a struct.")
                     try child.inject(using: self, with: decoder)
                     try property.set(value: child, on: &element)
                 }
@@ -47,6 +44,5 @@ extension Vapor.Request {
         } catch {
             fatalError("Injecting into element \(element) failed.")
         }
-        
     }
 }

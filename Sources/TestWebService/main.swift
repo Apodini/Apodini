@@ -42,7 +42,6 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-            
         @Apodini.Request
         var req: Vapor.Request
         
@@ -53,7 +52,6 @@ struct TestWebService: Apodini.WebService {
                 return "World"
             }
         }
-        
     }
     
     
