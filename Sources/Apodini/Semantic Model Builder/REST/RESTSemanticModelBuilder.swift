@@ -77,10 +77,18 @@ class RESTSemanticModelBuilder: SemanticModelBuilder {
         // We currently just register the component here using the functionality based of Vapor.
         // The next step would be to create a sophisticated semantic model based on the Context and Components and use this to register the components in a structured way and e.g. provide HATEOS information.
         
-        let requestHandler = context.createRequestHandler(withComponent: component)
+        let requestHandler = context.createRequestHandler(withComponent: component, using: self)
         RESTPathBuilder(context.get(valueFor: PathComponentContextKey.self))
             .routesBuilder(app)
             .on(context.get(valueFor: OperationContextKey.self).httpMethod, [], use: requestHandler)
+    }
+
+    override func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
+        guard let byteBuffer = request.body.data, let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
+            throw Vapor.Abort(.internalServerError, reason: "Could not read the HTTP request's body")
+        }
+
+        return try JSONDecoder().decode(type, from: data)
     }
     
     

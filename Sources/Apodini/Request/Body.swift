@@ -27,12 +27,10 @@ public class Body<Element: Codable>: RequestInjectable {
     public init() { }
     
     
-    func inject(using request: Vapor.Request) throws {
-        guard let byteBuffer = request.body.data, let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
-            throw Vapor.Abort(.internalServerError, reason: "Could not read the HTTP request's body")
+    func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder?) throws {
+        if let decoder = decoder {
+            element = try decoder.decode(Element.self, from: request)
         }
-        
-        element = try JSONDecoder().decode(Element.self, from: data)
     }
     
     func disconnect() {
