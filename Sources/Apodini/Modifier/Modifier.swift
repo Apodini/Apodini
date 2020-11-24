@@ -17,6 +17,7 @@ protocol Modifier: Component {
 
 
 extension Modifier {
+    /// A `Modifier`'s handle method should never be called!
     public func handle() -> Self.ModifiedComponent.Response {
         fatalError("A Modifier's handle method should never be called!")
     }

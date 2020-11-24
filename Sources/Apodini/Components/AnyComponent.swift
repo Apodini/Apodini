@@ -9,7 +9,7 @@ import Vapor
 
 
 public struct AnyComponent: Component {
-    private let _visit: (_ visitor: SynaxTreeVisitor) -> ()
+    private let _visit: (_ visitor: SynaxTreeVisitor) -> Void
     
     
     init<C: Component>(_ component: C) {

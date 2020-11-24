@@ -54,14 +54,21 @@ extension GuardModifier: Visitable {
 
 
 extension Component {
+    /// Use an asyncronousn`Guard` to guard `Component`s by inspecting incoming requests
+    /// - Parameter guard: The `Guard` used to inspecting incoming requests
+    /// - Returns: Returns a modified `Component` protected by the asyncronous `Guard`
     public func `guard`<G: Guard>(_ guard: @escaping @autoclosure () -> (G)) -> GuardModifier<Self> {
         GuardModifier(self, guard: AnyGuard(`guard`()))
     }
     
+    /// Use a syncronous `SyncGuard` to guard `Component`s by inspecting incoming requests
+    /// - Parameter guard: The `Guard` used to inspecting incoming requests
+    /// - Returns: Returns a modified `Component` protected by the syncronous `SyncGuard`
     public func `guard`<G: SyncGuard>(_ guard: @escaping @autoclosure () -> (G)) -> GuardModifier<Self> {
         GuardModifier(self, guard: AnyGuard(`guard`()))
     }
     
+    /// Reselts all guards for the modified `Component`
     public func resetGuards() -> GuardModifier<Self> {
         GuardModifier(self, guard: AnyGuard(ResetGuard()))
     }
