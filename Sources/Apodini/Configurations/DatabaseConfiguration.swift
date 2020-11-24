@@ -1,6 +1,8 @@
 import Vapor
 import Fluent
+import FluentSQLiteDriver
 
+/// A `Configuration` used for Database Access
 public class DatabaseConfiguration: Configuration {
     private let type: DatabaseType
     
@@ -8,10 +10,10 @@ public class DatabaseConfiguration: Configuration {
     
     private var connectionString: String = Environment.get("DATABASE_URL") ?? "mongodb://localhost:27017/vapor_database"
     
-    public init(_ text: String) {
-        self.type = .mongo
-    }
-    
+    /// Creates a new database configuration
+    ///
+    /// - Parameters:
+    ///     - type: The database type. Possible types are MongoDB, SQLite
     public init(_ type: DatabaseType) {
         self.type = type
     }
@@ -23,8 +25,8 @@ public class DatabaseConfiguration: Configuration {
             switch type {
             case .mongo:
                 try databases.use(.mongo(connectionString: self.connectionString), as: .mongo)
-            default:
-                break
+            case .sqlLite:
+                databases.use(.sqlite(.memory), as: .sqlite)
             }
             app.migrations.add(migrations)
             try app.autoMigrate().wait()
@@ -33,20 +35,26 @@ public class DatabaseConfiguration: Configuration {
         }
     }
     
-    public func connectionString(_ string: String) -> Self {
-        self.connectionString = string
-//        self.connectionString = Environment.get("DATABASE_URL") ?? "mongodb://localhost:27017/vapor_database"
+    /// A modifier to specify the connection url to the initiated database
+    ///
+    /// - Parameters:
+    ///     - connectionString: The connection string to the database in the correct format for the database used
+    public func connectionString(_ connectionString: String) -> Self {
+        self.connectionString = connectionString
         return self
     }
     
+    /// A modifier to add one or more `Migrations` to the database. The given `Migrations` need to conform to the `Vapor.Migration ` class.
+    ///
+    /// - Parameters:
+    ///     - migrations: One or more `Migration` objects that should be migrated by the database
     public func addMigrations(_ migrations: Migration...) -> Self {
-        self.migrations = migrations
+        self.migrations.append(contentsOf: migrations)
         return self
     }
 }
 
+/// An enum which represents the database types supported by Apodini. 
 public enum DatabaseType {
     case mongo, sqlLite
 }
-
-public protocol DatabaseModel: Model, Content {}
