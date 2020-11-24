@@ -29,7 +29,7 @@ final class ThreadSafetyTests: ApodiniTests {
     func testRequestInjectableUnlimitedConcurrency() throws {
         let g = Greeter()
         var count = 1000
-        var countMutex = NSLock()
+        let countMutex = NSLock()
         
         DispatchQueue.concurrentPerform(iterations: count) { _ in
             
