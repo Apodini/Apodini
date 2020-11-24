@@ -3,7 +3,7 @@
 The `@Parameter` property wrapper can be used to express input in different ways: 
 * **Request Content**: Parameters can be part of the requests send to the web service such as the HTTP body or request content of an other protocol.
 * **Lightweight Parameter**: Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameterst found in the URI of RESTful and OpenAPI based web APIs.
-* **Defining An Endpoint**: Parameters can also be used to define the endpoint such as the URI path of the middleware types and protocols that support URI based multiplexing of requests.
+* **Path Parameters**: Parameters can also be used to define the endpoint such as the URI path of the middleware types and protocols that support URI based multiplexing of requests.
 
 The internal name of the `@Parameter` and can be different to the external representation of the component by passing a string to the `@Parameter` wrapper and is the first argument that can be optionally passed into the `@Parameter` property wrapper.
 ```swift
@@ -280,10 +280,10 @@ Exposing the `Component` on a web socket interface requires the client to send t
 }
 ```
 
-## Parameters Defining An Endpoint
+## Path Parameters
 
 Some middleware types and protocols can expose parameters as part of the endpoint defining charactersistics. E.g. RESTful and OpenAPI based APIs use the URI path to define endpoints using variables such as `/birds/BIRD_ID` to identify the `Bird` the request is target at using the `BIRD_ID`.
-The `@Parameter` property wraper does not expose this option as Apodini can not automatically decide between exposing a parameter as a lightweight parameter or a parameter defining an endpoint.
+The `@Parameter` property wraper exposes the option to explictly defining a parameter as defining an andpoint using the `.path` option.
 
 ### Defining a Parameter  Defining an Endpoint in an Endpoint
 
@@ -295,7 +295,7 @@ struct Bird: Codable, Identifiable {
 }
 
 struct ExampleComponent: Component {
-    @PathParameter var birdID: Bird.ID
+    @Parameter(.path) var birdID: Bird.ID
 
     // ...
 }
@@ -349,7 +349,7 @@ Exposing the `Component` on a web socket interface requires the client to send t
 
 ### Defining a Parameter  Defining an Endpoint outside an Endpoint
 
-The `@PathParameter` property can also be defined outside the component as part of a Group that contains the `Compoent`.
+The `@Parameter` property used as a path parameter can also be defined outside the component as part of a Group that contains the `Compoent`.
 
 ```swift
 struct Bird: Identifiable {
@@ -359,13 +359,15 @@ struct Bird: Identifiable {
 }
 
 struct ExampleBirdComponent: Component {
-    @PathParameter var birdID: Bird.ID
+    // As this was passed in from the outside this is automatically used as a path parameter
+    @Parameter var birdID: Bird.ID
 
     // ...
 }
 
 struct ExampleNestComponent: Component {
-    @PathParameter var birdID: Bird.ID
+    // As this was passed in from the outside this is automatically used as a path parameter
+    @Parameter var birdID: Bird.ID
     // Exposed as a lightweight parameter
     @Parameter var nestName: String?
 
@@ -373,7 +375,7 @@ struct ExampleNestComponent: Component {
 }
 
 struct TestWebService: WebService {
-    @PathParameter var birdID: Bird.ID
+    @Parameter var birdID: Bird.ID
 
     var content: some Component {
         Group("api", "birds", birdID) {
