@@ -6,15 +6,15 @@
 //
 
 @testable import Apodini
-import Vapor
 import NIO
+@_implementationOnly import Vapor
 
 
 struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
         private let message: String?
         @_Request
-        var request: Vapor.Request
+        var request: Apodini.Request
         
         
         init(_ message: String? = nil) {
@@ -23,7 +23,9 @@ struct TestWebService: Apodini.WebService {
         
         
         func check() {
-            request.logger.info("\(message?.description ?? request.description)")
+            if let request = request as? Vapor.Request {
+                request.logger.info("\(message?.description ?? request.description)")
+            }
         }
     }
     
@@ -43,11 +45,12 @@ struct TestWebService: Apodini.WebService {
     
     struct Greeter: Component {
         @_Request
-        var req: Vapor.Request
+        var req: Apodini.Request
         
         func handle() -> String {
             do {
-                return try req.query.get(at: "name")
+                let result: String? = try req.parameter(for: "name")
+                return result ?? ""
             } catch {
                 return "World"
             }

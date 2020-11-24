@@ -6,7 +6,7 @@
 //
 
 import Vapor
-import Fluent
+@_implementationOnly import Vapor
 import FluentMongoDriver
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service

@@ -6,7 +6,6 @@
 //
 
 import NIO
-import Vapor
 
 
 /// A `SyncGuard` can be used to inspect request and guard `Component`s using the check method.
@@ -25,7 +24,7 @@ public protocol Guard {
 
 
 extension SyncGuard {
-    func executeGuardCheck(on request: Vapor.Request) -> EventLoopFuture<Void> {
+    func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
         request.eventLoop.makeSucceededFuture(Void())
             .map {
                 request.enterRequestContext(with: self) { guardInstance in
@@ -37,7 +36,7 @@ extension SyncGuard {
 
 
 extension Guard {
-    func executeGuardCheck(on request: Vapor.Request) -> EventLoopFuture<Void> {
+    func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
         request
             .enterRequestContext(with: self) { guardInstance in
                 guardInstance.check()
@@ -50,7 +49,7 @@ extension Guard {
 
 struct AnyGuard {
     let guardType: ObjectIdentifier
-    private var _executeGuardCheck: (Vapor.Request) -> EventLoopFuture<Void>
+    private var _executeGuardCheck: (Request) -> EventLoopFuture<Void>
     
     init<G: Guard>(_ guard: G) {
         guardType = ObjectIdentifier(G.self)
@@ -62,7 +61,7 @@ struct AnyGuard {
         _executeGuardCheck = `guard`.executeGuardCheck
     }
     
-    func executeGuardCheck(on request: Vapor.Request) -> EventLoopFuture<Void> {
+    func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
         _executeGuardCheck(request)
     }
 }

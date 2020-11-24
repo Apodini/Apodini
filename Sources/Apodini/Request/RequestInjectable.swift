@@ -6,16 +6,15 @@
 //
 
 import NIO
-import Vapor
 import Runtime
 
 
 protocol RequestInjectable {
-    mutating func inject(using request: Vapor.Request, with decoder: RequestInjectableDecoder?) throws
+    mutating func inject(using request: Request, with decoder: RequestInjectableDecoder?) throws
 }
 
 protocol RequestInjectableDecoder {
-    func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T?
+    func decode<T: Decodable>(_ type: T.Type, from request: Request) throws -> T?
 }
 
 private func extractRequestInjectables(from subject: Any) -> [String: RequestInjectable] {
@@ -37,7 +36,7 @@ extension AnyResponseTransformer {
     }
 }
 
-extension Vapor.Request {
+extension Request {
     func enterRequestContext<E, R>(with element: E, using decoder: RequestInjectableDecoder? = nil, executing method: (E) -> EventLoopFuture<R>)
                     -> EventLoopFuture<R> {
         var element = element

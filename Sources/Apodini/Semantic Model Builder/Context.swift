@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 11/3/20.
 //
 
-import Vapor
+import NIO
 
 
 class Context {
@@ -21,9 +21,9 @@ class Context {
         contextNode.getContextValue(for: contextKey)
     }
     
-    func createRequestHandler<C: Component>(withComponent component: C, using decoder: SemanticModelBuilder)
-    -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        { (request: Vapor.Request) in
+    func createRequestHandler<C: Component, Req: Request, Res: Response>(withComponent component: C, using decoder: SemanticModelBuilder)
+    -> (Req) -> EventLoopFuture<Res> {
+        { (request: Req) in
             let guardEventLoopFutures = self.contextNode.getContextValue(for: GuardContextKey.self)
                 .map { requestGuard in
                     request.enterRequestContext(with: requestGuard(), using: decoder) { requestGuard in
@@ -34,13 +34,13 @@ class Context {
                 .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
                 .flatMap { _ in
                     request.enterRequestContext(with: component, using: decoder) { component in
-                        var response: ResponseEncodable = component.handle()
+                        var response = component.handle()
                         for responseTransformer in self.contextNode.getContextValue(for: ResponseContextKey.self) {
                             response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
-                                responseTransformer.transform(response: response)
+                                responseTransformer.transform(response: response) as! C.Response
                             }
                         }
-                        return response.encodeResponse(for: request)
+                        return decoder.encodeResponse(response, for: request)
                     }
                 }
         }
