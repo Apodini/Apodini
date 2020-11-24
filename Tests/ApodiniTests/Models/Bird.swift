@@ -33,7 +33,7 @@ final class Bird: Model, Content {
 
 struct CreateBird: Migration {
     func prepare(on database: Database) -> EventLoopFuture<Void> {
-        return database.schema(Bird.schema)
+        database.schema(Bird.schema)
             .id()
             .field("name", .string, .required)
             .field("age", .int, .required)
@@ -41,7 +41,7 @@ struct CreateBird: Migration {
     }
 
     func revert(on database: Database) -> EventLoopFuture<Void> {
-        return database.schema(Bird.schema).delete()
+        database.schema(Bird.schema).delete()
     }
 }
 
