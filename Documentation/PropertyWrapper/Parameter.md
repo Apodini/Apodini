@@ -1,11 +1,11 @@
 # `@Parameter`
 
 The `@Parameter` property wrapper can be used to express input in different ways: 
-* **Request Content**: Parameters can be part of the requests send to the web service such as the HTTP body or request content of an other protocol.
+* **Request Content**: Parameters can be part of the requests sent to the web service such as the HTTP body or request content of an other protocol.
 * **Lightweight Parameter**: Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameterst found in the URI of RESTful and OpenAPI based web APIs.
 * **Path Parameters**: Parameters can also be used to define the endpoint such as the URI path of the middleware types and protocols that support URI based multiplexing of requests.
 
-The internal name of the `@Parameter` and can be different to the external representation of the component by passing a string to the `@Parameter` wrapper and is the first argument that can be optionally passed into the `@Parameter` property wrapper.
+The internal name of the `@Parameter` and can be different to the external representation of the component by passing a string into the `@Parameter` property wrapper as first - optional - argument.
 ```swift
 struct ExampleComponent: Component {
     @Parameter var name: String
@@ -17,11 +17,11 @@ struct ExampleComponent: Component {
 
 ## Parameters Expressing Request Content
 
-Non primitive types defined by the user that conform to `Codable` and are not [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible) are automatically considered to be a request content for all protocols and types of middleware that are applicable to contain a request content such as an HTTP body. If there are multiple non primative types marked with `@Parameter` the elements should be encoded in a wrapper enclosure.
+Non primitive types defined by the user that conform to `Codable` and are not [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible) are automatically considered to be a request content for all protocols and types of middleware that are applicable to contain a request content such as an HTTP body. If there are multiple non primitive types marked with `@Parameter` the elements should be encoded in a wrapper enclosure.
 
 ### Single `@Parameter` for Request Content
 
-The folowing example showcases a simpe component with one `@Property` wrapper around a non primative type:
+The following example showcases a simple component with one `@Property` wrapper around a non primitive type:
 ```swift
 struct Bird: Codable {
     var name: String
@@ -73,7 +73,7 @@ type Query {
 
 *WebSocket*
 
-Exposing the `Componet` on a web socket interface requires the client to send the following message encoded as JSON:
+Exposing the `Component` on a web socket interface requires the client to send the following message encoded as JSON:
 ```json
 {
     "type": "Example",
@@ -86,7 +86,7 @@ Exposing the `Componet` on a web socket interface requires the client to send th
 
 ### Multiple `@Parameter`s for Request Content
 
-The folowing example showcases a component with multipe `@Parameter` property wrappers around a non primative types:
+The following example showcases a component with multiple `@Parameter` property wrappers around a non primitive type:
 ```swift
 struct Bird: Codable {
     var name: String
@@ -184,10 +184,10 @@ Exposing the `Component` on a web socket interface requires the client to send t
 
 ## Lightweight Parameters
 
-Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameters found in the URI of RESTful and OpenAPI based interfaces. Apodini automatically exposes primative types as lightweight parameters that conform to [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible). Complex types such as cunstom types conforming to Codable can not be exposed using lightweight parameters. A lightweight parameter is defined the same way a normal parameter can be defined. The developer using Apodini can force a specific behaviour by passing in an enum value into the property warpper initializer, e.g. `@Parameter(.lightweight)`. Possible values are:
-* `.automatic`: Apodini infers the type of parameter based on the type information of the wrapped propety. This is the default behaviour of an `@Parameter` property wrapper.
+Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameters found in the URI of RESTful and OpenAPI based interfaces. Apodini automatically exposes primitive types as lightweight parameters that conform to [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible). Complex types such as custom types conforming to `Codable` can not be exposed using lightweight parameters. A lightweight parameter is defined the same way a normal parameter can be defined. The developer using Apodini can force a specific behaviour by passing in an enum value into the property wrapper initializer, e.g. `@Parameter(.lightweight)`. Possible values are:
+* `.automatic`: Apodini infers the type of parameter based on the type information of the wrapped property. This is the default behaviour of an `@Parameter` property wrapper.
 * `.lightweight`: This option can only be used of the type wrapped conforms to [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible). The parameter is exposed as a lightweight parameter if supported by the middleware or protocol.
-* `.content`: The parameter is exposed using the content of the request send to the web service. If there are multiple `@Parameter` property wrappers annotated with `@Parameter(.content)` the same strategy as if there are multiple `@Parameter` property wrappers with types not conforming to [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible) is applied.
+* `.content`: The parameter is exposed using the content of the request sent to the web service. If there are multiple `@Parameter` property wrappers annotated with `@Parameter(.content)` the same strategy as if there are multiple `@Parameter` property wrappers with types not conforming to [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible) is applied.
 
 ### Simple Lightweight `@Parameter`s Example
 
@@ -282,10 +282,10 @@ Exposing the `Component` on a web socket interface requires the client to send t
 
 ## Path Parameters
 
-Some middleware types and protocols can expose parameters as part of the endpoint defining charactersistics. E.g. RESTful and OpenAPI based APIs use the URI path to define endpoints using variables such as `/birds/BIRD_ID` to identify the `Bird` the request is target at using the `BIRD_ID`.
-The `@Parameter` property wraper exposes the option to explictly defining a parameter as defining an andpoint using the `.path` option.
+Some middleware types and protocols can expose parameters as part of the endpoint defining characteristics. E.g. RESTful and OpenAPI based APIs use the URI path to define endpoints including variables such as `/birds/BIRD_ID` to identify the requested `Bird` by its identifier `BIRD_ID`.
+The `@Parameter` property wrapper exposes the option to explicitly defining a parameter as defining an endpoint using the `.path` option.
 
-### Defining a Parameter  Defining an Endpoint in an Endpoint
+### Defining a Parameter
 
 ```swift
 struct Bird: Codable, Identifiable {
@@ -349,7 +349,7 @@ Exposing the `Component` on a web socket interface requires the client to send t
 
 ### Defining a Parameter  Defining an Endpoint outside an Endpoint
 
-The `@Parameter` property used as a path parameter can also be defined outside the component as part of a Group that contains the `Compoent`.
+The `@Parameter` property used as a path parameter can also be defined outside the component as part of a Group that contains the `Component`.
 
 ```swift
 struct Bird: Identifiable {
