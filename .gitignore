@@ -1,7 +1,6 @@
 # Apodini .gitignore File
 
 # Swift Package Manager
-Package.resolved
 *.xcodeproj
 .swiftpm
 .build/
