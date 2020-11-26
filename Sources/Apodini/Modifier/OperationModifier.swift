@@ -7,6 +7,8 @@
 
 /// Defines the Operation of a given endpoint
 public enum Operation {
+    /// This operation is the default for every endpoint.
+    case automatic
     /// The associated endpoint is used for a `create` operation
     case create
     /// The associated endpoint is used for a `read` operation
@@ -18,7 +20,7 @@ public enum Operation {
 }
 
 struct OperationContextKey: ContextKey {
-    static var defaultValue: Operation = .read
+    static var defaultValue: Operation = .automatic
     
     static func reduce(value: inout Operation, nextValue: () -> Operation) {
         value = nextValue()

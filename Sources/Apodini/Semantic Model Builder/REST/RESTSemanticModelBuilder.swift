@@ -48,6 +48,8 @@ struct RESTPathBuilder: PathBuilder {
 extension Operation {
     var httpMethod: Vapor.HTTPMethod {
         switch self {
+        case .automatic: // a future implementation will have some sort of inference algorithm
+             return .GET // for now we just use the default GET http method
         case .create:
              return .POST
         case .read:
