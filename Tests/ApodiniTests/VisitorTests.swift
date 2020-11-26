@@ -17,7 +17,7 @@ final class VisitorTests: XCTestCase {
         }
     }
     
-    struct TestWebService: Apodini.WebService {
+    struct TestWebService: Apodini.WebService {        
         @ComponentBuilder var content: some Component {
             Group("Test") {
                 Text("Hallo Bernd")
