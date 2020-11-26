@@ -11,12 +11,15 @@ public protocol Configuration {
 }
 
 
+/// This protocol is used by the `WebService` to declare `Configuration`s in an instance
 public protocol ConfigurationCollection {
+    /// This stored property defines the `Configuration`s of the `WebService`
     @ConfigurationBuilder var configuration: Configuration { get }
 }
 
 
 extension ConfigurationCollection {
+    /// The default configuration is an `EmptyConfiguration`
     @ConfigurationBuilder public var configuration: Configuration {
         EmptyConfiguration()
     }

@@ -2,6 +2,7 @@ import Vapor
 import APNS
 import JWTKit
 
+
 /// A `Configuration` used for APNS authentication
 public struct APNSConfiguration: Configuration {
     private let authentication: APNSAuthentication
@@ -51,6 +52,8 @@ public struct APNSConfiguration: Configuration {
     }
 }
 
+
+// swiftlint:disable discouraged_optional_collection
 /// An enum representing different options for APNS authentication
 public enum APNSAuthentication {
     /// APNS authentication using the `.pem` file format
@@ -68,3 +71,4 @@ public enum APNSAuthentication {
     ///     - teamIdentifier: The team ID of your Apple Developer Account
     case p8(path: String, keyIdentifier: JWTKit.JWKIdentifier, teamIdentifier: String)
 }
+// swiftlint:enable discouraged_optional_collection
