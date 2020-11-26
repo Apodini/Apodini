@@ -11,7 +11,7 @@ import Foundation
 
 
 @propertyWrapper
-public class Body<Element: Codable>: RequestInjectable {
+public struct Body<Element: Codable>: RequestInjectable {
     private var element: Element?
     
     
@@ -27,13 +27,9 @@ public class Body<Element: Codable>: RequestInjectable {
     public init() { }
     
     
-    func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder?) throws {
+    mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder?) throws {
         if let decoder = decoder {
             element = try decoder.decode(Element.self, from: request)
         }
-    }
-    
-    func disconnect() {
-        self.element = nil
     }
 }
