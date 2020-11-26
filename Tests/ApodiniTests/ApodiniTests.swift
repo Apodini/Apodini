@@ -10,17 +10,16 @@ import FluentSQLiteDriver
 
 class ApodiniTests: XCTestCase {
     // Vapor Application
-    var app: Vapor.Application!
+    var app: Vapor.Application = Application(.testing)
     // Model Objects
     var bird1 = Bird(name: "Swift", age: 5)
     var bird2 = Bird(name: "Corvus", age: 1)
-    var birdId1: UUID!
-    var birdId2: UUID!
     
     
     override func setUpWithError() throws {
         try super.setUpWithError()
         
+        app.shutdown()
         app = Application(.testing)
         
         app.databases.use(
@@ -38,11 +37,11 @@ class ApodiniTests: XCTestCase {
         
         try bird1.create(on: database()).wait()
         try bird2.create(on: database()).wait()
-        birdId1 = try XCTUnwrap(bird1.id)
-        birdId2 = try XCTUnwrap(bird2.id)
     }
     
     override func tearDownWithError() throws {
+        try super.tearDownWithError()
+        
         let app = try XCTUnwrap(self.app)
         app.shutdown()
     }

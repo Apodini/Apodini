@@ -14,10 +14,10 @@ struct RESTPathBuilder: PathBuilder {
     
     fileprivate var pathDescription: String {
         pathComponents
-                .map { pathComponent in
-                    pathComponent.description
-                }
-                .joined(separator: "/")
+            .map { pathComponent in
+                pathComponent.description
+            }
+            .joined(separator: "/")
     }
     
     
@@ -99,12 +99,10 @@ class RESTSemanticModelBuilder: SemanticModelBuilder {
         
         let responseTransformerTypes = context.get(valueFor: ResponseContextKey.self)
         let returnType: ResponseEncodable.Type = {
-            if responseTransformerTypes.isEmpty {
+            guard let lastResponseTransformerType = responseTransformerTypes.last else {
                 return C.Response.self
-            } else {
-                // swiftlint:disable:next force_unwrapping
-                return responseTransformerTypes.last!().transformedResponseType
             }
+            return lastResponseTransformerType().transformedResponseType
         }()
         
         let guards = context.get(valueFor: GuardContextKey.self)
