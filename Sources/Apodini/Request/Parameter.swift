@@ -11,7 +11,7 @@ import Foundation
 
 /// The `@Parameter` property wrapper can be used to express input in different ways:
 /// * **Request Content**: Parameters can be part of the requests send to the web service such as the HTTP body or request content of an other protocol.
-/// * **Lightweight Parameter**: Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameterst found in the URI of RESTful and OpenAPI based web APIs.
+/// * **Lightweight Parameter**: Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameters found in the URI of RESTful and OpenAPI based web APIs.
 /// * **Path Parameters**: Parameters can also be used to define the endpoint such as the URI path of the middleware types and protocols that support URI based multiplexing of requests.
 @propertyWrapper
 public struct Parameter<Element: Codable> {
@@ -21,7 +21,7 @@ public struct Parameter<Element: Codable> {
         case automatic
         /// The `Parameter` is exposed as a request content. Parameters can be part of the requests send to the web service such as the HTTP body or request content of an other protocol.
         case content
-        /// The `Parameter` is exposed as a lightweight parameter. Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameterst found in the URI of RESTful and OpenAPI based web APIs.
+        /// The `Parameter` is exposed as a lightweight parameter. Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameters found in the URI of RESTful and OpenAPI based web APIs.
         case lightweight
         /// The `Parameter` is exposed as a an identifying parameter. Identifying parameters can be used to define a parameter e.g. in an URI path of the middleware types and protocols that support adding parameters as part of the URI path of a request.
         case identifier
@@ -47,10 +47,10 @@ public struct Parameter<Element: Codable> {
     }
     
     /// The `projectedValue` can be accessed using a `$` prefix before the property wrapped using the  `@Parameter` property wrapper.
-    /// It  can be used to pass a `.path` Parameter to children components.
+    /// It  can be used to pass a `.identifier` Parameter to children components.
     ///
     /// Example:
-    /// The `@Parameter` property used as a path parameter can also be defined outside the component as part of a Group that contains the `Compoent`.
+    /// The `@Parameter` property used as a path parameter can also be defined outside the component as part of a Group that contains the `Component`.
     /// ```swift
     /// struct Bird: Identifiable {
     ///     var id: Int
@@ -91,7 +91,7 @@ public struct Parameter<Element: Codable> {
     /// ```
     public var projectedValue: Parameter {
         guard parameterType == .identifier || parameterType == .automatic else {
-            preconditionFailure("Only `.path` or `.automatic` parameters are allowed to be passed to a `Component`.")
+            preconditionFailure("Only `.identifier` or `.automatic` parameters are allowed to be passed to a `Component`.")
         }
         
         return Parameter(name: self.name, parameterType: .identifier, id: self.id)

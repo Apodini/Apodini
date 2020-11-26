@@ -2,7 +2,7 @@
 
 The `@Parameter` property wrapper can be used to express input in different ways: 
 * **Request Content**: Parameters can be part of the requests sent to the web service such as the HTTP body or request content of an other protocol.
-* **Lightweight Parameter**: Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameterst found in the URI of RESTful and OpenAPI based web APIs.
+* **Lightweight Parameter**: Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameters found in the URI of RESTful and OpenAPI based web APIs.
 * **Path Parameters**: Parameters can also be used to define the endpoint such as the URI path of the middleware types and protocols that support URI based multiplexing of requests.
 
 The internal name of the `@Parameter` and can be different to the external representation of the component by passing a string into the `@Parameter` property wrapper as first - optional - argument.
@@ -211,7 +211,7 @@ struct ExampleComponent: Component {
 
 *JSON Based APIs*
 
-This `Component` can be exported as in a JSON based API by sending a POST request to `.../example?emoji=false` or `.../example` to assume the defauilt value. The request includes the the following JSON in the body of the HTTP request:
+This `Component` can be exported as in a JSON based API by sending a POST request to `.../example?emoji=false` or `.../example` to assume the default value. The request includes the the following JSON in the body of the HTTP request:
 ```json
 {
     "bird": {
@@ -283,7 +283,7 @@ Exposing the `Component` on a web socket interface requires the client to send t
 ## Path Parameters
 
 Some middleware types and protocols can expose parameters as part of the endpoint defining characteristics. E.g. RESTful and OpenAPI based APIs use the URI path to define endpoints including variables such as `/birds/BIRD_ID` to identify the requested `Bird` by its identifier `BIRD_ID`.
-The `@Parameter` property wrapper exposes the option to explicitly defining a parameter as defining an endpoint using the `.path` option.
+The `@Parameter` property wrapper exposes the option to explicitly defining a parameter as defining an endpoint using the `.identifier` option.
 
 ### Defining a Parameter
 
@@ -295,7 +295,7 @@ struct Bird: Codable, Identifiable {
 }
 
 struct ExampleComponent: Component {
-    @Parameter(.path) var birdID: Bird.ID
+    @Parameter(.identifier) var birdID: Bird.ID
 
     // ...
 }
