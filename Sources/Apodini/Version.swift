@@ -5,21 +5,37 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
+
+/// A `Version` can be  used to specify the version of a Web API using semantic versioning
 public struct Version {
+    /// Default values for a `Version`
     public enum Defaults {
+        /// The default prefix
         public static let prefix: String = "v"
+        /// The default major version
         public static let major: UInt = 1
+        /// The default major minor
         public static let minor: UInt = 0
+        /// The default major patch
         public static let patch: UInt = 0
     }
     
     
+    /// The version prefix
     public let prefix: String
+    /// The major version number
     public let major: UInt
+    /// The minor version number
     public let minor: UInt
+    /// The patch version number
     public let patch: UInt
     
     
+    /// - Parameters:
+    ///   - prefix: The version prefix
+    ///   - major: The major version number
+    ///   - minor: The minor version number
+    ///   - patch: The patch version number
     public init(prefix: String = Defaults.prefix,
                 major: UInt = Defaults.major,
                 minor: UInt = Defaults.minor,
@@ -33,13 +49,13 @@ public struct Version {
 
 
 extension Version: _PathComponent {
-    func append<P>(to pathBuilder: inout P) where P : PathBuilder {
+    func append<P>(to pathBuilder: inout P) where P: PathBuilder {
         pathBuilder.append("\(prefix)\(major)")
     }
 }
 
 struct APIVersionContextKey: ContextKey {
-    static var defaultValue: Version = Version()
+    static var defaultValue = Version()
     
     static func reduce(value: inout Version, nextValue: () -> Version) {
         value = nextValue()

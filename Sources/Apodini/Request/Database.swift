@@ -11,7 +11,7 @@ import Fluent
 
 
 @propertyWrapper
-public class Database: RequestInjectable {
+public struct Database: RequestInjectable {
     private var database: Fluent.Database?
     
     
@@ -27,11 +27,7 @@ public class Database: RequestInjectable {
     public init() { }
     
     
-    func inject(using request: Vapor.Request) throws { 
+    mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder? = nil) throws {
         self.database = request.db
-    }
-    
-    func disconnect() {
-        self.database = nil
     }
 }

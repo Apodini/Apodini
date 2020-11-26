@@ -41,6 +41,20 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
+    struct Greeter: Component {
+        @Apodini.Request
+        var req: Vapor.Request
+        
+        func handle() -> String {
+            do {
+                return try req.query.get(at: "name")
+            } catch {
+                return "World"
+            }
+        }
+    }
+    
+    
     var content: some Component {
         Text("Hello World! 👋")
             .response(EmojiMediator(emojis: "🎉"))
@@ -51,6 +65,9 @@ struct TestWebService: Apodini.WebService {
                 .response(EmojiMediator())
                 .guard(PrintGuard())
         }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
+        Group("greet") {
+            Greeter()
+        }
     }
 }
 

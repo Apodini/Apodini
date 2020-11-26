@@ -38,7 +38,7 @@ final class CustomComponentTests: ApodiniTests {
         let request = Request(application: app, collectedBody: birdData, on: app.eventLoopGroup.next())
         
         let response = try request
-            .enterRequestContext(with: AddBirdsComponent()) { component in
+            .enterRequestContext(with: AddBirdsComponent(), using: RESTSemanticModelBuilder(app)) { component in
                 component.handle().encodeResponse(for: request)
             }
             .wait()
