@@ -108,9 +108,9 @@ The `NotificationCenter` offers the following convenience methods to send push n
 
 ## Unsolicited Push Notifications
 
-Events can trigger the sending of push notifications. This builds on top of `Component`s and follows the same approach as **[Service-Side Stream Component](../ComponentTypes/ServiceSideStream.md)** with `ObservableObject`s. `Component`s subscribe to `ObservableObject`s that are exposed to the environment. The handle method of the `Component` will be executed every time `@Published` properties of the `ObservableObject` change. `ObservableObject`s also can be scheduled as **[CronJobs](./CronJob.md)**.
+Events can trigger the sending of push notifications. This builds on top of `Component`s and follows the same approach as **[Service-Side Stream Components](../ComponentTypes/ServiceSideStream.md)** with `ObservableObject`s. `Component`s subscribe to `ObservableObject`s that are exposed to the environment. The handle method of the `Component` will be executed every time `@Published` properties of the `ObservableObject` change. `ObservableObject`s also can be scheduled as **[CronJobs](./CronJob.md)**.
 
-The following example shows a _WeatherService_ as a `CronJob` that fetches every day the weather and publishes it to its subscribers using the `@Published` property wrapper. The _AlertComponent_ listens to changes of the _WeatherService_ and sends out push notification based on the current weather. Every `Device` with the **subscription** _weatherSubscription_ will receive this push notification.
+The following example shows a _WeatherService_ as a `CronJob` that fetches the weather every day and publishes it to its subscribers using the `@Published` property wrapper. The _AlertComponent_ listens to changes of the _WeatherService_ and sends out push notification based on the current weather. Every `Device` with the **subscription** _weatherSubscription_ will receive this push notification.
 
 ```swift
 struct WeatherService: ObservedObject {
