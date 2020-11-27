@@ -6,23 +6,18 @@ import FluentPostgresDriver
 
 /// A `Configuration` used for Database Access
 public final class DatabaseConfiguration: Configuration {
-    
-    
     private let type: DatabaseType
-    
     private var migrations: [Migration] = []
-    
     private var connectionString: String = Environment.get("DATABASE_URL") ?? ""
-    
     public var databaseID: DatabaseID {
         switch type {
-        case .defaultMongoDB(_):
+        case .defaultMongoDB:
             return .mongo
-        case .defaultMySQL(_), .mySQL(_, _, _):
+        case .defaultMySQL, .mySQL:
             return .mysql
-        case .defaultPostgreSQL(_), .postgreSQL(_, _, _):
+        case .defaultPostgreSQL, .postgreSQL:
             return .psql
-        case .sqlite(_):
+        case .sqlite:
             return .sqlite
         }
     }
@@ -65,11 +60,11 @@ public final class DatabaseConfiguration: Configuration {
             return .sqlite(.apply(config))
         case .defaultPostgreSQL(let conString):
             return try .postgres(url: conString)
-        case .postgreSQL(let hostName, let username, let password):
+        case let .postgreSQL(hostName, username, password):
             return .postgres(hostname: hostName, username: username, password: password)
         case .defaultMySQL(let conString):
             return try .mysql(url: conString)
-        case .mySQL(let hostname, let username, let password):
+        case let .mySQL(hostname, username, password):
             return .mysql(hostname: hostname, username: username, password: password)
         }
     }
@@ -122,12 +117,10 @@ public enum DatabaseType {
         /// - username: The username of the database user.
         /// - password: The password of the database user.
     case mySQL(_ hostname: String, username: String, password: String)
-    
 }
 
 /// An extension to the `Fluent.SQLiteConfiguration` to enable an initialization with an `Apodini.SQLiteConfig`.
 public extension SQLiteConfiguration {
-    
     /// Enables an initialization of `SQLiteConfiguration` with an `Apodini.SQLiteConfig` object.
     ///
     /// - Parameters:
