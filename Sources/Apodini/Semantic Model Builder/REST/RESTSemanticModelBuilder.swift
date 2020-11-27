@@ -6,6 +6,7 @@
 //
 
 import Vapor
+import ProtobufferCoding
 
 
 struct RESTPathBuilder: PathBuilder {

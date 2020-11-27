@@ -21,8 +21,13 @@ let package = Package(
             name: "Apodini",
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
-                .product(name: "Fluent", package: "fluent")
+                .product(name: "Fluent", package: "fluent"),
+                .target(name: "ProtobufferCoding")
             ]
+        ),
+        .target(
+            name: "ProtobufferCoding",
+            dependencies: []
         ),
         .testTarget(
             name: "ApodiniTests",
@@ -31,6 +36,10 @@ let package = Package(
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver")
             ]
+        ),
+        .testTarget(
+            name: "ProtobufferCodingTests",
+            dependencies: []
         ),
         .target(
             name: "TestWebService",
