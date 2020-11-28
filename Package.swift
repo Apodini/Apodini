@@ -40,7 +40,9 @@ let package = Package(
         ),
         .testTarget(
             name: "ProtobufferCodingTests",
-            dependencies: []
+            dependencies: [
+                .target(name: "ProtobufferCoding")
+            ]
         ),
         .target(
             name: "TestWebService",

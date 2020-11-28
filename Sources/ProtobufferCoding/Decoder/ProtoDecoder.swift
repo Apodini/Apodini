@@ -145,11 +145,11 @@ internal class InternalProtoDecoder: Decoder {
     }
 }
 
-class ProtoDecoder: TopLevelDecoder {
+public class ProtoDecoder: TopLevelDecoder {
 
     init() {}
 
-    func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
+    public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
         let decoder = InternalProtoDecoder(from: data)
         return try T(from: decoder)
     }
