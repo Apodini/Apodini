@@ -113,7 +113,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtoco
 
             var littleEndianBytes: UInt32 = 0
             try decodeFourByteNumber(from: value, into: &littleEndianBytes)
-            var nativeEndianBytes = ZigZag.decoded(UInt32(littleEndian: littleEndianBytes))
+            var nativeEndianBytes = UInt32(littleEndian: littleEndianBytes)
             var float: Float = 0
             let n = MemoryLayout<Float>.size
             memcpy(&float, &nativeEndianBytes, n)
@@ -140,7 +140,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtoco
 
             var littleEndianBytes: UInt32 = 0
             try decodeFourByteNumber(from: value, into: &littleEndianBytes)
-            var nativeEndianBytes = ZigZag.decoded(UInt32(littleEndian: littleEndianBytes))
+            var nativeEndianBytes = UInt32(littleEndian: littleEndianBytes)
             var int32: Int32 = 0
             let n = MemoryLayout<Int32>.size
             memcpy(&int32, &nativeEndianBytes, n)
@@ -155,7 +155,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtoco
 
             var littleEndianBytes: UInt64 = 0
             try decodeEightByteNumber(from: value, into: &littleEndianBytes)
-            var nativeEndianBytes = ZigZag.decoded(UInt64(littleEndian: littleEndianBytes))
+            var nativeEndianBytes = UInt64(littleEndian: littleEndianBytes)
             var int64: Int64 = 0
             let n = MemoryLayout<Int64>.size
             memcpy(&int64, &nativeEndianBytes, n)
@@ -238,7 +238,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtoco
 
     func superDecoder() throws -> Decoder {
         if let referencedBy = referencedBy {
-            return try InternalProtoDecoder(from: referencedBy)
+            return InternalProtoDecoder(from: referencedBy)
         }
         throw ProtoError.unsupportedDecodingStrategy("Cannot decode super")
     }

@@ -27,7 +27,8 @@ let package = Package(
         ),
         .target(
             name: "ProtobufferCoding",
-            dependencies: []
+            dependencies: [],
+            exclude:["README.md"]
         ),
         .testTarget(
             name: "ApodiniTests",

@@ -28,8 +28,8 @@ class UnkeyedProtoDecodingContainer: UnkeyedDecodingContainer {
     }
 
 
-    init(from data: [Data], keyedBy keys: [Int], referencedBy: Data? = nil) {
-        self.codingPath = []
+    init(from data: [Data], keyedBy keys: [Int], referencedBy: Data? = nil, codingPath: [CodingKey]) {
+        self.codingPath = codingPath
         self.currentIndex = 0
         self.keys = keys
         self.values = data
@@ -183,10 +183,8 @@ class UnkeyedProtoDecodingContainer: UnkeyedDecodingContainer {
 
     func superDecoder() throws -> Decoder {
         if let referencedBy = referencedBy {
-            return try InternalProtoDecoder(from: referencedBy)
+            return InternalProtoDecoder(from: referencedBy)
         }
         throw ProtoError.unsupportedDecodingStrategy("Cannot decode super")
     }
-
-
 }

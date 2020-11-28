@@ -16,13 +16,13 @@ internal class InternalProtoDecoder: Decoder {
     let data: Data
     var dictionary: [Int: Data]
 
-    init(from data: Data) throws {
+    init(from data: Data) {
         self.data = data
         self.dictionary = [:]
         codingPath = []
         userInfo = [:]
 
-        dictionary = try decode(from: data)
+        dictionary = decode(from: data)
     }
 
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
@@ -32,14 +32,15 @@ internal class InternalProtoDecoder: Decoder {
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
         let keys: [Int] = Array(dictionary.keys)
         let values: [Data] = Array(dictionary.values)
-        return UnkeyedProtoDecodingContainer(from: values, keyedBy: keys)
+        return UnkeyedProtoDecodingContainer(from: values, keyedBy: keys, codingPath: codingPath)
     }
 
     func singleValueContainer() throws -> SingleValueDecodingContainer {
         throw ProtoError.unsupportedDecodingStrategy("Single value decoding not supported")
     }
 
-    private func decode(from: Data) throws -> [Int: Data] {
+
+    func decode(from: Data) -> [Int: Data] {
         var dictionary = [Int: Data]()
 
         // points to the byte we want to read next
@@ -50,19 +51,27 @@ internal class InternalProtoDecoder: Decoder {
             let fieldTag = Int(byte >> 3) // shift "out" last 3 bytes
             let fieldType = Int(byte & 0b00000111) // only keep last 3 bytes
 
-            // find the field in T with the according CodingKey to the fieldTag
-            let (value, newIndex) = try readField(from: from,
-                                                  fieldTag: fieldTag,
-                                                  fieldType: fieldType,
-                                                  fieldStartIndex: readIndex+1)
-
             #if DEBUG
-            print("Size: \(newIndex-readIndex) Bytes")
+            print("Tag: \(fieldTag), type: \(fieldType)")
             #endif
 
-            // set cursor forward to the next field tag
-            readIndex = newIndex
-            dictionary[fieldTag] = value
+            do {
+                // find the field in T with the according CodingKey to the fieldTag
+                let (value, newIndex) = try readField(from: from,
+                                                      fieldTag: fieldTag,
+                                                      fieldType: fieldType,
+                                                      fieldStartIndex: readIndex+1)
+
+                #if DEBUG
+                print("Size: \(newIndex-readIndex) Bytes")
+                #endif
+
+                // set cursor forward to the next field tag
+                readIndex = newIndex
+                dictionary[fieldTag] = value
+            } catch(_) {
+                print("Unable for decode field with tag=\(fieldTag) and type=\(fieldType)")
+            }
         }
 
         return dictionary
@@ -109,39 +118,39 @@ internal class InternalProtoDecoder: Decoder {
     // The length of the read data depends on the field-type.
     // The function returns the value, and the starting index of the next field tag.
     private func readField(from data: Data, fieldTag: Int, fieldType: Int, fieldStartIndex: Int) throws -> (Data, Int) {
-        switch fieldType {
-        case 0: // varint
+        guard let wireType = WireType.init(rawValue: fieldType) else {
+            throw ProtoError.unknownType(fieldType)
+        }
+
+        switch wireType {
+        case WireType.VarInt:
             let (byteValue, newIndex) = try readVarInt(from: data, fieldStartIndex: fieldStartIndex)
             return (byteValue, newIndex)
 
-        case 1: // 64-bit fixed length
+        case WireType._64bit:
             let byteValue = data[fieldStartIndex...fieldStartIndex+7]
             return (byteValue, fieldStartIndex+8)
 
-        case 2: // length-delimited
+        case WireType.lengthDelimited:
             let (byteValue, newIndex) = try readLengthDelimited(from: data, fieldStartIndex: fieldStartIndex)
             return (byteValue, newIndex)
 
-        case 3, 4: // groups are deprecated
+        case WireType.startGroup, WireType.endGroup: // groups are deprecated
             throw ProtoError.unsupportedDataType("Groups are deprecated and not supported by this decoder")
 
-        case 5: // 32-bit fixed length
+        case WireType._32bit:
             let byteValue = data[fieldStartIndex...fieldStartIndex+3]
             return (byteValue, fieldStartIndex+4)
-
-        default:
-            throw ProtoError.unknownType(fieldType)
         }
     }
 }
 
+class ProtoDecoder: TopLevelDecoder {
 
-public class ProtoDecoder : TopLevelDecoder {
+    init() {}
 
-    public init() {}
-
-    public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
-        let decoder = try InternalProtoDecoder(from: data)
+    func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
+        let decoder = InternalProtoDecoder(from: data)
         return try T(from: decoder)
     }
 }
