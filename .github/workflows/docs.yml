@@ -1,8 +1,9 @@
 name: Publish Documentation
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - develop
 
 jobs:
   deploy_docs:

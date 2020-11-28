@@ -15,7 +15,8 @@ let package = Package(
         .package(url: "https://github.com/vapor/vapor.git", from: "4.35.0"),
         .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0"),
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.0.1"),
-        .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.1.0"),
+        .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
+        .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.1.0")
     ],
     targets: [
         .target(
@@ -23,6 +24,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
+                .product(name: "Runtime", package: "Runtime"),
                 "OpenAPIKit",
             ]
         ),
@@ -35,7 +37,7 @@ let package = Package(
             ]
         ),
         .target(
-            name: "TestServer",
+            name: "TestWebService",
             dependencies: [
                 .target(name: "Apodini")
             ]

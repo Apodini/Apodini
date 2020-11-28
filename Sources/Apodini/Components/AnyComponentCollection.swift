@@ -6,7 +6,7 @@
 //
 
 
-public struct AnyComponentCollection: ComponentCollection {
+public struct AnyComponentCollection: Component {
     private let components: [AnyComponent]
     
     
@@ -22,9 +22,9 @@ public struct AnyComponentCollection: ComponentCollection {
 extension AnyComponentCollection: Visitable {
     func visit(_ visitor: SynaxTreeVisitor) {
         for component in components {
-            visitor.enter(collection: self)
+            visitor.enterCollectionItem()
             component.visit(visitor)
-            visitor.exit(collection: self)
+            visitor.exitCollectionItem()
         }
     }
 }
