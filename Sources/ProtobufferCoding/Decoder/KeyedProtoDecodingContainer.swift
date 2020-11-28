@@ -8,18 +8,17 @@
 import Foundation
 
 
-class KeyedProtoDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
-    internal var codingPath: [CodingKey]
-    internal var allKeys: [Key]
-
+class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContainer, KeyedDecodingContainerProtocol {
+    var allKeys: [Key]
     let data: [Int: Data]
     let referencedBy: Data?
 
-    init(from data: [Int: Data], referencedBy: Data? = nil) {
+    init(from data: [Int: Data], codingPath: [CodingKey] = [], referencedBy: Data? = nil) {
         self.data = data
         self.referencedBy = referencedBy
         allKeys = []
-        codingPath = []
+
+        super.init(codingPath: codingPath)
     }
 
     private func extractIntValue(from key: Key) -> Int? {
@@ -36,25 +35,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtoco
         return nil
     }
 
-    // Taken from SwiftProtobuf: https://github.com/apple/swift-protobuf/blob/master/Sources/SwiftProtobuf/BinaryDecoder.swift
-    private func decodeFourByteNumber<T>(from data: Data, into output: inout T) throws {
-        data.withUnsafeBytes { rawBufferPointer in
-            let dataRawPtr = rawBufferPointer.baseAddress!
-            withUnsafeMutableBytes(of: &output) { dest -> Void in
-                dest.copyMemory(from: UnsafeRawBufferPointer(start: dataRawPtr, count: 4))
-            }
-        }
-    }
 
-    // Taken from SwiftProtobuf: https://github.com/apple/swift-protobuf/blob/master/Sources/SwiftProtobuf/BinaryDecoder.swift
-    private func decodeEightByteNumber<T>(from data: Data, into output: inout T) throws {
-        data.withUnsafeBytes { rawBufferPointer in
-            let dataRawPtr = rawBufferPointer.baseAddress!
-            withUnsafeMutableBytes(of: &output) { dest -> Void in
-                dest.copyMemory(from: UnsafeRawBufferPointer(start: dataRawPtr, count: 8))
-            }
-        }
-    }
 
     func contains(_ key: Key) -> Bool {
         if let keyValue = extractIntValue(from: key) {
@@ -95,14 +76,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtoco
     func decode(_ type: Double.Type, forKey key: Key) throws -> Double {
         if let keyValue = extractIntValue(from: key),
            let value = data[keyValue] {
-
-            var littleEndianBytes: UInt64 = 0
-            try decodeEightByteNumber(from: value, into: &littleEndianBytes)
-            var nativeEndianBytes = UInt64(littleEndian: littleEndianBytes)
-            var double: Double = 0
-            let n = MemoryLayout<Double>.size
-            memcpy(&double, &nativeEndianBytes, n)
-            return double
+            return try decodeDouble(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }
@@ -110,14 +84,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtoco
     func decode(_ type: Float.Type, forKey key: Key) throws -> Float {
         if let keyValue = extractIntValue(from: key),
            let value = data[keyValue] {
-
-            var littleEndianBytes: UInt32 = 0
-            try decodeFourByteNumber(from: value, into: &littleEndianBytes)
-            var nativeEndianBytes = UInt32(littleEndian: littleEndianBytes)
-            var float: Float = 0
-            let n = MemoryLayout<Float>.size
-            memcpy(&float, &nativeEndianBytes, n)
-            return float
+            return try decodeFloat(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }
@@ -137,14 +104,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtoco
     func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 {
         if let keyValue = extractIntValue(from: key),
            let value = data[keyValue] {
-
-            var littleEndianBytes: UInt32 = 0
-            try decodeFourByteNumber(from: value, into: &littleEndianBytes)
-            var nativeEndianBytes = UInt32(littleEndian: littleEndianBytes)
-            var int32: Int32 = 0
-            let n = MemoryLayout<Int32>.size
-            memcpy(&int32, &nativeEndianBytes, n)
-            return int32
+            return try decodeInt32(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }
@@ -152,20 +112,13 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtoco
     func decode(_ type: Int64.Type, forKey key: Key) throws -> Int64 {
         if let keyValue = extractIntValue(from: key),
            let value = data[keyValue] {
-
-            var littleEndianBytes: UInt64 = 0
-            try decodeEightByteNumber(from: value, into: &littleEndianBytes)
-            var nativeEndianBytes = UInt64(littleEndian: littleEndianBytes)
-            var int64: Int64 = 0
-            let n = MemoryLayout<Int64>.size
-            memcpy(&int64, &nativeEndianBytes, n)
-            return int64
+            return try decodeInt64(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: UInt.Type, forKey key: Key) throws -> UInt {
-        throw ProtoError.decodingError("UInt8 not supported, use UInt32 or UInt64")
+        throw ProtoError.decodingError("UInt not supported, use UInt32 or UInt64")
     }
 
     func decode(_ type: UInt8.Type, forKey key: Key) throws -> UInt8 {
@@ -179,14 +132,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtoco
     func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 {
         if let keyValue = extractIntValue(from: key),
            let value = data[keyValue] {
-
-            var littleEndianBytes: UInt32 = 0
-            try decodeFourByteNumber(from: value, into: &littleEndianBytes)
-            var nativeEndianBytes = UInt32(littleEndian: littleEndianBytes)
-            var uint32: UInt32 = 0
-            let n = MemoryLayout<UInt32>.size
-            memcpy(&uint32, &nativeEndianBytes, n)
-            return uint32
+            return try decodeUInt32(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }
@@ -194,14 +140,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtoco
     func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 {
         if let keyValue = extractIntValue(from: key),
            let value = data[keyValue] {
-
-            var littleEndianBytes: UInt64 = 0
-            try decodeEightByteNumber(from: value, into: &littleEndianBytes)
-            var nativeEndianBytes = UInt64(littleEndian: littleEndianBytes)
-            var uint64: UInt64 = 0
-            let n = MemoryLayout<UInt64>.size
-            memcpy(&uint64, &nativeEndianBytes, n)
-            return uint64
+            return try decodeUInt64(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }

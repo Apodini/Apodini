@@ -97,3 +97,5 @@ struct ExampleMessage: Codable {
 
 The `ProtoEncoder` and `ProtoDecoder` will always first try to extract an `Int` raw value from given `CodingKey`s. If that is not possible, they will try to convert the given key to a `ProtoCodingKey` and call the `mapCodingKey` method.
 If neither one of these options succeeds, encoding / decoding fails.
+
+**Note:** Single value decoding is currently not supported, because Protobuffers usually come in messages.

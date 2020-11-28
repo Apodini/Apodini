@@ -8,8 +8,7 @@
 import Foundation
 
 
-class UnkeyedProtoDecodingContainer: UnkeyedDecodingContainer {
-    var codingPath: [CodingKey]
+class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDecodingContainer {
     var currentIndex: Int
     var keys: [Int]
     var values: [Data]
@@ -28,12 +27,13 @@ class UnkeyedProtoDecodingContainer: UnkeyedDecodingContainer {
     }
 
 
-    init(from data: [Data], keyedBy keys: [Int], referencedBy: Data? = nil, codingPath: [CodingKey]) {
-        self.codingPath = codingPath
+    init(from data: [Data], keyedBy keys: [Int], codingPath: [CodingKey] = [], referencedBy: Data? = nil) {
         self.currentIndex = 0
         self.keys = keys
         self.values = data
         self.referencedBy = referencedBy
+
+        super.init(codingPath: codingPath)
     }
 
     private func popNext() -> Data? {
@@ -54,11 +54,8 @@ class UnkeyedProtoDecodingContainer: UnkeyedDecodingContainer {
     }
 
     func decode(_ type: Bool.Type) throws -> Bool {
-        var zeroInt = 0
-        let zeroData = Data(bytes: &zeroInt,
-                            count: MemoryLayout.size(ofValue: zeroInt))
         if let value = popNext(),
-           value != zeroData {
+           value[0] != 0 {
             return true
         }
         return false
@@ -73,96 +70,80 @@ class UnkeyedProtoDecodingContainer: UnkeyedDecodingContainer {
 
     func decode(_ type: Double.Type) throws -> Double {
         if let value = popNext() {
-            return value.withUnsafeBytes({ (rawPtr: UnsafeRawBufferPointer) in
-                return rawPtr.load(as: Double.self)
-            })
+            return try decodeDouble(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: Float.Type) throws -> Float {
         if let value = popNext() {
-            return value.withUnsafeBytes({ (rawPtr: UnsafeRawBufferPointer) in
-                return rawPtr.load(as: Float.self)
-            })
+            return try decodeFloat(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: Int.Type) throws -> Int {
-        if let value = popNext() {
-            return value.withUnsafeBytes({ (rawPtr: UnsafeRawBufferPointer) in
-                return rawPtr.load(as: Int.self)
-            })
-        }
-        throw ProtoError.decodingError("No data for given key")
+        throw ProtoError.decodingError("Int not supported, use Int32 or Int64")
     }
 
     func decode(_ type: Int8.Type) throws -> Int8 {
-        throw ProtoError.decodingError("Int8 not supported")
+        throw ProtoError.decodingError("Int8 not supported, use Int32 or Int64")
     }
 
     func decode(_ type: Int16.Type) throws -> Int16 {
-        throw ProtoError.decodingError("Int16 not supported")
+        throw ProtoError.decodingError("Int16 not supported, use Int32 or Int64")
     }
 
     func decode(_ type: Int32.Type) throws -> Int32 {
         if let value = popNext() {
-            return value.withUnsafeBytes({ (rawPtr: UnsafeRawBufferPointer) in
-                return rawPtr.load(as: Int32.self)
-            })
+            return try decodeInt32(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: Int64.Type) throws -> Int64 {
         if let value = popNext() {
-            return value.withUnsafeBytes({ (rawPtr: UnsafeRawBufferPointer) in
-                return rawPtr.load(as: Int64.self)
-            })
+            return try decodeInt64(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: UInt.Type) throws -> UInt {
-        if let value = popNext() {
-            return value.withUnsafeBytes({ (rawPtr: UnsafeRawBufferPointer) in
-                return rawPtr.load(as: UInt.self)
-            })
-        }
-        throw ProtoError.decodingError("No data for given key")
+        throw ProtoError.decodingError("UInt not supported, use UInt32 or UInt64")
     }
 
     func decode(_ type: UInt8.Type) throws -> UInt8 {
-        throw ProtoError.decodingError("UInt8 not supported")
+        throw ProtoError.decodingError("UInt8 not supported, use UInt32 or UInt64")
     }
 
     func decode(_ type: UInt16.Type) throws -> UInt16 {
-        throw ProtoError.decodingError("UInt16 not supported")
+        throw ProtoError.decodingError("UInt16 not supported, use UInt32 or UInt64")
     }
 
     func decode(_ type: UInt32.Type) throws -> UInt32 {
         if let value = popNext() {
-            return value.withUnsafeBytes({ (rawPtr: UnsafeRawBufferPointer) in
-                return rawPtr.load(as: UInt32.self)
-            })
+            return try decodeUInt32(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: UInt64.Type) throws -> UInt64 {
         if let value = popNext() {
-            return value.withUnsafeBytes({ (rawPtr: UnsafeRawBufferPointer) in
-                return rawPtr.load(as: UInt64.self)
-            })
+            return try decodeUInt64(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }
 
     func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
-        // we encountered a nested structure
-        if let value = popNext() {
-            return try ProtoDecoder().decode(type, from: value)
+        if T.self == Data.self,
+           let value = popNext() as? T {
+            // this is simply a byte array
+            return value
+        } else {
+            // we encountered a nested structure
+            if let value = popNext() {
+                return try ProtoDecoder().decode(type, from: value)
+            }
         }
         throw ProtoError.decodingError("No data for given key")
     }
