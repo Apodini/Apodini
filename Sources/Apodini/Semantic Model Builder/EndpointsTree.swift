@@ -4,7 +4,8 @@
 
 import Vapor
 
-/// This struct is used to model the RootPath for the root of the endpoints tree TODO can we do better?
+/// This struct is used to model the RootPath for the root of the endpoints tree
+/// TODO can we do better?
 struct RootPath: _PathComponent {
     var description: String {
         ""
@@ -40,10 +41,10 @@ class EndpointsTreeNode {
         return paths
     }()
 
-    var endpoints: [Operation : Endpoint] = [:]
+    var endpoints: [Operation: Endpoint] = [:]
 
     let parent: EndpointsTreeNode?
-    private var nodeChildren: [String : EndpointsTreeNode] = [:]
+    private var nodeChildren: [String: EndpointsTreeNode] = [:]
     var children: Dictionary<String, EndpointsTreeNode>.Values {
         nodeChildren.values
     }
@@ -55,6 +56,7 @@ class EndpointsTreeNode {
 
     func addEndpoint(_ endpoint: Endpoint, for operation: Operation, at paths: [PathComponent]) {
         if paths.isEmpty {
+            // swiftlint:disable:next force_unwrapping
             precondition(endpoints[operation] == nil, "Tried overwriting endpoint \(endpoints[operation]!.description) with \(endpoint.description) for operation \(operation)")
             endpoints[operation] = endpoint
         } else {
@@ -66,6 +68,7 @@ class EndpointsTreeNode {
                     nodeChildren[first.description] = child
                 }
 
+                // swiftlint:disable:next force_unwrapping
                 child!.addEndpoint(endpoint, for: operation, at: pathComponents)
             } else {
                 fatalError("Encountered PathComponent which isn't a _PathComponent!")
