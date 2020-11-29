@@ -9,7 +9,7 @@ In order to send push notifications, the Apodini web server needs to be authenti
 This example adds APNS to the web server.
 
 ```swift
-var configuration: some Configuration {
+var configuration: Configuration {
     APNSConfiguration(.pem(pemPath: "certificate.pem"), identifier: "de.tum.in.ase.Example", environment: .sandbox)
 }
 ```
@@ -35,13 +35,13 @@ Devices can be registered to the `NotificationCenter` by conforming to the `Devi
 - **subscriptions**: Subscriptions are used to group `Device`s together. Example: All devices that want to receive news alerts for a specific topic.
 
 ```swift
-public struct Device: Content {
+public struct Device {
     public var type: PushNotificationService
     public var token: String
     public var subscriptions: [String]?
 }
 
-public enum PushNotificationService: String {
+public enum PushNotificationService {
     case apns
     case fcm
 }
@@ -57,7 +57,7 @@ struct RegisterComponent: Component {
 
     @Environment(\.notificationCenter) var notificationCenter: NotificationCener
 
-    func handle() -> EventLoopFuture<Bool> {
+    func handle() -> EventLoopFuture<Void> {
         notificationCenter.register(device, to: user);
     }
 }
@@ -77,9 +77,9 @@ Furthermore, the `NotificationCenter` allows the removal and editing of `Device`
 
 ```swift
 public struct Notification {
-    public var alert: Alert
-    public var payload: Payload
-    public var data: Encodable
+    public var alert: Alert?
+    public var payload: Payload?
+    public var data: Encodable?
 }
 ```
 
@@ -91,7 +91,7 @@ struct SendNotification: Component {
 
     @Environment(\.notificationCenter) var notificationCenter: NotificationCener
 
-    func handle() -> EventLoopFuture<Bool> {
+    func handle() -> EventLoopFuture<Void> {
         notificationCenter.send(alert: .init(title: "Hello There 👋"), to: user)
     }
 }
@@ -108,15 +108,16 @@ The `NotificationCenter` offers the following convenience methods to send push n
 
 ## Unsolicited Push Notifications
 
-Events can trigger the sending of push notifications. This builds on top of `Component`s and follows the same approach as **[Service-Side Stream Components](../ComponentTypes/ServiceSideStream.md)** with `ObservableObject`s. `Component`s subscribe to `ObservableObject`s that are exposed to the environment. The handle method of the `Component` will be executed every time `@Published` properties of the `ObservableObject` change. `ObservableObject`s also can be scheduled as **[CronJobs](./CronJob.md)**.
+Events can trigger the sending of push notifications. This builds on top of `Component`s and follows a similar approach to **[Service-Side Stream Components](../ComponentTypes/ServiceSideStream.md)** with `ObservableObject`s. `Component`s can subscribe to `ObservableObject`s or **[CronJobs](./CronJob.md)** that are exposed to the environment. The handle method of the `Component` will be executed every time `@Published` properties of the `ObservableObject` or `CronJob` change.
+Unsolicited components are defined in Apodini with the `unsolicited` modifier. This modifier specifies that this `Component` is not triggered by incoming requests and only by events which the `Component` subscribes to.
 
-The following example shows a _WeatherService_ as a `CronJob` that fetches the weather every day and publishes it to its subscribers using the `@Published` property wrapper. The _AlertComponent_ listens to changes of the _WeatherService_ and sends out push notification based on the current weather. Every `Device` with the **subscription** _weatherSubscription_ will receive this push notification.
+The following example shows a _WeatherService_ as a `CronJob` that fetches the weather every day at 10 am and publishes it to its subscribers using the `@Published` property wrapper. The _AlertComponent_ listens to changes of the _WeatherService_ and sends out push notifications based on the current weather. Every `Device` with the **subscription** _weatherSubscription_ will receive this push notification.
 
 ```swift
-struct WeatherService: ObservedObject {
+struct WeatherService: CronJob {
     @Published var weather = "sunny"
 
-    handle() {
+    func run() {
         // Updates weather
     }
 }
@@ -124,10 +125,19 @@ struct WeatherService: ObservedObject {
 struct AlertComponent: Component {
     @Environment(\.notificationCenter) var notificationCenter: NotificationCener
 
-    @Environment(\.) var weatherService: WeatherService
+    @Environment(\.weatherService) var weatherService: WeatherService
 
-    func handle() -> EventLoopFuture<Bool> {
+    func run() {
         notificationCenter.send(notification: .init(title: "The weather today will be \($weatherService.weather)"), to: "weatherSubscription")
     }
+}
+
+var content: some Component {
+    AlertComponent.unsolicited()
+    // ...
+}
+
+var configuration: Configuration {
+    Schedule(WeatherService, on: "0 10 * * *")
 }
 ```
