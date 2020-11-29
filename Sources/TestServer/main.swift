@@ -65,7 +65,22 @@ struct TestServer: Apodini.Server {
         }
     }
     
+    struct Hello: Component {
+        @Apodini.Environment(\.notificationCenter) var notificationCenter: Apodini.NotificationCenter
+        
+        @Body
+        var device: Device
+        
+        func handle() -> EventLoopFuture<HTTPStatus> {
+            notificationCenter.send(notification: .init(title: "Test"), device: device).map { .ok }
+        }
+    }
+
+    
     var content: some Component {
+        Group("test") {
+             Hello()
+        }
         Text("Hello World! 👋")
             .response(EmojiMediator(emojis: "🎉"))
             .response(EmojiMediator())

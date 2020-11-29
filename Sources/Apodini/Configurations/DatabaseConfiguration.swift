@@ -13,7 +13,7 @@ public class DatabaseConfiguration: Configuration {
     
     private var migrations: [Migration] = []
     
-    private var connectionString: String = Environment.get("DATABASE_URL") ?? "mongodb://localhost:27017/vapor_database"
+    private var connectionString: String = Vapor.Environment.get("DATABASE_URL") ?? "mongodb://localhost:27017/vapor_database"
     
     public init(_ text: String) {
         self.type = .mongo

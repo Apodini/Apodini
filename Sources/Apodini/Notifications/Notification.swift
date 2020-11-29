@@ -10,6 +10,6 @@ import APNS
 
 public struct Notification<T: Encodable>: APNSwiftNotification {
     public var aps: APNSwiftPayload
-    public var data: T
+    public var data: T?
 }
 

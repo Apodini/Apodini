@@ -8,22 +8,36 @@
 import Vapor
 import APNS
 
-
 // App configuration needs to be changed because of app instance
 public class NotificationCenter {
-    private let app: Application
+    public static let shared = NotificationCenter()
+    public var app: Application?
     
-    init(_ app: Application) {
-        self.app = app
+    init() {
+        
     }
     
     @discardableResult
-    public func send<T>(notification: Apodini.Notification<T>, device: Device) -> EventLoopFuture<Void> {
+    public func send(notification: APNSwift.APNSwiftAlert, device: Device) -> EventLoopFuture<Void> {
+        guard let app = app else {
+            fatalError("Notification Center not configured")
+        }
         return app.apns.send(notification, to: device.deviceID)
     }
-    
 }
+
 
 extension Apodini.Server {
     public typealias ApodiniAPNS = Vapor.Request.APNS
+}
+
+enum NotificationCenterEnvironmentKey: EnvironmentKey {
+    static var defaultValue: NotificationCenter = NotificationCenter.shared
+}
+
+extension EnvironmentValues {
+    public var notificationCenter: NotificationCenter {
+        get { self[NotificationCenterEnvironmentKey.self] }
+        set { self[NotificationCenterEnvironmentKey.self] = newValue }
+    }
 }
