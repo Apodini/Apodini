@@ -1,8 +1,10 @@
 // swiftlint:disable all
 // This file was automatically generated and should not be edited.
 
+// SwiftLint Disable Reason: This contains automatically generated source code
+// swiftlint:disable all
 @_functionBuilder
-public struct ComponentBuilder {
+public enum ComponentBuilder {
     public static func buildBlock() -> EmptyComponent {
         EmptyComponent()
     }

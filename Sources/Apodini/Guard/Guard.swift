@@ -9,14 +9,18 @@ import NIO
 import Vapor
 
 
+/// A `SyncGuard` can be used to inspect request and guard `Component`s using the check method.
+/// SyncGuard`s can  be used with different request-response property wrappers to inject values from incoming requests.
 public protocol SyncGuard {
+    /// The `check` method can be used to inspect incoming requests
     func check()
 }
 
+
+/// A `Guard` can be used to inspect request and guard `Component`s using the check method
 public protocol Guard {
-    associatedtype GuardResult = Void
-    
-    func check() -> EventLoopFuture<GuardResult>
+    /// The `check` method can be used to inspect incoming requests
+    func check() -> EventLoopFuture<Void>
 }
 
 
@@ -24,8 +28,8 @@ extension SyncGuard {
     func executeGuardCheck(on request: Vapor.Request) -> EventLoopFuture<Void> {
         request.eventLoop.makeSucceededFuture(Void())
             .map {
-                request.enterRequestContext(with: self) { `guard` in
-                    `guard`.check()
+                request.enterRequestContext(with: self) { guardInstance in
+                    guardInstance.check()
                 }
             }
     }
@@ -34,8 +38,9 @@ extension SyncGuard {
 
 extension Guard {
     func executeGuardCheck(on request: Vapor.Request) -> EventLoopFuture<Void> {
-        request.enterRequestContext(with: self) { `guard` in
-                `guard`.check()
+        request
+            .enterRequestContext(with: self) { guardInstance in
+                guardInstance.check()
             }
             .hop(to: request.eventLoop)
             .map { _ in }

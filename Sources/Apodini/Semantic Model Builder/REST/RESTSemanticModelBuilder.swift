@@ -13,9 +13,11 @@ struct RESTPathBuilder: PathBuilder {
     
     
     fileprivate var pathDescription: String {
-        pathComponents.map { pathComponent in
-            pathComponent.description
-        }.joined(separator: "/")
+        pathComponents
+            .map { pathComponent in
+                pathComponent.description
+            }
+            .joined(separator: "/")
     }
     
     
@@ -33,7 +35,7 @@ struct RESTPathBuilder: PathBuilder {
         pathComponents.append(.constant(pathComponent))
     }
     
-    mutating func append<T>(_ identifiier: Identifier<T>) where T : Identifiable {
+    mutating func append<T>(_ identifiier: Identifier<T>) where T: Identifiable {
         let pathComponent = identifiier.identifier
         pathComponents.append(.parameter(pathComponent))
     }
@@ -83,11 +85,10 @@ class RESTSemanticModelBuilder: SemanticModelBuilder {
         
         let responseTransformerTypes = context.get(valueFor: ResponseContextKey.self)
         let returnType: ResponseEncodable.Type = {
-            if responseTransformerTypes.isEmpty {
+            guard let lastResponseTransformerType = responseTransformerTypes.last else {
                 return C.Response.self
-            } else {
-                return responseTransformerTypes.last!().transformedResponseType
             }
+            return lastResponseTransformerType().transformedResponseType
         }()
         
         let guards = context.get(valueFor: GuardContextKey.self)

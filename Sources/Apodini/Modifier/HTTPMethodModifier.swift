@@ -36,6 +36,9 @@ extension HTTPMethodModifier: Visitable {
 
 
 extension Component {
+    /// An `httpMethod` modifier can be used to explcitly specify the `HTTPMethod` that is used to send a request to a `Component`
+    /// - Parameter httpMethod: The `HTTPMethod` that is used to send a request to a `Component`
+    /// - Returns: The modified `Component` with a specified `HTTPMethod`
     public func httpMethod(_ httpMethod: Vapor.HTTPMethod) -> HTTPMethodModifier<Self> {
         HTTPMethodModifier(self, httpMethod: httpMethod)
     }
