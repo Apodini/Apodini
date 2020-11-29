@@ -116,6 +116,8 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     func encode<T>(_ value: T) throws where T : Encodable {
+        // we need to switch here to also be able to decode structs with generic types
+        // if struct has generic type, this will always end up here
         if T.self == Data.self,
            let value = value as? Data {
             // simply a byte array
@@ -124,6 +126,22 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
             length.append(value)
             appendData(length, tag: currentFieldTag, wireType: .lengthDelimited)
             currentFieldTag += 1
+        } else if T.self == String.self {
+            return try encode(value as! String)
+        } else if T.self == Bool.self {
+            return try encode(value as! Bool)
+        } else if T.self == Int32.self {
+            return try encode(value as! Int32)
+        } else if T.self == Int64.self {
+            return try encode(value as! Int64)
+        } else if T.self == UInt32.self {
+            return try encode(value as! UInt32)
+        } else if T.self == UInt64.self {
+            return try encode(value as! UInt64)
+        } else if T.self == Double.self {
+            return try encode(value as! Double)
+        } else if T.self == Float.self {
+            return try encode(value as! Float)
         } else {
             // nested message
             let encoder = InternalProtoEncoder()

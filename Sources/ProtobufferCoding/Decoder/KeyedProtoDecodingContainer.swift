@@ -151,7 +151,8 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if T.self == Data.self {
             // this is simply a byte array
             return try decode(Data.self, forKey: key) as! T
-        } else if T.self == String.self { return try decode(String.self, forKey: key) as! T
+        } else if T.self == String.self {
+            return try decode(String.self, forKey: key) as! T
         } else if T.self == Bool.self {
             return try decode(Bool.self, forKey: key) as! T
         } else if T.self == Int32.self {

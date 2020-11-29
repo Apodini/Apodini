@@ -139,6 +139,8 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
         guard let keyValue = extractIntValue(from: key) else {
             throw ProtoError.decodingError("Cannot encode data for given key")
         }
+        // we need to switch here to also be able to decode structs with generic types
+        // if struct has generic type, this will always end up here
         if T.self == Data.self,
            let value = value as? Data {
             // simply a byte array
@@ -146,6 +148,22 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
             var length = Data([UInt8(value.count)])
             length.append(value)
             appendData(length, tag: keyValue, wireType: .lengthDelimited)
+        } else if T.self == String.self {
+            return try encode(value as! String, forKey: key)
+        } else if T.self == Bool.self {
+            return try encode(value as! Bool, forKey: key)
+        } else if T.self == Int32.self {
+            return try encode(value as! Int32, forKey: key)
+        } else if T.self == Int64.self {
+            return try encode(value as! Int64, forKey: key)
+        } else if T.self == UInt32.self {
+            return try encode(value as! UInt32, forKey: key)
+        } else if T.self == UInt64.self {
+            return try encode(value as! UInt64, forKey: key)
+        } else if T.self == Double.self {
+            return try encode(value as! Double, forKey: key)
+        } else if T.self == Float.self {
+            return try encode(value as! Float, forKey: key)
         } else {
             // nested message
             let encoder = InternalProtoEncoder()

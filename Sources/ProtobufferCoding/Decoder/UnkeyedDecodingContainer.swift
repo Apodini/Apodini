@@ -135,10 +135,28 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
     }
 
     func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+        // we need to switch here to also be able to decode structs with generic types
+        // if struct has generic type, this will always end up here
         if T.self == Data.self,
-           let value = popNext() as? T {
+           let value = popNext() {
             // this is simply a byte array
-            return value
+            return value as! T
+        } else if T.self == String.self {
+            return try decode(String.self) as! T
+        } else if T.self == Bool.self {
+            return try decode(Bool.self) as! T
+        } else if T.self == Int32.self {
+            return try decode(Int32.self) as! T
+        } else if T.self == Int64.self {
+            return try decode(Int64.self) as! T
+        } else if T.self == UInt32.self {
+            return try decode(UInt32.self) as! T
+        } else if T.self == UInt64.self {
+            return try decode(UInt64.self) as! T
+        } else if T.self == Double.self {
+            return try decode(Double.self) as! T
+        } else if T.self == Float.self {
+            return try decode(Float.self) as! T
         } else {
             // we encountered a nested structure
             if let value = popNext() {

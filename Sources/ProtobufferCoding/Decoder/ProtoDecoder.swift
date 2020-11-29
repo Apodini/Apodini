@@ -51,10 +51,6 @@ internal class InternalProtoDecoder: Decoder {
             let fieldTag = Int(byte >> 3) // shift "out" last 3 bytes
             let fieldType = Int(byte & 0b00000111) // only keep last 3 bytes
 
-            #if DEBUG
-            print("Tag: \(fieldTag), type: \(fieldType)")
-            #endif
-
             do {
                 // find the field in T with the according CodingKey to the fieldTag
                 let (value, newIndex) = try readField(from: from,
@@ -62,15 +58,12 @@ internal class InternalProtoDecoder: Decoder {
                                                       fieldType: fieldType,
                                                       fieldStartIndex: readIndex+1)
 
-                #if DEBUG
-                print("Size: \(newIndex-readIndex) Bytes")
-                #endif
-
                 // set cursor forward to the next field tag
                 readIndex = newIndex
                 dictionary[fieldTag] = value
             } catch(_) {
-                print("Unable for decode field with tag=\(fieldTag) and type=\(fieldType)")
+                print("Unable for decode field with tag=\(fieldTag) and type=\(fieldType). Stop decoding.")
+                return dictionary
             }
         }
 
@@ -98,6 +91,9 @@ internal class InternalProtoDecoder: Decoder {
         var hasNext = 0
         var count = 0
         repeat {
+            if currentIndex >= data.count {
+                throw ProtoError.decodingError("Not enough data left to decode VarInt properly")
+            }
             let byte = data[currentIndex]
 
             // we need to drop the most significant bit of byte, and
@@ -124,21 +120,25 @@ internal class InternalProtoDecoder: Decoder {
 
         switch wireType {
         case WireType.VarInt:
-            let (byteValue, newIndex) = try readVarInt(from: data, fieldStartIndex: fieldStartIndex)
-            return (byteValue, newIndex)
+            return try readVarInt(from: data, fieldStartIndex: fieldStartIndex)
 
         case WireType._64bit:
+            if fieldStartIndex+7 >= data.count {
+                throw ProtoError.decodingError("Not enough data left to read 64-bit value")
+            }
             let byteValue = data[fieldStartIndex...fieldStartIndex+7]
             return (byteValue, fieldStartIndex+8)
 
         case WireType.lengthDelimited:
-            let (byteValue, newIndex) = try readLengthDelimited(from: data, fieldStartIndex: fieldStartIndex)
-            return (byteValue, newIndex)
+            return try readLengthDelimited(from: data, fieldStartIndex: fieldStartIndex)
 
         case WireType.startGroup, WireType.endGroup: // groups are deprecated
             throw ProtoError.unsupportedDataType("Groups are deprecated and not supported by this decoder")
 
         case WireType._32bit:
+            if fieldStartIndex+3 >= data.count {
+                throw ProtoError.decodingError("Not enough data left to read 64-bit value")
+            }
             let byteValue = data[fieldStartIndex...fieldStartIndex+3]
             return (byteValue, fieldStartIndex+4)
         }

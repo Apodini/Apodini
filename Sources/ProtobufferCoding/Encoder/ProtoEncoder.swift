@@ -42,15 +42,6 @@ internal class InternalProtoEncoder: Encoder {
 
     func append(_ value: Data) {
         data.append(value)
-
-        #if DEBUG
-        let array = [UInt8](data)
-        var strings = [String]()
-        for byte in array {
-            strings.append(String.init(format: "%02x", byte))
-        }
-        print("Encoded bytes: \n\(array)\n As HEX: \(strings)")
-        #endif
     }
 
     func getEncoded() throws -> Data {
