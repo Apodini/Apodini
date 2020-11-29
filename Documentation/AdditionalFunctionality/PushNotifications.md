@@ -108,8 +108,7 @@ The `NotificationCenter` offers the following convenience methods to send push n
 
 ## Unsolicited Push Notifications
 
-Events can trigger the sending of push notifications. This builds on top of `Component`s and follows a similar approach to **[Service-Side Stream Components](../ComponentTypes/ServiceSideStream.md)** with `ObservableObject`s. `Component`s can subscribe to `ObservableObject`s or **[CronJobs](./CronJob.md)** that are exposed to the environment. The handle method of the `Component` will be executed every time `@Published` properties of the `ObservableObject` or `CronJob` change.
-Unsolicited components are defined in Apodini with the `unsolicited` modifier. This modifier specifies that this `Component` is not triggered by incoming requests and only by events which the `Component` subscribes to.
+Events in Apodini can trigger the sending of push notifications. `Component`s can subscribe to `ObservableObject`s or **[CronJobs](./CronJob.md)** that are exposed to the environment. The `handle` method of a `Component` will be executed every time `@Published` properties of the `ObservableObject` or `CronJob` change. Unsolicited `Component`s are defined in Apodini by conforming to the `EventComponent` protocol. This specifies that `EventComponent`s are only executed by events which the `EventComponent` subscribes to, whereas incoming requests of clients will not be handled. Therefore, property wrappers that are request based, e.g. `@Request` or `@Parameter`, cannot be used in an `EventComponent` and will throw an error. This also means that Apodini exporters will ignore this `Component`.
 
 The following example shows a _WeatherService_ as a `CronJob` that fetches the weather every day at 10 am and publishes it to its subscribers using the `@Published` property wrapper. The _AlertComponent_ listens to changes of the _WeatherService_ and sends out push notifications based on the current weather. Every `Device` with the **subscription** _weatherSubscription_ will receive this push notification.
 
@@ -122,18 +121,18 @@ struct WeatherService: CronJob {
     }
 }
 
-struct AlertComponent: Component {
+struct AlertComponent: EventComponent {
     @Environment(\.notificationCenter) var notificationCenter: NotificationCener
 
     @Environment(\.weatherService) var weatherService: WeatherService
 
-    func run() {
+    func handle() {
         notificationCenter.send(notification: .init(title: "The weather today will be \($weatherService.weather)"), to: "weatherSubscription")
     }
 }
 
 var content: some Component {
-    AlertComponent.unsolicited()
+    AlertComponent()
     // ...
 }
 
