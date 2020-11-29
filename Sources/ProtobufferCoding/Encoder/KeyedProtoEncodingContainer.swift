@@ -18,19 +18,15 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
     /// Tries to convert the given CodingKey to an Int, using the following steps:
     ///  - extract Int raw value, if possible
     ///  - convert to ProtoCodingKey and call mapCodingKey, if possible
-    ///  - return nil, if none of the above works
-    private func extractIntValue(from key: Key) -> Int? {
+    ///  - throws ProtoError.unknownCodingKey, if none of the above works
+    private func extractIntValue(from key: Key) throws -> Int {
         codingPath.append(key)
-        do {
-            if let keyValue = key.intValue {
-                return keyValue
-            } else if let protoKey = key as? ProtoCodingKey {
-                return try type(of: protoKey).mapCodingKey(key)
-            }
-        } catch {
-            print("Error extracting Int value from CodingKey")
+        if let keyValue = key.intValue {
+            return keyValue
+        } else if let protoKey = key as? ProtoCodingKey {
+            return try type(of: protoKey).protoRawValue(key)
         }
-        return nil
+        throw ProtoError.unknownCodingKey(key)
     }
 
     func encodeNil(forKey key: Key) throws {
@@ -40,8 +36,8 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
     }
 
     func encode(_ value: Bool, forKey key: Key) throws {
-        if value,
-           let keyValue = extractIntValue(from: key) {
+        let keyValue = try extractIntValue(from: key)
+        if value {
             let byte = UInt8(1)
             appendData(Data([byte]), tag: keyValue, wireType: .varInt)
         }
@@ -49,9 +45,9 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
     }
 
     func encode(_ value: String, forKey key: Key) throws {
-        guard let keyValue = extractIntValue(from: key),
-              let data = value.data(using: .utf8) else {
-            throw ProtoError.decodingError("Cannot encode data for given key")
+        let keyValue = try extractIntValue(from: key)
+        guard let data = value.data(using: .utf8) else {
+            throw ProtoError.encodingError("Cannot encode data for given key")
         }
         // prepend an extra byte containing the length
         var length = Data([UInt8(data.count)])
@@ -60,17 +56,13 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
     }
 
     func encode(_ value: Double, forKey key: Key) throws {
-        guard let keyValue = extractIntValue(from: key) else {
-            throw ProtoError.decodingError("Cannot encode data for given key")
-        }
+        let keyValue = try extractIntValue(from: key)
         let data = encodeDouble(value)
         appendData(data, tag: keyValue, wireType: WireType.bit64)
     }
 
     func encode(_ value: Float, forKey key: Key) throws {
-        guard let keyValue = extractIntValue(from: key) else {
-            throw ProtoError.decodingError("Cannot encode data for given key")
-        }
+        let keyValue = try extractIntValue(from: key)
         let data = encodeFloat(value)
         appendData(data, tag: keyValue, wireType: WireType.bit32)
     }
@@ -88,58 +80,48 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
     }
 
     func encode(_ value: Int32, forKey key: Key) throws {
-        guard let keyValue = extractIntValue(from: key) else {
-            throw ProtoError.decodingError("Cannot encode data for given key")
-        }
+        let keyValue = try extractIntValue(from: key)
         // we need to encode it as VarInt (run-length encoded number)
         let data = encodeVarInt(value: UInt64(bitPattern: Int64(value)))
         appendData(data, tag: keyValue, wireType: .varInt)
     }
 
     func encode(_ value: Int64, forKey key: Key) throws {
-        guard let keyValue = extractIntValue(from: key) else {
-            throw ProtoError.decodingError("Cannot encode data for given key")
-        }
+        let keyValue = try extractIntValue(from: key)
         // we need to encode it as VarInt (run-length encoded number)
         let data = encodeVarInt(value: UInt64(bitPattern: Int64(value)))
         appendData(data, tag: keyValue, wireType: .varInt)
     }
 
     func encode(_ value: UInt, forKey key: Key) throws {
-        throw ProtoError.decodingError("UInt not supported, use UInt32 or UInt64")
+        throw ProtoError.encodingError("UInt not supported, use UInt32 or UInt64")
     }
 
     func encode(_ value: UInt8, forKey key: Key) throws {
-        throw ProtoError.decodingError("UInt8 not supported, use UInt32 or UInt64")
+        throw ProtoError.encodingError("UInt8 not supported, use UInt32 or UInt64")
     }
 
     func encode(_ value: UInt16, forKey key: Key) throws {
-        throw ProtoError.decodingError("UInt16 not supported, use UInt32 or UInt64")
+        throw ProtoError.encodingError("UInt16 not supported, use UInt32 or UInt64")
     }
 
     func encode(_ value: UInt32, forKey key: Key) throws {
-        guard let keyValue = extractIntValue(from: key) else {
-            throw ProtoError.decodingError("Cannot encode data for given key")
-        }
+        let keyValue = try extractIntValue(from: key)
         // we need to encode it as VarInt (run-length encoded number)
         let data = encodeVarInt(value: UInt64(value))
         appendData(data, tag: keyValue, wireType: .varInt)
     }
 
     func encode(_ value: UInt64, forKey key: Key) throws {
-        guard let keyValue = extractIntValue(from: key) else {
-            throw ProtoError.decodingError("Cannot encode data for given key")
-        }
+        let keyValue = try extractIntValue(from: key)
         // we need to encode it as VarInt (run-length encoded number)
         let data = encodeVarInt(value: value)
         appendData(data, tag: keyValue, wireType: .varInt)
     }
 
     func encode<T>(_ value: T, forKey key: Key) throws where T: Encodable {
-        guard let keyValue = extractIntValue(from: key) else {
-            throw ProtoError.decodingError("Cannot encode data for given key")
-        }
-        // we need to switch here to also be able to decode structs with generic types
+        let keyValue = try extractIntValue(from: key)
+        // we need to switch here to also be able to encode structs with generic types
         // if struct has generic type, this will always end up here
         if T.self == Data.self,
            let value = value as? Data {

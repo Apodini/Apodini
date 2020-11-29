@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Combine
 
 
 internal class InternalProtoDecoder: Decoder {
@@ -145,7 +144,7 @@ internal class InternalProtoDecoder: Decoder {
     }
 }
 
-public class ProtoDecoder: TopLevelDecoder {
+public class ProtoDecoder {
 
     init() {}
 

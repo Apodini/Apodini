@@ -114,7 +114,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     func encode<T>(_ value: T) throws where T: Encodable {
-        // we need to switch here to also be able to decode structs with generic types
+        // we need to switch here to also be able to encode structs with generic types
         // if struct has generic type, this will always end up here
         if T.self == Data.self,
            let value = value as? Data {

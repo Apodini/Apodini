@@ -9,7 +9,7 @@ import Foundation
 
 
 protocol ProtoCodingKey: CodingKey {
-    static func mapCodingKey(_ key: CodingKey) throws -> Int?
+    static func protoRawValue(_ key: CodingKey) throws -> Int
 }
 
 // Provide default implementation for mapCodingKey?

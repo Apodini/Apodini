@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Combine
 
 
 internal class InternalProtoEncoder: Encoder {
@@ -50,7 +49,7 @@ internal class InternalProtoEncoder: Encoder {
 
 }
 
-public class ProtoEncoder: TopLevelEncoder {
+public class ProtoEncoder {
 
     public func encode<T: Encodable>(_ value: T) throws -> Data {
         let encoder = InternalProtoEncoder()
