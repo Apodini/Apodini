@@ -4,6 +4,7 @@
 //
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
+// swiftlint:disable todo
 
 import NIO
 import Vapor
@@ -15,9 +16,8 @@ protocol RequestInjectable {
 }
 
 // TODO Is there ANY better place to place this than on global?
-func extractRequestInjectables(from subject: Any) -> [String : RequestInjectable] {
-    Mirror(reflecting: subject).children
-            .reduce(into: [String: RequestInjectable]()) { result, child in
+func extractRequestInjectables(from subject: Any) -> [String: RequestInjectable] {
+    Mirror(reflecting: subject).children.reduce(into: [String: RequestInjectable]()) { result, child in
         if let injectable = child.value as? RequestInjectable, let label = child.label {
             result[label] = injectable
         }

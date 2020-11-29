@@ -1,6 +1,7 @@
 //
 // Created by Andi on 22.11.20.
 //
+// swiftlint:disable todo
 
 import Vapor
 
@@ -28,7 +29,7 @@ struct Endpoint {
     let context: Context
 
     let guards: [LazyGuard] // TODO handle RequestInjectables for every Guard instance
-    let requestInjectables: [String : RequestInjectable] // TODO request injectables currently heavily rely on Vapor Requests
+    let requestInjectables: [String: RequestInjectable] // TODO request injectables currently heavily rely on Vapor Requests
     let handleMethod: () -> ResponseEncodable // TODO use ResponseEncodable replacement, whatever that will be
     let responseTransformers: [() -> (AnyResponseTransformer)] // TODO handle RequestInjectables for every Transformer instance
 }
