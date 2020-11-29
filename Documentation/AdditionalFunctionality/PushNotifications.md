@@ -137,6 +137,7 @@ var content: some Component {
 }
 
 var configuration: Configuration {
+    APNSConfiguration(.pem(pemPath: "certificate.pem"), identifier: "de.tum.in.ase.Example", environment: .sandbox)
     Schedule(WeatherService, on: "0 10 * * *")
 }
 ```
