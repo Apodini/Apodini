@@ -14,7 +14,8 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.35.0"),
         .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0"),
-        .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.0.1")
+        .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.0.1"),
+        .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2")
     ],
     targets: [
         .target(
@@ -22,7 +23,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
-                .target(name: "ProtobufferCoding")
+                .product(name: "Runtime", package: "Runtime")
             ]
         ),
         .target(
