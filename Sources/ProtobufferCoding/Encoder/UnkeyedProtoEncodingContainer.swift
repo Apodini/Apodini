@@ -12,9 +12,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     var currentFieldTag: Int
 
     var count: Int {
-        get {
-            return currentFieldTag
-        }
+        return currentFieldTag
     }
 
 
@@ -32,7 +30,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     func encode(_ value: Bool) throws {
         if value {
             let byte: [UInt8] = [1]
-            appendData(Data(byte), tag: currentFieldTag, wireType: .VarInt)
+            appendData(Data(byte), tag: currentFieldTag, wireType: .varInt)
             currentFieldTag += 1
         }
         // false is simply not appended to message
@@ -51,13 +49,13 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
 
     func encode(_ value: Double) throws {
         let data = encodeDouble(value)
-        appendData(data, tag: currentFieldTag, wireType: WireType._64bit)
+        appendData(data, tag: currentFieldTag, wireType: WireType.bit64)
         currentFieldTag += 1
     }
 
     func encode(_ value: Float) throws {
         let data = encodeFloat(value)
-        appendData(data, tag: currentFieldTag, wireType: WireType._64bit)
+        appendData(data, tag: currentFieldTag, wireType: WireType.bit64)
         currentFieldTag += 1
     }
 
@@ -75,13 +73,13 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
 
     func encode(_ value: Int32) throws {
         let data = encodeVarInt(value: UInt64(bitPattern: Int64(value)))
-        appendData(data, tag: currentFieldTag, wireType: .VarInt)
+        appendData(data, tag: currentFieldTag, wireType: .varInt)
         currentFieldTag += 1
     }
 
     func encode(_ value: Int64) throws {
         let data = encodeVarInt(value: UInt64(bitPattern: Int64(value)))
-        appendData(data, tag: currentFieldTag, wireType: .VarInt)
+        appendData(data, tag: currentFieldTag, wireType: .varInt)
         currentFieldTag += 1
     }
 
@@ -99,13 +97,13 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
 
     func encode(_ value: UInt32) throws {
         let data = encodeVarInt(value: UInt64(value))
-        appendData(data, tag: currentFieldTag, wireType: .VarInt)
+        appendData(data, tag: currentFieldTag, wireType: .varInt)
         currentFieldTag += 1
     }
 
     func encode(_ value: UInt64) throws {
         let data = encodeVarInt(value: value)
-        appendData(data, tag: currentFieldTag, wireType: .VarInt)
+        appendData(data, tag: currentFieldTag, wireType: .varInt)
         currentFieldTag += 1
     }
 
@@ -115,7 +113,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
         currentFieldTag += 1
     }
 
-    func encode<T>(_ value: T) throws where T : Encodable {
+    func encode<T>(_ value: T) throws where T: Encodable {
         // we need to switch here to also be able to decode structs with generic types
         // if struct has generic type, this will always end up here
         if T.self == Data.self,
@@ -126,22 +124,30 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
             length.append(value)
             appendData(length, tag: currentFieldTag, wireType: .lengthDelimited)
             currentFieldTag += 1
-        } else if T.self == String.self {
-            return try encode(value as! String)
-        } else if T.self == Bool.self {
-            return try encode(value as! Bool)
-        } else if T.self == Int32.self {
-            return try encode(value as! Int32)
-        } else if T.self == Int64.self {
-            return try encode(value as! Int64)
-        } else if T.self == UInt32.self {
-            return try encode(value as! UInt32)
-        } else if T.self == UInt64.self {
-            return try encode(value as! UInt64)
-        } else if T.self == Double.self {
-            return try encode(value as! Double)
-        } else if T.self == Float.self {
-            return try encode(value as! Float)
+        } else if T.self == String.self,
+                  let value = value as? String {
+            return try encode(value)
+        } else if T.self == Bool.self,
+                  let value = value as? Bool {
+            return try encode(value)
+        } else if T.self == Int32.self,
+                  let value = value as? Int32 {
+            return try encode(value)
+        } else if T.self == Int64.self,
+                  let value = value as? Int64 {
+            return try encode(value)
+        } else if T.self == UInt32.self,
+                  let value = value as? UInt32 {
+            return try encode(value)
+        } else if T.self == UInt64.self,
+                  let value = value as? UInt64 {
+            return try encode(value)
+        } else if T.self == Double.self,
+                  let value = value as? Double {
+            return try encode(value)
+        } else if T.self == Float.self,
+                  let value = value as? Float {
+            return try encode(value)
         } else {
             // nested message
             let encoder = InternalProtoEncoder()
@@ -155,7 +161,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
         }
     }
 
-    func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
+    func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
         return InternalProtoEncoder().container(keyedBy: keyType)
     }
 

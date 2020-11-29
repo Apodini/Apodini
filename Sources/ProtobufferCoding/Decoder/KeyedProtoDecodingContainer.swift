@@ -13,6 +13,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     let data: [Int: Data]
     let referencedBy: Data?
 
+
     init(from data: [Int: Data], codingPath: [CodingKey] = [], referencedBy: Data? = nil) {
         self.data = data
         self.referencedBy = referencedBy
@@ -29,13 +30,11 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
             } else if let protoKey = key as? ProtoCodingKey {
                 return try type(of: protoKey).mapCodingKey(key)
             }
-        } catch(_) {
+        } catch {
             print("Error extracting Int value from CodingKey")
         }
         return nil
     }
-
-
 
     func contains(_ key: Key) -> Bool {
         if let keyValue = extractIntValue(from: key) {
@@ -145,28 +144,37 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         throw ProtoError.decodingError("No data for given key")
     }
 
-    func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
+    func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T: Decodable {
         // we need to switch here to also be able to decode structs with generic types
         // if struct has generic type, this will always end up here
-        if T.self == Data.self {
+        if T.self == Data.self,
+           let value = try decode(Data.self, forKey: key) as? T {
             // this is simply a byte array
-            return try decode(Data.self, forKey: key) as! T
-        } else if T.self == String.self {
-            return try decode(String.self, forKey: key) as! T
-        } else if T.self == Bool.self {
-            return try decode(Bool.self, forKey: key) as! T
-        } else if T.self == Int32.self {
-            return try decode(Int32.self, forKey: key) as! T
-        } else if T.self == Int64.self {
-            return try decode(Int64.self, forKey: key) as! T
-        } else if T.self == UInt32.self {
-            return try decode(UInt32.self, forKey: key) as! T
-        } else if T.self == UInt64.self {
-            return try decode(UInt64.self, forKey: key) as! T
-        } else if T.self == Double.self {
-            return try decode(Double.self, forKey: key) as! T
-        } else if T.self == Float.self {
-            return try decode(Float.self, forKey: key) as! T
+            return value
+        } else if T.self == String.self,
+                  let value = try decode(String.self, forKey: key) as? T {
+            return value
+        } else if T.self == Bool.self,
+                  let value = try decode(Bool.self, forKey: key) as? T {
+            return value
+        } else if T.self == Int32.self,
+                  let value = try decode(Int32.self, forKey: key) as? T {
+            return value
+        } else if T.self == Int64.self,
+                  let value = try decode(Int64.self, forKey: key) as? T {
+            return value
+        } else if T.self == UInt32.self,
+                  let value = try decode(UInt32.self, forKey: key) as? T {
+            return value
+        } else if T.self == UInt64.self,
+                  let value = try decode(UInt64.self, forKey: key) as? T {
+            return value
+        } else if T.self == Double.self,
+                  let value = try decode(Double.self, forKey: key) as? T {
+            return value
+        } else if T.self == Float.self,
+                  let value = try decode(Float.self, forKey: key) as? T {
+            return value
         } else {
             // we encountered a nested structure
             if let keyValue = extractIntValue(from: key),
@@ -177,7 +185,8 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         throw ProtoError.decodingError("No data for given key")
     }
 
-    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
+    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws
+    -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
         if let keyValue = extractIntValue(from: key),
            let value = data[keyValue] {
             return try InternalProtoDecoder(from: value).container(keyedBy: type)

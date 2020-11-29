@@ -11,14 +11,14 @@ import Combine
 
 internal class InternalProtoEncoder: Encoder {
     var codingPath: [CodingKey] = []
-    var userInfo: [CodingUserInfoKey : Any] = [:]
+    var userInfo: [CodingUserInfoKey: Any] = [:]
     var data = Data()
     var hasContainer = false
 
 
     public init() { }
 
-    func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
+    func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key: CodingKey {
         if hasContainer {
             fatalError("Attempt to create new encoding container while encoder already has one")
         }

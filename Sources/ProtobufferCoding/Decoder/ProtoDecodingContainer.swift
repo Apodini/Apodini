@@ -42,8 +42,8 @@ internal class InternalProtoDecodingContainer {
         try decodeEightByteNumber(from: data, into: &littleEndianBytes)
         var nativeEndianBytes = UInt64(littleEndian: littleEndianBytes)
         var double: Double = 0
-        let n = MemoryLayout<Double>.size
-        memcpy(&double, &nativeEndianBytes, n)
+        let size = MemoryLayout<Double>.size
+        memcpy(&double, &nativeEndianBytes, size)
         return double
     }
 
@@ -52,8 +52,8 @@ internal class InternalProtoDecodingContainer {
         try decodeFourByteNumber(from: data, into: &littleEndianBytes)
         var nativeEndianBytes = UInt32(littleEndian: littleEndianBytes)
         var float: Float = 0
-        let n = MemoryLayout<Float>.size
-        memcpy(&float, &nativeEndianBytes, n)
+        let size = MemoryLayout<Float>.size
+        memcpy(&float, &nativeEndianBytes, size)
         return float
     }
 
@@ -62,8 +62,8 @@ internal class InternalProtoDecodingContainer {
         try decodeFourByteNumber(from: data, into: &littleEndianBytes)
         var nativeEndianBytes = UInt32(littleEndian: littleEndianBytes)
         var int32: Int32 = 0
-        let n = MemoryLayout<Int32>.size
-        memcpy(&int32, &nativeEndianBytes, n)
+        let size = MemoryLayout<Int32>.size
+        memcpy(&int32, &nativeEndianBytes, size)
         return int32
     }
 
@@ -72,8 +72,8 @@ internal class InternalProtoDecodingContainer {
         try decodeEightByteNumber(from: data, into: &littleEndianBytes)
         var nativeEndianBytes = UInt64(littleEndian: littleEndianBytes)
         var int64: Int64 = 0
-        let n = MemoryLayout<Int64>.size
-        memcpy(&int64, &nativeEndianBytes, n)
+        let size = MemoryLayout<Int64>.size
+        memcpy(&int64, &nativeEndianBytes, size)
         return int64
     }
 
@@ -82,8 +82,8 @@ internal class InternalProtoDecodingContainer {
         try decodeFourByteNumber(from: data, into: &littleEndianBytes)
         var nativeEndianBytes = UInt32(littleEndian: littleEndianBytes)
         var uint32: UInt32 = 0
-        let n = MemoryLayout<UInt32>.size
-        memcpy(&uint32, &nativeEndianBytes, n)
+        let size = MemoryLayout<UInt32>.size
+        memcpy(&uint32, &nativeEndianBytes, size)
         return uint32
     }
 
@@ -92,8 +92,8 @@ internal class InternalProtoDecodingContainer {
         try decodeEightByteNumber(from: data, into: &littleEndianBytes)
         var nativeEndianBytes = UInt64(littleEndian: littleEndianBytes)
         var uint64: UInt64 = 0
-        let n = MemoryLayout<UInt64>.size
-        memcpy(&uint64, &nativeEndianBytes, n)
+        let size = MemoryLayout<UInt64>.size
+        memcpy(&uint64, &nativeEndianBytes, size)
         return uint64
     }
 }

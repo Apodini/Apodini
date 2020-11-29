@@ -12,4 +12,4 @@ protocol ProtoCodingKey: CodingKey {
     static func mapCodingKey(_ key: CodingKey) throws -> Int?
 }
 
-// TODO Provide default implementation for mapCodingKey?
+// Provide default implementation for mapCodingKey?

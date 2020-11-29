@@ -27,7 +27,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
             } else if let protoKey = key as? ProtoCodingKey {
                 return try type(of: protoKey).mapCodingKey(key)
             }
-        } catch(_) {
+        } catch {
             print("Error extracting Int value from CodingKey")
         }
         return nil
@@ -43,7 +43,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
         if value,
            let keyValue = extractIntValue(from: key) {
             let byte = UInt8(1)
-            appendData(Data([byte]), tag: keyValue, wireType: .VarInt)
+            appendData(Data([byte]), tag: keyValue, wireType: .varInt)
         }
         // false is simply not appended to message
     }
@@ -64,7 +64,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
             throw ProtoError.decodingError("Cannot encode data for given key")
         }
         let data = encodeDouble(value)
-        appendData(data, tag: keyValue, wireType: WireType._64bit)
+        appendData(data, tag: keyValue, wireType: WireType.bit64)
     }
 
     func encode(_ value: Float, forKey key: Key) throws {
@@ -72,7 +72,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
             throw ProtoError.decodingError("Cannot encode data for given key")
         }
         let data = encodeFloat(value)
-        appendData(data, tag: keyValue, wireType: WireType._32bit)
+        appendData(data, tag: keyValue, wireType: WireType.bit32)
     }
 
     func encode(_ value: Int, forKey key: Key) throws {
@@ -93,7 +93,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
         }
         // we need to encode it as VarInt (run-length encoded number)
         let data = encodeVarInt(value: UInt64(bitPattern: Int64(value)))
-        appendData(data, tag: keyValue, wireType: .VarInt)
+        appendData(data, tag: keyValue, wireType: .varInt)
     }
 
     func encode(_ value: Int64, forKey key: Key) throws {
@@ -102,7 +102,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
         }
         // we need to encode it as VarInt (run-length encoded number)
         let data = encodeVarInt(value: UInt64(bitPattern: Int64(value)))
-        appendData(data, tag: keyValue, wireType: .VarInt)
+        appendData(data, tag: keyValue, wireType: .varInt)
     }
 
     func encode(_ value: UInt, forKey key: Key) throws {
@@ -123,7 +123,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
         }
         // we need to encode it as VarInt (run-length encoded number)
         let data = encodeVarInt(value: UInt64(value))
-        appendData(data, tag: keyValue, wireType: .VarInt)
+        appendData(data, tag: keyValue, wireType: .varInt)
     }
 
     func encode(_ value: UInt64, forKey key: Key) throws {
@@ -132,10 +132,10 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
         }
         // we need to encode it as VarInt (run-length encoded number)
         let data = encodeVarInt(value: value)
-        appendData(data, tag: keyValue, wireType: .VarInt)
+        appendData(data, tag: keyValue, wireType: .varInt)
     }
 
-    func encode<T>(_ value: T, forKey key: Key) throws where T : Encodable {
+    func encode<T>(_ value: T, forKey key: Key) throws where T: Encodable {
         guard let keyValue = extractIntValue(from: key) else {
             throw ProtoError.decodingError("Cannot encode data for given key")
         }
@@ -148,22 +148,30 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
             var length = Data([UInt8(value.count)])
             length.append(value)
             appendData(length, tag: keyValue, wireType: .lengthDelimited)
-        } else if T.self == String.self {
-            return try encode(value as! String, forKey: key)
-        } else if T.self == Bool.self {
-            return try encode(value as! Bool, forKey: key)
-        } else if T.self == Int32.self {
-            return try encode(value as! Int32, forKey: key)
-        } else if T.self == Int64.self {
-            return try encode(value as! Int64, forKey: key)
-        } else if T.self == UInt32.self {
-            return try encode(value as! UInt32, forKey: key)
-        } else if T.self == UInt64.self {
-            return try encode(value as! UInt64, forKey: key)
-        } else if T.self == Double.self {
-            return try encode(value as! Double, forKey: key)
-        } else if T.self == Float.self {
-            return try encode(value as! Float, forKey: key)
+        } else if T.self == String.self,
+                  let value = value as? String {
+            return try encode(value, forKey: key)
+        } else if T.self == Bool.self,
+                  let value = value as? Bool {
+            return try encode(value, forKey: key)
+        } else if T.self == Int32.self,
+                  let value = value as? Int32 {
+            return try encode(value, forKey: key)
+        } else if T.self == Int64.self,
+                  let value = value as? Int64 {
+            return try encode(value, forKey: key)
+        } else if T.self == UInt32.self,
+                  let value = value as? UInt32 {
+            return try encode(value, forKey: key)
+        } else if T.self == UInt64.self,
+                  let value = value as? UInt64 {
+            return try encode(value, forKey: key)
+        } else if T.self == Double.self,
+                  let value = value as? Double {
+            return try encode(value, forKey: key)
+        } else if T.self == Float.self,
+                  let value = value as? Float {
+            return try encode(value, forKey: key)
         } else {
             // nested message
             let encoder = InternalProtoEncoder()
@@ -176,7 +184,8 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
         }
     }
 
-    func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
+    func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key)
+    -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
         return InternalProtoEncoder().container(keyedBy: keyType)
     }
 

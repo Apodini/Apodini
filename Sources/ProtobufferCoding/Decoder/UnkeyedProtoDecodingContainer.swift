@@ -15,15 +15,11 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
     let referencedBy: Data?
 
     var count: Int? {
-        get {
-            return values.count
-        }
+        return values.count
     }
 
     var isAtEnd: Bool {
-        get {
-            return currentIndex < values.count
-        }
+        return currentIndex < values.count
     }
 
 
@@ -134,29 +130,37 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         throw ProtoError.decodingError("No data for given key")
     }
 
-    func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+    func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         // we need to switch here to also be able to decode structs with generic types
         // if struct has generic type, this will always end up here
         if T.self == Data.self,
-           let value = popNext() {
+           let value = try decode(Data.self) as? T {
             // this is simply a byte array
-            return value as! T
-        } else if T.self == String.self {
-            return try decode(String.self) as! T
-        } else if T.self == Bool.self {
-            return try decode(Bool.self) as! T
-        } else if T.self == Int32.self {
-            return try decode(Int32.self) as! T
-        } else if T.self == Int64.self {
-            return try decode(Int64.self) as! T
-        } else if T.self == UInt32.self {
-            return try decode(UInt32.self) as! T
-        } else if T.self == UInt64.self {
-            return try decode(UInt64.self) as! T
-        } else if T.self == Double.self {
-            return try decode(Double.self) as! T
-        } else if T.self == Float.self {
-            return try decode(Float.self) as! T
+            return value
+        } else if T.self == String.self,
+                  let value = try decode(String.self) as? T {
+            return value
+        } else if T.self == Bool.self,
+                  let value = try decode(Bool.self) as? T {
+            return value
+        } else if T.self == Int32.self,
+                  let value = try decode(Int32.self) as? T {
+            return value
+        } else if T.self == Int64.self,
+                  let value = try decode(Int64.self) as? T {
+            return value
+        } else if T.self == UInt32.self,
+                  let value = try decode(UInt32.self) as? T {
+            return value
+        } else if T.self == UInt64.self,
+                  let value = try decode(UInt64.self) as? T {
+            return value
+        } else if T.self == Double.self,
+                  let value = try decode(Double.self) as? T {
+            return value
+        } else if T.self == Float.self,
+                  let value = try decode(Float.self) as? T {
+            return value
         } else {
             // we encountered a nested structure
             if let value = popNext() {
@@ -166,7 +170,7 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         throw ProtoError.decodingError("No data for given key")
     }
 
-    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
+    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
         if let value = popNext() {
             return try InternalProtoDecoder(from: value).container(keyedBy: type)
         }

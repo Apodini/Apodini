@@ -11,7 +11,7 @@ import Combine
 
 internal class InternalProtoDecoder: Decoder {
     var codingPath: [CodingKey]
-    var userInfo: [CodingUserInfoKey : Any]
+    var userInfo: [CodingUserInfoKey: Any]
 
     let data: Data
     var dictionary: [Int: Data]
@@ -25,7 +25,7 @@ internal class InternalProtoDecoder: Decoder {
         dictionary = decode(from: data)
     }
 
-    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
+    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
         return KeyedDecodingContainer(KeyedProtoDecodingContainer(from: self.dictionary))
     }
 
@@ -61,7 +61,7 @@ internal class InternalProtoDecoder: Decoder {
                 // set cursor forward to the next field tag
                 readIndex = newIndex
                 dictionary[fieldTag] = value
-            } catch(_) {
+            } catch {
                 print("Unable for decode field with tag=\(fieldTag) and type=\(fieldType). Stop decoding.")
                 return dictionary
             }
@@ -119,10 +119,10 @@ internal class InternalProtoDecoder: Decoder {
         }
 
         switch wireType {
-        case WireType.VarInt:
+        case WireType.varInt:
             return try readVarInt(from: data, fieldStartIndex: fieldStartIndex)
 
-        case WireType._64bit:
+        case WireType.bit64:
             if fieldStartIndex+7 >= data.count {
                 throw ProtoError.decodingError("Not enough data left to read 64-bit value")
             }
@@ -135,7 +135,7 @@ internal class InternalProtoDecoder: Decoder {
         case WireType.startGroup, WireType.endGroup: // groups are deprecated
             throw ProtoError.unsupportedDataType("Groups are deprecated and not supported by this decoder")
 
-        case WireType._32bit:
+        case WireType.bit32:
             if fieldStartIndex+3 >= data.count {
                 throw ProtoError.decodingError("Not enough data left to read 64-bit value")
             }
@@ -149,7 +149,7 @@ public class ProtoDecoder: TopLevelDecoder {
 
     init() {}
 
-    public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
+    public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable {
         let decoder = InternalProtoDecoder(from: data)
         return try T(from: decoder)
     }
