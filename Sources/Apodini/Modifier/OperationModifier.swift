@@ -7,6 +7,8 @@
 
 /// Defines the Operation of a given endpoint
 public enum Operation {
+    /// This operation is the default for every endpoint.
+    case automatic
     /// The associated endpoint is used for a `create` operation
     case create
     /// The associated endpoint is used for a `read` operation
@@ -18,7 +20,7 @@ public enum Operation {
 }
 
 struct OperationContextKey: ContextKey {
-    static var defaultValue: Operation = .read
+    static var defaultValue: Operation = .automatic
     
     static func reduce(value: inout Operation, nextValue: () -> Operation) {
         value = nextValue()
@@ -46,7 +48,9 @@ extension OperationModifier: Visitable {
 
 
 extension Component {
-    /// Sets the `Operation` for the given `Component`
+    /// A `operation` modifier can be used to explicitly specify the `Operation` for the given `Component`
+    /// - Parameter operation: The `Operation` that is used to for the component
+    /// - Returns: The modified `Component` with a specified `Operation`
     public func operation(_ operation: Operation) -> OperationModifier<Self> {
         OperationModifier(self, operation: operation)
     }

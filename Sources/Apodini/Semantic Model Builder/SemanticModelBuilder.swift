@@ -15,8 +15,15 @@ class SemanticModelBuilder {
         self.app = app
     }
     
-    
-    func register<C: Component>(component: C, withContext context: Context) { }
+    func register<C: Component>(component: C, withContext context: Context) {
+        // Overwritten by subclasses of the SemanticModelBuilder
+    }
 
-    func finishedProcessing() {}
+    func finishedProcessing() {
+        // Can be overwritten to run action once the component tree was parsed
+    }
+    
+    func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
+        fatalError("decode must be overridden")
+    }
 }

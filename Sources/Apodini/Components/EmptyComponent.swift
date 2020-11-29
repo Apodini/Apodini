@@ -25,6 +25,9 @@ extension Never: Component {
 
 
 extension Never: ResponseEncodable {
+    /// Encodes an instance of `Self` to a `HTTPResponse
+    ///
+    /// `Never` must never be encoded!
     public func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         fatalError("Never should never be encoded")
     }
@@ -32,12 +35,14 @@ extension Never: ResponseEncodable {
 
 
 extension Component where Self.Content == Never {
+    /// This `Component` does not include any child `Component`s
     public var content: Never {
         fatalError("\(type(of: self)) has no body")
     }
 }
 
 extension Component where Self.Response == Never {
+    /// This `Component` does not handle any network requests
     public func handle() -> Never {
         fatalError("Never should never be handled")
     }
