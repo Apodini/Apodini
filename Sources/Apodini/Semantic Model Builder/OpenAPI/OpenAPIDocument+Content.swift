@@ -9,3 +9,4 @@ import OpenAPIKit
 import Vapor
 
 extension OpenAPI.Document: Content {}
+

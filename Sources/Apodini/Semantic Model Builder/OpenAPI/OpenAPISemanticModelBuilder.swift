@@ -7,10 +7,12 @@
 import OpenAPIKit
 import Vapor
 import Foundation
+import Runtime
 
 class OpenAPISemanticModelBuilder: SemanticModelBuilder {
     var configuration: OpenAPIConfiguration
     var document: OpenAPI.Document
+    var openAPIComponentsBuilder = OpenAPIComponentsBuilder()
     
     init(_ app: Application, configuration: OpenAPIConfiguration = OpenAPIConfiguration()) {
         self.configuration = configuration
@@ -18,7 +20,7 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
             info: self.configuration.info,
             servers: self.configuration.servers,
             paths: OpenAPI.PathItem.Map(),
-            components: OpenAPI.Components()
+            components: self.openAPIComponentsBuilder.components
         )
         super.init(app)
         
@@ -50,13 +52,11 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
             app.logger.error("Some unknown error occurred: \(error).")
         }
         
-        // if new schema detected, add to components
-
     }
     
     
     private func createOrUpdatePathItem<C>(of component: C, withContext context: Context) throws -> Void where C: Component {
-        
+        print("\(C.Response.self)")
         // get path from `PathComponent`s
         let pathComponents = context.get(valueFor: PathComponentContextKey.self)
         let pathBuilder = OpenAPIPathBuilder(pathComponents)
@@ -68,14 +68,13 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
         // get HTTP method
         let httpMethod = try context.get(valueFor: HTTPMethodContextKey.self).openAPIHttpMethod()
         
-        // get (ultimate) response type from transformers
+        // 1. get (ultimate) response type from transformers
         let responseTransformerTypes = context.get(valueFor: ResponseContextKey.self)
         let returnType: ResponseEncodable.Type = {
-            if responseTransformerTypes.isEmpty {
+            guard let lastResponseTransformerType = responseTransformerTypes.last else {
                 return C.Response.self
-            } else {
-                return responseTransformerTypes.last!().transformedResponseType
             }
+            return lastResponseTransformerType().transformedResponseType
         }()
         
         // get guards -> TODO: add as security fields?
@@ -89,7 +88,17 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
             Either.parameter(name: $0, context: .path, schema: .string)
         } // TODO: here we need to add `QueryParams`
         let requestBody: OpenAPI.Request = OpenAPI.Request(content: OpenAPI.Content.Map())
-        let responses: OpenAPI.Response.Map = OpenAPI.Response.Map()
+        var responseContent: OpenAPI.Content.Map = [:]
+        var responseJSONSchema: JSONSchema = try! self.openAPIComponentsBuilder.findOrCreateSchema(from: returnType)
+        responseContent[.json] = .init(schema: responseJSONSchema)
+        var responses: OpenAPI.Response.Map = [:]
+        responses[OpenAPI.Response.StatusCode.range(.success)] = .init(OpenAPI.Response.init(
+            description: "",
+            headers: nil,
+            content: responseContent,
+            vendorExtensions: [:])
+        )
+        
         let security: [OpenAPI.SecurityRequirement] = []
         
         let operation = OpenAPI.Operation(
@@ -101,6 +110,7 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
         pathItem.set(operation: operation, for: httpMethod)
         
         self.document.paths[path] = pathItem
+        self.document.components = self.openAPIComponentsBuilder.components
         
         let encoder = JSONEncoder()
         if let json = try? encoder.encode(self.document) {

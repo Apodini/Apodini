@@ -24,7 +24,7 @@ public class PathParameter<Element: LosslessStringConvertible>: RequestInjectabl
         self.key = key
     }
     
-    func inject(using request: Vapor.Request) throws {
+    func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder?) throws {
         element = request.parameters.get(key)
     }
     

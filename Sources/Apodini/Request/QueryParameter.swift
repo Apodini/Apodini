@@ -25,7 +25,7 @@ public class QueryParameter<Element: Decodable>: RequestInjectable {
         self.key = key
     }
     
-    func inject(using request: Vapor.Request) throws {
+    func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder?) throws {
         element = try request.query.get(at: key)
     }
     
