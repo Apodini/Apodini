@@ -21,8 +21,8 @@ extension Message {
                 .compactMap { (tuple) -> Message.Property? in
                     let (offset, element) = tuple
                     do {
-                        let typeName = try spellOutGeneric(
-                            typeInfo: try Runtime.typeInfo(of: element.type)
+                        let typeName = try compatibleGenericName(
+                            try Runtime.typeInfo(of: element.type)
                         )
                         
                         return Message.Property(
@@ -48,7 +48,7 @@ private extension Kind {
     var nameStrategy: (TypeInfo) throws -> String {
         switch self {
         case .struct, .class:
-            return spellOutGeneric(typeInfo:)
+            return compatibleGenericName
         case .tuple:
             return Self.tuple
         default:
@@ -63,21 +63,4 @@ private extension Kind {
             throw Exception(message: "Tuple: \(typeInfo.type) is not supported.")
         }
     }
-}
-
-private func spellOutGeneric(typeInfo: TypeInfo) throws -> String {
-    let tree: Tree = try Node(typeInfo) { typeInfo in
-        try typeInfo.genericTypes.map { element in
-            try Runtime.typeInfo(of: element)
-        }
-    }
-    
-    let name = tree.reduce(into: "") { (result, value) in
-        let next = value.name.prefix { $0 != "<" }
-        result += result.isEmpty
-            ? next
-            : "Of\(next)"
-    }
-    
-    return name
 }
