@@ -56,3 +56,13 @@ extension Tree {
         return result
     }
 }
+
+extension Tree {
+    func contextMap<T, U>(
+        _ transform: (Node<T>) throws -> Tree<U>
+    ) rethrows -> Tree<U> where Wrapped == Node<T> {
+        try map { node in
+            try transform(node)
+        } ?? Tree.none
+    }
+}
