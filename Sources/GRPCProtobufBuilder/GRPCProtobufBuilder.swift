@@ -7,6 +7,39 @@
 
 import Runtime
 
+public class ProtobufferBuilder {
+    private var messages: Set<GRPCMessage> = .init()
+    private var services: Set<GRPCService> = .init()
+    
+    public init() {}
+}
+
+public extension ProtobufferBuilder {
+    func add<T>(_ messageType: T.Type = T.self) throws {
+        let tree: Tree = Node(try typeInfo(of: messageType), getChildren)
+        #warning("TODO: Children...")
+        let messages = try tree
+            .contextMap { (node) in
+                Node(value: try GRPCMessage(typeInfo: node), children: .init())
+            }
+            .reduce(into: Set()) { (result, value) in
+                result.insert(value)
+            }
+        
+        messages.forEach { element in
+            self.messages.insert(element)
+        }
+    }
+}
+
+extension ProtobufferBuilder: CustomStringConvertible {
+    public var description: String {
+        messages
+            .map(\.description)
+            .joined(separator: "\n")
+    }
+}
+
 private func getChildren(_ typeInfo: TypeInfo) -> [TypeInfo] {
     typeInfo.properties.compactMap {
         do {
@@ -16,29 +49,4 @@ private func getChildren(_ typeInfo: TypeInfo) -> [TypeInfo] {
             return nil
         }
     }
-}
-
-private func isNotPrimitive(_ typeInfo: TypeInfo) -> Bool {
-    !["Int", "String", "Array"].contains {
-        typeInfo.name.hasPrefix($0)
-    }
-}
-
-public func code<T>(_ type: T.Type) throws {
-    let tree: Tree = Node(try typeInfo(of: type), getChildren)
-    let messages = try tree
-        // Prune tree...
-        .filter(isNotPrimitive)
-        .reduce(into: Set()) { (result, value) in
-            result.insert(value)
-        }
-        .map(GRPCMessage.init(typeInfo:))
-    
-    print("--------")
-    print(
-        messages
-            .map(\.description)
-            .joined(separator: "\n")
-    )
-    print("--------")
 }

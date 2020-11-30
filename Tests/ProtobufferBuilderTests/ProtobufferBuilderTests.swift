@@ -74,3 +74,13 @@ extension ProtobufferBuilderTests {
         XCTAssertFalse(Array<Any>.self == Array<Int>.self)
     }
 }
+
+private func code<T>(_ type: T.Type) throws {
+    let builder = ProtobufferBuilder()
+    try builder.add(type)
+    print("""
+        ----
+        \(builder.description)
+        ----
+        """)
+}
