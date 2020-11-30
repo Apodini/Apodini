@@ -11,8 +11,8 @@ import Runtime
 
 struct Message: Equatable, Hashable {
     struct Property: Equatable, Hashable {
+        let isRepeated: Bool
         let name: String
-        let isRequired: Bool = true
         let typeName: String
         let uniqueNumber: Int
     }

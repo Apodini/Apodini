@@ -24,7 +24,7 @@ extension Message: CustomStringConvertible {
 
 extension Message.Property: CustomStringConvertible {
     var description: String {
-        "\(typeName) \(name) = \(uniqueNumber);"
+        "\(isRepeated ? "repeated " : "")\(typeName) \(name) = \(uniqueNumber);"
     }
 }
 

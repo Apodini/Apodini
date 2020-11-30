@@ -11,21 +11,22 @@ extension Message {
     init(typeInfo: TypeInfo) throws {
         let name = try typeInfo.kind.nameStrategy(typeInfo)
         
-        let properties: [Message.Property]
+        let properties: [Property]
         
         if isPrimitive(typeInfo.type) {
             properties = []
         } else {
             properties = typeInfo.properties
                 .enumerated()
-                .compactMap { (tuple) -> Message.Property? in
+                .compactMap { tuple -> Property? in
                     let (offset, element) = tuple
                     do {
                         let typeName = try compatibleGenericName(
                             try Runtime.typeInfo(of: element.type)
                         )
                         
-                        return Message.Property(
+                        return Property(
+                            isRepeated: typeName.hasPrefix("Array"),
                             name: element.name,
                             typeName: typeName,
                             uniqueNumber: offset
