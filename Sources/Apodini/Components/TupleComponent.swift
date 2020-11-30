@@ -22,9 +22,9 @@ public struct TupleComponent<T>: Component {
 
 extension TupleComponent: Visitable {
     func visit(_ visitor: SynaxTreeVisitor) {
-        visitor.enterCollectionItem()
         let mirror = Mirror(reflecting: storage)
         for (_, value) in mirror.children {
+            visitor.enterCollectionItem()
             do {
                 try visitor.unsafeVisitAny(value)
             } catch {
@@ -36,7 +36,7 @@ extension TupleComponent: Visitable {
                 fatalError(error)
                 #endif
             }
+            visitor.exitCollectionItem()
         }
-        visitor.exitCollectionItem()
     }
 }
