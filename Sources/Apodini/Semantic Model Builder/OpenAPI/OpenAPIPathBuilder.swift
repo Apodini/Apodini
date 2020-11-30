@@ -7,30 +7,44 @@
 
 import Vapor
 
-let DEFAULT_OPEN_API_PATH_SEPARATOR = "/"
+private let openAPIPathSeparator = "/"
 
 // TODO: Decide on common PathBuilder together with RESTPathBuilder
 struct OpenAPIPathBuilder: PathBuilder {
-    public private(set) var pathComponents: [Vapor.PathComponent] = []
+    private(set) var pathComponents: [Vapor.PathComponent] = []
     
     var fullPath: String {
         // pathComponents.string
-        pathComponents.map { pathComponent in
-            var pathValue = pathComponent.description
-            // TODO: hacky! we are using the internals of `Vapor.PathComponent` here (e.g., offset: 2)...
-            if case .parameter = pathComponent {
-                pathValue = "{\(pathComponent.description[pathComponent.description.index(pathComponent.description.startIndex, offsetBy: 2)...])}"
+        pathComponents
+            .map { pathComponent in
+                var pathValue = pathComponent.description
+                // TODO: hacky! we are using the internals of `Vapor.PathComponent` here (e.g., offset: 2)...
+                if case .parameter = pathComponent {
+                    pathValue = "{\(pathComponent.description[pathComponent.description.index(pathComponent.description.startIndex, offsetBy: 2)...])}"
+                }
+                return pathValue
             }
-            return pathValue
-        }.joined(separator: DEFAULT_OPEN_API_PATH_SEPARATOR)
+            .joined(separator: openAPIPathSeparator)
     }
     
     var parameters: [String] {
-        pathComponents.filter { pathComponent in
-            if case .parameter = pathComponent { return true } else { return false }
-        }
+        pathComponents
+            .filter { pathComponent in
+                if case .parameter = pathComponent {
+                    return true
+                } else {
+                    return false
+                }
+            }
             .map { pathComponent in
-                String(pathComponent.description[pathComponent.description.index(pathComponent.description.startIndex, offsetBy: 2)...]) // TODO: hacky!
+                String(
+                    pathComponent.description[
+                        pathComponent
+                            .description
+                            .index(
+                                pathComponent.description.startIndex, offsetBy: 2)...
+                    ]
+                ) // TODO: hacky!
             }
     }
     

@@ -87,7 +87,7 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
         } // TODO: here we need to add `QueryParams`
         let requestBody: OpenAPI.Request = OpenAPI.Request(content: OpenAPI.Content.Map())
         var responseContent: OpenAPI.Content.Map = [:]
-        var responseJSONSchema: JSONSchema = try! self.openAPIComponentsBuilder.buildSchema(for: returnType)
+        var responseJSONSchema: JSONSchema = try self.openAPIComponentsBuilder.buildSchema(for: returnType)
         responseContent[.json] = .init(schema: responseJSONSchema)
         var responses: OpenAPI.Response.Map = [:]
         responses[OpenAPI.Response.StatusCode.range(.success)] = .init(OpenAPI.Response(

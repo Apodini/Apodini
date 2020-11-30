@@ -35,7 +35,7 @@ extension TypeInfo {
     }
     
     var isWrapperType: Bool {
-        genericTypes.count > 0 &&
+        !genericTypes.isEmpty &&
             ["EventLoopFuture", "Either", "Optional"].contains(where: {
                 name.contains($0)
             })
