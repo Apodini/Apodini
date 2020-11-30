@@ -37,8 +37,7 @@ private let primitiveTypes: [Any.Type] = [
     Bool.self,
     Int.self,
     // ...more Ints
-    String.self,
-    Array<Any>.self,
+    String.self
 ]
 
 // MARK: - Generic Name

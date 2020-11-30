@@ -7,7 +7,7 @@
 
 import Runtime
 
-// MARK: - GRPCMessage etc.
+// MARK: - Message and Message.Property
 
 struct Message: Equatable, Hashable {
     struct Property: Equatable, Hashable {
@@ -27,7 +27,7 @@ extension Message.Property: Comparable {
     }
 }
 
-// MARK: - GRPCService etc.
+// MARK: - Service and Service.Method
 
 struct Service: Equatable, Hashable {
     struct Method: Equatable, Hashable {

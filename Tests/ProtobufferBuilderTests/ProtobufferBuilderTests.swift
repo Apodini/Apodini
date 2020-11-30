@@ -50,10 +50,10 @@ extension ProtobufferBuilderTests {
     func testTypeTwoLevelsDeep() throws {
         struct Account {
             let transactions: [Transaction]
-            
-            struct Transaction {
-                let amount: Int
-            }
+        }
+        
+        struct Transaction {
+            let amount: Int
         }
         
         XCTAssertNoThrow(try code(Account.self))

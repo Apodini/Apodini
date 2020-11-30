@@ -42,7 +42,9 @@ extension Tree {
     func map<T, U>(
         _ transform: (T) throws -> U
     ) rethrows -> Tree<U> where Wrapped == Node<T> {
-        guard let node = self else { return nil }
+        guard let node = self else {
+            return nil
+        }
         
         let value = try transform(node.value)
         let children = try node.children.compactMap { (child: Tree) in
@@ -56,7 +58,9 @@ extension Tree {
         into initialResult: U,
         _ updateAccumulatingResult: (inout U, T) throws -> Void
     ) rethrows -> U where Wrapped == Node<T> {
-        guard let node = self else { return initialResult }
+        guard let node = self else {
+            return initialResult
+        }
         
         var result = initialResult
         
@@ -67,15 +71,5 @@ extension Tree {
         }
         
         return result
-    }
-}
-
-extension Tree {
-    func contextMap<T, U>(
-        _ transform: (Node<T>) throws -> Tree<U>
-    ) rethrows -> Tree<U> where Wrapped == Node<T> {
-        try map { node in
-            try transform(node)
-        } ?? Tree.none
     }
 }

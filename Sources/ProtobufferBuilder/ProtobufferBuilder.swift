@@ -28,13 +28,14 @@ public extension ProtobufferBuilder {
         }
         
         let messages = try tree
+            .edit(fixArray)
             .filter { typeInfo in
                 !isPrimitive(typeInfo.type)
             }
             .map { typeInfo in
                 try Message(typeInfo: typeInfo)
             }
-            .reduce(into: Set()) { (result, value) in
+            .reduce(into: Set()) { result, value in
                 result.insert(value)
             }
         
