@@ -13,9 +13,9 @@ internal struct Node<T> {
 }
 
 extension Node {
-    init(_ root: T, _ getChildren: (T) -> [T]) {
-        let children = getChildren(root)
-            .map { Node($0, getChildren) }
+    init(_ root: T, _ getChildren: (T) throws -> [T]) rethrows {
+        let children = try getChildren(root)
+            .map { try Node($0, getChildren) }
         
         self.init(value: root, children: children)
     }

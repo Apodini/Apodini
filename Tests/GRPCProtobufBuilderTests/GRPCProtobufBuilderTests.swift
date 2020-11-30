@@ -54,3 +54,9 @@ final class GRPCProtobufBuilderTests: XCTestCase {
         XCTAssertNoThrow(try code(Node<Int>.self))
     }
 }
+
+extension GRPCProtobufBuilderTests {
+    func testGenericPolymorphism() {
+        XCTAssertFalse(Array<Any>.self == Array<Int>.self)
+    }
+}

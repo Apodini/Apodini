@@ -7,31 +7,35 @@
 
 import Runtime
 
-struct Exception: Error {
-    let message: String
-}
-
 extension GRPCMessage {
     init(typeInfo: TypeInfo) throws {
         let name = try typeInfo.kind.nameStrategy(typeInfo)
         
-        let properties = typeInfo.properties
-            .enumerated()
-            .compactMap { (tuple) -> GRPCMessage.Property? in
-                let (offset, element) = tuple
-                do {
-                    let typeName = try Runtime.typeInfo(of: element.type).name
-                    
-                    return GRPCMessage.Property(
-                        name: element.name,
-                        typeName: typeName,
-                        uniqueNumber: offset
-                    )
-                } catch {
-                    print(error)
-                    return nil
+        let properties: [GRPCMessage.Property]
+        
+        if isPrimitive(typeInfo.type) {
+            properties = []
+        } else {
+            properties = typeInfo.properties
+                .enumerated()
+                .compactMap { (tuple) -> GRPCMessage.Property? in
+                    let (offset, element) = tuple
+                    do {
+                        let typeName = try spellOutGeneric(
+                            typeInfo: try Runtime.typeInfo(of: element.type)
+                        )
+                        
+                        return GRPCMessage.Property(
+                            name: element.name,
+                            typeName: typeName,
+                            uniqueNumber: offset
+                        )
+                    } catch {
+                        print(error)
+                        return nil
+                    }
                 }
-            }
+        }
         
         self.init(
             name: name,
@@ -44,7 +48,7 @@ private extension Kind {
     var nameStrategy: (TypeInfo) throws -> String {
         switch self {
         case .struct, .class:
-            return { $0.name }
+            return spellOutGeneric(typeInfo:)
         case .tuple:
             return Self.tuple
         default:
@@ -59,4 +63,21 @@ private extension Kind {
             throw Exception(message: "Tuple: \(typeInfo.type) is not supported.")
         }
     }
+}
+
+private func spellOutGeneric(typeInfo: TypeInfo) throws -> String {
+    let tree: Tree = try Node(typeInfo) { typeInfo in
+        try typeInfo.genericTypes.map { element in
+            try Runtime.typeInfo(of: element)
+        }
+    }
+    
+    let name = tree.reduce(into: "") { (result, value) in
+        let next = value.name.prefix { $0 != "<" }
+        result += result.isEmpty
+            ? next
+            : "Of\(next)"
+    }
+    
+    return name
 }
