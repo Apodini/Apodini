@@ -7,6 +7,20 @@
 
 import Runtime
 
+private func isPrimitive(_ type: Any.Type) -> Bool {
+    [
+        Bool.self,
+        Int.self,
+        
+        String.self,
+        
+        Array<Any>.self,
+    ]
+    .contains { (other) -> Bool in
+        type == other
+    }
+}
+
 extension GRPCMessage {
     init(typeInfo: TypeInfo) throws {
         let name = try typeInfo.kind.nameStrategy(typeInfo)
