@@ -19,6 +19,10 @@ struct RootPath: _PathComponent {
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 struct Endpoint {
+    /// This is a reference to the node where the endpoint is located
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    var treeNode: EndpointsTreeNode!
+
     /// Description of the associated component, currently included for debug purposes
     let description: String
 
@@ -28,14 +32,20 @@ struct Endpoint {
     /// and can then pull in their requirements into the Semantic Model.
     let context: Context
 
+    let operation: Operation
+
     let guards: [LazyGuard] // TODO handle RequestInjectables for every Guard instance
     let requestInjectables: [String: RequestInjectable] // TODO request injectables currently heavily rely on Vapor Requests
     let handleMethod: () -> ResponseEncodable // TODO use ResponseEncodable replacement, whatever that will be
     let responseTransformers: [() -> (AnyResponseTransformer)] // TODO handle RequestInjectables for every Transformer instance
+
+    lazy var pathComponents: [_PathComponent] = {
+        treeNode.pathComponents
+    }()
 }
 
 class EndpointsTreeNode {
-    private let path: _PathComponent
+    let path: _PathComponent
     lazy var pathComponents: [_PathComponent] = {
         var paths: [_PathComponent] = []
         collectPathComponents(pathComponents: &paths)
@@ -55,11 +65,14 @@ class EndpointsTreeNode {
         self.parent = parent
     }
 
-    func addEndpoint(_ endpoint: Endpoint, for operation: Operation, at paths: [PathComponent]) {
+    func addEndpoint(_ endpoint: inout Endpoint, at paths: [PathComponent]) {
         if paths.isEmpty {
             // swiftlint:disable:next force_unwrapping
-            precondition(endpoints[operation] == nil, "Tried overwriting endpoint \(endpoints[operation]!.description) with \(endpoint.description) for operation \(operation)")
-            endpoints[operation] = endpoint
+            precondition(endpoints[endpoint.operation] == nil, "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)")
+            precondition(endpoint.treeNode == nil, "The endpoint \(endpoint.description) is already inserted at some different place")
+
+            endpoint.treeNode = self
+            endpoints[endpoint.operation] = endpoint
         } else {
             var pathComponents = paths
             if let first = pathComponents.removeFirst() as? _PathComponent {
@@ -70,7 +83,7 @@ class EndpointsTreeNode {
                 }
 
                 // swiftlint:disable:next force_unwrapping
-                child!.addEndpoint(endpoint, for: operation, at: pathComponents)
+                child!.addEndpoint(&endpoint, at: pathComponents)
             } else {
                 fatalError("Encountered PathComponent which isn't a _PathComponent!")
             }

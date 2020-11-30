@@ -1,6 +1,7 @@
 //
 // Created by Andi on 22.11.20.
 //
+// swiftlint:disable todo
 
 import Vapor
 
@@ -59,6 +60,32 @@ extension Operation {
     }
 }
 
+extension EndpointsTreeNode { // TODO we might want to provide a way to store exporter specific additions to the model
+    func linkedNodes() -> [EndpointsTreeNode] {
+        var linkArray: [EndpointsTreeNode] = []
+
+        for childNode in self.children {
+            linkArray.append(childNode)
+            linkArray.append(contentsOf: childNode.linkedNodes())
+        }
+
+        return linkArray
+    }
+
+    func relativePath(to node: EndpointsTreeNode) -> [_PathComponent] {
+        if node === self {
+            return [path]
+        }
+        guard let parent = parent else {
+            return []
+        }
+
+        var pathComponents = parent.relativePath(to: node)
+        pathComponents.append(path)
+        return pathComponents
+    }
+}
+
 class RESTInterfaceExporter: InterfaceExporter {
     let app: Application
 
@@ -83,6 +110,12 @@ class RESTInterfaceExporter: InterfaceExporter {
             routesBuilder.on(operation.httpMethod, [], use: requestHandler)
 
             app.logger.info("\(pathBuilder.pathDescription) + \(operation.httpMethod.rawValue) with \(endpoint.guards.count) guards.")
+
+            let links = endpoint.treeNode.linkedNodes()
+            for linkedNode in links {
+                let pathComponents = linkedNode.relativePath(to: endpoint.treeNode)
+                app.logger.info("  - links to: \(StringPathBuilder(pathComponents).build())")
+            }
         }
     }
 

@@ -23,9 +23,10 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
 
         let requestInjectables = extractRequestInjectables(from: component)
 
-        let endpoint = Endpoint(
+        var endpoint = Endpoint(
                 description: String(describing: component),
                 context: context,
+                operation: operation,
                 guards: guards,
                 requestInjectables: requestInjectables,
                 handleMethod: component.handle,
@@ -37,7 +38,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         }
 
         // swiftlint:disable:next force_unwrapping
-        endpointsTreeRoot!.addEndpoint(endpoint, for: operation, at: paths)
+        endpointsTreeRoot!.addEndpoint(&endpoint, at: paths)
     }
 
     override func finishedProcessing() {
