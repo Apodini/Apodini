@@ -1,5 +1,5 @@
 import XCTest
-import GRPCProtobufBuilder
+import ProtobufferBuilder
 
 final class ProtobufferBuilderTests: XCTestCase {
     func testVoid() throws {

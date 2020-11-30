@@ -2,9 +2,9 @@
 
 import PackageDescription
 
-let grpcProtobugBuilderTargets: [Target] = [
-    .target(name: "GRPCProtobufBuilder", dependencies: ["Runtime"]),
-    .testTarget(name: "ProtobufferBuilderTests", dependencies: ["GRPCProtobufBuilder"])
+let protoBufferBuilderTargets: [Target] = [
+    .target(name: "ProtobufferBuilder", dependencies: ["Runtime"]),
+    .testTarget(name: "ProtobufferBuilderTests", dependencies: ["ProtobufferBuilder"])
 ]
 
 let package = Package(
@@ -44,5 +44,5 @@ let package = Package(
                 .target(name: "Apodini")
             ]
         )
-    ] + grpcProtobugBuilderTargets
+    ] + protoBufferBuilderTargets
 )
