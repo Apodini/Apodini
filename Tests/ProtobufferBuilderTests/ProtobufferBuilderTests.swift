@@ -1,7 +1,7 @@
 import XCTest
 import GRPCProtobufBuilder
 
-final class GRPCProtobufBuilderTests: XCTestCase {
+final class ProtobufferBuilderTests: XCTestCase {
     func testVoid() throws {
         XCTAssertNoThrow(try code(Void.self))
     }
@@ -44,6 +44,20 @@ final class GRPCProtobufBuilderTests: XCTestCase {
         
         XCTAssertThrowsError(try code(JSON.self))
     }
+}
+
+extension ProtobufferBuilderTests {
+    func testTypeTwoLevelsDeep() throws {
+        struct Account {
+            let transactions: [Transaction]
+            
+            struct Transaction {
+                let amount: Int
+            }
+        }
+        
+        XCTAssertNoThrow(try code(Account.self))
+    }
     
     func testRecursiveType() throws {
         struct Node<T> {
@@ -55,7 +69,7 @@ final class GRPCProtobufBuilderTests: XCTestCase {
     }
 }
 
-extension GRPCProtobufBuilderTests {
+extension ProtobufferBuilderTests {
     func testGenericPolymorphism() {
         XCTAssertFalse(Array<Any>.self == Array<Int>.self)
     }

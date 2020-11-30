@@ -4,7 +4,7 @@ import PackageDescription
 
 let grpcProtobugBuilderTargets: [Target] = [
     .target(name: "GRPCProtobufBuilder", dependencies: ["Runtime"]),
-    .testTarget(name: "GRPCProtobufBuilderTests", dependencies: ["GRPCProtobufBuilder"])
+    .testTarget(name: "ProtobufferBuilderTests", dependencies: ["GRPCProtobufBuilder"])
 ]
 
 let package = Package(
