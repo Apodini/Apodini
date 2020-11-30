@@ -21,13 +21,13 @@ protocol Visitable {
 
 class SynaxTreeVisitor {
     private let semanticModelBuilders: [SemanticModelBuilder]
-    private(set) var currentNode: ContextNode = ContextNode()
+    private(set) var currentNode = ContextNode()
     
     init(semanticModelBuilders: [SemanticModelBuilder] = []) {
         self.semanticModelBuilders = semanticModelBuilders
     }
     
-    func enter<C: ComponentCollection>(collection: C) {
+    func enterCollectionItem() {
         currentNode = currentNode.newContextNode()
     }
     
@@ -56,7 +56,7 @@ class SynaxTreeVisitor {
         currentNode.resetContextNode()
     }
     
-    func exit<C: ComponentCollection>(collection: C) {
+    func exitCollectionItem() {
         if let parentNode = currentNode.parentContextNode {
             currentNode = parentNode
         }

@@ -5,8 +5,10 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
+// SwiftLint Disable Reason: This contains automatically generated source code
+// swiftlint:disable all
 @_functionBuilder
-public struct ComponentBuilder {
+public enum ComponentBuilder {
     public static func buildBlock() -> EmptyComponent {
         EmptyComponent()
     }

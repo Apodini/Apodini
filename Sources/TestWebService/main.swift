@@ -1,5 +1,5 @@
 //
-//  TestRESTServer.swift
+//  TestWebService.swift
 //  
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
@@ -10,7 +10,7 @@ import Vapor
 import NIO
 
 
-struct TestServer: Apodini.Server {
+struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
         private let message: String?
         @Apodini.Request
@@ -80,7 +80,7 @@ struct TestServer: Apodini.Server {
     var content: some Component {
         Group("test") {
              Hello()
-        }
+        }.httpMethod(.POST)
         Text("Hello World! 👋")
             .response(EmojiMediator(emojis: "🎉"))
             .response(EmojiMediator())
@@ -92,9 +92,6 @@ struct TestServer: Apodini.Server {
                 .response(EmojiMediator())
                 .guard(PrintGuard())
         }.guard(PrintGuard("Someone is accessing Swift 😎!!")).httpMethod(.POST)
-        Group("test") {
-            Text("Hello Swift! 💻")
-        }
     }
     
     var configuration: some Configuration {
@@ -105,4 +102,4 @@ struct TestServer: Apodini.Server {
     }
 }
 
-TestServer.main()
+TestWebService.main()

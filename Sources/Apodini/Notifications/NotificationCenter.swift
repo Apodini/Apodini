@@ -27,7 +27,7 @@ public class NotificationCenter {
 }
 
 
-extension Apodini.Server {
+extension Apodini.WebService {
     public typealias ApodiniAPNS = Vapor.Request.APNS
 }
 

@@ -33,4 +33,3 @@ final class GuardTests: XCTestCase {
         component.visit(printVisitor)
     }
 }
-

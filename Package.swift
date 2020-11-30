@@ -18,7 +18,8 @@ let package = Package(
         .package(url: "https://github.com/vapor/apns.git", from: "1.0.0"),
         .package(url: "https://github.com/MihaelIsaev/VaporCron.git", from:"2.0.0"),
         .package(url: "https://github.com/MihaelIsaev/NIOCronScheduler.git", from:"2.0.0"),
-        .package(url: "https://github.com/vapor/fluent-mongo-driver.git", from: "1.0.0")
+        .package(url: "https://github.com/vapor/fluent-mongo-driver.git", from: "1.0.0"),
+        .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2")
     ],
     targets: [
         .target(
@@ -30,6 +31,7 @@ let package = Package(
                 .product(name: "VaporCron", package: "VaporCron"),
                 .product(name: "NIOCronScheduler", package: "NIOCronScheduler"),
                 .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
+                .product(name: "Runtime", package: "Runtime")
             ]
         ),
         .testTarget(
@@ -41,7 +43,7 @@ let package = Package(
             ]
         ),
         .target(
-            name: "TestServer",
+            name: "TestWebService",
             dependencies: [
                 .target(name: "Apodini")
             ]

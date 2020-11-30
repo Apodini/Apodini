@@ -10,7 +10,7 @@ import Vapor
 import APNS
 
 @propertyWrapper
-public class APNSNotification: RequestInjectable {
+public struct APNSNotification: RequestInjectable {
     private var notification: Vapor.Request.APNS?
     
     
@@ -26,11 +26,7 @@ public class APNSNotification: RequestInjectable {
     public init() { }
     
     
-    func inject(using request: Vapor.Request) throws {
+    mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder? = nil) throws {
         self.notification = request.apns
-    }
-    
-    func disconnect() {
-        self.notification = nil
     }
 }
