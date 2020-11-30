@@ -16,11 +16,23 @@ public class ProtobufferBuilder {
 
 public extension ProtobufferBuilder {
     func add<T>(_ messageType: T.Type = T.self) throws {
-        let tree: Tree = Node(try typeInfo(of: messageType), getChildren)
-        #warning("TODO: Children...")
+        let tree: Tree = Node(try typeInfo(of: messageType)) { typeInfo in
+            typeInfo.properties.compactMap {
+                do {
+                    return try Runtime.typeInfo(of: $0.type)
+                } catch {
+                    print(error)
+                    return nil
+                }
+            }
+        }
+        
         let messages = try tree
-            .contextMap { (node) in
-                Node(value: try GRPCMessage(typeInfo: node), children: .init())
+            .filter { typeInfo in
+                !isPrimitive(typeInfo.type)
+            }
+            .map { typeInfo in
+                try GRPCMessage(typeInfo: typeInfo)
             }
             .reduce(into: Set()) { (result, value) in
                 result.insert(value)
@@ -37,16 +49,5 @@ extension ProtobufferBuilder: CustomStringConvertible {
         messages
             .map(\.description)
             .joined(separator: "\n")
-    }
-}
-
-private func getChildren(_ typeInfo: TypeInfo) -> [TypeInfo] {
-    typeInfo.properties.compactMap {
-        do {
-            return try Runtime.typeInfo(of: $0.type)
-        } catch {
-            print(error)
-            return nil
-        }
     }
 }

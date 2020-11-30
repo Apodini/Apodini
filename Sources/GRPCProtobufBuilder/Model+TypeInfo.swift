@@ -8,15 +8,15 @@
 import Runtime
 
 extension GRPCMessage {
-    init(typeInfo: Node<TypeInfo>) throws {
-        let name = try typeInfo.value.kind.nameStrategy(typeInfo.value)
+    init(typeInfo: TypeInfo) throws {
+        let name = try typeInfo.kind.nameStrategy(typeInfo)
         
         let properties: [GRPCMessage.Property]
         
-        if isPrimitive(typeInfo.value.type) {
+        if isPrimitive(typeInfo.type) {
             properties = []
         } else {
-            properties = typeInfo.value.properties
+            properties = typeInfo.properties
                 .enumerated()
                 .compactMap { (tuple) -> GRPCMessage.Property? in
                     let (offset, element) = tuple
@@ -58,7 +58,7 @@ private extension Kind {
     
     static func tuple(typeInfo: TypeInfo) throws -> String {
         if typeInfo.type == Void.self {
-            return "VoidMessage"
+            return "Void"
         } else {
             throw Exception(message: "Tuple: \(typeInfo.type) is not supported.")
         }
