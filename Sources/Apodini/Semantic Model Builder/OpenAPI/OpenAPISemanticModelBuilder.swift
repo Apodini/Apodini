@@ -56,7 +56,7 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
     
     
     private func createOrUpdatePathItem<C>(of component: C, withContext context: Context) throws -> Void where C: Component {
-        print("\(C.Response.self)")
+
         // get path from `PathComponent`s
         let pathComponents = context.get(valueFor: PathComponentContextKey.self)
         let pathBuilder = OpenAPIPathBuilder(pathComponents)
@@ -89,7 +89,7 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
         } // TODO: here we need to add `QueryParams`
         let requestBody: OpenAPI.Request = OpenAPI.Request(content: OpenAPI.Content.Map())
         var responseContent: OpenAPI.Content.Map = [:]
-        var responseJSONSchema: JSONSchema = try! self.openAPIComponentsBuilder.findOrCreateSchema(from: returnType)
+        var responseJSONSchema: JSONSchema = try! self.openAPIComponentsBuilder.buildSchema(for: returnType)
         responseContent[.json] = .init(schema: responseJSONSchema)
         var responses: OpenAPI.Response.Map = [:]
         responses[OpenAPI.Response.StatusCode.range(.success)] = .init(OpenAPI.Response.init(

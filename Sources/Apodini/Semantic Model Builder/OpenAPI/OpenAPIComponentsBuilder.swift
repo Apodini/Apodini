@@ -22,11 +22,11 @@ class OpenAPIComponentsBuilder {
         vendorExtensions: [:]
     )
     
-    func findOrCreateSchema(from type: Any.Type) throws -> JSONSchema {
+    func buildSchema(for type: Any.Type) throws -> JSONSchema {
         guard let reflectedType = reflectType(type) else {
             throw OpenAPIComponentBuilderError("Could not reflect type.")
         }
-        return recursivelyCreateSchemas(from: reflectedType)
+        return recursivelyBuildSchema(for: reflectedType)
     }
     
     private func reflectType(_ type: Any.Type) -> TypeInfo? {
@@ -35,64 +35,67 @@ class OpenAPIComponentsBuilder {
             info = try typeInfo(of: type)
         }
         catch {
+            // TODO: come up with good use of throwables
             print(error)
         }
         return info
     }
     
-    private func recursivelyCreateSchemas(from type: TypeInfo) -> JSONSchema {
-            
-        // if primitive -> return JSONSchema directly
+    private func recursivelyBuildSchema(for type: TypeInfo) -> JSONSchema {
         if type.isPrimitive {
             return type.openAPIJSONSchema
         }
         
-        // if already in components -> return JSONReference
-        let internalReference = JSONReference<JSONSchema>.InternalReference.component(name: type.mangledName)
-        let schemaReference = JSONReference.internal(internalReference)
-        if self.components.contains(internalReference) {
-            return .reference(schemaReference)
+        let schemaName = type.mangledName
+        let (schemaReference, schemaExists) = findOrCreateSchemaReference(for: schemaName)
+        if schemaExists {
+            return schemaReference
         }
         
-        // if wrapped type (e.g., Either, EventLoopFuture) -> anyOf? or only [0]
         if type.isWrapperType {
             if type.wrappedTypes.count > 1 {
-                return .any(of: type.wrappedTypes.map { recursivelyCreateSchemas(from: $0)})
+                return .any(of: type.wrappedTypes.map { recursivelyBuildSchema(for: $0)})
             }
-            return recursivelyCreateSchemas(from: type.wrappedTypes[0])
+            return recursivelyBuildSchema(for: type.wrappedTypes[0])
         }
         
-        // if array -> array()
         if type.isArray {
-            return .array(items: recursivelyCreateSchemas(from: type.wrappedTypes[0]))
+            return .array(
+                items: recursivelyBuildSchema(for: type.wrappedTypes[0])
+            )
         }
         
-        // if dictionary -> object()
         if type.isDictionary {
-            return .object(additionalProperties: .init(recursivelyCreateSchemas(from: type.wrappedTypes[1])))
+            return .object(
+                additionalProperties: .init(
+                    recursivelyBuildSchema(for: type.wrappedTypes[1])
+                )
+            )
         }
         
-        // TODO: if tuple -> (x,y) -> {"0": x, "1": y}
+        // TODO: handling of tuple TBD; e.g., (x,y) -> {"0": x, "1": y}
+        
         var properties: [String : JSONSchema] = [:]
-        // in any other case: loop over typeInfo of properties
         for property in type.properties {
-            var propertyTypeInfo: TypeInfo
-            do {
-                propertyTypeInfo = try typeInfo(of: property.type)
-            }
-            catch {
-                print(error)
+            guard let propertyTypeInfo = reflectType(property.type) else {
+                // if type info cannot be obtained, exclude this property
                 continue
             }
-            // [name: schema] -> call `recursivelyCreateSchemas(propertyTypeInfo)` to traverse nested types and generate schemas
-            // add to schema properties
-            properties[property.name] = recursivelyCreateSchemas(from: propertyTypeInfo)
+            properties[property.name] = recursivelyBuildSchema(for: propertyTypeInfo)
         }
         
-        // add created schema
-        var schema = JSONSchema.object(properties: properties)
-        self.components.schemas[OpenAPI.ComponentKey.init(rawValue: type.mangledName)!] = schema
+        self.components.schemas[OpenAPI.ComponentKey.init(rawValue: schemaName)!] = JSONSchema.object(properties: properties)
+        
+        return schemaReference
+    }
     
-        return .reference(schemaReference)
+    private func findOrCreateSchemaReference(for name: String) -> (JSONSchema, Bool) {
+        let internalReference = JSONReference<JSONSchema>.InternalReference.component(name: name)
+        let reference = JSONReference.internal(internalReference)
+        let schemaReference = JSONSchema.reference(reference)
+        if self.components.contains(internalReference) {
+            return (schemaReference, true)
+        }
+        return (schemaReference, false)
     }
 }

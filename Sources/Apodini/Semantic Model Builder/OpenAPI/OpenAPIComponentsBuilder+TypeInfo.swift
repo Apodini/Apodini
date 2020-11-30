@@ -1,5 +1,5 @@
 //
-//  TypeInfo+OpenAPI.swift
+//  OpenAPIComponentsBuilder+TypeInfo.swift
 //  
 //
 //  Created by Lorena Schlesinger on 28.11.20.
@@ -8,7 +8,20 @@
 import OpenAPIKit
 import Runtime
 import Foundation
+import NIO
 
+// MARK: Constants
+fileprivate let primitiveTypes: [Any.Type] = [
+    Int.self,
+    Bool.self,
+    Double.self,
+    String.self
+]
+
+// TODO: improve this also for Array, Dictionary, and wrapperTypes
+
+
+// MARK: TypeInfo
 /// there are some `Runtime.Kind` types -> struct (includes `Array`, `Dictionary`, `Int`, `Double`, `Bool` ), class, tuple
 extension TypeInfo {
     var propertyTypeInfo: [TypeInfo] {
@@ -39,21 +52,19 @@ extension TypeInfo {
     }
     
     var isPrimitive: Bool {
-        // e.g., Int, Swift.Int, ...
-        ["Int", "Bool", "Double", "String"].contains(where: {
-            name.hasPrefix($0) || name.hasSuffix($0)
+        primitiveTypes.contains(where: {
+            $0 == self.type
         })
     }
     
     var isArray: Bool {
-        ["Array"].contains(where: {
+        ["Array"].contains(where: {
             name.contains($0)
         })
     }
     
     var isDictionary: Bool {
-        // see https://github.com/apple/swift/blob/main/stdlib/public/core/Dictionary.swift
-        ["Dictionary", "_Variant"].contains(where: {
+        ["Dictionary"].contains(where: {
             name.contains($0)
         })
     }
