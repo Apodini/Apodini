@@ -27,10 +27,11 @@ struct OpenAPIPathBuilder: PathBuilder {
     
     var parameters: [String] {
         pathComponents.filter { pathComponent in
-            if case .parameter = pathComponent { return true } else { return false } }
+            if case .parameter = pathComponent { return true } else { return false }
+        }
             .map { pathComponent in
                 String(pathComponent.description[pathComponent.description.index(pathComponent.description.startIndex, offsetBy: 2)...]) // TODO: hacky!
-        }
+            }
     }
     
     init(_ pathComponents: [PathComponent]) {
@@ -46,7 +47,7 @@ struct OpenAPIPathBuilder: PathBuilder {
         pathComponents.append(Vapor.PathComponent(stringLiteral: pathComponent))
     }
     
-    mutating func append<T>(_ identifier: Identifier<T>) where T : Identifiable {
+    mutating func append<T>(_ identifier: Identifier<T>) where T: Identifiable {
         let pathComponent = identifier.identifier
         pathComponents.append(.parameter(pathComponent))
     }

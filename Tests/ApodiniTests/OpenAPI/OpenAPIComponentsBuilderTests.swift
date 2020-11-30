@@ -13,13 +13,12 @@ import NIO
 @testable import Apodini
 
 final class OpenAPIComponentsBuilderTests: XCTestCase {
-
     let someString = "Some String"
     let someInt = 42
     let someDouble = 42.0
     let someBool = true
-    let someDict = ["someKey":"someValue"]
-    let someArray = [1,2,3]
+    let someDict = ["someKey": "someValue"]
+    let someArray = [1, 2, 3]
     let someEventLoop: EventLoopFuture<Int>? = nil
     let someEither: Either<Int, String> = .init("someString")
     let someOptional: String? = nil
@@ -160,8 +159,8 @@ final class OpenAPIComponentsBuilderTests: XCTestCase {
         XCTAssertEqual(componentsBuilder.components[ref4], .object(properties: [
             "someNestedStruct2": .reference(.component(named: "SomeNestedStruct")),
             "someItems": .reference(.component(named: "GenericStruct")),
-            "someStruct" : .reference(.component(named: "SomeStruct")),
+            "someStruct": .reference(.component(named: "SomeStruct")),
             "someNestedStruct": .reference(.component(named: "SomeNestedStruct"))
-            ]))
+        ]))
     }
 }

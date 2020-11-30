@@ -25,7 +25,7 @@ let package = Package(
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "Runtime", package: "Runtime"),
-                "OpenAPIKit",
+                "OpenAPIKit"
             ]
         ),
         .testTarget(

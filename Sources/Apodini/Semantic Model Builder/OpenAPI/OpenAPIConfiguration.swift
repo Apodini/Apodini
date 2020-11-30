@@ -12,7 +12,6 @@ let DEFAULT_OPEN_API_INFO_VERSION = "1.0.0"
 
 /// A configuration structure for manually setting OpenAPI information and output locations.
 struct OpenAPIConfiguration {
-
     /// General OpenAPI information.
     var info: OpenAPI.Document.Info = OpenAPI.Document.Info(title: DEFAULT_OPEN_API_INFO_TITLE, version: DEFAULT_OPEN_API_INFO_VERSION)
     

@@ -11,7 +11,7 @@ import Foundation
 import NIO
 
 // MARK: Constants
-fileprivate let primitiveTypes: [Any.Type] = [
+private let primitiveTypes: [Any.Type] = [
     Int.self,
     Bool.self,
     Double.self,
@@ -86,6 +86,5 @@ extension TypeInfo {
             // throw OpenAPISchemaError()
             return .object()
         }
-        
     }
 }

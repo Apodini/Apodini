@@ -30,11 +30,10 @@ class OpenAPIComponentsBuilder {
     }
     
     private func reflectType(_ type: Any.Type) -> TypeInfo? {
-        var info: TypeInfo? = nil
+        var info: TypeInfo?
         do {
             info = try typeInfo(of: type)
-        }
-        catch {
+        } catch {
             // TODO: come up with good use of throwables
             print(error)
         }
@@ -54,7 +53,7 @@ class OpenAPIComponentsBuilder {
         
         if type.isWrapperType {
             if type.wrappedTypes.count > 1 {
-                return .any(of: type.wrappedTypes.map { recursivelyBuildSchema(for: $0)})
+                return .any(of: type.wrappedTypes.map { recursivelyBuildSchema(for: $0) })
             }
             return recursivelyBuildSchema(for: type.wrappedTypes[0])
         }
@@ -75,7 +74,7 @@ class OpenAPIComponentsBuilder {
         
         // TODO: handling of tuple TBD; e.g., (x,y) -> {"0": x, "1": y}
         
-        var properties: [String : JSONSchema] = [:]
+        var properties: [String: JSONSchema] = [:]
         for property in type.properties {
             guard let propertyTypeInfo = reflectType(property.type) else {
                 // if type info cannot be obtained, exclude this property
@@ -84,7 +83,7 @@ class OpenAPIComponentsBuilder {
             properties[property.name] = recursivelyBuildSchema(for: propertyTypeInfo)
         }
         
-        self.components.schemas[OpenAPI.ComponentKey.init(rawValue: schemaName)!] = JSONSchema.object(properties: properties)
+        self.components.schemas[OpenAPI.ComponentKey(rawValue: schemaName)!] = JSONSchema.object(properties: properties)
         
         return schemaReference
     }

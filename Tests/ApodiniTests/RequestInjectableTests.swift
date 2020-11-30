@@ -10,7 +10,6 @@ import Vapor
 @testable import Apodini
 
 final class RequestInjectableTests: XCTestCase {
-    
     func testBodyInjectable() throws {
         let app = Application(.testing)
         defer { app.shutdown() }
@@ -20,7 +19,6 @@ final class RequestInjectableTests: XCTestCase {
         }
                
         struct SomeComponent: Component {
-            
             @Body
             var body: Message
             
@@ -38,7 +36,7 @@ final class RequestInjectableTests: XCTestCase {
         
         app.routes.post("some") {req in
             req.enterRequestContext(with: SomeComponent()) { component in
-                return component.handle().encodeResponse(for: req)
+                component.handle().encodeResponse(for: req)
             }
         }
         
@@ -47,5 +45,4 @@ final class RequestInjectableTests: XCTestCase {
             XCTAssertEqual(res.body.string, messageString)
         }
     }
-    
 }

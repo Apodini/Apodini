@@ -29,7 +29,7 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
         if let outputRoute = self.configuration.outputEndpoint {
             switch self.configuration.outputFormat {
             case .JSON:
-                app.get(outputRoute.pathComponents) { (req: Vapor.Request) in
+                app.get(outputRoute.pathComponents) { (_: Vapor.Request) in
                     self.document
                 }
             case .YAML:
@@ -51,12 +51,10 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
         } catch {
             app.logger.error("Some unknown error occurred: \(error).")
         }
-        
     }
     
     
-    private func createOrUpdatePathItem<C>(of component: C, withContext context: Context) throws -> Void where C: Component {
-
+    private func createOrUpdatePathItem<C>(of component: C, withContext context: Context) throws where C: Component {
         // get path from `PathComponent`s
         let pathComponents = context.get(valueFor: PathComponentContextKey.self)
         let pathBuilder = OpenAPIPathBuilder(pathComponents)
@@ -92,7 +90,7 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
         var responseJSONSchema: JSONSchema = try! self.openAPIComponentsBuilder.buildSchema(for: returnType)
         responseContent[.json] = .init(schema: responseJSONSchema)
         var responses: OpenAPI.Response.Map = [:]
-        responses[OpenAPI.Response.StatusCode.range(.success)] = .init(OpenAPI.Response.init(
+        responses[OpenAPI.Response.StatusCode.range(.success)] = .init(OpenAPI.Response(
             description: "",
             headers: nil,
             content: responseContent,
@@ -117,5 +115,4 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
             print(String(data: json, encoding: .utf8)!)
         }
     }
-    
 }
