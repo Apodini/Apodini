@@ -7,30 +7,16 @@
 
 import Runtime
 
-private func isPrimitive(_ type: Any.Type) -> Bool {
-    [
-        Bool.self,
-        Int.self,
-        
-        String.self,
-        
-        Array<Any>.self,
-    ]
-    .contains { (other) -> Bool in
-        type == other
-    }
-}
-
 extension GRPCMessage {
-    init(typeInfo: TypeInfo) throws {
-        let name = try typeInfo.kind.nameStrategy(typeInfo)
+    init(typeInfo: Node<TypeInfo>) throws {
+        let name = try typeInfo.value.kind.nameStrategy(typeInfo.value)
         
         let properties: [GRPCMessage.Property]
         
-        if isPrimitive(typeInfo.type) {
+        if isPrimitive(typeInfo.value.type) {
             properties = []
         } else {
-            properties = typeInfo.properties
+            properties = typeInfo.value.properties
                 .enumerated()
                 .compactMap { (tuple) -> GRPCMessage.Property? in
                     let (offset, element) = tuple
