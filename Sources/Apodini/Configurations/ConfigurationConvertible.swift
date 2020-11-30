@@ -30,3 +30,10 @@ extension APNSConfiguration: ConfigurationConvertible  {
         AnyConfiguration(self)
     }
 }
+
+
+extension FCMConfiguration: ConfigurationConvertible {
+    public func eraseToAnyConfiguration() -> AnyConfiguration {
+        AnyConfiguration(self)
+    }
+}

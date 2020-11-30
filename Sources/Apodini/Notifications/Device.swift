@@ -16,9 +16,8 @@ public struct Device: Content {
 }
 
 public enum DeviceType: String {
-    case ios
-    case android
-    case web
+    case apns
+    case fcm
 }
 
 extension DeviceType: Content { }

@@ -53,13 +53,13 @@ struct TestWebService: Apodini.WebService {
             notification
                 .send(.init(title: "Test"), to: device.deviceID)
                 .map { .ok }
-                
+            
         }
     }
     
     struct TestJob: Job {
         var expression = "*/1 * * * *"
-
+        
         func task() {
             print("Hello World")
         }
@@ -68,37 +68,41 @@ struct TestWebService: Apodini.WebService {
     struct Hello: Component {
         @Apodini.Environment(\.notificationCenter) var notificationCenter: Apodini.NotificationCenter
         
+        func handle() -> HTTPStatus {
+            notificationCenter.send(notification: .init(alert: .init(title: "Hey", body: "Test")), to: "test")
+            return HTTPStatus.ok
+        }
+    }
+    
+    struct RegisterAPNS: Component {
+        @Apodini.Environment(\.notificationCenter) var notificationCenter: Apodini.NotificationCenter
+        
         @Body
         var device: Device
         
-        func handle() -> EventLoopFuture<HTTPStatus> {
-            notificationCenter.send(notification: .init(title: "Test"), device: device).map { .ok }
+        func handle() -> HTTPStatus {
+            notificationCenter.register(device)
+            return HTTPStatus.ok
         }
     }
-
+    
     
     var content: some Component {
-        Group("test") {
-             Hello()
+        Group("register") {
+            RegisterAPNS()
         }.httpMethod(.POST)
-        Text("Hello World! 👋")
-            .response(EmojiMediator(emojis: "🎉"))
-            .response(EmojiMediator())
-            .guard(PrintGuard())
-            .schedule(TestJob())
-        Group("swift") {
-            TestComponent()
-            Text("Hello Swift! 💻")
-                .response(EmojiMediator())
-                .guard(PrintGuard())
-        }.guard(PrintGuard("Someone is accessing Swift 😎!!")).httpMethod(.POST)
+        Group("send") {
+            Hello()
+        }
+        
     }
     
     var configuration: some Configuration {
         APNSConfiguration(.pem(pemPath: "/Users/awocatmac/Developer/Action Based Events Sample/backend/Certificates/apns.pem"),
-                                  topic: "de.tum.in.www1.ios.Action-Based-Events-Sample",
-                                  environment: .sandbox)
-
+                          topic: "de.tum.in.www1.ios.Action-Based-Events-Sample",
+                          environment: .sandbox)
+        FCMConfiguration("/Users/awocatmac/Downloads/server-side-swift-282e3-firebase-adminsdk-el7gq-4bd40d5e3a.json")
+        
     }
 }
 
