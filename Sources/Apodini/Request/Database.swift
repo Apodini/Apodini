@@ -27,7 +27,7 @@ public struct Database: RequestInjectable {
     public init() { }
     
     
-    mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder? = nil) throws {
+    mutating func inject(using request: Vapor.Request, with decoder: RequestInjectableDecoder? = nil) throws {
         self.database = request.db
     }
 }

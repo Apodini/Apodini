@@ -53,4 +53,8 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
             exporter.export(node)
         }
     }
+
+    override func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
+        fatalError("Shared model is unable to deal with .decode")
+    }
 }

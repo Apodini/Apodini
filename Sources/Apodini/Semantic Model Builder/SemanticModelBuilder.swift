@@ -8,7 +8,7 @@
 import Vapor
 
 
-class SemanticModelBuilder {
+class SemanticModelBuilder: RequestInjectableDecoder {
     private(set) var app: Application
     
     init(_ app: Application) {

@@ -12,7 +12,11 @@ import Runtime
 
 
 protocol RequestInjectable {
-    mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder?) throws
+    mutating func inject(using request: Vapor.Request, with decoder: RequestInjectableDecoder?) throws
+}
+
+protocol RequestInjectableDecoder {
+    func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T?
 }
 
 // TODO Is there ANY better place to place this than on global?
@@ -25,21 +29,21 @@ func extractRequestInjectables(from subject: Any) -> [String: RequestInjectable]
 }
 
 extension Vapor.Request {
-    func enterRequestContext<E, R>(with element: E, using decoder: SemanticModelBuilder? = nil, executing method: (E) -> EventLoopFuture<R>)
-    -> EventLoopFuture<R> {
+    func enterRequestContext<E, R>(with element: E, using decoder: RequestInjectableDecoder? = nil, executing method: (E) -> EventLoopFuture<R>)
+                    -> EventLoopFuture<R> {
         var element = element
         inject(in: &element, using: decoder)
-        
+
+        return method(element)
+    }
+
+    func enterRequestContext<E, R>(with element: E, using decoder: RequestInjectableDecoder? = nil, executing method: (E) -> R) -> R {
+        var element = element
+        inject(in: &element, using: decoder)
         return method(element)
     }
     
-    func enterRequestContext<E, R>(with element: E, using decoder: SemanticModelBuilder? = nil, executing method: (E) -> R) -> R {
-        var element = element
-        inject(in: &element, using: decoder)
-        return method(element)
-    }
-    
-    private func inject<E>(in element: inout E, using decoder: SemanticModelBuilder? = nil) {
+    private func inject<E>(in element: inout E, using decoder: RequestInjectableDecoder? = nil) {
         // Inject all properties that can be injected using RequestInjectable
         do {
             let info = try typeInfo(of: E.self)

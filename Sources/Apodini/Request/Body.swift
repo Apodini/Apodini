@@ -27,7 +27,7 @@ public struct Body<Element: Codable>: RequestInjectable {
     public init() { }
     
     
-    mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder?) throws {
+    mutating func inject(using request: Vapor.Request, with decoder: RequestInjectableDecoder?) throws {
         if let decoder = decoder {
             element = try decoder.decode(Element.self, from: request)
         }
