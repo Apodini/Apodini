@@ -8,8 +8,8 @@
 import Runtime
 
 public class ProtobufferBuilder {
-    private var messages: Set<GRPCMessage> = .init()
-    private var services: Set<GRPCService> = .init()
+    private var messages: Set<Message> = .init()
+    private var services: Set<Service> = .init()
     
     public init() {}
 }
@@ -32,7 +32,7 @@ public extension ProtobufferBuilder {
                 !isPrimitive(typeInfo.type)
             }
             .map { typeInfo in
-                try GRPCMessage(typeInfo: typeInfo)
+                try Message(typeInfo: typeInfo)
             }
             .reduce(into: Set()) { (result, value) in
                 result.insert(value)

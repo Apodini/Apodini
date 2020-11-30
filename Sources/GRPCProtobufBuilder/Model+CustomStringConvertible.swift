@@ -7,7 +7,7 @@
 
 // MARK: - Message
 
-extension GRPCMessage: CustomStringConvertible {
+extension Message: CustomStringConvertible {
     var description: String {
         let properties = self.properties
             .sorted()
@@ -22,7 +22,7 @@ extension GRPCMessage: CustomStringConvertible {
     }
 }
 
-extension GRPCMessage.Property: CustomStringConvertible {
+extension Message.Property: CustomStringConvertible {
     var description: String {
         "\(typeName) \(name) = \(uniqueNumber);"
     }
@@ -30,13 +30,13 @@ extension GRPCMessage.Property: CustomStringConvertible {
 
 // MARK: - Service
 
-extension GRPCService.Method: CustomStringConvertible {
+extension Service.Method: CustomStringConvertible {
     var description: String {
         "rpc \(name) (\(input.name)) returns (\(ouput.name));"
     }
 }
 
-extension GRPCService: CustomStringConvertible {
+extension Service: CustomStringConvertible {
     var description: String {
         let methods = self.methods
             .map { "\t\($0.description)" }

@@ -9,7 +9,7 @@ import Runtime
 
 // MARK: - GRPCMessage etc.
 
-struct GRPCMessage: Equatable, Hashable {
+struct Message: Equatable, Hashable {
     struct Property: Equatable, Hashable {
         let name: String
         let isRequired: Bool = true
@@ -21,19 +21,19 @@ struct GRPCMessage: Equatable, Hashable {
     let properties: Set<Property>
 }
 
-extension GRPCMessage.Property: Comparable {
-    static func < (lhs: GRPCMessage.Property, rhs: GRPCMessage.Property) -> Bool {
+extension Message.Property: Comparable {
+    static func < (lhs: Message.Property, rhs: Message.Property) -> Bool {
         lhs.uniqueNumber < rhs.uniqueNumber
     }
 }
 
 // MARK: - GRPCService etc.
 
-struct GRPCService: Equatable, Hashable {
+struct Service: Equatable, Hashable {
     struct Method: Equatable, Hashable {
         let name: String
-        let input: GRPCMessage
-        let ouput: GRPCMessage
+        let input: Message
+        let ouput: Message
     }
     
     let name: String

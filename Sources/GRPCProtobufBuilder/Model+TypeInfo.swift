@@ -7,25 +7,25 @@
 
 import Runtime
 
-extension GRPCMessage {
+extension Message {
     init(typeInfo: TypeInfo) throws {
         let name = try typeInfo.kind.nameStrategy(typeInfo)
         
-        let properties: [GRPCMessage.Property]
+        let properties: [Message.Property]
         
         if isPrimitive(typeInfo.type) {
             properties = []
         } else {
             properties = typeInfo.properties
                 .enumerated()
-                .compactMap { (tuple) -> GRPCMessage.Property? in
+                .compactMap { (tuple) -> Message.Property? in
                     let (offset, element) = tuple
                     do {
                         let typeName = try spellOutGeneric(
                             typeInfo: try Runtime.typeInfo(of: element.type)
                         )
                         
-                        return GRPCMessage.Property(
+                        return Message.Property(
                             name: element.name,
                             typeName: typeName,
                             uniqueNumber: offset
