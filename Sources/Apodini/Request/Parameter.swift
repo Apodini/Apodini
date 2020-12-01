@@ -115,22 +115,11 @@ public struct Parameter<Element: Codable> {
     }
     
     /// Creates a new `@Parameter` that indicates input of a `Component` based on an existing component.
-    /// - Parameter parameter: The `@Parameter` that can be passed in from a a parent component.
+    /// - Parameter pathParameter: The `@PathParameter` that can be passed in from a a parent component.
     /// - Precondition: A `@Parameter` with a specific `http` type `.body` or `.query` can not be passed to a seperate componet. Please remove the specific `.http` property option or specify the `.http` property option to `.path`.
-    public init(_ parameter: Parameter) {
-        switch parameter.option(for: .http) {
-        case .body, .query:
-            preconditionFailure("""
-                A `@Parameter` with a specific `http` type `.body` or `.query` can not be passed to a seperate componet.
-                Please remove the specific `.http` property option or specify the `.http` property option to `.path`.
-                """)
-        case .path, .none:
-            break
-        }
-        
-        self.defaultValue = parameter.defaultValue
-        self.name = parameter.name
-        self.options = parameter.options
+    public init(_ pathParameter: PathParameter<Element>) {
+        self.options = PropertyOptionSet([.http(.path)])
+        self.id = pathParameter.id
     }
     
     

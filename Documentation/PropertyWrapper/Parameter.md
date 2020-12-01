@@ -268,7 +268,7 @@ Exposing the `Component` on a web socket interface requires the client to send t
 ### Defining a Parameter outside of a `Handler`
 
 Some middleware types and protocols can expose parameters as part of the endpoint defining characteristics. E.g. RESTful and OpenAPI based APIs use the URI path to define endpoints including variables such as `/birds/BIRD_ID` to identify the requested `Bird` by its identifier `BIRD_ID`.
-A `@Parameter` property used as a path parameter within a `Component` defined outside of a `Handler`, e.g.: as part of a Group can be interred to be a parameter in the URI path for some HTTP based web API exporters.
+A `@PathParameter` property used as a path parameter within a `Component` defined outside of a `Handler` (e.g.: as part of a `Group`) can be inferred to be a parameter in the URI path for some HTTP based web API exporters.
 
 ```swift
 struct Bird: Identifiable {
@@ -277,14 +277,14 @@ struct Bird: Identifiable {
     var age: Int
 }
 
-struct ExampleBirdComponent: Component {
+struct ExampleBirdComponent: Handler {
     // This was passed in from the outside this is automatically used as a path parameter by web API exporter that support path parameters
     @Parameter var birdID: Bird.ID
 
     // ...
 }
 
-struct ExampleNestComponent: Component {
+struct ExampleNestComponent: Handler {
     // This was passed in from the outside this is automatically used as a path parameter by web API exporter that support path parameters
     @Parameter var birdID: Bird.ID
     // Exposed as a query parameter if supported by a web API exporter
@@ -293,8 +293,8 @@ struct ExampleNestComponent: Component {
     // ...
 }
 
-struct TestWebService: WebService {
-    @Parameter var birdID: Bird.ID
+struct TestWebService: WebService, Component {
+    @PathParameter var birdID: Bird.ID
 
     var content: some Component {
         Group("api", "birds", birdID) {

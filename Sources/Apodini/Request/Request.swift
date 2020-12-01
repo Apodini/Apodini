@@ -9,6 +9,7 @@ import Vapor
 
 
 @propertyWrapper
+// swiftlint:disable:next type_name
 struct _Request: RequestInjectable {
     private var request: Vapor.Request?
     

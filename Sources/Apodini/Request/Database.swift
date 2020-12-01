@@ -11,6 +11,7 @@ import Fluent
 
 
 @propertyWrapper
+// swiftlint:disable:next type_name
 struct _Database: RequestInjectable {
     private var database: Fluent.Database?
     
