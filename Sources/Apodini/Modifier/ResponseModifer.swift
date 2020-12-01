@@ -7,6 +7,7 @@
 
 import NIO
 import Vapor
+import Runtime
 
 
 /// A type erasure for a `ResponseTransformer`
@@ -73,6 +74,8 @@ public struct ResponseModifier<C: Component, T: ResponseTransformer>: Modifier w
     
     
     init(_ component: C, responseTransformer: @escaping () -> (T)) {
+        precondition(((try? typeInfo(of: T.self).kind) ?? .none) == .struct, "ResponseTransformer \((try? typeInfo(of: T.self).name) ?? "unknown") must be a struct")
+        
         self.component = component
         self.responseTransformer = responseTransformer
     }
@@ -86,7 +89,7 @@ public struct ResponseModifier<C: Component, T: ResponseTransformer>: Modifier w
 
 
 extension ResponseModifier: Visitable {
-    func visit(_ visitor: SynaxTreeVisitor) {
+    func visit(_ visitor: SynaxTreeVisitor) {        
         visitor.addContext(ResponseContextKey.self, value: [responseTransformer], scope: .nextComponent)
         component.visit(visitor)
     }
