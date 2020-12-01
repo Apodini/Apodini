@@ -89,7 +89,7 @@ public struct ResponseModifier<C: Component, T: ResponseTransformer>: Modifier w
 
 
 extension ResponseModifier: Visitable {
-    func visit(_ visitor: SynaxTreeVisitor) {        
+    func visit(_ visitor: SynaxTreeVisitor) {
         visitor.addContext(ResponseContextKey.self, value: [responseTransformer], scope: .nextComponent)
         component.visit(visitor)
     }
