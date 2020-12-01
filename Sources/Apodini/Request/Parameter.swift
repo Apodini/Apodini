@@ -8,6 +8,8 @@
 import Vapor
 import Foundation
 
+/* Generic Parameter that can be used to mark that the options are meant for @Parameter */
+public enum ParameterOptionNameSpace { }
 
 /// The `@Parameter` property wrapper can be used to express input in different ways:
 /// * **Request Content**: Parameters can be part of the requests send to the web service such as the HTTP body or request content of an other protocol.
@@ -15,27 +17,14 @@ import Foundation
 /// * **Path Parameters**: Parameters can also be used to define the endpoint such as the URI path of the middleware types and protocols that support URI based multiplexing of requests.
 @propertyWrapper
 public struct Parameter<Element: Codable> {
-    /// The `ParameterType` allows a developer to explicitly describe the type of parameter that should be used for the wrapped property
-    public enum ParameterType {
-        /// The `.automatic` `ParameterType` allows Apodini to select the most suiting `ParameterType` based on the wrapped property, the `Component` and other context.
-        case automatic
-        /// The `Parameter` is exposed as a request content. Parameters can be part of the requests send to the web service such as the HTTP body or request content of an other protocol.
-        case content
-        /// The `Parameter` is exposed as a lightweight parameter. Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameters found in the URI of RESTful and OpenAPI based web APIs.
-        case lightweight
-        /// The `Parameter` is exposed as a an identifying parameter. Identifying parameters can be used to define a parameter e.g. in an URI path of the middleware types and protocols that support adding parameters as part of the URI path of a request.
-        case identifier
-    }
-    
-    struct PathParameterID<Element> {
-        let id: UUID
-    }
-    
+    public typealias OptionKey<T: PropertyOption> = PropertyOptionKey<ParameterOptionNameSpace, T>
+    public typealias Option = AnyPropertyOption<ParameterOptionNameSpace>
+
     private var element: Element?
     private var name: String?
-    private var parameterType: ParameterType = .automatic
+    private var options: PropertyOptionSet<ParameterOptionNameSpace>
     private var id = UUID()
-    
+    private var defaultValue: Element?
     
     /// The value for the `@Parameter` as defined by the incoming request
     public var wrappedValue: Element {
@@ -90,34 +79,43 @@ public struct Parameter<Element: Codable> {
     /// TestWebService.main()
     /// ```
     public var projectedValue: Parameter {
-        guard parameterType == .identifier || parameterType == .automatic else {
-            preconditionFailure("Only `.identifier` or `.automatic` parameters are allowed to be passed to a `Component`.")
-        }
-        
-        return Parameter(name: self.name, parameterType: .identifier, id: self.id)
+        return self
+    }
+
+    public func option<Option>(for key: OptionKey<Option>) -> Option? {
+        return options.option(for: key)
+    }
+
+    public init() {
+        self.options = PropertyOptionSet()
     }
     
-    /// - Parameter parameterType: The `ParameterType` that explicitly describes the type of parameter that should be used for the wrapped property
-    public init(_ parameterType: ParameterType = .automatic) {
-        self.parameterType = parameterType
+    public init(_ options: Option...) {
+        self.options = PropertyOptionSet(options)
     }
-    
+
+    public init(wrappedValue defaultValue: Element, _ name: String) {
+        self.name = name
+        self.options = PropertyOptionSet()
+        self.defaultValue = defaultValue
+    }
+
+    public init(wrappedValue defaultValue: Element) {
+        self.options = PropertyOptionSet()
+        self.defaultValue = defaultValue
+    }
+
     /// - Parameters:
     ///   - name: The name used to describe the wrapped property for in the web APIs
     ///   - parameterType: The `ParameterType` that explicitly describes the type of parameter that should be used for the wrapped property
-    public init(_ name: String, _ parameterType: ParameterType = .automatic) {
+    public init(_ name: String, _ options: Option...) {
         self.name = name
-        self.parameterType = parameterType
+        self.options = PropertyOptionSet(options)
     }
     
-    private init(_ pathParameterID: PathParameterID<Element>) {
-        self.parameterType = .identifier
-        self.id = pathParameterID.id
-    }
-    
-    private init(name: String?, parameterType: ParameterType, id: UUID) {
+    private init(name: String?, options: PropertyOptionSet<ParameterOptionNameSpace>, id: UUID) {
         self.name = name
-        self.parameterType = parameterType
+        self.options = options
         self.id = id
     }
 }

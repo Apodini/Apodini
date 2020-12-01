@@ -1,10 +1,6 @@
 # `@Parameter`
 
-The `@Parameter` property wrapper can be used to express input in different ways: 
-* **Request Content**: Parameters can be part of the requests sent to the web service such as the HTTP body or request content of an other protocol.
-* **Lightweight Parameter**: Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameters found in the URI of RESTful and OpenAPI based web APIs.
-* **Path Parameters**: Parameters can also be used to define the endpoint such as the URI path of the middleware types and protocols that support URI based multiplexing of requests.
-
+The `@Parameter` property wrapper can be used to express input in different ways. 
 The internal name of the `@Parameter` and can be different to the external representation of the component by passing a string into the `@Parameter` property wrapper as first - optional - argument.
 ```swift
 struct ExampleComponent: Component {
@@ -15,7 +11,12 @@ struct ExampleComponent: Component {
 }
 ```
 
-## Parameters Expressing Request Content
+## Inference
+
+Apodini is designed so that different exporters for different protocols can infer as much information as possible about Parameters. 
+Here's a simple overview of how this inference should work.
+
+### Parameters Expressing Request Content
 
 Non primitive types defined by the user that conform to `Codable` and are not [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible) are automatically considered to be a request content for all protocols and types of middleware that are applicable to contain a request content such as an HTTP body. If there are multiple non primitive types marked with `@Parameter` the elements should be encoded in a wrapper enclosure.
 
@@ -184,10 +185,7 @@ Exposing the `Component` on a web socket interface requires the client to send t
 
 ## Lightweight Parameters
 
-Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameters found in the URI of RESTful and OpenAPI based interfaces. Apodini automatically exposes primitive types as lightweight parameters that conform to [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible). Complex types such as custom types conforming to `Codable` can not be exposed using lightweight parameters. A lightweight parameter is defined the same way a normal parameter can be defined. The developer using Apodini can force a specific behaviour by passing in an enum value into the property wrapper initializer, e.g. `@Parameter(.lightweight)`. Possible values are:
-* `.automatic`: Apodini infers the type of parameter based on the type information of the wrapped property. This is the default behaviour of an `@Parameter` property wrapper.
-* `.lightweight`: This option can only be used of the type wrapped conforms to [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible). The parameter is exposed as a lightweight parameter if supported by the middleware or protocol.
-* `.content`: The parameter is exposed using the content of the request sent to the web service. If there are multiple `@Parameter` property wrappers annotated with `@Parameter(.content)` the same strategy as if there are multiple `@Parameter` property wrappers with types not conforming to [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible) is applied.
+Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameters found in the URI of RESTful and OpenAPI based interfaces. Apodini automatically exposes primitive types as lightweight parameters that conform to [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible). Complex types such as custom types conforming to `Codable` can not be exposed using lightweight parameters. 
 
 ### Simple Lightweight `@Parameter`s Example
 
@@ -201,7 +199,7 @@ struct ExampleComponent: Component {
     // Is exposed as a content of a request
     @Parameter var bird: Bird
     // Is exposed as a content of a request, indicates how often the bird should be returned in the response. Has a default value.
-    @Parameter("times", .content) var repeat: Int = 1
+    @Parameter("times", .http(.body)) var repeat: Int = 1
     // Is exposed as a `lightweight` parameter for interfaces that support it. Also has a default value of true and indicates if emojis should be used in the response.
     @Parameter var emoji: Bool = true
 
@@ -283,7 +281,7 @@ Exposing the `Component` on a web socket interface requires the client to send t
 ## Path Parameters
 
 Some middleware types and protocols can expose parameters as part of the endpoint defining characteristics. E.g. RESTful and OpenAPI based APIs use the URI path to define endpoints including variables such as `/birds/BIRD_ID` to identify the requested `Bird` by its identifier `BIRD_ID`.
-The `@Parameter` property wrapper exposes the option to explicitly defining a parameter as defining an endpoint using the `.identifier` option.
+We can infer that a specific parameter is part of this path for example: if it contains the word ID in the name and is at the start of the Component. 
 
 ### Defining a Parameter
 
@@ -295,7 +293,7 @@ struct Bird: Codable, Identifiable {
 }
 
 struct ExampleComponent: Component {
-    @Parameter(.identifier) var birdID: Bird.ID
+    @Parameter var birdID: Bird.ID
 
     // ...
 }
@@ -388,4 +386,72 @@ struct TestWebService: WebService {
 }
 
 TestWebService.main()
+```
+
+## Explicit Options
+
+Middlewares are supposed to infer the best possible form of representing parameters.
+However, some middleware types and protocols may want to provide some additional customization, so that developers may forego the inference, and provide a strategy explicitely.
+The values of these options can be defined by the exporters, and each exporter can read for the options specific to itself. For example: for HTTP JSON Based APIs, the exporter might want to allow the user to specify if a parameter is supposed to be retrieved from:
+- URI Path
+- HTTP Body
+- Query Params
+- etc.
+
+### Defining Options
+
+The exporter can define it's own options, by defining the type of the options, the key to identify the option and a helper to make it work seamlessly with the Parameter Property Wrapper:
+
+```swift
+// Define a Type
+public enum HTTPParameterMode: PropertyOption {
+    case body
+    case path
+    case query
+}
+
+// Define a Key
+extension PropertyOptionKey where Property == ParameterOptionNameSpace, Option == HTTPParameterMode {
+    static let http = PropertyOptionKey<ParameterOptionNameSpace, HTTPParameterMode>()
+}
+
+// Add helper to register it to a Parameter Property Wrapper
+extension AnyPropertyOption where Property == ParameterOptionNameSpace {
+    public static func http(_ mode: HTTPParameterMode) -> AnyPropertyOption<ParameterOptionNameSpace> {
+        return AnyPropertyOption(key: .http, value: mode)
+    }
+}
+```
+
+With the new definition of `HTTPParameterMode` the developer may now define explicitely to the exporter how they would like their parameters to be exported:
+
+```swift
+struct ExampleComponent: Component {
+    @Parameter(.http(.body)) 
+    var bird: Bird
+    
+    // Can define different handling for different exporters
+    @Parameter(.http(.path), .webSocket(.constant))
+    var id: UUID = true
+
+    // ...
+}
+```
+
+This has the additional benefit of making the options for each exporter explicit and clear in code, and therefore more readable, while at the same time keeping the exporters and the DSL decoupled.
+
+### Reading the Options
+
+Each exporter then can read the use of it's options in the property by using the key:
+
+```swift
+extension Parameter {
+    internal func httpMode() -> HTTPParameterMode {
+        if let mode = option(\.http) {
+            return mode
+        }
+        
+        // infer mode based on other heuristics
+    }
+}
 ```
