@@ -1,6 +1,6 @@
 //
 //  ProtoDecodingContainer.swift
-//  
+//
 //
 //  Created by Moritz Schüll on 28.11.20.
 //
@@ -95,5 +95,93 @@ internal class InternalProtoDecodingContainer {
         let size = MemoryLayout<UInt64>.size
         memcpy(&uint64, &nativeEndianBytes, size)
         return uint64
+    }
+
+    public func decodeRepeatedBool(_ data: Data) throws -> [Bool] {
+        var output: [Bool] = []
+        var offset = 0
+        while offset < data.count {
+            // floats are fixed 1 byte in length
+            let number = data[offset..<offset+1]
+            if number.first != 0 {
+                output.append(true)
+            } else {
+                output.append(false)
+            }
+            offset += 1
+        }
+        return output
+    }
+
+    public func decodeRepeatedFloat(_ data: Data) throws -> [Float] {
+        var output: [Float] = []
+        var offset = 0
+        while offset < data.count {
+            // floats are fixed 32 bit in length
+            let number = data[offset..<offset+4]
+            output.append(try decodeFloat(number))
+            offset += 4
+        }
+        return output
+    }
+
+    public func decodeRepeatedDouble(_ data: Data) throws -> [Double] {
+        var output: [Double] = []
+        var offset = 0
+        while offset < data.count {
+            // floats are fixed 64 bit in length
+            let number = data[offset..<offset+8]
+            output.append(try decodeDouble(number))
+            offset += 8
+        }
+        return output
+    }
+
+    public func decodeRepeatedInt32(_ data: Data) throws -> [Int32] {
+        var output: [Int32] = []
+        var offset = 0
+        while offset < data.count {
+            // int32 are encoded as VarInts
+            let (number, newOffset) = try VarInt.decode(data, offset: offset)
+            output.append(try decodeInt32(number))
+            offset = newOffset
+        }
+        return output
+    }
+
+    public func decodeRepeatedInt64(_ data: Data) throws -> [Int64] {
+        var output: [Int64] = []
+        var offset = 0
+        while offset < data.count {
+            // int64 are encoded as VarInts
+            let (number, newOffset) = try VarInt.decode(data, offset: offset)
+            output.append(try decodeInt64(number))
+            offset = newOffset
+        }
+        return output
+    }
+
+    public func decodeRepeatedUInt32(_ data: Data) throws -> [UInt32] {
+        var output: [UInt32] = []
+        var offset = 0
+        while offset < data.count {
+            // uint32 are encoded as VarInts
+            let (number, newOffset) = try VarInt.decode(data, offset: offset)
+            output.append(try decodeUInt32(number))
+            offset = newOffset
+        }
+        return output
+    }
+
+    public func decodeRepeatedUInt64(_ data: Data) throws -> [UInt64] {
+        var output: [UInt64] = []
+        var offset = 0
+        while offset < data.count {
+            // uint64 are encoded as VarInts
+            let (number, newOffset) = try VarInt.decode(data, offset: offset)
+            output.append(try decodeUInt64(number))
+            offset = newOffset
+        }
+        return output
     }
 }

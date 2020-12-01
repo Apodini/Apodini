@@ -83,32 +83,6 @@ internal class InternalProtoDecoder: Decoder {
         return (byteValue, fieldStartIndex+length+1)
     }
 
-    private func readVarInt(from data: Data, fieldStartIndex: Int) throws -> (Data, Int) {
-        var varInt = Int64()
-
-        var currentIndex = fieldStartIndex
-        var hasNext = 0
-        var count = 0
-        repeat {
-            if currentIndex >= data.count {
-                throw ProtoError.decodingError("Not enough data left to decode VarInt properly")
-            }
-            let byte = data[currentIndex]
-
-            // we need to drop the most significant bit of byte, and
-            // append byte to beginning of varint (varints come in reversed order)
-            varInt = (Int64(byte & 0b01111111) << (7*count)) | varInt
-
-            // if most significant bit is set, we need to continue with another byte
-            hasNext = Int(byte & 0b10000000)
-            currentIndex += 1
-            count += 1
-        } while (hasNext > 0)
-
-        return (Data(bytes: &varInt, count: MemoryLayout.size(ofValue: varInt)),
-                currentIndex)
-    }
-
     // Function reads the value of a field from data, starting at byte-index fieldStartIndex.
     // The length of the read data depends on the field-type.
     // The function returns the value, and the starting index of the next field tag.
@@ -119,7 +93,7 @@ internal class InternalProtoDecoder: Decoder {
 
         switch wireType {
         case WireType.varInt:
-            return try readVarInt(from: data, fieldStartIndex: fieldStartIndex)
+            return try VarInt.decode(data, offset: fieldStartIndex)
 
         case WireType.bit64:
             if fieldStartIndex+7 >= data.count {
@@ -151,5 +125,6 @@ public class ProtoDecoder {
     public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable {
         let decoder = InternalProtoDecoder(from: data)
         return try T(from: decoder)
+
     }
 }
