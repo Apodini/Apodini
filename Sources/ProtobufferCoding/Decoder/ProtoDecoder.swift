@@ -13,7 +13,7 @@ internal class InternalProtoDecoder: Decoder {
     var userInfo: [CodingUserInfoKey: Any]
 
     let data: Data
-    var dictionary: [Int: Data]
+    var dictionary: [Int: [Data]]
 
     init(from data: Data) {
         self.data = data
@@ -30,7 +30,7 @@ internal class InternalProtoDecoder: Decoder {
 
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
         let keys: [Int] = Array(dictionary.keys)
-        let values: [Data] = Array(dictionary.values)
+        let values: [[Data]] = Array(dictionary.values)
         return UnkeyedProtoDecodingContainer(from: values, keyedBy: keys, codingPath: codingPath)
     }
 
@@ -39,8 +39,8 @@ internal class InternalProtoDecoder: Decoder {
     }
 
 
-    func decode(from: Data) -> [Int: Data] {
-        var dictionary = [Int: Data]()
+    func decode(from: Data) -> [Int: [Data]] {
+        var dictionary = [Int: [Data]]()
 
         // points to the byte we want to read next
         var readIndex = 0
@@ -59,7 +59,11 @@ internal class InternalProtoDecoder: Decoder {
 
                 // set cursor forward to the next field tag
                 readIndex = newIndex
-                dictionary[fieldTag] = value
+                if dictionary[fieldTag] == nil {
+                    dictionary[fieldTag] = [value]
+                } else {
+                    dictionary[fieldTag]?.append(value)
+                }
             } catch {
                 print("Unable for decode field with tag=\(fieldTag) and type=\(fieldType). Stop decoding.")
                 return dictionary

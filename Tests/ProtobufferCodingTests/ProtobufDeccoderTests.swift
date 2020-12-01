@@ -187,6 +187,25 @@ class ProtobufDecoderTests: XCTestCase {
         XCTAssertEqual(message.content, expected, "testDecodeRepeatedUInt32")
     }
 
+    func testDecodeRepeatedData() throws {
+        let data = Data([10, 2, 1, 2, 10, 2, 3, 4, 10, 2, 5, 6])
+        let bytes1: [UInt8] = [1, 2]
+        let bytes2: [UInt8] = [3, 4]
+        let bytes3: [UInt8] = [5, 6]
+        let expected: [Data] = [Data(bytes1), Data(bytes2), Data(bytes3)]
+
+        let message = try ProtoDecoder().decode(Message<[Data]>.self, from: data)
+        XCTAssertEqual(message.content, expected, "testDecodeRepeatedData")
+    }
+
+    func testDecodeRepeatedString() throws {
+        let data = Data([10, 4, 101, 105, 110, 115, 10, 4, 122, 119, 101, 105, 10, 4, 100, 114, 101, 105])
+        let expected = ["eins", "zwei", "drei"]
+
+        let message = try ProtoDecoder().decode(Message<[String]>.self, from: data)
+        XCTAssertEqual(message.content, expected, "testDecodeRepeatedString")
+    }
+
     func testDecodeComplexMessage() throws {
         let data = Data([8, 199, 159, 255, 255, 255, 255, 255, 255, 255, 1,
                          16, 185, 96, 32, 1, 40, 2, 65, 88, 168, 53, 205,

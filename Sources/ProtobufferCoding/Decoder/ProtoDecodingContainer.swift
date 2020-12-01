@@ -184,4 +184,12 @@ internal class InternalProtoDecodingContainer {
         }
         return output
     }
+
+    public func decodeRepeatedString(_ data: [Data]) -> [String] {
+        var output: [String] = []
+        for value in data {
+            output.append(String(data: value, encoding: .utf8)!)
+        }
+        return output
+    }
 }

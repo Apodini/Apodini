@@ -52,6 +52,13 @@ Groups (with wire types 3 and 4) are not supported by Apodini, because they are 
 
 The Swift types `Int8`, `Int16`, `UInt8`, and `UInt16` do not have a Protobuffer equivalent and are thus not supported.
 
+### `repeated` fields
+Currently `repeated` fields are supported for all available scalar types (`int32`, `int64`, `uint32`, `uint64`, `float`, `double`, and `bool`). As of `proto3` version, all of these types are encoded packed by default. The decoder only supports decoding packed repeated fields. The encoder will also output packed encoding.
+
+Further, `repeated` fields are also supported for the types `string` and `bytes`, both of which are not encoded packed.
+
+**Note:** `repeated` is currently not supported for composite types / messages.
+
 
 ## Defining Protobuffer messages using Swift structs
 The `ProtoEncoder` and `ProtoDecoder` are designed to work with Swift structs that implement the `Codable` protocol. Thus, defining a Protobuffer message is very straightforward:
@@ -70,7 +77,7 @@ struct ExampleMessage: Codable {
 
 Uisng the `CodingKey` enum, you can define the respective field tags of the Protobuffer message.
 
-In case you want to use `String` as raw values for the `CodingKey` enum (e.g. to be able to sensibly use the same struct also with `JSONEncoder`s), you can implement the `ProtoCodingKey` and its required `func mapCodingKey(_ key: CodingKey) throws -> Int?` in addition:
+In case you want to use `String` as raw values for the `CodingKey` enum (e.g. to be able to sensibly use the same struct also with `JSONEncoder`s), you can implement the `ProtoCodingKey` and its required `func protoRawValue(_ key: CodingKey) throws -> Int` in addition:
 
 ```swift
 struct ExampleMessage: Codable {
@@ -81,7 +88,7 @@ struct ExampleMessage: Codable {
         case content = "content"
         case number = "number"
 
-        static func mapCodingKey(_ key: CodingKey) throws -> Int? {
+        static func protoRawValue(_ key: CodingKey) throws -> Int {
             switch key {
             case CodingKeys.content:
                 return 1

@@ -10,11 +10,11 @@ import Foundation
 
 class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContainer, KeyedDecodingContainerProtocol {
     var allKeys: [Key]
-    let data: [Int: Data]
+    let data: [Int: [Data]]
     let referencedBy: Data?
 
 
-    init(from data: [Int: Data], codingPath: [CodingKey] = [], referencedBy: Data? = nil) {
+    init(from data: [Int: [Data]], codingPath: [CodingKey] = [], referencedBy: Data? = nil) {
         self.data = data
         self.referencedBy = referencedBy
         allKeys = []
@@ -51,7 +51,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
         let keyValue = try extractIntValue(from: key)
-        if let value = data[keyValue],
+        if let value = data[keyValue]?.last,
            value.first != 0 {
             return true
         }
@@ -60,7 +60,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     func decode(_ type: String.Type, forKey key: Key) throws -> String {
         let keyValue = try extractIntValue(from: key)
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return String(data: value, encoding: .utf8)!
         }
         throw ProtoError.decodingError("No data for given key")
@@ -68,7 +68,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     func decode(_ type: Data.Type, forKey key: Key) throws -> Data {
         let keyValue = try extractIntValue(from: key)
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return value
         }
         throw ProtoError.decodingError("No data for given key")
@@ -76,7 +76,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     func decode(_ type: Double.Type, forKey key: Key) throws -> Double {
         let keyValue = try extractIntValue(from: key)
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return try decodeDouble(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -84,7 +84,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     func decode(_ type: Float.Type, forKey key: Key) throws -> Float {
         let keyValue = try extractIntValue(from: key)
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return try decodeFloat(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -104,7 +104,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 {
         let keyValue = try extractIntValue(from: key)
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return try decodeInt32(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -112,7 +112,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     func decode(_ type: Int64.Type, forKey key: Key) throws -> Int64 {
         let keyValue = try extractIntValue(from: key)
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return try decodeInt64(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -132,7 +132,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 {
         let keyValue = try extractIntValue(from: key)
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return try decodeUInt32(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -140,7 +140,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 {
         let keyValue = try extractIntValue(from: key)
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return try decodeUInt64(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -148,7 +148,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     func decode(_ type: [Bool].Type, forKey key: Key) throws -> [Bool] {
         let keyValue = try extractIntValue(from: key)
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return try decodeRepeatedBool(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -159,7 +159,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return try decodeRepeatedFloat(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -170,7 +170,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return try decodeRepeatedDouble(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -181,7 +181,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return try decodeRepeatedInt32(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -192,7 +192,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return try decodeRepeatedInt64(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -203,7 +203,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return try decodeRepeatedUInt32(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -214,8 +214,25 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return try decodeRepeatedUInt64(value)
+        }
+        throw ProtoError.decodingError("No data for given key")
+    }
+
+    func decode(_ type: [Data].Type, forKey key: Key) throws -> [Data] {
+        let keyValue = try extractIntValue(from: key)
+        if let values = data[keyValue] {
+            // the data is already [Data] :D
+            return values
+        }
+        throw ProtoError.decodingError("No data for given key")
+    }
+
+    func decode(_ type: [String].Type, forKey key: Key) throws -> [String] {
+        let keyValue = try extractIntValue(from: key)
+        if let values = data[keyValue] {
+            return decodeRepeatedString(values)
         }
         throw ProtoError.decodingError("No data for given key")
     }
@@ -223,65 +240,52 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T: Decodable {
         // we need to switch here to also be able to decode structs with generic types
         // if struct has generic type, this will always end up here
-        if T.self == Data.self,
-           let value = try decode(Data.self, forKey: key) as? T {
+        if T.self == Data.self, let value = try decode(Data.self, forKey: key) as? T {
             // this is simply a byte array
             return value
-        } else if T.self == String.self,
-                  let value = try decode(String.self, forKey: key) as? T {
+        } else if T.self == String.self, let value = try decode(String.self, forKey: key) as? T {
             return value
-        } else if T.self == Bool.self,
-                  let value = try decode(Bool.self, forKey: key) as? T {
+        } else if T.self == Bool.self, let value = try decode(Bool.self, forKey: key) as? T {
             return value
-        } else if T.self == Int32.self,
-                  let value = try decode(Int32.self, forKey: key) as? T {
+        } else if T.self == Int32.self, let value = try decode(Int32.self, forKey: key) as? T {
             return value
-        } else if T.self == Int64.self,
-                  let value = try decode(Int64.self, forKey: key) as? T {
+        } else if T.self == Int64.self, let value = try decode(Int64.self, forKey: key) as? T {
             return value
-        } else if T.self == UInt32.self,
-                  let value = try decode(UInt32.self, forKey: key) as? T {
+        } else if T.self == UInt32.self, let value = try decode(UInt32.self, forKey: key) as? T {
             return value
-        } else if T.self == UInt64.self,
-                  let value = try decode(UInt64.self, forKey: key) as? T {
+        } else if T.self == UInt64.self, let value = try decode(UInt64.self, forKey: key) as? T {
             return value
-        } else if T.self == Double.self,
-                  let value = try decode(Double.self, forKey: key) as? T {
+        } else if T.self == Double.self, let value = try decode(Double.self, forKey: key) as? T {
             return value
-        } else if T.self == Float.self,
-                  let value = try decode(Float.self, forKey: key) as? T {
+        } else if T.self == Float.self, let value = try decode(Float.self, forKey: key) as? T {
             return value
-        } else if T.self == [Bool].self,
-                  let value = try decode([Bool].self, forKey: key) as? T {
+        } else if T.self == [Bool].self, let value = try decode([Bool].self, forKey: key) as? T {
             return value
-        } else if T.self == [Float].self,
-                  let value = try decode([Float].self, forKey: key) as? T {
+        } else if T.self == [Float].self, let value = try decode([Float].self, forKey: key) as? T {
             return value
-        } else if T.self == [Double].self,
-                  let value = try decode([Double].self, forKey: key) as? T {
+        } else if T.self == [Double].self, let value = try decode([Double].self, forKey: key) as? T {
             return value
-        }else if T.self == [Int32].self,
-                  let value = try decode([Int32].self, forKey: key) as? T {
+        } else if T.self == [Int32].self, let value = try decode([Int32].self, forKey: key) as? T {
             return value
-        } else if T.self == [Int64].self,
-                  let value = try decode([Int64].self, forKey: key) as? T {
+        } else if T.self == [Int64].self, let value = try decode([Int64].self, forKey: key) as? T {
             return value
-        } else if T.self == [UInt32].self,
-                  let value = try decode([UInt32].self, forKey: key) as? T {
+        } else if T.self == [UInt32].self, let value = try decode([UInt32].self, forKey: key) as? T {
             return value
-        } else if T.self == [UInt64].self,
-                  let value = try decode([UInt64].self, forKey: key) as? T {
+        } else if T.self == [UInt64].self, let value = try decode([UInt64].self, forKey: key) as? T {
+            return value
+        } else if T.self == [String].self, let value = try decode([String].self, forKey: key) as? T {
+            return value
+        } else if T.self == [Data].self, let value = try decode([Data].self, forKey: key) as? T {
             return value
         } else if [Int.self, Int8.self, Int16.self,
                    UInt.self, UInt8.self, UInt16.self,
                    [Int].self, [Int8].self, [Int16].self,
-                   [UInt].self, [UInt8].self, [UInt16].self,
-                   [String].self].contains(where: { $0 == T.self }) {
+                   [UInt].self, [UInt8].self, [UInt16].self].contains(where: { $0 == T.self }) {
             throw ProtoError.decodingError("Decoding values of type \(T.self) is not supported yet")
         } else {
             // we encountered a nested structure
             let keyValue = try extractIntValue(from: key)
-            if let value = data[keyValue] {
+            if let value = data[keyValue]?.last {
                 return try ProtoDecoder().decode(type, from: value)
             }
         }
@@ -291,7 +295,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws
     -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
         let keyValue = try extractIntValue(from: key)
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return try InternalProtoDecoder(from: value).container(keyedBy: type)
         }
         throw ProtoError.unsupportedDataType("nestedContainer not available")
@@ -299,7 +303,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
         let keyValue = try extractIntValue(from: key)
-        if let value = data[keyValue] {
+        if let value = data[keyValue]?.last {
             return try InternalProtoDecoder(from: value).unkeyedContainer()
         }
         throw ProtoError.unsupportedDataType("nestedUnkeyedContainer not available")

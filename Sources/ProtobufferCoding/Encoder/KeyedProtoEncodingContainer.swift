@@ -1,6 +1,6 @@
 //
 //  KeyedProtoEncodingContainer.swift
-//  
+//
 //
 //  Created by Moritz Schüll on 27.11.20.
 //
@@ -37,34 +37,22 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
 
     func encode(_ value: Bool, forKey key: Key) throws {
         let keyValue = try extractIntValue(from: key)
-        if value {
-            let byte = UInt8(1)
-            appendData(Data([byte]), tag: keyValue, wireType: .varInt)
-        }
-        // false is simply not appended to message
+        try encodeBool(value, tag: keyValue)
     }
 
     func encode(_ value: String, forKey key: Key) throws {
         let keyValue = try extractIntValue(from: key)
-        guard let data = value.data(using: .utf8) else {
-            throw ProtoError.encodingError("Cannot encode data for given key")
-        }
-        // prepend an extra byte containing the length
-        var length = Data([UInt8(data.count)])
-        length.append(data)
-        appendData(length, tag: keyValue, wireType: .lengthDelimited)
+        try encodeString(value, tag: keyValue)
     }
 
     func encode(_ value: Double, forKey key: Key) throws {
         let keyValue = try extractIntValue(from: key)
-        let data = encodeDouble(value)
-        appendData(data, tag: keyValue, wireType: WireType.bit64)
+        try encodeDouble(value, tag: keyValue)
     }
 
     func encode(_ value: Float, forKey key: Key) throws {
         let keyValue = try extractIntValue(from: key)
-        let data = encodeFloat(value)
-        appendData(data, tag: keyValue, wireType: WireType.bit32)
+        try encodeFloat(value, tag: keyValue)
     }
 
     func encode(_ value: Int, forKey key: Key) throws {
@@ -81,16 +69,12 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
 
     func encode(_ value: Int32, forKey key: Key) throws {
         let keyValue = try extractIntValue(from: key)
-        // we need to encode it as VarInt (run-length encoded number)
-        let data = encodeVarInt(value: UInt64(bitPattern: Int64(value)))
-        appendData(data, tag: keyValue, wireType: .varInt)
+        try encodeInt32(value, tag: keyValue)
     }
 
     func encode(_ value: Int64, forKey key: Key) throws {
         let keyValue = try extractIntValue(from: key)
-        // we need to encode it as VarInt (run-length encoded number)
-        let data = encodeVarInt(value: UInt64(bitPattern: Int64(value)))
-        appendData(data, tag: keyValue, wireType: .varInt)
+        try encodeInt64(value, tag: keyValue)
     }
 
     func encode(_ value: UInt, forKey key: Key) throws {
@@ -107,62 +91,117 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
 
     func encode(_ value: UInt32, forKey key: Key) throws {
         let keyValue = try extractIntValue(from: key)
-        // we need to encode it as VarInt (run-length encoded number)
-        let data = encodeVarInt(value: UInt64(value))
-        appendData(data, tag: keyValue, wireType: .varInt)
+        try encodeUInt32(value, tag: keyValue)
     }
 
     func encode(_ value: UInt64, forKey key: Key) throws {
         let keyValue = try extractIntValue(from: key)
-        // we need to encode it as VarInt (run-length encoded number)
-        let data = encodeVarInt(value: value)
-        appendData(data, tag: keyValue, wireType: .varInt)
+        try encodeUInt64(value, tag: keyValue)
+    }
+
+    func encode(_ values: [Bool], forKey key: Key) throws {
+        let keyValue = try extractIntValue(from: key)
+        try encodeRepeatedBool(values, tag: keyValue)
+    }
+
+    func encode(_ values: [Double], forKey key: Key) throws {
+        let keyValue = try extractIntValue(from: key)
+        try encodeRepeatedDouble(values, tag: keyValue)
+    }
+
+    func encode(_ values: [Float], forKey key: Key) throws {
+        let keyValue = try extractIntValue(from: key)
+        try encodeRepeatedFloat(values, tag: keyValue)
+    }
+
+    func encode(_ values: [Int32], forKey key: Key) throws {
+        let keyValue = try extractIntValue(from: key)
+        try encodeRepeatedInt32(values, tag: keyValue)
+    }
+
+    func encode(_ values: [Int64], forKey key: Key) throws {
+        let keyValue = try extractIntValue(from: key)
+        try encodeRepeatedInt64(values, tag: keyValue)
+    }
+
+    func encode(_ values: [UInt32], forKey key: Key) throws {
+        let keyValue = try extractIntValue(from: key)
+        try encodeRepeatedUInt32(values, tag: keyValue)
+    }
+
+    func encode(_ values: [UInt64], forKey key: Key) throws {
+        let keyValue = try extractIntValue(from: key)
+        try encodeRepeatedUInt64(values, tag: keyValue)
+    }
+
+    func encode(_ values: [Data], forKey key: Key) throws {
+        let keyValue = try extractIntValue(from: key)
+        try encodeRepeatedData(values, tag: keyValue)
+    }
+
+    func encode(_ values: [String], forKey key: Key) throws {
+        let keyValue = try extractIntValue(from: key)
+        try encodeRepeatedString(values, tag: keyValue)
+    }
+
+    func encodeNested<T: Encodable>(_ value: T, forKey key: Key) throws {
+        let keyValue = try extractIntValue(from: key)
+        try encodeNestedMessage(value, tag: keyValue)
     }
 
     func encode<T>(_ value: T, forKey key: Key) throws where T: Encodable {
         let keyValue = try extractIntValue(from: key)
         // we need to switch here to also be able to encode structs with generic types
         // if struct has generic type, this will always end up here
-        if T.self == Data.self,
-           let value = value as? Data {
+        if T.self == Data.self, let value = value as? Data {
             // simply a byte array
             // prepend an extra byte containing the length
             var length = Data([UInt8(value.count)])
             length.append(value)
             appendData(length, tag: keyValue, wireType: .lengthDelimited)
-        } else if T.self == String.self,
-                  let value = value as? String {
-            return try encode(value, forKey: key)
-        } else if T.self == Bool.self,
-                  let value = value as? Bool {
-            return try encode(value, forKey: key)
-        } else if T.self == Int32.self,
-                  let value = value as? Int32 {
-            return try encode(value, forKey: key)
-        } else if T.self == Int64.self,
-                  let value = value as? Int64 {
-            return try encode(value, forKey: key)
-        } else if T.self == UInt32.self,
-                  let value = value as? UInt32 {
-            return try encode(value, forKey: key)
-        } else if T.self == UInt64.self,
-                  let value = value as? UInt64 {
-            return try encode(value, forKey: key)
-        } else if T.self == Double.self,
-                  let value = value as? Double {
-            return try encode(value, forKey: key)
-        } else if T.self == Float.self,
-                  let value = value as? Float {
-            return try encode(value, forKey: key)
+        } else if T.self == String.self, let value = value as? String {
+            try encode(value, forKey: key)
+        } else if T.self == Bool.self, let value = value as? Bool {
+            try encode(value, forKey: key)
+        } else if T.self == Int32.self, let value = value as? Int32 {
+            try encode(value, forKey: key)
+        } else if T.self == Int64.self, let value = value as? Int64 {
+            try encode(value, forKey: key)
+        } else if T.self == UInt32.self, let value = value as? UInt32 {
+            try encode(value, forKey: key)
+        } else if T.self == UInt64.self, let value = value as? UInt64 {
+            try encode(value, forKey: key)
+        } else if T.self == Double.self, let value = value as? Double {
+            try encode(value, forKey: key)
+        } else if T.self == Float.self, let value = value as? Float {
+            try encode(value, forKey: key)
+        } else if T.self == [Bool].self, let value = value as? [Bool] {
+            try encode(value, forKey: key)
+        } else if T.self == [Float].self, let value = value as? [Float] {
+            try encode(value, forKey: key)
+        } else if T.self == [Double].self, let value = value as? [Double] {
+            try encode(value, forKey: key)
+        } else if T.self == [Int32].self, let value = value as? [Int32] {
+            try encode(value, forKey: key)
+        } else if T.self == [Int64].self, let value = value as? [Int64] {
+            try encode(value, forKey: key)
+        } else if T.self == [UInt32].self, let value = value as? [UInt32] {
+            try encode(value, forKey: key)
+        } else if T.self == [UInt64].self, let value = value as? [UInt64] {
+            try encode(value, forKey: key)
+        } else if T.self == [Data].self, let value = value as? [Data] {
+            try encode(value, forKey: key)
+        } else if T.self == [String].self, let value = value as? [String] {
+            try encode(value, forKey: key)
+        } else if [Int.self, Int8.self, Int16.self,
+                   UInt.self, UInt8.self, UInt16.self,
+                   [Int].self, [Int8].self, [Int16].self,
+                   [UInt].self, [UInt8].self, [UInt16].self,
+                   [String].self].contains(where: { $0 == T.self }) {
+            throw ProtoError.decodingError("Encoding values of type \(T.self) is not supported yet")
         } else {
             // nested message
-            let encoder = InternalProtoEncoder()
-            try value.encode(to: encoder)
-            let data = try encoder.getEncoded()
-            // prepend an extra byte containing the length
-            var length = Data([UInt8(data.count)])
-            length.append(data)
-            appendData(length, tag: keyValue, wireType: .lengthDelimited)
+            try encodeNested(value, forKey: key)
         }
     }
 

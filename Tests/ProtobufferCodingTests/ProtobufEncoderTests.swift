@@ -95,7 +95,7 @@ class ProtobufEncoderTests: XCTestCase {
         XCTAssertEqual(encoded, expected, "testEncodeUInt32")
     }
 
-    func testDecodeBool() throws {
+    func testEncodeBool() throws {
         let expected = Data([8, 1])
 
         let message = Message(content: true)
@@ -103,7 +103,7 @@ class ProtobufEncoderTests: XCTestCase {
         XCTAssertEqual(encoded, expected, "testEncodeBool")
     }
 
-    func testDecodeDouble() throws {
+    func testEncodeDouble() throws {
         let expected = Data([9, 88, 168, 53, 205, 143, 28, 200, 64])
         let number: Double = 12345.12345
 
@@ -112,7 +112,7 @@ class ProtobufEncoderTests: XCTestCase {
         XCTAssertEqual(encoded, expected, "testEncodeDouble")
     }
 
-    func testDecodeFloat() throws {
+    func testEncodeFloat() throws {
         let expected = Data([13, 126, 228, 64, 70])
         let number: Float = 12345.12345
 
@@ -121,7 +121,7 @@ class ProtobufEncoderTests: XCTestCase {
         XCTAssertEqual(encoded, expected, "testEncodeFloat")
     }
 
-    func testDecodeString() throws {
+    func testEncodeString() throws {
         let expected = Data([10, 11, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100])
         let content: String = "Hello World"
 
@@ -130,7 +130,7 @@ class ProtobufEncoderTests: XCTestCase {
         XCTAssertEqual(encoded, expected, "testEncodeString")
     }
 
-    func testDecodeBytes() throws {
+    func testEncodeBytes() throws {
         let expected = Data([10, 6, 1, 2, 3, 253, 254, 255])
         let bytes = Data([1, 2, 3, 253, 254, 255])
 
@@ -139,7 +139,90 @@ class ProtobufEncoderTests: XCTestCase {
         XCTAssertEqual(encoded, expected, "testEncodeBytes")
     }
 
-    func testDecodeComplexMessage() throws {
+    func testEncodeRepeatedBool() throws {
+        let expected = Data([10, 3, 1, 0, 1])
+        let content = [true, false, true]
+
+        let message = Message(content: content)
+        let encoded = try ProtoEncoder().encode(message)
+        XCTAssertEqual(encoded, expected, "testEncodeRepeatedBool")
+    }
+
+    func testEncodeRepeatedInt32() throws {
+        let expected = Data([10, 5, 1, 2, 3, 4, 5])
+        let content: [Int32] = [1, 2, 3, 4, 5]
+
+        let message = Message(content: content)
+        let encoded = try ProtoEncoder().encode(message)
+        XCTAssertEqual(encoded, expected, "testEncodeRepeatedInt32")
+    }
+
+    func testEncodeRepeatedInt64() throws {
+        let expected = Data([10, 30, 195, 144, 236, 143, 247, 35,
+                         196, 144, 236, 143, 247, 35, 197, 144,
+                         236, 143, 247, 35, 198, 144, 236, 143,
+                         247, 35, 199, 144, 236, 143, 247, 35])
+        let content: [Int64] = [1234567891011, 1234567891012, 1234567891013, 1234567891014, 1234567891015]
+
+        let message = Message(content: content)
+        let encoded = try ProtoEncoder().encode(message)
+        XCTAssertEqual(encoded, expected, "testEncodeRepeatedInt64")
+    }
+
+    func testEncodeRepeatedFloat() throws {
+        let expected = Data([10, 20, 250, 62, 246, 66, 207, 119,
+                         246, 66, 164, 176, 246, 66, 121, 233,
+                         246, 66, 78, 34, 247, 66])
+        let content: [Float] = [123.123, 123.234, 123.345, 123.456, 123.567]
+
+        let message = Message(content: content)
+        let encoded = try ProtoEncoder().encode(message)
+        XCTAssertEqual(encoded, expected, "testEncodeRepeatedFloat")
+    }
+
+    func testEncodeRepeatedDouble() throws {
+        let expected = Data([10, 24, 117, 107, 126, 84, 52, 111,
+                         157, 65, 219, 209, 228, 84, 52, 111,
+                         157, 65, 66, 56, 75, 85, 52, 111,
+                         157, 65])
+        let content: [Double] = [123456789.123456789, 123456789.223456789, 123456789.323456789]
+
+        let message = Message(content: content)
+        let encoded = try ProtoEncoder().encode(message)
+        XCTAssertEqual(encoded, expected, "testEncodeRepeatedDouble")
+    }
+
+    func testEncodeRepeatedUInt32() throws {
+        let expected = Data([10, 5, 1, 2, 3, 4, 5])
+        let content: [UInt32] = [1, 2, 3, 4, 5]
+
+        let message = Message(content: content)
+        let encoded = try ProtoEncoder().encode(message)
+        XCTAssertEqual(encoded, expected, "testEncodeRepeatedUInt32")
+    }
+
+    func testEncodeRepeatedData() throws {
+        let expected = Data([10, 2, 1, 2, 10, 2, 3, 4, 10, 2, 5, 6])
+        let bytes1: [UInt8] = [1, 2]
+        let bytes2: [UInt8] = [3, 4]
+        let bytes3: [UInt8] = [5, 6]
+        let content: [Data] = [Data(bytes1), Data(bytes2), Data(bytes3)]
+
+        let message = Message(content: content)
+        let encoded = try ProtoEncoder().encode(message)
+        XCTAssertEqual(encoded, expected, "testEncodeRepeatedData")
+    }
+
+    func testEncodeRepeatedString() throws {
+        let expected = Data([10, 4, 101, 105, 110, 115, 10, 4, 122, 119, 101, 105, 10, 4, 100, 114, 101, 105])
+        let content = ["eins", "zwei", "drei"]
+
+        let message = Message(content: content)
+        let encoded = try ProtoEncoder().encode(message)
+        XCTAssertEqual(encoded, expected, "testEncodeRepeatedString")
+    }
+
+    func testEncodeComplexMessage() throws {
         let expected = Data([8, 199, 159, 255, 255, 255, 255, 255, 255, 255,
                          1, 16, 185, 96, 32, 1, 40, 2, 65, 88, 168, 53,
                          205, 143, 28, 200, 64, 74, 11, 72, 101, 108, 108,
