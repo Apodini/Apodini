@@ -50,9 +50,11 @@ be ignored and no changes should be done to the procedure name.
 
 ### GraphQL
 
-The `Operation` is not really relevant when creating the query schema. Instead the GraphQL exporter
-should use that information when processing a incoming query, and should select the appropriate `Component`
-depending on the operation performed.
+The `.automatic` operation MAY be used (if possible) to infer if a `Component` is used to handle a query or a mutation.
+If not possible it SHOULD default to `.read`.  
+In any case the GraphQL should correctly match incoming request to their respective endpoints.
+Simple queries should be handled by the `Component` with operation `.read` and mutations should be handled
+by the appropriate `Component` with `.create`, `.update` or `.delete` operation.
 
 ### WebSocket
 
