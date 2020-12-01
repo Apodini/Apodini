@@ -28,6 +28,7 @@ public struct Body<Element: Codable>: RequestInjectable {
     
     
     mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder?) throws {
+        print("called")
         if let decoder = decoder {
             element = try decoder.decode(Element.self, from: request)
         }

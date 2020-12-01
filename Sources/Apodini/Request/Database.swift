@@ -31,3 +31,22 @@ public struct Database: RequestInjectable {
         self.database = request.db
     }
 }
+
+//MARK: - Dummy property wrapper until pr is merged
+@propertyWrapper
+public struct Param_Id<T: Model>: RequestInjectable where T.IDValue: LosslessStringConvertible {
+    private var id: T.IDValue?
+    
+    public var wrappedValue: T.IDValue {
+        guard let id = id else {
+            fatalError("You can only access the database while you handle a request")
+        }
+        return id
+    }
+    
+    public init() {}
+    
+    mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder?) throws {
+        self.id = request.parameters.get("id", as: T.IDValue.self)
+    }
+}

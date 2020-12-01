@@ -35,13 +35,16 @@ extension Vapor.Request {
             let info = try typeInfo(of: E.self)
             
             for property in info.properties {
+                print(property)
                 if var child = (try property.get(from: element)) as? RequestInjectable {
+                    print(child)
                     assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "RequestInjectable \(property.name) on Component \(info.name) must be a struct.")
                     try child.inject(using: self, with: decoder)
                     try property.set(value: child, on: &element)
                 }
             }
-        } catch {
+        } catch(let error) {
+            print(error.localizedDescription)
             fatalError("Injecting into element \(element) failed.")
         }
     }

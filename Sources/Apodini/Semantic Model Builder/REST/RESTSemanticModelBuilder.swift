@@ -22,8 +22,16 @@ struct RESTPathBuilder: PathBuilder {
     
     
     init(_ pathComponents: [PathComponent]) {
+        print("builder")
+        print(pathComponents)
         for pathComponent in pathComponents {
             if let pathComponent = pathComponent as? _PathComponent {
+                print(pathComponent)
+                if let pathString = (pathComponent as? String), pathString.hasPrefix(":") {
+                    print(pathString.components(separatedBy: ":")[1])
+//                    pathComponents.append(.parameter(pathComponent))
+//                    pathComponents.append(.parameter(pathString.components(separatedBy: ":")[1]))
+                }
                 pathComponent.append(to: &self)
             }
         }
@@ -31,8 +39,15 @@ struct RESTPathBuilder: PathBuilder {
     
     
     mutating func append(_ string: String) {
-        let pathComponent = string.lowercased()
-        pathComponents.append(.constant(pathComponent))
+        
+        print("added " + string)
+        if string.hasPrefix(":") {
+            let component = string.components(separatedBy: ":")[1]
+            pathComponents.append(.parameter(component))
+        } else {
+            let pathComponent = string.lowercased()
+            pathComponents.append(.constant(pathComponent))
+        }
     }
     
     mutating func append<T>(_ identifiier: Identifier<T>) where T: Identifiable {
@@ -70,6 +85,13 @@ class RESTSemanticModelBuilder: SemanticModelBuilder {
     }
 
     override func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
+        print("called")
+        if let byteBuffer = request.body.data {
+            print(byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes))
+            let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes)
+            request.body
+            print(try JSONDecoder().decode(T.self, from: data!))
+        }
         guard let byteBuffer = request.body.data, let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
             throw Vapor.Abort(.internalServerError, reason: "Could not read the HTTP request's body")
         }

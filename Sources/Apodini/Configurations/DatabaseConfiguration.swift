@@ -37,6 +37,7 @@ public final class DatabaseConfiguration: Configuration {
             databases.use(factory, as: databaseID)
             app.migrations.add(migrations)
             try app.autoMigrate().wait()
+            print("database configuration successful")
         } catch {
             fatalError("An error occured while configuring the database.")
         }

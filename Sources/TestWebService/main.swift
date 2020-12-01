@@ -68,6 +68,22 @@ struct TestWebService: Apodini.WebService {
         Group("greet") {
             Greeter()
         }
+        Group("api") {
+            Group("create") {
+                Create<Bird>()
+                    .httpMethod(.POST)
+            }
+            Group("get", ":id") {
+                Get<Bird>()
+                    .httpMethod(.GET)
+            }
+        }
+    }
+    
+    var configuration: Configuration {
+        DatabaseConfiguration(.defaultMongoDB(Environment.get("DATABASE_URL") ?? "mongodb://localhost:27017/vapor_database"))
+            .addMigrations(CreateBird())
+    
     }
 }
 
