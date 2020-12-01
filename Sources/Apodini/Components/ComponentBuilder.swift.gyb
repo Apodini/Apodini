@@ -1,0 +1,40 @@
+// swiftlint:disable all
+// This file was automatically generated and should not be edited.
+%{
+    # Edit this if you want to include more components in a single tuple component
+    maximumNumberOfComponents = 100
+}%
+
+@_functionBuilder
+public struct ComponentBuilder {
+    public static func buildBlock() -> EmptyComponent {
+        EmptyComponent()
+    }
+    
+    public static func buildBlock<Content>(_ content: Content) -> Content where Content: Component {
+        content
+    }
+
+    % for numberOfComponents in range(2, maximumNumberOfComponents + 1):
+    %{ componentGenerics = ", ".join(["C" + str(i) + " : Component" for i in range(1, numberOfComponents + 1)]) }%
+    %{ arguments = ", ".join(["_ c" + str(i) + ": C" + str(i) + "" for i in range(1, numberOfComponents + 1)]) }%
+    %{ tupleGenerics = ", ".join(["C" + str(i) + "" for i in range(1, numberOfComponents + 1)]) }%
+    %{ components = ", ".join(["c" + str(i) for i in range(1, numberOfComponents + 1)]) }%
+    public static func buildBlock<${componentGenerics}>(${arguments}) -> TupleComponent<(${tupleGenerics})> {
+        return TupleComponent((${components}))
+    }
+
+    % end
+    
+    public static func buildEither<C: Component>(first: C) -> C {
+        first
+    }
+    
+    public static func buildEither<C: Component>(second: C) -> C {
+        second
+    }
+    
+    public static func buildIf<C: Component>(_ component: C?) -> C? {
+        component
+    }
+}

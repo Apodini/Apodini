@@ -33,10 +33,6 @@ extension Component {
     func visit(_ visitor: SynaxTreeVisitor) {
         precondition(((try? typeInfo(of: Self.self).kind) ?? .none) == .struct, "Component \((try? typeInfo(of: Self.self).name) ?? "unknown") must be a struct")
         
-        visitContentOrRegisterComponentIfNotNever(visitor)
-    }
-    
-    fileprivate func visitContentOrRegisterComponentIfNotNever(_ visitor: SynaxTreeVisitor) {
         if let visitable = self as? Visitable {
             visitable.visit(visitor)
         } else if Self.Content.self != Never.self {
