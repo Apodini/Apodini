@@ -21,13 +21,13 @@ final class VisitorTests: XCTestCase {
         @ComponentBuilder var content: some Component {
             Group("Test") {
                 Text("Hallo Bernd")
-                    .httpMethod(.PUT)
+                    .operation(.update)
                     .response(TestResponseMediator())
             }
             Group("Greetings") {
                 Group("Human") {
                     Text("👋")
-                        .httpMethod(.GET)
+                        .operation(.read)
                 }
                 Group("Plant") {
                     Text("🍀")
@@ -36,7 +36,7 @@ final class VisitorTests: XCTestCase {
         }
     }
     
-    
+
     // swiftlint:disable:next implicitly_unwrapped_optional
     var app: Application!
     

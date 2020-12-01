@@ -6,8 +6,6 @@
 //
 
 @testable import Apodini
-import Vapor
-
 
 class PrintVisitor: SynaxTreeVisitor {
     private var intendationLevel: UInt = 0
@@ -37,7 +35,7 @@ class PrintVisitor: SynaxTreeVisitor {
     }
     
     func printContext() {
-        print("\(intendation) -> \(className(HTTPMethodContextKey.self)) = \(currentNode.getContextValue(for: HTTPMethodContextKey.self))")
+        print("\(intendation) -> \(className(OperationContextKey.self)) = \(currentNode.getContextValue(for: OperationContextKey.self))")
         print("\(intendation) -> \(className(APIVersionContextKey.self)) = \(currentNode.getContextValue(for: APIVersionContextKey.self))")
         print("\(intendation) -> \(className(PathComponentContextKey.self)) = \(currentNode.getContextValue(for: PathComponentContextKey.self))")
         print("\(intendation) -> \(className(GuardContextKey.self)) = \(currentNode.getContextValue(for: GuardContextKey.self))")
