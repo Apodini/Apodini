@@ -30,10 +30,6 @@ public protocol Component {
 
 extension Component {
     func visit(_ visitor: SynaxTreeVisitor) {
-        visitContentOrRegisterComponentIfNotNever(visitor)
-    }
-    
-    fileprivate func visitContentOrRegisterComponentIfNotNever(_ visitor: SynaxTreeVisitor) {
         if let visitable = self as? Visitable {
             visitable.visit(visitor)
         } else if Self.Content.self != Never.self {

@@ -20,6 +20,15 @@
         }
       },
       {
+        "package": "AssociatedTypeRequirementsKit",
+        "repositoryURL": "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git",
+        "state": {
+          "branch": null,
+          "revision": "cf3bc7f4b57e94d282c5161bd5553289d386191e",
+          "version": "0.2.1"
+        }
+      },
+      {
         "package": "async-http-client",
         "repositoryURL": "https://github.com/swift-server/async-http-client.git",
         "state": {
@@ -69,8 +78,8 @@
         "repositoryURL": "https://github.com/vapor/fluent-kit.git",
         "state": {
           "branch": null,
-          "revision": "31d96b547cc1f869f2885d932a8a9a7ae2103fc6",
-          "version": "1.10.0"
+          "revision": "b6cd7b93ef45b767041efeb83571457658c4acf7",
+          "version": "1.10.1"
         }
       },
       {
@@ -258,8 +267,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "c3e2359c55cd8b47207ab7363b77c9c398a95294",
-          "version": "2.23.0"
+          "revision": "2f9ea477387806a79a8951524ef2d40de917a0e1",
+          "version": "2.24.0"
         }
       },
       {
