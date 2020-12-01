@@ -8,23 +8,26 @@
 import Vapor
 import Foundation
 
-/* Generic Parameter that can be used to mark that the options are meant for @Parameter */
+
+/// Generic Parameter that can be used to mark that the options are meant for `@Parameter`s
 public enum ParameterOptionNameSpace { }
 
-/// The `@Parameter` property wrapper can be used to express input in different ways:
-/// * **Request Content**: Parameters can be part of the requests send to the web service such as the HTTP body or request content of an other protocol.
-/// * **Lightweight Parameter**: Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameters found in the URI of RESTful and OpenAPI based web APIs.
-/// * **Path Parameters**: Parameters can also be used to define the endpoint such as the URI path of the middleware types and protocols that support URI based multiplexing of requests.
+
+/// The `@Parameter` property wrapper can be used to express input in `Components`
 @propertyWrapper
 public struct Parameter<Element: Codable> {
+    /// Keys for options that can be passed to an `@Parameter` property wrapper
     public typealias OptionKey<T: PropertyOption> = PropertyOptionKey<ParameterOptionNameSpace, T>
+    /// Type erased options that can be passed to an `@Parameter` property wrapper
     public typealias Option = AnyPropertyOption<ParameterOptionNameSpace>
 
+    
     private var element: Element?
     private var name: String?
     private var options: PropertyOptionSet<ParameterOptionNameSpace>
     private var id = UUID()
     private var defaultValue: Element?
+    
     
     /// The value for the `@Parameter` as defined by the incoming request
     public var wrappedValue: Element {
@@ -79,46 +82,63 @@ public struct Parameter<Element: Codable> {
     /// TestWebService.main()
     /// ```
     public var projectedValue: Parameter {
-        return self
+        self
     }
-
-    public func option<Option>(for key: OptionKey<Option>) -> Option? {
-        return options.option(for: key)
-    }
-
+    
+    
+    /// Creates a new `@Parameter` that indicates input of a `Component` without a default value, different name for the encoding, or special options.
     public init() {
+        self.defaultValue = nil
+        self.name = nil
         self.options = PropertyOptionSet()
     }
     
-    public init(_ options: Option...) {
-        self.options = PropertyOptionSet(options)
-    }
-
-    public init(wrappedValue defaultValue: Element, _ name: String) {
-        self.name = name
-        self.options = PropertyOptionSet()
-        self.defaultValue = defaultValue
-    }
-
-    public init(wrappedValue defaultValue: Element) {
-        self.options = PropertyOptionSet()
-        self.defaultValue = defaultValue
-    }
-
+    /// Creates a new `@Parameter` that indicates input of a `Component`.
     /// - Parameters:
-    ///   - name: The name used to describe the wrapped property for in the web APIs
-    ///   - parameterType: The `ParameterType` that explicitly describes the type of parameter that should be used for the wrapped property
-    public init(_ name: String, _ options: Option...) {
+    ///   - name: The name that identifies this property when decoding the property from the input of a `Component`
+    ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
+    public init(_ name: String? = nil, _ options: Option...) {
+        self.defaultValue = nil
         self.name = name
         self.options = PropertyOptionSet(options)
     }
     
-    private init(name: String?, options: PropertyOptionSet<ParameterOptionNameSpace>, id: UUID) {
+    /// Creates a new `@Parameter` that indicates input of a `Component`.
+    /// - Parameters:
+    ///   - defaultValue: The default value that should be used in case the interface exporter can not decode the value from the input of the `Component`
+    ///   - name: The name that identifies this property when decoding the property from the input of a `Component`
+    ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
+    public init(wrappedValue defaultValue: Element, _ name: String? = nil, _ options: Option...) {
+        self.defaultValue = defaultValue
         self.name = name
-        self.options = options
-        self.id = id
+        self.options = PropertyOptionSet(options)
+    }
+    
+    /// Creates a new `@Parameter` that indicates input of a `Component` based on an existing component.
+    /// - Parameter parameter: The `@Parameter` that can be passed in from a a parent component.
+    /// - Precondition: A `@Parameter` with a specific `http` type `.body` or `.query` can not be passed to a seperate componet. Please remove the specific `.http` property option or specify the `.http` property option to `.path`.
+    public init(_ parameter: Parameter) {
+        switch parameter.option(for: .http) {
+        case .body, .query:
+            preconditionFailure("""
+                A `@Parameter` with a specific `http` type `.body` or `.query` can not be passed to a seperate componet.
+                Please remove the specific `.http` property option or specify the `.http` property option to `.path`.
+                """)
+        case .path, .none:
+            break
+        }
+        
+        self.defaultValue = parameter.defaultValue
+        self.name = parameter.name
+        self.options = parameter.options
+    }
+    
+    
+    func option<Option>(for key: OptionKey<Option>) -> Option? {
+        options.option(for: key)
     }
 }
+
 
 extension Parameter: RequestInjectable {
     mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder?) throws {

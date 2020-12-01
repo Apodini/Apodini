@@ -1,5 +1,7 @@
 ## `@Request` and `@Environment`
 
+TODO: Merge Request and Environment? Also add Configuration.
+
 The `@Request` property wrapper is used to retrieve information identified by a key path that is obtained by a single incoming request. Global information about the web service is exposed by the `@Environment` property wrapper. 
 
 Possible key paths for the `@Environment` property wrapper could include:
