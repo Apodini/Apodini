@@ -7,14 +7,12 @@
 
 import Foundation
 
-
 class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEncodingContainer {
     var currentFieldTag: Int
 
     var count: Int {
-        return currentFieldTag
+        currentFieldTag
     }
-
 
     override init(using encoder: InternalProtoEncoder, codingPath: [CodingKey]) {
         self.currentFieldTag = 1
@@ -141,6 +139,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
         currentFieldTag += 1
     }
 
+    // swiftlint:disable cyclomatic_complexity function_body_length
     func encode<T>(_ value: T) throws where T: Encodable {
         // we need to switch here to also be able to encode structs with generic types
         // if struct has generic type, this will always end up here
@@ -188,16 +187,17 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
         } else if [Int.self, Int8.self, Int16.self,
                    UInt.self, UInt8.self, UInt16.self,
                    [Int].self, [Int8].self, [Int16].self,
-                   [UInt].self, [UInt8].self, [UInt16].self,
-                   [String].self].contains(where: { $0 == T.self }) {
+                   [UInt].self, [UInt8].self, [UInt16].self].contains(where: { $0 == T.self }) {
             throw ProtoError.decodingError("Encoding values of type \(T.self) is not supported yet")
         } else {
             // nested message
             try encodeNested(value)
         }
     }
+    // swiftlint:enable cyclomatic_complexity function_body_length
 
-    func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
+    func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type)
+    -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
         return InternalProtoEncoder().container(keyedBy: keyType)
     }
 

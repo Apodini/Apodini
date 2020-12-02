@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDecodingContainer {
     var currentIndex: Int
     var keys: [Int]
@@ -15,13 +14,12 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
     let referencedBy: Data?
 
     var count: Int? {
-        return values.count
+        values.count
     }
 
     var isAtEnd: Bool {
-        return currentIndex < values.count
+        currentIndex < values.count
     }
-
 
     init(from data: [[Data]], keyedBy keys: [Int], codingPath: [CodingKey] = [], referencedBy: Data? = nil) {
         self.currentIndex = 0
@@ -197,6 +195,14 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         throw ProtoError.decodingError("No data for given key")
     }
 
+    func decode(_ type: [Data].Type) throws -> [Data] {
+        if let values = popNext() {
+            // the data is already [Data] :D
+            return values
+        }
+        throw ProtoError.decodingError("No data for given key")
+    }
+
     func decode(_ type: [String].Type) throws -> [String] {
         if let values = popNext() {
             return decodeRepeatedString(values)
@@ -204,6 +210,7 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         throw ProtoError.decodingError("No data for given key")
     }
 
+    // swiftlint:disable cyclomatic_complexity function_body_length
     func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         // we need to switch here to also be able to decode structs with generic types
         // if struct has generic type, this will always end up here
@@ -226,6 +233,8 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
             return value
         } else if T.self == Float.self, let value = try decode(Float.self) as? T {
             return value
+        } else if T.self == [Bool].self, let value = try decode([Bool].self) as? T {
+            return value
         } else if T.self == [Float].self, let value = try decode([Float].self) as? T {
             return value
         } else if T.self == [Double].self, let value = try decode([Double].self) as? T {
@@ -240,11 +249,12 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
             return value
         } else if T.self == [String].self, let value = try decode([String].self) as? T {
             return value
+        } else if T.self == [Data].self, let value = try decode([Data].self) as? T {
+            return value
         } else if [Int.self, Int8.self, Int16.self,
                    UInt.self, UInt8.self, UInt16.self,
                    [Int].self, [Int8].self, [Int16].self,
-                   [UInt].self, [UInt8].self, [UInt16].self,
-                   [String].self].contains(where: { $0 == T.self }) {
+                   [UInt].self, [UInt8].self, [UInt16].self].contains(where: { $0 == T.self }) {
             throw ProtoError.decodingError("Decoding values of type \(T.self) is not supported yet")
         } else {
             // we encountered a nested structure
@@ -254,8 +264,10 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         }
         throw ProtoError.decodingError("No data for given key")
     }
+    // swiftlint:enable cyclomatic_complexity function_body_length
 
-    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
+    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws
+    -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
         if let value = popNext()?.last {
             return try InternalProtoDecoder(from: value).container(keyedBy: type)
         }

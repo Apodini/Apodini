@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 protocol ProtoCodingKey: CodingKey {
     static func protoRawValue(_ key: CodingKey) throws -> Int
 }

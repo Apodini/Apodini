@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 /// Uitily class that offers VarInt decoding functions
 class VarInt {
 
@@ -37,5 +36,25 @@ class VarInt {
 
         return (Data(bytes: &varInt, count: MemoryLayout.size(ofValue: varInt)),
                 currentIndex)
+    }
+
+    /// Returns:
+    ///     1. Int: the decoded VarInt
+    ///     2. Int: the index of the first byte after the decoded VarInt
+    public static func decodeToInt(_ data: Data, offset: Int) throws -> (Int, Int) {
+        let (varInt, newOffset) = try decode(data, offset: offset)
+
+        var littleEndianBytes: UInt64 = 0
+        varInt.withUnsafeBytes { rawBufferPointer in
+            let dataRawPtr = rawBufferPointer.baseAddress!
+            withUnsafeMutableBytes(of: &littleEndianBytes) { dest -> Void in
+                dest.copyMemory(from: UnsafeRawBufferPointer(start: dataRawPtr, count: 8))
+            }
+        }
+        var nativeEndianBytes = UInt64(littleEndian: littleEndianBytes)
+        var int: Int = 0
+        let size = MemoryLayout<Int>.size
+        memcpy(&int, &nativeEndianBytes, size)
+        return (int, newOffset)
     }
 }

@@ -7,9 +7,7 @@
 
 import Foundation
 
-
 class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContainer, KeyedEncodingContainerProtocol {
-
 
     public override init(using encoder: InternalProtoEncoder, codingPath: [CodingKey]) {
         super.init(using: encoder, codingPath: codingPath)
@@ -149,6 +147,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
         try encodeNestedMessage(value, tag: keyValue)
     }
 
+    // swiftlint:disable cyclomatic_complexity function_body_length
     func encode<T>(_ value: T, forKey key: Key) throws where T: Encodable {
         let keyValue = try extractIntValue(from: key)
         // we need to switch here to also be able to encode structs with generic types
@@ -204,6 +203,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
             try encodeNested(value, forKey: key)
         }
     }
+    // swiftlint:enable cyclomatic_complexity function_body_length
 
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key)
     -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {

@@ -7,17 +7,16 @@
 
 import Foundation
 
-
 /// Offers basic functionality shared by several decoding containers for Protobuffers.
 internal class InternalProtoDecodingContainer {
     var codingPath: [CodingKey]
-
 
     public init(codingPath: [CodingKey] = []) {
         self.codingPath = codingPath
     }
 
-    // Taken from SwiftProtobuf: https://github.com/apple/swift-protobuf/blob/master/Sources/SwiftProtobuf/BinaryDecoder.swift
+    /// Taken from SwiftProtobuf:
+    /// https://github.com/apple/swift-protobuf/blob/master/Sources/SwiftProtobuf/BinaryDecoder.swift
     private func decodeFourByteNumber<T>(from data: Data, into output: inout T) throws {
         data.withUnsafeBytes { rawBufferPointer in
             let dataRawPtr = rawBufferPointer.baseAddress!
@@ -27,7 +26,8 @@ internal class InternalProtoDecodingContainer {
         }
     }
 
-    // Taken from SwiftProtobuf: https://github.com/apple/swift-protobuf/blob/master/Sources/SwiftProtobuf/BinaryDecoder.swift
+    /// Taken from SwiftProtobuf:
+    /// https://github.com/apple/swift-protobuf/blob/master/Sources/SwiftProtobuf/BinaryDecoder.swift
     private func decodeEightByteNumber<T>(from data: Data, into output: inout T) throws {
         data.withUnsafeBytes { rawBufferPointer in
             let dataRawPtr = rawBufferPointer.baseAddress!

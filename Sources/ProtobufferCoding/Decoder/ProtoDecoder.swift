@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 internal class InternalProtoDecoder: Decoder {
     var codingPath: [CodingKey]
     var userInfo: [CodingUserInfoKey: Any]
@@ -25,7 +24,7 @@ internal class InternalProtoDecoder: Decoder {
     }
 
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
-        return KeyedDecodingContainer(KeyedProtoDecodingContainer(from: self.dictionary))
+        KeyedDecodingContainer(KeyedProtoDecodingContainer(from: self.dictionary))
     }
 
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
@@ -37,7 +36,6 @@ internal class InternalProtoDecoder: Decoder {
     func singleValueContainer() throws -> SingleValueDecodingContainer {
         throw ProtoError.unsupportedDecodingStrategy("Single value decoding not supported")
     }
-
 
     func decode(from: Data) -> [Int: [Data]] {
         var dictionary = [Int: [Data]]()
@@ -74,13 +72,12 @@ internal class InternalProtoDecoder: Decoder {
     }
 
     private func readLengthDelimited(from data: Data, fieldStartIndex: Int) throws -> (Data, Int) {
-        // the first byte contains the length of the value
-        let length = Int(data[fieldStartIndex])
+        // the first VarInt contains the length of the value
+        let (length, _) = try VarInt.decodeToInt(data, offset: fieldStartIndex)
         // assure we have enough bytes left to read
         if data.count - (fieldStartIndex+1) < length {
             throw ProtoError.decodingError("Not enough data left to code length-delimited value")
         }
-
         // here we make a copy, since the data here might be a nested data structure
         // this ensures the copy's byte indexing starts with 0 in the case the ProtoDecoder is invoked on it again
         let byteValue = data.subdata(in: (fieldStartIndex+1)..<(fieldStartIndex+length+1))
@@ -91,7 +88,7 @@ internal class InternalProtoDecoder: Decoder {
     // The length of the read data depends on the field-type.
     // The function returns the value, and the starting index of the next field tag.
     private func readField(from data: Data, fieldTag: Int, fieldType: Int, fieldStartIndex: Int) throws -> (Data, Int) {
-        guard let wireType = WireType.init(rawValue: fieldType) else {
+        guard let wireType = WireType(rawValue: fieldType) else {
             throw ProtoError.unknownType(fieldType)
         }
 
@@ -122,13 +119,17 @@ internal class InternalProtoDecoder: Decoder {
     }
 }
 
+/// Decoder for Protobuffer data.
+/// Coforms to `TopLevelDecoder` from `Combine`, however this is currently ommitted due to compatibility issues.
 public class ProtoDecoder {
 
     init() {}
 
-    public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable {
+    /// Decodes a Data that was encoded using Protobuffers into
+    /// a given struct of type T (T has to conform to Decodable).
+    public func decode<T>(_ type: T.Type, from data: Data) throws
+    -> T where T: Decodable {
         let decoder = InternalProtoDecoder(from: data)
         return try T(from: decoder)
-
     }
 }

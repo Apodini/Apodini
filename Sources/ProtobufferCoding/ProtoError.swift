@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 enum ProtoError: Error {
     case unknownCodingKey(_ codingKey: CodingKey)
     case unknownType(_ fieldType: Int)

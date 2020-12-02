@@ -7,13 +7,11 @@
 
 import Foundation
 
-
 internal class InternalProtoEncoder: Encoder {
     var codingPath: [CodingKey] = []
     var userInfo: [CodingUserInfoKey: Any] = [:]
     var data = Data()
     var hasContainer = false
-
 
     public init() { }
 

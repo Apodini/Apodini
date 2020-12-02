@@ -7,12 +7,10 @@
 
 import Foundation
 
-
 class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContainer, KeyedDecodingContainerProtocol {
     var allKeys: [Key]
     let data: [Int: [Data]]
     let referencedBy: Data?
-
 
     init(from data: [Int: [Data]], codingPath: [CodingKey] = [], referencedBy: Data? = nil) {
         self.data = data
@@ -46,7 +44,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decodeNil(forKey key: Key) throws -> Bool {
-        return false
+        false
     }
 
     func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
@@ -60,8 +58,9 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     func decode(_ type: String.Type, forKey key: Key) throws -> String {
         let keyValue = try extractIntValue(from: key)
-        if let value = data[keyValue]?.last {
-            return String(data: value, encoding: .utf8)!
+        if let value = data[keyValue]?.last,
+           let output = String(data: value, encoding: .utf8) {
+            return output
         }
         throw ProtoError.decodingError("No data for given key")
     }
@@ -237,6 +236,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         throw ProtoError.decodingError("No data for given key")
     }
 
+    // swiftlint:disable cyclomatic_complexity function_body_length
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T: Decodable {
         // we need to switch here to also be able to decode structs with generic types
         // if struct has generic type, this will always end up here
@@ -291,6 +291,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         }
         throw ProtoError.decodingError("No data for given key")
     }
+    // swiftlint:enable cyclomatic_complexity function_body_length
 
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws
     -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
@@ -317,6 +318,6 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func superDecoder(forKey key: Key) throws -> Decoder {
-        return try superDecoder()
+        try superDecoder()
     }
 }

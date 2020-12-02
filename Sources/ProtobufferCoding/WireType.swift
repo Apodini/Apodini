@@ -7,9 +7,9 @@
 
 import Foundation
 
-
 /// Represents the Protobuffer wire-types
-/// See documentation for further info about the wire-types: https://developers.google.com/protocol-buffers/docs/encoding#structure
+/// See documentation for further info about the wire-types:
+/// https://developers.google.com/protocol-buffers/docs/encoding#structure
 public enum WireType: Int {
     case varInt = 0
     case bit64 = 1
