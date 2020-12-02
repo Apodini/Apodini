@@ -53,7 +53,7 @@ internal class InternalProtoDecoder: Decoder {
                 let (value, newIndex) = try readField(from: from,
                                                       fieldTag: fieldTag,
                                                       fieldType: fieldType,
-                                                      fieldStartIndex: readIndex+1)
+                                                      fieldStartIndex: readIndex + 1)
 
                 // set cursor forward to the next field tag
                 readIndex = newIndex
@@ -75,13 +75,13 @@ internal class InternalProtoDecoder: Decoder {
         // the first VarInt contains the length of the value
         let (length, _) = try VarInt.decodeToInt(data, offset: fieldStartIndex)
         // assure we have enough bytes left to read
-        if data.count - (fieldStartIndex+1) < length {
+        if data.count - (fieldStartIndex + 1) < length {
             throw ProtoError.decodingError("Not enough data left to code length-delimited value")
         }
         // here we make a copy, since the data here might be a nested data structure
         // this ensures the copy's byte indexing starts with 0 in the case the ProtoDecoder is invoked on it again
-        let byteValue = data.subdata(in: (fieldStartIndex+1)..<(fieldStartIndex+length+1))
-        return (byteValue, fieldStartIndex+length+1)
+        let byteValue = data.subdata(in: (fieldStartIndex + 1) ..< (fieldStartIndex + length + 1))
+        return (byteValue, fieldStartIndex + length + 1)
     }
 
     // Function reads the value of a field from data, starting at byte-index fieldStartIndex.
@@ -97,11 +97,11 @@ internal class InternalProtoDecoder: Decoder {
             return try VarInt.decode(data, offset: fieldStartIndex)
 
         case WireType.bit64:
-            if fieldStartIndex+7 >= data.count {
+            if fieldStartIndex + 7 >= data.count {
                 throw ProtoError.decodingError("Not enough data left to read 64-bit value")
             }
-            let byteValue = data[fieldStartIndex...fieldStartIndex+7]
-            return (byteValue, fieldStartIndex+8)
+            let byteValue = data[fieldStartIndex ... (fieldStartIndex + 7)]
+            return (byteValue, fieldStartIndex + 8)
 
         case WireType.lengthDelimited:
             return try readLengthDelimited(from: data, fieldStartIndex: fieldStartIndex)
@@ -110,11 +110,11 @@ internal class InternalProtoDecoder: Decoder {
             throw ProtoError.unsupportedDataType("Groups are deprecated and not supported by this decoder")
 
         case WireType.bit32:
-            if fieldStartIndex+3 >= data.count {
-                throw ProtoError.decodingError("Not enough data left to read 64-bit value")
+            if fieldStartIndex + 3 >= data.count {
+                throw ProtoError.decodingError("Not enough data left to read 32-bit value")
             }
-            let byteValue = data[fieldStartIndex...fieldStartIndex+3]
-            return (byteValue, fieldStartIndex+4)
+            let byteValue = data[fieldStartIndex ... (fieldStartIndex + 3)]
+            return (byteValue, fieldStartIndex + 4)
         }
     }
 }
@@ -122,12 +122,11 @@ internal class InternalProtoDecoder: Decoder {
 /// Decoder for Protobuffer data.
 /// Coforms to `TopLevelDecoder` from `Combine`, however this is currently ommitted due to compatibility issues.
 public class ProtoDecoder {
-
     init() {}
 
     /// Decodes a Data that was encoded using Protobuffers into
     /// a given struct of type T (T has to conform to Decodable).
-    public func decode<T>(_ type: T.Type, from data: Data) throws
+    func decode<T>(_ type: T.Type, from data: Data) throws
     -> T where T: Decodable {
         let decoder = InternalProtoDecoder(from: data)
         return try T(from: decoder)

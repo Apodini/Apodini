@@ -277,10 +277,12 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
             return value
         } else if T.self == [Data].self, let value = try decode([Data].self, forKey: key) as? T {
             return value
-        } else if [Int.self, Int8.self, Int16.self,
-                   UInt.self, UInt8.self, UInt16.self,
-                   [Int].self, [Int8].self, [Int16].self,
-                   [UInt].self, [UInt8].self, [UInt16].self].contains(where: { $0 == T.self }) {
+        } else if [
+                    Int.self, Int8.self, Int16.self,
+                    UInt.self, UInt8.self, UInt16.self,
+                    [Int].self, [Int8].self, [Int16].self,
+                    [UInt].self, [UInt8].self, [UInt16].self
+        ].contains(where: { $0 == T.self }) {
             throw ProtoError.decodingError("Decoding values of type \(T.self) is not supported yet")
         } else {
             // we encountered a nested structure

@@ -30,7 +30,7 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         super.init(codingPath: codingPath)
     }
 
-    private func popNext() -> [Data]? {
+    private func popNext() -> [Data] {
         if !isAtEnd {
 //            let key = keys[currentIndex]
             let data = values[currentIndex]
@@ -40,15 +40,15 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         }
 
         print("No more data to decode")
-        return nil
+        return []
     }
 
     func decodeNil() throws -> Bool {
-        return false
+        false
     }
 
     func decode(_ type: Bool.Type) throws -> Bool {
-        if let value = popNext()?.last,
+        if let value = popNext().last,
            value.first != 0 {
             return true
         }
@@ -56,21 +56,22 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
     }
 
     func decode(_ type: String.Type) throws -> String {
-        if let value = popNext()?.last {
-            return String(data: value, encoding: .utf8)!
+        if let value = popNext().last,
+           let strValue = String(data: value, encoding: .utf8) {
+            return strValue
         }
         throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: Double.Type) throws -> Double {
-        if let value = popNext()?.last {
+        if let value = popNext().last {
             return try decodeDouble(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: Float.Type) throws -> Float {
-        if let value = popNext()?.last {
+        if let value = popNext().last {
             return try decodeFloat(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -89,14 +90,14 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
     }
 
     func decode(_ type: Int32.Type) throws -> Int32 {
-        if let value = popNext()?.last {
+        if let value = popNext().last {
             return try decodeInt32(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: Int64.Type) throws -> Int64 {
-        if let value = popNext()?.last {
+        if let value = popNext().last {
             return try decodeInt64(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -115,21 +116,21 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
     }
 
     func decode(_ type: UInt32.Type) throws -> UInt32 {
-        if let value = popNext()?.last {
+        if let value = popNext().last {
             return try decodeUInt32(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: UInt64.Type) throws -> UInt64 {
-        if let value = popNext()?.last {
+        if let value = popNext().last {
             return try decodeUInt64(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: [Bool].Type) throws -> [Bool] {
-        if let value = popNext()?.last {
+        if let value = popNext().last {
             return try decodeRepeatedBool(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -139,7 +140,7 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
-        if let value = popNext()?.last {
+        if let value = popNext().last {
             return try decodeRepeatedFloat(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -149,7 +150,7 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
-        if let value = popNext()?.last {
+        if let value = popNext().last {
             return try decodeRepeatedDouble(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -159,7 +160,7 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
-        if let value = popNext()?.last {
+        if let value = popNext().last {
             return try decodeRepeatedInt32(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -169,7 +170,7 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
-        if let value = popNext()?.last {
+        if let value = popNext().last {
             return try decodeRepeatedInt64(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -179,7 +180,7 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
-        if let value = popNext()?.last {
+        if let value = popNext().last {
             return try decodeRepeatedUInt32(value)
         }
         throw ProtoError.decodingError("No data for given key")
@@ -189,25 +190,21 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
-        if let value = popNext()?.last {
+        if let value = popNext().last {
             return try decodeRepeatedUInt64(value)
         }
         throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: [Data].Type) throws -> [Data] {
-        if let values = popNext() {
-            // the data is already [Data] :D
-            return values
-        }
-        throw ProtoError.decodingError("No data for given key")
+        let values = popNext()
+        // the data is already [Data] :D
+        return values
     }
 
     func decode(_ type: [String].Type) throws -> [String] {
-        if let values = popNext() {
-            return decodeRepeatedString(values)
-        }
-        throw ProtoError.decodingError("No data for given key")
+        let values = popNext()
+        return decodeRepeatedString(values)
     }
 
     // swiftlint:disable cyclomatic_complexity function_body_length
@@ -251,14 +248,16 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
             return value
         } else if T.self == [Data].self, let value = try decode([Data].self) as? T {
             return value
-        } else if [Int.self, Int8.self, Int16.self,
-                   UInt.self, UInt8.self, UInt16.self,
-                   [Int].self, [Int8].self, [Int16].self,
-                   [UInt].self, [UInt8].self, [UInt16].self].contains(where: { $0 == T.self }) {
+        } else if [
+                    Int.self, Int8.self, Int16.self,
+                    UInt.self, UInt8.self, UInt16.self,
+                    [Int].self, [Int8].self, [Int16].self,
+                    [UInt].self, [UInt8].self, [UInt16].self
+        ].contains(where: { $0 == T.self }) {
             throw ProtoError.decodingError("Decoding values of type \(T.self) is not supported yet")
         } else {
             // we encountered a nested structure
-            if let value = popNext()?.last {
+            if let value = popNext().last {
                 return try ProtoDecoder().decode(type, from: value)
             }
         }
@@ -268,14 +267,14 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
 
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws
     -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
-        if let value = popNext()?.last {
+        if let value = popNext().last {
             return try InternalProtoDecoder(from: value).container(keyedBy: type)
         }
         throw ProtoError.unsupportedDataType("nestedContainer not available")
     }
 
     func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
-        if let value = popNext()?.last {
+        if let value = popNext().last {
             return try InternalProtoDecoder(from: value).unkeyedContainer()
         }
         throw ProtoError.unsupportedDataType("nestedUnkeyedContainer not available")

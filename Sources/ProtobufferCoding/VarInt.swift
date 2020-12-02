@@ -7,12 +7,11 @@
 
 import Foundation
 
-/// Uitily class that offers VarInt decoding functions
-class VarInt {
-
+/// Uitily that offers VarInt decoding functions
+enum VarInt {
     /// Returns the Data that belongs to the VarInt (without the run-length encoding bits)
     /// and the index of the first byte after the VarInt
-    public static func decode(_ data: Data, offset: Int) throws -> (Data, Int) {
+    static func decode(_ data: Data, offset: Int) throws -> (Data, Int) {
         var varInt = Int64()
 
         var currentIndex = offset
@@ -26,7 +25,7 @@ class VarInt {
 
             // we need to drop the most significant bit of byte, and
             // append byte to beginning of varint (varints come in reversed order)
-            varInt = (Int64(byte & 0b01111111) << (7*count)) | varInt
+            varInt = (Int64(byte & 0b01111111) << (7 * count)) | varInt
 
             // if most significant bit is set, we need to continue with another byte
             hasNext = Int(byte & 0b10000000)
@@ -41,14 +40,15 @@ class VarInt {
     /// Returns:
     ///     1. Int: the decoded VarInt
     ///     2. Int: the index of the first byte after the decoded VarInt
-    public static func decodeToInt(_ data: Data, offset: Int) throws -> (Int, Int) {
+    static func decodeToInt(_ data: Data, offset: Int) throws -> (Int, Int) {
         let (varInt, newOffset) = try decode(data, offset: offset)
 
         var littleEndianBytes: UInt64 = 0
         varInt.withUnsafeBytes { rawBufferPointer in
-            let dataRawPtr = rawBufferPointer.baseAddress!
-            withUnsafeMutableBytes(of: &littleEndianBytes) { dest -> Void in
-                dest.copyMemory(from: UnsafeRawBufferPointer(start: dataRawPtr, count: 8))
+            if let dataRawPtr = rawBufferPointer.baseAddress {
+                withUnsafeMutableBytes(of: &littleEndianBytes) { dest -> Void in
+                    dest.copyMemory(from: UnsafeRawBufferPointer(start: dataRawPtr, count: 8))
+                }
             }
         }
         var nativeEndianBytes = UInt64(littleEndian: littleEndianBytes)

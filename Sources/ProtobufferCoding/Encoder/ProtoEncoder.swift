@@ -13,7 +13,7 @@ internal class InternalProtoEncoder: Encoder {
     var data = Data()
     var hasContainer = false
 
-    public init() { }
+    init() { }
 
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key: CodingKey {
         if hasContainer {
@@ -47,9 +47,10 @@ internal class InternalProtoEncoder: Encoder {
 
 }
 
+/// Encoder for Protobuffer data.
+/// Coforms to `TopLevelEncoder` from `Combine`, however this is currently ommitted due to compatibility issues.
 public class ProtoEncoder {
-
-    public func encode<T: Encodable>(_ value: T) throws -> Data {
+    func encode<T: Encodable>(_ value: T) throws -> Data {
         let encoder = InternalProtoEncoder()
         try value.encode(to: encoder)
         return try encoder.getEncoded()

@@ -184,10 +184,12 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
             try encode(value)
         } else if T.self == [String].self, let value = value as? [String] {
             try encode(value)
-        } else if [Int.self, Int8.self, Int16.self,
-                   UInt.self, UInt8.self, UInt16.self,
-                   [Int].self, [Int8].self, [Int16].self,
-                   [UInt].self, [UInt8].self, [UInt16].self].contains(where: { $0 == T.self }) {
+        } else if [
+                    Int.self, Int8.self, Int16.self,
+                    UInt.self, UInt8.self, UInt16.self,
+                    [Int].self, [Int8].self, [Int16].self,
+                    [UInt].self, [UInt8].self, [UInt16].self
+        ].contains(where: { $0 == T.self }) {
             throw ProtoError.decodingError("Encoding values of type \(T.self) is not supported yet")
         } else {
             // nested message
@@ -198,11 +200,11 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
 
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type)
     -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
-        return InternalProtoEncoder().container(keyedBy: keyType)
+        InternalProtoEncoder().container(keyedBy: keyType)
     }
 
     func nestedUnkeyedContainer() -> UnkeyedEncodingContainer {
-        return InternalProtoEncoder().unkeyedContainer()
+        InternalProtoEncoder().unkeyedContainer()
     }
 
     func superEncoder() -> Encoder {

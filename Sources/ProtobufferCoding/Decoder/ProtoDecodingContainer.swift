@@ -4,6 +4,11 @@
 //
 //  Created by Moritz Schüll on 28.11.20.
 //
+//  The decoding logic here was created with
+//  https://github.com/apple/swift-protobuf/blob/master/Sources/SwiftProtobuf/BinaryDecoder.swift
+//  as a reference.
+//  Thus, there are several similarities and also parts simply copied.
+//
 
 import Foundation
 
@@ -11,7 +16,7 @@ import Foundation
 internal class InternalProtoDecodingContainer {
     var codingPath: [CodingKey]
 
-    public init(codingPath: [CodingKey] = []) {
+    internal init(codingPath: [CodingKey] = []) {
         self.codingPath = codingPath
     }
 
@@ -19,9 +24,10 @@ internal class InternalProtoDecodingContainer {
     /// https://github.com/apple/swift-protobuf/blob/master/Sources/SwiftProtobuf/BinaryDecoder.swift
     private func decodeFourByteNumber<T>(from data: Data, into output: inout T) throws {
         data.withUnsafeBytes { rawBufferPointer in
-            let dataRawPtr = rawBufferPointer.baseAddress!
-            withUnsafeMutableBytes(of: &output) { dest -> Void in
-                dest.copyMemory(from: UnsafeRawBufferPointer(start: dataRawPtr, count: 4))
+            if let dataRawPtr = rawBufferPointer.baseAddress {
+                withUnsafeMutableBytes(of: &output) { dest -> Void in
+                    dest.copyMemory(from: UnsafeRawBufferPointer(start: dataRawPtr, count: 4))
+                }
             }
         }
     }
@@ -30,14 +36,15 @@ internal class InternalProtoDecodingContainer {
     /// https://github.com/apple/swift-protobuf/blob/master/Sources/SwiftProtobuf/BinaryDecoder.swift
     private func decodeEightByteNumber<T>(from data: Data, into output: inout T) throws {
         data.withUnsafeBytes { rawBufferPointer in
-            let dataRawPtr = rawBufferPointer.baseAddress!
-            withUnsafeMutableBytes(of: &output) { dest -> Void in
-                dest.copyMemory(from: UnsafeRawBufferPointer(start: dataRawPtr, count: 8))
+            if let dataRawPtr = rawBufferPointer.baseAddress {
+                withUnsafeMutableBytes(of: &output) { dest -> Void in
+                    dest.copyMemory(from: UnsafeRawBufferPointer(start: dataRawPtr, count: 8))
+                }
             }
         }
     }
 
-    public func decodeDouble(_ data: Data) throws -> Double {
+    internal func decodeDouble(_ data: Data) throws -> Double {
         var littleEndianBytes: UInt64 = 0
         try decodeEightByteNumber(from: data, into: &littleEndianBytes)
         var nativeEndianBytes = UInt64(littleEndian: littleEndianBytes)
@@ -47,7 +54,7 @@ internal class InternalProtoDecodingContainer {
         return double
     }
 
-    public func decodeFloat(_ data: Data) throws -> Float {
+    internal func decodeFloat(_ data: Data) throws -> Float {
         var littleEndianBytes: UInt32 = 0
         try decodeFourByteNumber(from: data, into: &littleEndianBytes)
         var nativeEndianBytes = UInt32(littleEndian: littleEndianBytes)
@@ -57,7 +64,7 @@ internal class InternalProtoDecodingContainer {
         return float
     }
 
-    public func decodeInt32(_ data: Data) throws -> Int32 {
+    internal func decodeInt32(_ data: Data) throws -> Int32 {
         var littleEndianBytes: UInt32 = 0
         try decodeFourByteNumber(from: data, into: &littleEndianBytes)
         var nativeEndianBytes = UInt32(littleEndian: littleEndianBytes)
@@ -67,7 +74,7 @@ internal class InternalProtoDecodingContainer {
         return int32
     }
 
-    public func decodeInt64(_ data: Data) throws -> Int64 {
+    internal func decodeInt64(_ data: Data) throws -> Int64 {
         var littleEndianBytes: UInt64 = 0
         try decodeEightByteNumber(from: data, into: &littleEndianBytes)
         var nativeEndianBytes = UInt64(littleEndian: littleEndianBytes)
@@ -77,7 +84,7 @@ internal class InternalProtoDecodingContainer {
         return int64
     }
 
-    public func decodeUInt32(_ data: Data) throws -> UInt32 {
+    internal func decodeUInt32(_ data: Data) throws -> UInt32 {
         var littleEndianBytes: UInt32 = 0
         try decodeFourByteNumber(from: data, into: &littleEndianBytes)
         var nativeEndianBytes = UInt32(littleEndian: littleEndianBytes)
@@ -87,7 +94,7 @@ internal class InternalProtoDecodingContainer {
         return uint32
     }
 
-    public func decodeUInt64(_ data: Data) throws -> UInt64 {
+    internal func decodeUInt64(_ data: Data) throws -> UInt64 {
         var littleEndianBytes: UInt64 = 0
         try decodeEightByteNumber(from: data, into: &littleEndianBytes)
         var nativeEndianBytes = UInt64(littleEndian: littleEndianBytes)
@@ -97,12 +104,12 @@ internal class InternalProtoDecodingContainer {
         return uint64
     }
 
-    public func decodeRepeatedBool(_ data: Data) throws -> [Bool] {
+    internal func decodeRepeatedBool(_ data: Data) throws -> [Bool] {
         var output: [Bool] = []
         var offset = 0
         while offset < data.count {
             // floats are fixed 1 byte in length
-            let number = data[offset..<offset+1]
+            let number = data[offset ..< (offset + 1)]
             if number.first != 0 {
                 output.append(true)
             } else {
@@ -113,31 +120,31 @@ internal class InternalProtoDecodingContainer {
         return output
     }
 
-    public func decodeRepeatedFloat(_ data: Data) throws -> [Float] {
+    internal func decodeRepeatedFloat(_ data: Data) throws -> [Float] {
         var output: [Float] = []
         var offset = 0
         while offset < data.count {
             // floats are fixed 32 bit in length
-            let number = data[offset..<offset+4]
+            let number = data[offset ..< (offset + 4)]
             output.append(try decodeFloat(number))
             offset += 4
         }
         return output
     }
 
-    public func decodeRepeatedDouble(_ data: Data) throws -> [Double] {
+    internal func decodeRepeatedDouble(_ data: Data) throws -> [Double] {
         var output: [Double] = []
         var offset = 0
         while offset < data.count {
             // floats are fixed 64 bit in length
-            let number = data[offset..<offset+8]
+            let number = data[offset ..< (offset + 8)]
             output.append(try decodeDouble(number))
             offset += 8
         }
         return output
     }
 
-    public func decodeRepeatedInt32(_ data: Data) throws -> [Int32] {
+    internal func decodeRepeatedInt32(_ data: Data) throws -> [Int32] {
         var output: [Int32] = []
         var offset = 0
         while offset < data.count {
@@ -149,7 +156,7 @@ internal class InternalProtoDecodingContainer {
         return output
     }
 
-    public func decodeRepeatedInt64(_ data: Data) throws -> [Int64] {
+    internal func decodeRepeatedInt64(_ data: Data) throws -> [Int64] {
         var output: [Int64] = []
         var offset = 0
         while offset < data.count {
@@ -161,7 +168,7 @@ internal class InternalProtoDecodingContainer {
         return output
     }
 
-    public func decodeRepeatedUInt32(_ data: Data) throws -> [UInt32] {
+    internal func decodeRepeatedUInt32(_ data: Data) throws -> [UInt32] {
         var output: [UInt32] = []
         var offset = 0
         while offset < data.count {
@@ -173,7 +180,7 @@ internal class InternalProtoDecodingContainer {
         return output
     }
 
-    public func decodeRepeatedUInt64(_ data: Data) throws -> [UInt64] {
+    internal func decodeRepeatedUInt64(_ data: Data) throws -> [UInt64] {
         var output: [UInt64] = []
         var offset = 0
         while offset < data.count {
@@ -185,10 +192,12 @@ internal class InternalProtoDecodingContainer {
         return output
     }
 
-    public func decodeRepeatedString(_ data: [Data]) -> [String] {
+    internal func decodeRepeatedString(_ data: [Data]) -> [String] {
         var output: [String] = []
         for value in data {
-            output.append(String(data: value, encoding: .utf8)!)
+            if let strValue = String(data: value, encoding: .utf8) {
+                output.append(strValue)
+            }
         }
         return output
     }
