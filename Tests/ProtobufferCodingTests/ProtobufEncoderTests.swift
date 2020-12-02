@@ -9,68 +9,12 @@ import Foundation
 import XCTest
 @testable import ProtobufferCoding
 
-struct Message<T: Codable>: Codable {
-    var content: T
-    enum CodingKeys: Int, CodingKey {
-        case content = 1
-    }
-}
-
-struct ComplexMessage: Codable {
-    var numberInt32: Int32
-    var numberUint32: UInt32
-    var numberBool: Bool
-    var enumValue: Int32
-    var numberDouble: Double
-    var content: String
-    var byteData: Data
-    var nestedMessage: Message<String>
-    var numberFloat: Float
-
-    enum CodingKeys: String, CodingKey, ProtoCodingKey {
-        case numberInt32
-        case numberUint32
-        case numberBool
-        case enumValue
-        case numberDouble
-        case content
-        case byteData
-        case nestedMessage
-        case numberFloat
-
-        static func protoRawValue(_ key: CodingKey) throws -> Int {
-            switch key {
-            case CodingKeys.numberInt32:
-                return 1
-            case numberUint32:
-                return 2
-            case numberBool:
-                return 4
-            case enumValue:
-                return 5
-            case numberDouble:
-                return 8
-            case content:
-                return 9
-            case byteData:
-                return 10
-            case nestedMessage:
-                return 11
-            case numberFloat:
-                return 14
-            default:
-                throw ProtoError.unknownCodingKey(key)
-            }
-        }
-    }
-}
-
 class ProtobufEncoderTests: XCTestCase {
     func testEncodePositiveInt32() throws {
         let expected = Data([8, 185, 96])
         let number: Int32 = 12345
 
-        let message = Message(content: number)
+        let message = ProtoTestMessage(content: number)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodePositiveInt32")
     }
@@ -79,7 +23,7 @@ class ProtobufEncoderTests: XCTestCase {
         let expected = Data([8, 199, 159, 255, 255, 255, 255, 255, 255, 255, 1])
         let number: Int32 = -12345
 
-        let message = Message(content: number)
+        let message = ProtoTestMessage(content: number)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeNegativeInt32")
     }
@@ -88,7 +32,7 @@ class ProtobufEncoderTests: XCTestCase {
         let expected = Data([8, 185, 96])
         let number: UInt32 = 12345
 
-        let message = Message(content: number)
+        let message = ProtoTestMessage(content: number)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeUInt32")
     }
@@ -96,7 +40,7 @@ class ProtobufEncoderTests: XCTestCase {
     func testEncodeBool() throws {
         let expected = Data([8, 1])
 
-        let message = Message(content: true)
+        let message = ProtoTestMessage(content: true)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeBool")
     }
@@ -105,7 +49,7 @@ class ProtobufEncoderTests: XCTestCase {
         let expected = Data([9, 88, 168, 53, 205, 143, 28, 200, 64])
         let number: Double = 12345.12345
 
-        let message = Message(content: number)
+        let message = ProtoTestMessage(content: number)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeDouble")
     }
@@ -114,7 +58,7 @@ class ProtobufEncoderTests: XCTestCase {
         let expected = Data([13, 126, 228, 64, 70])
         let number: Float = 12345.12345
 
-        let message = Message(content: number)
+        let message = ProtoTestMessage(content: number)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeFloat")
     }
@@ -123,7 +67,7 @@ class ProtobufEncoderTests: XCTestCase {
         let expected = Data([10, 11, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100])
         let content: String = "Hello World"
 
-        let message = Message(content: content)
+        let message = ProtoTestMessage(content: content)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeString")
     }
@@ -132,7 +76,7 @@ class ProtobufEncoderTests: XCTestCase {
         let expected = Data([10, 6, 1, 2, 3, 253, 254, 255])
         let bytes = Data([1, 2, 3, 253, 254, 255])
 
-        let message = Message(content: bytes)
+        let message = ProtoTestMessage(content: bytes)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeBytes")
     }
@@ -141,7 +85,7 @@ class ProtobufEncoderTests: XCTestCase {
         let expected = Data([10, 3, 1, 0, 1])
         let content = [true, false, true]
 
-        let message = Message(content: content)
+        let message = ProtoTestMessage(content: content)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeRepeatedBool")
     }
@@ -150,7 +94,7 @@ class ProtobufEncoderTests: XCTestCase {
         let expected = Data([10, 5, 1, 2, 3, 4, 5])
         let content: [Int32] = [1, 2, 3, 4, 5]
 
-        let message = Message(content: content)
+        let message = ProtoTestMessage(content: content)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeRepeatedInt32")
     }
@@ -164,7 +108,7 @@ class ProtobufEncoderTests: XCTestCase {
         ])
         let content: [Int64] = [1234567891011, 1234567891012, 1234567891013, 1234567891014, 1234567891015]
 
-        let message = Message(content: content)
+        let message = ProtoTestMessage(content: content)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeRepeatedInt64")
     }
@@ -177,7 +121,7 @@ class ProtobufEncoderTests: XCTestCase {
         ])
         let content: [Float] = [123.123, 123.234, 123.345, 123.456, 123.567]
 
-        let message = Message(content: content)
+        let message = ProtoTestMessage(content: content)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeRepeatedFloat")
     }
@@ -191,7 +135,7 @@ class ProtobufEncoderTests: XCTestCase {
         ])
         let content: [Double] = [123456789.123456789, 123456789.223456789, 123456789.323456789]
 
-        let message = Message(content: content)
+        let message = ProtoTestMessage(content: content)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeRepeatedDouble")
     }
@@ -200,7 +144,7 @@ class ProtobufEncoderTests: XCTestCase {
         let expected = Data([10, 5, 1, 2, 3, 4, 5])
         let content: [UInt32] = [1, 2, 3, 4, 5]
 
-        let message = Message(content: content)
+        let message = ProtoTestMessage(content: content)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeRepeatedUInt32")
     }
@@ -212,7 +156,7 @@ class ProtobufEncoderTests: XCTestCase {
         let bytes3: [UInt8] = [5, 6]
         let content: [Data] = [Data(bytes1), Data(bytes2), Data(bytes3)]
 
-        let message = Message(content: content)
+        let message = ProtoTestMessage(content: content)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeRepeatedData")
     }
@@ -221,7 +165,7 @@ class ProtobufEncoderTests: XCTestCase {
         let expected = Data([10, 4, 101, 105, 110, 115, 10, 4, 122, 119, 101, 105, 10, 4, 100, 114, 101, 105])
         let content = ["eins", "zwei", "drei"]
 
-        let message = Message(content: content)
+        let message = ProtoTestMessage(content: content)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeRepeatedString")
     }
@@ -237,7 +181,7 @@ class ProtobufEncoderTests: XCTestCase {
                             114, 105, 99, 104, 116, 46, 117, 126, 228, 64, 70
     ])
 
-    let complexMessage = ComplexMessage(
+    let complexMessage = ProtoComplexTestMessage(
         numberInt32: -12345,
         numberUint32: 12345,
         numberBool: true,
@@ -245,7 +189,7 @@ class ProtobufEncoderTests: XCTestCase {
         numberDouble: 12345.12345,
         content: "Hello World",
         byteData: Data([1, 2, 3, 253, 254, 255]),
-        nestedMessage: Message(
+        nestedMessage: ProtoTestMessage(
             content: "Hallo, das ist eine Sub-Nachricht."
         ),
         numberFloat: 12345.12345
