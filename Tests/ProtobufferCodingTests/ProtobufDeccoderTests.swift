@@ -9,63 +9,63 @@ import Foundation
 import XCTest
 @testable import ProtobufferCoding
 
-class ProtobufDecoderTests: XCTestCase {
-    struct Message<T: Codable>: Codable {
-        var content: T
-        enum CodingKeys: Int, CodingKey {
-            case content = 1
-        }
+struct Message<T: Codable>: Codable {
+    var content: T
+    enum CodingKeys: Int, CodingKey {
+        case content = 1
     }
+}
 
-    struct ComplexMessage: Codable {
-        var numberInt32: Int32
-        var numberUint32: UInt32
-        var numberBool: Bool
-        var enumValue: Int32
-        var numberDouble: Double
-        var content: String
-        var byteData: Data
-        var nestedMessage: Message<String>
-        var numberFloat: Float
+struct ComplexMessage: Codable {
+    var numberInt32: Int32
+    var numberUint32: UInt32
+    var numberBool: Bool
+    var enumValue: Int32
+    var numberDouble: Double
+    var content: String
+    var byteData: Data
+    var nestedMessage: Message<String>
+    var numberFloat: Float
 
-        enum CodingKeys: String, CodingKey, ProtoCodingKey {
-            case numberInt32
-            case numberUint32
-            case numberBool
-            case enumValue
-            case numberDouble
-            case content
-            case byteData
-            case nestedMessage
-            case numberFloat
+    enum CodingKeys: String, CodingKey, ProtoCodingKey {
+        case numberInt32
+        case numberUint32
+        case numberBool
+        case enumValue
+        case numberDouble
+        case content
+        case byteData
+        case nestedMessage
+        case numberFloat
 
-            static func protoRawValue(_ key: CodingKey) throws -> Int {
-                switch key {
-                case CodingKeys.numberInt32:
-                    return 1
-                case numberUint32:
-                    return 2
-                case numberBool:
-                    return 4
-                case enumValue:
-                    return 5
-                case numberDouble:
-                    return 8
-                case content:
-                    return 9
-                case byteData:
-                    return 10
-                case nestedMessage:
-                    return 11
-                case numberFloat:
-                    return 14
-                default:
-                    throw ProtoError.unknownCodingKey(key)
-                }
+        static func protoRawValue(_ key: CodingKey) throws -> Int {
+            switch key {
+            case CodingKeys.numberInt32:
+                return 1
+            case numberUint32:
+                return 2
+            case numberBool:
+                return 4
+            case enumValue:
+                return 5
+            case numberDouble:
+                return 8
+            case content:
+                return 9
+            case byteData:
+                return 10
+            case nestedMessage:
+                return 11
+            case numberFloat:
+                return 14
+            default:
+                throw ProtoError.unknownCodingKey(key)
             }
         }
     }
+}
 
+class ProtobufDecoderTests: XCTestCase {
     func testDecodePositiveInt32() throws {
         let positiveData = Data([8, 185, 96])
         let positiveExpected: Int32 = 12345
@@ -245,7 +245,9 @@ class ProtobufDecoderTests: XCTestCase {
         XCTAssertEqual(message.numberDouble, expectedComplexMessage.numberDouble, "testDecodeComplexDouble")
         XCTAssertEqual(message.content, expectedComplexMessage.content, "testDecodeComplexString")
         XCTAssertEqual(message.byteData, expectedComplexMessage.byteData, "testDecodeComplexBytes")
-        XCTAssertEqual(message.nestedMessage.content, expectedComplexMessage.nestedMessage.content, "testDecodeComplexString")
+        XCTAssertEqual(message.nestedMessage.content,
+                       expectedComplexMessage.nestedMessage.content,
+                       "testDecodeComplexString")
         XCTAssertEqual(message.numberFloat, expectedComplexMessage.numberFloat, "testDecodeComplexFloat")
     }
 
@@ -253,18 +255,33 @@ class ProtobufDecoderTests: XCTestCase {
     /// by using an unkeyed container.
     func testDecodeUnknownComplexMessage() throws {
         var container = try ProtoDecoder().decode(from: dataComplexMessage)
-
-        XCTAssertEqual(try container.decode(Int32.self), expectedComplexMessage.numberInt32, "testDecodeUnknownComplexInt32")
-        XCTAssertEqual(try container.decode(UInt32.self), expectedComplexMessage.numberUint32, "testDecodeUnknownComplexUInt32")
-        XCTAssertEqual(try container.decode(Bool.self), expectedComplexMessage.numberBool, "testDecodeUnknownComplexBool")
-        XCTAssertEqual(try container.decode(Int32.self), expectedComplexMessage.enumValue, "testDecodeUnknownComplexEnum")
-        XCTAssertEqual(try container.decode(Double.self), expectedComplexMessage.numberDouble, "testDecodeUnknownComplexDouble")
-        XCTAssertEqual(try container.decode(String.self), expectedComplexMessage.content, "testDecodeUnknownComplexString")
-        XCTAssertEqual(try container.decode(Data.self), expectedComplexMessage.byteData, "testDecodeUnknownComplexBytes")
-
+        XCTAssertEqual(try container.decode(Int32.self),
+                       expectedComplexMessage.numberInt32,
+                       "testDecodeUnknownComplexInt32")
+        XCTAssertEqual(try container.decode(UInt32.self),
+                       expectedComplexMessage.numberUint32,
+                       "testDecodeUnknownComplexUInt32")
+        XCTAssertEqual(try container.decode(Bool.self),
+                       expectedComplexMessage.numberBool,
+                       "testDecodeUnknownComplexBool")
+        XCTAssertEqual(try container.decode(Int32.self),
+                       expectedComplexMessage.enumValue,
+                       "testDecodeUnknownComplexEnum")
+        XCTAssertEqual(try container.decode(Double.self),
+                       expectedComplexMessage.numberDouble,
+                       "testDecodeUnknownComplexDouble")
+        XCTAssertEqual(try container.decode(String.self),
+                       expectedComplexMessage.content,
+                       "testDecodeUnknownComplexString")
+        XCTAssertEqual(try container.decode(Data.self),
+                       expectedComplexMessage.byteData,
+                       "testDecodeUnknownComplexBytes")
         var nestedContainer = try container.nestedUnkeyedContainer()
-        XCTAssertEqual(try nestedContainer.decode(String.self), expectedComplexMessage.nestedMessage.content, "testDecodeUnknownComplexString")
-
-        XCTAssertEqual(try container.decode(Float.self), expectedComplexMessage.numberFloat, "testDecodeUnknownComplexFloat")
+        XCTAssertEqual(try nestedContainer.decode(String.self),
+                       expectedComplexMessage.nestedMessage.content,
+                       "testDecodeUnknownComplexString")
+        XCTAssertEqual(try container.decode(Float.self),
+                       expectedComplexMessage.numberFloat,
+                       "testDecodeUnknownComplexFloat")
     }
 }

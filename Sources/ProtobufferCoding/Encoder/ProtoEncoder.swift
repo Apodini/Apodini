@@ -49,7 +49,7 @@ internal class InternalProtoEncoder: Encoder {
 /// Encoder for Protobuffer data.
 /// Coforms to `TopLevelEncoder` from `Combine`, however this is currently ommitted due to compatibility issues.
 public class ProtoEncoder {
-    private var encoder: InternalProtoEncoder? = nil
+    private var encoder: InternalProtoEncoder?
 
     func encode<T: Encodable>(_ value: T) throws -> Data {
         let encoder = InternalProtoEncoder()
