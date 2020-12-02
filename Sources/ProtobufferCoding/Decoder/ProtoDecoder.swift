@@ -37,7 +37,7 @@ internal class InternalProtoDecoder: Decoder {
     }
 
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        return UnkeyedProtoDecodingContainer(from: entries, codingPath: codingPath)
+        UnkeyedProtoDecodingContainer(from: entries, codingPath: codingPath)
     }
 
     func singleValueContainer() throws -> SingleValueDecodingContainer {
