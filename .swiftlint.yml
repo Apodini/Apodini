@@ -31,8 +31,6 @@ only_rules:
     # The initializers declared in compiler protocols such as ExpressibleByArrayLiteral shouldn't be called directly.
   - computed_accessors_order
     # Getter and setters in computed properties and subscripts should be in a consistent order.
-  - conditional_returns_on_newline
-    # Conditional statements should always return on the next line
   - contains_over_filter_count
     # Prefer contains over comparing filter(where:).count to 0.
   - contains_over_filter_is_empty
