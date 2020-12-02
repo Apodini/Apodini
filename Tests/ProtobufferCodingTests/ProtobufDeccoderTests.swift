@@ -210,41 +210,61 @@ class ProtobufDecoderTests: XCTestCase {
         XCTAssertEqual(message.content, expected, "testDecodeRepeatedString")
     }
 
+    // MARK: Complex message
+    let dataComplexMessage = Data([
+                        8, 199, 159, 255, 255, 255, 255, 255, 255, 255, 1,
+                        16, 185, 96, 32, 1, 40, 2, 65, 88, 168, 53, 205,
+                        143, 28, 200, 64, 74, 11, 72, 101, 108, 108, 111,
+                        32, 87, 111, 114, 108, 100, 82, 6, 1, 2, 3, 253, 254,
+                        255, 90, 36, 10, 34, 72, 97, 108, 108, 111, 44, 32,
+                        100, 97, 115, 32, 105, 115, 116, 32, 101, 105, 110,
+                        101, 32, 83, 117, 98, 45, 78, 97, 99, 104, 114, 105,
+                        99, 104, 116, 46, 117, 126, 228, 64, 70
+    ])
+
+    let expectedComplexMessage = ComplexMessage(
+        numberInt32: -12345,
+        numberUint32: 12345,
+        numberBool: true,
+        enumValue: 2,
+        numberDouble: 12345.12345,
+        content: "Hello World",
+        byteData: Data([1, 2, 3, 253, 254, 255]),
+        nestedMessage: Message(
+            content: "Hallo, das ist eine Sub-Nachricht."
+        ),
+        numberFloat: 12345.12345
+    )
+
     func testDecodeComplexMessage() throws {
-        let data = Data([
-                            8, 199, 159, 255, 255, 255, 255, 255, 255, 255, 1,
-                            16, 185, 96, 32, 1, 40, 2, 65, 88, 168, 53, 205,
-                            143, 28, 200, 64, 74, 11, 72, 101, 108, 108, 111,
-                            32, 87, 111, 114, 108, 100, 82, 6, 1, 2, 3, 253, 254,
-                            255, 90, 36, 10, 34, 72, 97, 108, 108, 111, 44, 32,
-                            100, 97, 115, 32, 105, 115, 116, 32, 101, 105, 110,
-                            101, 32, 83, 117, 98, 45, 78, 97, 99, 104, 114, 105,
-                            99, 104, 116, 46, 117, 126, 228, 64, 70
-        ])
+        let message = try ProtoDecoder().decode(ComplexMessage.self, from: dataComplexMessage)
+        XCTAssertEqual(message.numberInt32, expectedComplexMessage.numberInt32, "testDecodeComplexInt32")
+        XCTAssertEqual(message.numberUint32, expectedComplexMessage.numberUint32, "testDecodeComplexUInt32")
+        XCTAssertEqual(message.numberBool, expectedComplexMessage.numberBool, "testDecodeComplexBool")
+        XCTAssertEqual(message.enumValue, expectedComplexMessage.enumValue, "testDecodeComplexEnum")
+        XCTAssertEqual(message.numberDouble, expectedComplexMessage.numberDouble, "testDecodeComplexDouble")
+        XCTAssertEqual(message.content, expectedComplexMessage.content, "testDecodeComplexString")
+        XCTAssertEqual(message.byteData, expectedComplexMessage.byteData, "testDecodeComplexBytes")
+        XCTAssertEqual(message.nestedMessage.content, expectedComplexMessage.nestedMessage.content, "testDecodeComplexString")
+        XCTAssertEqual(message.numberFloat, expectedComplexMessage.numberFloat, "testDecodeComplexFloat")
+    }
 
-        let expected = ComplexMessage(
-            numberInt32: -12345,
-            numberUint32: 12345,
-            numberBool: true,
-            enumValue: 2,
-            numberDouble: 12345.12345,
-            content: "Hello World",
-            byteData: Data([1, 2, 3, 253, 254, 255]),
-            nestedMessage: Message(
-                content: "Hallo, das ist eine Sub-Nachricht."
-            ),
-            numberFloat: 12345.12345
-        )
+    /// Decodes an unknown type (which means, no Decodable struct is known),
+    /// by using an unkeyed container.
+    func testDecodeUnknownComplexMessage() throws {
+        var container = try ProtoDecoder().decode(from: dataComplexMessage)
 
-        let message = try ProtoDecoder().decode(ComplexMessage.self, from: data)
-        XCTAssertEqual(message.numberInt32, expected.numberInt32, "testDecodeComplexInt32")
-        XCTAssertEqual(message.numberUint32, expected.numberUint32, "testDecodeComplexUInt32")
-        XCTAssertEqual(message.numberBool, expected.numberBool, "testDecodeComplexBool")
-        XCTAssertEqual(message.enumValue, expected.enumValue, "testDecodeComplexEnum")
-        XCTAssertEqual(message.numberDouble, expected.numberDouble, "testDecodeComplexDouble")
-        XCTAssertEqual(message.content, expected.content, "testDecodeComplexString")
-        XCTAssertEqual(message.byteData, expected.byteData, "testDecodeComplexBytes")
-        XCTAssertEqual(message.nestedMessage.content, expected.nestedMessage.content, "testDecodeComplexString")
-        XCTAssertEqual(message.numberFloat, expected.numberFloat, "testDecodeComplexFloat")
+        XCTAssertEqual(try container.decode(Int32.self), expectedComplexMessage.numberInt32, "testDecodeUnknownComplexInt32")
+        XCTAssertEqual(try container.decode(UInt32.self), expectedComplexMessage.numberUint32, "testDecodeUnknownComplexUInt32")
+        XCTAssertEqual(try container.decode(Bool.self), expectedComplexMessage.numberBool, "testDecodeUnknownComplexBool")
+        XCTAssertEqual(try container.decode(Int32.self), expectedComplexMessage.enumValue, "testDecodeUnknownComplexEnum")
+        XCTAssertEqual(try container.decode(Double.self), expectedComplexMessage.numberDouble, "testDecodeUnknownComplexDouble")
+        XCTAssertEqual(try container.decode(String.self), expectedComplexMessage.content, "testDecodeUnknownComplexString")
+        XCTAssertEqual(try container.decode(Data.self), expectedComplexMessage.byteData, "testDecodeUnknownComplexBytes")
+
+        var nestedContainer = try container.nestedUnkeyedContainer()
+        XCTAssertEqual(try nestedContainer.decode(String.self), expectedComplexMessage.nestedMessage.content, "testDecodeUnknownComplexString")
+
+        XCTAssertEqual(try container.decode(Float.self), expectedComplexMessage.numberFloat, "testDecodeUnknownComplexFloat")
     }
 }

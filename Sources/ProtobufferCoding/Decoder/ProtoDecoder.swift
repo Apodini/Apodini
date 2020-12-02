@@ -12,15 +12,24 @@ internal class InternalProtoDecoder: Decoder {
     var userInfo: [CodingUserInfoKey: Any]
 
     let data: Data
+    // Building two data structures here:
+    //  - dictionary: for the keyed container (to have fast access via key)
+    //  - entries: for the unkeyed container (to preserve order, which dictionary does not)
     var dictionary: [Int: [Data]]
+    var entries: [[Data]]
+    // helper to keep track of which key is placed at which index in entries
+    // only needed for build-up of entries (to ensure all values with same key end up at same index)
+    var keyIndices: [Int: Int]
 
     init(from data: Data) {
         self.data = data
-        self.dictionary = [:]
+        dictionary = [:]
+        entries = []
+        keyIndices = [:]
         codingPath = []
         userInfo = [:]
 
-        dictionary = decode(from: data)
+        decode(from: data)
     }
 
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
@@ -28,17 +37,16 @@ internal class InternalProtoDecoder: Decoder {
     }
 
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        let keys: [Int] = Array(dictionary.keys)
-        let values: [[Data]] = Array(dictionary.values)
-        return UnkeyedProtoDecodingContainer(from: values, keyedBy: keys, codingPath: codingPath)
+        return UnkeyedProtoDecodingContainer(from: entries, codingPath: codingPath)
     }
 
     func singleValueContainer() throws -> SingleValueDecodingContainer {
         throw ProtoError.unsupportedDecodingStrategy("Single value decoding not supported")
     }
 
-    func decode(from: Data) -> [Int: [Data]] {
-        var dictionary = [Int: [Data]]()
+    func decode(from: Data) {
+        dictionary = [Int: [Data]]()
+        entries = []
 
         // points to the byte we want to read next
         var readIndex = 0
@@ -59,16 +67,16 @@ internal class InternalProtoDecoder: Decoder {
                 readIndex = newIndex
                 if dictionary[fieldTag] == nil {
                     dictionary[fieldTag] = [value]
-                } else {
+                    keyIndices[fieldTag] = entries.count
+                    entries.append([value])
+                } else if let index = keyIndices[fieldTag] {
                     dictionary[fieldTag]?.append(value)
+                    entries[index].append(value)
                 }
             } catch {
                 print("Unable for decode field with tag=\(fieldTag) and type=\(fieldType). Stop decoding.")
-                return dictionary
             }
         }
-
-        return dictionary
     }
 
     private func readLengthDelimited(from data: Data, fieldStartIndex: Int) throws -> (Data, Int) {
@@ -130,5 +138,12 @@ public class ProtoDecoder {
     -> T where T: Decodable {
         let decoder = InternalProtoDecoder(from: data)
         return try T(from: decoder)
+    }
+
+    /// Can be used to  decode an unknown type, e.g. when no `Decodable` struct is available.
+    /// Returns a `UnkeyedDecodingContainer` that can be used to sequentially decode the values the data contains.
+    func decode(from data: Data) throws -> UnkeyedDecodingContainer {
+        let decoder = InternalProtoDecoder(from: data)
+        return try decoder.unkeyedContainer()
     }
 }

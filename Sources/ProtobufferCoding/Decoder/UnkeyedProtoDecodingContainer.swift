@@ -9,7 +9,6 @@ import Foundation
 
 class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDecodingContainer {
     var currentIndex: Int
-    var keys: [Int]
     var values: [[Data]]
     let referencedBy: Data?
 
@@ -18,12 +17,11 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
     }
 
     var isAtEnd: Bool {
-        currentIndex < values.count
+        currentIndex >= values.count
     }
 
-    init(from data: [[Data]], keyedBy keys: [Int], codingPath: [CodingKey] = [], referencedBy: Data? = nil) {
+    init(from data: [[Data]], codingPath: [CodingKey] = [], referencedBy: Data? = nil) {
         self.currentIndex = 0
-        self.keys = keys
         self.values = data
         self.referencedBy = referencedBy
 
@@ -32,10 +30,8 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
 
     private func popNext() -> [Data] {
         if !isAtEnd {
-//            let key = keys[currentIndex]
             let data = values[currentIndex]
             currentIndex += 1
-//            codingPath.append(key)
             return data
         }
 
@@ -59,6 +55,13 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         if let value = popNext().last,
            let strValue = String(data: value, encoding: .utf8) {
             return strValue
+        }
+        throw ProtoError.decodingError("No data for given key")
+    }
+
+    func decode(_ type: Data.Type) throws -> Data {
+        if let value = popNext().last {
+            return value
         }
         throw ProtoError.decodingError("No data for given key")
     }
