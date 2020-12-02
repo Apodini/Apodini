@@ -207,7 +207,7 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         return decodeRepeatedString(values)
     }
 
-    // swiftlint:disable cyclomatic_complexity function_body_length
+    // swiftlint:disable cyclomatic_complexity
     func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         // we need to switch here to also be able to decode structs with generic types
         // if struct has generic type, this will always end up here
@@ -263,7 +263,7 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         }
         throw ProtoError.decodingError("No data for given key")
     }
-    // swiftlint:enable cyclomatic_complexity function_body_length
+    // swiftlint:enable cyclomatic_complexity
 
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws
     -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {

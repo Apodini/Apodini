@@ -42,9 +42,8 @@ internal class InternalProtoEncoder: Encoder {
     }
 
     func getEncoded() throws -> Data {
-        return data
+        data
     }
-
 }
 
 /// Encoder for Protobuffer data.

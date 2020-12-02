@@ -139,7 +139,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
         currentFieldTag += 1
     }
 
-    // swiftlint:disable cyclomatic_complexity function_body_length
+    // swiftlint:disable cyclomatic_complexity
     func encode<T>(_ value: T) throws where T: Encodable {
         // we need to switch here to also be able to encode structs with generic types
         // if struct has generic type, this will always end up here
@@ -196,7 +196,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
             try encodeNested(value)
         }
     }
-    // swiftlint:enable cyclomatic_complexity function_body_length
+    // swiftlint:enable cyclomatic_complexity
 
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type)
     -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
