@@ -1,69 +1,40 @@
-//
-//  Configuration.swift
-//  
-//
-//  Created by Alexander Collins on 18.11.20.
-//
 import NIO
 import Vapor
 
+/// `Configuration`s are used to register services to Apodini.
+/// Each `Configuration` handles different kinds of services.
 public protocol Configuration {
-    associatedtype Config: Configuration = Never
-
-    @ConfigurationBuilder var configuration: Self.Config { get }
-    
+    /// A method that handles the configuration of a service which is called by the `main` function.
+    ///
+    /// - Parameter app: The `Vapor.Application` which is used to register the configuration in Apodini
     func configure(_ app: Application)
 }
 
 
-extension Never: Configuration {
-    public typealias Config = Never
-    
-    public func configure(_ app: Application) {
-        fatalError("should not happen")
-    }
-    
-    public var configuration: Never {
-        fatalError("should not happen")
-    }
+/// This protocol is used by the `WebService` to declare `Configuration`s in an instance
+public protocol ConfigurationCollection {
+    /// This stored property defines the `Configuration`s of the `WebService`
+    @ConfigurationBuilder var configuration: Configuration { get }
 }
 
 
-extension Configuration where Self.Config == Never {
-    public var configuration: Never {
-        fatalError("should not happen")
+extension ConfigurationCollection {
+    /// The default configuration is an `EmptyConfiguration`
+    @ConfigurationBuilder public var configuration: Configuration {
+        EmptyConfiguration()
     }
 }
-
-
-extension Configuration {
-    public func configure(_ app: Application) {
-        fatalError("should not happen")
-    }
-}
-
-
-extension Configuration {
-    
-    func configurable(by configurator: Configurator) {
-        if let configurable = self as? Configurable {
-            configurable.configurable(by: configurator)
-        } else if Self.Config.self != Never.self {
-            configuration.configurable(by: configurator)
-        } else {
-            configurator.register(configuration: self)
-        }
-    }
-    
-}
-
-
-public protocol ConfigurationCollection: Configuration {}
 
 
 public struct EmptyConfiguration: Configuration {
+    public func configure(_ app: Application) { }
     
-    public func configure(_ app: Application) {}
-    
-    public init() {}
+    public init() { }
+}
+
+
+extension Array: Configuration where Element == Configuration {
+    public func configure(_ app: Application) {
+        forEach { $0.configure(app) }
+    }
 }

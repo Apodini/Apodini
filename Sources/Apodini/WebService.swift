@@ -9,7 +9,6 @@ import Vapor
 import Fluent
 import FluentMongoDriver
 
-
 /// Each Apodini program conists of a `WebService`component that is used to describe the Web API of the Web Service
 public protocol WebService: Component, ConfigurationCollection {
     /// The currennt version of the `WebService`
@@ -37,7 +36,7 @@ extension WebService {
                 WebSocketSemanticModelBuilder(app)
             )
             
-            webService.loadConfiguration(app)
+            webService.configuration.configure(app)
             
             defer {
                 app.shutdown()
@@ -49,7 +48,7 @@ extension WebService {
     }
     
     
-    /// The currennt version of the `WebService`
+    /// The current version of the `WebService`
     public var version: Version {
         Version()
     }
@@ -66,14 +65,6 @@ extension WebService {
     func register(_ semanticModelBuilders: SemanticModelBuilder...) {
         let visitor = SynaxTreeVisitor(semanticModelBuilders: semanticModelBuilders)
         self.visit(visitor)
-    }
-    
-    func loadConfiguration(_ app: Application) {
-        let configurator = Configurator(app)
-        configurator.enter(collection: self)
-        ConfigurationGroup {
-            configuration
-        }.configurable(by: configurator)
     }
     
     private func visit(_ visitor: SynaxTreeVisitor) {

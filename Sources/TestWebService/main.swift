@@ -97,7 +97,7 @@ struct TestWebService: Apodini.WebService {
         
     }
     
-    var configuration: some Configuration {
+    var configuration: Configuration {
         APNSConfiguration(.pem(pemPath: "/Users/awocatmac/Developer/Action Based Events Sample/backend/Certificates/apns.pem"),
                           topic: "de.tum.in.www1.ios.Action-Based-Events-Sample",
                           environment: .sandbox)

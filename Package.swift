@@ -20,6 +20,9 @@ let package = Package(
         .package(url: "https://github.com/MihaelIsaev/VaporCron.git", from:"2.0.0"),
         .package(url: "https://github.com/MihaelIsaev/NIOCronScheduler.git", from:"2.0.0"),
         .package(url: "https://github.com/vapor/fluent-mongo-driver.git", from: "1.0.0"),
+        .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.0.0"),
+        .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.0.0-beta"),
+        .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", from: "0.2.0"),
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2")
     ],
     targets: [
@@ -33,6 +36,10 @@ let package = Package(
                 .product(name: "VaporCron", package: "VaporCron"),
                 .product(name: "NIOCronScheduler", package: "NIOCronScheduler"),
                 .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
+                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
+                .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
+                .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")
             ]
         ),
