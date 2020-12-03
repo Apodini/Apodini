@@ -56,7 +56,17 @@ extension ProtobufferBuilderTests {
             let amount: Int
         }
         
-        XCTAssertNoThrow(try code(Account.self))
+        let expected = """
+            message Account {
+              repeated Transaction transactions = 0;
+            }
+
+            message Transaction {
+              Int amount = 0;
+            }
+            """
+        
+        XCTAssertEqual(try code(Account.self), expected)
     }
     
     func testRecursiveType() throws {
@@ -75,12 +85,17 @@ extension ProtobufferBuilderTests {
     }
 }
 
-private func code<T>(_ type: T.Type) throws {
+@discardableResult
+private func code<T>(_ type: T.Type) throws -> String {
     let builder = ProtobufferBuilder()
     try builder.add(type)
+    let description = builder.description
+    
     print("""
         ----
-        \(builder.description)
+        \(description)
         ----
         """)
+    
+    return description
 }
