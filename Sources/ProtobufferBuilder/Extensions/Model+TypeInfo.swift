@@ -9,7 +9,7 @@ import Runtime
 
 extension Message {
     init(typeInfo: TypeInfo) throws {
-        let name = try typeInfo.kind.nameStrategy(typeInfo)
+        let name = try typeInfo.compatibleName()
         
         let properties: [Property]
         
@@ -22,7 +22,7 @@ extension Message {
                     let (offset, element) = tuple
                     do {
                         let typeInfo = try Runtime.typeInfo(of: element.type)
-                        let typeName = try compatibleGenericName(typeInfo)
+                        let typeName = try typeInfo.compatibleName()
                         
                         return Property(
                             isRepeated: typeInfo.isArray,

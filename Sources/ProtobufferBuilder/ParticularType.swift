@@ -46,31 +46,3 @@ private let primitiveTypes: [Any.Type] = [
     // more numbers...
     String.self
 ]
-
-// MARK: - Generic Name
-
-func compatibleGenericName(_ typeInfo: TypeInfo) throws -> String {
-    var tree: Tree = try Node(typeInfo) { typeInfo in
-        try typeInfo.genericTypes.map { element in
-            try Runtime.typeInfo(of: element)
-        }
-    }
-    
-    // Hacky...
-    if typeInfo.isArray {
-        tree = tree?.children.first
-    }
-    
-    let name = tree
-        .map { typeInfo in
-            ParticularType(typeInfo.type)
-        }
-        .reduce(into: "") { (result, value) in
-            let next = value.description
-            result += result.isEmpty
-                ? next
-                : "Of\(next)"
-        }
-    
-    return name
-}

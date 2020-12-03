@@ -7,24 +7,51 @@
 
 import Runtime
 
-extension Kind {
-    var nameStrategy: (TypeInfo) throws -> String {
-        switch self {
+extension TypeInfo {
+    func compatibleName() throws -> String {
+        switch kind {
         case .struct, .class:
-            return compatibleGenericName
+            return try compatibleGenericName()
         case .tuple:
-            return Self.tuple
+            return try tupleName()
         default:
-            return { _ in throw Exception(message: "Kind: \(self) is not supported.") }
-        }
-    }
-    
-    static func tuple(typeInfo: TypeInfo) throws -> String {
-        if typeInfo.type == Void.self {
-            return "Void"
-        } else {
-            throw Exception(message: "Tuple: \(typeInfo.type) is not supported.")
+            throw Exception(message: "Kind: \(kind) is not supported.")
         }
     }
 }
 
+private extension TypeInfo {
+    func compatibleGenericName() throws -> String {
+        var tree: Tree = try Node(self) { typeInfo in
+            try typeInfo.genericTypes.map { element in
+                try Runtime.typeInfo(of: element)
+            }
+        }
+        
+        // Hacky...
+        if isArray {
+            tree = tree?.children.first
+        }
+        
+        let name = tree
+            .map { typeInfo in
+                ParticularType(typeInfo.type)
+            }
+            .reduce(into: "") { (result, value) in
+                let next = value.description
+                result += result.isEmpty
+                    ? next
+                    : "Of\(next)"
+            }
+        
+        return name
+    }
+
+    func tupleName() throws -> String {
+        if type == Void.self {
+            return "Void"
+        } else {
+            throw Exception(message: "Tuple: \(type) is not supported.")
+        }
+    }
+}
