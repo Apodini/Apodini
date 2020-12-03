@@ -25,7 +25,11 @@ public struct PathParameter<Element: Codable & LosslessStringConvertible> {
     public init() { }
     
     /// Creates a new `@PathParameter` based on a `@PathParameter` passed in from a different `Component`
-    public init(_ pathParameter: PathParameter<Element>) {
-        self.id = pathParameter.id
+    public init(_ parameter: Parameter<Element>) {
+        guard let httpOptions = parameter.option(for: .http), case httpOptions = HTTPParameterMode.path else {
+            fatalError("Only @Parameters with the `.http(.path)` option schould be passed down the `Component` tree.")
+        }
+        
+        self.id = parameter.id
     }
 }

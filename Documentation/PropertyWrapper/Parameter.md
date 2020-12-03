@@ -1,9 +1,9 @@
 # `@Parameter`
 
 The `@Parameter` property wrapper can be used to express input in different ways. 
-The internal name of the `@Parameter` and can be different to the external representation of the component by passing a string into the `@Parameter` property wrapper as a first optional argument.
+The internal name of the `@Parameter` and can be different to the external representation of the `Handler` by passing a string into the `@Parameter` property wrapper as a first optional argument.
 ```swift
-struct ExampleComponent: Component {
+struct ExampleHandler: Handler {
     @Parameter var name: String
     @Parameter("repeat") var times: Int
 
@@ -21,14 +21,14 @@ Non primitive types defined by the user that conform to `Codable` and are not [`
 
 ### Single `@Parameter` for Request Content
 
-The following example showcases a simple component with one `@Property` wrapper around a non primitive type:
+The following example showcases a simple `Handler` with one `@Property` wrapper around a non primitive type:
 ```swift
 struct Bird: Codable {
     var name: String
     var age: Int
 }
 
-struct ExampleComponent: Component {
+struct ExampleHandler: Handler {
     @Parameter var bird: Bird
 
     // ...
@@ -37,7 +37,7 @@ struct ExampleComponent: Component {
 
 *JSON Based APIs*
 
-This `Component` can be exported as in a JSON based API by sending a POST request with the following JSON in the body of the HTTP request:
+This `Handler` can be exported as in a JSON based API by sending a POST request with the following JSON in the body of the HTTP request:
 ```json
 {
     "name": "Swift",
@@ -73,7 +73,7 @@ type Query {
 
 *WebSocket*
 
-Exposing the `Component` on a web socket interface requires the client to send the following message encoded as JSON:
+Exposing the `Handler` on a web socket interface requires the client to send the following message encoded as JSON:
 ```json
 {
     "type": "Example",
@@ -86,7 +86,7 @@ Exposing the `Component` on a web socket interface requires the client to send t
 
 ### Multiple `@Parameter`s for Request Content
 
-The following example showcases a component with multiple `@Parameter` property wrappers around a non primitive type:
+The following example showcases a `Handler` with multiple `@Parameter` property wrappers around a non primitive type:
 ```swift
 struct Bird: Codable {
     var name: String
@@ -98,7 +98,7 @@ struct Plant: Codable {
     var height: Int
 }
 
-struct ExampleComponent: Component {
+struct ExampleHandler: Handler {
     @Parameter var bird: Bird
     @Parameter var plant: Plant
 
@@ -108,7 +108,7 @@ struct ExampleComponent: Component {
 
 *JSON Based APIs*
 
-This `Component` can be exported as in a JSON based API by sending a POST request with the following JSON in the body of the HTTP request:
+This `Handler` can be exported as in a JSON based API by sending a POST request with the following JSON in the body of the HTTP request:
 ```json
 {
     "bird": {
@@ -165,7 +165,7 @@ type Query {
 
 *WebSocket*
 
-Exposing the `Component` on a web socket interface requires the client to send the following message encoded as JSON:
+Exposing the `Handler` on a web socket interface requires the client to send the following message encoded as JSON:
 ```json
 {
     "type": "Example",
@@ -192,7 +192,7 @@ struct Bird: Codable {
     var age: Int
 }
 
-struct ExampleComponent: Component {
+struct ExampleHandler: Handler {
     // Is exposed as a content of a request
     @Parameter var bird: Bird
     // Indicates how often the bird should be returned in the response. Has a default value. Is exposed as a query parameter for interfaces that support it. 
@@ -206,7 +206,7 @@ struct ExampleComponent: Component {
 
 *JSON Based APIs*
 
-This `Component` can be exported as in a JSON based API by sending a POST request to `.../example?emoji=false&times=2` or `.../example` to assume the default value. The request includes the the following JSON in the body of the HTTP request:
+This `Handler` can be exported as in a JSON based API by sending a POST request to `.../example?emoji=false&times=2` or `.../example` to assume the default value. The request includes the the following JSON in the body of the HTTP request:
 ```json
 {
     "bird": {
@@ -250,7 +250,7 @@ type Query {
 
 *WebSocket*
 
-Exposing the `Component` on a web socket interface requires the client to send the following message encoded as JSON:
+Exposing the `Handler` on a web socket interface requires the client to send the following message encoded as JSON:
 ```json
 {
     "type": "Example",
@@ -277,14 +277,14 @@ struct Bird: Identifiable {
     var age: Int
 }
 
-struct ExampleBirdComponent: Handler {
+struct ExampleBirdHandler: Handler {
     // This was passed in from the outside this is automatically used as a path parameter by web API exporter that support path parameters
     @Parameter var birdID: Bird.ID
 
     // ...
 }
 
-struct ExampleNestComponent: Handler {
+struct ExampleNestHandler: Handler {
     // This was passed in from the outside this is automatically used as a path parameter by web API exporter that support path parameters
     @Parameter var birdID: Bird.ID
     // Exposed as a query parameter if supported by a web API exporter
@@ -298,9 +298,9 @@ struct TestWebService: WebService, Component {
 
     var content: some Component {
         Group("api", "birds", birdID) {
-            ExampleBirdComponent(birdID: $birdID)
+            ExampleBirdHandler(birdID: $birdID)
             Group("nests") { 
-                ExampleNestComponent(birdID: $birdID)
+                ExampleNestHandler(birdID: $birdID)
             }
         }
     }
@@ -348,7 +348,7 @@ extension AnyPropertyOption where Property == ParameterOptionNameSpace {
 With the new definition of `HTTPParameterMode` the developer may now define explicitely to the exporter how they would like their parameters to be exported:
 
 ```swift
-struct ExampleComponent: Component {
+struct ExampleHandler: Handler {
     @Parameter(.http(.body)) 
     var times: Int
     
