@@ -27,7 +27,7 @@ let package = Package(
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")
             ],
-            exclude:[
+            exclude: [
                 "Components/ComponentBuilder.swift.gyb"
             ]
         ),

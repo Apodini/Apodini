@@ -7,6 +7,7 @@
 
 import NIO
 import Vapor
+import Runtime
 
 
 /// A `Component` is the central building block of  Apodini. Each component handles a specific functionality of the Apodini web service.
@@ -30,6 +31,8 @@ public protocol Component {
 
 extension Component {
     func visit(_ visitor: SynaxTreeVisitor) {
+        precondition(((try? typeInfo(of: Self.self).kind) ?? .none) == .struct, "Component \((try? typeInfo(of: Self.self).name) ?? "unknown") must be a struct")
+        
         if let visitable = self as? Visitable {
             visitable.visit(visitor)
         } else if Self.Content.self != Never.self {
