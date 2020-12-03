@@ -22,10 +22,10 @@ public struct Parameter<Element: Codable> {
     public typealias Option = AnyPropertyOption<ParameterOptionNameSpace>
 
     
+    var id = UUID()
+    var name: String?
     private var element: Element?
-    private var name: String?
     private var options: PropertyOptionSet<ParameterOptionNameSpace>
-    private var id = UUID()
     private var defaultValue: Element?
     
     
@@ -36,53 +36,6 @@ public struct Parameter<Element: Codable> {
         }
         
         return element
-    }
-    
-    /// The `projectedValue` can be accessed using a `$` prefix before the property wrapped using the  `@Parameter` property wrapper.
-    /// It  can be used to pass a `.identifier` Parameter to children components.
-    ///
-    /// Example:
-    /// The `@Parameter` property used as a path parameter can also be defined outside the component as part of a Group that contains the `Component`.
-    /// ```swift
-    /// struct Bird: Identifiable {
-    ///     var id: Int
-    ///     var name: String
-    ///     var age: Int
-    /// }
-    ///
-    /// struct ExampleBirdComponent: Component {
-    ///     // As this was passed in from the outside this is automatically used as a path parameter
-    ///     @Parameter var birdID: Bird.ID
-    ///
-    ///     // ...
-    /// }
-    ///
-    /// struct ExampleNestComponent: Component {
-    ///     // As this was passed in from the outside this is automatically used as a path param
-    ///     @Parameter var birdID: Bird.ID
-    ///     // Exposed as a lightweight parameter
-    ///     @Parameter var nestName: String?
-    ///
-    ///     // ...
-    /// }
-    ///
-    /// struct TestWebService: WebService {
-    ///     @Parameter var birdID: Bird.ID
-    ///
-    ///     var content: some Component {
-    ///         Group("api", "birds", birdID) {
-    ///             ExampleBirdComponent(birdID: $birdID)
-    ///             Group("nests") {
-    ///                 ExampleNestComponent(birdID: $birdID)
-    ///             }
-    ///         }
-    ///     }
-    /// }
-    ///
-    /// TestWebService.main()
-    /// ```
-    public var projectedValue: Parameter {
-        self
     }
     
     
@@ -114,12 +67,12 @@ public struct Parameter<Element: Codable> {
         self.options = PropertyOptionSet(options)
     }
     
-    /// Creates a new `@Parameter` that indicates input of a `Component` based on an existing component.
-    /// - Parameter pathParameter: The `@PathParameter` that can be passed in from a a parent component.
+    /// Creates a new `@Parameter` that indicates input of a `Component's` `@PathParameter` based on an existing component.
+    /// - Parameter id: The `UUID` that can be passed in from a parent `Component`'s `@PathParameter`.
     /// - Precondition: A `@Parameter` with a specific `http` type `.body` or `.query` can not be passed to a seperate componet. Please remove the specific `.http` property option or specify the `.http` property option to `.path`.
-    public init(_ pathParameter: PathParameter<Element>) {
+    init(_ id: UUID) {
         self.options = PropertyOptionSet([.http(.path)])
-        self.id = pathParameter.id
+        self.id = id
     }
     
     
@@ -134,5 +87,12 @@ extension Parameter: RequestInjectable {
         if let decoder = decoder {
             element = try decoder.decode(Element.self, from: request)
         }
+    }
+}
+
+
+extension Parameter: PathComponent {
+    func append<P>(to pathBuilder: inout P) where P: PathBuilder {
+        pathBuilder.append(":\(self.id)")
     }
 }

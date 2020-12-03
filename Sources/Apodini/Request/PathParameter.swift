@@ -3,7 +3,7 @@ import Foundation
 
 /// A `@PathComponent` can be used in `Component`s to indicate that a part of a path is a parameter and can be read out in a `Handler`
 @propertyWrapper
-public struct PathParameter<Element> {
+public struct PathParameter<Element: Codable & LosslessStringConvertible> {
     var id = UUID()
     
     /// You can never access the wrapped value of a @PathParameter.
@@ -16,8 +16,8 @@ public struct PathParameter<Element> {
     }
     
     /// Accessing the projected value allows you to pass the `@PathParameter` to a `Handler` or `Component`
-    public var projectedValue: PathParameter {
-        self
+    public var projectedValue: Parameter<Element> {
+        Parameter(id)
     }
     
     
