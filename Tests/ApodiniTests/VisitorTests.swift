@@ -17,17 +17,17 @@ final class VisitorTests: XCTestCase {
         }
     }
     
-    struct TestServer: Apodini.Server {
+    struct TestWebService: Apodini.WebService {
         @ComponentBuilder var content: some Component {
             Group("Test") {
                 Text("Hallo Bernd")
-                    .httpMethod(.PUT)
+                    .operation(.update)
                     .response(TestResponseMediator())
             }
             Group("Greetings") {
                 Group("Human") {
                     Text("👋")
-                        .httpMethod(.GET)
+                        .operation(.read)
                 }
                 Group("Plant") {
                     Text("🍀")
@@ -36,39 +36,48 @@ final class VisitorTests: XCTestCase {
         }
     }
     
+
+    // swiftlint:disable:next implicitly_unwrapped_optional
     var app: Application!
     
     
     override func setUp() {
+        super.setUp()
         app = Application(.testing)
     }
     
     override func tearDown() {
+        super.tearDown()
         app.shutdown()
     }
     
     func testPrintVisitor() {
         let printVisitor = PrintVisitor()
-        TestServer().visit(printVisitor)
+        TestWebService().visit(printVisitor)
     }
     
     func testRESTVisitor() {
-        TestServer().register(RESTSemanticModelBuilder(app))
+        let visitor = SynaxTreeVisitor(semanticModelBuilders: [RESTSemanticModelBuilder(app)])
+        TestWebService().visit(visitor)
     }
     
     func testGraphQLVisitor() {
-        TestServer().register(GraphQLSemanticModelBuilder(app))
+        let visitor = SynaxTreeVisitor(semanticModelBuilders: [GraphQLSemanticModelBuilder(app)])
+        TestWebService().visit(visitor)
     }
     
     func testGRPCVisitor() {
-        TestServer().register(GRPCSemanticModelBuilder(app))
+        let visitor = SynaxTreeVisitor(semanticModelBuilders: [GRPCSemanticModelBuilder(app)])
+        TestWebService().visit(visitor)
     }
     
     func testWebSocketVisitor() {
-        TestServer().register(WebSocketSemanticModelBuilder(app))
+        let visitor = SynaxTreeVisitor(semanticModelBuilders: [WebSocketSemanticModelBuilder(app)])
+        TestWebService().visit(visitor)
     }
     
     func testOpenAPIVisitor() {
-        TestServer().register(OpenAPISemanticModelBuilder(app))
+        let visitor = SynaxTreeVisitor(semanticModelBuilders: [OpenAPISemanticModelBuilder(app)])
+        TestWebService().visit(visitor)
     }
 }

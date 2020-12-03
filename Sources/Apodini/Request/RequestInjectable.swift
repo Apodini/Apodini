@@ -7,50 +7,42 @@
 
 import NIO
 import Vapor
+import Runtime
 
 
 protocol RequestInjectable {
-    func inject(using request: Vapor.Request) throws
-    func disconnect()
+    mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder?) throws
 }
 
-
 extension Vapor.Request {
-    func enterRequestContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>) -> EventLoopFuture<R> {
-        inject(in: element)
+    func enterRequestContext<E, R>(with element: E, using decoder: SemanticModelBuilder? = nil, executing method: (E) -> EventLoopFuture<R>)
+    -> EventLoopFuture<R> {
+        var element = element
+        inject(in: &element, using: decoder)
         
         return method(element)
-            .map { response in
-                self.disconnect(from: element)
-                return response
-            }
     }
     
-    func enterRequestContext<E, R>(with element: E, executing method: (E) -> R) -> R {
-        inject(in: element)
-        let response = method(element)
-        disconnect(from: element)
-        return response
+    func enterRequestContext<E, R>(with element: E, using decoder: SemanticModelBuilder? = nil, executing method: (E) -> R) -> R {
+        var element = element
+        inject(in: &element, using: decoder)
+        return method(element)
     }
     
-    private func inject<E>(in element: E) {
+    private func inject<E>(in element: inout E, using decoder: SemanticModelBuilder? = nil) {
         // Inject all properties that can be injected using RequestInjectable
-        for child in Mirror(reflecting: element).children {
-            if let requestInjectable = child.value as? RequestInjectable {
-                do {
-                    try requestInjectable.inject(using: self)
-                } catch {
-                    fatalError("Could not inject a value into a \(child.label ?? "UNKNOWN") property wrapper.")
+        do {
+            let info = try typeInfo(of: E.self)
+            
+            for property in info.properties {
+                if var child = (try property.get(from: element)) as? RequestInjectable {
+                    assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "RequestInjectable \(property.name) on Component \(info.name) must be a struct")
+                    try child.inject(using: self, with: decoder)
+                    try property.set(value: child, on: &element)
                 }
             }
-        }
-    }
-    
-    private func disconnect<E>(from element: E) {
-        for child in Mirror(reflecting: element).children {
-            if let requestInjectable = child.value as? RequestInjectable {
-                requestInjectable.disconnect()
-            }
+        } catch {
+            fatalError("Injecting into element \(element) failed.")
         }
     }
 }

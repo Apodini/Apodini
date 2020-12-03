@@ -7,27 +7,27 @@
 
 import XCTest
 import NIO
-import Vapor
 @testable import Apodini
 
 
 final class ModifierTests: XCTestCase {
-    func testHTTPModifier() {
+    func testOperationModifier() {
         var component: some Component {
             Group {
-                Text("Post")
-                    .httpMethod(.GET)
-                    .httpMethod(.POST)
+                Text("Create")
+                    .operation(.read)
+                    .operation(.create)
                 Group {
-                    Text("Put")
-                        .httpMethod(.DELETE)
-                        .httpMethod(.PUT)
+                    Text("Update")
+                        .operation(.delete)
+                        .operation(.update)
                     Text("Delete")
-                    Text("Post")
-                        .httpMethod(.GET)
-                        .httpMethod(.POST)
-                }.httpMethod(.DELETE)
-            }.httpMethod(.PUT)
+                        .operation(.delete)
+                    Text("Create")
+                        .operation(.read)
+                        .operation(.create)
+                }
+            }
         }
         
         let printVisitor = PrintVisitor()
@@ -46,7 +46,6 @@ final class ModifierTests: XCTestCase {
                 response
             }
         }
-        
         
         
         var component: some Component {

@@ -6,6 +6,7 @@
 //
 
 import Vapor
+import Runtime
 
 
 private struct ResetGuard: SyncGuard {
@@ -39,9 +40,18 @@ public struct GuardModifier<C: Component>: Modifier {
     let `guard`: LazyGuard
     
     
-    init(_ component: C, guard: @escaping @autoclosure LazyGuard) {
+    init<G: Guard>(_ component: C, guard: @escaping () -> G) {
+        precondition(((try? typeInfo(of: G.self).kind) ?? .none) == .struct, "Guard \((try? typeInfo(of: G.self).name) ?? "unknown") must be a struct")
+        
         self.component = component
-        self.guard = `guard`
+        self.guard = { AnyGuard(`guard`()) }
+    }
+    
+    init<G: SyncGuard>(_ component: C, guard: @escaping () -> G) {
+        precondition(((try? typeInfo(of: G.self).kind) ?? .none) == .struct, "Guard \((try? typeInfo(of: G.self).name) ?? "unknown") must be a struct")
+        
+        self.component = component
+        self.guard = { AnyGuard(`guard`()) }
     }
 }
 
@@ -54,15 +64,22 @@ extension GuardModifier: Visitable {
 
 
 extension Component {
+    /// Use an asyncronousn`Guard` to guard `Component`s by inspecting incoming requests
+    /// - Parameter guard: The `Guard` used to inspecting incoming requests
+    /// - Returns: Returns a modified `Component` protected by the asyncronous `Guard`
     public func `guard`<G: Guard>(_ guard: @escaping @autoclosure () -> (G)) -> GuardModifier<Self> {
-        GuardModifier(self, guard: AnyGuard(`guard`()))
+        GuardModifier(self, guard: `guard`)
     }
     
+    /// Use a syncronous `SyncGuard` to guard `Component`s by inspecting incoming requests
+    /// - Parameter guard: The `Guard` used to inspecting incoming requests
+    /// - Returns: Returns a modified `Component` protected by the syncronous `SyncGuard`
     public func `guard`<G: SyncGuard>(_ guard: @escaping @autoclosure () -> (G)) -> GuardModifier<Self> {
-        GuardModifier(self, guard: AnyGuard(`guard`()))
+        GuardModifier(self, guard: `guard`)
     }
     
+    /// Reselts all guards for the modified `Component`
     public func resetGuards() -> GuardModifier<Self> {
-        GuardModifier(self, guard: AnyGuard(ResetGuard()))
+        GuardModifier(self, guard: { ResetGuard() })
     }
 }
