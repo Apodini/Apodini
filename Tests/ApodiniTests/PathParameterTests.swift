@@ -16,7 +16,7 @@ final class PathParameterTests: XCTestCase {
         
         
         var content: some Component {
-            Group ($name) {
+            Group($name) {
                 TestHandler(name: $name)
             }
         }
