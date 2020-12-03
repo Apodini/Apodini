@@ -24,13 +24,12 @@ extension Tree {
 
 // MARK: - Fix Array
 
-func fixArray(_ node: Node<TypeInfo>) -> Tree<TypeInfo> {
+func fixArray(_ node: Node<TypeInfo>) throws -> Tree<TypeInfo> {
     guard node.value.isArray,
-          let first = node.value.genericTypes.first,
-          let typeInfo = try? Runtime.typeInfo(of: first) else {
+          let first = node.value.genericTypes.first else {
         return node
     }
     
-    return Node(value: typeInfo,
+    return Node(value: try Runtime.typeInfo(of: first),
                 children: .init())
 }
