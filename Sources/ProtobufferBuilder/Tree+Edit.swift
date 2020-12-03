@@ -8,7 +8,7 @@
 import Runtime
 
 extension Tree {
-    func edit<T>(
+    func edited<T>(
         _ transform: (Node<T>) throws -> Tree<T>
     ) rethrows -> Tree<T> where Wrapped == Node<T> {
         guard let node = self,
@@ -22,16 +22,15 @@ extension Tree {
     }
 }
 
+// MARK: - Fix Array
+
 func fixArray(_ node: Node<TypeInfo>) -> Tree<TypeInfo> {
-    guard node.value.name.prefix(while: { $0 != "<" }) == "Array" else {
-        return node
-    }
-    
-    guard let first = node.value.genericTypes.first,
+    guard node.value.isArray,
+          let first = node.value.genericTypes.first,
           let typeInfo = try? Runtime.typeInfo(of: first) else {
         return node
     }
     
-    return Node(value: node.value,
-                children: [Node(value: typeInfo, children: .init())])
+    return Node(value: typeInfo,
+                children: .init())
 }

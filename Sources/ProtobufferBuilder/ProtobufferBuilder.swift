@@ -28,7 +28,7 @@ public extension ProtobufferBuilder {
         }
         
         let messages = try tree
-            .edit(fixArray)
+            .edited(fixArray)
             .filter { typeInfo in
                 !isPrimitive(typeInfo.type)
             }
@@ -48,7 +48,8 @@ public extension ProtobufferBuilder {
 extension ProtobufferBuilder: CustomStringConvertible {
     public var description: String {
         messages
+            .sorted(by: \.name)
             .map(\.description)
-            .joined(separator: "\n")
+            .joined(separator: "\n\n")
     }
 }

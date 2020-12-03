@@ -21,12 +21,11 @@ extension Message {
                 .compactMap { tuple -> Property? in
                     let (offset, element) = tuple
                     do {
-                        let typeName = try compatibleGenericName(
-                            try Runtime.typeInfo(of: element.type)
-                        )
+                        let typeInfo = try Runtime.typeInfo(of: element.type)
+                        let typeName = try compatibleGenericName(typeInfo)
                         
                         return Property(
-                            isRepeated: typeName.hasPrefix("Array"),
+                            isRepeated: typeInfo.isArray,
                             name: element.name,
                             typeName: typeName,
                             uniqueNumber: offset
