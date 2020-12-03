@@ -21,12 +21,6 @@ struct Message: Equatable, Hashable {
     let properties: Set<Property>
 }
 
-extension Message.Property: Comparable {
-    static func < (lhs: Message.Property, rhs: Message.Property) -> Bool {
-        lhs.uniqueNumber < rhs.uniqueNumber
-    }
-}
-
 // MARK: - Service and Service.Method
 
 struct Service: Equatable, Hashable {

@@ -10,8 +10,8 @@
 extension Message: CustomStringConvertible {
     var description: String {
         let properties = self.properties
-            .sorted()
-            .map { "\t\($0.description)" }
+            .sorted(by: \.uniqueNumber)
+            .map { "  \($0.description)" }
             .joined(separator: .newLine)
         
         let body = properties.isEmpty
@@ -39,7 +39,7 @@ extension Service.Method: CustomStringConvertible {
 extension Service: CustomStringConvertible {
     var description: String {
         let methods = self.methods
-            .map { "\t\($0.description)" }
+            .map { "  \($0.description)" }
             .joined(separator: .newLine)
         let body = methods.isEmpty
             ? ""
