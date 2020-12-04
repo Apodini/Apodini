@@ -51,18 +51,28 @@ internal class InternalProtoEncoder: Encoder {
 public class ProtoEncoder {
     private var encoder: InternalProtoEncoder?
 
+    /// Encodes the given value into data.
+    /// The value that should be encoded has to comply with `Encodable`,
+    /// since the `encode` function of the protocol is used.
     public func encode<T: Encodable>(_ value: T) throws -> Data {
         let encoder = InternalProtoEncoder()
         try value.encode(to: encoder)
         return try encoder.getEncoded()
     }
 
+    /// Creates a new internal encoder and returns an unkeyed
+    /// encoding container, that can be used to encode values
+    /// into the encoder.
     public func unkeyedContainer() -> UnkeyedEncodingContainer {
         let encoder = InternalProtoEncoder()
         self.encoder = encoder
         return encoder.unkeyedContainer()
     }
 
+    /// Returns the encoded data, that was encode into the
+    /// internal encoder using the unkeyed encoding container.
+    /// Can only be called after a encoding container was
+    /// created using `unkeyedContainer()`.
     public func getResult() throws -> Data {
         guard let encoder = encoder else {
             throw ProtoError.encodingError("No internal encoder initialized. Call unkeyedContainer() first.")

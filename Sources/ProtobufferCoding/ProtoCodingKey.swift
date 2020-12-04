@@ -29,7 +29,7 @@ public extension CodingKey {
         let info = try typeInfo(of: type(of: self))
         for (index, enumCase) in info.cases.enumerated()
         where enumCase.name == self.stringValue {
-            return index+1
+            return index + 1
         }
         throw ProtoError.unknownCodingKey(self)
     }

@@ -130,6 +130,7 @@ internal class InternalProtoDecoder: Decoder {
 /// Decoder for Protobuffer data.
 /// Coforms to `TopLevelDecoder` from `Combine`, however this is currently ommitted due to compatibility issues.
 public class ProtoDecoder {
+    /// Init new decoder instance
     public init() {}
 
     /// Decodes a Data that was encoded using Protobuffers into
