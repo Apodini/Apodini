@@ -293,11 +293,11 @@ struct ExampleNestHandler: Handler {
     // ...
 }
 
-struct TestWebService: WebService, Component {
+struct TestComponent: Component {
     @PathParameter var birdID: Bird.ID
 
     var content: some Component {
-        Group("api", "birds", birdID) {
+        Group("api", "birds", $birdID) {
             ExampleBirdHandler(birdID: $birdID)
             Group("nests") { 
                 ExampleNestHandler(birdID: $birdID)
@@ -305,8 +305,6 @@ struct TestWebService: WebService, Component {
         }
     }
 }
-
-TestWebService.main()
 ```
 
 ## Explicit Options
