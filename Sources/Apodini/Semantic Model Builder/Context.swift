@@ -21,26 +21,28 @@ class Context {
         contextNode.getContextValue(for: contextKey)
     }
     
-    func createRequestHandler<C: Component, Req: Request, Res: Response>(withComponent component: C, using decoder: SemanticModelBuilder)
+    func createRequestHandler<C: Component, Req: Request, Res: Response>(withComponent component: C, using responseEncoder: EncoderProtocol)
     -> (Req) -> EventLoopFuture<Res> {
         { (request: Req) in
             let guardEventLoopFutures = self.contextNode.getContextValue(for: GuardContextKey.self)
                 .map { requestGuard in
-                    request.enterRequestContext(with: requestGuard(), using: decoder) { requestGuard in
+                    request.enterRequestContext(with: requestGuard()) { requestGuard in
                         requestGuard.executeGuardCheck(on: request)
                     }
                 }
             return EventLoopFuture<Void>
                 .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
                 .flatMap { _ in
-                    request.enterRequestContext(with: component, using: decoder) { component in
+                    request.enterRequestContext(with: component) { component in
                         var response = component.handle()
                         for responseTransformer in self.contextNode.getContextValue(for: ResponseContextKey.self) {
                             response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
                                 responseTransformer.transform(response: response) as! C.Response
                             }
                         }
-                        return decoder.encodeResponse(response, for: request)
+
+                        let vaporResponse = try! Res(body: response, encoder: responseEncoder)
+                        return request.eventLoop.makeSucceededFuture(vaporResponse)
                     }
                 }
         }

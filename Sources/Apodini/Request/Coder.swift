@@ -29,6 +29,3 @@ public protocol EncoderProtocol {
     /// - throws: An error if any value throws an error during encoding.
     func encode<T: Encodable>(_ value: T) throws -> Data
 }
-
-extension JSONDecoder: DecoderProtocol {}
-extension JSONEncoder: EncoderProtocol {}

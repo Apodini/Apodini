@@ -17,7 +17,7 @@ final class CustomComponentTests: ApodiniTests {
         @_Database
         var database: Fluent.Database
         
-        @Parameter
+        @Parameter("bird", .http(.body))
         var bird: Bird
         
         

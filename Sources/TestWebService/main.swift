@@ -50,6 +50,7 @@ struct TestWebService: Apodini.WebService {
         func handle() -> String {
             do {
                 let result: String? = try req.parameter(for: "name")
+                print("Query name")
                 return result ?? ""
             } catch {
                 return "World"

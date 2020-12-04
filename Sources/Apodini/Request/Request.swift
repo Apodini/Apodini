@@ -15,8 +15,8 @@ public protocol Request {
     func parameter<T: Decodable>(for id: String) throws -> T
     /// body
     func bodyParameter<T: Decodable>() throws -> T?
-    /// body string
-    func bodyParameter() throws -> String?
+    /// body data
+    var bodyData: Data? { get }
     /// The EventLoop associated with this request
     var eventLoop: EventLoop { get }
     /// endpoint
@@ -37,8 +37,11 @@ extension TotallyNotVaporRequest: Request {
         return try self.body.data?.getJSONDecodable(T.self, at: 0, length: length)
     }
 
-    public func bodyParameter() throws -> String? {
-        return self.body.string
+    public var bodyData: Data? {
+        guard let byteBuffer = self.body.data else {
+            return nil
+        }
+        return byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes)
     }
 
     public var endpoint: String? {
