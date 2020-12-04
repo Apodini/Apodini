@@ -31,7 +31,9 @@ let package = Package(
         ),
         .target(
             name: "ProtobufferCoding",
-            dependencies: [],
+            dependencies: [
+                .product(name: "Runtime", package: "Runtime")
+            ],
             exclude:["README.md"]
         ),
         .testTarget(

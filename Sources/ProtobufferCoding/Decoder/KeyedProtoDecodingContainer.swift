@@ -22,16 +22,19 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     /// Tries to convert the given CodingKey to an Int, using the following steps:
     ///  - extract Int raw value, if possible
-    ///  - convert to ProtoCodingKey and call mapCodingKey, if possible
+    ///  - convert to `ProtoCodingKey` and read `protoRawValue` property, if possible
+    ///  - call default implementation of `_protoRawValue` for `CodingKey`,
+    ///    which simply enumerates all cases of the type
     ///  - throws ProtoError.unknownCodingKey, if none of the above works
     private func extractIntValue(from key: Key) throws -> Int {
         codingPath.append(key)
         if let keyValue = key.intValue {
             return keyValue
         } else if let protoKey = key as? ProtoCodingKey {
-            return try type(of: protoKey).protoRawValue(key)
+            return protoKey.protoRawValue
+        } else {
+            return try key.defaultProtoRawValue()
         }
-        throw ProtoError.unknownCodingKey(key)
     }
 
     func contains(_ key: Key) -> Bool {

@@ -21,9 +21,10 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
         if let keyValue = key.intValue {
             return keyValue
         } else if let protoKey = key as? ProtoCodingKey {
-            return try type(of: protoKey).protoRawValue(key)
+            return protoKey.protoRawValue
+        } else {
+            return try key.defaultProtoRawValue()
         }
-        throw ProtoError.unknownCodingKey(key)
     }
 
     func encodeNil(forKey key: Key) throws {

@@ -62,7 +62,15 @@ Further, `repeated` fields are also supported for the types `string` and `bytes`
 
 ## Defining Protobuffer messages using Swift structs
 The `ProtoEncoder` and `ProtoDecoder` are designed to work with Swift structs that implement the `Codable` protocol. Thus, defining a Protobuffer message is very straightforward:
+```swift
+struct ExampleMessage: Codable {
+    var content: String
+    var number: Int32
+}
+```
+With such a struct, the first property `content` will be assigned the Protobuffer field tag 1, the second property `number` will be assigned the Protobuffer field tag 2, and so on.
 
+Using the `CodingKey` enum, you can also explicitly define the respective field tags of the Protobuffer message:
 ```swift
 struct ExampleMessage: Codable {
     var content: String
@@ -75,9 +83,9 @@ struct ExampleMessage: Codable {
 }
 ```
 
-Uisng the `CodingKey` enum, you can define the respective field tags of the Protobuffer message.
+In case you want to use `String` as raw values for the `CodingKey` enum (e.g. to be able to sensibly use the same struct also with `JSONEncoder`s), Apodini will derive a default integer value for each enum case. Again, the first enum case will get the field tag 1, the second one will get field tag 2, and so on.
 
-In case you want to use `String` as raw values for the `CodingKey` enum (e.g. to be able to sensibly use the same struct also with `JSONEncoder`s), you can implement the `ProtoCodingKey` and its required `func protoRawValue(_ key: CodingKey) throws -> Int` in addition:
+Further, you can also specify your own custom integer values for your `String` based `CodingKey` enumeration, by implementing the `ProtoCodingKey` protocol and its `var protoRawValue: Int`:
 
 ```swift
 struct ExampleMessage: Codable {
@@ -88,21 +96,16 @@ struct ExampleMessage: Codable {
         case content = "content"
         case number = "number"
 
-        static func protoRawValue(_ key: CodingKey) throws -> Int {
+        var protoRawValue: Int {
             switch key {
             case CodingKeys.content:
                 return 1
             case CodingKeys.number:
                 return 2
-            default:
-                throw ProtoError.unknownCodingKey(key)
             }
         }
     }
 }
 ```
 
-The `ProtoEncoder` and `ProtoDecoder` will always first try to extract an `Int` raw value from given `CodingKey`s. If that is not possible, they will try to convert the given key to a `ProtoCodingKey` and call the `mapCodingKey` method.
-If neither one of these options succeeds, encoding / decoding fails.
-
-**Note:** Single value decoding is currently not supported, because Protobuffers usually come in messages.
+The `ProtoEncoder` and `ProtoDecoder` will always first try to extract an `Int` raw value from given `CodingKey`s. If that is not possible, they will try to access the explicitly provided `protoRawValue` property. If this property is not available, they will rely on the default integer value, which is derived by simply iterating over all the enumeration cases (as described above).

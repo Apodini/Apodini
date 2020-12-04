@@ -130,11 +130,11 @@ internal class InternalProtoDecoder: Decoder {
 /// Decoder for Protobuffer data.
 /// Coforms to `TopLevelDecoder` from `Combine`, however this is currently ommitted due to compatibility issues.
 public class ProtoDecoder {
-    init() {}
+    public init() {}
 
     /// Decodes a Data that was encoded using Protobuffers into
     /// a given struct of type T (T has to conform to Decodable).
-    func decode<T>(_ type: T.Type, from data: Data) throws
+    public func decode<T>(_ type: T.Type, from data: Data) throws
     -> T where T: Decodable {
         let decoder = InternalProtoDecoder(from: data)
         return try T(from: decoder)
@@ -142,7 +142,7 @@ public class ProtoDecoder {
 
     /// Can be used to  decode an unknown type, e.g. when no `Decodable` struct is available.
     /// Returns a `UnkeyedDecodingContainer` that can be used to sequentially decode the values the data contains.
-    func decode(from data: Data) throws -> UnkeyedDecodingContainer {
+    public func decode(from data: Data) throws -> UnkeyedDecodingContainer {
         let decoder = InternalProtoDecoder(from: data)
         return try decoder.unkeyedContainer()
     }

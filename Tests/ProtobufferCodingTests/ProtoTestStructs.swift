@@ -26,7 +26,7 @@ struct ProtoComplexTestMessage: Codable {
     var nestedMessage: ProtoTestMessage<String>
     var numberFloat: Float
 
-    enum CodingKeys: String, CodingKey, ProtoCodingKey {
+    enum CodingKeys: String, ProtoCodingKey {
         case numberInt32
         case numberUint32
         case numberBool
@@ -37,28 +37,26 @@ struct ProtoComplexTestMessage: Codable {
         case nestedMessage
         case numberFloat
 
-        static func protoRawValue(_ key: CodingKey) throws -> Int {
-            switch key {
+        var protoRawValue: Int {
+            switch self {
             case CodingKeys.numberInt32:
                 return 1
-            case numberUint32:
+            case CodingKeys.numberUint32:
                 return 2
-            case numberBool:
+            case CodingKeys.numberBool:
                 return 4
-            case enumValue:
+            case CodingKeys.enumValue:
                 return 5
-            case numberDouble:
+            case CodingKeys.numberDouble:
                 return 8
-            case content:
+            case CodingKeys.content:
                 return 9
-            case byteData:
+            case CodingKeys.byteData:
                 return 10
-            case nestedMessage:
+            case CodingKeys.nestedMessage:
                 return 11
-            case numberFloat:
+            case CodingKeys.numberFloat:
                 return 14
-            default:
-                throw ProtoError.unknownCodingKey(key)
             }
         }
     }

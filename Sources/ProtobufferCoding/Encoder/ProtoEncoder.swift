@@ -51,19 +51,19 @@ internal class InternalProtoEncoder: Encoder {
 public class ProtoEncoder {
     private var encoder: InternalProtoEncoder?
 
-    func encode<T: Encodable>(_ value: T) throws -> Data {
+    public func encode<T: Encodable>(_ value: T) throws -> Data {
         let encoder = InternalProtoEncoder()
         try value.encode(to: encoder)
         return try encoder.getEncoded()
     }
 
-    func unkeyedContainer() -> UnkeyedEncodingContainer {
+    public func unkeyedContainer() -> UnkeyedEncodingContainer {
         let encoder = InternalProtoEncoder()
         self.encoder = encoder
         return encoder.unkeyedContainer()
     }
 
-    func getResult() throws -> Data {
+    public func getResult() throws -> Data {
         guard let encoder = encoder else {
             throw ProtoError.encodingError("No internal encoder initialized. Call unkeyedContainer() first.")
         }
