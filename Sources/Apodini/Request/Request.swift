@@ -9,11 +9,12 @@ import Vapor
 
 
 @propertyWrapper
-public struct Request: RequestInjectable {
-    internal var request: Vapor.Request?
+// swiftlint:disable:next type_name
+struct _Request: RequestInjectable {
+    private var request: Vapor.Request?
     
     
-    public var wrappedValue: Vapor.Request {
+    var wrappedValue: Vapor.Request {
         guard let request = request else {
             fatalError("You can only access the request while you handle a request")
         }
@@ -22,7 +23,7 @@ public struct Request: RequestInjectable {
     }
     
     
-    public init() { }
+    init() { }
     
     
     mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder? = nil) throws {
