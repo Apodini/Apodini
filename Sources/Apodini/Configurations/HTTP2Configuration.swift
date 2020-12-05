@@ -45,7 +45,7 @@ public class HTTP2Configuration: Configuration {
             if let certData = certData,
                let keyData = keyData {
                 let certificates = try NIOSSLCertificate.fromPEMBytes([UInt8](certData))
-                let privateKey = try NIOSSLPrivateKey.init(bytes: [UInt8](keyData), format: .pem)
+                let privateKey = try NIOSSLPrivateKey(bytes: [UInt8](keyData), format: .pem)
                 app.http.server.configuration.supportVersions = [.one, .two]
                 app.http.server.configuration.tlsConfiguration =
                     .forServer(certificateChain: certificates.map { .certificate($0) },
@@ -82,7 +82,7 @@ public class HTTP2Configuration: Configuration {
 
 extension String {
     func index(from: Int) -> Index {
-        return self.index(startIndex, offsetBy: from)
+        self.index(startIndex, offsetBy: from)
     }
 
     func substring(from: Int) -> String {
