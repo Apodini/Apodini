@@ -31,7 +31,8 @@ extension WebService {
                 RESTSemanticModelBuilder(app),
                 GraphQLSemanticModelBuilder(app),
                 GRPCSemanticModelBuilder(app),
-                WebSocketSemanticModelBuilder(app)
+                WebSocketSemanticModelBuilder(app),
+                ProtobufferSemanticModelBuilder(app)
             )
             
             defer {

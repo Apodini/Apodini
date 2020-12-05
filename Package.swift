@@ -2,11 +2,6 @@
 
 import PackageDescription
 
-let protoBufferBuilderTargets: [Target] = [
-    .target(name: "ProtobufferBuilder", dependencies: ["Runtime"]),
-    .testTarget(name: "ProtobufferBuilderTests", dependencies: ["ProtobufferBuilder"])
-]
-
 let package = Package(
     name: "Apodini",
     platforms: [
@@ -26,10 +21,11 @@ let package = Package(
         .target(
             name: "Apodini",
             dependencies: [
+                .target(name: "ProtobufferBuilder"),
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
-                .product(name: "Runtime", package: "Runtime")
+                .product(name: "Runtime", package: "Runtime"),
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
@@ -38,7 +34,6 @@ let package = Package(
         .testTarget(
             name: "ApodiniTests",
             dependencies: [
-                .target(name: "Apodini"),
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver")
             ]
@@ -48,6 +43,19 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini")
             ]
-        )
-    ] + protoBufferBuilderTargets
+        ),
+        // ProtoBufferBuilder
+        .target(
+            name: "ProtobufferBuilder",
+            dependencies: ["Runtime"]
+        ),
+        .testTarget(
+            name: "ProtobufferBuilderTests",
+            dependencies: [
+                .target(name: "ProtobufferBuilder"),
+                .target(name: "Apodini"),
+                .product(name: "Vapor", package: "vapor"),
+            ]
+        ),
+    ]
 )
