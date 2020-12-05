@@ -26,6 +26,12 @@ extension Node {
 typealias Tree<T> = Optional<Node<T>>
 
 extension Tree {
+    var isEmpty: Bool {
+        self == nil
+    }
+}
+
+extension Tree {
     func filter<T>(
         _ isIncluded: (T) throws -> Bool
     ) rethrows -> Self where Wrapped == Node<T> {

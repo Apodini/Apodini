@@ -47,6 +47,16 @@ final class ProtobufferBuilderTests: XCTestCase {
 }
 
 extension ProtobufferBuilderTests {
+    func testScalarType() throws {
+        let expected = """
+            message StringMessage {
+              string value = 0;
+            }
+            """
+        
+        XCTAssertEqual(try code(String.self), expected)
+    }
+    
     func testTypeTwoLevelsDeep() throws {
         struct Account {
             let transactions: [Transaction]
@@ -95,7 +105,7 @@ extension ProtobufferBuilderTests {
 @discardableResult
 private func code<T>(_ type: T.Type) throws -> String {
     let builder = ProtobufferBuilder()
-    try builder.add(type)
+    try builder.addMessage(of: type)
     let description = builder.description
     
     print("""

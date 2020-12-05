@@ -35,14 +35,18 @@ extension ParticularType: Equatable {
 // MARK: - Is Primitive
 
 func isPrimitive(_ type: Any.Type) -> Bool {
-    primitiveTypes
+    supportedPrimitiveTypes
         .map(ParticularType.init)
         .contains(ParticularType(type))
 }
 
-private let primitiveTypes: [Any.Type] = [
+private let supportedPrimitiveTypes: [Any.Type] = [
+    Int32.self,
+    Int64.self,
+    UInt32.self,
+    UInt64.self,
     Bool.self,
-    Int.self,
-    // more numbers...
-    String.self
+    String.self,
+    Double.self,
+    Float.self,
 ]

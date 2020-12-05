@@ -18,8 +18,14 @@ public class ProtobufferBuilder {
 }
 
 public extension ProtobufferBuilder {
-    func add<T>(_ messageType: T.Type = T.self) throws {
-        let tree: Tree = Node(try typeInfo(of: messageType)) { typeInfo in
+    func addService<T>(of type: T.Type = T.self) throws {
+        print(type)
+    }
+    
+    func addMessage<T>(of type: T.Type = T.self) throws {
+        print(type)
+        
+        let tree: Tree = Node(try typeInfo(of: type)) { typeInfo in
             typeInfo.properties.compactMap {
                 do {
                     return try Runtime.typeInfo(of: $0.type)
@@ -30,11 +36,15 @@ public extension ProtobufferBuilder {
             }
         }
         
-        let messages = try tree
+        let modified = try tree
             .edited(fixArray)
             .filter { typeInfo in
                 !isPrimitive(typeInfo.type)
             }
+        
+        print(modified.isEmpty)
+        
+        let messages = try modified
             .map { typeInfo in
                 try Message(typeInfo: typeInfo)
             }
