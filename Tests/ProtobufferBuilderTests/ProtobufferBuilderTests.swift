@@ -75,7 +75,14 @@ extension ProtobufferBuilderTests {
             let children: [Node]
         }
         
-        XCTAssertNoThrow(try code(Node<Int>.self))
+        let expected = """
+            message NodeOfInt {
+              Int value = 0;
+              repeated NodeOfInt children = 1;
+            }
+            """
+        
+        XCTAssertEqual(try code(Node<Int>.self), expected)
     }
 }
 
