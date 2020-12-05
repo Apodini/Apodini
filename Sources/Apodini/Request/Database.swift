@@ -11,11 +11,12 @@ import Fluent
 
 
 @propertyWrapper
-public class Database: RequestInjectable {
+// swiftlint:disable:next type_name
+struct _Database: RequestInjectable {
     private var database: Fluent.Database?
     
     
-    public var wrappedValue: Fluent.Database {
+    var wrappedValue: Fluent.Database {
         guard let database = database else {
             fatalError("You can only access the database while you handle a request")
         }
@@ -24,14 +25,10 @@ public class Database: RequestInjectable {
     }
     
     
-    public init() { }
+    init() { }
     
     
-    func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder? = nil) throws {
+    mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder? = nil) throws {
         self.database = request.db
-    }
-    
-    func disconnect() {
-        self.database = nil
     }
 }
