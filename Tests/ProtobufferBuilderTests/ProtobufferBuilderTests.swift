@@ -101,6 +101,11 @@ extension ProtobufferBuilderTests {
 
 extension ProtobufferBuilderTests {
     func testPokemonWebService() throws {
+        guard let url = URL(string: "http://127.0.0.1:8080/apodini/proto") else {
+            XCTAssertNotNil(nil)
+            return
+        }
+        
         struct Pokemon: Component, ResponseEncodable {
             let id: Int64
             let name: String
@@ -126,7 +131,28 @@ extension ProtobufferBuilderTests {
             PokemonWebService.main()
         }
         
-        XCTAssertTrue(true)
+        let expected = """
+            message Pokemon {
+              Int64 id = 0;
+              String name = 1;
+            }
+            """
+        
+        let expectation = XCTestExpectation()
+        
+        URLSession.shared.dataTask(with: url, completionHandler: { (data, _, _) in
+            data.map { data in
+                guard let string = String(data: data, encoding: .utf8) else {
+                    XCTAssertNotNil(nil)
+                    return
+                }
+                
+                XCTAssertEqual(string, expected)
+                expectation.fulfill()
+            }
+        }).resume()
+        
+        wait(for: [expectation], timeout: 1.0)
     }
 }
 
