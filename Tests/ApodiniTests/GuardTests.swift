@@ -12,7 +12,7 @@ import Vapor
 
 final class GuardTests: XCTestCase {
     struct TestGuard: SyncGuard {
-        @Apodini.Request
+        @_Request
         var request: Vapor.Request
         
         func check() {
@@ -23,9 +23,9 @@ final class GuardTests: XCTestCase {
     
     var component: some Component {
         Text("Hallo")
-            .httpMethod(.GET)
+            .operation(.read)
             .guard(TestGuard())
-            .httpMethod(.POST)
+            .operation(.create)
     }
     
     func testPrintComponent() {

@@ -6,26 +6,66 @@ import XCTest
 import Vapor
 @testable import Apodini
 
+struct TestComponent: Component {
+    let type: Int
+
+    init(_ type: Int) {
+        self.type = type
+    }
+
+    func handle() -> String {
+        "\(type)"
+    }
+}
+
+struct IntEnvironmentContextKey: ContextKey {
+    static var defaultValue: Int = 0
+
+    static func reduce(value: inout Int, nextValue: () -> Int) {
+        value = nextValue()
+    }
+}
+
+struct IntNextComponentContextKey: ContextKey {
+    static var defaultValue: Int = 0
+
+    static func reduce(value: inout Int, nextValue: () -> Int) {
+        value = nextValue()
+    }
+}
+
+struct IntModifier<ModifiedComponent: Component>: Modifier, Visitable {
+    let component: ModifiedComponent
+    let scope: Scope
+    let value: Int
+
+    init(_ component: ModifiedComponent, scope: Scope, value: Int) {
+        self.component = component
+        self.scope = scope
+        self.value = value
+    }
+
+    func visit(_ visitor: SynaxTreeVisitor) {
+        switch scope {
+        case .environment:
+            visitor.addContext(IntEnvironmentContextKey.self, value: value, scope: .environment)
+        case .nextComponent:
+            visitor.addContext(IntNextComponentContextKey.self, value: value, scope: .nextComponent)
+        }
+        component.visit(visitor)
+    }
+}
+
+extension Component {
+    func modifier(_ scope: Scope, value: Int) -> IntModifier<Self> {
+        IntModifier(self, scope: scope, value: value)
+    }
+}
+
 /**
  * Regression test for https://github.com/Apodini/Apodini/issues/12
  */
 final class ContextNodeTests: XCTestCase {
-    struct TestComponent: Component {
-        let type: Int
-
-        init(_ type: Int) {
-            self.type = type
-        }
-
-        func handle() -> String {
-            "\(type)"
-        }
-    }
-
-    struct TestResponseMediator: ResponseTransformer {
-        func transform(response: Never) -> Never {} // uses Never type as it is hooked to the Group
-    }
-
     // swiftlint:disable:next implicitly_unwrapped_optional
     var app: Application!
 
@@ -45,26 +85,21 @@ final class ContextNodeTests: XCTestCase {
     }
     
     var groupWithSingleComponent: some Component {
-        // What we are trying to do is test that the TestComponent inside the Group actually gets its
-        // own ContextNode. In order to check that, we use some ContextKey which uses scope .nextComponent.
-        // The ResponseContextKey is currently the only one with scope .nextComponent.
-        // If this works correctly the test can check that for the TestComponent no entry for the
-        // ResponseContextKey exists. If it gets an non empty array for the ResponseContextKey there is something wrong.
-
         Group("test") {
             TestComponent(1)
-        }.response(TestResponseMediator())
+        }.modifier(.nextComponent, value: 1)
     }
 
     func testGroupWithSingleComponent() {
         class TestSemanticModelBuilder: SemanticModelBuilder {
             override func register<C: Component>(component: C, withContext context: Context) {
                 if let testComponent = component as? TestComponent {
-                    let responses = context.get(valueFor: ResponseContextKey.self)
+                    let localInt = context.get(valueFor: IntNextComponentContextKey.self)
 
                     switch testComponent.type {
                     case 1:
-                        XCTAssertEqual(responses.count, 0, "TestComponent is seemingly sharing the same ContextNode with the Group")
+                        // 0 is the default value for IntNextComponentContextKey
+                        XCTAssertEqual(localInt, 0, "TestComponent is seemingly sharing the same ContextNode with the Group")
                     default:
                         XCTFail("Received unknown component type \(testComponent.type)")
                     }
@@ -81,11 +116,11 @@ final class ContextNodeTests: XCTestCase {
     var groupWithComponentAndGroup: some Component {
         Group("test") {
             TestComponent(1)
-                .httpMethod(.GET)
+                .modifier(.environment, value: 1)
             Group("test2") {
                 TestComponent(2)
-            }.httpMethod(.DELETE)
-        }.httpMethod(.POST)
+            }.modifier(.environment, value: 2)
+        }.modifier(.environment, value: 3)
     }
 
     func testGroupWithComponentAndGroup() {
@@ -94,15 +129,15 @@ final class ContextNodeTests: XCTestCase {
                 if let testComponent = component as? TestComponent {
                     let path = context.get(valueFor: PathComponentContextKey.self)
                     let pathString = ContextNodeTests.buildStringFromPathComponents(path)
-                    let httpMethod = context.get(valueFor: HTTPMethodContextKey.self)
+                    let environmentInt = context.get(valueFor: IntEnvironmentContextKey.self)
 
                     switch testComponent.type {
                     case 1:
                         XCTAssertEqual(pathString, "test")
-                        XCTAssertEqual(httpMethod, .GET)
+                        XCTAssertEqual(environmentInt, 1)
                     case 2:
                         XCTAssertEqual(pathString, "test/test2")
-                        XCTAssertEqual(httpMethod, .DELETE)
+                        XCTAssertEqual(environmentInt, 2)
                     default:
                         XCTFail("Received unknown component type \(testComponent.type)")
                     }
@@ -120,7 +155,7 @@ final class ContextNodeTests: XCTestCase {
         Group("test") {
             Group("test2") {
                 TestComponent(2)
-            }.httpMethod(.POST)
+            }.modifier(.environment, value: 1)
             TestComponent(1)
         }
     }
@@ -131,15 +166,15 @@ final class ContextNodeTests: XCTestCase {
                 if let testComponent = component as? TestComponent {
                     let path = context.get(valueFor: PathComponentContextKey.self)
                     let pathString = ContextNodeTests.buildStringFromPathComponents(path)
-                    let httpMethod = context.get(valueFor: HTTPMethodContextKey.self)
+                    let environmentInt = context.get(valueFor: IntEnvironmentContextKey.self)
 
                     switch testComponent.type {
                     case 1:
                         XCTAssertEqual(pathString, "test")
-                        XCTAssertEqual(httpMethod, .GET)
+                        XCTAssertEqual(environmentInt, 0) // 0 is the default value for IntEnvironmentContextKey
                     case 2:
                         XCTAssertEqual(pathString, "test/test2")
-                        XCTAssertEqual(httpMethod, .POST)
+                        XCTAssertEqual(environmentInt, 1)
                     default:
                         XCTFail("Received unknown component type \(testComponent.type)")
                     }

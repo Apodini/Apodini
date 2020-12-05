@@ -15,6 +15,7 @@ let package = Package(
         .package(url: "https://github.com/vapor/vapor.git", from: "4.35.0"),
         .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0"),
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.0.1"),
+        .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", from: "0.2.0"),
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
         .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.1.0")
     ],
@@ -24,8 +25,12 @@ let package = Package(
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime"),
                 "OpenAPIKit"
+            ],
+            exclude: [
+                "Components/ComponentBuilder.swift.gyb"
             ]
         ),
         .testTarget(
