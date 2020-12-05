@@ -8,10 +8,13 @@
 import Runtime
 
 public class ProtobufferBuilder {
-    private var messages: Set<Message> = .init()
-    private var services: Set<Service> = .init()
+    private var messages: Set<Message>
+    private var services: Set<Service>
     
-    public init() {}
+    public init() {
+        self.messages = Set()
+        self.services = Set()
+    }
 }
 
 public extension ProtobufferBuilder {

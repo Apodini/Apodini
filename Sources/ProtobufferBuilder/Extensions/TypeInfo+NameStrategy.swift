@@ -37,7 +37,7 @@ private extension TypeInfo {
             .map { typeInfo in
                 ParticularType(typeInfo.type)
             }
-            .reduce(into: "") { (result, value) in
+            .reduce(into: "") { result, value in
                 let next = value.description
                 result += result.isEmpty
                     ? next

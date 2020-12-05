@@ -31,5 +31,5 @@ func fixArray(_ node: Node<TypeInfo>) throws -> Tree<TypeInfo> {
     }
     
     return Node(value: try Runtime.typeInfo(of: first),
-                children: .init())
+                children: [])
 }
