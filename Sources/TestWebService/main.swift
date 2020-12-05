@@ -8,6 +8,7 @@
 @testable import Apodini
 import Vapor
 import NIO
+import ArgumentParser
 
 
 struct TestWebService: Apodini.WebService {
@@ -68,6 +69,10 @@ struct TestWebService: Apodini.WebService {
         Group("greet") {
             Greeter()
         }
+    }
+
+    var configuration: Configuration {
+        HTTP2Configuration()
     }
 }
 

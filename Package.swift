@@ -19,7 +19,6 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.0.0"),
         .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.0.0-beta"),
         .package(url: "https://github.com/vapor/apns.git", from: "1.0.0"),
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0")
         .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", from: "0.2.0"),
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2")
     ],
@@ -29,7 +28,6 @@ let package = Package(
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
-                .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
