@@ -24,7 +24,7 @@ public struct Parameter<Element: Codable> {
     
     var id = UUID()
     var name: String?
-    private var element: Element?
+    var element: Element?
     private var options: PropertyOptionSet<ParameterOptionNameSpace>
     private var defaultValue: Element?
     

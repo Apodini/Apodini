@@ -33,6 +33,12 @@ extension Never: ResponseEncodable {
     }
 }
 
+extension Never: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        fatalError("Never should never be encoded")
+    }
+}
+
 
 extension Component where Self.Content == Never {
     /// This `Component` does not include any child `Component`s

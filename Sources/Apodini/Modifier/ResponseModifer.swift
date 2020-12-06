@@ -28,7 +28,7 @@ public protocol ResponseTransformer: AnyResponseTransformer {
     /// The type that should be transformed
     associatedtype Response
     /// The type the `Response`  should be transformed to
-    associatedtype TransformedResponse: ResponseEncodable
+    associatedtype TransformedResponse: Encodable, ResponseEncodable
     
     
     /// Transforms a `response` of the type `Response` to a instance conforming to `TransformedResponse`
