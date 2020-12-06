@@ -60,6 +60,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
     }
     
     func testEndpointsTreeNodes() {
+        // swiftlint:disable force_unwrapping
         let modelBuilder = SharedSemanticModelBuilder(app)
         let visitor = SynaxTreeVisitor(semanticModelBuilders: [modelBuilder])
         let testComponent = TestComponent()
@@ -79,8 +80,8 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         XCTAssertEqual(endpoint.pathComponents[0].description, "a")
         XCTAssertEqual(endpoint.pathComponents[1].description, "b")
         XCTAssertEqual(endpoint.pathComponents[2].description, ":\(nameParameterId.uuidString)")
-        XCTAssertTrue(endpoint.parameters.contains {$0.id == nameParameterId})
-        XCTAssertEqual(endpoint.parameters.first {$0.id == nameParameterId}?.type, .path)
+        XCTAssertTrue(endpoint.parameters.contains { $0.id == nameParameterId })
+        XCTAssertEqual(endpoint.parameters.first { $0.id == nameParameterId }?.parameterType, .path)
         
         // test nested use of path parameter that is only set inside `Handler` (i.e. `TestHandler2`)
         let treeNodeSomeIdParameter: EndpointsTreeNode = treeNodeNameParameter.children.first!
@@ -88,7 +89,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         let someIdParameterId: UUID = nestedEndpoint.parameters.first { $0.name == "someId" }!.id
         
         XCTAssertEqual(nestedEndpoint.parameters.count, 2)
-        XCTAssertTrue(nestedEndpoint.parameters.allSatisfy { $0.type == .path })
+        XCTAssertTrue(nestedEndpoint.parameters.allSatisfy { $0.parameterType == .path })
         XCTAssertEqual(nestedEndpoint.pathComponents[0].description, "a")
         XCTAssertEqual(nestedEndpoint.pathComponents[1].description, "b")
         XCTAssertEqual(nestedEndpoint.pathComponents[2].description, ":\(nameParameterId.uuidString)")

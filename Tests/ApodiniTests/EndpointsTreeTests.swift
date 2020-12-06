@@ -10,7 +10,6 @@ import XCTest
 
 
 final class EndpointsTreeTests: XCTestCase {
-    
     struct Birthdate: Codable {
         let year: Int
         let day: Int
@@ -48,6 +47,7 @@ final class EndpointsTreeTests: XCTestCase {
     }
     
     func testEndpointParameters() throws {
+        // swiftlint:disable force_cast
         let testComponent = TestComponent()
         let testHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
         
@@ -71,13 +71,13 @@ final class EndpointsTreeTests: XCTestCase {
         // basic checks to ensure proper parameter parsing
         XCTAssertEqual(nameParameter.id, (requestInjectables["_name"] as! Parameter<String>).id)
         XCTAssertEqual(timesParameter.id, (requestInjectables["_times"] as! Parameter<Int>).id)
-        XCTAssertEqual(timesParameter.options.option(for: PropertyOptionKey.http), (requestInjectables["_times"] as! Parameter<Int>).option(for: PropertyOptionKey.http))
+        XCTAssertEqual(timesParameter.options.option(for: PropertyOptionKey.http),
+                       (requestInjectables["_times"] as! Parameter<Int>).option(for: PropertyOptionKey.http))
         XCTAssertEqual(birthdateParameter.id, (requestInjectables["_birthdate"] as! Parameter<Birthdate>).id)
         
         // check whether categorization works
-        XCTAssertEqual(birthdateParameter.type, .content)
-        XCTAssertEqual(timesParameter.type, .content)
-        XCTAssertEqual(nameParameter.type, .path)
+        XCTAssertEqual(birthdateParameter.parameterType, .content)
+        XCTAssertEqual(timesParameter.parameterType, .content)
+        XCTAssertEqual(nameParameter.parameterType, .path)
     }
-    
 }

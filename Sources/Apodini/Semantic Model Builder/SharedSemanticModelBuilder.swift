@@ -38,13 +38,13 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
             endpointsTreeRoot = EndpointsTreeNode(path: RootPath())
         }
 
-        // swiftlint:disable:next force_unwrapping
         for parameter in endpoint.parameters {
             let pathDescription = ":\(parameter.id)"
-            if parameter.type == .path && !paths.contains { ($0 as? _PathComponent)?.description == pathDescription } {
+            if parameter.parameterType == .path && !paths.contains(where: { ($0 as? _PathComponent)?.description == pathDescription }) {
                 paths.append(pathDescription)
             }
         }
+        // swiftlint:disable:next force_unwrapping
         endpointsTreeRoot!.addEndpoint(&endpoint, at: paths)
     }
 

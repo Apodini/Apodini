@@ -4,7 +4,6 @@
 // swiftlint:disable todo
 
 import Vapor
-import Runtime
 
 /// This struct is used to model the RootPath for the root of the endpoints tree
 /// TODO can we do better?
@@ -15,25 +14,6 @@ struct RootPath: _PathComponent {
 
     func append<P>(to pathBuilder: inout P) where P: PathBuilder {
         fatalError("RootPath instances should not be appended to anything")
-    }
-}
-
-
-
-/// This struct reduces the inner structure of `@Parameter` and `@PathParameter` to a minimum for performing inference.
-struct EndpointParameter {
-    let id: UUID
-    let name: String?
-    let label: String
-    let contentType: Any.Type
-    let options: PropertyOptionSet<ParameterOptionNameSpace>
-    let type: EndpointParameterType
-    
-    /// `@Parameter` categorization needed for certain interface exporters (e.g., HTTP-based).
-    enum EndpointParameterType {
-        case lightweight
-        case content
-        case path
     }
 }
 
@@ -71,51 +51,7 @@ struct Endpoint {
     }()
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
-    lazy var parameters: [EndpointParameter] = {
-        requestInjectables
-            .compactMap {
-                let info: TypeInfo = try! typeInfo(of: type(of: $0.value))
-                // TODO: is there a better way to do this instead of string comparison?
-                if info.mangledName == "Parameter" {
-                    let mirror = Mirror(reflecting: $0.value)
-                    let id = mirror.children.first { $0.label == "id" }!.value as! UUID
-                    let name = mirror.children.first { $0.label == "name" }?.value as? String
-                    let label = $0.key
-                    let contentType = info.genericTypes[0]
-                    let options = mirror.children.first { $0.label == "options" }!.value as! PropertyOptionSet<ParameterOptionNameSpace>
-                    
-                    let type: EndpointParameter.EndpointParameterType = {
-                        var result: EndpointParameter.EndpointParameterType = .lightweight
-                        let isLosslessStringConvertible = contentType is LosslessStringConvertible.Type
-                        let option = options.option(for: PropertyOptionKey.http)
-                        switch option {
-                        case .path:
-                            precondition(isLosslessStringConvertible, "Invalid explicit option .path for parameter \(name ?? label). Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
-                            result = .path
-                        case .query:
-                            precondition(isLosslessStringConvertible, "Invalid explicit option .query for parameter \(name ?? label). Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
-                            result = .lightweight
-                        case .body:
-                            result = .content
-                        default:
-                            if !isLosslessStringConvertible {
-                                result = .content
-                            }
-                        }
-                        return result
-                    }()
-                    
-                    return EndpointParameter(
-                        id: id,
-                        name: name,
-                        label: label,
-                        contentType: contentType,
-                        options: options,
-                        type: type)
-                }
-                return nil
-            }
-    }()
+    lazy var parameters: [EndpointParameter] = EndpointParameter.create(from: requestInjectables)
 
     lazy var pathComponents: [_PathComponent] = {
         treeNode.pathComponents
