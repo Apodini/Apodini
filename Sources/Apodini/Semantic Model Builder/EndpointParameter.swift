@@ -9,7 +9,6 @@
 import Runtime
 import Foundation
 
-/// This struct reduces the inner structure of `@Parameter` and `@PathParameter` to a minimum for performing inference.
 struct EndpointParameter {
     let id: UUID
     let name: String?

@@ -4,11 +4,7 @@ import Foundation
 /// A `PropertyOptionSet` collects different type erasued `PropertyOptionKey`s.
 struct PropertyOptionSet<Property> {
     private let options: [AnyPropertyOptionKey: Any]
-    
-    var count: Int {
-        options.count
-    }
-    
+
     init() {
         options = [:]
     }
