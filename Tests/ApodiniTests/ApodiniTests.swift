@@ -29,11 +29,11 @@ class ApodiniTests: XCTestCase {
         )
         
         app.migrations.add(
-            CreateBird()
+            CreateBird(),
+            DeviceMigration()
         )
         
         try app.autoMigrate().wait()
-        
         
         try bird1.create(on: database()).wait()
         try bird2.create(on: database()).wait()

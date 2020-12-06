@@ -41,36 +41,13 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
-    struct TestComponent: Component {
-        
-        @Body
-        var device: Device
-        
-        @APNSNotification
-        var notification: ApodiniAPNS
-        
-        func handle() -> EventLoopFuture<HTTPStatus> {
-            notification
-                .send(.init(title: "Test"), to: device.deviceID)
-                .map { .ok }
-            
-        }
-    }
-    
-    struct TestJob: Job {
-        var expression = "*/1 * * * *"
-        
-        func task() {
-            print("Hello World")
-        }
-    }
-    
     struct Hello: Component {
         @Apodini.Environment(\.notificationCenter) var notificationCenter: Apodini.NotificationCenter
         
-        func handle() -> HTTPStatus {
-            notificationCenter.send(notification: .init(alert: .init(title: "Hey", body: "Test")), to: "test")
-            return HTTPStatus.ok
+        func handle() -> EventLoopFuture<HTTPStatus> {
+            let notify = Notification(alert: .init(title: "Hey", body: "Test"))
+            let data = TestStruct(string: "Test", int: 2)
+            return notificationCenter.send(notification: notify, with: data, to: "test").transform(to: .ok)
         }
     }
     
@@ -80,19 +57,30 @@ struct TestWebService: Apodini.WebService {
         @Body
         var device: Device
         
-        func handle() -> HTTPStatus {
-            notificationCenter.register(device)
-            return HTTPStatus.ok
+        func handle() -> EventLoopFuture<HTTPStatus> {
+            notificationCenter.register(device: device).transform(to: .ok)
+        }
+    }
+    
+    struct AddTopic: Component {
+        @Apodini.Environment(\.notificationCenter) var notificationCenter: Apodini.NotificationCenter
+
+        func handle() -> EventLoopFuture<HTTPStatus> {
+            notificationCenter.getFCMDevices().flatMap { devices -> EventLoopFuture<Void> in
+                let device = devices[0]
+                return notificationCenter.addTopics("test", to: device)
+            }.map { .ok }
         }
     }
     
     
     var content: some Component {
-        Group("register") {
-            RegisterAPNS()
-        }.httpMethod(.POST)
+        RegisterAPNS().operation(.create)
         Group("send") {
             Hello()
+        }
+        Group("topic") {
+            AddTopic()
         }
         
     }
@@ -101,9 +89,15 @@ struct TestWebService: Apodini.WebService {
         APNSConfiguration(.pem(pemPath: "/Users/awocatmac/Developer/Action Based Events Sample/backend/Certificates/apns.pem"),
                           topic: "de.tum.in.www1.ios.Action-Based-Events-Sample",
                           environment: .sandbox)
-        FCMConfiguration("/Users/awocatmac/Downloads/server-side-swift-282e3-firebase-adminsdk-el7gq-4bd40d5e3a.json")
-        
+        FCMConfiguration("/Users/awocatmac/Developer/Action Based Events Sample/backend/Certificates/fcm.json")
+        DatabaseConfiguration(.defaultMongoDB("mongodb://localhost:27017/apodini_db"))
+            .addNotifications()
     }
 }
 
 TestWebService.main()
+
+struct TestStruct: Codable {
+    let string: String
+    let int: Int
+}

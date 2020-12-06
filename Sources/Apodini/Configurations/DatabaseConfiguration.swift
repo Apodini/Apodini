@@ -51,8 +51,13 @@ public final class DatabaseConfiguration: Configuration {
         return self
     }
     
+    public func addNotifications() -> Self {
+        self.migrations.append(DeviceMigration())
+        return self
+    }
+    
     private func databaseFactory(for type: DatabaseType) throws -> Fluent.DatabaseConfigurationFactory {
-        var databaseFactory: Fluent.DatabaseConfigurationFactory?
+//        var databaseFactory: Fluent.DatabaseConfigurationFactory?
         switch type {
         case .defaultMongoDB(let conString):
             return try .mongo(connectionString: conString)

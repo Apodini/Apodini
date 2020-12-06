@@ -49,7 +49,7 @@ public struct APNSConfiguration: Configuration {
         } catch {
             fatalError("Error setting up APNS")
         }
-        NotificationCenter.shared.app = app
+        NotificationCenter.shared.application = app
     }
 }
 
