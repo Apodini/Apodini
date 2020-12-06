@@ -17,7 +17,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         super.register(component: component, withContext: context)
 
         let operation = context.get(valueFor: OperationContextKey.self)
-        let paths = context.get(valueFor: PathComponentContextKey.self)
+        var paths = context.get(valueFor: PathComponentContextKey.self)
         let guards = context.get(valueFor: GuardContextKey.self)
         let responseModifiers = context.get(valueFor: ResponseContextKey.self)
 
@@ -39,6 +39,12 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         }
 
         // swiftlint:disable:next force_unwrapping
+        for parameter in endpoint.parameters {
+            let pathDescription = ":\(parameter.id)"
+            if parameter.type == .path && !paths.contains { ($0 as? _PathComponent)?.description == pathDescription } {
+                paths.append(pathDescription)
+            }
+        }
         endpointsTreeRoot!.addEndpoint(&endpoint, at: paths)
     }
 

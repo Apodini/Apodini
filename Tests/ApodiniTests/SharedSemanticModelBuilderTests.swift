@@ -33,6 +33,18 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         }
     }
     
+    struct TestHandler2: Component {
+        @Parameter
+        var name: String
+        
+        @Parameter("someId", .http(.path))
+        var id: Int
+        
+        func handle() -> String {
+            "Hello \(name)"
+        }
+    }
+    
     struct TestComponent: Component {
         @PathParameter
         var name: String
@@ -41,6 +53,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
             Group("a") {
                 Group("b", $name) {
                     TestHandler(name: $name)
+                    TestHandler2(name: $name)
                 }
             }
         }
@@ -68,5 +81,17 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         XCTAssertEqual(endpoint.pathComponents[2].description, ":\(nameParameterId.uuidString)")
         XCTAssertTrue(endpoint.parameters.contains {$0.id == nameParameterId})
         XCTAssertEqual(endpoint.parameters.first {$0.id == nameParameterId}?.type, .path)
+        
+        // test nested use of path parameter that is only set inside `Handler` (i.e. `TestHandler2`)
+        let treeNodeSomeIdParameter: EndpointsTreeNode = treeNodeNameParameter.children.first!
+        var nestedEndpoint: Endpoint = treeNodeSomeIdParameter.endpoints.first!.value
+        let someIdParameterId: UUID = nestedEndpoint.parameters.first { $0.name == "someId" }!.id
+        
+        XCTAssertEqual(nestedEndpoint.parameters.count, 2)
+        XCTAssertTrue(nestedEndpoint.parameters.allSatisfy { $0.type == .path })
+        XCTAssertEqual(nestedEndpoint.pathComponents[0].description, "a")
+        XCTAssertEqual(nestedEndpoint.pathComponents[1].description, "b")
+        XCTAssertEqual(nestedEndpoint.pathComponents[2].description, ":\(nameParameterId.uuidString)")
+        XCTAssertEqual(nestedEndpoint.pathComponents[3].description, ":\(someIdParameterId.uuidString)")
     }
 }
