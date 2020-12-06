@@ -17,7 +17,7 @@ final class NotificationCenterTests: ApodiniTests {
         @Apodini.Environment(\.notificationCenter)
         var notificationCenter: Apodini.NotificationCenter
         
-        @Body
+        @Parameter
         var device: Device
         
         func handle() -> EventLoopFuture<Device> {

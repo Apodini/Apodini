@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 
-import Apodini
+@testable import Apodini
 import Vapor
 import NIO
 
@@ -13,7 +13,7 @@ import NIO
 struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
         private let message: String?
-        @Apodini.Request
+        @_Request
         var request: Vapor.Request
         
         
@@ -54,8 +54,7 @@ struct TestWebService: Apodini.WebService {
     struct RegisterAPNS: Component {
         @Apodini.Environment(\.notificationCenter) var notificationCenter: Apodini.NotificationCenter
         
-        @Body
-        var device: Device
+        @Parameter var device: Device
         
         func handle() -> EventLoopFuture<HTTPStatus> {
             notificationCenter.register(device: device).transform(to: .ok)
