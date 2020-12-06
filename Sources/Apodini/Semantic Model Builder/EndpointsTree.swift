@@ -18,6 +18,8 @@ struct RootPath: _PathComponent {
     }
 }
 
+
+
 /// This struct reduces the inner structure of `@Parameter` and `@PathParameter` to a minimum for performing inference.
 struct EndpointParameter {
     let id: UUID
@@ -25,6 +27,14 @@ struct EndpointParameter {
     let label: String
     let contentType: Any.Type
     let options: PropertyOptionSet<ParameterOptionNameSpace>
+    let type: EndpointParameterType
+    
+    /// `@Parameter` categorization needed for certain interface exporters (e.g., HTTP-based).
+    enum EndpointParameterType {
+        case lightweight
+        case content
+        case path
+    }
 }
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
@@ -61,75 +71,56 @@ struct Endpoint {
     }()
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
-    var parameters: [EndpointParameter] {
+    lazy var parameters: [EndpointParameter] = {
         requestInjectables
             .compactMap {
                 let info: TypeInfo = try! typeInfo(of: type(of: $0.value))
                 // TODO: is there a better way to do this instead of string comparison?
                 if info.mangledName == "Parameter" {
                     let mirror = Mirror(reflecting: $0.value)
+                    let id = mirror.children.first { $0.label == "id" }!.value as! UUID
+                    let name = mirror.children.first { $0.label == "name" }?.value as? String
+                    let label = $0.key
+                    let contentType = info.genericTypes[0]
+                    let options = mirror.children.first { $0.label == "options" }!.value as! PropertyOptionSet<ParameterOptionNameSpace>
+                    
+                    let type: EndpointParameter.EndpointParameterType = {
+                        var result: EndpointParameter.EndpointParameterType = .lightweight
+                        let isLosslessStringConvertible = contentType is LosslessStringConvertible.Type
+                        let option = options.option(for: PropertyOptionKey.http)
+                        switch option {
+                        case .path:
+                            precondition(isLosslessStringConvertible, "Invalid explicit option .path for parameter \(name ?? label). Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
+                            result = .path
+                        case .query:
+                            precondition(isLosslessStringConvertible, "Invalid explicit option .query for parameter \(name ?? label). Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
+                            result = .lightweight
+                        case .body:
+                            result = .content
+                        default:
+                            if !isLosslessStringConvertible {
+                                result = .content
+                            }
+                        }
+                        return result
+                    }()
+                    
                     return EndpointParameter(
-                        id: mirror.children.first { $0.label == "id" }!.value as! UUID,
-                        name: mirror.children.first { $0.label == "name" }?.value as? String,
-                        label: $0.key,
-                        contentType: info.genericTypes[0],
-                        options: mirror.children.first { $0.label == "options" }!.value as! PropertyOptionSet<ParameterOptionNameSpace>)
+                        id: id,
+                        name: name,
+                        label: label,
+                        contentType: contentType,
+                        options: options,
+                        type: type)
                 }
                 return nil
             }
-    }
+    }()
 
     lazy var pathComponents: [_PathComponent] = {
         treeNode.pathComponents
     }()
 }
-
-
-/// `@Parameter` categorization needed for certain interface exporters (e.g., HTTP-based).
-extension Endpoint {
-    var lightweightParameters: [EndpointParameter] {
-        parameters.filter { (ep: EndpointParameter) -> Bool in
-            // explicitly set option
-            let isLosslessStringConvertible = ep.contentType is LosslessStringConvertible.Type
-            if ep.options.option(for: PropertyOptionKey.http) == HTTPParameterMode.query {
-                precondition(isLosslessStringConvertible, "Invalid explicit option .query for parameter \(ep.name ?? ep.label). Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
-                return true
-            }
-            // inference rule: if `LosslessStringConvertible` (and does NOT have any explicit options, e.g., .path, which is set automatically for `@PathParameter`s)
-            if ep.options.count == 0 && isLosslessStringConvertible {
-                return true
-            }
-            return false
-        }
-    }
-    
-    var contentParameters: [EndpointParameter] {
-        parameters.filter { (ep: EndpointParameter) -> Bool in
-            // explicitly set option
-            if ep.options.option(for: PropertyOptionKey.http) == HTTPParameterMode.body {
-                return true
-            }
-            // inference rule: every parameter that can _not_ be safely converted to string must be content
-            if !(ep.contentType is LosslessStringConvertible.Type) {
-                return true
-            }
-            return false
-        }
-    }
-    
-    var pathParameters: [EndpointParameter] {
-        parameters.filter { (ep: EndpointParameter) -> Bool in
-            // explicitly set option
-            let isLosslessStringConvertible = ep.contentType is LosslessStringConvertible.Type
-            if ep.options.option(for: PropertyOptionKey.http) == HTTPParameterMode.path {
-                precondition(isLosslessStringConvertible, "Invalid explicit option .path for parameter \(ep.name ?? ep.label). Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
-                return true
-            }
-            return false
-        }
-    }
-}
-
 
 class EndpointsTreeNode {
     let path: _PathComponent

@@ -66,6 +66,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         XCTAssertEqual(endpoint.pathComponents[0].description, "a")
         XCTAssertEqual(endpoint.pathComponents[1].description, "b")
         XCTAssertEqual(endpoint.pathComponents[2].description, ":\(nameParameterId.uuidString)")
-        XCTAssertTrue(endpoint.pathParameters.contains {$0.id == nameParameterId})
+        XCTAssertTrue(endpoint.parameters.contains {$0.id == nameParameterId})
+        XCTAssertEqual(endpoint.parameters.first {$0.id == nameParameterId}?.type, .path)
     }
 }

@@ -52,7 +52,7 @@ final class EndpointsTreeTests: XCTestCase {
         let testHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
         
         let requestInjectables: [String: RequestInjectable] = extractRequestInjectables(from: testHandler)
-        let endpoint = Endpoint(
+        var endpoint = Endpoint(
                 description: String(describing: testHandler),
                 context: Context(contextNode: ContextNode()),
                 operation: Operation.automatic,
@@ -75,15 +75,9 @@ final class EndpointsTreeTests: XCTestCase {
         XCTAssertEqual(birthdateParameter.id, (requestInjectables["_birthdate"] as! Parameter<Birthdate>).id)
         
         // check whether categorization works
-        XCTAssertTrue(endpoint.contentParameters.contains {$0.id == birthdateParameter.id})
-        XCTAssertTrue(endpoint.contentParameters.contains {$0.id == timesParameter.id})
-        XCTAssertFalse(endpoint.contentParameters.contains {$0.id == nameParameter.id})
-        XCTAssertFalse(endpoint.pathParameters.contains {$0.id == birthdateParameter.id})
-        XCTAssertFalse(endpoint.pathParameters.contains {$0.id == timesParameter.id})
-        XCTAssertTrue(endpoint.pathParameters.contains {$0.id == nameParameter.id})
-        XCTAssertFalse(endpoint.lightweightParameters.contains {$0.id == birthdateParameter.id})
-        XCTAssertFalse(endpoint.lightweightParameters.contains {$0.id == timesParameter.id})
-        XCTAssertFalse(endpoint.lightweightParameters.contains {$0.id == nameParameter.id})
+        XCTAssertEqual(birthdateParameter.type, .content)
+        XCTAssertEqual(timesParameter.type, .content)
+        XCTAssertEqual(nameParameter.type, .path)
     }
     
 }
