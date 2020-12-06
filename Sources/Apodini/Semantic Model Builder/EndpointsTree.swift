@@ -4,6 +4,7 @@
 // swiftlint:disable todo
 
 import Vapor
+import Runtime
 
 /// This struct is used to model the RootPath for the root of the endpoints tree
 /// TODO can we do better?
@@ -73,6 +74,10 @@ class EndpointsTreeNode {
     var children: Dictionary<String, EndpointsTreeNode>.Values {
         nodeChildren.values
     }
+    /// If a EndpointsTreeNode A is a child to  a EndpointsTreeNode B and A has an `PathParameter` as its `path`
+    /// B can't have any other children besides A that also have an `PathParameter` at the same location.
+    /// Thus we mark `childContainsPathParameter` to true as soon as we insert a `PathParameter` as a child.
+    private var childContainsPathParameter = false
 
     init(path: _PathComponent, parent: EndpointsTreeNode? = nil) {
         self.path = path
@@ -92,6 +97,23 @@ class EndpointsTreeNode {
             if let first = pathComponents.removeFirst() as? _PathComponent {
                 var child = nodeChildren[first.description]
                 if child == nil {
+                    if let info = try? typeInfo(of: type(of: first)), info.mangledName == "Parameter" {
+                        let mirror = Mirror(reflecting: first)
+
+                        // swiftlint:disable:next force_cast
+                        let options = mirror.children.first { $0.label == "options" }!.value as! PropertyOptionSet<ParameterOptionNameSpace>
+                        if options.option(for: PropertyOptionKey.http) != .path {
+                            fatalError("Parameter can only be used as path component when setting .http to .path!")
+                        }
+
+                        if childContainsPathParameter { // there are already some children with a path parameter on this level
+                            fatalError("When inserting endpoint \(endpoint.description) we encountered a path parameter collision on level n-\(pathComponents.count): "
+                                    + "You can't have multiple path parameters on the same level!")
+                        } else {
+                            childContainsPathParameter = true
+                        }
+                    }
+
                     child = EndpointsTreeNode(path: first, parent: self)
                     nodeChildren[first.description] = child
                 }
