@@ -38,6 +38,20 @@ struct Endpoint {
     let requestInjectables: [String: RequestInjectable] // TODO request injectables currently heavily rely on Vapor Requests
     let handleMethod: () -> ResponseEncodable // TODO use ResponseEncodable replacement, whatever that will be
     let responseTransformers: [() -> (AnyResponseTransformer)] // TODO handle RequestInjectables for every Transformer instance
+    
+    /// Type returned by `handle()`
+    let handleReturnType: ResponseEncodable.Type
+    
+    /// Response type ultimately returned by `handle()` and possible following `ResponseTransformer`s
+    lazy var responseType: ResponseEncodable.Type = {
+        guard let lastResponseTransformer = self.responseTransformers.last else {
+            return self.handleReturnType
+        }
+        return lastResponseTransformer().transformedResponseType
+    }()
+    
+    /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
+    lazy var parameters: [EndpointParameter] = EndpointParameter.create(from: requestInjectables)
 
     lazy var pathComponents: [_PathComponent] = {
         treeNode.pathComponents
