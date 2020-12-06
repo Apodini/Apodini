@@ -14,10 +14,10 @@ import Fluent
 
 final class CustomComponentTests: ApodiniTests {
     struct AddBirdsComponent: Component {
-        @Apodini.Database
+        @_Database
         var database: Fluent.Database
         
-        @Body
+        @Parameter
         var bird: Bird
         
         
