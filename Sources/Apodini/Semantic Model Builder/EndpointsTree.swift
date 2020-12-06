@@ -4,6 +4,7 @@
 // swiftlint:disable todo
 
 import Vapor
+import Runtime
 
 /// This struct is used to model the RootPath for the root of the endpoints tree
 /// TODO can we do better?
@@ -15,6 +16,15 @@ struct RootPath: _PathComponent {
     func append<P>(to pathBuilder: inout P) where P: PathBuilder {
         fatalError("RootPath instances should not be appended to anything")
     }
+}
+
+/// This struct reduces the inner structure of `@Parameter` and `@PathParameter` to a minimum for performing inference.
+struct EndpointParameter {
+    let id: UUID
+    let name: String?
+    let label: String
+    let contentType: Any.Type
+    let options: PropertyOptionSet<ParameterOptionNameSpace>
 }
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
@@ -38,11 +48,88 @@ struct Endpoint {
     let requestInjectables: [String: RequestInjectable] // TODO request injectables currently heavily rely on Vapor Requests
     let handleMethod: () -> ResponseEncodable // TODO use ResponseEncodable replacement, whatever that will be
     let responseTransformers: [() -> (AnyResponseTransformer)] // TODO handle RequestInjectables for every Transformer instance
+    
+    /// Type returned by `handle()`
+    let handleReturnType: ResponseEncodable.Type
+    
+    /// Response type ultimately returned by `handle()` and possible following `ResponseTransformer`s
+    lazy var responseType: ResponseEncodable.Type = {
+        guard let lastResponseTransformer = self.responseTransformers.last else {
+            return self.handleReturnType
+        }
+        return lastResponseTransformer().transformedResponseType
+    }()
+    
+    /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
+    var parameters: [EndpointParameter] {
+        requestInjectables
+            .compactMap {
+                let info: TypeInfo = try! typeInfo(of: type(of: $0.value))
+                // TODO: is there a better way to do this instead of string comparison?
+                if info.mangledName == "Parameter" {
+                    let mirror = Mirror(reflecting: $0.value)
+                    return EndpointParameter(
+                        id: mirror.children.first { $0.label == "id" }!.value as! UUID,
+                        name: mirror.children.first { $0.label == "name" }?.value as? String,
+                        label: $0.key,
+                        contentType: info.genericTypes[0],
+                        options: mirror.children.first { $0.label == "options" }!.value as! PropertyOptionSet<ParameterOptionNameSpace>)
+                }
+                return nil
+            }
+    }
 
     lazy var pathComponents: [_PathComponent] = {
         treeNode.pathComponents
     }()
 }
+
+
+/// `@Parameter` categorization needed for certain interface exporters (e.g., HTTP-based).
+extension Endpoint {
+    var lightweightParameters: [EndpointParameter] {
+        parameters.filter { (ep: EndpointParameter) -> Bool in
+            // explicitly set option
+            let isLosslessStringConvertible = ep.contentType is LosslessStringConvertible.Type
+            if ep.options.option(for: PropertyOptionKey.http) == HTTPParameterMode.query {
+                precondition(isLosslessStringConvertible, "Invalid explicit option .query for parameter \(ep.name ?? ep.label). Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
+                return true
+            }
+            // inference rule: if `LosslessStringConvertible` (and does NOT have any explicit options, e.g., .path, which is set automatically for `@PathParameter`s)
+            if ep.options.count == 0 && isLosslessStringConvertible {
+                return true
+            }
+            return false
+        }
+    }
+    
+    var contentParameters: [EndpointParameter] {
+        parameters.filter { (ep: EndpointParameter) -> Bool in
+            // explicitly set option
+            if ep.options.option(for: PropertyOptionKey.http) == HTTPParameterMode.body {
+                return true
+            }
+            // inference rule: every parameter that can _not_ be safely converted to string must be content
+            if !(ep.contentType is LosslessStringConvertible.Type) {
+                return true
+            }
+            return false
+        }
+    }
+    
+    var pathParameters: [EndpointParameter] {
+        parameters.filter { (ep: EndpointParameter) -> Bool in
+            // explicitly set option
+            let isLosslessStringConvertible = ep.contentType is LosslessStringConvertible.Type
+            if ep.options.option(for: PropertyOptionKey.http) == HTTPParameterMode.path {
+                precondition(isLosslessStringConvertible, "Invalid explicit option .path for parameter \(ep.name ?? ep.label). Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
+                return true
+            }
+            return false
+        }
+    }
+}
+
 
 class EndpointsTreeNode {
     let path: _PathComponent

@@ -30,7 +30,8 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
                 guards: guards,
                 requestInjectables: requestInjectables,
                 handleMethod: component.handle,
-                responseTransformers: responseModifiers
+                responseTransformers: responseModifiers,
+                handleReturnType: C.Response.self
         )
 
         if endpointsTreeRoot == nil {

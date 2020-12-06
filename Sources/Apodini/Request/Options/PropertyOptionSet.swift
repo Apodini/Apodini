@@ -5,6 +5,9 @@ import Foundation
 struct PropertyOptionSet<Property> {
     private let options: [AnyPropertyOptionKey: Any]
     
+    var count: Int {
+        options.count
+    }
     
     init() {
         options = [:]
