@@ -1,13 +1,11 @@
 //
 // Created by Andi on 22.11.20.
 //
-// swiftlint:disable todo
 
 import Vapor
 import Runtime
 
 /// This struct is used to model the RootPath for the root of the endpoints tree
-/// TODO can we do better?
 struct RootPath: _PathComponent {
     var description: String {
         ""
@@ -35,10 +33,10 @@ struct Endpoint {
 
     let operation: Operation
 
-    let guards: [LazyGuard] // TODO handle RequestInjectables for every Guard instance
-    let requestInjectables: [String: RequestInjectable] // TODO request injectables currently heavily rely on Vapor Requests
-    let handleMethod: () -> ResponseEncodable // TODO use ResponseEncodable replacement, whatever that will be
-    let responseTransformers: [() -> (AnyResponseTransformer)] // TODO handle RequestInjectables for every Transformer instance
+    let guards: [LazyGuard]
+    let requestInjectables: [String: RequestInjectable]
+    let handleMethod: () -> ResponseEncodable
+    let responseTransformers: [() -> (AnyResponseTransformer)]
     
     /// Type returned by `handle()`
     let handleReturnType: ResponseEncodable.Type
@@ -97,6 +95,8 @@ class EndpointsTreeNode {
             if let first = pathComponents.removeFirst() as? _PathComponent {
                 var child = nodeChildren[first.description]
                 if child == nil {
+                    // swiftlint:disable:next todo
+                    // TODO is there a better way to check for type Parameter instead of string comparison?
                     if let info = try? typeInfo(of: type(of: first)), info.mangledName == "Parameter" {
                         let mirror = Mirror(reflecting: first)
 

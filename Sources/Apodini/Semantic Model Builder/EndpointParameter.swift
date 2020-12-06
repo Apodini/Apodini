@@ -4,7 +4,6 @@
 //
 //  Created by Lorena Schlesinger on 06.12.20.
 //
-// swiftlint:disable todo
 
 import Runtime
 import Foundation
@@ -35,6 +34,7 @@ struct EndpointParameter {
         guard let info: TypeInfo = try? typeInfo(of: type(of: requestInjectable)) else {
             return nil
         }
+        // swiftlint:disable:next todo
         // TODO: is there a better way to do this instead of string comparison?
         if info.mangledName == "Parameter" {
             let mirror = Mirror(reflecting: requestInjectable)

@@ -1,7 +1,6 @@
 //
 // Created by Andi on 22.11.20.
 //
-// swiftlint:disable todo
 
 import Vapor
 
@@ -60,7 +59,7 @@ extension Operation {
     }
 }
 
-extension EndpointsTreeNode { // TODO we might want to provide a way to store exporter specific additions to the model
+extension EndpointsTreeNode {
     func linkedNodes() -> [EndpointsTreeNode] {
         var linkArray: [EndpointsTreeNode] = []
 
