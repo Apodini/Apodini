@@ -91,7 +91,11 @@ extension Parameter: RequestInjectable {
 }
 
 
-extension Parameter: PathComponent {
+extension Parameter: _PathComponent {
+    var description: String {
+        ":\(self.id)"
+    }
+    
     func append<P>(to pathBuilder: inout P) where P: PathBuilder {
         pathBuilder.append(":\(self.id)")
     }

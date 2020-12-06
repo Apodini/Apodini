@@ -1,5 +1,5 @@
 //
-//  EndpointsTreeTest.swift
+//  EndpointsTreeTests.swift
 //  
 //
 //  Created by Lorena Schlesinger on 06.12.20.
@@ -10,16 +10,6 @@ import XCTest
 
 
 final class EndpointsTreeTests: XCTestCase {
-    struct TestComponent: Component {
-        @PathParameter
-        var name: String
-        
-        var content: some Component {
-            Group("birthdate", $name) {
-                TestHandler(name: $name)
-            }
-        }
-    }
     
     struct Birthdate: Codable {
         let year: Int
@@ -46,6 +36,17 @@ final class EndpointsTreeTests: XCTestCase {
         }
     }
     
+    struct TestComponent: Component {
+        @PathParameter
+        var name: String
+        
+        var content: some Component {
+            Group("birthdate", $name) {
+                TestHandler(name: $name)
+            }
+        }
+    }
+    
     func testEndpointParameters() throws {
         let testComponent = TestComponent()
         let testHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
@@ -62,10 +63,10 @@ final class EndpointsTreeTests: XCTestCase {
                 handleReturnType: TestHandler.Response.self
         )
         
-        let parameters = endpoint.parameters
-        let nameParameter = parameters.first { $0.label == "_name" }!
-        let timesParameter = parameters.first { $0.label == "_times" }!
-        let birthdateParameter = parameters.first { $0.label == "_birthdate" }!
+        let parameters: [EndpointParameter] = endpoint.parameters
+        let nameParameter: EndpointParameter = parameters.first { $0.label == "_name" }!
+        let timesParameter: EndpointParameter = parameters.first { $0.label == "_times" }!
+        let birthdateParameter: EndpointParameter = parameters.first { $0.label == "_birthdate" }!
         
         // basic checks to ensure proper parameter parsing
         XCTAssertEqual(nameParameter.id, (requestInjectables["_name"] as! Parameter<String>).id)
