@@ -1,7 +1,7 @@
 # Retrieving Relationship Information
 
-This proposal describes how relationship information can be generated from the DSL and introduces some concepts
-to give hints for relationship retrieval or even manually defining them.
+This proposal describes how relationship information can be generated from the DSL, introduces some concepts
+to give hints for relationship retrieval and adds mechanisms for manually defined hints.
 
 A potential REST interface exporter will use such relationship information to generate Hypermedia information.
 Specifically it will generate hyperlinks which SHOULD be place in a designated `_links` section.
@@ -14,9 +14,9 @@ The following chapters explain how such relationship information is generated.
 
 The path structure of the Webservice can be used to infer relationship information.  
 For example the fact that the `/user/:userid/post` path is a subroute to `/user/:userid` path can be used to 
-generate linking information for every user, namely a link pointing to `user/{userid}/post`.
+generate relationship information for every user, namely a relationship pointing to `user/{userid}/post`.
 
-In general every endpoint will link to **all** of its children/subroutes.
+In general every endpoint will relate to **all** of its children/subroutes.
 
 Giving an example: When a client sends a request for `/user/532` the a potential REST exporter will return the following:
 ```json
@@ -43,24 +43,24 @@ To support such scenarios there must be some sort of way to manually overwrite s
 
 This chapter imagines ways how a user could manually override or provide additional relationship information.
 
-### 2.1. Overriding the link name
+### 2.1. Overriding the relationship name
 
-The above described inferring approach will use the string description of the `PathComponent` as the link name.
+The above described inferring approach will use the string description of the `PathComponent` as the relationship name.
 This may not fit everybody's needs.
 
-Similar to how you can manually define a `@Parameter` name, you can also override a link name.
+Similar to how you can manually define a `@Parameter` name, you can also override a relationship name.
 This proposal suggest a sort of `PathComponentModifier` (similar to `ComponentModifiers`).
 
 Such a definition could then look like the following:
 ```swift
 var content: some Component {
-  Group("test".relationshipName("linkName")) {
+  Group("test".relationshipName("new-name")) {
     Handler()
   }
 }
 ```
 
-### 2.2. Adding new links
+### 2.2. Adding new relationships
 
 In order to support rearranging components, a user can also define its own relationships.
 We introduce a `.relationship` modifier for `PathComponent`s, to which one would pass
@@ -70,7 +70,7 @@ The destination can of course also include `@PathParameters`.
 Any manual definition of a relationship MUST always override a inferred relationship if the name collides.
 
 Looking at the example below, a REST exporter would add the link `greeter` pointing to `/greeting/{userid}` on a 
-response returned from `/user/:userId`. As the value of the `userId` `PathParameter` is known it is replaced with
+response returned from `/user/:userId`. As the value of the `userId` `PathParameter` is known, it is replaced with
 the actual value. `@PathParameter`s for which no predefined value can be inferred should be formatted according to
 [RFC 6570](https://tools.ietf.org/html/rfc6570) (as well as potential query parameters of the destination). 
 
@@ -85,14 +85,14 @@ var content: some Component {
 }
 ```
 
-### 2.3. Excluding links
+### 2.3. Excluding relationships
 
 It may also be a sensible decision for a user to hide a inferred relationship. To support that
-a simple modifier can be introduce to hide a relationships.
+a modifier can be introduce.
 
-Even if a user supplies a `.relationshipName` modifier, the link will still be hidden when `.hideRelationshio` is used.
+Even if a user supplies a `.relationshipName` modifier, the relationship will still be hidden when `.hideRelationshio` is used.
 
-Considering the example below, a request to `/` will not include a link pointing to `/test`.
+Considering the example below, a request to `/` will not include a relationship pointing to `/test`.
 
 ```swift
 var content: some Component {
@@ -104,7 +104,7 @@ var content: some Component {
 
 ## 3. Using type information
 
-Checking the structure of the Webservice is already pretty powerful, but doesn't allow to link between handlers
+Checking the structure of the Webservice is already pretty powerful, but doesn't allow for relationships between handlers
 which are on the same level or on different paths of the path component tree.  
 This chapter highlights how we can nonetheless retrieve relationship information by looking at type information.
 
@@ -159,13 +159,13 @@ With that information a potential REST exporter could encode the following for a
 ```
 
 _Note: to be fair the `self` link can also be more easily retrieved by looking at what the client sent in its request.
-However what we actually do is building a mapping from types to their respective Component
-which is needed for the further chapters._
+However what we actually do is building a mapping from types to their respective `Handler`
+which is needed for the following chapters._
 
 ### 3.2. `Handler`s which return an `Identifiable` but don't have a parameter
 
-A special case to [3.1](#31-looking-at-the-return-type-of-handle) is when we detect that a `Handler` returns a type
-conforming to `Identifiable` but doesn't have a `@PathParameter` which can be mapped to `.id` property.
+A special case to [3.1](#31-looking-at-the-return-type-of-handle) is, when we detect that a `Handler` returns a type
+conforming to `Identifiable`, but doesn't have a `@PathParameter` which can be mapped to `.id` property.
 
 This case is illustrated by the following example web service with the `MeUserHandler`:
 ```swift
@@ -184,7 +184,7 @@ struct TestService: WebService, Component {
 }
 ```
 
-In such a case, we can search the web service for a `Handler` which also returns `User` but has a `@PathParameter`.
+In such a case, we can search the web service for a `Handler` which also returns `User`, but has a `@PathParameter`.
 We could then find the `UserHandler` registered under `/user/:userId`.
 
 A response returned from the `MeUserHandler` would then include a `self` relationship pointing to `/user/{userId}` 
@@ -324,10 +324,10 @@ _Background: One could imagine that in the future a REST exporter could automati
 Pagination handlers for collection endpoints like `/user` and `/article`. At this point the pagination
 generator could be extended to also incorporate some relationship functionality._
 
-As describe in [3.3](#33-defining-foreignkeys) we can already add a link to the `.author` in every response
+As describe in [3.3](#33-defining-foreignkeys) we can already add a relationship to the `.author` in every response
 returned on the `/article/:articleId` endpoint.
-What we currently can't do is, retrieve all articles written by a certain user. Right now the user would need to
-manually support that by supplying a appropriate handler.  
+What we currently can't do is the reverse lookup, retrieve all articles written by a certain `User`.
+Right now the user would need to manually support that by supplying a appropriate `Handler`.  
 Provided that the REST exporter is able to generate such a pagination route, this feature could be extended
 to incorporate relationship information and add support for a `author` query parameter.  
-A request to `/article?author={userId}` would then return a array of articles written by the specified user.
+A request to `/article?author={userId}` would then return a array of articles written by the specified `User`.
