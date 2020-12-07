@@ -1,6 +1,6 @@
 //
 //  TestWebService.swift
-//  
+//
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
@@ -41,64 +41,34 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
-    struct Hello: Component {
-        @Apodini.Environment(\.notificationCenter) var notificationCenter: Apodini.NotificationCenter
+    struct Greeter: Component {
+        @_Request
+        var req: Vapor.Request
         
-        func handle() -> EventLoopFuture<HTTPStatus> {
-            let notify = Notification(alert: .init(title: "Hey", body: "Test"))
-            let data = TestStruct(string: "Test", int: 2)
-            return notificationCenter.send(notification: notify, with: data, to: "test").transform(to: .ok)
-        }
-    }
-    
-    struct RegisterAPNS: Component {
-        @Apodini.Environment(\.notificationCenter) var notificationCenter: Apodini.NotificationCenter
-        
-        @Parameter var device: Device
-        
-        func handle() -> EventLoopFuture<HTTPStatus> {
-            notificationCenter.register(device: device).transform(to: .ok)
-        }
-    }
-    
-    struct AddTopic: Component {
-        @Apodini.Environment(\.notificationCenter) var notificationCenter: Apodini.NotificationCenter
-        
-        func handle() -> EventLoopFuture<HTTPStatus> {
-            notificationCenter
-                .getFCMDevices()
-                .flatMap { devices -> EventLoopFuture<Void> in
-                    let device = devices[0]
-                    return notificationCenter.addTopics("test", to: device)
-                }
-                .map { .ok }
+        func handle() -> String {
+            do {
+                return try req.query.get(at: "name")
+            } catch {
+                return "World"
+            }
         }
     }
     
     
     var content: some Component {
-        RegisterAPNS().operation(.create)
-        Group("send") {
-            Hello()
+        Text("Hello World! 👋")
+            .response(EmojiMediator(emojis: "🎉"))
+            .response(EmojiMediator())
+            .guard(PrintGuard())
+        Group("swift") {
+            Text("Hello Swift! 💻")
+                .response(EmojiMediator())
+                .guard(PrintGuard())
+        }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
+        Group("greet") {
+            Greeter()
         }
-        Group("topic") {
-            AddTopic()
-        }
-    }
-    
-    var configuration: Configuration {
-        APNSConfiguration(.pem(pemPath: "/Users/awocatmac/Developer/Action Based Events Sample/backend/Certificates/apns.pem"),
-                          topic: "de.tum.in.www1.ios.Action-Based-Events-Sample",
-                          environment: .sandbox)
-        FCMConfiguration("/Users/awocatmac/Developer/Action Based Events Sample/backend/Certificates/fcm.json")
-        DatabaseConfiguration(.defaultMongoDB("mongodb://localhost:27017/apodini_db"))
-            .addNotifications()
     }
 }
 
 TestWebService.main()
-
-struct TestStruct: Codable {
-    let string: String
-    let int: Int
-}
