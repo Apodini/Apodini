@@ -8,7 +8,7 @@ public protocol EnvironmentKey {
 
 /// A collection of environment values.
 /// Custom environment values can be created by extending this struct with new properties.
-public struct EnvironmentValues: CustomStringConvertible {
+public struct EnvironmentValues {
     var values: [ObjectIdentifier: Any] = [:]
     
     public init() { }
