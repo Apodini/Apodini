@@ -27,7 +27,7 @@ Giving an example: When a client sends a request for `/user/532` the a potential
   "email": "rudi@raser.de",
   "_links": {
     "self": "https://example.api/user/532",
-    "post": "https://example.api/post"
+    "post": "https://example.api/user/532/post"
   }
 }
 ```
@@ -67,7 +67,7 @@ We introduce a `.relationship` modifier for `PathComponent`s, to which one would
 a relationship name and `PathComponent`s describing the destination.  
 The destination can of course also include `@PathParameters`.
 
-Any manual definition of a relationship MUST always override a inferred relationship if the name collides.
+Any manual definition of a relationship MUST always override an inferred relationship if the name collides.
 
 Looking at the example below, a REST exporter would add the link `greeter` pointing to `/greeting/{userid}` on a 
 response returned from `/user/:userId`. As the value of the `userId` `PathParameter` is known, it is replaced with
@@ -171,9 +171,10 @@ This case is illustrated by the following example web service with the `MeUserHa
 ```swift
 struct TestService: WebService, Component {
   @PathParameter var userId: User.ID
+  @PathParameter var postId: User.ID
 
   var content: some Component {
-    Group("user", $postId) {
+    Group("user", $userId) {
       UserHandler(userId: $userId)
       // could contain other routes giving more information for the given user, e.g. ./posts
     }
