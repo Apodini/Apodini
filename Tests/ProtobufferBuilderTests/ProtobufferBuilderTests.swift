@@ -1,7 +1,4 @@
 import XCTest
-
-import Apodini
-import Vapor
 import ProtobufferBuilder
 
 final class ProtobufferBuilderTests: XCTestCase {
@@ -96,63 +93,6 @@ extension ProtobufferBuilderTests {
             """
         
         XCTAssertEqual(try code(Node<Int>.self), expected)
-    }
-}
-
-extension ProtobufferBuilderTests {
-    func testPokemonWebService() throws {
-        guard let url = URL(string: "http://127.0.0.1:8080/apodini/proto") else {
-            XCTAssertNotNil(nil)
-            return
-        }
-        
-        struct Pokemon: Component, ResponseEncodable {
-            let id: Int64
-            let name: String
-            
-            func handle() -> Pokemon {
-                self
-            }
-            
-            func encodeResponse(for request: Request) -> EventLoopFuture<Response> {
-                fatalError()
-            }
-        }
-        
-        struct PokemonWebService: WebService {
-            var content: some Component {
-                Group("pokemon") {
-                    Pokemon(id: 25, name: "Pikachu")
-                }
-            }
-        }
-        
-        DispatchQueue.global().async {
-            PokemonWebService.main()
-        }
-        
-        let expected = """
-            message Pokemon {
-              Int64 id = 0;
-              String name = 1;
-            }
-            """
-        
-        let expectation = XCTestExpectation()
-        
-        URLSession.shared.dataTask(with: url, completionHandler: { (data, _, _) in
-            data.map { data in
-                guard let string = String(data: data, encoding: .utf8) else {
-                    XCTAssertNotNil(nil)
-                    return
-                }
-                
-                XCTAssertEqual(string, expected)
-                expectation.fulfill()
-            }
-        }).resume()
-        
-        wait(for: [expectation], timeout: 1.0)
     }
 }
 
