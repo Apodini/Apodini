@@ -11,6 +11,7 @@ public protocol EnvironmentKey {
 public struct EnvironmentValues {
     var values: [ObjectIdentifier: Any] = [:]
     
+    /// Initializer of `EnvironmentValues`
     public init() { }
     
     /// Accesses the environment value associated with a custom key.
