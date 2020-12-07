@@ -34,8 +34,8 @@ extension Notification {
     }
     
     private func generateAPNSwiftPayload(hasData: Bool) -> APNSwiftPayload {
-        let apnsAlert = APNSwiftAlert.init(title: alert.title, subtitle: alert.subtitle, body: alert.body)
-        let apnsConfig = payload?.apnsConfig
+        let apnsAlert = APNSwiftAlert(title: alert.title, subtitle: alert.subtitle, body: alert.body)
+        let apnsConfig = payload?.apnsPayload
         
         return APNSwiftPayload(alert: apnsAlert,
                                badge: apnsConfig?.badge,
@@ -49,7 +49,9 @@ extension Notification {
     internal func transformToFCM() -> FCMMessageDefault {
         let fcmAlert = FCMNotification(title: alert.title ?? "", body: alert.body ?? "")
         
-        return FCMMessageDefault(notification: fcmAlert)
+        return FCMMessage(notification: fcmAlert,
+                          android: payload?.fcmAndroidPayload?.transform(),
+                          webpush: payload?.fcmWebpushPayload?.transform())
     }
     
     internal func transformToFCM<T: Encodable>(with data: T) -> FCMMessageDefault {
@@ -57,7 +59,10 @@ extension Notification {
         let json = convertToJSON(data)
         let dict = ["data": json]
         
-        return FCMMessageDefault(notification: fcmAlert, data: dict)
+        return FCMMessage(notification: fcmAlert,
+                          data: dict,
+                          android: payload?.fcmAndroidPayload?.transform(),
+                          webpush: payload?.fcmWebpushPayload?.transform())
     }
     
     private func convertToJSON<T: Encodable>(_ object: T) -> String {
@@ -68,9 +73,16 @@ extension Notification {
     }
 }
 
+/// The message of a push notifications which can be used across all plattforms.
 public struct Alert {
+    /// The title of a push notification.
     public let title: String?
+    
+    /// The subtitle of a push notification.
+    /// This field is only used by APNS
     public let subtitle: String?
+    
+    /// The body of a push notification
     public let body: String?
     
     public init(title: String? = nil, subtitle: String? = nil, body: String? = nil) {

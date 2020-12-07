@@ -64,6 +64,6 @@ extension ScheduleContext: Visitable {
 
 extension Component {
     public func schedule(_ job: Job) -> ScheduleContext<Self> {
-        return ScheduleContext(job, self)
+        ScheduleContext(job, self)
     }
 }

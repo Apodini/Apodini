@@ -29,16 +29,20 @@ public final class DeviceDatabaseModel: Model {
     }
     
     public func transform() -> Device {
-        Device(id: id!, type: type, topics: topics)
+        guard let id = id else {
+            fatalError("Could not retrieve id of device")
+        }
+        return Device(id: id, type: type, topics: topics)
     }
 }
 
+// swiftlint:disable discouraged_optional_collection
 public struct Device: Content {
     public var id: String
     public var type: DeviceType
     public var topics: [String]?
     
-    public init(id: String, type: DeviceType, topics: [String]? = nil) {
+    public init(id: String, type: DeviceType, topics: [String]? = []) {
         self.id = id
         self.type = type
         self.topics = topics
@@ -48,6 +52,7 @@ public struct Device: Content {
         DeviceDatabaseModel(id: id, type: type, topics: topics ?? [])
     }
 }
+// swiftlint:enable discouraged_optional_collection
 
 extension FieldKey {
     static var type: Self { "type" }
@@ -75,7 +80,6 @@ internal struct DeviceMigration: Migration {
                     .field("topics", .array(of: .string), .required)
                     .create()
             }
-    
     }
     
     func revert(on database: Fluent.Database) -> EventLoopFuture<Void> {

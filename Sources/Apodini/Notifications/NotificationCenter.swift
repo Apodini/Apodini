@@ -31,11 +31,14 @@ public class NotificationCenter {
     
     init() { }
     
-    public func register(device: Device) -> EventLoopFuture<Device> {
+    public func register(device: Device) -> EventLoopFuture<Void> {
         device
             .transform()
             .save(on: app.db)
-            .map { device }
+            .flatMapError { _ in
+                self.app.logger.error("Could not save device with id: \(device.id) to databse. It may already be stored in the database.")
+                return self.app.eventLoopGroup.future(())
+            }
     }
     
     public func getAllDevices() -> EventLoopFuture<[Device]> {
@@ -59,6 +62,15 @@ public class NotificationCenter {
             .filter(\.$type == .fcm)
             .all()
             .mapEach { $0.transform() }
+    }
+    
+    public func getDevices(of topic: String) -> EventLoopFuture<[Device]> {
+        DeviceDatabaseModel
+            .query(on: app.db)
+            .all()
+            .mapEachCompact { device in
+                device.topics.contains(topic) ? device.transform() : nil
+            }
     }
     
     @discardableResult
@@ -112,7 +124,7 @@ public class NotificationCenter {
         }
     }
     
-    public func send<T: Encodable>(notification: Notification, with data: T,  to devices: [Device]) {
+    public func send<T: Encodable>(notification: Notification, with data: T, to devices: [Device]) {
         let fcmNotification = notification.transformToFCM(with: data)
         let apnsNotification = notification.transformToAPNS(with: data)
         
@@ -126,44 +138,24 @@ public class NotificationCenter {
     }
     
     @discardableResult
-    public func send(notification: Notification, to subscription: String) -> EventLoopFuture<[Void]> {
+    public func send(notification: Notification, to topic: String) -> EventLoopFuture<[Void]> {
         let fcmNotification = notification.transformToFCM()
         let apnsNotification = notification.transformToAPNS()
         
-        return DeviceDatabaseModel
-            .query(on: app.db)
-            .all()
+        return getDevices(of: topic)
             .flatMapEach(on: app.eventLoopGroup.next()) { device in
-                if device.topics.contains(subscription) {
-                    if device.type == .apns {
-                        return try! self.sendAPNS(apnsNotification, to: device.requireID())
-                    } else {
-                        return self.sendFCM(fcmNotification, topic: subscription)
-                    }
-                } else {
-                    return self.app.eventLoopGroup.future(())
-                }
+                device.type == .apns ? self.sendAPNS(apnsNotification, to: device.id) : self.sendFCM(fcmNotification, topic: topic)
             }
     }
     
     @discardableResult
-    public func send<T: Encodable>(notification: Notification, with data: T, to subscription: String) -> EventLoopFuture<[Void]> {
+    public func send<T: Encodable>(notification: Notification, with data: T, to topic: String) -> EventLoopFuture<[Void]> {
         let fcmNotification = notification.transformToFCM(with: data)
         let apnsNotification = notification.transformToAPNS(with: data)
         
-        return DeviceDatabaseModel
-            .query(on: app.db)
-            .all()
+        return getDevices(of: topic)
             .flatMapEach(on: app.eventLoopGroup.next()) { device in
-                if device.topics.contains(subscription) {
-                    if device.type == .apns {
-                        return try! self.sendAPNS(apnsNotification, to: device.requireID())
-                    } else {
-                        return self.sendFCM(fcmNotification, topic: subscription)
-                    }
-                } else {
-                    return self.app.eventLoopGroup.future(())
-                }
+                device.type == .apns ? self.sendAPNS(apnsNotification, to: device.id) : self.sendFCM(fcmNotification, topic: topic)
             }
     }
     
@@ -186,7 +178,7 @@ public class NotificationCenter {
 }
 
 enum NotificationCenterEnvironmentKey: EnvironmentKey {
-    static var defaultValue: NotificationCenter = NotificationCenter.shared
+    static var defaultValue = NotificationCenter.shared
 }
 
 extension EnvironmentValues {

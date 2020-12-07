@@ -63,12 +63,15 @@ struct TestWebService: Apodini.WebService {
     
     struct AddTopic: Component {
         @Apodini.Environment(\.notificationCenter) var notificationCenter: Apodini.NotificationCenter
-
+        
         func handle() -> EventLoopFuture<HTTPStatus> {
-            notificationCenter.getFCMDevices().flatMap { devices -> EventLoopFuture<Void> in
-                let device = devices[0]
-                return notificationCenter.addTopics("test", to: device)
-            }.map { .ok }
+            notificationCenter
+                .getFCMDevices()
+                .flatMap { devices -> EventLoopFuture<Void> in
+                    let device = devices[0]
+                    return notificationCenter.addTopics("test", to: device)
+                }
+                .map { .ok }
         }
     }
     
@@ -81,7 +84,6 @@ struct TestWebService: Apodini.WebService {
         Group("topic") {
             AddTopic()
         }
-        
     }
     
     var configuration: Configuration {

@@ -38,6 +38,7 @@ public struct FCMConfiguration: Configuration {
     }
 }
 
+// swiftlint:disable identifier_name
 struct ServiceAccount: Codable {
     let project_id: String
     let private_key: String
@@ -45,3 +46,4 @@ struct ServiceAccount: Codable {
     let server_key: String?
     let sender_id: String?
 }
+// swiftlint:enable identifier_name

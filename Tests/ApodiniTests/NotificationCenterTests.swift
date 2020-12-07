@@ -20,8 +20,8 @@ final class NotificationCenterTests: ApodiniTests {
         @Parameter
         var device: Device
         
-        func handle() -> EventLoopFuture<Device> {
-            notificationCenter.register(device: device)
+        func handle() -> EventLoopFuture<HTTPStatus> {
+            notificationCenter.register(device: device).map { .ok }
         }
     }
     

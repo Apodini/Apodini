@@ -21,7 +21,6 @@ struct DeviceMigration: Migration {
                     .field("topics", .array(of: .string))
                     .create()
             }
-        
     }
     
     func revert(on database: Fluent.Database) -> EventLoopFuture<Void> {
@@ -30,4 +29,3 @@ struct DeviceMigration: Migration {
         }
     }
 }
-
