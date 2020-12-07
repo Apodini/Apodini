@@ -92,13 +92,13 @@ extension ProtobufferBuilderTests {
         let expected = """
             syntax = "proto3";
 
-            message NodeOfInt {
-              Int value = 0;
-              repeated NodeOfInt children = 1;
+            message NodeOfInt64 {
+              Int64 value = 0;
+              repeated NodeOfInt64 children = 1;
             }
             """
         
-        XCTAssertEqual(try code(Node<Int>.self), expected)
+        XCTAssertEqual(try code(Node<Int64>.self), expected)
     }
 }
 

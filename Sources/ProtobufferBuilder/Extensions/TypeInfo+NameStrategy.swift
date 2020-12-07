@@ -15,7 +15,7 @@ extension TypeInfo {
         case .tuple:
             return try tupleName()
         default:
-            throw Exception(message: "Kind: \(kind) is not supported.")
+            throw Exception(message: "Kind: \(kind) is not supported")
         }
     }
 }
@@ -51,7 +51,7 @@ private extension TypeInfo {
         if type == Void.self {
             return "Void"
         } else {
-            throw Exception(message: "Tuple: \(type) is not supported.")
+            throw Exception(message: "Tuple: \(type) is not supported")
         }
     }
 }

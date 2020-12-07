@@ -7,7 +7,7 @@ struct IntegrationTest<S: WebService> {
     
     func execute(`in` testCase: XCTestCase) {
         guard let url = URL(string: url) else {
-            XCTAssertNotNil(nil)
+            XCTAssertNotNil(nil, "Url was nil")
             return
         }
         
@@ -17,16 +17,15 @@ struct IntegrationTest<S: WebService> {
         
         let expectation = XCTestExpectation()
         
-        URLSession.shared.dataTask(with: url, completionHandler: { (data, _, _) in
-            data.map { data in
-                guard let string = String(data: data, encoding: .utf8) else {
-                    XCTAssertNotNil(nil)
-                    return
-                }
-                
-                XCTAssertEqual(string, expectedResponse)
-                expectation.fulfill()
+        URLSession.shared.dataTask(with: url, completionHandler: { data, _, _ in
+            guard let data = data,
+                  let string = String(data: data, encoding: .utf8) else {
+                XCTAssertNotNil(nil, "Data or string was nil")
+                return
             }
+            
+            XCTAssertEqual(string, expectedResponse)
+            expectation.fulfill()
         }).resume()
         
         testCase.wait(for: [expectation], timeout: 1.0)

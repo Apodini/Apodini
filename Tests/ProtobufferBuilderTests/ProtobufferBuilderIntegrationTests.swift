@@ -13,7 +13,7 @@ final class ProtobufferBuilderIntegrationTests: XCTestCase {
             }
             
             func encodeResponse(for request: Request) -> EventLoopFuture<Response> {
-                fatalError("Missing implementation for test.")
+                fatalError("Missing implementation for test")
             }
         }
         
