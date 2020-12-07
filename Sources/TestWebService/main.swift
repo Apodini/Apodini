@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 
-import Apodini
+@testable import Apodini
 import Vapor
 import NIO
 
@@ -13,7 +13,7 @@ import NIO
 struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
         private let message: String?
-        @Apodini.Request
+        @_Request
         var request: Vapor.Request
         
         
@@ -42,7 +42,7 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @Apodini.Request
+        @_Request
         var req: Vapor.Request
         
         func handle() -> String {
