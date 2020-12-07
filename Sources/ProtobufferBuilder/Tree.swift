@@ -23,6 +23,7 @@ extension Node {
 
 // MARK: - Tree
 
+// swiftlint:disable:next syntactic_sugar
 typealias Tree<T> = Optional<Node<T>>
 
 extension Tree {

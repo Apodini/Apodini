@@ -49,6 +49,8 @@ final class ProtobufferBuilderTests: XCTestCase {
 extension ProtobufferBuilderTests {
     func testScalarType() throws {
         let expected = """
+            syntax = "proto3";
+
             message StringMessage {
               string value = 0;
             }
@@ -67,6 +69,8 @@ extension ProtobufferBuilderTests {
         }
         
         let expected = """
+            syntax = "proto3";
+
             message Account {
               repeated Transaction transactions = 0;
             }
@@ -86,6 +90,8 @@ extension ProtobufferBuilderTests {
         }
         
         let expected = """
+            syntax = "proto3";
+
             message NodeOfInt {
               Int value = 0;
               repeated NodeOfInt children = 1;

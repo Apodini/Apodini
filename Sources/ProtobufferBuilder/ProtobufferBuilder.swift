@@ -7,10 +7,14 @@
 
 import Runtime
 
+/// ProtobufferBuilder builds `.proto` files.
+///
+/// Call `ProtobufferBuilder.description` for the final output.
 public class ProtobufferBuilder {
     private var messages: Set<Message>
     private var services: Set<Service>
     
+    /// Create an instance of `ProtobufferBuilder`.
     public init() {
         self.messages = Set()
         self.services = Set()
@@ -18,10 +22,16 @@ public class ProtobufferBuilder {
 }
 
 public extension ProtobufferBuilder {
+    /// `addService` builds a Protobuffer service declaration from the type parameter.
+    /// - Parameter type: the type of the service
+    /// - Throws: `Error`s of type `Exception`
     func addService<T>(of type: T.Type = T.self) throws {
         print(type)
     }
     
+    /// `addMessage` builds a Protobuffer message declaration from the type parameter.
+    /// - Parameter type: the type of the message
+    /// - Throws: `Error`s of type `Exception`
     func addMessage<T>(of type: T.Type = T.self) throws {
         print(type)
         
@@ -60,9 +70,15 @@ public extension ProtobufferBuilder {
 
 extension ProtobufferBuilder: CustomStringConvertible {
     public var description: String {
-        messages
+        let messages = self.messages
             .sorted(by: \.name)
             .map(\.description)
             .joined(separator: "\n\n")
+        
+        return """
+            syntax = "proto3";
+
+            \(messages)
+            """
     }
 }

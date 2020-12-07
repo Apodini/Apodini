@@ -13,7 +13,7 @@ final class ProtobufferBuilderIntegrationTests: XCTestCase {
             }
             
             func encodeResponse(for request: Request) -> EventLoopFuture<Response> {
-                fatalError()
+                fatalError("Missing implementation for test.")
             }
         }
         
@@ -28,6 +28,8 @@ final class ProtobufferBuilderIntegrationTests: XCTestCase {
         IntegrationTest<PokemonWebService>(
             url: "http://127.0.0.1:8080/apodini/proto",
             expectedResponse: """
+                syntax = "proto3";
+
                 message Pokemon {
                   Int64 id = 0;
                   String name = 1;

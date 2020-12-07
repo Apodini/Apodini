@@ -48,5 +48,5 @@ private let supportedPrimitiveTypes: [Any.Type] = [
     Bool.self,
     String.self,
     Double.self,
-    Float.self,
+    Float.self
 ]
