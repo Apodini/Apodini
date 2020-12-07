@@ -37,9 +37,13 @@ public final class DeviceDatabaseModel: Model {
 }
 
 // swiftlint:disable discouraged_optional_collection
+/// A struct used by the `NotificationCenter` to send push notifications.
 public struct Device: Content {
+    /// The id used by a push notification service.
     public var id: String
+    /// The push notification service to use when sending a message.
     public var type: DeviceType
+    /// Topics are used to group multiple `Device`s together to receive the same push notification.
     public var topics: [String]?
     
     public init(id: String, type: DeviceType, topics: [String]? = []) {

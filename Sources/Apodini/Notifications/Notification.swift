@@ -9,10 +9,14 @@ import APNS
 import FCM
 import Foundation
 
+/// A struct to create push notifications which can be sent to APNS and FCM.
 public struct Notification {
+    /// Visual message of a `Notification` which can be used across all plattforms.
     public let alert: Alert
+    /// Configuration of a `Notification` for every plattform.
     public let payload: Payload?
     
+    /// Initializer of a `Notification`.
     public init(alert: Alert, payload: Payload? = nil) {
         self.alert = alert
         self.payload = payload
@@ -79,12 +83,13 @@ public struct Alert {
     public let title: String?
     
     /// The subtitle of a push notification.
-    /// This field is only used by APNS
+    /// This field is only used by APNS.
     public let subtitle: String?
     
     /// The body of a push notification
     public let body: String?
     
+    /// Initializer of a `Notification`
     public init(title: String? = nil, subtitle: String? = nil, body: String? = nil) {
         self.title = title
         self.subtitle = subtitle
