@@ -30,7 +30,7 @@ final class ProtobufferBuilderIntegrationTests: XCTestCase {
             expectedResponse: """
                 syntax = "proto3";
 
-                message Pokemon {
+                message PokemonMessage {
                   Int64 id = 0;
                   String name = 1;
                 }

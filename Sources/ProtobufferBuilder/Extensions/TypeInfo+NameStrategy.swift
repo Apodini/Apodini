@@ -9,14 +9,23 @@ import Runtime
 
 extension TypeInfo {
     func compatibleName() throws -> String {
+        let result: String
+        
         switch kind {
         case .struct, .class:
-            return try compatibleGenericName()
+            result = try compatibleGenericName()
         case .tuple:
-            return try tupleName()
+            result = try tupleName()
         default:
             throw Exception(message: "Kind: \(kind) is not supported")
         }
+        
+        #warning("High coupling..?")
+        let postfix = isPrimitive(type)
+            ? ""
+            : "Message"
+        
+        return result + postfix
     }
 }
 
@@ -28,7 +37,7 @@ private extension TypeInfo {
             }
         }
         
-        // Hacky...
+        #warning("High coupling..?")
         if isArray {
             tree = tree?.children.first
         }

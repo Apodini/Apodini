@@ -65,18 +65,18 @@ extension ProtobufferBuilderTests {
         }
         
         struct Transaction {
-            let amount: Int
+            let amount: Int32
         }
         
         let expected = """
             syntax = "proto3";
 
-            message Account {
-              repeated Transaction transactions = 0;
+            message AccountMessage {
+              repeated TransactionMessage transactions = 0;
             }
 
-            message Transaction {
-              Int amount = 0;
+            message TransactionMessage {
+              Int32 amount = 0;
             }
             """
         
@@ -92,9 +92,9 @@ extension ProtobufferBuilderTests {
         let expected = """
             syntax = "proto3";
 
-            message NodeOfInt64 {
+            message NodeOfInt64Message {
               Int64 value = 0;
-              repeated NodeOfInt64 children = 1;
+              repeated NodeOfInt64Message children = 1;
             }
             """
         
