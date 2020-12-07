@@ -90,7 +90,7 @@ var content: some Component {
 It may also be a sensible decision for a user to hide a inferred relationship. To support that
 a modifier can be introduce.
 
-Even if a user supplies a `.relationshipName` modifier, the relationship will still be hidden when `.hideRelationshio` is used.
+Even if a user supplies a `.relationshipName` modifier, the relationship will still be hidden when `.hideRelationship` is used.
 
 Considering the example below, a request to `/` will not include a relationship pointing to `/test`.
 
