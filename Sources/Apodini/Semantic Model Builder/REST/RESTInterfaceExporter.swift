@@ -59,32 +59,6 @@ extension Operation {
     }
 }
 
-extension EndpointsTreeNode {
-    func linkedNodes() -> [EndpointsTreeNode] {
-        var linkArray: [EndpointsTreeNode] = []
-
-        for childNode in self.children {
-            linkArray.append(childNode)
-            linkArray.append(contentsOf: childNode.linkedNodes())
-        }
-
-        return linkArray
-    }
-
-    func relativePath(to node: EndpointsTreeNode) -> [_PathComponent] {
-        if node === self {
-            return [path]
-        }
-        guard let parent = parent else {
-            return []
-        }
-
-        var pathComponents = parent.relativePath(to: node)
-        pathComponents.append(path)
-        return pathComponents
-    }
-}
-
 class RESTInterfaceExporter: InterfaceExporter {
     let app: Application
 
@@ -101,7 +75,7 @@ class RESTInterfaceExporter: InterfaceExporter {
     }
 
     func exportEndpoints(_ node: EndpointsTreeNode) {
-        let pathBuilder = RESTPathBuilder(node.pathComponents)
+        let pathBuilder = RESTPathBuilder(node.absolutePath)
         let routesBuilder = pathBuilder.routesBuilder(app)
 
         for (operation, endpoint) in node.endpoints {
@@ -110,9 +84,8 @@ class RESTInterfaceExporter: InterfaceExporter {
 
             app.logger.info("\(pathBuilder.pathDescription) + \(operation.httpMethod.rawValue) with \(endpoint.guards.count) guards.")
 
-            let links = endpoint.treeNode.linkedNodes()
-            for linkedNode in links {
-                let pathComponents = linkedNode.relativePath(to: endpoint.treeNode)
+            for linkedNode in node.children {
+                let pathComponents = linkedNode.absolutePath
                 app.logger.info("  - links to: \(StringPathBuilder(pathComponents).build())")
             }
         }

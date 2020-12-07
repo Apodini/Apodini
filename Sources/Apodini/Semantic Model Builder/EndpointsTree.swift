@@ -52,19 +52,13 @@ struct Endpoint {
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     lazy var parameters: [EndpointParameter] = EndpointParameter.create(from: requestInjectables)
 
-    lazy var pathComponents: [_PathComponent] = {
-        treeNode.pathComponents
-    }()
+    var absolutePath: [_PathComponent] {
+        treeNode.absolutePath
+    }
 }
 
 class EndpointsTreeNode {
     let path: _PathComponent
-    lazy var pathComponents: [_PathComponent] = {
-        var paths: [_PathComponent] = []
-        collectPathComponents(pathComponents: &paths)
-        return paths
-    }()
-
     var endpoints: [Operation: Endpoint] = [:]
 
     let parent: EndpointsTreeNode?
@@ -76,6 +70,12 @@ class EndpointsTreeNode {
     /// B can't have any other children besides A that also have an `PathParameter` at the same location.
     /// Thus we mark `childContainsPathParameter` to true as soon as we insert a `PathParameter` as a child.
     private var childContainsPathParameter = false
+
+    lazy var absolutePath: [_PathComponent] = {
+        var absolutePath: [_PathComponent] = []
+        collectAbsolutePath(&absolutePath)
+        return absolutePath
+    }()
 
     init(path: _PathComponent, parent: EndpointsTreeNode? = nil) {
         self.path = path
@@ -126,13 +126,31 @@ class EndpointsTreeNode {
         }
     }
 
-    private func collectPathComponents(pathComponents: inout [_PathComponent]) {
-        if path is RootPath {
+    private func collectAbsolutePath(_ absolutePath: inout [_PathComponent]) {
+        guard let parent = parent else {
             return
         }
 
-        pathComponents.insert(path, at: 0)
-        parent?.collectPathComponents(pathComponents: &pathComponents)
+        parent.collectAbsolutePath(&absolutePath)
+        absolutePath.append(path)
+    }
+
+    func relativePath(to node: EndpointsTreeNode) -> [_PathComponent] {
+        var relativePath: [_PathComponent] = []
+        collectRelativePath(&relativePath, to: node)
+        return relativePath
+    }
+
+    private func collectRelativePath(_ relativePath: inout [_PathComponent], to node: EndpointsTreeNode) {
+        if node === self {
+            return
+        }
+        guard let parent = parent else {
+            return
+        }
+
+        parent.collectRelativePath(&relativePath, to: node)
+        relativePath.append(path)
     }
 
     /// This method prints the tree structure to stdout. Added for debugging purposes.
@@ -142,7 +160,7 @@ class EndpointsTreeNode {
         print(indentString + path.description + "/ {")
 
         for (operation, endpoint) in endpoints {
-            print(indentString + "  -\(operation): " + endpoint.description)
+            print(indentString + "  - \(operation): " + endpoint.description)
         }
 
         for child in nodeChildren {
