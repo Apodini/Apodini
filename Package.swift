@@ -27,7 +27,9 @@ let package = Package(
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")
             ],
-            exclude: ["Components/ComponentBuilder.swift.gyb"]
+            exclude: [
+                "Components/ComponentBuilder.swift.gyb"
+            ]
         ),
         .target(
             name: "ProtobufferCoding",
