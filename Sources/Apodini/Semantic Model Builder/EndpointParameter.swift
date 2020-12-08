@@ -39,11 +39,11 @@ struct EndpointParameter {
         if info.mangledName == parameterType?.mangledName {
             let mirror = Mirror(reflecting: requestInjectable)
             // swiftlint:disable:next force_cast
-            let id = mirror.children.first { $0.label == "id" }!.value as! UUID
-            let name = mirror.children.first { $0.label == "name" }?.value as? String
+            let id = mirror.children.first { $0.label == ParameterProperties.id }!.value as! UUID
+            let name = mirror.children.first { $0.label == ParameterProperties.name }?.value as? String
             let contentType = info.genericTypes[0]
             // swiftlint:disable:next force_cast
-            let options = mirror.children.first { $0.label == "options" }!.value as! PropertyOptionSet<ParameterOptionNameSpace>
+            let options = mirror.children.first { $0.label == ParameterProperties.options }!.value as! PropertyOptionSet<ParameterOptionNameSpace>
             
             let parameterType: EndpointParameter.EndpointParameterType = {
                 var result: EndpointParameter.EndpointParameterType = .lightweight

@@ -100,7 +100,7 @@ class EndpointsTreeNode {
                         let mirror = Mirror(reflecting: first)
 
                         // swiftlint:disable:next force_cast
-                        let options = mirror.children.first { $0.label == "options" }!.value as! PropertyOptionSet<ParameterOptionNameSpace>
+                        let options = mirror.children.first { $0.label == ParameterProperties.options }!.value as! PropertyOptionSet<ParameterOptionNameSpace>
                         if options.option(for: PropertyOptionKey.http) != .path {
                             fatalError("Parameter can only be used as path component when setting .http to .path!")
                         }
