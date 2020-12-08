@@ -46,7 +46,7 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
         // add path item to `paths`
         do {
             try createOrUpdatePathItem(of: component, withContext: context)
-        } catch HTTPMethod.OpenAPIHTTPMethodError.unsupportedHttpMethod {
+        } catch Operation.OpenAPIHTTPMethodError.unsupportedHttpMethod {
             app.logger.error("Error occurred when mapping Vapor HTTP method to OpenAPI HTTP method.")
         } catch {
             app.logger.error("Some unknown error occurred: \(error).")
@@ -64,7 +64,7 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
         var pathItem = self.document.paths[path] ?? OpenAPI.PathItem()
         
         // get HTTP method
-        let httpMethod = try context.get(valueFor: HTTPMethodContextKey.self).openAPIHttpMethod()
+        let httpMethod = try context.get(valueFor: OperationContextKey.self).openAPIHttpMethod()
         
         // 1. get (ultimate) response type from transformers
         let responseTransformerTypes = context.get(valueFor: ResponseContextKey.self)

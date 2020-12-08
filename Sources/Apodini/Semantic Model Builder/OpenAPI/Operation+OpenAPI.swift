@@ -1,5 +1,5 @@
 //
-//  HTTPMethod+OpenAPI.swift
+//  Operation+OpenAPI.swift
 //  
 //
 //  Created by Lorena Schlesinger on 15.11.20.
@@ -8,26 +8,20 @@ import Foundation
 import Vapor
 import OpenAPIKit
 
-/// Extension to map `Vapor.HttpMethod` to `OpenAPI.HttpMethod`.
-extension HTTPMethod {
+/// Extension to map Apodini `Operation`  to `OpenAPI.HttpMethod`.
+extension Operation {
     internal func openAPIHttpMethod() throws -> OpenAPI.HttpMethod {
         switch self {
-        case .GET:
+        case .automatic:
             return .get
-        case .PUT:
+        case .read:
+            return .get
+        case .update:
             return .put
-        case .POST:
+        case .create:
             return .post
-        case .DELETE:
+        case .delete:
             return .delete
-        case .OPTIONS:
-            return .options
-        case .HEAD:
-            return .head
-        case .PATCH:
-            return .patch
-        case .TRACE:
-            return .trace
         default:
             throw OpenAPIHTTPMethodError.unsupportedHttpMethod(String(describing: self))
         }
