@@ -59,6 +59,14 @@ class SynaxTreeVisitor {
     func exitCollectionItem() {
         if let parentNode = currentNode.parentContextNode {
             currentNode = parentNode
+
+            if currentNode.parentContextNode == nil { // we exited to the top level node, thus we can call postProcessing
+                for builder in semanticModelBuilders {
+                    builder.finishedProcessing()
+                }
+            }
+        } else {
+            fatalError("Tried exiting a ContextNode which didn't have any parent nodes")
         }
     }
 }
