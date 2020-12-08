@@ -36,13 +36,13 @@ extension ParticularType: Equatable {
     }
     
     var isPrimitive: Bool {
-        supportedPrimitiveTypes
+        supportedScalarTypes
             .map(ParticularType.init)
             .contains(self)
     }
 }
 
-private let supportedPrimitiveTypes: [Any.Type] = [
+private let supportedScalarTypes: [Any.Type] = [
     Int32.self,
     Int64.self,
     UInt32.self,

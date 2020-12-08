@@ -9,23 +9,25 @@ import Runtime
 
 extension TypeInfo {
     func compatibleName() throws -> String {
-        let result: String
-        
-        switch kind {
-        case .struct, .class:
-            result = try compatibleGenericName()
-        case .tuple:
-            result = try tupleName()
-        default:
-            throw Exception(message: "Kind: \(kind) is not supported")
-        }
+        let type = ParticularType(self.type)
         
         #warning("High coupling..?")
-        let postfix = ParticularType(type).isPrimitive
-            ? ""
-            : "Message"
-        
-        return result + postfix
+        if type.isPrimitive {
+            return type.description.lowercased()
+        } else {
+            let result: String
+            
+            switch kind {
+            case .struct, .class:
+                result = try compatibleGenericName()
+            case .tuple:
+                result = try tupleName()
+            default:
+                throw Exception(message: "Kind: \(kind) is not supported")
+            }
+            
+            return result + "Message"
+        }
     }
 }
 

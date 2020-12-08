@@ -76,7 +76,7 @@ extension ProtobufferBuilderTests {
             }
 
             message TransactionMessage {
-              Int32 amount = 0;
+              int32 amount = 0;
             }
             """
         
@@ -93,7 +93,7 @@ extension ProtobufferBuilderTests {
             syntax = "proto3";
 
             message NodeOfInt64Message {
-              Int64 value = 0;
+              int64 value = 0;
               repeated NodeOfInt64Message children = 1;
             }
             """
