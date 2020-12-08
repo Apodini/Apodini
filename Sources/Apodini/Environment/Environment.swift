@@ -2,7 +2,7 @@
 public protocol EnvironmentKey {
     /// Represents the type of the environment key’s value.
     associatedtype Value
-    /// The default value of the `EnvironmentKey`
+    /// The default value of the `EnvironmentKey`.
     static var defaultValue: Self.Value { get }
 }
 
@@ -11,7 +11,7 @@ public protocol EnvironmentKey {
 public struct EnvironmentValues {
     var values: [ObjectIdentifier: Any] = [:]
     
-    /// Initializer of `EnvironmentValues`
+    /// Initializer of `EnvironmentValues`.
     public init() { }
     
     /// Accesses the environment value associated with a custom key.
