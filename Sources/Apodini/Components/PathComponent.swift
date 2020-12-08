@@ -19,7 +19,7 @@ protocol _PathComponent: PathComponent {
 
 protocol PathBuilder {
     mutating func append(_ string: String)
-    mutating func append<T>(_ identifier: Identifier<T>)
+    mutating func append<T>(_ parameter: Parameter<T>)
 }
 
 struct StringPathBuilder: PathBuilder {
@@ -40,8 +40,8 @@ struct StringPathBuilder: PathBuilder {
         paths.append(string)
     }
 
-    mutating func append<T>(_ identifier: Identifier<T>) where T: Identifiable {
-        paths.append(identifier.description)
+    mutating func append<T>(_ parameter: Parameter<T>) {
+        paths.append(parameter.description)
     }
 
     func build() -> String {
@@ -54,23 +54,6 @@ extension String: _PathComponent {
         self
     }
 
-    func append<P>(to pathBuilder: inout P) where P: PathBuilder {
-        pathBuilder.append(self)
-    }
-}
-
-/// Used to define parameter in a path
-public struct Identifier<T: Identifiable> {
-    let description: String
-
-    /// This initializes a new Identifier which is used to identify the given `type`.
-    public init(_ type: T.Type = T.self) {
-        let typeName = String(describing: T.self).uppercased()
-        description = "\(typeName)-\(UUID())"
-    }
-}
-
-extension Identifier: _PathComponent {
     func append<P>(to pathBuilder: inout P) where P: PathBuilder {
         pathBuilder.append(self)
     }
