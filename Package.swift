@@ -25,7 +25,7 @@ let package = Package(
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
-                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "Runtime", package: "Runtime")
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
@@ -55,14 +55,14 @@ let package = Package(
         .target(
             name: "TestWebService",
             dependencies: [
-                .target(name: "Apodini"),
+                .target(name: "Apodini")
             ]
         ),
         // ProtoBufferBuilder
         .target(
             name: "ProtobufferBuilder",
             dependencies: [
-                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "Runtime", package: "Runtime")
             ]
         ),
         .testTarget(
@@ -70,8 +70,8 @@ let package = Package(
             dependencies: [
                 .target(name: "ProtobufferBuilder"),
                 .target(name: "Apodini"),
-                .product(name: "Vapor", package: "vapor"),
+                .product(name: "Vapor", package: "vapor")
             ]
-        ),
+        )
     ]
 )
