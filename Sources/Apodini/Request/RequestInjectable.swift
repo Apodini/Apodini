@@ -18,13 +18,22 @@ protocol RequestInjectableDecoder {
     func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T?
 }
 
-// swiftlint:disable:next todo
-// TODO Is there ANY better location to place this than on global?
-func extractRequestInjectables(from subject: Any) -> [String: RequestInjectable] {
+private func extractRequestInjectables(from subject: Any) -> [String: RequestInjectable] {
     Mirror(reflecting: subject).children.reduce(into: [String: RequestInjectable]()) { result, child in
         if let injectable = child.value as? RequestInjectable, let label = child.label {
             result[label] = injectable
         }
+    }
+}
+
+extension Component {
+    func extractRequestInjectables() -> [String: RequestInjectable] {
+        Apodini.extractRequestInjectables(from: self)
+    }
+}
+extension AnyResponseTransformer {
+    func extractRequestInjectables() -> [String: RequestInjectable] {
+        Apodini.extractRequestInjectables(from: self)
     }
 }
 
