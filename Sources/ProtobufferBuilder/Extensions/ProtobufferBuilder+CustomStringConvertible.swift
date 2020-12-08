@@ -22,10 +22,9 @@ extension ProtobufferBuilder: CustomStringConvertible {
             services,
             messages
         ]
-        .filter{ !$0.isEmpty }
+        .filter { !$0.isEmpty }
         .joined(separator: "\n\n")
         
         return protoFile
     }
 }
-

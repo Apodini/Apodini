@@ -26,7 +26,9 @@ public extension ProtobufferBuilder {
     /// - Parameter type: the type of the service
     /// - Throws: `Error`s of type `Exception`
     func addService<T>(of type: T.Type = T.self) throws {
-        guard let serviceNode = try Tree<TypeInfo>.make(type) else { return }
+        guard let serviceNode = try Tree<TypeInfo>.make(type) else {
+            return
+        }
         
         let serviceName = try serviceNode.value.compatibleName() + "Service"
         
@@ -39,7 +41,9 @@ public extension ProtobufferBuilder {
                 try Message(typeInfo: typeInfo)
             }
         
-        guard let message = messageTree?.value else { return }
+        guard let message = messageTree?.value else {
+            return
+        }
         
         let method = Service.Method(
             name: "handle",

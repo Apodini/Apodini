@@ -11,7 +11,6 @@ extension TypeInfo {
     func compatibleName() throws -> String {
         let type = ParticularType(self.type)
         
-        #warning("High coupling..?")
         if type.isPrimitive {
             return type.description.lowercased()
         } else {
@@ -39,17 +38,15 @@ private extension TypeInfo {
             }
         }
         
-        #warning("High coupling..?")
         if ParticularType(type).isArray {
             tree = tree?.children.first
         }
         
         let name = tree
             .map { typeInfo in
-                ParticularType(typeInfo.type)
+                ParticularType(typeInfo.type).description
             }
-            .reduce(into: "") { result, value in
-                let next = value.description
+            .reduce(into: "") { result, next in
                 result += result.isEmpty
                     ? next
                     : "Of\(next)"
