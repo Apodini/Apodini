@@ -49,7 +49,7 @@ public extension ProtobufferBuilder {
         let modified = try tree
             .edited(fixArray)
             .filter { typeInfo in
-                !isPrimitive(typeInfo.type)
+                !ParticularType(typeInfo.type).isPrimitive
             }
         
         print(modified.isEmpty)

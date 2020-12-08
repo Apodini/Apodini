@@ -21,7 +21,7 @@ extension TypeInfo {
         }
         
         #warning("High coupling..?")
-        let postfix = isPrimitive(type)
+        let postfix = ParticularType(type).isPrimitive
             ? ""
             : "Message"
         

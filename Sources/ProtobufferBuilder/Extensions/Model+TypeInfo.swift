@@ -13,7 +13,7 @@ extension Message {
         
         let properties: [Property]
         
-        if isPrimitive(typeInfo.type) {
+        if ParticularType(typeInfo.type).isPrimitive {
             properties = []
         } else {
             properties = typeInfo.properties

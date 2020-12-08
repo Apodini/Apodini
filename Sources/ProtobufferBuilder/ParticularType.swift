@@ -12,10 +12,10 @@ import Runtime
 /// .
 ///
 /// Particular: An antonym for generic.
-internal struct ParticularType<T> {
-    private let type: T
+internal struct ParticularType {
+    private let type: Any.Type
     
-    init(_ type: T) {
+    init(_ type: Any.Type) {
         self.type = type
     }
 }
@@ -24,20 +24,22 @@ extension ParticularType: CustomStringConvertible {
     var description: String {
         String("\(type)".prefix { $0 != "<" })
     }
-}
-
-extension ParticularType: Equatable {
-    static func == (lhs: ParticularType<T>, rhs: ParticularType<T>) -> Bool {
-        lhs.description == rhs.description
+    
+    var isArray: Bool {
+        description == "Array"
     }
 }
 
-// MARK: - Is Primitive
-
-func isPrimitive(_ type: Any.Type) -> Bool {
-    supportedPrimitiveTypes
-        .map(ParticularType.init)
-        .contains(ParticularType(type))
+extension ParticularType: Equatable {
+    static func == (lhs: ParticularType, rhs: ParticularType) -> Bool {
+        lhs.description == rhs.description
+    }
+    
+    var isPrimitive: Bool {
+        supportedPrimitiveTypes
+            .map(ParticularType.init)
+            .contains(self)
+    }
 }
 
 private let supportedPrimitiveTypes: [Any.Type] = [
