@@ -29,6 +29,10 @@ final class ProtobufferBuilderIntegrationTests: XCTestCase {
             url: "http://127.0.0.1:8080/apodini/proto",
             expectedResponse: """
                 syntax = "proto3";
+                
+                service PokemonService {
+                  rpc handle (VoidMessage) returns (PokemonMessage);
+                }
 
                 message PokemonMessage {
                   int64 id = 0;
