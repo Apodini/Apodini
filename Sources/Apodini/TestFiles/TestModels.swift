@@ -30,6 +30,12 @@ public final class Bird: DatabaseModel {
     }
     
     required public init() {}
+    
+    public func update(_ object: Bird) {
+        self.name = object.name
+        self.age = object.age
+        
+    }
 }
 
 public struct CreateBird: Migration {
@@ -60,10 +66,69 @@ extension Bird: Equatable {
 }
 
 public protocol DatabaseModel: Content, Model {
+    func update(_ object: Self)
+}
+
+
+public protocol TestModel: Model {
+    associatedtype Input: Content
+    associatedtype Output: Content
+    
+    init(_: Input) throws
+    var output: Output { get }
+    func update(_: Input)
+}
+
+public final class TestBird: TestModel {
+    
+    public struct _Input: Content {
+        let name: String
+        let age: Int
+    }
+    
+    public struct _Output: Content {
+        let id: String
+        let name: String
+        let age: Int
+    }
+    
+    public typealias Input = _Input
+    public typealias Output = _Output
+    
+    public static let schema: String = "Birds"
+    
+    @ID(key: .id) public var id: UUID?
+    @Field(key: "name") public var name: String
+    @Field(key: "age") public var age: Int
+    
+    public init() { }
+    
+    public init(id: UUID? = nil, name: String, age: Int) {
+        self.id = id
+        self.name = name
+        self.age = age
+    }
+    
+    public init(_ input: Input) throws {
+        self.name = input.name
+        self.age = input.age
+    }
+    
+    public func update(_ input: Input) {
+        self.name = input.name
+        self.age = input.age
+    }
+    
+    public var output: Output {
+        return .init(id: self.id!.uuidString, name: self.name, age: self.age)
+    }
     
     
 }
 
+protocol DatabaseComponent: Component {
+    associatedtype Model: TestModel
+}
 
 
 

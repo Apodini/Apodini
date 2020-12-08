@@ -11,11 +11,12 @@ import Fluent
 
 
 @propertyWrapper
-public struct Database: RequestInjectable {
+// swiftlint:disable:next type_name
+struct _Database: RequestInjectable {
     private var database: Fluent.Database?
     
     
-    public var wrappedValue: Fluent.Database {
+    var wrappedValue: Fluent.Database {
         guard let database = database else {
             fatalError("You can only access the database while you handle a request")
         }
@@ -24,7 +25,7 @@ public struct Database: RequestInjectable {
     }
     
     
-    public init() { }
+    init() { }
     
     
     mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder? = nil) throws {
@@ -49,4 +50,24 @@ public struct Param_Id<T: Model>: RequestInjectable where T.IDValue: LosslessStr
     mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder?) throws {
         self.id = request.parameters.get("id", as: T.IDValue.self)
     }
+}
+
+
+@propertyWrapper
+struct _Query: RequestInjectable {
+    mutating func inject(using request: Request, with decoder: SemanticModelBuilder?) throws {
+        self.urlString = request.url.query
+    }
+    
+    private var urlString: String?
+    
+    var wrappedValue: String {
+        guard let urlString = urlString else {
+            fatalError("You can only access the URL while you handle a request")
+        }
+        
+        return urlString
+    }
+    
+    init() {}
 }

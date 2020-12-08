@@ -22,16 +22,8 @@ struct RESTPathBuilder: PathBuilder {
     
     
     init(_ pathComponents: [PathComponent]) {
-        print("builder")
-        print(pathComponents)
         for pathComponent in pathComponents {
             if let pathComponent = pathComponent as? _PathComponent {
-                print(pathComponent)
-                if let pathString = (pathComponent as? String), pathString.hasPrefix(":") {
-                    print(pathString.components(separatedBy: ":")[1])
-//                    pathComponents.append(.parameter(pathComponent))
-//                    pathComponents.append(.parameter(pathString.components(separatedBy: ":")[1]))
-                }
                 pathComponent.append(to: &self)
             }
         }
@@ -39,12 +31,14 @@ struct RESTPathBuilder: PathBuilder {
     
     
     mutating func append(_ string: String) {
-        
-        print("added " + string)
         if string.hasPrefix(":") {
             let component = string.components(separatedBy: ":")[1]
             pathComponents.append(.parameter(component))
-        } else {
+        } else if string.hasPrefix("?") {
+            let component = string.components(separatedBy: "?")[1]
+            pathComponents.append(.parameter(component))
+        }
+        else {
             let pathComponent = string.lowercased()
             pathComponents.append(.constant(pathComponent))
         }
@@ -60,6 +54,22 @@ struct RESTPathBuilder: PathBuilder {
     }
 }
 
+extension Operation {
+    var httpMethod: Vapor.HTTPMethod {
+        switch self {
+        case .automatic: // a future implementation will have some sort of inference algorithm
+             return .GET // for now we just use the default GET http method
+        case .create:
+             return .POST
+        case .read:
+            return .GET
+        case .update:
+            return .PUT
+        case .delete:
+            return .DELETE
+        }
+    }
+}
 
 class RESTSemanticModelBuilder: SemanticModelBuilder {
     override init(_ app: Application) {
@@ -81,7 +91,7 @@ class RESTSemanticModelBuilder: SemanticModelBuilder {
         let requestHandler = context.createRequestHandler(withComponent: component, using: self)
         RESTPathBuilder(context.get(valueFor: PathComponentContextKey.self))
             .routesBuilder(app)
-            .on(context.get(valueFor: HTTPMethodContextKey.self), [], use: requestHandler)
+            .on(context.get(valueFor: OperationContextKey.self).httpMethod, [], use: requestHandler)
     }
 
     override func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
@@ -101,7 +111,7 @@ class RESTSemanticModelBuilder: SemanticModelBuilder {
     
     
     private func printRESTPath<C>(of component: C, withContext context: Context) where C: Component {
-        let httpType = context.get(valueFor: HTTPMethodContextKey.self)
+        let operationType = context.get(valueFor: OperationContextKey.self)
         
         let restPathBuilder = RESTPathBuilder(context.get(valueFor: PathComponentContextKey.self))
         
@@ -115,6 +125,6 @@ class RESTSemanticModelBuilder: SemanticModelBuilder {
         
         let guards = context.get(valueFor: GuardContextKey.self)
         
-        app.logger.info("\(restPathBuilder.pathDescription) + \(httpType.rawValue) -> \(returnType) with \(guards.count) guards.")
+        app.logger.info("\(restPathBuilder.pathDescription) + \(String(reflecting: operationType)) -> \(returnType) with \(guards.count) guards.")
     }
 }

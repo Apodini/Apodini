@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 
-import Apodini
+@testable import Apodini
 import Vapor
 import NIO
 
@@ -13,7 +13,7 @@ import NIO
 struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
         private let message: String?
-        @Apodini.Request
+        @_Request
         var request: Vapor.Request
         
         
@@ -42,7 +42,7 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @Apodini.Request
+        @_Request
         var req: Vapor.Request
         
         func handle() -> String {
@@ -68,17 +68,27 @@ struct TestWebService: Apodini.WebService {
         Group("greet") {
             Greeter()
         }
-        Group("api") {
+        Group("api", "birds") {
             Group("create") {
                 Create<Bird>()
-                    .httpMethod(.POST)
+                    .operation(.create)
             }
-            Group("get", ":id") {
+//            Group("get", ":id") {
+//                Get<Bird>()
+//                    .operation(.read)
+//            }
+            Group("get", "?query") {
                 Get<Bird>()
-                    .httpMethod(.GET)
+                    .operation(.read)
+            }
+            Group("update", ":id") {
+                Update<Bird>()
+                    .operation(.update)
             }
         }
     }
+    
+    @PathParameter var itemId: Bird.IDValue
     
     var configuration: Configuration {
         DatabaseConfiguration(.defaultMongoDB(Environment.get("DATABASE_URL") ?? "mongodb://localhost:27017/vapor_database"))

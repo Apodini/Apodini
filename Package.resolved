@@ -20,6 +20,15 @@
         }
       },
       {
+        "package": "AssociatedTypeRequirementsKit",
+        "repositoryURL": "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git",
+        "state": {
+          "branch": null,
+          "revision": "cf3bc7f4b57e94d282c5161bd5553289d386191e",
+          "version": "0.2.1"
+        }
+      },
+      {
         "package": "async-http-client",
         "repositoryURL": "https://github.com/swift-server/async-http-client.git",
         "state": {
