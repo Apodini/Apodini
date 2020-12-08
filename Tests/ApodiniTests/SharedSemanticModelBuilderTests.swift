@@ -45,6 +45,15 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         }
     }
     
+    struct TestHandler3: Component {
+        @Parameter("someOtherId", .http(.path))
+        var id: Int
+        
+        func handle() -> String {
+            "Hello Test Handler 3"
+        }
+    }
+    
     struct TestComponent: Component {
         @PathParameter
         var name: String
@@ -55,6 +64,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
                     TestHandler(name: $name)
                     TestHandler2(name: $name)
                 }
+                TestHandler3()
             }
         }
     }
@@ -70,13 +80,19 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         
         let nameParameterId: UUID = testComponent.$name.id
         let treeNodeA: EndpointsTreeNode = modelBuilder.endpointsTreeRoot!.children.first!
-        let treeNodeB: EndpointsTreeNode = treeNodeA.children.first!
+        let treeNodeB: EndpointsTreeNode = treeNodeA.children.first { $0.path.description == "b" }!
         let treeNodeNameParameter: EndpointsTreeNode = treeNodeB.children.first!
+        let treeNodeSomeOtherIdParamter: EndpointsTreeNode = treeNodeA.children.first { $0.path.description != "b" }!
+        var endpointGroupLevel: Endpoint = treeNodeSomeOtherIdParamter.endpoints.first!.value
+        let someOtherIdParameterId: UUID = endpointGroupLevel.parameters.first { $0.name == "someOtherId" }!.id
         var endpoint: Endpoint = treeNodeNameParameter.endpoints.first!.value
         
         XCTAssertEqual(treeNodeA.endpoints.count, 0)
         XCTAssertEqual(treeNodeB.endpoints.count, 0)
         XCTAssertEqual(treeNodeNameParameter.endpoints.count, 1)
+        XCTAssertEqual(treeNodeSomeOtherIdParamter.endpoints.count, 1)
+        XCTAssertEqual(endpointGroupLevel.absolutePath[0].description, "a")
+        XCTAssertEqual(endpointGroupLevel.absolutePath[1].description, ":\(someOtherIdParameterId.uuidString)")
         XCTAssertEqual(endpoint.absolutePath[0].description, "a")
         XCTAssertEqual(endpoint.absolutePath[1].description, "b")
         XCTAssertEqual(endpoint.absolutePath[2].description, ":\(nameParameterId.uuidString)")
