@@ -54,7 +54,6 @@ public struct Environment<Value>: DynamicProperty {
         case let .value(value):
             return value
         case let .keyPath(keyPath):
-            // not bound to a view, return the default value
             return EnvironmentValues()[keyPath: keyPath]
         }
     }
