@@ -31,8 +31,8 @@ struct RESTPathBuilder: PathBuilder {
         pathComponents.append(.constant(pathComponent))
     }
 
-    mutating func append<T>(_ identifier: Identifier<T>) where T: Identifiable {
-        let pathComponent = identifier.description
+    mutating func append<T>(_ parameter: Parameter<T>) {
+        let pathComponent = parameter.description
         pathComponents.append(.parameter(pathComponent))
     }
 

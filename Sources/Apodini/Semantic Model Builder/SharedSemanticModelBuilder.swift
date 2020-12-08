@@ -21,7 +21,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         let guards = context.get(valueFor: GuardContextKey.self)
         let responseModifiers = context.get(valueFor: ResponseContextKey.self)
 
-        let requestInjectables = extractRequestInjectables(from: component)
+        let requestInjectables = component.extractRequestInjectables()
 
         var endpoint = Endpoint(
                 description: String(describing: component),
