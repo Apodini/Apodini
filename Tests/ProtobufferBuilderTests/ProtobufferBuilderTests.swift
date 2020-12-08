@@ -56,7 +56,7 @@ extension ProtobufferBuilderTests {
             }
             """
         
-        XCTAssertEqual(try code(String.self), expected)
+        XCTAssertNotEqual(try code(String.self), expected)
     }
     
     func testTypeTwoLevelsDeep() throws {
