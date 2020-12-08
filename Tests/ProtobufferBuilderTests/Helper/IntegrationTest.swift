@@ -1,6 +1,9 @@
 import XCTest
 import Apodini
+
+#if os(Linux)
 import FoundationNetworking
+#endif
 
 struct IntegrationTest<S: WebService> {
     let url: String
