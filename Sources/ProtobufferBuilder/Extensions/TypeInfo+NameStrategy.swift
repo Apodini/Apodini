@@ -26,7 +26,7 @@ extension TypeInfo {
                 throw Exception(message: "Kind: \(kind) is not supported")
             }
             
-            return result + "Message"
+            return result
         }
     }
 }

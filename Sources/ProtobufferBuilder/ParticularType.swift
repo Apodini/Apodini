@@ -7,8 +7,6 @@
 
 import Runtime
 
-// MARK: - Type
-
 /// .
 ///
 /// Particular: An antonym for generic.

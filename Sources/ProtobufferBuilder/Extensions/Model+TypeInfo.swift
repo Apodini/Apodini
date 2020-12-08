@@ -9,7 +9,7 @@ import Runtime
 
 extension Message {
     init(typeInfo: TypeInfo) throws {
-        let name = try typeInfo.compatibleName()
+        let name = try typeInfo.compatibleName() + "Message"
         
         let properties: [Property]
         
@@ -22,7 +22,10 @@ extension Message {
                     let (offset, element) = tuple
                     do {
                         let typeInfo = try Runtime.typeInfo(of: element.type)
-                        let typeName = try typeInfo.compatibleName()
+                        let postfix = ParticularType(element.type).isPrimitive
+                            ? ""
+                            : "Message"
+                        let typeName = try typeInfo.compatibleName() + postfix
                         
                         return Property(
                             isRepeated: ParticularType(typeInfo.type).isArray,
