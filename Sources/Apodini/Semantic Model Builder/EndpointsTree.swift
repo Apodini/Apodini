@@ -1,0 +1,171 @@
+//
+// Created by Andi on 22.11.20.
+//
+
+import Vapor
+import Runtime
+
+/// This struct is used to model the RootPath for the root of the endpoints tree
+struct RootPath: _PathComponent {
+    var description: String {
+        ""
+    }
+
+    func append<P>(to pathBuilder: inout P) where P: PathBuilder {
+        fatalError("RootPath instances should not be appended to anything")
+    }
+}
+
+/// Models a single Endpoint which is identified by its PathComponents and its operation
+struct Endpoint {
+    /// This is a reference to the node where the endpoint is located
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    var treeNode: EndpointsTreeNode!
+
+    /// Description of the associated component, currently included for debug purposes
+    let description: String
+
+    /// The reference to the Context instance should be removed in the "final" state of the semantic model.
+    /// I chose to include it for now as it makes the process of moving to a central semantic model easier,
+    /// as implementing exporters can for now extract their needed information from the context on their own
+    /// and can then pull in their requirements into the Semantic Model.
+    let context: Context
+
+    let operation: Operation
+
+    let guards: [LazyGuard]
+    let requestInjectables: [String: RequestInjectable]
+    let handleMethod: () -> ResponseEncodable
+    let responseTransformers: [() -> (AnyResponseTransformer)]
+    
+    /// Type returned by `handle()`
+    let handleReturnType: ResponseEncodable.Type
+    
+    /// Response type ultimately returned by `handle()` and possible following `ResponseTransformer`s
+    lazy var responseType: ResponseEncodable.Type = {
+        guard let lastResponseTransformer = self.responseTransformers.last else {
+            return self.handleReturnType
+        }
+        return lastResponseTransformer().transformedResponseType
+    }()
+    
+    /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
+    lazy var parameters: [EndpointParameter] = EndpointParameter.create(from: requestInjectables)
+
+    var absolutePath: [_PathComponent] {
+        treeNode.absolutePath
+    }
+}
+
+class EndpointsTreeNode {
+    let path: _PathComponent
+    var endpoints: [Operation: Endpoint] = [:]
+
+    let parent: EndpointsTreeNode?
+    private var nodeChildren: [String: EndpointsTreeNode] = [:]
+    var children: Dictionary<String, EndpointsTreeNode>.Values {
+        nodeChildren.values
+    }
+    /// If a EndpointsTreeNode A is a child to  a EndpointsTreeNode B and A has an `PathParameter` as its `path`
+    /// B can't have any other children besides A that also have an `PathParameter` at the same location.
+    /// Thus we mark `childContainsPathParameter` to true as soon as we insert a `PathParameter` as a child.
+    private var childContainsPathParameter = false
+
+    lazy var absolutePath: [_PathComponent] = {
+        var absolutePath: [_PathComponent] = []
+        collectAbsolutePath(&absolutePath)
+        return absolutePath
+    }()
+
+    init(path: _PathComponent, parent: EndpointsTreeNode? = nil) {
+        self.path = path
+        self.parent = parent
+    }
+
+    func addEndpoint(_ endpoint: inout Endpoint, at paths: [PathComponent]) {
+        if paths.isEmpty {
+            // swiftlint:disable:next force_unwrapping
+            precondition(endpoints[endpoint.operation] == nil, "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)")
+            precondition(endpoint.treeNode == nil, "The endpoint \(endpoint.description) is already inserted at some different place")
+            endpoint.treeNode = self
+            endpoints[endpoint.operation] = endpoint
+        } else {
+            var pathComponents = paths
+            if let first = pathComponents.removeFirst() as? _PathComponent {
+                var child = nodeChildren[first.description]
+                if child == nil {
+                    /// Parameter<String> serves as representative `parameterType` of any Parameter<T> as  `mangeldName` of all Parameter<T> is `Parameter`
+                    let parameterType = try? typeInfo(of: Parameter<String>.self)
+                    if let info = try? typeInfo(of: type(of: first)), info.mangledName == parameterType?.mangledName {
+                        let mirror = Mirror(reflecting: first)
+
+                        // swiftlint:disable:next force_cast
+                        let options = mirror.children.first { $0.label == ParameterProperties.options }!.value as! PropertyOptionSet<ParameterOptionNameSpace>
+                        if options.option(for: PropertyOptionKey.http) != .path {
+                            fatalError("Parameter can only be used as path component when setting .http to .path!")
+                        }
+
+                        if childContainsPathParameter { // there are already some children with a path parameter on this level
+                            fatalError("When inserting endpoint \(endpoint.description) we encountered a path parameter collision on level n-\(pathComponents.count): "
+                                    + "You can't have multiple path parameters on the same level!")
+                        } else {
+                            childContainsPathParameter = true
+                        }
+                    }
+
+                    child = EndpointsTreeNode(path: first, parent: self)
+                    nodeChildren[first.description] = child
+                }
+
+                // swiftlint:disable:next force_unwrapping
+                child!.addEndpoint(&endpoint, at: pathComponents)
+            } else {
+                fatalError("Encountered PathComponent which isn't a _PathComponent!")
+            }
+        }
+    }
+
+    private func collectAbsolutePath(_ absolutePath: inout [_PathComponent]) {
+        guard let parent = parent else {
+            return
+        }
+
+        parent.collectAbsolutePath(&absolutePath)
+        absolutePath.append(path)
+    }
+
+    func relativePath(to node: EndpointsTreeNode) -> [_PathComponent] {
+        var relativePath: [_PathComponent] = []
+        collectRelativePath(&relativePath, to: node)
+        return relativePath
+    }
+
+    private func collectRelativePath(_ relativePath: inout [_PathComponent], to node: EndpointsTreeNode) {
+        if node === self {
+            return
+        }
+        guard let parent = parent else {
+            return
+        }
+
+        parent.collectRelativePath(&relativePath, to: node)
+        relativePath.append(path)
+    }
+
+    /// This method prints the tree structure to stdout. Added for debugging purposes.
+    func printTree(indent: Int = 0) {
+        let indentString = String(repeating: "  ", count: indent)
+
+        print(indentString + path.description + "/ {")
+
+        for (operation, endpoint) in endpoints {
+            print(indentString + "  - \(operation): " + endpoint.description)
+        }
+
+        for child in nodeChildren {
+            child.value.printTree(indent: indent + 1)
+        }
+
+        print(indentString + "}")
+    }
+}

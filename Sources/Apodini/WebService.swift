@@ -6,9 +6,11 @@
 //
 
 import Vapor
+import Fluent
+import FluentMongoDriver
 
 /// Each Apodini program conists of a `WebService`component that is used to describe the Web API of the Web Service
-public protocol WebService: Component {
+public protocol WebService: Component, ConfigurationCollection {
     /// The currennt version of the `WebService`
     var version: Version { get }
     
@@ -26,14 +28,16 @@ extension WebService {
             let app = Application(env)
             
             let webService = Self()
-            
+
             webService.register(
-                RESTSemanticModelBuilder(app),
+                SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self),
                 GraphQLSemanticModelBuilder(app),
                 GRPCSemanticModelBuilder(app),
                 WebSocketSemanticModelBuilder(app),
                 ProtobufferSemanticModelBuilder(app)
             )
+            
+            webService.configuration.configure(app)
             
             defer {
                 app.shutdown()
@@ -45,7 +49,7 @@ extension WebService {
     }
     
     
-    /// The currennt version of the `WebService`
+    /// The current version of the `WebService`
     public var version: Version {
         Version()
     }
