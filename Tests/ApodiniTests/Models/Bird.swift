@@ -7,7 +7,7 @@
 
 import Fluent
 import Vapor
-
+import Apodini
 
 final class Bird: Model, Content {
     static var schema: String = "Birds"
@@ -32,7 +32,7 @@ final class Bird: Model, Content {
 
 
 struct CreateBird: Migration {
-    func prepare(on database: Database) -> EventLoopFuture<Void> {
+    func prepare(on database: Fluent.Database) -> EventLoopFuture<Void> {
         database.schema(Bird.schema)
             .id()
             .field("name", .string, .required)
@@ -40,7 +40,7 @@ struct CreateBird: Migration {
             .create()
     }
 
-    func revert(on database: Database) -> EventLoopFuture<Void> {
+    func revert(on database: Fluent.Database) -> EventLoopFuture<Void> {
         database.schema(Bird.schema).delete()
     }
 }
