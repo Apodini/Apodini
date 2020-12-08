@@ -49,8 +49,12 @@ public struct Version {
 
 
 extension Version: _PathComponent {
+    var description: String {
+        "\(prefix)\(major)"
+    }
+
     func append<P>(to pathBuilder: inout P) where P: PathBuilder {
-        pathBuilder.append("\(prefix)\(major)")
+        pathBuilder.append(description)
     }
 }
 

@@ -6,7 +6,6 @@
 //
 
 import Vapor
-import NIOSSL
 import Fluent
 import FluentMongoDriver
 
@@ -32,7 +31,7 @@ extension WebService {
             let webService = Self()
 
             webService.register(
-                RESTSemanticModelBuilder(app),
+                SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self),
                 GraphQLSemanticModelBuilder(app),
                 GRPCSemanticModelBuilder(app),
                 WebSocketSemanticModelBuilder(app)

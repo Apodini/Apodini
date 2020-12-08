@@ -48,7 +48,9 @@ extension OperationModifier: Visitable {
 
 
 extension Component {
-    /// Sets the `Operation` for the given `Component`
+    /// A `operation` modifier can be used to explicitly specify the `Operation` for the given `Component`
+    /// - Parameter operation: The `Operation` that is used to for the component
+    /// - Returns: The modified `Component` with a specified `Operation`
     public func operation(_ operation: Operation) -> OperationModifier<Self> {
         OperationModifier(self, operation: operation)
     }
