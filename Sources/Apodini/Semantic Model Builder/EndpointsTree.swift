@@ -87,7 +87,6 @@ class EndpointsTreeNode {
             // swiftlint:disable:next force_unwrapping
             precondition(endpoints[endpoint.operation] == nil, "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)")
             precondition(endpoint.treeNode == nil, "The endpoint \(endpoint.description) is already inserted at some different place")
-
             endpoint.treeNode = self
             endpoints[endpoint.operation] = endpoint
         } else {
@@ -95,9 +94,9 @@ class EndpointsTreeNode {
             if let first = pathComponents.removeFirst() as? _PathComponent {
                 var child = nodeChildren[first.description]
                 if child == nil {
-                    // swiftlint:disable:next todo
-                    // TODO is there a better way to check for type Parameter instead of string comparison?
-                    if let info = try? typeInfo(of: type(of: first)), info.mangledName == "Parameter" {
+                    /// Parameter<String> serves as representative `parameterType` of any Parameter<T> as  `mangeldName` of all Parameter<T> is `Parameter`
+                    let parameterType = try? typeInfo(of: Parameter<String>.self)
+                    if let info = try? typeInfo(of: type(of: first)), info.mangledName == parameterType?.mangledName {
                         let mirror = Mirror(reflecting: first)
 
                         // swiftlint:disable:next force_cast

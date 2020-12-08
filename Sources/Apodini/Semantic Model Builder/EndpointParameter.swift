@@ -34,9 +34,9 @@ struct EndpointParameter {
         guard let info: TypeInfo = try? typeInfo(of: type(of: requestInjectable)) else {
             return nil
         }
-        // swiftlint:disable:next todo
-        // TODO: is there a better way to do this instead of string comparison?
-        if info.mangledName == "Parameter" {
+        /// Parameter<String> serves as representative `parameterType` of any Parameter<T> as  `mangeldName` of all Parameter<T> is `Parameter`
+        let parameterType = try? typeInfo(of: Parameter<String>.self)
+        if info.mangledName == parameterType?.mangledName {
             let mirror = Mirror(reflecting: requestInjectable)
             // swiftlint:disable:next force_cast
             let id = mirror.children.first { $0.label == "id" }!.value as! UUID
