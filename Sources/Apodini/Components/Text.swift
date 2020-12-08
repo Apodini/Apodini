@@ -10,8 +10,8 @@ import Vapor
 
 public struct Text: Component {
     private let text: String
-    
-    
+
+
     public init(_ text: String) {
         self.text = text
     }
