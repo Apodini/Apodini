@@ -1,3 +1,5 @@
+![document type: proposal](https://themomax.github.io/resources/markdown-labels/document_type_proposal.svg)
+
 # Property Wrapper Ideas
 
 This document serves as a collection of ideas about functionality that should be offered to `Components` using property wrappers.

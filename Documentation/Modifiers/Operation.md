@@ -1,3 +1,5 @@
+![document type: vision](https://themomax.github.io/resources/markdown-labels/document_type_vision.svg)
+
 # Operation
 
 This document describes what the `Operation` is and how interface exporters may deal with it.  

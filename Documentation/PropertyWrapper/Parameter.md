@@ -1,3 +1,5 @@
+![document type: vision](https://themomax.github.io/resources/markdown-labels/document_type_vision.svg)
+
 # `@Parameter`
 
 The `@Parameter` property wrapper can be used to express input in different ways. 
