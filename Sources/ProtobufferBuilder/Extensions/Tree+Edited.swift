@@ -25,7 +25,7 @@ extension Tree {
 // MARK: - Fix Array
 
 func fixArray(_ node: Node<TypeInfo>) throws -> Tree<TypeInfo> {
-    guard node.value.isArray,
+    guard ParticularType(node.value.type).isArray,
           let first = node.value.genericTypes.first else {
         return node
     }

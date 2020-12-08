@@ -38,7 +38,7 @@ private extension TypeInfo {
         }
         
         #warning("High coupling..?")
-        if isArray {
+        if ParticularType(type).isArray {
             tree = tree?.children.first
         }
         

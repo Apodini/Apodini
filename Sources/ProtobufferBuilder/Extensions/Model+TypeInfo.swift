@@ -25,7 +25,7 @@ extension Message {
                         let typeName = try typeInfo.compatibleName()
                         
                         return Property(
-                            isRepeated: typeInfo.isArray,
+                            isRepeated: ParticularType(typeInfo.type).isArray,
                             name: element.name,
                             typeName: typeName,
                             uniqueNumber: offset
