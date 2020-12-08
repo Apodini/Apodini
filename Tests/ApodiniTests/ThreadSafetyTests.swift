@@ -15,7 +15,7 @@ import Fluent
 
 final class ThreadSafetyTests: ApodiniTests {
     struct Greeter: Component {
-        @Apodini.Request
+        @_Request
         var req: Vapor.Request
         
         func handle() -> String {

@@ -36,7 +36,16 @@ let package = Package(
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")
             ],
-            exclude: ["Components/ComponentBuilder.swift.gyb"]
+            exclude: [
+                "Components/ComponentBuilder.swift.gyb"
+            ]
+        ),
+        .target(
+            name: "ProtobufferCoding",
+            dependencies: [
+                .product(name: "Runtime", package: "Runtime")
+            ],
+            exclude:["README.md"]
         ),
         .testTarget(
             name: "ApodiniTests",
@@ -44,6 +53,12 @@ let package = Package(
                 .target(name: "Apodini"),
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver")
+            ]
+        ),
+        .testTarget(
+            name: "ProtobufferCodingTests",
+            dependencies: [
+                .target(name: "ProtobufferCoding")
             ]
         ),
         .target(
