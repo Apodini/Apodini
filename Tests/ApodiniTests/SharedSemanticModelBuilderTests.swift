@@ -77,9 +77,9 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         XCTAssertEqual(treeNodeA.endpoints.count, 0)
         XCTAssertEqual(treeNodeB.endpoints.count, 0)
         XCTAssertEqual(treeNodeNameParameter.endpoints.count, 1)
-        XCTAssertEqual(endpoint.pathComponents[0].description, "a")
-        XCTAssertEqual(endpoint.pathComponents[1].description, "b")
-        XCTAssertEqual(endpoint.pathComponents[2].description, ":\(nameParameterId.uuidString)")
+        XCTAssertEqual(endpoint.absolutePath[0].description, "a")
+        XCTAssertEqual(endpoint.absolutePath[1].description, "b")
+        XCTAssertEqual(endpoint.absolutePath[2].description, ":\(nameParameterId.uuidString)")
         XCTAssertTrue(endpoint.parameters.contains { $0.id == nameParameterId })
         XCTAssertEqual(endpoint.parameters.first { $0.id == nameParameterId }?.parameterType, .path)
         
@@ -90,9 +90,9 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         
         XCTAssertEqual(nestedEndpoint.parameters.count, 2)
         XCTAssertTrue(nestedEndpoint.parameters.allSatisfy { $0.parameterType == .path })
-        XCTAssertEqual(nestedEndpoint.pathComponents[0].description, "a")
-        XCTAssertEqual(nestedEndpoint.pathComponents[1].description, "b")
-        XCTAssertEqual(nestedEndpoint.pathComponents[2].description, ":\(nameParameterId.uuidString)")
-        XCTAssertEqual(nestedEndpoint.pathComponents[3].description, ":\(someIdParameterId.uuidString)")
+        XCTAssertEqual(nestedEndpoint.absolutePath[0].description, "a")
+        XCTAssertEqual(nestedEndpoint.absolutePath[1].description, "b")
+        XCTAssertEqual(nestedEndpoint.absolutePath[2].description, ":\(nameParameterId.uuidString)")
+        XCTAssertEqual(nestedEndpoint.absolutePath[3].description, ":\(someIdParameterId.uuidString)")
     }
 }
