@@ -1,4 +1,4 @@
-![document type: proposal](https://themomax.github.io/resources/markdown-labels/document_type_proposal.svg)
+![document type: proposal](https://apodini.github.io/resources/markdown-labels/document_type_proposal.svg)
 
 # Property Wrapper Ideas
 
