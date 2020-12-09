@@ -22,7 +22,7 @@ final class EnvironmentTests: ApodiniTests {
         let request = Request(application: app, on: app.eventLoopGroup.next())
         
         let response = try request
-            .enterRequestContext(with: BirdComponent(), using: RESTSemanticModelBuilder(app)) { component in
+            .enterRequestContext(with: BirdComponent(), using: SharedSemanticModelBuilder(app)) { component in
                 component.handle().encodeResponse(for: request)
             }
             .wait()
