@@ -26,7 +26,7 @@ class Context {
         { (request: Vapor.Request) in
             let guardEventLoopFutures = self.contextNode.getContextValue(for: GuardContextKey.self)
                 .map { requestGuard in
-                    request.enterRequestContext(with: requestGuard()) { requestGuard in
+                    request.enterRequestContext(with: requestGuard(), using: decoder) { requestGuard in
                         requestGuard.executeGuardCheck(on: request)
                     }
                 }

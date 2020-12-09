@@ -1,13 +1,11 @@
+![document type: vision](https://apodini.github.io/resources/markdown-labels/document_type_vision.svg)
+
 # `@Parameter`
 
-The `@Parameter` property wrapper can be used to express input in different ways: 
-* **Request Content**: Parameters can be part of the requests send to the web service such as the HTTP body or request content of an other protocol.
-* **Lightweight Parameter**: Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameterst found in the URI of RESTful and OpenAPI based web APIs.
-* **Defining An Endpoint**: Parameters can also be used to define the endpoint such as the URI path of the middleware types and protocols that support URI based multiplexing of requests.
-
-The internal name of the `@Parameter` and can be different to the external representation of the component by passing a string to the `@Parameter` wrapper and is the first argument that can be optionally passed into the `@Parameter` property wrapper.
+The `@Parameter` property wrapper can be used to express input in different ways. 
+The internal name of the `@Parameter` and can be different to the external representation of the `Handler` by passing a string into the `@Parameter` property wrapper as a first optional argument.
 ```swift
-struct ExampleComponent: Component {
+struct ExampleHandler: Handler {
     @Parameter var name: String
     @Parameter("repeat") var times: Int
 
@@ -15,20 +13,24 @@ struct ExampleComponent: Component {
 }
 ```
 
-## Parameters Expressing Request Content
+## Inference
 
-Non primitive types defined by the user that conform to `Codable` and are not [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible) are automatically considered to be a request content for all protocols and types of middleware that are applicable to contain a request content such as an HTTP body. If there are multiple non primative types marked with `@Parameter` the elements should be encoded in a wrapper enclosure.
+Apodini is designed so that different web API exporters for different protocols can infer as much information as possible about `@Parameters`. 
+
+### Parameters Expressing Request Content
+
+Non primitive types defined by the user that conform to `Codable` and are not [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible) are automatically considered to be a request content for all protocols and types of middleware that are applicable to contain a request content such as an HTTP body. If there are multiple non primitive types marked with `@Parameter` the elements should be encoded in a wrapper enclosure.
 
 ### Single `@Parameter` for Request Content
 
-The folowing example showcases a simpe component with one `@Property` wrapper around a non primative type:
+The following example showcases a simple `Handler` with one `@Property` wrapper around a non primitive type:
 ```swift
 struct Bird: Codable {
     var name: String
     var age: Int
 }
 
-struct ExampleComponent: Component {
+struct ExampleHandler: Handler {
     @Parameter var bird: Bird
 
     // ...
@@ -37,7 +39,7 @@ struct ExampleComponent: Component {
 
 *JSON Based APIs*
 
-This `Component` can be exported as in a JSON based API by sending a POST request with the following JSON in the body of the HTTP request:
+This `Handler` can be exported as in a JSON based API by sending a POST request with the following JSON in the body of the HTTP request:
 ```json
 {
     "name": "Swift",
@@ -73,7 +75,7 @@ type Query {
 
 *WebSocket*
 
-Exposing the `Componet` on a web socket interface requires the client to send the following message encoded as JSON:
+Exposing the `Handler` on a web socket interface requires the client to send the following message encoded as JSON:
 ```json
 {
     "type": "Example",
@@ -86,7 +88,7 @@ Exposing the `Componet` on a web socket interface requires the client to send th
 
 ### Multiple `@Parameter`s for Request Content
 
-The folowing example showcases a component with multipe `@Parameter` property wrappers around a non primative types:
+The following example showcases a `Handler` with multiple `@Parameter` property wrappers around a non primitive type:
 ```swift
 struct Bird: Codable {
     var name: String
@@ -98,7 +100,7 @@ struct Plant: Codable {
     var height: Int
 }
 
-struct ExampleComponent: Component {
+struct ExampleHandler: Handler {
     @Parameter var bird: Bird
     @Parameter var plant: Plant
 
@@ -108,7 +110,7 @@ struct ExampleComponent: Component {
 
 *JSON Based APIs*
 
-This `Component` can be exported as in a JSON based API by sending a POST request with the following JSON in the body of the HTTP request:
+This `Handler` can be exported as in a JSON based API by sending a POST request with the following JSON in the body of the HTTP request:
 ```json
 {
     "bird": {
@@ -165,7 +167,7 @@ type Query {
 
 *WebSocket*
 
-Exposing the `Component` on a web socket interface requires the client to send the following message encoded as JSON:
+Exposing the `Handler` on a web socket interface requires the client to send the following message encoded as JSON:
 ```json
 {
     "type": "Example",
@@ -182,14 +184,9 @@ Exposing the `Component` on a web socket interface requires the client to send t
 }
 ```
 
-## Lightweight Parameters
+### Inferring Query `@Parameter`s
 
-Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameters found in the URI of RESTful and OpenAPI based interfaces. Apodini automatically exposes primative types as lightweight parameters that conform to [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible). Complex types such as cunstom types conforming to Codable can not be exposed using lightweight parameters. A lightweight parameter is defined the same way a normal parameter can be defined. The developer using Apodini can force a specific behaviour by passing in an enum value into the property warpper initializer, e.g. `@Parameter(.lightweight)`. Possible values are:
-* `.automatic`: Apodini infers the type of parameter based on the type information of the wrapped propety. This is the default behaviour of an `@Parameter` property wrapper.
-* `.lightweight`: This option can only be used of the type wrapped conforms to [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible). The parameter is exposed as a lightweight parameter if supported by the middleware or protocol.
-* `.content`: The parameter is exposed using the content of the request send to the web service. If there are multiple `@Parameter` property wrappers annotated with `@Parameter(.content)` the same strategy as if there are multiple `@Parameter` property wrappers with types not conforming to [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible) is applied.
-
-### Simple Lightweight `@Parameter`s Example
+Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameters found in the URI of RESTful and OpenAPI based interfaces. Apodini automatically exposes primitive types as lightweight parameters that conform to [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible). Complex types such as custom types conforming to `Codable` can not be exposed using lightweight parameters. 
 
 ```swift
 struct Bird: Codable {
@@ -197,12 +194,12 @@ struct Bird: Codable {
     var age: Int
 }
 
-struct ExampleComponent: Component {
+struct ExampleHandler: Handler {
     // Is exposed as a content of a request
     @Parameter var bird: Bird
-    // Is exposed as a content of a request, indicates how often the bird should be returned in the response. Has a default value.
-    @Parameter("times", .content) var repeat: Int = 1
-    // Is exposed as a `lightweight` parameter for interfaces that support it. Also has a default value of true and indicates if emojis should be used in the response.
+    // Indicates how often the bird should be returned in the response. Has a default value. Is exposed as a query parameter for interfaces that support it. 
+    @Parameter("times") var repeat: Int = 1
+    // Has a default value of true and indicates if emojis should be used in the response. Is exposed as a query parameter for interfaces that support it.
     @Parameter var emoji: Bool = true
 
     // ...
@@ -211,17 +208,7 @@ struct ExampleComponent: Component {
 
 *JSON Based APIs*
 
-This `Component` can be exported as in a JSON based API by sending a POST request to `.../example?emoji=false` or `.../example` to assume the defauilt value. The request includes the the following JSON in the body of the HTTP request:
-```json
-{
-    "bird": {
-        "name": "Swift",
-        "age": 42
-    },
-    "times": 1
-}
-```
-or to assume the default value for `times`:
+This `Handler` can be exported as in a JSON based API by sending a POST request to `.../example?emoji=false&times=2` or `.../example` to assume the default value. The request includes the the following JSON in the body of the HTTP request:
 ```json
 {
     "bird": {
@@ -265,7 +252,7 @@ type Query {
 
 *WebSocket*
 
-Exposing the `Component` on a web socket interface requires the client to send the following message encoded as JSON:
+Exposing the `Handler` on a web socket interface requires the client to send the following message encoded as JSON:
 ```json
 {
     "type": "Example",
@@ -280,76 +267,10 @@ Exposing the `Component` on a web socket interface requires the client to send t
 }
 ```
 
-## Parameters Defining An Endpoint
+### Defining a Parameter outside of a `Handler`
 
-Some middleware types and protocols can expose parameters as part of the endpoint defining charactersistics. E.g. RESTful and OpenAPI based APIs use the URI path to define endpoints using variables such as `/birds/BIRD_ID` to identify the `Bird` the request is target at using the `BIRD_ID`.
-The `@Parameter` property wraper does not expose this option as Apodini can not automatically decide between exposing a parameter as a lightweight parameter or a parameter defining an endpoint.
-
-### Defining a Parameter  Defining an Endpoint in an Endpoint
-
-```swift
-struct Bird: Codable, Identifiable {
-    var id: Int
-    var name: String
-    var age: Int
-}
-
-struct ExampleComponent: Component {
-    @PathParameter var birdID: Bird.ID
-
-    // ...
-}
-
-struct TestWebService: WebService {
-    var content: some Component {
-        Group("api", "birds") {
-            ExampleComponent()
-        }
-    }
-}
-
-TestWebService.main()
-```
-
-*JSON Based APIs*
-
-If the `Component` is registered at `/api/birds` the client can request a bird with the identifier `42` by sending a HTTP GET request to `/api/birds/42/`.
-
-*gRPC*
-
-```protobuf
-service Birds {
-    rpc Example (BirdID) returns (...) {}
-}
-
-message BirdID {
-    int32 id = 1;
-}
-``` 
-
-*GraphQL*
-
-```graphql
-type Query {
-    example(birdID: Int): ...
-}
-```
-
-*WebSocket*
-
-Exposing the `Component` on a web socket interface requires the client to send the following message encoded as JSON:
-```json
-{
-    "type": "Example",
-    "parameters": {
-        "birdID": 42
-    }
-}
-```
-
-### Defining a Parameter  Defining an Endpoint outside an Endpoint
-
-The `@PathParameter` property can also be defined outside the component as part of a Group that contains the `Compoent`.
+Some middleware types and protocols can expose parameters as part of the endpoint defining characteristics. E.g. RESTful and OpenAPI based APIs use the URI path to define endpoints including variables such as `/birds/BIRD_ID` to identify the requested `Bird` by its identifier `BIRD_ID`.
+A `@PathParameter` property used as a path parameter within a `Component` defined outside of a `Handler` (e.g.: as part of a `Group`) can be inferred to be a parameter in the URI path for some HTTP based web API exporters.
 
 ```swift
 struct Bird: Identifiable {
@@ -358,32 +279,101 @@ struct Bird: Identifiable {
     var age: Int
 }
 
-struct ExampleBirdComponent: Component {
-    @PathParameter var birdID: Bird.ID
+struct ExampleBirdHandler: Handler {
+    // This was passed in from the outside this is automatically used as a path parameter by web API exporter that support path parameters
+    @Parameter var birdID: Bird.ID
 
     // ...
 }
 
-struct ExampleNestComponent: Component {
-    @PathParameter var birdID: Bird.ID
-    // Exposed as a lightweight parameter
+struct ExampleNestHandler: Handler {
+    // This was passed in from the outside this is automatically used as a path parameter by web API exporter that support path parameters
+    @Parameter var birdID: Bird.ID
+    // Exposed as a query parameter if supported by a web API exporter
     @Parameter var nestName: String?
 
     // ...
 }
 
-struct TestWebService: WebService {
+struct TestComponent: Component {
     @PathParameter var birdID: Bird.ID
 
     var content: some Component {
-        Group("api", "birds", birdID) {
-            ExampleBirdComponent(birdID: $birdID)
+        Group("api", "birds", $birdID) {
+            ExampleBirdHandler(birdID: $birdID)
             Group("nests") { 
-                ExampleNestComponent(birdID: $birdID)
+                ExampleNestHandler(birdID: $birdID)
             }
         }
     }
 }
+```
 
-TestWebService.main()
+## Explicit Options
+
+Apodini web API exporters try to infer the best possible form of representing parameters.
+However, someweb API exporters may want to provide some additional customization, so that developers may forego the inference, and provide a strategy explicitely.
+The values of these options can be defined by the web API exporters, and each web API exporters can read for the options specific to itself.  
+For example: for HTTP JSON Based APIs, the exporter might want to allow the user to specify if a parameter is supposed to be retrieved from:
+- URI Path
+- HTTP Body
+- Query Params
+- etc.
+
+### Defining Options
+
+The exporter can define it's own options, by defining the type of the options, the key to identify the option and a helper to make it work seamlessly with the Parameter Property Wrapper:
+
+```swift
+// Define a Type
+public enum HTTPParameterMode: PropertyOption {
+    case body
+    case path
+    case query
+}
+
+// Define a Key
+extension PropertyOptionKey where Property == ParameterOptionNameSpace, Option == HTTPParameterMode {
+    static let http = PropertyOptionKey<ParameterOptionNameSpace, HTTPParameterMode>()
+}
+
+// Add helper to register it to a Parameter Property Wrapper
+extension AnyPropertyOption where Property == ParameterOptionNameSpace {
+    public static func http(_ mode: HTTPParameterMode) -> AnyPropertyOption<ParameterOptionNameSpace> {
+        return AnyPropertyOption(key: .http, value: mode)
+    }
+}
+```
+
+With the new definition of `HTTPParameterMode` the developer may now define explicitely to the exporter how they would like their parameters to be exported:
+
+```swift
+struct ExampleHandler: Handler {
+    @Parameter(.http(.body)) 
+    var times: Int
+    
+    // Can define different handling for different exporters
+    @Parameter(.http(.path))
+    var id: UUID = true
+
+    // ...
+}
+```
+
+This has the additional benefit of making the options for each exporter explicit and clear in code, and therefore more readable, while at the same time keeping the exporters and the DSL decoupled.
+
+### Reading the Options
+
+Each exporter then can read the use of it's options in the property by using the key:
+
+```swift
+extension Parameter {
+    internal func httpMode() -> HTTPParameterMode {
+        if let mode = option(\.http) {
+            return mode
+        }
+        
+        // infer mode based on other heuristics
+    }
+}
 ```
