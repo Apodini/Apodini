@@ -35,6 +35,9 @@ let package = Package(
                 .product(name: "APNS", package: "apns"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")
+            ],
+            exclude: [
+                "Components/ComponentBuilder.swift.gyb"
             ]
         ),
         .target(

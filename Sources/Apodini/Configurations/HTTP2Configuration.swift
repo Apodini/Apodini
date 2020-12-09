@@ -37,7 +37,9 @@ public class HTTP2Configuration: Configuration {
                     keyData = try Data(contentsOf: URL(fileURLWithPath: arg.substring(from: 6)))
                 }
             }
-        } catch { }
+        } catch {
+            print("Cannot read certificate / key file provided via command line. Error: \(error)")
+        }
     }
 
     public func configure(_ app: Application) {
