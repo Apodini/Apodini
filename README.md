@@ -1,4 +1,5 @@
 # Apodini
+[![codecov](https://codecov.io/gh/apodini/apodini/branch/develop/graph/badge.svg?token=QOAYN4SWRN)](https://codecov.io/gh/apodini/apodini)
 
 A declarative, composable framework to build web services using Swift.
 
