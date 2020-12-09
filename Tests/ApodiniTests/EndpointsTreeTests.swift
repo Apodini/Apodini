@@ -59,8 +59,7 @@ final class EndpointsTreeTests: XCTestCase {
                 guards: [],
                 requestInjectables: requestInjectables,
                 handleMethod: testHandler.handle,
-                responseTransformers: [],
-                handleReturnType: TestHandler.Response.self
+                responseTransformers: []
         )
         
         let parameters: [EndpointParameter] = endpoint.parameters

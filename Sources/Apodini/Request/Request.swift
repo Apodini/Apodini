@@ -73,7 +73,7 @@ struct _Request: RequestInjectable {
     init() { }
     
     
-    mutating func inject(using request: Request, with decoder: RequestInjectableDecoder? = nil) throws {
+    mutating func inject(using request: Request) throws {
         self.request = request
     }
 }

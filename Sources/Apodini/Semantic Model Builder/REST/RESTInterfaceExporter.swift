@@ -91,18 +91,10 @@ class RESTInterfaceExporter: InterfaceExporter {
         }
     }
 
-    func decode<T>(_ type: T.Type, from request: Vapor.Request) throws -> T? where T: Decodable {
-        guard let byteBuffer = request.body.data, let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
-            throw Vapor.Abort(.internalServerError, reason: "Could not read the HTTP request's body")
-        }
-
-        return try JSONDecoder().decode(type, from: data)
-    }
-
-    func createRequestHandler(for endpoint: Endpoint) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+    func createRequestHandler<ResponseType: Encodable>(for endpoint: Endpoint<ResponseType>) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         { (request: Vapor.Request) in
             let guardEventLoopFutures = endpoint.guards.map { guardClosure in
-                request.enterRequestContext(with: guardClosure(), using: self) { requestGuard in
+                request.enterRequestContext(with: guardClosure()) { requestGuard in
                     requestGuard.executeGuardCheck(on: request)
                 }
             }
@@ -110,14 +102,15 @@ class RESTInterfaceExporter: InterfaceExporter {
                     .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
                     .flatMap { _ in
                         request.enterRequestContext(with: endpoint) { endpoint in
-                            var response: ResponseEncodable = endpoint.handleMethod()
+                            var response: ResponseType = endpoint.handleMethod()
 
                             for responseTransformer in endpoint.responseTransformers {
-                                response = request.enterRequestContext(with: responseTransformer(), using: self) { responseTransformer in
-                                    responseTransformer.transform(response: response)
+                                response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
+                                    responseTransformer.transform(response: response) as! ResponseType
                                 }
                             }
-                            return response.encodeResponse(for: request)
+                            let vaporResponse = try! Vapor.Response(encoding: response)
+                            return request.eventLoop.makeSucceededFuture(vaporResponse)
                         }
                     }
         }

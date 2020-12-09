@@ -2,7 +2,7 @@
 // Created by Andi on 22.11.20.
 //
 
-import Vapor
+@_implementationOnly import Vapor
 import Runtime
 
 /// This struct is used to model the RootPath for the root of the endpoints tree
@@ -17,7 +17,7 @@ struct RootPath: _PathComponent {
 }
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
-struct Endpoint {
+struct Endpoint<Response: Encodable> {
     /// This is a reference to the node where the endpoint is located
     // swiftlint:disable:next implicitly_unwrapped_optional
     var treeNode: EndpointsTreeNode!
@@ -35,20 +35,9 @@ struct Endpoint {
 
     let guards: [LazyGuard]
     let requestInjectables: [String: RequestInjectable]
-    let handleMethod: () -> ResponseEncodable
+    let handleMethod: () -> Response
     let responseTransformers: [() -> (AnyResponseTransformer)]
-    
-    /// Type returned by `handle()`
-    let handleReturnType: ResponseEncodable.Type
-    
-    /// Response type ultimately returned by `handle()` and possible following `ResponseTransformer`s
-    lazy var responseType: ResponseEncodable.Type = {
-        guard let lastResponseTransformer = self.responseTransformers.last else {
-            return self.handleReturnType
-        }
-        return lastResponseTransformer().transformedResponseType
-    }()
-    
+
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     lazy var parameters: [EndpointParameter] = EndpointParameter.create(from: requestInjectables)
 
@@ -59,7 +48,7 @@ struct Endpoint {
 
 class EndpointsTreeNode {
     let path: _PathComponent
-    var endpoints: [Operation: Endpoint] = [:]
+    var endpoints: [Operation: Endpoint<AnyEncodable>] = [:]
 
     let parent: EndpointsTreeNode?
     private var nodeChildren: [String: EndpointsTreeNode] = [:]
@@ -82,7 +71,7 @@ class EndpointsTreeNode {
         self.parent = parent
     }
 
-    func addEndpoint(_ endpoint: inout Endpoint, at paths: [PathComponent]) {
+    func addEndpoint(_ endpoint: inout Endpoint<AnyEncodable>, at paths: [PathComponent]) {
         if paths.isEmpty {
             // swiftlint:disable:next force_unwrapping
             precondition(endpoints[endpoint.operation] == nil, "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)")

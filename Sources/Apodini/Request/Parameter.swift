@@ -93,10 +93,8 @@ public struct Parameter<Element: Codable> {
 
 
 extension Parameter: RequestInjectable {
-    mutating func inject(using request: Request, with decoder: RequestInjectableDecoder?) throws {
-        if let decoder = decoder {
-            element = try decoder.decode(Element.self, from: request)
-        }
+    mutating func inject(using request: Request) throws {
+        element = try request.parameter(for: self)
     }
 }
 

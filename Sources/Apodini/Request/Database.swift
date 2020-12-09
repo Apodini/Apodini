@@ -27,7 +27,7 @@ struct _Database: RequestInjectable {
     init() { }
     
     
-    mutating func inject(using request: Request, with decoder: RequestInjectableDecoder? = nil) throws {
+    mutating func inject(using request: Request) throws {
         self.database = request.database as? Fluent.Database
     }
 }

@@ -9,7 +9,7 @@
 import NIO
 
 
-class SemanticModelBuilder: RequestInjectableDecoder {
+class SemanticModelBuilder {
     private(set) var app: Application
     
     init(_ app: Application) {
@@ -22,9 +22,5 @@ class SemanticModelBuilder: RequestInjectableDecoder {
 
     func finishedProcessing() {
         // Can be overwritten to run action once the component tree was parsed
-    }
-    
-    func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
-        fatalError("decode must be overridden")
     }
 }

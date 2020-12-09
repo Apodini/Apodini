@@ -41,7 +41,7 @@ class Context {
                             }
                         }
 
-                        let vaporResponse = try! Res(body: response)
+                        let vaporResponse = try! Res(encoding: response)
                         return request.eventLoop.makeSucceededFuture(vaporResponse)
                     }
                 }

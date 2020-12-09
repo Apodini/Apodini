@@ -23,15 +23,14 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
 
         let requestInjectables = component.extractRequestInjectables()
 
-        var endpoint = Endpoint(
+        var endpoint: Endpoint<AnyEncodable> = Endpoint(
                 description: String(describing: component),
                 context: context,
                 operation: operation,
                 guards: guards,
                 requestInjectables: requestInjectables,
-                handleMethod: component.handle,
-                responseTransformers: responseModifiers,
-                handleReturnType: C.Response.self
+                handleMethod: { AnyEncodable(component.handle()) },
+                responseTransformers: responseModifiers
         )
 
         if endpointsTreeRoot == nil {
@@ -60,9 +59,5 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         for exporter in interfaceExporters {
             exporter.export(node)
         }
-    }
-
-    override func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
-        fatalError("Shared model is unable to deal with .decode")
     }
 }

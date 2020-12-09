@@ -10,11 +10,7 @@ import Runtime
 
 
 protocol RequestInjectable {
-    mutating func inject(using request: Request, with decoder: RequestInjectableDecoder?) throws
-}
-
-protocol RequestInjectableDecoder {
-    func decode<T: Decodable>(_ type: T.Type, from request: Request) throws -> T?
+    mutating func inject(using request: Request) throws
 }
 
 private func extractRequestInjectables(from subject: Any) -> [String: RequestInjectable] {
@@ -37,21 +33,20 @@ extension AnyResponseTransformer {
 }
 
 extension Request {
-    func enterRequestContext<E, R>(with element: E, using decoder: RequestInjectableDecoder? = nil, executing method: (E) -> EventLoopFuture<R>)
-                    -> EventLoopFuture<R> {
+    func enterRequestContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>) -> EventLoopFuture<R> {
         var element = element
-        inject(in: &element, using: decoder)
+        inject(in: &element)
 
         return method(element)
     }
 
-    func enterRequestContext<E, R>(with element: E, using decoder: RequestInjectableDecoder? = nil, executing method: (E) -> R) -> R {
+    func enterRequestContext<E, R>(with element: E, executing method: (E) -> R) -> R {
         var element = element
         inject(in: &element)
         return method(element)
     }
     
-    private func inject<E>(in element: inout E, using decoder: RequestInjectableDecoder? = nil) {
+    private func inject<E>(in element: inout E) {
         // Inject all properties that can be injected using RequestInjectable
         do {
             let info = try typeInfo(of: E.self)
