@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  WebService.swift
 //  
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
@@ -23,10 +23,11 @@ extension WebService {
     /// This function is exectured to start up an Apodini `WebService`
     public static func main() {
         do {
-            var env = try Environment.detect()
+            let environmentName = try Environment.detect().name
+            var env = Environment(name: environmentName, arguments: ["vapor"])
             try LoggingSystem.bootstrap(from: &env)
             let app = Application(env)
-            
+
             let webService = Self()
 
             webService.register(
@@ -36,9 +37,9 @@ extension WebService {
                 WebSocketSemanticModelBuilder(app),
                 ProtobufferSemanticModelBuilder(app)
             )
-            
+
             webService.configuration.configure(app)
-            
+
             defer {
                 app.shutdown()
             }
