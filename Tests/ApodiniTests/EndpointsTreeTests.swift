@@ -69,11 +69,11 @@ final class EndpointsTreeTests: XCTestCase {
         let birthdateParameter: EndpointParameter = parameters.first { $0.label == "_birthdate" }!
         
         // basic checks to ensure proper parameter parsing
-        XCTAssertEqual(nameParameter.id, (requestInjectables["_name"] as! Parameter<String>).id)
-        XCTAssertEqual(timesParameter.id, (requestInjectables["_times"] as! Parameter<Int>).id)
+        XCTAssertEqual(nameParameter.id, (requestInjectables["_name"] as! Parameter<String>).pathId)
+        XCTAssertEqual(timesParameter.id, (requestInjectables["_times"] as! Parameter<Int>).pathId)
         XCTAssertEqual(timesParameter.options.option(for: PropertyOptionKey.http),
                        (requestInjectables["_times"] as! Parameter<Int>).option(for: PropertyOptionKey.http))
-        XCTAssertEqual(birthdateParameter.id, (requestInjectables["_birthdate"] as! Parameter<Birthdate>).id)
+        XCTAssertEqual(birthdateParameter.id, (requestInjectables["_birthdate"] as! Parameter<Birthdate>).pathId)
         
         // check whether categorization works
         XCTAssertEqual(birthdateParameter.parameterType, .content)

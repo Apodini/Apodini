@@ -78,7 +78,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
             testComponent.content
         }.visit(visitor)
         
-        let nameParameterId: UUID = testComponent.$name.id
+        let nameParameterId: UUID = testComponent.$name.pathId
         let treeNodeA: EndpointsTreeNode = modelBuilder.endpointsTreeRoot!.children.first!
         let treeNodeB: EndpointsTreeNode = treeNodeA.children.first { $0.path.description == "b" }!
         let treeNodeNameParameter: EndpointsTreeNode = treeNodeB.children.first!

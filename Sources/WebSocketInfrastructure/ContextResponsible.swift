@@ -54,7 +54,6 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         self.receiver = receiver
         
         self.outputSubscriber = output.sink(receiveCompletion: { completion in
-            print("completion on output \(completion)")
             switch completion {
             case .failure(_):
                 // TODO: allow for custom error-codes + messages
@@ -63,7 +62,6 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
                 destruct()
             }
         }, receiveValue: { message in
-            print("value on output \(message)")
             switch message {
             case .send(let output):
                 send(output)
@@ -78,8 +76,6 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     }
     
     func receive(_ parameters: [String:Any]) {
-        print("received \(parameters)")
-        print(self.input)
         var abort = false
         for (parameter, value) in parameters {
             switch self.input.update(parameter, with: value) {
@@ -104,7 +100,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
             self.send("Invalid message: Missing parameters \(parameters.joined(separator: ", "))")
             return
         case .ok:
-            print("check ok")
+            self.input.apply()
             self.receiver.send(self.input)
         }
         

@@ -17,6 +17,7 @@ public enum ParameterOptionNameSpace { }
 /// Those can be used for any kind of runtime reflection.
 enum ParameterProperties {
     static let id = "id"
+    static let pathId = "pathId"
     static let name = "name"
     static let element = "element"
     static let options = "options"
@@ -31,13 +32,16 @@ public struct Parameter<Element: Codable> {
     public typealias OptionKey<T: PropertyOption> = PropertyOptionKey<ParameterOptionNameSpace, T>
     /// Type erased options that can be passed to an `@Parameter` property wrapper
     public typealias Option = AnyPropertyOption<ParameterOptionNameSpace>
-
     
-    var id = UUID()
+    public typealias ID = UUID
+    
+    var id: UUID = UUID()
+    
+    var pathId = UUID()
     var name: String?
     var element: Element?
     private var options: PropertyOptionSet<ParameterOptionNameSpace>
-    private var defaultValue: Element?
+    internal var defaultValue: Element?
     
     
     /// The value for the `@Parameter` as defined by the incoming request
@@ -81,9 +85,9 @@ public struct Parameter<Element: Codable> {
     /// Creates a new `@Parameter` that indicates input of a `Component's` `@PathParameter` based on an existing component.
     /// - Parameter id: The `UUID` that can be passed in from a parent `Component`'s `@PathParameter`.
     /// - Precondition: A `@Parameter` with a specific `http` type `.body` or `.query` can not be passed to a seperate componet. Please remove the specific `.http` property option or specify the `.http` property option to `.path`.
-    init(_ id: UUID) {
+    init(_ pathId: UUID) {
         self.options = PropertyOptionSet([.http(.path)])
-        self.id = id
+        self.pathId = pathId
     }
     
     
@@ -104,10 +108,10 @@ extension Parameter: RequestInjectable {
 
 extension Parameter: _PathComponent {
     var description: String {
-        ":\(self.id)"
+        ":\(self.pathId)"
     }
     
     func append<P>(to pathBuilder: inout P) where P: PathBuilder {
-        pathBuilder.append(":\(self.id)")
+        pathBuilder.append(":\(self.pathId)")
     }
 }

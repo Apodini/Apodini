@@ -10,6 +10,7 @@ import WebSocketInfrastructure
 import OpenCombine
 import Runtime
 
+// MARK: WebSocketSemanticModelBuilder
 class WebSocketSemanticModelBuilder: SemanticModelBuilder {
     
     private let router: WebSocketInfrastructure.Router
@@ -23,7 +24,7 @@ class WebSocketSemanticModelBuilder: SemanticModelBuilder {
         super.register(component: component, withContext: context)
         
         #if DEBUG
-//        self.printWebSocketInfo(of: component, withContext: context)
+        self.printWebSocketInfo(of: component, withContext: context)
         #endif
         
         let defaultInput = AnyInput(from: component)
@@ -33,28 +34,10 @@ class WebSocketSemanticModelBuilder: SemanticModelBuilder {
             let defaultInput = defaultInput
             
             let output = input.tryMap { (i: AnyInput) throws -> Message<C.Response> in
-                print("published input \(i)")
-                do {
-                    let info = try typeInfo(of: C.self)
-
-                    for property in info.properties {
-                        if var child = (try property.get(from: component)) as? Updatable {
-                            assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "Updatable \(property.name) on element \(info.name) must be a struct")
-                            if let ip = i.parameters[property.name.trimmingCharacters(in: ["_"])] {
-                                if let v = (ip as? WebSocketInfrastructure.Parameter<String>)?.value {
-                                    child.update(from: v)
-                                } else {
-                                    fatalError("tempoarary: should be string")
-                                }
-                            } else {
-                                fatalError("Missing property \(property.name.trimmingCharacters(in: ["_"])) on Input.")
-                            }
-                            try property.set(value: child, on: &component)
-                        }
-                    }
-                } catch {
-                    fatalError("Updating element \(component) failed.")
-                }
+                
+                update(&component, from: i.parameters.values.map({ p in
+                    return p as! IdentifiableInputParameter
+                }))
                 
                 return .send(component.handle())
             }
@@ -76,41 +59,28 @@ class WebSocketSemanticModelBuilder: SemanticModelBuilder {
     
 }
 
-struct WebSocketPathBuilder: PathBuilder {
-    private var pathComponents: [String] = []
+// MARK: WSInputRepresentable
+fileprivate protocol WSInputRepresentable {
+    func input() -> IdentifiableInputParameter
+}
+
+extension Parameter: WSInputRepresentable {
     
-    
-    fileprivate var pathIdentifier: String {
-        pathComponents
-            .map { pathComponent in
-                pathComponent.description
-            }
-            .joined(separator: "/")
-    }
-    
-    
-    init(_ pathComponents: [PathComponent]) {
-        for pathComponent in pathComponents {
-            if let pathComponent = pathComponent as? _PathComponent {
-                pathComponent.append(to: &self)
-            }
+    fileprivate func input() -> IdentifiableInputParameter {
+        let m: Mutability = .variable
+        
+        if Element.self is ExpressibleByNilLiteral.Type || self.defaultValue != nil {
+            return IdentifiableInputParameter(inputParameter: WebSocketInfrastructure.Parameter<Element>(mutability: m, necessity: .optional), id: self.id)
+        } else  {
+            return IdentifiableInputParameter(inputParameter: WebSocketInfrastructure.Parameter<Element>(mutability: m, necessity: .required), id: self.id)
         }
     }
     
-    
-    mutating func append(_ string: String) {
-        let pathComponent = string.lowercased()
-        pathComponents.append(pathComponent)
-    }
-    
-    mutating func append<T>(_ identifiier: Identifier<T>) where T: Identifiable {
-        let pathComponent = identifiier.identifier
-        pathComponents.append(pathComponent)
-    }
 }
 
 
-extension AnyInput {
+// MARK: Input Helpers
+fileprivate extension AnyInput {
     init<E>(from element: E) {
         var parameters: [String: InputParameter] = [:]
         do {
@@ -130,79 +100,39 @@ extension AnyInput {
     }
 }
 
-protocol WSInputRepresentable {
-    func input() -> InputParameter
-}
-
-extension Parameter: WSInputRepresentable {
-    
-    func input() -> InputParameter {
-        WebSocketInfrastructure.Parameter<Element>(mutability: .variable, necessity: .optional)
-    }
-    
-}
-
-protocol Updatable {
-    mutating func update(from: Any?)
-}
-
-extension Parameter: Updatable {
-    mutating func update(from element: Any?) {
-        if let e = element as? Element {
-            self.element = e
-        } else if let e = element as? Element? {
-            self.element = e
-        } else {
-            fatalError("Mismatching type when updating \(self) with \(element ?? "nil")")
-        }
+extension WebSocketInfrastructure.Parameter: UpdatingInputParameter {
+    func update(_ u: inout UpdatableProperty) {
+        u.update(with: self.value)
     }
 }
 
-//struct AnyParameterUpdater: Updater, InputParameter {
-//
-//    private var updater: Updater
-//    private var inputParameter: InputParameter
-//
-//    init<T: Codable>(_ p: inout ParameterUpdater<T>) {
-//        self.updater = p
-//        self.inputParameter = p
-//    }
-//
-//    mutating func update() {
-//        updater.update()
-//    }
-//
-//    mutating func update(_ value: Any) -> ParameterUpdateResult {
-//        inputParameter.update(value)
-//    }
-//
-//    func check() -> ParameterCheckResult {
-//        inputParameter.check()
-//    }
-//
-//}
-//
-//struct ParameterUpdater<T: Codable>: Updater, InputParameter {
-//
-//    private var input: WebSocketInfrastructure.Parameter<T>
-//
-//    private var wrapper: Parameter<T>
-//
-//    init(input: WebSocketInfrastructure.Parameter<T>, wrapper: inout Parameter<T>) {
-//        self.input = input
-//        self.wrapper = wrapper
-//    }
-//
-//    mutating func update() {
-//        wrapper.element = input.value
-//    }
-//
-//    mutating func update(_ value: Any) -> ParameterUpdateResult {
-//        input.update(value)
-//    }
-//
-//    func check() -> ParameterCheckResult {
-//        input.check()
-//    }
-//}
-//
+fileprivate protocol UpdatingInputParameter: InputParameter, Updater {}
+
+fileprivate struct IdentifiableInputParameter: InputParameter, IdentifiableUpdater {
+    
+    fileprivate var inputParameter: UpdatingInputParameter
+    let id: UUID
+    
+    
+    init<T>(inputParameter: WebSocketInfrastructure.Parameter<T>, id: UUID) {
+        self.id = id
+        self.inputParameter = inputParameter
+    }
+    
+    mutating func update(_ value: Any) -> ParameterUpdateResult {
+        inputParameter.update(value)
+    }
+    
+    nonmutating func check() -> ParameterCheckResult {
+        inputParameter.check()
+    }
+    
+    mutating func apply() {
+        inputParameter.apply()
+    }
+    
+    func update(_ u: inout UpdatableProperty) {
+        inputParameter.update(&u)
+    }
+    
+}

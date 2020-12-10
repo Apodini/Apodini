@@ -23,7 +23,9 @@ public protocol Input {
     
     mutating func update(_ parameter: String, with value: Any) -> ParameterUpdateResult
     
-    func check() -> InputCheckResult
+    mutating func check() -> InputCheckResult
+    
+    mutating func apply()
 }
 
 public enum ParameterCheckResult {
@@ -34,7 +36,10 @@ public enum ParameterCheckResult {
 public protocol InputParameter {
     
     mutating func update(_ value: Any) -> ParameterUpdateResult
+    
     nonmutating func check() -> ParameterCheckResult
+    
+    mutating func apply()
     
 }
 
@@ -80,7 +85,11 @@ public struct AnyInput: Input {
         })
     }
     
-    
+    public mutating func apply() {
+        for (id, _) in self.parameters {
+            self.parameters[id]?.apply()
+        }
+    }
 }
 
 
@@ -92,7 +101,6 @@ public enum Mutability {
 public enum Necessity<T> {
     case required
     case optional
-    case `default`(T)
 }
 
 public struct Parameter<T>: InputParameter {
@@ -100,18 +108,14 @@ public struct Parameter<T>: InputParameter {
     private let mutability: Mutability
     private let necessity: Necessity<T>
     
+    private var _interim: T?
     private var _value: T?
     
     public var value: T? {
         if let v = _value {
             return v
         }
-        switch self.necessity {
-        case .default(let v):
-            return v
-        default:
-            return nil
-        }
+        return nil
     }
     
     public init(mutability: Mutability, necessity: Necessity<T>) {
@@ -125,13 +129,13 @@ public struct Parameter<T>: InputParameter {
             return .error(.badType)
         }
         
-        if self._value == nil {
-            self._value = v
+        if self._interim == nil {
+            self._interim = v
             return .ok
         } else {
             switch self.mutability {
             case .variable:
-                self._value = v
+                self._interim = v
                 return .ok
             case .constant:
                 return .error(.notMutable)
@@ -140,9 +144,9 @@ public struct Parameter<T>: InputParameter {
     }
     
     public nonmutating func check() -> ParameterCheckResult {
-        if self._value == nil {
+        if self._interim == nil {
             switch self.necessity {
-            case .default(_), .optional:
+            case .optional:
                 return .ok
             case .required:
                 return .missing
@@ -150,6 +154,10 @@ public struct Parameter<T>: InputParameter {
         } else {
             return .ok
         }
+    }
+    
+    public mutating func apply() {
+        self._value = _interim
     }
     
 }

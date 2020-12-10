@@ -33,7 +33,7 @@ public class VaporWSRouter: Router {
     private var connections: [ConnectionResponsible.ID: ConnectionResponsible] = [:]
     private let connectionsMutex = NSLock()
 
-    public init(_ app: Application, at path: [PathComponent] = ["websocket"]) {
+    public init(_ app: Application, at path: [PathComponent] = ["apodini", "websocket"]) {
         self.app = app
         self.path = path
     }
