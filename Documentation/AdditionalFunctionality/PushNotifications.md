@@ -19,7 +19,7 @@ var configuration: Configuration {
 }
 ```
 
-The `NotificationCenter` can also be used to register devices. This is useful to retrieve saved devices and send out push notifications to them. This feature requires a connected **[database](./Database.md)** to Apodini and using the special modifier `addNotifications()` with the `DatabaseConfiguration`. This modifier can either take two arguments or none. When defining it with two arguments we can pass in a fluent migration and the corresponding class conforming to the `DeviceProtocol` used as the schema. Leaving the modifier empty will create a new database table called `notification_device` of the default implementation of `DeviceProtocol`.
+The `NotificationCenter` can also be used to register devices. This is useful to retrieve saved devices and send out push notifications to them. This feature requires a connected **[database](./Database.md)** to Apodini and using the special modifier `addNotifications()` with the `DatabaseConfiguration`. This modifier can either take two arguments or none. When defining it with two arguments we can pass in a fluent migration and the corresponding class conforming to `DeviceProtocol` used as the schema. Leaving the modifier empty will create a new database table called `notification_device` of the default implementation of `DeviceProtocol`.
 Additionally, this modifier will create a second database table `topic` which is responsible for storing push notification topics.
 
 The following example configures a MongoDB database and enables the `NotificationCenter` to save devices to the _apodini_db_ database.
