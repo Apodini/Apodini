@@ -44,6 +44,9 @@ struct TestWebService: Apodini.WebService {
     struct Greeter: Component {
         @_Request
         var req: Vapor.Request
+
+        @Apodini.Environment(\.connection)
+        var connection: Connection
         
         func handle() -> String {
             do {

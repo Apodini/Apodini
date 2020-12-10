@@ -45,4 +45,29 @@ class Context {
                 }
         }
     }
+
+    func createClientStreamRequestHandler<C: Component>(withComponent component: C, using decoder: SemanticModelBuilder)
+    -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+        { (request: Vapor.Request) in
+            let resultPromise = request.eventLoop.makePromise(of: Vapor.Response.self)
+            request.body.drain { (bodyStream: BodyStreamResult) in
+                switch bodyStream {
+                case .buffer(_):
+                    let con = Connection(state: .open)
+                    _ = self.createRequestHandler(withComponent: component.withEnviromment(con, for: \.connection),
+                                                  using: decoder)(request)
+                case let .error(error):
+                    return request.eventLoop.makeFailedFuture(error)
+                case .end:
+                    let con = Connection(state: .end)
+                    let response = self.createRequestHandler(withComponent: component.withEnviromment(con, for: \.connection),
+                                                             using: decoder)(request)
+                    let result = response.encodeResponse(for: request)
+                    resultPromise.completeWith(result)
+                }
+                return request.eventLoop.makeSucceededFuture(())
+            }
+            return resultPromise.futureResult
+        }
+    }
 }
