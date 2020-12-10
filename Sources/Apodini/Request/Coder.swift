@@ -34,10 +34,9 @@ extension JSONDecoder: DecoderProtocol {}
 extension JSONEncoder: EncoderProtocol {}
 
 struct AnyEncodable: Encodable {
-
     private let encodable: Encodable
 
-    public init(_ encodable: Encodable) {
+    init(_ encodable: Encodable) {
         self.encodable = encodable
     }
 
