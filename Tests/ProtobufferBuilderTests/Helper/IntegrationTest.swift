@@ -10,6 +10,10 @@ struct IntegrationTest<S: WebService> {
     let expectedResponse: String
     
     func execute(`in` testCase: XCTestCase) {
+        #if os(Linux)
+        return
+        #endif
+        
         guard let url = URL(string: url) else {
             XCTAssertNotNil(nil, "Url was nil")
             return
