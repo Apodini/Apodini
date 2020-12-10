@@ -67,7 +67,7 @@ fileprivate protocol WSInputRepresentable {
 extension Parameter: WSInputRepresentable {
     
     fileprivate func input() -> IdentifiableInputParameter {
-        let m: Mutability = .variable
+        let m: WebSocketInfrastructure.Mutability = self.option(for: .mutability) == .constant ? .constant : .variable
         
         if Element.self is ExpressibleByNilLiteral.Type || self.defaultValue != nil {
             return IdentifiableInputParameter(inputParameter: WebSocketInfrastructure.Parameter<Element>(mutability: m, necessity: .optional), id: self.id)

@@ -42,7 +42,7 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @Parameter var name: String
+        @Parameter(.mutability(.constant)) var name: String?
         
         func handle() -> String {
             return name ?? "World"

@@ -30,7 +30,7 @@ extension Parameter: UpdatableProperty {
 
     mutating func update(with element: Any?) {
         if let e = element as? Element {
-            self.element = e // TODO: remove this case
+            self.element = e
         } else if let e = element as? Element? {
             self.element = e
         } else {

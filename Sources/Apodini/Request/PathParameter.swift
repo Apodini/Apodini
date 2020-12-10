@@ -17,7 +17,7 @@ public struct PathParameter<Element: Codable & LosslessStringConvertible> {
     
     /// Accessing the projected value allows you to pass the `@PathParameter` to a `Handler` or `Component`
     public var projectedValue: Parameter<Element> {
-        Parameter(id)
+        Parameter(from: id)
     }
     
     
