@@ -1,6 +1,8 @@
+![document type: vision](https://apodini.github.io/resources/markdown-labels/document_type_vision.svg)
+
 # Push Notifications
 
-The `NotificationCenter` can handle the registration and sending of **push notifications** to Apple Push Notification Service (APNS) and Firebase Cloud Messaging (FCM). APNS can send out push notifications to iOS, macOS and tvOS devices, while FCM handles messaging for iOS, Android and Web Push.
+The `NotificationCenter` can handle the registration and sending of **push notifications** to Apple Push Notification Service (APNS) and Firebase Cloud Messaging (FCM). APNS can send out push notifications to iOS, macOS and tvOS devices, while FCM handles messaging for iOS, Android, and Web Push.
 
 ## Configuration
 
@@ -17,22 +19,22 @@ var configuration: Configuration {
 }
 ```
 
-The `NotificationCenter` can also be used to register devices. This is useful to retrieve saved devices and send out push notifications to them. This feature requires a connected **[database](./Database.md)** to Apodini. Using the special modifier `addNotifications()` with the `DatabaseConfiguration` will create a new database table called `NotificationDevice` of type `Device`.
+The `NotificationCenter` can also be used to register devices. This is useful to retrieve saved devices and send out push notifications to them. This feature requires a connected **[database](./Database.md)** to Apodini and using the special modifier `addNotifications()` with the `DatabaseConfiguration`. This modifier can either take two arguments or none. When defining it with two arguments we can pass in a fluent migration and the corresponding class conforming to the `DeviceProtocol` used as the schema. Leaving the modifier empty will create a new database table called `notification_device` of the default implementation of `DeviceProtocol`.
+Additionally, this modifier will create a second database table `topic` which is responsible for storing push notification topics.
 
 The following example configures a MongoDB database and enables the `NotificationCenter` to save devices to the _apodini_db_ database.
 
 ```swift
 var configuration: Configuration {
     // ...
-    DatabaseConfiguration(.mongo)
-        .connectionString("mongodb://localhost:27017/apodini_db")
+    DatabaseConfiguration(.defaultMongoDB("mongodb://localhost:27017/apodini_db"))
         .addNotifications()
 }
 ```
 
 ## Usage
 
-The `NotificationCenter` can be injected to any `Component` by using the `@Environment` property wrapper.
+The `NotificationCenter` can be injected to any `Component` or `Job` by using the `@Environment` property wrapper.
 
 ```swift
 struct NewsAlertComponent: Component {
@@ -44,19 +46,21 @@ struct NewsAlertComponent: Component {
 
 ## Device Registration
 
-Devices can be registered to the `NotificationCenter` by conforming to the `Device` protocol. This protocol consists of the following properties:
+Devices can be registered to the `NotificationCenter` by conforming to `DeviceProtocol`. This protocol consists of the following properties:
 
+- **id**: The device id for one app used by the push notification service.
 - **user**: The associated user of the device.
-- **type**: This property specifies which push notification service to use.
-- **token**: The device id for one app used by the push notification service
-- **subscriptions**: Subscriptions are used to group `Device`s together. Example: All devices that want to receive news alerts for a specific topic.
+- **type**: The push notification service to use.
+- **topics**: Used to group devices together. Example: All devices that want to receive news alerts.
+
+A default implementation of this protocol called `Device` can also be used.
 
 ```swift
-public struct Device {
-    public var user: User
+public struct Device: DeviceProtocol {
+    public var id: String
     public var type: PushNotificationService
-    public var token: String
-    public var subscriptions: [String]?
+    public var user: User?
+    public var topics: [Topic]?
 }
 
 public enum PushNotificationService {
@@ -81,25 +85,17 @@ struct RegisterComponent: Component {
 }
 ```
 
-Furthermore, the `NotificationCenter` allows the removal and editing of `Device`s.
+Furthermore, the `NotificationCenter` allows the removal and editing of `Device`s and `Topic`s.
 
 ## Sending Push Notifications
 
 `Notification`s are structured as follows:
 
 - **alert**: Displayed message on the device which includes title, subtitle, and body.
-- **payload**: Service specific notification settings like sound, badges, images, etc.
-- **data**: Background data.
+- **payload**: Service specific notification settings like sound, badges, etc.
+- **data**: Background data conforming to `Encodable`.
 
-`Notification`s don't have to include an alert and can just send a silent push notification with background data.
-
-```swift
-public struct Notification {
-    public var alert: Alert?
-    public var payload: Payload?
-    public var data: Encodable?
-}
-```
+Push notifications can also be used to send data. Objects that are sent with push notifications need to conform to `Encodable` and will be converted to JSON format. This object can then be retrieved using the `data` key from the payload of the push notification.
 
 Example of a `Component` that sends a push notification to an user:
 
@@ -110,7 +106,9 @@ struct SendNotification: Component {
     @Environment(\.notificationCenter) var notificationCenter: NotificationCener
 
     func handle() -> EventLoopFuture<Void> {
-        notificationCenter.send(alert: .init(title: "Hello There 👋"), to: user)
+        let notification = Notification(alert: Alert(title: "Hello There 👋"))
+        let data = "I'm also sent!"
+        return notificationCenter.send(notification: notification, with: data, to: user)
     }
 }
 ```
@@ -126,39 +124,4 @@ The `NotificationCenter` offers the following convenience methods to send push n
 
 ## Unsolicited Push Notifications
 
-Events in Apodini can trigger the sending of push notifications. `Component`s can subscribe to `ObservableObject`s or **[CronJobs](./CronJob.md)** that are exposed to the environment. The `handle` method of a `Component` will be executed every time `@Published` properties of the `ObservableObject` or `CronJob` change. Unsolicited `Component`s are defined in Apodini by conforming to the `EventComponent` protocol. This specifies that `EventComponent`s are only executed by events which the `EventComponent` subscribes to, whereas incoming requests of clients will not be handled. Therefore, property wrappers that are request based, e.g. `@Request` or `@Parameter`, cannot be used in an `EventComponent` and will throw an error. This also means that Apodini exporters will ignore this `Component`.
-
-The following example shows a _WeatherService_ as a `CronJob` that fetches the weather every day at 10 am and publishes it to its subscribers using the `@Published` property wrapper. The _AlertComponent_ listens to changes of the _WeatherService_ and sends out push notifications based on the current weather. Every `Device` with the **subscription** _weatherSubscription_ will receive this push notification.
-
-```swift
-struct WeatherService: CronJob {
-    @Published var weather = "sunny"
-
-    func run() {
-        // Updates weather
-    }
-}
-
-struct AlertComponent: EventComponent {
-    @Environment(\.notificationCenter) var notificationCenter: NotificationCener
-
-    @Environment(\.weatherService) var weatherService: WeatherService
-
-    func handle() {
-        notificationCenter.send(notification: .init(title: "The weather today will be \($weatherService.weather)"), to: "weatherSubscription")
-    }
-}
-
-var content: some Component {
-    AlertComponent()
-    // ...
-}
-
-var configuration: Configuration {
-    APNSConfiguration(.pem(pemPath: "certificate.pem"), identifier: "de.tum.in.ase.Example", environment: .sandbox)
-    DatabaseConfiguration(.mongo)
-        .connectionString("mongodb://localhost:27017/apodini_db")
-        .addNotifications()
-    Schedule(WeatherService, on: "0 10 * * *")
-}
-```
+Events in Apodini can also trigger the sending of push notifications. For examples of this behavior refer to the documentation on **[Jobs](./Jobs.md)**.
