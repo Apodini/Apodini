@@ -38,6 +38,6 @@ struct IntegrationTest<S: WebService> {
         
         task.resume()
         
-        testCase.wait(for: [expectation], timeout: 1.0)
+        testCase.wait(for: [expectation], timeout: 10.0)
     }
 }
