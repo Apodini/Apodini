@@ -45,9 +45,10 @@ public extension ProtobufferBuilder {
             return
         }
         
+        let voidMessage = Message.void
         let method = Service.Method(
             name: "handle",
-            input: .void,
+            input: voidMessage,
             ouput: message
         )
         
@@ -56,6 +57,7 @@ public extension ProtobufferBuilder {
             methods: [method]
         )
         
+        messages.insert(voidMessage)
         messages.insert(message)
         services.insert(service)
     }

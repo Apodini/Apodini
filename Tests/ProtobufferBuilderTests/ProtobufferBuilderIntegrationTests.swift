@@ -38,6 +38,8 @@ final class ProtobufferBuilderIntegrationTests: XCTestCase {
                   int64 id = 0;
                   string name = 1;
                 }
+
+                message VoidMessage {}
                 """
         )
         .execute(in: self)
