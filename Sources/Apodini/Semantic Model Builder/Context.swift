@@ -54,13 +54,13 @@ class Context {
                 switch bodyStream {
                 case .buffer(_):
                     let con = Connection(state: .open)
-                    _ = self.createRequestHandler(withComponent: component.withEnviromment(con, for: \.connection),
+                    _ = self.createRequestHandler(withComponent: component.withEnvironment(con, for: \.connection),
                                                   using: decoder)(request)
                 case let .error(error):
                     return request.eventLoop.makeFailedFuture(error)
                 case .end:
                     let con = Connection(state: .end)
-                    let response = self.createRequestHandler(withComponent: component.withEnviromment(con, for: \.connection),
+                    let response = self.createRequestHandler(withComponent: component.withEnvironment(con, for: \.connection),
                                                              using: decoder)(request)
                     let result = response.encodeResponse(for: request)
                     resultPromise.completeWith(result)

@@ -1,12 +1,12 @@
 import Runtime
 
-public protocol EnvironmentKey {
+protocol EnvironmentKey {
     associatedtype Value
     
     static var defaultValue: Self.Value { get }
 }
 
-public struct EnvironmentValues: CustomStringConvertible {
+struct EnvironmentValues: CustomStringConvertible {
     var values: [ObjectIdentifier: Any] = [:]
     
     public init() { }
@@ -31,7 +31,7 @@ public struct EnvironmentValues: CustomStringConvertible {
 protocol DynamicProperty { }
 
 @propertyWrapper
-public struct Environment<Value>: DynamicProperty {
+struct Environment<Value>: DynamicProperty {
     internal enum Content {
         case keyPath(KeyPath<EnvironmentValues, Value>)
         case value(Value)
@@ -66,7 +66,7 @@ extension Component {
     /// - parameters:
     ///     - value: The value that should be set for the evironment.
     ///     - keyPath: The KeyPath that identifies the enviroment object to store  the given value in.
-    public func withEnviromment<Value>(_ value: Value, for keyPath: WritableKeyPath<EnvironmentValues, Value>) -> Self {
+    func withEnvironment<Value>(_ value: Value, for keyPath: WritableKeyPath<EnvironmentValues, Value>) -> Self {
         var selfRef = self
         do {
             let info = try typeInfo(of: type(of: self))

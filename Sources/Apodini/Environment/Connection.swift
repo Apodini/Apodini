@@ -8,17 +8,17 @@
 import Foundation
 
 enum ConnectionEnvironmentKey: EnvironmentKey {
-    static var defaultValue: Connection = Connection()
+    static var defaultValue = Connection()
 }
 
 extension EnvironmentValues {
-    public var connection: Connection {
+    var connection: Connection {
         get { self[ConnectionEnvironmentKey.self] }
         set { self[ConnectionEnvironmentKey.self] = newValue }
     }
 }
 
-public enum ConnectionState {
+enum ConnectionState {
     /// .undefined is the default value.
     /// The connection state is undefined in a component's handler
     /// if the request was not a client streaming request.
@@ -30,7 +30,7 @@ public enum ConnectionState {
     case end
 }
 
-public struct Connection {
+struct Connection {
     /// Holds the state of the current client-side stream.
     var state: ConnectionState = .undefined
 }
