@@ -2,6 +2,8 @@ import XCTest
 import Apodini
 import Vapor
 
+/// `ProtobufferBuilderIntegrationTests` tests the interplay of two modules,
+/// **Apodini** and **ProtobufferBuilder**.
 final class ProtobufferBuilderIntegrationTests: XCTestCase {
     func testPokemonWebService() throws {
         struct Pokemon: Component, ResponseEncodable {
