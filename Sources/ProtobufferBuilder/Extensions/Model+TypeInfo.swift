@@ -31,7 +31,7 @@ extension Message {
                             isRepeated: ParticularType(typeInfo.type).isArray,
                             name: element.name,
                             typeName: typeName,
-                            uniqueNumber: offset
+                            uniqueNumber: offset + 1
                         )
                     } catch {
                         print(error)

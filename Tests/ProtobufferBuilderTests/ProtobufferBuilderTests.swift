@@ -52,7 +52,7 @@ extension ProtobufferBuilderTests {
             syntax = "proto3";
 
             message StringMessage {
-              string value = 0;
+              string value = 1;
             }
             """
         
@@ -72,11 +72,11 @@ extension ProtobufferBuilderTests {
             syntax = "proto3";
 
             message AccountMessage {
-              repeated TransactionMessage transactions = 0;
+              repeated TransactionMessage transactions = 1;
             }
 
             message TransactionMessage {
-              int32 amount = 0;
+              int32 amount = 1;
             }
             """
         
@@ -93,8 +93,8 @@ extension ProtobufferBuilderTests {
             syntax = "proto3";
 
             message NodeOfInt64Message {
-              int64 value = 0;
-              repeated NodeOfInt64Message children = 1;
+              int64 value = 1;
+              repeated NodeOfInt64Message children = 2;
             }
             """
         

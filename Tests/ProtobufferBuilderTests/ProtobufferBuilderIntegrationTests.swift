@@ -37,8 +37,8 @@ final class ProtobufferBuilderIntegrationTests: XCTestCase {
                 }
 
                 message PokemonMessage {
-                  int64 id = 0;
-                  string name = 1;
+                  int64 id = 1;
+                  string name = 2;
                 }
 
                 message VoidMessage {}
