@@ -5,7 +5,7 @@ import Vapor
 /// `ProtobufferBuilderIntegrationTests` tests the interplay of two modules,
 /// **Apodini** and **ProtobufferBuilder**.
 final class ProtobufferBuilderIntegrationTests: XCTestCase {
-    func testPokemonWebService() throws {
+    func testPokemonWebService() {
         struct Pokemon: Component, ResponseEncodable {
             let id: Int64
             let name: String
@@ -42,6 +42,31 @@ final class ProtobufferBuilderIntegrationTests: XCTestCase {
                 }
 
                 message VoidMessage {}
+                """
+        )
+        .execute(in: self)
+    }
+    
+    func testGreeterWebService() {
+        struct Greeter: Component {
+            @Parameter
+            var name: String
+            
+            func handle() -> String {
+                "Hello \(name)"
+            }
+        }
+        
+        struct GreeterWebService: WebService {
+            var content: some Component {
+                Greeter()
+            }
+        }
+        
+        IntegrationTest<GreeterWebService>(
+            url: "http://127.0.0.1:8080/apodini/proto",
+            expectedResponse: """
+                syntax = "proto3";
                 """
         )
         .execute(in: self)
