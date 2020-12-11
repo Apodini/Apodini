@@ -30,14 +30,26 @@ struct EndpointParameter {
             }
     }
     
+    static func create(from pathComponent: _PathComponent, label: String) -> EndpointParameter? {
+        guard let info: TypeInfo = try? typeInfo(of: type(of: pathComponent)) else {
+            return nil
+        }
+        return create(from: info, source: pathComponent, label: label)
+    }
+    
     static func create(from requestInjectable: RequestInjectable, label: String) -> EndpointParameter? {
         guard let info: TypeInfo = try? typeInfo(of: type(of: requestInjectable)) else {
             return nil
         }
+        return create(from: info, source: requestInjectable, label: label)
+    }
+    
+    /// TODO: Why does this not work with `create<T>(from source: T, ...) { typeInfo(of: type(of: source)) ... }`
+    private static func create<T>(from info: TypeInfo, source: T, label: String) -> EndpointParameter? {
         /// Parameter<String> serves as representative `parameterType` of any Parameter<T> as  `mangeldName` of all Parameter<T> is `Parameter`
         let parameterType = try? typeInfo(of: Parameter<String>.self)
         if info.mangledName == parameterType?.mangledName {
-            let mirror = Mirror(reflecting: requestInjectable)
+            let mirror = Mirror(reflecting: source)
             // swiftlint:disable:next force_cast
             let id = mirror.children.first { $0.label == ParameterProperties.id }!.value as! UUID
             let name = mirror.children.first { $0.label == ParameterProperties.name }?.value as? String
@@ -75,5 +87,15 @@ struct EndpointParameter {
                 parameterType: parameterType)
         }
         return nil
+    }
+}
+
+extension EndpointParameter: Equatable, Hashable {
+    static func == (lhs: EndpointParameter, rhs: EndpointParameter) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }

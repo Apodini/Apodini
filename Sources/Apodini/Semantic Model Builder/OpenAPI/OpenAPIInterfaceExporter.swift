@@ -9,12 +9,12 @@ import Vapor
 import Foundation
 import Runtime
 
-class OpenAPISemanticModelBuilder: SemanticModelBuilder {
+class OpenAPIInterfaceExporter: InterfaceExporter {
     var configuration: OpenAPIConfiguration
     var document: OpenAPI.Document
     var openAPIComponentsBuilder = OpenAPIComponentsBuilder()
     
-    init(_ app: Application, configuration: OpenAPIConfiguration = OpenAPIConfiguration()) {
+    required init(_ app: Application, configuration: OpenAPIConfiguration = OpenAPIConfiguration()) {
         self.configuration = configuration
         self.document = OpenAPI.Document(
             info: self.configuration.info,
@@ -23,6 +23,15 @@ class OpenAPISemanticModelBuilder: SemanticModelBuilder {
             components: self.openAPIComponentsBuilder.components
         )
         super.init(app)
+        
+        
+        func export(_ node: EndpointsTreeNode) {
+            exportEndpoints(node)
+
+            for child in node.children {
+                export(child)
+            }
+        }
         
         // TODO: add YAML and default case?
         // TODO: add file export?

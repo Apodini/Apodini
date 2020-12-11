@@ -38,6 +38,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
             endpointsTreeRoot = EndpointsTreeNode(path: RootPath())
         }
 
+        // "manually" add path components that are only defined as path parameters inside `Handler`s
         for parameter in endpoint.parameters {
             let pathDescription = ":\(parameter.id)"
             if parameter.parameterType == .path && !paths.contains(where: { ($0 as? _PathComponent)?.description == pathDescription }) {
