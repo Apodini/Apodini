@@ -80,3 +80,18 @@ extension Tree {
         return result
     }
 }
+
+extension Tree {
+    func edited<T>(
+        _ transform: (Node<T>) throws -> Tree<T>
+    ) rethrows -> Tree<T> where Wrapped == Node<T> {
+        guard let node = self,
+              let intermediate = try transform(node) else { return nil }
+        
+        let children = try intermediate.children.compactMap { (child: Tree) in
+            try child.edited(transform)
+        }
+        
+        return Node(value: intermediate.value, children: children)
+    }
+}
