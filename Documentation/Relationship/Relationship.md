@@ -49,7 +49,7 @@ the `StaticInfoHandler` (located at `/user/:userid/static-info`) and the `PostHa
 A relationship to the `DetailedStaticInfoHandler` won't be created, as `StaticInfoHandler` is the **first** Endpoint
 for the `static-info` sub tree.
 
-Not explicitly created, but specifically important for the REST Interface Exporter: A Endpoint will always maintain a
+Not explicitly created, but specifically important for the REST Interface Exporter: An Endpoint will always maintain a
 Relationship to itself with the name `self` (thus `self` is a reserved relationship name).  
 In the case that there is also a subroute with the `PathComponent` named `self` a name conflict would occur.
 As such a name conflict problem is unique to the REST exporter this proposal suggest that such a Relationship SHOULD
@@ -145,10 +145,10 @@ Similarly the renamed Relationship MUST NOT collide with any other relationship 
 ### 2.2. Adding new relationships
 
 To support rearranging components without breaking HATEOAS linking information or the GraphQL query schema,
-a user can also **add** its own relationship definitions.
+a user can also **add** their own relationship definitions.
 
 As we don't want users to manually list every `PathComponent` for the destination of the relationship, the user can create
-instances of `Relationship` wich are then referenced with `.relatable` (marking destination) and
+instances of `Relationship` which are then referenced with `.relatable` (marking destination) and
 `.relationship(to:)` modifiers.
 
 Those `Relationship` instances can be defined anywhere, preferably as a property of a `Component`.  
