@@ -2,14 +2,15 @@
 
 # Jobs
 
-`Job`s allow to schedule repeating tasks and are in contrast to `Component`s not request based.
+`Job`s allow developers to schedule repeating tasks. In contrast to `Handler`s, `Job`s are not request based.
 Use cases for `Job`s could be running background database operations or fetching data from a remote server.
 In Apodini such tasks are defined by conforming to the `Job` protocol which includes a `run` method.
 This method is executed at scheduled points in time or when triggered by an [ObservableObject](<./../Communicational\ Patterns/2.\ Tooling/2.4.\ ObservedObject.md>).
 
 ## Usage
 
-`Job`s can include the `@Environment` property wrappers to use other services in the `run` method.
+`Job`s can use all property wrappers that are not connected to incoming requests, e.g. `@Environment`, `@ObservedObject`, and `@State`.
+
 The following example defines a `Job` and uses the `@Environment` property wrapper to inject the `NotificationCenter` in order to send out push notifications.
 
 ```swift
@@ -39,7 +40,8 @@ Apodini `Job`s can be scheduled using the common syntax from [crontab](https://m
 ```
 
 `Job`s are scheduled at server startup from the `configuration` property using the `Schedule` configuration and the cron expression.
-When scheduling `Job`s, Apodini will create a single instance which can be used with `@ObservedObject` in other components.
+When scheduling `Job`s, Apodini will create a single instance which can be used with `@ObservedObject` to listen to changes of properties annotated with `@Published` or when using `@Environment` to read and change properties of a `Job`.
+
 In addition, the number of times a `Job` is executed can also be defined from the `Schedule` configuration.
 
 Let's schedule the previously introduced _MondayService_ to be executed every Monday on 9 am.
@@ -48,7 +50,7 @@ Furthermore, we specify that the _MondayService_ should only be executed 5 times
 
 ```swift
 var configuration: Configuration {
-    Schedule(MondayService.self, on: "0 9 * * 1", runs: 5)
+    Schedule(MondayService(), on: "0 9 * * 1", runs: 5)
 }
 ```
 
@@ -78,7 +80,7 @@ struct DateComponent: Component {
 }
 
 var configuration: Configuration {
-    Schedule(DateService.self, on: "10 * * * *")
+    Schedule(DateService(), on: "10 * * * *")
 }
 ```
 
@@ -126,7 +128,7 @@ struct TestWebService: WebService {
 
     var configuration: Configuration {
         Environment(\.visitorObservedObject, VisitorObservedObject())
-        Schedule(SummaryJob.self, on: "0 9 * * 5")
+        Schedule(SummaryJob(), on: "0 9 * * 5")
     }
 }
 ```
