@@ -67,6 +67,14 @@ final class ProtobufferBuilderIntegrationTests: XCTestCase {
             url: "http://127.0.0.1:8080/apodini/proto",
             expectedResponse: """
                 syntax = "proto3";
+
+                service GreeterService {
+                  rpc handle (StringMessage) returns (StringMessage);
+                }
+
+                message StringMessage {
+                  string value = 1;
+                }
                 """
         )
         .execute(in: self)
