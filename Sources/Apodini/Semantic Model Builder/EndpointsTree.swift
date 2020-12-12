@@ -36,21 +36,11 @@ struct Endpoint {
 
     let operation: Operation
 
-    let guards: [LazyGuard]
-    let requestInjectables: [String: RequestInjectable]
-    let handleMethod: () -> ResponseEncodable
-    let responseTransformers: [() -> (AnyResponseTransformer)]
-    
+    fileprivate var requestHandlerBuilder: (RequestInjectableDecoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response>
     /// Type returned by `handle()`
     let handleReturnType: ResponseEncodable.Type
-    
     /// Response type ultimately returned by `handle()` and possible following `ResponseTransformer`s
-    lazy var responseType: ResponseEncodable.Type = {
-        guard let lastResponseTransformer = self.responseTransformers.last else {
-            return self.handleReturnType
-        }
-        return lastResponseTransformer().transformedResponseType
-    }()
+    var responseType: ResponseEncodable.Type
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     var parameters: [EndpointParameter]
@@ -62,17 +52,22 @@ struct Endpoint {
         treeNode.relationships
     }
 
-    init(description: String, context: Context, operation: Operation, guards: [LazyGuard], requestInjectables: [String: RequestInjectable], handleMethod: @escaping () -> ResponseEncodable, responseTransformers: [() -> (AnyResponseTransformer)], handleReturnType: ResponseEncodable.Type, parameters: [EndpointParameter]) {
+    init(description: String, context: Context, operation: Operation,
+         requestHandlerBuilder: @escaping (RequestInjectableDecoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response>,
+         handleReturnType: ResponseEncodable.Type, responseType: ResponseEncodable.Type, parameters: [EndpointParameter]) {
         self.description = description
         self.context = context
         self.operation = operation
-        self.guards = guards
-        self.requestInjectables = requestInjectables
-        self.handleMethod = handleMethod
-        self.responseTransformers = responseTransformers
+        self.requestHandlerBuilder = requestHandlerBuilder
         self.handleReturnType = handleReturnType
+        self.responseType = responseType
         self.parameters = parameters
     }
+
+    func createRequestHandler(for exporter: InterfaceExporter) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+        requestHandlerBuilder(exporter)
+    }
+
 }
 
 class EndpointsTreeNode {

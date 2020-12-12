@@ -51,8 +51,8 @@ class ParameterBuilder: RequestInjectableVisitor {
 
     var parameters: [EndpointParameter] = []
 
-    init(from requestInjectables: [String: RequestInjectable]) {
-        self.requestInjectables = requestInjectables
+    init<C: Component>(from component: C) {
+        self.requestInjectables = component.extractRequestInjectables()
     }
 
     func build() {
@@ -96,7 +96,7 @@ struct PathComponentAnalyzer: PathBuilder {
     mutating func append(_ string: String) {}
 
     /// This function does two things:
-    ///   * First it checks if the given `_PathComponent` is if type Parameter. If it is it returns
+    ///   * First it checks if the given `_PathComponent` is of type Parameter. If it is it returns
     ///     a `PathParameterAnalyzingResult` otherwise it returns nil.
     ///   * Secondly it retrieves the .http ParameterOption for the Parameter which is stored in the `PathParameterAnalyzingResult`
     static func analyzePathComponentForParameter(_ pathComponent: _PathComponent) -> PathParameterAnalyzingResult? {
