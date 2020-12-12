@@ -30,7 +30,7 @@ extension EnrichedInfo {
                         return EnrichedInfo(
                             typeInfo: typeInfo,
                             propertyInfo: propertyInfo,
-                            propertiesOffset: offset
+                            propertiesOffset: offset + 1
                         )
                     } catch {
                         print(error)
