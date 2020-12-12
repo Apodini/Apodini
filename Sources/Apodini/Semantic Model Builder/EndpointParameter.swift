@@ -58,12 +58,12 @@ class ParameterBuilder: RequestInjectableVisitor {
     func build() {
         for (label, requestInjectable) in requestInjectables {
             currentLabel = label
-            requestInjectable.visit(self)
+            requestInjectable.accept(self)
         }
         currentLabel = nil
     }
 
-    func register<Element>(_ parameter: Parameter<Element>) {
+    func visit<Element>(_ parameter: Parameter<Element>) {
         guard let label = currentLabel else {
             preconditionFailure("EndpointParameter visited a Parameter where current label wasn't set. Something must have been called out of order!")
         }

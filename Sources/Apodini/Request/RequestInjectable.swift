@@ -12,12 +12,12 @@ import Runtime
 
 protocol RequestInjectable {
     mutating func inject(using request: Vapor.Request, with decoder: RequestInjectableDecoder?) throws
-    func visit(_ visitor: RequestInjectableVisitor)
+    func accept(_ visitor: RequestInjectableVisitor)
 }
 
 extension RequestInjectable {
-    func visit(_ visitor: RequestInjectableVisitor) {
-        visitor.register(self)
+    func accept(_ visitor: RequestInjectableVisitor) {
+        visitor.visit(self)
     }
 }
 
@@ -26,13 +26,13 @@ protocol RequestInjectableDecoder {
 }
 
 protocol RequestInjectableVisitor {
-    func register<Injectable: RequestInjectable>(_ requestInjectable: Injectable)
+    func visit<Injectable: RequestInjectable>(_ requestInjectable: Injectable)
 
-    func register<Element>(_ parameter: Parameter<Element>)
+    func visit<Element>(_ parameter: Parameter<Element>)
 }
 extension RequestInjectableVisitor {
-    func register<Injectable: RequestInjectable>(_ requestInjectable: Injectable) {}
-    func register<Element>(_ parameter: Parameter<Element>) {}
+    func visit<Injectable: RequestInjectable>(_ requestInjectable: Injectable) {}
+    func visit<Element>(_ parameter: Parameter<Element>) {}
 }
 
 

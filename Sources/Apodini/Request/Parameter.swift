@@ -88,8 +88,8 @@ extension Parameter: RequestInjectable {
         }
     }
 
-    func visit(_ visitor: RequestInjectableVisitor) {
-        visitor.register(self)
+    func accept(_ visitor: RequestInjectableVisitor) {
+        visitor.visit(self)
     }
 }
 
