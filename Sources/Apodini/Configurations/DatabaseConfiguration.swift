@@ -53,7 +53,6 @@ public final class DatabaseConfiguration: Configuration {
     }
     
     private func databaseFactory(for type: DatabaseType) throws -> Fluent.DatabaseConfigurationFactory {
-        var databaseFactory: Fluent.DatabaseConfigurationFactory?
         switch type {
         case .defaultMongoDB(let conString):
             return try .mongo(connectionString: conString)

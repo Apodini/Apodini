@@ -11,13 +11,13 @@ import Vapor
 
 public struct Create<T: DatabaseModel>: Component where T.IDValue == UUID {
     
-    @_Database
-    var database: Fluent.Database
-    
     @_Request
     var request: Vapor.Request
     
-    @Apodini.Body
+    @_Database
+    var database: Fluent.Database
+    
+    @Parameter
     var object: T
 
     public func handle() -> EventLoopFuture<T> {
@@ -25,7 +25,7 @@ public struct Create<T: DatabaseModel>: Component where T.IDValue == UUID {
         HTTP/POST
         Request called on: %@
         DatabaseModel used: %@
-        """, request.url.string, object.description)
+        """, "request.url.string", object.description)
         return object.save(on: database).map({ _ in
             self.object
         })

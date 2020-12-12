@@ -28,7 +28,7 @@ struct _Database: RequestInjectable {
     init() { }
     
     
-    mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder? = nil) throws {
+    mutating func inject(using request: Vapor.Request, with decoder: RequestInjectableDecoder? = nil) throws {
         self.database = request.db
     }
 }
@@ -47,7 +47,7 @@ public struct Param_Id<T: Model>: RequestInjectable where T.IDValue: LosslessStr
     
     public init() {}
     
-    mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder?) throws {
+    mutating func inject(using request: Request, with decoder: RequestInjectableDecoder?) throws {
         self.id = request.parameters.get("id", as: T.IDValue.self)
     }
 }
@@ -55,9 +55,6 @@ public struct Param_Id<T: Model>: RequestInjectable where T.IDValue: LosslessStr
 
 @propertyWrapper
 struct _Query: RequestInjectable {
-    mutating func inject(using request: Request, with decoder: SemanticModelBuilder?) throws {
-        self.urlString = request.url.query
-    }
     
     private var urlString: String?
     
@@ -70,4 +67,8 @@ struct _Query: RequestInjectable {
     }
     
     init() {}
+    
+    mutating func inject(using request: Request, with decoder: RequestInjectableDecoder?) throws {
+        self.urlString = request.url.query
+    }
 }
