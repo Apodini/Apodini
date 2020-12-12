@@ -24,7 +24,7 @@ class WebSocketSemanticModelBuilder: SemanticModelBuilder {
         super.register(component: component, withContext: context)
         
         #if DEBUG
-        self.printWebSocketInfo(of: component, withContext: context)
+//        self.printWebSocketInfo(of: component, withContext: context)
         #endif
         
         let defaultInput = AnyInput(from: component)
@@ -83,18 +83,10 @@ extension Parameter: WSInputRepresentable {
 fileprivate extension AnyInput {
     init<E>(from element: E) {
         var parameters: [String: InputParameter] = [:]
-        do {
-            let info = try typeInfo(of: E.self)
-
-            for property in info.properties {
-                if let child = (try property.get(from: element)) as? WSInputRepresentable {
-                    precondition(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "WSInputRepresentable \(property.name) on element \(info.name) must be a struct")
-                    parameters[property.name.trimmingCharacters(in: ["_"])] = child.input()
-                }
-            }
-        } catch {
-            fatalError("Deriving an Input from element \(element) failed.")
-        }
+                
+        execute({ (r: WSInputRepresentable, name: String) in
+            parameters[name.trimmingCharacters(in: ["_"])] = r.input()
+        }, on: element)
 
         self.init(parameters: parameters)
     }

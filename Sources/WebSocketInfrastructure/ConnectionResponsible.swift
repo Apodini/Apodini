@@ -37,7 +37,6 @@ class ConnectionResponsible: Identifiable {
                 }
                 
                 if let openMessage = try? OpenContextMessage(json: o) {
-                    print(self.endpoints)
                     guard let opener = self.endpoints[openMessage.endpoint] else {
                         throw ProtocolError.unknownEndpoint(openMessage.endpoint)
                     }

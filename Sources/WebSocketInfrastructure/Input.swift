@@ -138,6 +138,7 @@ public struct Parameter<T>: InputParameter {
                 self._interim = v
                 return .ok
             case .constant:
+                // TODO: check if new value is same as _value
                 return .error(.notMutable)
             }
         }
