@@ -42,15 +42,22 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @_Request
-        var req: Vapor.Request
+        @A var name: String?
+        var d: Dynamics = Dynamics((name: "surname", Parameter<String?>()))
         
         func handle() -> String {
-            do {
-                return try req.query.get(at: "name")
-            } catch {
-                return "World"
-            }
+            let surnameParameter: Parameter<String?> = d["surname"]!
+            
+            return (name ?? "Unknown") + " " + (surnameParameter.wrappedValue ?? "Unknown")
+        }
+    }
+    
+    @propertyWrapper
+    struct A: DynamicProperty {
+        @Parameter var name: String?
+        
+        var wrappedValue: String? {
+            return name
         }
     }
     
