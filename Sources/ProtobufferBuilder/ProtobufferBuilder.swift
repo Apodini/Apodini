@@ -25,7 +25,25 @@ public extension ProtobufferBuilder {
     /// `addService` builds a Protobuffer service declaration from the type parameter.
     /// - Parameter type: the type of the service
     /// - Throws: `Error`s of type `Exception`
-    func addService<T>(of type: T.Type = T.self) throws {
+    func addService(of type: Any.Type) throws {
+        guard let node = try EnrichedInfo.tree(type) else {
+            return
+        }
+        
+        // Service.init...
+        
+        try node.children
+            .filter(isParameter)
+            .forEach { child in
+                guard let first = child.value.typeInfo.genericTypes.first else {
+                    return
+                }
+                
+                try addMessage(of: first)
+            }
+    }
+    
+    func _addService<T>(of type: T.Type = T.self) throws {
         guard let serviceNode = try EnrichedInfo.tree(type).map(\.typeInfo) else {
             return
         }
@@ -68,7 +86,7 @@ public extension ProtobufferBuilder {
         let filtered = try EnrichedInfo.tree(type)
             .edited(fixArray)
             .edited(fixPrimitiveTypes)
-            .compactMap({ try? Message.Property($0) })
+            .map(Message.Property.init)
             .contextMap(Message.init)
             .filter(isNotPrimitive)
         
@@ -107,4 +125,8 @@ private extension Message {
 
 private func isNotPrimitive(_ message: Message) -> Bool {
     message.name.hasSuffix("Message")
+}
+
+private func isParameter(_ node: Node<EnrichedInfo>) -> Bool {
+    ParticularType(node.value.typeInfo.type).description == "Parameter"
 }
