@@ -95,3 +95,20 @@ extension Tree {
         return Node(value: intermediate.value, children: children)
     }
 }
+
+extension Tree {
+    func contextMap<T, U>(
+        _ transform: (Node<T>) throws -> U
+    ) rethrows -> Tree<U> where Wrapped == Node<T> {
+        guard let node = self else {
+            return nil
+        }
+        
+        let value = try transform(node)
+        let children = try node.children.compactMap { (child: Tree) in
+            try child.contextMap(transform)
+        }
+        
+        return Node(value: value, children: children)
+    }
+}
