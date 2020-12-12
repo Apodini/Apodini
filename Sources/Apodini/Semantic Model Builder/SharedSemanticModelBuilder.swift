@@ -4,12 +4,36 @@
 
 import Vapor
 
+class WebServiceModel {
+    fileprivate let root: EndpointsTreeNode = EndpointsTreeNode(path: RootPath())
+    fileprivate var finishedParsing = false
+
+    lazy var rootEndpoints: [Endpoint] = {
+        if !finishedParsing {
+            fatalError("rootEndpoints of the WebServiceModel was accessed before parsing was finished!")
+        }
+        return root.endpoints.map { _, endpoint -> Endpoint in endpoint }
+    }()
+    var relationships: [EndpointRelationship] {
+        root.relationships
+    }
+
+    fileprivate func addEndpoint(_ endpoint: inout Endpoint, at paths: [PathComponent]) {
+        root.addEndpoint(&endpoint, at: paths)
+    }
+}
+
 class SharedSemanticModelBuilder: SemanticModelBuilder {
     private var interfaceExporters: [InterfaceExporter]
-    var endpointsTreeRoot: EndpointsTreeNode?
+
+    var webService: WebServiceModel
+    var rootNode: EndpointsTreeNode
 
     init(_ app: Application, interfaceExporters: InterfaceExporter.Type...) {
         self.interfaceExporters = interfaceExporters.map { exporterType in exporterType.init(app) }
+        webService = WebServiceModel()
+        rootNode = webService.root // used to provide the unit test a reference to the root of the tree
+
         super.init(app)
     }
 
@@ -23,6 +47,9 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
 
         let requestInjectables = component.extractRequestInjectables()
 
+        let parameterBuilder = ParameterBuilder(from: requestInjectables)
+        parameterBuilder.build()
+
         var endpoint = Endpoint(
                 description: String(describing: component),
                 context: context,
@@ -31,35 +58,40 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
                 requestInjectables: requestInjectables,
                 handleMethod: component.handle,
                 responseTransformers: responseModifiers,
-                handleReturnType: C.Response.self
+                handleReturnType: C.Response.self,
+                parameters: parameterBuilder.parameters
         )
 
-        if endpointsTreeRoot == nil {
-            endpointsTreeRoot = EndpointsTreeNode(path: RootPath())
-        }
-
-        // "manually" add path components that are only defined as path parameters inside `Handler`s
         for parameter in endpoint.parameters {
             let pathDescription = ":\(parameter.id)"
             if parameter.parameterType == .path && !paths.contains(where: { ($0 as? _PathComponent)?.description == pathDescription }) {
                 paths.append(pathDescription)
             }
         }
-        // swiftlint:disable:next force_unwrapping
-        endpointsTreeRoot!.addEndpoint(&endpoint, at: paths)
+
+        webService.addEndpoint(&endpoint, at: paths)
     }
 
-    override func finishedProcessing() {
-        super.finishedProcessing()
+    override func finishedRegistration() {
+        super.finishedRegistration()
 
-        guard let node = endpointsTreeRoot else {
-            return
-        }
+        webService.finishedParsing = true
 
-        node.printTree() // currently only for debugging purposes
+        webService.root.printTree() // currently only for debugging purposes
 
         for exporter in interfaceExporters {
-            exporter.export(node)
+            call(exporter: exporter, for: webService.root)
+            exporter.finishedExporting(webService)
+        }
+    }
+
+    private func call(exporter: InterfaceExporter, for node: EndpointsTreeNode) {
+        for (_, endpoint) in node.endpoints {
+            exporter.export(endpoint)
+        }
+
+        for child in node.children {
+            call(exporter: exporter, for: child)
         }
     }
 

@@ -5,7 +5,6 @@
 //  Created by Lorena Schlesinger on 06.12.20.
 //
 
-import Runtime
 import Foundation
 
 struct EndpointParameter {
@@ -23,79 +22,86 @@ struct EndpointParameter {
         case path
     }
 
-    static func create(from requestInjectables: [String: RequestInjectable]) -> [EndpointParameter] {
-        requestInjectables
-            .compactMap {
-                create(from: $0.value, label: $0.key)
-            }
-    }
-    
-    static func create(from pathComponent: _PathComponent, label: String) -> EndpointParameter? {
-        guard let info: TypeInfo = try? typeInfo(of: type(of: pathComponent)) else {
-            return nil
+    init(id: UUID, name: String?, label: String, contentType: Any.Type, options: PropertyOptionSet<ParameterOptionNameSpace>) {
+        self.id = id
+        self.name = name
+        self.label = label
+        self.contentType = contentType
+        self.options = options
+
+        let httpOption = options.option(for: PropertyOptionKey.http)
+        switch httpOption {
+        case .path:
+            precondition(contentType is LosslessStringConvertible.Type, "Invalid explicit option .path for parameter \(name ?? label). Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
+            parameterType = .path
+        case .query:
+            precondition(contentType is LosslessStringConvertible.Type, "Invalid explicit option .query for parameter \(name ?? label). Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
+            parameterType = .lightweight
+        case .body:
+            parameterType = .content
+        default:
+            parameterType = contentType is LosslessStringConvertible.Type ? .lightweight : .content
         }
-        return create(from: info, source: pathComponent, label: label)
-    }
-    
-    static func create(from requestInjectable: RequestInjectable, label: String) -> EndpointParameter? {
-        guard let info: TypeInfo = try? typeInfo(of: type(of: requestInjectable)) else {
-            return nil
-        }
-        return create(from: info, source: requestInjectable, label: label)
-    }
-    
-    /// TODO: Why does this not work with `create<T>(from source: T, ...) { typeInfo(of: type(of: source)) ... }`
-    private static func create<T>(from info: TypeInfo, source: T, label: String) -> EndpointParameter? {
-        /// Parameter<String> serves as representative `parameterType` of any Parameter<T> as  `mangeldName` of all Parameter<T> is `Parameter`
-        let parameterType = try? typeInfo(of: Parameter<String>.self)
-        if info.mangledName == parameterType?.mangledName {
-            let mirror = Mirror(reflecting: source)
-            // swiftlint:disable:next force_cast
-            let id = mirror.children.first { $0.label == ParameterProperties.id }!.value as! UUID
-            let name = mirror.children.first { $0.label == ParameterProperties.name }?.value as? String
-            let contentType = info.genericTypes[0]
-            // swiftlint:disable:next force_cast
-            let options = mirror.children.first { $0.label == ParameterProperties.options }!.value as! PropertyOptionSet<ParameterOptionNameSpace>
-            
-            let parameterType: EndpointParameter.EndpointParameterType = {
-                var result: EndpointParameter.EndpointParameterType = .lightweight
-                let isLosslessStringConvertible = contentType is LosslessStringConvertible.Type
-                let option = options.option(for: PropertyOptionKey.http)
-                switch option {
-                case .path:
-                    precondition(isLosslessStringConvertible, "Invalid explicit option .path for parameter \(name ?? label). Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
-                    result = .path
-                case .query:
-                    precondition(isLosslessStringConvertible, "Invalid explicit option .query for parameter \(name ?? label). Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
-                    result = .lightweight
-                case .body:
-                    result = .content
-                default:
-                    if !isLosslessStringConvertible {
-                        result = .content
-                    }
-                }
-                return result
-            }()
-            
-            return EndpointParameter(
-                id: id,
-                name: name,
-                label: label,
-                contentType: contentType,
-                options: options,
-                parameterType: parameterType)
-        }
-        return nil
     }
 }
 
-extension EndpointParameter: Equatable, Hashable {
-    static func == (lhs: EndpointParameter, rhs: EndpointParameter) -> Bool {
-        lhs.id == rhs.id
+class ParameterBuilder: RequestInjectableVisitor {
+    let requestInjectables: [String: RequestInjectable]
+    var currentLabel: String?
+
+    var parameters: [EndpointParameter] = []
+
+    init(from requestInjectables: [String: RequestInjectable]) {
+        self.requestInjectables = requestInjectables
     }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
+
+    func build() {
+        for (label, requestInjectable) in requestInjectables {
+            currentLabel = label
+            requestInjectable.accept(self)
+        }
+        currentLabel = nil
+    }
+
+    func visit<Element>(_ parameter: Parameter<Element>) {
+        guard let label = currentLabel else {
+            preconditionFailure("EndpointParameter visited a Parameter where current label wasn't set. Something must have been called out of order!")
+        }
+
+        let endpointParameter = EndpointParameter(
+                id: parameter.id,
+                name: parameter.name,
+                label: label,
+                contentType: Element.self,
+                options: parameter.options
+        )
+
+        parameters.append(endpointParameter)
+    }
+}
+
+struct PathComponentAnalyzer: PathBuilder {
+    struct PathParameterAnalyzingResult {
+        var parameterMode: HTTPParameterMode?
+    }
+
+    var result: PathParameterAnalyzingResult?
+
+    mutating func append<T>(_ parameter: Parameter<T>) {
+        result = PathParameterAnalyzingResult(
+                parameterMode: parameter.option(for: .http)
+        )
+    }
+
+    mutating func append(_ string: String) {}
+
+    /// This function does two things:
+    ///   * First it checks if the given `_PathComponent` is if type Parameter. If it is it returns
+    ///     a `PathParameterAnalyzingResult` otherwise it returns nil.
+    ///   * Secondly it retrieves the .http ParameterOption for the Parameter which is stored in the `PathParameterAnalyzingResult`
+    static func analyzePathComponentForParameter(_ pathComponent: _PathComponent) -> PathParameterAnalyzingResult? {
+        var analyzer = PathComponentAnalyzer()
+        pathComponent.append(to: &analyzer)
+        return analyzer.result
     }
 }

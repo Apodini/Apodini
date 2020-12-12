@@ -63,7 +63,7 @@ class SyntaxTreeVisitor {
 
             if currentNode.parentContextNode == nil { // we exited to the top level node, thus we can call postProcessing
                 for builder in semanticModelBuilders {
-                    builder.finishedProcessing()
+                    builder.finishedRegistration()
                 }
             }
         } else {
