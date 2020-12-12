@@ -64,24 +64,45 @@ public extension ProtobufferBuilder {
     /// `addMessage` builds a Protobuffer message declaration from the type parameter.
     /// - Parameter type: the type of the message
     /// - Throws: `Error`s of type `Exception`
-    func addMessage<T>(of type: T.Type = T.self) throws {
-        try EnrichedInfo.tree(type)
+    func addMessage(of type: Any.Type) throws {
+        let filtered = try EnrichedInfo.tree(type)
             .edited(fixArray)
             .edited(fixPrimitiveTypes)
             .compactMap({ try? Message.Property($0) })
             .contextMap(Message.init)
             .filter(isNotPrimitive)
+        
+        if filtered.isEmpty {
+            messages.insert(.scalar(type))
+            return
+        }
+        
+        filtered
             .reduce(into: Set()) { result, value in
                 result.insert(value)
             }
             .forEach { element in
-                self.messages.insert(element)
+                messages.insert(element)
             }
     }
 }
 
 private extension Message {
     static let void = Message(name: "VoidMessage", properties: [])
+    
+    static func scalar(_ type: Any.Type) -> Message {
+        Message(
+            name: "\(type)Message",
+            properties: [
+                Property(
+                    isRepeated: false,
+                    name: "value",
+                    typeName: "\(type)".lowercased(),
+                    uniqueNumber: 1
+                )
+            ]
+        )
+    }
 }
 
 private func isNotPrimitive(_ message: Message) -> Bool {
