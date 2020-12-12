@@ -33,14 +33,12 @@ public extension ProtobufferBuilder {
         let serviceName = try serviceNode.value.compatibleName() + "Service"
         
         let messageTree = try EnrichedInfo.tree(type)
-            .map(\.typeInfo)
             .edited(fixArray)
-            .filter { typeInfo in
-                !ParticularType(typeInfo.type).isPrimitive
+            .filter {
+                !ParticularType($0.typeInfo.type).isPrimitive
             }
-            .map { typeInfo in
-                try Message(typeInfo: typeInfo)
-            }
+            .map(Message.Property.init)
+            .contextMap(Message.init)
         
         guard let message = messageTree?.value else {
             return
@@ -68,14 +66,11 @@ public extension ProtobufferBuilder {
     /// - Throws: `Error`s of type `Exception`
     func addMessage<T>(of type: T.Type = T.self) throws {
         try EnrichedInfo.tree(type)
-            .map(\.typeInfo)
             .edited(fixArray)
-            .filter { typeInfo in
-                !ParticularType(typeInfo.type).isPrimitive
-            }
-            .map { typeInfo in
-                try Message(typeInfo: typeInfo)
-            }
+            .edited(fixPrimitiveTypes)
+            .map(Message.Property.init)
+            .contextMap(Message.init)
+            .filter(isNotPrimitive)
             .reduce(into: Set()) { result, value in
                 result.insert(value)
             }
@@ -87,4 +82,8 @@ public extension ProtobufferBuilder {
 
 private extension Message {
     static let void = Message(name: "VoidMessage", properties: [])
+}
+
+private func isNotPrimitive(_ message: Message) -> Bool {
+    message.name.hasSuffix("Message")
 }

@@ -8,7 +8,7 @@
 extension Message.Property {
     init(_ info: EnrichedInfo) throws {
         let particularType = ParticularType(info.typeInfo.type)
-        let isRepeated = particularType.isArray
+        let isRepeated = info.representsArrayType
         let name = info.propertyInfo?.name ?? ""
         let suffix = particularType.isPrimitive ? "" : "Message"
         let typeName = try info.typeInfo.compatibleName() + suffix
