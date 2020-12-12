@@ -12,9 +12,7 @@ class WebServiceModel {
         if !finishedParsing {
             fatalError("rootEndpoints of the WebServiceModel was accessed before parsing was finished!")
         }
-        return root.endpoints.map { _, endpoint -> Endpoint in
-            endpoint
-        }
+        return root.endpoints.map { _, endpoint -> Endpoint in endpoint }
     }()
     var relationships: [EndpointRelationship] {
         root.relationships
@@ -32,9 +30,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
     var rootNode: EndpointsTreeNode
 
     init(_ app: Application, interfaceExporters: InterfaceExporter.Type...) {
-        self.interfaceExporters = interfaceExporters.map { exporterType in
-            exporterType.init(app)
-        }
+        self.interfaceExporters = interfaceExporters.map { exporterType in exporterType.init(app) }
         webService = WebServiceModel()
         rootNode = webService.root // used to provide the unit test a reference to the root of the tree
 

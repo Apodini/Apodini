@@ -71,6 +71,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
     
     func testEndpointsTreeNodes() {
         // swiftlint:disable force_unwrapping
+        // swiftlint:disable force_cast
         let modelBuilder = SharedSemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [modelBuilder])
         let testComponent = TestComponent()
