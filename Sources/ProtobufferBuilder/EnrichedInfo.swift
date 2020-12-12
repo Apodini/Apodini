@@ -11,10 +11,11 @@ struct EnrichedInfo {
     let typeInfo: TypeInfo
     let propertyInfo: PropertyInfo?
     let propertiesOffset: Int?
+    var representsArrayType = false
 }
 
 extension EnrichedInfo {
-    static func tree<T>(_ type: T.Type) throws -> Tree<EnrichedInfo> {
+    static func tree(_ type: Any.Type) throws -> Tree<EnrichedInfo> {
         let typeInfo = try Runtime.typeInfo(of: type)
         let root = EnrichedInfo(
             typeInfo: typeInfo,
