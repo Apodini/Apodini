@@ -68,7 +68,7 @@ public extension ProtobufferBuilder {
         try EnrichedInfo.tree(type)
             .edited(fixArray)
             .edited(fixPrimitiveTypes)
-            .map(Message.Property.init)
+            .compactMap({ try? Message.Property($0) })
             .contextMap(Message.init)
             .filter(isNotPrimitive)
             .reduce(into: Set()) { result, value in
