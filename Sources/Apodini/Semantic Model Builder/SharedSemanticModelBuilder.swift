@@ -12,7 +12,9 @@ class WebServiceModel {
         if !finishedParsing {
             fatalError("rootEndpoints of the WebServiceModel was accessed before parsing was finished!")
         }
-        return root.endpoints.map { _, endpoint -> Endpoint in endpoint }
+        return root.endpoints.map { _, endpoint -> Endpoint in
+            endpoint
+        }
     }()
     var relationships: [EndpointRelationship] {
         root.relationships
@@ -30,7 +32,9 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
     var rootNode: EndpointsTreeNode
 
     init(_ app: Application, interfaceExporters: InterfaceExporter.Type...) {
-        self.interfaceExporters = interfaceExporters.map { exporterType in exporterType.init(app) }
+        self.interfaceExporters = interfaceExporters.map { exporterType in
+            exporterType.init(app)
+        }
         webService = WebServiceModel()
         rootNode = webService.root // used to provide the unit test a reference to the root of the tree
 
@@ -47,6 +51,14 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
 
         let parameterBuilder = ParameterBuilder(from: component)
         parameterBuilder.build()
+
+        for parameter in parameterBuilder.parameters {
+            if parameter.parameterType == .path && !paths.contains(where: { ($0 as? _PathComponent)?.description == ":\(parameter.id)" }) {
+                if let pathComponent = parameterBuilder.requestInjectables[parameter.label] as? _PathComponent {
+                    paths.append(pathComponent)
+                }
+            }
+        }
 
         let requestHandlerBuilder = SharedSemanticModelBuilder.createRequestHandlerBuilder(with: component, guards: guards, responseModifiers: responseModifiers)
 
@@ -67,13 +79,6 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
                 responseType: responseType,
                 parameters: parameterBuilder.parameters
         )
-
-        for parameter in endpoint.parameters {
-            let pathDescription = ":\(parameter.id)"
-            if parameter.parameterType == .path && !paths.contains(where: { ($0 as? _PathComponent)?.description == pathDescription }) {
-                paths.append(pathDescription)
-            }
-        }
 
         webService.addEndpoint(&endpoint, at: paths)
     }
