@@ -39,8 +39,8 @@ extension Tree {
         guard let node = self,
               try isIncluded(node.value) else { return nil }
         
-        let children = try node.children.filter {
-            try isIncluded($0.value)
+        let children = try node.children.compactMap { (child: Tree) in
+            try child.filter(isIncluded)
         }
         
         return Node(value: node.value, children: children)
