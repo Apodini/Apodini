@@ -72,7 +72,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
     func testEndpointsTreeNodes() throws {
         // swiftlint:disable force_unwrapping
         let modelBuilder = SharedSemanticModelBuilder(app)
-        let visitor = SynaxTreeVisitor(semanticModelBuilders: [modelBuilder])
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [modelBuilder])
         let testComponent = TestComponent()
         Group {
             testComponent.content

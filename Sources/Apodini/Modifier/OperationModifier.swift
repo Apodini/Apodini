@@ -40,7 +40,7 @@ public struct OperationModifier<ModifiedComponent: Component>: Modifier {
 
 
 extension OperationModifier: Visitable {
-    func visit(_ visitor: SynaxTreeVisitor) {
+    func visit(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(OperationContextKey.self, value: operation, scope: .nextComponent)
         component.visit(visitor)
     }

@@ -1,9 +1,9 @@
 import Foundation
 import AssociatedTypeRequirementsVisitor
 
-extension SynaxTreeVisitor {
+extension SyntaxTreeVisitor {
     enum Error: Swift.Error {
-        case attemptedToVisitNoneComponent(Any, visitor: SynaxTreeVisitor)
+        case attemptedToVisitNoneComponent(Any, visitor: SyntaxTreeVisitor)
     }
 
     /**
@@ -26,7 +26,7 @@ private protocol ComponentAssociatedTypeRequirementsVisitor: AssociatedTypeRequi
 }
 
 private struct StandardComponentVisitor: ComponentAssociatedTypeRequirementsVisitor {
-    let visitor: SynaxTreeVisitor
+    let visitor: SyntaxTreeVisitor
 
     func callAsFunction<T: Component>(_ value: T) {
         value.visit(visitor)
