@@ -12,11 +12,29 @@ import Runtime
 
 protocol RequestInjectable {
     mutating func inject(using request: Vapor.Request, with decoder: RequestInjectableDecoder?) throws
+    func visit(_ visitor: RequestInjectableVisitor)
+}
+
+extension RequestInjectable {
+    func visit(_ visitor: RequestInjectableVisitor) {
+        visitor.register(self)
+    }
 }
 
 protocol RequestInjectableDecoder {
     func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T?
 }
+
+protocol RequestInjectableVisitor {
+    func register<Injectable: RequestInjectable>(_ requestInjectable: Injectable)
+
+    func register<Element>(_ parameter: Parameter<Element>)
+}
+extension RequestInjectableVisitor {
+    func register<Injectable: RequestInjectable>(_ requestInjectable: Injectable) {}
+    func register<Element>(_ parameter: Parameter<Element>) {}
+}
+
 
 private func extractRequestInjectables(from subject: Any) -> [String: RequestInjectable] {
     Mirror(reflecting: subject).children.reduce(into: [String: RequestInjectable]()) { result, child in

@@ -23,6 +23,9 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
 
         let requestInjectables = component.extractRequestInjectables()
 
+        let parameterBuilder = ParameterBuilder(from: requestInjectables)
+        parameterBuilder.build()
+
         var endpoint = Endpoint(
                 description: String(describing: component),
                 context: context,
@@ -31,7 +34,8 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
                 requestInjectables: requestInjectables,
                 handleMethod: component.handle,
                 responseTransformers: responseModifiers,
-                handleReturnType: C.Response.self
+                handleReturnType: C.Response.self,
+                parameters: parameterBuilder.parameters
         )
 
         if endpointsTreeRoot == nil {

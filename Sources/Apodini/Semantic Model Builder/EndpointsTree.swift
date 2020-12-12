@@ -3,7 +3,6 @@
 //
 
 import Vapor
-import Runtime
 
 /// This struct is used to model the RootPath for the root of the endpoints tree
 struct RootPath: _PathComponent {
@@ -50,7 +49,7 @@ struct Endpoint {
     }()
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
-    lazy var parameters: [EndpointParameter] = EndpointParameter.create(from: requestInjectables)
+    var parameters: [EndpointParameter]
 
     var absolutePath: [_PathComponent] {
         treeNode.absolutePath
@@ -94,15 +93,10 @@ class EndpointsTreeNode {
             if let first = pathComponents.removeFirst() as? _PathComponent {
                 var child = nodeChildren[first.description]
                 if child == nil {
-                    /// Parameter<String> serves as representative `parameterType` of any Parameter<T> as  `mangeldName` of all Parameter<T> is `Parameter`
-                    let parameterType = try? typeInfo(of: Parameter<String>.self)
-                    if let info = try? typeInfo(of: type(of: first)), info.mangledName == parameterType?.mangledName {
-                        let mirror = Mirror(reflecting: first)
-
-                        // swiftlint:disable:next force_cast
-                        let options = mirror.children.first { $0.label == ParameterProperties.options }!.value as! PropertyOptionSet<ParameterOptionNameSpace>
-                        if options.option(for: PropertyOptionKey.http) != .path {
-                            fatalError("Parameter can only be used as path component when setting .http to .path!")
+                    // as we create a new child node we need to check if there are colliding path parameters
+                    if let result = PathComponentAnalyzer.analyzePathComponentForParameter(first) {
+                        if result.parameterMode != .path {
+                            fatalError("Parameter can only be used as path component when setting .http() parameter option to .path!")
                         }
 
                         if childContainsPathParameter { // there are already some children with a path parameter on this level
