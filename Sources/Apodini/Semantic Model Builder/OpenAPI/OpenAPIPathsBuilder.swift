@@ -24,7 +24,7 @@ class OpenAPIPathsBuilder {
         // later on, we will add: `security: [OpenAPI.SecurityRequirement]`
         let parameters: OpenAPI.Parameter.Array = endpoint.parameters.compactMap {
             if let context = $0.openAPIContext() {
-                return Either.parameter(name: $0.name ?? $0.label, context: context, schema: .string)
+                return Either.parameter(name: $0.name ?? $0.label, context: context, schema: $0.openAPISchema())
             }
             return nil
         }

@@ -11,7 +11,7 @@ import Foundation
 import NIO
 
 // MARK: Constants
-private let primitiveTypes: [Any.Type] = [
+let primitiveTypes: [Any.Type] = [
     Int.self,
     Bool.self,
     Double.self,
@@ -72,19 +72,18 @@ extension TypeInfo {
     var openAPIJSONSchema: JSONSchema {
         switch type {
         case is Int.Type:
-            return .integer()
+            return .integer
         case is Bool.Type:
-            return .boolean()
+            return .boolean
         case is String.Type:
-            return .string()
+            return .string
         case is Double.Type:
             return .number(format: .double)
         case is Date.Type:
             return .string(format: .date)
         default:
             print("OpenAPI schema not found for type \(type).")
-            // throw OpenAPISchemaError()
-            return .object()
+            return .object
         }
     }
 }
