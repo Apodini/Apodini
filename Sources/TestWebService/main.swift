@@ -42,10 +42,22 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @Parameter(.mutability(.constant)) var name: String?
+        @A var name: String?
+        var d: Dynamics = Dynamics((name: "surname", Parameter<String?>()))
         
         func handle() -> String {
-            return name ?? "World"
+            let surnameParameter: Parameter<String?> = d["surname"]!
+            
+            return (name ?? "Unknown") + " " + (surnameParameter.wrappedValue ?? "Unknown")
+        }
+    }
+    
+    @propertyWrapper
+    struct A: DynamicProperty {
+        @Parameter(.mutability(.constant)) var name: String?
+        
+        var wrappedValue: String? {
+            return name
         }
     }
     
