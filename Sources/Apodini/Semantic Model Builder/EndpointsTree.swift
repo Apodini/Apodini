@@ -3,7 +3,6 @@
 //
 
 import Vapor
-import Runtime
 
 /// This struct is used to model the RootPath for the root of the endpoints tree
 struct RootPath: _PathComponent {
@@ -16,11 +15,15 @@ struct RootPath: _PathComponent {
     }
 }
 
+struct EndpointRelationship { // ... to be replaced by a proper Relationship model
+    var destinationPath: [_PathComponent]
+}
+
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 struct Endpoint {
     /// This is a reference to the node where the endpoint is located
     // swiftlint:disable:next implicitly_unwrapped_optional
-    var treeNode: EndpointsTreeNode!
+    fileprivate var treeNode: EndpointsTreeNode!
 
     /// Description of the associated component, currently included for debug purposes
     let description: String
@@ -50,10 +53,25 @@ struct Endpoint {
     }()
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
-    lazy var parameters: [EndpointParameter] = EndpointParameter.create(from: requestInjectables)
+    var parameters: [EndpointParameter]
 
     var absolutePath: [_PathComponent] {
         treeNode.absolutePath
+    }
+    var relationships: [EndpointRelationship] {
+        treeNode.relationships
+    }
+
+    init(description: String, context: Context, operation: Operation, guards: [LazyGuard], requestInjectables: [String: RequestInjectable], handleMethod: @escaping () -> ResponseEncodable, responseTransformers: [() -> (AnyResponseTransformer)], handleReturnType: ResponseEncodable.Type, parameters: [EndpointParameter]) {
+        self.description = description
+        self.context = context
+        self.operation = operation
+        self.guards = guards
+        self.requestInjectables = requestInjectables
+        self.handleMethod = handleMethod
+        self.responseTransformers = responseTransformers
+        self.handleReturnType = handleReturnType
+        self.parameters = parameters
     }
 }
 
@@ -77,6 +95,16 @@ class EndpointsTreeNode {
         return absolutePath
     }()
 
+    lazy var relationships: [EndpointRelationship] = {
+        var relationships: [EndpointRelationship] = []
+
+        for child in children {
+            child.collectRelationships(&relationships)
+        }
+
+        return relationships
+    }()
+
     init(path: _PathComponent, parent: EndpointsTreeNode? = nil) {
         self.path = path
         self.parent = parent
@@ -94,15 +122,10 @@ class EndpointsTreeNode {
             if let first = pathComponents.removeFirst() as? _PathComponent {
                 var child = nodeChildren[first.description]
                 if child == nil {
-                    /// Parameter<String> serves as representative `parameterType` of any Parameter<T> as  `mangeldName` of all Parameter<T> is `Parameter`
-                    let parameterType = try? typeInfo(of: Parameter<String>.self)
-                    if let info = try? typeInfo(of: type(of: first)), info.mangledName == parameterType?.mangledName {
-                        let mirror = Mirror(reflecting: first)
-
-                        // swiftlint:disable:next force_cast
-                        let options = mirror.children.first { $0.label == ParameterProperties.options }!.value as! PropertyOptionSet<ParameterOptionNameSpace>
-                        if options.option(for: PropertyOptionKey.http) != .path {
-                            fatalError("Parameter can only be used as path component when setting .http to .path!")
+                    // as we create a new child node we need to check if there are colliding path parameters
+                    if let result = PathComponentAnalyzer.analyzePathComponentForParameter(first) {
+                        if result.parameterMode != .path {
+                            fatalError("Parameter can only be used as path component when setting .http() parameter option to .path!")
                         }
 
                         if childContainsPathParameter { // there are already some children with a path parameter on this level
@@ -150,6 +173,17 @@ class EndpointsTreeNode {
 
         parent.collectRelativePath(&relativePath, to: node)
         relativePath.append(path)
+    }
+
+    fileprivate func collectRelationships(_ relationships: inout [EndpointRelationship]) {
+        if endpoints.count > 0 {
+            relationships.append(EndpointRelationship(destinationPath: absolutePath))
+            return
+        }
+
+        for child in children {
+            child.collectRelationships(&relationships)
+        }
     }
 
     /// This method prints the tree structure to stdout. Added for debugging purposes.
