@@ -6,15 +6,15 @@ import ProtobufferBuilder
 
 final class ProtobufferBuilderTests: XCTestCase {
     func testVoid() throws {
-        XCTAssertNoThrow(try build(Void.self))
+        XCTAssertNoThrow(try buildMessage(Void.self))
     }
     
     func testTuple() throws {
-        XCTAssertThrowsError(try build((Int, String).self))
+        XCTAssertThrowsError(try buildMessage((Int, String).self))
     }
     
     func testTriple() throws {
-        XCTAssertThrowsError(try build((Int, String, Void).self))
+        XCTAssertThrowsError(try buildMessage((Int, String, Void).self))
     }
     
     func testClass() throws {
@@ -23,7 +23,7 @@ final class ProtobufferBuilderTests: XCTestCase {
             var age: Int = 0
         }
         
-        XCTAssertNoThrow(try build(Person.self))
+        XCTAssertNoThrow(try buildMessage(Person.self))
     }
     
     func testEnum() throws {
@@ -36,7 +36,7 @@ final class ProtobufferBuilderTests: XCTestCase {
             case object([String: JSON])
         }
         
-        XCTAssertThrowsError(try build(JSON.self))
+        XCTAssertThrowsError(try buildMessage(JSON.self))
     }
 }
 
@@ -52,7 +52,7 @@ extension ProtobufferBuilderTests {
             }
             """
         
-        XCTAssertNotEqual(try build(String.self), expected)
+        XCTAssertNotEqual(try buildMessage(String.self), expected)
     }
     
     func testTypeOneLevelDeep() throws {
@@ -70,7 +70,7 @@ extension ProtobufferBuilderTests {
             }
             """
         
-        XCTAssertEqual(try build(Location.self), expected)
+        XCTAssertEqual(try buildMessage(Location.self), expected)
     }
     
     func testTypeTwoLevelsDeep() throws {
@@ -94,7 +94,7 @@ extension ProtobufferBuilderTests {
             }
             """
         
-        XCTAssertEqual(try build(Account.self), expected)
+        XCTAssertEqual(try buildMessage(Account.self), expected)
     }
     
     func testRecursiveType() throws {
@@ -116,7 +116,7 @@ extension ProtobufferBuilderTests {
             }
             """
         
-        XCTAssertEqual(try build(Node<Int64>.self), expected)
+        XCTAssertEqual(try buildMessage(Node<Int64>.self), expected)
     }
 }
 
@@ -133,7 +133,7 @@ extension ProtobufferBuilderTests {
             }
         }
         
-        XCTAssertNoThrow(try build(Greeter.self))
+        XCTAssertNoThrow(try buildService(Greeter.self))
     }
 }
 
@@ -148,9 +148,24 @@ extension ProtobufferBuilderTests {
 // MARK: - Private
 
 @discardableResult
-private func build<T>(_ type: T.Type) throws -> String {
+private func buildMessage<T>(_ type: T.Type) throws -> String {
     let builder = ProtobufferBuilder()
     try builder.addMessage(of: type)
+    let description = builder.description
+    
+    print("""
+        ----
+        \(description)
+        ----
+        """)
+    
+    return description
+}
+
+@discardableResult
+private func buildService<T>(_ type: T.Type) throws -> String {
+    let builder = ProtobufferBuilder()
+    try builder.addService(of: type)
     let description = builder.description
     
     print("""
