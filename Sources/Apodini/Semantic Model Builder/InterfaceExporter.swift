@@ -9,11 +9,11 @@ protocol InterfaceExporter: RequestInjectableDecoder {
 
     func export(_ endpoint: Endpoint)
 
-    func finishedExporting(_ root: EndpointsTreeNode)
+    func finishedExporting(_ webService: WebServiceModel)
 
     func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T?
 }
 
 extension InterfaceExporter {
-    func finishedExporting(_ root: EndpointsTreeNode) {}
+    func finishedExporting(_ webService: WebServiceModel) {}
 }

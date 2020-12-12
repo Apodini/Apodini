@@ -83,11 +83,11 @@ class RESTInterfaceExporter: InterfaceExporter {
         }
     }
 
-    func finishedExporting(_ root: EndpointsTreeNode) {
-        if root.endpoints.count == 0 {
+    func finishedExporting(_ webService: WebServiceModel) {
+        if webService.rootEndpoints.count == 0 {
             // if the root path doesn't have endpoints we need to create a custom one to deliver linking entry points.
 
-            for relationship in root.relationships {
+            for relationship in webService.relationships {
                 app.logger.info("/ + \(HTTPMethod.GET.rawValue)")
                 let path = relationship.destinationPath
                 app.logger.info("  - links to: \(StringPathBuilder(path).build())")
