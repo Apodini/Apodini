@@ -71,11 +71,11 @@ class RESTInterfaceExporter: InterfaceExporter {
         let routesBuilder = pathBuilder.routesBuilder(app)
 
         let operation = endpoint.operation
-        let requestHandler = createRequestHandler(for: endpoint)
+        let requestHandler = endpoint.createRequestHandler(for: self)
 
         routesBuilder.on(operation.httpMethod, [], use: requestHandler)
 
-        app.logger.info("\(pathBuilder.pathDescription) + \(operation.httpMethod.rawValue) with \(endpoint.guards.count) guards.")
+        app.logger.info("\(operation.httpMethod.rawValue) \(pathBuilder.pathDescription)")
 
         for relationship in endpoint.relationships {
             let path = relationship.destinationPath
@@ -101,29 +101,5 @@ class RESTInterfaceExporter: InterfaceExporter {
         }
 
         return try JSONDecoder().decode(type, from: data)
-    }
-
-    func createRequestHandler(for endpoint: Endpoint) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        { (request: Vapor.Request) in
-            let guardEventLoopFutures = endpoint.guards.map { guardClosure in
-                request.enterRequestContext(with: guardClosure(), using: self) { requestGuard in
-                    requestGuard.executeGuardCheck(on: request)
-                }
-            }
-            return EventLoopFuture<Void>
-                    .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
-                    .flatMap { _ in
-                        request.enterRequestContext(with: endpoint) { endpoint in
-                            var response: ResponseEncodable = endpoint.handleMethod()
-
-                            for responseTransformer in endpoint.responseTransformers {
-                                response = request.enterRequestContext(with: responseTransformer(), using: self) { responseTransformer in
-                                    responseTransformer.transform(response: response)
-                                }
-                            }
-                            return response.encodeResponse(for: request)
-                        }
-                    }
-        }
     }
 }

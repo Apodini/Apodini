@@ -52,18 +52,16 @@ final class EndpointsTreeTests: XCTestCase {
         let testHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
 
         let requestInjectables: [String: RequestInjectable] = testHandler.extractRequestInjectables()
-        let parameterBuilder = ParameterBuilder(from: requestInjectables)
+        let parameterBuilder = ParameterBuilder(from: testHandler)
         parameterBuilder.build()
 
         let endpoint = Endpoint(
                 description: String(describing: testHandler),
                 context: Context(contextNode: ContextNode()),
                 operation: Operation.automatic,
-                guards: [],
-                requestInjectables: requestInjectables,
-                handleMethod: testHandler.handle,
-                responseTransformers: [],
+                requestHandlerBuilder: SharedSemanticModelBuilder.createRequestHandlerBuilder(with: testComponent),
                 handleReturnType: TestHandler.Response.self,
+                responseType: TestHandler.Response.self,
                 parameters: parameterBuilder.parameters
         )
 
