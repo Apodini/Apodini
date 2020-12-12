@@ -30,7 +30,8 @@ class OpenAPIInterfaceExporter: InterfaceExporter {
     }
 
     func export(_ endpoint: Endpoint) {
-        let path = OpenAPI.Path(stringLiteral: endpoint.absolutePath.joinPathComponentsToOpenAPIPath())
+        var pathBuilder = OpenAPIPathBuilder(endpoint.absolutePath, parameters: endpoint.parameters)
+        let path = pathBuilder.path
         var pathItem = self.document.paths[path] ?? OpenAPI.PathItem()
         let (op, httpMethod) = self.openAPIPathsBuilder.buildPathOperation(
                 at: endpoint,
