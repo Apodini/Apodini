@@ -42,34 +42,44 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @_Request
-        var req: Vapor.Request
         
-        func handle() -> String {
-            do {
-                return try req.query.get(at: "name")
-            } catch {
-                return "World"
-            }
+        struct ReturnStruct: Vapor.Content {
+            var someProp: Int
+        }
+        
+        func handle() -> ReturnStruct {
+            return ReturnStruct(someProp: 5)
+
         }
     }
     
+    struct TestHandler: Component {
+        @Parameter("someId", .http(.path))
+        var id: Int
+        
+        func handle() -> String {
+            "Hello \(id)"
+        }
+    }
+    
+    @PathParameter
+    var name: String
     
     var content: some Component {
         Text("Hello World! 👋")
             .response(EmojiMediator(emojis: "🎉"))
             .response(EmojiMediator())
             .guard(PrintGuard())
+            .operation(.delete)
         Group("swift") {
-            Text("Hello Swift! 💻")
-                .response(EmojiMediator())
-                .guard(PrintGuard())
             Group("5") {
                 Text("Hello Swift 5! 💻")
             }
-        }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
-        Group("greet") {
+        }
+        Group("greet", $name) {
             Greeter()
+            .operation(.update)
+            TestHandler()
         }
     }
 }

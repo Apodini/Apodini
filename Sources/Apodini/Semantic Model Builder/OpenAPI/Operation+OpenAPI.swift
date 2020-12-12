@@ -5,7 +5,6 @@
 //  Created by Lorena Schlesinger on 15.11.20.
 //
 import Foundation
-import Vapor
 import OpenAPIKit
 
 /// Extension to map Apodini `Operation`  to `OpenAPI.HttpMethod`.

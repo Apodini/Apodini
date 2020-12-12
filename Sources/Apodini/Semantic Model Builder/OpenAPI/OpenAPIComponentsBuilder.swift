@@ -9,6 +9,8 @@ import OpenAPIKit
 import Runtime
 import Foundation
 
+/// Corresponds to `components` section in OpenAPI document
+/// See: https://swagger.io/specification/#components-object
 class OpenAPIComponentsBuilder {
     var components: OpenAPI.Components = .init(
         schemas: [:],
@@ -55,9 +57,11 @@ class OpenAPIComponentsBuilder {
             if type.wrappedTypes.count > 1 {
                 return .any(of: type.wrappedTypes.map { recursivelyBuildSchema(for: $0) })
             }
+            // TODO: multiple generic types?
             return recursivelyBuildSchema(for: type.wrappedTypes[0])
         }
         
+        // TODO: what about sets/lists?
         if type.isArray {
             return .array(
                 items: recursivelyBuildSchema(for: type.wrappedTypes[0])

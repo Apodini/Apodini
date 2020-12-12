@@ -77,7 +77,7 @@ final class VisitorTests: XCTestCase {
     }
     
     func testOpenAPIVisitor() {
-        let visitor = SynaxTreeVisitor(semanticModelBuilders: [OpenAPISemanticModelBuilder(app)])
+        let visitor = SynaxTreeVisitor(semanticModelBuilders: [SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self)])
         TestWebService().visit(visitor)
     }
 }

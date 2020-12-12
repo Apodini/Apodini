@@ -3,35 +3,29 @@
 //  
 //
 //  Created by Paul Schmiedmayer on 11/3/20.
-//
+
+
 import OpenAPIKit
 import Vapor
 import Foundation
 import Runtime
 
 class OpenAPIInterfaceExporter: InterfaceExporter {
+    let app: Application
     var configuration: OpenAPIConfiguration
     var document: OpenAPI.Document
     var openAPIComponentsBuilder = OpenAPIComponentsBuilder()
+    var openAPIPathsBuilder = OpenAPIPathsBuilder()
     
-    required init(_ app: Application, configuration: OpenAPIConfiguration = OpenAPIConfiguration()) {
-        self.configuration = configuration
+    required init(_ app: Application) {
+        self.app = app
+        self.configuration = OpenAPIConfiguration()
         self.document = OpenAPI.Document(
             info: self.configuration.info,
             servers: self.configuration.servers,
             paths: OpenAPI.PathItem.Map(),
             components: self.openAPIComponentsBuilder.components
         )
-        super.init(app)
-        
-        
-        func export(_ node: EndpointsTreeNode) {
-            exportEndpoints(node)
-
-            for child in node.children {
-                export(child)
-            }
-        }
         
         // TODO: add YAML and default case?
         // TODO: add file export?
@@ -49,79 +43,45 @@ class OpenAPIInterfaceExporter: InterfaceExporter {
         }
     }
     
-    override func register<C>(component: C, withContext context: Context) where C: Component {
-        super.register(component: component, withContext: context)
-        
-        // add path item to `paths`
-        do {
-            try createOrUpdatePathItem(of: component, withContext: context)
-        } catch Operation.OpenAPIHTTPMethodError.unsupportedHttpMethod {
-            app.logger.error("Error occurred when mapping Vapor HTTP method to OpenAPI HTTP method.")
-        } catch {
-            app.logger.error("Some unknown error occurred: \(error).")
+    func export(_ node: EndpointsTreeNode) {
+        exportEndpoints(node)
+
+        for child in node.children {
+            export(child)
         }
     }
-    
-    
-    private func createOrUpdatePathItem<C>(of component: C, withContext context: Context) throws where C: Component {
-        // get path from `PathComponent`s
-        let pathComponents = context.get(valueFor: PathComponentContextKey.self)
-        let pathBuilder = OpenAPIPathBuilder(pathComponents)
-        let path = OpenAPI.Path(stringLiteral: pathBuilder.fullPath)
         
-        // find or create pathItem
-        var pathItem = self.document.paths[path] ?? OpenAPI.PathItem()
+    func exportEndpoints(_ node: EndpointsTreeNode) {
+
+        let path = OpenAPI.Path(stringLiteral: node.absolutePath.joinPathComponentsToOpenAPIPath())
+        var pathItem = OpenAPI.PathItem()
         
-        // get HTTP method
-        let httpMethod = try context.get(valueFor: OperationContextKey.self).openAPIHttpMethod()
-        
-        // 1. get (ultimate) response type from transformers
-        let responseTransformerTypes = context.get(valueFor: ResponseContextKey.self)
-        let returnType: ResponseEncodable.Type = {
-            guard let lastResponseTransformerType = responseTransformerTypes.last else {
-                return C.Response.self
+        for (operation, endpoint) in node.endpoints {
+            do {
+                let (op, httpMethod) = try self.openAPIPathsBuilder.buildPathOperation(at: endpoint, with: operation, using: openAPIComponentsBuilder)
+                pathItem.set(operation: op, for: httpMethod)
+            } catch Operation.OpenAPIHTTPMethodError.unsupportedHttpMethod {
+                app.logger.error("Error occurred when mapping Vapor HTTP method to OpenAPI HTTP method.")
+            } catch {
+                app.logger.error("Some unknown error occurred: \(error).")
             }
-            return lastResponseTransformerType().transformedResponseType
-        }()
-        
-        // get guards -> TODO: add as security fields?
-        let guards = context.get(valueFor: GuardContextKey.self)
-        
-        // create operation for pathItem + HTTP method
-        // for now, we only use `responses`, `parameters`, and `requestBody`
-        // as they are the only relevant fields for syntactic correctness of the spec
-        // later on, we will add: `security: [OpenAPI.SecurityRequirement]`
-        let parameters = pathBuilder.parameters.compactMap {
-            Either.parameter(name: $0, context: .path, schema: .string)
-        } // TODO: here we need to add `QueryParams`
-        let requestBody: OpenAPI.Request = OpenAPI.Request(content: OpenAPI.Content.Map())
-        var responseContent: OpenAPI.Content.Map = [:]
-        var responseJSONSchema: JSONSchema = try self.openAPIComponentsBuilder.buildSchema(for: returnType)
-        responseContent[.json] = .init(schema: responseJSONSchema)
-        var responses: OpenAPI.Response.Map = [:]
-        responses[OpenAPI.Response.StatusCode.range(.success)] = .init(OpenAPI.Response(
-            description: "",
-            headers: nil,
-            content: responseContent,
-            vendorExtensions: [:])
-        )
-        
-        let security: [OpenAPI.SecurityRequirement] = []
-        
-        let operation = OpenAPI.Operation(
-            parameters: parameters,
-            requestBody: requestBody,
-            responses: responses,
-            security: security)
-    
-        pathItem.set(operation: operation, for: httpMethod)
-        
-        self.document.paths[path] = pathItem
-        self.document.components = self.openAPIComponentsBuilder.components
-        
-        let encoder = JSONEncoder()
-        if let json = try? encoder.encode(self.document) {
-            print(String(data: json, encoding: .utf8)!)
+      
+        if (pathItem.endpoints.count > 0){
+            self.document.paths[path] = pathItem
+            self.document.components = self.openAPIComponentsBuilder.components
+            let encoder = JSONEncoder()
+            if let json = try? encoder.encode(self.document) {
+                print(String(data: json, encoding: .utf8)!)
+            }
         }
+    }
+    }
+        
+func decode<T>(_ type: T.Type, from request: Vapor.Request) throws -> T? where T: Decodable {
+    guard let byteBuffer = request.body.data, let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
+        throw Vapor.Abort(.internalServerError, reason: "Could not read the HTTP request's body")
+    }
+
+    return try JSONDecoder().decode(type, from: data)
     }
 }
