@@ -27,10 +27,12 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
     private var interfaceExporters: [InterfaceExporter]
 
     var webService: WebServiceModel
+    var rootNode: EndpointsTreeNode
 
     init(_ app: Application, interfaceExporters: InterfaceExporter.Type...) {
         self.interfaceExporters = interfaceExporters.map { exporterType in exporterType.init(app) }
         webService = WebServiceModel()
+        rootNode = webService.root // used to provide the unit test a reference to the root of the tree
 
         super.init(app)
     }

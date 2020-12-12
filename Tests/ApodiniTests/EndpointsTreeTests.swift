@@ -55,7 +55,7 @@ final class EndpointsTreeTests: XCTestCase {
         let parameterBuilder = ParameterBuilder(from: requestInjectables)
         parameterBuilder.build()
 
-        var endpoint = Endpoint(
+        let endpoint = Endpoint(
                 description: String(describing: testHandler),
                 context: Context(contextNode: ContextNode()),
                 operation: Operation.automatic,
