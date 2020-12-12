@@ -50,7 +50,7 @@ struct Endpoint {
     }()
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
-    lazy var parameters: [EndpointParameter] = EndpointParameter.create(from: requestInjectables)
+    lazy var parameters: Set<EndpointParameter> = Set(EndpointParameter.create(from: requestInjectables))
 
     var absolutePath: [_PathComponent] {
         treeNode.absolutePath
@@ -88,6 +88,15 @@ class EndpointsTreeNode {
             precondition(endpoints[endpoint.operation] == nil, "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)")
             precondition(endpoint.treeNode == nil, "The endpoint \(endpoint.description) is already inserted at some different place")
             endpoint.treeNode = self
+            
+            /// There might be `_PathComponent`s that are not explictly part of the `Handler` itself (e.g., defined in enclosing `Group`).
+            /// Yet, these are still implicitly `EndpointParameter`s of the `Endpoint`.
+            for path in endpoint.absolutePath {
+                // TODO: what should be the default parameter name?
+                if let parameter = EndpointParameter.create(from: path, label: "UNDECLARED_PARAMETER") {
+                    endpoint.parameters.insert(parameter)
+                }
+            }
             endpoints[endpoint.operation] = endpoint
         } else {
             var pathComponents = paths

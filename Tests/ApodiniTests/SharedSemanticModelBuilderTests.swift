@@ -69,7 +69,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         }
     }
     
-    func testEndpointsTreeNodes() {
+    func testEndpointsTreeNodes() throws {
         // swiftlint:disable force_unwrapping
         let modelBuilder = SharedSemanticModelBuilder(app)
         let visitor = SynaxTreeVisitor(semanticModelBuilders: [modelBuilder])
@@ -79,18 +79,19 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         }.visit(visitor)
         
         let nameParameterId: UUID = testComponent.$name.id
+        
         let treeNodeA: EndpointsTreeNode = modelBuilder.endpointsTreeRoot!.children.first!
         let treeNodeB: EndpointsTreeNode = treeNodeA.children.first { $0.path.description == "b" }!
         let treeNodeNameParameter: EndpointsTreeNode = treeNodeB.children.first!
-        let treeNodeSomeOtherIdParamter: EndpointsTreeNode = treeNodeA.children.first { $0.path.description != "b" }!
-        var endpointGroupLevel: Endpoint = treeNodeSomeOtherIdParamter.endpoints.first!.value
+        let treeNodeSomeOtherIdParameter: EndpointsTreeNode = treeNodeA.children.first { $0.path.description != "b" }!
+        var endpointGroupLevel: Endpoint = treeNodeSomeOtherIdParameter.endpoints.first!.value
         let someOtherIdParameterId: UUID = endpointGroupLevel.parameters.first { $0.name == "someOtherId" }!.id
         var endpoint: Endpoint = treeNodeNameParameter.endpoints.first!.value
         
         XCTAssertEqual(treeNodeA.endpoints.count, 0)
         XCTAssertEqual(treeNodeB.endpoints.count, 0)
         XCTAssertEqual(treeNodeNameParameter.endpoints.count, 1)
-        XCTAssertEqual(treeNodeSomeOtherIdParamter.endpoints.count, 1)
+        XCTAssertEqual(treeNodeSomeOtherIdParameter.endpoints.count, 1)
         XCTAssertEqual(endpointGroupLevel.absolutePath[0].description, "a")
         XCTAssertEqual(endpointGroupLevel.absolutePath[1].description, ":\(someOtherIdParameterId.uuidString)")
         XCTAssertEqual(endpoint.absolutePath[0].description, "a")
@@ -110,5 +111,41 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         XCTAssertEqual(nestedEndpoint.absolutePath[1].description, "b")
         XCTAssertEqual(nestedEndpoint.absolutePath[2].description, ":\(nameParameterId.uuidString)")
         XCTAssertEqual(nestedEndpoint.absolutePath[3].description, ":\(someIdParameterId.uuidString)")
+    }
+    
+    struct TestHandler4: Component {
+        func handle() -> String {
+            "Hello Test Handler 4"
+        }
+    }
+    
+    struct TestComponent2: Component {
+        @PathParameter
+        var name: String
+        
+        var content: some Component {
+            Group($name) {
+                TestHandler4()
+            }
+        }
+    }
+    
+    func testEndpointsTreeNodes_implicitPathParameter() throws {
+        // swiftlint:disable force_unwrapping
+        let modelBuilder = SharedSemanticModelBuilder(app)
+        let visitor = SynaxTreeVisitor(semanticModelBuilders: [modelBuilder])
+        let testComponent = TestComponent2()
+        Group {
+            testComponent.content
+        }.visit(visitor)
+        
+        let nameParameterId: UUID = testComponent.$name.id
+        
+        let treeNode: EndpointsTreeNode = modelBuilder.endpointsTreeRoot!.children.first!
+        var endpoint: Endpoint = treeNode.endpoints.first!.value
+        
+        XCTAssertEqual(treeNode.endpoints.count, 1)
+        XCTAssertEqual(endpoint.parameters.count, 1)
+        XCTAssertEqual(endpoint.absolutePath[0].description, ":\(nameParameterId.uuidString)")
     }
 }

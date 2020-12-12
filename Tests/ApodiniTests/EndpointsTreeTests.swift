@@ -63,7 +63,7 @@ final class EndpointsTreeTests: XCTestCase {
                 handleReturnType: TestHandler.Response.self
         )
         
-        let parameters: [EndpointParameter] = endpoint.parameters
+        let parameters: Set<EndpointParameter> = endpoint.parameters
         let nameParameter: EndpointParameter = parameters.first { $0.label == "_name" }!
         let timesParameter: EndpointParameter = parameters.first { $0.label == "_times" }!
         let birthdateParameter: EndpointParameter = parameters.first { $0.label == "_birthdate" }!
