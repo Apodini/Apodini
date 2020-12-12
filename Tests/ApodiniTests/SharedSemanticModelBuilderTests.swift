@@ -93,6 +93,8 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         XCTAssertEqual(treeNodeSomeOtherIdParameter.endpoints.count, 1)
         XCTAssertEqual(endpointGroupLevel.absolutePath[0].description, "a")
         XCTAssertEqual(endpointGroupLevel.absolutePath[1].description, ":\(someOtherIdParameterId.uuidString)")
+        XCTAssertNoThrow(endpointGroupLevel.absolutePath[1] as! Parameter<Int>)
+        XCTAssertEqual((endpointGroupLevel.absolutePath[1] as! Parameter<Int>).id, someOtherIdParameterId)
         XCTAssertEqual(endpoint.absolutePath[0].description, "a")
         XCTAssertEqual(endpoint.absolutePath[1].description, "b")
         XCTAssertEqual(endpoint.absolutePath[2].description, ":\(nameParameterId.uuidString)")
