@@ -33,19 +33,6 @@ extension Tree {
 }
 
 extension Tree {
-    func filter<T>(
-        _ isIncluded: (T) throws -> Bool
-    ) rethrows -> Self where Wrapped == Node<T> {
-        guard let node = self,
-              try isIncluded(node.value) else { return nil }
-        
-        let children = try node.children.compactMap { (child: Tree) in
-            try child.filter(isIncluded)
-        }
-        
-        return Node(value: node.value, children: children)
-    }
-    
     func map<T, U>(
         _ transform: (T) throws -> U
     ) rethrows -> Tree<U> where Wrapped == Node<T> {
@@ -59,6 +46,36 @@ extension Tree {
         }
         
         return Node(value: value, children: children)
+    }
+    
+    func compactMap<T, U>(
+        _ transform: (T) throws -> U?
+    ) rethrows -> Tree<U> where Wrapped == Node<T> {
+        guard let node = self,
+              let value = try transform(node.value) else {
+            return nil
+        }
+        
+        let children = try node.children.compactMap { (child: Tree) in
+            try child.compactMap(transform)
+        }
+        
+        return Node(value: value, children: children)
+    }
+}
+
+extension Tree {
+    func filter<T>(
+        _ isIncluded: (T) throws -> Bool
+    ) rethrows -> Self where Wrapped == Node<T> {
+        guard let node = self,
+              try isIncluded(node.value) else { return nil }
+        
+        let children = try node.children.compactMap { (child: Tree) in
+            try child.filter(isIncluded)
+        }
+        
+        return Node(value: node.value, children: children)
     }
     
     func reduce<T, U>(
