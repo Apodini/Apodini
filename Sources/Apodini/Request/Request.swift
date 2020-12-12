@@ -7,6 +7,7 @@
 
 import Foundation
 import NIO
+import Fluent
 @_implementationOnly import Vapor
 
 /// A type representing a server response.
@@ -19,22 +20,23 @@ public protocol Request {
     var database: Any? { get }
 }
 
+enum RequestDecodingError: Error {
+    case couldNotDecodeParameter(for: UUID)
+}
+
 typealias VaporRequest = Vapor.Request
 
 extension VaporRequest: Request {
     public func parameter<T: Codable>(for parameter: Parameter<T>) throws -> T {
-        #warning("Implement propper encoding / decoding")
         switch parameter.option(for: PropertyOptionKey.http) {
         case .path where T.self is LosslessStringConvertible:
-            guard let parameter = parameters.get(parameter.id.uuidString) as? T else {
-                #warning("Implement propper errors")
-                throw Vapor.Abort(.badRequest)
+            guard let result = parameters.get(parameter.id.uuidString) as? T else {
+                throw RequestDecodingError.couldNotDecodeParameter(for: parameter.id)
             }
-            return parameter
+            return result
         case .query:
             guard let name = parameter.name else {
-                #warning("Implement propper errors")
-                throw Vapor.Abort(.badRequest)
+                throw RequestDecodingError.couldNotDecodeParameter(for: parameter.id)
             }
             return try query.get(T.self, at: name)
         case .body:
@@ -42,13 +44,11 @@ extension VaporRequest: Request {
             let body = try? self.body.data?.getJSONDecodable(T.self, at: 0, length: length)
             let string = self.body.string as? T
             guard let result = body ?? string else {
-                #warning("Implement propper errors")
-                throw Vapor.Abort(.badRequest)
+                throw RequestDecodingError.couldNotDecodeParameter(for: parameter.id)
             }
             return result
         default:
-            #warning("Implement propper errors")
-            throw Vapor.Abort(.badRequest)
+            throw RequestDecodingError.couldNotDecodeParameter(for: parameter.id)
         }
     }
 
