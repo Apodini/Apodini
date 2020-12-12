@@ -9,7 +9,7 @@ import OpenAPIKit
 
 /// Extension to map Apodini `Operation`  to `OpenAPI.HttpMethod`.
 extension Operation {
-    internal func openAPIHttpMethod() throws -> OpenAPI.HttpMethod {
+    func openAPIHttpMethod() -> OpenAPI.HttpMethod {
         switch self {
         case .automatic:
             return .get
@@ -21,12 +21,6 @@ extension Operation {
             return .post
         case .delete:
             return .delete
-        default:
-            throw OpenAPIHTTPMethodError.unsupportedHttpMethod(String(describing: self))
         }
-    }
-
-    enum OpenAPIHTTPMethodError: Swift.Error {
-        case unsupportedHttpMethod(String)
     }
 }

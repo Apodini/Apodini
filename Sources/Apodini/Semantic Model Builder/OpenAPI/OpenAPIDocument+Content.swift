@@ -8,4 +8,5 @@
 import OpenAPIKit
 import Vapor
 
-extension OpenAPI.Document: Content {}
+extension OpenAPI.Document: Content {
+}
