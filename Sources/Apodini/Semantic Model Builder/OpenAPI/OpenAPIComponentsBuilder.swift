@@ -23,6 +23,22 @@ class OpenAPIComponentsBuilder {
         callbacks: [:],
         vendorExtensions: [:]
     )
+
+    func buildSchema(for types: [Any.Type]) throws -> JSONSchema {
+        let reflectedTypes = types.compactMap {
+            reflectType($0)
+        }
+        let properties = reflectedTypes.enumerated().reduce(into: [String: JSONSchema]()) {
+            $0["\($1.element.mangledName)_\($1.offset)"] = recursivelyBuildSchema(for: $1.element)
+        }
+        let schemaName = reflectedTypes.map { $0.mangledName }.joined(separator: "_")
+        let schema = JSONSchema.object(
+                properties: properties
+        )
+        self.components.schemas[OpenAPI.ComponentKey(rawValue: schemaName)!] = schema
+        let (schemaReference, _) = findOrCreateSchemaReference(for: schemaName)
+        return schemaReference
+    }
     
     func buildSchema(for type: Any.Type) throws -> JSONSchema {
         guard let reflectedType = reflectType(type) else {

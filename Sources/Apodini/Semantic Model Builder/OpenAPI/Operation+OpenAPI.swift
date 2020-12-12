@@ -9,7 +9,7 @@ import OpenAPIKit
 
 /// Extension to map Apodini `Operation`  to `OpenAPI.HttpMethod`.
 extension Operation {
-    func openAPIHttpMethod() -> OpenAPI.HttpMethod {
+    var openAPIHttpMethod: OpenAPI.HttpMethod {
         switch self {
         case .automatic:
             return .get

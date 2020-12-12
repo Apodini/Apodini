@@ -8,10 +8,9 @@
 import Foundation
 import OpenAPIKit
 
-/// Extension to map Apodini `EndpointParameter.EndpointParameterType` to `OpenAPI.Parameter.Context`.
-/// Currently, only `query` and `path` are supported.
 extension EndpointParameter {
-    func openAPIContext() -> OpenAPI.Parameter.Context? {
+    /// Currently, only `query` and `path` are supported.
+    var openAPIContext: OpenAPI.Parameter.Context? {
         switch self.parameterType {
         case .lightweight:
             return .query
@@ -22,7 +21,7 @@ extension EndpointParameter {
         }
     }
 
-    func openAPISchema() -> JSONSchema {
+    var openAPISchema: JSONSchema {
         switch self.contentType {
         case is Int.Type:
             return .integer
