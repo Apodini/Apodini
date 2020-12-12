@@ -1,26 +1,20 @@
 import XCTest
+import Apodini
 import ProtobufferBuilder
+
+// MARK: - Test Supported Types
 
 final class ProtobufferBuilderTests: XCTestCase {
     func testVoid() throws {
-        XCTAssertNoThrow(try code(Void.self))
+        XCTAssertNoThrow(try build(Void.self))
     }
     
     func testTuple() throws {
-        XCTAssertThrowsError(try code((Int, String).self))
+        XCTAssertThrowsError(try build((Int, String).self))
     }
     
     func testTriple() throws {
-        XCTAssertThrowsError(try code((Int, String, Void).self))
-    }
-    
-    func testStruct() throws {
-        struct Person {
-            let name: String
-            let age: Int
-        }
-        
-        XCTAssertNoThrow(try code(Person.self))
+        XCTAssertThrowsError(try build((Int, String, Void).self))
     }
     
     func testClass() throws {
@@ -29,7 +23,7 @@ final class ProtobufferBuilderTests: XCTestCase {
             var age: Int = 0
         }
         
-        XCTAssertNoThrow(try code(Person.self))
+        XCTAssertNoThrow(try build(Person.self))
     }
     
     func testEnum() throws {
@@ -42,9 +36,11 @@ final class ProtobufferBuilderTests: XCTestCase {
             case object([String: JSON])
         }
         
-        XCTAssertThrowsError(try code(JSON.self))
+        XCTAssertThrowsError(try build(JSON.self))
     }
 }
+
+// MARK: - Test Output
 
 extension ProtobufferBuilderTests {
     func testScalarType() throws {
@@ -56,7 +52,7 @@ extension ProtobufferBuilderTests {
             }
             """
         
-        XCTAssertNotEqual(try code(String.self), expected)
+        XCTAssertNotEqual(try build(String.self), expected)
     }
     
     func testTypeOneLevelDeep() throws {
@@ -74,7 +70,7 @@ extension ProtobufferBuilderTests {
             }
             """
         
-        XCTAssertEqual(try code(Location.self), expected)
+        XCTAssertEqual(try build(Location.self), expected)
     }
     
     func testTypeTwoLevelsDeep() throws {
@@ -98,7 +94,7 @@ extension ProtobufferBuilderTests {
             }
             """
         
-        XCTAssertEqual(try code(Account.self), expected)
+        XCTAssertEqual(try build(Account.self), expected)
     }
     
     func testRecursiveType() throws {
@@ -120,9 +116,28 @@ extension ProtobufferBuilderTests {
             }
             """
         
-        XCTAssertEqual(try code(Node<Int64>.self), expected)
+        XCTAssertEqual(try build(Node<Int64>.self), expected)
     }
 }
+
+// MARK: - Test Components
+
+extension ProtobufferBuilderTests {
+    func testGreeterComponent() throws {
+        struct Greeter: Component {
+            @Parameter
+            var name: String
+            
+            func handle() -> String {
+                "Hello \(name)"
+            }
+        }
+        
+        XCTAssertNoThrow(try build(Greeter.self))
+    }
+}
+
+// MARK: - Test Misc
 
 extension ProtobufferBuilderTests {
     func testGenericPolymorphism() {
@@ -130,8 +145,10 @@ extension ProtobufferBuilderTests {
     }
 }
 
+// MARK: - Private
+
 @discardableResult
-private func code<T>(_ type: T.Type) throws -> String {
+private func build<T>(_ type: T.Type) throws -> String {
     let builder = ProtobufferBuilder()
     try builder.addMessage(of: type)
     let description = builder.description
