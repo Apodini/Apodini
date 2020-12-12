@@ -52,8 +52,8 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         endpointsTreeRoot!.addEndpoint(&endpoint, at: paths)
     }
 
-    override func finishedProcessing() {
-        super.finishedProcessing()
+    override func finishedRegistration() {
+        super.finishedRegistration()
 
         guard let node = endpointsTreeRoot else {
             return
@@ -62,7 +62,18 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         node.printTree() // currently only for debugging purposes
 
         for exporter in interfaceExporters {
-            exporter.export(node)
+            call(exporter: exporter, for: node)
+            exporter.finishedExporting(node)
+        }
+    }
+
+    private func call(exporter: InterfaceExporter, for node: EndpointsTreeNode) {
+        for (_, endpoint) in node.endpoints {
+            exporter.export(endpoint)
+        }
+
+        for child in node.children {
+            call(exporter: exporter, for: child)
         }
     }
 

@@ -52,6 +52,9 @@ final class EndpointsTreeTests: XCTestCase {
         let testHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
         
         let requestInjectables: [String: RequestInjectable] = testHandler.extractRequestInjectables()
+        let parameterBuilder = ParameterBuilder(from: requestInjectables)
+        parameterBuilder.build()
+
         var endpoint = Endpoint(
                 description: String(describing: testHandler),
                 context: Context(contextNode: ContextNode()),
@@ -60,7 +63,8 @@ final class EndpointsTreeTests: XCTestCase {
                 requestInjectables: requestInjectables,
                 handleMethod: testHandler.handle,
                 responseTransformers: [],
-                handleReturnType: TestHandler.Response.self
+                handleReturnType: TestHandler.Response.self,
+                parameters: parameterBuilder.parameters
         )
         
         let parameters: [EndpointParameter] = endpoint.parameters

@@ -15,11 +15,15 @@ struct RootPath: _PathComponent {
     }
 }
 
+struct EndpointRelationship { // ... to be replaced by a proper Relationship model
+    var destinationPath: [_PathComponent]
+}
+
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 struct Endpoint {
     /// This is a reference to the node where the endpoint is located
     // swiftlint:disable:next implicitly_unwrapped_optional
-    var treeNode: EndpointsTreeNode!
+    fileprivate var treeNode: EndpointsTreeNode!
 
     /// Description of the associated component, currently included for debug purposes
     let description: String
@@ -54,6 +58,21 @@ struct Endpoint {
     var absolutePath: [_PathComponent] {
         treeNode.absolutePath
     }
+    var relationships: [EndpointRelationship] {
+        treeNode.relationships
+    }
+
+    init(description: String, context: Context, operation: Operation, guards: [LazyGuard], requestInjectables: [String: RequestInjectable], handleMethod: @escaping () -> ResponseEncodable, responseTransformers: [() -> (AnyResponseTransformer)], handleReturnType: ResponseEncodable.Type, parameters: [EndpointParameter]) {
+        self.description = description
+        self.context = context
+        self.operation = operation
+        self.guards = guards
+        self.requestInjectables = requestInjectables
+        self.handleMethod = handleMethod
+        self.responseTransformers = responseTransformers
+        self.handleReturnType = handleReturnType
+        self.parameters = parameters
+    }
 }
 
 class EndpointsTreeNode {
@@ -74,6 +93,16 @@ class EndpointsTreeNode {
         var absolutePath: [_PathComponent] = []
         collectAbsolutePath(&absolutePath)
         return absolutePath
+    }()
+
+    lazy var relationships: [EndpointRelationship] = {
+        var relationships: [EndpointRelationship] = []
+
+        for child in children {
+            child.collectRelationships(&relationships)
+        }
+
+        return relationships
     }()
 
     init(path: _PathComponent, parent: EndpointsTreeNode? = nil) {
@@ -144,6 +173,17 @@ class EndpointsTreeNode {
 
         parent.collectRelativePath(&relativePath, to: node)
         relativePath.append(path)
+    }
+
+    fileprivate func collectRelationships(_ relationships: inout [EndpointRelationship]) {
+        if endpoints.count > 0 {
+            relationships.append(EndpointRelationship(destinationPath: absolutePath))
+            return
+        }
+
+        for child in children {
+            child.collectRelationships(&relationships)
+        }
     }
 
     /// This method prints the tree structure to stdout. Added for debugging purposes.
