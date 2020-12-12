@@ -42,17 +42,18 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @_Request
-        var req: Vapor.Request
-
         @Apodini.Environment(\.connection)
         var connection: Connection
-        
-        func handle() -> String {
-            do {
-                return try req.query.get(at: "name")
-            } catch {
-                return "World"
+
+        @Parameter("body", .http(.body))
+        var body: Data
+
+        public func handle() -> Action<String> {
+            switch connection.state {
+            case .end:
+                return .final("Hello stranger")
+            default:
+                return .nothing
             }
         }
     }
@@ -74,6 +75,10 @@ struct TestWebService: Apodini.WebService {
         Group("greet") {
             Greeter()
         }
+    }
+
+    var configuration: Configuration {
+        HTTP2Configuration()
     }
 }
 

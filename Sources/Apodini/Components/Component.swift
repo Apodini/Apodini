@@ -26,8 +26,20 @@ public protocol Component {
     
     /// A function that is called when a request reaches the `Component`
     func handle() -> Self.Response
+    /// The default implementation simply wraps results from
+    /// `handle() -> Self.Response` into `.final(..)`.
+    func handle() -> Action<Self.Response>
 }
 
+extension Component {
+    public func handle() -> Action<Self.Response> {
+        return .final(handle())
+    }
+
+    public func handle() -> Self.Response {
+        fatalError("Either handle() -> Encodable or handle() -> Action<Encodable> have to be implemented")
+    }
+}
 
 extension Component {
     func visit(_ visitor: SynaxTreeVisitor) {

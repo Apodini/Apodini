@@ -19,10 +19,6 @@ extension EnvironmentValues {
 }
 
 enum ConnectionState {
-    /// .undefined is the default value.
-    /// The connection state is undefined in a component's handler
-    /// if the request was not a client streaming request.
-    case undefined
     /// The request is part of a client stream,
     /// and there are more requestst to follow.
     case open
@@ -32,5 +28,5 @@ enum ConnectionState {
 
 struct Connection {
     /// Holds the state of the current client-side stream.
-    var state: ConnectionState = .undefined
+    var state: ConnectionState = .end
 }
