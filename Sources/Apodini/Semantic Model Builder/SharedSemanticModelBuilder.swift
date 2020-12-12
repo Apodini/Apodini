@@ -48,6 +48,14 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         let parameterBuilder = ParameterBuilder(from: component)
         parameterBuilder.build()
 
+        for parameter in parameterBuilder.parameters {
+            if parameter.parameterType == .path && !paths.contains(where: { ($0 as? _PathComponent)?.description == ":\(parameter.id)" }) {
+                if let pathComponent = parameterBuilder.requestInjectables[parameter.label] as? _PathComponent {
+                    paths.append(pathComponent)
+                }
+            }
+        }
+
         let requestHandlerBuilder = SharedSemanticModelBuilder.createRequestHandlerBuilder(with: component, guards: guards, responseModifiers: responseModifiers)
 
         let handleReturnType = C.Response.self
@@ -67,13 +75,6 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
                 responseType: responseType,
                 parameters: parameterBuilder.parameters
         )
-
-        for parameter in endpoint.parameters {
-            let pathDescription = ":\(parameter.id)"
-            if parameter.parameterType == .path && !paths.contains(where: { ($0 as? _PathComponent)?.description == pathDescription }) {
-                paths.append(pathDescription)
-            }
-        }
 
         webService.addEndpoint(&endpoint, at: paths)
     }
