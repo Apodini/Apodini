@@ -45,20 +45,26 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         let guards = context.get(valueFor: GuardContextKey.self)
         let responseModifiers = context.get(valueFor: ResponseContextKey.self)
 
-        let requestInjectables = component.extractRequestInjectables()
-
-        let parameterBuilder = ParameterBuilder(from: requestInjectables)
+        let parameterBuilder = ParameterBuilder(from: component)
         parameterBuilder.build()
+
+        let requestHandlerBuilder = SharedSemanticModelBuilder.createRequestHandlerBuilder(with: component, guards: guards, responseModifiers: responseModifiers)
+
+        let handleReturnType = C.Response.self
+        var responseType: ResponseEncodable.Type {
+            guard let lastResponseTransformer = responseModifiers.last else {
+                return handleReturnType
+            }
+            return lastResponseTransformer().transformedResponseType
+        }
 
         var endpoint = Endpoint(
                 description: String(describing: component),
                 context: context,
                 operation: operation,
-                guards: guards,
-                requestInjectables: requestInjectables,
-                handleMethod: component.handle,
-                responseTransformers: responseModifiers,
+                requestHandlerBuilder: requestHandlerBuilder,
                 handleReturnType: C.Response.self,
+                responseType: responseType,
                 parameters: parameterBuilder.parameters
         )
 
@@ -97,5 +103,32 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
 
     override func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
         fatalError("Shared model is unable to deal with .decode")
+    }
+
+    static func createRequestHandlerBuilder<C: Component>(with component: C, guards: [LazyGuard] = [], responseModifiers: [() -> (AnyResponseTransformer)] = [])
+                    -> (RequestInjectableDecoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+        { (decoder: RequestInjectableDecoder) in
+            { (request: Vapor.Request) in
+                let guardEventLoopFutures = guards.map { guardClosure in
+                    request.enterRequestContext(with: guardClosure(), using: decoder) { requestGuard in
+                        requestGuard.executeGuardCheck(on: request)
+                    }
+                }
+                return EventLoopFuture<Void>
+                        .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
+                        .flatMap { _ in
+                            request.enterRequestContext(with: component, using: decoder) { component in
+                                var response: ResponseEncodable = component.handle()
+
+                                for responseTransformer in responseModifiers {
+                                    response = request.enterRequestContext(with: responseTransformer(), using: decoder) { responseTransformer in
+                                        responseTransformer.transform(response: response)
+                                    }
+                                }
+                                return response.encodeResponse(for: request)
+                            }
+                        }
+            }
+        }
     }
 }
