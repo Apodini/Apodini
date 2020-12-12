@@ -26,20 +26,19 @@ public extension ProtobufferBuilder {
     /// - Parameter type: the type of the service
     /// - Throws: `Error`s of type `Exception`
     func addService<T>(of type: T.Type = T.self) throws {
-        guard let serviceNode = try Tree<TypeInfo>.make(type) else {
+        guard let serviceNode = try EnrichedInfo.tree(type).map(\.typeInfo) else {
             return
         }
         
         let serviceName = try serviceNode.value.compatibleName() + "Service"
         
-        let messageTree = try Tree<TypeInfo>.make(type)
+        let messageTree = try EnrichedInfo.tree(type)
             .edited(fixArray)
-            .filter { typeInfo in
-                !ParticularType(typeInfo.type).isPrimitive
+            .filter {
+                !ParticularType($0.typeInfo.type).isPrimitive
             }
-            .map { typeInfo in
-                try Message(typeInfo: typeInfo)
-            }
+            .map(Message.Property.init)
+            .contextMap(Message.init)
         
         guard let message = messageTree?.value else {
             return
@@ -66,14 +65,12 @@ public extension ProtobufferBuilder {
     /// - Parameter type: the type of the message
     /// - Throws: `Error`s of type `Exception`
     func addMessage<T>(of type: T.Type = T.self) throws {
-        try Tree<TypeInfo>.make(type)
+        try EnrichedInfo.tree(type)
             .edited(fixArray)
-            .filter { typeInfo in
-                !ParticularType(typeInfo.type).isPrimitive
-            }
-            .map { typeInfo in
-                try Message(typeInfo: typeInfo)
-            }
+            .edited(fixPrimitiveTypes)
+            .map(Message.Property.init)
+            .contextMap(Message.init)
+            .filter(isNotPrimitive)
             .reduce(into: Set()) { result, value in
                 result.insert(value)
             }
@@ -83,23 +80,10 @@ public extension ProtobufferBuilder {
     }
 }
 
-// MARK: - Private
-
-private extension Tree {
-    static func make<T>(_ type: T.Type) throws -> Tree<TypeInfo> {
-        Node(try typeInfo(of: type)) { typeInfo in
-            typeInfo.properties.compactMap {
-                do {
-                    return try Runtime.typeInfo(of: $0.type)
-                } catch {
-                    print(error)
-                    return nil
-                }
-            }
-        }
-    }
-}
-
 private extension Message {
     static let void = Message(name: "VoidMessage", properties: [])
+}
+
+private func isNotPrimitive(_ message: Message) -> Bool {
+    message.name.hasSuffix("Message")
 }

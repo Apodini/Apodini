@@ -7,12 +7,22 @@
 
 import Runtime
 
-func fixArray(_ node: Node<TypeInfo>) throws -> Tree<TypeInfo> {
-    guard ParticularType(node.value.type).isArray,
-          let first = node.value.genericTypes.first else {
+func fixArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
+    let typeInfo = node.value.typeInfo
+    
+    guard ParticularType(typeInfo.type).isArray,
+          let first = typeInfo.genericTypes.first,
+          let newNode = try EnrichedInfo.tree(first) else {
         return node
     }
     
-    return Node(value: try Runtime.typeInfo(of: first),
-                children: [])
+    var newEnrichedInfo = EnrichedInfo(
+        typeInfo: newNode.value.typeInfo,
+        propertyInfo: node.value.propertyInfo,
+        propertiesOffset: node.value.propertiesOffset
+    )
+    
+    newEnrichedInfo.representsArrayType = true
+    
+    return Node(value: newEnrichedInfo, children: newNode.children)
 }

@@ -59,6 +59,24 @@ extension ProtobufferBuilderTests {
         XCTAssertNotEqual(try code(String.self), expected)
     }
     
+    func testTypeOneLevelDeep() throws {
+        struct Location {
+            let latitude: UInt32
+            let longitude: UInt32
+        }
+        
+        let expected = """
+            syntax = "proto3";
+
+            message LocationMessage {
+              uint32 latitude = 1;
+              uint32 longitude = 2;
+            }
+            """
+        
+        XCTAssertEqual(try code(Location.self), expected)
+    }
+    
     func testTypeTwoLevelsDeep() throws {
         struct Account {
             let transactions: [Transaction]
@@ -84,6 +102,10 @@ extension ProtobufferBuilderTests {
     }
     
     func testRecursiveType() throws {
+        return
+        
+        #warning("TODO: Enforce DAG")
+        
         struct Node<T> {
             let value: T
             let children: [Node]

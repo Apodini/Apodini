@@ -38,10 +38,6 @@ private extension TypeInfo {
             }
         }
         
-        if ParticularType(type).isArray {
-            tree = tree?.children.first
-        }
-        
         let name = tree
             .map { typeInfo in
                 ParticularType(typeInfo.type).description
