@@ -1,7 +1,4 @@
 //
-//  OpenAPIComponentsBuilderTests.swift
-//  
-//
 //  Created by Lorena Schlesinger on 29.11.20.
 //
 
@@ -12,7 +9,7 @@ import Runtime
 import NIO
 @testable import Apodini
 
-final class OpenAPIComponentsBuilderTests: XCTestCase {
+final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     let someString = "Some String"
     let someInt = 42
     let someDouble = 42.0

@@ -122,7 +122,7 @@ struct OpenAPIPathsObjectBuilder {
         responseContent[responseJSONSchema.openAPIContentType] = .init(schema: responseJSONSchema)
         var responses: OpenAPI.Response.Map = [:]
         // TODO: add error status codes
-        responses[OpenAPI.Response.StatusCode.status(code: 200)] = .init(OpenAPI.Response(
+        responses[.status(code: 200)] = .init(OpenAPI.Response(
                 description: "",
                 headers: nil,
                 content: responseContent,
