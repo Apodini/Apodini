@@ -10,9 +10,22 @@ import NIO
 // MARK: Constants
 let primitiveTypes: [Any.Type] = [
     Int.self,
+    Int8.self,
+    Int16.self,
+    Int32.self,
+    Int64.self,
+    UInt.self,
+    UInt8.self,
+    UInt16.self,
+    UInt32.self,
+    UInt64.self,
     Bool.self,
     Double.self,
-    String.self
+    Float.self,
+    Float32.self,
+    Float64.self,
+    String.self,
+    UUID.self // TODO: maybe treat this elsewhere
 ]
 
 // TODO: improve this also for Array, Dictionary, and wrapperTypes
@@ -30,14 +43,14 @@ extension TypeInfo {
             }
         }
     }
-    
+
     var isWrapperType: Bool {
         !genericTypes.isEmpty &&
-            ["EventLoopFuture", "Either", "Optional"].contains(where: {
-                name.contains($0)
-            })
+                ["EventLoopFuture", "Either", "Optional"].contains(where: {
+                    name.contains($0)
+                })
     }
-    
+
     var wrappedTypes: [TypeInfo] {
         genericTypes.compactMap {
             do {
@@ -47,25 +60,25 @@ extension TypeInfo {
             }
         }
     }
-    
+
     var isPrimitive: Bool {
         primitiveTypes.contains(where: {
             $0 == self.type
         })
     }
-    
+
     var isArray: Bool {
         ["Array"].contains(where: {
             name.contains($0)
         })
     }
-    
+
     var isDictionary: Bool {
         ["Dictionary"].contains(where: {
             name.contains($0)
         })
     }
-    
+
     var openAPIJSONSchema: JSONSchema {
         switch type {
         case is Int.Type:
@@ -78,6 +91,8 @@ extension TypeInfo {
             return .number(format: .double)
         case is Date.Type:
             return .string(format: .date)
+        case is UUID.Type:
+            return .string
         default:
             print("OpenAPI schema not found for type \(type).")
             return .object

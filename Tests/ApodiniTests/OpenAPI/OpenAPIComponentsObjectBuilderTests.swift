@@ -19,8 +19,10 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     let someEventLoop: EventLoopFuture<Int>? = nil
     let someEither: Either<Int, String> = .init("someString")
     let someOptional: String? = nil
+    let someOptionalUUID: UUID? = nil
 
     struct SomeStruct {
+        var id: UUID?
         var someProp = 4
     }
 
@@ -70,6 +72,9 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         XCTAssertEqual(info.isWrapperType, true)
 
         info = try typeInfo(of: type(of: someOptional))
+        XCTAssertEqual(info.isWrapperType, true)
+
+        info = try typeInfo(of: type(of: someOptionalUUID))
         XCTAssertEqual(info.isWrapperType, true)
     }
 
@@ -144,7 +149,7 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         let ref3 = try componentsBuilder.componentsObject.reference(named: "GenericStruct", ofType: JSONSchema.self)
         let ref4 = try componentsBuilder.componentsObject.reference(named: "SomeComplexStruct", ofType: JSONSchema.self)
 
-        XCTAssertEqual(componentsBuilder.componentsObject[ref1], .object(properties: ["someProp": .integer()]))
+        XCTAssertEqual(componentsBuilder.componentsObject[ref1], .object(properties: ["someProp": .integer, "id": .string]))
         XCTAssertEqual(componentsBuilder.componentsObject[ref2],
                 .object(
                         properties: [
