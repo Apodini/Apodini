@@ -102,4 +102,10 @@ class RESTInterfaceExporter: InterfaceExporter {
 
         return try JSONDecoder().decode(type, from: data)
     }
+
+    func encode<T: Encodable>(_ value: T, request: Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
+        let data = try JSONEncoder().encode(value)
+        let response = Vapor.Response(body: .init(data: data))
+        return request.eventLoop.makeSucceededFuture(response)
+    }
 }
