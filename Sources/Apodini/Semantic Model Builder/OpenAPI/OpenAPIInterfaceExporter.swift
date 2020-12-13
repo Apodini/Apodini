@@ -8,37 +8,22 @@ import Foundation
 
 class OpenAPIInterfaceExporter: InterfaceExporter {
     let app: Application
-    var configuration: OpenAPIConfiguration
-    var document: OpenAPI.Document
-    var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
-    var pathsObjectBuilder = OpenAPIPathsObjectBuilder()
+    var documentBuilder: OpenAPIDocumentBuilder
+    let configuration: OpenAPIConfiguration = OpenAPIConfiguration()
 
     required init(_ app: Application) {
         self.app = app
-        self.configuration = OpenAPIConfiguration()
-        self.document = OpenAPI.Document(
-                info: self.configuration.info,
-                servers: self.configuration.servers,
-                paths: OpenAPI.PathItem.Map(),
-                components: self.componentsObjectBuilder.components
+        documentBuilder = OpenAPIDocumentBuilder(
+                configuration: configuration
         )
-        serveSpecification()
     }
 
     func export(_ endpoint: Endpoint) {
-        var pathBuilder = OpenAPIPathBuilder(endpoint.absolutePath, parameters: endpoint.parameters)
-        let path = pathBuilder.path
-        var pathItem = self.document.paths[path] ?? OpenAPI.PathItem()
-        let (op, httpMethod) = self.pathsObjectBuilder.buildPathOperation(
-                at: endpoint,
-                using: componentsObjectBuilder
-        )
-        pathItem.set(operation: op, for: httpMethod)
-        self.document.paths[path] = pathItem
+        documentBuilder.addEndpoint(endpoint)
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
-        self.document.components = self.componentsObjectBuilder.components
+        serveSpecification()
     }
 
     func decode<T>(_ type: T.Type, from request: Vapor.Request) throws -> T? where T: Decodable {
@@ -51,11 +36,11 @@ class OpenAPIInterfaceExporter: InterfaceExporter {
     private func serveSpecification() {
         // TODO: add YAML and default case?
         // TODO: add file export?
-        if let outputRoute = self.configuration.outputEndpoint {
-            switch self.configuration.outputFormat {
+        if let outputRoute = configuration.outputEndpoint {
+            switch configuration.outputFormat {
             case .JSON:
                 app.get(outputRoute.pathComponents) { (_: Vapor.Request) in
-                    self.document
+                    self.documentBuilder.document
                 }
             case .YAML:
                 print("Not implemented yet.")

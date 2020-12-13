@@ -125,8 +125,8 @@ final class OpenAPIComponentsBuilderTests: XCTestCase {
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: type(of: someString)))
         let schema = try componentsBuilder.buildSchema(for: type(of: someString))
         XCTAssertEqual(schema, JSONSchema.string())
-        XCTAssertEqual(componentsBuilder.components.schemas.count, 0)
-        XCTAssertEqual(componentsBuilder.components, .noComponents)
+        XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 0)
+        XCTAssertEqual(componentsBuilder.componentsObject, .noComponents)
     }
 
     func testBuildSchemaComplex_referenceExists() throws {
@@ -134,21 +134,21 @@ final class OpenAPIComponentsBuilderTests: XCTestCase {
 
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: SomeComplexStruct.self))
         _ = try componentsBuilder.buildSchema(for: SomeComplexStruct.self)
-        XCTAssertNoThrow(try JSONSchema.reference(.component(named: "\(SomeComplexStruct.self)")).dereferenced(in: componentsBuilder.components))
-        XCTAssertEqual(componentsBuilder.components.schemas.count, 4)
+        XCTAssertNoThrow(try JSONSchema.reference(.component(named: "\(SomeComplexStruct.self)")).dereferenced(in: componentsBuilder.componentsObject))
+        XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 4)
     }
 
     func testBuildSchemaComplex_schemasCorrect() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
         _ = try componentsBuilder.buildSchema(for: SomeComplexStruct.self)
 
-        let ref1 = try componentsBuilder.components.reference(named: "SomeStruct", ofType: JSONSchema.self)
-        let ref2 = try componentsBuilder.components.reference(named: "SomeNestedStruct", ofType: JSONSchema.self)
-        let ref3 = try componentsBuilder.components.reference(named: "GenericStruct", ofType: JSONSchema.self)
-        let ref4 = try componentsBuilder.components.reference(named: "SomeComplexStruct", ofType: JSONSchema.self)
+        let ref1 = try componentsBuilder.componentsObject.reference(named: "SomeStruct", ofType: JSONSchema.self)
+        let ref2 = try componentsBuilder.componentsObject.reference(named: "SomeNestedStruct", ofType: JSONSchema.self)
+        let ref3 = try componentsBuilder.componentsObject.reference(named: "GenericStruct", ofType: JSONSchema.self)
+        let ref4 = try componentsBuilder.componentsObject.reference(named: "SomeComplexStruct", ofType: JSONSchema.self)
 
-        XCTAssertEqual(componentsBuilder.components[ref1], .object(properties: ["someProp": .integer()]))
-        XCTAssertEqual(componentsBuilder.components[ref2],
+        XCTAssertEqual(componentsBuilder.componentsObject[ref1], .object(properties: ["someProp": .integer()]))
+        XCTAssertEqual(componentsBuilder.componentsObject[ref2],
                 .object(
                         properties: [
                             "someInt": .integer(),
@@ -156,7 +156,7 @@ final class OpenAPIComponentsBuilderTests: XCTestCase {
                         ]
                 )
         )
-        XCTAssertEqual(componentsBuilder.components[ref3],
+        XCTAssertEqual(componentsBuilder.componentsObject[ref3],
                 .object(
                         properties: [
                             "list": .array(
@@ -168,7 +168,7 @@ final class OpenAPIComponentsBuilderTests: XCTestCase {
                         ]
                 )
         )
-        XCTAssertEqual(componentsBuilder.components[ref4],
+        XCTAssertEqual(componentsBuilder.componentsObject[ref4],
                 .object(
                         properties: [
                             "someNestedStruct2": .reference(

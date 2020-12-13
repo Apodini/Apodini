@@ -9,7 +9,7 @@ import Foundation
 /// Corresponds to `components` section in OpenAPI document
 /// See: https://swagger.io/specification/#components-object
 class OpenAPIComponentsObjectBuilder {
-    var components: OpenAPI.Components = .init(
+    var componentsObject: OpenAPI.Components = .init(
         schemas: [:],
         responses: [:],
         parameters: [:],
@@ -32,7 +32,7 @@ class OpenAPIComponentsObjectBuilder {
         let schema = JSONSchema.object(
                 properties: properties
         )
-        self.components.schemas[OpenAPI.ComponentKey(rawValue: schemaName)!] = schema
+        self.componentsObject.schemas[OpenAPI.ComponentKey(rawValue: schemaName)!] = schema
         let (schemaReference, _) = findOrCreateSchemaReference(for: schemaName)
         return schemaReference
     }
@@ -102,7 +102,7 @@ class OpenAPIComponentsObjectBuilder {
             properties[property.name] = recursivelyBuildSchema(for: propertyTypeInfo)
         }
         
-        self.components.schemas[OpenAPI.ComponentKey(rawValue: schemaName)!] = JSONSchema.object(properties: properties)
+        self.componentsObject.schemas[OpenAPI.ComponentKey(rawValue: schemaName)!] = JSONSchema.object(properties: properties)
         
         return schemaReference
     }
@@ -111,7 +111,7 @@ class OpenAPIComponentsObjectBuilder {
         let internalReference = JSONReference<JSONSchema>.InternalReference.component(name: name)
         let reference = JSONReference.internal(internalReference)
         let schemaReference = JSONSchema.reference(reference)
-        if self.components.contains(internalReference) {
+        if self.componentsObject.contains(internalReference) {
             return (schemaReference, true)
         }
         return (schemaReference, false)
