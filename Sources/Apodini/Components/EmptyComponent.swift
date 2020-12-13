@@ -55,5 +55,5 @@ public struct EmptyComponent: Component {
 
 
 extension EmptyComponent: Visitable {
-    func visit(_ visitor: SynaxTreeVisitor) {}
+    func visit(_ visitor: SyntaxTreeVisitor) {}
 }

@@ -7,47 +7,47 @@
 
 @testable import Apodini
 
-class PrintVisitor: SynaxTreeVisitor {
-    private var intendationLevel: UInt = 0
+class PrintVisitor: SyntaxTreeVisitor {
+    private var indentationLevel: UInt = 0
     
     
-    private var intendation: String {
-        String(repeating: "  ", count: Int(intendationLevel))
+    private var indentation: String {
+        String(repeating: "  ", count: Int(indentationLevel))
     }
     
     
     override func enterCollectionItem() {
         super.enterCollectionItem()
-        print("\(intendation){")
-        intendationLevel += 1
+        print("\(indentation){")
+        indentationLevel += 1
     }
     
     override func addContext<C>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) where C: ContextKey {
         super.addContext(contextKey, value: value, scope: scope)
-        print("\(intendation) + \(contextKey.self) = \(value)")
+        print("\(indentation) + \(contextKey.self) = \(value)")
     }
     
     override func register<C>(component: C) where C: Component {
-        print("\(intendation)\(component)")
+        print("\(indentation)\(component)")
         printContext()
         
         currentNode.resetContextNode()
     }
     
     func printContext() {
-        print("\(intendation) -> \(className(OperationContextKey.self)) = \(currentNode.getContextValue(for: OperationContextKey.self))")
-        print("\(intendation) -> \(className(APIVersionContextKey.self)) = \(currentNode.getContextValue(for: APIVersionContextKey.self))")
-        print("\(intendation) -> \(className(PathComponentContextKey.self)) = \(currentNode.getContextValue(for: PathComponentContextKey.self))")
-        print("\(intendation) -> \(className(GuardContextKey.self)) = \(currentNode.getContextValue(for: GuardContextKey.self))")
+        print("\(indentation) -> \(className(OperationContextKey.self)) = \(currentNode.getContextValue(for: OperationContextKey.self))")
+        print("\(indentation) -> \(className(APIVersionContextKey.self)) = \(currentNode.getContextValue(for: APIVersionContextKey.self))")
+        print("\(indentation) -> \(className(PathComponentContextKey.self)) = \(currentNode.getContextValue(for: PathComponentContextKey.self))")
+        print("\(indentation) -> \(className(GuardContextKey.self)) = \(currentNode.getContextValue(for: GuardContextKey.self))")
         if !currentNode.getContextValue(for: ResponseContextKey.self).isEmpty {
-            print("\(intendation) -> \(className(ResponseContextKey.self)) = \(currentNode.getContextValue(for: ResponseContextKey.self))")
+            print("\(indentation) -> \(className(ResponseContextKey.self)) = \(currentNode.getContextValue(for: ResponseContextKey.self))")
         }
     }
     
     override func exitCollectionItem() {
         super.exitCollectionItem()
-        intendationLevel = max(0, intendationLevel - 1)
-        print("\(intendation)}")
+        indentationLevel = max(0, indentationLevel - 1)
+        print("\(indentation)}")
     }
     
     private func className<T>(_ type: T.Type = T.self) -> String {

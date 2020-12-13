@@ -66,27 +66,31 @@ class RESTInterfaceExporter: InterfaceExporter {
         self.app = app
     }
 
-    func export(_ node: EndpointsTreeNode) {
-        exportEndpoints(node)
+    func export(_ endpoint: Endpoint) {
+        let pathBuilder = RESTPathBuilder(endpoint.absolutePath)
+        let routesBuilder = pathBuilder.routesBuilder(app)
 
-        for child in node.children {
-            export(child)
+        let operation = endpoint.operation
+        let requestHandler = endpoint.createRequestHandler(for: self)
+
+        routesBuilder.on(operation.httpMethod, [], use: requestHandler)
+
+        app.logger.info("\(operation.httpMethod.rawValue) \(pathBuilder.pathDescription)")
+
+        for relationship in endpoint.relationships {
+            let path = relationship.destinationPath
+            app.logger.info("  - links to: \(StringPathBuilder(path).build())")
         }
     }
 
-    func exportEndpoints(_ node: EndpointsTreeNode) {
-        let pathBuilder = RESTPathBuilder(node.absolutePath)
-        let routesBuilder = pathBuilder.routesBuilder(app)
+    func finishedExporting(_ webService: WebServiceModel) {
+        if webService.rootEndpoints.count == 0 {
+            // if the root path doesn't have endpoints we need to create a custom one to deliver linking entry points.
 
-        for (operation, endpoint) in node.endpoints {
-            let requestHandler = createRequestHandler(for: endpoint)
-            routesBuilder.on(operation.httpMethod, [], use: requestHandler)
-
-            app.logger.info("\(pathBuilder.pathDescription) + \(operation.httpMethod.rawValue) with \(endpoint.guards.count) guards.")
-
-            for linkedNode in node.children {
-                let pathComponents = linkedNode.absolutePath
-                app.logger.info("  - links to: \(StringPathBuilder(pathComponents).build())")
+            for relationship in webService.relationships {
+                app.logger.info("/ + \(HTTPMethod.GET.rawValue)")
+                let path = relationship.destinationPath
+                app.logger.info("  - links to: \(StringPathBuilder(path).build())")
             }
         }
     }
@@ -98,29 +102,5 @@ class RESTInterfaceExporter: InterfaceExporter {
         }
         print("try decode")
         return try JSONDecoder().decode(type, from: data)
-    }
-
-    func createRequestHandler(for endpoint: Endpoint) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        { (request: Vapor.Request) in
-            let guardEventLoopFutures = endpoint.guards.map { guardClosure in
-                request.enterRequestContext(with: guardClosure(), using: self) { requestGuard in
-                    requestGuard.executeGuardCheck(on: request)
-                }
-            }
-            return EventLoopFuture<Void>
-                    .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
-                    .flatMap { _ in
-                        request.enterRequestContext(with: endpoint) { endpoint in
-                            var response: ResponseEncodable = endpoint.handleMethod()
-
-                            for responseTransformer in endpoint.responseTransformers {
-                                response = request.enterRequestContext(with: responseTransformer(), using: self) { responseTransformer in
-                                    responseTransformer.transform(response: response)
-                                }
-                            }
-                            return response.encodeResponse(for: request)
-                        }
-                    }
-        }
     }
 }
