@@ -24,11 +24,11 @@ extension Never: Component {
 }
 
 
-extension Never: ResponseEncodable {
+extension Never: Encodable {
     /// Encodes an instance of `Self` to a `HTTPResponse
     ///
     /// `Never` must never be encoded!
-    public func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+    public func encode(to encoder: Encoder) throws {
         fatalError("Never should never be encoded")
     }
 }

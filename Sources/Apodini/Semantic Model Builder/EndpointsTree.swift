@@ -36,11 +36,11 @@ struct Endpoint {
 
     let operation: Operation
 
-    fileprivate var requestHandlerBuilder: (RequestInjectableDecoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response>
+    fileprivate var requestHandlerBuilder: (RequestInjectableDecoder & ResponseEncoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response>
     /// Type returned by `handle()`
-    let handleReturnType: ResponseEncodable.Type
+    let handleReturnType: Encodable.Type
     /// Response type ultimately returned by `handle()` and possible following `ResponseTransformer`s
-    var responseType: ResponseEncodable.Type
+    var responseType: Encodable.Type
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     var parameters: [EndpointParameter]
@@ -53,8 +53,8 @@ struct Endpoint {
     }
 
     init(description: String, context: Context, operation: Operation,
-         requestHandlerBuilder: @escaping (RequestInjectableDecoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response>,
-         handleReturnType: ResponseEncodable.Type, responseType: ResponseEncodable.Type, parameters: [EndpointParameter]) {
+         requestHandlerBuilder: @escaping (RequestInjectableDecoder & ResponseEncoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response>,
+         handleReturnType: Encodable.Type, responseType: Encodable.Type, parameters: [EndpointParameter]) {
         self.description = description
         self.context = context
         self.operation = operation

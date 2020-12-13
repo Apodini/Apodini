@@ -59,7 +59,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         let requestHandlerBuilder = SharedSemanticModelBuilder.createRequestHandlerBuilder(with: component, guards: guards, responseModifiers: responseModifiers)
 
         let handleReturnType = C.Response.self
-        var responseType: ResponseEncodable.Type {
+        var responseType: Encodable.Type {
             guard let lastResponseTransformer = responseModifiers.last else {
                 return handleReturnType
             }
@@ -106,27 +106,29 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         fatalError("Shared model is unable to deal with .decode")
     }
 
-    static func createRequestHandlerBuilder<C: Component>(with component: C, guards: [LazyGuard] = [], responseModifiers: [() -> (AnyResponseTransformer)] = [])
-                    -> (RequestInjectableDecoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        { (decoder: RequestInjectableDecoder) in
+    override func encode<T: Encodable>(_ value: T, request: Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
+        fatalError("Shared model is unable to deal with .encode")
+    }
+
+    static func createRequestHandlerBuilder<C: Component>(with component: C, guards: [LazyGuard] = [], responseModifiers: [() -> (AnyResponseTransformer)] = []) -> (RequestInjectableDecoder & ResponseEncoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+        { (coder: RequestInjectableDecoder & ResponseEncoder) in
             { (request: Vapor.Request) in
                 let guardEventLoopFutures = guards.map { guardClosure in
-                    request.enterRequestContext(with: guardClosure(), using: decoder) { requestGuard in
+                    request.enterRequestContext(with: guardClosure(), using: coder) { requestGuard in
                         requestGuard.executeGuardCheck(on: request)
                     }
                 }
                 return EventLoopFuture<Void>
                         .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
                         .flatMap { _ in
-                            request.enterRequestContext(with: component, using: decoder) { component in
-                                var response: ResponseEncodable = component.handle()
-
+                            request.enterRequestContext(with: component, using: coder) { component in
+                                var response: Encodable = component.handle()
                                 for responseTransformer in responseModifiers {
-                                    response = request.enterRequestContext(with: responseTransformer(), using: decoder) { responseTransformer in
+                                    response = request.enterRequestContext(with: responseTransformer(), using: coder) { responseTransformer in
                                         responseTransformer.transform(response: response)
                                     }
                                 }
-                                return response.encodeResponse(for: request)
+                                return try! coder.encode(AnyEncodable(value: response), request: request)
                             }
                         }
             }
