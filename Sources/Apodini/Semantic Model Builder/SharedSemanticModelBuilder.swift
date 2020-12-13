@@ -8,17 +8,17 @@ class WebServiceModel {
     fileprivate let root: EndpointsTreeNode = EndpointsTreeNode(path: RootPath())
     fileprivate var finishedParsing = false
 
-    lazy var rootEndpoints: [Endpoint] = {
+    lazy var rootEndpoints: [AnyEndpoint] = {
         if !finishedParsing {
             fatalError("rootEndpoints of the WebServiceModel was accessed before parsing was finished!")
         }
-        return root.endpoints.map { _, endpoint -> Endpoint in endpoint }
+        return root.endpoints.map { _, endpoint -> AnyEndpoint in endpoint }
     }()
     var relationships: [EndpointRelationship] {
         root.relationships
     }
 
-    fileprivate func addEndpoint(_ endpoint: inout Endpoint, at paths: [PathComponent]) {
+    fileprivate func addEndpoint<HandleReturnType: ResponseEncodable>(_ endpoint: inout Endpoint<HandleReturnType>, at paths: [PathComponent]) {
         root.addEndpoint(&endpoint, at: paths)
     }
 }
@@ -66,12 +66,11 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
             return lastResponseTransformer().transformedResponseType
         }
 
-        var endpoint = Endpoint(
+        var endpoint = Endpoint<C.Response>(
                 description: String(describing: component),
                 context: context,
                 operation: operation,
                 requestHandlerBuilder: requestHandlerBuilder,
-                handleReturnType: C.Response.self,
                 responseType: responseType,
                 parameters: parameterBuilder.parameters
         )

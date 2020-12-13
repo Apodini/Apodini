@@ -84,9 +84,9 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         let treeNodeB: EndpointsTreeNode = treeNodeA.children.first { $0.path.description == "b" }!
         let treeNodeNameParameter: EndpointsTreeNode = treeNodeB.children.first!
         let treeNodeSomeOtherIdParameter: EndpointsTreeNode = treeNodeA.children.first { $0.path.description != "b" }!
-        let endpointGroupLevel: Endpoint = treeNodeSomeOtherIdParameter.endpoints.first!.value
+        let endpointGroupLevel: AnyEndpoint = treeNodeSomeOtherIdParameter.endpoints.first!.value
         let someOtherIdParameterId: UUID = endpointGroupLevel.parameters.first { $0.name == "someOtherId" }!.id
-        let endpoint: Endpoint = treeNodeNameParameter.endpoints.first!.value
+        let endpoint: AnyEndpoint = treeNodeNameParameter.endpoints.first!.value
         
         XCTAssertEqual(treeNodeA.endpoints.count, 0)
         XCTAssertEqual(treeNodeB.endpoints.count, 0)
@@ -104,7 +104,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         
         // test nested use of path parameter that is only set inside `Handler` (i.e. `TestHandler2`)
         let treeNodeSomeIdParameter: EndpointsTreeNode = treeNodeNameParameter.children.first!
-        let nestedEndpoint: Endpoint = treeNodeSomeIdParameter.endpoints.first!.value
+        let nestedEndpoint: AnyEndpoint = treeNodeSomeIdParameter.endpoints.first!.value
         let someIdParameterId: UUID = nestedEndpoint.parameters.first { $0.name == "someId" }!.id
         
         XCTAssertEqual(nestedEndpoint.parameters.count, 2)

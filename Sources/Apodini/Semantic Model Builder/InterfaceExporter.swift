@@ -7,7 +7,7 @@ import Vapor
 protocol InterfaceExporter: RequestInjectableDecoder {
     init(_ app: Application)
 
-    func export(_ endpoint: Endpoint)
+    func export(_ endpoint: AnyEndpoint)
 
     func finishedExporting(_ webService: WebServiceModel)
 

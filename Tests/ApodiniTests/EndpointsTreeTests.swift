@@ -55,12 +55,11 @@ final class EndpointsTreeTests: XCTestCase {
         let parameterBuilder = ParameterBuilder(from: testHandler)
         parameterBuilder.build()
 
-        let endpoint = Endpoint(
+        let endpoint = Endpoint<TestHandler.Response>(
                 description: String(describing: testHandler),
                 context: Context(contextNode: ContextNode()),
                 operation: Operation.automatic,
                 requestHandlerBuilder: SharedSemanticModelBuilder.createRequestHandlerBuilder(with: testComponent),
-                handleReturnType: TestHandler.Response.self,
                 responseType: TestHandler.Response.self,
                 parameters: parameterBuilder.parameters
         )

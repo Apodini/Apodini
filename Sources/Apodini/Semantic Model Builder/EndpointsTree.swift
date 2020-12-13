@@ -19,8 +19,34 @@ struct EndpointRelationship { // ... to be replaced by a proper Relationship mod
     var destinationPath: [_PathComponent]
 }
 
+protocol AnyEndpoint {
+    /// Response type ultimately returned by `handle()` and possible following `ResponseTransformer`s
+    var responseType: ResponseEncodable.Type { get }
+    /// Type returned by `handle()`
+    var handleReturnType: ResponseEncodable.Type { get }
+
+    var description: String { get }
+
+    /// The reference to the Context instance should be removed in the "final" state of the semantic model.
+    /// I chose to include it for now as it makes the process of moving to a central semantic model easier,
+    /// as implementing exporters can for now extract their needed information from the context on their own
+    /// and can then pull in their requirements into the Semantic Model.
+    var context: Context { get }
+
+    var operation: Operation { get }
+
+    /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
+    var parameters: [EndpointParameter] { get }
+
+    var absolutePath: [_PathComponent] { get }
+
+    var relationships: [EndpointRelationship] { get }
+
+    func createRequestHandler(for exporter: InterfaceExporter) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response>
+}
+
 /// Models a single Endpoint which is identified by its PathComponents and its operation
-struct Endpoint {
+struct Endpoint<HandleReturnType: ResponseEncodable>: AnyEndpoint {
     /// This is a reference to the node where the endpoint is located
     // swiftlint:disable:next implicitly_unwrapped_optional
     fileprivate var treeNode: EndpointsTreeNode!
@@ -37,11 +63,12 @@ struct Endpoint {
     let operation: Operation
 
     fileprivate var requestHandlerBuilder: (RequestInjectableDecoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response>
+
     /// Type returned by `handle()`
-    let handleReturnType: ResponseEncodable.Type
+    var handleReturnType: ResponseEncodable.Type { HandleReturnType.self }
     /// Response type ultimately returned by `handle()` and possible following `ResponseTransformer`s
-    var responseType: ResponseEncodable.Type
-    
+    let responseType: ResponseEncodable.Type
+
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     var parameters: [EndpointParameter]
 
@@ -54,12 +81,11 @@ struct Endpoint {
 
     init(description: String, context: Context, operation: Operation,
          requestHandlerBuilder: @escaping (RequestInjectableDecoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response>,
-         handleReturnType: ResponseEncodable.Type, responseType: ResponseEncodable.Type, parameters: [EndpointParameter]) {
+         responseType: ResponseEncodable.Type, parameters: [EndpointParameter]) {
         self.description = description
         self.context = context
         self.operation = operation
         self.requestHandlerBuilder = requestHandlerBuilder
-        self.handleReturnType = handleReturnType
         self.responseType = responseType
         self.parameters = parameters
     }
@@ -72,7 +98,7 @@ struct Endpoint {
 
 class EndpointsTreeNode {
     let path: _PathComponent
-    var endpoints: [Operation: Endpoint] = [:]
+    var endpoints: [Operation: AnyEndpoint] = [:]
 
     let parent: EndpointsTreeNode?
     private var nodeChildren: [String: EndpointsTreeNode] = [:]
@@ -105,7 +131,7 @@ class EndpointsTreeNode {
         self.parent = parent
     }
 
-    func addEndpoint(_ endpoint: inout Endpoint, at paths: [PathComponent]) {
+    func addEndpoint<HandleReturnType: ResponseEncodable>(_ endpoint: inout Endpoint<HandleReturnType>, at paths: [PathComponent]) {
         if paths.isEmpty {
             // swiftlint:disable:next force_unwrapping
             precondition(endpoints[endpoint.operation] == nil, "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)")
