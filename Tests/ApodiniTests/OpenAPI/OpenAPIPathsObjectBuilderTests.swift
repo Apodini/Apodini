@@ -51,5 +51,6 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains(key: path))
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in key == path && value == pathItem})
+        XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 0)
     }
 }
