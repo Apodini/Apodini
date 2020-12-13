@@ -1,7 +1,4 @@
 //
-//  OpenAPIComponentsBuilder.swift
-//  
-//
 //  Created by Lorena Schlesinger on 28.11.20.
 //
 
@@ -11,7 +8,7 @@ import Foundation
 
 /// Corresponds to `components` section in OpenAPI document
 /// See: https://swagger.io/specification/#components-object
-class OpenAPIComponentsBuilder {
+class OpenAPIComponentsObjectBuilder {
     var components: OpenAPI.Components = .init(
         schemas: [:],
         responses: [:],
@@ -68,7 +65,9 @@ class OpenAPIComponentsBuilder {
         if schemaExists {
             return schemaReference
         }
-        
+
+        // TODO: handling of enums
+
         if type.isWrapperType {
             if type.wrappedTypes.count > 1 {
                 return .any(of: type.wrappedTypes.map { recursivelyBuildSchema(for: $0) })

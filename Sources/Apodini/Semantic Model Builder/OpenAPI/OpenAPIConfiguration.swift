@@ -1,7 +1,4 @@
 //
-//  OpenAPIConfiguration.swift
-//  
-//
 //  Created by Lorena Schlesinger on 15.11.20.
 //
 

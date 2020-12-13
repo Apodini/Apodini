@@ -1,45 +1,17 @@
 //
-//  OpenAPIInterfaceExporter.swift
-//  
-//
 //  Created by Paul Schmiedmayer on 11/3/20.
+//
 
 import OpenAPIKit
 import Vapor
 import Foundation
 
-/// Utility to convert `_PathComponent`s to OpenAPI.Path format.
-struct OpenAPIPathBuilder: PathBuilder {
-    public lazy var path: OpenAPI.Path = OpenAPI.Path(stringLiteral: self.components.joined(separator: "/"))
-    var components: [String] = []
-    let parameters: [EndpointParameter]
-
-    init(_ pathComponents: [_PathComponent], parameters: [EndpointParameter]) {
-        self.parameters = parameters
-        for pathComponent in pathComponents {
-            pathComponent.append(to: &self)
-        }
-    }
-
-    mutating func append<T>(_ parameter: Parameter<T>) {
-        guard let p = parameters.first(where:
-        { $0.id == parameter.id }) else {
-            fatalError("Path contains parameter which cannot be found in endpoint's parameters.")
-        }
-        components.append("{\(p.name ?? p.label)}")
-    }
-
-    mutating func append(_ string: String) {
-        components.append(string)
-    }
-}
-
 class OpenAPIInterfaceExporter: InterfaceExporter {
     let app: Application
     var configuration: OpenAPIConfiguration
     var document: OpenAPI.Document
-    var openAPIComponentsBuilder = OpenAPIComponentsBuilder()
-    var openAPIPathsBuilder = OpenAPIPathsBuilder()
+    var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
+    var pathsObjectBuilder = OpenAPIPathsObjectBuilder()
 
     required init(_ app: Application) {
         self.app = app
@@ -48,7 +20,7 @@ class OpenAPIInterfaceExporter: InterfaceExporter {
                 info: self.configuration.info,
                 servers: self.configuration.servers,
                 paths: OpenAPI.PathItem.Map(),
-                components: self.openAPIComponentsBuilder.components
+                components: self.componentsObjectBuilder.components
         )
         serveSpecification()
     }
@@ -57,17 +29,16 @@ class OpenAPIInterfaceExporter: InterfaceExporter {
         var pathBuilder = OpenAPIPathBuilder(endpoint.absolutePath, parameters: endpoint.parameters)
         let path = pathBuilder.path
         var pathItem = self.document.paths[path] ?? OpenAPI.PathItem()
-        let (op, httpMethod) = self.openAPIPathsBuilder.buildPathOperation(
+        let (op, httpMethod) = self.pathsObjectBuilder.buildPathOperation(
                 at: endpoint,
-                with: endpoint.operation,
-                using: openAPIComponentsBuilder
+                using: componentsObjectBuilder
         )
         pathItem.set(operation: op, for: httpMethod)
         self.document.paths[path] = pathItem
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
-        self.document.components = self.openAPIComponentsBuilder.components
+        self.document.components = self.componentsObjectBuilder.components
     }
 
     func decode<T>(_ type: T.Type, from request: Vapor.Request) throws -> T? where T: Decodable {

@@ -1,7 +1,4 @@
 //
-//  OpenAPIPathsBuilder.swift
-//  
-//
 //  Created by Lorena Schlesinger on 15.11.20.
 //
 
@@ -9,12 +6,11 @@ import OpenAPIKit
 
 /// Corresponds to `paths` section in OpenAPI document
 /// See: https://swagger.io/specification/#paths-object
-class OpenAPIPathsBuilder {
+class OpenAPIPathsObjectBuilder {
 
     func buildPathOperation(
             at endpoint: Endpoint,
-            with operation: Operation,
-            using openAPIComponentsBuilder: OpenAPIComponentsBuilder) -> (OpenAPI.Operation, OpenAPI.HttpMethod) {
+            using openAPIComponentsBuilder: OpenAPIComponentsObjectBuilder) -> (OpenAPI.Operation, OpenAPI.HttpMethod) {
         let httpMethod = endpoint.operation.openAPIHttpMethod
 
         // create operation for pathItem + HTTP method

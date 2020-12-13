@@ -1,7 +1,4 @@
 //
-//  OpenAPIComponentsBuilder+TypeInfo.swift
-//  
-//
 //  Created by Lorena Schlesinger on 28.11.20.
 //
 

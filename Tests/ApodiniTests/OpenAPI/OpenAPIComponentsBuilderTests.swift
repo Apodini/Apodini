@@ -119,7 +119,7 @@ final class OpenAPIComponentsBuilderTests: XCTestCase {
     }
 
     func testBuildSchemaPrimitive() throws {
-        let componentsBuilder = OpenAPIComponentsBuilder()
+        let componentsBuilder = OpenAPIComponentsObjectBuilder()
 
         // add primitive type (will not be added to components map, but defined inline)
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: type(of: someString)))
@@ -130,7 +130,7 @@ final class OpenAPIComponentsBuilderTests: XCTestCase {
     }
 
     func testBuildSchemaComplex_referenceExists() throws {
-        let componentsBuilder = OpenAPIComponentsBuilder()
+        let componentsBuilder = OpenAPIComponentsObjectBuilder()
 
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: SomeComplexStruct.self))
         _ = try componentsBuilder.buildSchema(for: SomeComplexStruct.self)
@@ -139,7 +139,7 @@ final class OpenAPIComponentsBuilderTests: XCTestCase {
     }
 
     func testBuildSchemaComplex_schemasCorrect() throws {
-        let componentsBuilder = OpenAPIComponentsBuilder()
+        let componentsBuilder = OpenAPIComponentsObjectBuilder()
         _ = try componentsBuilder.buildSchema(for: SomeComplexStruct.self)
 
         let ref1 = try componentsBuilder.components.reference(named: "SomeStruct", ofType: JSONSchema.self)

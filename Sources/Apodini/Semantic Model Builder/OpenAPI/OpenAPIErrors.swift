@@ -1,7 +1,4 @@
 //
-//  File.swift
-//  
-//
 //  Created by Lorena Schlesinger on 29.11.20.
 //
 
