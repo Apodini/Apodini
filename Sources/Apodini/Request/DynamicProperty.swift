@@ -37,7 +37,7 @@ func execute<Element, Target>(_ operation: (Target, _ name: String) -> (), on el
             
                 dynamics.execute(operation)
             default:
-                break;
+                break
             }
         }
     } catch {
@@ -46,8 +46,8 @@ func execute<Element, Target>(_ operation: (Target, _ name: String) -> (), on el
 }
 
 func execute<Element, Target>(_ operation: (Target) -> (), on element: Element) {
-    execute({(t: Target, name: String) in
-        operation(t)
+    execute({(target: Target, name: String) in
+        operation(target)
     }, on: element)
 }
 
@@ -77,7 +77,7 @@ func apply<Element, Target>(_ mutation: (inout Target, _ name: String) -> (), to
                 dynamics.apply(mutation)
                 try property.set(value: dynamics, on: &element)
             default:
-                break;
+                break
             }
         }
     } catch {
@@ -86,8 +86,8 @@ func apply<Element, Target>(_ mutation: (inout Target, _ name: String) -> (), to
 }
 
 func apply<Element, Target>(_ mutation: (inout Target) -> (), to element: inout Element) {
-    apply({(t: inout Target, name: String) in
-        mutation(&t)
+    apply({(target: inout Target, name: String) in
+        mutation(&target)
     }, to: &element)
 }
 
@@ -116,7 +116,7 @@ fileprivate extension DynamicProperty {
                 
                     dynamics.execute(operation)
                 default:
-                    break;
+                    break
                 }
             }
         } catch {
@@ -148,7 +148,7 @@ fileprivate extension DynamicProperty {
                     dynamics.apply(mutation)
                     try property.set(value: dynamics, on: &self)
                 default:
-                    break;
+                    break
                 }
             }
         } catch {
@@ -177,7 +177,7 @@ fileprivate extension Dynamics {
             
                 dynamics.execute(operation)
             default:
-                break;
+                break
             }
         }
     }
@@ -201,7 +201,7 @@ fileprivate extension Dynamics {
                 dynamics.apply(mutation)
                 self.elements[name] = dynamics
             default:
-                break;
+                break
             }
         }
     }
