@@ -8,7 +8,7 @@
 import Vapor
 
 
-class SemanticModelBuilder: RequestInjectableDecoder, ResponseEncoder {
+class SemanticModelBuilder: RequestInjectableDecoder {
     private(set) var app: Application
     
     init(_ app: Application) {
@@ -23,11 +23,7 @@ class SemanticModelBuilder: RequestInjectableDecoder, ResponseEncoder {
         // Can be overwritten to run action once the component tree was parsed
     }
     
-    func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
+    func decode<T: Decodable>(_ type: T.Type, from request: Request) throws -> T? {
         fatalError("decode must be overridden")
-    }
-
-    func encode<T: Encodable>(_ value: T, request: Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
-        fatalError("encode must be overridden")
     }
 }
