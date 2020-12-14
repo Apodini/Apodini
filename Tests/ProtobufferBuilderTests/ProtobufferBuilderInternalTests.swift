@@ -99,7 +99,7 @@ extension ProtobufferBuilderInternalTests {
     }
     
     func testRecursiveType() throws {
-        return
+        return ()
         
         #warning("TODO: Enforce DAG")
         

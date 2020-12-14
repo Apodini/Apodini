@@ -25,7 +25,7 @@ extension EnrichedInfo {
         return Node(root) { info in
             info.typeInfo.properties
                 .enumerated()
-                .compactMap { (offset, propertyInfo) in
+                .compactMap { offset, propertyInfo in
                     do {
                         let typeInfo = try Runtime.typeInfo(of: propertyInfo.type)
                         return EnrichedInfo(

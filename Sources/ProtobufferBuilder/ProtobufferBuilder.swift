@@ -30,25 +30,30 @@ public extension ProtobufferBuilder {
             return
         }
         
-        // Service.init...
-        guard let output = try Message.tree(returnType)?.value else {
-            return
-        }
-        
-        let _input: Tree<Message> = try node.children
+        let parameter = node.children
             .filter(isParameter)
-            .compactMap { child in
-                guard let first = child.value.typeInfo.genericTypes.first else {
-                    return nil
-                }
-                
-                return try _addMessage(of: first)
+            .compactMap { node in
+                node.value.typeInfo.genericTypes.first
             }
             .first
-        
-        guard let input = _input?.value else {
+        guard let inputType = parameter else {
             return
         }
+        
+        let inputTree = try Message.tree(inputType)
+        let outputTree = try Message.tree(returnType)
+        
+        for tree in [inputTree, outputTree] {
+            tree.reduce(into: Set()) { result, value in
+                result.insert(value)
+            }
+            .forEach { element in
+                messages.insert(element)
+            }
+        }
+        
+        guard let input = inputTree?.value,
+              let output = outputTree?.value else { return }
         
         let method = Service.Method(
             name: "handle",
@@ -77,22 +82,6 @@ internal extension ProtobufferBuilder {
             .forEach { element in
                 messages.insert(element)
             }
-    }
-}
-
-private extension ProtobufferBuilder {
-    @discardableResult
-    func _addMessage(of type: Any.Type) throws -> Tree<Message> {
-        let tree = try Message.tree(type)
-        
-        tree.reduce(into: Set()) { result, value in
-                result.insert(value)
-            }
-            .forEach { element in
-                messages.insert(element)
-            }
-        
-        return tree
     }
 }
 
