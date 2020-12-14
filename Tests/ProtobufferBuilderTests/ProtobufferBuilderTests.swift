@@ -175,9 +175,9 @@ private func buildMessage<T>(_ type: T.Type) throws -> String {
 }
 
 @discardableResult
-private func buildService<T>(_ type: T.Type) throws -> String {
+private func buildService<T: Component>(_ type: T.Type) throws -> String {
     let builder = ProtobufferBuilder()
-    try builder.addService(of: type)
+    try builder.addService(of: type, returning: type.Response.self)
     let description = builder.description
     
     print("""

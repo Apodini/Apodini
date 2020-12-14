@@ -25,22 +25,43 @@ public extension ProtobufferBuilder {
     /// `addService` builds a Protobuffer service declaration from the type parameter.
     /// - Parameter type: the type of the service
     /// - Throws: `Error`s of type `Exception`
-    func addService(of type: Any.Type) throws {
+    func addService(of type: Any.Type, returning returnType: Any.Type) throws {
         guard let node = try EnrichedInfo.tree(type) else {
             return
         }
         
         // Service.init...
+        guard let output = try Message.tree(returnType)?.value else {
+            return
+        }
         
-        try node.children
+        let _input: Tree<Message> = try node.children
             .filter(isParameter)
-            .forEach { child in
+            .compactMap { child in
                 guard let first = child.value.typeInfo.genericTypes.first else {
-                    return
+                    return nil
                 }
                 
-                try addMessage(of: first)
+                return try _addMessage(of: first)
             }
+            .first
+        
+        guard let input = _input?.value else {
+            return
+        }
+        
+        let method = Service.Method(
+            name: "handle",
+            input: input,
+            ouput: output
+        )
+        
+        let service = Service(
+            name: try node.value.typeInfo.compatibleName() + "Service",
+            methods: [method]
+        )
+        
+        services.insert(service)
     }
     
     func _addService<T>(of type: T.Type = T.self) throws {
@@ -83,6 +104,34 @@ public extension ProtobufferBuilder {
     /// - Parameter type: the type of the message
     /// - Throws: `Error`s of type `Exception`
     func addMessage(of type: Any.Type) throws {
+        try Message.tree(type)
+            .reduce(into: Set()) { result, value in
+                result.insert(value)
+            }
+            .forEach { element in
+                messages.insert(element)
+            }
+    }
+}
+
+private extension ProtobufferBuilder {
+    @discardableResult
+    func _addMessage(of type: Any.Type) throws -> Tree<Message> {
+        let tree = try Message.tree(type)
+        
+        tree.reduce(into: Set()) { result, value in
+                result.insert(value)
+            }
+            .forEach { element in
+                messages.insert(element)
+            }
+        
+        return tree
+    }
+}
+
+private extension Message {
+    static func tree(_ type: Any.Type) throws -> Tree<Message> {
         let filtered = try EnrichedInfo.tree(type)
             .edited(fixArray)
             .edited(fixPrimitiveTypes)
@@ -91,17 +140,10 @@ public extension ProtobufferBuilder {
             .filter(isNotPrimitive)
         
         if filtered.isEmpty {
-            messages.insert(.scalar(type))
-            return
+            return Node(value: .scalar(type), children: [])
         }
         
-        filtered
-            .reduce(into: Set()) { result, value in
-                result.insert(value)
-            }
-            .forEach { element in
-                messages.insert(element)
-            }
+        return filtered
     }
 }
 
