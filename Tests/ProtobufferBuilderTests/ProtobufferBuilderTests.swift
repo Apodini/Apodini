@@ -133,7 +133,19 @@ extension ProtobufferBuilderTests {
             }
         }
         
-        XCTAssertNoThrow(try buildService(Greeter.self))
+        let expected = """
+            syntax = "proto3";
+
+            service GreeterService {
+              rpc handle (StringMessage) returns (StringMessage);
+            }
+
+            message StringMessage {
+              string value = 1;
+            }
+            """
+        
+        XCTAssertEqual(try buildService(Greeter.self), expected)
     }
 }
 
