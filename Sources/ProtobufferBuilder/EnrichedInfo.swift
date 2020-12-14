@@ -34,8 +34,14 @@ extension EnrichedInfo {
                             propertiesOffset: offset + 1
                         )
                     } catch {
-                        print(error)
-                        return nil
+                        let errorDescription = String(describing: error)
+                        let keyword = "Runtime.Kind.opaque"
+                        
+                        guard !errorDescription.contains(keyword) else {
+                            return nil
+                        }
+                        
+                        preconditionFailure(errorDescription)
                     }
                 }
         }

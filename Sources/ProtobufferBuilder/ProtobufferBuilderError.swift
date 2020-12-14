@@ -5,6 +5,6 @@
 //  Created by Nityananda on 27.11.20.
 //
 
-struct Exception: Error {
+struct ProtobufferBuilderError: Error {
     let message: String
 }

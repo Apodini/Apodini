@@ -22,7 +22,7 @@ extension TypeInfo {
             case .tuple:
                 result = try tupleName()
             default:
-                throw Exception(message: "Kind: \(kind) is not supported")
+                throw ProtobufferBuilderError(message: "Kind: \(kind) is not supported")
             }
             
             return result
@@ -55,7 +55,7 @@ private extension TypeInfo {
         if type == Void.self {
             return "Void"
         } else {
-            throw Exception(message: "Tuple: \(type) is not supported")
+            throw ProtobufferBuilderError(message: "Tuple: \(type) is not supported")
         }
     }
 }
