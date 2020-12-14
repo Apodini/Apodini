@@ -7,6 +7,30 @@ final class ProtobufferBuilderTests: XCTestCase {}
 // MARK: - Test Components
 
 extension ProtobufferBuilderTests {
+    func testHelloWorldComponent() throws {
+        struct HelloWorld: Component {
+            func handle() -> String {
+                "Hello, World!"
+            }
+        }
+        
+        let expected = """
+            syntax = "proto3";
+
+            service HelloWorldService {
+              rpc handle (VoidMessage) returns (StringMessage);
+            }
+
+            message StringMessage {
+              string value = 1;
+            }
+
+            message VoidMessage {}
+            """
+        
+        XCTAssertEqual(try buildService(HelloWorld.self), expected)
+    }
+    
     func testGreeterComponent() throws {
         struct Greeter: Component {
             @Parameter

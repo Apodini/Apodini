@@ -36,9 +36,7 @@ public extension ProtobufferBuilder {
                 node.value.typeInfo.genericTypes.first
             }
             .first
-        guard let inputType = parameter else {
-            return
-        }
+        let inputType = parameter ?? Void.self
         
         let inputTree = try Message.tree(inputType)
         let outputTree = try Message.tree(returnType)
@@ -100,10 +98,6 @@ private extension Message {
         
         return filtered
     }
-}
-
-private extension Message {
-    static let void = Message(name: "VoidMessage", properties: [])
     
     static func scalar(_ type: Any.Type) -> Message {
         Message(
