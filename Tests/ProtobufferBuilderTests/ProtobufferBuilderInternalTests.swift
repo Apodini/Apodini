@@ -98,11 +98,8 @@ extension ProtobufferBuilderInternalTests {
         XCTAssertEqual(try buildMessage(Account.self), expected)
     }
     
-    func testRecursiveType() throws {
-        return ()
-        
-        #warning("TODO: Enforce DAG")
-        
+    #warning("TODO: Enforce DAG")
+    func noTestRecursiveType() throws {
         struct Node<T> {
             let value: T
             let children: [Node]
