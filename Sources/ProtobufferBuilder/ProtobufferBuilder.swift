@@ -25,81 +25,116 @@ public extension ProtobufferBuilder {
     /// `addService` builds a Protobuffer service declaration from the type parameter.
     /// - Parameter type: the type of the service
     /// - Throws: `Error`s of type `Exception`
-    func addService<T>(of type: T.Type = T.self) throws {
-        guard let serviceNode = try Tree<TypeInfo>.make(type) else {
+    func addService(of type: Any.Type, returning returnType: Any.Type) throws {
+        guard let node = try EnrichedInfo.tree(type) else {
             return
         }
         
-        let serviceName = try serviceNode.value.compatibleName() + "Service"
-        
-        let messageTree = try Tree<TypeInfo>.make(type)
-            .edited(fixArray)
-            .filter { typeInfo in
-                !ParticularType(typeInfo.type).isPrimitive
-            }
-            .map { typeInfo in
-                try Message(typeInfo: typeInfo)
-            }
-        
-        guard let message = messageTree?.value else {
+        // Service.init...
+        guard let output = try Message.tree(returnType)?.value else {
             return
         }
         
-        let voidMessage = Message.void
+        let _input: Tree<Message> = try node.children
+            .filter(isParameter)
+            .compactMap { child in
+                guard let first = child.value.typeInfo.genericTypes.first else {
+                    return nil
+                }
+                
+                return try _addMessage(of: first)
+            }
+            .first
+        
+        guard let input = _input?.value else {
+            return
+        }
+        
         let method = Service.Method(
             name: "handle",
-            input: voidMessage,
-            ouput: message
+            input: input,
+            ouput: output
         )
         
         let service = Service(
-            name: serviceName,
+            name: try node.value.typeInfo.compatibleName() + "Service",
             methods: [method]
         )
         
-        messages.insert(voidMessage)
-        messages.insert(message)
         services.insert(service)
     }
-    
+}
+
+internal extension ProtobufferBuilder {
     /// `addMessage` builds a Protobuffer message declaration from the type parameter.
     /// - Parameter type: the type of the message
     /// - Throws: `Error`s of type `Exception`
-    func addMessage<T>(of type: T.Type = T.self) throws {
-        try Tree<TypeInfo>.make(type)
-            .edited(fixArray)
-            .filter { typeInfo in
-                !ParticularType(typeInfo.type).isPrimitive
-            }
-            .map { typeInfo in
-                try Message(typeInfo: typeInfo)
-            }
+    func addMessage(of type: Any.Type) throws {
+        try Message.tree(type)
             .reduce(into: Set()) { result, value in
                 result.insert(value)
             }
             .forEach { element in
-                self.messages.insert(element)
+                messages.insert(element)
             }
     }
 }
 
-// MARK: - Private
-
-private extension Tree {
-    static func make<T>(_ type: T.Type) throws -> Tree<TypeInfo> {
-        Node(try typeInfo(of: type)) { typeInfo in
-            typeInfo.properties.compactMap {
-                do {
-                    return try Runtime.typeInfo(of: $0.type)
-                } catch {
-                    print(error)
-                    return nil
-                }
+private extension ProtobufferBuilder {
+    @discardableResult
+    func _addMessage(of type: Any.Type) throws -> Tree<Message> {
+        let tree = try Message.tree(type)
+        
+        tree.reduce(into: Set()) { result, value in
+                result.insert(value)
             }
+            .forEach { element in
+                messages.insert(element)
+            }
+        
+        return tree
+    }
+}
+
+private extension Message {
+    static func tree(_ type: Any.Type) throws -> Tree<Message> {
+        let filtered = try EnrichedInfo.tree(type)
+            .edited(fixArray)
+            .edited(fixPrimitiveTypes)
+            .map(Message.Property.init)
+            .contextMap(Message.init)
+            .filter(isNotPrimitive)
+        
+        if filtered.isEmpty {
+            return Node(value: .scalar(type), children: [])
         }
+        
+        return filtered
     }
 }
 
 private extension Message {
     static let void = Message(name: "VoidMessage", properties: [])
+    
+    static func scalar(_ type: Any.Type) -> Message {
+        Message(
+            name: "\(type)Message",
+            properties: [
+                Property(
+                    isRepeated: false,
+                    name: "value",
+                    typeName: "\(type)".lowercased(),
+                    uniqueNumber: 1
+                )
+            ]
+        )
+    }
+}
+
+private func isNotPrimitive(_ message: Message) -> Bool {
+    message.name.hasSuffix("Message")
+}
+
+private func isParameter(_ node: Node<EnrichedInfo>) -> Bool {
+    ParticularType(node.value.typeInfo.type).description == "Parameter"
 }

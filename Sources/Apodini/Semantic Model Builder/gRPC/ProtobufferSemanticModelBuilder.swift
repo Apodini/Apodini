@@ -20,7 +20,6 @@ class ProtobufferSemanticModelBuilder: SemanticModelBuilder {
     }
     
     override func register<C>(component: C, withContext context: Context) where C : Component {
-        print(Result(catching: { try builder.addService(of: C.self) }))
-        print(Result(catching: { try builder.addMessage(of: C.Response.self) }))
+        print(Result(catching: { try builder.addService(of: C.self, returning: C.Response.self) }))
     }
 }

@@ -1,5 +1,5 @@
 //
-//  CustomCompoentTest.swift
+//  CustomComponentTest.swift
 //
 //
 //  Created by Paul Schmiedmayer on 6/27/20.
