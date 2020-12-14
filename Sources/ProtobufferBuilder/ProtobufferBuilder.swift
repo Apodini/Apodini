@@ -63,43 +63,9 @@ public extension ProtobufferBuilder {
         
         services.insert(service)
     }
-    
-    func _addService<T>(of type: T.Type = T.self) throws {
-        guard let serviceNode = try EnrichedInfo.tree(type).map(\.typeInfo) else {
-            return
-        }
-        
-        let serviceName = try serviceNode.value.compatibleName() + "Service"
-        
-        let messageTree = try EnrichedInfo.tree(type)
-            .edited(fixArray)
-            .filter {
-                !ParticularType($0.typeInfo.type).isPrimitive
-            }
-            .map(Message.Property.init)
-            .contextMap(Message.init)
-        
-        guard let message = messageTree?.value else {
-            return
-        }
-        
-        let voidMessage = Message.void
-        let method = Service.Method(
-            name: "handle",
-            input: voidMessage,
-            ouput: message
-        )
-        
-        let service = Service(
-            name: serviceName,
-            methods: [method]
-        )
-        
-        messages.insert(voidMessage)
-        messages.insert(message)
-        services.insert(service)
-    }
-    
+}
+
+internal extension ProtobufferBuilder {
     /// `addMessage` builds a Protobuffer message declaration from the type parameter.
     /// - Parameter type: the type of the message
     /// - Throws: `Error`s of type `Exception`
