@@ -24,18 +24,18 @@ func execute<Element, Target>(_ operation: (Target, _ name: String) -> (), on el
             let child = try property.get(from: element)
 
             switch child {
-            case let t as Target:
+            case let target as Target:
                 assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "\(Target.self) \(property.name) on element \(info.name) must be a struct")
                 
-                operation(t, property.name)
-            case let dp as DynamicProperty:
+                operation(target, property.name)
+            case let dynamicProperty as DynamicProperty:
                 assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
 
-                dp.execute(operation)
-            case let dyn as Dynamics:
+                dynamicProperty.execute(operation)
+            case let dynamics as Dynamics:
                 // no assertion needed because Dynamics is defined by Apodini
             
-                dyn.execute(operation)
+                dynamics.execute(operation)
             default:
                 break;
             }
@@ -62,20 +62,20 @@ func apply<Element, Target>(_ mutation: (inout Target, _ name: String) -> (), to
             let child = try property.get(from: element)
 
             switch child {
-            case var t as Target:
+            case var target as Target:
                 assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "\(Target.self) \(property.name) on element \(info.name) must be a struct")
                 
-                mutation(&t, property.name)
-                try property.set(value: t, on: &element)
-            case var dp as DynamicProperty:
+                mutation(&target, property.name)
+                try property.set(value: target, on: &element)
+            case var dynamicProperty as DynamicProperty:
                 assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
-                dp.apply(mutation)
-                try property.set(value: dp, on: &element)
-            case var dyn as Dynamics:
+                dynamicProperty.apply(mutation)
+                try property.set(value: dynamicProperty, on: &element)
+            case var dynamics as Dynamics:
                 // no assertion needed because Dynamics is defined by Apodini
             
-                dyn.apply(mutation)
-                try property.set(value: dyn, on: &element)
+                dynamics.apply(mutation)
+                try property.set(value: dynamics, on: &element)
             default:
                 break;
             }
@@ -103,18 +103,18 @@ fileprivate extension DynamicProperty {
                 let child = try property.get(from: self)
 
                 switch child {
-                case let t as Target:
+                case let target as Target:
                     assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "\(Target.self) \(property.name) on element \(info.name) must be a struct")
                     
-                    operation(t, property.name)
-                case let dp as DynamicProperty:
+                    operation(target, property.name)
+                case let dynamicProperty as DynamicProperty:
                     assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
 
-                    dp.execute(operation)
-                case let dyn as Dynamics:
+                    dynamicProperty.execute(operation)
+                case let dynamics as Dynamics:
                     // no assertion needed because Dynamics is defined by Apodini
                 
-                    dyn.execute(operation)
+                    dynamics.execute(operation)
                 default:
                     break;
                 }
@@ -132,21 +132,21 @@ fileprivate extension DynamicProperty {
                 let child = try property.get(from: self)
 
                 switch child {
-                case var t as Target:
+                case var target as Target:
                     assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "\(Target.self) \(property.name) on element \(info.name) must be a struct")
                     
-                    mutation(&t, property.name)
-                    try property.set(value: t, on: &self)
-                case var dp as DynamicProperty:
+                    mutation(&target, property.name)
+                    try property.set(value: target, on: &self)
+                case var dynamicProperty as DynamicProperty:
                     assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
                     
-                    dp.apply(mutation)
-                    try property.set(value: dp, on: &self)
-                case var dyn as Dynamics:
+                    dynamicProperty.apply(mutation)
+                    try property.set(value: dynamicProperty, on: &self)
+                case var dynamics as Dynamics:
                     // no assertion needed because Dynamics is defined by Apodini
                 
-                    dyn.apply(mutation)
-                    try property.set(value: dyn, on: &self)
+                    dynamics.apply(mutation)
+                    try property.set(value: dynamics, on: &self)
                 default:
                     break;
                 }
@@ -164,18 +164,18 @@ fileprivate extension Dynamics {
     func execute<Target>(_ operation: (Target, _ name: String) -> ()) {
         for (name, element) in self.elements {
             switch element {
-            case let t as Target:
+            case let target as Target:
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Dynamics must be a struct")
                 
-                operation(t, name)
-            case let dp as DynamicProperty:
+                operation(target, name)
+            case let dynamicProperty as DynamicProperty:
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Dynamics must be a struct")
                 
-                dp.execute(operation)
-            case let dyn as Dynamics:
+                dynamicProperty.execute(operation)
+            case let dynamics as Dynamics:
                 // no assertion needed because Dynamics is defined by Apodini
             
-                dyn.execute(operation)
+                dynamics.execute(operation)
             default:
                 break;
             }
@@ -185,21 +185,21 @@ fileprivate extension Dynamics {
     mutating func apply<Target>(_ mutation: (inout Target, _ name: String) -> ()) {
         for (name, element) in self.elements {
             switch element {
-            case var t as Target:
+            case var target as Target:
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Dynamics must be a struct")
     
-                mutation(&t, name)
-                self.elements[name] = t
-            case var dp as DynamicProperty:
+                mutation(&target, name)
+                self.elements[name] = target
+            case var dynamicProperty as DynamicProperty:
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Dynamics must be a struct")
                 
-                dp.apply(mutation)
-                self.elements[name] = dp
-            case var dyn as Dynamics:
+                dynamicProperty.apply(mutation)
+                self.elements[name] = dynamicProperty
+            case var dynamics as Dynamics:
                 // no assertion needed because Dynamics is defined by Apodini
             
-                dyn.apply(mutation)
-                self.elements[name] = dyn
+                dynamics.apply(mutation)
+                self.elements[name] = dynamics
             default:
                 break;
             }
