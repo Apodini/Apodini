@@ -11,7 +11,7 @@ import Runtime
 
 
 protocol RequestInjectable {
-    mutating func inject(using request: Vapor.Request, with decoder: RequestInjectableDecoder?) throws
+    mutating func inject(using request: Apodini.Request, with decoder: RequestInjectableDecoder?) throws
     func accept(_ visitor: RequestInjectableVisitor)
 }
 
@@ -22,7 +22,7 @@ extension RequestInjectable {
 }
 
 protocol RequestInjectableDecoder {
-    func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T?
+    func decode<T: Decodable>(_ type: T.Type, from request: Request) throws -> T?
 }
 
 protocol RequestInjectableVisitor {
@@ -55,7 +55,7 @@ extension AnyResponseTransformer {
     }
 }
 
-extension Vapor.Request {
+extension Apodini.Request {
     func enterRequestContext<E, R>(with element: E, using decoder: RequestInjectableDecoder? = nil, executing method: (E) -> EventLoopFuture<R>)
                     -> EventLoopFuture<R> {
         var element = element

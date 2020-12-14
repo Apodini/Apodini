@@ -4,6 +4,7 @@
 
 import Vapor
 
+
 /// This struct is used to model the RootPath for the root of the endpoints tree
 struct RootPath: _PathComponent {
     var description: String {
@@ -36,7 +37,7 @@ struct Endpoint {
 
     let operation: Operation
 
-    fileprivate var requestHandlerBuilder: (RequestInjectableDecoder & ResponseEncoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response>
+    fileprivate var requestHandlerBuilder: RequestHandlerBuilder
     /// Type returned by `handle()`
     let handleReturnType: Encodable.Type
     /// Response type ultimately returned by `handle()` and possible following `ResponseTransformer`s
@@ -52,8 +53,9 @@ struct Endpoint {
         treeNode.relationships
     }
 
+
     init(description: String, context: Context, operation: Operation,
-         requestHandlerBuilder: @escaping (RequestInjectableDecoder & ResponseEncoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response>,
+         requestHandlerBuilder: @escaping RequestHandlerBuilder,
          handleReturnType: Encodable.Type, responseType: Encodable.Type, parameters: [EndpointParameter]) {
         self.description = description
         self.context = context
@@ -64,7 +66,7 @@ struct Endpoint {
         self.parameters = parameters
     }
 
-    func createRequestHandler(for exporter: InterfaceExporter) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+    func createRequestHandler(for exporter: InterfaceExporter) -> (Request) -> EventLoopFuture<Encodable> {
         requestHandlerBuilder(exporter)
     }
 

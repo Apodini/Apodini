@@ -73,7 +73,20 @@ class RESTInterfaceExporter: InterfaceExporter {
         let operation = endpoint.operation
         let requestHandler = endpoint.createRequestHandler(for: self)
 
-        routesBuilder.on(operation.httpMethod, [], use: requestHandler)
+        routesBuilder.on(operation.httpMethod, []) { request -> EventLoopFuture<Vapor.Response> in
+            let response: EventLoopFuture<Encodable> = requestHandler(request)
+
+            // decode parameters
+
+            // decode body
+
+            let result = response.map { (response: Encodable) -> Vapor.Response in
+                // encode response
+                let data = try! JSONEncoder().encode(AnyEncodable(value: response))
+                return Vapor.Response(body: .init(data: data))
+            }
+            return result
+        }
 
         app.logger.info("\(operation.httpMethod.rawValue) \(pathBuilder.pathDescription)")
 
@@ -95,17 +108,7 @@ class RESTInterfaceExporter: InterfaceExporter {
         }
     }
 
-    func decode<T>(_ type: T.Type, from request: Vapor.Request) throws -> T? where T: Decodable {
-        guard let byteBuffer = request.body.data, let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
-            throw Vapor.Abort(.internalServerError, reason: "Could not read the HTTP request's body")
-        }
-
-        return try JSONDecoder().decode(type, from: data)
-    }
-
-    func encode<T: Encodable>(_ value: T, request: Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
-        let data = try JSONEncoder().encode(value)
-        let response = Vapor.Response(body: .init(data: data))
-        return request.eventLoop.makeSucceededFuture(response)
+    func decode<T>(_ type: T.Type, from request: Request) throws -> T? where T: Decodable {
+        return try JSONDecoder().decode(type, from: request.bodyData())
     }
 }

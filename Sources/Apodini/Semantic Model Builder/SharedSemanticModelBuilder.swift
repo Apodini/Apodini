@@ -4,6 +4,8 @@
 
 import Vapor
 
+typealias RequestHandlerBuilder = (RequestInjectableDecoder) -> (Request) -> EventLoopFuture<Encodable>
+
 class WebServiceModel {
     fileprivate let root: EndpointsTreeNode = EndpointsTreeNode(path: RootPath())
     fileprivate var finishedParsing = false
@@ -102,17 +104,13 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         }
     }
 
-    override func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
+    override func decode<T: Decodable>(_ type: T.Type, from request: Request) throws -> T? {
         fatalError("Shared model is unable to deal with .decode")
     }
 
-    override func encode<T: Encodable>(_ value: T, request: Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
-        fatalError("Shared model is unable to deal with .encode")
-    }
-
-    static func createRequestHandlerBuilder<C: Component>(with component: C, guards: [LazyGuard] = [], responseModifiers: [() -> (AnyResponseTransformer)] = []) -> (RequestInjectableDecoder & ResponseEncoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        { (coder: RequestInjectableDecoder & ResponseEncoder) in
-            { (request: Vapor.Request) in
+    static func createRequestHandlerBuilder<C: Component>(with component: C, guards: [LazyGuard] = [], responseModifiers: [() -> (AnyResponseTransformer)] = []) -> RequestHandlerBuilder {
+        { (coder: RequestInjectableDecoder) in
+            { (request: Request) in
                 let guardEventLoopFutures = guards.map { guardClosure in
                     request.enterRequestContext(with: guardClosure(), using: coder) { requestGuard in
                         requestGuard.executeGuardCheck(on: request)
@@ -128,7 +126,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
                                         responseTransformer.transform(response: response)
                                     }
                                 }
-                                return try! coder.encode(AnyEncodable(value: response), request: request)
+                                return request.eventLoop.makeSucceededFuture(response)
                             }
                         }
             }

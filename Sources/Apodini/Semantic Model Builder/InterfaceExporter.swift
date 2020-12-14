@@ -4,16 +4,14 @@
 
 import Vapor
 
-protocol InterfaceExporter: RequestInjectableDecoder, ResponseEncoder {
+protocol InterfaceExporter: RequestInjectableDecoder {
     init(_ app: Application)
 
     func export(_ endpoint: Endpoint)
 
     func finishedExporting(_ webService: WebServiceModel)
 
-    func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T?
-
-    func encode<T: Encodable>(_ value: T, request: Vapor.Request) throws -> EventLoopFuture<Vapor.Response>
+    func decode<T: Decodable>(_ type: T.Type, from request: Request) throws -> T?
 }
 
 extension InterfaceExporter {
