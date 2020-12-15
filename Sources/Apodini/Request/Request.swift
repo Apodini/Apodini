@@ -10,7 +10,7 @@ import Vapor
 /// A type representing a server response.
 public protocol Request {
     /// parameters
-    func parameter<T: Codable>(for parameter: Parameter<T>) throws -> T
+    func parameter<T: Codable>(for parameter: UUID) throws -> T
     func bodyData() throws -> Data
     func getQuery(at: String) throws -> String
     /// The EventLoop associated with this request
