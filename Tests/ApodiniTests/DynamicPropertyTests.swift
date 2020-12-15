@@ -103,7 +103,8 @@ final class DynamicPropertyTests: ApodiniTests {
             names.append(name.trimmingCharacters(in: ["_"]))
         }, on: element)
         
-        XCTAssertEqual(names.joined(), "abcdefg")
+        // as Dynamics is map-based we cannot rely on a static order
+        XCTAssertEqual(names.sorted().joined(), "abcdefg")
     }
     
     func testExecuteWithoutName() throws {
