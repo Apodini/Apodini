@@ -26,29 +26,8 @@ enum RequestDecodingError: Error {
 typealias VaporRequest = Vapor.Request
 
 extension VaporRequest: Request {
-    public func parameter<T: Codable>(for parameter: Parameter<T>) throws -> T {
-        switch parameter.option(for: PropertyOptionKey.http) {
-        case .path where T.self is LosslessStringConvertible:
-            guard let result = parameters.get(parameter.id.uuidString) as? T else {
-                throw RequestDecodingError.couldNotDecodeParameter(for: parameter.id)
-            }
-            return result
-        case .query:
-            guard let name = parameter.name else {
-                throw RequestDecodingError.couldNotDecodeParameter(for: parameter.id)
-            }
-            return try query.get(T.self, at: name)
-        case .body:
-            let length = self.body.data?.readableBytes ?? 0
-            let body = try? self.body.data?.getJSONDecodable(T.self, at: 0, length: length)
-            let string = self.body.string as? T
-            guard let result = body ?? string else {
-                throw RequestDecodingError.couldNotDecodeParameter(for: parameter.id)
-            }
-            return result
-        default:
-            throw RequestDecodingError.couldNotDecodeParameter(for: parameter.id)
-        }
+    public func parameter<T: Codable>(for parameter: UUID) throws -> T {
+        return "" as! T
     }
 
     public func bodyData() throws -> Data {
@@ -93,5 +72,14 @@ struct _Request: RequestInjectable {
     
     mutating func inject(using request: Request, with decoder: RequestInjectableDecoder? = nil) throws {
         self.request = request
+    }
+}
+
+
+struct AnyEncodable: Encodable {
+    let value: Encodable
+
+    func encode(to encoder: Encoder) throws {
+        try self.value.encode(to: encoder)
     }
 }
