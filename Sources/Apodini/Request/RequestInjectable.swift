@@ -54,13 +54,13 @@ extension Vapor.Request {
     
     private func inject<E>(in element: inout E, using decoder: RequestInjectableDecoder? = nil) {
         // Inject all properties that can be injected using RequestInjectable
-        let e = element
+        let elem = element
         
-        apply({ (ri: inout RequestInjectable) in
+        apply({ (requestInjectable: inout RequestInjectable) in
             do {
-                try ri.inject(using: self, with: decoder)
+                try requestInjectable.inject(using: self, with: decoder)
             } catch {
-                fatalError("Injecting into element \(e) failed.")
+                fatalError("Injecting into element \(elem) failed.")
             }
         }, to: &element)
     }

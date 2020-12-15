@@ -13,10 +13,8 @@ import Runtime
 public protocol DynamicProperty { }
 
 
-
-
 // MARK: Execute
-func execute<Element, Target>(_ operation: (Target, _ name: String) -> (), on element: Element) {
+func execute<Element, Target>(_ operation: (Target, _ name: String) -> Void, on element: Element) {
     do {
         let info = try typeInfo(of: Element.self)
 
@@ -45,17 +43,15 @@ func execute<Element, Target>(_ operation: (Target, _ name: String) -> (), on el
     }
 }
 
-func execute<Element, Target>(_ operation: (Target) -> (), on element: Element) {
-    execute({(target: Target, name: String) in
+func execute<Element, Target>(_ operation: (Target) -> Void, on element: Element) {
+    execute({(target: Target, _: String) in
         operation(target)
     }, on: element)
 }
 
 // MARK: Apply
-func apply<Element, Target>(_ mutation: (inout Target, _ name: String) -> (), to element: inout Element) {
+func apply<Element, Target>(_ mutation: (inout Target, _ name: String) -> Void, to element: inout Element) {
     do {
-        
-        
         let info = try typeInfo(of: Element.self)
 
         for property in info.properties {
@@ -85,8 +81,8 @@ func apply<Element, Target>(_ mutation: (inout Target, _ name: String) -> (), to
     }
 }
 
-func apply<Element, Target>(_ mutation: (inout Target) -> (), to element: inout Element) {
-    apply({(target: inout Target, name: String) in
+func apply<Element, Target>(_ mutation: (inout Target) -> Void, to element: inout Element) {
+    apply({(target: inout Target, _: String) in
         mutation(&target)
     }, to: &element)
 }
@@ -94,8 +90,7 @@ func apply<Element, Target>(_ mutation: (inout Target) -> (), to element: inout 
 
 // MARK: DynamicProperty Implementation
 fileprivate extension DynamicProperty {
-    
-    func execute<Target>(_ operation: (Target, _ name: String) -> ()) {
+    func execute<Target>(_ operation: (Target, _ name: String) -> Void) {
         do {
             let info = try typeInfo(of: Self.self)
 
@@ -124,7 +119,7 @@ fileprivate extension DynamicProperty {
         }
     }
     
-    mutating func apply<Target>(_ mutation: (inout Target, _ name: String) -> ()) {
+    mutating func apply<Target>(_ mutation: (inout Target, _ name: String) -> Void) {
         do {
             let info = try typeInfo(of: Self.self)
 
@@ -160,8 +155,7 @@ fileprivate extension DynamicProperty {
 
 // MARK: Dynamics Implemenation
 fileprivate extension Dynamics {
-    
-    func execute<Target>(_ operation: (Target, _ name: String) -> ()) {
+    func execute<Target>(_ operation: (Target, _ name: String) -> Void) {
         for (name, element) in self.elements {
             switch element {
             case let target as Target:
@@ -182,7 +176,7 @@ fileprivate extension Dynamics {
         }
     }
     
-    mutating func apply<Target>(_ mutation: (inout Target, _ name: String) -> ()) {
+    mutating func apply<Target>(_ mutation: (inout Target, _ name: String) -> Void) {
         for (name, element) in self.elements {
             switch element {
             case var target as Target:

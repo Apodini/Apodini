@@ -99,8 +99,11 @@ class EndpointsTreeNode {
                     if let info = try? typeInfo(of: type(of: first)), info.mangledName == parameterType?.mangledName {
                         let mirror = Mirror(reflecting: first)
 
+                        let options = mirror.children.first {
+                            $0.label == ParameterProperties.options
                         // swiftlint:disable:next force_cast
-                        let options = mirror.children.first { $0.label == ParameterProperties.options }!.value as! PropertyOptionSet<ParameterOptionNameSpace>
+                        }!.value as! PropertyOptionSet<ParameterOptionNameSpace>
+                        
                         if options.option(for: PropertyOptionKey.http) != .path {
                             fatalError("Parameter can only be used as path component when setting .http to .path!")
                         }
