@@ -13,13 +13,13 @@ import Fluent
 
 
 final class DynamicPropertyTests: ApodiniTests {
-    
+    // swiftlint:disable identifier_name type_name
     @propertyWrapper
     struct Param<T> {
-        var _value: T? = nil
+        var _value: T?
         
         var wrappedValue: T? {
-            return _value
+            _value
         }
     }
     
@@ -29,7 +29,7 @@ final class DynamicPropertyTests: ApodiniTests {
         var efg: Dynamics = [
             "e": Param<String>(),
             "fgWrapper": Dynamics([
-                "f":  Param<String>(),
+                "f": Param<String>(),
                 "g": G()
             ])
         ]
@@ -72,9 +72,10 @@ final class DynamicPropertyTests: ApodiniTests {
         @Param var g: String?
         
         var wrappedValue: String {
-            return g ?? ""
+            g ?? ""
         }
     }
+    // swiftlint:enable identifier_name type_name
 
     
     func testApply() throws {
@@ -102,7 +103,7 @@ final class DynamicPropertyTests: ApodiniTests {
             names.append(name.trimmingCharacters(in: ["_"]))
         }, on: element)
         
-        XCTAssertEqual(names.joined(separator: ""), "abcdefg")
+        XCTAssertEqual(names.joined(), "abcdefg")
     }
     
     func testExecuteWithoutName() throws {
