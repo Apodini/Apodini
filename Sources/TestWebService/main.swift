@@ -43,7 +43,7 @@ struct TestWebService: Apodini.WebService {
     
     struct Greeter: Component {
         @UselessWrapper var name: String?
-        var dynamics = Dynamics((name: "surname", Parameter<String?>()))
+        var dynamics: Dynamics = ["surname": Parameter<String?>()]
         
         func handle() -> String {
             let surnameParameter: Parameter<String?>? = dynamics["surname"]
