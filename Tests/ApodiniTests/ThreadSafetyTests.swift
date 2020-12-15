@@ -16,10 +16,10 @@ import Fluent
 final class ThreadSafetyTests: ApodiniTests {
     struct Greeter: Component {
         @_Request
-        var req: Vapor.Request
+        var req: Apodini.Request
         
         func handle() -> String {
-            req.body.string ?? "World"
+            (try? String(data: req.bodyData(), encoding: .utf8)) ?? "World"
         }
     }
     
