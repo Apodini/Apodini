@@ -167,7 +167,7 @@ fileprivate extension Dynamics {
                 
                 dynamicProperty.execute(operation)
             case let dynamics as Dynamics:
-                // no assertion needed because Dynamics is defined by Apodini
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "Dynamics \(name) on Dynamics must be a struct")
             
                 dynamics.execute(operation)
             default:
@@ -190,7 +190,7 @@ fileprivate extension Dynamics {
                 dynamicProperty.apply(mutation)
                 self.elements[name] = dynamicProperty
             case var dynamics as Dynamics:
-                // no assertion needed because Dynamics is defined by Apodini
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "Dynamics \(name) on Dynamics must be a struct")
             
                 dynamics.apply(mutation)
                 self.elements[name] = dynamics
