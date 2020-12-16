@@ -76,10 +76,6 @@ struct TestWebService: Apodini.WebService {
             Greeter()
         }
     }
-
-    var configuration: Configuration {
-        HTTP2Configuration()
-    }
 }
 
 TestWebService.main()
