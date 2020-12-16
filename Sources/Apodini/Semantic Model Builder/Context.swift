@@ -44,14 +44,15 @@ class Context {
                     request.enterRequestContext(with: component, using: decoder) { component in
                         let response: Action<C.Response> = component.handle()
                         switch response {
-                        case var .final(response):
+                        case let .final(element):
+                            var encodable: ResponseEncodable = element
                             for responseTransformer in self.contextNode.getContextValue(for: ResponseContextKey.self) {
-                                response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
-                                    responseTransformer.transform(response: response) as! C.Response
+                                encodable = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
+                                    responseTransformer.transform(response: encodable)
                                 }
                             }
 
-                            return response.encodeResponse(for: request)
+                            return encodable.encodeResponse(for: request)
                         default: // .send and .nothing are not supported by unary endpoints
                             let err = ContextError.unsupportedAction("Actions .send and .nothing are not supported by unary endpoints." +
                                 "Use a streaming endpoint instead.")
@@ -100,14 +101,15 @@ class Context {
                                 .withEnvironment(con, for: \.connection)
                                 .handle()
                             switch response {
-                            case var .send(element),
-                                 var .final(element):
+                            case let .send(element),
+                                 let .final(element):
+                                var encodable: ResponseEncodable = element
                                 for responseTransformer in self.contextNode.getContextValue(for: ResponseContextKey.self) {
-                                    element = request.enterRequestContext(with: responseTransformer(), using: decoder) { responseTransformer in
-                                        responseTransformer.transform(response: element) as! C.Response
+                                    encodable = request.enterRequestContext(with: responseTransformer(), using: decoder) { responseTransformer in
+                                        responseTransformer.transform(response: encodable)
                                     }
                                 }
-                                let response = element.encodeResponse(for: request)
+                                let response = encodable.encodeResponse(for: request)
                                 resultPromise.completeWith(response)
                             default: // .nothing
                                 // we do nothing 😆
