@@ -25,7 +25,6 @@ extension WebService {
     /// This function is executed to start up an Apodini `WebService`
     public static func main() {
         do {
-            
             let environmentName = try Environment.detect().name
             var env = Environment(name: environmentName, arguments: ["vapor"])
             try LoggingSystem.bootstrap(from: &env)
@@ -45,8 +44,6 @@ extension WebService {
             )
 
             webService.configuration.configure(app)
-            
-            SSMBuilder.webService.lk_entryPoint()
 
             defer {
                 app.shutdown()
