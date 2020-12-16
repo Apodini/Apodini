@@ -8,7 +8,10 @@
 import Foundation
 import Runtime
 
-/// DynamicProperty allows for wrapping Apodini's property wrappers while maintianing their functionality.
+/// `DynamicProperty` allows for wrapping Apodini's property wrappers while maintianing their functionality. By
+/// conforming a `struct` to `DynamicProperty` you this `struct`'s properties discoverable to the Apodini
+/// runtime framework. This can be used to e.g. compine two property wrappers provided by the Apodini framework
+/// into one that combines their functionality
 /// - Precondition: Only structs can be a DynamicProperty
 public protocol DynamicProperty { }
 
@@ -30,8 +33,8 @@ func execute<Element, Target>(_ operation: (Target, _ name: String) -> Void, on 
                 assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
 
                 dynamicProperty.execute(operation)
-            case let dynamics as Dynamics:
-                // no assertion needed because Dynamics is defined by Apodini
+            case let dynamics as Traversible:
+                assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "Dynamics \(property.name) on element \(info.name) must be a struct")
             
                 dynamics.execute(operation)
             default:
@@ -67,8 +70,8 @@ func apply<Element, Target>(_ mutation: (inout Target, _ name: String) -> Void, 
                 assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
                 dynamicProperty.apply(mutation)
                 try property.set(value: dynamicProperty, on: &element)
-            case var dynamics as Dynamics:
-                // no assertion needed because Dynamics is defined by Apodini
+            case var dynamics as Traversible:
+                assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "Dynamics \(property.name) on element \(info.name) must be a struct")
             
                 dynamics.apply(mutation)
                 try property.set(value: dynamics, on: &element)
@@ -87,9 +90,8 @@ func apply<Element, Target>(_ mutation: (inout Target) -> Void, to element: inou
     }, to: &element)
 }
 
-
 // MARK: DynamicProperty Implementation
-fileprivate extension DynamicProperty {
+private extension DynamicProperty {
     func execute<Target>(_ operation: (Target, _ name: String) -> Void) {
         do {
             let info = try typeInfo(of: Self.self)
@@ -106,8 +108,8 @@ fileprivate extension DynamicProperty {
                     assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
 
                     dynamicProperty.execute(operation)
-                case let dynamics as Dynamics:
-                    // no assertion needed because Dynamics is defined by Apodini
+                case let dynamics as Traversible:
+                    assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "Dynamics \(property.name) on element \(info.name) must be a struct")
                 
                     dynamics.execute(operation)
                 default:
@@ -137,8 +139,8 @@ fileprivate extension DynamicProperty {
                     
                     dynamicProperty.apply(mutation)
                     try property.set(value: dynamicProperty, on: &self)
-                case var dynamics as Dynamics:
-                    // no assertion needed because Dynamics is defined by Apodini
+                case var dynamics as Traversible:
+                    assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "Dynamics \(property.name) on element \(info.name) must be a struct")
                 
                     dynamics.apply(mutation)
                     try property.set(value: dynamics, on: &self)
@@ -154,7 +156,14 @@ fileprivate extension DynamicProperty {
 
 
 // MARK: Dynamics Implemenation
-fileprivate extension Dynamics {
+
+private protocol Traversible {
+    func execute<Target>(_ operation: (Target, _ name: String) -> Void)
+    
+    mutating func apply<Target>(_ mutation: (inout Target, _ name: String) -> Void)
+}
+
+extension Dynamics: Traversible {
     func execute<Target>(_ operation: (Target, _ name: String) -> Void) {
         for (name, element) in self.elements {
             switch element {
@@ -166,7 +175,7 @@ fileprivate extension Dynamics {
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Dynamics must be a struct")
                 
                 dynamicProperty.execute(operation)
-            case let dynamics as Dynamics:
+            case let dynamics as Traversible:
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "Dynamics \(name) on Dynamics must be a struct")
             
                 dynamics.execute(operation)
@@ -183,17 +192,20 @@ fileprivate extension Dynamics {
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Dynamics must be a struct")
     
                 mutation(&target, name)
-                self.elements[name] = target
+                // swiftlint:disable:next force_cast
+                self.elements[name] = (target as! Element)
             case var dynamicProperty as DynamicProperty:
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Dynamics must be a struct")
                 
                 dynamicProperty.apply(mutation)
-                self.elements[name] = dynamicProperty
-            case var dynamics as Dynamics:
+                // swiftlint:disable:next force_cast
+                self.elements[name] = (dynamicProperty as! Element)
+            case var dynamics as Traversible:
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "Dynamics \(name) on Dynamics must be a struct")
             
                 dynamics.apply(mutation)
-                self.elements[name] = dynamics
+                // swiftlint:disable:next force_cast
+                self.elements[name] = (dynamics as! Element)
             default:
                 break
             }
