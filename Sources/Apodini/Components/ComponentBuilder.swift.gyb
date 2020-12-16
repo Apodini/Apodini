@@ -6,17 +6,21 @@
 }%
 
 @_functionBuilder
-public struct ComponentBuilder {
-    public static func buildBlock() -> EmptyComponent {
-        EmptyComponent()
-    }
+public struct EndpointProvidingNodeBuilder {
+    //public static func buildBlock() -> EmptyComponent {
+    //    EmptyComponent()
+    //}
     
-    public static func buildBlock<Content>(_ content: Content) -> Content where Content: Component {
+    public static func buildBlock<Content: EndpointProvidingNode>(_ content: Content) -> Content {
         content
     }
-
+    
+    public static func buildBlock<Endpoint: EndpointNode>(_ endpoint: Endpoint) -> some EndpointProvidingNode {
+        return _WrappedEndpoint(endpoint: endpoint)
+    }
+    
     % for numberOfComponents in range(2, maximumNumberOfComponents + 1):
-    %{ componentGenerics = ", ".join(["C" + str(i) + " : Component" for i in range(1, numberOfComponents + 1)]) }%
+    %{ componentGenerics = ", ".join(["C" + str(i) + " : EndpointProvidingNode" for i in range(1, numberOfComponents + 1)]) }%
     %{ arguments = ", ".join(["_ c" + str(i) + ": C" + str(i) + "" for i in range(1, numberOfComponents + 1)]) }%
     %{ tupleGenerics = ", ".join(["C" + str(i) + "" for i in range(1, numberOfComponents + 1)]) }%
     %{ components = ", ".join(["c" + str(i) for i in range(1, numberOfComponents + 1)]) }%
@@ -26,15 +30,26 @@ public struct ComponentBuilder {
 
     % end
     
-    public static func buildEither<C: Component>(first: C) -> C {
+    % for numberOfComponents in range(2, maximumNumberOfComponents + 1):
+    %{ componentGenerics = ", ".join(["C" + str(i) + " : EndpointNode" for i in range(1, numberOfComponents + 1)]) }%
+    %{ arguments = ", ".join(["_ c" + str(i) + ": C" + str(i) + "" for i in range(1, numberOfComponents + 1)]) }%
+    %{ tupleGenerics = ", ".join(["C" + str(i) + "" for i in range(1, numberOfComponents + 1)]) }%
+    %{ components = ", ".join(["c" + str(i) for i in range(1, numberOfComponents + 1)]) }%
+    public static func buildBlock<${componentGenerics}>(${arguments}) -> TupleComponent<(${tupleGenerics})> {
+        return TupleComponent((${components}))
+    }
+
+    % end
+    
+    public static func buildEither<C: EndpointProvidingNode>(first: C) -> C {
         first
     }
     
-    public static func buildEither<C: Component>(second: C) -> C {
+    public static func buildEither<C: EndpointProvidingNode>(second: C) -> C {
         second
     }
     
-    public static func buildIf<C: Component>(_ component: C?) -> C? {
+    public static func buildIf<C: EndpointProvidingNode>(_ component: C?) -> C? {
         component
     }
 }

@@ -33,24 +33,26 @@ struct GuardContextKey: ContextKey {
 }
 
 
-public struct GuardModifier<C: Component>: Modifier {
+public struct GuardModifier<C: EndpointNode>: EndpointModifier {
+    public typealias ModifiedEndpoint = C
     public typealias Response = C.Response
+    public typealias EndpointIdentifier = C.EndpointIdentifier
     
-    let component: C
+    let endpoint: C
     let `guard`: LazyGuard
     
     
-    init<G: Guard>(_ component: C, guard: @escaping () -> G) {
+    init<G: Guard>(_ endpoint: C, guard: @escaping () -> G) {
         precondition(((try? typeInfo(of: G.self).kind) ?? .none) == .struct, "Guard \((try? typeInfo(of: G.self).name) ?? "unknown") must be a struct")
         
-        self.component = component
+        self.endpoint = endpoint
         self.guard = { AnyGuard(`guard`()) }
     }
     
-    init<G: SyncGuard>(_ component: C, guard: @escaping () -> G) {
+    init<G: SyncGuard>(_ endpoint: C, guard: @escaping () -> G) {
         precondition(((try? typeInfo(of: G.self).kind) ?? .none) == .struct, "Guard \((try? typeInfo(of: G.self).name) ?? "unknown") must be a struct")
         
-        self.component = component
+        self.endpoint = endpoint
         self.guard = { AnyGuard(`guard`()) }
     }
 }
@@ -58,12 +60,12 @@ public struct GuardModifier<C: Component>: Modifier {
 extension GuardModifier: Visitable {
     func visit(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(GuardContextKey.self, value: [`guard`], scope: .environment)
-        component.visit(visitor)
+        endpoint.visit(visitor)
     }
 }
 
 
-extension Component {
+extension EndpointNode {
     /// Use an asynchronous `Guard` to guard `Component`s by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`

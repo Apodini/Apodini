@@ -37,7 +37,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         super.init(app)
     }
 
-    override func register<C: Component>(component: C, withContext context: Context) {
+    override func register<C: EndpointNode>(component: C, withContext context: Context) {
         super.register(component: component, withContext: context)
 
         let operation = context.get(valueFor: OperationContextKey.self)
@@ -106,7 +106,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         fatalError("Shared model is unable to deal with .decode")
     }
 
-    static func createRequestHandlerBuilder<C: Component>(with component: C, guards: [LazyGuard] = [], responseModifiers: [() -> (AnyResponseTransformer)] = [])
+    static func createRequestHandlerBuilder<C: EndpointNode>(with component: C, guards: [LazyGuard] = [], responseModifiers: [() -> (AnyResponseTransformer)] = [])
                     -> (RequestInjectableDecoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         { (decoder: RequestInjectableDecoder) in
             { (request: Vapor.Request) in

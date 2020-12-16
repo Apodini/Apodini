@@ -15,7 +15,7 @@ class SemanticModelBuilder: RequestInjectableDecoder {
         self.app = app
     }
     
-    func register<C: Component>(component: C, withContext context: Context) {
+    func register<C: EndpointNode>(component: C, withContext context: Context) {
         // Overwritten by subclasses of the SemanticModelBuilder
     }
 

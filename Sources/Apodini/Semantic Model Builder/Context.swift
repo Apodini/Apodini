@@ -22,7 +22,7 @@ class Context {
     }
 
     @available(*, deprecated, message: "To be replaced by the `requestHandlerBuilder` in the Endpoint model. See SharedSemanticModelBuilder")
-    func createRequestHandler<C: Component>(withComponent component: C, using decoder: SemanticModelBuilder)
+    func createRequestHandler<C: EndpointNode>(withComponent component: C, using decoder: SemanticModelBuilder)
     -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         { (request: Vapor.Request) in
             let guardEventLoopFutures = self.contextNode.getContextValue(for: GuardContextKey.self)

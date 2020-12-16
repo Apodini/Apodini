@@ -44,7 +44,7 @@ private func extractRequestInjectables(from subject: Any) -> [String: RequestInj
     }
 }
 
-extension Component {
+extension EndpointNode {
     func extractRequestInjectables() -> [String: RequestInjectable] {
         Apodini.extractRequestInjectables(from: self)
     }
@@ -60,7 +60,6 @@ extension Vapor.Request {
                     -> EventLoopFuture<R> {
         var element = element
         inject(in: &element, using: decoder)
-
         return method(element)
     }
 
@@ -83,7 +82,7 @@ extension Vapor.Request {
                 }
             }
         } catch {
-            fatalError("Injecting into element \(element) failed.")
+            fatalError("Injecting into element \(element) failed: \(error)")
         }
     }
 }

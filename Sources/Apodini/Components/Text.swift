@@ -8,10 +8,9 @@
 import Vapor
 
 
-public struct Text: Component {
+public struct Text: EndpointNode {
     private let text: String
-
-
+    
     public init(_ text: String) {
         self.text = text
     }

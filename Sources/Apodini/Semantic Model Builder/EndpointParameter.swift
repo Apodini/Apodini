@@ -51,7 +51,7 @@ class ParameterBuilder: RequestInjectableVisitor {
 
     var parameters: [EndpointParameter] = []
 
-    init<C: Component>(from component: C) {
+    init<C: EndpointNode>(from component: C) {
         self.requestInjectables = component.extractRequestInjectables()
     }
 

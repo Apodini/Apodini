@@ -10,25 +10,66 @@ extension SyntaxTreeVisitor {
         Allows you to visit an object that you know implements Component, even if you don't know the concrete type at compile time.
      */
     func unsafeVisitAny(_ value: Any) throws {
-        let associatedTypeRequirementsVisitor = StandardComponentVisitor(visitor: self)
-        if associatedTypeRequirementsVisitor(value) == nil {
-            throw Error.attemptedToVisitNoneComponent(value, visitor: self)
+        var didVisitAsEndpointProvidingNode = false
+        EndpointProviderVisitorHelperImpl(visitor: self) {
+            didVisitAsEndpointProvidingNode = true
+        }(value)
+        
+        guard !didVisitAsEndpointProvidingNode else {
+            return
         }
+        
+        var didVisitAsEndpointNode = false
+        EndpointVisitorHelperImpl(visitor: self) {
+            didVisitAsEndpointNode = true
+        }(value)
+        
+        guard !didVisitAsEndpointNode else {
+            return
+        }
+        
+        throw Error.attemptedToVisitNoneComponent(value, visitor: self)
     }
 }
 
-private protocol ComponentAssociatedTypeRequirementsVisitor: AssociatedTypeRequirementsVisitor {
-    associatedtype Visitor = ComponentAssociatedTypeRequirementsVisitor
-    associatedtype Input = Component
+
+
+
+private protocol EndpointProviderVisitorHelperImplBase: AssociatedTypeRequirementsVisitor {
+    associatedtype Visitor = EndpointProviderVisitorHelperImplBase
+    associatedtype Input = EndpointProvidingNode
     associatedtype Output
 
-    func callAsFunction<T: Component>(_ value: T) -> Output
+    func callAsFunction<T: EndpointProvidingNode>(_ value: T) -> Output
 }
 
-private struct StandardComponentVisitor: ComponentAssociatedTypeRequirementsVisitor {
+private struct EndpointProviderVisitorHelperImpl: EndpointProviderVisitorHelperImplBase {
     let visitor: SyntaxTreeVisitor
+    let didVisitHandler: () -> Void
 
-    func callAsFunction<T: Component>(_ value: T) {
+    func callAsFunction<T: EndpointProvidingNode>(_ value: T) {
         value.visit(visitor)
+        didVisitHandler()
+    }
+}
+
+
+
+
+private protocol EndpointVisitorHelperImplBase: AssociatedTypeRequirementsVisitor {
+    associatedtype Visitor = EndpointVisitorHelperImplBase
+    associatedtype Input = EndpointNode
+    associatedtype Output
+
+    func callAsFunction<T: EndpointNode>(_ value: T) -> Output
+}
+
+private struct EndpointVisitorHelperImpl: EndpointVisitorHelperImplBase {
+    let visitor: SyntaxTreeVisitor
+    let didVisitHandler: () -> Void
+
+    func callAsFunction<T: EndpointNode>(_ value: T) {
+        value.visit(visitor)
+        didVisitHandler()
     }
 }

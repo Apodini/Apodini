@@ -54,6 +54,9 @@ class ContextNode {
             //
             // As we expect that Components is using `2` based on the modifers we pass the `value` as the existing
             // value and `currentLocalValue` as the new value to take advantage of the reduce function.
+            print("currentLocalValue", currentLocalValue)
+            print("getNodeOnlyContextValue", getNodeOnlyContextValue(for: C.self))
+            print("getNodeOnlyContextValue", getNodeContextValue(for: C.self))
             var value = value
             C.reduce(value: &value) {
                 currentLocalValue

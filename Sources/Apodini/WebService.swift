@@ -9,8 +9,10 @@ import Vapor
 import Fluent
 import FluentMongoDriver
 
+
+
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
-public protocol WebService: Component, ConfigurationCollection {
+public protocol WebService: EndpointProvidingNode, ConfigurationCollection {
     /// The current version of the `WebService`
     var version: Version { get }
     
@@ -23,21 +25,28 @@ extension WebService {
     /// This function is executed to start up an Apodini `WebService`
     public static func main() {
         do {
+            
             let environmentName = try Environment.detect().name
             var env = Environment(name: environmentName, arguments: ["vapor"])
             try LoggingSystem.bootstrap(from: &env)
             let app = Application(env)
 
             let webService = Self()
+            
+            
+            let SSMBuilder = SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self)
 
             webService.register(
-                SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self),
+                SSMBuilder,
+                //SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self),
                 GraphQLSemanticModelBuilder(app),
                 GRPCSemanticModelBuilder(app),
                 WebSocketSemanticModelBuilder(app)
             )
 
             webService.configuration.configure(app)
+            
+            SSMBuilder.webService.lk_entryPoint()
 
             defer {
                 app.shutdown()

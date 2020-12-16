@@ -14,7 +14,7 @@ import Fluent
 
 
 final class ThreadSafetyTests: ApodiniTests {
-    struct Greeter: Component {
+    struct Greeter: EndpointNode {
         @_Request
         var req: Vapor.Request
         

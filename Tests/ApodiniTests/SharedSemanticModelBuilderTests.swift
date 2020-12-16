@@ -24,7 +24,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         app.shutdown()
     }
     
-    struct TestHandler: Component {
+    struct TestHandler: EndpointNode {
         @Parameter
         var name: String
         
@@ -33,7 +33,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         }
     }
     
-    struct TestHandler2: Component {
+    struct TestHandler2: EndpointNode {
         @Parameter
         var name: String
         
@@ -45,7 +45,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         }
     }
     
-    struct TestHandler3: Component {
+    struct TestHandler3: EndpointNode {
         @Parameter("someOtherId", .http(.path))
         var id: Int
         
@@ -54,11 +54,11 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         }
     }
     
-    struct TestComponent: Component {
+    struct TestComponent: EndpointProvidingNode {
         @PathParameter
         var name: String
         
-        var content: some Component {
+        var content: some EndpointProvidingNode {
             Group("a") {
                 Group("b", $name) {
                     TestHandler(name: $name)
