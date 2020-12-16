@@ -46,7 +46,7 @@ struct TestWebService: Apodini.WebService {
         var dynamics: Dynamics = ["surname": Parameter<String?>()]
         
         func handle() -> String {
-            let surnameParameter: Parameter<String?>? = dynamics["surname"]
+            let surnameParameter: Parameter<String?>? = dynamics.surname
             
             return (name ?? "Unknown") + " " + (surnameParameter?.wrappedValue ?? "Unknown")
         }

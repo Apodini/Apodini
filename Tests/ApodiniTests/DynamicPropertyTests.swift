@@ -35,12 +35,12 @@ final class DynamicPropertyTests: ApodiniTests {
         ]
         
         var allParameters: String {
-            let e: Param<String>? = efg["e"]
-            let fgWrapper: Dynamics? = efg["fgWrapper"]
+            let e: Param<String>? = efg.e
+            let fgWrapper: Dynamics? = efg.fgWrapper
             
-            let f: Param<String>? = fgWrapper?["f"]
+            let f: Param<String>? = fgWrapper?.f
             
-            let g: G? = fgWrapper?["g"]
+            let g: G? = fgWrapper?.g
             
             return "\(a ?? "")\(bcd)\(e?.wrappedValue ?? "")\(f?.wrappedValue ?? "")\(g?.wrappedValue ?? "")"
         }
@@ -53,7 +53,7 @@ final class DynamicPropertyTests: ApodiniTests {
         @D var d: String
         
         var wrappedValue: String {
-            let c: Param<String>? = dynamics["c"]
+            let c: Param<String>? = dynamics.c
             return "\(b ?? "")\(c?.wrappedValue ?? "")\(d)"
         }
     }
