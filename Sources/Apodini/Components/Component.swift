@@ -32,10 +32,14 @@ public protocol Component {
 }
 
 extension Component {
+    /// The default implementation simply wraps results from
+    /// `handle() -> Self.Response` into `.final(..)`.
     public func handle() -> Action<Self.Response> {
-        return .final(handle())
+        .final(handle())
     }
 
+    /// Either this function or `handle() -> Action<Self.Response>`
+    /// have to be overwritten.
     public func handle() -> Self.Response {
         fatalError("Either handle() -> Encodable or handle() -> Action<Encodable> have to be implemented")
     }

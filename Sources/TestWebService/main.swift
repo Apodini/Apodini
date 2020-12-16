@@ -48,7 +48,7 @@ struct TestWebService: Apodini.WebService {
         @Parameter("body", .http(.body))
         var body: Data
 
-        public func handle() -> Action<String> {
+        func handle() -> Action<String> {
             switch connection.state {
             case .end:
                 return .final("Hello stranger")
