@@ -29,7 +29,11 @@ jobs:
     - name: Build
       run: swift build --build-tests
     - name: Test
-      run: swift test
+      run: swift test --enable-code-coverage
+    - name: Convert coverage report
+      run: xcrun llvm-cov export -format="lcov" .build/debug/ApodiniPackageTests.xctest/Contents/MacOS/ApodiniPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage.lcov
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
   linux:
     container:
       image: swift:${{ matrix.linux }}

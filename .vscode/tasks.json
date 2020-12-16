@@ -1,0 +1,14 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "swift build --build-tests --enable-test-discovery -Xswiftc -g -Xswiftc -Xfrontend -Xswiftc -serialize-debugging-options",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
