@@ -1,8 +1,13 @@
 // swiftlint:disable all
 // This file was automatically generated and should not be edited.
 %{
+    import itertools
+
     # Edit this if you want to include more components in a single tuple component
-    maximumNumberOfComponents = 100
+    max_component_count = 3
+    
+    component_types = ['EndpointNode', 'EndpointProvidingNode']
+    all_permutations = itertools.chain(*[itertools.product(component_types, repeat=i) for i in range(2, max_component_count + 1)])
 }%
 
 @_functionBuilder
@@ -16,40 +21,34 @@ public struct EndpointProvidingNodeBuilder {
     }
     
     public static func buildBlock<Endpoint: EndpointNode>(_ endpoint: Endpoint) -> some EndpointProvidingNode {
-        return _WrappedEndpoint(endpoint: endpoint)
-    }
-    
-    % for numberOfComponents in range(2, maximumNumberOfComponents + 1):
-    %{ componentGenerics = ", ".join(["C" + str(i) + " : EndpointProvidingNode" for i in range(1, numberOfComponents + 1)]) }%
-    %{ arguments = ", ".join(["_ c" + str(i) + ": C" + str(i) + "" for i in range(1, numberOfComponents + 1)]) }%
-    %{ tupleGenerics = ", ".join(["C" + str(i) + "" for i in range(1, numberOfComponents + 1)]) }%
-    %{ components = ", ".join(["c" + str(i) for i in range(1, numberOfComponents + 1)]) }%
-    public static func buildBlock<${componentGenerics}>(${arguments}) -> TupleComponent<(${tupleGenerics})> {
-        return TupleComponent((${components}))
+        return _WrappedEndpoint(endpoint)
     }
 
-    % end
-    
-    % for numberOfComponents in range(2, maximumNumberOfComponents + 1):
-    %{ componentGenerics = ", ".join(["C" + str(i) + " : EndpointNode" for i in range(1, numberOfComponents + 1)]) }%
-    %{ arguments = ", ".join(["_ c" + str(i) + ": C" + str(i) + "" for i in range(1, numberOfComponents + 1)]) }%
-    %{ tupleGenerics = ", ".join(["C" + str(i) + "" for i in range(1, numberOfComponents + 1)]) }%
-    %{ components = ", ".join(["c" + str(i) for i in range(1, numberOfComponents + 1)]) }%
-    public static func buildBlock<${componentGenerics}>(${arguments}) -> TupleComponent<(${tupleGenerics})> {
-        return TupleComponent((${components}))
-    }
-
-    % end
-    
-    public static func buildEither<C: EndpointProvidingNode>(first: C) -> C {
+    public static func buildEither<T: EndpointProvidingNode>(first: T) -> T {
         first
     }
     
-    public static func buildEither<C: EndpointProvidingNode>(second: C) -> C {
+    public static func buildEither<T: EndpointProvidingNode>(second: T) -> T {
         second
     }
     
-    public static func buildIf<C: EndpointProvidingNode>(_ component: C?) -> C? {
+    public static func buildIf<T: EndpointProvidingNode>(_ component: T?) -> T? {
         component
     }
+
+    
+    % for permutation in all_permutations:
+    %{  indices = list(range(0, len(permutation)))  }%
+    %{  arg_needs_wrapping = [name == 'EndpointNode' for name in permutation]  }%
+    %{  generic_names_in = ['T{}'.format(idx) for idx in indices]  }%
+    %{  generic_names_out = [('T{}'.format(idx) if not arg_needs_wrapping[idx] else '_WrappedEndpoint<T{}>'.format(idx)) for idx in indices]  }%
+    %{  param_names = ['arg{}'.format(idx) for idx in range(len(permutation))]  }%
+    %{  generics = ', '.join(['{}: {}'.format(generic_name, type_name) for generic_name, type_name in zip(generic_names_in, permutation)])  }%
+    %{  params = ', '.join(['_ {}: {}'.format(name, type) for name, type in zip(param_names, generic_names_in)])  }%
+    %{  tuple_ctor_args =  [(name if not arg_needs_wrapping[idx] else '_WrappedEndpoint({})'.format(name)) for idx, name in enumerate(param_names)]  }%
+    public static func buildBlock<${generics}>(${params}) -> some EndpointProvidingNode {
+        return TupleComponent<(${', '.join(generic_names_out)})>((${', '.join(tuple_ctor_args)}))
+    }
+
+    % end
 }

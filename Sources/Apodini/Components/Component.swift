@@ -57,7 +57,6 @@ extension EndpointNode {
         } else {
             visitor.register(component: self)
         }
-            
     }
 }
 
