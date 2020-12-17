@@ -340,8 +340,6 @@ As this might not always be given, one can also annotate that explicitly using t
 
 #### 3.3.2 Explicitly
 
-[//]: # "// TODO should we be able to model ForeignKeys with property wrappers, stuff like @Parent should also be parsed"
-
 ##### 3.3.2.1 Relationship Definition: `References`
 
 For this chapter we consider the following example:
@@ -558,9 +556,18 @@ struct MeUser: Identifiable, WithRelationships {
 }
 ```
 
-### 4.2. 
+### 4.2. Discussion: DSL vs. Property Wrapper
 
-[//]: # "// TODO explain why we couldn't use @ForeignKey (and @Parent)"
+The draft version of this document proposed that instead of using a DSL approach for the two relationship definitions
+`References` and `Inherits` we could use property wrappers to annotate those properties which hold the `Identifiable.ID`
+value for the referenced type.  
+This would be for one pretty elegant, but we could also treat Fluents `@Parent` the same way as a `@References`.
+
+However this approach doesn't meet our requirements.  
+Relationship information must be available at startup, so e.g. GraphQL can create its query schema.
+Information stored in property wrappers can only be inspected when having a instance of that type
+(and experiments (ab)using `createInstance` of the Runtime frame have failed).  
+Consequentially we can't use Property Wrappers.
 
 ### 4.3. Thought experiment: Reverse lookup for relationship definitions
 
