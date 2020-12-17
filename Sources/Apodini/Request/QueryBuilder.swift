@@ -21,7 +21,7 @@ public struct QueryBuilder<Model: DatabaseModel> {
     private var parameters: [FieldKey: String] {
         var _parameters: [FieldKey: String] = [:]
         let queryParts = queryString.split(separator: "&").map({ String($0) })
-        for (index,part) in queryParts.enumerated() {
+        for part in queryParts {
             let queryParameters = part.split(separator: "=").map({ String($0) })
             guard queryParameters.count == 2 else { fatalError("invalid query") }
             let key = queryParameters[0]

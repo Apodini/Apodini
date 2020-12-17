@@ -54,6 +54,8 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
+    @PathParameter
+    var birdID: Bird.IDValue
     
     var content: some Component {
         Text("Hello World! 👋")
@@ -72,26 +74,14 @@ struct TestWebService: Apodini.WebService {
             Greeter()
         }
         Group("api", "birds") {
-            Group("create") {
-                Create<Bird>()
-                    .operation(.create)
-            }
-//            Group("get", ":id") {
-//                Get<Bird>()
-//                    .operation(.read)
-//            }
-            Group("get", "?query") {
-                Get<Bird>()
-                    .operation(.read)
-            }
-            Group("update", ":id") {
-                Update<Bird>()
-                    .operation(.update)
+            Create<Bird>()
+                .operation(.create)
+            Group($birdID) {
+                Get<Bird>(id: $birdID).operation(.read)
+                Update<Bird>(id: $birdID).operation(.update)
             }
         }
     }
-    
-    @PathParameter var itemId: Bird.IDValue
     
     var configuration: Configuration {
         DatabaseConfiguration(.defaultMongoDB(Environment.get("DATABASE_URL") ?? "mongodb://localhost:27017/vapor_database"))

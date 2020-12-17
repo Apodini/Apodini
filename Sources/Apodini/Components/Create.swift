@@ -21,11 +21,6 @@ public struct Create<T: DatabaseModel>: Component where T.IDValue == UUID {
     var object: T
 
     public func handle() -> EventLoopFuture<T> {
-        let string = String(format: """
-        HTTP/POST
-        Request called on: %@
-        DatabaseModel used: %@
-        """, "request.url.string", object.description)
         return object.save(on: database).map({ _ in
             self.object
         })
@@ -42,18 +37,15 @@ public struct Get<T: DatabaseModel>: Component where T.IDValue: LosslessStringCo
     @_Request
     var request: Vapor.Request
     
-//    @Parameter var id: T.IDValue
-//    @Param_Id<T>
-//    var id: T.IDValue
-    
-    @_Query
-    var queryString: String
-    
+    @Parameter var id: T.IDValue
+
     public func handle() -> EventLoopFuture<[T]> {
-        let queryBuilder = Apodini.QueryBuilder(type: T.self, queryString: queryString)
-        return queryBuilder.execute(on: database)
+        if let queryString = request.url.query {
+            let queryBuilder = Apodini.QueryBuilder(type: T.self, queryString: queryString)
+            return queryBuilder.execute(on: database)
+        }
+        return T.find(id, on: database).unwrap(or: Abort(.notFound)).map({ [$0] })
     }
-    public init() {}
 }
 
 public struct Update<T: DatabaseModel>: Component where T.IDValue: LosslessStringConvertible {
@@ -61,21 +53,11 @@ public struct Update<T: DatabaseModel>: Component where T.IDValue: LosslessStrin
     @_Database
     var database: Fluent.Database
     
-    @_Request
-    var request: Vapor.Request
+    @Parameter var object: T
     
-    @Apodini.Body
-    var object: T
-    
-    @Param_Id<T>
-    var id: T.IDValue
+    @Parameter var id: T.IDValue
     
     public func handle() -> EventLoopFuture<T> {
-        let string = String(format: """
-        HTTP/POST
-        Request called on: %@
-        DatabaseModel used: %@
-        """, request.url.string, object.description)
         return T.find(id, on: database).flatMapThrowing({ model -> T in
             model?.update(object)
             return model!
@@ -83,8 +65,6 @@ public struct Update<T: DatabaseModel>: Component where T.IDValue: LosslessStrin
             model.update(on: database).map({ model })
         })
     }
-    
-    public init() {}
 }
 
 public struct Delete<T: DatabaseModel>: Component {
