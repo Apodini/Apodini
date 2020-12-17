@@ -4,12 +4,36 @@
 
 import Vapor
 
+class WebServiceModel {
+    fileprivate let root: EndpointsTreeNode = EndpointsTreeNode(path: RootPath())
+    fileprivate var finishedParsing = false
+
+    lazy var rootEndpoints: [Endpoint] = {
+        if !finishedParsing {
+            fatalError("rootEndpoints of the WebServiceModel was accessed before parsing was finished!")
+        }
+        return root.endpoints.map { _, endpoint -> Endpoint in endpoint }
+    }()
+    var relationships: [EndpointRelationship] {
+        root.relationships
+    }
+
+    fileprivate func addEndpoint(_ endpoint: inout Endpoint, at paths: [PathComponent]) {
+        root.addEndpoint(&endpoint, at: paths)
+    }
+}
+
 class SharedSemanticModelBuilder: SemanticModelBuilder {
     private var interfaceExporters: [InterfaceExporter]
-    var endpointsTreeRoot: EndpointsTreeNode?
+
+    var webService: WebServiceModel
+    var rootNode: EndpointsTreeNode
 
     init(_ app: Application, interfaceExporters: InterfaceExporter.Type...) {
         self.interfaceExporters = interfaceExporters.map { exporterType in exporterType.init(app) }
+        webService = WebServiceModel()
+        rootNode = webService.root // used to provide the unit test a reference to the root of the tree
+
         super.init(app)
     }
 
@@ -21,48 +45,91 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         let guards = context.get(valueFor: GuardContextKey.self)
         let responseModifiers = context.get(valueFor: ResponseContextKey.self)
 
-        let requestInjectables = component.extractRequestInjectables()
+        let parameterBuilder = ParameterBuilder(from: component)
+        parameterBuilder.build()
+
+        for parameter in parameterBuilder.parameters {
+            if parameter.parameterType == .path && !paths.contains(where: { ($0 as? _PathComponent)?.description == ":\(parameter.id)" }) {
+                if let pathComponent = parameterBuilder.requestInjectables[parameter.label] as? _PathComponent {
+                    paths.append(pathComponent)
+                }
+            }
+        }
+
+        let requestHandlerBuilder = SharedSemanticModelBuilder.createRequestHandlerBuilder(with: component, guards: guards, responseModifiers: responseModifiers)
+
+        let handleReturnType = C.Response.self
+        var responseType: ResponseEncodable.Type {
+            guard let lastResponseTransformer = responseModifiers.last else {
+                return handleReturnType
+            }
+            return lastResponseTransformer().transformedResponseType
+        }
 
         var endpoint = Endpoint(
                 description: String(describing: component),
                 context: context,
                 operation: operation,
-                guards: guards,
-                requestInjectables: requestInjectables,
-                handleMethod: component.handle,
-                responseTransformers: responseModifiers,
-                handleReturnType: C.Response.self
+                requestHandlerBuilder: requestHandlerBuilder,
+                handleReturnType: C.Response.self,
+                responseType: responseType,
+                parameters: parameterBuilder.parameters
         )
 
-        if endpointsTreeRoot == nil {
-            endpointsTreeRoot = EndpointsTreeNode(path: RootPath())
-        }
-
-        for parameter in endpoint.parameters {
-            let pathDescription = ":\(parameter.id)"
-            if parameter.parameterType == .path && !paths.contains(where: { ($0 as? _PathComponent)?.description == pathDescription }) {
-                paths.append(pathDescription)
-            }
-        }
-        // swiftlint:disable:next force_unwrapping
-        endpointsTreeRoot!.addEndpoint(&endpoint, at: paths)
+        webService.addEndpoint(&endpoint, at: paths)
     }
 
-    override func finishedProcessing() {
-        super.finishedProcessing()
+    override func finishedRegistration() {
+        super.finishedRegistration()
 
-        guard let node = endpointsTreeRoot else {
-            return
-        }
+        webService.finishedParsing = true
 
-        node.printTree() // currently only for debugging purposes
+        webService.root.printTree() // currently only for debugging purposes
 
         for exporter in interfaceExporters {
-            exporter.export(node)
+            call(exporter: exporter, for: webService.root)
+            exporter.finishedExporting(webService)
+        }
+    }
+
+    private func call(exporter: InterfaceExporter, for node: EndpointsTreeNode) {
+        for (_, endpoint) in node.endpoints {
+            exporter.export(endpoint)
+        }
+
+        for child in node.children {
+            call(exporter: exporter, for: child)
         }
     }
 
     override func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
         fatalError("Shared model is unable to deal with .decode")
+    }
+
+    static func createRequestHandlerBuilder<C: Component>(with component: C, guards: [LazyGuard] = [], responseModifiers: [() -> (AnyResponseTransformer)] = [])
+                    -> (RequestInjectableDecoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+        { (decoder: RequestInjectableDecoder) in
+            { (request: Vapor.Request) in
+                let guardEventLoopFutures = guards.map { guardClosure in
+                    request.enterRequestContext(with: guardClosure(), using: decoder) { requestGuard in
+                        requestGuard.executeGuardCheck(on: request)
+                    }
+                }
+                return EventLoopFuture<Void>
+                        .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
+                        .flatMap { _ in
+                            request.enterRequestContext(with: component, using: decoder) { component in
+                                var response: ResponseEncodable = component.handle()
+
+                                for responseTransformer in responseModifiers {
+                                    response = request.enterRequestContext(with: responseTransformer(), using: decoder) { responseTransformer in
+                                        responseTransformer.transform(response: response)
+                                    }
+                                }
+                                return response.encodeResponse(for: request)
+                            }
+                        }
+            }
+        }
     }
 }

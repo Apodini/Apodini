@@ -45,7 +45,7 @@ struct IntModifier<ModifiedComponent: Component>: Modifier, Visitable {
         self.value = value
     }
 
-    func visit(_ visitor: SynaxTreeVisitor) {
+    func visit(_ visitor: SyntaxTreeVisitor) {
         switch scope {
         case .environment:
             visitor.addContext(IntEnvironmentContextKey.self, value: value, scope: .environment)
@@ -109,7 +109,7 @@ final class ContextNodeTests: XCTestCase {
             }
         }
 
-        let visitor = SynaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
         groupWithSingleComponent.visit(visitor)
     }
     
@@ -147,7 +147,7 @@ final class ContextNodeTests: XCTestCase {
             }
         }
 
-        let visitor = SynaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
         groupWithComponentAndGroup.visit(visitor)
     }
     
@@ -184,7 +184,7 @@ final class ContextNodeTests: XCTestCase {
             }
         }
 
-        let visitor = SynaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
         groupWithGroupAndComponent.visit(visitor)
     }
 }
