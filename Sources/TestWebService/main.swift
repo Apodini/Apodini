@@ -44,7 +44,10 @@ struct TestWebService: Apodini.WebService {
     struct Greeter: Component {
         @_Request
         var req: Vapor.Request
-        
+
+        @Parameter("name", .http(.path))
+        var name: String
+
         func handle() -> String {
             do {
                 return try req.query.get(at: "name")
