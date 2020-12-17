@@ -4,51 +4,81 @@
     import itertools
 
     # Edit this if you want to include more components in a single tuple component
-    max_component_count = 3
-    
+    max_homogeneous_component_count = 100
+
+    # Max number of mixed-content components we should generate code for
+    max_heterogeneous_component_size = 8
+
     component_types = ['EndpointNode', 'EndpointProvidingNode']
-    all_permutations = itertools.chain(*[itertools.product(component_types, repeat=i) for i in range(2, max_component_count + 1)])
 }%
 
 @_functionBuilder
 public struct EndpointProvidingNodeBuilder {
-    //public static func buildBlock() -> EmptyComponent {
-    //    EmptyComponent()
-    //}
-    
-    public static func buildBlock<Content: EndpointProvidingNode>(_ content: Content) -> Content {
-        content
-    }
-    
-    public static func buildBlock<Endpoint: EndpointNode>(_ endpoint: Endpoint) -> some EndpointProvidingNode {
-        return _WrappedEndpoint(endpoint)
-    }
-
-    public static func buildEither<T: EndpointProvidingNode>(first: T) -> T {
-        first
-    }
-    
-    public static func buildEither<T: EndpointProvidingNode>(second: T) -> T {
-        second
-    }
-    
     public static func buildIf<T: EndpointProvidingNode>(_ component: T?) -> T? {
-        component
+        return component
     }
 
+
+    // MARK: Heterogeneous builder functions
     
+%{
+    all_permutations = itertools.chain(*[itertools.product(component_types, repeat=i) for i in range(2, max_heterogeneous_component_size + 1)])
+    all_permutations = [p for p in all_permutations if len(set(p)) == len(p)]
+}%
+
     % for permutation in all_permutations:
-    %{  indices = list(range(0, len(permutation)))  }%
-    %{  arg_needs_wrapping = [name == 'EndpointNode' for name in permutation]  }%
-    %{  generic_names_in = ['T{}'.format(idx) for idx in indices]  }%
-    %{  generic_names_out = [('T{}'.format(idx) if not arg_needs_wrapping[idx] else '_WrappedEndpoint<T{}>'.format(idx)) for idx in indices]  }%
-    %{  param_names = ['arg{}'.format(idx) for idx in range(len(permutation))]  }%
-    %{  generics = ', '.join(['{}: {}'.format(generic_name, type_name) for generic_name, type_name in zip(generic_names_in, permutation)])  }%
-    %{  params = ', '.join(['_ {}: {}'.format(name, type) for name, type in zip(param_names, generic_names_in)])  }%
-    %{  tuple_ctor_args =  [(name if not arg_needs_wrapping[idx] else '_WrappedEndpoint({})'.format(name)) for idx, name in enumerate(param_names)]  }%
+%{
+        indices = list(range(0, len(permutation)))
+        arg_needs_wrapping = [name == 'EndpointNode' for name in permutation]
+        generic_names_in = ['T{}'.format(idx) for idx in indices]
+        generic_names_out = [('T{}'.format(idx) if not arg_needs_wrapping[idx] else '_WrappedEndpoint<T{}>'.format(idx)) for idx in indices]
+        param_names = ['arg{}'.format(idx) for idx in indices]
+        generics = ', '.join(['{}: {}'.format(generic_name, type_name) for generic_name, type_name in zip(generic_names_in, permutation)])
+        params = ', '.join(['_ {}: {}'.format(name, type) for name, type in zip(param_names, generic_names_in)])
+        tuple_ctor_args =  [(name if not arg_needs_wrapping[idx] else '_WrappedEndpoint({})'.format(name)) for idx, name in enumerate(param_names)]
+}%
     public static func buildBlock<${generics}>(${params}) -> some EndpointProvidingNode {
         return TupleComponent<(${', '.join(generic_names_out)})>((${', '.join(tuple_ctor_args)}))
     }
 
+    % end
+
+
+
+    // MARK: Homogeneous builder functions
+
+    % for component_type in component_types:
+    %{ needs_wrapping = component_type == 'EndpointNode' }%
+    
+    public static func buildBlock<T: ${component_type}>(_ arg0: T) -> ${'T' if not needs_wrapping else 'some EndpointProvidingNode'} {
+        return ${'arg0' if not needs_wrapping else '_WrappedEndpoint(arg0)'}
+    }
+
+    public static func buildEither<T: ${component_type}>(first: T) -> ${'T' if not needs_wrapping else 'some EndpointProvidingNode'} {
+        return ${'first' if not needs_wrapping else '_WrappedEndpoint(first)'}
+    }
+    
+    public static func buildEither<T: ${component_type}>(second: T) -> ${'T' if not needs_wrapping else 'some EndpointProvidingNode'} {
+        return ${'second' if not needs_wrapping else '_WrappedEndpoint(second)'}
+    }
+
+    public static func buildIf<T: ${component_type}>(first: T) -> ${'T' if not needs_wrapping else 'some EndpointProvidingNode'} {
+        return ${'first' if not needs_wrapping else '_WrappedEndpoint(first)'}
+    }
+
+      % for num_components in range(2, max_homogeneous_component_count):
+%{
+        indices = range(0, num_components)
+        generic_names_in = ['T{}'.format(idx) for idx in indices]
+        generics = ', '.join(['{}: {}'.format(name, component_type) for name in generic_names_in])
+        generic_names_out = [('T{}'.format(idx) if not needs_wrapping else '_WrappedEndpoint<T{}>'.format(idx)) for idx in indices]
+        param_names = ['arg{}'.format(idx) for idx in indices]
+        params = ', '.join(['_ {}: {}'.format(param, type) for param, type in zip(param_names, generic_names_in)])
+        tuple_ctor_args =  [(name if not needs_wrapping else '_WrappedEndpoint({})'.format(name)) for name in param_names]
+}%
+    public static func buildBlock<${generics}>(${params}) -> some EndpointProvidingNode {
+        return TupleComponent<(${', '.join(generic_names_out)})>((${', '.join(tuple_ctor_args)}))
+    }
+      % end
     % end
 }
