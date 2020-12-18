@@ -68,7 +68,7 @@ struct RESTRequest: Request {
 
     init(_ vaporRequest: Vapor.Request, parameterDecoder: @escaping (UUID) -> Codable?) {
         self.eventLoop = vaporRequest.eventLoop
-        self.database = nil
+        self.database = vaporRequest.db
         self.parameterDecoder = parameterDecoder
     }
 

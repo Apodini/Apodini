@@ -16,9 +16,8 @@ final class GuardTests: XCTestCase {
         var request: Apodini.Request
         
         func check() {
-            if let request = request as? Vapor.Request {
-                request.logger.info("Execute Guard")
-            }
+            // To Do: fix this
+            //request.logger.info("Execute Guard")
         }
     }
     
