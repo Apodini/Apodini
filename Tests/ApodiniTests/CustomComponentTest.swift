@@ -1,5 +1,5 @@
 //
-//  CustomCompoentTest.swift
+//  CustomComponentTest.swift
 //
 //
 //  Created by Paul Schmiedmayer on 6/27/20.
@@ -29,6 +29,17 @@ final class CustomComponentTests: ApodiniTests {
                 }
         }
     }
+
+    class JSONSemanticModelBuilder: SemanticModelBuilder {
+        override func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
+            guard let byteBuffer = request.body.data,
+                  let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
+                throw Vapor.Abort(.internalServerError, reason: "Could not read the HTTP request's body")
+            }
+
+            return try JSONDecoder().decode(type, from: data)
+        }
+    }
     
     
     func testComponentCreation() throws {
@@ -38,7 +49,7 @@ final class CustomComponentTests: ApodiniTests {
         let request = Request(application: app, collectedBody: birdData, on: app.eventLoopGroup.next())
         
         let response = try request
-            .enterRequestContext(with: AddBirdsComponent(), using: RESTSemanticModelBuilder(app)) { component in
+            .enterRequestContext(with: AddBirdsComponent(), using: JSONSemanticModelBuilder(app)) { component in
                 component.handle().encodeResponse(for: request)
             }
             .wait()

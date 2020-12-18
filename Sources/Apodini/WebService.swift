@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  WebService.swift
 //  
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
@@ -9,9 +9,9 @@ import Vapor
 import Fluent
 import FluentMongoDriver
 
-/// Each Apodini program conists of a `WebService`component that is used to describe the Web API of the Web Service
+/// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
 public protocol WebService: Component, ConfigurationCollection {
-    /// The currennt version of the `WebService`
+    /// The current version of the `WebService`
     var version: Version { get }
     
     /// An empty initializer used to create an Apodini `WebService`
@@ -20,24 +20,25 @@ public protocol WebService: Component, ConfigurationCollection {
 
 
 extension WebService {
-    /// This function is exectured to start up an Apodini `WebService`
+    /// This function is executed to start up an Apodini `WebService`
     public static func main() {
         do {
-            var env = try Vapor.Environment.detect()
+            let environmentName = try Vapor.Environment.detect().name
+            var env = Vapor.Environment(name: environmentName, arguments: ["vapor"])
             try LoggingSystem.bootstrap(from: &env)
             let app = Application(env)
-            
+
             let webService = Self()
-            
+
             webService.register(
-                RESTSemanticModelBuilder(app),
+                SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self),
                 GraphQLSemanticModelBuilder(app),
                 GRPCSemanticModelBuilder(app),
                 WebSocketSemanticModelBuilder(app)
             )
-            
+
             webService.configuration.configure(app)
-            
+
             defer {
                 app.shutdown()
             }
@@ -63,11 +64,11 @@ extension WebService {
 
 extension WebService {
     func register(_ semanticModelBuilders: SemanticModelBuilder...) {
-        let visitor = SynaxTreeVisitor(semanticModelBuilders: semanticModelBuilders)
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: semanticModelBuilders)
         self.visit(visitor)
     }
     
-    private func visit(_ visitor: SynaxTreeVisitor) {
+    private func visit(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(APIVersionContextKey.self, value: version, scope: .environment)
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
         Group {

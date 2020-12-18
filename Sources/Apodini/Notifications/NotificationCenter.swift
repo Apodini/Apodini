@@ -244,7 +244,7 @@ public class NotificationCenter {
     ///
     /// - Returns: An `EventLoopFuture` to indicate the completion of the operation.
     @discardableResult
-    public func send<T: Encodable>(notification: Notification, with data: T, to topic: String) -> EventLoopFuture<[Void]> {
+    public func send<T: Encodable>(notification: Notification, with data: T, to topic: String) -> EventLoopFuture<Void> {
         let fcmNotification = notification.transformToFCM(with: data)
         let apnsNotification = notification.transformToAPNS(with: data)
         

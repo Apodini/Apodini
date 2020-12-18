@@ -64,6 +64,9 @@ struct TestWebService: Apodini.WebService {
             Text("Hello Swift! 💻")
                 .response(EmojiMediator())
                 .guard(PrintGuard())
+            Group("5", "3") {
+                Text("Hello Swift 5! 💻")
+            }
         }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
         Group("greet") {
             Greeter()

@@ -57,27 +57,27 @@ final class VisitorTests: XCTestCase {
     }
     
     func testRESTVisitor() {
-        let visitor = SynaxTreeVisitor(semanticModelBuilders: [RESTSemanticModelBuilder(app)])
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self)])
         TestWebService().visit(visitor)
     }
     
     func testGraphQLVisitor() {
-        let visitor = SynaxTreeVisitor(semanticModelBuilders: [GraphQLSemanticModelBuilder(app)])
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [GraphQLSemanticModelBuilder(app)])
         TestWebService().visit(visitor)
     }
     
     func testGRPCVisitor() {
-        let visitor = SynaxTreeVisitor(semanticModelBuilders: [GRPCSemanticModelBuilder(app)])
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [GRPCSemanticModelBuilder(app)])
         TestWebService().visit(visitor)
     }
     
     func testWebSocketVisitor() {
-        let visitor = SynaxTreeVisitor(semanticModelBuilders: [WebSocketSemanticModelBuilder(app)])
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [WebSocketSemanticModelBuilder(app)])
         TestWebService().visit(visitor)
     }
     
     func testOpenAPIVisitor() {
-        let visitor = SynaxTreeVisitor(semanticModelBuilders: [OpenAPISemanticModelBuilder(app)])
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [OpenAPISemanticModelBuilder(app)])
         TestWebService().visit(visitor)
     }
 }
