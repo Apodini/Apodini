@@ -35,9 +35,7 @@ class WebSocketSemanticModelBuilder: SemanticModelBuilder {
             
             let output = input.tryMap { (i: AnyInput) throws -> Message<C.Response> in
                 
-                update(&component, from: i.parameters.values.map({ p in
-                    return p as! IdentifiableInputParameter
-                }))
+                update(&component, with: AnyInputBasedUpdater(i))
                 
                 return .send(component.handle())
             }
@@ -75,7 +73,6 @@ extension Parameter: WSInputRepresentable {
             return IdentifiableInputParameter(inputParameter: WebSocketInfrastructure.Parameter<Element>(mutability: m, necessity: .required), id: self.id)
         }
     }
-    
 }
 
 
@@ -92,15 +89,18 @@ fileprivate extension AnyInput {
     }
 }
 
+
+
+
+fileprivate protocol UpdatingInputParameter: InputParameter, Updater {}
+
 extension WebSocketInfrastructure.Parameter: UpdatingInputParameter {
-    func update(_ u: inout UpdatableProperty) {
+    func update(_ u: inout Updatable) {
         u.update(with: self.value)
     }
 }
 
-fileprivate protocol UpdatingInputParameter: InputParameter, Updater {}
-
-fileprivate struct IdentifiableInputParameter: InputParameter, IdentifiableUpdater {
+fileprivate struct IdentifiableInputParameter: InputParameter, UpdatingInputParameter {
     
     fileprivate var inputParameter: UpdatingInputParameter
     let id: UUID
@@ -123,8 +123,30 @@ fileprivate struct IdentifiableInputParameter: InputParameter, IdentifiableUpdat
         inputParameter.apply()
     }
     
-    func update(_ u: inout UpdatableProperty) {
+    func update(_ u: inout Updatable) {
         inputParameter.update(&u)
+    }
+    
+}
+
+fileprivate struct AnyInputBasedUpdater: Updater {
+    
+    let inputParameters: [UUID: UpdatingInputParameter]
+    
+    init(_ input: AnyInput) {
+        var inputParameters: [UUID: IdentifiableInputParameter] = [:]
+        input.parameters.values.forEach({ parameter in
+            if let identifiableParameter = parameter as? IdentifiableInputParameter {
+                inputParameters[identifiableParameter.id] = identifiableParameter
+            }
+        })
+        self.inputParameters = inputParameters
+    }
+
+    func update(_ updatable: inout Updatable) {
+        if let parameter = inputParameters[updatable.id] {
+            parameter.update(&updatable)
+        }
     }
     
 }

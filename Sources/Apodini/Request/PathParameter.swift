@@ -30,6 +30,6 @@ public struct PathParameter<Element: Codable & LosslessStringConvertible> {
             fatalError("Only @Parameters with the `.http(.path)` option should be passed down the `Component` tree.")
         }
         
-        self.id = parameter.pathId
+        self.id = parameter.id
     }
 }

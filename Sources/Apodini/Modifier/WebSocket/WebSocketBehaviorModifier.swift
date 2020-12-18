@@ -37,12 +37,12 @@ public struct WebSocketSuccessBehaviorModifier<ModifiedComponent: Component>: Mo
 }
 
 
-extension WebSocketSuccessBehaviorModifier: Visitable {
-    func visit(_ visitor: SynaxTreeVisitor) {
-        visitor.addContext(WebSocketSuccessBehaviorContextKey.self, value: behavior, scope: .environment)
-        component.visit(visitor)
-    }
-}
+//extension WebSocketSuccessBehaviorModifier: Visitable {
+//    func visit(_ visitor: SynaxTreeVisitor) {
+//        visitor.addContext(WebSocketSuccessBehaviorContextKey.self, value: behavior, scope: .environment)
+//        component.visit(visitor)
+//    }
+//}
 
 
 extension Component {
@@ -82,12 +82,12 @@ public struct WebSocketErrorBehaviorModifier<ModifiedComponent: Component>: Modi
 }
 
 
-extension WebSocketErrorBehaviorModifier: Visitable {
-    func visit(_ visitor: SynaxTreeVisitor) {
-        visitor.addContext(WebSocketErrorBehaviorContextKey.self, value: behavior, scope: .environment)
-        component.visit(visitor)
-    }
-}
+//extension WebSocketErrorBehaviorModifier: Visitable {
+//    func visit(_ visitor: SynaxTreeVisitor) {
+//        visitor.addContext(WebSocketErrorBehaviorContextKey.self, value: behavior, scope: .environment)
+//        component.visit(visitor)
+//    }
+//}
 
 
 extension Component {

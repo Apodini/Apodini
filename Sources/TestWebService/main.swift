@@ -42,24 +42,24 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @A var name: String?
-        var d: Dynamics = Dynamics((name: "surname", Parameter<String?>()))
+        @Parameter var name: String
+//        var d: Dynamics = Dynamics((name: "surname", Parameter<String?>()))
         
         func handle() -> String {
-            let surnameParameter: Parameter<String?> = d["surname"]!
+//            let surnameParameter: Parameter<String?> = d["surname"]!
             
-            return (name ?? "Unknown") + " " + (surnameParameter.wrappedValue ?? "Unknown")
+            return name //(name ?? "Unknown") + " " + (surnameParameter.wrappedValue ?? "Unknown")
         }
     }
-    
-    @propertyWrapper
-    struct A: DynamicProperty {
-        @Parameter(.mutability(.constant)) var name: String?
-        
-        var wrappedValue: String? {
-            return name
-        }
-    }
+//    
+//    @propertyWrapper
+//    struct A: DynamicProperty {
+//        @Parameter(.mutability(.constant)) var name: String?
+//        
+//        var wrappedValue: String? {
+//            return name
+//        }
+//    }
     
     
     var content: some Component {
@@ -77,7 +77,7 @@ struct TestWebService: Apodini.WebService {
 //        .webSocketOnError(.close())
 //        .httpMethod(.POST)
         Group("greet") {
-            Greeter()
+            Greeter().operation(.create)
         }
     }
 }

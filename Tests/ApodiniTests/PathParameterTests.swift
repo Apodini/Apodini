@@ -52,6 +52,6 @@ final class PathParameterTests: XCTestCase {
                 .first
         )
         
-        assert(testComponent.$name.pathId == parameter.pathId)
+        assert(testComponent.$name.id == parameter.id)
     }
 }

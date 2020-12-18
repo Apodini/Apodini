@@ -22,11 +22,9 @@ public struct Parameter<Element: Codable> {
     
     public typealias ID = UUID
     
-    var id: UUID = UUID()
-    
-    var pathId = UUID()
+    var id = UUID()
     var name: String?
-    private var element: Element?
+    internal var element: Element?
     internal var options: PropertyOptionSet<ParameterOptionNameSpace>
     internal var defaultValue: Element?
         
@@ -83,7 +81,7 @@ public struct Parameter<Element: Codable> {
     /// - Precondition: A `@Parameter` with a specific `http` type `.body` or `.query` can not be passed to a seperate componet. Please remove the specific `.http` property option or specify the `.http` property option to `.path`.
     init(from pathId: UUID) {
         self.options = PropertyOptionSet([.http(.path)])
-        self.pathId = pathId
+        self.id = pathId
     }
     
     
@@ -108,7 +106,7 @@ extension Parameter: RequestInjectable {
 
 extension Parameter: _PathComponent {
     var description: String {
-        ":\(self.pathId)"
+        ":\(self.id)"
     }
     
     func append<P>(to pathBuilder: inout P) where P: PathBuilder {
