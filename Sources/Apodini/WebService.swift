@@ -5,7 +5,8 @@
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 
-import Vapor
+import class Vapor.Application
+import struct Vapor.Environment
 import Fluent
 import FluentMongoDriver
 

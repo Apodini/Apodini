@@ -6,7 +6,6 @@
 //
 
 import NIO
-import Vapor
 @_implementationOnly import Runtime
 
 

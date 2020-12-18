@@ -2,7 +2,7 @@
 // Created by Andi on 22.11.20.
 //
 
-import Vapor
+import class Vapor.Application
 
 protocol InterfaceExporter {
     init(_ app: Application)

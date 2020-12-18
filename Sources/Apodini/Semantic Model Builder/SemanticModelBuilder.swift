@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 11/3/20.
 //
 
-import Vapor
+@_implementationOnly import class Vapor.Application
 
 
 class SemanticModelBuilder {

@@ -2,9 +2,6 @@
 // Created by Andi on 22.11.20.
 //
 
-import Vapor
-
-
 /// This struct is used to model the RootPath for the root of the endpoints tree
 struct RootPath: _PathComponent {
     var description: String {
