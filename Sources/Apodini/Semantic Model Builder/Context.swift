@@ -20,7 +20,8 @@ class Context {
     func get<C: ContextKey>(valueFor contextKey: C.Type = C.self) -> C.Value {
         contextNode.getContextValue(for: contextKey)
     }
-    
+
+    @available(*, deprecated, message: "To be replaced by the `requestHandlerBuilder` in the Endpoint model. See SharedSemanticModelBuilder")
     func createRequestHandler<C: Component>(withComponent component: C, using decoder: SemanticModelBuilder)
     -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         { (request: Vapor.Request) in

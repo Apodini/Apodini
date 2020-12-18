@@ -12,19 +12,6 @@ import Foundation
 /// Generic Parameter that can be used to mark that the options are meant for `@Parameter`s
 public enum ParameterOptionNameSpace { }
 
-/// This enum defines the properties of `Parameter` as string constants.
-/// When refactoring `Parameter` please ensure to keep them up to date.
-/// Those can be used for any kind of runtime reflection.
-enum ParameterProperties {
-    static let id = "id"
-    static let pathId = "pathId"
-    static let name = "name"
-    static let element = "element"
-    static let options = "options"
-    static let defaultValue = "defaultValue"
-    static let wrappedValue = "wrappedValue"
-}
-
 /// The `@Parameter` property wrapper can be used to express input in `Components`
 @propertyWrapper
 public struct Parameter<Element: Codable> {
@@ -39,10 +26,10 @@ public struct Parameter<Element: Codable> {
     
     var pathId = UUID()
     var name: String?
-    var element: Element?
-    private var options: PropertyOptionSet<ParameterOptionNameSpace>
+    private var element: Element?
+    internal var options: PropertyOptionSet<ParameterOptionNameSpace>
     internal var defaultValue: Element?
-    
+        
     
     /// The value for the `@Parameter` as defined by the incoming request
     public var wrappedValue: Element {
@@ -112,6 +99,10 @@ extension Parameter: RequestInjectable {
             element = try decoder.decode(Element.self, from: request)
         }
     }
+
+    func accept(_ visitor: RequestInjectableVisitor) {
+        visitor.visit(self)
+    }
 }
 
 
@@ -121,6 +112,6 @@ extension Parameter: _PathComponent {
     }
     
     func append<P>(to pathBuilder: inout P) where P: PathBuilder {
-        pathBuilder.append(":\(self.pathId)")
+        pathBuilder.append(self)
     }
 }

@@ -21,7 +21,7 @@ public struct TupleComponent<T>: Component {
 }
 
 extension TupleComponent: Visitable {
-    func visit(_ visitor: SynaxTreeVisitor) {
+    func visit(_ visitor: SyntaxTreeVisitor) {
         let mirror = Mirror(reflecting: storage)
         for (_, value) in mirror.children {
             visitor.enterCollectionItem()
@@ -31,7 +31,7 @@ extension TupleComponent: Visitable {
                 // Since init is internal & we only create Tuple Components in the Component Builder
                 // We know for a fact that unsafeVisit won't fail.
                 #if DEBUG
-                fatalError("Attemted to visit value that was not a component. It was instantiated from \(file):\(function): \(error)")
+                fatalError("Attempted to visit value that was not a component. It was instantiated from \(file):\(function): \(error)")
                 #else
                 fatalError(error)
                 #endif
