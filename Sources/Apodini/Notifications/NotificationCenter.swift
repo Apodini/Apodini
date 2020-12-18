@@ -220,13 +220,16 @@ public class NotificationCenter {
     ///
     /// - Returns: An `EventLoopFuture` to indicate the completion of the operation.
     @discardableResult
-    public func send(notification: Notification, to topic: String) -> EventLoopFuture<[Void]> {
+    public func send(notification: Notification, to topic: String) -> EventLoopFuture<Void> {
         let fcmNotification = notification.transformToFCM()
         let apnsNotification = notification.transformToAPNS()
         
         return getDevices(of: topic)
-            .flatMapEach(on: app.eventLoopGroup.next()) { device in
-                device.type == .apns ? self.sendAPNS(apnsNotification, to: device.id) : self.sendFCM(fcmNotification, topic: topic)
+            .flatMap { devices -> EventLoopFuture<Void> in
+                for device in devices {
+                    self.sendAPNS(apnsNotification, to: device.id)
+                }
+                return self.sendFCM(fcmNotification, topic: topic)
             }
     }
     
@@ -246,8 +249,11 @@ public class NotificationCenter {
         let apnsNotification = notification.transformToAPNS(with: data)
         
         return getDevices(of: topic)
-            .flatMapEach(on: app.eventLoopGroup.next()) { device in
-                device.type == .apns ? self.sendAPNS(apnsNotification, to: device.id) : self.sendFCM(fcmNotification, topic: topic)
+            .flatMap { devices -> EventLoopFuture<Void> in
+                for device in devices {
+                    self.sendAPNS(apnsNotification, to: device.id)
+                }
+                return self.sendFCM(fcmNotification, topic: topic)
             }
     }
     
