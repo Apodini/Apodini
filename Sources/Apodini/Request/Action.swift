@@ -5,7 +5,6 @@
 //  Created by Moritz Schüll on 10.12.20.
 //
 
-import Foundation
 import Vapor
 
 /// Used to return from the `handle` method
