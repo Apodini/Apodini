@@ -49,7 +49,7 @@ extension ResponseTransformer {
     /// - Returns: The output as a type erasured `ResponseEncodable`
     public func transform(response: ResponseEncodable) -> ResponseEncodable {
         guard let response = response as? Self.Response else {
-            fatalError("Coult not cast the `ResponseEncodable` passed to the `AnyResponseTransformer` to the expected \(Response.self) type")
+            fatalError("Could not cast the `ResponseEncodable` passed to the `AnyResponseTransformer` to the expected \(Response.self) type")
         }
         return self.transform(response: response)
     }
@@ -65,7 +65,7 @@ struct ResponseContextKey: ContextKey {
 }
 
 
-/// A `ResponseModifier` can be used to transfrom the output of `Component`'s response to a differnt type using a `ResponseTransformer`
+/// A `ResponseModifier` can be used to transform the output of `Component`'s response to a different type using a `ResponseTransformer`
 public struct ResponseModifier<C: Component, T: ResponseTransformer>: Modifier where T.Response == C.Response {
     public typealias Response = T.TransformedResponse
     
@@ -89,7 +89,7 @@ public struct ResponseModifier<C: Component, T: ResponseTransformer>: Modifier w
 
 
 extension ResponseModifier: Visitable {
-    func visit(_ visitor: SynaxTreeVisitor) {
+    func visit(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(ResponseContextKey.self, value: [responseTransformer], scope: .nextComponent)
         component.visit(visitor)
     }
@@ -97,7 +97,7 @@ extension ResponseModifier: Visitable {
 
 
 extension Component {
-    /// A `response` modifier can be used to transfrom the output of `Component`'s response to a differnt type using a `ResponseTransformer`
+    /// A `response` modifier can be used to transform the output of `Component`'s response to a different type using a `ResponseTransformer`
     /// - Parameter responseTransformer: The `ResponseTransformer` used to transform the response of a `Component`
     /// - Returns: The modified `Component` with a new `Response` type
     public func response<T: ResponseTransformer>(
