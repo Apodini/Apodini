@@ -18,7 +18,7 @@ final class ThreadSafetyTests: ApodiniTests {
         @Parameter var id: String
 
         func handle() -> String {
-            return id
+            id
         }
     }
     
@@ -31,7 +31,7 @@ final class ThreadSafetyTests: ApodiniTests {
             let id = randomString(length: 40)
             let request = Request(application: app, collectedBody: ByteBuffer(string: id), on: app.eventLoopGroup.next())
             let restRequest = RESTRequest(request) { _ in
-                return id
+                id
             }
 
             do {
@@ -63,7 +63,7 @@ final class ThreadSafetyTests: ApodiniTests {
             let id = randomString(length: 40)
             let request = Request(application: app, collectedBody: ByteBuffer(string: id), on: app.eventLoopGroup.next())
             let restRequest = RESTRequest(request) { _ in
-                return id
+                id
             }
 
             do {

@@ -36,7 +36,7 @@ final class CustomComponentTests: ApodiniTests {
         
         let request = Vapor.Request(application: app, collectedBody: birdData, on: app.eventLoopGroup.next())
         let restRequest = RESTRequest(request) { _ in
-            return bird
+            bird
         }
         
         let response = try restRequest
