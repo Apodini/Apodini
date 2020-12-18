@@ -9,7 +9,7 @@ import NIO
 import protocol Fluent.Database
 
 /// A type representing a server response.
-public protocol Request {
+public protocol Request: CustomStringConvertible {
     /// parameters
     func parameter<T: Codable>(for parameter: UUID) throws -> T?
     /// The EventLoop associated with this request
