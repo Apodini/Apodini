@@ -6,7 +6,7 @@
 //
 
 import Vapor
-import Runtime
+@_implementationOnly import Runtime
 
 
 private struct ResetGuard: SyncGuard {
