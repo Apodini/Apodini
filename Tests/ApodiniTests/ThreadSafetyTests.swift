@@ -15,11 +15,10 @@ import Fluent
 
 final class ThreadSafetyTests: ApodiniTests {
     struct Greeter: Component {
-        @_Request
-        var req: Apodini.Request
-        
+        @Parameter var id: String
+
         func handle() -> String {
-            (try? String(data: req.bodyData(), encoding: .utf8)) ?? "World"
+            return id
         }
     }
     
@@ -31,9 +30,12 @@ final class ThreadSafetyTests: ApodiniTests {
         DispatchQueue.concurrentPerform(iterations: count) { _ in
             let id = randomString(length: 40)
             let request = Request(application: app, collectedBody: ByteBuffer(string: id), on: app.eventLoopGroup.next())
-            
+            let restRequest = RESTRequest(request) { _ in
+                return id
+            }
+
             do {
-                let response = try request
+                let response = try restRequest
                     .enterRequestContext(with: greeter) { component in
                         component.handle().encodeResponse(for: request)
                     }
@@ -60,9 +62,12 @@ final class ThreadSafetyTests: ApodiniTests {
         for _ in 0..<count {
             let id = randomString(length: 40)
             let request = Request(application: app, collectedBody: ByteBuffer(string: id), on: app.eventLoopGroup.next())
-            
+            let restRequest = RESTRequest(request) { _ in
+                return id
+            }
+
             do {
-                let response = try request
+                let response = try restRequest
                     .enterRequestContext(with: greeter) { component in
                         component.handle().encodeResponse(for: request)
                     }

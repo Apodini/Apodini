@@ -23,9 +23,7 @@ struct TestWebService: Apodini.WebService {
         
         
         func check() {
-            if let request = request as? Vapor.Request {
-                request.logger.info("\(message?.description ?? request.description)")
-            }
+            //request.logger.info("\(message?.description ?? request.description)")
         }
     }
     
@@ -44,15 +42,10 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @_Request
-        var req: Apodini.Request
-        
+        @Parameter var name: String
+
         func handle() -> String {
-            do {
-                return try req.getQuery(at: "name")
-            } catch {
-                return "World"
-            }
+            return "Hello \(name)"
         }
     }
     
