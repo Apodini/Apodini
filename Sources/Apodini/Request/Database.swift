@@ -6,8 +6,7 @@
 //
 
 import NIO
-import Vapor
-import Fluent
+import protocol Fluent.Database
 
 
 @propertyWrapper

@@ -6,7 +6,6 @@
 //
 
 import NIO
-import Vapor
 
 
 extension Never: Component {

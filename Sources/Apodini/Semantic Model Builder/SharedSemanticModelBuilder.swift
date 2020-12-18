@@ -2,6 +2,7 @@
 // Created by Andi on 22.11.20.
 //
 
+import NIO
 @_implementationOnly import Vapor
 
 typealias RequestHandler = (Request) -> EventLoopFuture<Encodable>

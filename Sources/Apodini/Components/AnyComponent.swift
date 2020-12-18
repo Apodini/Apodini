@@ -5,8 +5,6 @@
 //  Created by Paul Schmiedmayer on 7/10/20.
 //
 
-import Vapor
-
 
 public struct AnyComponent: Component {
     private let _visit: (_ visitor: SyntaxTreeVisitor) -> Void
