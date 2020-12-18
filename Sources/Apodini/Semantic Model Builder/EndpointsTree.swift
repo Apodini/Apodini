@@ -37,11 +37,11 @@ struct Endpoint {
 
     let operation: Operation
 
-    fileprivate var requestHandlerBuilder: RequestHandlerBuilder
+    let requestHandler: RequestHandler
     /// Type returned by `handle()`
     let handleReturnType: Encodable.Type
     /// Response type ultimately returned by `handle()` and possible following `ResponseTransformer`s
-    var responseType: Encodable.Type
+    let responseType: Encodable.Type
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     var parameters: [EndpointParameter]
@@ -55,21 +55,17 @@ struct Endpoint {
 
 
     init(description: String, context: Context, operation: Operation,
-         requestHandlerBuilder: @escaping RequestHandlerBuilder,
+         requestHandler: @escaping RequestHandler,
          handleReturnType: Encodable.Type, responseType: Encodable.Type, parameters: [EndpointParameter]) {
         self.description = description
         self.context = context
         self.operation = operation
-        self.requestHandlerBuilder = requestHandlerBuilder
+        self.requestHandler = requestHandler
         self.handleReturnType = handleReturnType
         self.responseType = responseType
         self.parameters = parameters
     }
-
-    func createRequestHandler(for exporter: InterfaceExporter) -> (Request) -> EventLoopFuture<Encodable> {
-        requestHandlerBuilder(exporter)
-    }
-
+    
 }
 
 class EndpointsTreeNode {

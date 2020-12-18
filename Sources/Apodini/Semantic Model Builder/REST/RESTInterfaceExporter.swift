@@ -2,7 +2,9 @@
 // Created by Andi on 22.11.20.
 //
 
-import Vapor
+import Foundation
+@_implementationOnly import Vapor
+import protocol Fluent.Database
 
 struct RESTPathBuilder: PathBuilder {
     private var pathComponents: [Vapor.PathComponent] = []
@@ -59,6 +61,22 @@ extension Operation {
     }
 }
 
+struct RESTRequest: Request {
+    private var parameterDecoder: (UUID) -> Codable?
+    var eventLoop: EventLoop
+    var database: Fluent.Database?
+
+    init(_ vaporRequest: Vapor.Request, parameterDecoder: @escaping (UUID) -> Codable?) {
+        self.eventLoop = vaporRequest.eventLoop
+        self.database = nil
+        self.parameterDecoder = parameterDecoder
+    }
+
+    func parameter<T: Codable>(for parameter: UUID) throws -> T? {
+        return parameterDecoder(parameter) as? T
+    }
+}
+
 class RESTInterfaceExporter: InterfaceExporter {
     let app: Application
 
@@ -71,20 +89,17 @@ class RESTInterfaceExporter: InterfaceExporter {
         let routesBuilder = pathBuilder.routesBuilder(app)
 
         let operation = endpoint.operation
-        let requestHandler = endpoint.createRequestHandler(for: self)
+        let requestHandler = endpoint.requestHandler
 
         routesBuilder.on(operation.httpMethod, []) { request -> EventLoopFuture<Vapor.Response> in
-            let response: EventLoopFuture<Encodable> = requestHandler(request)
+            let restRequest = RESTRequest(request, parameterDecoder: self.parameterDecoder(for: request))
+            let response: EventLoopFuture<Encodable> = requestHandler(restRequest)
 
-            // decode parameters
-
-            // decode body
-
-            let result = response.map { (response: Encodable) -> Vapor.Response in
-                // encode response
-                let data = try! JSONEncoder().encode(AnyEncodable(value: response))
+            let result = response.flatMapThrowing { (response: Encodable) -> Vapor.Response in
+                let data = try JSONEncoder().encode(AnyEncodable(value: response))
                 return Vapor.Response(body: .init(data: data))
             }
+
             return result
         }
 
@@ -94,6 +109,10 @@ class RESTInterfaceExporter: InterfaceExporter {
             let path = relationship.destinationPath
             app.logger.info("  - links to: \(StringPathBuilder(path).build())")
         }
+    }
+
+    func parameterDecoder(for request: Vapor.Request) -> (UUID) -> Codable? {
+        fatalError("Not yet implemented")
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
@@ -106,9 +125,5 @@ class RESTInterfaceExporter: InterfaceExporter {
                 app.logger.info("  - links to: \(StringPathBuilder(path).build())")
             }
         }
-    }
-
-    func decode<T>(_ type: T.Type, from request: Request) throws -> T? where T: Decodable {
-        return try JSONDecoder().decode(type, from: request.bodyData())
     }
 }
