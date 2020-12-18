@@ -31,15 +31,26 @@ final class EnvironmentTests: ApodiniTests {
         
         let responseData = try XCTUnwrap(response.body.data)
         let responseString = String(decoding: responseData, as: UTF8.self)
-        
+        EnvironmentValues.shared.birdFacts = birdFacts
         XCTAssert(responseString == birdFacts.someFact)
+    }
+    
+    func testUpdateEnvironmentValue() throws {
+        let birdFacts = BirdFacts()
+        let newFact = "Until humans, the Dodo had no predators"
+        birdFacts.dodoFact = newFact
+
+        EnvironmentValues.shared.birdFacts = birdFacts
+        let injectedValue = EnvironmentValues.shared[keyPath: \EnvironmentValues.birdFacts]
+            
+        XCTAssert(injectedValue.dodoFact == newFact)
     }
 }
 
-struct BirdFacts {
-    var someFact: String {
-        "Did you know that Apodinae are a subfamily of swifts?"
-    }
+class BirdFacts {
+    var someFact = "Did you know that Apodinae are a subfamily of swifts?"
+    
+    var dodoFact = "The Dodo lived on the Island of Mauritius"
 }
 
 enum BirdFactsEnvironmentKey: EnvironmentKey {
