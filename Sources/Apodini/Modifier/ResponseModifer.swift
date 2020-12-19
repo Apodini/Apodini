@@ -7,7 +7,7 @@
 
 import NIO
 import Vapor
-import Runtime
+@_implementationOnly import Runtime
 
 
 /// A type erasure for a `ResponseTransformer`
