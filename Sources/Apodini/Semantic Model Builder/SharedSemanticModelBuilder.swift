@@ -2,7 +2,10 @@
 // Created by Andi on 22.11.20.
 //
 
-import Vapor
+import NIO
+@_implementationOnly import Vapor
+
+typealias RequestHandler = (Request) -> EventLoopFuture<Encodable>
 
 class WebServiceModel {
     fileprivate let root: EndpointsTreeNode = EndpointsTreeNode(path: RootPath())
@@ -56,10 +59,10 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
             }
         }
 
-        let requestHandlerBuilder = SharedSemanticModelBuilder.createRequestHandlerBuilder(with: component, guards: guards, responseModifiers: responseModifiers)
+        let requestHandler = SharedSemanticModelBuilder.createRequestHandler(with: component, guards: guards, responseModifiers: responseModifiers)
 
         let handleReturnType = C.Response.self
-        var responseType: ResponseEncodable.Type {
+        var responseType: Encodable.Type {
             guard let lastResponseTransformer = responseModifiers.last else {
                 return handleReturnType
             }
@@ -70,7 +73,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
                 description: String(describing: component),
                 context: context,
                 operation: operation,
-                requestHandlerBuilder: requestHandlerBuilder,
+                requestHandler: requestHandler,
                 handleReturnType: C.Response.self,
                 responseType: responseType,
                 parameters: parameterBuilder.parameters
@@ -102,33 +105,25 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         }
     }
 
-    override func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
-        fatalError("Shared model is unable to deal with .decode")
-    }
-
-    static func createRequestHandlerBuilder<C: Component>(with component: C, guards: [LazyGuard] = [], responseModifiers: [() -> (AnyResponseTransformer)] = [])
-                    -> (RequestInjectableDecoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        { (decoder: RequestInjectableDecoder) in
-            { (request: Vapor.Request) in
-                let guardEventLoopFutures = guards.map { guardClosure in
-                    request.enterRequestContext(with: guardClosure(), using: decoder) { requestGuard in
-                        requestGuard.executeGuardCheck(on: request)
-                    }
+    static func createRequestHandler<C: Component>(with component: C, guards: [LazyGuard] = [], responseModifiers: [() -> (AnyResponseTransformer)] = []) -> RequestHandler {
+        { (request: Request) in
+            let guardEventLoopFutures = guards.map { guardClosure in
+                request.enterRequestContext(with: guardClosure()) { requestGuard in
+                    requestGuard.executeGuardCheck(on: request)
                 }
-                return EventLoopFuture<Void>
-                        .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
-                        .flatMap { _ in
-                            request.enterRequestContext(with: component, using: decoder) { component in
-                                var response: ResponseEncodable = component.handle()
-
-                                for responseTransformer in responseModifiers {
-                                    response = request.enterRequestContext(with: responseTransformer(), using: decoder) { responseTransformer in
-                                        responseTransformer.transform(response: response)
-                                    }
+            }
+            return EventLoopFuture<Void>
+                    .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
+                    .flatMap { _ in
+                        request.enterRequestContext(with: component) { component in
+                            var response: Encodable = component.handle()
+                            for responseTransformer in responseModifiers {
+                                response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
+                                    responseTransformer.transform(response: response)
                                 }
-                                return response.encodeResponse(for: request)
                             }
-                        }
+                            return request.eventLoop.makeSucceededFuture(response)
+                }
             }
         }
     }

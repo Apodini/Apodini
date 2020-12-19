@@ -34,39 +34,31 @@ final class NotificationCenterTests: ApodiniTests {
         }
     }
     
-    class JSONSemanticModelBuilder: SemanticModelBuilder {
-        override func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
-            guard let byteBuffer = request.body.data,
-                  let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
-                throw Vapor.Abort(.internalServerError, reason: "Could not read the HTTP request's body")
-            }
-
-            return try JSONDecoder().decode(type, from: data)
-        }
-    }
-    
     func testDeviceUniqueness() throws {
         let device = Device(id: "123", type: .apns)
         let deviceData = ByteBuffer(data: try JSONEncoder().encode(device))
         
         NotificationCenter.shared.application = app
         
-        let request = Request(application: app, collectedBody: deviceData, on: app.eventLoopGroup.next())
+        let request = Vapor.Request(application: app, collectedBody: deviceData, on: app.eventLoopGroup.next())
+        let restRequest = RESTRequest(request) { _ in
+            device
+        }
         
-        _ = try request
-            .enterRequestContext(with: AddDevicesComponent(), using: JSONSemanticModelBuilder(app)) { component in
+        _ = try restRequest
+            .enterRequestContext(with: AddDevicesComponent()) { component in
                 component.handle().encodeResponse(for: request)
             }
             .wait()
         
-        _ = try request
-            .enterRequestContext(with: AddDevicesComponent(), using: JSONSemanticModelBuilder(app)) { component in
+        _ = try restRequest
+            .enterRequestContext(with: AddDevicesComponent()) { component in
                 component.handle().encodeResponse(for: request)
             }
             .wait()
         
-        let response = try request
-            .enterRequestContext(with: RetrieveDevicesComponent(), using: JSONSemanticModelBuilder(app)) { component in
+        let response = try restRequest
+            .enterRequestContext(with: RetrieveDevicesComponent()) { component in
                 component.handle().encodeResponse(for: request)
             }
             .wait()

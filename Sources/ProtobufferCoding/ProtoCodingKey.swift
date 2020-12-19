@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Runtime
+@_implementationOnly import Runtime
 
 /// Should be implemented by a `CodingKey` enumeration that belongs to a `Codable` struct,
 /// if the enumeration has `String` raw-values and the user wants to provide custom field-tags for
