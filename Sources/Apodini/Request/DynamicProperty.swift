@@ -165,7 +165,7 @@ private protocol Traversible {
 
 extension Dynamics: Traversible {
     func execute<Target>(_ operation: (Target, _ name: String) -> Void) {
-        for (name, element) in self.elements {
+        for (name, element) in self {
             switch element {
             case let target as Target:
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Dynamics must be a struct")
@@ -186,7 +186,7 @@ extension Dynamics: Traversible {
     }
     
     mutating func apply<Target>(_ mutation: (inout Target, _ name: String) -> Void) {
-        for (name, element) in self.elements {
+        for (name, element) in self {
             switch element {
             case var target as Target:
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Dynamics must be a struct")
