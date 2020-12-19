@@ -12,12 +12,13 @@ import Foundation
 /// discoverable to the Apodini runtime framework.  This can be used to e.g. delay the decision, which
 /// `Parameter`s are exported to startup-time
 @dynamicMemberLookup
+@propertyWrapper
 public struct Dynamics<Element> {
     internal var elements: [String: Element]
     
     /// Create a new `Dynamics` from the given `elements`
     /// - Complexity: O(1)
-    public init(_ elements: [String: Element]) {
+    public init(wrappedValue elements: [String: Element]) {
         self.elements = elements
     }
     
@@ -32,6 +33,10 @@ public struct Dynamics<Element> {
     
     subscript<T>(dynamicMember name: String) -> T? {
         self.elements[name] as? T
+    }
+    
+    public var wrappedValue: [String: Element] {
+        self.elements
     }
 }
 
@@ -75,20 +80,13 @@ public extension Dynamics {
     /// This function provides a  copy of the `Dynamics` which only contains elements that
     /// conform to type `T`
     /// - Complexity: O(n)
-    func typed<T>(_ type: T.Type) -> Dynamics<T> {
+    func typed<T>(_ type: T.Type = T.self) -> Dynamics<T> {
         Dynamics<T>(self.compactMap { key, value in
             if let typedValue = value as? T {
                 return (key, typedValue)
             }
             return nil
         })
-    }
-    
-    /// This function provides a  copy of the `Dynamics` which only contains elements that
-    /// conform to type `T`
-    /// - Complexity: O(n)
-    func typed<T>() -> Dynamics<T> {
-        self.typed(T.self)
     }
 }
 

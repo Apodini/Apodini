@@ -6,7 +6,7 @@
 //
 import NIO
 import Vapor
-import Runtime
+@_implementationOnly import Runtime
 
 
 protocol RequestInjectable {
