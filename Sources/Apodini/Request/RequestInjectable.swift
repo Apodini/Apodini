@@ -36,7 +36,7 @@ extension RequestInjectableVisitor {
 }
 
 
-private func extractRequestInjectables(from subject: Any) -> [String: RequestInjectable] {
+private func extractRequestInjectables<Element>(from subject: Element) -> [String: RequestInjectable] {
     var result: [String: RequestInjectable] = [:]
     
     execute({ (injectable: RequestInjectable, label: String) in
