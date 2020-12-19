@@ -20,9 +20,12 @@ final class EnvironmentTests: ApodiniTests {
     
     func testEnvironmentInjection() throws {
         let request = Request(application: app, on: app.eventLoopGroup.next())
-        
-        let response = try request
-            .enterRequestContext(with: BirdComponent(), using: SharedSemanticModelBuilder(app)) { component in
+        let restRequest = RESTRequest(request) { _ in
+            nil
+        }
+
+        let response = try restRequest
+            .enterRequestContext(with: BirdComponent()) { component in
                 component.handle().encodeResponse(for: request)
             }
             .wait()
