@@ -23,8 +23,8 @@ extension WebService {
     /// This function is executed to start up an Apodini `WebService`
     public static func main() {
         do {
-            let environmentName = try Environment.detect().name
-            var env = Environment(name: environmentName, arguments: ["vapor"])
+            let environmentName = try Vapor.Environment.detect().name
+            var env = Vapor.Environment(name: environmentName, arguments: ["vapor"])
             try LoggingSystem.bootstrap(from: &env)
             let app = Application(env)
 
