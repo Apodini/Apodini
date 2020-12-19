@@ -1,9 +1,9 @@
 # Apodini Documentation
 
-* The [communication patterns]("/Communicational%20Patterns/") folder contains general information about different communicational patterns that can be used to implement a web service using Apodini.  
-* The [property wrapper]("/PropertyWrapper/") folder details information about the different property wrappers that can be used to describe the web service API.  
-* Modifiers that can be applied to `Component`s and `Handler`s are described in the [modifiers]("/Modifiers/") folder.  
-* Any additional functionality such as `Jobs` provided by Apodini is described in the [additional functionality]("/AdditionalFunctionality/") folder.
+* The [communication patterns](./Communicational%20Patterns/) folder contains general information about different communicational patterns that can be used to implement a web service using Apodini.  
+* The [property wrapper](./PropertyWrapper/) folder details information about the different property wrappers that can be used to describe the web service API.  
+* Modifiers that can be applied to `Component`s and `Handler`s are described in the [modifiers](./Modifiers/) folder.  
+* Any additional functionality such as `Jobs` provided by Apodini is described in the [additional functionality](./AdditionalFunctionality/) folder.
 
 ## Labeling
 
