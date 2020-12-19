@@ -71,18 +71,14 @@ extension Vapor.Request {
     
     private func inject<E>(in element: inout E, using decoder: RequestInjectableDecoder? = nil) {
         // Inject all properties that can be injected using RequestInjectable
-        do {
-            let info = try typeInfo(of: E.self)
-            
-            for property in info.properties {
-                if var child = (try property.get(from: element)) as? RequestInjectable {
-                    assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "RequestInjectable \(property.name) on Component \(info.name) must be a struct")
-                    try child.inject(using: self, with: decoder)
-                    try property.set(value: child, on: &element)
-                }
+        let elem = element
+        
+        apply({ (requestInjectable: inout RequestInjectable) in
+            do {
+                try requestInjectable.inject(using: self, with: decoder)
+            } catch {
+                fatalError("Injecting into element \(elem) failed.")
             }
-        } catch {
-            fatalError("Injecting into element \(element) failed.")
-        }
+        }, to: &element)
     }
 }

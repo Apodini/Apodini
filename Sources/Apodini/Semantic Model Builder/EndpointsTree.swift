@@ -52,9 +52,13 @@ struct Endpoint {
         treeNode.relationships
     }
 
-    init(description: String, context: Context, operation: Operation,
+    init(description: String,
+         context: Context,
+         operation: Operation,
          requestHandlerBuilder: @escaping (RequestInjectableDecoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response>,
-         handleReturnType: ResponseEncodable.Type, responseType: ResponseEncodable.Type, parameters: [EndpointParameter]) {
+         handleReturnType: ResponseEncodable.Type,
+         responseType: ResponseEncodable.Type,
+         parameters: [EndpointParameter]) {
         self.description = description
         self.context = context
         self.operation = operation
@@ -67,7 +71,6 @@ struct Endpoint {
     func createRequestHandler(for exporter: InterfaceExporter) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         requestHandlerBuilder(exporter)
     }
-
 }
 
 class EndpointsTreeNode {
@@ -171,7 +174,7 @@ class EndpointsTreeNode {
     }
 
     fileprivate func collectRelationships(_ relationships: inout [EndpointRelationship]) {
-        if endpoints.count > 0 {
+        if !endpoints.isEmpty {
             relationships.append(EndpointRelationship(destinationPath: absolutePath))
             return
         }

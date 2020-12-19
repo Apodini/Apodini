@@ -11,7 +11,7 @@ struct EndpointParameter {
     let id: UUID
     let name: String?
     let label: String
-    let contentType: Any.Type
+    let contentType: Codable.Type
     let options: PropertyOptionSet<ParameterOptionNameSpace>
     let parameterType: EndpointParameterType
     
@@ -22,7 +22,7 @@ struct EndpointParameter {
         case path
     }
 
-    init(id: UUID, name: String?, label: String, contentType: Any.Type, options: PropertyOptionSet<ParameterOptionNameSpace>) {
+    init(id: UUID, name: String?, label: String, contentType: Codable.Type, options: PropertyOptionSet<ParameterOptionNameSpace>) {
         self.id = id
         self.name = name
         self.label = label
