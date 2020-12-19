@@ -14,16 +14,16 @@ struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
         private let message: String?
         @_Request
-        var request: Vapor.Request
+        var request: Apodini.Request
         
         
         init(_ message: String? = nil) {
             self.message = message
         }
         
-        
+
         func check() {
-            request.logger.info("\(message?.description ?? request.description)")
+            print("\(message?.description ?? request.description)")
         }
     }
     
@@ -45,13 +45,12 @@ struct TestWebService: Apodini.WebService {
         @Apodini.Environment(\.connection)
         var connection: Connection
 
-        @Parameter("body", .http(.body))
-        var body: Data
+        @Parameter var name: String
 
         func handle() -> Action<String> {
             switch connection.state {
             case .end:
-                return .final("Hello stranger")
+                return .final("Hello \(name)")
             default:
                 return .nothing
             }

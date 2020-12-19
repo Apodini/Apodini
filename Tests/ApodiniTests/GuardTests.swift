@@ -13,10 +13,11 @@ import Vapor
 final class GuardTests: XCTestCase {
     struct TestGuard: SyncGuard {
         @_Request
-        var request: Vapor.Request
+        var request: Apodini.Request
         
         func check() {
-            request.logger.info("Execute Guard")
+            // To Do: fix this
+            print("Execute Guard for \(request)")
         }
     }
     

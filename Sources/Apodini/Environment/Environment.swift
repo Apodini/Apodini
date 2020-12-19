@@ -1,16 +1,24 @@
-import Runtime
-
-protocol EnvironmentKey {
+/// A key for accessing values in the environment.
+public protocol EnvironmentKey {
+    /// Represents the type of the environment key’s value.
     associatedtype Value
-    
+    /// The default value of the `EnvironmentKey`.
     static var defaultValue: Self.Value { get }
 }
 
-struct EnvironmentValues: CustomStringConvertible {
-    var values: [ObjectIdentifier: Any] = [:]
-    
-    public init() { }
-    
+/// A collection of environment values.
+/// Custom environment values can be created by extending this struct with new properties.
+public struct EnvironmentValues {
+    /// Singleton of `EnvironmentValues`.
+    internal static var shared = EnvironmentValues()
+
+    /// Dictionary of stored environment values.
+    internal var values: [ObjectIdentifier: Any] = [:]
+
+    /// Initializer of `EnvironmentValues`.
+    private init() { }
+
+    /// Accesses the environment value associated with a custom key.
     public subscript<K>(key: K.Type) -> K.Value where K: EnvironmentKey {
         get {
             if let value = values[ObjectIdentifier(key)] as? K.Value {
@@ -22,64 +30,21 @@ struct EnvironmentValues: CustomStringConvertible {
             values[ObjectIdentifier(key)] = newValue
         }
     }
-    
-    public var description: String {
-        ""
-    }
 }
 
-protocol DynamicProperty { }
-
+/// A property wrapper to inject pre-defined values  to a `Component`.
 @propertyWrapper
-struct Environment<Value>: DynamicProperty {
-    internal enum Content {
-        case keyPath(KeyPath<EnvironmentValues, Value>)
-        case value(Value)
-    }
-    
-    private var content: Environment<Value>.Content
-    private var values: EnvironmentValues
-    
+public struct Environment<Value> {
+    /// Keypath to access an `EnvironmentValue`.
+    internal var keyPath: KeyPath<EnvironmentValues, Value>
+
+    /// Initializer of `Environment`.
     public init(_ keyPath: KeyPath<EnvironmentValues, Value>) {
-        content = .keyPath(keyPath)
-        values = EnvironmentValues()
+        self.keyPath = keyPath
     }
-    
+
+    /// The current value of the environment property.
     public var wrappedValue: Value {
-        switch content {
-        case let .value(value):
-            return value
-        case let .keyPath(keyPath):
-            // not bound to a view, return the default value
-            return values[keyPath: keyPath]
-        }
-    }
-
-    /// Sets the value for the given KeyPath.
-    mutating func setValue(_ value: Value, for keyPath: WritableKeyPath<EnvironmentValues, Value>) {
-        self.values[keyPath: keyPath] = value
-    }
-}
-
-extension Component {
-    /// Sets the environment value for the given KeyPath on the component.
-    /// - parameters:
-    ///     - value: The value that should be set for the evironment.
-    ///     - keyPath: The KeyPath that identifies the enviroment object to store  the given value in.
-    func withEnvironment<Value>(_ value: Value, for keyPath: WritableKeyPath<EnvironmentValues, Value>) -> Self {
-        var selfRef = self
-        do {
-            let info = try typeInfo(of: type(of: self))
-
-            for property in info.properties {
-                if var child = (try property.get(from: selfRef)) as? Environment<Value> {
-                    child.setValue(value, for: keyPath)
-                    try property.set(value: child, on: &selfRef)
-                }
-            }
-        } catch {
-            print(error)
-        }
-        return selfRef
+        EnvironmentValues.shared[keyPath: keyPath]
     }
 }

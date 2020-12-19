@@ -9,7 +9,7 @@ import Vapor
 
 /// Used to return from the `handle` method
 /// by `Components` that expose client-side streaming endpoints.
-public enum Action<Element: ResponseEncodable> {
+public enum Action<Element: Encodable> {
     /// Indicates that the request was processed
     /// and **no** response should be sent to the client.
     case nothing
