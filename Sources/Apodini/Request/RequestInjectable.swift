@@ -35,12 +35,14 @@ extension RequestInjectableVisitor {
 }
 
 
-private func extractRequestInjectables(from subject: Any) -> [String: RequestInjectable] {
-    Mirror(reflecting: subject).children.reduce(into: [String: RequestInjectable]()) { result, child in
-        if let injectable = child.value as? RequestInjectable, let label = child.label {
-            result[label] = injectable
-        }
-    }
+private func extractRequestInjectables<Element>(from subject: Element) -> [String: RequestInjectable] {
+    var result: [String: RequestInjectable] = [:]
+    
+    execute({ (injectable: RequestInjectable, label: String) in
+        result[label] = injectable
+    }, on: subject)
+    
+    return result
 }
 
 extension Component {

@@ -35,6 +35,7 @@ public struct Dynamics<Element> {
         self.elements[name] as? T
     }
     
+    /// The named elements managed by this object.
     public var wrappedValue: [String: Element] {
         self.elements
     }
