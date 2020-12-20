@@ -6,7 +6,7 @@
 //
 
 import NIO
-import Runtime
+@_implementationOnly import Runtime
 
 
 /// A `Component` is the central building block of  Apodini. Each component handles a specific functionality of the Apodini web service.

@@ -6,7 +6,7 @@
 //
 
 import NIO
-import Runtime
+@_implementationOnly import Runtime
 
 
 protocol RequestInjectable {

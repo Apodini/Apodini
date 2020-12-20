@@ -28,6 +28,9 @@ struct _Database: RequestInjectable {
     
     
     mutating func inject(using request: Request) throws {
-        self.database = request.database
+        guard let database = request.database else {
+            fatalError("Cannot inject database because the request does not contain a database")
+        }
+        self.database = database
     }
 }

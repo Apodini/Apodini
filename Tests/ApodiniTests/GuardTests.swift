@@ -17,7 +17,7 @@ final class GuardTests: XCTestCase {
         
         func check() {
             // To Do: fix this
-            //request.logger.info("Execute Guard")
+            print("Execute Guard for \(request)")
         }
     }
     

@@ -65,11 +65,13 @@ struct RESTRequest: Request {
     private var parameterDecoder: (UUID) -> Codable?
     var eventLoop: EventLoop
     var database: Fluent.Database?
+    var description: String
 
     init(_ vaporRequest: Vapor.Request, parameterDecoder: @escaping (UUID) -> Codable?) {
         self.eventLoop = vaporRequest.eventLoop
-        self.database = nil
+        self.database = vaporRequest.db
         self.parameterDecoder = parameterDecoder
+        self.description = vaporRequest.description
     }
 
     func parameter<T: Codable>(for parameter: UUID) throws -> T? {

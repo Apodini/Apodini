@@ -21,9 +21,9 @@ struct TestWebService: Apodini.WebService {
             self.message = message
         }
         
-        
+
         func check() {
-            //request.logger.info("\(message?.description ?? request.description)")
+            print("\(message?.description ?? request.description)")
         }
     }
     
