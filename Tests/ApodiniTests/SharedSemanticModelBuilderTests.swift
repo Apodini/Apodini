@@ -68,6 +68,18 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
             }
         }
     }
+
+    struct EmojiMediator: ResponseTransformer {
+        private let emojis: String
+
+        init(emojis: String = "✅") {
+            self.emojis = emojis
+        }
+
+        func transform(response: String) -> String {
+            "\(emojis) \(response) \(emojis)"
+        }
+    }
     
     func testEndpointsTreeNodes() {
         // swiftlint:disable force_unwrapping
@@ -113,5 +125,18 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         XCTAssertEqual(nestedEndpoint.absolutePath[1].description, "b")
         XCTAssertEqual(nestedEndpoint.absolutePath[2].description, ":\(nameParameterId.uuidString)")
         XCTAssertEqual(nestedEndpoint.absolutePath[3].description, ":\(someIdParameterId.uuidString)")
+    }
+
+    func testCreateRequestHandler() throws {
+        let transformer = EmojiMediator(emojis: "✅")
+        let requestHandler = SharedSemanticModelBuilder.createRequestHandler(with: TestHandler(),
+                                                                             guards: [],
+                                                                             responseModifiers: [ { transformer } ])
+        let name = "Craig"
+        let request = MockRequest { _ in name }
+        let response = try requestHandler(request).wait()
+        let responseString = try XCTUnwrap(response as? String)
+
+        XCTAssert(responseString == "✅ Hello \(name) ✅")
     }
 }

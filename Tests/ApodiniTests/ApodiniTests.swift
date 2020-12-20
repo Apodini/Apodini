@@ -10,7 +10,7 @@ import FluentSQLiteDriver
 
 class ApodiniTests: XCTestCase {
     // Vapor Application
-    var app: Vapor.Application = Application(.testing)
+    lazy var app: Vapor.Application = Application(.testing)
     // Model Objects
     var bird1 = Bird(name: "Swift", age: 5)
     var bird2 = Bird(name: "Corvus", age: 1)

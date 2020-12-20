@@ -1,4 +1,4 @@
-import Vapor
+import class Vapor.Application
 import APNS
 import JWTKit
 
