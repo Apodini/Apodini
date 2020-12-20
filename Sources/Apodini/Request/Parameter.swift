@@ -82,7 +82,7 @@ public struct Parameter<Element: Codable> {
 
 extension Parameter: RequestInjectable {
     mutating func inject(using request: Apodini.Request) throws {
-        element = try request.parameter(for: id)
+        element = try request.parameter(for: self)
     }
 
     func accept(_ visitor: RequestInjectableVisitor) {

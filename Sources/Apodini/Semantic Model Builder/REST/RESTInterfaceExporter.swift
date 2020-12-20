@@ -74,8 +74,8 @@ struct RESTRequest: Request {
         self.description = vaporRequest.description
     }
 
-    func parameter<T: Codable>(for parameter: UUID) throws -> T? {
-        return parameterDecoder(parameter) as? T
+    func parameter<T: Codable>(for parameter: Parameter<T>) throws -> T? {
+        return parameterDecoder(parameter.id) as? T
     }
 }
 

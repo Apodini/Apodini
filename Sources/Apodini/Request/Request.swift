@@ -11,7 +11,7 @@ import protocol Fluent.Database
 /// A type representing a server response.
 public protocol Request: CustomStringConvertible {
     /// parameters
-    func parameter<T: Codable>(for parameter: UUID) throws -> T?
+    func parameter<T: Codable>(for parameter: Parameter<T>) throws -> T?
     /// The EventLoop associated with this request
     var eventLoop: EventLoop { get }
     /// database

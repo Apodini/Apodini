@@ -119,6 +119,15 @@
         }
       },
       {
+        "package": "grpc-swift",
+        "repositoryURL": "https://github.com/grpc/grpc-swift.git",
+        "state": {
+          "branch": null,
+          "revision": "b81b8f2398fbe55f06d209bcefe7f6fe6aaa337e",
+          "version": "1.0.0-alpha.21"
+        }
+      },
+      {
         "package": "jwt-kit",
         "repositoryURL": "https://github.com/vapor/jwt-kit.git",
         "state": {
@@ -305,6 +314,15 @@
           "branch": null,
           "revision": "bb56586c4cab9a79dce6ec4738baddb5802c5de7",
           "version": "1.9.0"
+        }
+      },
+      {
+        "package": "SwiftProtobuf",
+        "repositoryURL": "https://github.com/apple/swift-protobuf.git",
+        "state": {
+          "branch": null,
+          "revision": "da9a52be9cd36c63993291ce3f1b65dafcd1e826",
+          "version": "1.14.0"
         }
       },
       {

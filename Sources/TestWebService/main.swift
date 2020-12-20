@@ -65,7 +65,13 @@ struct TestWebService: Apodini.WebService {
         }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
         Group("greet") {
             Greeter()
+                .serviceName("GreetService")
+                .rpcName("greetMe")
         }
+    }
+
+    var configuration: Configuration {
+        HTTP2Configuration()
     }
 }
 

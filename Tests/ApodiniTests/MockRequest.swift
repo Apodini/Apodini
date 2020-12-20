@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Apodini
+@testable import Apodini
 import NIO
 import Fluent
 
@@ -22,7 +22,7 @@ struct MockRequest: Request {
         self.parameterDecoder = parameterDecoder
     }
 
-    func parameter<T: Codable>(for parameter: UUID) throws -> T? {
-        parameterDecoder(parameter) as? T
+    func parameter<T: Codable>(for parameter: Parameter<T>) throws -> T? {
+        parameterDecoder(parameter.id) as? T
     }
 }

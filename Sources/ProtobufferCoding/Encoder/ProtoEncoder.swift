@@ -51,6 +51,9 @@ internal class InternalProtoEncoder: Encoder {
 public class ProtoEncoder {
     private var encoder: InternalProtoEncoder?
 
+    /// Initializes a new instance.
+    public init() { }
+
     /// Encodes the given value into data.
     /// The value that should be encoded has to comply with `Encodable`,
     /// since the `encode` function of the protocol is used.
