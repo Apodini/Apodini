@@ -24,7 +24,7 @@ public struct Parameter<Element: Codable> {
     var name: String?
     private var element: Element?
     internal var options: PropertyOptionSet<ParameterOptionNameSpace>
-    private var defaultValue: Element?
+    internal var defaultValue: Element?
     
     
     /// The value for the `@Parameter` as defined by the incoming request

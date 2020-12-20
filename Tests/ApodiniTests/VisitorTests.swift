@@ -72,7 +72,7 @@ final class VisitorTests: XCTestCase {
     }
     
     func testWebSocketVisitor() {
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [WebSocketSemanticModelBuilder(app)])
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [SharedSemanticModelBuilder(app, interfaceExporters: WebSocketInterfaceExporter.self)])
         TestWebService().visit(visitor)
     }
     

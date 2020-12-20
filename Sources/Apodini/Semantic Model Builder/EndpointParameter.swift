@@ -14,6 +14,7 @@ struct EndpointParameter {
     let contentType: Codable.Type
     let options: PropertyOptionSet<ParameterOptionNameSpace>
     let parameterType: EndpointParameterType
+    let requestInjectable: RequestInjectable
     
     /// `@Parameter` categorization needed for certain interface exporters (e.g., HTTP-based).
     enum EndpointParameterType {
@@ -22,12 +23,13 @@ struct EndpointParameter {
         case path
     }
 
-    init(id: UUID, name: String?, label: String, contentType: Codable.Type, options: PropertyOptionSet<ParameterOptionNameSpace>) {
+    init(id: UUID, name: String?, label: String, contentType: Codable.Type, options: PropertyOptionSet<ParameterOptionNameSpace>, requestInjectable: RequestInjectable) {
         self.id = id
         self.name = name
         self.label = label
         self.contentType = contentType
         self.options = options
+        self.requestInjectable = requestInjectable
 
         let httpOption = options.option(for: PropertyOptionKey.http)
         switch httpOption {
@@ -73,7 +75,8 @@ class ParameterBuilder: RequestInjectableVisitor {
                 name: parameter.name,
                 label: label,
                 contentType: Element.self,
-                options: parameter.options
+                options: parameter.options,
+                requestInjectable: parameter
         )
 
         parameters.append(endpointParameter)
