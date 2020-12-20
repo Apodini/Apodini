@@ -29,24 +29,7 @@ public struct Create<T: DatabaseModel>: Component where T.IDValue == UUID {
     public init() {}
 }
 
-public struct Get<T: DatabaseModel>: Component where T.IDValue: LosslessStringConvertible {
-    
-    @_Database
-    var database: Fluent.Database
-    
-    @_Request
-    var request: Vapor.Request
-    
-    @Parameter var id: T.IDValue
 
-    public func handle() -> EventLoopFuture<[T]> {
-        if let queryString = request.url.query {
-            let queryBuilder = Apodini.QueryBuilder(type: T.self, queryString: queryString)
-            return queryBuilder.execute(on: database)
-        }
-        return T.find(id, on: database).unwrap(or: Abort(.notFound)).map({ [$0] })
-    }
-}
 
 public struct Update<T: DatabaseModel>: Component where T.IDValue: LosslessStringConvertible {
     

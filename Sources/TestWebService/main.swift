@@ -64,6 +64,9 @@ struct TestWebService: Apodini.WebService {
     @PathParameter
     var birdID: Bird.IDValue
     
+    @PathParameter
+    var dummy: String
+    
     var content: some Component {
         Text("Hello World! 👋")
             .response(EmojiMediator(emojis: "🎉"))
@@ -81,12 +84,13 @@ struct TestWebService: Apodini.WebService {
             Greeter()
         }
         Group("api", "birds") {
-            Create<Bird>()
-                .operation(.create)
-            Group($birdID) {
-                Get<Bird>(id: $birdID).operation(.read)
-                Update<Bird>(id: $birdID).operation(.update)
-            }
+            Get<Bird>($dummy)
+//            Create<Bird>()
+//                .operation(.create)
+//            Group($birdID) {
+////                Get<Bird>(id: $birdID).operation(.read)
+//                Update<Bird>(id: $birdID).operation(.update)
+//            }
         }
     }
     
