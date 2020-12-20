@@ -21,7 +21,7 @@ The following chapters explain how such relationship information is retrieved.
 
 The path structure of the Webservice can be used to infer relationship information.  
 
-Given the following snippet of an example webservice:
+Given the following rather extensive example of a webservice:
 ```swift
 @PathParameter var userId: User.ID
 @PathParameter var postId: Post.ID
@@ -38,16 +38,45 @@ var content: some Component {
         DetailedStaticInfoHandler(userId: $userId)
       }
     }
+    Group("a") {
+      Group("a") {
+        AAHandler()
+      }
+      Group("b") {
+        ABHandler()
+      }
+      Group("c") {
+        Group("a") {
+          ACAHandler()
+        }
+      }
+    }
   }
 }
 ```
 
-Apodini will create a Relationship for each Endpoint linking to the **first** Endpoint lying deeper in the path, 
-for every child on the `PathComponent` tree.  
-Considering the example, the `UserHandler` Endpoint (located at `/user/:userId`) would have a relationship to 
-the `StaticInfoHandler` (located at `/user/:userid/static-info`) and the `PostHandler` (located at `/user/:userid/post/:postId`).  
-A relationship to the `DetailedStaticInfoHandler` won't be created, as `StaticInfoHandler` is the **first** Endpoint
-for the `static-info` sub tree.
+To create Relationships for a Endpoint, Apodini will go through all subpath for the current path. A relationship is then
+created to all Endpoints located under that subpath. Should it be the case, that there aren't any Endpoints registered
+under that subpath, Apodini will recursively search for endpoints in subpaths of the subpath.
+
+To make this more understandable consider the following pseudo code:
+```swift
+for child in children {
+  child.collectRelationships()
+}
+func collectRelationships() { 
+  if !endpoints.isEmpty {
+    // adding endpoint to relationships
+    return 
+  } 
+
+  for child in children { 
+   child.collectRelationships() 
+  } 
+} 
+```
+
+<br> 
 
 Not explicitly created, but specifically important for the REST Interface Exporter: An Endpoint will always maintain a
 Relationship to itself with the name `self` (thus `self` is a reserved relationship name).  
@@ -67,7 +96,10 @@ For the above example a `GET /user/532` request would return the following respo
   "_links": {
     "self": "https://example.api/user/532",
     "post": "https://example.api/user/532/post/{postId}",
-    "static-info": "https://example.api/user/532/static-info"
+    "static-info": "https://example.api/user/532/static-info",
+    "a_a": "https://example.api/user/532/a/a",
+    "a_b": "https://example.api/user/532/a/b",
+    "a_c_a": "https://example.api/user/532/a/c/a"
   }
 }
 ```
@@ -107,20 +139,8 @@ To provide such functionality the proposal introduces multiple `PathComponentMod
 existing `ComponentModifiers`. As the `PathComponents` are passed as arguments to a `Group` instance,
 this could quickly get messy in terms of code readability.
 
-Thus this proposal additionally introduces a `PathComponentBuilder` with a corresponding initializer for the `Group` struct:
-
-```swift
-Group {
-  "path0".modifier0(arg0)
-  "path1"
-    .modifier1(arg1)
-    .modifier2(arg2)
-  $parameter
-    .modifier4(arg4)
-} content: {
-  Handler()
-}
-```
+Thus this proposal additionally introduces a `PathComponentBuilder` with a corresponding initializer for the `Group` struct.
+Examples are shown in the following sub chapters.
 
 ### 2.1. Overriding the relationship name
 
@@ -144,46 +164,70 @@ Similarly the renamed Relationship MUST NOT collide with any other relationship 
 
 ### 2.2. Adding new relationships
 
+[//]: # "// TODO use .relationship with type information (basically type information with doesn't need a parameter)"
+
 To support rearranging components without breaking HATEOAS linking information or the GraphQL query schema,
 a user can also **add** their own relationship definitions.
 
 As we don't want users to manually list every `PathComponent` for the destination of the relationship, the user can create
-instances of `Relationship` which are then referenced with `.relatable` (marking destination) and
+instances of `Relationship` which are then referenced with `.destination(of:)` and
 `.relationship(to:)` modifiers.
 
-Those `Relationship` instances can be defined anywhere, preferably as a property of a `Component`.  
-Elsewise `Relationship` instances can also be organized into `RelationshipContainer` which are collected through
-the `relationshipContainer` property of a `Component`. Above modifiers then also accept KeyPaths into such containers.
+Those `Relationship` instances can be defined anywhere, preferably as a property of a `Component`.
 
-The example below showcases both ways of using `Relationship` instances:
+The example below showcases the use of a `Relationship` instance:
+
 ```swift
-struct TestServiceRelationShips: RelationshipContainer {
-    var greeter = Relationship("greeter")
-}
-
 struct TestService: WebService {
-
   @PathParameter var userId: User.ID
 
-  var relationshipContainer = TestServiceRelationShips()
-  let otherRelationship = Relationship("other") 
+  let greeterRelationship = Relationship("greeter") 
 
   var content: some Component {
     Group {
       "user"
       $userId
-        .relationship(to: \TestServiceRelationShips.greeter)
-        .relationship(to: otherRelationship)
+        .relationship(to: greeterRelationship)
     } content: {
       Handler()
     }
     Group("greeting", $userId) {
       Greeter()
-        .relatable(\TestServiceRelationShips.greeter)
+        .destination(of: greeterRelationship)
     }
-    Group("other") {
-      Other()
-        .relatable(otherRelationship)
+  }
+}
+```
+
+**REST:**  
+A request to the `/user/:userId` endpoint would look like the following:
+
+```json
+{
+  "id": "123",
+  "name": "Rudi",
+  "lastname": "Raser",
+  "_links": {
+    "self": "https://example.api/user/123",
+    "greeter": "https://example.api/greeting"
+  }
+}
+```
+
+**GraphQL:**  
+A graphql endpoint could receive the following query:
+
+```graphql
+query {
+  user(id: "123") {
+    id
+    name
+    lastname
+    greeter {
+      ...
+    }
+    other {
+      ...
     }
   }
 }
@@ -198,8 +242,14 @@ This is made possible by introducing a `.hideLink` modifier.
 
 The GraphQL Interface Exporter MUST ignore the `hidden` flag and treat it like any other relationship.
 
-Considering the example below, a request to `/` will not include a relationship pointing to `/test`,
-but the endpoint `/test` will nonetheless be reachable when requesting it directly.
+<br>
+
+Considering the example below, a REST exporter would not include the `test` relationship when serving a request to `/`.
+But a request directly made to `/test` will nonetheless be answered.
+
+If GraphQL would not ignore the `hidden` flag, the endpoint `/test` would no longer be accessible.  
+Thus GraphQL will ignore the `hidden` flag and the modifier is specifically named `hideLink` (and not `hideRelationship`)
+to indicate this behavior.
 
 ```swift
 var content: some Component {
@@ -251,11 +301,12 @@ struct TestService: WebService {
 }
 ```
 
-It will be observed that the `StatusInformationHandler` returns instances of type `StatusInformation`.
-So when another Endpoint references the type `StatusInformation`, we can easily get a reference to the Endpoint returning
-that type.
+It can be observed that the `StatusInformationHandler` returns instances of type `StatusInformation`.
+This information is saved, so that we can for a certain type list all Endpoints which return that exact type.  
+The goal is then, that the user can annotate endpoints or data structures with type information (e.g. `StatusInformation.self`)
+ to indicate relationships. This is explained in the following chapters.
 
-Furthermore, if we detect, that the return type of a `Handler` conforms to the `Identifiable` protocol, there are some
+If we detect, that the return type of a `Handler` conforms to the `Identifiable` protocol, there are some
 additional steps we need to check. 
 * If we can match the type of the `.id` property to any `@PathParameter` (with the same type) contained in the path,
     we save that return type to our index (Though: see note below).
@@ -268,21 +319,22 @@ Some special cases:
  conforming `Identifiable` in their `handle()` (meaning we can't match a property to the path parameter), will not be indexed.
 * In a case where multiple `Handler` return the same type (e.g. multiple handlers returning `StatusInformation`)
 non of them are added to the index. Instead we rely on the user to mark the appropriate `Handler`,
-see [3.2.](#32-using-defaultreference-to-resolve-ambiguous-return-type-information).
+see [3.2.](#32-using-defaultrelationship-to-resolve-ambiguous-return-type-information).
 
 _Note: As the type of a `@PathParameter` is a `LosslessStringConvertible` it most certainly is either a 
 `String` or an `Int`. Meaning, checking if the type of the `User.id` property is equal to `User.ID` type might
 not be strong enough.
 Thus it could be necessary for `@PathParemeter`s to specify the type: e.g. `@PathParameter(type: User.self)` where
 the `type` argument must conform to the `Identifiable` protocol (or something similar, as `Identifiable.ID` conforms 
-to `Hashable` and we actually need `LosslessStringConvertible`)_
+to `Hashable` and we actually need `LosslessStringConvertible`).
+This would also need to be addressed for `@Parameter(.http(.path))` declarations._
 
-### 3.2. Using `.defaultReference` to resolve ambiguous return type information
+### 3.2. Using `.defaultRelationship` to resolve ambiguous return type information
 
 As describe in [3.1.](#31-indexing-endpoints-by-their-handler-return-type) Apodini won't index type information
 if it isn't unambiguous.
 
-In such cases where there are multiple `Handler` returning the same type, the user can use `.defaultReference` to
+In such cases where there are multiple `Handler` returning the same type, the user can use `.defaultRelationship` to
 explicitly mark which Endpoint should be indexed for the given return type.  
 
 ```swift
@@ -294,7 +346,7 @@ struct StatusInformation {
 var content: some Component {
   Group("status") {
     StatusInformationHandler()
-      .defaultReference()
+      .defaultRelationship()
   }
   Group("status-information") {
     StatusInformationHandler()
@@ -452,6 +504,10 @@ var content: some Component {
 ```
 
 **REST:**  
+
+A REST exporter will inherit the `_links` section from `/user/:userId`, any relationships of that route but also
+overwriting the `self` link.
+
 A request to the `me` endpoint would then generate a response like the following:
 ```json5
 {
@@ -465,14 +521,19 @@ A request to the `me` endpoint would then generate a response like the following
 ```
 
 **GraphQL:**  
+
+In order for the querier to be able to access properties of `User`, the GraphQL exporter would need to
+inline properties contained in `User` but not contained in `MeUser`.
+
 A graphql query for the given example might look like the following:
 
-[//]: # "// TODO graphql graphql must also be able to model the self link somehow. Can the properties of /user/:userId be inlined?"
 ```graphql
 query {
   me {
     id
     loginToken
+    name
+    lastname
     post(postId: "123") {
       title
     }
@@ -482,81 +543,7 @@ query {
 
 ## 4. Appendix
 
-### 4.1. Example implementation of `var relationships`
-
-```swift
-protocol RelationshipDefinition {}
-
-struct SomeRelationshipReference<From, To: Identifiable>: RelationshipDefinition {
-  var name: String
-  var type: To.Type
-  var keyPath: KeyPath<From, To.ID>
-
-  init(to type: To.Type = To.self, at keyPath: KeyPath<From, To.ID>, as name: String) {
-    self.name = name
-    self.type = type
-    self.keyPath = keyPath
-  }
-
-  func identifier(for from: From) -> To.ID {
-    from[keyPath: keyPath]
-  }
-}
-
-struct SomeRelationshipInheritance<From, To: Identifiable>: RelationshipDefinition {
-  let name: String = "self" // reserved relationship name to signal inheritance
-  var type: To.Type
-  var keyPath: KeyPath<From, To.ID>
-  
-  init(from type: To.Type = To.self, at keyPath: KeyPath<From, To.ID>) {
-    self.type = type
-    self.keyPath = keyPath
-  }
-    
-  func identifier(for from: From) -> To.ID {
-    from[keyPath: keyPath]
-  }
-}
-
-protocol WithRelationships {
-  typealias References<To: Identifiable> = SomeRelationshipReference<Self, To>
-  typealias Inherits<To: Identifiable> = SomeRelationshipInheritance<Self, To>
-  associatedtype Relationships: RelationshipDefinition
-  static var relationships: Relationships { get }
-}
-
-// ------------
-
-struct User: Identifiable {
-  var id: String
-  var name: String
-  var lastname: String
-  var email: String
-}
-
-struct Article: Identifiable, WithRelationships {
-  var id: String
-  var heading: String
-  var content: String
-
-  var writtenBy: String
-
-  static var relationships: some RelationshipDefinition {
-    References<User>(at: \.writtenBy, as: "author")
-  }
-}
-
-struct MeUser: Identifiable, WithRelationships {
-  var id: String
-  var loginToken: String
-
-  static var relationships: some RelationshipDefinition {
-    Inherits<User>(at: \.id)
-  }
-}
-```
-
-### 4.2. Discussion: DSL vs. Property Wrapper
+### 4.1. Discussion: DSL vs. Property Wrapper
 
 The draft version of this document proposed that instead of using a DSL approach for the two relationship definitions
 `References` and `Inherits` we could use property wrappers to annotate those properties which hold the `Identifiable.ID`
@@ -569,7 +556,7 @@ Information stored in property wrappers can only be inspected when having a inst
 (and experiments (ab)using `createInstance` of the Runtime frame have failed).  
 Consequentially we can't use Property Wrappers.
 
-### 4.3. Thought experiment: Reverse lookup for relationship definitions
+### 4.2. Thought experiment: Reverse lookup for relationship definitions
 
 Given the example web service from [3.3.2.1](#3321-relationship-definition-references):
 ```swift
