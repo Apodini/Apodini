@@ -5,8 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/27/20.
 //
 
-import Vapor
-import Runtime
+@_implementationOnly import Runtime
 
 
 private struct ResetGuard: SyncGuard {
