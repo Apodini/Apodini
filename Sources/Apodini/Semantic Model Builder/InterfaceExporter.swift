@@ -2,16 +2,14 @@
 // Created by Andi on 22.11.20.
 //
 
-import Vapor
+import class Vapor.Application
 
-protocol InterfaceExporter: RequestInjectableDecoder {
+protocol InterfaceExporter {
     init(_ app: Application)
 
     func export(_ endpoint: Endpoint)
 
     func finishedExporting(_ webService: WebServiceModel)
-
-    func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T?
 }
 
 extension InterfaceExporter {
