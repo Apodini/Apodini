@@ -23,7 +23,7 @@ class SemanticModelBuilder: RequestInjectableDecoder {
         // Can be overwritten to run action once the component tree was parsed
     }
     
-    func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
+    func decode<T>(_ type: T.Type, with context: DatabaseInjectionContext?, from request: Request) throws -> T? where T : Decodable {
         fatalError("decode must be overridden")
     }
 }

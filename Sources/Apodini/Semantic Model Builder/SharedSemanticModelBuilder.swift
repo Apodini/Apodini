@@ -102,7 +102,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         }
     }
 
-    override func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
+    override func decode<T>(_ type: T.Type, with context: DatabaseInjectionContext? = nil, from request: Request) throws -> T? where T : Decodable {
         fatalError("Shared model is unable to deal with .decode")
     }
 

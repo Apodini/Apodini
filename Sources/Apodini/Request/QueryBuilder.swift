@@ -75,9 +75,8 @@ public struct QueryBuilder<Model: DatabaseModel> {
         return type.keys
     }
     
-    @discardableResult
     static func info(for type: Model.Type) -> [ModelInfo] {
-        var modelInfo: [ModelInfo] = []
+        var modelInfo: [ModelInfo] = []
         do {
             
             let keys = type.keys
@@ -87,7 +86,11 @@ public struct QueryBuilder<Model: DatabaseModel> {
             }
             for (index, propertyInfo) in info.properties.enumerated() {
                 if propertyInfo.name.replacingOccurrences(of: "_", with: "") == keys[index].description {
-                    modelInfo.append(ModelInfo(key: keys[index], type: propertyInfo.type))
+                    let key = keys[index]
+                    let type = Self.fieldType(for: propertyInfo.type)
+                    modelInfo.append(ModelInfo(key: key, type: type))
+                    print(String(describing: propertyInfo.type))
+                    print(Self.fieldType(for: propertyInfo.type))
                 }
             }
             
@@ -97,9 +100,31 @@ public struct QueryBuilder<Model: DatabaseModel> {
         }
         return modelInfo
     }
+    
+    //TODO: Find a better way to do this
+    private static func fieldType(for type: Any.Type) -> Any.Type {
+        let fieldTypeString = String(describing: type)
+                .replacingOccurrences(of: "FieldProperty", with: "")
+                .replacingOccurrences(of: "<", with: "")
+                .replacingOccurrences(of: " ", with: "")
+                .replacingOccurrences(of: ">", with: "").split(separator: ",").map({ String($0) }).last!
+        switch fieldTypeString {
+        case "String":
+            return String.self
+        case "Int":
+            return Int.self
+        case "Bool":
+            return Bool.self
+        case "UUID":
+            return UUID.self
+        default:
+            fatalError("Should not happen")
+        }
+    }
 }
 
-struct ModelInfo {
-    let key: FieldKey
-    let type: Any
+public struct ModelInfo: DatabaseInjectionContext {
+    public var key: FieldKey
+    public var type: Any.Type
+    
 }

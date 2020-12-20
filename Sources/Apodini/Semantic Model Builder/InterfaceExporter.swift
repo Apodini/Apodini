@@ -11,7 +11,7 @@ protocol InterfaceExporter: RequestInjectableDecoder {
 
     func finishedExporting(_ webService: WebServiceModel)
 
-    func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T?
+//    func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T?
 }
 
 extension InterfaceExporter {

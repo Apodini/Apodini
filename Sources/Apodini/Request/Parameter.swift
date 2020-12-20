@@ -84,7 +84,7 @@ public struct Parameter<Element: Codable> {
 extension Parameter: RequestInjectable {
     mutating func inject(using request: Vapor.Request, with decoder: RequestInjectableDecoder?) throws {
         if let decoder = decoder {
-            element = try decoder.decode(Element.self, from: request)
+            element = try decoder.decode(Element.self, with: nil, from: request)
         }
     }
 

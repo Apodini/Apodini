@@ -95,8 +95,7 @@ class RESTInterfaceExporter: InterfaceExporter {
         }
     }
 
-    func decode<T>(_ type: T.Type, from request: Vapor.Request) throws -> T? where T: Decodable {
-        print("decode")
+    func decode<T>(_ type: T.Type, with context: DatabaseInjectionContext?, from request: Request) throws -> T? where T : Decodable {
         guard let byteBuffer = request.body.data, let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
             throw Vapor.Abort(.internalServerError, reason: "Could not read the HTTP request's body")
         }

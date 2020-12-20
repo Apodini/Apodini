@@ -29,7 +29,7 @@ public struct Body<Element: Codable>: RequestInjectable {
     mutating func inject(using request: Request, with decoder: RequestInjectableDecoder? = nil) throws {
         print("called")
         if let decoder = decoder {
-            element = try decoder.decode(Element.self, from: request)
+            element = try decoder.decode(Element.self, with: nil, from: request)
         }
     }
 }

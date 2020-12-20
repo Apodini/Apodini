@@ -31,7 +31,7 @@ final class CustomComponentTests: ApodiniTests {
     }
 
     class JSONSemanticModelBuilder: SemanticModelBuilder {
-        override func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
+        override func decode<T>(_ type: T.Type, with context: DatabaseInjectionContext?, from request: Request) throws -> T? where T : Decodable {
             guard let byteBuffer = request.body.data,
                   let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
                 throw Vapor.Abort(.internalServerError, reason: "Could not read the HTTP request's body")
@@ -39,6 +39,15 @@ final class CustomComponentTests: ApodiniTests {
 
             return try JSONDecoder().decode(type, from: data)
         }
+        
+//        override func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
+//            guard let byteBuffer = request.body.data,
+//                  let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
+//                throw Vapor.Abort(.internalServerError, reason: "Could not read the HTTP request's body")
+//            }
+//
+//            return try JSONDecoder().decode(type, from: data)
+//        }
     }
     
     
