@@ -5,9 +5,9 @@
 //  Created by Alexander Collins on 30.11.20.
 //
 
+import Foundation
 import FCM
-import Vapor
-
+import class Vapor.Application
 
 public struct FCMConfiguration: Configuration {
     let filePath: String
@@ -16,7 +16,7 @@ public struct FCMConfiguration: Configuration {
         self.filePath = filePath
     }
     
-    public func configure(_ app: Application) {
+    public func configure(_ app: Vapor.Application) {
         let serviceAccount = readJSON()
         app.fcm.configuration = .init(email: serviceAccount.client_email,
                                       projectId: serviceAccount.project_id,

@@ -5,7 +5,8 @@
 //  Created by Alexander Collins on 12.11.20.
 //
 
-import Vapor
+import class Vapor.Application
+import struct Vapor.Abort
 import Fluent
 import APNS
 import FCM
