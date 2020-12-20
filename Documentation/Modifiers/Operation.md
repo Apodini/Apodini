@@ -1,3 +1,5 @@
+![document type: vision](https://apodini.github.io/resources/markdown-labels/document_type_vision.svg)
+
 # Operation
 
 This document describes what the `Operation` is and how interface exporters may deal with it.  
@@ -30,7 +32,7 @@ the same path `/user` but describing different operations).
 **Inferring the http method on `.automatic`**
 
 When `.automatic` is defined as the operation for an endpoint, the REST exporter (or any other http driven exporter)
-SHOULD try to deterministically infer the resulting http method from the context (e.g. by the presents or absence of
+SHOULD try to deterministically infer the resulting http method from the context (e.g. by the presence or absence of
 `@Parameter`) or other wise default to `GET`.
 
 Be aware that the `SharedSemanticModelBuilder` will consider `.automatic` to be a uniquely identifying operation.
