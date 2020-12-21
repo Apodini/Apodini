@@ -12,7 +12,7 @@ import protocol Fluent.Database
 
 /// Used to wrap top-level primitive types before decoding.
 /// ProtoDecoder needs to get a message type, which is a struct in Swift case.
-fileprivate struct RequestWrapper<T>: Decodable where T: Decodable {
+private struct RequestWrapper<T>: Decodable where T: Decodable {
     var request: T
 }
 
@@ -52,8 +52,7 @@ class GRPCRequest: Apodini.Request {
     }
 
     private func isCollection(_ any: Any) -> Bool {
-        let m = Mirror(reflecting: any)
-        switch m.displayStyle {
+        switch Mirror(reflecting: any).displayStyle {
         case .some(.collection):
             return true
         default:

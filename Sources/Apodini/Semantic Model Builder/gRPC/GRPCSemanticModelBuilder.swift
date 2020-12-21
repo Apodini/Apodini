@@ -1,3 +1,7 @@
+//
+//  GRPCSemanticModelBuilder.swift
+//
+//
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
@@ -7,7 +11,7 @@ import NIOHPACK
 import ProtobufferCoding
 
 class GRPCSemanticModelBuilder: SemanticModelBuilder {
-    private var services: [String: GRPCService]
+    var services: [String: GRPCService]
 
     override init(_ app: Application) {
         self.services = [:]
@@ -30,12 +34,11 @@ class GRPCSemanticModelBuilder: SemanticModelBuilder {
         // if no explicit methodname is provided via the modifier,
         // we have to rely on the component name
         if methodName == GRPCMethodNameContextKey.defaultValue {
-            methodName = "\(C.self)"
+            methodName = "\(C.self)".lowercased()
         }
 
         // expose the new component via a GRPCService
         // currently unary enpoints are considered here
-        // TODO Consider different types of endpoints
         if let service = services[serviceName] {
             service.exposeUnaryEndpoint(name: methodName, for: component, with: context)
         } else {
@@ -46,8 +49,4 @@ class GRPCSemanticModelBuilder: SemanticModelBuilder {
         }
         app.logger.info("Exposed new gRPC endpoint for service \(serviceName) with name: \(methodName)")
     }
-}
-
-extension GRPCSemanticModelBuilder {
-
 }

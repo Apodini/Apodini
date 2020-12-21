@@ -58,8 +58,7 @@ extension GRPCService {
     /// a collection.
     /// - returns True if the given value is a collection, else False
     private func isCollection(_ any: Any) -> Bool {
-        let m = Mirror(reflecting: any)
-        switch m.displayStyle {
+        switch Mirror(reflecting: any).displayStyle {
         case .some(.collection):
             return true
         default:
@@ -102,6 +101,7 @@ extension GRPCService {
         headers.add(name: .contentType, value: "application/grpc+proto")
         do {
             let data = try encode(value)
+            print("\([UInt8](data))")
             return Vapor.Response(status: .ok,
                                   version: HTTPVersion(major: 2, minor: 0),
                                   headers: headers,

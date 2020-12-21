@@ -10,7 +10,7 @@ import Foundation
 
 // MARK: Unary request handler
 extension GRPCService {
-    private func createUnaryHandler<C: Component>(for component: C, with context: Context) -> (GRPCRequest) -> EventLoopFuture<C.Response> {
+    func createUnaryHandler<C: Component>(for component: C, with context: Context) -> (GRPCRequest) -> EventLoopFuture<C.Response> {
         { (request: GRPCRequest) in
             let guardEventLoopFutures = self.processGuards(request, with: context)
             return EventLoopFuture<Void>
@@ -23,6 +23,7 @@ extension GRPCService {
                                 responseTransformer.transform(response: response)
                             }
                         }
+                        // swiftlint:disable force_cast
                         return request.eventLoop.makeSucceededFuture(response as! C.Response)
                     }
                 }
@@ -44,7 +45,7 @@ extension GRPCService {
 
         app.on(.POST, path) { (vaporRequest: Vapor.Request) -> EventLoopFuture<Vapor.Response> in
             let promise = vaporRequest.eventLoop.makePromise(of: Vapor.Response.self)
-            vaporRequest.body.collect().whenSuccess { byteBuffer in
+            vaporRequest.body.collect().whenSuccess { _ in
                 let request = GRPCRequest(vaporRequest)
                 let response: EventLoopFuture<C.Response> = requestHandler(request)
                 let result = response.flatMapThrowing { self.encodeResponse($0) }

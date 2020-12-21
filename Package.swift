@@ -37,7 +37,7 @@ let package = Package(
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime"),
                 .product(name: "GRPC", package: "grpc-swift"),
-                .target(name: "ProtobufferCoding"),
+                .target(name: "ProtobufferCoding")
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
