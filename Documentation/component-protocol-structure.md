@@ -1,10 +1,13 @@
-# Proposal: Replacing `Component`
+# Documentation: `Component` protocol structure
 
 
 - Author: Lukas Kollmer
 - Date: 2020-12-16
-- Draft Implementation: [experimental/dsl-node-protocols][branch_url]
+- Draft Implementation: [documentation/add-component-protocols-proposal][branch_url]
 
+
+<details>
+<summary>(Initial reasoning for the `Component` rewrite)</summary>
 
 ## Summary
 
@@ -20,10 +23,7 @@
 
 ## The status quo
 
-
-
 Currently, the `Component` protocol serves as a one-size-fits-all solution for all "things which can appear in the DSL".
-
 
 Why is this bad? Let's have a look at `Component`'s [current definition](https://github.com/Apodini/Apodini/blob/83a513327ff094cc9666a0e51a2f4cda67fd8f91/Sources/Apodini/Components/Component.swift)
 
@@ -132,42 +132,7 @@ The result is that, when a request is sent to the component's endpoint, it will 
 **Generally speaking, if we can use the type system to statically detect and reject ill-formed programs, instead of having to perform these checks at runtime, we should always do so.**
 
 
-
-## Proposed replacement
-
-
-### The new protocol structure
-
-My current implementation in [experimental/dsl-node-protocols][branch_url] replaces `Component` with the following two protocols:
-
-```swift
-protocol Handler {
-    associatedtype Response: ResponseEncodable
-    
-    func handle() -> Response
-}
-
-
-protocol Component {
-    associatedtype Content: Component
-    
-    @ComponentBuilder
-    var content: Content { get }
-}
-```
-
-- `Handler`s are nodes which expose some functionality to the client.  
-  All leaves in the `WebService` must be `Handler`s.
-- `Component`s are nodes which sit above the leaves.  
-  They cannot provide any functionality of their own, but they must eventually lead to one or more `Handler`s.
-
-
-**Note** The names for these protocols aren't fixed, I just went with the most descriptive thing i could think of.
-
-
-
-
-### How does it affect the current implementation?
+### How does the rewrite affect the current implementation?
 
 Switching to this new structure required surprisingly few changes.
 In most cases it was sufficient to replace `Component` with `Handler`, since the semantic model builder already operates only on endpoint nodes, and never on non-endpoint nodes. All tests still pass.
@@ -181,9 +146,41 @@ In most cases it was sufficient to replace `Component` with `Handler`, since the
   You have to provide an implementation for your components to compile.
   (The exception here is if you manually add a `typealias {Content|Response} = Never`, in which case we do still provide a default implementation. The idea is that, if you want a component to be unusable, and crash if ever accessed, you have to explicitly specify this.)
 
+</details>
 
 
-### Benefits from switching to a more fine-grained protocol structure:
+
+## Defining Components
+
+### Protocol structure
+
+```swift
+protocol Component {
+    associatedtype Content: Component
+    
+    @ComponentBuilder
+    var content: Content { get }
+}
+
+
+protocol Handler {
+    associatedtype Response: ResponseEncodable
+    
+    func handle() -> Response
+}
+```
+
+- `Handler`s are nodes which expose some functionality to the client.  
+  All leaves in the `WebService` must be `Handler`s.
+- `Component`s are nodes which sit above the leaves.  
+  They cannot provide any functionality of their own, but they must eventually lead to one or more `Handler`s.
+
+
+
+
+
+
+### Benefits this more fine-grained protocol structure:
 
 **Type Safety**
 
@@ -199,7 +196,7 @@ This directly benefits both the user (ie the person implementing a web service),
 
 
 
-### Issues with the current implementation in [experimental/dsl-node-protocols][branch_url]
+### Issues with this protocol structure
 
 **Function builder complexity**  
 The issue here is that DSL constructs can now consist of two types instead of just one.  
@@ -263,4 +260,72 @@ This also means that the number of generated functions isn't `O(n)` anymore, but
 
 
 
-[branch_url]: https://github.com/Apodini/Apodini/tree/experimental/dsl-node-protocols
+
+## Documentation: Identifying handlers
+
+Being able to reference an individual instance of a `Handler` within the DSL is required for cross-component communication.
+Since a web service might contain multiple instances of a `Handler` type, we cannot rely on the static type alone.
+
+All handler types get a default identifier, this will work as long as the handler never gets accessed from another handler, or only appears once within the WebService.
+
+A `Handler`'s identifier is returned by the `__endpointId` property. This property is intentionally underscored, otherwise this property name wouldn't be available for `@Parameter`s
+
+
+There are two ways to identify a `Handler`:
+- `AnyEndpointIdentifier`: identifies a handler of an unknown type
+- `ScopedEndpointIdentifier`: identifies a handler of a known specific type
+
+
+Example: using endpoint identifiers to resolve ambiguity between handlers
+
+```swift
+struct PostTweet: Handler {
+  enum Behaviour {
+    case regular, legacy
+  }
+
+  class EndpointIdentifier: ScopedEndpointIdentifier<PostTweet> {
+    static let normal = EndpointIdentifier("normal")
+    static let legacy = EndpointIdentifier("legacy")
+  }
+
+  let maxLength: Int
+  let __endpointId: EndpointIdentifier
+
+  init(_ behaviour: Behaviour) {
+    switch behaviour {
+    case .regular:
+      maxLength = 280
+      __endpointId = .normal
+    case .legacy:
+      maxLength = 140
+      __endpointId = .legacy
+    }
+  }
+
+  func handle() -> ... {
+    // ....
+  }
+}
+```
+
+
+Using a `ScopedEndpointIdentifier` instead of `AnyEndpointIdentifier` allows us to reject identifiers for other handler types.
+For example, if you have another component with the identifier `.foo`, you can't pass `.foo` when trying to reference a `PostTweet` instance, since it's an identifier for a different Handler type.
+
+
+
+## Vision: Inter-component communication
+
+The idea here is that components will, either by conforming to an additional protocol or implicitly via conforming to `Handler`, indicate that they can be remotely invoked (ie from within another component).
+
+Apodini will provide an API for these interactions, and will handle the concrete interaction steps between the two components.
+
+```swift
+invoke(PostTweet.self, identifier: .legacy, ...)
+```
+
+
+
+
+[branch_url]: https://github.com/Apodini/Apodini/tree/documentation/add-component-protocols-proposal
