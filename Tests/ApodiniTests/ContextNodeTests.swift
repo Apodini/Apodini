@@ -6,7 +6,11 @@ import XCTest
 import Vapor
 @testable import Apodini
 
-struct TestComponent: Component {
+
+
+struct TestComponent: Handler {
+    let __endpointId = AnyEndpointIdentifier(Self.self)
+    
     let type: Int
 
     init(_ type: Int) {
@@ -18,6 +22,8 @@ struct TestComponent: Component {
     }
 }
 
+
+
 struct IntEnvironmentContextKey: ContextKey {
     static var defaultValue: Int = 0
 
@@ -25,6 +31,8 @@ struct IntEnvironmentContextKey: ContextKey {
         value = nextValue()
     }
 }
+
+
 
 struct IntNextComponentContextKey: ContextKey {
     static var defaultValue: Int = 0
@@ -34,13 +42,15 @@ struct IntNextComponentContextKey: ContextKey {
     }
 }
 
-struct IntModifier<ModifiedComponent: Component>: Modifier, Visitable {
-    let component: ModifiedComponent
+
+
+struct IntModifier_EndpointProvidingNode<ModifiedComponent: Component>: EndpointProvidingNodeModifier, Visitable {
+    let content: ModifiedComponent
     let scope: Scope
     let value: Int
 
-    init(_ component: ModifiedComponent, scope: Scope, value: Int) {
-        self.component = component
+    init(_ content: ModifiedComponent, scope: Scope, value: Int) {
+        self.content = content
         self.scope = scope
         self.value = value
     }
@@ -52,15 +62,50 @@ struct IntModifier<ModifiedComponent: Component>: Modifier, Visitable {
         case .nextComponent:
             visitor.addContext(IntNextComponentContextKey.self, value: value, scope: .nextComponent)
         }
-        component.visit(visitor)
+        content.visit(visitor)
     }
 }
 
+
 extension Component {
-    func modifier(_ scope: Scope, value: Int) -> IntModifier<Self> {
-        IntModifier(self, scope: scope, value: value)
+    func modifier(_ scope: Scope, value: Int) -> IntModifier_EndpointProvidingNode<Self> {
+        IntModifier_EndpointProvidingNode(self, scope: scope, value: value)
     }
 }
+
+
+
+struct IntModifier_EndpointNode<ModifiedComponent: Handler>: Handler, Visitable {
+    let content: ModifiedComponent
+    let scope: Scope
+    let value: Int
+
+    init(_ content: ModifiedComponent, scope: Scope, value: Int) {
+        self.content = content
+        self.scope = scope
+        self.value = value
+    }
+
+    func visit(_ visitor: SyntaxTreeVisitor) {
+        switch scope {
+        case .environment:
+            visitor.addContext(IntEnvironmentContextKey.self, value: value, scope: .environment)
+        case .nextComponent:
+            visitor.addContext(IntNextComponentContextKey.self, value: value, scope: .nextComponent)
+        }
+        content.visit(visitor)
+    }
+}
+
+
+extension Handler {
+    func modifier(_ scope: Scope, value: Int) -> IntModifier_EndpointNode<Self> {
+        IntModifier_EndpointNode(self, scope: scope, value: value)
+    }
+}
+
+
+
 
 /**
  * Regression test for https://github.com/Apodini/Apodini/issues/12
@@ -84,6 +129,7 @@ final class ContextNodeTests: XCTestCase {
         app.shutdown()
     }
     
+    
     var groupWithSingleComponent: some Component {
         Group("test") {
             TestComponent(1)
@@ -92,7 +138,7 @@ final class ContextNodeTests: XCTestCase {
 
     func testGroupWithSingleComponent() {
         class TestSemanticModelBuilder: SemanticModelBuilder {
-            override func register<C: Component>(component: C, withContext context: Context) {
+            override func register<C: Handler>(component: C, withContext context: Context) {
                 if let testComponent = component as? TestComponent {
                     let localInt = context.get(valueFor: IntNextComponentContextKey.self)
 
@@ -113,6 +159,7 @@ final class ContextNodeTests: XCTestCase {
         groupWithSingleComponent.visit(visitor)
     }
     
+    
     var groupWithComponentAndGroup: some Component {
         Group("test") {
             TestComponent(1)
@@ -125,7 +172,7 @@ final class ContextNodeTests: XCTestCase {
 
     func testGroupWithComponentAndGroup() {
         class TestSemanticModelBuilder: SemanticModelBuilder {
-            override func register<C: Component>(component: C, withContext context: Context) {
+            override func register<C: Handler>(component: C, withContext context: Context) {
                 if let testComponent = component as? TestComponent {
                     let path = context.get(valueFor: PathComponentContextKey.self)
                     let pathString = ContextNodeTests.buildStringFromPathComponents(path)
@@ -151,6 +198,7 @@ final class ContextNodeTests: XCTestCase {
         groupWithComponentAndGroup.visit(visitor)
     }
     
+    
     var groupWithGroupAndComponent: some Component {
         Group("test") {
             Group("test2") {
@@ -162,7 +210,7 @@ final class ContextNodeTests: XCTestCase {
 
     func testGroupWithGroupAndComponent() {
         class TestSemanticModelBuilder: SemanticModelBuilder {
-            override func register<C: Component>(component: C, withContext context: Context) {
+            override func register<C: Handler>(component: C, withContext context: Context) {
                 if let testComponent = component as? TestComponent {
                     let path = context.get(valueFor: PathComponentContextKey.self)
                     let pathString = ContextNodeTests.buildStringFromPathComponents(path)

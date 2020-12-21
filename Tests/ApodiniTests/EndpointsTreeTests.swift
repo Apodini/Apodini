@@ -16,7 +16,7 @@ final class EndpointsTreeTests: XCTestCase {
         let month: Int
     }
     
-    struct TestHandler: Component {
+    struct TestHandler: Handler {
         @Parameter
         var name: String
         
@@ -49,20 +49,21 @@ final class EndpointsTreeTests: XCTestCase {
     func testEndpointParameters() throws {
         // swiftlint:disable force_cast
         let testComponent = TestComponent()
-        let testHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
+        //let testHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
+        let testHandler: TestHandler = try XCTUnwrap((testComponent.content.content as? _WrappedHandler<TestHandler>)?.handler)
         
         let requestInjectables: [String: RequestInjectable] = testHandler.extractRequestInjectables()
         let parameterBuilder = ParameterBuilder(from: testHandler)
         parameterBuilder.build()
 
         let endpoint = Endpoint(
-                description: String(describing: testHandler),
-                context: Context(contextNode: ContextNode()),
-                operation: Operation.automatic,
-                requestHandler: SharedSemanticModelBuilder.createRequestHandler(with: testComponent),
-                handleReturnType: TestHandler.Response.self,
-                responseType: TestHandler.Response.self,
-                parameters: parameterBuilder.parameters
+            description: String(describing: testHandler),
+            context: Context(contextNode: ContextNode()),
+            operation: Operation.automatic,
+            requestHandler: SharedSemanticModelBuilder.createRequestHandler(with: testHandler),
+            handleReturnType: TestHandler.Response.self,
+            responseType: TestHandler.Response.self,
+            parameters: parameterBuilder.parameters
         )
 
         let parameters: [EndpointParameter] = endpoint.parameters

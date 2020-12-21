@@ -15,7 +15,7 @@ class SemanticModelBuilder {
         self.app = app
     }
     
-    func register<C: Component>(component: C, withContext context: Context) {
+    func register<C: Handler>(component: C, withContext context: Context) {
         // Overwritten by subclasses of the SemanticModelBuilder
     }
 

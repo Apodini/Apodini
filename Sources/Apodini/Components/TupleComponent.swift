@@ -1,12 +1,14 @@
 import Foundation
 
 public struct TupleComponent<T>: Component {
+    public var content: Never { fatalError() }
+    
     private let storage: T
     #if DEBUG
     let file: StaticString
     let function: StaticString
     #endif
-
+    
     #if DEBUG
     init(_ storage: T, file: StaticString = #file, function: StaticString = #function) {
         self.storage = storage

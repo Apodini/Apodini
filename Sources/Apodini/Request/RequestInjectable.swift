@@ -39,7 +39,7 @@ private func extractRequestInjectables(from subject: Any) -> [String: RequestInj
     }
 }
 
-extension Component {
+extension Handler {
     func extractRequestInjectables() -> [String: RequestInjectable] {
         Apodini.extractRequestInjectables(from: self)
     }
@@ -55,7 +55,6 @@ extension Apodini.Request {
                     -> EventLoopFuture<R> {
         var element = element
         inject(in: &element)
-
         return method(element)
     }
 
@@ -78,7 +77,7 @@ extension Apodini.Request {
                 }
             }
         } catch {
-            fatalError("Injecting into element \(element) failed.")
+            fatalError("Injecting into element \(element) failed: \(error)")
         }
     }
 }

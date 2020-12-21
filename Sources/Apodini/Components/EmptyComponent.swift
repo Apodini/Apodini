@@ -8,19 +8,8 @@
 import NIO
 
 
-extension Never: Component {
-    public typealias Content = Never
-    public typealias Response = Never
-    
-    public var content: Self.Content {
-        fatalError("Never Type has no body")
-    }
-    
-    
-    public func handle() -> Self.Response {
-        fatalError("Never should never be handled")
-    }
-}
+
+// MARK: Handler
 
 
 extension Never: Encodable {
@@ -33,26 +22,35 @@ extension Never: Encodable {
 }
 
 
-extension Component where Self.Content == Never {
-    /// This `Component` does not include any child `Component`s
-    public var content: Never {
-        fatalError("\(type(of: self)) has no body")
-    }
-}
-
-extension Component where Self.Response == Never {
-    /// This `Component` does not handle any network requests
+extension Never: Handler {
+    public typealias Response = Never
+    
     public func handle() -> Never {
-        fatalError("Never should never be handled")
+        fatalError("Can't invoke endpoint with 'Never' response type")
     }
 }
 
 
-public struct EmptyComponent: Component {
-    public init() {}
+extension Handler where Response == Never {
+    public func handle() -> Never {
+        fatalError("Can't invoke endpoint with 'Never' response type")
+    }
 }
 
 
-extension EmptyComponent: Visitable {
-    func visit(_ visitor: SyntaxTreeVisitor) {}
+
+// MARK: Component
+
+
+extension Never: Component {
+    public var content: Never {
+        fatalError()
+    }
+}
+
+
+extension Component where Content == Never {
+    public var content: Never {
+        fatalError()
+    }
 }

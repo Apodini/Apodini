@@ -40,7 +40,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         super.init(app)
     }
 
-    override func register<C: Component>(component: C, withContext context: Context) {
+    override func register<C: Handler>(component: C, withContext context: Context) {
         super.register(component: component, withContext: context)
 
         let operation = context.get(valueFor: OperationContextKey.self)
@@ -105,7 +105,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         }
     }
 
-    static func createRequestHandler<C: Component>(with component: C, guards: [LazyGuard] = [], responseModifiers: [() -> (AnyResponseTransformer)] = []) -> RequestHandler {
+    static func createRequestHandler<H: Handler>(with handler: H, guards: [LazyGuard] = [], responseModifiers: [() -> (AnyResponseTransformer)] = []) -> RequestHandler {
         { (request: Request) in
             let guardEventLoopFutures = guards.map { guardClosure in
                 request.enterRequestContext(with: guardClosure()) { requestGuard in
@@ -115,8 +115,8 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
             return EventLoopFuture<Void>
                     .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
                     .flatMap { _ in
-                        request.enterRequestContext(with: component) { component in
-                            var response: Encodable = component.handle()
+                        request.enterRequestContext(with: handler) { handler in
+                            var response: Encodable = handler.handle()
                             for responseTransformer in responseModifiers {
                                 response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
                                     responseTransformer.transform(response: response)

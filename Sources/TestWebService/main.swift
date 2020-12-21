@@ -1,6 +1,6 @@
 //
 //  TestWebService.swift
-//  
+//
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
@@ -41,7 +41,7 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
-    struct Greeter: Component {
+    struct Greeter: Handler {
         @Parameter var name: String
 
         func handle() -> String {
@@ -52,17 +52,17 @@ struct TestWebService: Apodini.WebService {
     
     var content: some Component {
         Text("Hello World! 👋")
-            .response(EmojiMediator(emojis: "🎉"))
-            .response(EmojiMediator())
-            .guard(PrintGuard())
+            //.response(EmojiMediator(emojis: "🎉"))
+            //.response(EmojiMediator())
+            //.guard(PrintGuard())
         Group("swift") {
             Text("Hello Swift! 💻")
-                .response(EmojiMediator())
-                .guard(PrintGuard())
+                //.response(EmojiMediator())
+                //.guard(PrintGuard())
             Group("5", "3") {
                 Text("Hello Swift 5! 💻")
             }
-        }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
+        }//.guard(PrintGuard("Someone is accessing Swift 😎!!"))
         Group("greet") {
             Greeter()
         }

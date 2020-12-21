@@ -48,6 +48,7 @@ final class ModifierTests: XCTestCase {
         }
         
         
+        @ComponentBuilder
         var component: some Component {
             Text("Hallo")
                 .response(FirstTestResponseMediator())

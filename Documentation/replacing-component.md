@@ -141,25 +141,25 @@ The result is that, when a request is sent to the component's endpoint, it will 
 My current implementation in [experimental/dsl-node-protocols][branch_url] replaces `Component` with the following two protocols:
 
 ```swift
-protocol EndpointNode {
+protocol Handler {
     associatedtype Response: ResponseEncodable
     
     func handle() -> Response
 }
 
 
-protocol EndpointProvidingNode {
-    associatedtype Content: EndpointProvidingNode
+protocol Component {
+    associatedtype Content: Component
     
-    @EndpointProvidingNodeBuilder
+    @ComponentBuilder
     var content: Content { get }
 }
 ```
 
-- `EndpointNode`s are nodes which expose some functionality to the client.  
-  All leaves in the `WebService` must be `EndpointNode`s.
-- `EndpointProvidingNode`s are nodes which sit above the leaves.  
-  They cannot provide any functionality of their own, but they must eventually lead to one or more `EndpointNode`s.
+- `Handler`s are nodes which expose some functionality to the client.  
+  All leaves in the `WebService` must be `Handler`s.
+- `Component`s are nodes which sit above the leaves.  
+  They cannot provide any functionality of their own, but they must eventually lead to one or more `Handler`s.
 
 
 **Note** The names for these protocols aren't fixed, I just went with the most descriptive thing i could think of.
@@ -170,9 +170,9 @@ protocol EndpointProvidingNode {
 ### How does it affect the current implementation?
 
 Switching to this new structure required surprisingly few changes.
-In most cases it was sufficient to replace `Component` with `EndpointNode`, since the semantic model builder already operates only on endpoint nodes, and never on non-endpoint nodes. All tests still pass.
+In most cases it was sufficient to replace `Component` with `Handler`, since the semantic model builder already operates only on endpoint nodes, and never on non-endpoint nodes. All tests still pass.
 
-- `Text` is now an `EndpointNode`
+- `Text` is now a `Handler`
 - `EmptyComponent` is removed, since user-exposed empty components were invalid DSL components to begin with.  
   (It still is possible to define a noop component, by typealiasing `Content` or `Response` to `Never`.)
 - Some tests needed to be updated (since a component's nested handlers can't be accessed via `component.content as? SomeHandlerType`)
@@ -217,13 +217,13 @@ Example: in the current function builder, the `buildBlock()` signatures are:
 Since the new builder has to support two types, and any permutation between them, the function builder becomes:
 
 ```swift
-(EndpointNode) -> some EndpointProvidingNode
-(EndpointProvidingNode) -> some EndpointProvidingNode
+(Handler) -> some Component
+(Component) -> some Component
 
-(EndpointNode, EndpointNode) -> some EndpointProvidingNode
-(EndpointNode, EndpointProvidingNode) -> some EndpointProvidingNode
-(EndpointProvidingNode, EndpointNode) -> some EndpointProvidingNode
-(EndpointProvidingNode, EndpointProvidingNode) -> some EndpointProvidingNode
+(Handler, Handler) -> some Component
+(Handler, Component) -> some Component
+(Component, Handler) -> some Component
+(Component, Component) -> some Component
 
 ...
 ```

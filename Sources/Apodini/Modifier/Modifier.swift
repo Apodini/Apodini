@@ -5,17 +5,32 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-protocol Modifier: Component {
-    associatedtype ModifiedComponent: Component
+
+
+protocol EndpointModifier: Handler {
+    associatedtype ModifiedEndpoint: Handler
     
-    
-    var component: Self.ModifiedComponent { get }
+    var endpoint: ModifiedEndpoint { get }
 }
 
 
-extension Modifier {
+
+extension EndpointModifier {
     /// A `Modifier`'s handle method should never be called!
-    public func handle() -> Self.ModifiedComponent.Response {
+    public func handle() -> Self.ModifiedEndpoint.Response {
         fatalError("A Modifier's handle method should never be called!")
     }
+    
+    public var __endpointId: Self.ModifiedEndpoint.EndpointIdentifier { endpoint.__endpointId }
+    
+    public var outgoingDependencies: Set<AnyEndpointIdentifier> { ModifiedEndpoint.outgoingDependencies }
+}
+
+
+
+
+protocol EndpointProvidingNodeModifier: Component {
+    associatedtype ModifiedEndpointProvider: Component
+    
+    var content: ModifiedEndpointProvider { get }
 }

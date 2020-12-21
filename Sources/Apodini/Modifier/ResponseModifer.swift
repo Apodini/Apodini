@@ -65,17 +65,17 @@ struct ResponseContextKey: ContextKey {
 
 
 /// A `ResponseModifier` can be used to transform the output of `Component`'s response to a different type using a `ResponseTransformer`
-public struct ResponseModifier<C: Component, T: ResponseTransformer>: Modifier where T.Response == C.Response {
+public struct ResponseModifier<C: Handler, T: ResponseTransformer>: EndpointModifier where T.Response == C.Response {
     public typealias Response = T.TransformedResponse
     
-    let component: C
+    let endpoint: C
     let responseTransformer: () -> (T)
     
     
-    init(_ component: C, responseTransformer: @escaping () -> (T)) {
+    init(_ endpoint: C, responseTransformer: @escaping () -> (T)) {
         precondition(((try? typeInfo(of: T.self).kind) ?? .none) == .struct, "ResponseTransformer \((try? typeInfo(of: T.self).name) ?? "unknown") must be a struct")
         
-        self.component = component
+        self.endpoint = endpoint
         self.responseTransformer = responseTransformer
     }
     
@@ -90,12 +90,12 @@ public struct ResponseModifier<C: Component, T: ResponseTransformer>: Modifier w
 extension ResponseModifier: Visitable {
     func visit(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(ResponseContextKey.self, value: [responseTransformer], scope: .nextComponent)
-        component.visit(visitor)
+        endpoint.visit(visitor)
     }
 }
 
 
-extension Component {
+extension Handler {
     /// A `response` modifier can be used to transform the output of `Component`'s response to a different type using a `ResponseTransformer`
     /// - Parameter responseTransformer: The `ResponseTransformer` used to transform the response of a `Component`
     /// - Returns: The modified `Component` with a new `Response` type
