@@ -5,7 +5,8 @@
 //  Created by Nityananda on 30.11.20.
 //
 
-/// .
+/// `ParticularType` encapsulates functionality around specific types that may be generic,
+/// or types that may be understood as _scalar_ or _primitive_.
 ///
 /// Particular: An antonym for generic.
 internal struct ParticularType {
@@ -15,6 +16,8 @@ internal struct ParticularType {
         self.type = type
     }
 }
+
+// MARK: - ParticularType: CustomStringConvertible
 
 extension ParticularType: CustomStringConvertible {
     var description: String {
@@ -29,6 +32,8 @@ extension ParticularType: CustomStringConvertible {
         description == "Optional"
     }
 }
+
+// MARK: - ParticularType: Equatable
 
 extension ParticularType: Equatable {
     static func == (lhs: ParticularType, rhs: ParticularType) -> Bool {
