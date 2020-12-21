@@ -30,26 +30,17 @@ final class CustomComponentTests: ApodiniTests {
         }
     }
 
-    class JSONSemanticModelBuilder: SemanticModelBuilder {
-        override func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T? {
-            guard let byteBuffer = request.body.data,
-                  let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
-                throw Vapor.Abort(.internalServerError, reason: "Could not read the HTTP request's body")
-            }
-
-            return try JSONDecoder().decode(type, from: data)
-        }
-    }
-    
-    
     func testComponentCreation() throws {
         let bird = Bird(name: "Hummingbird", age: 2)
         let birdData = ByteBuffer(data: try JSONEncoder().encode(bird))
         
-        let request = Request(application: app, collectedBody: birdData, on: app.eventLoopGroup.next())
+        let request = Vapor.Request(application: app, collectedBody: birdData, on: app.eventLoopGroup.next())
+        let restRequest = RESTRequest(request) { _ in
+            bird
+        }
         
-        let response = try request
-            .enterRequestContext(with: AddBirdsComponent(), using: JSONSemanticModelBuilder(app)) { component in
+        let response = try restRequest
+            .enterRequestContext(with: AddBirdsComponent()) { component in
                 component.handle().encodeResponse(for: request)
             }
             .wait()

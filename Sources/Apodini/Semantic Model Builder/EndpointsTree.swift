@@ -2,8 +2,6 @@
 // Created by Andi on 22.11.20.
 //
 
-import Vapor
-
 /// This struct is used to model the RootPath for the root of the endpoints tree
 struct RootPath: _PathComponent {
     var description: String {
@@ -36,11 +34,11 @@ struct Endpoint {
 
     let operation: Operation
 
-    fileprivate var requestHandlerBuilder: (RequestInjectableDecoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response>
+    let requestHandler: RequestHandler
     /// Type returned by `handle()`
-    let handleReturnType: ResponseEncodable.Type
+    let handleReturnType: Encodable.Type
     /// Response type ultimately returned by `handle()` and possible following `ResponseTransformer`s
-    var responseType: ResponseEncodable.Type
+    let responseType: Encodable.Type
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     var parameters: [EndpointParameter]
@@ -52,22 +50,19 @@ struct Endpoint {
         treeNode.relationships
     }
 
+
     init(description: String, context: Context, operation: Operation,
-         requestHandlerBuilder: @escaping (RequestInjectableDecoder) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response>,
-         handleReturnType: ResponseEncodable.Type, responseType: ResponseEncodable.Type, parameters: [EndpointParameter]) {
+         requestHandler: @escaping RequestHandler,
+         handleReturnType: Encodable.Type, responseType: Encodable.Type, parameters: [EndpointParameter]) {
         self.description = description
         self.context = context
         self.operation = operation
-        self.requestHandlerBuilder = requestHandlerBuilder
+        self.requestHandler = requestHandler
         self.handleReturnType = handleReturnType
         self.responseType = responseType
         self.parameters = parameters
     }
-
-    func createRequestHandler(for exporter: InterfaceExporter) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        requestHandlerBuilder(exporter)
-    }
-
+    
 }
 
 class EndpointsTreeNode {
