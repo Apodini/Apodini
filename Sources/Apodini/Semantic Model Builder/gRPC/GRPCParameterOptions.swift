@@ -15,7 +15,7 @@
      case fieldTag(_ tag: Int)
  }
 
- extension PropertyOptionKey where PropertyNameSpace == ParameterOptionNameSpace, Option == gRPCParameterOptions {
+ extension PropertyOptionKey where PropertyNameSpace == ParameterOptionNameSpace, Option == GRPCParameterOptions {
      static let gRPC = PropertyOptionKey<ParameterOptionNameSpace, GRPCParameterOptions>()
  }
 

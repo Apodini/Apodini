@@ -42,10 +42,14 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @Parameter var name: String
+        @Parameter
+        var name: String
+
+        @Parameter
+        var age: Int32
 
         func handle() -> String {
-            "Hello \(name)"
+            "Hello \(name), you are \(age) years old."
         }
     }
     

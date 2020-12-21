@@ -7,13 +7,73 @@
 
 import Foundation
 import ProtobufferCoding
+import NIO
 @_implementationOnly import Vapor
 import protocol Fluent.Database
+
+
+/// Used by the `RequestWrapper` as the
+/// `ProtoCodingKey` for the wrapped value
+/// that should be decoded. Default is 1.
+/// Each thread needs its own field-number, because we might
+/// be decoding multiple requests at the same time.
+private var fieldNumber = ThreadSpecificVariable<FieldNumber>()
+
+class FieldNumber {
+    public var tag = 1
+
+    /// Returns the field-number for the current thread.
+    public static func getFieldNumber() -> Int {
+        if let singleton = fieldNumber.currentValue {
+            return singleton.tag
+        }
+        let newFieldNumber = FieldNumber()
+        fieldNumber.currentValue = newFieldNumber
+        return newFieldNumber.tag
+    }
+
+    /// Sets the field-number for the current thread.
+    public static func setFieldNumber(_ number: Int) {
+        if fieldNumber.currentValue != nil {
+            fieldNumber.currentValue?.tag = number
+        } else {
+            let newFieldNumber = FieldNumber()
+            newFieldNumber.tag = number
+            fieldNumber.currentValue = newFieldNumber
+        }
+    }
+}
 
 /// Used to wrap top-level primitive types before decoding.
 /// ProtoDecoder needs to get a message type, which is a struct in Swift case.
 private struct RequestWrapper<T>: Decodable where T: Decodable {
+    /// The value that is wrapped in this struct
+    /// and should be decoded from the data.
     var request: T
+
+    enum CodingKeys: String, CodingKey, ProtoCodingKey {
+        case request
+        /// Always returns the public `fieldNumber`.
+        /// This is needed to be able to influence the field-number
+        /// of the wrapped value "from the outside".
+        /// It is used by the `GRPCRequest`s decode function,
+        /// to consider field-numbers that the Apodini
+        /// user applied via the `@Parameter` options.
+        var protoRawValue: Int {
+            FieldNumber.getFieldNumber()
+        }
+    }
+}
+
+extension GRPCParameterOptions {
+    /// Extractes the Protobuffer field-number from the
+    /// `GRPCParameterOptions` instance.
+    var fieldNumber: Int {
+        switch self {
+        case let .fieldTag(number):
+            return number
+        }
+    }
 }
 
 class GRPCRequest: Apodini.Request {
@@ -27,6 +87,14 @@ class GRPCRequest: Apodini.Request {
         Double.self,
         Float.self
     ]
+
+    /// used for default intereferance of Protobuffer
+    /// field-numbers. The first value that is decoded
+    /// will be assigned the field-number 1, the second the
+    /// field-number 2, and so on.
+    /// Default intereference can be overridden using the
+    /// `@Parameter` annotation's gRPC options.
+    private var decodingCounter = 0
 
     var eventLoop: EventLoop
     var database: Fluent.Database?
@@ -66,6 +134,7 @@ class GRPCRequest: Apodini.Request {
     /// it will automatically wrapped in a helper struct
     /// (since this is required to decode using ProtoDecoder).
     func parameter<T: Codable>(for parameter: Parameter<T>) throws -> T? {
+        decodingCounter += 1
         // data has to be longer than 5 bytes, because
         // the first 5 bytes are prefix (see comment below)
         guard let data = bodyData,
@@ -89,6 +158,10 @@ class GRPCRequest: Apodini.Request {
                 // we need to wrap it into a struct to
                 // actually have a messsage
                 let wrappedType = RequestWrapper<T>.self
+                // set the fieldNumber to the one annotated at the
+                // parameter, or use default interference if none is
+                // annotated at the parameter.
+                FieldNumber.setFieldNumber(parameter.option(for: .gRPC)?.fieldNumber ?? decodingCounter)
                 let wrappedDecoded = try ProtoDecoder().decode(wrappedType, from: message)
                 return wrappedDecoded.request
             } else {

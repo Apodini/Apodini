@@ -57,7 +57,6 @@ final class GRPCSemanticModelBuilderTests: XCTestCase {
     }
 
     func testDefaultServiceNaming() {
-        // swiftlint:disable force_unwrapping
         let modelBuilder = GRPCSemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [modelBuilder])
         let testComponent = GRPCTestComponent1()
@@ -71,7 +70,6 @@ final class GRPCSemanticModelBuilderTests: XCTestCase {
     }
 
     func testServiceNameModifier() {
-        // swiftlint:disable force_unwrapping
         let modelBuilder = GRPCSemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [modelBuilder])
         let testComponent = GRPCTestComponent2()
@@ -85,10 +83,9 @@ final class GRPCSemanticModelBuilderTests: XCTestCase {
     }
 
     func testUnaryRequestHandler() throws {
-        // swiftlint:disable force_unwrapping
         let serviceName = "TestService"
         let methodName = "testMethod"
-        let service =  GRPCService(name: serviceName, using: app)
+        let service = GRPCService(name: serviceName, using: app)
 
         let requestData: [UInt8] =
             [0, 0, 0, 0, 10, 10, 6, 77, 111, 114, 105, 116, 122, 16, 23]
@@ -100,14 +97,14 @@ final class GRPCSemanticModelBuilderTests: XCTestCase {
         headers.add(name: .contentType, value: "application/grpc+proto")
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let vaporRequest = Vapor.Request(application: app,
-                                    method: .POST,
-                                    url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
-                                    version: .init(major: 2, minor: 0),
-                                    headers: headers,
-                                    collectedBody: ByteBuffer(bytes: requestData),
-                                    remoteAddress: nil,
-                                    logger: app.logger,
-                                    on: group.next())
+                                         method: .POST,
+                                         url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
+                                         version: .init(major: 2, minor: 0),
+                                         headers: headers,
+                                         collectedBody: ByteBuffer(bytes: requestData),
+                                         remoteAddress: nil,
+                                         logger: app.logger,
+                                         on: group.next())
 
         let requestHandler = service.createUnaryHandler(for: GRPCTestHandler(),
                                                         with: Context(contextNode: ContextNode()))

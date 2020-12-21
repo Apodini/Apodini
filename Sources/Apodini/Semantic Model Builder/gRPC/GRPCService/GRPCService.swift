@@ -101,7 +101,6 @@ extension GRPCService {
         headers.add(name: .contentType, value: "application/grpc+proto")
         do {
             let data = try encode(value)
-            print("\([UInt8](data))")
             return Vapor.Response(status: .ok,
                                   version: HTTPVersion(major: 2, minor: 0),
                                   headers: headers,
