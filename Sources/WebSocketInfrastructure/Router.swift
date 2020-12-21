@@ -10,7 +10,9 @@ import Vapor
 import NIOWebSocket
 import OpenCombine
 
-
+public protocol WSError: Error {
+    var reason: String { get }
+}
 
 public enum Message<T> {
     case send(T)

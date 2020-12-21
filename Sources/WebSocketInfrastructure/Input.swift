@@ -5,8 +5,19 @@
 //  Created by Max Obermeier on 04.12.20.
 //
 
-public enum ParameterUpdateError {
+public enum ParameterUpdateError: WSError {
     case notMutable, badType, notExistant
+    
+    public var reason: String {
+        switch self {
+        case .notMutable:
+            return "is a constant"
+        case .badType:
+            return "is of wrong type"
+        case .notExistant:
+            return "does not exist on this endpoint"
+        }
+    }
 }
 
 public enum ParameterUpdateResult {

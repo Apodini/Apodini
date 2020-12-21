@@ -26,6 +26,8 @@ class ConnectionResponsible: Identifiable {
         self.endpoints = endpoints
         
         websocket.onText { ws, message in
+            var context: UUID?
+            
             do {
                 guard let data = message.data(using: .utf8) else {
                     throw SerializationError.expectedUTF8
@@ -36,7 +38,11 @@ class ConnectionResponsible: Identifiable {
                     throw SerializationError.expectedObjectAtRoot
                 }
                 
-                if let openMessage = try? OpenContextMessage(json: o) {
+                var errors: [SerializationError] = []
+                
+                do {
+                    let openMessage = try OpenContextMessage(json: o)
+                    
                     guard let opener = self.endpoints[openMessage.endpoint] else {
                         throw ProtocolError.unknownEndpoint(openMessage.endpoint)
                     }
@@ -44,31 +50,71 @@ class ConnectionResponsible: Identifiable {
                     guard self.contexts[openMessage.context] == nil else {
                         throw ProtocolError.openExistingContext(openMessage.context)
                     }
+                    context = openMessage.context
                     
                     self.contexts[openMessage.context] = opener(self, openMessage.context)
-                    
-                } else if let clientMessage = try? ClientMessage(json: o) {
-                    guard let ctx = self.contexts[clientMessage.context] else {
-                        throw ProtocolError.unknownContext(clientMessage.context)
+                } catch {
+                    if let serializationError = error as? SerializationError {
+                        errors.append(serializationError)
+                    } else {
+                        throw error
                     }
-                    
-                    ctx.receive(clientMessage.parameters)
-                    
-                } else if let closeMessage = try? CloseContextMessage(json: o) {
-                    guard let ctx = self.contexts[closeMessage.context] else {
-                        throw ProtocolError.unknownContext(closeMessage.context)
+                }
+                
+                if !errors.isEmpty {
+                    do {
+                        let clientMessage = try ClientMessage(json: o)
+                        
+                        context = clientMessage.context
+                        
+                        guard let ctx = self.contexts[clientMessage.context] else {
+                            throw ProtocolError.unknownContext(clientMessage.context)
+                        }
+                        
+                        try ctx.receive(clientMessage.parameters)
+                        errors = []
+                    } catch {
+                        if let serializationError = error as? SerializationError {
+                            errors.append(serializationError)
+                        } else {
+                            throw error
+                        }
                     }
-                    
-                    ctx.complete()
-                    
-                } else {
-                    throw SerializationError.invalidMessageType
+                }
+                
+                if !errors.isEmpty {
+                    do {
+                        let closeMessage = try CloseContextMessage(json: o)
+                            
+                        context = closeMessage.context
+                        
+                        guard let ctx = self.contexts[closeMessage.context] else {
+                            throw ProtocolError.unknownContext(closeMessage.context)
+                        }
+                        
+                        ctx.complete()
+                        errors = []
+                    } catch {
+                        if let serializationError = error as? SerializationError {
+                            errors.append(serializationError)
+                        } else {
+                            throw error
+                        }
+                    }
+                }
+                
+                if !errors.isEmpty {
+                    throw SerializationError.invalidMessageType(errors)
                 }
             } catch {
-                let p = ws.eventLoop.makePromise(of: Void.self)
-                websocket.send(error.localizedDescription, promise: p)
-                p.futureResult.whenComplete { _ in
-                    _ = websocket.close(code: .unacceptableData)
+                do {
+                    guard let data = String(data: try error.message(on: context).toJSONData(), encoding: .utf8) else {
+                        throw SerializationError.expectedUTF8
+                    }
+                    
+                    websocket.send(data)
+                } catch {
+                    print(error)
                 }
             }
         }
@@ -103,18 +149,42 @@ class ConnectionResponsible: Identifiable {
     
 }
 
-private enum ProtocolError: Error {
+private enum ProtocolError: WSError {
     case unknownEndpoint(String)
     case unknownContext(UUID)
     case openExistingContext(UUID)
+    
+    var reason: String {
+        switch self {
+        case .unknownContext(let context):
+            return "Unknown context \(context)"
+        case .openExistingContext(let context):
+            return "Context \(context) does already exist and cannot be opened again"
+        case .unknownEndpoint(let endpoint):
+            return "Unknown endpoint \(endpoint)"
+        }
+    }
 }
 
-private enum SerializationError: Error {
+private indirect enum SerializationError: WSError {
     case expectedUTF8
     case expectedObjectAtRoot
     case missing(String)
-    case invalid(String, Any)
-    case invalidMessageType
+    case invalidMessageType([SerializationError])
+    
+    var reason: String {
+        switch self {
+        case .expectedUTF8:
+            return "expected utf-8"
+        case .expectedObjectAtRoot:
+            return "expected root element to be an object"
+        case .missing(let property):
+            return "missing property \(property) on root element"
+        case .invalidMessageType(let errors):
+            return "Wrong format - possible reasons: \(errors.map { $0.reason }.joined(separator: ", "))"
+            
+        }
+    }
 }
 
 
@@ -167,14 +237,32 @@ private struct ClientMessage {
     }
 }
 
-private struct ServiceMessage<D: Encodable>: Encodable {
-    
+private struct ServiceMessage<C: Encodable>: Encodable {
     var context: UUID
-    var content: D
-        
+    var content: C
 }
 
+private struct ErrorMessage<E: Encodable>: Encodable {
+    var context: UUID?
+    var error: E
+}
 
-extension Encodable {
+private extension Error {
+    func message(on context: UUID?) -> ErrorMessage<String> {
+        if let wserr = self as? WSError {
+            return ErrorMessage(context: context, error: wserr.reason)
+        } else {
+            #if DEBUG
+            return ErrorMessage(context: context, error: self.localizedDescription)
+            #else
+            return ErrorMessage(context: context, error: "Undefined error")
+            #endif
+        }
+    }
+}
+
+private extension Encodable {
     func toJSONData() -> Data? { try? JSONEncoder().encode(self) }
+    func toJSONData() throws -> Data { try JSONEncoder().encode(self) }
 }
+

@@ -12,15 +12,12 @@ import NIOWebSocket
 
 
 protocol ContextResponsible {
-    
-    func receive(_ parameters: [String:Any])
+    func receive(_ parameters: [String:Any]) throws
     
     func complete()
-    
 }
 
 class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
-    
     var input: I
     let receiver: PassthroughSubject<I, Never>
     
@@ -83,30 +80,19 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         self.close = close
     }
     
-    func receive(_ parameters: [String:Any]) {
-        var abort = false
+    func receive(_ parameters: [String:Any]) throws {
         for (parameter, value) in parameters {
             switch self.input.update(parameter, with: value) {
-            case .error(.badType):
-                abort = true
-                self.send("Invalid message: Bad type for parameter \(parameter)")
-            case .error(.notMutable):
-                abort = true
-                self.send("Invalid message: Cannot update parameter \(parameter): \(parameter) is a constant parameter")
-            case .error(.notExistant):
-                abort = true
-                self.send("Invalid message: Input has no parameter \(parameter)")
+            case .error(let error):
+                throw InputError.invalid(parameter, error)
             case .ok:
                 break
             }
         }
-        if abort {
-            return
-        }
+        
         switch self.input.check() {
         case .missing(let parameters):
-            self.send("Invalid message: Missing parameters \(parameters.joined(separator: ", "))")
-            return
+            throw InputError.missing(parameters)
         case .ok:
             self.input.apply()
             self.receiver.send(self.input)
@@ -118,4 +104,18 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         self.receiver.send(completion: .finished)
     }
     
+}
+
+enum InputError: WSError {
+    case missing([String])
+    case invalid(String, ParameterUpdateError)
+    
+    var reason: String {
+        switch self {
+        case .missing(let parameters):
+            return "Invalid input: missing parameters \(parameters.joined(separator: ", "))"
+        case .invalid(let name, let error):
+            return "Invalid input: \(name) \(error.reason)"
+        }
+    }
 }
