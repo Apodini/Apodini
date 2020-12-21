@@ -53,12 +53,32 @@ public class NotificationCenter {
     ///
     /// - Returns: An `EventLoopFuture` to indicate the completion of the operation.
     public func register(device: Device) -> EventLoopFuture<Void> {
-        device
-            .transform()
+        let deviceDatabaseModel = device.transform()
+        return deviceDatabaseModel
             .save(on: app.db)
-            .flatMapError { _ in
-                self.app.logger.error("Could not save device with id: \(device.id) to databse. It may already be stored in the database.")
-                return self.app.eventLoopGroup.future(())
+            .flatMap { _ -> EventLoopFuture<Void> in
+                if let topics = device.topics {
+                    return topics
+                        .map {
+                            let topic = Topic(name: $0)
+                            return Topic
+                                .query(on: self.app.db)
+                                .filter(\.$name == topic.name)
+                                .first()
+                                .flatMap { result -> EventLoopFuture<Void> in
+                                    if let topic = result {
+                                        return deviceDatabaseModel.$topics.attach(topic, on: self.app.db)
+                                    } else {
+                                        return topic.save(on: self.app.db).flatMap {
+                                            deviceDatabaseModel.$topics.attach(topic, on: self.app.db)
+                                        }
+                                    }
+                                }
+                        }
+                        .flatten(on: self.app.db.eventLoop)
+                } else {
+                    return self.app.eventLoopGroup.future(())
+                }
             }
     }
     
@@ -68,6 +88,7 @@ public class NotificationCenter {
     public func getAllDevices() -> EventLoopFuture<[Device]> {
         DeviceDatabaseModel
             .query(on: app.db)
+            .with(\.$topics)
             .all()
             .mapEach { $0.transform() }
     }
@@ -79,6 +100,7 @@ public class NotificationCenter {
         DeviceDatabaseModel
             .query(on: app.db)
             .filter(\.$type == .apns)
+            .with(\.$topics)
             .all()
             .mapEach { $0.transform() }
     }
@@ -90,6 +112,7 @@ public class NotificationCenter {
         DeviceDatabaseModel
             .query(on: app.db)
             .filter(\.$type == .fcm)
+            .with(\.$topics)
             .all()
             .mapEach { $0.transform() }
     }
@@ -99,30 +122,70 @@ public class NotificationCenter {
     /// - Parameter of: The topic of a `Device`
     ///
     /// - Returns: An array of all stored `Device`s
-    public func getDevices(of topic: String) -> EventLoopFuture<[Device]> {
-        DeviceDatabaseModel
+    public func getDevices(of topic: String) -> EventLoopFuture<[DeviceDatabaseModel]> {
+        Topic
             .query(on: app.db)
-            .all()
-            .mapEachCompact { device in
-                device.topics.contains(topic) ? device.transform() : nil
-            }
+            .filter(\.$name == topic)
+            .with(\.$devices)
+            .first()
+            .unwrap(or: Abort(.notFound))
+            .map { $0.devices }
     }
     
     /// Adds a variadic number of  topic to one or more `Device`s.
     ///
     /// - Parameters:
     ///     - topics: Variadic number of topics
-    ///     - to: Variadic number of `Device`s
+    ///     - to: `Device` to add topics
     ///
     /// - Returns: An `EventLoopFuture` to indicate the completion of the operation.
     @discardableResult
-    public func addTopics(_ topics: String..., to device: Device) -> EventLoopFuture<Void> {
+    public func addTopics(_ topicStrings: String..., to device: Device) -> EventLoopFuture<Void> {
         DeviceDatabaseModel
             .find(device.id, on: app.db)
             .unwrap(or: Abort(.notFound))
-            .flatMap { device -> EventLoopFuture<Void> in
-                device.topics.append(contentsOf: topics)
-                return device.save(on: self.app.db)
+            .flatMap { deviceDatabaseModel -> EventLoopFuture<Void> in
+                topicStrings.map {
+                    let topic = Topic(name: $0)
+                    return Topic
+                        .query(on: self.app.db)
+                        .filter(\.$name == topic.name)
+                        .first()
+                        .flatMap { result -> EventLoopFuture<Void> in
+                            if let topic = result {
+                                return deviceDatabaseModel.$topics.attach(topic, on: self.app.db)
+                            } else {
+                                return topic.save(on: self.app.db).flatMap {
+                                    deviceDatabaseModel.$topics.attach(topic, on: self.app.db)
+                                }
+                            }
+                        }
+                }
+                .flatten(on: self.app.db.eventLoop)
+            }
+    }
+    
+    /// Removes a `Topic` from a `Device`.
+    ///
+    /// - Parameters:
+    ///     - topic: The `Topic` to remove.
+    ///     - from: The `Device` to remove the `Topic`.
+    ///
+    /// - Returns: An `EventLoopFuture` to indicate the completion of the operation.
+    @discardableResult
+    public func remove(topic: String, from device: Device) -> EventLoopFuture<Void> {
+        Topic
+            .query(on: app.db)
+            .filter(\.$name == topic)
+            .first()
+            .unwrap(or: Abort(.notFound))
+            .flatMap { topicModel in
+                DeviceDatabaseModel
+                    .find(device.id, on: self.app.db)
+                    .unwrap(or: Abort(.notFound))
+                    .flatMap { deviceDatabaseModel -> EventLoopFuture<Void> in
+                        deviceDatabaseModel.$topics.detach(topicModel, on: self.app.db)
+                    }
             }
     }
     
@@ -228,7 +291,7 @@ public class NotificationCenter {
         return getDevices(of: topic)
             .flatMap { devices -> EventLoopFuture<Void> in
                 for device in devices {
-                    self.sendAPNS(apnsNotification, to: device.id)
+                    self.sendAPNS(apnsNotification, to: device.id!)
                 }
                 return self.sendFCM(fcmNotification, topic: topic)
             }
@@ -252,7 +315,7 @@ public class NotificationCenter {
         return getDevices(of: topic)
             .flatMap { devices -> EventLoopFuture<Void> in
                 for device in devices {
-                    self.sendAPNS(apnsNotification, to: device.id)
+                    self.sendAPNS(apnsNotification, to: device.id!)
                 }
                 return self.sendFCM(fcmNotification, topic: topic)
             }

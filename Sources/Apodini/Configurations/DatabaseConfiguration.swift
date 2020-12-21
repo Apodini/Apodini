@@ -65,8 +65,8 @@ public final class DatabaseConfiguration: Configuration {
             return .sqlite(.apply(config))
         case .defaultPostgreSQL(let conString):
             return try .postgres(url: conString)
-        case let .postgreSQL(hostName, username, password):
-            return .postgres(hostname: hostName, username: username, password: password)
+        case let .postgreSQL(hostName, username, password, database):
+            return .postgres(hostname: hostName, username: username, password: password, database: database)
         case .defaultMySQL(let conString):
             return try .mysql(url: conString)
         case let .mySQL(hostname, username, password):
@@ -104,7 +104,7 @@ public enum DatabaseType {
         /// - hostname: The name of the database host.
         /// - username: The username of the database user.
         /// - password: The password of the database user.
-    case postgreSQL(hostname: String, username: String, password: String)
+    case postgreSQL(hostname: String, username: String, password: String, database: String)
     /// A database type for a specified sqLite configuration
     ///
     /// - Parameters:

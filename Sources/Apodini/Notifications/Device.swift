@@ -9,30 +9,70 @@ import Fluent
 import Vapor
 
 public final class DeviceDatabaseModel: Model {
-    public static let schema = "NotificationDevice"
-
+    public static let schema = "notification_device"
+    
     @ID(custom: "id", generatedBy: .user)
     public var id: String?
     
     @Enum(key: .type)
     public var type: DeviceType
     
-    @Field(key: "topics")
-    public var topics: [String]
+    @Siblings(through: DeviceTopic.self, from: \.$device, to: \.$topic)
+    public var topics: [Topic]
     
     public init() { }
     
-    public init(id: String, type: DeviceType, topics: [String] = []) {
+    public init(id: String, type: DeviceType) {
         self.id = id
         self.type = type
-        self.topics = topics
     }
     
     public func transform() -> Device {
         guard let id = id else {
             fatalError("Could not retrieve id of device")
         }
-        return Device(id: id, type: type, topics: topics)
+        let names = topics.map { $0.name }
+        return Device(id: id, type: type, topics: names)
+    }
+}
+
+public final class DeviceTopic: Model {
+    public static let schema = "device_topic"
+    
+    @ID(key: .id)
+    public var id: UUID?
+    
+    @Parent(key: .deviceId)
+    public var device: DeviceDatabaseModel
+    
+    @Parent(key: .topicId)
+    public var topic: Topic
+    
+    public init() { }
+    
+    init(id: UUID? = nil, device: DeviceDatabaseModel, topic: Topic) throws {
+        self.id = id
+        self.$device.id = try device.requireID()
+        self.$topic.id = try topic.requireID()
+    }
+}
+
+public final class Topic: Model {
+    public static let schema = "topic"
+    
+    @ID(key: .id)
+    public var id: UUID?
+    
+    @Field(key: .name)
+    public var name: String
+    
+    @Siblings(through: DeviceTopic.self, from: \.$topic, to: \.$device)
+    public var devices: [DeviceDatabaseModel]
+    
+    public init() { }
+    
+    public init(name: String) {
+        self.name = name
     }
 }
 
@@ -53,13 +93,16 @@ public struct Device: Content {
     }
     
     public func transform() -> DeviceDatabaseModel {
-        DeviceDatabaseModel(id: id, type: type, topics: topics ?? [])
+        DeviceDatabaseModel(id: id, type: type)
     }
 }
 // swiftlint:enable discouraged_optional_collection
 
 extension FieldKey {
-    static var type: Self { "type" }
+    public static var type: Self { "type" }
+    public static var name: Self { "name" }
+    public static var deviceId: Self { "device_id" }
+    public static var topicId: Self { "topic_id" }
 }
 
 public enum DeviceType: String, Codable, CaseIterable {
@@ -73,23 +116,39 @@ extension DeviceType: Content { }
 
 internal struct DeviceMigration: Migration {
     func prepare(on database: Fluent.Database) -> EventLoopFuture<Void> {
-        database.enum("type")
-            .case("apns")
-            .case("fcm")
-            .create()
-            .flatMap { enumType in
-                database.schema(DeviceDatabaseModel.schema)
-                    .field("id", .string, .identifier(auto: false))
-                    .field("type", enumType, .required)
-                    .field("topics", .array(of: .string), .required)
-                    .create()
-            }
+        database.eventLoop.flatten([
+            database.schema(Topic.schema)
+                .id()
+                .field(.name, .string, .required)
+                .unique(on: .name)
+                .create(),
+            database.enum("type")
+                .case("apns")
+                .case("fcm")
+                .create()
+                .flatMap { enumType in
+                    database.schema(DeviceDatabaseModel.schema)
+                        .field(.id, .string, .identifier(auto: false))
+                        .field("type", enumType, .required)
+                        .create()
+                },
+            database.schema(DeviceTopic.schema)
+                .id()
+                .field(.deviceId, .string, .required)
+                .field(.topicId, .uuid, .required)
+                .unique(on: .deviceId, .topicId)
+                .create()
+        ])
     }
     
     func revert(on database: Fluent.Database) -> EventLoopFuture<Void> {
-        database.enum("type").delete().flatMap {
-            database.schema(DeviceDatabaseModel.schema).delete()
-        }
+        database.eventLoop.flatten([
+            database.schema(Topic.schema).delete(),
+            database.enum("type").delete().flatMap {
+                database.schema(DeviceDatabaseModel.schema).delete()
+            },
+            database.schema(DeviceTopic.schema).delete()
+        ])
     }
 }
 
