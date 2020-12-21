@@ -325,6 +325,30 @@ public class NotificationCenter {
             }
     }
     
+    /// Sends a silent push notification with only data as JSON and no alert to a specific `Device`.
+    ///
+    /// - Parameters:
+    ///     - data: An object conforming to `Encodable` which is used in the payload of the push notification.
+    ///     - to: The receveing `Device`s of the push notification.
+    ///
+    /// - Returns: An `EventLoopFuture` to indicate the completion of the operation.
+    @discardableResult
+    public func send<T: Encodable>(data: T, to device: Device) -> EventLoopFuture<Void> {
+        send(notification: Notification(), with: data, to: device)
+    }
+    
+    /// Sends a silent push notification with only data as JSON to all `Device`s which are subscribed to a topic.
+    ///
+    /// - Parameters:
+    ///     - data: An object conforming to `Encodable` which is used in the payload of the push notification.
+    ///     - to: The subscribed topic of `Device`s.
+    ///
+    /// - Returns: An `EventLoopFuture` to indicate the completion of the operation.
+    @discardableResult
+    public func send<T: Encodable>(data: T, to topic: String) -> EventLoopFuture<Void> {
+        send(notification: Notification(), with: data, to: topic)
+    }
+    
     @discardableResult
     private func sendAPNS(_ notification: AcmeNotification, to deviceToken: String) -> EventLoopFuture<Void> {
         apns.send(notification, to: deviceToken)

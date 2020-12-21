@@ -12,12 +12,12 @@ import Foundation
 /// A struct to create push notifications which can be sent to APNS and FCM.
 public struct Notification {
     /// Visual message of a `Notification` which can be used across all plattforms.
-    public let alert: Alert
+    public let alert: Alert?
     /// Configuration of a `Notification` for every plattform.
     public let payload: Payload?
     
     /// Initializer of a `Notification`.
-    public init(alert: Alert, payload: Payload? = nil) {
+    public init(alert: Alert? = nil, payload: Payload? = nil) {
         self.alert = alert
         self.payload = payload
     }
@@ -38,7 +38,10 @@ extension Notification {
     }
     
     private func generateAPNSwiftPayload(hasData: Bool) -> APNSwiftPayload {
-        let apnsAlert = APNSwiftAlert(title: alert.title, subtitle: alert.subtitle, body: alert.body)
+        var apnsAlert: APNSwiftAlert?
+        if let alert = alert {
+            apnsAlert = APNSwiftAlert(title: alert.title, subtitle: alert.subtitle, body: alert.body)
+        }
         let apnsConfig = payload?.apnsPayload
         
         return APNSwiftPayload(alert: apnsAlert,
@@ -51,7 +54,7 @@ extension Notification {
     }
     
     internal func transformToFCM() -> FCMMessageDefault {
-        let fcmAlert = FCMNotification(title: alert.title ?? "", body: alert.body ?? "")
+        let fcmAlert = FCMNotification(title: alert?.title ?? "", body: alert?.body ?? "")
         
         return FCMMessage(notification: fcmAlert,
                           android: payload?.fcmAndroidPayload?.transform(),
@@ -59,7 +62,7 @@ extension Notification {
     }
     
     internal func transformToFCM<T: Encodable>(with data: T) -> FCMMessageDefault {
-        let fcmAlert = FCMNotification(title: alert.title ?? "", body: alert.body ?? "")
+        let fcmAlert = FCMNotification(title: alert?.title ?? "", body: alert?.body ?? "")
         let json = convertToJSON(data)
         let dict = ["data": json]
         
