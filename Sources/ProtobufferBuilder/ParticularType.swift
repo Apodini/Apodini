@@ -5,8 +5,6 @@
 //  Created by Nityananda on 30.11.20.
 //
 
-import Runtime
-
 /// .
 ///
 /// Particular: An antonym for generic.

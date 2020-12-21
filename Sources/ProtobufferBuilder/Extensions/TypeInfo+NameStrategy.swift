@@ -5,7 +5,7 @@
 //  Created by Nityananda on 03.12.20.
 //
 
-import Runtime
+@_implementationOnly import Runtime
 
 extension TypeInfo {
     func compatibleName() throws -> String {

@@ -5,8 +5,6 @@
 //  Created by Nityananda on 24.11.20.
 //
 
-import Runtime
-
 // MARK: - Message and Message.Property
 
 struct Message: Equatable, Hashable {

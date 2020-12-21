@@ -5,7 +5,7 @@
 //  Created by Nityananda on 26.11.20.
 //
 
-import Runtime
+@_implementationOnly import Runtime
 
 /// ProtobufferBuilder builds `.proto` files.
 ///

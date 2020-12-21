@@ -5,7 +5,7 @@
 //  Created by Nityananda on 11.12.20.
 //
 
-import Runtime
+@_implementationOnly import Runtime
 
 struct EnrichedInfo {
     let typeInfo: TypeInfo
