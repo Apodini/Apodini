@@ -60,7 +60,7 @@ final class EndpointsTreeTests: XCTestCase {
             description: String(describing: testHandler),
             context: Context(contextNode: ContextNode()),
             operation: Operation.automatic,
-            requestHandlerBuilder: SharedSemanticModelBuilder.createRequestHandlerBuilder(with: testHandler),
+            requestHandler: SharedSemanticModelBuilder.createRequestHandler(with: testHandler),
             handleReturnType: TestHandler.Response.self,
             responseType: TestHandler.Response.self,
             parameters: parameterBuilder.parameters

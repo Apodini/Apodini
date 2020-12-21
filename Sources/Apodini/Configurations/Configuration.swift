@@ -1,5 +1,5 @@
 import NIO
-import Vapor
+import class Vapor.Application
 
 /// `Configuration`s are used to register services to Apodini.
 /// Each `Configuration` handles different kinds of services.

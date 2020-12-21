@@ -5,8 +5,6 @@
 //  Created by Paul Schmiedmayer on 7/10/20.
 //
 
-import Vapor
-
 
 
 public struct AnyEndpointNode: EndpointNode, Visitable {
@@ -26,6 +24,8 @@ public struct AnyEndpointNode: EndpointNode, Visitable {
 
 
 public struct AnyEndpointProvidingNode: EndpointProvidingNode, Visitable {
+    public typealias Content = Never
+    
     private let _visit: (SyntaxTreeVisitor) -> Void
     
     init<T: EndpointProvidingNode>(_ endpointNode: T) {

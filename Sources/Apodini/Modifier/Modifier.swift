@@ -5,28 +5,6 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-import Vapor
-
-
-
-protocol AnyModifier {
-    var modifiedValue: Any { get }
-}
-
-
-extension AnyModifier {
-    func anyModifier_visit_defaultImpl(_ visitor: SyntaxTreeVisitor) throws {
-        try visitor.unsafeVisitAny(modifiedValue)
-    }
-}
-
-
-
-
-
-
-
-
 
 
 protocol EndpointModifier: EndpointNode {
@@ -35,12 +13,6 @@ protocol EndpointModifier: EndpointNode {
     var endpoint: ModifiedEndpoint { get }
 }
 
-
-//protocol Modifier {
-//    associatedtype ModifiedComponent
-//
-//    var component: Self.ModifiedComponent { get }
-//}
 
 
 extension EndpointModifier {
@@ -53,9 +25,6 @@ extension EndpointModifier {
     
     public var outgoingDependencies: Set<AnyEndpointIdentifier> { ModifiedEndpoint.outgoingDependencies }
 }
-
-
-
 
 
 

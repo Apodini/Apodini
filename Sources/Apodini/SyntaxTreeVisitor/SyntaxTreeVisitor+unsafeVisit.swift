@@ -1,5 +1,5 @@
 import Foundation
-import AssociatedTypeRequirementsVisitor
+@_implementationOnly import AssociatedTypeRequirementsVisitor
 
 extension SyntaxTreeVisitor {
     enum Error: Swift.Error {
