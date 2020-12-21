@@ -19,6 +19,17 @@ private struct GRPCTestHandler: Component {
     }
 }
 
+private struct GRPCTestHandler2: Component {
+    @Parameter
+    var name: String
+    @Parameter
+    var age: Int32
+
+    func handle() -> String {
+        "Hello \(name), you are \(age) years old."
+    }
+}
+
 private struct GRPCTestComponent1: Component {
     var content: some Component {
         Group("a") {
@@ -82,7 +93,7 @@ final class GRPCSemanticModelBuilderTests: XCTestCase {
         XCTAssertNil(modelBuilder.services["something"])
     }
 
-    func testUnaryRequestHandler() throws {
+    func testUnaryRequestHandlerWithOneParamater() throws {
         let serviceName = "TestService"
         let methodName = "testMethod"
         let service = GRPCService(name: serviceName, using: app)
@@ -107,6 +118,36 @@ final class GRPCSemanticModelBuilderTests: XCTestCase {
                                          on: group.next())
 
         let requestHandler = service.createUnaryHandler(for: GRPCTestHandler(),
+                                                        with: Context(contextNode: ContextNode()))
+        let resultString = try requestHandler(GRPCRequest(vaporRequest)).wait()
+        XCTAssertEqual(resultString, expectedResponseString)
+    }
+
+    func testUnaryRequestHandlerWithTwoParameters() throws {
+        let serviceName = "TestService"
+        let methodName = "testMethod"
+        let service = GRPCService(name: serviceName, using: app)
+
+        let requestData: [UInt8] =
+            [0, 0, 0, 0, 10, 10, 6, 77, 111, 114, 105, 116, 122, 16, 23]
+        let expectedResponseString = "Hello Moritz, you are 23 years old."
+//        let expectedResponseData: [UInt8] =
+//            [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
+
+        var headers = HTTPHeaders()
+        headers.add(name: .contentType, value: "application/grpc+proto")
+        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        let vaporRequest = Vapor.Request(application: app,
+                                         method: .POST,
+                                         url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
+                                         version: .init(major: 2, minor: 0),
+                                         headers: headers,
+                                         collectedBody: ByteBuffer(bytes: requestData),
+                                         remoteAddress: nil,
+                                         logger: app.logger,
+                                         on: group.next())
+
+        let requestHandler = service.createUnaryHandler(for: GRPCTestHandler2(),
                                                         with: Context(contextNode: ContextNode()))
         let resultString = try requestHandler(GRPCRequest(vaporRequest)).wait()
         XCTAssertEqual(resultString, expectedResponseString)
