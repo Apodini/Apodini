@@ -3,7 +3,6 @@
 //
 
 import OpenAPIKit
-import Vapor
 
 /// Utility to convert `_PathComponent`s to `OpenAPI.Path` format.
 struct OpenAPIPathBuilder: PathBuilder {
@@ -116,7 +115,7 @@ struct OpenAPIPathsObjectBuilder {
 
     /// https://swagger.io/specification/#responses-object
     /// TODO: refactor `ResponseEncodable` if required.
-    mutating private func buildResponsesObject(from responseType: ResponseEncodable.Type) -> OpenAPI.Response.Map {
+    mutating private func buildResponsesObject(from responseType: Encodable.Type) -> OpenAPI.Response.Map {
         var responseContent: OpenAPI.Content.Map = [:]
         let responseJSONSchema: JSONSchema = try! componentsObjectBuilder.buildSchema(for: responseType)
         responseContent[responseJSONSchema.openAPIContentType] = .init(schema: responseJSONSchema)

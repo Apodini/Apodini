@@ -26,6 +26,19 @@ struct TestWebService: Apodini.WebService {
             print("\(message?.description ?? request.description)")
         }
     }
+
+    struct SomeStruct: Vapor.Content {
+        var someProp = 4
+    }
+
+    struct SomeComp: Component {
+        @Parameter
+        var name: String
+
+        func handle() -> SomeStruct {
+            SomeStruct()
+        }
+    }
     
     struct EmojiMediator: ResponseTransformer {
         private let emojis: String
@@ -49,22 +62,16 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
-    
     var content: some Component {
         Text("Hello World! 👋")
             .response(EmojiMediator(emojis: "🎉"))
-            .response(EmojiMediator())
-            .guard(PrintGuard())
         Group("swift") {
-            Text("Hello Swift! 💻")
-                .response(EmojiMediator())
-                .guard(PrintGuard())
             Group("5", "3") {
                 Text("Hello Swift 5! 💻")
             }
-        }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
-        Group("greet") {
-            Greeter()
+        }
+        Group("openApiTest") {
+            SomeComp()
         }
     }
 }

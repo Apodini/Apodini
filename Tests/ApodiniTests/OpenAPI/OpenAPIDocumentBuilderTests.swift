@@ -30,7 +30,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                 description: String(describing: comp),
                 context: Context(contextNode: ContextNode()),
                 operation: Operation.update,
-                requestHandlerBuilder: SharedSemanticModelBuilder.createRequestHandlerBuilder(with: comp),
+                requestHandler: SharedSemanticModelBuilder.createRequestHandler(with: comp),
                 handleReturnType: SomeComp.Response.self,
                 responseType: SomeComp.Response.self,
                 parameters: parameterBuilder.parameters

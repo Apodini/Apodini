@@ -33,7 +33,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
                 description: "SomeComp",
                 context: Context(contextNode: ContextNode()),
                 operation: Operation.automatic,
-                requestHandlerBuilder: SharedSemanticModelBuilder.createRequestHandlerBuilder(with: SomeComp()),
+                requestHandler: SharedSemanticModelBuilder.createRequestHandler(with: SomeComp()),
                 handleReturnType: SomeComp.Response.self,
                 responseType: SomeComp.Response.self,
                 parameters: [endpointParameter]
