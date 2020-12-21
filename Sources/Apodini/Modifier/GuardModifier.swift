@@ -5,8 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/27/20.
 //
 
-import Vapor
-import Runtime
+@_implementationOnly import Runtime
 
 
 private struct ResetGuard: SyncGuard {
@@ -56,7 +55,7 @@ public struct GuardModifier<C: Component>: Modifier {
 }
 
 extension GuardModifier: Visitable {
-    func visit(_ visitor: SynaxTreeVisitor) {
+    func visit(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(GuardContextKey.self, value: [`guard`], scope: .environment)
         component.visit(visitor)
     }
@@ -64,21 +63,21 @@ extension GuardModifier: Visitable {
 
 
 extension Component {
-    /// Use an asyncronousn`Guard` to guard `Component`s by inspecting incoming requests
+    /// Use an asynchronous `Guard` to guard `Component`s by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
-    /// - Returns: Returns a modified `Component` protected by the asyncronous `Guard`
+    /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`
     public func `guard`<G: Guard>(_ guard: @escaping @autoclosure () -> (G)) -> GuardModifier<Self> {
         GuardModifier(self, guard: `guard`)
     }
     
-    /// Use a syncronous `SyncGuard` to guard `Component`s by inspecting incoming requests
+    /// Use a synchronous `SyncGuard` to guard `Component`s by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
-    /// - Returns: Returns a modified `Component` protected by the syncronous `SyncGuard`
+    /// - Returns: Returns a modified `Component` protected by the synchronous `SyncGuard`
     public func `guard`<G: SyncGuard>(_ guard: @escaping @autoclosure () -> (G)) -> GuardModifier<Self> {
         GuardModifier(self, guard: `guard`)
     }
     
-    /// Reselts all guards for the modified `Component`
+    /// Resets all guards for the modified `Component`
     public func resetGuards() -> GuardModifier<Self> {
         GuardModifier(self, guard: { ResetGuard() })
     }

@@ -5,13 +5,11 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-import Vapor
 import Foundation
 
 
 /// Generic Parameter that can be used to mark that the options are meant for `@Parameter`s
 public enum ParameterOptionNameSpace { }
-
 
 /// The `@Parameter` property wrapper can be used to express input in `Components`
 @propertyWrapper
@@ -25,7 +23,7 @@ public struct Parameter<Element: Codable> {
     var id = UUID()
     var name: String?
     private var element: Element?
-    private var options: PropertyOptionSet<ParameterOptionNameSpace>
+    internal var options: PropertyOptionSet<ParameterOptionNameSpace>
     private var defaultValue: Element?
     
     
@@ -83,16 +81,22 @@ public struct Parameter<Element: Codable> {
 
 
 extension Parameter: RequestInjectable {
-    mutating func inject(using request: Vapor.Request, with decoder: SemanticModelBuilder?) throws {
-        if let decoder = decoder {
-            element = try decoder.decode(Element.self, from: request)
-        }
+    mutating func inject(using request: Apodini.Request) throws {
+        element = try request.parameter(for: id)
+    }
+
+    func accept(_ visitor: RequestInjectableVisitor) {
+        visitor.visit(self)
     }
 }
 
 
-extension Parameter: PathComponent {
+extension Parameter: _PathComponent {
+    var description: String {
+        ":\(self.id)"
+    }
+    
     func append<P>(to pathBuilder: inout P) where P: PathBuilder {
-        pathBuilder.append(":\(self.id)")
+        pathBuilder.append(self)
     }
 }

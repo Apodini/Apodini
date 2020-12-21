@@ -14,16 +14,16 @@ struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
         private let message: String?
         @_Request
-        var request: Vapor.Request
+        var request: Apodini.Request
         
         
         init(_ message: String? = nil) {
             self.message = message
         }
         
-        
+
         func check() {
-            request.logger.info("\(message?.description ?? request.description)")
+            print("\(message?.description ?? request.description)")
         }
     }
     
@@ -42,15 +42,10 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @_Request
-        var req: Vapor.Request
-        
+        @Parameter var name: String
+
         func handle() -> String {
-            do {
-                return try req.query.get(at: "name")
-            } catch {
-                return "World"
-            }
+            "Hello \(name)"
         }
     }
     
@@ -64,6 +59,9 @@ struct TestWebService: Apodini.WebService {
             Text("Hello Swift! 💻")
                 .response(EmojiMediator())
                 .guard(PrintGuard())
+            Group("5", "3") {
+                Text("Hello Swift 5! 💻")
+            }
         }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
         Group("greet") {
             Greeter()

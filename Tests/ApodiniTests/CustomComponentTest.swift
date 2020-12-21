@@ -1,5 +1,5 @@
 //
-//  CustomCompoentTest.swift
+//  CustomComponentTest.swift
 //
 //
 //  Created by Paul Schmiedmayer on 6/27/20.
@@ -29,16 +29,18 @@ final class CustomComponentTests: ApodiniTests {
                 }
         }
     }
-    
-    
+
     func testComponentCreation() throws {
         let bird = Bird(name: "Hummingbird", age: 2)
         let birdData = ByteBuffer(data: try JSONEncoder().encode(bird))
         
-        let request = Request(application: app, collectedBody: birdData, on: app.eventLoopGroup.next())
+        let request = Vapor.Request(application: app, collectedBody: birdData, on: app.eventLoopGroup.next())
+        let restRequest = RESTRequest(request) { _ in
+            bird
+        }
         
-        let response = try request
-            .enterRequestContext(with: AddBirdsComponent(), using: RESTSemanticModelBuilder(app)) { component in
+        let response = try restRequest
+            .enterRequestContext(with: AddBirdsComponent()) { component in
                 component.handle().encodeResponse(for: request)
             }
             .wait()
