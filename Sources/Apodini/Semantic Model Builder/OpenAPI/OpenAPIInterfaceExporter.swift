@@ -2,7 +2,7 @@
 //  Created by Paul Schmiedmayer on 11/3/20.
 //
 
-import OpenAPIKit
+@_implementationOnly import OpenAPIKit
 @_implementationOnly import Vapor
 import Foundation
 
@@ -33,7 +33,7 @@ class OpenAPIInterfaceExporter: InterfaceExporter {
             switch configuration.outputFormat {
             case .JSON:
                 app.get(outputRoute.pathComponents) { (_: Vapor.Request) in
-                    self.documentBuilder.document
+                    self.documentBuilder.description
                 }
             case .YAML:
                 print("Not implemented yet.")

@@ -3,7 +3,7 @@
 //
 
 import Foundation
-import OpenAPIKit
+@_implementationOnly import OpenAPIKit
 
 extension EndpointParameter {
     /// Currently, only `query` and `path` are supported.

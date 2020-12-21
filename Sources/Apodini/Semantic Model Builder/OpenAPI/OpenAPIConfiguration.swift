@@ -2,7 +2,7 @@
 //  Created by Lorena Schlesinger on 15.11.20.
 //
 
-import OpenAPIKit
+@_implementationOnly import OpenAPIKit
 
 private let openAPIInfoTitle = "Apodini-App"
 private let openAPIInfoVersion = "1.0.0"

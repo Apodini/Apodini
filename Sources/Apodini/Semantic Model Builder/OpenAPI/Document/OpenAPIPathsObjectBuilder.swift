@@ -2,7 +2,7 @@
 //  Created by Lorena Schlesinger on 15.11.20.
 //
 
-import OpenAPIKit
+@_implementationOnly import OpenAPIKit
 
 /// Utility to convert `_PathComponent`s to `OpenAPI.Path` format.
 struct OpenAPIPathBuilder: PathBuilder {

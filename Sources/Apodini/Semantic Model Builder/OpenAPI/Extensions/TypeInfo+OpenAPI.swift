@@ -2,8 +2,8 @@
 //  Created by Lorena Schlesinger on 28.11.20.
 //
 
-import OpenAPIKit
-import Runtime
+@_implementationOnly import OpenAPIKit
+@_implementationOnly import Runtime
 import Foundation
 import NIO
 

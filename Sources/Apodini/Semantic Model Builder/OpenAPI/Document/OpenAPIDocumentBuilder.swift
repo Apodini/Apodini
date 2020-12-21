@@ -3,7 +3,7 @@
 //
 
 import Foundation
-import OpenAPIKit
+@_implementationOnly import OpenAPIKit
 
 struct OpenAPIDocumentBuilder {
     var document: OpenAPI.Document {
@@ -32,4 +32,15 @@ struct OpenAPIDocumentBuilder {
         )
     }
 
+}
+
+extension OpenAPIDocumentBuilder {
+    var description: String {
+        // TODO: make nicer...
+        let encoder = JSONEncoder()
+        guard let json = try? encoder.encode(self.document) else {
+            return ""
+        }
+        return String(data: json, encoding: .utf8)!
+    }
 }
