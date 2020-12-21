@@ -49,7 +49,6 @@ public struct Get<Model: DatabaseModel>: Component where Model.IDValue: Lossless
     
     public init(_ dummy: Parameter<String>) {
         self._dummy = dummy
-        print(QueryBuilder.info(for: Model.self))
         var dynamicValues: [String: Param] = [:]
         let infos = QueryBuilder.info(for: Model.self)
         for info in infos {
@@ -59,11 +58,10 @@ public struct Get<Model: DatabaseModel>: Component where Model.IDValue: Lossless
     }
 
     public func handle() -> EventLoopFuture<[Model]> {
-        var result = ""
-        for (key, value) in dynamics {
-            result.append("\(key) - \(value.wrappedValue ?? "nil")\n")
-        }
-        print(result)
+//        var result = ""
+//        for (key, value) in dynamics {
+//            result.append("\(key) - \(value.wrappedValue ?? "nil")\n")
+//        }
         let queryInfo: [FieldKey: String] = dynamics
             .reduce(into: [FieldKey: String?](), { result, entry in
                 result[Model.fieldKey(for: entry.key)] = entry.value.wrappedValue

@@ -66,13 +66,12 @@ public struct QueryBuilder<Model: DatabaseModel> {
         for (key, value) in parameters {
             accumulateFilters(queryBuilder: &queryBuilder, key: key, value: value, method: .equal)
         }
-        print(queryBuilder)
         return queryBuilder.all()
     }
     
     @discardableResult
     public static func fieldKeys<Model: DatabaseModel>(for type: Model.Type) -> [FieldKey] {
-        return type.keys
+        return type
     }
     
     static func info(for type: Model.Type) -> [ModelInfo] {
@@ -104,10 +103,13 @@ public struct QueryBuilder<Model: DatabaseModel> {
     //TODO: Find a better way to do this
     private static func fieldType(for type: Any.Type) -> Any.Type {
         let fieldTypeString = String(describing: type)
-                .replacingOccurrences(of: "FieldProperty", with: "")
-                .replacingOccurrences(of: "<", with: "")
-                .replacingOccurrences(of: " ", with: "")
-                .replacingOccurrences(of: ">", with: "").split(separator: ",").map({ String($0) }).last!
+            .replacingOccurrences(of: "FieldProperty", with: "")
+            .replacingOccurrences(of: "<", with: "")
+            .replacingOccurrences(of: " ", with: "")
+            .replacingOccurrences(of: ">", with: "")
+            .split(separator: ",")
+            .map({ String($0) })
+            .last!
         switch fieldTypeString {
         case "String":
             return String.self
