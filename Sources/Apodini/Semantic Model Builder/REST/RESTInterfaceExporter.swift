@@ -83,7 +83,7 @@ struct RESTRequest: Request {
     }
 
     func parameter<T: Codable>(for parameter: UUID) throws -> T? {
-        return parameterDecoder(parameter) as? T
+        parameterDecoder(parameter) as? T
     }
 }
 
@@ -126,7 +126,7 @@ class RESTInterfaceExporter: InterfaceExporter {
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
-        if webService.rootEndpoints.count == 0 {
+        if webService.rootEndpoints.isEmpty {
             // if the root path doesn't have endpoints we need to create a custom one to deliver linking entry points.
 
             for relationship in webService.relationships {
