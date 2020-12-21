@@ -23,7 +23,7 @@ public struct EndpointProvidingNodeBuilder {
     
 %{
     all_permutations = itertools.chain(*[itertools.product(component_types, repeat=i) for i in range(2, max_heterogeneous_component_size + 1)])
-    all_permutations = [p for p in all_permutations if len(set(p)) == len(p)]
+    all_permutations = [p for p in all_permutations if len(set(p)) > 1]
 }%
 
     % for permutation in all_permutations:

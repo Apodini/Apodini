@@ -19,6 +19,1974 @@ public struct EndpointProvidingNodeBuilder {
         return TupleComponent<(T0, _WrappedEndpoint<T1>)>((arg0, _WrappedEndpoint(arg1)))
     }
 
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2)>((_WrappedEndpoint(arg0), arg1, arg2))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2)>((arg0, _WrappedEndpoint(arg1), arg2))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>)>((arg0, arg1, _WrappedEndpoint(arg2)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3)>((_WrappedEndpoint(arg0), arg1, arg2, arg3))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3)>((arg0, _WrappedEndpoint(arg1), arg2, arg3))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3)>((arg0, arg1, _WrappedEndpoint(arg2), arg3))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>)>((arg0, arg1, arg2, _WrappedEndpoint(arg3)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, T4)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, arg4))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, T4)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, arg4))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, T4)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), arg4))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, _WrappedEndpoint<T4>)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, _WrappedEndpoint(arg4)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, T4)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, arg4))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, T4)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, arg4))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, T4)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, arg4))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, T4)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), arg4))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, _WrappedEndpoint<T4>)>((arg0, arg1, arg2, arg3, _WrappedEndpoint(arg4)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, T5)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, arg5))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, T5)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, arg5))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, T5)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), arg5))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, T4, _WrappedEndpoint<T5>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, arg4, _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, T4, T5)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, arg4, arg5))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, T4, T5)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, arg4, arg5))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, T4, T5)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), arg4, arg5))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, _WrappedEndpoint<T4>, T5)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, _WrappedEndpoint(arg4), arg5))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, T4, _WrappedEndpoint<T5>)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, arg4, _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, T4, T5)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, arg4, arg5))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, T5)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, arg5))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, T5)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, arg5))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, T5)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), arg5))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, T4, _WrappedEndpoint<T5>)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, arg4, _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, T4, T5)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, arg4, arg5))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, T4, T5)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, arg4, arg5))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, T4, T5)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), arg4, arg5))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>)>((arg0, arg1, arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, _WrappedEndpoint<T4>, T5)>((arg0, arg1, arg2, arg3, _WrappedEndpoint(arg4), arg5))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, T4, _WrappedEndpoint<T5>)>((arg0, arg1, arg2, arg3, arg4, _WrappedEndpoint(arg5)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, T6)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, T6)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, T6)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, T5, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, T5, T6)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, T5, T6)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, T5, T6)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, T4, _WrappedEndpoint<T5>, T6)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, arg4, _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, T4, T5, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, arg4, arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, T4, T5, T6)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, arg4, arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, T6)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, T6)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, T6)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, T4, T5, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, arg4, arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, T4, T5, T6)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, arg4, arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, T4, T5, T6)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), arg4, arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, _WrappedEndpoint<T4>, T5, T6)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, _WrappedEndpoint(arg4), arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, T4, _WrappedEndpoint<T5>, T6)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, arg4, _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, T4, T5, _WrappedEndpoint<T6>)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, arg4, arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, T4, T5, T6)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, arg4, arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, T6)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, T6)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, T6)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, T5, _WrappedEndpoint<T6>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, T5, T6)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, T5, T6)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, T5, T6)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, T4, _WrappedEndpoint<T5>, T6)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, arg4, _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, T4, T5, _WrappedEndpoint<T6>)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, arg4, arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, T4, T5, T6)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, arg4, arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, T6)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, T6)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, T6)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, T4, T5, _WrappedEndpoint<T6>)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, arg4, arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, T4, T5, T6)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, arg4, arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, T4, T5, T6)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), arg4, arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((arg0, arg1, arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6)>((arg0, arg1, arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>)>((arg0, arg1, arg2, arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, _WrappedEndpoint<T4>, T5, T6)>((arg0, arg1, arg2, arg3, _WrappedEndpoint(arg4), arg5, arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>)>((arg0, arg1, arg2, arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, T4, _WrappedEndpoint<T5>, T6)>((arg0, arg1, arg2, arg3, arg4, _WrappedEndpoint(arg5), arg6))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, T4, T5, _WrappedEndpoint<T6>)>((arg0, arg1, arg2, arg3, arg4, arg5, _WrappedEndpoint(arg6)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, T6, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, T6, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, T6, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, T5, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, T5, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, T5, T6, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, T5, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, T5, T6, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, T5, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, T5, T6, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, T4, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, arg4, _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, T4, _WrappedEndpoint<T5>, T6, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, arg4, _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, T4, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, arg4, arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, T4, T5, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, arg4, arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, T4, T5, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, arg4, arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, _WrappedEndpoint<T1>, T2, T3, T4, T5, T6, T7)>((_WrappedEndpoint(arg0), _WrappedEndpoint(arg1), arg2, arg3, arg4, arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, T7)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6, T7)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6, T7)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, T6, T7)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, T7)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, T6, T7)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, T6, T7)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, T4, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, arg4, arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, T4, T5, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, arg4, arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, T4, T5, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, arg4, arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, _WrappedEndpoint<T2>, T3, T4, T5, T6, T7)>((_WrappedEndpoint(arg0), arg1, _WrappedEndpoint(arg2), arg3, arg4, arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, T7)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6, T7)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6, T7)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, T4, T5, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), arg4, arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, _WrappedEndpoint<T3>, T4, T5, T6, T7)>((_WrappedEndpoint(arg0), arg1, arg2, _WrappedEndpoint(arg3), arg4, arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, T7)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, _WrappedEndpoint<T4>, T5, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, _WrappedEndpoint(arg4), arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, _WrappedEndpoint<T4>, T5, T6, T7)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, _WrappedEndpoint(arg4), arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, T4, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, arg4, _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, T4, _WrappedEndpoint<T5>, T6, T7)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, arg4, _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, T4, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, arg4, arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, T4, T5, _WrappedEndpoint<T6>, T7)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, arg4, arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, T4, T5, T6, _WrappedEndpoint<T7>)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, arg4, arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(_WrappedEndpoint<T0>, T1, T2, T3, T4, T5, T6, T7)>((_WrappedEndpoint(arg0), arg1, arg2, arg3, arg4, arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, T7)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, T7)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6, T7)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6, T7)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>, T7)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, T6, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, T6, T7)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, T7)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, T7)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, T6, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, T6, T7)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, T6, T7)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, T5, _WrappedEndpoint<T6>, T7)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, T5, T6, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, _WrappedEndpoint<T2>, T3, T4, T5, T6, T7)>((arg0, _WrappedEndpoint(arg1), _WrappedEndpoint(arg2), arg3, arg4, arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, T7)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, T7)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6, T7)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6, T7)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>, T7)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, T5, T6, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, _WrappedEndpoint<T3>, T4, T5, T6, T7)>((arg0, _WrappedEndpoint(arg1), arg2, _WrappedEndpoint(arg3), arg4, arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, T7)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, T7)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, T5, T6, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, _WrappedEndpoint<T4>, T5, T6, T7)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, _WrappedEndpoint(arg4), arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, T4, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, arg4, _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, T4, _WrappedEndpoint<T5>, T6, T7)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, arg4, _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, T4, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, arg4, arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, T4, T5, _WrappedEndpoint<T6>, T7)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, arg4, arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, T4, T5, T6, _WrappedEndpoint<T7>)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, arg4, arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, _WrappedEndpoint<T1>, T2, T3, T4, T5, T6, T7)>((arg0, _WrappedEndpoint(arg1), arg2, arg3, arg4, arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, T7)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, T7)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6, _WrappedEndpoint<T7>)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6, T7)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6, T7)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>, T7)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, T6, _WrappedEndpoint<T7>)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, _WrappedEndpoint<T3>, T4, T5, T6, T7)>((arg0, arg1, _WrappedEndpoint(arg2), _WrappedEndpoint(arg3), arg4, arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, T7)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, T7)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, T6, _WrappedEndpoint<T7>)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, _WrappedEndpoint<T4>, T5, T6, T7)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, _WrappedEndpoint(arg4), arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, T4, _WrappedEndpoint<T5>, T6, T7)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, arg4, _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, T4, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, arg4, arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, T4, T5, _WrappedEndpoint<T6>, T7)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, arg4, arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, T4, T5, T6, _WrappedEndpoint<T7>)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, arg4, arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, _WrappedEndpoint<T2>, T3, T4, T5, T6, T7)>((arg0, arg1, _WrappedEndpoint(arg2), arg3, arg4, arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, T7)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, T7)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6, _WrappedEndpoint<T7>)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, _WrappedEndpoint<T4>, T5, T6, T7)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), _WrappedEndpoint(arg4), arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, T4, _WrappedEndpoint<T5>, T6, T7)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), arg4, _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, T4, T5, _WrappedEndpoint<T6>, T7)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), arg4, arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, T4, T5, T6, _WrappedEndpoint<T7>)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), arg4, arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, _WrappedEndpoint<T3>, T4, T5, T6, T7)>((arg0, arg1, arg2, _WrappedEndpoint(arg3), arg4, arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, arg1, arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((arg0, arg1, arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((arg0, arg1, arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, _WrappedEndpoint<T4>, _WrappedEndpoint<T5>, T6, T7)>((arg0, arg1, arg2, arg3, _WrappedEndpoint(arg4), _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, arg1, arg2, arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, _WrappedEndpoint<T4>, T5, _WrappedEndpoint<T6>, T7)>((arg0, arg1, arg2, arg3, _WrappedEndpoint(arg4), arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, _WrappedEndpoint<T4>, T5, T6, _WrappedEndpoint<T7>)>((arg0, arg1, arg2, arg3, _WrappedEndpoint(arg4), arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, _WrappedEndpoint<T4>, T5, T6, T7)>((arg0, arg1, arg2, arg3, _WrappedEndpoint(arg4), arg5, arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, arg1, arg2, arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, T4, _WrappedEndpoint<T5>, _WrappedEndpoint<T6>, T7)>((arg0, arg1, arg2, arg3, arg4, _WrappedEndpoint(arg5), _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, T4, _WrappedEndpoint<T5>, T6, _WrappedEndpoint<T7>)>((arg0, arg1, arg2, arg3, arg4, _WrappedEndpoint(arg5), arg6, _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointNode, T6: EndpointProvidingNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, T4, _WrappedEndpoint<T5>, T6, T7)>((arg0, arg1, arg2, arg3, arg4, _WrappedEndpoint(arg5), arg6, arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, T4, T5, _WrappedEndpoint<T6>, _WrappedEndpoint<T7>)>((arg0, arg1, arg2, arg3, arg4, arg5, _WrappedEndpoint(arg6), _WrappedEndpoint(arg7)))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointNode, T7: EndpointProvidingNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, T4, T5, _WrappedEndpoint<T6>, T7)>((arg0, arg1, arg2, arg3, arg4, arg5, _WrappedEndpoint(arg6), arg7))
+    }
+
+    public static func buildBlock<T0: EndpointProvidingNode, T1: EndpointProvidingNode, T2: EndpointProvidingNode, T3: EndpointProvidingNode, T4: EndpointProvidingNode, T5: EndpointProvidingNode, T6: EndpointProvidingNode, T7: EndpointNode>(_ arg0: T0, _ arg1: T1, _ arg2: T2, _ arg3: T3, _ arg4: T4, _ arg5: T5, _ arg6: T6, _ arg7: T7) -> some EndpointProvidingNode {
+        return TupleComponent<(T0, T1, T2, T3, T4, T5, T6, _WrappedEndpoint<T7>)>((arg0, arg1, arg2, arg3, arg4, arg5, arg6, _WrappedEndpoint(arg7)))
+    }
+
 
 
 
