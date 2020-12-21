@@ -42,7 +42,7 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @Apodini.Environment(\.connection)
+        @ClientConnection
         var connection: Connection
 
         @Parameter var name: String
@@ -50,7 +50,7 @@ struct TestWebService: Apodini.WebService {
         func handle() -> Action<String> {
             switch connection.state {
             case .end:
-                return .final("Hello \(name)")
+                return .final("Hello World!")
             default:
                 return .nothing
             }

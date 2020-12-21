@@ -93,6 +93,7 @@ class GRPCSemanticModelBuilder: SemanticModelBuilder {
                     .flatMap { _ in
                         request.enterRequestContext(with: component) { component in
                             let response: Action<C.Response> = component
+                                .withConnection(con)
                                 .handle()
                             switch response {
                             case let .send(element),
