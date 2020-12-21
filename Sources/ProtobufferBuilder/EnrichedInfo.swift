@@ -29,7 +29,7 @@ extension EnrichedInfo {
             propertyInfo: nil,
             propertiesOffset: nil)
         
-        return Node(root) { info in
+        return Node(root: root) { info in
             info.typeInfo.properties
                 .enumerated()
                 .compactMap { offset, propertyInfo in

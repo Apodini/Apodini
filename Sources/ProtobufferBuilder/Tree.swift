@@ -7,17 +7,37 @@
 
 // MARK: - Node
 
-internal struct Node<T> {
+internal class Node<T> {
     let value: T
     let children: [Node<T>]
+    
+    private weak var parent: Node<T>?
+    
+    init(value: T, children: [Node<T>]) {
+        self.value = value
+        self.children = children
+        
+        self.children.forEach { child in
+            child.parent = self
+        }
+    }
+    
+    init(root: T, _ getChildren: (T) throws -> [T]) rethrows {
+        let children = try getChildren(root)
+            .map { try Node(root: $0, getChildren) }
+        
+        self.value = root
+        self.children = children
+        
+        self.children.forEach { child in
+            child.parent = self
+        }
+    }
 }
 
 extension Node {
-    init(_ root: T, _ getChildren: (T) throws -> [T]) rethrows {
-        let children = try getChildren(root)
-            .map { try Node($0, getChildren) }
-        
-        self.init(value: root, children: children)
+    var ancestry: [Node] {
+        [self] + (parent?.ancestry ?? [])
     }
 }
 
