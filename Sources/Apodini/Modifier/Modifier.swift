@@ -22,8 +22,6 @@ extension EndpointModifier {
     }
     
     public var __endpointId: Self.ModifiedEndpoint.EndpointIdentifier { endpoint.__endpointId }
-    
-    public var outgoingDependencies: Set<AnyEndpointIdentifier> { ModifiedEndpoint.outgoingDependencies }
 }
 
 

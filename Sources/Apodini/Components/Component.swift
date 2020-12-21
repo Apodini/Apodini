@@ -34,15 +34,6 @@ public protocol Handler {
     
     // underscored as to avoid clashes w/ potential parameters, or other custom properties of the conforming type
     var __endpointId: EndpointIdentifier { get }
-    
-    /// This component's set of outgoing dependencies
-    static var outgoingDependencies: Set<AnyEndpointIdentifier> { get }
-}
-
-
-/// Default implementation for components which don't specify any outgoing dependencies
-extension Handler {
-    public static var outgoingDependencies: Set<AnyEndpointIdentifier> { [] }
 }
 
 
