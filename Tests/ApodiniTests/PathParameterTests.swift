@@ -10,11 +10,11 @@ import XCTest
 
 
 final class PathParameterTests: XCTestCase {
-    struct TestComponent: EndpointProvidingNode {
+    struct TestComponent: Component {
         @PathParameter
         var name: String
         
-        var content: some EndpointProvidingNode {
+        var content: some Component {
             Group($name) {
                 TestHandler(name: $name)
             }
@@ -22,7 +22,7 @@ final class PathParameterTests: XCTestCase {
     }
     
     
-    struct TestHandler: EndpointNode {
+    struct TestHandler: Handler {
         @Parameter
         var name: String
         
@@ -41,7 +41,7 @@ final class PathParameterTests: XCTestCase {
     
     func testPrintComponent() throws {
         let testComponent = TestComponent()
-        let testHandler = try XCTUnwrap((testComponent.content.content as? _WrappedEndpoint<TestHandler>)?.endpoint)
+        let testHandler = try XCTUnwrap((testComponent.content.content as? _WrappedHandler<TestHandler>)?.handler)
         
         let parameter = try XCTUnwrap(
             Mirror(reflecting: testHandler)

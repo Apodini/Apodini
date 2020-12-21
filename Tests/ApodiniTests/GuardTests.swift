@@ -22,7 +22,7 @@ final class GuardTests: XCTestCase {
     }
     
     
-    var component: some EndpointNode {
+    var component: some Handler {
         Text("Hallo")
             .operation(.read)
             .guard(TestGuard())

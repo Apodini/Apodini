@@ -32,7 +32,7 @@ struct GuardContextKey: ContextKey {
 }
 
 
-public struct GuardModifier<C: EndpointNode>: EndpointModifier {
+public struct GuardModifier<C: Handler>: EndpointModifier {
     public typealias ModifiedEndpoint = C
     public typealias Response = C.Response
     public typealias EndpointIdentifier = C.EndpointIdentifier
@@ -64,7 +64,7 @@ extension GuardModifier: Visitable {
 }
 
 
-extension EndpointNode {
+extension Handler {
     /// Use an asynchronous `Guard` to guard `Component`s by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`

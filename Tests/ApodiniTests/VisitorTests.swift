@@ -18,7 +18,8 @@ final class VisitorTests: XCTestCase {
     }
     
     struct TestWebService: Apodini.WebService {
-        @EndpointProvidingNodeBuilder var content: some EndpointProvidingNode {
+        @ComponentBuilder
+        var content: some Component {
             Group("Test") {
                 Text("Hallo Bernd")
                     .operation(.update)

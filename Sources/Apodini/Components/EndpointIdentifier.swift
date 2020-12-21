@@ -25,7 +25,7 @@ public class AnyEndpointIdentifier: RawRepresentable, Hashable, Equatable, Custo
         self.init(rawValue: rawValue)
     }
     
-    public init<C: EndpointNode>(_: C.Type) {
+    public init<C: Handler>(_: C.Type) {
         self.rawValue = String(describing: C.self)
     }
     
@@ -48,7 +48,7 @@ public class AnyEndpointIdentifier: RawRepresentable, Hashable, Equatable, Custo
 
 /// An endpoint identifier which is scoped to a specific endpoint type.
 /// This is the primary way components should be identified and referenced.
-public class ScopedEndpointIdentifier<T: EndpointNode>: AnyEndpointIdentifier {
+public class ScopedEndpointIdentifier<T: Handler>: AnyEndpointIdentifier {
     public override class var unspecified: ScopedEndpointIdentifier<T> { .init("<unspecified>") }
     
     
@@ -57,7 +57,7 @@ public class ScopedEndpointIdentifier<T: EndpointNode>: AnyEndpointIdentifier {
     }
     
     @available(*, unavailable, message: "'init(EndpointComponent.Type)' cannot be used with type-scoped endpoint identifiers")
-    public override init<C: EndpointNode>(_: C.Type) {
+    public override init<C: Handler>(_: C.Type) {
         fatalError()
     }
 }
@@ -71,23 +71,23 @@ public class ScopedEndpointIdentifier<T: EndpointNode>: AnyEndpointIdentifier {
 
 fileprivate protocol __EndpointComponentIdentifierGetterImplVisitor: AssociatedTypeRequirementsVisitor {
     associatedtype Visitor = __EndpointComponentIdentifierGetterImplVisitor
-    associatedtype Input = EndpointNode
+    associatedtype Input = Handler
     associatedtype Output
-    func callAsFunction<T: EndpointNode>(_ value: T) -> Output
+    func callAsFunction<T: Handler>(_ value: T) -> Output
 }
 
 
 fileprivate struct EndpointComponentIdentifierGetterImpl: __EndpointComponentIdentifierGetterImplVisitor {
     let visitorImpl: (AnyEndpointIdentifier) -> Void
     
-    func callAsFunction<T: EndpointNode>(_ value: T) {
+    func callAsFunction<T: Handler>(_ value: T) {
         visitorImpl(value.__endpointId)
     }
 }
 
 
 
-func LKTryToGetEndpointComponentIdentifier<C: EndpointNode>(_ component: C) -> AnyEndpointIdentifier? {
+func LKTryToGetEndpointComponentIdentifier<C: Handler>(_ component: C) -> AnyEndpointIdentifier? {
     var endpointId: AnyEndpointIdentifier = .unspecified
     EndpointComponentIdentifierGetterImpl {
         endpointId = $0

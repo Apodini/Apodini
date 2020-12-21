@@ -40,7 +40,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         super.init(app)
     }
 
-    override func register<C: EndpointNode>(component: C, withContext context: Context) {
+    override func register<C: Handler>(component: C, withContext context: Context) {
         super.register(component: component, withContext: context)
 
         let operation = context.get(valueFor: OperationContextKey.self)
@@ -105,7 +105,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         }
     }
 
-    static func createRequestHandler<H: EndpointNode>(with handler: H, guards: [LazyGuard] = [], responseModifiers: [() -> (AnyResponseTransformer)] = []) -> RequestHandler {
+    static func createRequestHandler<H: Handler>(with handler: H, guards: [LazyGuard] = [], responseModifiers: [() -> (AnyResponseTransformer)] = []) -> RequestHandler {
         { (request: Request) in
             let guardEventLoopFutures = guards.map { guardClosure in
                 request.enterRequestContext(with: guardClosure()) { requestGuard in

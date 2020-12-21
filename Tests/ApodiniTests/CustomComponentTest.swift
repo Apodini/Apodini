@@ -13,7 +13,7 @@ import Fluent
 
 
 final class CustomComponentTests: ApodiniTests {
-    struct AddBirdsComponent: EndpointNode {
+    struct AddBirdsComponent: Handler {
         @_Database
         var database: Fluent.Database
         

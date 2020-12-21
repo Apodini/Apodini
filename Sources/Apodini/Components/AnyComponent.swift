@@ -7,13 +7,13 @@
 
 
 
-public struct AnyEndpointNode: EndpointNode, Visitable {
+public struct AnyEndpointNode: Handler, Visitable {
     public typealias Response = Never
     
     private let _visit: (SyntaxTreeVisitor) -> Void
     
-    init<T: EndpointNode>(_ endpointNode: T) {
-        _visit = endpointNode.visit
+    init<T: Handler>(_ Handler: T) {
+        _visit = Handler.visit
     }
     
     func visit(_ visitor: SyntaxTreeVisitor) {
@@ -23,13 +23,13 @@ public struct AnyEndpointNode: EndpointNode, Visitable {
 
 
 
-public struct AnyEndpointProvidingNode: EndpointProvidingNode, Visitable {
+public struct AnyEndpointProvidingNode: Component, Visitable {
     public typealias Content = Never
     
     private let _visit: (SyntaxTreeVisitor) -> Void
     
-    init<T: EndpointProvidingNode>(_ endpointNode: T) {
-        _visit = endpointNode.visit
+    init<T: Component>(_ Handler: T) {
+        _visit = Handler.visit
     }
     
     func visit(_ visitor: SyntaxTreeVisitor) {

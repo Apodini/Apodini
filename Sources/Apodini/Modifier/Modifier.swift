@@ -7,8 +7,8 @@
 
 
 
-protocol EndpointModifier: EndpointNode {
-    associatedtype ModifiedEndpoint: EndpointNode
+protocol EndpointModifier: Handler {
+    associatedtype ModifiedEndpoint: Handler
     
     var endpoint: ModifiedEndpoint { get }
 }
@@ -29,8 +29,8 @@ extension EndpointModifier {
 
 
 
-protocol EndpointProvidingNodeModifier: EndpointProvidingNode {
-    associatedtype ModifiedEndpointProvider: EndpointProvidingNode
+protocol EndpointProvidingNodeModifier: Component {
+    associatedtype ModifiedEndpointProvider: Component
     
     var content: ModifiedEndpointProvider { get }
 }

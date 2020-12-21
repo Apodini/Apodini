@@ -37,17 +37,17 @@ extension SyntaxTreeVisitor {
 
 private protocol EndpointProviderVisitorHelperImplBase: AssociatedTypeRequirementsVisitor {
     associatedtype Visitor = EndpointProviderVisitorHelperImplBase
-    associatedtype Input = EndpointProvidingNode
+    associatedtype Input = Component
     associatedtype Output
 
-    func callAsFunction<T: EndpointProvidingNode>(_ value: T) -> Output
+    func callAsFunction<T: Component>(_ value: T) -> Output
 }
 
 private struct EndpointProviderVisitorHelperImpl: EndpointProviderVisitorHelperImplBase {
     let visitor: SyntaxTreeVisitor
     let didVisitHandler: () -> Void
 
-    func callAsFunction<T: EndpointProvidingNode>(_ value: T) {
+    func callAsFunction<T: Component>(_ value: T) {
         value.visit(visitor)
         didVisitHandler()
     }
@@ -58,17 +58,17 @@ private struct EndpointProviderVisitorHelperImpl: EndpointProviderVisitorHelperI
 
 private protocol EndpointVisitorHelperImplBase: AssociatedTypeRequirementsVisitor {
     associatedtype Visitor = EndpointVisitorHelperImplBase
-    associatedtype Input = EndpointNode
+    associatedtype Input = Handler
     associatedtype Output
 
-    func callAsFunction<T: EndpointNode>(_ value: T) -> Output
+    func callAsFunction<T: Handler>(_ value: T) -> Output
 }
 
 private struct EndpointVisitorHelperImpl: EndpointVisitorHelperImplBase {
     let visitor: SyntaxTreeVisitor
     let didVisitHandler: () -> Void
 
-    func callAsFunction<T: EndpointNode>(_ value: T) {
+    func callAsFunction<T: Handler>(_ value: T) {
         value.visit(visitor)
         didVisitHandler()
     }

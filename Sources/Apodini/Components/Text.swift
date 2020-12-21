@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-public struct Text: EndpointNode {
+public struct Text: Handler {
     private let text: String
     
     public init(_ text: String) {

@@ -65,7 +65,7 @@ struct ResponseContextKey: ContextKey {
 
 
 /// A `ResponseModifier` can be used to transform the output of `Component`'s response to a different type using a `ResponseTransformer`
-public struct ResponseModifier<C: EndpointNode, T: ResponseTransformer>: EndpointModifier where T.Response == C.Response {
+public struct ResponseModifier<C: Handler, T: ResponseTransformer>: EndpointModifier where T.Response == C.Response {
     public typealias Response = T.TransformedResponse
     
     let endpoint: C
@@ -95,7 +95,7 @@ extension ResponseModifier: Visitable {
 }
 
 
-extension EndpointNode {
+extension Handler {
     /// A `response` modifier can be used to transform the output of `Component`'s response to a different type using a `ResponseTransformer`
     /// - Parameter responseTransformer: The `ResponseTransformer` used to transform the response of a `Component`
     /// - Returns: The modified `Component` with a new `Response` type

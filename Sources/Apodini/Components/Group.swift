@@ -17,11 +17,11 @@ struct PathComponentContextKey: ContextKey {
 
 
 
-public struct Group<Content: EndpointProvidingNode>: EndpointProvidingNode, Visitable {
+public struct Group<Content: Component>: Component, Visitable {
     private let pathComponents: [PathComponent]
     public let content: Content
     
-    public init(_ pathComponents: PathComponent..., @EndpointProvidingNodeBuilder content: () -> Content) {
+    public init(_ pathComponents: PathComponent..., @ComponentBuilder content: () -> Content) {
         self.pathComponents = pathComponents
         self.content = content()
     }

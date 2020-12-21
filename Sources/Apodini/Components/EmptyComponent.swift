@@ -9,7 +9,7 @@ import NIO
 
 
 
-// MARK: EndpointNode
+// MARK: Handler
 
 
 extension Never: Encodable {
@@ -22,7 +22,7 @@ extension Never: Encodable {
 }
 
 
-extension Never: EndpointNode {
+extension Never: Handler {
     public typealias Response = Never
     
     public func handle() -> Never {
@@ -31,7 +31,7 @@ extension Never: EndpointNode {
 }
 
 
-extension EndpointNode where Response == Never {
+extension Handler where Response == Never {
     public func handle() -> Never {
         fatalError("Can't invoke endpoint with 'Never' response type")
     }
@@ -39,17 +39,17 @@ extension EndpointNode where Response == Never {
 
 
 
-// MARK: EndpointProvidingNode
+// MARK: Component
 
 
-extension Never: EndpointProvidingNode {
+extension Never: Component {
     public var content: Never {
         fatalError()
     }
 }
 
 
-extension EndpointProvidingNode where Content == Never {
+extension Component where Content == Never {
     public var content: Never {
         fatalError()
     }

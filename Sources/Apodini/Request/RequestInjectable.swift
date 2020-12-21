@@ -39,7 +39,7 @@ private func extractRequestInjectables(from subject: Any) -> [String: RequestInj
     }
 }
 
-extension EndpointNode {
+extension Handler {
     func extractRequestInjectables() -> [String: RequestInjectable] {
         Apodini.extractRequestInjectables(from: self)
     }

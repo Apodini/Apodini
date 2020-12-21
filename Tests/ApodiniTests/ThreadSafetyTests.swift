@@ -14,7 +14,7 @@ import Fluent
 
 
 final class ThreadSafetyTests: ApodiniTests {
-    struct Greeter: EndpointNode {
+    struct Greeter: Handler {
         @Parameter var id: String
 
         func handle() -> String {

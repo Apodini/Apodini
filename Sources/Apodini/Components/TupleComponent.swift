@@ -1,6 +1,6 @@
 import Foundation
 
-public struct TupleComponent<T>: EndpointProvidingNode {
+public struct TupleComponent<T>: Component {
     public var content: Never { fatalError() }
     
     private let storage: T

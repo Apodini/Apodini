@@ -7,15 +7,16 @@
 
 
 
-struct _WrappedEndpoint<Endpoint: EndpointNode>: EndpointProvidingNode, Visitable {
-    let endpoint: Endpoint
-    var content: Never { fatalError() }
+struct _WrappedHandler<H: Handler>: Component, Visitable {
+    public typealias Content = Never
     
-    init(_ endpoint: Endpoint) {
-        self.endpoint = endpoint
+    let handler: H
+    
+    init(_ handler: H) {
+        self.handler = handler
     }
     
     func visit(_ visitor: SyntaxTreeVisitor) {
-        endpoint.visit(visitor)
+        handler.visit(visitor)
     }
 }

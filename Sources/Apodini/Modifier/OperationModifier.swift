@@ -27,7 +27,7 @@ struct OperationContextKey: ContextKey {
     }
 }
 
-public struct OperationModifier<ModifiedComponent: EndpointNode>: EndpointModifier {
+public struct OperationModifier<ModifiedComponent: Handler>: EndpointModifier {
     let endpoint: ModifiedComponent
     let operation: Operation
     
@@ -47,7 +47,7 @@ extension OperationModifier: Visitable {
 }
 
 
-extension EndpointNode {
+extension Handler {
     /// A `operation` modifier can be used to explicitly specify the `Operation` for the given `Component`
     /// - Parameter operation: The `Operation` that is used to for the component
     /// - Returns: The modified `Component` with a specified `Operation`

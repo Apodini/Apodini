@@ -12,7 +12,7 @@ import NIO
 
 final class ModifierTests: XCTestCase {
     func testOperationModifier() {
-        var component: some EndpointProvidingNode {
+        var component: some Component {
             Group {
                 Text("Create")
                     .operation(.read)
@@ -48,8 +48,8 @@ final class ModifierTests: XCTestCase {
         }
         
         
-        @EndpointProvidingNodeBuilder
-        var component: some EndpointProvidingNode {
+        @ComponentBuilder
+        var component: some Component {
             Text("Hallo")
                 .response(FirstTestResponseMediator())
                 .response(SecondTestResponseMediator())

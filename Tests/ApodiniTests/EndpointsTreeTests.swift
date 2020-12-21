@@ -16,7 +16,7 @@ final class EndpointsTreeTests: XCTestCase {
         let month: Int
     }
     
-    struct TestHandler: EndpointNode {
+    struct TestHandler: Handler {
         @Parameter
         var name: String
         
@@ -35,11 +35,11 @@ final class EndpointsTreeTests: XCTestCase {
         }
     }
     
-    struct TestComponent: EndpointProvidingNode {
+    struct TestComponent: Component {
         @PathParameter
         var name: String
         
-        var content: some EndpointProvidingNode {
+        var content: some Component {
             Group("birthdate", $name) {
                 TestHandler(name: $name)
             }
@@ -50,7 +50,7 @@ final class EndpointsTreeTests: XCTestCase {
         // swiftlint:disable force_cast
         let testComponent = TestComponent()
         //let testHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
-        let testHandler: TestHandler = try XCTUnwrap((testComponent.content.content as? _WrappedEndpoint<TestHandler>)?.endpoint)
+        let testHandler: TestHandler = try XCTUnwrap((testComponent.content.content as? _WrappedHandler<TestHandler>)?.handler)
         
         let requestInjectables: [String: RequestInjectable] = testHandler.extractRequestInjectables()
         let parameterBuilder = ParameterBuilder(from: testHandler)

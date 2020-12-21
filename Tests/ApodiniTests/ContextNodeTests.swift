@@ -8,7 +8,7 @@ import Vapor
 
 
 
-struct TestComponent: EndpointNode {
+struct TestComponent: Handler {
     let __endpointId = AnyEndpointIdentifier(Self.self)
     
     let type: Int
@@ -44,7 +44,7 @@ struct IntNextComponentContextKey: ContextKey {
 
 
 
-struct IntModifier_EndpointProvidingNode<ModifiedComponent: EndpointProvidingNode>: EndpointProvidingNodeModifier, Visitable {
+struct IntModifier_EndpointProvidingNode<ModifiedComponent: Component>: EndpointProvidingNodeModifier, Visitable {
     let content: ModifiedComponent
     let scope: Scope
     let value: Int
@@ -67,7 +67,7 @@ struct IntModifier_EndpointProvidingNode<ModifiedComponent: EndpointProvidingNod
 }
 
 
-extension EndpointProvidingNode {
+extension Component {
     func modifier(_ scope: Scope, value: Int) -> IntModifier_EndpointProvidingNode<Self> {
         IntModifier_EndpointProvidingNode(self, scope: scope, value: value)
     }
@@ -75,7 +75,7 @@ extension EndpointProvidingNode {
 
 
 
-struct IntModifier_EndpointNode<ModifiedComponent: EndpointNode>: EndpointNode, Visitable {
+struct IntModifier_EndpointNode<ModifiedComponent: Handler>: Handler, Visitable {
     let content: ModifiedComponent
     let scope: Scope
     let value: Int
@@ -98,7 +98,7 @@ struct IntModifier_EndpointNode<ModifiedComponent: EndpointNode>: EndpointNode, 
 }
 
 
-extension EndpointNode {
+extension Handler {
     func modifier(_ scope: Scope, value: Int) -> IntModifier_EndpointNode<Self> {
         IntModifier_EndpointNode(self, scope: scope, value: value)
     }
@@ -130,7 +130,7 @@ final class ContextNodeTests: XCTestCase {
     }
     
     
-    var groupWithSingleComponent: some EndpointProvidingNode {
+    var groupWithSingleComponent: some Component {
         Group("test") {
             TestComponent(1)
         }.modifier(.nextComponent, value: 1)
@@ -138,7 +138,7 @@ final class ContextNodeTests: XCTestCase {
 
     func testGroupWithSingleComponent() {
         class TestSemanticModelBuilder: SemanticModelBuilder {
-            override func register<C: EndpointNode>(component: C, withContext context: Context) {
+            override func register<C: Handler>(component: C, withContext context: Context) {
                 if let testComponent = component as? TestComponent {
                     let localInt = context.get(valueFor: IntNextComponentContextKey.self)
 
@@ -160,7 +160,7 @@ final class ContextNodeTests: XCTestCase {
     }
     
     
-    var groupWithComponentAndGroup: some EndpointProvidingNode {
+    var groupWithComponentAndGroup: some Component {
         Group("test") {
             TestComponent(1)
                 .modifier(.environment, value: 1)
@@ -172,7 +172,7 @@ final class ContextNodeTests: XCTestCase {
 
     func testGroupWithComponentAndGroup() {
         class TestSemanticModelBuilder: SemanticModelBuilder {
-            override func register<C: EndpointNode>(component: C, withContext context: Context) {
+            override func register<C: Handler>(component: C, withContext context: Context) {
                 if let testComponent = component as? TestComponent {
                     let path = context.get(valueFor: PathComponentContextKey.self)
                     let pathString = ContextNodeTests.buildStringFromPathComponents(path)
@@ -199,7 +199,7 @@ final class ContextNodeTests: XCTestCase {
     }
     
     
-    var groupWithGroupAndComponent: some EndpointProvidingNode {
+    var groupWithGroupAndComponent: some Component {
         Group("test") {
             Group("test2") {
                 TestComponent(2)
@@ -210,7 +210,7 @@ final class ContextNodeTests: XCTestCase {
 
     func testGroupWithGroupAndComponent() {
         class TestSemanticModelBuilder: SemanticModelBuilder {
-            override func register<C: EndpointNode>(component: C, withContext context: Context) {
+            override func register<C: Handler>(component: C, withContext context: Context) {
                 if let testComponent = component as? TestComponent {
                     let path = context.get(valueFor: PathComponentContextKey.self)
                     let pathString = ContextNodeTests.buildStringFromPathComponents(path)

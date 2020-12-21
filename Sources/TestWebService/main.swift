@@ -41,7 +41,7 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
-    struct Greeter: EndpointNode {
+    struct Greeter: Handler {
         @Parameter var name: String
 
         func handle() -> String {
@@ -50,7 +50,7 @@ struct TestWebService: Apodini.WebService {
     }
     
     
-    var content: some EndpointProvidingNode {
+    var content: some Component {
         Text("Hello World! 👋")
             //.response(EmojiMediator(emojis: "🎉"))
             //.response(EmojiMediator())
