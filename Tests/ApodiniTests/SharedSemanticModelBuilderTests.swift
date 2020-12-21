@@ -32,6 +32,15 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
             "Hello \(name)"
         }
     }
+
+    struct PrintGuard: SyncGuard {
+        @_Request
+        var request: Apodini.Request
+
+        func check() {
+            print(request.description)
+        }
+    }
     
     struct TestHandler2: Component {
         @Parameter
@@ -129,8 +138,9 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
 
     func testCreateRequestHandler() throws {
         let transformer = EmojiMediator(emojis: "✅")
+        let printGuard = AnyGuard(PrintGuard())
         let requestHandler = SharedSemanticModelBuilder.createRequestHandler(with: TestHandler(),
-                                                                             guards: [],
+                                                                             guards: [ { printGuard } ],
                                                                              responseModifiers: [ { transformer } ])
         let name = "Craig"
         let request = MockRequest { _ in name }
