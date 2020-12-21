@@ -2,15 +2,15 @@
 //  File.swift
 //  
 //
-//  Created by Nityananda on 11.12.20.
+//  Created by Nityananda on 21.12.20.
 //
 
 @_implementationOnly import Runtime
 
-func fixArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
+func fixOptional(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     let typeInfo = node.value.typeInfo
     
-    guard ParticularType(typeInfo.type).isArray,
+    guard ParticularType(typeInfo.type).isOptional,
           let first = typeInfo.genericTypes.first,
           let newNode = try EnrichedInfo.tree(first) else {
         return node
@@ -22,7 +22,7 @@ func fixArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
         propertiesOffset: node.value.propertiesOffset
     )
     
-    newEnrichedInfo.cardinality = .zeroToMany
+    newEnrichedInfo.cardinality = .zeroToOne
     
     return Node(value: newEnrichedInfo, children: newNode.children)
 }

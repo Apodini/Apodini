@@ -9,7 +9,13 @@
 
 struct Message: Equatable, Hashable {
     struct Property: Equatable, Hashable {
-        let isRepeated: Bool
+        enum FieldRule: String {
+            case optional
+            case required
+            case repeated
+        }
+        
+        let fieldRule: FieldRule
         let name: String
         let typeName: String
         let uniqueNumber: Int

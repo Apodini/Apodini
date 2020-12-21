@@ -49,11 +49,27 @@ extension ProtobufferBuilderInternalTests {
             syntax = "proto3";
 
             message StringMessage {
-              string value = 1;
+              required string value = 1;
             }
             """
         
         XCTAssertEqual(try buildMessage(String.self), expected)
+    }
+    
+    func testOptionalProperty() throws {
+        struct Message {
+            let value: String?
+        }
+        
+        let expected = """
+            syntax = "proto3";
+
+            message MessageMessage {
+              optional string value = 1;
+            }
+            """
+        
+        XCTAssertEqual(try buildMessage(Message.self), expected)
     }
     
     func testTypeOneLevelDeep() throws {
@@ -66,8 +82,8 @@ extension ProtobufferBuilderInternalTests {
             syntax = "proto3";
 
             message LocationMessage {
-              uint32 latitude = 1;
-              uint32 longitude = 2;
+              required uint32 latitude = 1;
+              required uint32 longitude = 2;
             }
             """
         
@@ -91,7 +107,7 @@ extension ProtobufferBuilderInternalTests {
             }
 
             message TransactionMessage {
-              int32 amount = 1;
+              required int32 amount = 1;
             }
             """
         

@@ -87,6 +87,7 @@ private extension Message {
     static func tree(_ type: Any.Type) throws -> Tree<Message> {
         let filtered = try EnrichedInfo.tree(type)
             .edited(fixArray)
+            .edited(fixOptional)
             .edited(fixPrimitiveTypes)
             .map(Message.Property.init)
             .contextMap(Message.init)
@@ -104,7 +105,7 @@ private extension Message {
             name: "\(type)Message",
             properties: [
                 Property(
-                    isRepeated: false,
+                    fieldRule: .required,
                     name: "value",
                     typeName: "\(type)".lowercased(),
                     uniqueNumber: 1

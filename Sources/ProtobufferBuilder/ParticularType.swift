@@ -24,6 +24,10 @@ extension ParticularType: CustomStringConvertible {
     var isArray: Bool {
         description == "Array"
     }
+    
+    var isOptional: Bool {
+        description == "Optional"
+    }
 }
 
 extension ParticularType: Equatable {

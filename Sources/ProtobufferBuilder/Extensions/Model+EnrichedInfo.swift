@@ -8,14 +8,23 @@
 extension Message.Property {
     init(_ info: EnrichedInfo) throws {
         let particularType = ParticularType(info.typeInfo.type)
-        let isRepeated = info.representsArrayType
         let name = info.propertyInfo?.name ?? ""
         let suffix = particularType.isPrimitive ? "" : "Message"
         let typeName = try info.typeInfo.compatibleName() + suffix
         let uniqueNumber = info.propertiesOffset ?? 0
         
+        let fieldRule: FieldRule
+        switch info.cardinality {
+        case .zeroToOne:
+            fieldRule = .optional
+        case .exactlyOne:
+            fieldRule = .required
+        case .zeroToMany:
+            fieldRule = .repeated
+        }
+        
         self.init(
-            isRepeated: isRepeated,
+            fieldRule: fieldRule,
             name: name,
             typeName: typeName,
             uniqueNumber: uniqueNumber

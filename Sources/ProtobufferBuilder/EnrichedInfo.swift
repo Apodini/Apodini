@@ -8,10 +8,17 @@
 @_implementationOnly import Runtime
 
 struct EnrichedInfo {
+    enum Cardinality {
+        case zeroToOne
+        case exactlyOne
+        case zeroToMany
+    }
+    
     let typeInfo: TypeInfo
     let propertyInfo: PropertyInfo?
     let propertiesOffset: Int?
-    var representsArrayType = false
+    
+    var cardinality: Cardinality = .exactlyOne
 }
 
 extension EnrichedInfo {
