@@ -1,3 +1,4 @@
+// swiftlint:disable force_unwrapping first_where
 //
 //  NotificationCenterTests.swift
 //
@@ -6,65 +7,120 @@
 //
 
 import XCTest
-import NIO
 import Vapor
 import Fluent
 @testable import Apodini
 
 
 final class NotificationCenterTests: ApodiniTests {
-    struct AddDevicesComponent: Component {
-        @Apodini.Environment(\.notificationCenter)
-        var notificationCenter: Apodini.NotificationCenter
+    override func setUp() {
+        super.setUp()
+        NotificationCenter.shared.application = self.app
+    }
+
+    func testDeviceRegistration() throws {
+        let topic = "test"
+        let device = Device(id: "123", type: .apns, topics: [topic])
         
-        @Parameter
-        var device: Device
+        NotificationCenter.shared.register(device: device)
         
-        func handle() -> EventLoopFuture<HTTPStatus> {
-            notificationCenter.register(device: device).map { .ok }
-        }
+        let devices = try NotificationCenter.shared.getAllDevices().wait()
+        let savedTopic = try Topic.query(on: app.db).filter(\.$name == topic).first().wait()
+        let devicesOfTopic = try NotificationCenter.shared.getDevices(of: topic).wait()
+
+        XCTAssert(devices.contains(device))
+        XCTAssertNotNil(savedTopic)
+        XCTAssert(devicesOfTopic.contains(device))
     }
     
-    struct RetrieveDevicesComponent: Component {
-        @Apodini.Environment(\.notificationCenter)
-        var notificationCenter: Apodini.NotificationCenter
+    func testDeviceDeletion() throws {
+        let topic = "test"
+        let device = Device(id: "321", type: .apns, topics: [topic])
         
-        func handle() -> EventLoopFuture<[Device]> {
-            notificationCenter.getAllDevices()
-        }
+        NotificationCenter.shared.register(device: device)
+
+        try NotificationCenter.shared.delete(device: device).wait()
+        let devices = try NotificationCenter.shared.getAllDevices().wait()
+            
+        let devicesTopic = try NotificationCenter.shared.getDevices(of: topic).wait()
+        
+        XCTAssertFalse(devices.contains(device))
+        XCTAssertFalse(devicesTopic.contains(device))
     }
     
-    func testDeviceUniqueness() throws {
-        let device = Device(id: "123", type: .apns)
-        let deviceData = ByteBuffer(data: try JSONEncoder().encode(device))
+    func testAddingTopicToDevice() throws {
+        let topics = ["topic1", "topic2", "topic3"]
+        let device = Device(id: "999", type: .apns)
         
-        NotificationCenter.shared.application = app
-        
-        let request = Vapor.Request(application: app, collectedBody: deviceData, on: app.eventLoopGroup.next())
-        let restRequest = RESTRequest(request) { _ in
-            device
-        }
-        
-        _ = try restRequest
-            .enterRequestContext(with: AddDevicesComponent()) { component in
-                component.handle().encodeResponse(for: request)
-            }
+        try NotificationCenter.shared.register(device: device).wait()
+        try NotificationCenter.shared.addTopics("topic1", "topic2", "topic3", to: device).wait()
+        let deviceReturn = try DeviceDatabaseModel
+            .query(on: app.db)
+            .filter(\.$id == device.id)
+            .with(\.$topics)
+            .first()
+            .unwrap(or: Abort(.notFound))
             .wait()
+            .transform()
+
+ 
+        XCTAssert(deviceReturn.topics == topics)
+    }
+    
+    func testRemovingTopicFromDevice() throws {
+        let topic = "topic"
+        let device = Device(id: "789", type: .apns, topics: [topic])
         
-        _ = try restRequest
-            .enterRequestContext(with: AddDevicesComponent()) { component in
-                component.handle().encodeResponse(for: request)
-            }
+        try NotificationCenter.shared.register(device: device).wait()
+        try NotificationCenter.shared.remove(topic: topic, from: device).wait()
+        let deviceReturn = try DeviceDatabaseModel
+            .query(on: app.db)
+            .filter(\.$id == device.id)
+            .with(\.$topics)
+            .first()
+            .unwrap(or: Abort(.notFound))
             .wait()
+            .transform()
+ 
+        XCTAssertTrue(deviceReturn.topics!.isEmpty)
+    }
+    
+    func testAPNSFCMRetrieval() throws {
+        let apnsDevices = [
+            DeviceDatabaseModel(id: "222", type: .apns),
+            DeviceDatabaseModel(id: "333", type: .apns),
+            DeviceDatabaseModel(id: "444", type: .apns)
+        ]
+        let fcmDevices = [
+            DeviceDatabaseModel(id: "555", type: .fcm),
+            DeviceDatabaseModel(id: "666", type: .fcm)
+        ]
+        let devices = apnsDevices + fcmDevices
         
-        let response = try restRequest
-            .enterRequestContext(with: RetrieveDevicesComponent()) { component in
-                component.handle().encodeResponse(for: request)
-            }
-            .wait()
+        try devices.create(on: app.db).wait()
         
-        let responseData = try XCTUnwrap(response.body.data)
-        let responseDevices = try JSONDecoder().decode([Device].self, from: responseData)
-        XCTAssert(responseDevices.count == 1)
+        let retrievedAPNS = try NotificationCenter.shared.getAPNSDevices().wait()
+        let retrievedFCM = try NotificationCenter.shared.getFCMDevices().wait()
+        
+        XCTAssert(retrievedAPNS == apnsDevices.map { Device(id: $0.id ?? "", type: $0.type) })
+        XCTAssert(retrievedFCM == fcmDevices.map { Device(id: $0.id ?? "", type: $0.type) })
+    }
+    
+    func testNotification() throws {
+        let bird = Bird(name: "bird1", age: 2)
+        
+        let notification = Notification(alert: Alert(title: "Title", subtitle: "Subtitle", body: "Body"))
+        
+        let apns = notification.transformToAPNS(with: bird)
+        let dataAPNS = apns.data!.data(using: .utf8)!
+        let decodedAPNS = try JSONDecoder().decode(Bird.self, from: dataAPNS)
+        
+        let fcm = notification.transformToFCM(with: bird)
+        let dataFCM = fcm.data["data"]!.data(using: .utf8)!
+        let decodedFCM = try JSONDecoder().decode(Bird.self, from: dataFCM)
+        
+        XCTAssert(decodedAPNS == bird)
+        XCTAssert(decodedFCM == bird)
     }
 }
+// swiftlint:enable force_unwrapping first_where

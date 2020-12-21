@@ -99,10 +99,10 @@ public struct Device: Content {
 // swiftlint:enable discouraged_optional_collection
 
 extension FieldKey {
-    public static var type: Self { "type" }
-    public static var name: Self { "name" }
-    public static var deviceId: Self { "device_id" }
-    public static var topicId: Self { "topic_id" }
+    internal static var type: Self { "type" }
+    internal static var name: Self { "name" }
+    internal static var deviceId: Self { "device_id" }
+    internal static var topicId: Self { "topic_id" }
 }
 
 public enum DeviceType: String, Codable, CaseIterable {
@@ -155,5 +155,17 @@ internal struct DeviceMigration: Migration {
 extension Device: Equatable {
     public static func == (lhs: Device, rhs: Device) -> Bool {
         lhs.id == rhs.id
+    }
+}
+
+extension DeviceDatabaseModel: Equatable {
+    public static func == (lhs: DeviceDatabaseModel, rhs: DeviceDatabaseModel) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
+extension Topic: Equatable {
+    public static func == (lhs: Topic, rhs: Topic) -> Bool {
+        lhs.name == rhs.name
     }
 }

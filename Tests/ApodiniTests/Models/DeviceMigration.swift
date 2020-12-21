@@ -43,3 +43,10 @@ struct DeviceMigration: Migration {
         ])
     }
 }
+
+extension FieldKey {
+    internal static var type: Self { "type" }
+    internal static var name: Self { "name" }
+    internal static var deviceId: Self { "device_id" }
+    internal static var topicId: Self { "topic_id" }
+}

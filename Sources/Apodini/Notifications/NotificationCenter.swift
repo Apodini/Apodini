@@ -1,3 +1,4 @@
+// swiftlint:disable first_where
 //
 //  NotificationCenter.swift
 //  
@@ -52,6 +53,7 @@ public class NotificationCenter {
     /// - Parameter device: The `Device` to be saved.
     ///
     /// - Returns: An `EventLoopFuture` to indicate the completion of the operation.
+    @discardableResult
     public func register(device: Device) -> EventLoopFuture<Void> {
         let deviceDatabaseModel = device.transform()
         return deviceDatabaseModel
@@ -122,14 +124,16 @@ public class NotificationCenter {
     /// - Parameter of: The topic of a `Device`
     ///
     /// - Returns: An array of all stored `Device`s
-    public func getDevices(of topic: String) -> EventLoopFuture<[DeviceDatabaseModel]> {
+    public func getDevices(of topic: String) -> EventLoopFuture<[Device]> {
         Topic
             .query(on: app.db)
             .filter(\.$name == topic)
-            .with(\.$devices)
+            .with(\.$devices) { devices in
+                devices.with(\.$topics)
+            }
             .first()
             .unwrap(or: Abort(.notFound))
-            .map { $0.devices }
+            .map { topic in topic.devices.map { $0.transform() } }
     }
     
     /// Adds a variadic number of  topic to one or more `Device`s.
@@ -291,7 +295,7 @@ public class NotificationCenter {
         return getDevices(of: topic)
             .flatMap { devices -> EventLoopFuture<Void> in
                 for device in devices {
-                    self.sendAPNS(apnsNotification, to: device.id!)
+                    self.sendAPNS(apnsNotification, to: device.id)
                 }
                 return self.sendFCM(fcmNotification, topic: topic)
             }
@@ -315,7 +319,7 @@ public class NotificationCenter {
         return getDevices(of: topic)
             .flatMap { devices -> EventLoopFuture<Void> in
                 for device in devices {
-                    self.sendAPNS(apnsNotification, to: device.id!)
+                    self.sendAPNS(apnsNotification, to: device.id)
                 }
                 return self.sendFCM(fcmNotification, topic: topic)
             }
@@ -350,3 +354,4 @@ extension EnvironmentValues {
         set { self[NotificationCenterEnvironmentKey.self] = newValue }
     }
 }
+// swiftlint:enable first_where

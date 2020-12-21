@@ -15,7 +15,6 @@ class ApodiniTests: XCTestCase {
     var bird1 = Bird(name: "Swift", age: 5)
     var bird2 = Bird(name: "Corvus", age: 1)
     
-    
     override func setUpWithError() throws {
         try super.setUpWithError()
         
