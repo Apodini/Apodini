@@ -135,10 +135,10 @@ By default, the gRPC exporters will enumerate all parameters in the order they a
 
 ```swift
 struct Greeter: Component {
-   @Parameter("name")
+   @Parameter
    var name: String
 
-   @Parameter("age")
+   @Parameter
    var age: Int32
 
    func handle() -> String {
@@ -173,3 +173,36 @@ struct Greeter: Component {
 
 For non-primitive parameters and nested data structures, this can be done using the `CodingKey`s of `Codable` structs.
 Please refer to the documentation of the ProtobufferCoding module [here](<./../../Sources/ProtobufferCoding/README.md>).
+
+### Mixing automatic inference and custom field numbers
+You can also only add manually defined field numbers to some of the parameters, and let Apodini infer the field numbers for the others. 
+Apodini will enumerate all parameters in the order they are place in the source file, but override the numers with the manually annotated field number where available.
+
+```swift
+struct Greeter: Component {
+   @Parameter
+   var firstName: String
+
+   // inferenced field-number would be 2,
+   // but the annotation overrides it with 5.
+   @Parameter("lastName", .gRPC(.fieldTag(5))
+   var lastName: String 
+
+   @Parameter
+   var age: Int32
+
+   func handle() -> String {
+       // ...
+   } 
+}
+```
+
+Results in:
+
+```protobuf
+message GreeterMessage {
+    string firstName = 1;
+    string lastName = 5;
+    int32 age = 3;
+}
+```
