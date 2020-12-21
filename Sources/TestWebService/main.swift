@@ -45,7 +45,7 @@ struct TestWebService: Apodini.WebService {
         @Parameter var name: String
 
         func handle() -> String {
-            return "Hello \(name)"
+            "Hello \(name)"
         }
     }
     

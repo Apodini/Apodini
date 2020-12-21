@@ -42,7 +42,7 @@ public struct Environment<Value> {
     public init(_ keyPath: KeyPath<EnvironmentValues, Value>) {
         self.keyPath = keyPath
     }
-
+    
     /// The current value of the environment property.
     public var wrappedValue: Value {
         EnvironmentValues.shared[keyPath: keyPath]

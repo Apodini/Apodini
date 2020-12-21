@@ -17,7 +17,7 @@ final class ConnectionTests: XCTestCase {
         var endMessage: String
         var openMessage: String
 
-        public func handle() -> Action<String> {
+        func handle() -> Action<String> {
             switch connection.state {
             case .open:
                 return .send(openMessage)
