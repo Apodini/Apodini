@@ -54,17 +54,10 @@ final class NotificationCenterTests: ApodiniTests {
         
         try NotificationCenter.shared.register(device: device).wait()
         try NotificationCenter.shared.addTopics("topic1", "topic2", "topic3", to: device).wait()
-        let deviceReturn = try DeviceDatabaseModel
-            .query(on: app.db)
-            .filter(\.$id == device.id)
-            .with(\.$topics)
-            .first()
-            .unwrap(or: Abort(.notFound))
-            .wait()
-            .transform()
+        let deviceReturn = try NotificationCenter.shared.getDevice(id: device.id).wait()
+        let deviceTopics = deviceReturn.topics ?? []
 
- 
-        XCTAssert(deviceReturn.topics == topics)
+        XCTAssert(deviceTopics.sorted() == topics.sorted())
     }
     
     func testRemovingTopicFromDevice() throws {

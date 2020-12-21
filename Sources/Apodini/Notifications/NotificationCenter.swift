@@ -95,6 +95,21 @@ public class NotificationCenter {
             .mapEach { $0.transform() }
     }
     
+    /// Retrieves a specific Device from the database.
+    ///
+    ///  - Parameter id: Identifier of the `Device` in the database.
+    ///
+    /// - Returns: The `Device` with the corresponding id.
+    public func getDevice(id: String) -> EventLoopFuture<Device> {
+        DeviceDatabaseModel
+            .query(on: app.db)
+            .filter(\.$id == id)
+            .with(\.$topics)
+            .first()
+            .unwrap(or: Abort(.notFound))
+            .map { $0.transform() }
+    }
+    
     /// Retrieves all `Device`s for `APNS` in the database.
     ///
     /// - Returns: An array of all stored `Device`s with type `apns`.
