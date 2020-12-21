@@ -143,7 +143,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
                                                                              guards: [ { printGuard } ],
                                                                              responseModifiers: [ { transformer } ])
         let name = "Craig"
-        let request = MockRequest { _ in name }
+        let request = RESTRequest(Vapor.Request(application: app, on: app.eventLoopGroup.next())) { _ in name }
         let response = try requestHandler(request).wait()
         let responseString = try XCTUnwrap(response as? String)
 
