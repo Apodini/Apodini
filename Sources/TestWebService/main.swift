@@ -42,18 +42,10 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @ClientConnection
-        var connection: Connection
-
         @Parameter var name: String
 
-        func handle() -> Action<String> {
-            switch connection.state {
-            case .end:
-                return .final("Hello World!")
-            default:
-                return .nothing
-            }
+        func handle() -> String {
+            return "Hello \(name)"
         }
     }
     
@@ -74,10 +66,6 @@ struct TestWebService: Apodini.WebService {
         Group("greet") {
             Greeter()
         }
-    }
-
-    var configuration: Configuration {
-        HTTP2Configuration()
     }
 }
 
