@@ -5,6 +5,7 @@
 //  Created by Max Obermeier on 04.12.20.
 //
 
+import Fluent
 import Vapor
 import NIOWebSocket
 
@@ -14,14 +15,17 @@ class ConnectionResponsible: Identifiable {
     
     let ws: WebSocket
     
+    let db: Database
+    
     private let onClose: (ID) -> ()
     
     private var endpoints: [String: ContextOpener]
     
     private var contexts: [UUID: ContextResponsible] = [:]
     
-    init(_ websocket: WebSocket, onClose: @escaping (ID) -> (), endpoints: [String: ContextOpener]) {
+    init(_ websocket: WebSocket, database: Database, onClose: @escaping (ID) -> (), endpoints: [String: ContextOpener]) {
         self.ws = websocket
+        self.db = database
         self.onClose = onClose
         self.endpoints = endpoints
         

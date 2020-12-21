@@ -58,7 +58,7 @@ class WebSocketInterfaceExporter: InterfaceExporter {
         
         let defaultInput = AnyInput(from: endpoint, with: parameterNames)
 
-        self.router.register({ (input: AnyPublisher<AnyInput, Never>, eventLoop: EventLoop, database: Database?) -> (defaultInput: AnyInput, output: AnyPublisher<Message<AnyEncodable>, Error>) in
+        self.router.register({ (input: AnyPublisher<AnyInput, Never>, eventLoop: EventLoop, database: Database) -> (defaultInput: AnyInput, output: AnyPublisher<Message<AnyEncodable>, Error>) in
             let defaultInput = defaultInput
             
             let output: PassthroughSubject<Message<AnyEncodable>, Error> = PassthroughSubject()
