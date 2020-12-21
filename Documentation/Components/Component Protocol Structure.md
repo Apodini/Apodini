@@ -145,6 +145,16 @@ In most cases it was sufficient to replace `Component` with `Handler`, since the
 - Neither `content` nor `handle()` have a default implementation anymore.
   You have to provide an implementation for your components to compile.
   (The exception here is if you manually add a `typealias {Content|Response} = Never`, in which case we do still provide a default implementation. The idea is that, if you want a component to be unusable, and crash if ever accessed, you have to explicitly specify this.)
+  
+  
+### Alternatives considered
+
+- Simply keep the current implementation and change nothing
+- Remove the `= Never` defaults from the `Content` and `Response` associated types
+    - This would solve the issue of empty components being valid
+    - It would also solve the issue of a user-defined `handle()` function not being picked up properly by the compiler
+    - It would, however, not solve the issue of `content` and `handle()` being mutually exclusive
+
 
 </details>
 
@@ -163,17 +173,20 @@ protocol Component {
 }
 
 
-protocol Handler {
-    associatedtype Response: ResponseEncodable
-    
+protocol Handler: Component {
+    associatedtype Response: Encodable
+    associatedtype EndpointIdentifier: AnyEndpointIdentifier
+
     func handle() -> Response
+    
+    var __endpointId: EndpointIdentifier { get }
 }
 ```
 
-- `Handler`s are nodes which expose some functionality to the client.  
-  All leaves in the `WebService` must be `Handler`s.
 - `Component`s are nodes which sit above the leaves.  
   They cannot provide any functionality of their own, but they must eventually lead to one or more `Handler`s.
+- `Handler`s are nodes which expose some functionality to the client.  
+  All leaves in the `WebService` must be `Handler`s.
 
 
 
@@ -192,68 +205,6 @@ This directly benefits both the user (ie the person implementing a web service),
 
 - The user will, in some cases, get compile-time errors when trying to compile incorrectly implemnented components, or ill-formed DSL constructs
 - We can, when dealing with DSL nodes, always know for a fact their specific type and functionalities and won't have to do any dynamic or runtime-metadata based checks to determine that information
-
-
-
-
-### Issues with this protocol structure
-
-**Function builder complexity**  
-The issue here is that DSL constructs can now consist of two types instead of just one.  
-This means that, whereas previously the only variable (ie, difference between `buildBlock` functions) was the number of parameters, we now also have to take the potential types into account.
-
-
-Example: in the current function builder, the `buildBlock()` signatures are:
-
-```swift
-(Component) -> some Component
-(Component, Component) -> some Component
-(Component, Component, ..., Component) -> some Component
-```
-
-Since the new builder has to support two types, and any permutation between them, the function builder becomes:
-
-```swift
-(Handler) -> some Component
-(Component) -> some Component
-
-(Handler, Handler) -> some Component
-(Handler, Component) -> some Component
-(Component, Handler) -> some Component
-(Component, Component) -> some Component
-
-...
-```
-
-Basically, we have to support all potential permutations/mixings of endpoint- and non-endpoint nodes in the function builder.
-This also means that the number of generated functions isn't `O(n)` anymore, but `O(n^2)`.  
-(it's been a while since i took GAD, so i could be wrong here...)
-
-
-
-
-**Certain use cases necessitate code duplication**
-
-- Example: There now is a hard separation between "modifiers on endpoints" and "modifiers on endpoint-providing nodes"
-- This is required by the fact that we need to preserve the type of the component we're adding a modifier to
-- The benefit is that modifiers can now be defined more fine-grained (ie, you can have a modifier which can only be called on endpoint components, or one only for non-endpoint nodes)
-- But if you want to support both you will have to define two separete modifiers, one per node type
-- See the `IntModifier` in one of the tests for an example
-
-
-**More general issues**
-
-- Not being able to simply use one single protocol for defining components, passing them around, and operating on them might become too limiting in the future
-
-
-
-### Alternatives considered
-
-- Simply keep the current implementation and change nothing
-- Remove the `= Never` defaults from the `Content` and `Response` associated types
-    - This would solve the issue of empty components being valid
-    - It would also solve the issue of a user-defined `handle()` function not being picked up properly by the compiler
-    - It would, however, not solve the issue of `content` and `handle()` being mutually exclusive
 
 
 
@@ -303,7 +254,7 @@ struct PostTweet: Handler {
     }
   }
 
-  func handle() -> ... {
+  func handle() -> Response {
     // ....
   }
 }

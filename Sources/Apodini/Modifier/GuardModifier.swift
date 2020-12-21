@@ -55,7 +55,6 @@ public struct GuardModifier<C: Component>: Modifier {
     }
 }
 
-//extension GuardModifier: DefaultModifierHandlerConformance where ModifiedComponent: Handler {}
 
 extension GuardModifier: Handler, HandlerModifier where Self.ModifiedComponent: Handler {
     public typealias Response = ModifiedComponent.Response
