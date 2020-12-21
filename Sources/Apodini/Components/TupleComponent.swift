@@ -1,7 +1,7 @@
 import Foundation
 
-public struct TupleComponent<T>: Component {
-    public var content: Never { fatalError() }
+public struct TupleComponent<T>: Component, Visitable {
+    public typealias Content = Never
     
     private let storage: T
     #if DEBUG
@@ -20,9 +20,8 @@ public struct TupleComponent<T>: Component {
         self.storage = storage
     }
     #endif
-}
-
-extension TupleComponent: Visitable {
+    
+    
     func visit(_ visitor: SyntaxTreeVisitor) {
         let mirror = Mirror(reflecting: storage)
         for (_, value) in mirror.children {

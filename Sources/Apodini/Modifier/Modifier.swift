@@ -6,29 +6,30 @@
 //
 
 
-
-protocol EndpointModifier: Handler {
-    associatedtype ModifiedEndpoint: Handler
+/// A modifier which can be invoked on a `Component`
+public protocol Modifier: Component {
+    associatedtype ModifiedComponent: Component
+    typealias Content = Never
     
-    var endpoint: ModifiedEndpoint { get }
+    var component: ModifiedComponent { get }
 }
 
 
+/// A modifier which can be invoked on a `Handler` or a `Component`
+public protocol HandlerModifier: Modifier, Handler where ModifiedComponent: Handler {
+    associatedtype Response = ModifiedComponent.Response
+    var component: ModifiedComponent { get }
+}
 
-extension EndpointModifier {
-    /// A `Modifier`'s handle method should never be called!
-    public func handle() -> Self.ModifiedEndpoint.Response {
+
+public extension HandlerModifier {
+    typealias EndpointIdentifier = ModifiedComponent.EndpointIdentifier
+    
+    var content: some Component { EmptyComponent() }
+    
+    func handle() -> Response {
         fatalError("A Modifier's handle method should never be called!")
     }
     
-    public var __endpointId: Self.ModifiedEndpoint.EndpointIdentifier { endpoint.__endpointId }
-}
-
-
-
-
-protocol EndpointProvidingNodeModifier: Component {
-    associatedtype ModifiedEndpointProvider: Component
-    
-    var content: ModifiedEndpointProvider { get }
+    var __endpointId: EndpointIdentifier { component.__endpointId }
 }

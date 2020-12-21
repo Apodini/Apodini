@@ -6,7 +6,6 @@
 //
 
 
-
 struct PathComponentContextKey: ContextKey {
     static var defaultValue: [PathComponent] = []
 
@@ -14,7 +13,6 @@ struct PathComponentContextKey: ContextKey {
         value.append(contentsOf: nextValue())
     }
 }
-
 
 
 public struct Group<Content: Component>: Component, Visitable {
@@ -26,7 +24,6 @@ public struct Group<Content: Component>: Component, Visitable {
         self.content = content()
     }
     
-    
     func visit(_ visitor: SyntaxTreeVisitor) {
         visitor.enterCollectionItem()
         visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)
@@ -34,4 +31,3 @@ public struct Group<Content: Component>: Component, Visitable {
         visitor.exitCollectionItem()
     }
 }
-

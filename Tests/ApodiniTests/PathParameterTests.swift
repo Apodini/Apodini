@@ -41,7 +41,7 @@ final class PathParameterTests: XCTestCase {
     
     func testPrintComponent() throws {
         let testComponent = TestComponent()
-        let testHandler = try XCTUnwrap((testComponent.content.content as? _WrappedHandler<TestHandler>)?.handler)
+        let testHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
         
         let parameter = try XCTUnwrap(
             Mirror(reflecting: testHandler)

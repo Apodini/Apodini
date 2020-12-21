@@ -44,13 +44,13 @@ struct IntNextComponentContextKey: ContextKey {
 
 
 
-struct IntModifier_EndpointProvidingNode<ModifiedComponent: Component>: EndpointProvidingNodeModifier, Visitable {
-    let content: ModifiedComponent
+struct IntModifier<C: Component>: Modifier, Visitable {
+    let component: C
     let scope: Scope
     let value: Int
 
-    init(_ content: ModifiedComponent, scope: Scope, value: Int) {
-        self.content = content
+    init(_ component: C, scope: Scope, value: Int) {
+        self.component = component
         self.scope = scope
         self.value = value
     }
@@ -62,45 +62,19 @@ struct IntModifier_EndpointProvidingNode<ModifiedComponent: Component>: Endpoint
         case .nextComponent:
             visitor.addContext(IntNextComponentContextKey.self, value: value, scope: .nextComponent)
         }
-        content.visit(visitor)
+        component.visit(visitor)
     }
+}
+
+
+extension IntModifier: Handler, HandlerModifier where ModifiedComponent: Handler {
+    typealias Response = ModifiedComponent.Response
 }
 
 
 extension Component {
-    func modifier(_ scope: Scope, value: Int) -> IntModifier_EndpointProvidingNode<Self> {
-        IntModifier_EndpointProvidingNode(self, scope: scope, value: value)
-    }
-}
-
-
-
-struct IntModifier_EndpointNode<ModifiedComponent: Handler>: Handler, Visitable {
-    let content: ModifiedComponent
-    let scope: Scope
-    let value: Int
-
-    init(_ content: ModifiedComponent, scope: Scope, value: Int) {
-        self.content = content
-        self.scope = scope
-        self.value = value
-    }
-
-    func visit(_ visitor: SyntaxTreeVisitor) {
-        switch scope {
-        case .environment:
-            visitor.addContext(IntEnvironmentContextKey.self, value: value, scope: .environment)
-        case .nextComponent:
-            visitor.addContext(IntNextComponentContextKey.self, value: value, scope: .nextComponent)
-        }
-        content.visit(visitor)
-    }
-}
-
-
-extension Handler {
-    func modifier(_ scope: Scope, value: Int) -> IntModifier_EndpointNode<Self> {
-        IntModifier_EndpointNode(self, scope: scope, value: value)
+    func modifier(_ scope: Scope, value: Int) -> IntModifier<Self> {
+        IntModifier(self, scope: scope, value: value)
     }
 }
 

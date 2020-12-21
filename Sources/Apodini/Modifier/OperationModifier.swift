@@ -27,13 +27,14 @@ struct OperationContextKey: ContextKey {
     }
 }
 
-public struct OperationModifier<ModifiedComponent: Handler>: EndpointModifier {
-    let endpoint: ModifiedComponent
+
+
+public struct OperationModifier<H: Handler>: HandlerModifier {
+    public let component: H
     let operation: Operation
     
-    
-    init(_ endpoint: ModifiedComponent, operation: Operation) {
-        self.endpoint = endpoint
+    init(_ component: H, operation: Operation) {
+        self.component = component
         self.operation = operation
     }
 }
@@ -42,9 +43,10 @@ public struct OperationModifier<ModifiedComponent: Handler>: EndpointModifier {
 extension OperationModifier: Visitable {
     func visit(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(OperationContextKey.self, value: operation, scope: .nextComponent)
-        endpoint.visit(visitor)
+        component.visit(visitor)
     }
 }
+
 
 
 extension Handler {

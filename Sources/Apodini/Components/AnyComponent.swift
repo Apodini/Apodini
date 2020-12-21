@@ -6,24 +6,7 @@
 //
 
 
-
-public struct AnyEndpointNode: Handler, Visitable {
-    public typealias Response = Never
-    
-    private let _visit: (SyntaxTreeVisitor) -> Void
-    
-    init<T: Handler>(_ Handler: T) {
-        _visit = Handler.visit
-    }
-    
-    func visit(_ visitor: SyntaxTreeVisitor) {
-        _visit(visitor)
-    }
-}
-
-
-
-public struct AnyEndpointProvidingNode: Component, Visitable {
+public struct AnyComponent: Component, Visitable {
     public typealias Content = Never
     
     private let _visit: (SyntaxTreeVisitor) -> Void
@@ -37,3 +20,19 @@ public struct AnyEndpointProvidingNode: Component, Visitable {
     }
 }
 
+
+public struct AnyHandler: Handler, Visitable {
+    public typealias Response = Never
+    
+    private let _visit: (SyntaxTreeVisitor) -> Void
+    public let __endpointId: AnyEndpointIdentifier
+    
+    init<H: Handler>(_ handler: H) {
+        _visit = handler.visit
+        __endpointId = handler.__endpointId
+    }
+    
+    func visit(_ visitor: SyntaxTreeVisitor) {
+        _visit(visitor)
+    }
+}

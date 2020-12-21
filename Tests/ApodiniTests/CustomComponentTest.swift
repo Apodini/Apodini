@@ -20,7 +20,6 @@ final class CustomComponentTests: ApodiniTests {
         @Parameter
         var bird: Bird
         
-        
         func handle() -> EventLoopFuture<[Bird]> {
             bird.save(on: database)
                 .flatMap { _ in
@@ -29,7 +28,7 @@ final class CustomComponentTests: ApodiniTests {
                 }
         }
     }
-
+    
     func testComponentCreation() throws {
         let bird = Bird(name: "Hummingbird", age: 2)
         let birdData = ByteBuffer(data: try JSONEncoder().encode(bird))

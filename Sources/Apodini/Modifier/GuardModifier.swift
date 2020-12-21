@@ -32,39 +32,45 @@ struct GuardContextKey: ContextKey {
 }
 
 
-public struct GuardModifier<C: Handler>: EndpointModifier {
-    public typealias ModifiedEndpoint = C
-    public typealias Response = C.Response
-    public typealias EndpointIdentifier = C.EndpointIdentifier
+public struct GuardModifier<C: Component>: Modifier {
+    public typealias ModifiedComponent = C
     
-    let endpoint: C
+    public let component: C
     let `guard`: LazyGuard
     
+    public var content: some Component { EmptyComponent() }
     
-    init<G: Guard>(_ endpoint: C, guard: @escaping () -> G) {
+    init<G: Guard>(_ component: C, guard: @escaping () -> G) {
         precondition(((try? typeInfo(of: G.self).kind) ?? .none) == .struct, "Guard \((try? typeInfo(of: G.self).name) ?? "unknown") must be a struct")
         
-        self.endpoint = endpoint
+        self.component = component
         self.guard = { AnyGuard(`guard`()) }
     }
     
-    init<G: SyncGuard>(_ endpoint: C, guard: @escaping () -> G) {
+    init<G: SyncGuard>(_ component: C, guard: @escaping () -> G) {
         precondition(((try? typeInfo(of: G.self).kind) ?? .none) == .struct, "Guard \((try? typeInfo(of: G.self).name) ?? "unknown") must be a struct")
         
-        self.endpoint = endpoint
+        self.component = component
         self.guard = { AnyGuard(`guard`()) }
     }
 }
+
+//extension GuardModifier: DefaultModifierHandlerConformance where ModifiedComponent: Handler {}
+
+extension GuardModifier: Handler, HandlerModifier where Self.ModifiedComponent: Handler {
+    public typealias Response = ModifiedComponent.Response
+}
+
 
 extension GuardModifier: Visitable {
     func visit(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(GuardContextKey.self, value: [`guard`], scope: .environment)
-        endpoint.visit(visitor)
+        component.visit(visitor)
     }
 }
 
 
-extension Handler {
+extension Component {
     /// Use an asynchronous `Guard` to guard `Component`s by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`

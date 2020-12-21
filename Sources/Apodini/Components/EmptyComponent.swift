@@ -8,49 +8,73 @@
 import NIO
 
 
-
-// MARK: Handler
-
-
-extension Never: Encodable {
-    /// Encodes an instance of `Self` to a `HTTPResponse
-    ///
-    /// `Never` must never be encoded!
-    public func encode(to encoder: Encoder) throws {
-        fatalError("Never should never be encoded")
+public struct EmptyComponent: Component, Visitable {
+    public var content: some Component {
+        return { () -> Self in
+            fatalError()
+        }()
     }
-}
-
-
-extension Never: Handler {
-    public typealias Response = Never
     
-    public func handle() -> Never {
-        fatalError("Can't invoke endpoint with 'Never' response type")
-    }
+    func visit(_ visitor: SyntaxTreeVisitor) {}
 }
 
 
-extension Handler where Response == Never {
-    public func handle() -> Never {
-        fatalError("Can't invoke endpoint with 'Never' response type")
-    }
-}
-
+public enum DummyNever {}
 
 
 // MARK: Component
 
-
 extension Never: Component {
-    public var content: Never {
+    public typealias Content = Never
+    public var content: Self.Content {
+        fatalError()
+    }
+}
+
+extension Component where Content == Never {
+    public var content: Self.Content {
         fatalError()
     }
 }
 
 
-extension Component where Content == Never {
-    public var content: Never {
+extension DummyNever: Component {
+    public typealias Content = Never
+    public var content: Self.Content {
+        fatalError()
+    }
+}
+
+extension Component where Content == DummyNever {
+    public var content: Self.Content {
+        fatalError()
+    }
+}
+
+
+// MARK: Handler
+
+extension Never: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        fatalError()
+    }
+}
+
+extension Handler where Response == Never {
+    public func handle() -> Self.Response {
+        fatalError()
+    }
+}
+
+
+extension DummyNever: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        fatalError()
+    }
+}
+
+extension Handler where Response == DummyNever {
+    public func handle() -> Self.Response {
         fatalError()
     }
 }

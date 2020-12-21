@@ -7,9 +7,9 @@
     max_homogeneous_component_count = 100
 
     # Max number of mixed-content components we should generate code for
-    max_heterogeneous_component_size = 8
+    max_heterogeneous_component_size = 0
 
-    component_types = ['Component', 'Handler']
+    component_types = ['Component']
 }%
 
 @_functionBuilder

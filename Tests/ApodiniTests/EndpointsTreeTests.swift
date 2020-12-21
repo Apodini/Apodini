@@ -49,8 +49,7 @@ final class EndpointsTreeTests: XCTestCase {
     func testEndpointParameters() throws {
         // swiftlint:disable force_cast
         let testComponent = TestComponent()
-        //let testHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
-        let testHandler: TestHandler = try XCTUnwrap((testComponent.content.content as? _WrappedHandler<TestHandler>)?.handler)
+        let testHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
         
         let requestInjectables: [String: RequestInjectable] = testHandler.extractRequestInjectables()
         let parameterBuilder = ParameterBuilder(from: testHandler)

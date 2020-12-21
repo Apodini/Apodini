@@ -6,8 +6,7 @@
 //
 
 import Foundation
-import AssociatedTypeRequirementsVisitor
-
+@_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
 /// An `AnyEndpointIdentifier` object identifies an endpoint regardless of its specific type.
@@ -15,7 +14,6 @@ public class AnyEndpointIdentifier: RawRepresentable, Hashable, Equatable, Custo
     public class var unspecified: AnyEndpointIdentifier { .init("<unspecified>") }
     
     public let rawValue: String
-    
     
     public required init(rawValue: String) {
         self.rawValue = rawValue
@@ -44,13 +42,10 @@ public class AnyEndpointIdentifier: RawRepresentable, Hashable, Equatable, Custo
 }
 
 
-
-
 /// An endpoint identifier which is scoped to a specific endpoint type.
 /// This is the primary way components should be identified and referenced.
 public class ScopedEndpointIdentifier<T: Handler>: AnyEndpointIdentifier {
     public override class var unspecified: ScopedEndpointIdentifier<T> { .init("<unspecified>") }
-    
     
     public required init(rawValue: String) {
         super.init(rawValue: "\(T.self).\(rawValue)")
@@ -63,9 +58,6 @@ public class ScopedEndpointIdentifier<T: Handler>: AnyEndpointIdentifier {
 }
 
 
-
-
-
 // MARK: Utils
 
 
@@ -76,7 +68,6 @@ fileprivate protocol __EndpointComponentIdentifierGetterImplVisitor: AssociatedT
     func callAsFunction<T: Handler>(_ value: T) -> Output
 }
 
-
 fileprivate struct EndpointComponentIdentifierGetterImpl: __EndpointComponentIdentifierGetterImplVisitor {
     let visitorImpl: (AnyEndpointIdentifier) -> Void
     
@@ -86,7 +77,6 @@ fileprivate struct EndpointComponentIdentifierGetterImpl: __EndpointComponentIde
 }
 
 
-
 func LKTryToGetEndpointComponentIdentifier<C: Handler>(_ component: C) -> AnyEndpointIdentifier? {
     var endpointId: AnyEndpointIdentifier = .unspecified
     EndpointComponentIdentifierGetterImpl {
@@ -94,5 +84,3 @@ func LKTryToGetEndpointComponentIdentifier<C: Handler>(_ component: C) -> AnyEnd
     }(component)
     return endpointId
 }
-
-
