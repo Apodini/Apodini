@@ -229,7 +229,7 @@ enum NotificationCenterEnvironmentKey: EnvironmentKey {
 extension EnvironmentValues {
     /// The environment value to use the `NotificationCenter` in a `Component`.
     public var notificationCenter: NotificationCenter {
-        get { self[NotificationCenterEnvironmentKey.self] }
+        self[NotificationCenterEnvironmentKey.self]
     }
 }
 // swiftlint:enable first_where
