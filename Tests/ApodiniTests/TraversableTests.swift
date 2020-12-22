@@ -1,5 +1,5 @@
 //
-//  DynamicPropertyTests.swift
+//  TraversableTests.swift
 //  
 //
 //  Created by Max Obermeier on 15.12.20.
@@ -12,7 +12,7 @@ import Fluent
 @testable import Apodini
 
 
-final class DynamicPropertyTests: ApodiniTests {
+final class TraversableTests: ApodiniTests {
     // swiftlint:disable identifier_name type_name
     @propertyWrapper
     struct Param<T>: Apodini.Property {
@@ -84,7 +84,7 @@ final class DynamicPropertyTests: ApodiniTests {
     
     func testApply() throws {
         var element = Element()
-        apply({(target: inout Param<String>, name: String) in
+        exposedApply({(target: inout Param<String>, name: String) in
             target._value = name.trimmingCharacters(in: ["_"])
         }, to: &element)
         
@@ -93,7 +93,7 @@ final class DynamicPropertyTests: ApodiniTests {
     
     func testApplyWithoutName() throws {
         var element = Element()
-        apply({(target: inout Param<String>) in
+        exposedApply({(target: inout Param<String>) in
             target._value = "."
         }, to: &element)
         
@@ -103,7 +103,7 @@ final class DynamicPropertyTests: ApodiniTests {
     func testExecute() throws {
         var names: [String] = []
         let element = Element()
-        execute({(_: Param<String>, name: String) in
+        exposedExecute({(_: Param<String>, name: String) in
             names.append(name.trimmingCharacters(in: ["_"]))
         }, on: element)
         
@@ -114,7 +114,7 @@ final class DynamicPropertyTests: ApodiniTests {
     func testExecuteWithoutName() throws {
         var count: Int = 0
         let element = Element()
-        execute({(_: Param<String>) in
+        exposedExecute({(_: Param<String>) in
             count += 1
         }, on: element)
         
