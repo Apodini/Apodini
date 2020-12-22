@@ -44,8 +44,9 @@ struct TestWebService: Apodini.WebService {
     struct Greeter: Component {
         @Parameter var name: String
 
-        func handle() -> String {
-            "Hello \(name)"
+        func handle() -> Action<String> {
+            .end
+//            .final("Hello \(name)")
         }
     }
     

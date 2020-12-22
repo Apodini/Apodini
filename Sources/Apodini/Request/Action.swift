@@ -18,6 +18,8 @@ public enum Action<Element: Encodable>: ApodiniEncodable {
     /// as a final response to the client.
     /// Will be the last message on the stream sent by the server.
     case final(_ element: Element)
+    /// Closes the connection, without  sending a response.
+    case end
 
     func accept(_ visitor: ApodiniEncodableVisitor) {
         visitor.visit(action: self)
@@ -25,7 +27,8 @@ public enum Action<Element: Encodable>: ApodiniEncodable {
 
     public func encode(to encoder: Encoder) throws {
         switch self {
-        case .nothing:
+        case .nothing,
+             .end:
             fatalError("Tried encoding Action.nothing!")
         case let .send(element):
             try element.encode(to: encoder)

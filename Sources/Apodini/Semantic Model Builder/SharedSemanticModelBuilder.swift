@@ -118,15 +118,70 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
                 .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
                 .flatMap { _ in
                     request.enterRequestContext(with: component) { component in
-                        var response: Encodable = component.handle()
-                        for responseTransformer in responseModifiers {
-                            response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
-                                responseTransformer.transform(response: response)
-                            }
+                        let response = component.handle()
+                        let promise = request.eventLoop.makePromise(of: Encodable.self)
+                        let visitor = ActionVisitor(request: request,
+                                                    promise: promise,
+                                                    responseModifiers: responseModifiers)
+                        switch response {
+                        case is ApodiniEncodable:
+                            // is an Action
+                            // use double dispatch to access
+                            // wrapped element
+                            // swiftlint:disable:next force_cast
+                            (response as! ApodiniEncodable).accept(visitor)
+                        default:
+                            // not an action
+                            // we can skip the visitor
+                            visitor.visit(encodable: response)
                         }
-                        return request.eventLoop.makeSucceededFuture(response)
+                        return promise.futureResult
                     }
                 }
         }
+    }
+}
+
+struct ActionVisitor: ApodiniEncodableVisitor {
+    var request: Request
+    var promise: EventLoopPromise<Encodable>
+    var responseModifiers: [() -> (AnyResponseTransformer)] = []
+
+    func visit<Element: Encodable>(encodable: Element) {
+        let result = transformResponse(encodable)
+        promise.succeed(result)
+    }
+
+    func visit<Element: Encodable>(action: Action<Element>) {
+        do {
+            switch action {
+            case let .send(element):
+                let result = transformResponse(element)
+                promise.succeed(result)
+            case let .final(element):
+                let result = transformResponse(element)
+                promise.succeed(result)
+                try request.eventLoop.close()
+            case .end:
+                // how to properly close the connection
+                // without sending a response via promise.succeed?
+                try request.eventLoop.close()
+            case .nothing:
+                // do nothing 😆
+                break
+            }
+        } catch {
+            print("Error while attempting to close request eventloop: \(error)")
+        }
+    }
+
+    func transformResponse(_ response: Encodable) -> Encodable {
+        var response = response
+        for responseTransformer in responseModifiers {
+            response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
+                responseTransformer.transform(response: response)
+            }
+        }
+        return response
     }
 }
