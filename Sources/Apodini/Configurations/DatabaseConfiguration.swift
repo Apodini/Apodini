@@ -104,6 +104,7 @@ public enum DatabaseType {
         /// - hostname: The name of the database host.
         /// - username: The username of the database user.
         /// - password: The password of the database user.
+        /// - database: The name of the database
     case postgreSQL(hostname: String, username: String, password: String, database: String)
     /// A database type for a specified sqLite configuration
     ///

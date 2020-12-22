@@ -1,6 +1,7 @@
 ignore:
 - "Tests"
 - "Sources/TestWebService"
+- "Sources/Apodini/Notifications/NotificationCenter+Sending"
 
 codecov:
   require_ci_to_pass: yes

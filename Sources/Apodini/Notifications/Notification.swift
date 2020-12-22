@@ -46,7 +46,7 @@ extension Notification {
         
         return APNSwiftPayload(alert: apnsAlert,
                                badge: apnsConfig?.badge,
-                               sound: nil,
+                               sound: apnsConfig?.sound,
                                hasContentAvailable: apnsConfig?.contentAvailable ?? hasData,
                                hasMutableContent: apnsConfig?.mutableContent ?? false,
                                category: apnsConfig?.category,
