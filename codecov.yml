@@ -8,7 +8,7 @@ codecov:
 coverage:
   range: "60...90"
   precision: 2
-  round: down
+  round: up
   status:
     # The project status measures overall project coverage and compares it against the base of the pull request
     project:
