@@ -27,7 +27,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     let destruct: () -> ()
     let close: (WebSocketErrorCode) -> ()
     
-    convenience init(_ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Database) -> (default: I, output: AnyPublisher<Message<O>, Error>), con: ConnectionResponsible, context: UUID) {
+    convenience init(_ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Database?) -> (default: I, output: AnyPublisher<Message<O>, Error>), con: ConnectionResponsible, context: UUID) {
         
         self.init(opener, eventLoop: con.ws.eventLoop, database: con.db, send: { msg in
             if let o = msg as? O {
@@ -43,9 +43,9 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     }
     
     init(
-        _ opener: @escaping (AnyPublisher<I, Never>,  EventLoop, Database) -> (default: I, output: AnyPublisher<Message<O>, Error>),
+        _ opener: @escaping (AnyPublisher<I, Never>,  EventLoop, Database?) -> (default: I, output: AnyPublisher<Message<O>, Error>),
         eventLoop: EventLoop,
-        database: Database,
+        database: Database?,
         send: @escaping (Encodable) -> (),
         destruct: @escaping () -> (),
         close: @escaping (WebSocketErrorCode) -> ()

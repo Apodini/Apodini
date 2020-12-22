@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-import Vapor
+@_implementationOnly import Vapor
 import Fluent
 @_implementationOnly import WebSocketInfrastructure
 import OpenCombine
@@ -58,7 +58,7 @@ class WebSocketInterfaceExporter: InterfaceExporter {
         
         let defaultInput = AnyInput(from: endpoint, with: parameterNames)
 
-        self.router.register({ (input: AnyPublisher<AnyInput, Never>, eventLoop: EventLoop, database: Database) -> (defaultInput: AnyInput, output: AnyPublisher<Message<AnyEncodable>, Error>) in
+        self.router.register({ (input: AnyPublisher<AnyInput, Never>, eventLoop: EventLoop, database: Database?) -> (defaultInput: AnyInput, output: AnyPublisher<Message<AnyEncodable>, Error>) in
             let defaultInput = defaultInput
             
             let output: PassthroughSubject<Message<AnyEncodable>, Error> = PassthroughSubject()

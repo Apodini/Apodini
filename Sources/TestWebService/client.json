@@ -1,0 +1,24 @@
+
+{
+    context: "18dac769-347c-4703-a6f2-b0a243cb642c",
+    endpoint: "/v1/"
+}
+{"context":"1A7F3166-4957-4BA2-A99A-9E6C726B57B2","endpoint":"v1"}
+
+{"context":"1A7F3166-4957-4BA2-A99A-9E6C726B57B2","parameters": {}}
+
+{"context":"1A7F3166-4957-4BA2-A99A-9E6C726B57B2"}
+
+{"context":"a21f0915-825a-422e-b8dc-1876234cd08c","endpoint":"v1/greet"}
+
+{"context":"a21f0915-825a-422e-b8dc-1876234cd08c","parameters": {"name":"Momax"}}
+{"context":"a21f0915-825a-422e-b8dc-1876234cd08c","parameters": {"name":"Max", "surname": "Obermeier"}}
+{"context":"a21f0915-825a-422e-b8dc-1876234cd08c","parameters": {}}
+
+{"context":"a21f0915-825a-422e-b8dc-1876234cd08c"}
+
+
+
+
+{"context":"a21f0915-825a-422e-b8dc-1876234cd08c","endpoint":"v1/greet"}
+{"context":"a21f0915-825a-422e-b8dc-1876234cd08c"}

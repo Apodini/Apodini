@@ -15,7 +15,7 @@ class ConnectionResponsible: Identifiable {
     
     let ws: WebSocket
     
-    let db: Database
+    let db: Database?
     
     private let onClose: (ID) -> ()
     
@@ -23,7 +23,7 @@ class ConnectionResponsible: Identifiable {
     
     private var contexts: [UUID: ContextResponsible] = [:]
     
-    init(_ websocket: WebSocket, database: Database, onClose: @escaping (ID) -> (), endpoints: [String: ContextOpener]) {
+    init(_ websocket: WebSocket, database: Database?, onClose: @escaping (ID) -> (), endpoints: [String: ContextOpener]) {
         self.ws = websocket
         self.db = database
         self.onClose = onClose

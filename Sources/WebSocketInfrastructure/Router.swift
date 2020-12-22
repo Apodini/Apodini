@@ -20,7 +20,7 @@ public enum Message<T> {
 }
 
 public protocol Router {
-    func register<I: Input, O: Encodable>(_ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Database) -> (default: I, output: AnyPublisher<Message<O>, Error>), on identifier: String)
+    func register<I: Input, O: Encodable>(_ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Database?) -> (default: I, output: AnyPublisher<Message<O>, Error>), on identifier: String)
 }
 
 public class VaporWSRouter: Router {
@@ -41,7 +41,7 @@ public class VaporWSRouter: Router {
         self.path = path
     }
     
-    public func register<I: Input, O: Encodable>(_ opener: @escaping (AnyPublisher<I, Never>,  EventLoop, Database) -> (default: I, output: AnyPublisher<Message<O>, Error>), on identifier: String) {
+    public func register<I: Input, O: Encodable>(_ opener: @escaping (AnyPublisher<I, Never>,  EventLoop, Database?) -> (default: I, output: AnyPublisher<Message<O>, Error>), on identifier: String) {
         if self.endpoints[identifier] != nil {
             print("Endpoint \(identifier) on VaporWSRouter registered at \(path.string) was registered more than once.")
         }
@@ -60,7 +60,7 @@ public class VaporWSRouter: Router {
     private func registerRouteToVapor() {
         app.routes.grouped(self.path).webSocket(onUpgrade: { req, ws in
             self.connectionsMutex.lock()
-            let cr = ConnectionResponsible(ws, database: req.db, onClose: { id in
+            let cr = ConnectionResponsible(ws, database: nil, onClose: { id in
                 self.connectionsMutex.lock()
                 self.connections[id] = nil
                 self.connectionsMutex.unlock()

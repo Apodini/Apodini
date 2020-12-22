@@ -5,6 +5,8 @@
 //  Created by Max Obermeier on 04.12.20.
 //
 
+@_implementationOnly import AssociatedTypeRequirementsVisitor
+
 public enum ParameterUpdateError: WSError {
     case notMutable, badType, notExistant
     
@@ -109,15 +111,14 @@ public enum Mutability {
     case variable
 }
 
-public enum Necessity<T> {
+public enum Necessity {
     case required
     case optional
 }
 
 public struct Parameter<T>: InputParameter {
-    
     private let mutability: Mutability
-    private let necessity: Necessity<T>
+    private let necessity: Necessity
     
     private var _interim: T?
     private var _value: T?
@@ -129,29 +130,32 @@ public struct Parameter<T>: InputParameter {
         return nil
     }
     
-    public init(mutability: Mutability, necessity: Necessity<T>) {
+    public init(mutability: Mutability, necessity: Necessity) {
         self.mutability = mutability
         self.necessity = necessity
         self._value = nil
     }
     
     public mutating func update(_ value: Any) -> ParameterUpdateResult {
-        guard let v = value as? T else {
+        guard let newValue = value as? T else {
             return .error(.badType)
         }
         
-        if self._interim == nil {
-            self._interim = v
+        guard let oldValue = _value else {
+            self._interim = newValue
             return .ok
-        } else {
-            switch self.mutability {
-            case .variable:
-                self._interim = v
+        }
+        
+        // must check for mutability, because _value has been set before
+        switch self.mutability {
+        case .variable:
+            self._interim = newValue
+            return .ok
+        case .constant:
+            if unsafeEqual(a: newValue, b: oldValue) {
                 return .ok
-            case .constant:
-                // TODO: check if new value is same as _value
-                return .error(.notMutable)
             }
+            return .error(.notMutable)
         }
     }
     
@@ -171,5 +175,31 @@ public struct Parameter<T>: InputParameter {
     public mutating func apply() {
         self._value = _interim
     }
-    
+}
+
+
+
+private func unsafeEqual(a: Any, b: Any) -> Bool {
+    let associatedTypeRequirementsVisitor = EquatableVisitorImplementation()
+    if associatedTypeRequirementsVisitor(a) == nil {
+        return false
+    }
+    return associatedTypeRequirementsVisitor(b) ?? false
+}
+
+private class EquatableVisitorImplementation: EquatableVisitor {
+    var firstValue: Any? = nil
+
+    func callAsFunction<T: Equatable>(_ value: T) -> Bool {
+        if let first = firstValue {
+            if let firstAsT = first as? T {
+                return firstAsT == value
+            } else {
+                return false
+            }
+        } else {
+            firstValue = value
+            return false
+        }
+    }
 }
