@@ -65,6 +65,15 @@
         }
       },
       {
+        "package": "CRuntime",
+        "repositoryURL": "https://github.com/wickwirew/CRuntime.git",
+        "state": {
+          "branch": null,
+          "revision": "95f911318d8c885f6fc05e971471f94adfd39405",
+          "version": "2.1.2"
+        }
+      },
+      {
         "package": "fluent",
         "repositoryURL": "https://github.com/vapor/fluent.git",
         "state": {
@@ -116,6 +125,15 @@
           "branch": null,
           "revision": "6f29f6f182c812075f09c7575c18ac5535c26824",
           "version": "4.0.1"
+        }
+      },
+      {
+        "package": "GraphQL",
+        "repositoryURL": "https://github.com/GraphQLSwift/GraphQL.git",
+        "state": {
+          "branch": null,
+          "revision": "69f2cd4835ff60b5fae841a680abdc1d56592dd4",
+          "version": "1.1.7"
         }
       },
       {
@@ -195,8 +213,8 @@
         "repositoryURL": "https://github.com/wickwirew/Runtime.git",
         "state": {
           "branch": null,
-          "revision": "a848b81e1a0100801f572e5273ffe4352fd54088",
-          "version": "2.2.2"
+          "revision": "61c9776f47d2951bdc562486ad348e5e1ca2e180",
+          "version": "2.1.1"
         }
       },
       {
@@ -305,6 +323,15 @@
           "branch": null,
           "revision": "bb56586c4cab9a79dce6ec4738baddb5802c5de7",
           "version": "1.9.0"
+        }
+      },
+      {
+        "package": "SwiftyJSON",
+        "repositoryURL": "https://github.com/SwiftyJSON/SwiftyJSON.git",
+        "state": {
+          "branch": null,
+          "revision": "2b6054efa051565954e1d2b9da831680026cd768",
+          "version": "5.0.0"
         }
       },
       {
