@@ -5,6 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
+import Foundation
 import NIO
 @_implementationOnly import Runtime
 @_implementationOnly import AssociatedTypeRequirementsVisitor
@@ -89,12 +90,5 @@ private struct HandlerVisitorHelperImpl: HandlerVisitorHelperImplBase {
     let visitor: SyntaxTreeVisitor
     func callAsFunction<H: Handler>(_ value: H) {
         visitor.visit(handler: value)
-    }
-}
-
-extension EventLoopFuture: Encodable where Value: Encodable {
-    public func encode(to encoder: Encoder) throws {
-        let encodable = try self.wait()
-        try encodable.encode(to: encoder)
     }
 }
