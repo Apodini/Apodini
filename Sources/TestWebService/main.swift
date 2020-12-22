@@ -14,16 +14,16 @@ struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
         private let message: String?
         @_Request
-        var request: Vapor.Request
+        var request: Apodini.Request
         
         
         init(_ message: String? = nil) {
             self.message = message
         }
         
-        
+
         func check() {
-            request.logger.info("\(message?.description ?? request.description)")
+            print("\(message?.description ?? request.description)")
         }
     }
     

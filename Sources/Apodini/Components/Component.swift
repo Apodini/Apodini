@@ -6,7 +6,6 @@
 //
 
 import NIO
-import Vapor
 @_implementationOnly import Runtime
 
 
@@ -17,7 +16,7 @@ public protocol Component {
     /// The type of `Component` this `Component` is made out of if the component is a composition of multiple subcomponents.
     associatedtype Content: Component = Never
     /// The type that is returned from the `handle` method when the component handles a request. The return type of the `handle` method is encoded into the response send out to the client.
-    associatedtype Response: ResponseEncodable = Never
+    associatedtype Response: Encodable = Never
     
     
     /// Different other `Component`s that are composed to describe the functionality of the`Component`

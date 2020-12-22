@@ -20,28 +20,28 @@ func extractRequestInjectables<Element>(from subject: Element) -> [String: Reque
     return result
 }
 
-extension Vapor.Request {
-    func enterRequestContext<E, R>(with element: E, using decoder: RequestInjectableDecoder? = nil, executing method: (E) -> EventLoopFuture<R>)
+extension Apodini.Request {
+    func enterRequestContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>)
                     -> EventLoopFuture<R> {
         var element = element
-        inject(in: &element, using: decoder)
+        inject(in: &element)
 
         return method(element)
     }
 
-    func enterRequestContext<E, R>(with element: E, using decoder: RequestInjectableDecoder? = nil, executing method: (E) -> R) -> R {
+    func enterRequestContext<E, R>(with element: E, executing method: (E) -> R) -> R {
         var element = element
-        inject(in: &element, using: decoder)
+        inject(in: &element)
         return method(element)
     }
     
-    private func inject<E>(in element: inout E, using decoder: RequestInjectableDecoder? = nil) {
+    private func inject<E>(in element: inout E) {
         // Inject all properties that can be injected using RequestInjectable
         let elem = element
         
         apply({ (requestInjectable: inout RequestInjectable) in
             do {
-                try requestInjectable.inject(using: self, with: decoder)
+                try requestInjectable.inject(using: self)
             } catch {
                 fatalError("Injecting into element \(elem) failed.")
             }

@@ -32,6 +32,15 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
             "Hello \(name)"
         }
     }
+
+    struct PrintGuard: SyncGuard {
+        @_Request
+        var request: Apodini.Request
+
+        func check() {
+            print(request.description)
+        }
+    }
     
     struct TestHandler2: Component {
         @Parameter
@@ -66,6 +75,18 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
                 }
                 TestHandler3()
             }
+        }
+    }
+
+    struct EmojiMediator: ResponseTransformer {
+        private let emojis: String
+
+        init(emojis: String = "✅") {
+            self.emojis = emojis
+        }
+
+        func transform(response: String) -> String {
+            "\(emojis) \(response) \(emojis)"
         }
     }
     
@@ -113,5 +134,19 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         XCTAssertEqual(nestedEndpoint.absolutePath[1].description, "b")
         XCTAssertEqual(nestedEndpoint.absolutePath[2].description, ":\(nameParameterId.uuidString)")
         XCTAssertEqual(nestedEndpoint.absolutePath[3].description, ":\(someIdParameterId.uuidString)")
+    }
+
+    func testCreateRequestHandler() throws {
+        let transformer = EmojiMediator(emojis: "✅")
+        let printGuard = AnyGuard(PrintGuard())
+        let requestHandler = SharedSemanticModelBuilder.createRequestHandler(with: TestHandler(),
+                                                                             guards: [ { printGuard } ],
+                                                                             responseModifiers: [ { transformer } ])
+        let name = "Craig"
+        let request = RESTRequest(Vapor.Request(application: app, on: app.eventLoopGroup.next())) { _ in name }
+        let response = try requestHandler(request).wait()
+        let responseString = try XCTUnwrap(response as? String)
+
+        XCTAssert(responseString == "✅ Hello \(name) ✅")
     }
 }

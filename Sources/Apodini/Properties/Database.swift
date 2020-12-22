@@ -6,8 +6,7 @@
 //
 
 import NIO
-import Vapor
-import Fluent
+import protocol Fluent.Database
 
 
 @propertyWrapper
@@ -28,7 +27,10 @@ struct _Database: Property, RequestInjectable {
     init() { }
     
     
-    mutating func inject(using request: Vapor.Request, with decoder: RequestInjectableDecoder? = nil) throws {
-        self.database = request.db
+    mutating func inject(using request: Request) throws {
+        guard let database = request.database else {
+            fatalError("Cannot inject database because the request does not contain a database")
+        }
+        self.database = database
     }
 }

@@ -6,12 +6,11 @@
 //
 
 import NIO
-import Vapor
 @_implementationOnly import Runtime
 
 
 protocol RequestInjectable {
-    mutating func inject(using request: Vapor.Request, with decoder: RequestInjectableDecoder?) throws
+    mutating func inject(using request: Request) throws
     func accept(_ visitor: RequestInjectableVisitor)
 }
 
@@ -19,10 +18,6 @@ extension RequestInjectable {
     func accept(_ visitor: RequestInjectableVisitor) {
         visitor.visit(self)
     }
-}
-
-protocol RequestInjectableDecoder {
-    func decode<T: Decodable>(_ type: T.Type, from request: Vapor.Request) throws -> T?
 }
 
 protocol RequestInjectableVisitor {

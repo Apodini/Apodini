@@ -5,7 +5,6 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-import Vapor
 import Foundation
 
 
@@ -82,10 +81,8 @@ public struct Parameter<Element: Codable>: Property {
 
 
 extension Parameter: RequestInjectable {
-    mutating func inject(using request: Vapor.Request, with decoder: RequestInjectableDecoder?) throws {
-        if let decoder = decoder {
-            element = try decoder.decode(Element.self, from: request)
-        }
+    mutating func inject(using request: Apodini.Request) throws {
+        element = try request.parameter(for: id)
     }
 
     func accept(_ visitor: RequestInjectableVisitor) {
