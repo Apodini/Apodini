@@ -7,6 +7,8 @@
 
 @_implementationOnly import Runtime
 
+struct DidFindRecursionError: Error {}
+
 func fixArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     let typeInfo = node.value.typeInfo
     
@@ -14,6 +16,12 @@ func fixArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
           let first = typeInfo.genericTypes.first,
           let newNode = try EnrichedInfo.tree(first) else {
         return node
+    }
+    
+    if (newNode as Tree).contains(where: { enrichedInfo in
+        enrichedInfo.typeInfo.type == typeInfo.type
+    }) {
+        throw DidFindRecursionError()
     }
     
     var newEnrichedInfo = EnrichedInfo(
