@@ -1,5 +1,5 @@
 //
-//  DynamicProperty.swift
+//  Property.swift
 //  
 //
 //  Created by Max Obermeier on 09.12.20.
@@ -8,12 +8,17 @@
 import Foundation
 @_implementationOnly import Runtime
 
-/// `DynamicProperty` allows for wrapping Apodini's property wrappers while maintianing their functionality. By
-/// conforming a `struct` to `DynamicProperty` you this `struct`'s properties discoverable to the Apodini
-/// runtime framework. This can be used to e.g. compine two property wrappers provided by the Apodini framework
-/// into one that combines their functionality
-/// - Precondition: Only structs can be a DynamicProperty
-public protocol DynamicProperty { }
+/// This protocol is implemented by all of Apodini's property wrappers that are used access functionality or information
+/// on a handling `Component`.
+/// - Precondition: Only structs can be a `Property`
+public protocol Property { }
+
+/// `DynamicProperty` allows for wrapping `Property`s while maintianing their functionality. By conforming
+/// a `struct` to `DynamicProperty` you make this `struct`'s properties discoverable to the Apodini
+/// runtime framework. This can be used to e.g. combine two property wrappers provided by the Apodini framework
+/// into one that merges their functionality
+/// - Precondition: Only structs can be a `DynamicProperty`
+public protocol DynamicProperty: Property { }
 
 
 // MARK: Execute
@@ -155,7 +160,7 @@ private extension DynamicProperty {
 }
 
 
-// MARK: Dynamics Implemenation
+// MARK: Properties Implemenation
 
 private protocol Traversable {
     func execute<Target>(_ operation: (Target, _ name: String) -> Void)
@@ -163,20 +168,20 @@ private protocol Traversable {
     mutating func apply<Target>(_ mutation: (inout Target, _ name: String) -> Void)
 }
 
-extension Dynamics: Traversable {
+extension Properties: Traversable {
     func execute<Target>(_ operation: (Target, _ name: String) -> Void) {
         for (name, element) in self {
             switch element {
             case let target as Target:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Dynamics must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Properties must be a struct")
                 
                 operation(target, name)
             case let dynamicProperty as DynamicProperty:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Dynamics must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Properties must be a struct")
                 
                 dynamicProperty.execute(operation)
             case let dynamics as Traversable:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "Dynamics \(name) on Dynamics must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "Properties \(name) on Properties must be a struct")
             
                 dynamics.execute(operation)
             default:
@@ -189,19 +194,19 @@ extension Dynamics: Traversable {
         for (name, element) in self {
             switch element {
             case var target as Target:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Dynamics must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Properties must be a struct")
     
                 mutation(&target, name)
                 // swiftlint:disable:next force_cast
                 self.elements[name] = (target as! Element)
             case var dynamicProperty as DynamicProperty:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Dynamics must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Properties must be a struct")
                 
                 dynamicProperty.apply(mutation)
                 // swiftlint:disable:next force_cast
                 self.elements[name] = (dynamicProperty as! Element)
             case var dynamics as Traversable:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "Dynamics \(name) on Dynamics must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "Properties \(name) on Properties must be a struct")
             
                 dynamics.apply(mutation)
                 // swiftlint:disable:next force_cast

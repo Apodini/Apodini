@@ -15,7 +15,7 @@ import Fluent
 final class DynamicPropertyTests: ApodiniTests {
     // swiftlint:disable identifier_name type_name
     @propertyWrapper
-    struct Param<T> {
+    struct Param<T>: Apodini.Property {
         var _value: T?
         
         var wrappedValue: T? {
@@ -26,17 +26,17 @@ final class DynamicPropertyTests: ApodiniTests {
     struct Element {
         @Param var a: String?
         @BCD var bcd: String
-        var efg: Dynamics = [
+        var efg: Properties = [
             "e": Param<String>(),
-            "fgWrapper": Dynamics(wrappedValue: [
+            "fgWrapper": Properties(wrappedValue: [
                 "f": Param<String>(),
                 "g": G()
             ])
-        ] as Dynamics<Any>
+        ] as Properties<Any>
         
         var allParameters: String {
             let e: Param<String>? = efg.e
-            let fgWrapper: Dynamics<Any>? = efg.fgWrapper
+            let fgWrapper: Properties<Any>? = efg.fgWrapper
             
             let f: Param<String>? = fgWrapper?.f
             
@@ -49,7 +49,7 @@ final class DynamicPropertyTests: ApodiniTests {
     @propertyWrapper
     struct BCD: DynamicProperty {
         @Param var b: String?
-        @Dynamics var dynamics: [String: Param<String>]
+        @Properties var dynamics: [String: Param<String>]
         @D var d: String
         
         init() {
@@ -107,7 +107,7 @@ final class DynamicPropertyTests: ApodiniTests {
             names.append(name.trimmingCharacters(in: ["_"]))
         }, on: element)
         
-        // as Dynamics is map-based we cannot rely on a static order
+        // as Properties is map-based we cannot rely on a static order
         XCTAssertEqual(names.sorted().joined(), "abcdefg")
     }
     
