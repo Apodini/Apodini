@@ -25,23 +25,6 @@ public protocol Component {
     
     /// A function that is called when a request reaches the `Component`
     func handle() -> Self.Response
-    /// The default implementation simply wraps results from
-    /// `handle() -> Self.Response` into `.final(..)`.
-    func handle() -> Action<Self.Response>
-}
-
-extension Component {
-    /// The default implementation simply wraps results from
-    /// `handle() -> Self.Response` into `.final(..)`.
-    public func handle() -> Action<Self.Response> {
-        .final(handle())
-    }
-
-    /// Either this function or `handle() -> Action<Self.Response>`
-    /// have to be overwritten.
-    public func handle() -> Self.Response {
-        fatalError("Either handle() -> Encodable or handle() -> Action<Encodable> have to be implemented")
-    }
 }
 
 extension Component {
