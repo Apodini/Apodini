@@ -63,15 +63,23 @@ extension Operation {
 
 struct RESTRequest: Request {
     private var parameterDecoder: (UUID) -> Codable?
-    var eventLoop: EventLoop
-    var database: Fluent.Database?
-    var description: String
+    private var vaporRequest: Vapor.Request
+
+    var eventLoop: EventLoop {
+        vaporRequest.eventLoop
+    }
+
+    var database: Fluent.Database? {
+        vaporRequest.db
+    }
+
+    var description: String {
+        vaporRequest.description
+    }
 
     init(_ vaporRequest: Vapor.Request, parameterDecoder: @escaping (UUID) -> Codable?) {
-        self.eventLoop = vaporRequest.eventLoop
-        self.database = vaporRequest.db
         self.parameterDecoder = parameterDecoder
-        self.description = vaporRequest.description
+        self.vaporRequest = vaporRequest
     }
 
     func parameter<T: Codable>(for parameter: Parameter<T>) throws -> T? {
@@ -118,7 +126,7 @@ class RESTInterfaceExporter: InterfaceExporter {
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
-        if webService.rootEndpoints.count == 0 {
+        if webService.rootEndpoints.isEmpty {
             // if the root path doesn't have endpoints we need to create a custom one to deliver linking entry points.
 
             for relationship in webService.relationships {
