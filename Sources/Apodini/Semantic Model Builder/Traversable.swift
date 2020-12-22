@@ -207,19 +207,19 @@ extension Properties: Traversable {
 }
 
 #if DEBUG
-    public func exposedExecute<Element, Target>(_ operation: (Target, _ name: String) -> Void, on element: Element) {
+    func exposedExecute<Element, Target>(_ operation: (Target, _ name: String) -> Void, on element: Element) {
         execute(operation, on: element)
     }
     
-    public func exposedExecute<Element, Target>(_ operation: (Target) -> Void, on element: Element) {
+    func exposedExecute<Element, Target>(_ operation: (Target) -> Void, on element: Element) {
         execute(operation, on: element)
     }
 
-    public func exposedApply<Element, Target>(_ mutation: (inout Target, _ name: String) -> Void, to element: inout Element) {
+    func exposedApply<Element, Target>(_ mutation: (inout Target, _ name: String) -> Void, to element: inout Element) {
         apply(mutation, to: &element)
     }
     
-    public func exposedApply<Element, Target>(_ mutation: (inout Target) -> Void, to element: inout Element) {
+    func exposedApply<Element, Target>(_ mutation: (inout Target) -> Void, to element: inout Element) {
         apply(mutation, to: &element)
     }
 #endif
