@@ -96,6 +96,22 @@ extension Tree {
         
         return result
     }
+    
+    func contains<T>(
+        where predicate : (T) throws -> Bool
+    ) rethrows -> Bool where Wrapped == Node<T> {
+        guard let node = self else {
+            return false
+        }
+        
+        guard try !predicate(node.value) else {
+            return true
+        }
+        
+        return try node.children.contains { (child: Tree) in
+            try child.contains(where: predicate)
+        }
+    }
 }
 
 extension Tree {
