@@ -120,4 +120,32 @@ final class TraversableTests: ApodiniTests {
         
         XCTAssertEqual(count, 7)
     }
+    
+    func testApplyOnProperties() throws {
+        var wrapper: Properties = [
+            "a": Param<String>()
+        ] as Properties<Any>
+        
+        exposedApply({(target: inout Param<String>, name: String) in
+            target._value = name.trimmingCharacters(in: ["_"])
+        }, to: &wrapper)
+        
+        let aParam: Param<String>? = wrapper.a
+        
+        XCTAssertEqual(aParam?.wrappedValue, "a")
+    }
+    
+    func testExecuteOnProperties() throws {
+        var names: [String] = []
+        
+        let wrapper: Properties = [
+            "a": Param<String>()
+        ] as Properties<Any>
+        
+        exposedExecute({(_: Param<String>, name: String) in
+            names.append(name.trimmingCharacters(in: ["_"]))
+        }, on: wrapper)
+        
+        XCTAssertEqual(names.sorted().joined(), "a")
+    }
 }
