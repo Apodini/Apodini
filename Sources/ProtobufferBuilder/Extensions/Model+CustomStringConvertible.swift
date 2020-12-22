@@ -24,7 +24,31 @@ extension Message: CustomStringConvertible {
 
 extension Message.Property: CustomStringConvertible {
     var description: String {
-        "\(fieldRule.rawValue) \(typeName) \(name) = \(uniqueNumber);"
+        let components: [CustomStringConvertible] = [
+            fieldRule,
+            typeName,
+            name,
+            "=",
+            "\(uniqueNumber);"
+        ]
+        
+        return components
+            .map(\.description)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+    }
+}
+
+extension Message.Property.FieldRule: CustomStringConvertible {
+    var description: String {
+        switch self {
+        case .optional:
+            return "optional"
+        case .required:
+            return ""
+        case .repeated:
+            return "repeated"
+        }
     }
 }
 
