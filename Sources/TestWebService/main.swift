@@ -84,7 +84,7 @@ struct TestWebService: Apodini.WebService {
             Greeter()
         }
         Group("api", "birds") {
-            Get<Bird>($dummy)
+            Read<Bird>($dummy)
 //            Create<Bird>()
 //                .operation(.create)
 //            Group($birdID) {

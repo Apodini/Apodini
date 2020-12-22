@@ -71,7 +71,7 @@ public struct QueryBuilder<Model: DatabaseModel> {
     
     @discardableResult
     public static func fieldKeys<Model: DatabaseModel>(for type: Model.Type) -> [FieldKey] {
-        return type
+        return type.keys
     }
     
     static func info(for type: Model.Type) -> [ModelInfo] {
@@ -88,8 +88,6 @@ public struct QueryBuilder<Model: DatabaseModel> {
                     let key = keys[index]
                     let type = Self.fieldType(for: propertyInfo.type)
                     modelInfo.append(ModelInfo(key: key, type: type))
-                    print(String(describing: propertyInfo.type))
-                    print(Self.fieldType(for: propertyInfo.type))
                 }
             }
             
@@ -125,8 +123,3 @@ public struct QueryBuilder<Model: DatabaseModel> {
     }
 }
 
-public struct ModelInfo: DatabaseInjectionContext {
-    public var key: FieldKey
-    public var type: Any.Type
-    
-}
