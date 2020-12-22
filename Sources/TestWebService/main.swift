@@ -41,22 +41,13 @@ struct TestWebService: Apodini.WebService {
         }
     }
 
-    struct Greet: Codable {
-        let name: String
-        let greet: String
-
-        init() {
-            name = "N"
-            greet = "G"
-        }
-    }
 
     struct Greeter: Component {
-        @Parameter var name: String
+        // @Parameter var name: String //TODO: How do we give value for the name parameter?
 
 
-        func handle() -> String {
-            "Hello \(name)"
+        public func handle() -> String {
+            "Hello There, General Kenobi"
         }
 
 
@@ -76,9 +67,9 @@ struct TestWebService: Apodini.WebService {
 //                Text("Hello Swift 5! 💻")
 //            }
         } // .guard(PrintGuard("Someone is accessing Swift 😎!!"))
-//        Group("greet") {
-//            Greeter()
-//        }
+        Group("greet") {
+            Greeter()
+        }
     }
 }
 
