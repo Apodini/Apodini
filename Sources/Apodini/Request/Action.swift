@@ -5,8 +5,6 @@
 //  Created by Moritz Schüll on 10.12.20.
 //
 
-@_implementationOnly import Vapor
-
 /// Used to return from the `handle` method
 /// by `Components` that expose client-side streaming endpoints.
 public enum Action<Element: Encodable> {

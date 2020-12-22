@@ -11,7 +11,7 @@ import Vapor
 
 final class ConnectionTests: XCTestCase {
     struct TestComponent: Component {
-        @ClientConnection
+        @Apodini.Environment(\.connection)
         var connection: Connection
 
         var endMessage: String
@@ -34,7 +34,7 @@ final class ConnectionTests: XCTestCase {
         let testComponent = TestComponent(endMessage: endMessage, openMessage: openMessage)
 
         var connection = Connection(state: .open)
-        let returnedActionWithOpen = testComponent.withConnection(connection).handle()
+        let returnedActionWithOpen = testComponent.withEnvironment(connection, for: \.connection).handle()
         if case let .send(returnedMessageWithOpen) = returnedActionWithOpen {
             XCTAssertEqual(returnedMessageWithOpen, openMessage)
         } else {
@@ -42,7 +42,7 @@ final class ConnectionTests: XCTestCase {
         }
 
         connection.state = .end
-        let returnedActionWithEnd = testComponent.withConnection(connection).handle()
+        let returnedActionWithEnd = testComponent.withEnvironment(connection, for: \.connection).handle()
         if case let .final(returnedMessageWithEnd) = returnedActionWithEnd {
             XCTAssertEqual(returnedMessageWithEnd, endMessage)
         } else {
