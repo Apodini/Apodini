@@ -72,7 +72,7 @@ extension ProtobufferBuilderInternalTests {
         XCTAssertEqual(try buildMessage(Message.self), expected)
     }
     
-    func testTypeOneLevelDeep() throws {
+    func testHierarchyFirstOrder() throws {
         struct Location {
             let latitude: UInt32
             let longitude: UInt32
@@ -90,7 +90,7 @@ extension ProtobufferBuilderInternalTests {
         XCTAssertEqual(try buildMessage(Location.self), expected)
     }
     
-    func testTypeTwoLevelsDeep() throws {
+    func testHierarchySecondOrder() throws {
         struct Account {
             let transactions: [Transaction]
         }
@@ -114,23 +114,44 @@ extension ProtobufferBuilderInternalTests {
         XCTAssertEqual(try buildMessage(Account.self), expected)
     }
     
-    #warning("TODO: Enforce DAG")
-    func noTestRecursiveType() throws {
-        struct Node<T> {
-            let value: T
+    func testRecursionFirstOrder() throws {
+        struct Node {
             let children: [Node]
         }
         
         let expected = """
             syntax = "proto3";
 
-            message NodeOfInt64Message {
-              int64 value = 1;
-              repeated NodeOfInt64Message children = 2;
+            message NodeMessage {
+              repeated NodeMessage children = 1;
             }
             """
         
-        XCTAssertEqual(try buildMessage(Node<Int64>.self), expected)
+        XCTAssertEqual(try buildMessage(Node.self), expected)
+    }
+    
+    func testRecursionSecondOrder() throws {
+        struct First {
+            let value: Second
+        }
+        
+        struct Second {
+            let value: [First]
+        }
+        
+        let expected = """
+            syntax = "proto3";
+
+            message FirstMessage {
+              required SecondMessage value = 1;
+            }
+
+            message SecondMessage {
+              repeated FirstMessage value = 1;
+            }
+            """
+        
+        XCTAssertEqual(try buildMessage(First.self), expected)
     }
 }
 
