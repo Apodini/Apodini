@@ -49,7 +49,7 @@ extension ProtobufferBuilderInternalTests {
             syntax = "proto3";
 
             message StringMessage {
-              required string value = 1;
+              string value = 1;
             }
             """
         
@@ -82,8 +82,8 @@ extension ProtobufferBuilderInternalTests {
             syntax = "proto3";
 
             message LocationMessage {
-              required uint32 latitude = 1;
-              required uint32 longitude = 2;
+              uint32 latitude = 1;
+              uint32 longitude = 2;
             }
             """
         
@@ -107,7 +107,7 @@ extension ProtobufferBuilderInternalTests {
             }
 
             message TransactionMessage {
-              required int32 amount = 1;
+              int32 amount = 1;
             }
             """
         

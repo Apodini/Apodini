@@ -22,7 +22,7 @@ extension ProtobufferBuilderTests {
             }
 
             message StringMessage {
-              required string value = 1;
+              string value = 1;
             }
 
             message VoidMessage {}
@@ -49,7 +49,7 @@ extension ProtobufferBuilderTests {
             }
 
             message StringMessage {
-              required string value = 1;
+              string value = 1;
             }
             """
         

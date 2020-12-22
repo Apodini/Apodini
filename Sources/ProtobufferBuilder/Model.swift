@@ -5,11 +5,11 @@
 //  Created by Nityananda on 24.11.20.
 //
 
-// MARK: - Message and Message.Property
+// MARK: - Message
 
 struct Message: Equatable, Hashable {
     struct Property: Equatable, Hashable {
-        enum FieldRule: String {
+        enum FieldRule {
             case optional
             case required
             case repeated
@@ -25,7 +25,7 @@ struct Message: Equatable, Hashable {
     let properties: Set<Property>
 }
 
-// MARK: - Service and Service.Method
+// MARK: - Service
 
 struct Service: Equatable, Hashable {
     struct Method: Equatable, Hashable {
