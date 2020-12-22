@@ -9,10 +9,18 @@ import Foundation
 class OpenAPIInterfaceExporter: InterfaceExporter {
     let app: Application
     var documentBuilder: OpenAPIDocumentBuilder
-    let configuration: OpenAPIConfiguration = OpenAPIConfiguration()
+    let configuration: OpenAPIConfiguration
 
     required init(_ app: Application) {
         self.app = app
+        let host = app.http.server.configuration.hostname
+        let port = app.http.server.configuration.port
+        var servers: [OpenAPI.Server] = []
+        if let url = URL(string: "\(host):\(port)") {
+            let server = OpenAPI.Server(url: url)
+            servers.append(server)
+        }
+        self.configuration = OpenAPIConfiguration(servers: servers)
         documentBuilder = OpenAPIDocumentBuilder(
                 configuration: configuration
         )
