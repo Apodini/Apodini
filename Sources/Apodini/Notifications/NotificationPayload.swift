@@ -15,6 +15,15 @@ public struct Payload {
     public let fcmAndroidPayload: FCMAndroidPayload?
     /// FCM Web Push specific payload.
     public let fcmWebpushPayload: FCMWebpushPayload?
+    
+    /// Initializer of a `Payload`.
+    public init(apnsPayload: APNSPayload? = nil,
+                fcmAndroidPayload: FCMAndroidPayload? = nil,
+                fcmWebpushPayload: FCMWebpushPayload? = nil) {
+        self.apnsPayload = apnsPayload
+        self.fcmAndroidPayload = fcmAndroidPayload
+        self.fcmWebpushPayload = fcmWebpushPayload
+    }
 }
 
 // swiftlint:disable discouraged_optional_boolean
@@ -37,7 +46,7 @@ public struct APNSPayload {
     /// Groups push notifications together.
     public let threadID: String?
     
-    /// Initializer of a `APNSPayload`
+    /// Initializer of a `APNSPayload`.
     public init(badge: Int? = nil,
                 sound: APNSwift.APNSwiftSoundType? = nil,
                 contentAvailable: Bool? = nil,
@@ -61,14 +70,14 @@ public struct FCMAndroidPayload {
     
     /// The priority of a message.
     /// This can either be `normal` or `high`.
-    /// The default priority is `high`
-    public let priority: FCMAndroidMessagePriority
+    /// The default priority is `high`.
+    public let priority: FCMAndroidMessagePriority?
     
     /// The duration in seconds for which the notification should be kept in FCM storage while the device is offline.
     /// The default value is 4 weeks.
     /// 
-    /// - Example: 3 seconds is encoded as `3s`
-    public let ttl: String
+    /// - Example: 3 seconds is encoded as `3s`.
+    public let ttl: String?
     
     /// Package name of the application where the registration tokens must match in order to receive the message.
     public let restrictedPackageName: String
@@ -76,21 +85,46 @@ public struct FCMAndroidPayload {
     /// Notification to send to android devices.
     public let notification: FCMAndroidNotification
     
+    /// Initializer of a `FCMAndroidPayload`.
+    public init(collapseKey: String? = nil,
+                priority: FCMAndroidMessagePriority? = nil,
+                ttl: String? = nil,
+                restrictedPackageName: String,
+                notification: FCMAndroidNotification) {
+        self.collapseKey = collapseKey
+        self.priority = priority
+        self.ttl = ttl
+        self.restrictedPackageName = restrictedPackageName
+        self.notification = notification
+    }
+    
     internal func transform() -> FCMAndroidConfig {
         FCMAndroidConfig(collapse_key: collapseKey,
-                         priority: priority,
-                         ttl: ttl,
+                         priority: priority ?? .high,
+                         ttl: ttl ?? "2419200s",
                          restricted_package_name: restrictedPackageName,
                          notification: notification)
     }
 }
 
-/// FCM specific payload for Web Push..
+// swiftlint:disable discouraged_optional_collection
+/// FCM specific payload for Web Push.
 public struct FCMWebpushPayload {
     /// Web Push specific headers as a dictionary.
-    public let headers: [String: String]
+    public let headers: [String: String]?
+    
+    /// Web Notification options as a JSON object.
+    /// If present will override the default `Alert`.
+    public var notification: [String: String]?
+    
+    /// Initializer of a `FCMWebpushPayload`.
+    public init(headers: [String: String]? = nil, notification: [String: String]? = nil) {
+        self.headers = notification
+        self.notification = notification
+    }
     
     internal func transform() -> FCMWebpushConfig {
-        FCMWebpushConfig(headers: headers)
+        FCMWebpushConfig(headers: headers, notification: notification)
     }
 }
+// swiftlint:enable discouraged_optional_collection

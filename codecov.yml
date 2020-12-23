@@ -1,7 +1,6 @@
 ignore:
 - "Tests"
 - "Sources/TestWebService"
-- "Sources/Apodini/Notifications/NotificationCenter+Sending.swift"
 
 codecov:
   require_ci_to_pass: yes

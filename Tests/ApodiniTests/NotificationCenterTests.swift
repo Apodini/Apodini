@@ -9,6 +9,8 @@
 import XCTest
 import Vapor
 import Fluent
+import FCM
+import APNS
 @testable import Apodini
 
 final class NotificationCenterTests: ApodiniTests {
@@ -117,7 +119,12 @@ final class NotificationCenterTests: ApodiniTests {
     func testNotification() throws {
         let bird = Bird(name: "bird1", age: 2)
         
-        let notification = Notification(alert: Alert(title: "Title", subtitle: "Subtitle", body: "Body"))
+        let alert = Alert(title: "Title", subtitle: "Subtitle", body: "Body")
+        let apnsPayload = APNSPayload(badge: 1, mutableContent: true, category: "general")
+        let fcmPayload = FCMAndroidPayload(restrictedPackageName: "test", notification: FCMAndroidNotification(sound: "default"))
+        let payload = Payload(apnsPayload: apnsPayload,
+                              fcmAndroidPayload: fcmPayload)
+        let notification = Notification(alert: alert, payload: payload)
         
         let apns = notification.transformToAPNS(with: bird)
         let dataAPNS = apns.data!.data(using: .utf8)!
@@ -128,7 +135,11 @@ final class NotificationCenterTests: ApodiniTests {
         let decodedFCM = try JSONDecoder().decode(Bird.self, from: dataFCM)
         
         XCTAssert(decodedAPNS == bird)
+        XCTAssert(apns.aps.badge == 1)
+        XCTAssert(apns.aps.contentAvailable == 1)
         XCTAssert(decodedFCM == bird)
+        XCTAssert(fcm.android?.priority == .high)
+        XCTAssert(fcm.android?.ttl == "2419200s")
     }
 }
 // swiftlint:enable force_unwrapping first_where
