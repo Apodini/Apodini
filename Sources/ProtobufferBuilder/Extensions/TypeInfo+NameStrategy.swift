@@ -32,21 +32,21 @@ extension TypeInfo {
 
 private extension TypeInfo {
     func compatibleGenericName() throws -> String {
-        let tree: Tree = try Node(root: self) { typeInfo in
+        let node = try Node(root: self) { typeInfo in
             try typeInfo.genericTypes.map { element in
                 try Runtime.typeInfo(of: element)
             }
         }
         
-        let name = tree?
+        let name = node
             .map { typeInfo in
                 ParticularType(typeInfo.type).description
-            }?
+            }
             .reduce(into: "") { result, next in
                 result += result.isEmpty
                     ? next
                     : "Of\(next)"
-            } ?? ""
+            }
         
         return name
     }

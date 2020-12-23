@@ -35,7 +35,7 @@ extension Node {
 extension Node {
     func map<U>(
         _ transform: (T) throws -> U
-    ) rethrows -> Tree<U> {
+    ) rethrows -> Node<U> {
         let value = try transform(self.value)
         let children = try self.children.compactMap { child in
             try child.map(transform)
@@ -121,7 +121,7 @@ extension Node {
 extension Node {
     func contextMap<U>(
         _ transform: (Node<T>) throws -> U
-    ) rethrows -> Tree<U> {
+    ) rethrows -> Node<U> {
         let value = try transform(self)
         let children = try self.children.compactMap { child in
             try child.contextMap(transform)
