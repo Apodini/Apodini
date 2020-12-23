@@ -5,22 +5,6 @@
 //  Created by Nityananda on 26.11.20.
 //
 
-// MARK: - Node
-
-internal struct Node<T> {
-    let value: T
-    let children: [Node<T>]
-}
-
-extension Node {
-    init(_ root: T, _ getChildren: (T) throws -> [T]) rethrows {
-        let children = try getChildren(root)
-            .map { try Node($0, getChildren) }
-        
-        self.init(value: root, children: children)
-    }
-}
-
 // MARK: - Tree
 
 // swiftlint:disable:next syntactic_sugar
@@ -32,80 +16,103 @@ extension Tree {
     }
 }
 
-extension Tree {
-    func map<T, U>(
-        _ transform: (T) throws -> U
-    ) rethrows -> Tree<U> where Wrapped == Node<T> {
-        guard let node = self else {
-            return nil
-        }
+// MARK: - Node
+
+internal struct Node<T> {
+    let value: T
+    let children: [Node<T>]
+}
+
+extension Node {
+    init(root: T, _ getChildren: (T) throws -> [T]) rethrows {
+        let children = try getChildren(root)
+            .map { try Node(root: $0, getChildren) }
         
-        let value = try transform(node.value)
-        let children = try node.children.compactMap { (child: Tree) in
+        self.init(value: root, children: children)
+    }
+}
+
+extension Node {
+    func map<U>(
+        _ transform: (T) throws -> U
+    ) rethrows -> Node<U> {
+        let value = try transform(self.value)
+        let children = try self.children.compactMap { child in
             try child.map(transform)
         }
         
-        return Node(value: value, children: children)
+        return Node<U>(value: value, children: children)
     }
     
-    func compactMap<T, U>(
+    func compactMap<U>(
         _ transform: (T) throws -> U?
-    ) rethrows -> Tree<U> where Wrapped == Node<T> {
-        guard let node = self,
-              let value = try transform(node.value) else {
+    ) rethrows -> Tree<U> {
+        guard let value = try transform(self.value) else {
             return nil
         }
         
-        let children = try node.children.compactMap { (child: Tree) in
+        let children = try self.children.compactMap { child in
             try child.compactMap(transform)
+        }
+        
+        return Node<U>(value: value, children: children)
+    }
+}
+
+extension Node {
+    func filter(
+        _ isIncluded: (T) throws -> Bool
+    ) rethrows -> Tree<T> {
+        guard try isIncluded(self.value) else {
+            return nil
+        }
+        
+        let children = try self.children.compactMap { child in
+            try child.filter(isIncluded)
         }
         
         return Node(value: value, children: children)
     }
-}
-
-extension Tree {
-    func filter<T>(
-        _ isIncluded: (T) throws -> Bool
-    ) rethrows -> Self where Wrapped == Node<T> {
-        guard let node = self,
-              try isIncluded(node.value) else { return nil }
-        
-        let children = try node.children.compactMap { (child: Tree) in
-            try child.filter(isIncluded)
+    
+    func contains(
+        where predicate : (T) throws -> Bool
+    ) rethrows -> Bool {
+        guard try !predicate(value) else {
+            return true
         }
         
-        return Node(value: node.value, children: children)
+        return try children.contains { child in
+            try child.contains(where: predicate)
+        }
+    }
+}
+
+extension Node {
+    func reduce<Result>(
+        _ initialResult: Result,
+        _ nextPartialResult: ([Result], T) throws -> Result
+    ) rethrows -> Result {
+        let partialResults = try children.map { child in
+            try child.reduce(initialResult, nextPartialResult)
+        }
+        
+        return try nextPartialResult(partialResults, value)
     }
     
-    func reduce<T, U>(
-        into initialResult: U,
-        _ updateAccumulatingResult: (inout U, T) throws -> Void
-    ) rethrows -> U where Wrapped == Node<T> {
-        guard let node = self else {
-            return initialResult
-        }
-        
-        var result = initialResult
-        
-        try updateAccumulatingResult(&result, node.value)
-        
-        for child in node.children as [Self] {
-            result = try child.reduce(into: result, updateAccumulatingResult)
-        }
-        
-        return result
+    func forEach(_ body: (T) throws -> Void) rethrows {
+        _ = try map(body)
     }
 }
 
-extension Tree {
-    func edited<T>(
+extension Node {
+    func edited(
         _ transform: (Node<T>) throws -> Tree<T>
-    ) rethrows -> Tree<T> where Wrapped == Node<T> {
-        guard let node = self,
-              let intermediate = try transform(node) else { return nil }
+    ) rethrows -> Tree<T> {
+        guard let intermediate = try transform(self) else {
+            return nil
+        }
         
-        let children = try intermediate.children.compactMap { (child: Tree) in
+        let children = try intermediate.children.compactMap { child in
             try child.edited(transform)
         }
         
@@ -113,19 +120,15 @@ extension Tree {
     }
 }
 
-extension Tree {
-    func contextMap<T, U>(
+extension Node {
+    func contextMap<U>(
         _ transform: (Node<T>) throws -> U
-    ) rethrows -> Tree<U> where Wrapped == Node<T> {
-        guard let node = self else {
-            return nil
-        }
-        
-        let value = try transform(node)
-        let children = try node.children.compactMap { (child: Tree) in
+    ) rethrows -> Node<U> {
+        let value = try transform(self)
+        let children = try self.children.compactMap { child in
             try child.contextMap(transform)
         }
         
-        return Node(value: value, children: children)
+        return Node<U>(value: value, children: children)
     }
 }

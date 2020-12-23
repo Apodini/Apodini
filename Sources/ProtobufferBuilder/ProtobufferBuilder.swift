@@ -26,10 +26,7 @@ public extension ProtobufferBuilder {
     /// - Parameter type: the type of the service
     /// - Throws: `Error`s of type `Exception`
     func addService(of type: Any.Type, returning returnType: Any.Type) throws {
-        guard let node = try EnrichedInfo.tree(type) else {
-            return
-        }
-        
+        let node = try EnrichedInfo.node(type)
         let parameter = node.children
             .filter(isParameter)
             .compactMap { node in
@@ -38,25 +35,19 @@ public extension ProtobufferBuilder {
             .first
         let inputType = parameter ?? Void.self
         
-        let inputTree = try Message.tree(inputType)
-        let outputTree = try Message.tree(returnType)
+        let inputNode = try Message.node(inputType)
+        let outputNode = try Message.node(returnType)
         
-        for tree in [inputTree, outputTree] {
-            tree.reduce(into: Set()) { result, value in
-                result.insert(value)
-            }
-            .forEach { element in
+        for node in [inputNode, outputNode] {
+            node.forEach { element in
                 messages.insert(element)
             }
         }
         
-        guard let input = inputTree?.value,
-              let output = outputTree?.value else { return }
-        
         let method = Service.Method(
             name: "handle",
-            input: input,
-            ouput: output
+            input: inputNode.value,
+            ouput: outputNode.value
         )
         
         let service = Service(
@@ -73,31 +64,24 @@ internal extension ProtobufferBuilder {
     /// - Parameter type: the type of the message
     /// - Throws: `Error`s of type `Exception`
     func addMessage(of type: Any.Type) throws {
-        try Message.tree(type)
-            .reduce(into: Set()) { result, value in
-                result.insert(value)
-            }
-            .forEach { element in
-                messages.insert(element)
-            }
+        try Message.node(type).forEach { element in
+            messages.insert(element)
+        }
     }
 }
 
 private extension Message {
-    static func tree(_ type: Any.Type) throws -> Tree<Message> {
-        let filtered = try EnrichedInfo.tree(type)
-            .edited(fixArray)
-            .edited(fixOptional)
-            .edited(fixPrimitiveTypes)
+    static func node(_ type: Any.Type) throws -> Node<Message> {
+        let node = try EnrichedInfo.node(type)
+            .edited(fixOptional)?
+            .edited(fixArray)?
+            .edited(fixPrimitiveTypes)?
             .map(Message.Property.init)
             .contextMap(Message.init)
+            .compactMap { $0 }?
             .filter(isNotPrimitive)
         
-        if filtered.isEmpty {
-            return Node(value: .scalar(type), children: [])
-        }
-        
-        return filtered
+        return node ?? Node(value: .scalar(type), children: [])
     }
     
     static func scalar(_ type: Any.Type) -> Message {

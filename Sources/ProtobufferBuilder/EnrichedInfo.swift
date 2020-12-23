@@ -22,14 +22,14 @@ struct EnrichedInfo {
 }
 
 extension EnrichedInfo {
-    static func tree(_ type: Any.Type) throws -> Tree<EnrichedInfo> {
+    static func node(_ type: Any.Type) throws -> Node<EnrichedInfo> {
         let typeInfo = try Runtime.typeInfo(of: type)
         let root = EnrichedInfo(
             typeInfo: typeInfo,
             propertyInfo: nil,
             propertiesOffset: nil)
         
-        return Node(root) { info in
+        return Node(root: root) { info in
             info.typeInfo.properties
                 .enumerated()
                 .compactMap { offset, propertyInfo in
