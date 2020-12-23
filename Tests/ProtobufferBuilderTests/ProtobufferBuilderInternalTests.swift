@@ -73,7 +73,7 @@ extension ProtobufferBuilderInternalTests {
     }
     
     func testGenericTypeFirstOrder() throws {
-        struct Tuple<U, V>  {
+        struct Tuple<U, V> {
             let first: U
             let second: V
         }
@@ -95,7 +95,7 @@ extension ProtobufferBuilderInternalTests {
             let value: T
         }
         
-        struct Tuple<U, V>  {
+        struct Tuple<U, V> {
             let first: U
             let second: V
         }

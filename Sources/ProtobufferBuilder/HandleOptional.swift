@@ -7,7 +7,7 @@
 
 @_implementationOnly import Runtime
 
-func fixOptional(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
+func handleOptional(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     guard ParticularType(node.value.typeInfo.type).isOptional,
           let first = node.value.typeInfo.genericTypes.first else {
         return node

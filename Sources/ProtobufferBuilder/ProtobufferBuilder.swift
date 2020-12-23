@@ -78,9 +78,9 @@ internal extension ProtobufferBuilder {
 private extension Message {
     static func node(_ type: Any.Type) throws -> Node<Message> {
         let node = try EnrichedInfo.node(type)
-            .edited(fixOptional)?
-            .edited(fixArray)?
-            .edited(fixPrimitiveTypes)?
+            .edited(handleOptional)?
+            .edited(handleArray)?
+            .edited(handlePrimitiveType)?
             .map(Message.Property.init)
             .contextMap(Message.init)
             .compactMap { $0 }?

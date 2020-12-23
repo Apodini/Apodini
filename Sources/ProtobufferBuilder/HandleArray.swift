@@ -9,7 +9,7 @@
 
 enum ProtobufferBuilderDidEncounterCircle {}
 
-func fixArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
+func handleArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     let typeInfo = node.value.typeInfo
     
     guard ParticularType(typeInfo.type).isArray,
@@ -19,13 +19,15 @@ func fixArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     
     let newTree = try EnrichedInfo.node(first)
         .edited { node in
-            /// Check if a type is repeated and if it comes true, inject a _trap_.
+            // Check if a type is repeated and if it comes true, inject a _trap_.
             node.value.typeInfo.type == typeInfo.type
                 ? try EnrichedInfo.node(ProtobufferBuilderDidEncounterCircle.self)
                 : node
         }
     
-    guard let newNode = newTree else { return nil }
+    guard let newNode = newTree else {
+        return nil
+    }
     
     var newEnrichedInfo = EnrichedInfo(
         typeInfo: newNode.value.typeInfo,

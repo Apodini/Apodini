@@ -75,7 +75,7 @@ extension Node {
     }
     
     func contains(
-        where predicate : (T) throws -> Bool
+        where predicate: (T) throws -> Bool
     ) rethrows -> Bool {
         guard try !predicate(value) else {
             return true

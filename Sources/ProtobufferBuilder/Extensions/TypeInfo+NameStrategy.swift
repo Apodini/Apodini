@@ -32,7 +32,7 @@ extension TypeInfo {
 
 private extension TypeInfo {
     func compatibleGenericName() throws -> String {
-        return String(describing: type)
+        String(describing: type)
             .replacingOccurrences(of: ">", with: "")
             .replacingOccurrences(of: "<", with: "Of")
             .replacingOccurrences(of: ", ", with: "And")
