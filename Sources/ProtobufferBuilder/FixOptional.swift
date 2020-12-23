@@ -8,10 +8,8 @@
 @_implementationOnly import Runtime
 
 func fixOptional(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
-    let typeInfo = node.value.typeInfo
-    
-    guard ParticularType(typeInfo.type).isOptional,
-          let first = typeInfo.genericTypes.first else {
+    guard ParticularType(node.value.typeInfo.type).isOptional,
+          let first = node.value.typeInfo.genericTypes.first else {
         return node
     }
     

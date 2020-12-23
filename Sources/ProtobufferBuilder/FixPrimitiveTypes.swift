@@ -6,9 +6,7 @@
 //
 
 func fixPrimitiveTypes(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
-    guard ParticularType(node.value.typeInfo.type).isPrimitive else {
-        return node
-    }
-    
-    return Node(value: node.value, children: [])
+    ParticularType(node.value.typeInfo.type).isPrimitive
+        ? Node(value: node.value, children: [])
+        : node
 }
