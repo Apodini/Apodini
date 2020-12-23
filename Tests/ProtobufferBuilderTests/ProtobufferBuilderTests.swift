@@ -70,7 +70,7 @@ extension ProtobufferBuilderTests {
 @discardableResult
 private func buildService<T: Component>(_ type: T.Type) throws -> String {
     let builder = ProtobufferBuilder()
-    try builder.addService(of: type, returning: type.Response.self)
+    try builder.addService(componentType: T.self, returnType: T.Response.self)
     let description = builder.description
     
     print("""

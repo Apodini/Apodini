@@ -25,8 +25,12 @@ public extension ProtobufferBuilder {
     /// `addService` builds a Protobuffer service declaration from the type parameter.
     /// - Parameter type: the type of the service
     /// - Throws: `Error`s of type `Exception`
-    func addService(of type: Any.Type, returning returnType: Any.Type) throws {
-        let node = try EnrichedInfo.node(type)
+    func addService(
+        serviceName: String? = nil,
+        componentType: Any.Type,
+        returnType: Any.Type
+    ) throws {
+        let node = try EnrichedInfo.node(componentType)
         let parameter = node.children
             .filter(isParameter)
             .compactMap { node in
@@ -50,8 +54,9 @@ public extension ProtobufferBuilder {
             ouput: outputNode.value
         )
         
+        let name = try serviceName ?? (node.value.typeInfo.compatibleName() + "Service")
         let service = Service(
-            name: try node.value.typeInfo.compatibleName() + "Service",
+            name: name,
             methods: [method]
         )
         
@@ -63,8 +68,8 @@ internal extension ProtobufferBuilder {
     /// `addMessage` builds a Protobuffer message declaration from the type parameter.
     /// - Parameter type: the type of the message
     /// - Throws: `Error`s of type `Exception`
-    func addMessage(of type: Any.Type) throws {
-        try Message.node(type).forEach { element in
+    func addMessage(messageType: Any.Type) throws {
+        try Message.node(messageType).forEach { element in
             messages.insert(element)
         }
     }

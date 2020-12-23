@@ -204,7 +204,7 @@ extension ProtobufferBuilderInternalTests {
 @discardableResult
 private func buildMessage<T>(_ type: T.Type) throws -> String {
     let builder = ProtobufferBuilder()
-    try builder.addMessage(of: type)
+    try builder.addMessage(messageType: type)
     let description = builder.description
     
     print("""

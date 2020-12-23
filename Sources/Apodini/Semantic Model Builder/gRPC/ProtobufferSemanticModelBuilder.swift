@@ -5,7 +5,7 @@
 //  Created by Nityananda on 03.12.20.
 //
 
-import Vapor
+@_implementationOnly import Vapor
 import ProtobufferBuilder
 
 class ProtobufferSemanticModelBuilder: SemanticModelBuilder {
@@ -20,6 +20,19 @@ class ProtobufferSemanticModelBuilder: SemanticModelBuilder {
     }
     
     override func register<C>(component: C, withContext context: Context) where C : Component {
-        print(Result(catching: { try builder.addService(of: C.self, returning: C.Response.self) }))
+        let pathComponents = context.get(valueFor: PathComponentContextKey.self)
+        let serviceName = StringPathBuilder(pathComponents, delimiter: "")
+            .build()
+            .capitalized
+        
+        do {
+            try builder.addService(
+                serviceName: serviceName,
+                componentType: C.self,
+                returnType: C.Response.self
+            )
+        } catch {
+            app.logger.error("\(error)")
+        }
     }
 }
