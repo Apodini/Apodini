@@ -72,6 +72,50 @@ extension ProtobufferBuilderInternalTests {
         XCTAssertEqual(try buildMessage(Message.self), expected)
     }
     
+    func testGenericTypeFirstOrder() throws {
+        struct Tuple<U, V>  {
+            let first: U
+            let second: V
+        }
+        
+        let expected = """
+            syntax = "proto3";
+
+            message TupleOfUInt32AndUInt64Message {
+              uint32 first = 1;
+              uint64 second = 2;
+            }
+            """
+        
+        XCTAssertEqual(try buildMessage(Tuple<UInt32, UInt64>.self), expected)
+    }
+    
+    func testGenericTypeSecondOrder() throws {
+        struct Box<T> {
+            let value: T
+        }
+        
+        struct Tuple<U, V>  {
+            let first: U
+            let second: V
+        }
+        
+        let expected = """
+            syntax = "proto3";
+
+            message BoxOfTupleOfUInt32AndUInt64Message {
+              TupleOfUInt32AndUInt64Message value = 1;
+            }
+
+            message TupleOfUInt32AndUInt64Message {
+              uint32 first = 1;
+              uint64 second = 2;
+            }
+            """
+        
+        XCTAssertEqual(try buildMessage(Box<Tuple<UInt32, UInt64>>.self), expected)
+    }
+    
     func testHierarchyFirstOrder() throws {
         struct Location {
             let latitude: UInt32

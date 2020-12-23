@@ -13,12 +13,13 @@ func fixArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     let typeInfo = node.value.typeInfo
     
     guard ParticularType(typeInfo.type).isArray,
-          let first = typeInfo.genericTypes.first,
-          let newNode = try EnrichedInfo.tree(first) else {
+          let first = typeInfo.genericTypes.first else {
         return node
     }
     
-    if (newNode as Tree).contains(where: { enrichedInfo in
+    let newNode = try EnrichedInfo.node(first)
+    
+    if newNode.contains(where: { enrichedInfo in
         enrichedInfo.typeInfo.type == typeInfo.type
     }) {
         throw DidFindRecursionError()
@@ -29,7 +30,6 @@ func fixArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
         propertyInfo: node.value.propertyInfo,
         propertiesOffset: node.value.propertiesOffset
     )
-    
     newEnrichedInfo.cardinality = .zeroToMany
     
     return Node(value: newEnrichedInfo, children: newNode.children)
