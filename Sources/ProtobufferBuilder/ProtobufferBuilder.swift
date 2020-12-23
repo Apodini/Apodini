@@ -42,7 +42,7 @@ public extension ProtobufferBuilder {
         let outputTree = try Message.tree(returnType)
         
         for tree in [inputTree, outputTree] {
-            tree.reduce(into: Set()) { result, value in
+            tree?.reduce(into: Set()) { result, value in
                 result.insert(value)
             }
             .forEach { element in
@@ -73,7 +73,7 @@ internal extension ProtobufferBuilder {
     /// - Parameter type: the type of the message
     /// - Throws: `Error`s of type `Exception`
     func addMessage(of type: Any.Type) throws {
-        try Message.tree(type)
+        try Message.tree(type)?
             .reduce(into: Set()) { result, value in
                 result.insert(value)
             }
@@ -85,12 +85,12 @@ internal extension ProtobufferBuilder {
 
 private extension Message {
     static func tree(_ type: Any.Type) throws -> Tree<Message> {
-        let filtered = try EnrichedInfo.tree(type)
-            .edited(fixArray)
-            .edited(fixOptional)
-            .edited(fixPrimitiveTypes)
-            .map(Message.Property.init)
-            .contextMap(Message.init)
+        let filtered = try EnrichedInfo.tree(type)?
+            .edited(fixArray)?
+            .edited(fixOptional)?
+            .edited(fixPrimitiveTypes)?
+            .map(Message.Property.init)?
+            .contextMap(Message.init)?
             .filter(isNotPrimitive)
         
         if filtered.isEmpty {

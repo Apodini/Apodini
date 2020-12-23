@@ -18,7 +18,7 @@ func fixArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
         return node
     }
     
-    if (newNode as Tree).contains(where: { enrichedInfo in
+    if newNode.contains(where: { enrichedInfo in
         enrichedInfo.typeInfo.type == typeInfo.type
     }) {
         throw DidFindRecursionError()

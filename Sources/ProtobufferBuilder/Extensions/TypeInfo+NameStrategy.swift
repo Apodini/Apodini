@@ -38,15 +38,15 @@ private extension TypeInfo {
             }
         }
         
-        let name = tree
+        let name = tree?
             .map { typeInfo in
                 ParticularType(typeInfo.type).description
-            }
+            }?
             .reduce(into: "") { result, next in
                 result += result.isEmpty
                     ? next
                     : "Of\(next)"
-            }
+            } ?? ""
         
         return name
     }
