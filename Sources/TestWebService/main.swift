@@ -41,11 +41,20 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
-    struct Greeter: Component {
-        @Parameter var name: String
+    struct TraditionalGreeter: Component {
+        // one cannot change their gender, it must be provided
+        @Parameter(.mutability(.constant)) var gender: String
+        // one cannot change their surname, but it can be ommitted
+        @Parameter(.mutability(.constant)) var surname: String = ""
+        // one can switch between formal and informal greeting at any time
+        @Parameter var name: String?
 
         func handle() -> String {
-            "Hello \(name)"
+            if let firstName = name {
+                return "Hi, \(firstName)!"
+            } else {
+                return "Hello, \(gender == "male" ? "Mr." : "Mrs.") \(surname)"
+            }
         }
     }
     
@@ -64,7 +73,7 @@ struct TestWebService: Apodini.WebService {
             }
         }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
         Group("greet") {
-            Greeter()
+            TraditionalGreeter()
         }
     }
 }

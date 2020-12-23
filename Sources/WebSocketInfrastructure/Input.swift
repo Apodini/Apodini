@@ -124,10 +124,7 @@ public struct Parameter<T>: InputParameter {
     private var _value: T?
     
     public var value: T? {
-        if let v = _value {
-            return v
-        }
-        return nil
+        return shiftOptional(_value)
     }
     
     public init(mutability: Mutability, necessity: Necessity) {
@@ -137,7 +134,7 @@ public struct Parameter<T>: InputParameter {
     }
     
     public mutating func update(_ value: Any) -> ParameterUpdateResult {
-        guard let newValue = value as? T else {
+        guard let newValue = assert(value, as: T.self) else {
             return .error(.badType)
         }
         
@@ -202,4 +199,30 @@ private class EquatableVisitorImplementation: EquatableVisitor {
             return false
         }
     }
+}
+
+private func assert<T>(_ value: Any, as type: T.Type = T.self) -> T? {
+    if let asserted = value as? T {
+        return asserted
+    }
+    
+    if "\(value)" == "<null>" {
+        if let o = T.self as? ExpressibleByNilLiteral.Type {
+            return Optional<T>.some(o.init(nilLiteral: ()) as! T)
+        }
+    }
+    
+    return nil
+}
+
+private func shiftOptional<T>(_ value: T?) -> T? {
+    if let nonNilValue = value {
+        return nonNilValue
+    }
+    
+    if let o = T.self as? ExpressibleByNilLiteral.Type {
+        return Optional<T>.some(o.init(nilLiteral: ()) as! T)
+    }
+    
+    return nil
 }
