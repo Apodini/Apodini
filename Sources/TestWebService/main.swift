@@ -48,8 +48,8 @@ struct TestWebService: Apodini.WebService {
         @Parameter
         var age: Int32
 
-        func handle() -> String {
-            "Hello \(name), you are \(age) years old."
+        func handle() -> [String] {
+            ["Hello \(name), you are \(age) years old.", "zwei"]
         }
     }
     

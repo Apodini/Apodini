@@ -27,7 +27,7 @@ class WebServiceModel {
 }
 
 class SharedSemanticModelBuilder: SemanticModelBuilder {
-    private var interfaceExporters: [InterfaceExporter]
+    var interfaceExporters: [InterfaceExporter]
     
     var webService: WebServiceModel
     var rootNode: EndpointsTreeNode
@@ -73,6 +73,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
             description: String(describing: component),
             context: context,
             operation: operation,
+            componentName: "\(C.self)",
             requestHandler: requestHandler,
             handleReturnType: C.Response.self,
             responseType: responseType,

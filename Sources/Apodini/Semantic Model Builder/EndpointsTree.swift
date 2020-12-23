@@ -33,6 +33,10 @@ struct Endpoint {
     let context: Context
     
     let operation: Operation
+
+    /// The type name of the associated component.
+    /// Used by the gRPC exporter as the default method name.
+    let componentName: String
     
     let requestHandler: RequestHandler
     /// Type returned by `handle()`
@@ -55,6 +59,7 @@ struct Endpoint {
         description: String,
         context: Context,
         operation: Operation,
+        componentName: String,
         requestHandler: @escaping RequestHandler,
         handleReturnType: Encodable.Type,
         responseType: Encodable.Type,
@@ -63,6 +68,7 @@ struct Endpoint {
         self.description = description
         self.context = context
         self.operation = operation
+        self.componentName = componentName
         self.requestHandler = requestHandler
         self.handleReturnType = handleReturnType
         self.responseType = responseType

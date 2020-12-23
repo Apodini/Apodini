@@ -13,16 +13,6 @@ import ProtobufferCoding
 /// Used by the `GRPCSemanticModelBuilder` to expose
 /// `handle` functions of `Components`.
 class GRPCService {
-    private let supportedTypes: [Any.Type] = [
-        String.self,
-        Int32.self,
-        Int64.self,
-        UInt32.self,
-        UInt64.self,
-        Double.self,
-        Float.self
-    ]
-
     let app: Vapor.Application
     var serviceName: String
 
@@ -36,51 +26,12 @@ class GRPCService {
     }
 }
 
-// MARK: Processing guards
-extension GRPCService {
-    func processGuards(_ request: Request, with context: Context) -> [EventLoopFuture<Void>] {
-        return context.get(valueFor: GuardContextKey.self)
-            .map { requestGuard in
-                request.enterRequestContext(with: requestGuard()) { requestGuard in
-                    requestGuard.executeGuardCheck(on: request)
-                }
-            }
-    }
-}
-
 // MARK: Encoding response
 extension GRPCService {
-    fileprivate struct ResponseWrapper<T>: Encodable where T: Encodable {
-        var response: T
-    }
-
-    /// Tests whther the given value is
-    /// a collection.
-    /// - returns True if the given value is a collection, else False
-    private func isCollection(_ any: Any) -> Bool {
-        switch Mirror(reflecting: any).displayStyle {
-        case .some(.collection):
-            return true
-        default:
-            return false
-        }
-    }
-
     /// Encodes the given encodable value
     /// to  `Data` using Protobuffer encoding
-    private func encode<T: Encodable>(_ value: T) throws -> Data {
-        let message: Data
-        if supportedTypes.contains(where: { $0 == T.self }) ||
-            isCollection(value) {
-            // if value is not a complex type
-            // (either only a primitive type or a collection),
-            // we need to wrap it into a struct to
-            // actually have a messsage
-            let wrapped = ResponseWrapper(response: value)
-            message = try ProtoEncoder().encode(wrapped)
-        } else {
-            message = try ProtoEncoder().encode(value)
-        }
+    private func encode(_ value: Encodable) throws -> Data {
+        let message = try ProtoEncoder().encode(AnyEncodable(value: value))
         // https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md
         // A response is prefixed by
         // - 1 byte:    compressed (true / false)
@@ -96,7 +47,7 @@ extension GRPCService {
     }
 
     /// Builds a `Vapor.Response` from the given encodable value.
-    func encodeResponse<T: Encodable>(_ value: T) -> Vapor.Response {
+    func encodeResponse(_ value: Encodable) -> Vapor.Response {
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/grpc+proto")
         do {

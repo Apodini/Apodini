@@ -32,9 +32,8 @@ extension WebService {
             let webService = Self()
 
             webService.register(
-                SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self),
+                SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self, GRPCSemanticModelBuilder.self),
                 GraphQLSemanticModelBuilder(app),
-                GRPCSemanticModelBuilder(app),
                 WebSocketSemanticModelBuilder(app)
             )
 

@@ -10,40 +10,41 @@
 import NIOHPACK
 import ProtobufferCoding
 
-class GRPCSemanticModelBuilder: SemanticModelBuilder {
+class GRPCSemanticModelBuilder: InterfaceExporter {
+    let app: Application
     var services: [String: GRPCService]
 
-    override init(_ app: Application) {
+    required init(_ app: Application) {
+        self.app = app
         self.services = [:]
-        super.init(app)
     }
 
-    override func register<C: Component>(component: C, withContext context: Context) {
-        super.register(component: component, withContext: context)
-
-        var serviceName = context.get(valueFor: GRPCServiceNameContextKey.self)
+    func export(_ endpoint: Endpoint) {
+        var serviceName = endpoint.context.get(valueFor: GRPCServiceNameContextKey.self)
         // if no explicit servicename is provided via the modifier,
         // simply use the PathComponents to come up with one
         if serviceName == GRPCServiceNameContextKey.defaultValue {
-            let components = context.get(valueFor: PathComponentContextKey.self)
+            let components = endpoint.context.get(valueFor: PathComponentContextKey.self)
             let builder = StringPathBuilder(components, delimiter: "")
             serviceName = builder.build()
         }
 
-        var methodName = context.get(valueFor: GRPCMethodNameContextKey.self)
+        var methodName = endpoint.context.get(valueFor: GRPCMethodNameContextKey.self)
         // if no explicit methodname is provided via the modifier,
         // we have to rely on the component name
         if methodName == GRPCMethodNameContextKey.defaultValue {
-            methodName = "\(C.self)".lowercased()
+            methodName = endpoint.componentName.lowercased()
         }
+
+        let requestHandler = endpoint.requestHandler
 
         // expose the new component via a GRPCService
         // currently unary enpoints are considered here
         if let service = services[serviceName] {
-            service.exposeUnaryEndpoint(name: methodName, for: component, with: context)
+            service.exposeUnaryEndpoint(name: methodName, requestHandler: requestHandler)
         } else {
             let service = GRPCService(name: serviceName, using: app)
-            service.exposeUnaryEndpoint(name: methodName, for: component, with: context)
+            service.exposeUnaryEndpoint(name: methodName, requestHandler: requestHandler)
             services[serviceName] = service
             app.logger.info("Exposed new gRPC service with name: \(serviceName)")
         }

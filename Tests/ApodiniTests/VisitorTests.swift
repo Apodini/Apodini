@@ -67,7 +67,7 @@ final class VisitorTests: XCTestCase {
     }
     
     func testGRPCVisitor() {
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [GRPCSemanticModelBuilder(app)])
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [SharedSemanticModelBuilder(app, interfaceExporters: GRPCSemanticModelBuilder.self)])
         TestWebService().visit(visitor)
     }
     

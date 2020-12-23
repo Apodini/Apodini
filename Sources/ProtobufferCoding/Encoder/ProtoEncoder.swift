@@ -34,7 +34,12 @@ internal class InternalProtoEncoder: Encoder {
     }
 
     func singleValueContainer() -> SingleValueEncodingContainer {
-        fatalError("Single value encoding not supported yet")
+        if hasContainer {
+            fatalError("Attempt to create new encoding container while encoder already has one")
+        }
+
+        self.hasContainer = true
+        return SingleValueProtoEncodingContainer(using: self, codingPath: codingPath)
     }
 
     func append(_ value: Data) {
