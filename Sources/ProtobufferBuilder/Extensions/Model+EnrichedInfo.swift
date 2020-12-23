@@ -6,7 +6,11 @@
 //
 
 extension Message.Property {
-    init(_ info: EnrichedInfo) throws {
+    init?(_ info: EnrichedInfo) throws {
+        guard info.typeInfo.type != ProtobufferBuilderDidEncounterCircle.self else {
+            return nil
+        }
+        
         let particularType = ParticularType(info.typeInfo.type)
         let name = info.propertyInfo?.name ?? ""
         let suffix = particularType.isPrimitive ? "" : "Message"
@@ -33,9 +37,15 @@ extension Message.Property {
 }
 
 extension Message {
-    init(_ node: Node<Property>) {
-        let name = node.value.typeName
-        let properties = node.children.map(\.value)
+    init?(_ node: Node<Property?>) {
+        /// If a child is nil, there is a circle in theory.
+        /// Thus, this message is incomplete.
+        /// However, a complete message was built closer to the root of the tree.
+        let properties = node.children.compactMap { $0.value }
+        guard properties.count == node.children.count,
+              let name = node.value?.typeName else {
+            return nil
+        }
         
         self.init(
             name: name,

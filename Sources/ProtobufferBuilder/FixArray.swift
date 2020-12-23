@@ -7,7 +7,7 @@
 
 @_implementationOnly import Runtime
 
-struct DidFindRecursionError: Error {}
+enum ProtobufferBuilderDidEncounterCircle {}
 
 func fixArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     let typeInfo = node.value.typeInfo
@@ -17,13 +17,15 @@ func fixArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
         return node
     }
     
-    let newNode = try EnrichedInfo.node(first)
+    let newTree = try EnrichedInfo.node(first)
+        .edited { node in
+            /// Check if a type is repeated and if it comes true, inject a _trap_.
+            node.value.typeInfo.type == typeInfo.type
+                ? try EnrichedInfo.node(ProtobufferBuilderDidEncounterCircle.self)
+                : node
+        }
     
-    if newNode.contains(where: { enrichedInfo in
-        enrichedInfo.typeInfo.type == typeInfo.type
-    }) {
-        throw DidFindRecursionError()
-    }
+    guard let newNode = newTree else { return nil }
     
     var newEnrichedInfo = EnrichedInfo(
         typeInfo: newNode.value.typeInfo,
