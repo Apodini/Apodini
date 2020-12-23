@@ -11,3 +11,4 @@ public struct ModelInfo: DatabaseInjectionContext {
     public var type: Any.Type
     
 }
+

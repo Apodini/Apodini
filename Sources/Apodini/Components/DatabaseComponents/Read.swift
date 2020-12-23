@@ -8,14 +8,15 @@ public struct Read<Model: DatabaseModel>: Component where Model.IDValue: Lossles
     
     @Parameter var dummy: String
 
-    @Dynamics var dynamics: [String: Param]
+    @Dynamics var dynamics: [String: Parameter<String>]
+    
     
     public init(_ dummy: Parameter<String>) {
         self._dummy = dummy
-        var dynamicValues: [String: Param] = [:]
+        var dynamicValues: [String: Parameter<String>] = [:]
         let infos = QueryBuilder.info(for: Model.self)
         for info in infos {
-            dynamicValues[info.key.description] = Param(context: info)
+            dynamicValues[info.key.description] = Parameter<String>(.database(info))
         }
         _dynamics = Dynamics(wrappedValue: dynamicValues)
     }

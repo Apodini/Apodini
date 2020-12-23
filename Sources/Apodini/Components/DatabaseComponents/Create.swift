@@ -14,6 +14,4 @@ public struct Create<T: DatabaseModel>: Component {
             self.object
         })
     }
-    
-    public init() {}
 }

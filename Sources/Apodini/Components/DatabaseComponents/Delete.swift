@@ -16,6 +16,4 @@ public struct Delete<T: DatabaseModel>: Component {
             .flatMap({ $0.delete(on: database )})
             .map({ .ok })
     }
-    
-    public init() {}
 }

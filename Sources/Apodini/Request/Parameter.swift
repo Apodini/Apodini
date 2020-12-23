@@ -55,6 +55,15 @@ public struct Parameter<Element: Codable> {
         self.options = PropertyOptionSet(options)
     }
     
+    /// Creates a new `@Parameter` that indicates input of a `Component` without a default value or a different name.
+    /// - Parameters:
+    ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
+    public init(_ options: Option...) {
+        self.defaultValue = nil
+        self.name = nil
+        self.options = PropertyOptionSet(options)
+    }
+    
     /// Creates a new `@Parameter` that indicates input of a `Component`.
     /// - Parameters:
     ///   - defaultValue: The default value that should be used in case the interface exporter can not decode the value from the input of the `Component`
@@ -84,7 +93,11 @@ public struct Parameter<Element: Codable> {
 extension Parameter: RequestInjectable {
     mutating func inject(using request: Vapor.Request, with decoder: RequestInjectableDecoder?) throws {
         if let decoder = decoder {
-            element = try decoder.decode(Element.self, with: nil, from: request)
+            if let context = option(for: .databaseContext) {
+                element = try decoder.decode(Element.self, with: context.injectionContext, from: request)
+            } else {
+                element = try decoder.decode(Element.self, with: nil, from: request)
+            }
         }
     }
 
