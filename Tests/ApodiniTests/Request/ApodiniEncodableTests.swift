@@ -24,13 +24,14 @@ final class ApodiniEncodableTests: ApodiniTests, ApodiniEncodableVisitor {
         ApodiniEncodableTests.expectedValue = ""
     }
 
-    func visit<Element>(encodable: Element) where Element : Encodable {
+    func visit<Element>(encodable: Element) where Element: Encodable {
         XCTFail("Visit for Encodable was called, when visit for Action should have been called")
     }
 
-    func visit<Element>(action: Action<Element>) where Element : Encodable {
+    func visit<Element>(action: Action<Element>) where Element: Encodable {
         switch action {
         case let .final(element):
+            // swiftlint:disable:next force_cast
             XCTAssertEqual(element as! String, ApodiniEncodableTests.expectedValue)
         default:
             XCTFail("Expected value wrappen in .final")
@@ -41,6 +42,7 @@ final class ApodiniEncodableTests: ApodiniTests, ApodiniEncodableVisitor {
         let result = component.handle()
         switch result {
         case is ApodiniEncodable:
+            // swiftlint:disable:next force_cast
             (result as! ApodiniEncodable).accept(self)
         default:
             XCTFail("Expected ApodiniEncodable")
