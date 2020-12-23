@@ -187,7 +187,7 @@ extension ProtobufferBuilderInternalTests {
             syntax = "proto3";
 
             message FirstMessage {
-              required SecondMessage value = 1;
+              SecondMessage value = 1;
             }
 
             message SecondMessage {
