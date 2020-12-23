@@ -27,9 +27,10 @@ public enum Action<Element: Encodable>: ApodiniEncodable {
 
     public func encode(to encoder: Encoder) throws {
         switch self {
-        case .nothing,
-             .end:
+        case .nothing:
             fatalError("Tried encoding Action.nothing!")
+        case .end:
+            fatalError("Tried encoding Action.end!")
         case let .send(element):
             try element.encode(to: encoder)
         case let .final(element):
