@@ -104,14 +104,13 @@ final class GRPCSemanticModelBuilderTests: XCTestCase {
     func testUnaryRequestHandlerWithOneParamater() throws {
         let serviceName = "TestService"
         let methodName = "testMethod"
-        let modelBuilder = SharedSemanticModelBuilder(app, interfaceExporters: GRPCSemanticModelBuilder.self)
         let service = GRPCService(name: serviceName, using: app)
 
         let requestData: [UInt8] =
             [0, 0, 0, 0, 10, 10, 6, 77, 111, 114, 105, 116, 122, 16, 23]
-        let expectedResponseString = "Hello Moritz"
-//        let expectedResponseData: [UInt8] =
-//            [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
+        // let expectedResponseString = "Hello Moritz"
+        let expectedResponseData: [UInt8] =
+            [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/grpc+proto")
@@ -126,11 +125,12 @@ final class GRPCSemanticModelBuilderTests: XCTestCase {
                                          logger: app.logger,
                                          on: group.next())
 
-//        let sharedHandler = modelBuilder.interfaceExporters.filter({ $0 is GRPCSemanticModelBuilder }).first!
-//        let requestHandler = service.exposeUnaryEndpoint(name: <#T##String#>, requestHandler: <#T##RequestHandler##RequestHandler##(Request) -> EventLoopFuture<Encodable>#>, of: <#T##Encodable.Type#>) createUnaryHandler(for: GRPCTestHandler(),
-//                                                        with: Context(contextNode: ContextNode()))
-//        let resultString = try requestHandler(GRPCRequest(vaporRequest)).wait()
-//        XCTAssertEqual(resultString, expectedResponseString)
+        let requestHandler = SharedSemanticModelBuilder.createRequestHandler(with: GRPCTestHandler(),
+                                                                             guards: [],
+                                                                             responseModifiers: [])
+        let response = try service.createUnaryHandler(requestHandler: requestHandler)(vaporRequest).wait()
+        let responseData = try XCTUnwrap(response.body.data)
+        XCTAssertEqual(responseData, Data(expectedResponseData))
     }
 
     func testUnaryRequestHandlerWithTwoParameters() throws {
@@ -140,9 +140,14 @@ final class GRPCSemanticModelBuilderTests: XCTestCase {
 
         let requestData: [UInt8] =
             [0, 0, 0, 0, 10, 10, 6, 77, 111, 114, 105, 116, 122, 16, 23]
-        let expectedResponseString = "Hello Moritz, you are 23 years old."
-//        let expectedResponseData: [UInt8] =
-//            [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
+        // let expectedResponseString = "Hello Moritz, you are 23 years old."
+        let expectedResponseData: [UInt8] = [
+            0, 0, 0, 0, 37,
+            10, 35, 72, 101, 108, 108, 111, 32, 77,
+            111, 114, 105, 116, 122, 44, 32, 121, 111,
+            117, 32, 97, 114, 101, 32, 50, 51, 32, 121,
+            101, 97, 114, 115, 32, 111, 108, 100, 46
+        ]
 
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/grpc+proto")
@@ -157,9 +162,11 @@ final class GRPCSemanticModelBuilderTests: XCTestCase {
                                          logger: app.logger,
                                          on: group.next())
 
-//        let requestHandler = service.createUnaryHandler(for: GRPCTestHandler2(),
-//                                                        with: Context(contextNode: ContextNode()))
-//        let resultString = try requestHandler(GRPCRequest(vaporRequest)).wait()
-//        XCTAssertEqual(resultString, expectedResponseString)
+        let requestHandler = SharedSemanticModelBuilder.createRequestHandler(with: GRPCTestHandler2(),
+                                                                             guards: [],
+                                                                             responseModifiers: [])
+        let response = try service.createUnaryHandler(requestHandler: requestHandler)(vaporRequest).wait()
+        let responseData = try XCTUnwrap(response.body.data)
+        XCTAssertEqual(responseData, Data(expectedResponseData))
     }
 }
