@@ -42,10 +42,13 @@ private extension TypeInfo {
             .map { typeInfo in
                 ParticularType(typeInfo.type).description
             }
-            .reduce(into: "") { result, next in
-                result += result.isEmpty
-                    ? next
-                    : "Of\(next)"
+            .reduce("") { results, next in
+                let partialResult = results
+                    .joined(separator: "And")
+                
+                return [next, partialResult]
+                    .filter { !$0.isEmpty }
+                    .joined(separator: "Of")
             }
         
         return name

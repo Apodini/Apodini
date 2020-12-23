@@ -39,10 +39,7 @@ public extension ProtobufferBuilder {
         let outputNode = try Message.node(returnType)
         
         for node in [inputNode, outputNode] {
-            node.reduce(into: Set()) { result, value in
-                result.insert(value)
-            }
-            .forEach { element in
+            node.forEach { element in
                 messages.insert(element)
             }
         }
@@ -67,13 +64,9 @@ internal extension ProtobufferBuilder {
     /// - Parameter type: the type of the message
     /// - Throws: `Error`s of type `Exception`
     func addMessage(of type: Any.Type) throws {
-        try Message.node(type)
-            .reduce(into: Set()) { result, value in
-                result.insert(value)
-            }
-            .forEach { element in
-                messages.insert(element)
-            }
+        try Message.node(type).forEach { element in
+            messages.insert(element)
+        }
     }
 }
 

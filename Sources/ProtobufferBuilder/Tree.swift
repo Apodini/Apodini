@@ -74,21 +74,6 @@ extension Node {
         return Node(value: value, children: children)
     }
     
-    func reduce<U>(
-        into initialResult: U,
-        _ updateAccumulatingResult: (inout U, T) throws -> Void
-    ) rethrows -> U {
-        var result = initialResult
-        
-        try updateAccumulatingResult(&result, value)
-        
-        for child in children {
-            result = try child.reduce(into: result, updateAccumulatingResult)
-        }
-        
-        return result
-    }
-    
     func contains(
         where predicate : (T) throws -> Bool
     ) rethrows -> Bool {
@@ -99,6 +84,23 @@ extension Node {
         return try children.contains { child in
             try child.contains(where: predicate)
         }
+    }
+}
+
+extension Node {
+    func reduce<Result>(
+        _ initialResult: Result,
+        _ nextPartialResult: ([Result], T) throws -> Result
+    ) rethrows -> Result {
+        let partialResults = try children.map { child in
+            try child.reduce(initialResult, nextPartialResult)
+        }
+        
+        return try nextPartialResult(partialResults, value)
+    }
+    
+    func forEach(_ body: (T) throws -> Void) rethrows {
+        _ = try map(body)
     }
 }
 
