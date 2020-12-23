@@ -62,6 +62,23 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
             "Hello Test Handler 3"
         }
     }
+
+    struct ActionHandler: Component {
+        @Apodini.Environment(\.connection)
+        var connection: Connection
+
+        @Parameter
+        var name: String
+
+        func handle() -> Action<String> {
+            switch connection.state {
+            case .open:
+                return .send("Hello \(name)")
+            default:
+                return .final("Bye \(name)")
+            }
+        }
+    }
     
     struct TestComponent: Component {
         @PathParameter
@@ -148,5 +165,19 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         let responseString = try XCTUnwrap(response as? String)
 
         XCTAssert(responseString == "✅ Hello \(name) ✅")
+    }
+
+    func testCreateRequestHandlerWithAction() throws {
+        let transformer = EmojiMediator(emojis: "✅")
+        let component = ActionHandler()
+            .withEnvironment(Connection(state: .open), for: \.connection)
+        let requestHandler = SharedSemanticModelBuilder.createRequestHandler(with: component,
+                                                                             guards: [],
+                                                                             responseModifiers: [ { transformer } ])
+        let name = "Craig"
+        let request = RESTRequest(Vapor.Request(application: app, on: app.eventLoopGroup.next())) { _ in name }
+        let response = try requestHandler(request).wait()
+        let responseString = try XCTUnwrap(response as? String)
+        XCTAssertEqual(responseString, "✅ Hello \(name) ✅")
     }
 }
