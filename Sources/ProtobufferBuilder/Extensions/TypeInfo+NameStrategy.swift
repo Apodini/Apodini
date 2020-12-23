@@ -32,26 +32,10 @@ extension TypeInfo {
 
 private extension TypeInfo {
     func compatibleGenericName() throws -> String {
-        let node = try Node(root: self) { typeInfo in
-            try typeInfo.genericTypes.map { element in
-                try Runtime.typeInfo(of: element)
-            }
-        }
-        
-        let name = node
-            .map { typeInfo in
-                ParticularType(typeInfo.type).description
-            }
-            .reduce("") { results, next in
-                let partialResult = results
-                    .joined(separator: "And")
-                
-                return [next, partialResult]
-                    .filter { !$0.isEmpty }
-                    .joined(separator: "Of")
-            }
-        
-        return name
+        return String(describing: type)
+            .replacingOccurrences(of: ">", with: "")
+            .replacingOccurrences(of: "<", with: "Of")
+            .replacingOccurrences(of: ", ", with: "And")
     }
 
     func tupleName() throws -> String {
