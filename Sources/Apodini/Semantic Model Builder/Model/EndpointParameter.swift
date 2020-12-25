@@ -65,6 +65,7 @@ protocol AnyEndpointParameter {
     var necessity: Necessity { get }
     /// Defines the `EndpointParameterType` of the parameter.
     var parameterType: EndpointParameterType { get }
+    var typeErasuredDefaultValue: Any? { get }
 
     func accept<Visitor: EndpointParameterVisitor>(_ visitor: Visitor) -> Visitor.Output
     func accept<Visitor: EndpointParameterThrowingVisitor>(_ visitor: Visitor) throws -> Visitor.Output
@@ -101,13 +102,25 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
     let necessity: Necessity
     let parameterType: EndpointParameterType
 
-    init(id: UUID, name: String, label: String, necessity: Necessity, options: PropertyOptionSet<ParameterOptionNameSpace>) {
+    let defaultValue: Type?
+    var typeErasuredDefaultValue: Any? {
+        defaultValue
+    }
+
+    init(id: UUID,
+         name: String,
+         label: String,
+         necessity: Necessity,
+         options: PropertyOptionSet<ParameterOptionNameSpace>,
+         defaultValue: Type? = nil
+    ) {
         self.id = id
         self.name = name
         self.label = label
         self.propertyType = Type.self
         self.options = options
         self.necessity = necessity
+        self.defaultValue = defaultValue
 
         let httpOption = options.option(for: PropertyOptionKey.http)
         switch httpOption {
@@ -176,18 +189,22 @@ class ParameterBuilder: RequestInjectableVisitor {
         let endpointParameter: AnyEndpointParameter
         if let optionalParameter = parameter as? EncodeOptionalEndpointParameter {
             endpointParameter = optionalParameter.createParameterWithWrappedType(
-                    id: parameter.id,
                     name: parameter.name ?? trimmedLabel,
-                    label: label,
-                    options: parameter.options
+                    label: label
             )
         } else {
+            var `default`: Element?
+            if let value = parameter.defaultValue {
+                `default` = value
+            }
+
             endpointParameter = EndpointParameter<Element>(
                     id: parameter.id,
                     name: parameter.name ?? trimmedLabel,
                     label: label,
                     necessity: .required,
-                    options: parameter.options
+                    options: parameter.options,
+                    defaultValue: `default`
             )
         }
 
@@ -197,27 +214,29 @@ class ParameterBuilder: RequestInjectableVisitor {
 
 protocol EncodeOptionalEndpointParameter {
     func createParameterWithWrappedType(
-            id: UUID,
             name: String,
-            label: String,
-            options: PropertyOptionSet<ParameterOptionNameSpace>
+            label: String
     ) -> AnyEndpointParameter
 }
 
 // MARK: Parameter Model
 extension Parameter: EncodeOptionalEndpointParameter where Element: ApodiniOptional, Element.Member: Codable {
     func createParameterWithWrappedType(
-            id: UUID,
             name: String,
-            label: String,
-            options: PropertyOptionSet<ParameterOptionNameSpace>
+            label: String
     ) -> AnyEndpointParameter {
-        EndpointParameter<Element.Member>(
-                id: id,
+        var `default`: Element.Member?
+        if let value = self.defaultValue {
+            `default` = value.optionalInstance
+        }
+
+        return EndpointParameter<Element.Member>(
+                id: self.id,
                 name: name,
                 label: label,
                 necessity: .optional,
-                options: options
+                options: self.options,
+                defaultValue: `default`
         )
     }
 }

@@ -33,8 +33,8 @@ final class EndpointsTreeTests: ApodiniTests {
         }
 
         @Parameter("multiply")
-        var times: Int
-        var timesParameter: Parameter<Int> {
+        var times: Int? = 1
+        var timesParameter: Parameter<Int?> {
             _times
         }
 
@@ -45,7 +45,8 @@ final class EndpointsTreeTests: ApodiniTests {
         }
         
         func handle() -> String {
-            (0...times)
+            // swiftlint:disable:next force_unwrapping
+            (0...times!)
                 .map { _ in
                     "Hello \(name) born in \(birthdate.year)!"
                 }
@@ -89,6 +90,17 @@ final class EndpointsTreeTests: ApodiniTests {
         XCTAssertEqual(birthdateParameter.parameterType, .content)
         XCTAssertEqual(timesParameter.parameterType, .lightweight)
         XCTAssertEqual(nameParameter.parameterType, .path)
+
+        // check necessity
+        XCTAssertEqual(birthdateParameter.necessity, .required)
+        XCTAssertEqual(timesParameter.necessity, .optional)
+        XCTAssertEqual(nameParameter.necessity, .required)
+
+        // check default value
+        XCTAssertNil(birthdateParameter.typeErasuredDefaultValue)
+        // swiftlint:disable:next force_cast
+        XCTAssertEqual(timesParameter.typeErasuredDefaultValue as! Int?, 1)
+        XCTAssertNil(nameParameter.typeErasuredDefaultValue)
     }
 
     func testRequestHandler() throws {

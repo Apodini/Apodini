@@ -10,7 +10,7 @@ import protocol NIO.EventLoop
 enum MockRequest {
     static func createRequest(
             running eventLoop: EventLoop,
-            queuedParameters parameterValues: Any...
+            queuedParameters parameterValues: Any?...
     ) -> Request<MockExporter<String>, EmptyComponent> {
         createRequest(on: EmptyComponent(), running: eventLoop, queuedParameters: parameterValues)
     }
@@ -18,7 +18,15 @@ enum MockRequest {
     static func createRequest<C: Component>(
             on component: C,
             running eventLoop: EventLoop,
-            queuedParameters parameterValues: Any...
+            queuedParameters parameterValues: Any?...
+    ) -> Request<MockExporter<String>, C> {
+        createRequest(on: component, running: eventLoop, queuedParameters: parameterValues)
+    }
+
+    private static func createRequest<C: Component>(
+            on component: C,
+            running eventLoop: EventLoop,
+            queuedParameters parameterValues: [Any?]
     ) -> Request<MockExporter<String>, C> {
         let endpoint = component.mockEndpoint()
         let exporter = MockExporter<String>(queued: parameterValues)
