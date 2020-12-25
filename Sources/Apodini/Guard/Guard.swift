@@ -24,7 +24,7 @@ public protocol Guard {
 
 
 extension SyncGuard {
-    func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
+    func executeGuardCheck(on request: ApodiniRequest) -> EventLoopFuture<Void> {
         request.eventLoop.makeSucceededFuture(Void())
             .map {
                 request.enterRequestContext(with: self) { guardInstance in
@@ -36,7 +36,7 @@ extension SyncGuard {
 
 
 extension Guard {
-    func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
+    func executeGuardCheck(on request: ApodiniRequest) -> EventLoopFuture<Void> {
         request
             .enterRequestContext(with: self) { guardInstance in
                 guardInstance.check()
@@ -49,19 +49,19 @@ extension Guard {
 
 struct AnyGuard {
     let guardType: ObjectIdentifier
-    private var _executeGuardCheck: (Request) -> EventLoopFuture<Void>
-    
+    private var _executeGuardCheck: (ApodiniRequest) -> EventLoopFuture<Void>
+
     init<G: Guard>(_ guard: G) {
         guardType = ObjectIdentifier(G.self)
         _executeGuardCheck = `guard`.executeGuardCheck
     }
-    
+
     init<G: SyncGuard>(_ guard: G) {
         guardType = ObjectIdentifier(G.self)
         _executeGuardCheck = `guard`.executeGuardCheck
     }
-    
-    func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
+
+    func executeGuardCheck(on request: ApodiniRequest) -> EventLoopFuture<Void> {
         _executeGuardCheck(request)
     }
 }

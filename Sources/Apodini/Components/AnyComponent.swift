@@ -15,9 +15,9 @@ public struct AnyComponent: Component {
     }
 }
 
-
-extension AnyComponent: Visitable {
-    func visit(_ visitor: SyntaxTreeVisitor) {
+// MARK: Syntax Tree Visitor
+extension AnyComponent: SyntaxTreeVisitable {
+    func accept(_ visitor: SyntaxTreeVisitor) {
         _visit(visitor)
     }
 }

@@ -11,6 +11,20 @@ import Foundation
 /// Generic Parameter that can be used to mark that the options are meant for `@Parameter`s
 public enum ParameterOptionNameSpace { }
 
+/// This internal protocol is used to first of all check if the generic type Element of a `Parameter` is of type `Optional`,
+/// and additionally is used to extract the generic type Wrapped of the `Optional`.
+protocol OptionalParameter {
+    /// This method injects the element property by calling the method `Apodini.Request.retrieveOptionalParameter`.
+    /// Additionally it sets the `defaultValue` if the retrieval method does not yield any results.
+    ///
+    /// - Parameter request: The `Apodini.Request` to contact for parameter retrieval.
+    /// - Throws: Rethrows any errors thrown by `Apodini.Request.retrieveOptionalParameter`.
+    mutating func injectOnOptional(using request: ApodiniRequest) throws
+    /// This method sets parameter.element = self.element
+    /// - Parameter parameter: The Parameter to set the element on. The Parameter MUST have the same generic type as self.
+    func setElementOn<Element: Codable>(_ parameter: inout Parameter<Element>)
+}
+
 /// The `@Parameter` property wrapper can be used to express input in `Components`
 @propertyWrapper
 public struct Parameter<Element: Codable> {
@@ -24,13 +38,13 @@ public struct Parameter<Element: Codable> {
     var name: String?
     private var element: Element?
     internal var options: PropertyOptionSet<ParameterOptionNameSpace>
-    private var defaultValue: Element?
+    internal var defaultValue: Element?
     
     
     /// The value for the `@Parameter` as defined by the incoming request
     public var wrappedValue: Element {
         guard let element = element else {
-            fatalError("You can only access the body while you handle a request")
+            fatalError("You can only access a parameter while you handle a request")
         }
         
         return element
@@ -72,6 +86,12 @@ public struct Parameter<Element: Codable> {
         self.defaultValue = defaultValue
         self.name = name
         self.options = PropertyOptionSet(options)
+        #warning("""
+                 We may want to print a warning if the user adds a default value for a non-optional Parameter,
+                 as such a default value won't ever be used (currently). This check is best placed in the `EndpointParameter`
+                 as we can print a much more detailed warning (including property name and maybe struct/class name)
+                 to the user.
+                 """)
     }
     
     /// Creates a new `@Parameter` that indicates input of a `Component`.
@@ -86,7 +106,7 @@ public struct Parameter<Element: Codable> {
     
     /// Creates a new `@Parameter` that indicates input of a `Component's` `@PathParameter` based on an existing component.
     /// - Parameter id: The `UUID` that can be passed in from a parent `Component`'s `@PathParameter`.
-    /// - Precondition: A `@Parameter` with a specific `http` type `.body` or `.query` can not be passed to a seperate componet. Please remove the specific `.http` property option or specify the `.http` property option to `.path`.
+    /// - Precondition: A `@Parameter` with a specific `http` type `.body` or `.query` can not be passed to a separate component. Please remove the specific `.http` property option or specify the `.http` property option to `.path`.
     init(from id: UUID) {
         self.options = PropertyOptionSet([.http(.path)])
         self.id = id
@@ -98,10 +118,24 @@ public struct Parameter<Element: Codable> {
     }
 }
 
-
 extension Parameter: RequestInjectable {
-    mutating func inject(using request: Apodini.Request) throws {
-        element = try request.parameter(for: id)
+    mutating func inject(using request: ApodiniRequest) throws {
+        #warning("""
+                 Decoder errors (caused by user input!) is currently causing the inject method to throw.
+                 This currently leads to a call to fatalError, as the request injection doesn't handle errors thrown from inject.
+                 We need some sort of Apodini defined Error, which encodes such internal server errors and properly
+                 forwards that to the Exporter so it can respond with a proper error for its request.
+                 """)
+        if var optionalParameter = self as? OptionalParameter {
+            try optionalParameter.injectOnOptional(using: request)
+
+            // injectOnOptional is a mutation func, mutation the optionalParameter property
+            // Thus we need to copy the optionalParameter.element into self.element
+            // This is done via setElementOn(...)
+            optionalParameter.setElementOn(&self)
+        } else {
+            element = try request.retrieveParameter(Element.self, id: id)
+        }
     }
 
     func accept(_ visitor: RequestInjectableVisitor) {
@@ -109,6 +143,34 @@ extension Parameter: RequestInjectable {
     }
 }
 
+// MARK: Optional Parameter
+extension Parameter: OptionalParameter where Element: ApodiniOptional, Element.Member: Codable {
+    mutating func injectOnOptional(using request: ApodiniRequest) throws {
+        let value = try request.retrieveOptionalParameter(Element.Member.self, id: id)
+        if value == nil {
+            if defaultValue == nil {
+                // We know that Element=Optional<Element.Member>. Thus we can do the force cast.
+                // swiftlint:disable:next force_cast
+                element = Element?(Element.Member?(nil) as! Element)
+            } else {
+                // As the exporter didn't find any `value` and the user specified a `defaultValue`
+                // we just inject that into our Parameter.
+                element = defaultValue
+            }
+        } else {
+            // We know that Element=Optional<Element.Member>. Thus we can do the force cast.
+            // swiftlint:disable:next force_cast
+            element = Element?(value as! Element)
+        }
+    }
+
+    func setElementOn<Element: Codable>(_ parameter: inout Parameter<Element>) {
+        guard let element = element as? Element? else {
+            fatalError("Parameter.setElementOn was called for a parameter different than self!")
+        }
+        parameter.element = element
+    }
+}
 
 extension Parameter: _PathComponent {
     var description: String {
