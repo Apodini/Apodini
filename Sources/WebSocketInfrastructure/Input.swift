@@ -5,6 +5,7 @@
 //  Created by Max Obermeier on 04.12.20.
 //
 
+import Foundation
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 public enum ParameterUpdateError: WSError {
@@ -206,7 +207,7 @@ private func assert<T>(_ value: Any, as type: T.Type = T.self) -> T? {
         return asserted
     }
     
-    if "\(value)" == "<null>" {
+    if value is NSNull {
         if let o = T.self as? ExpressibleByNilLiteral.Type {
             return Optional<T>.some(o.init(nilLiteral: ()) as! T)
         }
