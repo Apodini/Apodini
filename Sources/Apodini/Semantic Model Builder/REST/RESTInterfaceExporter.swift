@@ -124,13 +124,16 @@ class RESTInterfaceExporter: InterfaceExporter {
         }
     }
 
-    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Vapor.Request) throws -> Type? {
+    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Vapor.Request) throws -> Type?? {
         switch parameter.parameterType {
         case .lightweight:
             // Note: Vapor also supports decoding into a struct which holds all query parameters. Though we have the requirement,
             //   that .lightweight parameter types conform to LosslessStringConvertible, meaning our DSL doesn't allow for that right now
 
-            return request.query[Type.self, at: parameter.name]
+            guard let query = request.query[Type.self, at: parameter.name] else {
+                return nil // the query parameter doesn't exists
+            }
+            return query
         case .path:
             guard let stringParameter = request.parameters.get(parameter.pathId) else {
                 return nil // the path parameter didn't exist on that request

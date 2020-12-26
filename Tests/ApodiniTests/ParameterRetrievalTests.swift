@@ -8,13 +8,13 @@ import XCTest
 class ParameterRetrievalTests: ApodiniTests {
     struct TestHandler: Component {
         @Parameter
-        var name: String
+        var name: String // will be set to "Rudi"
         @Parameter
-        var times: Int?
+        var times: Int? // will be set to 3
         @Parameter
-        var separator: String? = " "
+        var separator: String = " " // no value (nil) is supplied => defaultValue is used
         @Parameter
-        var prefix: String?
+        var prefix: String? = "Standard Prefix" // "explicit nil" (.null) is supplied => defaultValue is overwritten
 
 
         func handle() -> String {
@@ -22,8 +22,7 @@ class ParameterRetrievalTests: ApodiniTests {
                     .map { _ in
                         "Hello \(name)!"
                     }
-                    // swiftlint:disable:next force_unwrapping
-                    .joined(separator: separator!)
+                    .joined(separator: separator)
         }
     }
 
@@ -31,7 +30,7 @@ class ParameterRetrievalTests: ApodiniTests {
         let handler = TestHandler()
         let endpoint = handler.mockEndpoint()
 
-        let exporter = MockExporter<String>(queued: "Rudi", 3, nil, nil)
+        let exporter = MockExporter<String>(queued: "Rudi", 3, nil, .null)
 
         let requestHandler = endpoint.createRequestHandler(for: exporter)
         let result = try requestHandler

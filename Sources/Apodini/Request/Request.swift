@@ -26,8 +26,7 @@ protocol ApodiniRequest: CustomStringConvertible, CustomDebugStringConvertible {
     var defaultDatabase: Database? { get }
     func database(_ id: DatabaseID?) -> Database?
 
-    func retrieveParameter<Type: Codable>(_ type: Type.Type, id: UUID) throws -> Type
-    func retrieveOptionalParameter<Type: Codable>(_ type: Type.Type, id: UUID) throws -> Type?
+    func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>, of element: Element.Type) throws -> Element
 
     func enterRequestContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>) -> EventLoopFuture<R>
     func enterRequestContext<E, R>(with element: E, executing method: (E) -> R) -> R
@@ -81,35 +80,67 @@ struct Request<I: InterfaceExporter, C: Component>: ApodiniRequest {
         fatalError("Databases aren't supporter right now")
     }
 
-    func retrieveParameter<Type: Codable>(_ type: Type.Type = Type.self, id: UUID) throws -> Type {
-        let optionalResult: Type? = try retrieveOptionalParameter(id: id)
-
-        guard let result = optionalResult else {
-            #warning("Create some Apodini defined error, which is returned to the exporter so it can encode a response.")
-            fatalError("Didn't retrieve any parameters for a required parameter.")
+    func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>, of element: Element.Type = Element.self) throws -> Element {
+        guard let endpointParameter = endpoint.findParameter(for: parameter.id) else {
+            fatalError("Could not find the associated Parameter model for \(parameter.id) with type \(element). Something has gone horribly wrong!")
         }
 
-        return result
-    }
-
-    func retrieveOptionalParameter<Type: Codable>(_ type: Type.Type = Type.self, id: UUID) throws -> Type? {
-        guard let endpointParameter = endpoint.findParameter(for: id) else {
-            fatalError("Could not find the associated Parameter model for \(id) with type \(type). Something has gone horribly wrong!")
-        }
-
-        let visitor = ParameterRetrievalDelegation<Type, I>(exporter: exporter, request: exporterRequest)
-        return try endpointParameter.accept(visitor)
+        let retrieval = ParameterRetrievalDelegation<Element, I>(exporter: exporter, request: exporterRequest)
+        return try endpointParameter.accept(retrieval)
     }
 }
 
-private struct ParameterRetrievalDelegation<Type: Codable, I: InterfaceExporter>: EndpointParameterThrowingVisitor {
+/// This visitor is used to do the actual call to `InterfaceExporter.retrieveParameter(...)`.
+/// It also handles all checks done for a Parameter, meaning checking that a value is present for a required parameter
+/// and for optional parameters setting a optionally supplied default value.
+///
+/// Those four main cases are handled:
+/// ```@Parameter var value: String``` required, no default value, "explicit nil" not valid
+/// ```@Parameter var value: String?``` optional, no default value, "explicit nil" is valid, nilIsValidValue=true
+/// ```@Parameter var value: String = "ASdf"``` optional, with default value, "explicit nil" not valid
+/// ```@Parameter var value: String? = "ASdf"``` optional, with default value, "explicit nil" is valid, nilIsValidValue=true
+private struct ParameterRetrievalDelegation<Element: Codable, I: InterfaceExporter>: EndpointParameterThrowingVisitor {
     var exporter: I
     var request: I.ExporterRequest
 
-    func visit<Value: Codable>(parameter: EndpointParameter<Value>) throws -> Type? {
-        let value: Value? = try exporter.retrieveParameter(parameter, for: request)
+    func visit<Type: Codable>(parameter: EndpointParameter<Type>) throws -> Element {
+        let result: Type?? = try exporter.retrieveParameter(parameter, for: request)
+
+        var retrievedValue: Type?
+        if result == nil {
+            // Result is nil, meaning retrieveParameter returned nil, meaning
+            // the exporter encoded that there was no value provided for this parameter.
+            // => NON EXISTENCE
+
+            switch parameter.necessity {
+            case .required:
+                #warning("Create some Apodini defined error, which is returned to the exporter so it can encode a response.")
+                fatalError("Didn't retrieve any parameters for a required '\(parameter.description)'.")
+            case .optional:
+                // Writing the defaultValue into retrievedValue
+                // Either the optional parameter stays nil if the does not exists any default value
+                // or obviously the default value is used when it exists
+                retrievedValue = parameter.defaultValue
+            }
+        } else {
+            // swiftlint:disable:next force_unwrapping
+            retrievedValue = result!
+        }
+
+        guard let wrappedRetrievedValue = retrievedValue else {
+            if !parameter.nilIsValidValue {
+                #warning("Create some Apodini defined error, which is returned to the exporter so it can encode a response.")
+                fatalError("Parameter retrieval returned explicit nil, though explicit nil is not valid for the '\(parameter.description)'")
+            }
+
+            // as nilIsValidValue=true, we know that Element=Optional<Type>, thus we can cast as below.
+            // swiftlint:disable:next force_cast
+            return retrievedValue as! Element
+        }
+
+        // Reaching here we know, that Element=Type, thus we can cast as below
         // swiftlint:disable:next force_cast
-        return value as! Type?
+        return wrappedRetrievedValue as! Element
     }
 }
 

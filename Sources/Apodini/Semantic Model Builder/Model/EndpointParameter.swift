@@ -31,7 +31,7 @@ protocol EndpointParameterThrowingVisitor {
 }
 
 /// Describes a type erasured `EndpointParameter`
-protocol AnyEndpointParameter {
+protocol AnyEndpointParameter: CustomStringConvertible {
     /// The `UUID` which uniquely identifies the given `AnyEndpointParameter`.
     var id: UUID { get }
     var pathId: String { get }
@@ -57,15 +57,21 @@ protocol AnyEndpointParameter {
     /// ```
     /// this property holds `String.Type` and not `Optional<String>.self`.
     ///
-    /// Use the `necessity` property to check if a given `AnyEndpointParameter` is a optional parameter.
+    /// Use the `nilIsValidValue` property to check if the original parameter definition used an `Optional` type.
     var propertyType: Codable.Type { get }
+    /// See documentation of `propertyType`
+    var nilIsValidValue: Bool { get }
     /// Holds the options as defined by the user.
     var options: PropertyOptionSet<ParameterOptionNameSpace> { get }
     /// Defines the `Necessity` of the parameter.
     var necessity: Necessity { get }
     /// Defines the `EndpointParameterType` of the parameter.
     var parameterType: EndpointParameterType { get }
+    /// Specifies the default value for the parameter. Nil if the parameter doesn't have a default value.
     var typeErasuredDefaultValue: Any? { get }
+
+    /// See `CustomStringConvertible`
+    var description: String { get }
 
     func accept<Visitor: EndpointParameterVisitor>(_ visitor: Visitor) -> Visitor.Output
     func accept<Visitor: EndpointParameterThrowingVisitor>(_ visitor: Visitor) throws -> Visitor.Output
@@ -86,7 +92,7 @@ protocol AnyEndpointParameter {
 /// @Parameter var name: String?
 /// ```
 /// the generic holds `String.Type` and not `Optional<String>.self`.
-/// Use the `necessity` property to check if a given `EndpointParameter` is a optional parameter.
+/// Use the `nilIsValidValue` property to check if the original parameter definition used an `Optional` type.
 struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
     let id: UUID
     var pathId: String {
@@ -98,6 +104,7 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
     let name: String
     let label: String
     let propertyType: Codable.Type
+    let nilIsValidValue: Bool
     let options: PropertyOptionSet<ParameterOptionNameSpace>
     let necessity: Necessity
     let parameterType: EndpointParameterType
@@ -107,9 +114,12 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
         defaultValue
     }
 
+    let description: String
+
     init(id: UUID,
          name: String,
          label: String,
+         nilIsValidValue: Bool,
          necessity: Necessity,
          options: PropertyOptionSet<ParameterOptionNameSpace>,
          defaultValue: Type? = nil
@@ -118,17 +128,28 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
         self.name = name
         self.label = label
         self.propertyType = Type.self
+        self.nilIsValidValue = nilIsValidValue
         self.options = options
         self.necessity = necessity
         self.defaultValue = defaultValue
 
+        // If somebody wants to make this more fancy, one could add options into the @Parameter initializer
+        var description = "@Parameter var \(name): \(Type.self)"
+        if nilIsValidValue {
+            description += "?"
+        }
+        if let `default` = defaultValue {
+            description += " = \(`default`)"
+        }
+        self.description = description
+
         let httpOption = options.option(for: PropertyOptionKey.http)
         switch httpOption {
         case .path:
-            precondition(Type.self is LosslessStringConvertible.Type, "Invalid explicit option .path for parameter \(name). Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
+            precondition(Type.self is LosslessStringConvertible.Type, "Invalid explicit option .path for '\(description)'. Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
             parameterType = .path
         case .query:
-            precondition(Type.self is LosslessStringConvertible.Type, "Invalid explicit option .query for parameter \(name). Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
+            precondition(Type.self is LosslessStringConvertible.Type, "Invalid explicit option .query for '\(description)'. Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
             parameterType = .lightweight
         case .body:
             parameterType = .content
@@ -190,7 +211,8 @@ class ParameterBuilder: RequestInjectableVisitor {
         if let optionalParameter = parameter as? EncodeOptionalEndpointParameter {
             endpointParameter = optionalParameter.createParameterWithWrappedType(
                     name: parameter.name ?? trimmedLabel,
-                    label: label
+                    label: label,
+                    necessity: .optional
             )
         } else {
             var `default`: Element?
@@ -202,7 +224,8 @@ class ParameterBuilder: RequestInjectableVisitor {
                     id: parameter.id,
                     name: parameter.name ?? trimmedLabel,
                     label: label,
-                    necessity: .required,
+                    nilIsValidValue: false,
+                    necessity: parameter.defaultValue == nil ? .required : .optional, // a parameter is optional when a defaultValue is defined
                     options: parameter.options,
                     defaultValue: `default`
             )
@@ -215,7 +238,8 @@ class ParameterBuilder: RequestInjectableVisitor {
 protocol EncodeOptionalEndpointParameter {
     func createParameterWithWrappedType(
             name: String,
-            label: String
+            label: String,
+            necessity: Necessity
     ) -> AnyEndpointParameter
 }
 
@@ -223,7 +247,8 @@ protocol EncodeOptionalEndpointParameter {
 extension Parameter: EncodeOptionalEndpointParameter where Element: ApodiniOptional, Element.Member: Codable {
     func createParameterWithWrappedType(
             name: String,
-            label: String
+            label: String,
+            necessity: Necessity
     ) -> AnyEndpointParameter {
         var `default`: Element.Member?
         if let value = self.defaultValue {
@@ -234,7 +259,8 @@ extension Parameter: EncodeOptionalEndpointParameter where Element: ApodiniOptio
                 id: self.id,
                 name: name,
                 label: label,
-                necessity: .optional,
+                nilIsValidValue: true,
+                necessity: necessity,
                 options: self.options,
                 defaultValue: `default`
         )

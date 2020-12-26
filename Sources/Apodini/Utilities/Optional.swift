@@ -16,3 +16,11 @@ extension Optional: ApodiniOptional {
     // swiftlint:disable:next syntactic_sugar
     var optionalInstance: Optional<Wrapped> { self }
 }
+
+/// Adds the shortcut `.null` if you have a double Optional type to create a Wrapped?(nil) value,
+/// meaning a `Optional` containing a `Optional.none` aka a empty `Optional`.
+extension Optional where Wrapped: ExpressibleByNilLiteral {
+    static var null: Self {
+        .some(nil)
+    }
+}

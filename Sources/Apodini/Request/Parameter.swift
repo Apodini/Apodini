@@ -11,20 +11,6 @@ import Foundation
 /// Generic Parameter that can be used to mark that the options are meant for `@Parameter`s
 public enum ParameterOptionNameSpace { }
 
-/// This internal protocol is used to first of all check if the generic type Element of a `Parameter` is of type `Optional`,
-/// and additionally is used to extract the generic type Wrapped of the `Optional`.
-protocol OptionalParameter {
-    /// This method injects the element property by calling the method `Apodini.Request.retrieveOptionalParameter`.
-    /// Additionally it sets the `defaultValue` if the retrieval method does not yield any results.
-    ///
-    /// - Parameter request: The `Apodini.Request` to contact for parameter retrieval.
-    /// - Throws: Rethrows any errors thrown by `Apodini.Request.retrieveOptionalParameter`.
-    mutating func injectOnOptional(using request: ApodiniRequest) throws
-    /// This method sets parameter.element = self.element
-    /// - Parameter parameter: The Parameter to set the element on. The Parameter MUST have the same generic type as self.
-    func setElementOn<Element: Codable>(_ parameter: inout Parameter<Element>)
-}
-
 /// The `@Parameter` property wrapper can be used to express input in `Components`
 @propertyWrapper
 public struct Parameter<Element: Codable> {
@@ -126,49 +112,11 @@ extension Parameter: RequestInjectable {
                  We need some sort of Apodini defined Error, which encodes such internal server errors and properly
                  forwards that to the Exporter so it can respond with a proper error for its request.
                  """)
-        if var optionalParameter = self as? OptionalParameter {
-            try optionalParameter.injectOnOptional(using: request)
-
-            // injectOnOptional is a mutation func, mutation the optionalParameter property
-            // Thus we need to copy the optionalParameter.element into self.element
-            // This is done via setElementOn(...)
-            optionalParameter.setElementOn(&self)
-        } else {
-            element = try request.retrieveParameter(Element.self, id: id)
-        }
+        element = try request.retrieveParameter(self, of: Element.self)
     }
 
     func accept(_ visitor: RequestInjectableVisitor) {
         visitor.visit(self)
-    }
-}
-
-// MARK: Optional Parameter
-extension Parameter: OptionalParameter where Element: ApodiniOptional, Element.Member: Codable {
-    mutating func injectOnOptional(using request: ApodiniRequest) throws {
-        let value = try request.retrieveOptionalParameter(Element.Member.self, id: id)
-        if value == nil {
-            if defaultValue == nil {
-                // We know that Element=Optional<Element.Member>. Thus we can do the force cast.
-                // swiftlint:disable:next force_cast
-                element = Element?(Element.Member?(nil) as! Element)
-            } else {
-                // As the exporter didn't find any `value` and the user specified a `defaultValue`
-                // we just inject that into our Parameter.
-                element = defaultValue
-            }
-        } else {
-            // We know that Element=Optional<Element.Member>. Thus we can do the force cast.
-            // swiftlint:disable:next force_cast
-            element = Element?(value as! Element)
-        }
-    }
-
-    func setElementOn<Element: Codable>(_ parameter: inout Parameter<Element>) {
-        guard let element = element as? Element? else {
-            fatalError("Parameter.setElementOn was called for a parameter different than self!")
-        }
-        parameter.element = element
     }
 }
 

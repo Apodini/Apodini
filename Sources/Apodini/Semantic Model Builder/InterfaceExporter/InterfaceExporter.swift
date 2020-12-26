@@ -15,6 +15,9 @@ protocol WithEventLoop {
     var eventLoop: EventLoop { get }
 }
 
+func null<T>(_ type: T.Type = T.self) -> T? {
+    T?(nil)
+}
 
 /// Any Apodini Interface Exporter must conform to this protocol.
 protocol InterfaceExporter {
@@ -55,12 +58,16 @@ protocol InterfaceExporter {
     /// If the value couldn't be found on the `ExporterRequest` for the given `EndpointParameter`, the `interfaceExporter`
     /// must return `nil`. Checking for required parameters is done automatically.
     ///
+    /// If the content type of the `ExporterRequest` supports "explicit nil", like JSON does with `null`,
+    /// you can signal that using `Type?(nil)` (or using `Optional.null` as abbreviation).
+    ///
     /// - Parameters:
     ///   - parameter: The `EndpointParameter` describing the parameter for which the value should be retrieved.
     ///   - request: The `ExporterRequest` as defined by the `InterfaceExporter`
-    /// - Returns: The retrieved value or nil if `ExporterRequest` didn't contain a value for the given `EndpointParameter`.
+    /// - Returns: The retrieved value, nil if `ExporterRequest` didn't contain a value for the given `EndpointParameter`
+    ///     or "explicit nil" using `Type?(nil)`.
     /// - Throws: Any Apodini Error or any other error happening while decoding.
-    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type?
+    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type??
 }
 
 // MARK: Interface Exporter Visitor
