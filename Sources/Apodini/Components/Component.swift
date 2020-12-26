@@ -27,6 +27,7 @@ public protocol Component {
     func handle() -> Self.Response
 }
 
+
 extension Component {
     func visit(_ visitor: SyntaxTreeVisitor) {
         precondition(((try? typeInfo(of: Self.self).kind) ?? .none) == .struct, "Component \((try? typeInfo(of: Self.self).name) ?? "unknown") must be a struct")

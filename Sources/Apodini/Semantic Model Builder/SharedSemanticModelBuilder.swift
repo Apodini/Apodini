@@ -145,7 +145,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
 struct ActionVisitor: ApodiniEncodableVisitor {
     var request: Request
     var promise: EventLoopPromise<Encodable>
-    var responseModifiers: [() -> (AnyResponseTransformer)] = []
+    var responseModifiers: [() -> (AnyResponseTransformer)]
 
     func visit<Element: Encodable>(encodable: Element) {
         let result = transformResponse(encodable)
@@ -163,8 +163,8 @@ struct ActionVisitor: ApodiniEncodableVisitor {
                 promise.succeed(result)
                 try request.eventLoop.close()
             case .end:
-                // how to properly close the connection
-                // without sending a response via promise.succeed?
+                // send back an empty response
+                promise.succeed("")
                 try request.eventLoop.close()
             case .nothing:
                 // do nothing 😆
