@@ -5,8 +5,6 @@
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 
-@_implementationOnly import class Vapor.Application
-@_implementationOnly import struct Vapor.Environment
 import Fluent
 import FluentMongoDriver
 
@@ -24,13 +22,15 @@ public protocol WebService: Component, ConfigurationCollection {
 extension WebService {
     /// This function is executed to start up an Apodini `WebService`
     public static func main() throws {
-        let app = try createApplication()
+        let app = Application()
+        LoggingSystem.bootstrap(StreamLogHandler.standardError)
 
         main(app: app)
-
+            
         defer {
             app.shutdown()
         }
+        
         try app.run()
     }
 
@@ -49,7 +49,7 @@ extension WebService {
     
     /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.main()` to startup an Apodini `WebService`.
     /// - Parameter app: The app instance that should be injected in the Apodini `WebService`
-    static func main(app: Vapor.Application) {
+    static func main(app: Application) {
         let webService = Self()
 
         webService.configuration.configure(app)

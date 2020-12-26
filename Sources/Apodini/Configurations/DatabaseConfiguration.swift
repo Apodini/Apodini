@@ -1,5 +1,4 @@
-import class Vapor.Application
-import struct Vapor.Environment
+@_implementationOnly import struct Vapor.Environment
 import Fluent
 import FluentSQLiteDriver
 import FluentMySQLDriver
