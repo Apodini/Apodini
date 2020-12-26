@@ -42,7 +42,7 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @Parameter var name: String
+        @Parameter(.http(.path)) var name: String
 
         func handle() -> Action<String> {
             .end
