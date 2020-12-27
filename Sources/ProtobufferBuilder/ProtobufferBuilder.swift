@@ -26,19 +26,10 @@ public extension ProtobufferBuilder {
     /// - Parameter type: the type of the service
     /// - Throws: `Error`s of type `Exception`
     func addService(
-        serviceName: String? = nil,
-        componentType: Any.Type,
+        serviceName: String,
+        inputType: Any.Type,
         returnType: Any.Type
     ) throws {
-        let node = try EnrichedInfo.node(componentType)
-        let parameter = node.children
-            .filter(isParameter)
-            .compactMap { node in
-                node.value.typeInfo.genericTypes.first
-            }
-            .first
-        let inputType = parameter ?? Void.self
-        
         let inputNode = try Message.node(inputType)
         let outputNode = try Message.node(returnType)
         
@@ -54,7 +45,7 @@ public extension ProtobufferBuilder {
             ouput: outputNode.value
         )
         
-        let name = try (serviceName ?? node.value.typeInfo.compatibleName()) + "Service"
+        let name = serviceName + "Service"
         let service = Service(
             name: name,
             methods: [method]
