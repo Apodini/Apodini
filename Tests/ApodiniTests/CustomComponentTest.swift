@@ -14,7 +14,7 @@ import Fluent
 
 final class CustomComponentTests: ApodiniTests {
     struct AddBirdsComponent: Component {
-        @_Database
+        @Apodini.Environment(\.database)
         var database: Fluent.Database
         
         @Parameter
