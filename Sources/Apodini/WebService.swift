@@ -48,10 +48,12 @@ public extension WebService {
 internal extension WebService {
     static func prepare(testing: Bool = false) throws -> Vapor.Application {
         let environmentName = try Vapor.Environment.detect().name
-        var env = testing
-            ? .testing
-            : Vapor.Environment(name: environmentName, arguments: ["vapor"])
-        if !testing {
+        var env: Vapor.Environment
+        
+        if testing {
+            env = .testing
+        } else {
+            env = Vapor.Environment(name: environmentName, arguments: ["vapor"])
             try LoggingSystem.bootstrap(from: &env)
         }
         

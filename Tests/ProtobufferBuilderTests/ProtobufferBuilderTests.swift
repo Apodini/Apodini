@@ -16,15 +16,15 @@ final class ProtobufferBuilderTests: XCTestCase {
 
 extension ProtobufferBuilderTests {
     func testHelloWorldService() throws {
-        struct HelloWorld: WebService {
-            struct HelloWorld: Component {
-                func handle() -> String {
-                    "Hello, World!"
-                }
-            }
-            
+        struct WebService: Apodini.WebService {
             var content: some Component {
                 HelloWorld()
+            }
+        }
+        
+        struct HelloWorld: Component {
+            func handle() -> String {
+                "Hello, World!"
             }
         }
         
@@ -42,22 +42,22 @@ extension ProtobufferBuilderTests {
             message VoidMessage {}
             """
         
-        try testWebService(HelloWorld.self, expectation: expected)
+        try testWebService(WebService.self, expectation: expected)
     }
     
     func testGreeterService() throws {
-        struct Greeter: WebService {
-            struct Greeter: Component {
-                @Parameter
-                var name: String
-                
-                func handle() -> String {
-                    "Hello \(name)"
-                }
-            }
-            
+        struct WebService: Apodini.WebService {
             var content: some Component {
                 Greeter()
+            }
+        }
+        
+        struct Greeter: Component {
+            @Parameter
+            var name: String
+            
+            func handle() -> String {
+                "Hello \(name)"
             }
         }
         
@@ -73,7 +73,7 @@ extension ProtobufferBuilderTests {
             }
             """
         
-        try testWebService(Greeter.self, expectation: expected)
+        try testWebService(WebService.self, expectation: expected)
     }
 }
 

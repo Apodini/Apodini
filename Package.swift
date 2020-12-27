@@ -81,7 +81,7 @@ let package = Package(
                 .target(name: "ProtobufferBuilder"),
                 .target(name: "Apodini"),
                 .product(name: "Vapor", package: "vapor"),
-                .product(name: "XCTVapor", package: "vapor"),
+                .product(name: "XCTVapor", package: "vapor")
             ]
         )
     ]
