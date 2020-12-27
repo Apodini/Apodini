@@ -72,12 +72,6 @@ public struct Parameter<Element: Codable> {
         self.defaultValue = defaultValue
         self.name = name
         self.options = PropertyOptionSet(options)
-        #warning("""
-                 We may want to print a warning if the user adds a default value for a non-optional Parameter,
-                 as such a default value won't ever be used (currently). This check is best placed in the `EndpointParameter`
-                 as we can print a much more detailed warning (including property name and maybe struct/class name)
-                 to the user.
-                 """)
     }
     
     /// Creates a new `@Parameter` that indicates input of a `Component`.
