@@ -53,8 +53,6 @@ only_rules:
     # Discouraged direct initialization of types that can be harmful. e.g. UIDevice(), Bundle()
   - discouraged_optional_boolean
     # Prefer non-optional booleans over optional booleans.
-  - discouraged_optional_collection
-    # Prefer empty collection over optional collection.
   - duplicate_imports
     # Duplicate Imports
   - dynamic_inline
@@ -364,7 +362,7 @@ line_length: # Lines should not span too many characters.
 
 nesting: # Types should be nested at most 2 level deep, and statements should be nested at most 5 levels deep.
   type_level:
-    warning: 2 # warning - default: 1
+    warning: 4 # warning - default: 1
   statement_level:
     warning: 5 # warning - default: 5
     
