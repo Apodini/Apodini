@@ -20,26 +20,11 @@ public protocol WebService: Component, ConfigurationCollection {
 }
 
 
-extension WebService {
+public extension WebService {
     /// This function is executed to start up an Apodini `WebService`
-    public static func main() {
+    static func main() {
         do {
-            let environmentName = try Vapor.Environment.detect().name
-            var env = Vapor.Environment(name: environmentName, arguments: ["vapor"])
-            try LoggingSystem.bootstrap(from: &env)
-            let app = Application(env)
-
-            let webService = Self()
-
-            webService.register(
-                SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self, ProtobufferSemanticModelBuilder.self),
-                GraphQLSemanticModelBuilder(app),
-                GRPCSemanticModelBuilder(app),
-                WebSocketSemanticModelBuilder(app)
-            )
-
-            webService.configuration.configure(app)
-
+            let app = try Self.prepare()
             defer {
                 app.shutdown()
             }
@@ -49,19 +34,42 @@ extension WebService {
         }
     }
     
-    
     /// The current version of the `WebService`
-    public var version: Version {
+    var version: Version {
         Version()
     }
     
-    
     /// An empty initializer used to create an Apodini `WebService`
-    public init() {
+    init() {
         self.init()
     }
 }
 
+internal extension WebService {
+    static func prepare(testing: Bool = false) throws -> Vapor.Application {
+        let environmentName = try Vapor.Environment.detect().name
+        var env = testing
+            ? .testing
+            : Vapor.Environment(name: environmentName, arguments: ["vapor"])
+        if !testing {
+            try LoggingSystem.bootstrap(from: &env)
+        }
+        
+        let app = Application(env)
+        let webService = Self()
+        
+        webService.register(
+            SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self, ProtobufferSemanticModelBuilder.self),
+            GraphQLSemanticModelBuilder(app),
+            GRPCSemanticModelBuilder(app),
+            WebSocketSemanticModelBuilder(app)
+        )
+        
+        webService.configuration.configure(app)
+        
+        return app
+    }
+}
 
 extension WebService {
     func register(_ semanticModelBuilders: SemanticModelBuilder...) {

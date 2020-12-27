@@ -80,7 +80,8 @@ let package = Package(
             dependencies: [
                 .target(name: "ProtobufferBuilder"),
                 .target(name: "Apodini"),
-                .product(name: "Vapor", package: "vapor")
+                .product(name: "Vapor", package: "vapor"),
+                .product(name: "XCTVapor", package: "vapor"),
             ]
         )
     ]
