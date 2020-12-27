@@ -54,7 +54,7 @@ public extension ProtobufferBuilder {
             ouput: outputNode.value
         )
         
-        let name = try serviceName ?? (node.value.typeInfo.compatibleName() + "Service")
+        let name = try (serviceName ?? node.value.typeInfo.compatibleName()) + "Service"
         let service = Service(
             name: name,
             methods: [method]
