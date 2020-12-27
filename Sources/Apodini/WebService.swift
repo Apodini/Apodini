@@ -5,8 +5,8 @@
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 
-import class Vapor.Application
-import struct Vapor.Environment
+@_implementationOnly import class Vapor.Application
+@_implementationOnly import struct Vapor.Environment
 import Fluent
 import FluentMongoDriver
 
@@ -32,11 +32,10 @@ extension WebService {
             let webService = Self()
 
             webService.register(
-                SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self),
+                SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self, ProtobufferSemanticModelBuilder.self),
                 GraphQLSemanticModelBuilder(app),
                 GRPCSemanticModelBuilder(app),
-                WebSocketSemanticModelBuilder(app),
-                ProtobufferSemanticModelBuilder(app)
+                WebSocketSemanticModelBuilder(app)
             )
 
             webService.configuration.configure(app)
