@@ -20,7 +20,8 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.0.0-beta"),
         .package(url: "https://github.com/vapor/apns.git", from: "1.0.0"),
         .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", from: "0.2.0"),
-        .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2")
+        .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
+        .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from:"1.3.0")
     ],
     targets: [
         .target(
@@ -34,7 +35,8 @@ let package = Package(
                 .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver"),
                 .product(name: "APNS", package: "apns"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
-                .product(name: "Runtime", package: "Runtime")
+                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "SwifCron", package: "SwifCron")
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"

@@ -49,6 +49,11 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
+    struct TestMe: Job {
+        func run() {
+            print("TEST")
+        }
+    }
     
     var content: some Component {
         Text("Hello World! 👋")
@@ -66,6 +71,10 @@ struct TestWebService: Apodini.WebService {
         Group("greet") {
             Greeter()
         }
+    }
+    
+    var configuration: Configuration {
+        Schedule(TestMe(), on: "* * * * *", runs: 1)
     }
 }
 
