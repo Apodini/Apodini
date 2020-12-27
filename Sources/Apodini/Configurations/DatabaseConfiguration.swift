@@ -38,8 +38,8 @@ public final class DatabaseConfiguration: Configuration {
             databases.use(factory, as: databaseID)
             app.migrations.add(migrations)
             try app.autoMigrate().wait()
-            if let db = app.databases.ids().map({ app.db($0) }).first {
-                EnvironmentValues.shared.database = db
+            if let database = app.databases.ids().map({ app.db($0) }).first {
+                EnvironmentValues.shared.database = database
             }
         } catch {
             fatalError("An error occured while configuring the database.")

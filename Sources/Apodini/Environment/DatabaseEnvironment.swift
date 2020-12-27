@@ -9,7 +9,6 @@ enum DatabaseEnvironmentKey: EnvironmentKey {
 }
 
 extension EnvironmentValues {
-    
     /// A Property containing the database that was set during the configuration by `DatabaseConfiguration`.
     public var database: Database {
         get { self[DatabaseEnvironmentKey.self] }
