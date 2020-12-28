@@ -6,9 +6,8 @@
 //
 
 @_implementationOnly import Vapor
-@_implementationOnly import GRPC
-import NIOHPACK
-import ProtobufferCoding
+@_implementationOnly import NIOHPACK
+@_implementationOnly import ProtobufferCoding
 
 class GRPCSemanticModelBuilder: InterfaceExporter {
     let app: Application

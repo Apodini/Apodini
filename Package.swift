@@ -36,7 +36,6 @@ let package = Package(
                 .product(name: "APNS", package: "apns"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime"),
-                .product(name: "GRPC", package: "grpc-swift"),
                 .target(name: "ProtobufferCoding")
             ],
             exclude: [

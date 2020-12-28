@@ -7,8 +7,7 @@
 
 import Foundation
 @_implementationOnly import Vapor
-@_implementationOnly import GRPC
-import ProtobufferCoding
+@_implementationOnly import ProtobufferCoding
 
 /// Used by the `GRPCSemanticModelBuilder` to expose
 /// `handle` functions of `Components`.

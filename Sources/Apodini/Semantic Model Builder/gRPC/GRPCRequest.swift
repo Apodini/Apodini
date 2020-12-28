@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import ProtobufferCoding
+@_implementationOnly import ProtobufferCoding
 import NIO
 @_implementationOnly import Vapor
 import protocol Fluent.Database
