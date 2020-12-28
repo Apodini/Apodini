@@ -31,6 +31,7 @@ extension GRPCService {
     /// to  `Data` using Protobuffer encoding
     private func encode(_ value: Encodable) throws -> Data {
         let message = try ProtoEncoder().encode(AnyEncodable(value: value))
+        print("\([UInt8](message))")
         // https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md
         // A response is prefixed by
         // - 1 byte:    compressed (true / false)
