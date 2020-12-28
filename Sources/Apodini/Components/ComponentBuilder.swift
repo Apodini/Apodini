@@ -6,16 +6,6 @@ public struct ComponentBuilder {
     public static func buildIf<T: Component>(_ component: T?) -> T? {
         return component
     }
-
-
-    // MARK: Heterogeneous builder functions
-    
-
-
-
-
-    // MARK: Homogeneous builder functions
-
     
     public static func buildBlock<T: Component>(_ arg0: T) -> T {
         return arg0
