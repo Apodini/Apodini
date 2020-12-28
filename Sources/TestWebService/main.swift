@@ -45,8 +45,7 @@ struct TestWebService: Apodini.WebService {
         @Parameter(.http(.path)) var name: String
 
         func handle() -> Action<String> {
-            .end
-//            .final("Hello \(name)")
+            .final("Hello World!")
         }
     }
     
@@ -66,6 +65,7 @@ struct TestWebService: Apodini.WebService {
         }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
         Group("greet") {
             Greeter()
+                .response(EmojiMediator())
         }
     }
 }

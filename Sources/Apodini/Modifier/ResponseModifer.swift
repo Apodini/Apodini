@@ -95,6 +95,41 @@ extension ResponseModifier: Visitable {
 }
 
 
+/// An `ActionResponseModifier` can be used to transform the output of `Component`'s response,
+/// which is wrapped inside an `Action`, to a different type using a `ResponseTransformer`.
+/// The output of the `ResponseTransformer` again will be wrapped in the identical type of `Action`.
+/// To be able to not only transform the type of the wrapped value, but also the type of `Action`
+/// use a normal `ResponseModifier` (which will then reveive the complete `Action` and not only the wrapped value).
+public struct ActionResponseModifier<C: Component, T: ResponseTransformer>: Modifier where Action<T.Response> == C.Response {
+    public typealias Response = Action<T.TransformedResponse>
+
+    let component: C
+    let responseTransformer: () -> (T)
+
+
+    init(_ component: C, responseTransformer: @escaping () -> (T)) {
+        precondition(((try? typeInfo(of: T.self).kind) ?? .none) == .struct, "ResponseTransformer \((try? typeInfo(of: T.self).name) ?? "unknown") must be a struct")
+
+        self.component = component
+        self.responseTransformer = responseTransformer
+    }
+
+
+    /// A `Modifier`'s handle method should never be called!
+    public func handle() -> Self.Response {
+        fatalError("A Modifier's handle method should never be called!")
+    }
+}
+
+
+extension ActionResponseModifier: Visitable {
+    func visit(_ visitor: SyntaxTreeVisitor) {
+        visitor.addContext(ResponseContextKey.self, value: [responseTransformer], scope: .nextComponent)
+        component.visit(visitor)
+    }
+}
+
+
 extension Component {
     /// A `response` modifier can be used to transform the output of `Component`'s response to a different type using a `ResponseTransformer`
     /// - Parameter responseTransformer: The `ResponseTransformer` used to transform the response of a `Component`
@@ -102,6 +137,18 @@ extension Component {
     public func response<T: ResponseTransformer>(
         _ responseTransformer: @escaping @autoclosure () -> (T)
     ) -> ResponseModifier<Self, T> where Self.Response == T.Response {
-        ResponseModifier(self, responseTransformer: responseTransformer)
+        if Self.Response.self is ApodiniEncodable.Type {
+            preconditionFailure("Actions cannot be transformed directly. Use a transformer on the type that is wrapped by the Action instead.")
+        }
+        return ResponseModifier(self, responseTransformer: responseTransformer)
+    }
+
+    /// A `response` modifier can be used to transform the output of `Component`'s response to a different type using a `ResponseTransformer`
+    /// - Parameter responseTransformer: The `ResponseTransformer` used to transform the response of a `Component`
+    /// - Returns: The modified `Component` with a new `Response` type
+    public func response<T: ResponseTransformer>(
+        _ responseTransformer: @escaping @autoclosure () -> (T)
+    ) -> ActionResponseModifier<Self, T> where Self.Response == Action<T.Response> {
+        ActionResponseModifier(self, responseTransformer: responseTransformer)
     }
 }
