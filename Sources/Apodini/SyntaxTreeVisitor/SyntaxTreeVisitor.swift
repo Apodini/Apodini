@@ -37,14 +37,14 @@ class SyntaxTreeVisitor {
         currentNode.getContextValue(for: C.self)
     }
     
-    func register<C: Handler>(component: C) {
+    func register<H: Handler>(handler: H) {
         // We capture the currentContextNode and make a copy that will be used when executing the request as
         // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the
         // currentNode would always result in the last currentNode that was used when visiting the component tree.
         let context = Context(contextNode: currentNode.copy())
         
         for semanticModelBuilder in semanticModelBuilders {
-            semanticModelBuilder.register(component: component, withContext: context)
+            semanticModelBuilder.register(handler: handler, withContext: context)
         }
         
         finishedRegisteringContext()

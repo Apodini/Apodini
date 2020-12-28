@@ -110,8 +110,8 @@ final class ContextNodeTests: XCTestCase {
 
     func testGroupWithSingleComponent() {
         class TestSemanticModelBuilder: SemanticModelBuilder {
-            override func register<C: Handler>(component: C, withContext context: Context) {
-                if let testComponent = component as? TestComponent {
+            override func register<H: Handler>(handler: H, withContext context: Context) {
+                if let testComponent = handler as? TestComponent {
                     let localInt = context.get(valueFor: IntNextComponentContextKey.self)
 
                     switch testComponent.type {
@@ -122,7 +122,7 @@ final class ContextNodeTests: XCTestCase {
                         XCTFail("Received unknown component type \(testComponent.type)")
                     }
                 } else {
-                    XCTFail("Received registration for unexpected component type \(component)")
+                    XCTFail("Received registration for unexpected component type \(handler)")
                 }
             }
         }
@@ -144,8 +144,8 @@ final class ContextNodeTests: XCTestCase {
 
     func testGroupWithComponentAndGroup() {
         class TestSemanticModelBuilder: SemanticModelBuilder {
-            override func register<C: Handler>(component: C, withContext context: Context) {
-                if let testComponent = component as? TestComponent {
+            override func register<H: Handler>(handler: H, withContext context: Context) {
+                if let testComponent = handler as? TestComponent {
                     let path = context.get(valueFor: PathComponentContextKey.self)
                     let pathString = ContextNodeTests.buildStringFromPathComponents(path)
                     let environmentInt = context.get(valueFor: IntEnvironmentContextKey.self)
@@ -161,7 +161,7 @@ final class ContextNodeTests: XCTestCase {
                         XCTFail("Received unknown component type \(testComponent.type)")
                     }
                 } else {
-                    XCTFail("Received registration for unexpected component type \(component)")
+                    XCTFail("Received registration for unexpected component type \(handler)")
                 }
             }
         }
@@ -182,8 +182,8 @@ final class ContextNodeTests: XCTestCase {
 
     func testGroupWithGroupAndComponent() {
         class TestSemanticModelBuilder: SemanticModelBuilder {
-            override func register<C: Handler>(component: C, withContext context: Context) {
-                if let testComponent = component as? TestComponent {
+            override func register<H: Handler>(handler: H, withContext context: Context) {
+                if let testComponent = handler as? TestComponent {
                     let path = context.get(valueFor: PathComponentContextKey.self)
                     let pathString = ContextNodeTests.buildStringFromPathComponents(path)
                     let environmentInt = context.get(valueFor: IntEnvironmentContextKey.self)
@@ -199,7 +199,7 @@ final class ContextNodeTests: XCTestCase {
                         XCTFail("Received unknown component type \(testComponent.type)")
                     }
                 } else {
-                    XCTFail("Received registration for unexpected component type \(component)")
+                    XCTFail("Received registration for unexpected component type \(handler)")
                 }
             }
         }

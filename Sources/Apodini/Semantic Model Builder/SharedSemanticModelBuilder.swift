@@ -41,15 +41,15 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
     }
     
     
-    override func register<C: Handler>(component: C, withContext context: Context) {
-        super.register(component: component, withContext: context)
+    override func register<H: Handler>(handler: H, withContext context: Context) {
+        super.register(handler: handler, withContext: context)
         
         let operation = context.get(valueFor: OperationContextKey.self)
         var paths = context.get(valueFor: PathComponentContextKey.self)
         let guards = context.get(valueFor: GuardContextKey.self)
         let responseModifiers = context.get(valueFor: ResponseContextKey.self)
         
-        let parameterBuilder = ParameterBuilder(from: component)
+        let parameterBuilder = ParameterBuilder(from: handler)
         parameterBuilder.build()
         
         for parameter in parameterBuilder.parameters {
@@ -60,9 +60,9 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
             }
         }
         
-        let requestHandler = SharedSemanticModelBuilder.createRequestHandler(with: component, guards: guards, responseModifiers: responseModifiers)
+        let requestHandler = SharedSemanticModelBuilder.createRequestHandler(with: handler, guards: guards, responseModifiers: responseModifiers)
         
-        let handleReturnType = C.Response.self
+        let handleReturnType = H.Response.self
         var responseType: Encodable.Type {
             guard let lastResponseTransformer = responseModifiers.last else {
                 return handleReturnType
@@ -71,11 +71,11 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         }
         
         var endpoint = Endpoint(
-            description: String(describing: component),
+            description: String(describing: handler),
             context: context,
             operation: operation,
             requestHandler: requestHandler,
-            handleReturnType: C.Response.self,
+            handleReturnType: H.Response.self,
             responseType: responseType,
             parameters: parameterBuilder.parameters
         )

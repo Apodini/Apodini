@@ -84,6 +84,6 @@ private struct HandlerVisitorHelperImpl: HandlerVisitorHelperImplBase {
     let visitor: SyntaxTreeVisitor
 
     func callAsFunction<H: Handler>(_ value: H) {
-        visitor.register(component: value)
+        visitor.register(handler: value)
     }
 }
