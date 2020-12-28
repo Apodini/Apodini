@@ -9,7 +9,7 @@
 import XCTest
 
 
-final class PathParameterTests: XCTestCase {
+final class PathParameterTests: ApodiniTests {
     struct TestComponent: Component {
         @PathParameter
         var name: String

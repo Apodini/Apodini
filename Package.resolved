@@ -65,6 +65,15 @@
         }
       },
       {
+        "package": "FCM",
+        "repositoryURL": "https://github.com/MihaelIsaev/FCM.git",
+        "state": {
+          "branch": null,
+          "revision": "f8cff7e2366248d7e25f20891a75f32f1fb83176",
+          "version": "2.9.0"
+        }
+      },
+      {
         "package": "FineJSON",
         "repositoryURL": "https://github.com/omochi/FineJSON.git",
         "state": {
@@ -125,6 +134,15 @@
           "branch": null,
           "revision": "6f29f6f182c812075f09c7575c18ac5535c26824",
           "version": "4.0.1"
+        }
+      },
+      {
+        "package": "jwt",
+        "repositoryURL": "https://github.com/vapor/jwt.git",
+        "state": {
+          "branch": null,
+          "revision": "46eddb526fa70fd9d765a3bdffac73b2be487cfc",
+          "version": "4.0.0"
         }
       },
       {

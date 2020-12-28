@@ -5,39 +5,54 @@
 import NIO
 @_implementationOnly import Vapor
 
-typealias RequestHandler = (Request) -> EventLoopFuture<Encodable>
+typealias RequestHandler = (ExporterRequest) -> EventLoopFuture<Encodable>
+
+/// This struct is used to model the RootPath for the root of the endpoints tree
+struct RootPath: _PathComponent {
+    var description: String {
+        ""
+    }
+
+    func append<P>(to pathBuilder: inout P) where P: PathBuilder {
+        fatalError("RootPath instances should not be appended to anything")
+    }
+}
 
 class WebServiceModel {
-    fileprivate let root: EndpointsTreeNode = EndpointsTreeNode(path: RootPath())
+    fileprivate let root = EndpointsTreeNode(path: RootPath())
     fileprivate var finishedParsing = false
 
-    lazy var rootEndpoints: [Endpoint] = {
+    lazy var rootEndpoints: [AnyEndpoint] = {
         if !finishedParsing {
             fatalError("rootEndpoints of the WebServiceModel was accessed before parsing was finished!")
         }
-        return root.endpoints.map { _, endpoint -> Endpoint in endpoint }
+        return root.endpoints.map { _, endpoint -> AnyEndpoint in endpoint }
     }()
     var relationships: [EndpointRelationship] {
         root.relationships
     }
 
-    fileprivate func addEndpoint(_ endpoint: inout Endpoint, at paths: [PathComponent]) {
+    fileprivate func addEndpoint<C: Component>(_ endpoint: inout Endpoint<C>, at paths: [PathComponent]) {
         root.addEndpoint(&endpoint, at: paths)
     }
 }
 
-class SharedSemanticModelBuilder: SemanticModelBuilder {
-    private var interfaceExporters: [InterfaceExporter]
+class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor {
+    private var interfaceExporters: [AnyInterfaceExporter] = []
 
     var webService: WebServiceModel
     var rootNode: EndpointsTreeNode
 
-    init(_ app: Application, interfaceExporters: InterfaceExporter.Type...) {
-        self.interfaceExporters = interfaceExporters.map { exporterType in exporterType.init(app) }
+    override init(_ app: Application) {
         webService = WebServiceModel()
         rootNode = webService.root // used to provide the unit test a reference to the root of the tree
-
         super.init(app)
+    }
+
+    func with<T: InterfaceExporter>(exporter exporterType: T.Type) -> Self {
+        let exporter = exporterType.init(app)
+        interfaceExporters.append(AnyInterfaceExporter(exporter))
+        return self
     }
 
     override func register<C: Component>(component: C, withContext context: Context) {
@@ -46,7 +61,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         let operation = context.get(valueFor: OperationContextKey.self)
         var paths = context.get(valueFor: PathComponentContextKey.self)
         let guards = context.get(valueFor: GuardContextKey.self)
-        let responseModifiers = context.get(valueFor: ResponseContextKey.self)
+        let responseTransformers = context.get(valueFor: ResponseContextKey.self)
 
         let parameterBuilder = ParameterBuilder(from: component)
         parameterBuilder.build()
@@ -59,24 +74,13 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
             }
         }
 
-        let requestHandler = SharedSemanticModelBuilder.createRequestHandler(with: component, guards: guards, responseModifiers: responseModifiers)
-
-        let handleReturnType = C.Response.self
-        var responseType: Encodable.Type {
-            guard let lastResponseTransformer = responseModifiers.last else {
-                return handleReturnType
-            }
-            return lastResponseTransformer().transformedResponseType
-        }
-
         var endpoint = Endpoint(
-                description: String(describing: component),
-                context: context,
-                operation: operation,
-                requestHandler: requestHandler,
-                handleReturnType: C.Response.self,
-                responseType: responseType,
-                parameters: parameterBuilder.parameters
+            component: component,
+            context: context,
+            operation: operation,
+            guards: guards,
+            responseTransformers: responseTransformers,
+            parameters: parameterBuilder.parameters
         )
 
         webService.addEndpoint(&endpoint, at: paths)
@@ -89,42 +93,26 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
 
         webService.root.printTree() // currently only for debugging purposes
 
-        for exporter in interfaceExporters {
-            call(exporter: exporter, for: webService.root)
-            exporter.finishedExporting(webService)
+        if interfaceExporters.isEmpty {
+            print("[WARN] There aren't any Interface Exporters registered!")
         }
+
+        interfaceExporters.acceptAll(self)
     }
 
-    private func call(exporter: InterfaceExporter, for node: EndpointsTreeNode) {
+    func visit<I>(exporter: I) where I: InterfaceExporter {
+        call(exporter: exporter, for: webService.root)
+        exporter.finishedExporting(webService)
+    }
+
+    private func call<I: InterfaceExporter>(exporter: I, for node: EndpointsTreeNode) {
         for (_, endpoint) in node.endpoints {
-            exporter.export(endpoint)
+            #warning("The result of export is currently unused. Could that be useful in the future?")
+            endpoint.exportEndpoint(on: exporter)
         }
 
         for child in node.children {
             call(exporter: exporter, for: child)
-        }
-    }
-
-    static func createRequestHandler<C: Component>(with component: C, guards: [LazyGuard] = [], responseModifiers: [() -> (AnyResponseTransformer)] = []) -> RequestHandler {
-        { (request: Request) in
-            let guardEventLoopFutures = guards.map { guardClosure in
-                request.enterRequestContext(with: guardClosure()) { requestGuard in
-                    requestGuard.executeGuardCheck(on: request)
-                }
-            }
-            return EventLoopFuture<Void>
-                    .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
-                    .flatMap { _ in
-                        request.enterRequestContext(with: component) { component in
-                            var response: Encodable = component.handle()
-                            for responseTransformer in responseModifiers {
-                                response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
-                                    responseTransformer.transform(response: response)
-                                }
-                            }
-                            return request.eventLoop.makeSucceededFuture(response)
-                        }
-                    }
         }
     }
 }

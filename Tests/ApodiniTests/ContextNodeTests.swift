@@ -34,7 +34,7 @@ struct IntNextComponentContextKey: ContextKey {
     }
 }
 
-struct IntModifier<ModifiedComponent: Component>: Modifier, Visitable {
+struct IntModifier<ModifiedComponent: Component>: Modifier, SyntaxTreeVisitable {
     let component: ModifiedComponent
     let scope: Scope
     let value: Int
@@ -45,7 +45,7 @@ struct IntModifier<ModifiedComponent: Component>: Modifier, Visitable {
         self.value = value
     }
 
-    func visit(_ visitor: SyntaxTreeVisitor) {
+    func accept(_ visitor: SyntaxTreeVisitor) {
         switch scope {
         case .environment:
             visitor.addContext(IntEnvironmentContextKey.self, value: value, scope: .environment)
@@ -65,23 +65,9 @@ extension Component {
 /**
  * Regression test for https://github.com/Apodini/Apodini/issues/12
  */
-final class ContextNodeTests: XCTestCase {
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    var app: Application!
-
+final class ContextNodeTests: ApodiniTests {
     class func buildStringFromPathComponents(_ components: [Apodini.PathComponent]) -> String {
         StringPathBuilder(components).build()
-    }
-    
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        app = Application(.testing)
-    }
-    
-    override func tearDownWithError() throws {
-        try super.tearDownWithError()
-        let app = try XCTUnwrap(self.app)
-        app.shutdown()
     }
     
     var groupWithSingleComponent: some Component {

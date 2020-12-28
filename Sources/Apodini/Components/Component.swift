@@ -27,17 +27,17 @@ public protocol Component {
     func handle() -> Self.Response
 }
 
-
+// MARK: Syntax Tree Visitor
 extension Component {
     func visit(_ visitor: SyntaxTreeVisitor) {
         precondition(((try? typeInfo(of: Self.self).kind) ?? .none) == .struct, "Component \((try? typeInfo(of: Self.self).name) ?? "unknown") must be a struct")
         
-        if let visitable = self as? Visitable {
-            visitable.visit(visitor)
+        if let visitable = self as? SyntaxTreeVisitable {
+            visitable.accept(visitor)
         } else if Self.Content.self != Never.self {
             content.visit(visitor)
         } else {
-            visitor.register(component: self)
+            visitor.visit(component: self)
         }
     }
 }
