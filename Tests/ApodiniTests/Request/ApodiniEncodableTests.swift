@@ -41,9 +41,9 @@ final class ApodiniEncodableTests: ApodiniTests, ApodiniEncodableVisitor {
     func callVisitor<C: Component>(_ component: C) {
         let result = component.handle()
         switch result {
-        case is ApodiniEncodable:
+        case let apodiniEncodable as ApodiniEncodable:
             // swiftlint:disable:next force_cast
-            (result as! ApodiniEncodable).accept(self)
+            apodiniEncodable.accept(self)
         default:
             XCTFail("Expected ApodiniEncodable")
         }
