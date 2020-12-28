@@ -60,7 +60,7 @@ public struct EmptyComponent: Component, Visitable {
 /// If a struct defines either of these two, that definition's type will take precedence over both extensions.
 ///
 /// See also this post on the Swift forums: https://forums.swift.org/t/type-resolution-equality-rules-in-protocol-extensions-or-why-does-swift-give-my-associatedtype-a-default-value/43256
-public enum _EmptyComponentCustomNeverImpl {}
+public enum _EmptyComponentCustomNeverImpl {} // swiftlint:disable:this type_name
 
 
 // MARK: Component

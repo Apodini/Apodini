@@ -11,8 +11,8 @@ public struct AnyComponent: Component, Visitable {
     
     private let _visit: (SyntaxTreeVisitor) -> Void
     
-    init<T: Component>(_ Handler: T) {
-        _visit = Handler.visit
+    init<C: Component>(_ component: C) {
+        _visit = component.visit
     }
     
     func visit(_ visitor: SyntaxTreeVisitor) {
