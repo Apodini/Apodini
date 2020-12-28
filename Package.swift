@@ -20,8 +20,7 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.0.0-beta"),
         .package(url: "https://github.com/vapor/apns.git", from: "1.0.0"),
         .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", from: "0.2.0"),
-        .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
-        .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.0.0-alpha.20")
+        .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2")
     ],
     targets: [
         .target(

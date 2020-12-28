@@ -20,7 +20,7 @@ import protocol Fluent.Database
 private var fieldNumber = ThreadSpecificVariable<FieldNumber>()
 
 class FieldNumber {
-    public var tag = 1
+    private var tag = 1
 
     /// Returns the field-number for the current thread.
     public static func getFieldNumber() -> Int {

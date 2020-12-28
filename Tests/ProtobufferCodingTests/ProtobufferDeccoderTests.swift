@@ -1,5 +1,5 @@
 //
-//  ProtobufDecoderTests.swift
+//  ProtobufferDecoderTests.swift
 //  
 //
 //  Created by Moritz Schüll on 26.11.20.
@@ -9,12 +9,12 @@ import Foundation
 import XCTest
 @testable import ProtobufferCoding
 
-class ProtobufDecoderTests: XCTestCase {
+class ProtobufferDecoderTests: XCTestCase {
     func testDecodePositiveInt32() throws {
         let positiveData = Data([8, 185, 96])
         let positiveExpected: Int32 = 12345
 
-        let message = try ProtoDecoder().decode(ProtoTestMessage<Int32>.self, from: positiveData)
+        let message = try ProtoDecoder().decode(ProtobufferTestMessage<Int32>.self, from: positiveData)
         XCTAssertEqual(message.content, positiveExpected, "testDecodePositiveInt32")
     }
 
@@ -22,7 +22,7 @@ class ProtobufDecoderTests: XCTestCase {
         let negativeData = Data([8, 199, 159, 255, 255, 255, 255, 255, 255, 255, 1])
         let negativeExpected: Int32 = -12345
 
-        let message = try ProtoDecoder().decode(ProtoTestMessage<Int32>.self, from: negativeData)
+        let message = try ProtoDecoder().decode(ProtobufferTestMessage<Int32>.self, from: negativeData)
         XCTAssertEqual(message.content, negativeExpected, "testDecodeNegativeInt32")
     }
 
@@ -30,14 +30,14 @@ class ProtobufDecoderTests: XCTestCase {
         let data = Data([8, 185, 96])
         let expected: UInt32 = 12345
 
-        let message = try ProtoDecoder().decode(ProtoTestMessage<UInt32>.self, from: data)
+        let message = try ProtoDecoder().decode(ProtobufferTestMessage<UInt32>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeUInt32")
     }
 
     func testDecodeBool() throws {
         let data = Data([8, 1])
 
-        let message = try ProtoDecoder().decode(ProtoTestMessage<Bool>.self, from: data)
+        let message = try ProtoDecoder().decode(ProtobufferTestMessage<Bool>.self, from: data)
         XCTAssertEqual(message.content, true, "testDecodeBool")
     }
 
@@ -45,7 +45,7 @@ class ProtobufDecoderTests: XCTestCase {
         let data = Data([9, 88, 168, 53, 205, 143, 28, 200, 64])
         let expected: Double = 12345.12345
 
-        let message = try ProtoDecoder().decode(ProtoTestMessage<Double>.self, from: data)
+        let message = try ProtoDecoder().decode(ProtobufferTestMessage<Double>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeDouble")
     }
 
@@ -53,7 +53,7 @@ class ProtobufDecoderTests: XCTestCase {
         let data = Data([13, 126, 228, 64, 70])
         let expected: Float = 12345.12345
 
-        let message = try ProtoDecoder().decode(ProtoTestMessage<Float>.self, from: data)
+        let message = try ProtoDecoder().decode(ProtobufferTestMessage<Float>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeFloat")
     }
 
@@ -61,7 +61,7 @@ class ProtobufDecoderTests: XCTestCase {
         let data = Data([10, 11, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100])
         let expected: String = "Hello World"
 
-        let message = try ProtoDecoder().decode(ProtoTestMessage<String>.self, from: data)
+        let message = try ProtoDecoder().decode(ProtobufferTestMessage<String>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeString")
     }
 
@@ -69,7 +69,7 @@ class ProtobufDecoderTests: XCTestCase {
         let data = Data([10, 6, 1, 2, 3, 253, 254, 255])
         let expected = Data([1, 2, 3, 253, 254, 255])
 
-        let message = try ProtoDecoder().decode(ProtoTestMessage<Data>.self, from: data)
+        let message = try ProtoDecoder().decode(ProtobufferTestMessage<Data>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeBytes")
     }
 
@@ -77,7 +77,7 @@ class ProtobufDecoderTests: XCTestCase {
         let data = Data([10, 3, 1, 0, 1])
         let expected = [true, false, true]
 
-        let message = try ProtoDecoder().decode(ProtoTestMessage<[Bool]>.self, from: data)
+        let message = try ProtoDecoder().decode(ProtobufferTestMessage<[Bool]>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeRepeatedBool")
     }
 
@@ -85,7 +85,7 @@ class ProtobufDecoderTests: XCTestCase {
         let data = Data([10, 5, 1, 2, 3, 4, 5])
         let expected: [Int32] = [1, 2, 3, 4, 5]
 
-        let message = try ProtoDecoder().decode(ProtoTestMessage<[Int32]>.self, from: data)
+        let message = try ProtoDecoder().decode(ProtobufferTestMessage<[Int32]>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeRepeatedInt32")
     }
 
@@ -98,7 +98,7 @@ class ProtobufDecoderTests: XCTestCase {
         ])
         let expected: [Int64] = [1234567891011, 1234567891012, 1234567891013, 1234567891014, 1234567891015]
 
-        let message = try ProtoDecoder().decode(ProtoTestMessage<[Int64]>.self, from: data)
+        let message = try ProtoDecoder().decode(ProtobufferTestMessage<[Int64]>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeRepeatedInt64")
     }
 
@@ -110,7 +110,7 @@ class ProtobufDecoderTests: XCTestCase {
         ])
         let expected: [Float] = [123.123, 123.234, 123.345, 123.456, 123.567]
 
-        let message = try ProtoDecoder().decode(ProtoTestMessage<[Float]>.self, from: data)
+        let message = try ProtoDecoder().decode(ProtobufferTestMessage<[Float]>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeRepeatedFloat")
     }
 
@@ -123,7 +123,7 @@ class ProtobufDecoderTests: XCTestCase {
         ])
         let expected: [Double] = [123456789.123456789, 123456789.223456789, 123456789.323456789]
 
-        let message = try ProtoDecoder().decode(ProtoTestMessage<[Double]>.self, from: data)
+        let message = try ProtoDecoder().decode(ProtobufferTestMessage<[Double]>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeRepeatedDouble")
     }
 
@@ -131,7 +131,7 @@ class ProtobufDecoderTests: XCTestCase {
         let data = Data([10, 5, 1, 2, 3, 4, 5])
         let expected: [UInt32] = [1, 2, 3, 4, 5]
 
-        let message = try ProtoDecoder().decode(ProtoTestMessage<[UInt32]>.self, from: data)
+        let message = try ProtoDecoder().decode(ProtobufferTestMessage<[UInt32]>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeRepeatedUInt32")
     }
 
@@ -142,7 +142,7 @@ class ProtobufDecoderTests: XCTestCase {
         let bytes3: [UInt8] = [5, 6]
         let expected: [Data] = [Data(bytes1), Data(bytes2), Data(bytes3)]
 
-        let message = try ProtoDecoder().decode(ProtoTestMessage<[Data]>.self, from: data)
+        let message = try ProtoDecoder().decode(ProtobufferTestMessage<[Data]>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeRepeatedData")
     }
 
@@ -150,7 +150,7 @@ class ProtobufDecoderTests: XCTestCase {
         let data = Data([10, 4, 101, 105, 110, 115, 10, 4, 122, 119, 101, 105, 10, 4, 100, 114, 101, 105])
         let expected = ["eins", "zwei", "drei"]
 
-        let message = try ProtoDecoder().decode(ProtoTestMessage<[String]>.self, from: data)
+        let message = try ProtoDecoder().decode(ProtobufferTestMessage<[String]>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeRepeatedString")
     }
 
@@ -174,7 +174,7 @@ class ProtobufDecoderTests: XCTestCase {
         numberDouble: 12345.12345,
         content: "Hello World",
         byteData: Data([1, 2, 3, 253, 254, 255]),
-        nestedMessage: ProtoTestMessage(
+        nestedMessage: ProtobufferTestMessage(
             content: "Hallo, das ist eine Sub-Nachricht."
         ),
         numberFloat: 12345.12345

@@ -27,10 +27,10 @@ class WebServiceModel {
 }
 
 class SharedSemanticModelBuilder: SemanticModelBuilder {
-    var interfaceExporters: [InterfaceExporter]
+    let interfaceExporters: [InterfaceExporter]
     
-    var webService: WebServiceModel
-    var rootNode: EndpointsTreeNode
+    let webService: WebServiceModel
+    let rootNode: EndpointsTreeNode
     
     init(_ app: Application, interfaceExporters: InterfaceExporter.Type...) {
         self.interfaceExporters = interfaceExporters.map { exporterType in exporterType.init(app) }
