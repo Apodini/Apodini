@@ -27,9 +27,8 @@ class ApodiniTests: XCTestCase {
             as: .init(string: "ApodiniTest"),
             isDefault: true
         )
-        if let database = app.databases.ids().map({ app.db($0) }).first {
-            EnvironmentValues.shared.database = database
-        }
+        
+        EnvironmentValues.shared.database = try database()
         
         app.migrations.add(
             CreateBird(),
