@@ -9,8 +9,6 @@ import Vapor
 
 
 struct TestComponent: Handler {
-    let __endpointId = AnyEndpointIdentifier(Self.self)
-    
     let type: Int
 
     init(_ type: Int) {

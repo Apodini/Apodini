@@ -28,25 +28,24 @@ public protocol Handler: Component {
     /// The type that is returned from the `handle()` method when the component handles a request. The return type of the `handle` method is encoded into the response send out to the client.
     associatedtype Response: Encodable
     
-    /// The type of this handler's identifier
-    associatedtype EndpointIdentifier: AnyEndpointIdentifier
-
     /// A function that is called when a request reaches the `Handler`
     func handle() -> Response
     
-    // underscored as to avoid clashes w/ potential parameters, or other custom properties of the conforming type
-    var __endpointId: EndpointIdentifier { get }
-}
-
-
-/// Default implementation for components which don't specify an identifier
-extension Handler where EndpointIdentifier == AnyEndpointIdentifier {
-    public var __endpointId: EndpointIdentifier { .init(Self.self) }
 }
 
 
 extension Handler {
     public var content: some Component { EmptyComponent() }
+}
+
+
+/// A `Handler` which can be uniquely identified
+public protocol IdentifiableHandler: Handler {
+    /// The type of this handler's identifier
+    associatedtype EndpointIdentifier: AnyEndpointIdentifier
+    
+    /// This handler's identifier
+    var endpointId: EndpointIdentifier { get }
 }
 
 

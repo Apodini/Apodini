@@ -175,11 +175,14 @@ protocol Component {
 
 protocol Handler: Component {
     associatedtype Response: Encodable
-    associatedtype EndpointIdentifier: AnyEndpointIdentifier
 
     func handle() -> Response
-    
-    var __endpointId: EndpointIdentifier { get }
+}
+
+
+protocol IdentifiableHandler: Handler {
+    associatedtype EndpointIdentifier: AnyEndpointIdentifier
+    var endpointId: EndpointIdentifier { get }
 }
 ```
 
@@ -214,15 +217,17 @@ This directly benefits both the user (ie the person implementing a web service),
 
 ## Documentation: Identifying handlers
 
-Being able to reference an individual instance of a `Handler` within the DSL is required for cross-component communication.
+Being able to reference an individual instance of a `Handler` within the DSL is required for inter-component communication.
 Since a web service might contain multiple instances of a `Handler` type, we cannot rely on the static type alone.
 
-All handler types get a default identifier, this will work as long as the handler never gets accessed from another handler, or only appears once within the WebService.
+The `IdentifiableHandler` protocol denotes `Handler` types where the type's individual instances can be uniquely identified.
 
-A `Handler`'s identifier is returned by the `__endpointId` property. This property is intentionally underscored, otherwise this property name wouldn't be available for `@Parameter`s
+All `Handler`s get a default identifier, which can optionally be overwritten by the user, by conforming to the `IdentifiableHandler` protocol.
+
+An `IdentifiableHandler`'s identifier is returned by the `endpointId` property.
 
 
-There are two ways to identify a `Handler`:
+There are two ways to identify an `IdentifiableHandler`:
 - `AnyEndpointIdentifier`: identifies a handler of an unknown type
 - `ScopedEndpointIdentifier`: identifies a handler of a known specific type
 
@@ -230,7 +235,7 @@ There are two ways to identify a `Handler`:
 Example: using endpoint identifiers to resolve ambiguity between handlers
 
 ```swift
-struct PostTweet: Handler {
+struct PostTweet: IdentifiableHandler {
   enum Behaviour {
     case regular, legacy
   }
@@ -241,16 +246,16 @@ struct PostTweet: Handler {
   }
 
   let maxLength: Int
-  let __endpointId: EndpointIdentifier
+  let endpointId: EndpointIdentifier
 
   init(_ behaviour: Behaviour) {
     switch behaviour {
     case .regular:
       maxLength = 280
-      __endpointId = .normal
+      endpointId = .normal
     case .legacy:
       maxLength = 140
-      __endpointId = .legacy
+      endpointId = .legacy
     }
   }
 

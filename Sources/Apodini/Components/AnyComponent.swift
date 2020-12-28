@@ -25,11 +25,9 @@ public struct AnyHandler: Handler, Visitable {
     public typealias Response = Never
     
     private let _visit: (SyntaxTreeVisitor) -> Void
-    public let __endpointId: AnyEndpointIdentifier
     
     init<H: Handler>(_ handler: H) {
         _visit = handler.visit
-        __endpointId = handler.__endpointId
     }
     
     func visit(_ visitor: SyntaxTreeVisitor) {

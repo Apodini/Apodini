@@ -23,8 +23,8 @@ public class AnyEndpointIdentifier: RawRepresentable, Hashable, Equatable, Custo
         self.init(rawValue: rawValue)
     }
     
-    public init<C: Handler>(_: C.Type) {
-        self.rawValue = String(describing: C.self)
+    public init<H: IdentifiableHandler>(_: H.Type) {
+        self.rawValue = String(describing: H.self)
     }
     
     
@@ -51,8 +51,8 @@ public class ScopedEndpointIdentifier<T: Handler>: AnyEndpointIdentifier {
         super.init(rawValue: "\(T.self).\(rawValue)")
     }
     
-    @available(*, unavailable, message: "'init(EndpointComponent.Type)' cannot be used with type-scoped endpoint identifiers")
-    public override init<C: Handler>(_: C.Type) {
+    @available(*, unavailable, message: "'init(IdentifiableHandler.Type)' cannot be used with type-scoped endpoint identifiers")
+    public override init<H: IdentifiableHandler>(_: H.Type) {
         fatalError()
     }
 }
@@ -63,21 +63,21 @@ public class ScopedEndpointIdentifier<T: Handler>: AnyEndpointIdentifier {
 
 fileprivate protocol __EndpointComponentIdentifierGetterImplVisitor: AssociatedTypeRequirementsVisitor {
     associatedtype Visitor = __EndpointComponentIdentifierGetterImplVisitor
-    associatedtype Input = Handler
+    associatedtype Input = IdentifiableHandler
     associatedtype Output
-    func callAsFunction<T: Handler>(_ value: T) -> Output
+    func callAsFunction<T: IdentifiableHandler>(_ value: T) -> Output
 }
 
 fileprivate struct EndpointComponentIdentifierGetterImpl: __EndpointComponentIdentifierGetterImplVisitor {
     let visitorImpl: (AnyEndpointIdentifier) -> Void
     
-    func callAsFunction<T: Handler>(_ value: T) {
-        visitorImpl(value.__endpointId)
+    func callAsFunction<T: IdentifiableHandler>(_ value: T) {
+        visitorImpl(value.endpointId)
     }
 }
 
 
-func LKTryToGetEndpointComponentIdentifier<C: Handler>(_ component: C) -> AnyEndpointIdentifier? {
+func LKTryToGetEndpointComponentIdentifier<C: IdentifiableHandler>(_ component: C) -> AnyEndpointIdentifier? {
     var endpointId: AnyEndpointIdentifier = .unspecified
     EndpointComponentIdentifierGetterImpl {
         endpointId = $0

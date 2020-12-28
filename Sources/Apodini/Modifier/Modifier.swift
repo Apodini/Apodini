@@ -23,13 +23,9 @@ public protocol HandlerModifier: Modifier, Handler where ModifiedComponent: Hand
 
 
 public extension HandlerModifier {
-    typealias EndpointIdentifier = ModifiedComponent.EndpointIdentifier
-    
     var content: some Component { EmptyComponent() }
     
     func handle() -> Response {
         fatalError("A Modifier's handle method should never be called!")
     }
-    
-    var __endpointId: EndpointIdentifier { component.__endpointId }
 }
