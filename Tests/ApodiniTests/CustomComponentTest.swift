@@ -34,10 +34,7 @@ final class CustomComponentTests: ApodiniTests {
         let addBird = AddBirdsComponent()
         let bird = Bird(name: "Hummingbird", age: 2)
 
-        var request = MockRequest.createRequest(on: addBird, running: app.eventLoopGroup.next(), queuedParameters: bird)
-        request.databaseRetrieval = { id in
-            self.app.db(id)
-        }
+        let request = MockRequest.createRequest(on: addBird, running: app.eventLoopGroup.next(), database: self.app.db, queuedParameters: bird)
         
         let responseBirds = try request
             .enterRequestContext(with: addBird) { component in

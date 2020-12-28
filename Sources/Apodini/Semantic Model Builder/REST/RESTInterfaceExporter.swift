@@ -4,7 +4,7 @@
 
 import Foundation
 @_implementationOnly import Vapor
-import protocol Fluent.Database
+import protocol FluentKit.Database
 
 struct RESTPathBuilder: PathBuilder {
     private var pathComponents: [Vapor.PathComponent] = []
@@ -61,7 +61,11 @@ extension Operation {
     }
 }
 
-extension Vapor.Request: ExporterRequest, WithEventLoop {}
+extension Vapor.Request: ExporterRequest, WithEventLoop, WithDatabase {
+    var database: () -> Database {{
+        self.db
+    }}
+}
 
 class RESTInterfaceExporter: InterfaceExporter {
     let app: Application

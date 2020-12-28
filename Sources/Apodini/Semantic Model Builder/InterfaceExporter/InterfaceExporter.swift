@@ -4,6 +4,7 @@
 
 import class Vapor.Application
 import protocol NIO.EventLoop
+import protocol FluentKit.Database
 
 /// The Protocol any Exporter Request type must conform to
 protocol ExporterRequest {}
@@ -13,6 +14,11 @@ protocol ExporterRequest {}
 /// `EndpointRequestHandler.handleRequest(...)` method on without specifying an `EventLoop`.
 protocol WithEventLoop {
     var eventLoop: EventLoop { get }
+}
+
+/// Intermediate solution to have databases working.
+protocol WithDatabase {
+    var database: () -> Database { get }
 }
 
 func null<T>(_ type: T.Type = T.self) -> T? {

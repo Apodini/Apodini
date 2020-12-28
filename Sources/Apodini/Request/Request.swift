@@ -23,8 +23,7 @@ protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
 
     var eventLoop: EventLoop { get }
 
-    var defaultDatabase: Database? { get }
-    func database(_ id: DatabaseID?) -> Database?
+    var database: (() -> Database)? { get }
 
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element
 
@@ -58,26 +57,20 @@ struct ApodiniRequest<I: InterfaceExporter, C: Component>: Request {
 
     var eventLoop: EventLoop
 
-    var defaultDatabase: Database? {
-        database(nil)
-    }
-    /// Use to inject a database in our test cases
-    var databaseRetrieval: ((DatabaseID?) -> Database)?
+    var database: (() -> Database)?
 
-    init(for exporter: I, with request: I.ExporterRequest, on endpoint: Endpoint<C>, running eventLoop: EventLoop) {
+    init(
+            for exporter: I,
+            with request: I.ExporterRequest,
+            on endpoint: Endpoint<C>,
+            running eventLoop: EventLoop,
+            database: (() -> Database)? = nil
+    ) {
         self.exporter = exporter
         self.exporterRequest = request
         self.storedEndpoint = endpoint
         self.eventLoop = eventLoop
-    }
-
-    func database(_ id: DatabaseID?) -> Database? {
-        if let retrieval = databaseRetrieval {
-            return retrieval(id)
-        }
-
-        #warning("Fluent Databases aren't supported right now. Database setup and retrieval are unsolved problems right now!")
-        fatalError("Databases aren't supporter right now")
+        self.database = database
     }
 
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element {
