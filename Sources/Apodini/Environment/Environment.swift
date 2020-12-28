@@ -61,10 +61,9 @@ public struct Environment<Value> {
 }
 
 extension Component {
-    /// Sets properties of the `Component` annotated with
-    /// `@Connection` to the given connection value.
-    /// - parameters:
-    ///     - connection: The `Connection` that should be injected.
+    /// Sets the value for the given key-path
+    /// on properties of this `Component`
+    /// annotated with `@Environment`.
     func withEnvironment<Value>(_ value: Value, for keyPath: WritableKeyPath<EnvironmentValues, Value>) -> Self {
         var selfRef = self
         do {

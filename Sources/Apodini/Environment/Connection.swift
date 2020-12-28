@@ -6,7 +6,6 @@
 //
 
 import Foundation
-@_implementationOnly import Runtime
 
 enum ConnectionEnvironmentKey: EnvironmentKey {
     static var defaultValue = Connection()

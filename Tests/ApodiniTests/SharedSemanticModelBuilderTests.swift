@@ -160,14 +160,18 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
                                                                              guards: [ { printGuard } ],
                                                                              responseModifiers: [ { transformer } ])
         let name = "Craig"
+        let expectedResponse = "✅ Hello \(name) ✅"
         let request = RESTRequest(Vapor.Request(application: app, on: app.eventLoopGroup.next())) { _ in name }
         let response = try requestHandler(request).wait()
-        let responseString = try XCTUnwrap(response as? String)
-
-        XCTAssert(responseString == "✅ Hello \(name) ✅")
+        if case let .final(responseEncodable) = response {
+            let responseString = try XCTUnwrap(responseEncodable.value as? String)
+            XCTAssert(responseString == expectedResponse)
+        } else {
+            XCTFail("Expected .final(\(expectedResponse), but got \(response)")
+        }
     }
 
-    func testCreateRequestHandlerWithAction() throws {
+    func testCreateRequestHandlerWithConnection() throws {
         let transformer = EmojiMediator(emojis: "✅")
         let component = ActionHandler()
             .withEnvironment(Connection(state: .open), for: \.connection)
@@ -175,9 +179,14 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
                                                                              guards: [],
                                                                              responseModifiers: [ { transformer } ])
         let name = "Craig"
+        let expectedResponse = "✅ Hello \(name) ✅"
         let request = RESTRequest(Vapor.Request(application: app, on: app.eventLoopGroup.next())) { _ in name }
         let response = try requestHandler(request).wait()
-        let responseString = try XCTUnwrap(response as? String)
-        XCTAssertEqual(responseString, "✅ Hello \(name) ✅")
+        if case let .send(responseEncodable) = response {
+            let responseString = try XCTUnwrap(responseEncodable.value as? String)
+            XCTAssert(responseString == expectedResponse)
+        } else {
+            XCTFail("Expected .final(\(expectedResponse), but got \(response)")
+        }
     }
 }

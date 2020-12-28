@@ -103,11 +103,18 @@ class RESTInterfaceExporter: InterfaceExporter {
 
         routesBuilder.on(operation.httpMethod, []) { request -> EventLoopFuture<Vapor.Response> in
             let restRequest = RESTRequest(request, parameterDecoder: self.parameterDecoder(for: request))
-            let response: EventLoopFuture<Encodable> = requestHandler(restRequest)
+            let response: EventLoopFuture<Action<AnyEncodable>> = requestHandler(restRequest)
 
-            let result = response.flatMapThrowing { (response: Encodable) -> Vapor.Response in
-                let data = try JSONEncoder().encode(AnyEncodable(value: response))
-                return Vapor.Response(body: .init(data: data))
+            let result = response.flatMapThrowing { (responseAction: Action<AnyEncodable>) -> Vapor.Response in
+                switch responseAction {
+                case let .send(element),
+                     let .final(element):
+                    let data = try JSONEncoder().encode(element)
+                    return Vapor.Response(body: .init(data: data))
+                case .nothing,
+                     .end:
+                    return Vapor.Response(status: .ok)
+                }
             }
 
             return result

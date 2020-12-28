@@ -5,7 +5,7 @@
 import NIO
 @_implementationOnly import Vapor
 
-typealias RequestHandler = (Request) -> EventLoopFuture<Encodable>
+typealias RequestHandler = (Request) -> EventLoopFuture<Action<AnyEncodable>>
 
 class WebServiceModel {
     fileprivate let root = EndpointsTreeNode(path: RootPath())
@@ -119,17 +119,16 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
                 .flatMap { _ in
                     request.enterRequestContext(with: component) { component in
                         let response = component.handle()
-                        let promise = request.eventLoop.makePromise(of: Encodable.self)
+                        let promise = request.eventLoop.makePromise(of: Action<AnyEncodable>.self)
                         let visitor = ActionVisitor(request: request,
                                                     promise: promise,
                                                     responseModifiers: responseModifiers)
                         switch response {
-                        case is ApodiniEncodable:
+                        case let apodiniEncodableResponse as ApodiniEncodable:
                             // is an Action
-                            // use double dispatch to access
+                            // use visitor to access
                             // wrapped element
-                            // swiftlint:disable:next force_cast
-                            (response as! ApodiniEncodable).accept(visitor)
+                            apodiniEncodableResponse.accept(visitor)
                         default:
                             // not an action
                             // we can skip the visitor
@@ -144,44 +143,36 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
 
 struct ActionVisitor: ApodiniEncodableVisitor {
     var request: Request
-    var promise: EventLoopPromise<Encodable>
+    var promise: EventLoopPromise<Action<AnyEncodable>>
     var responseModifiers: [() -> (AnyResponseTransformer)]
 
     func visit<Element: Encodable>(encodable: Element) {
         let result = transformResponse(encodable)
-        promise.succeed(result)
+        promise.succeed(.final(result))
     }
 
     func visit<Element: Encodable>(action: Action<Element>) {
-        do {
-            switch action {
-            case let .send(element):
-                let result = transformResponse(element)
-                promise.succeed(result)
-            case let .final(element):
-                let result = transformResponse(element)
-                promise.succeed(result)
-                try request.eventLoop.close()
-            case .end:
-                // send back an empty response
-                promise.succeed("")
-                try request.eventLoop.close()
-            case .nothing:
-                // do nothing 😆
-                break
-            }
-        } catch {
-            print("Error while attempting to close request eventloop: \(error)")
+        switch action {
+        case let .send(element):
+            let result = transformResponse(element)
+            promise.succeed(.send(result))
+        case let .final(element):
+            let result = transformResponse(element)
+            promise.succeed(.final(result))
+        case .end, .nothing:
+            // no response to run through the responseModifiers
+            // so we do nothing here
+            break
         }
     }
 
-    func transformResponse(_ response: Encodable) -> Encodable {
+    func transformResponse(_ response: Encodable) -> AnyEncodable {
         var response = response
         for responseTransformer in responseModifiers {
             response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
                 responseTransformer.transform(response: response)
             }
         }
-        return response
+        return AnyEncodable(value: response)
     }
 }
