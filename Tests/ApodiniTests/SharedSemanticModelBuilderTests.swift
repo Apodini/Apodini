@@ -63,7 +63,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         }
     }
 
-    struct ActionHandler: Component {
+    struct ActionHandler1: Component {
         @Apodini.Environment(\.connection)
         var connection: Connection
 
@@ -76,6 +76,20 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
                 return .send("Hello \(name)")
             default:
                 return .final("Bye \(name)")
+            }
+        }
+    }
+
+    struct ActionHandler2: Component {
+        @Apodini.Environment(\.connection)
+        var connection: Connection
+
+        func handle() -> Action<String> {
+            switch connection.state {
+            case .open:
+                return .nothing
+            default:
+                return .end
             }
         }
     }
@@ -153,16 +167,23 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         XCTAssertEqual(nestedEndpoint.absolutePath[3].description, ":\(someIdParameterId.uuidString)")
     }
 
-    func testCreateRequestHandler() throws {
+    private func makeRequestHandler<C: Component>(with component: C) -> RequestHandler {
         let transformer = EmojiMediator(emojis: "✅")
         let printGuard = AnyGuard(PrintGuard())
-        let requestHandler = SharedSemanticModelBuilder.createRequestHandler(with: TestHandler(),
-                                                                             guards: [ { printGuard } ],
-                                                                             responseModifiers: [ { transformer } ])
+        return SharedSemanticModelBuilder.createRequestHandler(with: component,
+                                                               guards: [ { printGuard } ],
+                                                               responseModifiers: [ { transformer } ])
+    }
+
+    func testCreateRequestHandler() throws {
         let name = "Craig"
         let expectedResponse = "✅ Hello \(name) ✅"
         let request = RESTRequest(Vapor.Request(application: app, on: app.eventLoopGroup.next())) { _ in name }
-        let response = try requestHandler(request).wait()
+
+        let response = try makeRequestHandler(with: TestHandler())(request).wait()
+        // Default request handler without using Action
+        // (as implemented in TestHandler)
+        // should result in a value wrapped in .final Action
         if case let .final(responseEncodable) = response {
             let responseString = try XCTUnwrap(responseEncodable.value as? String)
             XCTAssert(responseString == expectedResponse)
@@ -171,22 +192,59 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         }
     }
 
-    func testCreateRequestHandlerWithConnection() throws {
-        let transformer = EmojiMediator(emojis: "✅")
-        let component = ActionHandler()
-            .withEnvironment(Connection(state: .open), for: \.connection)
-        let requestHandler = SharedSemanticModelBuilder.createRequestHandler(with: component,
-                                                                             guards: [],
-                                                                             responseModifiers: [ { transformer } ])
+    func testActionPassthrough_send() throws {
         let name = "Craig"
         let expectedResponse = "✅ Hello \(name) ✅"
         let request = RESTRequest(Vapor.Request(application: app, on: app.eventLoopGroup.next())) { _ in name }
-        let response = try requestHandler(request).wait()
+        let component = ActionHandler1().withEnvironment(Connection(state: .open), for: \.connection)
+
+        let response = try makeRequestHandler(with: component)(request).wait()
         if case let .send(responseEncodable) = response {
             let responseString = try XCTUnwrap(responseEncodable.value as? String)
             XCTAssert(responseString == expectedResponse)
         } else {
+            XCTFail("Expected .send(\(expectedResponse), but got \(response)")
+        }
+    }
+
+    func testActionPassthrough_final() throws {
+        let name = "Craig"
+        let expectedResponse = "✅ Bye \(name) ✅"
+        let request = RESTRequest(Vapor.Request(application: app, on: app.eventLoopGroup.next())) { _ in name }
+        let component = ActionHandler1().withEnvironment(Connection(state: .end), for: \.connection)
+
+        let response = try makeRequestHandler(with: component)(request).wait()
+        if case let .final(responseEncodable) = response {
+            let responseString = try XCTUnwrap(responseEncodable.value as? String)
+            XCTAssert(responseString == expectedResponse)
+        } else {
             XCTFail("Expected .final(\(expectedResponse), but got \(response)")
+        }
+    }
+
+    func testActionPassthrough_nothing() throws {
+        let request = RESTRequest(Vapor.Request(application: app, on: app.eventLoopGroup.next())) { _ in "" }
+        let component = ActionHandler2().withEnvironment(Connection(state: .open), for: \.connection)
+
+        let response = try makeRequestHandler(with: component)(request).wait()
+        switch response {
+        case .nothing:
+            XCTAssertTrue(true)
+        default:
+            XCTFail("Expected .nothing but got \(response)")
+        }
+    }
+
+    func testActionPassthrough_end() throws {
+        let request = RESTRequest(Vapor.Request(application: app, on: app.eventLoopGroup.next())) { _ in "" }
+        let component = ActionHandler2().withEnvironment(Connection(state: .end), for: \.connection)
+
+        let response = try makeRequestHandler(with: component)(request).wait()
+        switch response {
+        case .end:
+            XCTAssert(true)
+        default:
+            XCTFail("Expected .end but got \(response)")
         }
     }
 }

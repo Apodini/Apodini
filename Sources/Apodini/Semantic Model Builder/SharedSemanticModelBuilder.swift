@@ -159,10 +159,12 @@ struct ActionVisitor: ApodiniEncodableVisitor {
         case let .final(element):
             let result = transformResponse(element)
             promise.succeed(.final(result))
-        case .end, .nothing:
+        case .nothing:
             // no response to run through the responseModifiers
-            // so we do nothing here
-            break
+            promise.succeed(.nothing)
+        case .end:
+            // no response to run through the responseModifiers
+            promise.succeed(.end)
         }
     }
 
