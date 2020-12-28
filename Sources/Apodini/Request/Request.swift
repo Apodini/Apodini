@@ -14,8 +14,6 @@ public protocol Request: CustomStringConvertible {
     func parameter<T: Codable>(for parameter: UUID) throws -> T?
     /// The EventLoop associated with this request
     var eventLoop: EventLoop { get }
-    /// database
-    var database: Fluent.Database? { get }
 }
 
 enum RequestDecodingError: Error {

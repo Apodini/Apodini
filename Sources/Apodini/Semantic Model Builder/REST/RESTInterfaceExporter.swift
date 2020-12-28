@@ -69,10 +69,6 @@ struct RESTRequest: Request {
         vaporRequest.eventLoop
     }
 
-    var database: Fluent.Database? {
-        vaporRequest.db
-    }
-
     var description: String {
         vaporRequest.description
     }
