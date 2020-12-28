@@ -15,7 +15,7 @@ struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
         private let message: String?
         @_Request
-        var request: ApodiniRequest
+        var request: Apodini.Request
         
         
         init(_ message: String? = nil) {

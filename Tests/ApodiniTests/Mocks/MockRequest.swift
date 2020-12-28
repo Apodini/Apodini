@@ -11,7 +11,7 @@ enum MockRequest {
     static func createRequest(
             running eventLoop: EventLoop,
             queuedParameters parameterValues: Any??...
-    ) -> Request<MockExporter<String>, EmptyComponent> {
+    ) -> ApodiniRequest<MockExporter<String>, EmptyComponent> {
         createRequest(on: EmptyComponent(), running: eventLoop, queuedParameters: parameterValues)
     }
 
@@ -19,7 +19,7 @@ enum MockRequest {
             on component: C,
             running eventLoop: EventLoop,
             queuedParameters parameterValues: Any??...
-    ) -> Request<MockExporter<String>, C> {
+    ) -> ApodiniRequest<MockExporter<String>, C> {
         createRequest(on: component, running: eventLoop, queuedParameters: parameterValues)
     }
 
@@ -27,9 +27,9 @@ enum MockRequest {
             on component: C,
             running eventLoop: EventLoop,
             queuedParameters parameterValues: [Any??]
-    ) -> Request<MockExporter<String>, C> {
+    ) -> ApodiniRequest<MockExporter<String>, C> {
         let endpoint = component.mockEndpoint()
         let exporter = MockExporter<String>(queued: parameterValues)
-        return Request(for: exporter, with: "Undefined Exporter Request", on: endpoint, running: eventLoop)
+        return ApodiniRequest(for: exporter, with: "Undefined Exporter Request", on: endpoint, running: eventLoop)
     }
 }

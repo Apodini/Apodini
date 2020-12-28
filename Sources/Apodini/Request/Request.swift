@@ -9,12 +9,12 @@ import NIO
 import protocol FluentKit.Database
 import struct FluentKit.DatabaseID
 
-protocol ApodiniRequest: CustomStringConvertible, CustomDebugStringConvertible {
-    /// Returns a description of the Apodini Request.
+protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
+    /// Returns a description of the Request.
     /// If the `ExporterRequest` also conforms to `CustomStringConvertible`, its `description`
     /// will be appended.
     var description: String { get }
-    /// Returns a debug description of the Apodini Request.
+    /// Returns a debug description of the Request.
     /// If the `ExporterRequest` also conforms to `CustomDebugStringConvertible`, its `debugDescription`
     /// will be appended.
     var debugDescription: String { get }
@@ -32,7 +32,7 @@ protocol ApodiniRequest: CustomStringConvertible, CustomDebugStringConvertible {
     func enterRequestContext<E, R>(with element: E, executing method: (E) -> R) -> R
 }
 
-struct Request<I: InterfaceExporter, C: Component>: ApodiniRequest {
+struct ApodiniRequest<I: InterfaceExporter, C: Component>: Request {
     var description: String {
         var description = "Apodini Request:\n"
         if let convertible = exporterRequest as? CustomStringConvertible {
@@ -82,7 +82,7 @@ struct Request<I: InterfaceExporter, C: Component>: ApodiniRequest {
 
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element {
         guard let endpointParameter = endpoint.findParameter(for: parameter.id) else {
-            fatalError("Could not find the associated Parameter model for \(parameter.id) with type \(element). Something has gone horribly wrong!")
+            fatalError("Could not find the associated Parameter model for \(parameter.id) with type \(Element.self). Something has gone horribly wrong!")
         }
 
         let retrieval = ParameterRetrievalDelegation<Element, I>(exporter: exporter, request: exporterRequest)
@@ -147,10 +147,10 @@ private struct ParameterRetrievalDelegation<Element: Codable, I: InterfaceExport
 @propertyWrapper
 // swiftlint:disable:next type_name
 struct _Request: RequestInjectable {
-    private var request: ApodiniRequest?
+    private var request: Request?
     
     
-    var wrappedValue: ApodiniRequest {
+    var wrappedValue: Request {
         guard let request = request else {
             fatalError("You can only access the request while you handle a request")
         }
@@ -162,7 +162,7 @@ struct _Request: RequestInjectable {
     init() { }
 
 
-    mutating func inject(using request: ApodiniRequest) throws {
+    mutating func inject(using request: Request) throws {
         self.request = request
     }
 }

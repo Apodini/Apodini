@@ -99,7 +99,7 @@ public struct Parameter<Element: Codable> {
 }
 
 extension Parameter: RequestInjectable {
-    mutating func inject(using request: ApodiniRequest) throws {
+    mutating func inject(using request: Request) throws {
         #warning("""
                  Decoder errors (caused by user input!) is currently causing the inject method to throw.
                  This currently leads to a call to fatalError, as the request injection doesn't handle errors thrown from inject.

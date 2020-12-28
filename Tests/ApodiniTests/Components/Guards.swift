@@ -6,7 +6,7 @@
 
 struct PrintGuard: SyncGuard {
     @_Request
-    var request: ApodiniRequest
+    var request: Request
 
     func check() {
         print(request)

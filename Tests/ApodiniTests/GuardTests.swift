@@ -13,7 +13,7 @@ import Vapor
 final class GuardTests: XCTestCase {
     struct TestGuard: SyncGuard {
         @_Request
-        var request: ApodiniRequest
+        var request: Apodini.Request
         
         func check() {
             // To Do: fix this

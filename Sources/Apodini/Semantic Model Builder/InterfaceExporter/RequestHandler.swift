@@ -28,7 +28,7 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, C: Component>: Endpoi
     }
 
     override func handleRequest(request exporterRequest: I.ExporterRequest, eventLoop: EventLoop) -> EventLoopFuture<Encodable> {
-        let request = Request(for: exporter, with: exporterRequest, on: endpoint, running: eventLoop)
+        let request = ApodiniRequest(for: exporter, with: exporterRequest, on: endpoint, running: eventLoop)
 
         let guardEventLoopFutures = endpoint.guards.map { guardClosure in
             request.enterRequestContext(with: guardClosure()) { requestGuard in

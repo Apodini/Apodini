@@ -21,7 +21,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
 
     struct PrintGuard: SyncGuard {
         @_Request
-        var request: ApodiniRequest
+        var request: Apodini.Request
 
         func check() {
             print(request.description)

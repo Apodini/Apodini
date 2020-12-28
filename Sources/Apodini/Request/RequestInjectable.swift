@@ -10,7 +10,7 @@ import NIO
 
 
 protocol RequestInjectable {
-    mutating func inject(using request: ApodiniRequest) throws
+    mutating func inject(using request: Request) throws
     func accept(_ visitor: RequestInjectableVisitor)
 }
 
@@ -50,7 +50,7 @@ extension AnyResponseTransformer {
     }
 }
 
-extension ApodiniRequest {
+extension Request {
     func enterRequestContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>)
                     -> EventLoopFuture<R> {
         var element = element
