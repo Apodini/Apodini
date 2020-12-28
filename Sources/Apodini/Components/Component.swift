@@ -30,7 +30,6 @@ public protocol Handler: Component {
     
     /// A function that is called when a request reaches the `Handler`
     func handle() -> Response
-    
 }
 
 

@@ -5,7 +5,7 @@
 //  Created by Lukas Kollmer on 2020-12-16.
 //
 
-import Foundation
+
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
@@ -53,7 +53,7 @@ public class ScopedEndpointIdentifier<T: Handler>: AnyEndpointIdentifier {
     
     @available(*, unavailable, message: "'init(IdentifiableHandler.Type)' cannot be used with type-scoped endpoint identifiers")
     public override init<H: IdentifiableHandler>(_: H.Type) {
-        fatalError()
+        fatalError("Not supported. Use one of the init(rawValue:) initializers.")
     }
 }
 
