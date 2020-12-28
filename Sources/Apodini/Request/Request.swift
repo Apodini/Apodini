@@ -26,7 +26,7 @@ protocol ApodiniRequest: CustomStringConvertible, CustomDebugStringConvertible {
     var defaultDatabase: Database? { get }
     func database(_ id: DatabaseID?) -> Database?
 
-    func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>, of element: Element.Type) throws -> Element
+    func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element
 
     func enterRequestContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>) -> EventLoopFuture<R>
     func enterRequestContext<E, R>(with element: E, executing method: (E) -> R) -> R
@@ -80,7 +80,7 @@ struct Request<I: InterfaceExporter, C: Component>: ApodiniRequest {
         fatalError("Databases aren't supporter right now")
     }
 
-    func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>, of element: Element.Type = Element.self) throws -> Element {
+    func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element {
         guard let endpointParameter = endpoint.findParameter(for: parameter.id) else {
             fatalError("Could not find the associated Parameter model for \(parameter.id) with type \(element). Something has gone horribly wrong!")
         }

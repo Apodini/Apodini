@@ -106,7 +106,7 @@ extension Parameter: RequestInjectable {
                  We need some sort of Apodini defined Error, which encodes such internal server errors and properly
                  forwards that to the Exporter so it can respond with a proper error for its request.
                  """)
-        element = try request.retrieveParameter(self, of: Element.self)
+        element = try request.retrieveParameter(self)
     }
 
     func accept(_ visitor: RequestInjectableVisitor) {
