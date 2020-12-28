@@ -20,7 +20,6 @@ class SemanticModelBuilder {
     }
 
     func finishedRegistration() {
-        // Can be overwritten to run action once the component tree was parsed
+        // Can be overwritten to run action once the component tree was parsed 
     }
-    
 }

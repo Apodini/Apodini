@@ -41,9 +41,10 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
+    
     struct Greeter: Handler {
-        @Parameter var name: String
-
+        @Parameter(.http(.path)) var name: String
+        
         func handle() -> String {
             "Hello \(name)"
         }
