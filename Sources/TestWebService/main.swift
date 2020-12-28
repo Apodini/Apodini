@@ -1,6 +1,6 @@
 //
 //  TestWebService.swift
-//  
+//
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
@@ -42,8 +42,7 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @Parameter
-        var name: String
+        @Parameter(.http(.path)) var name: String
 
         @Parameter
         var age: Int32

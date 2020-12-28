@@ -17,13 +17,13 @@ final class EndpointsTreeTests: XCTestCase {
     }
     
     struct TestHandler: Component {
-        @Parameter
+        @Parameter(.http(.path))
         var name: String
         
-        @Parameter("times", .http(.body))
-        var times: Int
+        @Parameter(.http(.query))
+        var times: Int = 0
         
-        @Parameter
+        @Parameter(.http(.body))
         var birthdate: Birthdate
         
         func handle() -> String {
@@ -80,7 +80,7 @@ final class EndpointsTreeTests: XCTestCase {
         
         // check whether categorization works
         XCTAssertEqual(birthdateParameter.parameterType, .content)
-        XCTAssertEqual(timesParameter.parameterType, .content)
+        XCTAssertEqual(timesParameter.parameterType, .lightweight)
         XCTAssertEqual(nameParameter.parameterType, .path)
     }
 }
