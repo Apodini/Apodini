@@ -11,7 +11,6 @@ import Fluent
 import FluentMongoDriver
 
 
-
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
 public protocol WebService: Component, ConfigurationCollection {
     /// The current version of the `WebService`
@@ -32,13 +31,9 @@ extension WebService {
             let app = Application(env)
 
             let webService = Self()
-            
-            
-            let SSMBuilder = SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self)
 
             webService.register(
-                SSMBuilder,
-                //SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self),
+                SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self),
                 GraphQLSemanticModelBuilder(app),
                 GRPCSemanticModelBuilder(app),
                 WebSocketSemanticModelBuilder(app)
