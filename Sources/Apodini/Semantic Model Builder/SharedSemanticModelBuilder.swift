@@ -4,6 +4,8 @@
 
 import NIO
 @_implementationOnly import Vapor
+@_implementationOnly import AssociatedTypeRequirementsVisitor
+
 
 typealias RequestHandler = (Request) -> EventLoopFuture<Encodable>
 
@@ -72,6 +74,14 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         
         var endpoint = Endpoint(
             description: String(describing: handler),
+            identifier: {
+                if let identifier = IdentifiableHandlerATRVisitor()(handler) {
+                    return identifier
+                } else {
+                    let handlerIndexPath = context.get(valueFor: HandlerIndexPath.ContextKey.self)
+                    return AnyEndpointIdentifier(handlerIndexPath.rawValue)
+                }
+            }(),
             context: context,
             operation: operation,
             requestHandler: requestHandler,
@@ -133,5 +143,19 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
                     }
                 }
         }
+    }
+}
+
+
+private protocol IdentifiableHandlerATRVisitorHelper: AssociatedTypeRequirementsVisitor {
+    associatedtype Visitor = IdentifiableHandlerATRVisitorHelper
+    associatedtype Input = IdentifiableHandler
+    associatedtype Output
+    func callAsFunction<T: IdentifiableHandler>(_ value: T) -> Output
+}
+
+private struct IdentifiableHandlerATRVisitor: IdentifiableHandlerATRVisitorHelper {
+    func callAsFunction<T: IdentifiableHandler>(_ value: T) -> AnyEndpointIdentifier {
+        return value.endpointId
     }
 }

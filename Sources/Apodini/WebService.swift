@@ -78,8 +78,10 @@ extension WebService {
     private func visit(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(APIVersionContextKey.self, value: version, scope: .environment)
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
+        visitor.enterCollection()
         Group {
             content
         }.visit(visitor)
+        visitor.exitCollection()
     }
 }

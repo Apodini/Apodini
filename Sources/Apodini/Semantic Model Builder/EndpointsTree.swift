@@ -26,6 +26,10 @@ struct Endpoint {
     /// Description of the associated component, currently included for debug purposes
     let description: String
     
+    /// An identifier which uniquely identifies this endpoint (via its handler)
+    /// across multiple compilations and executions of the web service.
+    let identifier: AnyEndpointIdentifier
+    
     /// The reference to the Context instance should be removed in the "final" state of the semantic model.
     /// I chose to include it for now as it makes the process of moving to a central semantic model easier,
     /// as implementing exporters can for now extract their needed information from the context on their own
@@ -53,6 +57,7 @@ struct Endpoint {
     
     init(
         description: String,
+        identifier: AnyEndpointIdentifier,
         context: Context,
         operation: Operation,
         requestHandler: @escaping RequestHandler,
@@ -61,6 +66,7 @@ struct Endpoint {
         parameters: [EndpointParameter]
     ) {
         self.description = description
+        self.identifier = identifier
         self.context = context
         self.operation = operation
         self.requestHandler = requestHandler
@@ -188,7 +194,7 @@ class EndpointsTreeNode {
         print(indentString + path.description + "/ {")
         
         for (operation, endpoint) in endpoints {
-            print(indentString + "  - \(operation): " + endpoint.description)
+            print("\(indentString)  - \(operation): \(endpoint.description) [\(endpoint.identifier.rawValue)]")
         }
         
         for child in nodeChildren {

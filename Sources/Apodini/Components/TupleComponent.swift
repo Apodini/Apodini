@@ -23,6 +23,10 @@ public struct TupleComponent<T>: Component, Visitable {
     
     
     func visit(_ visitor: SyntaxTreeVisitor) {
+        visitor.enterCollection()
+        defer {
+            visitor.exitCollection()
+        }
         let mirror = Mirror(reflecting: storage)
         for (_, value) in mirror.children {
             visitor.enterCollectionItem()

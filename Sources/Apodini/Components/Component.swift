@@ -55,7 +55,9 @@ extension Component {
             visitable.visit(visitor)
         } else {
             if Content.self != Never.self {
+                visitor.enterCollection()
                 content.visit(visitor)
+                visitor.exitCollection()
             }
             HandlerVisitorHelperImpl(visitor: visitor)(self)
         }
