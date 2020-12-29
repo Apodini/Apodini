@@ -156,6 +156,6 @@ private protocol IdentifiableHandlerATRVisitorHelper: AssociatedTypeRequirements
 
 private struct IdentifiableHandlerATRVisitor: IdentifiableHandlerATRVisitorHelper {
     func callAsFunction<T: IdentifiableHandler>(_ value: T) -> AnyHandlerIdentifier {
-        return value.endpointId
+        return value.handlerId
     }
 }

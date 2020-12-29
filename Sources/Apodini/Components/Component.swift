@@ -44,7 +44,7 @@ public protocol IdentifiableHandler: Handler {
     associatedtype HandlerIdentifier: AnyHandlerIdentifier
     
     /// This handler's identifier
-    var endpointId: HandlerIdentifier { get }
+    var handlerId: HandlerIdentifier { get }
 }
 
 

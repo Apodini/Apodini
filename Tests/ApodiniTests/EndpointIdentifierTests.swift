@@ -11,19 +11,19 @@ import Vapor
 @testable import Apodini
 
 
-final class EndpointIdentifierTests: ApodiniTests {
+final class HandlerIdentifierTests: ApodiniTests {
     struct TestHandlerType: IdentifiableHandler {
         typealias Response = Never
-        let endpointId = ScopedHandlerIdentifier<Self>("main")
+        let handlerId = ScopedHandlerIdentifier<Self>("main")
     }
     
     
     func testScopedHandlerIdentifier() {
-        XCTAssertEqual(TestHandlerType().endpointId, AnyHandlerIdentifier("TestHandlerType.main"))
+        XCTAssertEqual(TestHandlerType().handlerId, AnyHandlerIdentifier("TestHandlerType.main"))
     }
     
     
-    func testDefaultEndpointIdentifier() {
+    func testDefaultHandlerIdentifier() {
         struct TestWebService: WebService {
             var content: some Component {
                 Text("a")
