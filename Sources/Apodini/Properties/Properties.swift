@@ -35,11 +35,6 @@ public struct Properties: Property {
         self.elements[name] as? T
     }
     
-    /// Accessing the projected value allows you to access functionality of the the `@Properties`
-    public var projectedValue: Self {
-        self
-    }
-    
     /// The named elements managed by this object.
     public var wrappedValue: [String: Property] {
         self.elements
