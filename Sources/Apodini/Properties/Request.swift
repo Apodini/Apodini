@@ -22,7 +22,7 @@ enum RequestDecodingError: Error {
 
 @propertyWrapper
 // swiftlint:disable:next type_name
-struct _Request: RequestInjectable {
+struct _Request: Property, RequestInjectable {
     private var request: Request?
     
     
