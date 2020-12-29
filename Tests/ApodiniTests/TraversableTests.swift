@@ -32,11 +32,11 @@ final class TraversableTests: ApodiniTests {
                 "f": Param<String>(),
                 "g": G()
             ])
-        ] as Properties<Any>
+        ]
         
         var allParameters: String {
             let e: Param<String>? = efg.e
-            let fgWrapper: Properties<Any>? = efg.fgWrapper
+            let fgWrapper: Properties? = efg.fgWrapper
             
             let f: Param<String>? = fgWrapper?.f
             
@@ -49,15 +49,15 @@ final class TraversableTests: ApodiniTests {
     @propertyWrapper
     struct BCD: DynamicProperty {
         @Param var b: String?
-        @Properties var dynamics: [String: Param<String>]
+        @Properties var properties: [String: Apodini.Property]
         @D var d: String
         
         init() {
-            self._dynamics = ["c": Param<String>()]
+            self._properties = ["c": Param<String>()]
         }
         
         var wrappedValue: String {
-            let c: Param<String>? = dynamics["c"]
+            let c = $properties.typed(Param<String>.self)["c"]
             return "\(b ?? "")\(c?.wrappedValue ?? "")\(d)"
         }
     }
@@ -124,7 +124,7 @@ final class TraversableTests: ApodiniTests {
     func testApplyOnProperties() throws {
         var wrapper: Properties = [
             "a": Param<String>()
-        ] as Properties<Any>
+        ]
         
         exposedApply({(target: inout Param<String>, name: String) in
             target._value = name.trimmingCharacters(in: ["_"])
@@ -140,7 +140,7 @@ final class TraversableTests: ApodiniTests {
         
         let wrapper: Properties = [
             "a": Param<String>()
-        ] as Properties<Any>
+        ]
         
         exposedExecute({(_: Param<String>, name: String) in
             names.append(name.trimmingCharacters(in: ["_"]))

@@ -84,10 +84,10 @@ private func execute<Element, Target>(_ operation: (Target, _ name: String) -> V
                 assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
 
                 dynamicProperty.execute(operation)
-            case let dynamics as Traversable:
-                assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "Dynamics \(property.name) on element \(info.name) must be a struct")
+            case let traversables as Traversable:
+                assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "Traversable \(property.name) on element \(info.name) must be a struct")
             
-                dynamics.execute(operation)
+                traversables.execute(operation)
             default:
                 break
             }
@@ -126,11 +126,11 @@ private func apply<Element, Target>(_ mutation: (inout Target, _ name: String) -
                 assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
                 dynamicProperty.apply(mutation)
                 try property.set(value: dynamicProperty, on: &element)
-            case var dynamics as Traversable:
-                assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "Dynamics \(property.name) on element \(info.name) must be a struct")
+            case var traversable as Traversable:
+                assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "Traversable \(property.name) on element \(info.name) must be a struct")
             
-                dynamics.apply(mutation)
-                try property.set(value: dynamics, on: &element)
+                traversable.apply(mutation)
+                try property.set(value: traversable, on: &element)
             default:
                 break
             }
@@ -168,10 +168,10 @@ extension Properties: Traversable {
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Properties must be a struct")
                 
                 dynamicProperty.execute(operation)
-            case let dynamics as Traversable:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "Properties \(name) on Properties must be a struct")
+            case let traversable as Traversable:
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "Traversable \(name) on Properties must be a struct")
             
-                dynamics.execute(operation)
+                traversable.execute(operation)
             default:
                 break
             }
@@ -185,20 +185,17 @@ extension Properties: Traversable {
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Properties must be a struct")
     
                 mutation(&target, name)
-                // swiftlint:disable:next force_cast
-                self.elements[name] = (target as! Element)
+                self.elements[name] = target as? Property
             case var dynamicProperty as DynamicProperty:
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Properties must be a struct")
                 
                 dynamicProperty.apply(mutation)
-                // swiftlint:disable:next force_cast
-                self.elements[name] = (dynamicProperty as! Element)
-            case var dynamics as Traversable:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "Properties \(name) on Properties must be a struct")
+                self.elements[name] = dynamicProperty
+            case var traversable as Traversable:
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "Traversable \(name) on Properties must be a struct")
             
-                dynamics.apply(mutation)
-                // swiftlint:disable:next force_cast
-                self.elements[name] = (dynamics as! Element)
+                traversable.apply(mutation)
+                self.elements[name] = traversable as? Property
             default:
                 break
             }
