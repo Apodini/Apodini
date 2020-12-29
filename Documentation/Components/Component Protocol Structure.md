@@ -175,13 +175,14 @@ protocol Component {
 
 protocol Handler: Component {
     associatedtype Response: Encodable
-
+    
     func handle() -> Response
 }
 
 
 protocol IdentifiableHandler: Handler {
     associatedtype EndpointIdentifier: AnyEndpointIdentifier
+    
     var endpointId: EndpointIdentifier { get }
 }
 ```
@@ -190,6 +191,7 @@ protocol IdentifiableHandler: Handler {
   They cannot provide any functionality of their own, but they must eventually lead to one or more `Handler`s.
 - `Handler`s are nodes which expose some functionality to the client.  
   All leaves in the `WebService` must be `Handler`s.
+- `IdentifiableHandler`s are handlers which can be uniquely identified within the DSL.
 
 
 
@@ -221,11 +223,9 @@ Being able to reference an individual instance of a `Handler` within the DSL is 
 Since a web service might contain multiple instances of a `Handler` type, we cannot rely on the static type alone.
 
 The `IdentifiableHandler` protocol denotes `Handler` types where the type's individual instances can be uniquely identified.
+A handler's identifier must be the same across multiple compilations and executions of the program, as long as the structure of the web service remains unchanged.
 
 All `Handler`s get a default identifier, which can optionally be overwritten by the user, by conforming to the `IdentifiableHandler` protocol.
-
-An `IdentifiableHandler`'s identifier is returned by the `endpointId` property.
-
 
 There are two ways to identify an `IdentifiableHandler`:
 - `AnyEndpointIdentifier`: identifies a handler of an unknown type
@@ -268,18 +268,6 @@ struct PostTweet: IdentifiableHandler {
 
 Using a `ScopedEndpointIdentifier` instead of `AnyEndpointIdentifier` allows us to reject identifiers for other handler types.
 For example, if you have another component with the identifier `.foo`, you can't pass `.foo` when trying to reference a `PostTweet` instance, since it's an identifier for a different Handler type.
-
-
-
-## Vision: Inter-component communication
-
-The idea here is that components will, either by conforming to an additional protocol or implicitly via conforming to `Handler`, indicate that they can be remotely invoked (ie from within another component).
-
-Apodini will provide an API for these interactions, and will handle the concrete interaction steps between the two components.
-
-```swift
-invoke(PostTweet.self, identifier: .legacy, ...)
-```
 
 
 

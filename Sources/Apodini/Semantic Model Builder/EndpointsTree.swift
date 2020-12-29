@@ -18,7 +18,7 @@ struct EndpointRelationship { // ... to be replaced by a proper Relationship mod
 }
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
-struct Endpoint {
+struct Endpoint: Hashable, Equatable {
     /// This is a reference to the node where the endpoint is located
     // swiftlint:disable:next implicitly_unwrapped_optional
     fileprivate var treeNode: EndpointsTreeNode!
@@ -74,7 +74,17 @@ struct Endpoint {
         self.responseType = responseType
         self.parameters = parameters
     }
+    
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(identifier)
+    }
+    
+    static func == (lhs: Endpoint, rhs: Endpoint) -> Bool {
+        return lhs.identifier == rhs.identifier
+    }
 }
+
 
 class EndpointsTreeNode {
     let path: _PathComponent
@@ -204,3 +214,23 @@ class EndpointsTreeNode {
         print(indentString + "}")
     }
 }
+
+
+extension EndpointsTreeNode {
+    func collectAllEndpoints() -> Set<Endpoint> {
+        if let parent = parent {
+            return parent.collectAllEndpoints()
+        }
+        var endpoints = Set<Endpoint>()
+        collectAllEndpoints(into: &endpoints)
+        return endpoints
+    }
+    
+    private func collectAllEndpoints(into endpointsSet: inout Set<Endpoint>) {
+        endpointsSet.formUnion(endpoints.values)
+        for child in children {
+            child.collectAllEndpoints(into: &endpointsSet)
+        }
+    }
+}
+
