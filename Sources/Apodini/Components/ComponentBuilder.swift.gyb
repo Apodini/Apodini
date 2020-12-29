@@ -2,7 +2,7 @@
 // This file was automatically generated and should not be edited.
 %{
     # Edit this if you want to include more components in a single tuple component
-    max_homogeneous_component_count = 100
+    maximumNumberOfComponents = 100
 }%
 
 @_functionBuilder
@@ -27,7 +27,7 @@ public struct ComponentBuilder {
         return first
     }
 
-    % for num_components in range(2, max_homogeneous_component_count):
+    % for num_components in range(2, maximumNumberOfComponents):
 %{
         indices = range(0, num_components)
         generic_names_in = ['T{}'.format(idx) for idx in indices]
