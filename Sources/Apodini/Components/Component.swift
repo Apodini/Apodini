@@ -41,16 +41,16 @@ extension Handler {
 /// A `Handler` which can be uniquely identified
 public protocol IdentifiableHandler: Handler {
     /// The type of this handler's identifier
-    associatedtype EndpointIdentifier: AnyEndpointIdentifier
+    associatedtype HandlerIdentifier: AnyHandlerIdentifier
     
     /// This handler's identifier
-    var endpointId: EndpointIdentifier { get }
+    var endpointId: HandlerIdentifier { get }
 }
 
 
 extension Component {
     func visit(_ visitor: SyntaxTreeVisitor) {
-        LKAssertTypeIsStruct(Self.self)
+        AssertTypeIsStruct(Self.self)
         if let visitable = self as? Visitable {
             visitable.visit(visitor)
         } else {
@@ -65,7 +65,7 @@ extension Component {
 }
 
 
-private func LKAssertTypeIsStruct<T>(_: T.Type) {
+private func AssertTypeIsStruct<T>(_: T.Type) {
     guard let TI = try? typeInfo(of: T.self) else {
         fatalError("Unable to get type info for type '\(T.self)'")
     }

@@ -58,7 +58,7 @@ final class EndpointsTreeTests: XCTestCase {
 
         let endpoint = Endpoint(
             description: String(describing: testHandler),
-            identifier: AnyEndpointIdentifier(""),
+            identifier: AnyHandlerIdentifier(""),
             context: Context(contextNode: ContextNode()),
             operation: Operation.automatic,
             requestHandler: SharedSemanticModelBuilder.createRequestHandler(with: testHandler),

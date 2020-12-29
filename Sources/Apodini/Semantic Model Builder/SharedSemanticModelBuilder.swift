@@ -79,7 +79,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
                     return identifier
                 } else {
                     let handlerIndexPath = context.get(valueFor: HandlerIndexPath.ContextKey.self)
-                    return AnyEndpointIdentifier(handlerIndexPath.rawValue)
+                    return AnyHandlerIdentifier(handlerIndexPath.rawValue)
                 }
             }(),
             context: context,
@@ -155,7 +155,7 @@ private protocol IdentifiableHandlerATRVisitorHelper: AssociatedTypeRequirements
 }
 
 private struct IdentifiableHandlerATRVisitor: IdentifiableHandlerATRVisitorHelper {
-    func callAsFunction<T: IdentifiableHandler>(_ value: T) -> AnyEndpointIdentifier {
+    func callAsFunction<T: IdentifiableHandler>(_ value: T) -> AnyHandlerIdentifier {
         return value.endpointId
     }
 }

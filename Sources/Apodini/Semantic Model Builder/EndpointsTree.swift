@@ -28,7 +28,7 @@ struct Endpoint: Hashable, Equatable {
     
     /// An identifier which uniquely identifies this endpoint (via its handler)
     /// across multiple compilations and executions of the web service.
-    let identifier: AnyEndpointIdentifier
+    let identifier: AnyHandlerIdentifier
     
     /// The reference to the Context instance should be removed in the "final" state of the semantic model.
     /// I chose to include it for now as it makes the process of moving to a central semantic model easier,
@@ -57,7 +57,7 @@ struct Endpoint: Hashable, Equatable {
     
     init(
         description: String,
-        identifier: AnyEndpointIdentifier,
+        identifier: AnyHandlerIdentifier,
         context: Context,
         operation: Operation,
         requestHandler: @escaping RequestHandler,

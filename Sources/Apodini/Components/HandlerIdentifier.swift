@@ -1,5 +1,5 @@
 //
-//  EndpointIdentifier.swift
+//  HandlerIdentifier.swift
 //  
 //
 //  Created by Lukas Kollmer on 2020-12-16.
@@ -9,8 +9,8 @@
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
-/// An `AnyEndpointIdentifier` object identifies an endpoint regardless of its specific type.
-public class AnyEndpointIdentifier: RawRepresentable, Hashable, Equatable, CustomStringConvertible {
+/// An `AnyHandlerIdentifier` object identifies a `Handler` regardless of its concrete type.
+public class AnyHandlerIdentifier: RawRepresentable, Hashable, Equatable, CustomStringConvertible {
     public let rawValue: String
     
     public required init(rawValue: String) {
@@ -34,21 +34,21 @@ public class AnyEndpointIdentifier: RawRepresentable, Hashable, Equatable, Custo
         hasher.combine(rawValue)
     }
     
-    public static func == (lhs: AnyEndpointIdentifier, rhs: AnyEndpointIdentifier) -> Bool {
+    public static func == (lhs: AnyHandlerIdentifier, rhs: AnyHandlerIdentifier) -> Bool {
         return lhs.rawValue == rhs.rawValue
     }
 }
 
 
-/// An endpoint identifier which is scoped to a specific endpoint type.
+/// A `Handler` identifier which is scoped to a specific handler type.
 /// This is the primary way components should be identified and referenced.
-public class ScopedEndpointIdentifier<H: IdentifiableHandler>: AnyEndpointIdentifier {
+public class ScopedHandlerIdentifier<H: IdentifiableHandler>: AnyHandlerIdentifier {
     public required init(rawValue: String) {
         super.init(rawValue: "\(H.self).\(rawValue)")
     }
     
-    @available(*, unavailable, message: "'init(IdentifiableHandler.Type)' cannot be used with type-scoped endpoint identifiers")
+    @available(*, unavailable, message: "'init(IdentifiableHandler.Type)' cannot be used with type-scoped handler identifiers")
     public override init<H: IdentifiableHandler>(_: H.Type) {
-        fatalError("Not supported. Use one of the init(rawValue:) initializers.")
+        fatalError("Not supported. Use one of the rawValue initializers.")
     }
 }

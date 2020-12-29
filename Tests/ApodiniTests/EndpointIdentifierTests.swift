@@ -14,12 +14,12 @@ import Vapor
 final class EndpointIdentifierTests: ApodiniTests {
     struct TestHandlerType: IdentifiableHandler {
         typealias Response = Never
-        let endpointId = ScopedEndpointIdentifier<Self>("main")
+        let endpointId = ScopedHandlerIdentifier<Self>("main")
     }
     
     
-    func testScopedEndpointIdentifier() {
-        XCTAssertEqual(TestHandlerType().endpointId, AnyEndpointIdentifier("TestHandlerType.main"))
+    func testScopedHandlerIdentifier() {
+        XCTAssertEqual(TestHandlerType().endpointId, AnyHandlerIdentifier("TestHandlerType.main"))
     }
     
     
