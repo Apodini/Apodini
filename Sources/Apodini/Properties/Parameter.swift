@@ -13,7 +13,7 @@ public enum ParameterOptionNameSpace { }
 
 /// The `@Parameter` property wrapper can be used to express input in `Components`
 @propertyWrapper
-public struct Parameter<Element: Codable> {
+public struct Parameter<Element: Codable>: Property {
     /// Keys for options that can be passed to an `@Parameter` property wrapper
     public typealias OptionKey<T: PropertyOption> = PropertyOptionKey<ParameterOptionNameSpace, T>
     /// Type erased options that can be passed to an `@Parameter` property wrapper
