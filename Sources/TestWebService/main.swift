@@ -1,6 +1,6 @@
 //
 //  TestWebService.swift
-//  
+//
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
@@ -42,13 +42,15 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @UselessWrapper var name: String?
-        var properties: Properties = ["surname": Parameter<String?>()]
+        @Properties
+        var properties: [String: Apodini.Property] = ["surname": Parameter<String?>()]
+        
+        @Parameter(.http(.path)) var name: String
         
         func handle() -> String {
-            let surnameParameter: Parameter<String?>? = properties.surname
+            let surnameParameter: Parameter<String?>? = _properties.typed(Parameter<String?>.self)["surname"]
             
-            return (name ?? "Unknown") + " " + (surnameParameter?.wrappedValue ?? "Unknown")
+            return (name) + " " + (surnameParameter?.wrappedValue ?? "Unknown")
         }
     }
     

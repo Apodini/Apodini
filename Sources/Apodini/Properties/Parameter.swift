@@ -48,9 +48,18 @@ public struct Parameter<Element: Codable>: Property {
     /// - Parameters:
     ///   - name: The name that identifies this property when decoding the property from the input of a `Component`
     ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
-    public init(_ name: String? = nil, _ options: Option...) {
+    public init(_ name: String, _ options: Option...) {
         self.defaultValue = nil
         self.name = name
+        self.options = PropertyOptionSet(options)
+    }
+    
+    /// Creates a new `@Parameter` that indicates input of a `Component`.
+    /// - Parameters:
+    ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
+    public init(_ options: Option...) {
+        self.defaultValue = nil
+        self.name = nil
         self.options = PropertyOptionSet(options)
     }
     
@@ -65,10 +74,20 @@ public struct Parameter<Element: Codable>: Property {
         self.options = PropertyOptionSet(options)
     }
     
+    /// Creates a new `@Parameter` that indicates input of a `Component`.
+    /// - Parameters:
+    ///   - defaultValue: The default value that should be used in case the interface exporter can not decode the value from the input of the `Component`
+    ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
+    public init(wrappedValue defaultValue: Element, _ options: Option...) {
+        self.defaultValue = defaultValue
+        self.name = nil
+        self.options = PropertyOptionSet(options)
+    }
+    
     /// Creates a new `@Parameter` that indicates input of a `Component's` `@PathParameter` based on an existing component.
     /// - Parameter id: The `UUID` that can be passed in from a parent `Component`'s `@PathParameter`.
     /// - Precondition: A `@Parameter` with a specific `http` type `.body` or `.query` can not be passed to a seperate componet. Please remove the specific `.http` property option or specify the `.http` property option to `.path`.
-    init(_ id: UUID) {
+    init(from id: UUID) {
         self.options = PropertyOptionSet([.http(.path)])
         self.id = id
     }
