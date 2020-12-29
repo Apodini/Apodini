@@ -20,28 +20,24 @@ class SyntaxTreeVisitor {
     private var asf: String = ""
     private let semanticModelBuilders: [SemanticModelBuilder]
     private(set) var currentNode = ContextNode()
-    private var currentNodeIndexPath: [Int] = []
+    private var currentNodeIndexPath: [Int] = [0] // the root node always forms a collection
     
     init(semanticModelBuilders: [SemanticModelBuilder] = []) {
         self.semanticModelBuilders = semanticModelBuilders
     }
     
-    private func assertCallOnlyValueWhileInCollection(caller: StaticString = #function) {
-        precondition(!currentNodeIndexPath.isEmpty, "Only call '\(caller)' when the visitor is currently in a collection")
-    }
     
     func enterCollection() {
         currentNodeIndexPath.append(0)
     }
     
     func exitCollection() {
-        assertCallOnlyValueWhileInCollection()
+        precondition(currentNodeIndexPath.count >= 2, "Unbalanced calls to {enter|exit}Collection. Cannot exit more collections than were entered.")
         currentNodeIndexPath.removeLast()
     }
     
     
     func enterCollectionItem() {
-        assertCallOnlyValueWhileInCollection()
         currentNodeIndexPath[currentNodeIndexPath.endIndex - 1] += 1
         currentNode = currentNode.newContextNode()
     }
@@ -77,7 +73,6 @@ class SyntaxTreeVisitor {
     }
     
     func exitCollectionItem() {
-        assertCallOnlyValueWhileInCollection()
         if let parentNode = currentNode.parentContextNode {
             currentNode = parentNode
 

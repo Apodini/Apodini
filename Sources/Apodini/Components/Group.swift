@@ -25,9 +25,11 @@ public struct Group<Content: Component>: Component, Visitable {
     }
     
     func visit(_ visitor: SyntaxTreeVisitor) {
+        visitor.enterCollection()
         visitor.enterCollectionItem()
         visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)
         content.visit(visitor)
         visitor.exitCollectionItem()
+        visitor.exitCollection()
     }
 }
