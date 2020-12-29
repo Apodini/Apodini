@@ -24,17 +24,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
 
     func testAddEndpoint() {
         let comp = SomeComp()
-        let parameterBuilder = ParameterBuilder(from: comp)
-        parameterBuilder.build()
-        var endpoint = Endpoint(
-                description: String(describing: comp),
-                context: Context(contextNode: ContextNode()),
-                operation: Operation.update,
-                requestHandler: SharedSemanticModelBuilder.createRequestHandler(with: comp),
-                handleReturnType: SomeComp.Response.self,
-                responseType: SomeComp.Response.self,
-                parameters: parameterBuilder.parameters
-        )
+        var endpoint = comp.mockEndpoint();
         let endpointTreeNode = EndpointsTreeNode(path: RootPath())
         endpointTreeNode.addEndpoint(&endpoint, at: ["test"])
 
@@ -46,9 +36,9 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                 info: configuration.info,
                 servers: configuration.servers,
                 paths: ["test": .init(
-                        put: .init(
+                        get: .init(
                                 parameters: [
-                                    Either.parameter(name: "_name", context: .query, schema: .string)
+                                    Either.parameter(name: "name", context: .query, schema: .string)
                                 ],
                                 responses: [.status(code: 200): .init(
                                         OpenAPI.Response(description: "", content: [
@@ -63,8 +53,10 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                         properties: ["someProp": .integer]
                 )])
         )
+        
+        let builtDocument = documentBuilder.build()
 
-        XCTAssertEqual(documentBuilder.build(), document)
+        XCTAssertEqual(builtDocument, document)
     }
 
 }

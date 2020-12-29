@@ -5,7 +5,7 @@
 import Foundation
 @_implementationOnly import OpenAPIKit
 
-extension EndpointParameter {
+extension AnyEndpointParameter {
     /// Currently, only `query` and `path` are supported.
     var openAPIContext: OpenAPI.Parameter.Context? {
         switch self.parameterType {
@@ -19,7 +19,7 @@ extension EndpointParameter {
     }
 
     var openAPISchema: JSONSchema {
-        switch self.contentType {
+        switch self.propertyType {
         case is Int.Type:
             return .integer
         case is Bool.Type:

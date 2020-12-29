@@ -8,18 +8,23 @@ import OpenAPIKit
 
 final class OpenAPIPathsObjectBuilderTests: XCTestCase {
 
+
     struct SomeComp: Component {
+        @Parameter(.http(.query))
+        var name: String
+
         func handle() -> String {
-            "Hello World"
+            "Hello \(name)!"
         }
     }
 
+
     func testPathBuilder() {
         let pathUUID = UUID()
-        let parameter = Parameter<String>(pathUUID)
+        let parameter = Parameter<String>(from: pathUUID)
         let pathComponents: [_PathComponent] = ["test", parameter]
-        let endpointParameter1 = EndpointParameter(id: parameter.id, name: nil, label: "pathParam", contentType: String.self, options: parameter.options)
-        let endpointParameter2 = EndpointParameter(id: UUID(), name: nil, label: "queryParam", contentType: String.self, options: PropertyOptionSet([.http(.query)]))
+        let endpointParameter1 = EndpointParameter<String>(id: parameter.id, name: "pathParam", label: "pathParam", nilIsValidValue: true, necessity: .required, options: parameter.options)
+        let endpointParameter2 = EndpointParameter<String>(id: UUID(), name: "queryParam", label: "queryParam", nilIsValidValue: false, necessity: .optional, options: PropertyOptionSet([.http(.query)]))
         var builder = OpenAPIPathBuilder(pathComponents, parameters: [endpointParameter1, endpointParameter2])
 
         XCTAssertEqual(builder.path, OpenAPI.Path(stringLiteral: "test/{pathParam}"))
@@ -27,23 +32,15 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
 
     func testAddPathItem() {
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
+        let comp = SomeComp()
+        var endpoint = comp.mockEndpoint()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
-        let endpointParameter = EndpointParameter(id: UUID(), name: nil, label: "queryParam", contentType: String.self, options: PropertyOptionSet([.http(.query)]))
-        var endpoint = Endpoint(
-                description: "SomeComp",
-                context: Context(contextNode: ContextNode()),
-                operation: Operation.automatic,
-                requestHandler: SharedSemanticModelBuilder.createRequestHandler(with: SomeComp()),
-                handleReturnType: SomeComp.Response.self,
-                responseType: SomeComp.Response.self,
-                parameters: [endpointParameter]
-        )
         let endpointTreeNode = EndpointsTreeNode(path: RootPath())
         endpointTreeNode.addEndpoint(&endpoint, at: ["test"])
         pathsObjectBuilder.addPathItem(from: endpoint)
         let path = OpenAPI.Path(stringLiteral: "/test")
         let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
-                parameters: [Either.parameter(name: "queryParam", context: .query, schema: .string)],
+                parameters: [Either.parameter(name: "name", context: .query, schema: .string)],
                 requestBody: nil,
                 responses: [.status(code: 200): .init(OpenAPI.Response(description: "", content: [.txt : .init(schema: .string)]))],
                 security: nil))

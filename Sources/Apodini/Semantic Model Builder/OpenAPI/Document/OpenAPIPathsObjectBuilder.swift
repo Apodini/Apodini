@@ -8,9 +8,9 @@
 struct OpenAPIPathBuilder: PathBuilder {
     public lazy var path: OpenAPI.Path = OpenAPI.Path(stringLiteral: self.components.joined(separator: "/"))
     var components: [String] = []
-    let parameters: [EndpointParameter]
+    let parameters: [AnyEndpointParameter]
 
-    init(_ pathComponents: [_PathComponent], parameters: [EndpointParameter]) {
+    init(_ pathComponents: [_PathComponent], parameters: [AnyEndpointParameter]) {
         self.parameters = parameters
         for pathComponent in pathComponents {
             pathComponent.append(to: &self)
@@ -22,7 +22,7 @@ struct OpenAPIPathBuilder: PathBuilder {
         { $0.id == parameter.id }) else {
             fatalError("Path contains parameter which cannot be found in endpoint's parameters.")
         }
-        components.append("{\(p.name ?? p.label)}")
+        components.append("{\(p.name)}")
     }
 
     mutating func append(_ string: String) {
@@ -41,7 +41,7 @@ struct OpenAPIPathsObjectBuilder {
     }
 
     /// https://swagger.io/specification/#path-item-object
-    mutating func addPathItem(from endpoint: Endpoint) {
+    mutating func addPathItem<C: Component>(from endpoint: Endpoint<C>) {
         // Get OpenAPI-compliant path representation.
         var pathBuilder = OpenAPIPathBuilder(endpoint.absolutePath, parameters: endpoint.parameters)
         let path = pathBuilder.path
@@ -60,7 +60,7 @@ struct OpenAPIPathsObjectBuilder {
 
     /// https://swagger.io/specification/#operation-object
     /// TODO: maybe we can achieve better information hiding here, but for now pass in complete `Endpoint` object.
-    mutating private func buildPathItemOperationObject(from endpoint: Endpoint) -> OpenAPI.Operation {
+    mutating private func buildPathItemOperationObject<C: Component>(from endpoint: Endpoint<C>) -> OpenAPI.Operation {
         // Get `Parameter.Array` from existing `query` or `path` parameters.
         let parameters: OpenAPI.Parameter.Array = buildParametersArray(from: endpoint.parameters)
 
@@ -81,7 +81,7 @@ struct OpenAPIPathsObjectBuilder {
     }
 
     /// https://swagger.io/specification/#parameter-object
-    mutating private func buildParametersArray(from parameters: [EndpointParameter]) -> OpenAPI.Parameter.Array {
+    mutating private func buildParametersArray(from parameters: [AnyEndpointParameter]) -> OpenAPI.Parameter.Array {
         parameters.compactMap {
             if let context = $0.openAPIContext {
                 // TODO: what about non-primitive type schemas?
@@ -92,17 +92,17 @@ struct OpenAPIPathsObjectBuilder {
     }
 
     /// https://swagger.io/specification/#request-body-object
-    mutating private func buildRequestBodyObject(from parameters: [EndpointParameter]) -> OpenAPI.Request? {
+    mutating private func buildRequestBodyObject(from parameters: [AnyEndpointParameter]) -> OpenAPI.Request? {
         var requestBody: OpenAPI.Request? = nil
         let contentParameters = parameters.filter {
             $0.parameterType == .content
         }
         var requestJSONSchema: JSONSchema? = nil
         if contentParameters.count == 1 {
-            requestJSONSchema = try! componentsObjectBuilder.buildSchema(for: contentParameters[0].contentType)
+            requestJSONSchema = try! componentsObjectBuilder.buildSchema(for: contentParameters[0].propertyType)
         } else if !contentParameters.isEmpty {
             requestJSONSchema = try! componentsObjectBuilder.buildSchema(for: contentParameters.map {
-                $0.contentType
+                $0.propertyType
             })
         }
         if let requestJSONSchema = requestJSONSchema {
@@ -131,7 +131,7 @@ struct OpenAPIPathsObjectBuilder {
     }
 
     /// https://swagger.io/specification/#security-requirement-object
-    mutating private func buildSecurityRequirementArray(from endpoint: Endpoint) -> [OpenAPI.SecurityRequirement]? {
+    mutating private func buildSecurityRequirementArray<C: Component>(from endpoint: Endpoint<C>) -> [OpenAPI.SecurityRequirement]? {
         let security: [OpenAPI.SecurityRequirement]? = nil
         return security
     }

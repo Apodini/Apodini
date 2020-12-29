@@ -29,15 +29,18 @@ struct TestWebService: Apodini.WebService {
     }
 
     struct SomeStruct: Vapor.Content {
-        var someProp = 4
+        var someProp: Int
+        var optionalInt: Int?
+        var optinalString: String?
+        var reqDouble: Double
     }
 
     struct SomeComp: Component {
         @Parameter
-        var name: String
+        var name: String?
 
         func handle() -> SomeStruct {
-            SomeStruct()
+            SomeStruct(someProp: 4, reqDouble: 5.0)
         }
     }
 
@@ -56,9 +59,10 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @Parameter(.http(.path)) var name: String
+        @Parameter("PathName", .http(.path)) var name: String
 
-        @Parameter var greet: String?
+        @Parameter("greetParam")
+        var greet: String?
 
         func handle() -> String {
             "\(greet ?? "Hello") \(name)"
@@ -70,7 +74,8 @@ struct TestWebService: Apodini.WebService {
     }
 
     struct UserHandler: Component {
-        @Parameter var userId: Int
+        @Parameter
+        var userId: Int
 
         func handle() -> User {
             User(id: userId)
@@ -80,7 +85,7 @@ struct TestWebService: Apodini.WebService {
     @PathParameter var userId: Int
     
     var content: some Component {
-        Text("Hello World! 👋")
+        Greeter()
             .response(EmojiMediator(emojis: "🎉"))
         Group("swift") {
             Group("5", "3") {
