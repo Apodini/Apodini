@@ -57,7 +57,7 @@ final class TraversableTests: ApodiniTests {
         }
         
         var wrappedValue: String {
-            let c = $properties.typed(Param<String>.self)["c"]
+            let c = _properties.typed(Param<String>.self)["c"]
             return "\(b ?? "")\(c?.wrappedValue ?? "")\(d)"
         }
     }
