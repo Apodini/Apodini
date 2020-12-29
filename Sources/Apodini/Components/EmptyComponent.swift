@@ -53,6 +53,6 @@ public struct EmptyComponent: Component {
 }
 
 
-extension EmptyComponent: Visitable {
-    func visit(_ visitor: SyntaxTreeVisitor) {}
+extension EmptyComponent: SyntaxTreeVisitable {
+    func accept(_ visitor: SyntaxTreeVisitor) {}
 }

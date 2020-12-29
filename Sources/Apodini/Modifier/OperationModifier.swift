@@ -39,8 +39,8 @@ public struct OperationModifier<ModifiedComponent: Component>: Modifier {
 }
 
 
-extension OperationModifier: Visitable {
-    func visit(_ visitor: SyntaxTreeVisitor) {
+extension OperationModifier: SyntaxTreeVisitable {
+    func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(OperationContextKey.self, value: operation, scope: .nextComponent)
         component.visit(visitor)
     }

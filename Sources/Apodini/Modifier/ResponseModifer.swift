@@ -6,7 +6,6 @@
 //
 
 import NIO
-import Vapor
 @_implementationOnly import Runtime
 
 
@@ -88,8 +87,8 @@ public struct ResponseModifier<C: Component, T: ResponseTransformer>: Modifier w
 }
 
 
-extension ResponseModifier: Visitable {
-    func visit(_ visitor: SyntaxTreeVisitor) {
+extension ResponseModifier: SyntaxTreeVisitable {
+    func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(ResponseContextKey.self, value: [responseTransformer], scope: .nextComponent)
         component.visit(visitor)
     }

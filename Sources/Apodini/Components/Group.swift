@@ -26,8 +26,8 @@ public struct Group<Content: Component>: Component {
 }
 
 
-extension Group: Visitable {
-    func visit(_ visitor: SyntaxTreeVisitor) {
+extension Group: SyntaxTreeVisitable {
+    func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.enterCollectionItem()
         visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)
         content.visit(visitor)

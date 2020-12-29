@@ -9,25 +9,44 @@
 import XCTest
 
 
-final class EndpointsTreeTests: XCTestCase {
+final class EndpointsTreeTests: ApodiniTests {
     struct Birthdate: Codable {
         let year: Int
         let day: Int
         let month: Int
     }
+
+    struct BasicTestHandler: Component {
+        @Parameter
+        var name: String
+
+        func handle() -> String {
+            "Hello \(name)"
+        }
+    }
     
     struct TestHandler: Component {
         @Parameter(.http(.path))
         var name: String
-        
-        @Parameter(.http(.query))
-        var times: Int = 0
-        
-        @Parameter(.http(.body))
+        var nameParameter: Parameter<String> {
+            _name
+        }
+
+        @Parameter("multiply")
+        var times: Int? = 1
+        var timesParameter: Parameter<Int?> {
+            _times
+        }
+
+        @Parameter
         var birthdate: Birthdate
+        var birthdateParameter: Parameter<Birthdate> {
+            _birthdate
+        }
         
         func handle() -> String {
-            (0...times)
+            // swiftlint:disable:next force_unwrapping
+            (0...times!)
                 .map { _ in
                     "Hello \(name) born in \(birthdate.year)!"
                 }
@@ -47,39 +66,66 @@ final class EndpointsTreeTests: XCTestCase {
     }
     
     func testEndpointParameters() throws {
-        // swiftlint:disable force_cast
         let testComponent = TestComponent()
-        let testHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
-        
-        let requestInjectables: [String: RequestInjectable] = testHandler.extractRequestInjectables()
-        let parameterBuilder = ParameterBuilder(from: testHandler)
-        parameterBuilder.build()
+        let testHandler: TestHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
+        let endpoint = testHandler.mockEndpoint()
 
-        let endpoint = Endpoint(
-                description: String(describing: testHandler),
-                context: Context(contextNode: ContextNode()),
-                operation: Operation.automatic,
-                requestHandler: SharedSemanticModelBuilder.createRequestHandler(with: testComponent),
-                handleReturnType: TestHandler.Response.self,
-                responseType: TestHandler.Response.self,
-                parameters: parameterBuilder.parameters
-        )
+        let parameters: [AnyEndpointParameter] = endpoint.parameters
+        let nameParameter = parameters.first { $0.label == "_name" }!
+        let timesParameter = parameters.first { $0.label == "_times" }!
+        let birthdateParameter = parameters.first { $0.label == "_birthdate" }!
 
-        let parameters: [EndpointParameter] = endpoint.parameters
-        let nameParameter: EndpointParameter = parameters.first { $0.label == "_name" }!
-        let timesParameter: EndpointParameter = parameters.first { $0.label == "_times" }!
-        let birthdateParameter: EndpointParameter = parameters.first { $0.label == "_birthdate" }!
+        // check that the _ is correctly removed on name and any manual name is properly set
+        XCTAssertEqual(nameParameter.name, "name")
+        XCTAssertEqual(timesParameter.name, "multiply")
+        XCTAssertEqual(birthdateParameter.name, "birthdate")
         
         // basic checks to ensure proper parameter parsing
-        XCTAssertEqual(nameParameter.id, (requestInjectables["_name"] as! Parameter<String>).id)
-        XCTAssertEqual(timesParameter.id, (requestInjectables["_times"] as! Parameter<Int>).id)
-        XCTAssertEqual(timesParameter.options.option(for: PropertyOptionKey.http),
-                       (requestInjectables["_times"] as! Parameter<Int>).option(for: PropertyOptionKey.http))
-        XCTAssertEqual(birthdateParameter.id, (requestInjectables["_birthdate"] as! Parameter<Birthdate>).id)
+        XCTAssertEqual(nameParameter.id, testHandler.nameParameter.id)
+        XCTAssertEqual(timesParameter.id, testHandler.timesParameter.id)
+        XCTAssertEqual(timesParameter.options.option(for: PropertyOptionKey.http), testHandler.timesParameter.option(for: PropertyOptionKey.http))
+        XCTAssertEqual(birthdateParameter.id, testHandler.birthdateParameter.id)
         
         // check whether categorization works
         XCTAssertEqual(birthdateParameter.parameterType, .content)
         XCTAssertEqual(timesParameter.parameterType, .lightweight)
         XCTAssertEqual(nameParameter.parameterType, .path)
+
+        // check necessity
+        XCTAssertEqual(birthdateParameter.necessity, .required)
+        XCTAssertEqual(timesParameter.necessity, .optional)
+        XCTAssertEqual(nameParameter.necessity, .required)
+
+        // check default value
+        XCTAssertNil(birthdateParameter.typeErasuredDefaultValue)
+        // swiftlint:disable:next force_cast
+        XCTAssertEqual(timesParameter.typeErasuredDefaultValue as! Int?, 1)
+        XCTAssertNil(nameParameter.typeErasuredDefaultValue)
+    }
+
+    func testRequestHandler() throws {
+        let name = "Craig" // this is the parameter value we want to inject
+
+        // setting up a exporter
+        let exporter = MockExporter<String>(queued: name)
+
+        // creating handlers, guards and transformers
+        let handler = BasicTestHandler()
+        let transformer = EmojiMediator(emojis: "✅")
+        let printGuard = AnyGuard(PrintGuard())
+
+        // creating a endpoint model from the handler
+        let endpoint = handler.mockEndpoint(guards: [ { printGuard } ], responseTransformers: [ { transformer } ])
+
+        // creating a request handler for the exporter
+        let requestHandler = endpoint.createRequestHandler(for: exporter)
+
+        // handle a request (The actual request is unused in the MockExporter)
+        let response = try requestHandler
+                .handleRequest(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+                .wait()
+        let responseString: String = try XCTUnwrap(response as? String)
+
+        XCTAssertEqual(responseString, "✅ Hello \(name) ✅")
     }
 }
