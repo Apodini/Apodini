@@ -139,7 +139,7 @@ private struct ParameterRetrievalDelegation<Element: Codable, I: InterfaceExport
 
 @propertyWrapper
 // swiftlint:disable:next type_name
-struct _Request: RequestInjectable {
+struct _Request: Property, RequestInjectable {
     private var request: Request?
     
     

@@ -11,7 +11,7 @@ import protocol Fluent.Database
 
 @propertyWrapper
 // swiftlint:disable:next type_name
-struct _Database: RequestInjectable {
+struct _Database: Property, RequestInjectable {
     private var database: Fluent.Database?
     
     

@@ -43,12 +43,26 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
+        @Properties
+        var properties: [String: Apodini.Property] = ["surname": Parameter<String?>()]
+        
         @Parameter(.http(.path)) var name: String
 
         @Parameter var greet: String?
-
+        
         func handle() -> String {
-            "\(greet ?? "Hello") \(name)"
+            let surnameParameter: Parameter<String?>? = _properties.typed(Parameter<String?>.self)["surname"]
+            
+            return "\(greet ?? "Hello") \(name) " + (surnameParameter?.wrappedValue ?? "Unknown")
+        }
+    }
+    
+    @propertyWrapper
+    struct UselessWrapper: DynamicProperty {
+        @Parameter var name: String?
+        
+        var wrappedValue: String? {
+            name
         }
     }
 
