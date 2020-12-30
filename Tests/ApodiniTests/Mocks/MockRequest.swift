@@ -10,29 +10,29 @@ import protocol FluentKit.Database
 
 enum MockRequest {
     static func createRequest(
-            running eventLoop: EventLoop,
-            database: Database? = nil,
-            queuedParameters parameterValues: Any??...
+        running eventLoop: EventLoop,
+        database: Database? = nil,
+        queuedParameters parameterValues: Any??...
     ) -> ApodiniRequest<MockExporter<String>, EmptyHandler> {
         createRequest(on: EmptyHandler(), running: eventLoop, database: database, queuedParameters: parameterValues)
     }
 
-    static func createRequest<C: Component>(
-            on component: C,
-            running eventLoop: EventLoop,
-            database: Database? = nil,
-            queuedParameters parameterValues: Any??...
-    ) -> ApodiniRequest<MockExporter<String>, C> {
-        createRequest(on: component, running: eventLoop, database: database, queuedParameters: parameterValues)
+    static func createRequest<H: Handler>(
+        on handler: H,
+        running eventLoop: EventLoop,
+        database: Database? = nil,
+        queuedParameters parameterValues: Any??...
+    ) -> ApodiniRequest<MockExporter<String>, H> {
+        createRequest(on: handler, running: eventLoop, database: database, queuedParameters: parameterValues)
     }
 
-    private static func createRequest<C: Component>(
-            on component: C,
-            running eventLoop: EventLoop,
-            database: Database? = nil,
-            queuedParameters parameterValues: [Any??]
-    ) -> ApodiniRequest<MockExporter<String>, C> {
-        let endpoint = component.mockEndpoint()
+    private static func createRequest<H: Handler>(
+        on handler: H,
+        running eventLoop: EventLoop,
+        database: Database? = nil,
+        queuedParameters parameterValues: [Any??]
+    ) -> ApodiniRequest<MockExporter<String>, H> {
+        let endpoint = handler.mockEndpoint()
         let exporter = MockExporter<String>(queued: parameterValues)
         // swiftlint:disable:next force_unwrapping
         let databaseClosure = database != nil ? { database! } : nil

@@ -34,7 +34,7 @@ class WebServiceModel {
         root.relationships
     }
     
-    fileprivate func addEndpoint<C: Component>(_ endpoint: inout Endpoint<C>, at paths: [PathComponent]) {
+    fileprivate func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, at paths: [PathComponent]) {
         root.addEndpoint(&endpoint, at: paths)
     }
 }

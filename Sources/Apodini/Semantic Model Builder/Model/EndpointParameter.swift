@@ -185,8 +185,8 @@ class ParameterBuilder: RequestInjectableVisitor {
 
     var parameters: [AnyEndpointParameter] = []
 
-    init<C: Component>(from component: C) {
-        self.requestInjectables = component.extractRequestInjectables()
+    init<H: Handler>(from handler: H) {
+        self.requestInjectables = handler.extractRequestInjectables()
     }
 
     func build() {

@@ -158,7 +158,7 @@ class EndpointsTreeNode {
         self.parent = parent
     }
     
-    func addEndpoint<C: Component>(_ endpoint: inout Endpoint<C>, at paths: [PathComponent]) {
+    func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, at paths: [PathComponent]) {
         if paths.isEmpty {
             // swiftlint:disable:next force_unwrapping
             precondition(endpoints[endpoint.operation] == nil, "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)")
