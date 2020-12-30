@@ -6,7 +6,7 @@ import XCTest
 @testable import Apodini
 
 class ParameterRetrievalTests: ApodiniTests {
-    struct TestHandler: Component {
+    struct TestHandler: Handler {
         @Parameter
         var name: String // will be set to "Rudi"
         @Parameter

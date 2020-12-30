@@ -4,7 +4,7 @@
 import NIO
 import protocol FluentKit.Database
 
-struct ApodiniRequest<I: InterfaceExporter, C: Component>: Request {
+struct ApodiniRequest<I: InterfaceExporter, H: Handler>: Request {
     var description: String {
         var description = "Apodini Request:\n"
         if let convertible = exporterRequest as? CustomStringConvertible {
@@ -23,7 +23,7 @@ struct ApodiniRequest<I: InterfaceExporter, C: Component>: Request {
     var exporter: I
     var exporterRequest: I.ExporterRequest
 
-    var storedEndpoint: Endpoint<C>
+    var storedEndpoint: Endpoint<H>
     var endpoint: AnyEndpoint {
         storedEndpoint
     }
@@ -33,11 +33,11 @@ struct ApodiniRequest<I: InterfaceExporter, C: Component>: Request {
     var database: (() -> Database)?
 
     init(
-            for exporter: I,
-            with request: I.ExporterRequest,
-            on endpoint: Endpoint<C>,
-            running eventLoop: EventLoop,
-            database: (() -> Database)? = nil
+        for exporter: I,
+        with request: I.ExporterRequest,
+        on endpoint: Endpoint<H>,
+        running eventLoop: EventLoop,
+        database: (() -> Database)? = nil
     ) {
         self.exporter = exporter
         self.exporterRequest = request

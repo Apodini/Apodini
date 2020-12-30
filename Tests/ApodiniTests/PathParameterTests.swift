@@ -14,7 +14,6 @@ final class PathParameterTests: ApodiniTests {
         @PathParameter
         var name: String
         
-        
         var content: some Component {
             Group($name) {
                 TestHandler(name: $name)
@@ -22,13 +21,13 @@ final class PathParameterTests: ApodiniTests {
         }
     }
     
-    struct TestHandler: Component {
+    
+    struct TestHandler: Handler {
         @Parameter
         var name: String
         
         @Parameter
         var times: Int
-        
         
         func handle() -> String {
             (0...times)
@@ -38,6 +37,7 @@ final class PathParameterTests: ApodiniTests {
                 .joined(separator: " ")
         }
     }
+    
     
     func testPrintComponent() throws {
         let testComponent = TestComponent()

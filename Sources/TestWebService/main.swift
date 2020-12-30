@@ -42,7 +42,7 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
-    struct Greeter: Component {
+    struct Greeter: Handler {
         @Properties
         var properties: [String: Apodini.Property] = ["surname": Parameter<String?>()]
         
@@ -70,7 +70,7 @@ struct TestWebService: Apodini.WebService {
         var id: Int
     }
 
-    struct UserHandler: Component {
+    struct UserHandler: Handler {
         @Parameter var userId: Int
 
         func handle() -> User {

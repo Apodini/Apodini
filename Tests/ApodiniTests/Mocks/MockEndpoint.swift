@@ -3,10 +3,12 @@
 //
 
 @testable import Apodini
+import struct Foundation.UUID
 
 // MARK: Mock Endpoint
-extension Component {
-    /// Creates a basic Endpoint Model from the `Component`.
+extension Handler {
+    /// Creates a basic Endpoint Model from the `Handler`.
+    /// - Note: This endpoint's identifier is not guaranteed to be stable
     func mockEndpoint(
             context: Context = Context(contextNode: ContextNode()),
             operation: Operation = .automatic,
@@ -16,12 +18,13 @@ extension Component {
         let parameterBuilder = ParameterBuilder(from: self)
         parameterBuilder.build()
         return Endpoint(
-                component: self,
-                context: context,
-                operation: operation,
-                guards: guards,
-                responseTransformers: responseTransformers,
-                parameters: parameterBuilder.parameters
+            identifier: self.getExplicitlySpecifiedIdentifier() ?? AnyHandlerIdentifier(UUID().uuidString),
+            handler: self,
+            context: context,
+            operation: operation,
+            guards: guards,
+            responseTransformers: responseTransformers,
+            parameters: parameterBuilder.parameters
         )
     }
 }

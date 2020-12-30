@@ -15,7 +15,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         var bird: Bird
     }
 
-    struct TestRestHandler: Component {
+    struct TestRestHandler: Handler {
         @Parameter
         var param0: String
         @Parameter

@@ -74,7 +74,7 @@ class RESTInterfaceExporter: InterfaceExporter {
         self.app = app
     }
 
-    func export<C: Component>(_ endpoint: Endpoint<C>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let pathBuilder = RESTPathBuilder(endpoint.absolutePath)
         let routesBuilder = pathBuilder.routesBuilder(app)
 

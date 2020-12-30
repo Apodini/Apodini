@@ -9,8 +9,9 @@ import XCTest
 import Vapor
 @testable import Apodini
 
+
 final class SharedSemanticModelBuilderTests: ApodiniTests {
-    struct TestHandler: Component {
+    struct TestHandler: Handler {
         @Parameter
         var name: String
         
@@ -28,7 +29,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         }
     }
     
-    struct TestHandler2: Component {
+    struct TestHandler2: Handler {
         @Parameter
         var name: String
         
@@ -40,7 +41,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         }
     }
     
-    struct TestHandler3: Component {
+    struct TestHandler3: Handler {
         @Parameter("someOtherId", .http(.path))
         var id: Int
         

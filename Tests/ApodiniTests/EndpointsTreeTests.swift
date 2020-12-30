@@ -16,7 +16,7 @@ final class EndpointsTreeTests: ApodiniTests {
         let month: Int
     }
 
-    struct BasicTestHandler: Component {
+    struct BasicTestHandler: Handler {
         @Parameter
         var name: String
 
@@ -25,7 +25,7 @@ final class EndpointsTreeTests: ApodiniTests {
         }
     }
     
-    struct TestHandler: Component {
+    struct TestHandler: Handler {
         @Parameter(.http(.path))
         var name: String
         var nameParameter: Parameter<String> {

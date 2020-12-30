@@ -1,12 +1,14 @@
 import Foundation
 
-public struct TupleComponent<T>: Component {
+public struct TupleComponent<T>: Component, SyntaxTreeVisitable {
+    public typealias Content = Never
+    
     private let storage: T
     #if DEBUG
     let file: StaticString
     let function: StaticString
     #endif
-
+    
     #if DEBUG
     init(_ storage: T, file: StaticString = #file, function: StaticString = #function) {
         self.storage = storage
@@ -18,10 +20,12 @@ public struct TupleComponent<T>: Component {
         self.storage = storage
     }
     #endif
-}
-
-extension TupleComponent: SyntaxTreeVisitable {
+    
     func accept(_ visitor: SyntaxTreeVisitor) {
+        visitor.enterCollection()
+        defer {
+            visitor.exitCollection()
+        }
         let mirror = Mirror(reflecting: storage)
         for (_, value) in mirror.children {
             visitor.enterCollectionItem()
