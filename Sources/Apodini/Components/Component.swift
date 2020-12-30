@@ -52,15 +52,19 @@ public protocol IdentifiableHandler: Handler {
 
 // MARK: Syntax Tree Visitor
 extension Component {
+    /// As the `SyntaxTreeVisitable` protocol is internal we are not able to make `Component` conform to the protocol.
+    /// This implementation of `accept` provides a default implementation for `Component` that either forwards the visitor to a custom `accept` implementation provided by conforming to the `SyntaxTreeVisitable`
+    /// or forwards the `SyntaxTreeVisitor` to the content of the `Component` in case the content is not of type `Never`.
+    ///
+    /// Each `Component` that needs to provide a custom `accept` implementation **must** conform to `SyntaxTreeVisitable` and **must** provide a custom `accept` implementation.
+    /// We require that each Component that conforms to `SyntaxTreeVisitable` provides its own custom `accept` implementation to avoid an endless loop in the `accept` function.
     func accept(_ visitor: SyntaxTreeVisitor) {
         assertTypeIsStruct(Self.self, messagePrefix: "Component")
         if let visitable = self as? SyntaxTreeVisitable {
             visitable.accept(visitor)
         } else {
             if Self.Content.self != Never.self {
-                visitor.enterCollection()
                 content.accept(visitor)
-                visitor.exitCollection()
             }
             HandlerVisitorHelperImpl(visitor: visitor)(self)
         }
