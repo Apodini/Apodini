@@ -28,7 +28,6 @@ struct OperationContextKey: ContextKey {
 }
 
 
-
 public struct OperationModifier<H: Handler>: HandlerModifier {
     public let component: H
     let operation: Operation
@@ -43,10 +42,9 @@ public struct OperationModifier<H: Handler>: HandlerModifier {
 extension OperationModifier: SyntaxTreeVisitable {
     func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(OperationContextKey.self, value: operation, scope: .nextComponent)
-        component.visit(visitor)
+        component.accept(visitor)
     }
 }
-
 
 
 extension Handler {

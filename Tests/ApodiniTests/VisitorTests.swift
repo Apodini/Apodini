@@ -54,31 +54,31 @@ final class VisitorTests: XCTestCase {
     
     func testPrintVisitor() {
         let printVisitor = PrintVisitor()
-        TestWebService().visit(printVisitor)
+        TestWebService().accept(printVisitor)
     }
     
     func testRESTVisitor() {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [SharedSemanticModelBuilder(app).with(exporter: RESTInterfaceExporter.self)])
-        TestWebService().visit(visitor)
+        TestWebService().accept(visitor)
     }
     
     func testGraphQLVisitor() {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [GraphQLSemanticModelBuilder(app)])
-        TestWebService().visit(visitor)
+        TestWebService().accept(visitor)
     }
     
     func testGRPCVisitor() {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [GRPCSemanticModelBuilder(app)])
-        TestWebService().visit(visitor)
+        TestWebService().accept(visitor)
     }
     
     func testWebSocketVisitor() {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [WebSocketSemanticModelBuilder(app)])
-        TestWebService().visit(visitor)
+        TestWebService().accept(visitor)
     }
     
     func testOpenAPIVisitor() {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [OpenAPISemanticModelBuilder(app)])
-        TestWebService().visit(visitor)
+        TestWebService().accept(visitor)
     }
 }

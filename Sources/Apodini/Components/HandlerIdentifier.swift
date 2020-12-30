@@ -27,7 +27,7 @@ public class AnyHandlerIdentifier: RawRepresentable, Hashable, Equatable, Custom
     
     
     public var description: String {
-        return "\(Self.self)(\"\(rawValue)\")"
+        "\(Self.self)(\"\(rawValue)\")"
     }
     
     public func hash(into hasher: inout Hasher) {
@@ -35,7 +35,7 @@ public class AnyHandlerIdentifier: RawRepresentable, Hashable, Equatable, Custom
     }
     
     public static func == (lhs: AnyHandlerIdentifier, rhs: AnyHandlerIdentifier) -> Bool {
-        return lhs.rawValue == rhs.rawValue
+        lhs.rawValue == rhs.rawValue
     }
 }
 
@@ -48,7 +48,7 @@ public class ScopedHandlerIdentifier<H: IdentifiableHandler>: AnyHandlerIdentifi
     }
     
     @available(*, unavailable, message: "'init(IdentifiableHandler.Type)' cannot be used with type-scoped handler identifiers")
-    public override init<H: IdentifiableHandler>(_: H.Type) {
+    override public init<H: IdentifiableHandler>(_: H.Type) {
         fatalError("Not supported. Use one of the rawValue initializers.")
     }
 }

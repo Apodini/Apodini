@@ -9,14 +9,14 @@
 public struct AnyComponent: Component, SyntaxTreeVisitable {
     public typealias Content = Never
     
-    private let _visit: (SyntaxTreeVisitor) -> Void
+    private let _accept: (SyntaxTreeVisitor) -> Void
     
     init<C: Component>(_ component: C) {
-        _visit = component.visit
+        _accept = component.accept
     }
     
     func accept(_ visitor: SyntaxTreeVisitor) {
-        _visit(visitor)
+        _accept(visitor)
     }
 }
 
@@ -24,13 +24,13 @@ public struct AnyComponent: Component, SyntaxTreeVisitable {
 public struct AnyHandler: Handler, SyntaxTreeVisitable {
     public typealias Response = Never
     
-    private let _visit: (SyntaxTreeVisitor) -> Void
+    private let _accept: (SyntaxTreeVisitor) -> Void
     
     init<H: Handler>(_ handler: H) {
-        _visit = handler.visit
+        _accept = handler.accept
     }
     
     func accept(_ visitor: SyntaxTreeVisitor) {
-        _visit(visitor)
+        _accept(visitor)
     }
 }

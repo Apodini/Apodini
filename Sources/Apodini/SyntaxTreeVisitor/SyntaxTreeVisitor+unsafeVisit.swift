@@ -28,6 +28,6 @@ private struct StandardComponentVisitor: ComponentAssociatedTypeRequirementsVisi
     let visitor: SyntaxTreeVisitor
 
     func callAsFunction<T: Component>(_ value: T) {
-        value.visit(visitor)
+        value.accept(visitor)
     }
 }

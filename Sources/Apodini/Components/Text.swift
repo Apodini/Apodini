@@ -13,6 +13,6 @@ public struct Text: Handler {
     }
     
     public func handle() -> String {
-        return text
+        text
     }
 }

@@ -23,8 +23,12 @@ public protocol HandlerModifier: Modifier, Handler where ModifiedComponent: Hand
 
 
 public extension HandlerModifier {
+    /// `HandlerModifier`s don't provide any further content
+    /// - Note: this property should not be implenented in a modifier type
     var content: some Component { EmptyComponent() }
     
+    /// `HandlerModifier`s don't implement the `handle` function
+    /// - Note: this function should not be implenented in a modifier type
     func handle() -> Response {
         fatalError("A Modifier's handle method should never be called!")
     }

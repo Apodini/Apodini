@@ -139,7 +139,7 @@ private protocol IdentifiableHandlerATRVisitorHelper: AssociatedTypeRequirements
 
 private struct IdentifiableHandlerATRVisitor: IdentifiableHandlerATRVisitorHelper {
     func callAsFunction<T: IdentifiableHandler>(_ value: T) -> AnyHandlerIdentifier {
-        return value.handlerId
+        value.handlerId
     }
 }
 
@@ -148,8 +148,8 @@ extension Handler {
     /// If `self` is an `IdentifiableHandler`, returns the handler's `handlerId`. Otherwise nil
     internal func getExplicitlySpecifiedIdentifier() -> AnyHandlerIdentifier? {
         // Intentionally using the if-let here to make sure we get an error
-        // if for some reason the ATRVisitor's return type isn't an optional anymore.
-        // Also,
+        // if for some reason the ATRVisitor's return type isn't an optional anymore,
+        // since that (a guaranteed non-nil return value) would defeat the whole point of this function
         if let identifier = IdentifiableHandlerATRVisitor()(self) {
             return identifier
         } else {

@@ -28,7 +28,7 @@ public struct Group<Content: Component>: Component, SyntaxTreeVisitable {
         visitor.enterCollection()
         visitor.enterCollectionItem()
         visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)
-        content.visit(visitor)
+        content.accept(visitor)
         visitor.exitCollectionItem()
         visitor.exitCollection()
     }

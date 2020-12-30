@@ -62,7 +62,7 @@ extension GuardModifier: Handler, HandlerModifier where Self.ModifiedComponent: 
 extension GuardModifier: SyntaxTreeVisitable {
     func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(GuardContextKey.self, value: [`guard`], scope: .environment)
-        component.visit(visitor)
+        component.accept(visitor)
     }
 }
 

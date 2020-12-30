@@ -7,7 +7,6 @@ import Vapor
 @testable import Apodini
 
 
-
 struct TestComponent: Handler {
     let type: Int
 
@@ -21,7 +20,6 @@ struct TestComponent: Handler {
 }
 
 
-
 struct IntEnvironmentContextKey: ContextKey {
     static var defaultValue: Int = 0
 
@@ -29,7 +27,6 @@ struct IntEnvironmentContextKey: ContextKey {
         value = nextValue()
     }
 }
-
 
 
 struct IntNextComponentContextKey: ContextKey {
@@ -59,7 +56,7 @@ struct IntModifier<C: Component>: Modifier, SyntaxTreeVisitable {
         case .nextComponent:
             visitor.addContext(IntNextComponentContextKey.self, value: value, scope: .nextComponent)
         }
-        component.visit(visitor)
+        component.accept(visitor)
     }
 }
 
@@ -74,8 +71,6 @@ extension Component {
         IntModifier(self, scope: scope, value: value)
     }
 }
-
-
 
 
 /**
@@ -113,7 +108,7 @@ final class ContextNodeTests: ApodiniTests {
         }
 
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
-        groupWithSingleComponent.visit(visitor)
+        groupWithSingleComponent.accept(visitor)
     }
     
     
@@ -152,7 +147,7 @@ final class ContextNodeTests: ApodiniTests {
         }
 
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
-        groupWithComponentAndGroup.visit(visitor)
+        groupWithComponentAndGroup.accept(visitor)
     }
     
     
@@ -190,6 +185,6 @@ final class ContextNodeTests: ApodiniTests {
         }
 
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
-        groupWithGroupAndComponent.visit(visitor)
+        groupWithGroupAndComponent.accept(visitor)
     }
 }

@@ -34,7 +34,10 @@ public protocol Handler: Component {
 
 
 extension Handler {
-    public var content: some Component { EmptyComponent() }
+    /// By default, `Handler`s dont't provide any further content
+    public var content: some Component {
+        EmptyComponent()
+    }
 }
 
 
@@ -49,14 +52,14 @@ public protocol IdentifiableHandler: Handler {
 
 // MARK: Syntax Tree Visitor
 extension Component {
-    func visit(_ visitor: SyntaxTreeVisitor) {
-        AssertTypeIsStruct(Self.self)
+    func accept(_ visitor: SyntaxTreeVisitor) {
+        assertTypeIsStruct(Self.self)
         if let visitable = self as? SyntaxTreeVisitable {
             visitable.accept(visitor)
         } else {
             if Self.Content.self != Never.self {
                 visitor.enterCollection()
-                content.visit(visitor)
+                content.accept(visitor)
                 visitor.exitCollection()
             }
             HandlerVisitorHelperImpl(visitor: visitor)(self)
@@ -65,11 +68,11 @@ extension Component {
 }
 
 
-private func AssertTypeIsStruct<T>(_: T.Type) {
-    guard let TI = try? typeInfo(of: T.self) else {
+private func assertTypeIsStruct<T>(_: T.Type) {
+    guard let typeInfo = try? Runtime.typeInfo(of: T.self) else {
         fatalError("Unable to get type info for type '\(T.self)'")
     }
-    precondition(TI.kind == .struct, "Node '\(TI.name)' must be a struct")
+    precondition(typeInfo.kind == .struct, "'\(typeInfo.name)' must be a struct")
 }
 
 

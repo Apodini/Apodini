@@ -43,12 +43,10 @@ protocol AnyEndpoint: CustomStringConvertible {
 }
 
 
-
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 struct Endpoint<H: Handler>: AnyEndpoint {
     /// This is a reference to the node where the endpoint is located
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    fileprivate var treeNode: EndpointsTreeNode!
+    fileprivate var treeNode: EndpointsTreeNode! // swiftlint:disable:this implicitly_unwrapped_optional
     
     let identifier: AnyHandlerIdentifier
 
@@ -253,7 +251,8 @@ class EndpointsTreeNode {
 }
 
 
-fileprivate struct AnyHashableEndpoint: Hashable, Equatable {
+/// Helper type which acts as a Hashable wrapper around `AnyEndpoint` 
+private struct AnyHashableEndpoint: Hashable, Equatable {
     let endpoint: AnyEndpoint
     
     func hash(into hasher: inout Hasher) {
@@ -261,9 +260,10 @@ fileprivate struct AnyHashableEndpoint: Hashable, Equatable {
     }
     
     static func == (lhs: Self, rhs: Self) -> Bool {
-        return lhs.endpoint.identifier == rhs.endpoint.identifier
+        lhs.endpoint.identifier == rhs.endpoint.identifier
     }
 }
+
 
 extension EndpointsTreeNode {
     func collectAllEndpoints() -> [AnyEndpoint] {
@@ -282,4 +282,3 @@ extension EndpointsTreeNode {
         }
     }
 }
-

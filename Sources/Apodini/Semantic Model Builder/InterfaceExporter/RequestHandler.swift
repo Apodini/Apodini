@@ -32,8 +32,7 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler>: Endpoint
         request exporterRequest: I.ExporterRequest,
         eventLoop: EventLoop,
         database: Database? = nil
-    ) -> EventLoopFuture<Encodable>
-    {
+    ) -> EventLoopFuture<Encodable> {
         let databaseClosure: (() -> Database)?
         if let database = database {
             databaseClosure = { database }
