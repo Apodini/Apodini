@@ -85,7 +85,7 @@ class RESTInterfaceExporter: InterfaceExporter {
         let requestHandler = endpoint.createRequestHandler(for: self)
 
         routesBuilder.on(operation.httpMethod, []) { (request: Vapor.Request) -> EventLoopFuture<Vapor.Response> in
-            let responseFuture = requestHandler.handleRequest(request: request)
+            let responseFuture = requestHandler(request: request)
 
             return responseFuture.flatMap { encodable in
                 let jsonEncoder = JSONEncoder()

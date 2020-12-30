@@ -7,15 +7,15 @@ import protocol NIO.EventLoop
 import protocol FluentKit.Database
 
 class EndpointRequestHandler<I: InterfaceExporter> {
-    func handleRequest(request: I.ExporterRequest, eventLoop: EventLoop, database: Database? = nil) -> EventLoopFuture<Encodable> {
+    func callAsFunction(request: I.ExporterRequest, eventLoop: EventLoop, database: Database? = nil) -> EventLoopFuture<Encodable> {
         // We are doing nothing here. Everything is handled in InternalEndpointRequestHandler
         fatalError("EndpointRequestHandler.handleRequest() was not overridden. EndpointRequestHandler must not be created manually!")
     }
 }
 
 extension EndpointRequestHandler where I.ExporterRequest: WithEventLoop {
-    func handleRequest(request: I.ExporterRequest) -> EventLoopFuture<Encodable> {
-        handleRequest(request: request, eventLoop: request.eventLoop)
+    func callAsFunction(request: I.ExporterRequest) -> EventLoopFuture<Encodable> {
+        callAsFunction(request: request, eventLoop: request.eventLoop)
     }
 }
 
@@ -28,7 +28,7 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler>: Endpoint
         self.exporter = exporter
     }
 
-    override func handleRequest(
+    override func callAsFunction(
         request exporterRequest: I.ExporterRequest,
         eventLoop: EventLoop,
         database: Database? = nil
