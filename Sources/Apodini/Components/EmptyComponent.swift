@@ -8,16 +8,22 @@
 import NIO
 
 
-public struct EmptyComponent: Component, Visitable {
+public struct EmptyComponent: Component, SyntaxTreeVisitable {
     public var content: some Component {
         return { () -> Self in
             fatalError()
         }()
     }
     
-    func visit(_ visitor: SyntaxTreeVisitor) {}
+    func accept(_ visitor: SyntaxTreeVisitor) {}
 }
 
+
+public struct EmptyHandler: Handler, SyntaxTreeVisitable {
+    public typealias Response = Never
+    func accept(_ visitor: SyntaxTreeVisitor) {}
+    
+}
 
 /// A custom `Never` type.
 ///

@@ -6,7 +6,7 @@
 //
 
 
-public struct AnyComponent: Component, Visitable {
+public struct AnyComponent: Component, SyntaxTreeVisitable {
     public typealias Content = Never
     
     private let _visit: (SyntaxTreeVisitor) -> Void
@@ -15,13 +15,13 @@ public struct AnyComponent: Component, Visitable {
         _visit = component.visit
     }
     
-    func visit(_ visitor: SyntaxTreeVisitor) {
+    func accept(_ visitor: SyntaxTreeVisitor) {
         _visit(visitor)
     }
 }
 
 
-public struct AnyHandler: Handler, Visitable {
+public struct AnyHandler: Handler, SyntaxTreeVisitable {
     public typealias Response = Never
     
     private let _visit: (SyntaxTreeVisitor) -> Void
@@ -30,7 +30,7 @@ public struct AnyHandler: Handler, Visitable {
         _visit = handler.visit
     }
     
-    func visit(_ visitor: SyntaxTreeVisitor) {
+    func accept(_ visitor: SyntaxTreeVisitor) {
         _visit(visitor)
     }
 }

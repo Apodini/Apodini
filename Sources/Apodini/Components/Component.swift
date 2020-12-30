@@ -47,14 +47,14 @@ public protocol IdentifiableHandler: Handler {
     var handlerId: HandlerIdentifier { get }
 }
 
-
+// MARK: Syntax Tree Visitor
 extension Component {
     func visit(_ visitor: SyntaxTreeVisitor) {
         AssertTypeIsStruct(Self.self)
-        if let visitable = self as? Visitable {
-            visitable.visit(visitor)
+        if let visitable = self as? SyntaxTreeVisitable {
+            visitable.accept(visitor)
         } else {
-            if Content.self != Never.self {
+            if Self.Content.self != Never.self {
                 visitor.enterCollection()
                 content.visit(visitor)
                 visitor.exitCollection()
@@ -77,14 +77,12 @@ private protocol HandlerVisitorHelperImplBase: AssociatedTypeRequirementsVisitor
     associatedtype Visitor = HandlerVisitorHelperImplBase
     associatedtype Input = Handler
     associatedtype Output
-
     func callAsFunction<H: Handler>(_ value: H) -> Output
 }
 
 private struct HandlerVisitorHelperImpl: HandlerVisitorHelperImplBase {
     let visitor: SyntaxTreeVisitor
-
     func callAsFunction<H: Handler>(_ value: H) {
-        visitor.register(handler: value)
+        visitor.visit(handler: value)
     }
 }

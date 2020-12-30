@@ -55,14 +55,12 @@ public struct GuardModifier<C: Component>: Modifier {
     }
 }
 
-
 extension GuardModifier: Handler, HandlerModifier where Self.ModifiedComponent: Handler {
     public typealias Response = ModifiedComponent.Response
 }
 
-
-extension GuardModifier: Visitable {
-    func visit(_ visitor: SyntaxTreeVisitor) {
+extension GuardModifier: SyntaxTreeVisitable {
+    func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(GuardContextKey.self, value: [`guard`], scope: .environment)
         component.visit(visitor)
     }

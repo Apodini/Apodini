@@ -15,7 +15,7 @@ struct PathComponentContextKey: ContextKey {
 }
 
 
-public struct Group<Content: Component>: Component, Visitable {
+public struct Group<Content: Component>: Component, SyntaxTreeVisitable {
     private let pathComponents: [PathComponent]
     public let content: Content
     
@@ -24,7 +24,7 @@ public struct Group<Content: Component>: Component, Visitable {
         self.content = content()
     }
     
-    func visit(_ visitor: SyntaxTreeVisitor) {
+    func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.enterCollection()
         visitor.enterCollectionItem()
         visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)

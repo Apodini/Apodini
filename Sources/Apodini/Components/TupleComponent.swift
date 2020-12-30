@@ -1,6 +1,6 @@
 import Foundation
 
-public struct TupleComponent<T>: Component, Visitable {
+public struct TupleComponent<T>: Component, SyntaxTreeVisitable {
     public typealias Content = Never
     
     private let storage: T
@@ -21,8 +21,7 @@ public struct TupleComponent<T>: Component, Visitable {
     }
     #endif
     
-    
-    func visit(_ visitor: SyntaxTreeVisitor) {
+    func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.enterCollection()
         defer {
             visitor.exitCollection()

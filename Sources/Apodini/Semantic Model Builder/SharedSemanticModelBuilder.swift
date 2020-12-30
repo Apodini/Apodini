@@ -7,49 +7,64 @@ import NIO
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
-typealias RequestHandler = (Request) -> EventLoopFuture<Encodable>
+typealias RequestHandler = (ExporterRequest) -> EventLoopFuture<Encodable>
+
+/// This struct is used to model the RootPath for the root of the endpoints tree
+struct RootPath: _PathComponent {
+    var description: String {
+        ""
+    }
+
+    func append<P>(to pathBuilder: inout P) where P: PathBuilder {
+        fatalError("RootPath instances should not be appended to anything")
+    }
+}
 
 class WebServiceModel {
     fileprivate let root = EndpointsTreeNode(path: RootPath())
     fileprivate var finishedParsing = false
     
-    lazy var rootEndpoints: [Endpoint] = {
+    lazy var rootEndpoints: [AnyEndpoint] = {
         if !finishedParsing {
             fatalError("rootEndpoints of the WebServiceModel was accessed before parsing was finished!")
         }
-        return root.endpoints.map { _, endpoint -> Endpoint in endpoint }
+        return root.endpoints.map { _, endpoint -> AnyEndpoint in endpoint }
     }()
     var relationships: [EndpointRelationship] {
         root.relationships
     }
     
-    fileprivate func addEndpoint(_ endpoint: inout Endpoint, at paths: [PathComponent]) {
+    fileprivate func addEndpoint<C: Component>(_ endpoint: inout Endpoint<C>, at paths: [PathComponent]) {
         root.addEndpoint(&endpoint, at: paths)
     }
 }
 
-class SharedSemanticModelBuilder: SemanticModelBuilder {
-    private var interfaceExporters: [InterfaceExporter]
-    
+class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor {
+    private var interfaceExporters: [AnyInterfaceExporter] = []
+
     var webService: WebServiceModel
     var rootNode: EndpointsTreeNode
-    
-    init(_ app: Application, interfaceExporters: InterfaceExporter.Type...) {
-        self.interfaceExporters = interfaceExporters.map { exporterType in exporterType.init(app) }
+
+    override init(_ app: Application) {
         webService = WebServiceModel()
         rootNode = webService.root // used to provide the unit test a reference to the root of the tree
-        
         super.init(app)
     }
+
+    func with<T: InterfaceExporter>(exporter exporterType: T.Type) -> Self {
+        let exporter = exporterType.init(app)
+        interfaceExporters.append(AnyInterfaceExporter(exporter))
+        return self
+    }
     
-    
+
     override func register<H: Handler>(handler: H, withContext context: Context) {
         super.register(handler: handler, withContext: context)
         
         let operation = context.get(valueFor: OperationContextKey.self)
         var paths = context.get(valueFor: PathComponentContextKey.self)
         let guards = context.get(valueFor: GuardContextKey.self)
-        let responseModifiers = context.get(valueFor: ResponseContextKey.self)
+        let responseTransformers = context.get(valueFor: ResponseContextKey.self)
         
         let parameterBuilder = ParameterBuilder(from: handler)
         parameterBuilder.build()
@@ -62,31 +77,20 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
             }
         }
         
-        let requestHandler = SharedSemanticModelBuilder.createRequestHandler(with: handler, guards: guards, responseModifiers: responseModifiers)
-        
-        let handleReturnType = H.Response.self
-        var responseType: Encodable.Type {
-            guard let lastResponseTransformer = responseModifiers.last else {
-                return handleReturnType
-            }
-            return lastResponseTransformer().transformedResponseType
-        }
-        
         var endpoint = Endpoint(
-            description: String(describing: handler),
             identifier: {
-                if let identifier = IdentifiableHandlerATRVisitor()(handler) {
+                if let identifier = handler.getExplicitlySpecifiedIdentifier() {
                     return identifier
                 } else {
                     let handlerIndexPath = context.get(valueFor: HandlerIndexPath.ContextKey.self)
                     return AnyHandlerIdentifier(handlerIndexPath.rawValue)
                 }
             }(),
+            handler: handler,
             context: context,
             operation: operation,
-            requestHandler: requestHandler,
-            handleReturnType: H.Response.self,
-            responseType: responseType,
+            guards: guards,
+            responseTransformers: responseTransformers,
             parameters: parameterBuilder.parameters
         )
         
@@ -99,49 +103,27 @@ class SharedSemanticModelBuilder: SemanticModelBuilder {
         webService.finishedParsing = true
         
         webService.root.printTree() // currently only for debugging purposes
-        
-        for exporter in interfaceExporters {
-            call(exporter: exporter, for: webService.root)
-            exporter.finishedExporting(webService)
+
+        if interfaceExporters.isEmpty {
+            print("[WARN] There aren't any Interface Exporters registered!")
         }
+
+        interfaceExporters.acceptAll(self)
     }
-    
-    private func call(exporter: InterfaceExporter, for node: EndpointsTreeNode) {
+
+    func visit<I>(exporter: I) where I: InterfaceExporter {
+        call(exporter: exporter, for: webService.root)
+        exporter.finishedExporting(webService)
+    }
+
+    private func call<I: InterfaceExporter>(exporter: I, for node: EndpointsTreeNode) {
         for (_, endpoint) in node.endpoints {
-            exporter.export(endpoint)
+            #warning("The result of export is currently unused. Could that be useful in the future?")
+            endpoint.exportEndpoint(on: exporter)
         }
         
         for child in node.children {
             call(exporter: exporter, for: child)
-        }
-    }
-    
-
-    static func createRequestHandler<H: Handler>(
-        with handler: H,
-        guards: [LazyGuard] = [],
-        responseModifiers: [() -> (AnyResponseTransformer)] = []
-    ) -> RequestHandler
-    {
-        { (request: Request) in
-            let guardEventLoopFutures = guards.map { guardClosure in
-                request.enterRequestContext(with: guardClosure()) { requestGuard in
-                    requestGuard.executeGuardCheck(on: request)
-                }
-            }
-            return EventLoopFuture<Void>
-                .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
-                .flatMap { _ in
-                    request.enterRequestContext(with: handler) { handler in
-                        var response: Encodable = handler.handle()
-                        for responseTransformer in responseModifiers {
-                            response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
-                                responseTransformer.transform(response: response)
-                            }
-                        }
-                        return request.eventLoop.makeSucceededFuture(response)
-                    }
-                }
         }
     }
 }
@@ -154,8 +136,24 @@ private protocol IdentifiableHandlerATRVisitorHelper: AssociatedTypeRequirements
     func callAsFunction<T: IdentifiableHandler>(_ value: T) -> Output
 }
 
+
 private struct IdentifiableHandlerATRVisitor: IdentifiableHandlerATRVisitorHelper {
     func callAsFunction<T: IdentifiableHandler>(_ value: T) -> AnyHandlerIdentifier {
         return value.handlerId
+    }
+}
+
+
+extension Handler {
+    /// If `self` is an `IdentifiableHandler`, returns the handler's `handlerId`. Otherwise nil
+    internal func getExplicitlySpecifiedIdentifier() -> AnyHandlerIdentifier? {
+        // Intentionally using the if-let here to make sure we get an error
+        // if for some reason the ATRVisitor's return type isn't an optional anymore.
+        // Also,
+        if let identifier = IdentifiableHandlerATRVisitor()(self) {
+            return identifier
+        } else {
+            return nil
+        }
     }
 }

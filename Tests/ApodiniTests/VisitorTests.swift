@@ -58,7 +58,7 @@ final class VisitorTests: XCTestCase {
     }
     
     func testRESTVisitor() {
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self)])
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [SharedSemanticModelBuilder(app).with(exporter: RESTInterfaceExporter.self)])
         TestWebService().visit(visitor)
     }
     

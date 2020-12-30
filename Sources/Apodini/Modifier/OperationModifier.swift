@@ -40,8 +40,8 @@ public struct OperationModifier<H: Handler>: HandlerModifier {
 }
 
 
-extension OperationModifier: Visitable {
-    func visit(_ visitor: SyntaxTreeVisitor) {
+extension OperationModifier: SyntaxTreeVisitable {
+    func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(OperationContextKey.self, value: operation, scope: .nextComponent)
         component.visit(visitor)
     }

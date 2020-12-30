@@ -11,8 +11,8 @@ enum Scope {
 }
 
 
-protocol Visitable {
-    func visit(_ visitor: SyntaxTreeVisitor)
+protocol SyntaxTreeVisitable {
+    func accept(_ visitor: SyntaxTreeVisitor)
 }
 
 
@@ -50,7 +50,7 @@ class SyntaxTreeVisitor {
         currentNode.getContextValue(for: C.self)
     }
     
-    func register<H: Handler>(handler: H) {
+    func visit<H: Handler>(handler: H) {
         addContext(HandlerIndexPath.ContextKey.self, value: formHandlerIndexPathForCurrentNode(), scope: .nextComponent)
         // We capture the currentContextNode and make a copy that will be used when executing the request as
         // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the
