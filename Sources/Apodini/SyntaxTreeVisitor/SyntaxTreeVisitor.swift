@@ -10,7 +10,9 @@ enum Scope {
     case environment
 }
 
-
+/// The `SyntaxTreeVisitable` makes a type discoverable by a `SyntaxTreeVisitor`.
+///
+/// Each `Component` that needs to provide a custom `accept` implementation **must** conform to `SyntaxTreeVisitable` and **must** provide a custom `accept` implementation.
 protocol SyntaxTreeVisitable {
     func accept(_ visitor: SyntaxTreeVisitor)
 }
