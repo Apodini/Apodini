@@ -73,8 +73,7 @@ public struct ResponseModifier<H: Handler, T: ResponseTransformer>: HandlerModif
     
     
     init(_ component: H, responseTransformer: @escaping () -> (T)) {
-        precondition(((try? typeInfo(of: T.self).kind) ?? .none) == .struct, "ResponseTransformer \((try? typeInfo(of: T.self).name) ?? "unknown") must be a struct")
-        
+        assertTypeIsStruct(T.self, messagePrefix: "ResponseTransformer")
         self.component = component
         self.responseTransformer = responseTransformer
     }
@@ -90,9 +89,9 @@ extension ResponseModifier: SyntaxTreeVisitable {
 
 
 extension Handler {
-    /// A `response` modifier can be used to transform the output of `Component`'s response to a different type using a `ResponseTransformer`
-    /// - Parameter responseTransformer: The `ResponseTransformer` used to transform the response of a `Component`
-    /// - Returns: The modified `Component` with a new `Response` type
+    /// A `response` modifier can be used to transform the output of a `Handler`'s response to a different type using a `ResponseTransformer`
+    /// - Parameter responseTransformer: The `ResponseTransformer` used to transform the response of a `Handler`
+    /// - Returns: The modified `Handler` with a new `Response` type
     public func response<T: ResponseTransformer>(
         _ responseTransformer: @escaping @autoclosure () -> (T)
     ) -> ResponseModifier<Self, T> where Self.Response == T.Response {

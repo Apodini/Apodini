@@ -53,7 +53,7 @@ public protocol IdentifiableHandler: Handler {
 // MARK: Syntax Tree Visitor
 extension Component {
     func accept(_ visitor: SyntaxTreeVisitor) {
-        assertTypeIsStruct(Self.self)
+        assertTypeIsStruct(Self.self, messagePrefix: "Component")
         if let visitable = self as? SyntaxTreeVisitable {
             visitable.accept(visitor)
         } else {
@@ -68,11 +68,13 @@ extension Component {
 }
 
 
-private func assertTypeIsStruct<T>(_: T.Type) {
+/// - parameter T: The type for which to assert that it is a struct
+/// - parameter messagePrefix: An optional string which will be prefixed to the "T must be a struct" message
+internal func assertTypeIsStruct<T>(_: T.Type, messagePrefix: String? = nil) {
     guard let typeInfo = try? Runtime.typeInfo(of: T.self) else {
         fatalError("Unable to get type info for type '\(T.self)'")
     }
-    precondition(typeInfo.kind == .struct, "'\(typeInfo.name)' must be a struct")
+    precondition(typeInfo.kind == .struct, "\(messagePrefix.map { $0 + " " } ?? "")'\(typeInfo.name)' must be a struct")
 }
 
 

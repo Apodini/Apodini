@@ -41,15 +41,13 @@ public struct GuardModifier<C: Component>: Modifier {
     public var content: some Component { EmptyComponent() }
     
     init<G: Guard>(_ component: C, guard: @escaping () -> G) {
-        precondition(((try? typeInfo(of: G.self).kind) ?? .none) == .struct, "Guard \((try? typeInfo(of: G.self).name) ?? "unknown") must be a struct")
-        
+        assertTypeIsStruct(G.self, messagePrefix: "Guard")
         self.component = component
         self.guard = { AnyGuard(`guard`()) }
     }
     
     init<G: SyncGuard>(_ component: C, guard: @escaping () -> G) {
-        precondition(((try? typeInfo(of: G.self).kind) ?? .none) == .struct, "Guard \((try? typeInfo(of: G.self).name) ?? "unknown") must be a struct")
-        
+        assertTypeIsStruct(G.self, messagePrefix: "Guard")
         self.component = component
         self.guard = { AnyGuard(`guard`()) }
     }
