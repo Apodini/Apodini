@@ -83,10 +83,9 @@ class SyntaxTreeVisitor {
     }
     
     
-    func formHandlerIndexPathForCurrentNode() -> HandlerIndexPath {
+    private func formHandlerIndexPathForCurrentNode() -> HandlerIndexPath {
         let rawValue = currentNodeIndexPath
-            .map { max($0, 1) - 1 }
-            .map { String($0) }
+            .map { String(max($0, 1) - 1) }
             .joined(separator: ":")
         return HandlerIndexPath(rawValue: rawValue)
     }
