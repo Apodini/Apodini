@@ -13,7 +13,7 @@ public struct Storage {
 
     struct Value<T>: AnyStorageValue {
         var value: T
-        var onShutdown: ((T) throws -> ())?
+        var onShutdown: ((T) throws -> Void)?
         func shutdown(logger: Logger) {
             do {
                 try self.onShutdown?(self.value)
@@ -36,9 +36,7 @@ public struct Storage {
     }
 
     /// Get element from application storage
-    public subscript<Key>(_ key: Key.Type) -> Key.Value?
-    where Key: StorageKey
-    {
+    public subscript<Key: StorageKey>(_ key: Key.Type) -> Key.Value? {
         get {
             self.get(Key.self)
         }
@@ -53,9 +51,7 @@ public struct Storage {
     }
 
     /// Get a a value for a key from application storage
-    public func get<Key>(_ key: Key.Type) -> Key.Value?
-    where Key: StorageKey
-    {
+    public func get<Key: StorageKey>(_ key: Key.Type) -> Key.Value? {
         guard let value = self.storage[ObjectIdentifier(Key.self)] as? Value<Key.Value> else {
             return nil
         }
@@ -63,13 +59,11 @@ public struct Storage {
     }
 
     /// Set a key for a value in application storage
-    public mutating func set<Key>(
+    public mutating func set<Key: StorageKey>(
         _ key: Key.Type,
         to value: Key.Value?,
-        onShutdown: ((Key.Value) throws -> ())? = nil
-    )
-    where Key: StorageKey
-    {
+        onShutdown: ((Key.Value) throws -> Void)? = nil
+    ) {
         let key = ObjectIdentifier(Key.self)
         if let value = value {
             self.storage[key] = Value(value: value, onShutdown: onShutdown)
@@ -94,5 +88,6 @@ protocol AnyStorageValue {
 
 /// Key used to identify stored elements in application storage.
 public protocol StorageKey {
+    /// value
     associatedtype Value
 }

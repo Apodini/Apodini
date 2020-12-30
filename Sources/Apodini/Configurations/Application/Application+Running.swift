@@ -18,12 +18,12 @@ extension Application {
 
         /// Start waiting
         public static func start(using promise: EventLoopPromise<Void>) -> Self {
-            return self.init(promise: promise)
+            self.init(promise: promise)
         }
 
         /// onStop
         public var onStop: EventLoopFuture<Void> {
-            return self.promise.futureResult
+            self.promise.futureResult
         }
 
         private let promise: EventLoopPromise<Void>

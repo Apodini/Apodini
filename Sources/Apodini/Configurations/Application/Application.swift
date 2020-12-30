@@ -11,20 +11,26 @@ import NIOConcurrencyHelpers
 
 /// Delegate methods related to application lifecycle
 public protocol LifecycleHandler {
+    /// server will boot
     func willBoot(_ application: Application) throws
+    /// server did boot
     func didBoot(_ application: Application) throws
+    /// server is shutting down
     func shutdown(_ application: Application)
 }
 
 extension LifecycleHandler {
+    /// server will boot
     public func willBoot(_ application: Application) throws { }
+    /// server did boot
     public func didBoot(_ application: Application) throws { }
+    /// server is shutting down
     public func shutdown(_ application: Application) { }
 }
 
 extension Application {
     func map<T>(transform: (Application) -> T ) -> T {
-        return transform(self)
+        transform(self)
     }
 }
 
@@ -36,7 +42,7 @@ public final class Application {
     public let eventLoopGroup: EventLoopGroup
     /// Enables swift extensions to declare "stored" properties for use in application configuration
     public var storage: Storage
-    // Used for logging
+    /// Used for logging
     public var logger: Logger
     private var didShutdown: Bool
     private var isBooted: Bool
@@ -48,6 +54,7 @@ public final class Application {
             self.handlers = []
         }
 
+        /// add lifecycle handler
         public mutating func use(_ handler: LifecycleHandler) {
             self.handlers.append(handler)
         }
@@ -58,6 +65,7 @@ public final class Application {
 
     /// Keeps track of shared locks
     public final class Locks {
+        /// main lock
         public let main: Lock
         var storage: [ObjectIdentifier: Lock]
 
@@ -66,9 +74,8 @@ public final class Application {
             self.storage = [:]
         }
 
-        public func lock<Key>(for key: Key.Type) -> Lock
-        where Key: LockKey
-        {
+        /// get lock for key
+        public func lock<Key>(for key: Key.Type) -> Lock where Key: LockKey {
             self.main.lock()
             defer { self.main.unlock() }
             if let existing = self.storage[ObjectIdentifier(Key.self)] {
@@ -91,7 +98,9 @@ public final class Application {
 
     /// Defines how EventLoopGroups are created
     public enum EventLoopGroupProvider {
+        /// use shared EventLoopGroup
         case shared(EventLoopGroup)
+        /// create new EventLoopGroup
         case createNew
     }
 

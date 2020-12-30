@@ -14,7 +14,6 @@ public enum HTTPVersionMajor: Equatable, Hashable {
 }
 
 extension Application {
-
     /// Used to keep track of http related configuration
     public var http: HTTP {
         .init(application: self)
@@ -26,6 +25,8 @@ extension Application {
             var supportVersions: Set<HTTPVersionMajor>
             var tlsConfiguration: TLSConfiguration?
 
+
+            // swiftlint:disable discouraged_optional_collection
             init(
                 supportVersions: Set<HTTPVersionMajor>? = nil,
                 tlsConfiguration: TLSConfiguration? = nil
@@ -40,6 +41,7 @@ extension Application {
         }
 
         struct Key: StorageKey {
+            // swiftlint:disable nesting
             typealias Value = Storage
         }
 

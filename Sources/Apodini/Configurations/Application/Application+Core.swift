@@ -48,6 +48,7 @@ extension Application {
         }
 
         struct Key: StorageKey {
+            // swiftlint:disable nesting
             typealias Value = Storage
         }
 

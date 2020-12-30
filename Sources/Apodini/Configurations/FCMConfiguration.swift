@@ -7,16 +7,15 @@
 
 import Foundation
 import FCM
-import class Vapor.Application
 
-public struct FCMConfiguration: Configuration {
+public struct FCMConfig: Configuration {
     let filePath: String
     
     public init(_ filePath: String) {
         self.filePath = filePath
     }
     
-    public func configure(_ app: Vapor.Application) {
+    public func configure(_ app: Application) {
         let serviceAccount = readJSON()
         app.fcm.configuration = .init(email: serviceAccount.client_email,
                                       projectId: serviceAccount.project_id,

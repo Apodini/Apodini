@@ -44,13 +44,29 @@ extension Application {
         }
     }
 
+    // swiftlint:disable identifier_name
+    /// default database
+    public var db: Database {
+        self.db(nil)
+    }
+
+    /// Get database with id
+    public func db(_ id: DatabaseID?) -> Database {
+        // swiftlint:disable force_unwrapping
+        self.databases
+            .database(
+                id,
+                logger: self.logger,
+                on: self.eventLoopGroup.next(),
+                history: self.fluent.history.historyEnabled ? self.fluent.history.history : nil
+            )!
+    }
+
     /// Keep track of the fluent database configuration
     public struct Fluent {
         final class Storage {
             let databases: Databases
             let migrations: Migrations
-            let databaseConfiguration: DatabaseConfigurationFactory? = nil
-            let id: DatabaseID? = nil
 
             init(threadPool: NIOThreadPool, on eventLoopGroup: EventLoopGroup) {
                 self.databases = Databases(
@@ -62,6 +78,7 @@ extension Application {
         }
 
         struct Key: StorageKey {
+            // swiftlint:disable nesting
             typealias Value = Storage
         }
 

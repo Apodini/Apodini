@@ -9,8 +9,7 @@
 
 
 extension Vapor.Application {
-
-    fileprivate struct LifecycleHandler: Apodini.LifecycleHandler {
+    struct LifecycleHandler: Apodini.LifecycleHandler {
         var app: Vapor.Application
 
         func didBoot(_ application: Application) throws {
@@ -41,6 +40,6 @@ extension Vapor.Application {
             }
         })
         self.http.server.configuration.tlsConfiguration = app.http.tlsConfiguration
+        self.logger = app.logger
     }
-
 }

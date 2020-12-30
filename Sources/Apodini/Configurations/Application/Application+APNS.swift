@@ -17,6 +17,7 @@ extension Application {
     /// Holds the APNS Configuration
     public struct APNS {
         struct ConfigurationKey: StorageKey {
+            // swiftlint:disable nesting
             typealias Value = APNSwiftConfiguration
         }
 

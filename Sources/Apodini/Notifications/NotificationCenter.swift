@@ -6,8 +6,7 @@
 //  Created by Alexander Collins on 12.11.20.
 //
 
-import class Vapor.Application
-import struct Vapor.Abort
+@_implementationOnly import Vapor
 import Fluent
 import APNS
 import FCM
@@ -25,19 +24,49 @@ import FCM
 /// ```
 ///
 /// - Remark: The `NotificationCenter` is an abstraction of [APNS](https://github.com/vapor/apns) and [FCM](https://github.com/MihaelIsaev/FCM).
+
+@propertyWrapper
+private struct VaporApplication {
+    var wrappedValue: Vapor.Application?
+
+    init(wrappedValue: Vapor.Application?) {
+        self.wrappedValue = wrappedValue
+    }
+}
+
+/// NotificationCenter
 public class NotificationCenter {
-    internal static let shared = NotificationCenter()
-    internal var application: Application?
-    
-    private var app: Application {
-        guard let app = application else {
-            fatalError("The `NotificationCenter` is not configured. Please add the missing configuration to the web service.")
+    // swiftlint:disable implicitly_unwrapped_optional
+    @VaporApplication
+    private var app: Vapor.Application!
+    static var shared = NotificationCenter()
+    var application: Application? {
+        willSet {
+            guard let application = newValue else {
+                return
+            }
+
+            if let app = app, !app.didShutdown {
+                app.shutdown()
+            }
+
+            app = Vapor.Application()
+
+            application.lifecycle.use(Vapor.Application.LifecycleHandler(app: app))
+
+            for id in application.databases.ids() {
+                if let config = application.databases.configuration(for: id) {
+                    app.databases.use(config, as: id)
+                }
+            }
+            app.apns.configuration = application.apns.configuration
+            app.fcm.configuration = application.fcm.configuration
+            app.logger = application.logger
         }
-        return app
     }
     
     /// Property to directly use the [APNS](https://github.com/vapor/apns) library.
-    public var apns: Application.APNS {
+    public var apns: APNSwiftClient {
         app.apns
     }
     

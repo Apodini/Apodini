@@ -7,6 +7,8 @@ import Vapor
 @testable import Apodini
 
 class RESTInterfaceExporterTests: ApodiniTests {
+    lazy var application = Vapor.Application(.testing)
+
     struct Parameters: Apodini.Content, Decodable {
         var param0: String
         var param1: String?
@@ -89,8 +91,9 @@ class RESTInterfaceExporterTests: ApodiniTests {
         let bodyData = ByteBuffer(data: try JSONEncoder().encode(body))
 
         let uri = URI("http://example.de/test/a?param0=value0")
+
         let request = Vapor.Request(
-                application: app,
+                application: application,
                 method: .POST,
                 url: uri,
                 collectedBody: bodyData,
