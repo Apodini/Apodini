@@ -40,5 +40,6 @@ public struct ComponentBuilder {
     public static func buildBlock<${generics}>(${params}) -> some Component {
         return TupleComponent<(${', '.join(generic_names_out)})>((${', '.join(tuple_ctor_args)}))
     }
+    
     % end
 }
