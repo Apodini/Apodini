@@ -1,6 +1,6 @@
 //
 //  TestWebService.swift
-//  
+//
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
@@ -8,6 +8,7 @@
 @testable import Apodini
 import Vapor
 import NIO
+import Runtime
 
 
 struct TestWebService: Apodini.WebService {
@@ -41,6 +42,7 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
+
     struct TraditionalGreeter: Component {
         // one cannot change their gender, it must be provided
         @Parameter(.mutability(.constant)) var gender: String
@@ -48,7 +50,7 @@ struct TestWebService: Apodini.WebService {
         @Parameter(.mutability(.constant)) var surname: String = ""
         // one can switch between formal and informal greeting at any time
         @Parameter var name: String?
-
+        
         func handle() -> String {
             if let firstName = name {
                 return "Hi, \(firstName)!"
@@ -58,6 +60,28 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
+    @propertyWrapper
+    struct UselessWrapper: DynamicProperty {
+        @Parameter var name: String?
+        
+        var wrappedValue: String? {
+            name
+        }
+    }
+
+    struct User: Codable {
+        var id: Int
+    }
+
+    struct UserHandler: Component {
+        @Parameter var userId: Int
+
+        func handle() -> User {
+            User(id: userId)
+        }
+    }
+
+    @PathParameter var userId: Int
     
     var content: some Component {
         Text("Hello World! 👋")
@@ -74,6 +98,10 @@ struct TestWebService: Apodini.WebService {
         }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
         Group("greet") {
             TraditionalGreeter()
+        }
+        Group("user", $userId) {
+            UserHandler(userId: $userId)
+                .guard(PrintGuard())
         }
     }
 }

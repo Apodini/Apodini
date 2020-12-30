@@ -32,7 +32,10 @@ extension WebService {
             let webService = Self()
 
             webService.register(
-                SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self, WebSocketInterfaceExporter.self),
+                SharedSemanticModelBuilder(app)
+                    .with(RESTInterfaceExporter.self)
+                    .with(WebSocketInterfaceExporter.self)
+
                 GraphQLSemanticModelBuilder(app),
                 GRPCSemanticModelBuilder(app)
             )
@@ -73,6 +76,6 @@ extension WebService {
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
         Group {
             content
-        }.visit(visitor)
+        }.accept(visitor)
     }
 }

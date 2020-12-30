@@ -20,8 +20,8 @@ public struct TupleComponent<T>: Component {
     #endif
 }
 
-extension TupleComponent: Visitable {
-    func visit(_ visitor: SyntaxTreeVisitor) {
+extension TupleComponent: SyntaxTreeVisitable {
+    func accept(_ visitor: SyntaxTreeVisitor) {
         let mirror = Mirror(reflecting: storage)
         for (_, value) in mirror.children {
             visitor.enterCollectionItem()

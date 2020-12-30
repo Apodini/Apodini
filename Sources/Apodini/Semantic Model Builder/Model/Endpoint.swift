@@ -1,47 +1,61 @@
 //
 // Created by Andi on 22.11.20.
 //
-
-/// This struct is used to model the RootPath for the root of the endpoints tree
-struct RootPath: _PathComponent {
-    var description: String {
-        ""
-    }
-    
-    func append<P>(to pathBuilder: inout P) where P: PathBuilder {
-        fatalError("RootPath instances should not be appended to anything")
-    }
-}
-
-struct EndpointRelationship { // ... to be replaced by a proper Relationship model
-    var destinationPath: [_PathComponent]
-}
+import Foundation
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
-struct Endpoint {
-    /// This is a reference to the node where the endpoint is located
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    fileprivate var treeNode: EndpointsTreeNode!
-    
-    /// Description of the associated component, currently included for debug purposes
-    let description: String
-    
+protocol AnyEndpoint: CustomStringConvertible {
+    var description: String { get }
+
     /// The reference to the Context instance should be removed in the "final" state of the semantic model.
     /// I chose to include it for now as it makes the process of moving to a central semantic model easier,
     /// as implementing exporters can for now extract their needed information from the context on their own
     /// and can then pull in their requirements into the Semantic Model.
+    var context: Context { get }
+
+    var operation: Operation { get }
+
+    /// Type returned by `Component.handle(...)`
+    var handleReturnType: Encodable.Type { get }
+    /// Response type ultimately returned by `Component.handle(...)` and possible following `ResponseTransformer`s
+    var responseType: Encodable.Type { get }
+
+    /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
+    var parameters: [AnyEndpointParameter] { get }
+
+    var absolutePath: [_PathComponent] { get }
+    var relationships: [EndpointRelationship] { get }
+
+    var guards: [LazyGuard] { get }
+    var responseTransformers: [() -> (AnyResponseTransformer)] { get }
+
+    func exportEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput
+
+    func createRequestHandler<I: InterfaceExporter>(for exporter: I) -> EndpointRequestHandler<I>
+
+    func findParameter(for id: UUID) -> AnyEndpointParameter?
+    func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput]
+}
+
+
+/// Models a single Endpoint which is identified by its PathComponents and its operation
+struct Endpoint<C: Component>: AnyEndpoint {
+    /// This is a reference to the node where the endpoint is located
+    // swiftlint:disable:next implicitly_unwrapped_optional
+    fileprivate var treeNode: EndpointsTreeNode!
+
+    let description: String
+
+    let component: C
     let context: Context
     
     let operation: Operation
-    
-    let requestHandler: RequestHandler
-    /// Type returned by `handle()`
+
     let handleReturnType: Encodable.Type
-    /// Response type ultimately returned by `handle()` and possible following `ResponseTransformer`s
     let responseType: Encodable.Type
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
-    var parameters: [EndpointParameter]
+    var parameters: [AnyEndpointParameter]
     
     var absolutePath: [_PathComponent] {
         treeNode.absolutePath
@@ -49,30 +63,57 @@ struct Endpoint {
     var relationships: [EndpointRelationship] {
         treeNode.relationships
     }
+
+    var guards: [LazyGuard]
+    var responseTransformers: [() -> (AnyResponseTransformer)]
     
     
     init(
-        description: String,
-        context: Context,
-        operation: Operation,
-        requestHandler: @escaping RequestHandler,
-        handleReturnType: Encodable.Type,
-        responseType: Encodable.Type,
-        parameters: [EndpointParameter]
+        component: C,
+        context: Context = Context(contextNode: ContextNode()),
+        operation: Operation = .automatic,
+        guards: [LazyGuard] = [],
+        responseTransformers: [() -> (AnyResponseTransformer)] = [],
+        parameters: [AnyEndpointParameter] = []
     ) {
-        self.description = description
+        self.description = String(describing: component)
+        self.component = component
         self.context = context
         self.operation = operation
-        self.requestHandler = requestHandler
-        self.handleReturnType = handleReturnType
-        self.responseType = responseType
+        self.handleReturnType = C.Response.self
+        self.guards = guards
+        self.responseTransformers = responseTransformers
+        self.responseType = {
+            guard let lastResponseTransformer = responseTransformers.last else {
+                return C.Response.self
+            }
+            return lastResponseTransformer().transformedResponseType
+        }()
         self.parameters = parameters
+    }
+
+    func exportEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
+        exporter.export(self)
+    }
+
+    func createRequestHandler<I: InterfaceExporter>(for exporter: I) -> EndpointRequestHandler<I> {
+        InternalEndpointRequestHandler(endpoint: self, exporter: exporter)
+    }
+
+    func findParameter(for id: UUID) -> AnyEndpointParameter? {
+        parameters.first { parameter in
+            parameter.id == id
+        }
+    }
+
+    func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
+        parameters.exportParameters(on: exporter)
     }
 }
 
 class EndpointsTreeNode {
     let path: _PathComponent
-    var endpoints: [Operation: Endpoint] = [:]
+    var endpoints: [Operation: AnyEndpoint] = [:]
     
     let parent: EndpointsTreeNode?
     private var nodeChildren: [String: EndpointsTreeNode] = [:]
@@ -105,7 +146,7 @@ class EndpointsTreeNode {
         self.parent = parent
     }
     
-    func addEndpoint(_ endpoint: inout Endpoint, at paths: [PathComponent]) {
+    func addEndpoint<C: Component>(_ endpoint: inout Endpoint<C>, at paths: [PathComponent]) {
         if paths.isEmpty {
             // swiftlint:disable:next force_unwrapping
             precondition(endpoints[endpoint.operation] == nil, "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)")

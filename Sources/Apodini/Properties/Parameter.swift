@@ -13,7 +13,7 @@ public enum ParameterOptionNameSpace { }
 
 /// The `@Parameter` property wrapper can be used to express input in `Components`
 @propertyWrapper
-public struct Parameter<Element: Codable> {
+public struct Parameter<Element: Codable>: Property {
     /// Keys for options that can be passed to an `@Parameter` property wrapper
     public typealias OptionKey<T: PropertyOption> = PropertyOptionKey<ParameterOptionNameSpace, T>
     /// Type erased options that can be passed to an `@Parameter` property wrapper
@@ -30,7 +30,7 @@ public struct Parameter<Element: Codable> {
     /// The value for the `@Parameter` as defined by the incoming request
     public var wrappedValue: Element {
         guard let element = element else {
-            fatalError("You can only access the body while you handle a request")
+            fatalError("You can only access a parameter while you handle a request")
         }
         
         return element
@@ -86,7 +86,7 @@ public struct Parameter<Element: Codable> {
     
     /// Creates a new `@Parameter` that indicates input of a `Component's` `@PathParameter` based on an existing component.
     /// - Parameter id: The `UUID` that can be passed in from a parent `Component`'s `@PathParameter`.
-    /// - Precondition: A `@Parameter` with a specific `http` type `.body` or `.query` can not be passed to a seperate componet. Please remove the specific `.http` property option or specify the `.http` property option to `.path`.
+    /// - Precondition: A `@Parameter` with a specific `http` type `.body` or `.query` can not be passed to a separate component. Please remove the specific `.http` property option or specify the `.http` property option to `.path`.
     init(from id: UUID) {
         self.options = PropertyOptionSet([.http(.path)])
         self.id = id
@@ -98,17 +98,21 @@ public struct Parameter<Element: Codable> {
     }
 }
 
-
 extension Parameter: RequestInjectable {
-    mutating func inject(using request: Apodini.Request) throws {
-        element = try request.parameter(for: id)
+    mutating func inject(using request: Request) throws {
+        #warning("""
+                 Decoder errors (caused by user input!) is currently causing the inject method to throw.
+                 This currently leads to a call to fatalError, as the request injection doesn't handle errors thrown from inject.
+                 We need some sort of Apodini defined Error, which encodes such internal server errors and properly
+                 forwards that to the Exporter so it can respond with a proper error for its request.
+                 """)
+        element = try request.retrieveParameter(self)
     }
 
     func accept(_ visitor: RequestInjectableVisitor) {
         visitor.visit(self)
     }
 }
-
 
 extension Parameter: _PathComponent {
     var description: String {

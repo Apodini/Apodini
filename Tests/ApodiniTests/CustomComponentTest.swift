@@ -31,22 +31,17 @@ final class CustomComponentTests: ApodiniTests {
     }
 
     func testComponentCreation() throws {
+        let addBird = AddBirdsComponent()
         let bird = Bird(name: "Hummingbird", age: 2)
-        let birdData = ByteBuffer(data: try JSONEncoder().encode(bird))
+
+        let request = MockRequest.createRequest(on: addBird, running: app.eventLoopGroup.next(), database: self.app.db, queuedParameters: bird)
         
-        let request = Vapor.Request(application: app, collectedBody: birdData, on: app.eventLoopGroup.next())
-        let restRequest = RESTRequest(request) { _ in
-            bird
-        }
-        
-        let response = try restRequest
-            .enterRequestContext(with: AddBirdsComponent()) { component in
-                component.handle().encodeResponse(for: request)
+        let responseBirds = try request
+            .enterRequestContext(with: addBird) { component in
+                component.handle()
             }
             .wait()
-        
-        let responseData = try XCTUnwrap(response.body.data)
-        let responseBirds = try JSONDecoder().decode([Bird].self, from: responseData)
+
         XCTAssert(responseBirds.count == 3)
         XCTAssert(responseBirds[2] == bird)
     }
