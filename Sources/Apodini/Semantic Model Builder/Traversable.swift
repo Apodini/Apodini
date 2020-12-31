@@ -22,29 +22,24 @@ func extractRequestInjectables<Element>(from subject: Element) -> [String: Reque
 
 extension Apodini.Request {
     func enterRequestContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>)
-                    -> EventLoopFuture<R> {
+                   throws -> EventLoopFuture<R> {
         var element = element
-        inject(in: &element)
+        try inject(in: &element)
 
         return method(element)
     }
 
-    func enterRequestContext<E, R>(with element: E, executing method: (E) -> R) -> R {
+    func enterRequestContext<E, R>(with element: E, executing method: (E) -> R) throws -> R {
         var element = element
-        inject(in: &element)
+        try inject(in: &element)
         return method(element)
     }
     
-    private func inject<E>(in element: inout E) {
+    private func inject<E>(in element: inout E) throws {
         // Inject all properties that can be injected using RequestInjectable
-        let elem = element
         
-        apply({ (requestInjectable: inout RequestInjectable) in
-            do {
-                try requestInjectable.inject(using: self)
-            } catch {
-                fatalError("Injecting into element \(elem) failed.")
-            }
+        try apply({ (requestInjectable: inout RequestInjectable) in
+            try requestInjectable.inject(using: self)
         }, to: &element)
     }
 }

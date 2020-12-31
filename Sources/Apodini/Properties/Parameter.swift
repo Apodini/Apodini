@@ -101,8 +101,6 @@ public struct Parameter<Element: Codable>: Property {
 extension Parameter: RequestInjectable {
     mutating func inject(using request: Request) throws {
         #warning("""
-                 Decoder errors (caused by user input!) is currently causing the inject method to throw.
-                 This currently leads to a call to fatalError, as the request injection doesn't handle errors thrown from inject.
                  We need some sort of Apodini defined Error, which encodes such internal server errors and properly
                  forwards that to the Exporter so it can respond with a proper error for its request.
                  """)

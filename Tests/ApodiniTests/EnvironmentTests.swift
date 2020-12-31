@@ -22,7 +22,8 @@ final class EnvironmentTests: ApodiniTests {
         let component = BirdComponent()
         let request = MockRequest.createRequest(on: component, running: app.eventLoopGroup.next())
 
-        let response: String = request.enterRequestContext(with: component) { component in
+        // swiftlint:disable:next force_unwrapping
+        let response: String = try! request.enterRequestContext(with: component) { component in
             component.handle()
         }
         

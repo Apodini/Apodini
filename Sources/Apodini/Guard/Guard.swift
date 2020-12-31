@@ -26,8 +26,8 @@ public protocol Guard {
 extension SyncGuard {
     func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
         request.eventLoop.makeSucceededFuture(Void())
-            .map {
-                request.enterRequestContext(with: self) { guardInstance in
+            .flatMapThrowing {
+                try request.enterRequestContext(with: self) { guardInstance in
                     guardInstance.check()
                 }
             }
@@ -36,8 +36,8 @@ extension SyncGuard {
 
 
 extension Guard {
-    func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
-        request
+    func executeGuardCheck(on request: Request) throws -> EventLoopFuture<Void> {
+        try request
             .enterRequestContext(with: self) { guardInstance in
                 guardInstance.check()
             }
@@ -49,7 +49,7 @@ extension Guard {
 
 struct AnyGuard {
     let guardType: ObjectIdentifier
-    private var _executeGuardCheck: (Request) -> EventLoopFuture<Void>
+    private var _executeGuardCheck: (Request) throws -> EventLoopFuture<Void>
 
     init<G: Guard>(_ guard: G) {
         guardType = ObjectIdentifier(G.self)
@@ -61,7 +61,7 @@ struct AnyGuard {
         _executeGuardCheck = `guard`.executeGuardCheck
     }
 
-    func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
-        _executeGuardCheck(request)
+    func executeGuardCheck(on request: Request) throws -> EventLoopFuture<Void> {
+        try _executeGuardCheck(request)
     }
 }

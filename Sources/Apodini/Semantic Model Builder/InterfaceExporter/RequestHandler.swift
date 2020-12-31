@@ -44,25 +44,41 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, C: Component>: Endpoi
 
         let request = ApodiniRequest(for: exporter, with: exporterRequest, on: endpoint, running: eventLoop, database: databaseClosure)
 
-        let guardEventLoopFutures = endpoint.guards.map { guardClosure in
-            request.enterRequestContext(with: guardClosure()) { requestGuard in
-                requestGuard.executeGuardCheck(on: request)
+        let guardEventLoopFutures = endpoint.guards.map { guardClosure -> EventLoopFuture<Void> in
+            do {
+                return try request.enterRequestContext(with: guardClosure()) { requestGuard in
+                    do {
+                        return try requestGuard.executeGuardCheck(on: request)
+                    } catch {
+                        return eventLoop.makeFailedFuture(error)
+                    }
+                }
+            } catch {
+                return eventLoop.makeFailedFuture(error)
             }
         }
 
         return EventLoopFuture<Void>
                 .whenAllSucceed(guardEventLoopFutures, on: eventLoop)
                 .flatMap { _ in
-                    request.enterRequestContext(with: self.endpoint.component) { component in
-                        var response: Encodable = component.handle()
+                    do {
+                        return try request.enterRequestContext(with: self.endpoint.component) { component in
+                            do {
+                                var response: Encodable = component.handle()
 
-                        for transformer in self.endpoint.responseTransformers {
-                            response = request.enterRequestContext(with: transformer()) { responseTransformer in
-                                responseTransformer.transform(response: response)
+                                for transformer in self.endpoint.responseTransformers {
+                                    response = try request.enterRequestContext(with: transformer()) { responseTransformer in
+                                        responseTransformer.transform(response: response)
+                                    }
+                                }
+
+                                return eventLoop.makeSucceededFuture(response)
+                            } catch {
+                                return eventLoop.makeFailedFuture(error)
                             }
                         }
-
-                        return eventLoop.makeSucceededFuture(response)
+                    } catch {
+                        return eventLoop.makeFailedFuture(error)
                     }
                 }
     }

@@ -56,6 +56,17 @@ struct ApodiniRequest<I: InterfaceExporter, C: Component>: Request {
     }
 }
 
+enum InputValidationError: Error {
+    case some(String)
+    
+    var localizedDescription: String {
+        switch self {
+        case .some(let message):
+            return message
+        }
+    }
+}
+
 /// This visitor is used to do the actual call to `InterfaceExporter.retrieveParameter(...)`.
 /// It also handles all checks done for a Parameter, meaning checking that a value is present for a required parameter
 /// and for optional parameters setting a optionally supplied default value.
@@ -73,7 +84,8 @@ private struct ParameterRetrievalDelegation<Element: Codable, I: InterfaceExport
         let untypedResult: Any?? = try exporter.retrieveParameter(parameter, for: request)
         
         guard let result = untypedResult as? Type?? else {
-            fatalError("Did receive input of wrong type for parameter '\(parameter.description)'.")
+            #warning("Create some Apodini defined error.")
+            throw InputValidationError.some("Did receive input of wrong type for parameter '\(parameter.description)'.")
         }
 
         var retrievedValue: Type?
@@ -84,8 +96,8 @@ private struct ParameterRetrievalDelegation<Element: Codable, I: InterfaceExport
 
             switch parameter.necessity {
             case .required:
-                #warning("Create some Apodini defined error, which is returned to the exporter so it can encode a response.")
-                fatalError("Didn't retrieve any parameters for a required '\(parameter.description)'.")
+                #warning("Create some Apodini defined error.")
+                throw InputValidationError.some("Didn't retrieve any parameters for a required '\(parameter.description)'.")
             case .optional:
                 // Writing the defaultValue into retrievedValue
                 // Either the optional parameter stays nil if the does not exists any default value
@@ -99,8 +111,8 @@ private struct ParameterRetrievalDelegation<Element: Codable, I: InterfaceExport
 
         guard let wrappedRetrievedValue = retrievedValue else {
             if !parameter.nilIsValidValue {
-                #warning("Create some Apodini defined error, which is returned to the exporter so it can encode a response.")
-                fatalError("Parameter retrieval returned explicit nil, though explicit nil is not valid for the '\(parameter.description)'")
+                #warning("Create some Apodini defined error.")
+                throw InputValidationError.some("Parameter retrieval returned explicit nil, though explicit nil is not valid for the '\(parameter.description)'")
             }
 
             // as nilIsValidValue=true, we know that Element=Optional<Type>, thus we can cast as below.

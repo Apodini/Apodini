@@ -71,7 +71,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
             case .send(let output):
                 send(output)
             case .error(let err):
-                send(err.localizedDescription)
+                send("\(err)")
             }
         })
         
