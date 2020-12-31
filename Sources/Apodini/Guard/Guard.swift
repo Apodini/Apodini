@@ -50,17 +50,17 @@ extension Guard {
 struct AnyGuard {
     let guardType: ObjectIdentifier
     private var _executeGuardCheck: (Request) -> EventLoopFuture<Void>
-    
+
     init<G: Guard>(_ guard: G) {
         guardType = ObjectIdentifier(G.self)
         _executeGuardCheck = `guard`.executeGuardCheck
     }
-    
+
     init<G: SyncGuard>(_ guard: G) {
         guardType = ObjectIdentifier(G.self)
         _executeGuardCheck = `guard`.executeGuardCheck
     }
-    
+
     func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
         _executeGuardCheck(request)
     }

@@ -10,12 +10,12 @@ import Foundation
 
 // MARK: Unary request handler
 extension GRPCService {
-    func createUnaryHandler(requestHandler: @escaping RequestHandler) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        { (vaporRequest: Vapor.Request) in
-            let promise = vaporRequest.eventLoop.makePromise(of: Vapor.Response.self)
-            vaporRequest.body.collect().whenSuccess { _ in
-                let request = GRPCRequest(vaporRequest)
-                let response: EventLoopFuture<Encodable> = requestHandler(request)
+    func createUnaryHandler(requestHandler: EndpointRequestHandler<GRPCInterfaceExporter>)
+    -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+        { (request: Vapor.Request) in
+            let promise = request.eventLoop.makePromise(of: Vapor.Response.self)
+            request.body.collect().whenSuccess { _ in
+                let response: EventLoopFuture<Encodable> = requestHandler.handleRequest(request: request)
                 let result = response.flatMapThrowing { self.encodeResponse($0) }
 
                 promise.completeWith(result)
@@ -29,7 +29,7 @@ extension GRPCService {
     /// - Parameters:
     ///     - endpoint: The name of the endpoint that should be exposed.
     func exposeUnaryEndpoint(name endpoint: String,
-                             requestHandler: @escaping RequestHandler) {
+                             requestHandler: EndpointRequestHandler<GRPCInterfaceExporter>) {
         let path = [
             Vapor.PathComponent(stringLiteral: serviceName),
             Vapor.PathComponent(stringLiteral: endpoint)

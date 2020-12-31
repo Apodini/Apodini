@@ -1,35 +1,59 @@
 //
 // Created by Andi on 22.11.20.
 //
-
-/// This struct is used to model the RootPath for the root of the endpoints tree
-struct RootPath: _PathComponent {
-    var description: String {
-        ""
-    }
-    
-    func append<P>(to pathBuilder: inout P) where P: PathBuilder {
-        fatalError("RootPath instances should not be appended to anything")
-    }
-}
-
-struct EndpointRelationship { // ... to be replaced by a proper Relationship model
-    var destinationPath: [_PathComponent]
-}
+import Foundation
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
-struct Endpoint {
-    /// This is a reference to the node where the endpoint is located
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    fileprivate var treeNode: EndpointsTreeNode!
+protocol AnyEndpoint: CustomStringConvertible {
+    /// An identifier which uniquely identifies this endpoint (via its handler)
+    /// across multiple compilations and executions of the web service.
+    var identifier: AnyHandlerIdentifier { get }
     
-    /// Description of the associated component, currently included for debug purposes
-    let description: String
-    
+    /// Description of the `Handler` this endpoint was generated for
+    var description: String { get }
+
     /// The reference to the Context instance should be removed in the "final" state of the semantic model.
     /// I chose to include it for now as it makes the process of moving to a central semantic model easier,
     /// as implementing exporters can for now extract their needed information from the context on their own
     /// and can then pull in their requirements into the Semantic Model.
+    var context: Context { get }
+
+    var operation: Operation { get }
+
+    /// Type returned by `Component.handle(...)`
+    var handleReturnType: Encodable.Type { get }
+    /// Response type ultimately returned by `Component.handle(...)` and possible following `ResponseTransformer`s
+    var responseType: Encodable.Type { get }
+
+    /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
+    var parameters: [AnyEndpointParameter] { get }
+
+    var absolutePath: [_PathComponent] { get }
+    var relationships: [EndpointRelationship] { get }
+
+    var guards: [LazyGuard] { get }
+    var responseTransformers: [() -> (AnyResponseTransformer)] { get }
+
+    func exportEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput
+
+    func createRequestHandler<I: InterfaceExporter>(for exporter: I) -> EndpointRequestHandler<I>
+
+    func findParameter(for id: UUID) -> AnyEndpointParameter?
+    func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput]
+}
+
+
+/// Models a single Endpoint which is identified by its PathComponents and its operation
+struct Endpoint<H: Handler>: AnyEndpoint {
+    /// This is a reference to the node where the endpoint is located
+    fileprivate var treeNode: EndpointsTreeNode! // swiftlint:disable:this implicitly_unwrapped_optional
+    
+    let identifier: AnyHandlerIdentifier
+
+    let description: String
+
+    let handler: H
+    
     let context: Context
     
     let operation: Operation
@@ -38,14 +62,11 @@ struct Endpoint {
     /// Used by the gRPC exporter as the default method name.
     let componentName: String
     
-    let requestHandler: RequestHandler
-    /// Type returned by `handle()`
     let handleReturnType: Encodable.Type
-    /// Response type ultimately returned by `handle()` and possible following `ResponseTransformer`s
     let responseType: Encodable.Type
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
-    var parameters: [EndpointParameter]
+    let parameters: [AnyEndpointParameter]
     
     var absolutePath: [_PathComponent] {
         treeNode.absolutePath
@@ -53,32 +74,62 @@ struct Endpoint {
     var relationships: [EndpointRelationship] {
         treeNode.relationships
     }
+
+    let guards: [LazyGuard]
+    let responseTransformers: [() -> (AnyResponseTransformer)]
     
     
     init(
-        description: String,
-        context: Context,
-        operation: Operation,
+        identifier: AnyHandlerIdentifier,
+        handler: H,
+        context: Context = Context(contextNode: ContextNode()),
+        operation: Operation = .automatic,
         componentName: String,
-        requestHandler: @escaping RequestHandler,
-        handleReturnType: Encodable.Type,
-        responseType: Encodable.Type,
-        parameters: [EndpointParameter]
+        guards: [LazyGuard] = [],
+        responseTransformers: [() -> (AnyResponseTransformer)] = [],
+        parameters: [AnyEndpointParameter] = []
     ) {
-        self.description = description
+        self.identifier = identifier
+        self.description = String(describing: handler)
+        self.handler = handler
         self.context = context
         self.operation = operation
         self.componentName = componentName
-        self.requestHandler = requestHandler
-        self.handleReturnType = handleReturnType
-        self.responseType = responseType
+        self.handleReturnType = H.Response.self
+        self.guards = guards
+        self.responseTransformers = responseTransformers
+        self.responseType = {
+            guard let lastResponseTransformer = responseTransformers.last else {
+                return H.Response.self
+            }
+            return lastResponseTransformer().transformedResponseType
+        }()
         self.parameters = parameters
+    }
+    
+    func exportEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
+        exporter.export(self)
+    }
+
+    func createRequestHandler<I: InterfaceExporter>(for exporter: I) -> EndpointRequestHandler<I> {
+        InternalEndpointRequestHandler(endpoint: self, exporter: exporter)
+    }
+
+    func findParameter(for id: UUID) -> AnyEndpointParameter? {
+        parameters.first { parameter in
+            parameter.id == id
+        }
+    }
+
+    func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
+        parameters.exportParameters(on: exporter)
     }
 }
 
+
 class EndpointsTreeNode {
     let path: _PathComponent
-    var endpoints: [Operation: Endpoint] = [:]
+    var endpoints: [Operation: AnyEndpoint] = [:]
     
     let parent: EndpointsTreeNode?
     private var nodeChildren: [String: EndpointsTreeNode] = [:]
@@ -111,7 +162,7 @@ class EndpointsTreeNode {
         self.parent = parent
     }
     
-    func addEndpoint(_ endpoint: inout Endpoint, at paths: [PathComponent]) {
+    func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, at paths: [PathComponent]) {
         if paths.isEmpty {
             // swiftlint:disable:next force_unwrapping
             precondition(endpoints[endpoint.operation] == nil, "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)")
@@ -194,7 +245,7 @@ class EndpointsTreeNode {
         print(indentString + path.description + "/ {")
         
         for (operation, endpoint) in endpoints {
-            print(indentString + "  - \(operation): " + endpoint.description)
+            print("\(indentString)  - \(operation): \(endpoint.description) [\(endpoint.identifier.rawValue)]")
         }
         
         for child in nodeChildren {
@@ -202,5 +253,38 @@ class EndpointsTreeNode {
         }
         
         print(indentString + "}")
+    }
+}
+
+
+/// Helper type which acts as a Hashable wrapper around `AnyEndpoint` 
+private struct AnyHashableEndpoint: Hashable, Equatable {
+    let endpoint: AnyEndpoint
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(endpoint.identifier)
+    }
+    
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.endpoint.identifier == rhs.endpoint.identifier
+    }
+}
+
+
+extension EndpointsTreeNode {
+    func collectAllEndpoints() -> [AnyEndpoint] {
+        if let parent = parent {
+            return parent.collectAllEndpoints()
+        }
+        var endpoints = Set<AnyHashableEndpoint>()
+        collectAllEndpoints(into: &endpoints)
+        return endpoints.map(\.endpoint)
+    }
+    
+    private func collectAllEndpoints(into endpointsSet: inout Set<AnyHashableEndpoint>) {
+        endpointsSet.formUnion(self.endpoints.values.map { AnyHashableEndpoint(endpoint: $0) })
+        for child in children {
+            child.collectAllEndpoints(into: &endpointsSet)
+        }
     }
 }

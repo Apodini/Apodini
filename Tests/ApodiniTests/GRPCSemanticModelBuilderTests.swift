@@ -9,7 +9,7 @@ import XCTest
 import Vapor
 @testable import Apodini
 
-private struct GRPCTestHandler: Component {
+private struct GRPCTestHandler: Handler {
     @Parameter("name",
                .gRPC(.fieldTag(1)))
     var name: String
@@ -19,10 +19,12 @@ private struct GRPCTestHandler: Component {
     }
 }
 
-private struct GRPCTestHandler2: Component {
-    @Parameter
+private struct GRPCTestHandler2: Handler {
+    @Parameter("name",
+               .gRPC(.fieldTag(1)))
     var name: String
-    @Parameter
+    @Parameter("age",
+               .gRPC(.fieldTag(2)))
     var age: Int32
 
     func handle() -> String {
@@ -67,44 +69,15 @@ final class GRPCSemanticModelBuilderTests: XCTestCase {
         app.shutdown()
     }
 
-    func testDefaultServiceNaming() {
-        let modelBuilder = SharedSemanticModelBuilder(app, interfaceExporters: GRPCSemanticModelBuilder.self)
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [modelBuilder])
-        let testComponent = GRPCTestComponent1()
-        Group {
-            testComponent.content
-        }.visit(visitor)
-
-        let expectedServiceName = "ab"
-        modelBuilder.interfaceExporters.forEach { exporter in
-            if let modelBuilder = exporter as? GRPCSemanticModelBuilder {
-                XCTAssertNotNil(modelBuilder.services[expectedServiceName])
-                XCTAssertNil(modelBuilder.services["something"])
-            }
-        }
-    }
-
-    func testServiceNameModifier() {
-        let modelBuilder = SharedSemanticModelBuilder(app, interfaceExporters: GRPCSemanticModelBuilder.self)
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [modelBuilder])
-        let testComponent = GRPCTestComponent2()
-        Group {
-            testComponent.content
-        }.visit(visitor)
-
-        let expectedServiceName = "TestService"
-        modelBuilder.interfaceExporters.forEach { exporter in
-            if let modelBuilder = exporter as? GRPCSemanticModelBuilder {
-                XCTAssertNotNil(modelBuilder.services[expectedServiceName])
-                XCTAssertNil(modelBuilder.services["something"])
-            }
-        }
-    }
-
     func testUnaryRequestHandlerWithOneParamater() throws {
         let serviceName = "TestService"
         let methodName = "testMethod"
         let service = GRPCService(name: serviceName, using: app)
+        let handler = GRPCTestHandler()
+        let endpoint = handler.mockEndpoint()
+
+        let exporter = GRPCInterfaceExporter(app)
+        let requestHandler = endpoint.createRequestHandler(for: exporter)
 
         let requestData: [UInt8] =
             [0, 0, 0, 0, 10, 10, 6, 77, 111, 114, 105, 116, 122, 16, 23]
@@ -125,9 +98,6 @@ final class GRPCSemanticModelBuilderTests: XCTestCase {
                                          logger: app.logger,
                                          on: group.next())
 
-        let requestHandler = SharedSemanticModelBuilder.createRequestHandler(with: GRPCTestHandler(),
-                                                                             guards: [],
-                                                                             responseModifiers: [])
         let response = try service.createUnaryHandler(requestHandler: requestHandler)(vaporRequest).wait()
         let responseData = try XCTUnwrap(response.body.data)
         XCTAssertEqual(responseData, Data(expectedResponseData))
@@ -137,6 +107,11 @@ final class GRPCSemanticModelBuilderTests: XCTestCase {
         let serviceName = "TestService"
         let methodName = "testMethod"
         let service = GRPCService(name: serviceName, using: app)
+        let handler = GRPCTestHandler2()
+        let endpoint = handler.mockEndpoint()
+
+        let exporter = GRPCInterfaceExporter(app)
+        let requestHandler = endpoint.createRequestHandler(for: exporter)
 
         let requestData: [UInt8] =
             [0, 0, 0, 0, 10, 10, 6, 77, 111, 114, 105, 116, 122, 16, 23]
@@ -162,9 +137,6 @@ final class GRPCSemanticModelBuilderTests: XCTestCase {
                                          logger: app.logger,
                                          on: group.next())
 
-        let requestHandler = SharedSemanticModelBuilder.createRequestHandler(with: GRPCTestHandler2(),
-                                                                             guards: [],
-                                                                             responseModifiers: [])
         let response = try service.createUnaryHandler(requestHandler: requestHandler)(vaporRequest).wait()
         let responseData = try XCTUnwrap(response.body.data)
         XCTAssertEqual(responseData, Data(expectedResponseData))
