@@ -4,8 +4,8 @@
 
 import NIO
 @_implementationOnly import Vapor
+@_implementationOnly import AssociatedTypeRequirementsVisitor
 
-typealias RequestHandler = (ExporterRequest) -> EventLoopFuture<Encodable>
 
 /// This struct is used to model the RootPath for the root of the endpoints tree
 struct RootPath: _PathComponent {
@@ -32,7 +32,7 @@ class WebServiceModel {
         root.relationships
     }
     
-    fileprivate func addEndpoint<C: Component>(_ endpoint: inout Endpoint<C>, at paths: [PathComponent]) {
+    fileprivate func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, at paths: [PathComponent]) {
         root.addEndpoint(&endpoint, at: paths)
     }
 }
@@ -54,16 +54,17 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
         interfaceExporters.append(AnyInterfaceExporter(exporter))
         return self
     }
+    
 
-    override func register<C: Component>(component: C, withContext context: Context) {
-        super.register(component: component, withContext: context)
+    override func register<H: Handler>(handler: H, withContext context: Context) {
+        super.register(handler: handler, withContext: context)
         
         let operation = context.get(valueFor: OperationContextKey.self)
         var paths = context.get(valueFor: PathComponentContextKey.self)
         let guards = context.get(valueFor: GuardContextKey.self)
         let responseTransformers = context.get(valueFor: ResponseContextKey.self)
         
-        let parameterBuilder = ParameterBuilder(from: component)
+        let parameterBuilder = ParameterBuilder(from: handler)
         parameterBuilder.build()
         
         for parameter in parameterBuilder.parameters {
@@ -75,7 +76,15 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
         }
         
         var endpoint = Endpoint(
-            component: component,
+            identifier: {
+                if let identifier = handler.getExplicitlySpecifiedIdentifier() {
+                    return identifier
+                } else {
+                    let handlerIndexPath = context.get(valueFor: HandlerIndexPath.ContextKey.self)
+                    return AnyHandlerIdentifier(handlerIndexPath.rawValue)
+                }
+            }(),
+            handler: handler,
             context: context,
             operation: operation,
             guards: guards,
@@ -113,6 +122,36 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
         
         for child in node.children {
             call(exporter: exporter, for: child)
+        }
+    }
+}
+
+
+private protocol IdentifiableHandlerATRVisitorHelper: AssociatedTypeRequirementsVisitor {
+    associatedtype Visitor = IdentifiableHandlerATRVisitorHelper
+    associatedtype Input = IdentifiableHandler
+    associatedtype Output
+    func callAsFunction<T: IdentifiableHandler>(_ value: T) -> Output
+}
+
+
+private struct IdentifiableHandlerATRVisitor: IdentifiableHandlerATRVisitorHelper {
+    func callAsFunction<T: IdentifiableHandler>(_ value: T) -> AnyHandlerIdentifier {
+        value.handlerId
+    }
+}
+
+
+extension Handler {
+    /// If `self` is an `IdentifiableHandler`, returns the handler's `handlerId`. Otherwise nil
+    internal func getExplicitlySpecifiedIdentifier() -> AnyHandlerIdentifier? {
+        // Intentionally using the if-let here to make sure we get an error
+        // if for some reason the ATRVisitor's return type isn't an optional anymore,
+        // since that (a guaranteed non-nil return value) would defeat the whole point of this function
+        if let identifier = IdentifiableHandlerATRVisitor()(self) {
+            return identifier
+        } else {
+            return nil
         }
     }
 }

@@ -10,7 +10,7 @@ import Vapor
 @testable import Apodini
 
 final class EnvironmentTests: ApodiniTests {
-    struct BirdComponent: Component {
+    struct BirdComponent: Handler {
         @Apodini.Environment(\.birdFacts) var birdFacts: BirdFacts
         
         func handle() -> String {

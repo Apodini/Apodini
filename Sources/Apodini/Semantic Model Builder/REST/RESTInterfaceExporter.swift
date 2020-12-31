@@ -74,7 +74,7 @@ class RESTInterfaceExporter: InterfaceExporter {
         self.app = app
     }
 
-    func export<C: Component>(_ endpoint: Endpoint<C>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let pathBuilder = RESTPathBuilder(endpoint.absolutePath)
         let routesBuilder = pathBuilder.routesBuilder(app)
 
@@ -85,7 +85,7 @@ class RESTInterfaceExporter: InterfaceExporter {
         let requestHandler = endpoint.createRequestHandler(for: self)
 
         routesBuilder.on(operation.httpMethod, []) { (request: Vapor.Request) -> EventLoopFuture<Vapor.Response> in
-            let responseFuture = requestHandler.handleRequest(request: request)
+            let responseFuture = requestHandler(request: request)
 
             return responseFuture.flatMap { encodable in
                 let jsonEncoder = JSONEncoder()

@@ -16,7 +16,7 @@ final class EndpointsTreeTests: ApodiniTests {
         let month: Int
     }
 
-    struct BasicTestHandler: Component {
+    struct BasicTestHandler: Handler {
         @Parameter
         var name: String
 
@@ -25,7 +25,7 @@ final class EndpointsTreeTests: ApodiniTests {
         }
     }
     
-    struct TestHandler: Component {
+    struct TestHandler: Handler {
         @Parameter(.http(.path))
         var name: String
         var nameParameter: Parameter<String> {
@@ -121,8 +121,7 @@ final class EndpointsTreeTests: ApodiniTests {
         let requestHandler = endpoint.createRequestHandler(for: exporter)
 
         // handle a request (The actual request is unused in the MockExporter)
-        let response = try requestHandler
-                .handleRequest(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+        let response = try requestHandler(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
         let responseString: String = try XCTUnwrap(response as? String)
 

@@ -73,7 +73,7 @@ struct TestWebService: Apodini.WebService {
         var id: Int
     }
 
-    struct UserHandler: Component {
+    struct UserHandler: Handler {
         @Parameter var userId: Int
 
         func handle() -> User {

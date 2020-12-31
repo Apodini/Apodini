@@ -15,7 +15,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         var bird: Bird
     }
 
-    struct TestRestHandler: Component {
+    struct TestRestHandler: Handler {
         @Parameter
         var param0: String
         @Parameter
@@ -63,8 +63,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         // we hardcode the pathId currently here
         request.parameters.set(":\(handler.pathAParameter.id)", to: "a")
 
-        let result = try requestHandler
-                .handleRequest(request: request)
+        let result = try requestHandler(request: request)
                 .wait()
         let parametersResult: Parameters = try XCTUnwrap(result as? Parameters)
 
