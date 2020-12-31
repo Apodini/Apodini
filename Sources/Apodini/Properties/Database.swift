@@ -11,7 +11,7 @@ import protocol Fluent.Database
 
 @propertyWrapper
 // swiftlint:disable:next type_name
-struct _Database: RequestInjectable {
+struct _Database: Property, RequestInjectable {
     private var database: Fluent.Database?
     
     
@@ -25,10 +25,9 @@ struct _Database: RequestInjectable {
     
     
     init() { }
-    
-    
+
     mutating func inject(using request: Request) throws {
-        guard let database = request.database else {
+        guard let database = request.database?() else {
             fatalError("Cannot inject database because the request does not contain a database")
         }
         self.database = database

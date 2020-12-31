@@ -9,7 +9,7 @@ import XCTest
 @testable import Apodini
 
 final class ApodiniEncodableTests: ApodiniTests, ApodiniEncodableVisitor {
-    struct ActionComponent: Component {
+    struct ActionHandler: Handler {
         var message: String
 
         func handle() -> Action<String> {
@@ -38,8 +38,8 @@ final class ApodiniEncodableTests: ApodiniTests, ApodiniEncodableVisitor {
         }
     }
 
-    func callVisitor<C: Component>(_ component: C) {
-        let result = component.handle()
+    func callVisitor<H: Handler>(_ handler: H) {
+        let result = handler.handle()
         switch result {
         case let apodiniEncodable as ApodiniEncodable:
             apodiniEncodable.accept(self)
@@ -50,6 +50,6 @@ final class ApodiniEncodableTests: ApodiniTests, ApodiniEncodableVisitor {
 
     func testShouldCallAction() {
         ApodiniEncodableTests.expectedValue = "Action"
-        callVisitor(ActionComponent(message: ApodiniEncodableTests.expectedValue))
+        callVisitor(ActionHandler(message: ApodiniEncodableTests.expectedValue))
     }
 }

@@ -31,7 +31,7 @@ final class ModifierTests: XCTestCase {
         }
         
         let printVisitor = PrintVisitor()
-        component.visit(printVisitor)
+        component.accept(printVisitor)
     }
     
     func testResponseModifer() {
@@ -48,6 +48,7 @@ final class ModifierTests: XCTestCase {
         }
         
         
+        @ComponentBuilder
         var component: some Component {
             Text("Hallo")
                 .response(FirstTestResponseMediator())
@@ -55,7 +56,7 @@ final class ModifierTests: XCTestCase {
         }
         
         let printVisitor = PrintVisitor()
-        component.visit(printVisitor)
+        component.accept(printVisitor)
     }
 
     func testActionShouldAllowResponseModifierOnWrappedType() {
@@ -65,18 +66,18 @@ final class ModifierTests: XCTestCase {
             }
         }
 
-        struct TestComponent: Component {
+        struct TestHandler: Handler {
             func handle() -> Action<String> {
                 .final("Peter")
             }
         }
 
         var component: some Component {
-            TestComponent()
+            TestHandler()
                 .response(HelloResponseMediator())
         }
 
         let printVisitor = PrintVisitor()
-        component.visit(printVisitor)
+        component.accept(printVisitor)
     }
 }

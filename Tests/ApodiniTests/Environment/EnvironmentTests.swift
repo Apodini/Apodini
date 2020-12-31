@@ -10,7 +10,7 @@ import Vapor
 @testable import Apodini
 
 final class EnvironmentTests: ApodiniTests {
-    struct BirdComponent: Component {
+    struct BirdHandler: Handler {
         @Apodini.Environment(\.birdFacts) var birdFacts: BirdFacts
         
         func handle() -> String {
@@ -23,37 +23,18 @@ final class EnvironmentTests: ApodiniTests {
         EnvironmentValues.shared = EnvironmentValues()
     }
 
-    func makeResponse<C: Component>(for component: C,
-                                    with keyPath: WritableKeyPath<EnvironmentValues, BirdFacts>? = nil,
-                                    of environmentValue: BirdFacts? = nil) throws -> Response where C.Response == String {
-        let request = Request(application: app, on: app.eventLoopGroup.next())
-        let restRequest = RESTRequest(request) { _ in
-            nil
+    func testEnvironmentInjection() throws {
+        let handler = BirdHandler()
+        let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
+
+        let response: String = request.enterRequestContext(with: handler) { handler in
+            handler.handle()
         }
 
-        var component = component
-        if let keyPath = keyPath,
-           let value = environmentValue {
-            component = component.withEnvironment(value, for: keyPath)
-        }
-        return try restRequest
-            .enterRequestContext(with: component) { component in
-                component
-                    .handle()
-                    .encodeResponse(for: request)
-            }
-            .wait()
-    }
-    
-    func testEnvironmentInjection() throws {
-        let response = try makeResponse(for: BirdComponent())
-        
         let birdFacts = BirdFacts()
-        
-        let responseData = try XCTUnwrap(response.body.data)
-        let responseString = String(decoding: responseData, as: UTF8.self)
+
         EnvironmentValues.shared.birdFacts = birdFacts
-        XCTAssert(responseString == birdFacts.someFact)
+        XCTAssert(response == birdFacts.someFact)
     }
     
     func testUpdateEnvironmentValue() throws {
@@ -63,51 +44,59 @@ final class EnvironmentTests: ApodiniTests {
 
         EnvironmentValues.shared.birdFacts = birdFacts
         let injectedValue = EnvironmentValues.shared[keyPath: \EnvironmentValues.birdFacts]
-            
+
         XCTAssert(injectedValue.dodoFact == newFact)
     }
 
     func testShouldAccessDynamicEnvironmentValueFirst() throws {
+        let handler = BirdHandler()
         let staticBirdFacts = BirdFacts()
 
         let dynamicBirdFacts = BirdFacts()
         let dynamicFact = "Until humans, the Dodo had no predators"
         dynamicBirdFacts.someFact = dynamicFact
 
+        let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
+
         // inject the static value via the shared object
         EnvironmentValues.shared.birdFacts = staticBirdFacts
         // inject the dynamic value via the .withEnvironment
-        let response = try makeResponse(for: BirdComponent(), with: \EnvironmentValues.birdFacts, of: dynamicBirdFacts)
+        let response: String = request.enterRequestContext(with: handler) { handler in
+            handler
+                .withEnvironment(dynamicBirdFacts, for: \.birdFacts)
+                .handle()
+        }
 
-        let responseData = try XCTUnwrap(response.body.data)
-        let responseString = String(decoding: responseData, as: UTF8.self)
-
-        XCTAssertEqual(responseString, dynamicFact)
+        XCTAssertEqual(response, dynamicFact)
     }
 
     func testShouldAccessStaticIfNoDynamicAvailable() throws {
+        let handler = BirdHandler()
         let staticBirdFacts = BirdFacts()
         let staticFact = "Until humans, the Dodo had no predators"
         staticBirdFacts.someFact = staticFact
 
+        let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
+
         // inject the static value via the shared object
         EnvironmentValues.shared.birdFacts = staticBirdFacts
 
-        let response = try makeResponse(for: BirdComponent())
+        let response: String = request.enterRequestContext(with: handler) { handler in
+            handler.handle()
+        }
 
-        let responseData = try XCTUnwrap(response.body.data)
-        let responseString = String(decoding: responseData, as: UTF8.self)
-
-        XCTAssertEqual(responseString, staticBirdFacts.someFact)
+        XCTAssertEqual(response, staticBirdFacts.someFact)
     }
 
     func testShouldReturnDefaultIfNoEnvironment() throws {
-        let response = try makeResponse(for: BirdComponent())
+        let handler = BirdHandler()
+        let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
 
-        let responseData = try XCTUnwrap(response.body.data)
-        let responseString = String(decoding: responseData, as: UTF8.self)
+        let response: String = request.enterRequestContext(with: handler) { handler in
+            handler.handle()
+        }
 
-        XCTAssertEqual(responseString, BirdFacts().someFact)
+        XCTAssertEqual(response, BirdFacts().someFact)
     }
 }
 

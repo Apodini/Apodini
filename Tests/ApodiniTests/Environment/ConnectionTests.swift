@@ -13,7 +13,7 @@ final class ConnectionTests: XCTestCase {
     let endMessage = "End"
     let openMessage = "Open"
 
-    struct TestComponent: Component {
+    struct TestHandler: Handler {
         @Apodini.Environment(\.connection)
         var connection: Connection
 
@@ -31,9 +31,9 @@ final class ConnectionTests: XCTestCase {
     }
 
     func testDefaultConnectionEnvironment() {
-        let testComponent = TestComponent(endMessage: endMessage, openMessage: openMessage)
+        let testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage)
 
-        let returnedAction = testComponent.handle()
+        let returnedAction = testHandler.handle()
         // default connection state should be .end
         // thus, we expect a .final(endMessage) here from
         // the TestComponent
@@ -45,10 +45,10 @@ final class ConnectionTests: XCTestCase {
     }
 
     func testConnectionInjection() {
-        let testComponent = TestComponent(endMessage: endMessage, openMessage: openMessage)
+        let testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage)
 
         var connection = Connection(state: .open)
-        let returnedActionWithOpen = testComponent.withEnvironment(connection, for: \.connection).handle()
+        let returnedActionWithOpen = testHandler.withEnvironment(connection, for: \.connection).handle()
         if case let .send(returnedMessageWithOpen) = returnedActionWithOpen {
             XCTAssertEqual(returnedMessageWithOpen, openMessage)
         } else {
@@ -56,7 +56,7 @@ final class ConnectionTests: XCTestCase {
         }
 
         connection.state = .end
-        let returnedActionWithEnd = testComponent.withEnvironment(connection, for: \.connection).handle()
+        let returnedActionWithEnd = testHandler.withEnvironment(connection, for: \.connection).handle()
         if case let .final(returnedMessageWithEnd) = returnedActionWithEnd {
             XCTAssertEqual(returnedMessageWithEnd, endMessage)
         } else {

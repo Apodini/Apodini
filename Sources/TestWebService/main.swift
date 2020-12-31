@@ -8,6 +8,7 @@
 @testable import Apodini
 import Vapor
 import NIO
+import Runtime
 
 
 struct TestWebService: Apodini.WebService {
@@ -41,14 +42,43 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
-    struct Greeter: Component {
+    struct Greeter: Handler {
+        @Properties
+        var properties: [String: Apodini.Property] = ["surname": Parameter<String?>()]
+        
         @Parameter(.http(.path)) var name: String
 
-        func handle() -> Action<String> {
-            .final("Hello World!")
+        @Parameter var greet: String?
+        
+        func handle() -> String {
+            let surnameParameter: Parameter<String?>? = _properties.typed(Parameter<String?>.self)["surname"]
+            
+            return "\(greet ?? "Hello") \(name) " + (surnameParameter?.wrappedValue ?? "Unknown")
         }
     }
     
+    @propertyWrapper
+    struct UselessWrapper: DynamicProperty {
+        @Parameter var name: String?
+        
+        var wrappedValue: String? {
+            name
+        }
+    }
+
+    struct User: Codable {
+        var id: Int
+    }
+
+    struct UserHandler: Handler {
+        @Parameter var userId: Int
+
+        func handle() -> User {
+            User(id: userId)
+        }
+    }
+
+    @PathParameter var userId: Int
     
     var content: some Component {
         Text("Hello World! 👋")
@@ -66,6 +96,10 @@ struct TestWebService: Apodini.WebService {
         Group("greet") {
             Greeter()
                 .response(EmojiMediator())
+        }
+        Group("user", $userId) {
+            UserHandler(userId: $userId)
+                .guard(PrintGuard())
         }
     }
 }
