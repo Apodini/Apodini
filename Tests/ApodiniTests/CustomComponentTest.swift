@@ -86,4 +86,3 @@ final class CustomComponentTests: ApodiniTests {
 //        XCTAssert(responseBirds[2] == bird)
 //    }
 //}
-
