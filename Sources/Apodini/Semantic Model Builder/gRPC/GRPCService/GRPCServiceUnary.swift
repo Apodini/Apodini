@@ -15,7 +15,7 @@ extension GRPCService {
         { (request: Vapor.Request) in
             let promise = request.eventLoop.makePromise(of: Vapor.Response.self)
             request.body.collect().whenSuccess { _ in
-                let response: EventLoopFuture<Encodable> = requestHandler.handleRequest(request: request)
+                let response: EventLoopFuture<Encodable> = requestHandler.callAsFunction(request: request)
                 let result = response.flatMapThrowing { self.encodeResponse($0) }
 
                 promise.completeWith(result)
