@@ -7,45 +7,36 @@
 
 import Foundation
 import class Vapor.Application
+import SwifCron
 
-public class Schedule<T: Job>: Configuration {
+public class Schedule<K: ApodiniKeys, T: Job>: Configuration {
     private let scheduler = Scheduler.shared
     private let job: T
     private let cronTrigger: String
     private let runs: Int?
+    private let keyPath: KeyPath<K, T>
     
-    public init(_ job: T, on cronTrigger: String, file: StaticString = #file, line: UInt = #line) {
+    public init(_ job: T, on cronTrigger: String, _ keyPath: KeyPath<K, T>) {
         self.job = job
         self.cronTrigger = cronTrigger
         self.runs = nil
-        
-        check(file, line)
+        self.keyPath = keyPath
     }
     
-    public init(_ job: T, on cronTrigger: String, runs: Int, file: StaticString = #file, line: UInt = #line) {
+    public init(_ job: T, on cronTrigger: String, runs: Int, _ keyPath: KeyPath<K, T>) {
         self.job = job
         self.cronTrigger = cronTrigger
         self.runs = runs
-        
-        check(file, line)
+        self.keyPath = keyPath
     }
     
     public func configure(_ app: Application) {
-        if let runs = runs {
-            scheduler.schedule(job, cronTrigger, runs: runs, on: app.eventLoopGroup.next())
-        } else {
-            scheduler.schedule(job, cronTrigger, on: app.eventLoopGroup.next())
+        do {
+            try scheduler.enqueue(job, with: cronTrigger, runs: runs, keyPath, on: app.eventLoopGroup.next())
+        } catch JobErrors.requestPropertyWrapper {
+            fatalError("Request based property wrappers cannot be used with `Job`s")
+        } catch {
+            fatalError("Error parsing cron trigger: \(error)")
         }
-    }
-    
-    /// Checks if only valid property wrappers are used with `Job`s.
-    private func check( _ file: StaticString, _ line: UInt) {
-        for property in Mirror(reflecting: job).children where property.value is RequestInjectable {
-            fatalError("Request based property wrappers cannot be used with `Job`s", file: file, line: line)
-        }
-    }
-    
-    private func generateEnvironmentValue() {
-        fatalError("Not implemented")
     }
 }

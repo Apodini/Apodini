@@ -42,16 +42,18 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Component {
-        @Parameter(.http(.path)) var name: String
+        @Apodini.Environment(\.scheduler) var scheduler: Scheduler
+        @_Request var request: Apodini.Request
 
         func handle() -> String {
-            "Hello \(name)"
+            try? scheduler.dequeue(\KeyStore.testMe)
+            return "Hello R"
         }
     }
     
     struct TestMe: Job {
         func run() {
-            print("TEST")
+            print("TEST \(Date())")
         }
     }
     
@@ -74,7 +76,11 @@ struct TestWebService: Apodini.WebService {
     }
     
     var configuration: Configuration {
-        Schedule(TestMe(), on: "* * * * *", runs: 1)
+        Schedule(TestMe(), on: "* * * * *", \KeyStore.testMe)
+    }
+    
+    struct KeyStore: ApodiniKeys {
+        var testMe: TestMe
     }
 }
 

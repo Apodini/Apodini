@@ -30,21 +30,38 @@ public struct EnvironmentValues {
             values[ObjectIdentifier(key)] = newValue
         }
     }
+    
+    public subscript<K, T>(keyPath: KeyPath<K, T>) -> T {
+        if let value = values[ObjectIdentifier(keyPath)] as? T {
+            return value
+        }
+        fatalError("Keypath not found")
+    }
 }
+
+extension EnvironmentValues: ApodiniKeys { }
 
 /// A property wrapper to inject pre-defined values  to a `Component`.
 @propertyWrapper
-public struct Environment<Value> {
+public struct Environment<K: ApodiniKeys, Value> {
     /// Keypath to access an `EnvironmentValue`.
-    internal var keyPath: KeyPath<EnvironmentValues, Value>
+    internal var keyPath: KeyPath<K, Value>
     
-    /// Initializer of `Environment`.
-    public init(_ keyPath: KeyPath<EnvironmentValues, Value>) {
+    /// Initializer of `Environment` for `EnvironmentValues.
+    public init(_ keyPath: KeyPath<K, Value>) where K == EnvironmentValues {
+        self.keyPath = keyPath
+    }
+    
+    public init(_ keyPath: KeyPath<K, Value>) {
         self.keyPath = keyPath
     }
     
     /// The current value of the environment property.
     public var wrappedValue: Value {
-        EnvironmentValues.shared[keyPath: keyPath]
+        if let key = keyPath as? KeyPath<EnvironmentValues, Value> {
+            return EnvironmentValues.shared[keyPath: key]
+        } else {
+            return EnvironmentValues.shared[keyPath]
+        }
     }
 }
