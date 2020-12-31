@@ -30,7 +30,7 @@ extension RequestInjectableVisitor {
     func visit<Element>(_ parameter: Parameter<Element>) {}
 }
 
-extension Component {
+extension Handler {
     func extractRequestInjectables() -> [String: RequestInjectable] {
         Apodini.extractRequestInjectables(from: self)
     }

@@ -27,10 +27,10 @@ class PrintVisitor: SyntaxTreeVisitor {
         print("\(indentation) + \(contextKey.self) = \(value)")
     }
     
-    override func register<C>(component: C) where C: Component {
-        print("\(indentation)\(component)")
+    
+    override func visit<H: Handler>(handler: H) {
+        print("\(indentation)\(handler)")
         printContext()
-        
         currentNode.resetContextNode()
     }
     
