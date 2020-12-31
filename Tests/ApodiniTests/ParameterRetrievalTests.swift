@@ -33,8 +33,7 @@ class ParameterRetrievalTests: ApodiniTests {
         let exporter = MockExporter<String>(queued: "Rudi", 3, nil, .null)
 
         let requestHandler = endpoint.createRequestHandler(for: exporter)
-        let result = try requestHandler
-                .handleRequest(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+        let result = try requestHandler(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
         let stringResult: String = try XCTUnwrap(result as? String)
 
