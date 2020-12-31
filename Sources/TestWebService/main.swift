@@ -8,6 +8,7 @@
 @testable import Apodini
 import Vapor
 import NIO
+import Runtime
 
 
 struct TestWebService: Apodini.WebService {
@@ -41,10 +42,11 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
-    struct Greeter: Component {
+    struct Greeter: Handler {
         @Apodini.Environment(\.scheduler) var scheduler: Scheduler
-        @_Request var request: Apodini.Request
 
+        @_Request var request: Apodini.Request
+        
         func handle() -> String {
             try? scheduler.dequeue(\KeyStore.testMe)
             return "Hello R"

@@ -10,7 +10,7 @@ import Vapor
 @testable import Apodini
 
 final class EnvironmentTests: ApodiniTests {
-    struct BirdComponent: Component {
+    struct BirdComponent: Handler {
         @Apodini.Environment(\.birdFacts) var birdFacts: BirdFacts
         
         func handle() -> String {
@@ -19,23 +19,17 @@ final class EnvironmentTests: ApodiniTests {
     }
     
     func testEnvironmentInjection() throws {
-        let request = Request(application: app, on: app.eventLoopGroup.next())
-        let restRequest = RESTRequest(request) { _ in
-            nil
-        }
+        let component = BirdComponent()
+        let request = MockRequest.createRequest(on: component, running: app.eventLoopGroup.next())
 
-        let response = try restRequest
-            .enterRequestContext(with: BirdComponent()) { component in
-                component.handle().encodeResponse(for: request)
-            }
-            .wait()
+        let response: String = request.enterRequestContext(with: component) { component in
+            component.handle()
+        }
         
         let birdFacts = BirdFacts()
-        
-        let responseData = try XCTUnwrap(response.body.data)
-        let responseString = String(decoding: responseData, as: UTF8.self)
+
         EnvironmentValues.shared.birdFacts = birdFacts
-        XCTAssert(responseString == birdFacts.someFact)
+        XCTAssert(response == birdFacts.someFact)
     }
     
     func testUpdateEnvironmentValue() throws {
