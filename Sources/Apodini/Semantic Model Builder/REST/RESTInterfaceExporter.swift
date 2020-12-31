@@ -128,7 +128,7 @@ class RESTInterfaceExporter: InterfaceExporter {
         }
     }
 
-    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Vapor.Request) throws -> Type?? {
+    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Vapor.Request) throws -> Any?? {
         switch parameter.parameterType {
         case .lightweight:
             // Note: Vapor also supports decoding into a struct which holds all query parameters. Though we have the requirement,

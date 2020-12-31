@@ -70,7 +70,11 @@ private struct ParameterRetrievalDelegation<Element: Codable, I: InterfaceExport
     var request: I.ExporterRequest
 
     func visit<Type: Codable>(parameter: EndpointParameter<Type>) throws -> Element {
-        let result: Type?? = try exporter.retrieveParameter(parameter, for: request)
+        let untypedResult: Any?? = try exporter.retrieveParameter(parameter, for: request)
+        
+        guard let result = untypedResult as? Type?? else {
+            fatalError("Did receive input of wrong type for parameter '\(parameter.description)'.")
+        }
 
         var retrievedValue: Type?
         if result == nil {
@@ -108,4 +112,23 @@ private struct ParameterRetrievalDelegation<Element: Codable, I: InterfaceExport
         // swiftlint:disable:next force_cast
         return wrappedRetrievedValue as! Element
     }
+}
+
+protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
+    /// Returns a description of the Request.
+    /// If the `ExporterRequest` also conforms to `CustomStringConvertible`, its `description`
+    /// will be appended.
+    var description: String { get }
+    /// Returns a debug description of the Request.
+    /// If the `ExporterRequest` also conforms to `CustomDebugStringConvertible`, its `debugDescription`
+    /// will be appended.
+    var debugDescription: String { get }
+
+    var endpoint: AnyEndpoint { get }
+
+    var eventLoop: EventLoop { get }
+
+    var database: (() -> Database)? { get }
+
+    func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element
 }

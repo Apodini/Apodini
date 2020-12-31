@@ -6,39 +6,12 @@
 //
 
 @_implementationOnly import Vapor
-import Fluent
+@_implementationOnly import Fluent
 @_implementationOnly import WebSocketInfrastructure
 import OpenCombine
 @_implementationOnly import Runtime
 
-
-private struct WebSocketRequest: Request {
-    var eventLoop: EventLoop
-    var database: Fluent.Database?
-    
-    var parameterNames: [UUID: String]
-    
-    var input: AnyInput
-    
-    func parameter<T: Codable>(for parameter: UUID) throws -> T? {
-        if let name = parameterNames[parameter] {
-            if let inputParameter = input.parameters[name] {
-                if let parameter = inputParameter as? WebSocketInfrastructure.Parameter<T> {
-                    return parameter.value
-                }
-            }
-        }
-        return nil
-    }
-    
-    var description: String {
-        if let database = self.database {
-            return "WebSocketRequest(input: \(input), eventLoop: \(eventLoop), database: \(database))"
-        } else {
-            return "WebSocketRequest(input: \(input), eventLoop: \(eventLoop))"
-        }
-    }
-}
+extension AnyInput: ExporterRequest { }
 
 
 class WebSocketInterfaceExporter: InterfaceExporter {
@@ -51,28 +24,24 @@ class WebSocketInterfaceExporter: InterfaceExporter {
         self.router = VaporWSRouter(app)
     }
     
-    func export(_ endpoint: Endpoint) {
-        let parameterNames: [UUID: String] = endpoint.parameters.reduce(into: [UUID: String](), { (result, endpointParameter) in
-            result[endpointParameter.id] = endpointParameter.name ?? endpointParameter.label.trimmingCharacters(in: ["_"])
-        })
-        
-        let defaultInput = AnyInput(from: endpoint, with: parameterNames)
+    func export<C: Component>(_ endpoint: Endpoint<C>) {
+        let defaultInput = AnyInput()
 
         self.router.register({ (input: AnyPublisher<AnyInput, Never>, eventLoop: EventLoop, database: Database?) -> (defaultInput: AnyInput, output: AnyPublisher<Message<AnyEncodable>, Error>) in
             let defaultInput = defaultInput
             
+            let requestHandler = endpoint.createRequestHandler(for: self)
+
             let output: PassthroughSubject<Message<AnyEncodable>, Error> = PassthroughSubject()
             var inputCancellable: AnyCancellable? = nil
             // TODO: synchronize
             inputCancellable = input.sink(receiveCompletion: { completion in
                 inputCancellable?.cancel()
-                
+
                 // TODO: implement
                 output.send(completion: .finished)
             }, receiveValue: { inputValue in
-                let request = WebSocketRequest(eventLoop: eventLoop, database: database, parameterNames: parameterNames, input: inputValue)
-                
-                endpoint.requestHandler(request).whenComplete { result in
+                requestHandler.handleRequest(request: inputValue, eventLoop: eventLoop, database: database).whenComplete { result in
                     switch result {
                     case .success(let response):
                         output.send(.send(AnyEncodable(value: response)))
@@ -81,57 +50,56 @@ class WebSocketInterfaceExporter: InterfaceExporter {
                     }
                 }
             })
-            
-            
+
+
             return (defaultInput: defaultInput, output: output.eraseToAnyPublisher())
         }, on: WebSocketPathBuilder(endpoint.absolutePath).pathIdentifier)
+    }
+    
+    func retrieveParameter<Type>(_ parameter: EndpointParameter<Type>, for request: AnyInput) throws -> Any?? where Type : Decodable, Type : Encodable {
+        if let value = request.parameters[parameter.name] {
+            return .some(value)
+        }
+        return nil
     }
 }
 
 // MARK: Input Helpers
-fileprivate extension AnyInput {
-    init(from endpoint: Endpoint, with parameterNames: [UUID: String]) {
+fileprivate extension SomeInput {
+    class WebSocketInputExtractor: EndpointParameterVisitor {
+        func visit<Element>(parameter: EndpointParameter<Element>) -> InputParameter where Element : Decodable, Element : Encodable {
+            parameter.input()
+        }
+    }
+    
+    
+    init<C: Component>(from endpoint: Endpoint<C>, with parameterNames: [UUID: String]) {
+        let extractor = WebSocketInputExtractor()
         self.init(parameters: endpoint.parameters.reduce(into: [String: InputParameter](), { (result, endpointParameter) in
             if let name = parameterNames[endpointParameter.id] {
-                result[name] = endpointParameter.input()
+                result[name] = endpointParameter.accept(extractor)
             }
         }))
     }
 }
 
 fileprivate extension EndpointParameter {
-    class WebSocketInputBuilder: RequestInjectableVisitor {
-        var inputParameter: InputParameter?
-        
-        func visit<Element>(_ parameter: Parameter<Element>) {
-            self.inputParameter = parameter.input()
-        }
-        
-        func build() -> InputParameter {
-            guard let parameter = self.inputParameter else {
-                preconditionFailure("WebSocketInputBuilder could not generate InputParameter")
-            }
-            return parameter
-        }
-    }
-
     func input() -> InputParameter {
-        let inputBuilder = WebSocketInputBuilder()
-        
-        self.requestInjectable.accept(inputBuilder)
-        
-        return inputBuilder.build()
-    }
-}
+        let m: WebSocketInfrastructure.Mutability = self.options.option(for: .mutability) == .constant ? .constant : .variable
 
-extension Parameter {
-    fileprivate func input() -> InputParameter {
-        let m: WebSocketInfrastructure.Mutability = self.option(for: .mutability) == .constant ? .constant : .variable
-
-        if Element.self is ExpressibleByNilLiteral.Type || self.defaultValue != nil {
-            return WebSocketInfrastructure.Parameter<Element>(mutability: m, necessity: .optional)
-        } else  {
-            return WebSocketInfrastructure.Parameter<Element>(mutability: m, necessity: .required)
-        }
+//        switch self.necessity {
+//        case .optional:
+//
+//        case .required:
+//
+//        }
+        
+//        if Element.self is ExpressibleByNilLiteral.Type || self.defaultValue != nil {
+//            return WebSocketInfrastructure.Parameter<Element>(mutability: m, necessity: .optional)
+//        } else  {
+//            return WebSocketInfrastructure.Parameter<Element>(mutability: m, necessity: .required)
+//        }
+        
+        return WebSocketInfrastructure.Parameter<Type>(mutability: m, necessity: .optional)
     }
 }

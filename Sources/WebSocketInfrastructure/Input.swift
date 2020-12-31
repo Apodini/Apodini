@@ -58,6 +58,27 @@ public protocol InputParameter {
 }
 
 public struct AnyInput: Input {
+    private(set) public var parameters: [String: Optional<Any>] = [:]
+    
+    public init() { }
+    
+    public mutating func update(_ parameter: String, with value: Any) -> ParameterUpdateResult {
+        if value is NSNull {
+            parameters[parameter] = Optional<Any>.none
+        } else {
+            parameters[parameter] = value
+        }
+        return .ok
+    }
+    
+    public mutating func check() -> InputCheckResult {
+        return .ok
+    }
+    
+    public mutating func apply() { }
+}
+
+public struct SomeInput: Input {
     
     private(set) public var parameters: [String: InputParameter]
     

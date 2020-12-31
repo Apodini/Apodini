@@ -29,7 +29,7 @@ class MockExporter<Request: ExporterRequest>: InterfaceExporter {
         // do nothing
     }
 
-    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Request) throws -> Type?? {
+    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Request) throws -> Any?? {
         guard let first = parameterValues.first else {
             print("WARN: MockExporter failed to retrieve next parameter for '\(parameter.description)'. Queue is empty")
             return nil // non existence
