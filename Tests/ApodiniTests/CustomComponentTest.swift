@@ -11,11 +11,10 @@ import Vapor
 import Fluent
 @testable import Apodini
 
-
 // Test commented out until Handlers can return EventLoopFutures
 //final class CustomComponentTests: ApodiniTests {
 //    struct AddBirdsHandler: Handler {
-//        @_Database
+//        @Apodini.Environment(\.database)
 //        var database: Fluent.Database
 //
 //        @Parameter
