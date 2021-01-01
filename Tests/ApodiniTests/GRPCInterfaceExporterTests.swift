@@ -1,5 +1,5 @@
 //
-//  GRPCSemanticModelBuilder.swift
+//  GRPCInterfaceExporterTests.swift
 //  
 //
 //  Created by Moritz Schüll on 20.12.20.
@@ -54,7 +54,7 @@ private struct GRPCTestComponent2: Component {
     }
 }
 
-final class GRPCSemanticModelBuilderTests: XCTestCase {
+final class GRPCInterfaceExporterTests: XCTestCase {
     // swiftlint:disable:next implicitly_unwrapped_optional
     var app: Application!
 

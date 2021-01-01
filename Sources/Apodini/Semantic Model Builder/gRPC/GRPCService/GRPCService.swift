@@ -9,8 +9,8 @@ import Foundation
 @_implementationOnly import Vapor
 @_implementationOnly import ProtobufferCoding
 
-/// Used by the `GRPCSemanticModelBuilder` to expose
-/// `handle` functions of `Components`.
+/// Used by the `GRPCInterfaceExporter` to expose
+/// `handle` functions of `Handler`s.
 class GRPCService {
     let app: Vapor.Application
     var serviceName: String

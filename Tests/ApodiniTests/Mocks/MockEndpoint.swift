@@ -22,7 +22,6 @@ extension Handler {
             handler: self,
             context: context,
             operation: operation,
-            componentName: "\(Self.Type.self)",
             guards: guards,
             responseTransformers: responseTransformers,
             parameters: parameterBuilder.parameters

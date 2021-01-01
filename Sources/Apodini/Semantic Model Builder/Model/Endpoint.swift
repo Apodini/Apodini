@@ -57,10 +57,6 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     let context: Context
     
     let operation: Operation
-
-    /// The type name of the associated component.
-    /// Used by the gRPC exporter as the default method name.
-    let componentName: String
     
     let handleReturnType: Encodable.Type
     let responseType: Encodable.Type
@@ -84,7 +80,6 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         handler: H,
         context: Context = Context(contextNode: ContextNode()),
         operation: Operation = .automatic,
-        componentName: String,
         guards: [LazyGuard] = [],
         responseTransformers: [() -> (AnyResponseTransformer)] = [],
         parameters: [AnyEndpointParameter] = []
@@ -94,7 +89,6 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         self.handler = handler
         self.context = context
         self.operation = operation
-        self.componentName = componentName
         self.handleReturnType = H.Response.self
         self.guards = guards
         self.responseTransformers = responseTransformers

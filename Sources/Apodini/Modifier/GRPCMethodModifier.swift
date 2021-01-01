@@ -31,7 +31,7 @@ extension GRPCMethodModifier: SyntaxTreeVisitable {
 }
 
 extension Handler {
-    /// Explicitly sets the name of the gRPC service that is exposed for this `Component`
+    /// Explicitly sets the name of the gRPC service that is exposed for this `Handler`
     public func rpcName(_ methodName: String) -> GRPCMethodModifier<Self> {
         GRPCMethodModifier(self, methodName: methodName)
     }
