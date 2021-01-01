@@ -100,10 +100,6 @@ public struct Parameter<Element: Codable>: Property {
 
 extension Parameter: RequestInjectable {
     mutating func inject(using request: Request) throws {
-        #warning("""
-                 We need some sort of Apodini defined Error, which encodes such internal server errors and properly
-                 forwards that to the Exporter so it can respond with a proper error for its request.
-                 """)
         element = try request.retrieveParameter(self)
     }
 

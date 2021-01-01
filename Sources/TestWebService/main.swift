@@ -43,7 +43,7 @@ struct TestWebService: Apodini.WebService {
     }
     
 
-    struct TraditionalGreeter: Component {
+    struct TraditionalGreeter: Handler {
         // one cannot change their gender, it must be provided
         @Parameter(.mutability(.constant)) var gender: String
         // one cannot change their surname, but it can be ommitted

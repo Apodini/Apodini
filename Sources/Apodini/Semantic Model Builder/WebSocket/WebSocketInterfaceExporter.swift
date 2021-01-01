@@ -30,7 +30,7 @@ class WebSocketInterfaceExporter: InterfaceExporter {
         self.router.register({ (input: AnyPublisher<AnyInput, Never>, eventLoop: EventLoop, database: Database?) -> (defaultInput: AnyInput, output: AnyPublisher<Message<AnyEncodable>, Error>) in
             let defaultInput = defaultInput
             
-            let requestHandler = endpoint.createRequestHandler(for: self)
+            let context = endpoint.createConnectionContext(for: self)
 
             let output: PassthroughSubject<Message<AnyEncodable>, Error> = PassthroughSubject()
             var inputCancellable: AnyCancellable? = nil
@@ -41,7 +41,7 @@ class WebSocketInterfaceExporter: InterfaceExporter {
                 // TODO: implement
                 output.send(completion: .finished)
             }, receiveValue: { inputValue in
-                requestHandler.handleRequest(request: inputValue, eventLoop: eventLoop, database: database).whenComplete { result in
+                context.handle(request: inputValue, eventLoop: eventLoop, database: database).whenComplete { result in
                     switch result {
                     case .success(let response):
                         output.send(.send(AnyEncodable(value: response)))

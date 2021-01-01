@@ -82,10 +82,10 @@ class RESTInterfaceExporter: InterfaceExporter {
 
         let exportedParameterNames = endpoint.exportParameters(on: self)
 
-        let requestHandler = endpoint.createRequestHandler(for: self)
+        var context = endpoint.createConnectionContext(for: self)
 
         routesBuilder.on(operation.httpMethod, []) { (request: Vapor.Request) -> EventLoopFuture<Vapor.Response> in
-            let responseFuture = requestHandler(request: request)
+            let responseFuture = context.handle(request: request)
 
             return responseFuture.flatMap { encodable in
                 let jsonEncoder = JSONEncoder()

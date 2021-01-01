@@ -12,7 +12,7 @@
 {"context":"a21f0915-825a-422e-b8dc-1876234cd08c","endpoint":"v1/greet"}
 
 {"context":"a21f0915-825a-422e-b8dc-1876234cd08c","parameters": {"name":"Momax"}}
-{"context":"a21f0915-825a-422e-b8dc-1876234cd08c","parameters": {"name":"Max", "surname": "Obermeier"}}
+{"context":"a21f0915-825a-422e-b8dc-1876234cd08c","parameters": {"name":null, "gender": "male", "surname": ""}}
 {"context":"a21f0915-825a-422e-b8dc-1876234cd08c","parameters": {}}
 
 {"context":"a21f0915-825a-422e-b8dc-1876234cd08c"}
