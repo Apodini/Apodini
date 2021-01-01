@@ -6,32 +6,43 @@
 //
 
 import XCTest
-import Vapor
+import XCTVapor
 @testable import Apodini
 
 
-final class GuardTests: XCTestCase {
-    struct TestGuard: SyncGuard {
-        @_Request
-        var request: Apodini.Request
-        
+final class GuardTests: ApodiniTests {
+    private static var guardExpectation: XCTestExpectation?
+    
+    
+    private struct TestGuard: SyncGuard {
         func check() {
-            // To Do: fix this
-            print("Execute Guard for \(request)")
+            guard let guardExpectation = GuardTests.guardExpectation else {
+                fatalError("The test expectation must be set before testing `TestGuard`")
+            }
+            guardExpectation.fulfill()
         }
     }
     
     
-    var component: some Handler {
-        Text("Hallo")
-            .operation(.read)
-            .guard(TestGuard())
-            .operation(.create)
-    }
-    
-    func testPrintComponent() {
-        let printVisitor = PrintVisitor()
-        component.accept(printVisitor)
-        printVisitor.finishParsing()
+    func testPrintComponent() throws {
+        GuardTests.guardExpectation = self.expectation(description: "Guard is exectured")
+        
+        struct TestWebService: WebService {
+            var version = Version(prefix: "v", major: 2, minor: 1, patch: 0)
+            
+            var content: some Component {
+                Text("Hello")
+                    .guard(TestGuard())
+            }
+        }
+        
+        TestWebService._main(app: app)
+        
+        
+        try app.test(.GET, "/v2/") { res in
+            XCTAssertEqual(res.status, .ok)
+            XCTAssertEqual(res.body.string, "\"Hello\"")
+            waitForExpectations(timeout: 0, handler: nil)
+        }
     }
 }

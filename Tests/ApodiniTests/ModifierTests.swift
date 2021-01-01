@@ -10,29 +10,30 @@ import NIO
 @testable import Apodini
 
 
-final class ModifierTests: XCTestCase {
+final class ModifierTests: ApodiniTests {
     func testOperationModifier() {
-        var component: some Component {
-            Group {
-                Text("Create")
-                    .operation(.read)
-                    .operation(.create)
+        struct TestWebService: WebService {
+            var content: some Component {
                 Group {
-                    Text("Update")
-                        .operation(.delete)
-                        .operation(.update)
-                    Text("Delete")
-                        .operation(.delete)
                     Text("Create")
                         .operation(.read)
                         .operation(.create)
+                    Group {
+                        Text("Update")
+                            .operation(.delete)
+                            .operation(.update)
+                        Text("Delete")
+                            .operation(.delete)
+                        Text("Read")
+                            .operation(.read)
+                            .operation(.read)
+                    }
                 }
             }
         }
         
-        let printVisitor = PrintVisitor()
-        component.accept(printVisitor)
-        printVisitor.finishParsing()
+        TestWebService._main(app: app)
+        #warning("Set up some expectations!")
     }
     
     func testResponseModifer() {
@@ -49,15 +50,15 @@ final class ModifierTests: XCTestCase {
         }
         
         
-        @ComponentBuilder
-        var component: some Component {
-            Text("Hallo")
-                .response(FirstTestResponseMediator())
-                .response(SecondTestResponseMediator())
+        struct TestWebService: WebService {
+            var content: some Component {
+                Text("Hallo")
+                    .response(FirstTestResponseMediator())
+                    .response(SecondTestResponseMediator())
+            }
         }
         
-        let printVisitor = PrintVisitor()
-        component.accept(printVisitor)
-        printVisitor.finishParsing()
+        TestWebService._main(app: app)
+        #warning("Set up some expectations!")
     }
 }

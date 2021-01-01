@@ -6,18 +6,17 @@
 //
 
 import XCTest
-import Vapor
 @testable import Apodini
 
 
-final class VisitorTests: XCTestCase {
+final class VisitorTests: ApodiniTests {
     struct TestResponseMediator: ResponseTransformer {
         func transform(response: String) -> String {
             response
         }
     }
     
-    struct TestWebService: Apodini.WebService {
+    struct TestWebService: WebService {
         @ComponentBuilder
         var content: some Component {
             Group("Test") {
@@ -37,28 +36,8 @@ final class VisitorTests: XCTestCase {
         }
     }
     
-
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    var app: Application!
-    
-    
-    override func setUp() {
-        super.setUp()
-        app = Application(.testing)
-    }
-    
-    override func tearDown() {
-        super.tearDown()
-        app.shutdown()
-    }
-    
-    func testPrintVisitor() {
-        let printVisitor = PrintVisitor()
-        TestWebService().accept(printVisitor)
-        printVisitor.finishParsing()
-    }
-    
     func testRESTVisitor() {
+        #warning("Set up some expectations")
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [SharedSemanticModelBuilder(app).with(exporter: RESTInterfaceExporter.self)])
         TestWebService().accept(visitor)
     }
