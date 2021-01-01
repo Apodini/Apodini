@@ -4,7 +4,6 @@
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
-
 @testable import Apodini
 import Vapor
 import NIO
@@ -43,21 +42,42 @@ struct TestWebService: Apodini.WebService {
     }
     
     struct Greeter: Handler {
-        @Apodini.Environment(\.scheduler) var scheduler: Scheduler
+        @Properties
+        var properties: [String: Apodini.Property] = ["surname": Parameter<String?>()]
+        
+        @Parameter(.http(.path)) var name: String
 
-        @_Request var request: Apodini.Request
+        @Parameter var greet: String?
         
         func handle() -> String {
-            try? scheduler.dequeue(\KeyStore.testMe)
-            return "Hello R"
+            let surnameParameter: Parameter<String?>? = _properties.typed(Parameter<String?>.self)["surname"]
+            
+            return "\(greet ?? "Hello") \(name) " + (surnameParameter?.wrappedValue ?? "Unknown")
         }
     }
     
-    struct TestMe: Job {
-        func run() {
-            print("TEST \(Date())")
+    @propertyWrapper
+    struct UselessWrapper: DynamicProperty {
+        @Parameter var name: String?
+        
+        var wrappedValue: String? {
+            name
         }
     }
+
+    struct User: Codable {
+        var id: Int
+    }
+
+    struct UserHandler: Handler {
+        @Parameter var userId: Int
+
+        func handle() -> User {
+            User(id: userId)
+        }
+    }
+
+    @PathParameter var userId: Int
     
     var content: some Component {
         Text("Hello World! 👋")
@@ -75,14 +95,10 @@ struct TestWebService: Apodini.WebService {
         Group("greet") {
             Greeter()
         }
-    }
-    
-    var configuration: Configuration {
-        Schedule(TestMe(), on: "* * * * *", \KeyStore.testMe)
-    }
-    
-    struct KeyStore: ApodiniKeys {
-        var testMe: TestMe
+        Group("user", $userId) {
+            UserHandler(userId: $userId)
+                .guard(PrintGuard())
+        }
     }
 }
 
