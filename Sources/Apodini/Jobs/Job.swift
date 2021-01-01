@@ -1,14 +1,9 @@
-//
-//  File.swift
-//  
-//
-//  Created by Alexander Collins on 25.12.20.
-//
-
 import SwifCron
 import NIO
 
+/// Protocol
 public protocol Job {
+    /// Method when the `Job`
     func run()
 }
 
@@ -22,7 +17,7 @@ internal class JobConfiguration {
     }
 }
 
-public enum JobErrors: Error {
+internal enum JobErrors: Error {
     case requestPropertyWrapper
     case notFound
 }

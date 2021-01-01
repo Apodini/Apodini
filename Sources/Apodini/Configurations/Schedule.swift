@@ -1,14 +1,8 @@
-//
-//  File.swift
-//  
-//
-//  Created by Alexander Collins on 25.12.20.
-//
-
 import Foundation
 import class Vapor.Application
 import SwifCron
 
+/// `Configuration` to start `Job`s at server startup.
 public class Schedule<K: ApodiniKeys, T: Job>: Configuration {
     private let scheduler = Scheduler.shared
     private let job: T
@@ -16,6 +10,12 @@ public class Schedule<K: ApodiniKeys, T: Job>: Configuration {
     private let runs: Int?
     private let keyPath: KeyPath<K, T>
     
+    /// Initializes the `Schedule` configuration.
+    ///
+    /// - Parameters:
+    ///     - job: The background running task conforming to `Job`s.
+    ///     - on: Crontab as a String.
+    ///     - keyPath: Associates a `Job` for later retrieval.
     public init(_ job: T, on cronTrigger: String, _ keyPath: KeyPath<K, T>) {
         self.job = job
         self.cronTrigger = cronTrigger
@@ -23,6 +23,13 @@ public class Schedule<K: ApodiniKeys, T: Job>: Configuration {
         self.keyPath = keyPath
     }
     
+    /// Initializes the `Schedule` configuration.
+    ///
+    /// - Parameters:
+    ///     - job: The background running task conforming to `Job`s.
+    ///     - on: Crontab as a String.
+    ///     - runs: Number of times a `Job` should run.
+    ///     - keyPath: Associates a `Job` for later retrieval.
     public init(_ job: T, on cronTrigger: String, runs: Int, _ keyPath: KeyPath<K, T>) {
         self.job = job
         self.cronTrigger = cronTrigger
@@ -30,6 +37,7 @@ public class Schedule<K: ApodiniKeys, T: Job>: Configuration {
         self.keyPath = keyPath
     }
     
+    /// Enqueues the configured `Job` at server startup.
     public func configure(_ app: Application) {
         do {
             try scheduler.enqueue(job, with: cronTrigger, runs: runs, keyPath, on: app.eventLoopGroup.next())

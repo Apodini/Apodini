@@ -1,21 +1,38 @@
-//
-//  File.swift
-//  
-//
-//  Created by Alexander Collins on 25.12.20.
-//
-
 import Foundation
 import SwifCron
 import NIO
 
+/// A convenient interface to schedule background running tasks on an event loop using `Job`s and crontab syntax.
+///
+/// `Job`s can either be scheduled at server startup using the `Schedule` configuration or from an `Handler` by using the `@Environment` property wrapper.
+/// `Job`s can use all property wrappers that are not request based.
+///
+/// ```
+/// struct Greeter: Handler {
+///     @Environment(\.scheduler) var scheduler: Scheduler
+/// }
+/// ```
 public class Scheduler {
     internal static var shared = Scheduler()
 
-    private var jobConfigurations: [ObjectIdentifier: JobConfiguration] = [:]
+    internal var jobConfigurations: [ObjectIdentifier: JobConfiguration] = [:]
     
     private init() { }
     
+    /// Schedules a `Job` on an event loop.
+    ///
+    /// ```
+    /// enqueue(Job(), with: "* * * * *", \KeyStore.job, on: request.eventLoop
+    /// ```
+    ///
+    /// This method throws an exception if the `Job` uses request based property wrappers or the crontab cannot be parsed.
+    ///
+    /// - Parameters:
+    ///     - job: The background running task conforming to `Job`s.
+    ///     - with: Crontab as a String.
+    ///     - runs: Number of times a `Job` should run.
+    ///     - keyPath: Associates a `Job` for later retrieval.
+    ///     - on: Specifies the event loop the `Job` is exectured on.
     public func enqueue<K: ApodiniKeys, T: Job>(_ job: T,
                                                 with cronTrigger: String,
                                                 runs: Int? = nil,
@@ -29,6 +46,19 @@ public class Scheduler {
         } else {
             schedule(job, with: jobConfiguration, on: eventLoop)
         }
+    }
+    
+    /// Stops the execution of a `Job`.
+    ///
+    /// This method throws an exception if the `Job` cannot be found..
+    ///
+    /// - Parameter keyPath: Associatesd key path of a `Job`.
+    public func dequeue<K: ApodiniKeys, T: Job>(_ keyPath: KeyPath<K, T>) throws {
+        guard let config = jobConfigurations[ObjectIdentifier(keyPath)] else {
+            throw JobErrors.notFound
+        }
+        
+        config.scheduled?.cancel()
     }
     
     private func schedule<T: Job>(_ job: T, with config: JobConfiguration, on eventLoop: EventLoop) {
@@ -57,14 +87,6 @@ public class Scheduler {
         }
     }
     
-    public func dequeue<K: ApodiniKeys, T: Job>(_ keyPath: KeyPath<K, T>) throws {
-        guard let config = jobConfigurations[ObjectIdentifier(keyPath)] else {
-            throw JobErrors.notFound
-        }
-        
-        config.scheduled?.cancel()
-    }
-    
     /// Checks if only valid property wrappers are used with `Job`s.
     private func checkPropertyWrappers<T: Job>(_ job: T) throws {
         for property in Mirror(reflecting: job).children
@@ -73,6 +95,7 @@ public class Scheduler {
         }
     }
     
+    /// Generates the environment value of the `Job`.
     private func generateEnvironmentValue<K: ApodiniKeys, T: Job>(_ job: T,
                                                                   _ cronTrigger: String,
                                                                   _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
