@@ -14,7 +14,6 @@ final class DatabaseEnvironmentTests: ApodiniTests {
     
     override func setUpWithError() throws {
         try super.setUpWithError()
-        
         EnvironmentValues.shared.database = try database()
     }
     
@@ -28,6 +27,7 @@ final class DatabaseEnvironmentTests: ApodiniTests {
         
         let description = try database().history.debugDescription
         //not ideal to compare history description, but fluent db does not provide an id.
+        XCTAssert(EnvironmentValues.shared.database.history.debugDescription == description)
         XCTAssert(response == description)
     }
 }
