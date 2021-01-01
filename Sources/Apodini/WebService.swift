@@ -57,7 +57,6 @@ extension WebService {
                 .with(exporter: RESTInterfaceExporter.self)
                 .with(exporter: GRPCInterfaceExporter.self),
             GraphQLSemanticModelBuilder(app),
-            GRPCSemanticModelBuilder(app),
             WebSocketSemanticModelBuilder(app)
         )
     }

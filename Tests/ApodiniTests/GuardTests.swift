@@ -24,7 +24,7 @@ final class GuardTests: ApodiniTests {
     }
     
     
-    func testPrintComponent() throws {
+    func testSyncGuard() throws {
         GuardTests.guardExpectation = self.expectation(description: "Guard is exectured")
         
         struct TestWebService: WebService {
