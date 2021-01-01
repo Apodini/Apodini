@@ -53,8 +53,8 @@ struct IntModifier<C: Component>: Modifier, SyntaxTreeVisitable {
         switch scope {
         case .environment:
             visitor.addContext(IntEnvironmentContextKey.self, value: value, scope: .environment)
-        case .nextComponent:
-            visitor.addContext(IntNextComponentContextKey.self, value: value, scope: .nextComponent)
+        case .nextHandler:
+            visitor.addContext(IntNextComponentContextKey.self, value: value, scope: .nextHandler)
         }
         component.accept(visitor)
     }
@@ -85,7 +85,7 @@ final class ContextNodeTests: ApodiniTests {
     var groupWithSingleComponent: some Component {
         Group("test") {
             TestComponent(1)
-        }.modifier(.nextComponent, value: 1)
+        }.modifier(.nextHandler, value: 1)
     }
 
     func testGroupWithSingleComponent() {

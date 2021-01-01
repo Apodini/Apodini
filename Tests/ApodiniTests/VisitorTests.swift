@@ -55,6 +55,7 @@ final class VisitorTests: XCTestCase {
     func testPrintVisitor() {
         let printVisitor = PrintVisitor()
         TestWebService().accept(printVisitor)
+        printVisitor.finishParsing()
     }
     
     func testRESTVisitor() {

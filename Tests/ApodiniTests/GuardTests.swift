@@ -32,5 +32,6 @@ final class GuardTests: XCTestCase {
     func testPrintComponent() {
         let printVisitor = PrintVisitor()
         component.accept(printVisitor)
+        printVisitor.finishParsing()
     }
 }

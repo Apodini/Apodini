@@ -32,6 +32,7 @@ final class ModifierTests: XCTestCase {
         
         let printVisitor = PrintVisitor()
         component.accept(printVisitor)
+        printVisitor.finishParsing()
     }
     
     func testResponseModifer() {
@@ -57,5 +58,6 @@ final class ModifierTests: XCTestCase {
         
         let printVisitor = PrintVisitor()
         component.accept(printVisitor)
+        printVisitor.finishParsing()
     }
 }

@@ -15,9 +15,8 @@ class PrintVisitor: SyntaxTreeVisitor {
         String(repeating: "  ", count: Int(indentationLevel))
     }
     
-    
-    override func enterCollectionItem() {
-        super.enterCollectionItem()
+    override func enterComponentContext() {
+        super.enterComponentContext()
         print("\(indentation){")
         indentationLevel += 1
     }
@@ -44,8 +43,8 @@ class PrintVisitor: SyntaxTreeVisitor {
         }
     }
     
-    override func exitCollectionItem() {
-        super.exitCollectionItem()
+    override func exitComponentContext() {
+        super.exitComponentContext()
         indentationLevel = max(0, indentationLevel - 1)
         print("\(indentation)}")
     }

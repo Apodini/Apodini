@@ -41,7 +41,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
     private var interfaceExporters: [AnyInterfaceExporter] = []
 
     var webService: WebServiceModel
-    var rootNode: EndpointsTreeNode
+    private(set) var rootNode: EndpointsTreeNode
 
     override init(_ app: Application) {
         webService = WebServiceModel()

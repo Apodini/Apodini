@@ -69,6 +69,7 @@ extension WebService {
     func register(_ semanticModelBuilders: SemanticModelBuilder...) {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: semanticModelBuilders)
         self.visit(visitor)
+        visitor.finishParsing()
     }
     
     private func visit(_ visitor: SyntaxTreeVisitor) {

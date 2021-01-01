@@ -22,13 +22,14 @@ public struct TupleComponent<T>: Component, SyntaxTreeVisitable {
     #endif
     
     func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.enterCollection()
+        visitor.enterContent()
         defer {
-            visitor.exitCollection()
+            visitor.exitContent()
         }
+        
         let mirror = Mirror(reflecting: storage)
         for (_, value) in mirror.children {
-            visitor.enterCollectionItem()
+            visitor.enterComponentContext()
             do {
                 try visitor.unsafeVisitAny(value)
             } catch {
@@ -40,7 +41,7 @@ public struct TupleComponent<T>: Component, SyntaxTreeVisitable {
                 fatalError(error)
                 #endif
             }
-            visitor.exitCollectionItem()
+            visitor.exitComponentContext()
         }
     }
 }

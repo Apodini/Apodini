@@ -63,10 +63,12 @@ extension Component {
         if let visitable = self as? SyntaxTreeVisitable {
             visitable.accept(visitor)
         } else {
-            if Self.Content.self != Never.self {
-                content.accept(visitor)
-            }
             HandlerVisitorHelperImpl(visitor: visitor)(self)
+            if Self.Content.self != Never.self {
+                visitor.enterContent()
+                content.accept(visitor)
+                visitor.exitContent()
+            }
         }
     }
 }
