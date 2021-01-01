@@ -7,7 +7,7 @@ import protocol NIO.EventLoop
 import protocol FluentKit.Database
 
 class EndpointRequestHandler<I: InterfaceExporter> {
-    func callAsFunction(request: I.ExporterRequest, eventLoop: EventLoop, database: Database? = nil) -> EventLoopFuture<Encodable> {
+    func callAsFunction(request: I.ExporterRequest, eventLoop: EventLoop) -> EventLoopFuture<Encodable> {
         // We are doing nothing here. Everything is handled in InternalEndpointRequestHandler
         fatalError("EndpointRequestHandler.handleRequest() was not overridden. EndpointRequestHandler must not be created manually!")
     }
@@ -28,21 +28,8 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler>: Endpoint
         self.exporter = exporter
     }
 
-    override func callAsFunction(
-        request exporterRequest: I.ExporterRequest,
-        eventLoop: EventLoop,
-        database: Database? = nil
-    ) -> EventLoopFuture<Encodable> {
-        let databaseClosure: (() -> Database)?
-        if let database = database {
-            databaseClosure = { database }
-        } else if let requestWithDatabase = exporterRequest as? WithDatabase {
-            databaseClosure = requestWithDatabase.database
-        } else {
-            databaseClosure = nil
-        }
-
-        let request = ApodiniRequest(for: exporter, with: exporterRequest, on: endpoint, running: eventLoop, database: databaseClosure)
+    override func callAsFunction(request exporterRequest: I.ExporterRequest, eventLoop: EventLoop) -> EventLoopFuture<Encodable> {
+        let request = ApodiniRequest(for: exporter, with: exporterRequest, on: endpoint, running: eventLoop)
 
         let guardEventLoopFutures = endpoint.guards.map { guardClosure in
             request.enterRequestContext(with: guardClosure()) { requestGuard in
