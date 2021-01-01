@@ -180,17 +180,24 @@ extension Array where Element == AnyEndpointParameter {
 }
 
 class ParameterBuilder: RequestInjectableVisitor {
+    let orderedRequestInjectables: [(String, RequestInjectable)]
     let requestInjectables: [String: RequestInjectable]
     var currentLabel: String?
 
     var parameters: [AnyEndpointParameter] = []
 
     init<H: Handler>(from handler: H) {
-        self.requestInjectables = handler.extractRequestInjectables()
+        let orderedRequestInjectables = handler.extractRequestInjectables()
+        self.orderedRequestInjectables = orderedRequestInjectables
+        var requestInjectables = [String: RequestInjectable]()
+        for (label, injectable) in orderedRequestInjectables {
+            requestInjectables[label] = injectable
+        }
+        self.requestInjectables = requestInjectables
     }
 
     func build() {
-        for (label, requestInjectable) in requestInjectables {
+        for (label, requestInjectable) in orderedRequestInjectables {
             currentLabel = label
             requestInjectable.accept(self)
         }

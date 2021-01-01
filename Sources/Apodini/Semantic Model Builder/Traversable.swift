@@ -10,11 +10,11 @@ import Foundation
 @_implementationOnly import Runtime
 
 // MARK: RequestInjectable
-func extractRequestInjectables<Element>(from subject: Element) -> [String: RequestInjectable] {
-    var result: [String: RequestInjectable] = [:]
+func extractRequestInjectables<Element>(from subject: Element) -> [(String, RequestInjectable)] {
+    var result: [(String, RequestInjectable)] = []
     
     execute({ (injectable: RequestInjectable, label: String) in
-        result[label] = injectable
+        result.append((label, injectable))
     }, on: subject)
     
     return result

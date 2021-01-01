@@ -8,12 +8,12 @@ import protocol FluentKit.Database
 @testable import Apodini
 
 
-enum MockRequest {
+enum MockRequest { 
     static func createRequest(
         running eventLoop: EventLoop,
         database: Database? = nil,
         queuedParameters parameterValues: Any??...
-    ) -> ApodiniRequest<MockExporter<String>, EmptyHandler> {
+    ) -> ValidatedRequest<MockExporter<String>, EmptyHandler> {
         createRequest(on: EmptyHandler(), running: eventLoop, database: database, queuedParameters: parameterValues)
     }
 
@@ -22,7 +22,7 @@ enum MockRequest {
         running eventLoop: EventLoop,
         database: Database? = nil,
         queuedParameters parameterValues: Any??...
-    ) -> ApodiniRequest<MockExporter<String>, H> {
+    ) -> ValidatedRequest<MockExporter<String>, H> {
         createRequest(on: handler, running: eventLoop, database: database, queuedParameters: parameterValues)
     }
 
@@ -31,11 +31,16 @@ enum MockRequest {
         running eventLoop: EventLoop,
         database: Database? = nil,
         queuedParameters parameterValues: [Any??]
-    ) -> ApodiniRequest<MockExporter<String>, H> {
-        let endpoint = handler.mockEndpoint()
+    ) -> ValidatedRequest<MockExporter<String>, H> {
         let exporter = MockExporter<String>(queued: parameterValues)
+        
+        let endpoint = handler.mockEndpoint()
+        
+        var validator = endpoint.validator(for: exporter)
+        
         // swiftlint:disable:next force_unwrapping
         let databaseClosure = database != nil ? { database! } : nil
-        return ApodiniRequest(for: exporter, with: "Undefined Exporter Request", on: endpoint, running: eventLoop, database: databaseClosure)
+        
+        return try! validator.validate("Undefined Exporter Request", with: (eventLoop, databaseClosure))
     }
 }
