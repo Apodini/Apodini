@@ -8,7 +8,7 @@ final class DatabaseEnvironmentTests: ApodiniTests {
         @Apodini.Environment(\.database) var database: Database
         
         func handle() -> String {
-            return database.history.debugDescription
+            database.history.debugDescription
         }
     }
     
