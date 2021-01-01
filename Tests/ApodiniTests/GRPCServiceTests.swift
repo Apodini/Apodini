@@ -9,21 +9,8 @@ import XCTest
 import Vapor
 @testable import Apodini
 
-final class GRPCServiceTests: XCTestCase {
+final class GRPCServiceTests: ApodiniTests {
     // swiftlint:disable:next implicitly_unwrapped_optional
-    var app: Application!
-
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        app = Application(.testing)
-    }
-
-    override func tearDownWithError() throws {
-        try super.tearDownWithError()
-        let app = try XCTUnwrap(self.app)
-        app.shutdown()
-    }
-
     func testPrimitiveResponse() {
         let responseString = "Hello Moritz"
         let expectedResponseData: [UInt8] =

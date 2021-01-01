@@ -54,19 +54,19 @@ private struct GRPCTestComponent2: Component {
     }
 }
 
-final class GRPCInterfaceExporterTests: XCTestCase {
+final class GRPCInterfaceExporterTests: ApodiniTests {
     // swiftlint:disable:next implicitly_unwrapped_optional
-    var app: Application!
+    var vaporApp: Vapor.Application!
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        app = Application(.testing)
+        vaporApp = Application(.testing)
     }
 
     override func tearDownWithError() throws {
         try super.tearDownWithError()
-        let app = try XCTUnwrap(self.app)
-        app.shutdown()
+        let vaporApp = try XCTUnwrap(self.vaporApp)
+        vaporApp.shutdown()
     }
 
     func testDefaultEndpointNaming() throws {
@@ -102,7 +102,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/grpc+proto")
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app,
+        let vaporRequest = Vapor.Request(application: vaporApp,
                                          method: .POST,
                                          url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
                                          version: .init(major: 2, minor: 0),
@@ -141,7 +141,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/grpc+proto")
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app,
+        let vaporRequest = Vapor.Request(application: vaporApp,
                                          method: .POST,
                                          url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
                                          version: .init(major: 2, minor: 0),
