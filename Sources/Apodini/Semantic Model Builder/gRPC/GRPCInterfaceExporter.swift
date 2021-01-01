@@ -31,7 +31,6 @@ class GRPCInterfaceExporter: InterfaceExporter {
             serviceName = builder.build()
         }
 
-        print("\(H.self)")
         var methodName = endpoint.context.get(valueFor: GRPCMethodNameContextKey.self)
         // if no explicit methodname is provided via the modifier,
         // we have to rely on the component name
