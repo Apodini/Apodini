@@ -57,7 +57,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     let context: Context
     
     let operation: Operation
-
+    
     let handleReturnType: Encodable.Type
     let responseType: Encodable.Type
     

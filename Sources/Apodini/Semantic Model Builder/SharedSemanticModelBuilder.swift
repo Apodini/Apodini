@@ -40,8 +40,8 @@ class WebServiceModel {
 class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor {
     private var interfaceExporters: [AnyInterfaceExporter] = []
 
-    var webService: WebServiceModel
-    private(set) var rootNode: EndpointsTreeNode
+    let webService: WebServiceModel
+    let rootNode: EndpointsTreeNode
 
     override init(_ app: Application) {
         webService = WebServiceModel()

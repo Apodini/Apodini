@@ -1,5 +1,5 @@
 //
-//  ProtobufDecoderTests.swift
+//  ProtobufferDecoderTests.swift
 //  
 //
 //  Created by Moritz Schüll on 26.11.20.
@@ -9,7 +9,7 @@ import Foundation
 import XCTest
 @testable import ProtobufferCoding
 
-class ProtobufDecoderTests: XCTestCase {
+class ProtobufferDecoderTests: XCTestCase {
     func testDecodePositiveInt32() throws {
         let positiveData = Data([8, 185, 96])
         let positiveExpected: Int32 = 12345

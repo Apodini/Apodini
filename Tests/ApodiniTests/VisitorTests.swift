@@ -48,7 +48,7 @@ final class VisitorTests: ApodiniTests {
     }
     
     func testGRPCVisitor() {
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [GRPCSemanticModelBuilder(app)])
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [SharedSemanticModelBuilder(app).with(exporter: GRPCInterfaceExporter.self)])
         TestWebService().accept(visitor)
     }
     

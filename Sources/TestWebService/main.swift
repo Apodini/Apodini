@@ -41,19 +41,29 @@ struct TestWebService: Apodini.WebService {
             "\(emojis) \(response) \(emojis)"
         }
     }
+
+    struct Person: Codable {
+        var name: String
+        var age: Int32
+    }
     
     struct Greeter: Handler {
         @Properties
         var properties: [String: Apodini.Property] = ["surname": Parameter<String?>()]
-        
-        @Parameter(.http(.path)) var name: String
 
-        @Parameter var greet: String?
-        
+        @Parameter(.http(.path))
+        var name: String
+
+        @Parameter
+        var greet: String?
+
+        @Parameter
+        var father: Person
+
         func handle() -> String {
             let surnameParameter: Parameter<String?>? = _properties.typed(Parameter<String?>.self)["surname"]
-            
-            return "\(greet ?? "Hello") \(name) " + (surnameParameter?.wrappedValue ?? "Unknown")
+
+            return "\(greet ?? "Hello") \(name) " + (surnameParameter?.wrappedValue ?? "Unknown") + ", child of \(father.name)"
         }
     }
     
@@ -95,11 +105,18 @@ struct TestWebService: Apodini.WebService {
         }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
         Group("greet") {
             Greeter()
+                .serviceName("GreetService")
+                .rpcName("greetMe")
+                .operation(.read)
         }
         Group("user", $userId) {
             UserHandler(userId: $userId)
                 .guard(PrintGuard())
         }
+    }
+
+    var configuration: Configuration {
+        HTTP2Configuration()
     }
 }
 
