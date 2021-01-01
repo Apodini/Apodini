@@ -24,16 +24,19 @@ public struct Group<Content: Component>: Component, SyntaxTreeVisitable {
     }
     
     func accept(_ visitor: SyntaxTreeVisitor) {
-        let contentIsNotTupleComponent = !String(describing: type(of: content)).hasPrefix("TupleComponent<")
-        if contentIsNotTupleComponent {
-            visitor.enterContent()
-            visitor.enterComponentContext()
+        func forwardToContent() {
+            visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)
+            content.accept(visitor)
         }
-        visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)
-        content.accept(visitor)
-        if contentIsNotTupleComponent {
-            visitor.exitComponentContext()
-            visitor.exitContent()
+        
+        if !String(describing: type(of: content)).hasPrefix("TupleComponent<") {
+            visitor.enterContent {
+                visitor.enterComponentContext {
+                    forwardToContent()
+                }
+            }
+        } else {
+            forwardToContent()
         }
     }
 }

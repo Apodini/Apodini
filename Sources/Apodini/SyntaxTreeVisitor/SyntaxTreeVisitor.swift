@@ -41,39 +41,30 @@ class SyntaxTreeVisitor {
     }
     
     
-    /// `{enter|exit}Collection` is used to keep track of the current depth into the web service data structure
-    /// All visits to a component's content **must** be surrounded by a pair of `{enter|exit}Collection` calls.
+    /// `enterCollection` is used to keep track of the current depth into the web service data structure
+    /// All visits (`accept` call) to a component's content **must** be executed within the closure passed to `enterContent`.
     ///
     /// **Depth** is not definied in terms of path components or the exported interface, but simply how many levels of `.content` the `SyntaxTreeVisitor` is while parsing the Apodini DSL
-    func enterContent() {
+    func enterContent(_ block: () throws -> Void) rethrows {
         currentNodeIndexPath.append(0)
-    }
-    
-    /// `{enter|exit}Collection` is used to keep track of the current depth into the web service data structure
-    /// All visits to a component's content **must** be surrounded by a pair of `{enter|exit}Collection` calls.
-    ///
-    /// **Depth** is not definied in terms of path components or the exported interface, but simply how many levels of `.content` the `SyntaxTreeVisitor` is while parsing the Apodini DSL
-    func exitContent() {
+        
+        try block()
+        
         precondition(currentNodeIndexPath.count >= 1, "Unbalanced calls to {enter|exit}Content. Cannot exit more content levels than were entered.")
         currentNodeIndexPath.removeLast()
     }
     
-    /// `(enter|exit)collectionContext` is used by the `SyntaxTreeVisitor` to keep track of the context of a `Component`.
-    /// A `Component` that can contain one or more components **must** call `(enter|exit)collectionContext`  for each component to create a new context for the modifiers applied to
-    /// each `Component` to avoid that one modifier applied to a `Component` is also applied to all subsequent `Component`s.
+    /// `enterComponentContext` is used by the `SyntaxTreeVisitor` to keep track of the context of a `Component`.
+    /// A `Component` that can contain one or more components **must** call accept of the `Component`s or register `Handler`s within the closure passed to `enterComponentContext` to create a new context
+    /// for the modifiers applied to each `Component` to avoid that one modifier applied to a `Component` is also applied to all subsequent `Component`s.
     ///
-    /// Please note that `TupleComponent` automatically calls `(enter|exit)collectionContext` for each of its `Component`s stored in the tuple.
-    func enterComponentContext() {
+    /// Please note that `TupleComponent` automatically calls `enterComponentContext` for each of its `Component`s stored in the tuple.
+    func enterComponentContext(_ block: () throws -> Void) rethrows {
         currentNodeIndexPath[currentNodeIndexPath.endIndex - 1] += 1
         currentNode = currentNode.newContextNode()
-    }
-    
-    /// `(enter|exit)collectionContext` is used by the `SyntaxTreeVisitor` to keep track of the context of a `Component`.
-    /// A `Component` that can contain one or more components **must** call `(enter|exit)collectionContext`  for each component to create a new context for the modifiers applied to
-    /// each `Component` to avoid that one modifier applied to a `Component` is also applied to all subsequent `Component`s.
-    ///
-    /// Please note that `TupleComponent` automatically calls `(enter|exit)collectionContext` for each of its `Component`s stored in the tuple.
-    func exitComponentContext() {
+        
+        try block()
+        
         if let parentNode = currentNode.parentContextNode {
             currentNode = parentNode
         } else {

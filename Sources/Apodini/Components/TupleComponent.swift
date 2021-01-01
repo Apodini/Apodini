@@ -22,26 +22,23 @@ public struct TupleComponent<T>: Component, SyntaxTreeVisitable {
     #endif
     
     func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.enterContent()
-        defer {
-            visitor.exitContent()
-        }
-        
-        let mirror = Mirror(reflecting: storage)
-        for (_, value) in mirror.children {
-            visitor.enterComponentContext()
-            do {
-                try visitor.unsafeVisitAny(value)
-            } catch {
-                // Since init is internal & we only create Tuple Components in the Component Builder
-                // We know for a fact that unsafeVisit won't fail.
-                #if DEBUG
-                fatalError("Attempted to visit value that was not a component. It was instantiated from \(file):\(function): \(error)")
-                #else
-                fatalError(error)
-                #endif
+        visitor.enterContent {
+            let mirror = Mirror(reflecting: storage)
+            for (_, value) in mirror.children {
+                visitor.enterComponentContext {
+                    do {
+                        try visitor.unsafeVisitAny(value)
+                    } catch {
+                        // Since init is internal & we only create Tuple Components in the Component Builder
+                        // We know for a fact that unsafeVisit won't fail.
+                        #if DEBUG
+                        fatalError("Attempted to visit value that was not a component. It was instantiated from \(file):\(function): \(error)")
+                        #else
+                        fatalError(error)
+                        #endif
+                    }
+                }
             }
-            visitor.exitComponentContext()
         }
     }
 }
