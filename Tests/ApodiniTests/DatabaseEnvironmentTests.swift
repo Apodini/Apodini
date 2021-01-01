@@ -12,6 +12,12 @@ final class DatabaseEnvironmentTests: ApodiniTests {
         }
     }
     
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        
+        EnvironmentValues.shared.database = try database()
+    }
+    
     func testEnvironmentInjection() throws {
         let component = DatabaseComponent()
         let request = MockRequest.createRequest(on: component, running: app.eventLoopGroup.next())
