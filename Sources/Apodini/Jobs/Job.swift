@@ -1,9 +1,9 @@
 import SwifCron
 import NIO
 
-/// Protocol
+/// `Job`s allow to create background running tasks.
 public protocol Job {
-    /// Method when the `Job`
+    /// Method called when the `Job` is executed.
     func run()
 }
 

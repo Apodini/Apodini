@@ -24,6 +24,7 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.0.0-beta"),
         .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", from: "0.2.0"),
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
+        // Used to parse crontabs in the `Scheduler` class
         .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from:"1.3.0")
     ],
     targets: [
