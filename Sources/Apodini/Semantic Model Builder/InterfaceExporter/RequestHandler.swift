@@ -45,18 +45,18 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler>: Endpoint
                     let response = handler.handle()
                     let promise = request.eventLoop.makePromise(of: Action<AnyEncodable>.self)
                     let visitor = ActionVisitor(request: request,
+                                                eventLoop: eventLoop,
                                                 promise: promise,
                                                 responseModifiers: self.endpoint.responseTransformers)
+
                     switch response {
-                    case let apodiniEncodableResponse as ApodiniEncodable:
-                        // is an Action
-                        // use visitor to access
-                        // wrapped element
+                    case let apodiniEncodableResponse as EncodableContainer:
+                        // is an Action; use visitor to access wrapped element
                         apodiniEncodableResponse.accept(visitor)
                     default:
-                        // not an action
-                        // we can skip the visitor
-                        visitor.visit(encodable: response)
+                        // not an action; wrap it into an action
+                        let action: Action<H.Response> = .final(response)
+                        action.accept(visitor)
                     }
                     return promise.futureResult
                 }
@@ -64,24 +64,32 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler>: Endpoint
     }
 }
 
-struct ActionVisitor: ApodiniEncodableVisitor {
+struct ActionVisitor: EncodableContainerVisitor {
     let request: Request
+
+    let eventLoop: EventLoop
     let promise: EventLoopPromise<Action<AnyEncodable>>
+
     let responseModifiers: [() -> (AnyResponseTransformer)]
 
-    func visit<Element: Encodable>(encodable: Element) {
-        let result = transformResponse(encodable)
-        promise.succeed(.final(result))
-    }
+    func visit<Value: Encodable>(_ action: Action<Value>) {
+        if Value.self is EncodableContainer.Type {
+            fatalError("Action cannot contain a encodable container: \(Value.self)")
+        }
 
-    func visit<Element: Encodable>(action: Action<Element>) {
         switch action {
         case let .send(element):
-            let result = transformResponse(element)
-            promise.succeed(.send(result))
+            transformResponse(element)
+                    .map { result in
+                        .send(result)
+                    }
+                    .cascade(to: promise)
         case let .final(element):
-            let result = transformResponse(element)
-            promise.succeed(.final(result))
+            transformResponse(element)
+                    .map { result in
+                        .final(result)
+                    }
+                    .cascade(to: promise)
         case .nothing:
             // no response to run through the responseModifiers
             promise.succeed(.nothing)
@@ -91,13 +99,64 @@ struct ActionVisitor: ApodiniEncodableVisitor {
         }
     }
 
-    func transformResponse(_ response: Encodable) -> AnyEncodable {
-        var response = response
-        for responseTransformer in responseModifiers {
-            response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
-                responseTransformer.transform(response: response)
-            }
+    func transformResponse(_ response: Encodable) -> EventLoopFuture<AnyEncodable> {
+        let responseFuture = eventLoop.wrapEncodableIntoFuture(encodable: response)
+        return transformNextResponse(responseFuture, responseModifiers)
+                .map { encodable in
+                    AnyEncodable(value: encodable)
+                }
+    }
+
+    func transformNextResponse(_ response: EventLoopFuture<Encodable>, _ modifiers: [() -> (AnyResponseTransformer)]) -> EventLoopFuture<Encodable> {
+        if modifiers.isEmpty {
+            return response
         }
-        return AnyEncodable(value: response)
+
+        var modifiers = modifiers
+        let next = modifiers.removeFirst()
+
+        return response.flatMap { encodable in
+            let transformed = request.enterRequestContext(with: next()) { responseTransformer in
+                responseTransformer.transform(response: encodable)
+            }
+            let responseFuture = eventLoop.wrapEncodableIntoFuture(encodable: transformed)
+            return transformNextResponse(responseFuture, modifiers)
+        }
+    }
+}
+
+// MARK: Apodini Encodable Value
+extension EventLoop {
+    func wrapEncodableIntoFuture(encodable: Encodable) -> EventLoopFuture<Encodable> {
+        if encodable is EncodableContainer {
+            fatalError("Can't wrap an encodable container of type \(type(of: encodable)) into EventLoopFuture")
+        }
+
+        if let apodiniEncodable = encodable as? EncodableValue {
+            let visitor = EventLoopFutureUnwrapper()
+            return apodiniEncodable.accept(visitor)
+        } else {
+            return makeSucceededFuture(encodable)
+        }
+    }
+}
+
+private struct EventLoopFutureUnwrapper: EncodableValueVisitor {
+    func visit<Value: Encodable>(_ future: EventLoopFuture<Value>) -> EventLoopFuture<Encodable> {
+        if Value.self is EncodableContainer.Type {
+            fatalError("EventLoopFuture cannot contain a encodable container: \(Value.self)")
+        }
+
+        if Value.self is EncodableValue.Type {
+            // unwrap futures containing futures
+            return future.flatMap { result in
+                // swiftlint:disable:next force_cast
+                let encodableValue = result as! EncodableValue // we check above if this cast is possible
+                return encodableValue.accept(self)
+            }
+        } else {
+            // swiftlint:disable:next array_init
+            return future.map { $0 }
+        }
     }
 }

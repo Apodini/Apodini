@@ -130,7 +130,7 @@ extension Handler {
     public func response<T: ResponseTransformer>(
         _ responseTransformer: @escaping @autoclosure () -> (T)
     ) -> ResponseModifier<Self, T> where Self.Response == T.Response {
-        if Self.Response.self is ApodiniEncodable.Type {
+        if Self.Response.self is EncodableContainer.Type {
             preconditionFailure("Actions cannot be transformed directly. Use a transformer on the type that is wrapped by the Action instead.")
         }
         return ResponseModifier(self, responseTransformer: responseTransformer)
