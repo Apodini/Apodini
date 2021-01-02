@@ -16,11 +16,6 @@ protocol WithEventLoop {
     var eventLoop: EventLoop { get }
 }
 
-/// Intermediate solution to have databases working.
-protocol WithDatabase {
-    var database: () -> Database { get }
-}
-
 func null<T>(_ type: T.Type = T.self) -> T? {
     T?(nil)
 }

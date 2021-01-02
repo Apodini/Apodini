@@ -3,5 +3,6 @@
 //
 
 struct EndpointRelationship { // ... to be replaced by a proper Relationship model
-    var destinationPath: [_PathComponent]
+    let name: String
+    let destinationPath: [_PathComponent]
 }
