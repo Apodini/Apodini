@@ -8,7 +8,6 @@ import class Vapor.Request
 @testable import Apodini
 
 extension String: ExporterRequest {}
-extension Vapor.Request: ExporterRequest, WithEventLoop {}
 
 class MockExporter<Request: ExporterRequest>: InterfaceExporter {
     var parameterValues: [Any??] = []

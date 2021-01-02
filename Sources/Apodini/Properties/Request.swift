@@ -22,8 +22,6 @@ protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
 
     var eventLoop: EventLoop { get }
 
-    var database: (() -> Database)? { get }
-
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element
 }
 

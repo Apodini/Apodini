@@ -82,7 +82,7 @@ class ContextNode {
         }
         
         switch scope {
-        case .nextComponent:
+        case .nextHandler:
             nodeOnlyContext[ObjectIdentifier(contextKey)] = newValue
         case .environment:
             context[ObjectIdentifier(contextKey)] = newValue

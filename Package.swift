@@ -41,7 +41,8 @@ let package = Package(
                 .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime"),
-                .product(name: "SwifCron", package: "SwifCron")
+                .product(name: "SwifCron", package: "SwifCron"),
+                .target(name: "ProtobufferCoding")
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
