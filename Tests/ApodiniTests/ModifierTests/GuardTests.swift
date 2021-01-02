@@ -41,6 +41,13 @@ final class GuardTests: ApodiniTests {
         
         try app.test(.GET, "/v2/") { res in
             XCTAssertEqual(res.status, .ok)
+            
+            struct Content: Decodable {
+                let data: String
+            }
+            
+            let content = try res.content.decode(Content.self)
+            XCTAssert(content.data == "Hello")
             waitForExpectations(timeout: 0, handler: nil)
         }
     }
