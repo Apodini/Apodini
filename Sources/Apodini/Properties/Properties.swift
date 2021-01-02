@@ -60,19 +60,19 @@ extension Properties: Collection {
     public typealias Index = Dictionary<String, Property>.Index
     public typealias Element = (String, Property)
     
-    public var startIndex: Dictionary<String, Property>.Index {
+    public var startIndex: Index {
         self.elements.startIndex
     }
     
-    public var endIndex: Dictionary<String, Property>.Index {
+    public var endIndex: Index {
         self.elements.endIndex
     }
     
-    public func index(after index: Dictionary<String, Property>.Index) -> Dictionary<String, Property>.Index {
+    public func index(after index: Index) -> Index {
         self.elements.index(after: index)
     }
     
-    public subscript(position: Dictionary<String, Property>.Index) -> (String, Property) {
+    public subscript(position: Index) -> Element {
         self.elements[position]
     }
 }

@@ -36,7 +36,7 @@ public struct EnvironmentValues {
 
 /// A property wrapper to inject pre-defined values  to a `Component`.
 @propertyWrapper
-public struct Environment<Value> {
+public struct Environment<Value>: Property {
     /// Keypath to access an `EnvironmentValue`.
     internal var keyPath: KeyPath<EnvironmentValues, Value>
     internal var dynamicValues: [ObjectIdentifier: Any] = [:]
