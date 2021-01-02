@@ -14,8 +14,7 @@ func XCTAssertRuntimeFailure(
     _ expression: @escaping @autoclosure () -> Void,
     _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,
-    line: UInt = #line)
-{
+    line: UInt = #line) {
     guard catchBadInstruction(in: { expression() }) == nil else {
         return
     }
@@ -26,8 +25,7 @@ func XCTAssertRuntimeFailure(
     _ expression: @escaping @autoclosure () -> Void,
     _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,
-    line: UInt = #line)
-{
+    line: UInt = #line) {
     // Empty implementation for Linux Tests
 }
 #endif
