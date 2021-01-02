@@ -5,26 +5,20 @@
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 
-@testable import Apodini
-import Vapor
-import NIO
-import Runtime
+import Apodini
 
 
 struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
-        private let message: String?
-        @_Request
-        var request: Apodini.Request
-        
-        
-        init(_ message: String? = nil) {
+        private let message: String
+
+        init(_ message: String = "PrintGuard 👋") {
             self.message = message
         }
         
 
         func check() {
-            print("\(message?.description ?? request.description)")
+            print(message)
         }
     }
     
