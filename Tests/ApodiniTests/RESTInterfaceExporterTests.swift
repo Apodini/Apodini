@@ -125,7 +125,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         let userId = "1234"
         let name = "Rudi"
-        try app.testable(method: .inMemory).test(.GET, "user/\(userId)?name=\(name)") { response in
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "user/\(userId)?name=\(name)") { response in
             XCTAssertEqual(response.status, .ok)
             let container = try response.content.decode(DecodedResponseContainer<User>.self)
             XCTAssertEqual(container.data.id, userId)

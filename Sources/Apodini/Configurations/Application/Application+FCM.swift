@@ -6,7 +6,10 @@
 //
 
 import Foundation
-import FCM
+import struct FCM.FCMConfiguration
+
+/// renamed FCM.FCMConfiguration due to name clash with struct FCM
+public typealias FCMConfig = FCM.FCMConfiguration
 
 extension Application {
     /// Firebase Cloud Messaging
@@ -18,11 +21,11 @@ extension Application {
     public struct FCM {
         struct ConfigurationKey: StorageKey {
             // swiftlint:disable nesting
-            typealias Value = FCMConfiguration
+            typealias Value = FCMConfig
         }
 
         /// FCM Configuration
-        public var configuration: FCMConfiguration? {
+        public var configuration: FCMConfig? {
             get {
                 application.storage[ConfigurationKey.self]
             }

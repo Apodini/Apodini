@@ -62,8 +62,8 @@ extension Operation {
 class RESTInterfaceExporter: InterfaceExporter {
     let app: Vapor.Application
 
-    required init(_ application: Apodini.Application) {
-        self.app = Vapor.Application(from: application)
+    required init(_ app: Apodini.Application) {
+        self.app = app.vapor.app
     }
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {

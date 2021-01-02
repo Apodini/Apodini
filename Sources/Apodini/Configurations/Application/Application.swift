@@ -136,6 +136,9 @@ public final class Application {
     /// Run the application
     public func start() throws {
         try self.boot()
+        // allow the server to be stopped or waited for
+        let promise = eventLoopGroup.next().makePromise(of: Void.self)
+        running = .start(using: promise)
     }
 
     /// Boot the application
@@ -151,6 +154,7 @@ public final class Application {
     /// Stop the application
     public func shutdown() {
         assert(!self.didShutdown, "Application has already shut down")
+        self.running?.stop()
         self.logger.debug("Application shutting down")
 
         self.logger.trace("Shutting down providers")

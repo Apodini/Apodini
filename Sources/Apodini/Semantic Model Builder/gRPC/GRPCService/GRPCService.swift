@@ -21,7 +21,7 @@ class GRPCService {
     ///     - handler: The handler method that executes the guards, component's handle method, and modifiers.
     init(name: String, using app: Application) {
         self.serviceName = name
-        self.app = Vapor.Application(from: app)
+        self.app = app.vapor.app
     }
 }
 

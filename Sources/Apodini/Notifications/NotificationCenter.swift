@@ -7,9 +7,10 @@
 //
 
 @_implementationOnly import Vapor
-import Fluent
+@_implementationOnly import Fluent
 import APNS
 import FCM
+import NIO
 
 /// The `NotificationCenter` is responsible for push notifications in Apodini.
 /// It can send messages to both APNS and FCM and also manages storing and configuring of `Device`s in a database.
@@ -24,47 +25,17 @@ import FCM
 /// ```
 ///
 /// - Remark: The `NotificationCenter` is an abstraction of [APNS](https://github.com/vapor/apns) and [FCM](https://github.com/MihaelIsaev/FCM).
-
-@propertyWrapper
-private struct VaporApplication {
-    var wrappedValue: Vapor.Application?
-
-    init(wrappedValue: Vapor.Application?) {
-        self.wrappedValue = wrappedValue
-    }
-}
-
-/// NotificationCenter
 public class NotificationCenter {
-    // swiftlint:disable implicitly_unwrapped_optional
-    @VaporApplication
-    private var app: Vapor.Application!
-    static var shared = NotificationCenter()
-    var application: Application? {
-        willSet {
-            guard let application = newValue else {
-                return
-            }
-
-            if let app = app, !app.didShutdown {
-                app.shutdown()
-            }
-
-            app = Vapor.Application()
-
-            application.lifecycle.use(Vapor.Application.LifecycleHandler(app: app))
-
-            for id in application.databases.ids() {
-                if let config = application.databases.configuration(for: id) {
-                    app.databases.use(config, as: id)
-                }
-            }
-            app.apns.configuration = application.apns.configuration
-            app.fcm.configuration = application.fcm.configuration
-            app.logger = application.logger
+    /// NotificationCenter
+    internal static var shared = NotificationCenter()
+    internal var application: Apodini.Application?
+    private var app: Vapor.Application {
+        guard let app = application?.vapor.app else {
+            fatalError("The `NotificationCenter` is not configured. Please add the missing configuration to the web service.")
         }
+        return app
     }
-    
+
     /// Property to directly use the [APNS](https://github.com/vapor/apns) library.
     public var apns: APNSwiftClient {
         app.apns

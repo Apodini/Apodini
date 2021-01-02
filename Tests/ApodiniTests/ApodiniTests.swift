@@ -6,7 +6,6 @@
 //
 
 import XCTest
-import Apodini
 import FluentSQLiteDriver
 @testable import Apodini
 

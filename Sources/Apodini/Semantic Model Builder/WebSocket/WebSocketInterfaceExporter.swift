@@ -56,9 +56,9 @@ class WebSocketInterfaceExporter: InterfaceExporter {
     
     private let router: WebSocketInfrastructure.Router
     
-    required init(_ app: Application) {
+    required init(_ app: Apodini.Application) {
         self.app = app
-        self.router = VaporWSRouter(app)
+        self.router = VaporWSRouter(app.vapor.app)
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {

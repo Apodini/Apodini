@@ -10,7 +10,6 @@ import Vapor
 @testable import Apodini
 
 final class GRPCServiceTests: ApodiniTests {
-    // swiftlint:disable:next implicitly_unwrapped_optional
     func testPrimitiveResponse() {
         let responseString = "Hello Moritz"
         let expectedResponseData: [UInt8] =
