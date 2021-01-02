@@ -15,7 +15,7 @@ struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
         private let message: String?
         @_Request
-        var request: ApodiniRequest
+        var request: Apodini.Request
         
         
         init(_ message: String? = nil) {
@@ -27,23 +27,7 @@ struct TestWebService: Apodini.WebService {
             print("\(message?.description ?? request.description)")
         }
     }
-
-    struct SomeStruct: Vapor.Content {
-        var someProp: Int
-        var optionalInt: Int?
-        var optinalString: String?
-        var reqDouble: Double
-    }
-
-    struct SomeComp: Component {
-        @Parameter
-        var name: String?
-
-        func handle() -> SomeStruct {
-            SomeStruct(someProp: 4, reqDouble: 5.0)
-        }
-    }
-
+    
     struct EmojiMediator: ResponseTransformer {
         private let emojis: String
         
@@ -57,15 +41,38 @@ struct TestWebService: Apodini.WebService {
             "\(emojis) \(response) \(emojis)"
         }
     }
-    
-    struct Greeter: Component {
-        @Parameter("PathName", .http(.path)) var name: String
 
-        @Parameter("greetParam")
+    struct Person: Codable {
+        var name: String
+        var age: Int32
+    }
+    
+    struct Greeter: Handler {
+        @Properties
+        var properties: [String: Apodini.Property] = ["surname": Parameter<String?>()]
+
+        @Parameter(.http(.path))
+        var name: String
+
+        @Parameter
         var greet: String?
 
+        @Parameter
+        var father: Person
+
         func handle() -> String {
-            "\(greet ?? "Hello") \(name)"
+            let surnameParameter: Parameter<String?>? = _properties.typed(Parameter<String?>.self)["surname"]
+
+            return "\(greet ?? "Hello") \(name) " + (surnameParameter?.wrappedValue ?? "Unknown") + ", child of \(father.name)"
+        }
+    }
+    
+    @propertyWrapper
+    struct UselessWrapper: DynamicProperty {
+        @Parameter var name: String?
+        
+        var wrappedValue: String? {
+            name
         }
     }
 
@@ -73,9 +80,8 @@ struct TestWebService: Apodini.WebService {
         var id: Int
     }
 
-    struct UserHandler: Component {
-        @Parameter
-        var userId: Int
+    struct UserHandler: Handler {
+        @Parameter var userId: Int
 
         func handle() -> User {
             User(id: userId)
@@ -85,20 +91,32 @@ struct TestWebService: Apodini.WebService {
     @PathParameter var userId: Int
     
     var content: some Component {
-        Greeter()
+        Text("Hello World! 👋")
             .response(EmojiMediator(emojis: "🎉"))
+            .response(EmojiMediator())
+            .guard(PrintGuard())
         Group("swift") {
+            Text("Hello Swift! 💻")
+                .response(EmojiMediator())
+                .guard(PrintGuard())
             Group("5", "3") {
                 Text("Hello Swift 5! 💻")
             }
-        }
-        Group("openApiTest") {
-            SomeComp()
+        }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
+        Group("greet") {
+            Greeter()
+                .serviceName("GreetService")
+                .rpcName("greetMe")
+                .operation(.read)
         }
         Group("user", $userId) {
             UserHandler(userId: $userId)
                 .guard(PrintGuard())
         }
+    }
+
+    var configuration: Configuration {
+        HTTP2Configuration()
     }
 }
 

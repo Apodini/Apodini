@@ -7,6 +7,7 @@
 
 import XCTVapor
 import FluentSQLiteDriver
+@testable import Apodini
 
 class ApodiniTests: XCTestCase {
     // Vapor Application
@@ -26,6 +27,8 @@ class ApodiniTests: XCTestCase {
             as: .init(string: "ApodiniTest"),
             isDefault: true
         )
+        
+        EnvironmentValues.shared.database = try database()
         
         app.migrations.add(
             CreateBird(),

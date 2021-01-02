@@ -4,6 +4,7 @@
 
 import class Vapor.Application
 import protocol NIO.EventLoop
+import protocol FluentKit.Database
 
 /// The Protocol any Exporter Request type must conform to
 protocol ExporterRequest {}
@@ -35,7 +36,7 @@ protocol InterfaceExporter {
     ///
     /// - Parameter endpoint: The `Endpoint` which is to be exported.
     /// - Returns: `EndpointExportOutput` which is defined by the `InterfaceExporter`.
-    func export<C: Component>(_ endpoint: Endpoint<C>) -> EndpointExportOutput
+    func export<H: Handler>(_ endpoint: Endpoint<H>) -> EndpointExportOutput
 
     /// This optional method can be defined to export a `EndpointParameter`.
     /// It is called for every `EndpointParameter` on an `Endpoint` when calling `Endpoint.exportParameters(...)`.

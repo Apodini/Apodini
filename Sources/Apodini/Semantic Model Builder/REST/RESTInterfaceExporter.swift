@@ -4,7 +4,6 @@
 
 import Foundation
 @_implementationOnly import Vapor
-import protocol Fluent.Database
 
 struct RESTPathBuilder: PathBuilder {
     private var pathComponents: [Vapor.PathComponent] = []
@@ -61,8 +60,6 @@ extension Operation {
     }
 }
 
-extension Vapor.Request: ExporterRequest, WithEventLoop {}
-
 class RESTInterfaceExporter: InterfaceExporter {
     let app: Application
 
@@ -70,7 +67,7 @@ class RESTInterfaceExporter: InterfaceExporter {
         self.app = app
     }
 
-    func export<C: Component>(_ endpoint: Endpoint<C>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let pathBuilder = RESTPathBuilder(endpoint.absolutePath)
         let routesBuilder = pathBuilder.routesBuilder(app)
 
@@ -79,24 +76,8 @@ class RESTInterfaceExporter: InterfaceExporter {
         let exportedParameterNames = endpoint.exportParameters(on: self)
 
         let requestHandler = endpoint.createRequestHandler(for: self)
-
-        routesBuilder.on(operation.httpMethod, []) { (request: Vapor.Request) -> EventLoopFuture<Vapor.Response> in
-            let responseFuture = requestHandler.handleRequest(request: request)
-
-            return responseFuture.flatMap { encodable in
-                let jsonEncoder = JSONEncoder()
-                jsonEncoder.outputFormatting = [.withoutEscapingSlashes, .prettyPrinted]
-                #warning("We may remove JSONEncoder .prettyPrinted in production or make it configurable in some way")
-
-                let response = Response()
-                do {
-                    try response.content.encode(AnyEncodable(value: encodable), using: jsonEncoder)
-                } catch {
-                    return request.eventLoop.makeFailedFuture(error)
-                }
-                return request.eventLoop.makeSucceededFuture(response)
-            }
-        }
+        let endpointHandler = RESTEndpointHandler(for: endpoint, with: requestHandler)
+        endpointHandler.register(at: routesBuilder, with: operation)
 
         app.logger.info("Exported '\(operation.httpMethod.rawValue) \(pathBuilder.pathDescription)' with parameters: \(exportedParameterNames)")
 

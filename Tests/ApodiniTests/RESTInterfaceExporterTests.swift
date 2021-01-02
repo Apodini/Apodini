@@ -15,7 +15,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         var bird: Bird
     }
 
-    struct TestRestHandler: Component {
+    struct ParameterRetrievalTestHandler: Handler {
         @Parameter
         var param0: String
         @Parameter
@@ -42,8 +42,44 @@ class RESTInterfaceExporterTests: ApodiniTests {
         }
     }
 
+    struct User: Content, Identifiable {
+        let id: String
+        let name: String
+    }
+    
+    struct DecodedResponseContainer<Data: Decodable>: Decodable {
+        var data: Data
+        var links: [String: String]
+        
+        enum CodingKeys: String, CodingKey {
+            case data = "data"
+            case links = "_links"
+        }
+    }
+
+    struct UserHandler: Handler {
+        @Parameter
+        var userId: User.ID
+        @Parameter
+        var name: String
+
+        func handle() -> User {
+            User(id: userId, name: name)
+        }
+    }
+
+    @PathParameter
+    var userId: User.ID
+
+    @ComponentBuilder
+    var testService: some Component {
+        Group("user", $userId) {
+            UserHandler(userId: $userId)
+        }
+    }
+
     func testParameterRetrieval() throws {
-        let handler = TestRestHandler()
+        let handler = ParameterRetrievalTestHandler()
         let endpoint = handler.mockEndpoint()
 
         let exporter = RESTInterfaceExporter(app)
@@ -63,8 +99,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         // we hardcode the pathId currently here
         request.parameters.set(":\(handler.pathAParameter.id)", to: "a")
 
-        let result = try requestHandler
-                .handleRequest(request: request)
+        let result = try requestHandler(request: request)
                 .wait()
         let parametersResult: Parameters = try XCTUnwrap(result as? Parameters)
 
@@ -73,5 +108,21 @@ class RESTInterfaceExporterTests: ApodiniTests {
         XCTAssertEqual(parametersResult.pathA, "a")
         XCTAssertEqual(parametersResult.pathB, nil)
         XCTAssertEqual(parametersResult.bird, body)
+    }
+
+    func testRESTRequest() throws {
+        let builder = SharedSemanticModelBuilder(app)
+            .with(exporter: RESTInterfaceExporter.self)
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
+        testService.accept(visitor)
+
+        let userId = "1234"
+        let name = "Rudi"
+        try app.testable(method: .inMemory).test(.GET, "user/\(userId)?name=\(name)") { response in
+            XCTAssertEqual(response.status, .ok)
+            let container = try response.content.decode(DecodedResponseContainer<User>.self)
+            XCTAssertEqual(container.data.id, userId)
+            XCTAssertEqual(container.data.name, name)
+        }
     }
 }

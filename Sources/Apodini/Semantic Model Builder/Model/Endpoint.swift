@@ -5,6 +5,11 @@ import Foundation
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 protocol AnyEndpoint: CustomStringConvertible {
+    /// An identifier which uniquely identifies this endpoint (via its handler)
+    /// across multiple compilations and executions of the web service.
+    var identifier: AnyHandlerIdentifier { get }
+    
+    /// Description of the `Handler` this endpoint was generated for
     var description: String { get }
 
     /// The reference to the Context instance should be removed in the "final" state of the semantic model.
@@ -39,23 +44,25 @@ protocol AnyEndpoint: CustomStringConvertible {
 
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
-struct Endpoint<C: Component>: AnyEndpoint {
+struct Endpoint<H: Handler>: AnyEndpoint {
     /// This is a reference to the node where the endpoint is located
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    fileprivate var treeNode: EndpointsTreeNode!
+    fileprivate var treeNode: EndpointsTreeNode! // swiftlint:disable:this implicitly_unwrapped_optional
+    
+    let identifier: AnyHandlerIdentifier
 
     let description: String
 
-    let component: C
+    let handler: H
+    
     let context: Context
     
     let operation: Operation
-
+    
     let handleReturnType: Encodable.Type
     let responseType: Encodable.Type
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
-    var parameters: [AnyEndpointParameter]
+    let parameters: [AnyEndpointParameter]
     
     var absolutePath: [_PathComponent] {
         treeNode.absolutePath
@@ -64,34 +71,36 @@ struct Endpoint<C: Component>: AnyEndpoint {
         treeNode.relationships
     }
 
-    var guards: [LazyGuard]
-    var responseTransformers: [() -> (AnyResponseTransformer)]
+    let guards: [LazyGuard]
+    let responseTransformers: [() -> (AnyResponseTransformer)]
     
     
     init(
-        component: C,
+        identifier: AnyHandlerIdentifier,
+        handler: H,
         context: Context = Context(contextNode: ContextNode()),
         operation: Operation = .automatic,
         guards: [LazyGuard] = [],
         responseTransformers: [() -> (AnyResponseTransformer)] = [],
         parameters: [AnyEndpointParameter] = []
     ) {
-        self.description = String(describing: component)
-        self.component = component
+        self.identifier = identifier
+        self.description = String(describing: handler)
+        self.handler = handler
         self.context = context
         self.operation = operation
-        self.handleReturnType = C.Response.self
+        self.handleReturnType = H.Response.self
         self.guards = guards
         self.responseTransformers = responseTransformers
         self.responseType = {
             guard let lastResponseTransformer = responseTransformers.last else {
-                return C.Response.self
+                return H.Response.self
             }
             return lastResponseTransformer().transformedResponseType
         }()
         self.parameters = parameters
     }
-
+    
     func exportEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
         exporter.export(self)
     }
@@ -110,6 +119,7 @@ struct Endpoint<C: Component>: AnyEndpoint {
         parameters.exportParameters(on: exporter)
     }
 }
+
 
 class EndpointsTreeNode {
     let path: _PathComponent
@@ -134,8 +144,8 @@ class EndpointsTreeNode {
     lazy var relationships: [EndpointRelationship] = {
         var relationships: [EndpointRelationship] = []
         
-        for child in children {
-            child.collectRelationships(&relationships)
+        for (name, child) in nodeChildren {
+            child.collectRelationships(name: name, &relationships)
         }
         
         return relationships
@@ -146,7 +156,7 @@ class EndpointsTreeNode {
         self.parent = parent
     }
     
-    func addEndpoint<C: Component>(_ endpoint: inout Endpoint<C>, at paths: [PathComponent]) {
+    func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, at paths: [PathComponent]) {
         if paths.isEmpty {
             // swiftlint:disable:next force_unwrapping
             precondition(endpoints[endpoint.operation] == nil, "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)")
@@ -211,14 +221,18 @@ class EndpointsTreeNode {
         relativePath.append(path)
     }
     
-    fileprivate func collectRelationships(_ relationships: inout [EndpointRelationship]) {
+    fileprivate func collectRelationships(name: String, _ relationships: inout [EndpointRelationship]) {
         if !endpoints.isEmpty {
-            relationships.append(EndpointRelationship(destinationPath: absolutePath))
+            relationships.append(EndpointRelationship(name: name, destinationPath: absolutePath))
             return
         }
         
-        for child in children {
-            child.collectRelationships(&relationships)
+        for (childName, child) in nodeChildren {
+            // as Parameter is currently inserted into the path (which will change)
+            // checking against RequestInjectable is a lazy check to determine if this is a path parameter
+            // or just a regular path component. To be adapted.
+            let name = name + (child.path is RequestInjectable ? "" : "_" + childName)
+            child.collectRelationships(name: name, &relationships)
         }
     }
     
@@ -229,7 +243,7 @@ class EndpointsTreeNode {
         print(indentString + path.description + "/ {")
         
         for (operation, endpoint) in endpoints {
-            print(indentString + "  - \(operation): " + endpoint.description)
+            print("\(indentString)  - \(operation): \(endpoint.description) [\(endpoint.identifier.rawValue)]")
         }
         
         for child in nodeChildren {
@@ -237,5 +251,38 @@ class EndpointsTreeNode {
         }
         
         print(indentString + "}")
+    }
+}
+
+
+/// Helper type which acts as a Hashable wrapper around `AnyEndpoint` 
+private struct AnyHashableEndpoint: Hashable, Equatable {
+    let endpoint: AnyEndpoint
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(endpoint.identifier)
+    }
+    
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.endpoint.identifier == rhs.endpoint.identifier
+    }
+}
+
+
+extension EndpointsTreeNode {
+    func collectAllEndpoints() -> [AnyEndpoint] {
+        if let parent = parent {
+            return parent.collectAllEndpoints()
+        }
+        var endpoints = Set<AnyHashableEndpoint>()
+        collectAllEndpoints(into: &endpoints)
+        return endpoints.map(\.endpoint)
+    }
+    
+    private func collectAllEndpoints(into endpointsSet: inout Set<AnyHashableEndpoint>) {
+        endpointsSet.formUnion(self.endpoints.values.map { AnyHashableEndpoint(endpoint: $0) })
+        for child in children {
+            child.collectAllEndpoints(into: &endpointsSet)
+        }
     }
 }

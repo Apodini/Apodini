@@ -22,7 +22,7 @@ final class GuardTests: XCTestCase {
     }
     
     
-    var component: some Component {
+    var component: some Handler {
         Text("Hallo")
             .operation(.read)
             .guard(TestGuard())
@@ -31,6 +31,6 @@ final class GuardTests: XCTestCase {
     
     func testPrintComponent() {
         let printVisitor = PrintVisitor()
-        component.visit(printVisitor)
+        component.accept(printVisitor)
     }
 }

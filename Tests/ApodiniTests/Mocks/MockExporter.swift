@@ -25,7 +25,7 @@ class MockExporter<Request: ExporterRequest>: InterfaceExporter {
 
     required init(_ app: Application) {}
 
-    func export<C: Component>(_ endpoint: Endpoint<C>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         // do nothing
     }
 

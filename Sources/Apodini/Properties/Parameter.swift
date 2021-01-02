@@ -13,7 +13,7 @@ public enum ParameterOptionNameSpace { }
 
 /// The `@Parameter` property wrapper can be used to express input in `Components`
 @propertyWrapper
-public struct Parameter<Element: Codable> {
+public struct Parameter<Element: Codable>: Property {
     /// Keys for options that can be passed to an `@Parameter` property wrapper
     public typealias OptionKey<T: PropertyOption> = PropertyOptionKey<ParameterOptionNameSpace, T>
     /// Type erased options that can be passed to an `@Parameter` property wrapper
@@ -99,14 +99,14 @@ public struct Parameter<Element: Codable> {
 }
 
 extension Parameter: RequestInjectable {
-    mutating func inject(using request: ApodiniRequest) throws {
+    mutating func inject(using request: Request) throws {
         #warning("""
                  Decoder errors (caused by user input!) is currently causing the inject method to throw.
                  This currently leads to a call to fatalError, as the request injection doesn't handle errors thrown from inject.
                  We need some sort of Apodini defined Error, which encodes such internal server errors and properly
                  forwards that to the Exporter so it can respond with a proper error for its request.
                  """)
-        element = try request.retrieveParameter(self, of: Element.self)
+        element = try request.retrieveParameter(self)
     }
 
     func accept(_ visitor: RequestInjectableVisitor) {

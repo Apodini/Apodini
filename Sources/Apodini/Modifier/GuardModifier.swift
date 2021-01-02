@@ -33,31 +33,34 @@ struct GuardContextKey: ContextKey {
 
 
 public struct GuardModifier<C: Component>: Modifier {
-    public typealias Response = C.Response
+    public typealias ModifiedComponent = C
     
-    let component: C
+    public let component: C
     let `guard`: LazyGuard
     
+    public var content: some Component { EmptyComponent() }
     
     init<G: Guard>(_ component: C, guard: @escaping () -> G) {
-        precondition(((try? typeInfo(of: G.self).kind) ?? .none) == .struct, "Guard \((try? typeInfo(of: G.self).name) ?? "unknown") must be a struct")
-        
+        assertTypeIsStruct(G.self, messagePrefix: "Guard")
         self.component = component
         self.guard = { AnyGuard(`guard`()) }
     }
     
     init<G: SyncGuard>(_ component: C, guard: @escaping () -> G) {
-        precondition(((try? typeInfo(of: G.self).kind) ?? .none) == .struct, "Guard \((try? typeInfo(of: G.self).name) ?? "unknown") must be a struct")
-        
+        assertTypeIsStruct(G.self, messagePrefix: "Guard")
         self.component = component
         self.guard = { AnyGuard(`guard`()) }
     }
 }
 
+extension GuardModifier: Handler, HandlerModifier where Self.ModifiedComponent: Handler {
+    public typealias Response = ModifiedComponent.Response
+}
+
 extension GuardModifier: SyntaxTreeVisitable {
     func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(GuardContextKey.self, value: [`guard`], scope: .environment)
-        component.visit(visitor)
+        component.accept(visitor)
     }
 }
 
