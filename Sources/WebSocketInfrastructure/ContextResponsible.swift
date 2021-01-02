@@ -12,7 +12,7 @@ import NIOWebSocket
 
 
 protocol ContextResponsible {
-    func receive(_ parameters: [String:Any]) throws
+    func receive(_ parameters: [String:Any], _ data: Data) throws
     
     func complete()
 }
@@ -80,9 +80,9 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         self.close = close
     }
     
-    func receive(_ parameters: [String:Any]) throws {
-        for (parameter, value) in parameters {
-            switch self.input.update(parameter, with: value) {
+    func receive(_ parameters: [String:Any], _ data: Data) throws {
+        for (parameter, _) in parameters {
+            switch self.input.update(parameter, using: ClientMessageParameterDecoder(data: data, name: parameter)) {
             case .error(let error):
                 throw InputError.invalid(parameter, error)
             case .ok:
@@ -118,4 +118,71 @@ enum InputError: WSError {
             return "Invalid input: \(name) \(error.reason)"
         }
     }
+}
+
+
+// MARK: Decoding Helpers
+
+private struct ClientMessageParameterDecoder: ParameterDecoder {
+    let data: Data
+    let name: String
+    
+    func decode<T>(_ type: T.Type) throws -> T?? where T : Decodable {
+        try JSONDecoder().decodeParameter(type, from: self.data, named: name)
+    }
+}
+
+private extension JSONDecoder {
+
+    func decodeParameter<T: Decodable>(_ type: T.Type, from data: Data, named key: String) throws -> T?? {
+        // Pass the top level key to the decoder.
+        userInfo[.parameterName] = key
+
+        let root = try decode(ParametersWrapper<ParameterWrapper<T>>.self, from: data)
+        return root.parameters.value
+    }
+
+}
+
+private struct ParameterWrapper<T: Decodable>: Decodable {
+    
+    struct AnyKey: CodingKey {
+        var stringValue: String
+        init?(stringValue: String) {
+          self.stringValue = stringValue
+        }
+        var intValue: Int? { return nil }
+        init?(intValue: Int) { return nil }
+    }
+    
+
+    var value: T??
+
+    init(from decoder: Decoder) throws {
+        guard let parameterName = decoder.userInfo[.parameterName] as? String else {
+            fatalError("Tried to decode parameter without parameterName.")
+        }
+
+        let key = AnyKey(stringValue: parameterName)!
+
+        let container = try decoder.container(keyedBy: AnyKey.self)
+
+        if !container.contains(key) {
+            self.value = nil
+        } else if try container.decodeNil(forKey: key) {
+            self.value = .some(nil)
+        } else {
+            self.value = try container.decode(T.self, forKey: key)
+        }
+    }
+}
+
+private extension CodingUserInfoKey {
+
+    static let parameterName = CodingUserInfoKey(rawValue: "parameterName")!
+
+}
+
+private struct ParametersWrapper<T>: Decodable where T: Decodable {
+    let parameters: T
 }

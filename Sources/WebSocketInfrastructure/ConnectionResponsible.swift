@@ -75,7 +75,7 @@ class ConnectionResponsible: Identifiable {
                             throw ProtocolError.unknownContext(clientMessage.context)
                         }
                         
-                        try ctx.receive(clientMessage.parameters)
+                        try ctx.receive(clientMessage.parameters, data)
                         errors = []
                     } catch {
                         if let serializationError = error as? SerializationError {

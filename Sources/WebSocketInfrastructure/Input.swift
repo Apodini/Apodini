@@ -33,9 +33,13 @@ public enum InputCheckResult {
     case missing([String])
 }
 
+public protocol ParameterDecoder {
+    func decode<T: Decodable>(_: T.Type) throws -> T??
+}
+
 public protocol Input {
     
-    mutating func update(_ parameter: String, with value: Any) -> ParameterUpdateResult
+    mutating func update(_ parameter: String, using decoder: ParameterDecoder) -> ParameterUpdateResult
     
     mutating func check() -> InputCheckResult
     
@@ -49,33 +53,12 @@ public enum ParameterCheckResult {
 
 public protocol InputParameter {
     
-    mutating func update(_ value: Any) -> ParameterUpdateResult
+    mutating func update(using decoder: ParameterDecoder) -> ParameterUpdateResult
     
     nonmutating func check() -> ParameterCheckResult
     
     mutating func apply()
     
-}
-
-public struct AnyInput: Input {
-    private(set) public var parameters: [String: Optional<Any>] = [:]
-    
-    public init() { }
-    
-    public mutating func update(_ parameter: String, with value: Any) -> ParameterUpdateResult {
-        if value is NSNull {
-            parameters[parameter] = Optional<Any>.none
-        } else {
-            parameters[parameter] = value
-        }
-        return .ok
-    }
-    
-    public mutating func check() -> InputCheckResult {
-        return .ok
-    }
-    
-    public mutating func apply() { }
 }
 
 public struct SomeInput: Input {
@@ -87,12 +70,12 @@ public struct SomeInput: Input {
     }
     
     
-    public mutating func update(_ parameter: String, with value: Any) -> ParameterUpdateResult {
+    public mutating func update(_ parameter: String, using decoder: ParameterDecoder) -> ParameterUpdateResult {
         guard var p = parameters[parameter] else {
             return .error(.notExistant)
         }
         
-        let result = p.update(value)
+        let result = p.update(using: decoder)
         parameters[parameter] = p
         return result
     }
@@ -127,22 +110,21 @@ public struct SomeInput: Input {
     }
 }
 
-public struct Parameter<Type>: InputParameter {
+public struct Parameter<Type: Decodable>: InputParameter {
     
     private var _interim: Type??
     private(set) public var value: Type??
     
     public init() { }
     
-    public mutating func update(_ value: Any) -> ParameterUpdateResult {
-        if let newValue = value as? Type {
-            self._interim = newValue
-        } else if value is NSNull {
-            self._interim = .some(nil)
-        } else {
+    public mutating func update(using decoder: ParameterDecoder) -> ParameterUpdateResult {
+        do {
+            self._interim = try decoder.decode(Type.self)
+            return .ok
+        } catch {
+            print(error)
             return .error(.badType)
         }
-        return .ok
     }
     
     public nonmutating func check() -> ParameterCheckResult {
