@@ -108,6 +108,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         Group {
             testComponent.content
         }.accept(visitor)
+        visitor.finishParsing()
         
         let nameParameterId: UUID = testComponent.$name.id
         let treeNodeA: EndpointsTreeNode = modelBuilder.rootNode.children.first!
