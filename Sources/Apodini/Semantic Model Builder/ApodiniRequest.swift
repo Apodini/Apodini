@@ -30,20 +30,16 @@ struct ApodiniRequest<I: InterfaceExporter, H: Handler>: Request {
 
     var eventLoop: EventLoop
 
-    var database: (() -> Database)?
-
     init(
         for exporter: I,
         with request: I.ExporterRequest,
         on endpoint: Endpoint<H>,
-        running eventLoop: EventLoop,
-        database: (() -> Database)? = nil
+        running eventLoop: EventLoop
     ) {
         self.exporter = exporter
         self.exporterRequest = request
         self.storedEndpoint = endpoint
         self.eventLoop = eventLoop
-        self.database = database
     }
 
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element {

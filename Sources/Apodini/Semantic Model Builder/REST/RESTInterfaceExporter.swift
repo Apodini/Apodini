@@ -4,7 +4,6 @@
 
 import Foundation
 @_implementationOnly import Vapor
-import protocol FluentKit.Database
 
 struct RESTPathBuilder: PathBuilder {
     private var pathComponents: [Vapor.PathComponent] = []
@@ -61,12 +60,6 @@ extension Operation {
     }
 }
 
-extension Vapor.Request: ExporterRequest, WithEventLoop, WithDatabase {
-    var database: () -> Database {{
-        self.db
-    }}
-}
-
 class RESTInterfaceExporter: InterfaceExporter {
     let app: Application
 
@@ -83,32 +76,8 @@ class RESTInterfaceExporter: InterfaceExporter {
         let exportedParameterNames = endpoint.exportParameters(on: self)
 
         let requestHandler = endpoint.createRequestHandler(for: self)
-
-        routesBuilder.on(operation.httpMethod, []) { (request: Vapor.Request) -> EventLoopFuture<Vapor.Response> in
-            let responseFuture = requestHandler(request: request)
-
-            return responseFuture.flatMap { encodableAction in
-                let jsonEncoder = JSONEncoder()
-                jsonEncoder.outputFormatting = [.withoutEscapingSlashes, .prettyPrinted]
-                #warning("We may remove JSONEncoder .prettyPrinted in production or make it configurable in some way")
-
-                let response = Response()
-                do {
-                    switch encodableAction {
-                    case let .send(element),
-                         let .final(element):
-                        try response.content.encode(element, using: jsonEncoder)
-                    case .nothing, .end:
-                        // nothing to encode,
-                        // so leave the response body empty
-                        break
-                    }
-                } catch {
-                    return request.eventLoop.makeFailedFuture(error)
-                }
-                return request.eventLoop.makeSucceededFuture(response)
-            }
-        }
+        let endpointHandler = RESTEndpointHandler(for: endpoint, with: requestHandler)
+        endpointHandler.register(at: routesBuilder, with: operation)
 
         app.logger.info("Exported '\(operation.httpMethod.rawValue) \(pathBuilder.pathDescription)' with parameters: \(exportedParameterNames)")
 
