@@ -34,9 +34,9 @@ final class HandlerIdentifierTests: ApodiniTests {
             }
         }
         
-        let SSMBuilder = SharedSemanticModelBuilder(app)
-        TestWebService().register(SSMBuilder)
-        let allEndpoints = SSMBuilder.rootNode.collectAllEndpoints()
+        let sharedSemanticModelBuilder = SharedSemanticModelBuilder(app)
+        TestWebService().register(sharedSemanticModelBuilder)
+        let allEndpoints = sharedSemanticModelBuilder.rootNode.collectAllEndpoints()
         
         XCTAssertEqual(allEndpoints.count, 2)
         

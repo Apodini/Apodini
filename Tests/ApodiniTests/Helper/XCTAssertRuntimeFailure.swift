@@ -10,12 +10,12 @@ import XCTest
 #if canImport(CwlPreconditionTesting)
 import CwlPreconditionTesting
 
-func XCTAssertRuntimeFailure(
-    _ expression: @escaping @autoclosure () -> Void,
+func XCTAssertRuntimeFailure<T>(
+    _ expression: @escaping @autoclosure () -> T,
     _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,
     line: UInt = #line) {
-    guard catchBadInstruction(in: { expression() }) == nil else {
+    guard catchBadInstruction(in: { _ = expression() }) == nil else {
         return
     }
     XCTFail(message(), file: file, line: line)

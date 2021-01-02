@@ -9,7 +9,7 @@
 import XCTest
 
 
-class ComponentTests: XCTestCase {
+class ComponentTests: ApodiniTests {
     func testAssertTypeIsStruct() throws {
         class TestClass {}
         XCTAssertRuntimeFailure(assertTypeIsStruct(TestClass.self))
@@ -29,5 +29,49 @@ class ComponentTests: XCTestCase {
         let failingTupleComponent = TupleComponent((NoComponent(), NoComponent()))
         let syntaxTreeVisitor = SyntaxTreeVisitor()
         XCTAssertRuntimeFailure(failingTupleComponent.accept(syntaxTreeVisitor))
+    }
+    
+    func testAnyComponentTypeErasure() throws {
+        struct TestWebService: WebService {
+            var content: some Component {
+                AnyComponent(Text("Hello"))
+            }
+        }
+        
+        TestWebService.main(app: app)
+        
+        
+        try app.test(.GET, "/v1/") { res in
+            XCTAssertEqual(res.status, .ok)
+            
+            struct Content: Decodable {
+                let data: String
+            }
+            
+            let content = try res.content.decode(Content.self)
+            XCTAssert(content.data == "Hello")
+        }
+    }
+    
+    func testAnyHandlerTypeErasure() throws {
+        struct TestWebService: WebService {
+            var content: some Component {
+                AnyHandler(Text("Hello"))
+            }
+        }
+        
+        TestWebService.main(app: app)
+        
+        
+        try app.test(.GET, "/v1/") { res in
+            XCTAssertEqual(res.status, .ok)
+            
+            struct Content: Decodable {
+                let data: String
+            }
+            
+            let content = try res.content.decode(Content.self)
+            XCTAssert(content.data == "Hello")
+        }
     }
 }
