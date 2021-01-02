@@ -46,10 +46,10 @@ struct TestWebService: Apodini.WebService {
         @Properties
         var properties: [String: Apodini.Property] = ["surname": Parameter<String?>()]
 
-        @Parameter(.http(.path))
+        @Parameter(.http(.body))
         var name: String
 
-        @Parameter
+        @Parameter(.http(.body))
         var greet: String?
 
         func handle() -> String {
@@ -70,6 +70,7 @@ struct TestWebService: Apodini.WebService {
 
     struct User: Codable {
         var id: Int
+        var name: String?
     }
 
     struct UserHandler: Handler {

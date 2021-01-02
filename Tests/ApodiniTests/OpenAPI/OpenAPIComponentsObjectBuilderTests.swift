@@ -21,103 +21,29 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     let someOptional: String? = nil
     let someOptionalUUID: UUID? = nil
 
-    struct SomeStruct {
+    struct SomeStruct: Encodable {
         var id: UUID?
         var someProp = 4
     }
 
-    struct GenericStruct<T> {
+    struct GenericStruct<T>: Encodable {
         var list: [T]
         var listLength: Int
+
+        func encode(to encoder: Encoder) throws {
+        }
     }
 
-    struct SomeComplexStruct {
+    struct SomeComplexStruct: Encodable {
         var someStruct: SomeStruct
         var someNestedStruct: SomeNestedStruct
         var someNestedStruct2: SomeNestedStruct
         var someItems: GenericStruct<SomeStruct>
 
-        struct SomeNestedStruct {
+        struct SomeNestedStruct: Encodable {
             let someInt = 123
             let someString: String?
         }
-    }
-
-    func testTypeInfoIsWrapperType() throws {
-        var info = try typeInfo(of: type(of: someString))
-        XCTAssertEqual(info.isWrapperType, false)
-
-        info = try typeInfo(of: type(of: someInt))
-        XCTAssertEqual(info.isWrapperType, false)
-
-        info = try typeInfo(of: type(of: someDouble))
-        XCTAssertEqual(info.isWrapperType, false)
-
-        info = try typeInfo(of: type(of: someBool))
-        XCTAssertEqual(info.isWrapperType, false)
-
-        info = try typeInfo(of: type(of: someArray))
-        XCTAssertEqual(info.isWrapperType, false)
-
-        info = try typeInfo(of: type(of: SomeStruct()))
-        XCTAssertEqual(info.isWrapperType, false)
-
-        info = try typeInfo(of: type(of: someDict))
-        XCTAssertEqual(info.isWrapperType, false)
-
-        info = try typeInfo(of: type(of: someEventLoop))
-        XCTAssertEqual(info.isWrapperType, true)
-
-        info = try typeInfo(of: type(of: someEither))
-        XCTAssertEqual(info.isWrapperType, true)
-
-        info = try typeInfo(of: type(of: someOptional))
-        XCTAssertEqual(info.isWrapperType, true)
-
-        info = try typeInfo(of: type(of: someOptionalUUID))
-        XCTAssertEqual(info.isWrapperType, true)
-    }
-
-    func testTypeInfoIsPrimitive() throws {
-        var info = try typeInfo(of: type(of: someString))
-        XCTAssertEqual(info.isPrimitive, true)
-
-        info = try typeInfo(of: type(of: someInt))
-        XCTAssertEqual(info.isPrimitive, true)
-
-        info = try typeInfo(of: type(of: someDouble))
-        XCTAssertEqual(info.isPrimitive, true)
-
-        info = try typeInfo(of: type(of: someBool))
-        XCTAssertEqual(info.isPrimitive, true)
-
-        info = try typeInfo(of: type(of: someArray))
-        XCTAssertEqual(info.isPrimitive, false)
-
-        info = try typeInfo(of: type(of: SomeStruct()))
-        XCTAssertEqual(info.isPrimitive, false)
-
-        info = try typeInfo(of: type(of: someDict))
-        XCTAssertEqual(info.isPrimitive, false)
-
-        info = try typeInfo(of: type(of: someEventLoop))
-        XCTAssertEqual(info.isPrimitive, false)
-
-        info = try typeInfo(of: type(of: someEither))
-        XCTAssertEqual(info.isPrimitive, false)
-
-        info = try typeInfo(of: type(of: someOptional))
-        XCTAssertEqual(info.isPrimitive, false)
-    }
-
-    func testTypeInfoIsArray() throws {
-        let info = try typeInfo(of: type(of: someArray))
-        XCTAssertEqual(info.isArray, true)
-    }
-
-    func testTypeInfoIsDictionary() throws {
-        let info = try typeInfo(of: type(of: someDict))
-        XCTAssertEqual(info.isDictionary, true)
     }
 
     func testBuildSchemaPrimitive() throws {

@@ -16,20 +16,13 @@ class OpenAPIInterfaceExporter: InterfaceExporter {
 
     required init(_ app: Application) {
         self.app = app
-        let host = app.http.server.configuration.hostname
-        let port = app.http.server.configuration.port
-        var servers: [OpenAPI.Server] = []
-        if let url = URL(string: "\(host):\(port)") {
-            let server = OpenAPI.Server(url: url)
-            servers.append(server)
-        }
-        self.configuration = OpenAPIConfiguration(servers: servers)
-        documentBuilder = OpenAPIDocumentBuilder(
+        self.configuration = OpenAPIConfiguration.create(from: app)
+        self.documentBuilder = OpenAPIDocumentBuilder(
                 configuration: configuration
         )
     }
 
-    func export<C: Component>(_ endpoint: Endpoint<C>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         documentBuilder.addEndpoint(endpoint)
     }
 

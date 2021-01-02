@@ -85,7 +85,7 @@ struct OpenAPIPathsObjectBuilder {
         parameters.compactMap {
             if let context = $0.openAPIContext {
                 // TODO: what about non-primitive type schemas?
-                return Either.parameter(name: $0.name ?? $0.label, context: context, schema: $0.openAPISchema)
+                return Either.parameter(name: $0.name, context: context, schema: $0.openAPISchema, description: $0.description)
             }
             return nil
         }
@@ -101,12 +101,13 @@ struct OpenAPIPathsObjectBuilder {
         if contentParameters.count == 1 {
             requestJSONSchema = try! componentsObjectBuilder.buildSchema(for: contentParameters[0].propertyType)
         } else if !contentParameters.isEmpty {
-            requestJSONSchema = try! componentsObjectBuilder.buildSchema(for: contentParameters.map {
-                $0.propertyType
-            })
+            requestJSONSchema = try! componentsObjectBuilder.buildWrapperSchema(for: contentParameters.map { $0.propertyType }, with: contentParameters.map { $0.necessity })
         }
         if let requestJSONSchema = requestJSONSchema {
-            requestBody = OpenAPI.Request(content: [
+            requestBody = OpenAPI.Request(description: contentParameters.map {
+                $0.description
+            }.joined(separator: "\n"),
+            content: [
                 requestJSONSchema.openAPIContentType: .init(schema: requestJSONSchema)
             ])
         }
@@ -114,18 +115,28 @@ struct OpenAPIPathsObjectBuilder {
     }
 
     /// https://swagger.io/specification/#responses-object
-    /// TODO: refactor `ResponseEncodable` if required.
     mutating private func buildResponsesObject(from responseType: Encodable.Type) -> OpenAPI.Response.Map {
         var responseContent: OpenAPI.Content.Map = [:]
         let responseJSONSchema: JSONSchema = try! componentsObjectBuilder.buildSchema(for: responseType)
         responseContent[responseJSONSchema.openAPIContentType] = .init(schema: responseJSONSchema)
         var responses: OpenAPI.Response.Map = [:]
-        // TODO: add error status codes
         responses[.status(code: 200)] = .init(OpenAPI.Response(
-                description: "",
+                description: "OK",
                 headers: nil,
                 content: responseContent,
                 vendorExtensions: [:])
+        )
+        responses[.status(code: 401)] = .init(
+            OpenAPI.Response(description: "Unauthorized")
+        )
+        responses[.status(code: 403)] = .init(
+            OpenAPI.Response(description: "Forbidden")
+        )
+        responses[.status(code: 404)] = .init(
+            OpenAPI.Response(description: "Not Found")
+        )
+        responses[.status(code: 500)] = .init(
+            OpenAPI.Response(description: "Internal Server Error")
         )
         return responses
     }
