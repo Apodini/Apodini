@@ -23,32 +23,33 @@ public protocol WebService: Component, ConfigurationCollection {
 
 extension WebService {
     /// This function is executed to start up an Apodini `WebService`
-    public static func main() {
-        do {
-            #if DEBUG
-            let arguments = [CommandLine.arguments.first ?? ".", "serve", "--env", "development", "--hostname", "0.0.0.0", "--port", "8080"]
-            #else
-            let arguments = [CommandLine.arguments.first ?? ".", "serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8080"]
-            #endif
-            
-            var env = try Vapor.Environment.detect(arguments: arguments)
-            try LoggingSystem.bootstrap(from: &env)
-            let app = Application(env)
-            
-            main(app: app)
-            
-            defer {
-                app.shutdown()
-            }
-            try app.run()
-        } catch {
-            print(error)
+    public static func main() throws {
+        let app = try createApplication()
+        
+        main(app: app)
+        
+        defer {
+            app.shutdown()
         }
+        try app.run()
+    }
+    
+    /// Creates a Vapor.Application and configures the LoggingSystem
+    static func createApplication() throws -> Vapor.Application {
+        #if DEBUG
+        let arguments = [CommandLine.arguments.first ?? ".", "serve", "--env", "development", "--hostname", "0.0.0.0", "--port", "8080"]
+        #else
+        let arguments = [CommandLine.arguments.first ?? ".", "serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8080"]
+        #endif
+        
+        var env = try Vapor.Environment.detect(arguments: arguments)
+        try LoggingSystem.bootstrap(from: &env)
+        return Application(env)
     }
     
     /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.main()` to startup an Apodini `WebService`.
     /// - Parameter app: The app instance that should be injected in the Apodini `WebService`
-    internal static func main(app: Vapor.Application) {
+    static func main(app: Vapor.Application) {
         let webService = Self()
 
         webService.configuration.configure(app)
@@ -66,12 +67,6 @@ extension WebService {
     /// The current version of the `WebService`
     public var version: Version {
         Version()
-    }
-    
-    
-    /// An empty initializer used to create an Apodini `WebService`
-    public init() {
-        self.init()
     }
 }
 
