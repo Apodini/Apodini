@@ -12,7 +12,7 @@ enum MockRequest {
     static func createRequest(
         running eventLoop: EventLoop,
         queuedParameters parameterValues: Any??...
-    ) -> ApodiniRequest<MockExporter<String>, EmptyHandler> {
+    ) -> ValidatedRequest<MockExporter<String>, EmptyHandler> {
         createRequest(on: EmptyHandler(), running: eventLoop, queuedParameters: parameterValues)
     }
 
@@ -20,7 +20,7 @@ enum MockRequest {
         on handler: H,
         running eventLoop: EventLoop,
         queuedParameters parameterValues: Any??...
-    ) -> ApodiniRequest<MockExporter<String>, H> {
+    ) -> ValidatedRequest<MockExporter<String>, H> {
         createRequest(on: handler, running: eventLoop, queuedParameters: parameterValues)
     }
 
@@ -35,6 +35,6 @@ enum MockRequest {
         
         var validator = endpoint.validator(for: exporter)
         
-        return try! validator.validate("Undefined Exporter Request", with: (eventLoop, nil))
+        return try! validator.validate("Undefined Exporter Request", with: eventLoop)
     }
 }

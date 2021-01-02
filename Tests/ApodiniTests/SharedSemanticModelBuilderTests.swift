@@ -149,7 +149,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let handler = TestHandler4()
         let endpoint = handler.mockEndpoint()
-        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        var context = endpoint.createConnectionContext(for: exporter)
 
         let request = Vapor.Request(application: app,
                                     method: .GET,
@@ -157,7 +157,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
                                     on: app.eventLoopGroup.next())
         let expectedString = "Hello Test Handler 4"
 
-        let result = try requestHandler.callAsFunction(request: request).wait()
+        let result = try context.handle(request: request).wait()
         guard case let .final(resultValue) = result else {
             XCTFail("Expected default to be wrapped in Action.final, but was \(result)")
             return
@@ -171,13 +171,13 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let handler = ActionHandler1().withEnvironment(Connection(state: .open), for: \.connection)
         let endpoint = handler.mockEndpoint()
-        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        var context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app,
                                     method: .GET,
                                     url: "",
                                     on: app.eventLoopGroup.next())
 
-        let result = try requestHandler.callAsFunction(request: request).wait()
+        let result = try context.handle(request: request).wait()
         if case let .send(element) = result {
             let responseString = try XCTUnwrap(element.value as? String)
             XCTAssertEqual(responseString, "Send")
@@ -190,13 +190,13 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let handler = ActionHandler1().withEnvironment(Connection(state: .end), for: \.connection)
         let endpoint = handler.mockEndpoint()
-        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        var context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app,
                                     method: .GET,
                                     url: "",
                                     on: app.eventLoopGroup.next())
 
-        let result = try requestHandler.callAsFunction(request: request).wait()
+        let result = try context.handle(request: request).wait()
         if case let .final(element) = result {
             let responseString = try XCTUnwrap(element.value as? String)
             XCTAssertEqual(responseString, "Final")
@@ -209,13 +209,13 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let handler = ActionHandler2().withEnvironment(Connection(state: .open), for: \.connection)
         let endpoint = handler.mockEndpoint()
-        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        var context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app,
                                     method: .GET,
                                     url: "",
                                     on: app.eventLoopGroup.next())
 
-        let result = try requestHandler.callAsFunction(request: request).wait()
+        let result = try context.handle(request: request).wait()
         if case .nothing = result {
             XCTAssertTrue(true)
         } else {
@@ -227,13 +227,13 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let handler = ActionHandler2().withEnvironment(Connection(state: .end), for: \.connection)
         let endpoint = handler.mockEndpoint()
-        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        var context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app,
                                     method: .GET,
                                     url: "",
                                     on: app.eventLoopGroup.next())
 
-        let result = try requestHandler.callAsFunction(request: request).wait()
+        let result = try context.handle(request: request).wait()
         if case .end = result {
             XCTAssertTrue(true)
         } else {

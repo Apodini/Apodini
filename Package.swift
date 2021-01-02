@@ -73,6 +73,9 @@ let package = Package(
             name: "TestWebService",
             dependencies: [
                 .target(name: "Apodini")
+            ],
+            exclude: [
+                "client.json"
             ]
         ),
         .target(
