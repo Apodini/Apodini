@@ -6,7 +6,6 @@ import NIO
 @_implementationOnly import Vapor
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
-
 /// This struct is used to model the RootPath for the root of the endpoints tree
 struct RootPath: _PathComponent {
     var description: String {
@@ -40,8 +39,8 @@ class WebServiceModel {
 class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor {
     private var interfaceExporters: [AnyInterfaceExporter] = []
 
-    var webService: WebServiceModel
-    var rootNode: EndpointsTreeNode
+    let webService: WebServiceModel
+    let rootNode: EndpointsTreeNode
 
     override init(_ app: Application) {
         webService = WebServiceModel()

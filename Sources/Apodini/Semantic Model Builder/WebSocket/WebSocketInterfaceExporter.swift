@@ -45,7 +45,7 @@ class WebSocketInterfaceExporter: InterfaceExporter {
                 // TODO: implement
                 output.send(completion: .finished)
             }, receiveValue: { inputValue in
-                context.handle(request: inputValue, eventLoop: eventLoop, database: database).whenComplete { result in
+                context.handle(request: inputValue, eventLoop: eventLoop).whenComplete { result in
                     switch result {
                     case .success(let response):
                         output.send(.send(AnyEncodable(value: response)))

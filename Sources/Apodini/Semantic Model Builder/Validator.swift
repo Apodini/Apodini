@@ -74,7 +74,7 @@ extension Validator {
 // MARK: Endpoint Validation
 
 extension Endpoint {
-    func validator<I: InterfaceExporter>(for exporter: I) -> AnyValidator<I, (EventLoop, (() -> Database)?), ValidatedRequest<I, H>> {
+    func validator<I: InterfaceExporter>(for exporter: I) -> AnyValidator<I, EventLoop, ValidatedRequest<I, H>> {
         EndpointValidator(for: exporter, on: self).eraseToAnyValidator()
     }
 }
@@ -100,7 +100,7 @@ private class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
     }
     
     
-    func validate(_ request: I.ExporterRequest, with input: (EventLoop, (() -> Database)?)) throws -> ValidatedRequest<I, H> {
+    func validate(_ request: I.ExporterRequest, with eventLoop: EventLoop) throws -> ValidatedRequest<I, H> {
         var output: [UUID: Any] = [:]
         
         for i in validators.indices {
@@ -114,7 +114,7 @@ private class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
             }
         }
         
-        return ValidatedRequest(for: exporter, with: request, using: output, on: endpoint, running: input.0, database: input.1)
+        return ValidatedRequest(for: exporter, with: request, using: output, on: endpoint, running: eventLoop)
     }
     
     func reset() {

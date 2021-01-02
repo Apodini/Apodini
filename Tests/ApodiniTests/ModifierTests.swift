@@ -58,4 +58,26 @@ final class ModifierTests: XCTestCase {
         let printVisitor = PrintVisitor()
         component.accept(printVisitor)
     }
+
+    func testActionShouldAllowResponseModifierOnWrappedType() {
+        struct HelloResponseMediator: ResponseTransformer {
+            func transform(response: String) -> String {
+                "Hello \(response)"
+            }
+        }
+
+        struct TestHandler: Handler {
+            func handle() -> Action<String> {
+                .final("Peter")
+            }
+        }
+
+        var component: some Component {
+            TestHandler()
+                .response(HelloResponseMediator())
+        }
+
+        let printVisitor = PrintVisitor()
+        component.accept(printVisitor)
+    }
 }

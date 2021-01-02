@@ -4,7 +4,6 @@
 
 import Foundation
 @_implementationOnly import Vapor
-import protocol FluentKit.Database
 
 struct RESTPathBuilder: PathBuilder {
     private var pathComponents: [Vapor.PathComponent] = []
@@ -61,12 +60,6 @@ extension Operation {
     }
 }
 
-extension Vapor.Request: ExporterRequest, WithEventLoop, WithDatabase {
-    var database: () -> Database {{
-        self.db
-    }}
-}
-
 class RESTInterfaceExporter: InterfaceExporter {
     let app: Application
 
@@ -82,25 +75,8 @@ class RESTInterfaceExporter: InterfaceExporter {
 
         let exportedParameterNames = endpoint.exportParameters(on: self)
 
-        var context = endpoint.createConnectionContext(for: self)
-
-        routesBuilder.on(operation.httpMethod, []) { (request: Vapor.Request) -> EventLoopFuture<Vapor.Response> in
-            let responseFuture = context.handle(request: request)
-
-            return responseFuture.flatMap { encodable in
-                let jsonEncoder = JSONEncoder()
-                jsonEncoder.outputFormatting = [.withoutEscapingSlashes, .prettyPrinted]
-                #warning("We may remove JSONEncoder .prettyPrinted in production or make it configurable in some way")
-
-                let response = Response()
-                do {
-                    try response.content.encode(AnyEncodable(value: encodable), using: jsonEncoder)
-                } catch {
-                    return request.eventLoop.makeFailedFuture(error)
-                }
-                return request.eventLoop.makeSucceededFuture(response)
-            }
-        }
+        var endpointHandler = RESTEndpointHandler(for: endpoint, with: endpoint.createConnectionContext(for: self))
+        endpointHandler.register(at: routesBuilder, with: operation)
 
         app.logger.info("Exported '\(operation.httpMethod.rawValue) \(pathBuilder.pathDescription)' with parameters: \(exportedParameterNames)")
 

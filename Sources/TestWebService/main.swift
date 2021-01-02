@@ -98,6 +98,9 @@ struct TestWebService: Apodini.WebService {
         }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
         Group("greet") {
             TraditionalGreeter()
+                .serviceName("GreetService")
+                .rpcName("greetMe")
+                .response(EmojiMediator())
         }
         Group("user", $userId) {
             UserHandler(userId: $userId)

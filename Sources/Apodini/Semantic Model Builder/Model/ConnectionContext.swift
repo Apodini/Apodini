@@ -17,36 +17,24 @@ protocol ConnectionContext {
     
     mutating func handle(
         request exporterRequest: I.ExporterRequest,
-        eventLoop: EventLoop,
-        database: Database?
-    ) -> EventLoopFuture<Encodable>
-}
-
-extension ConnectionContext {
-    mutating func handle(
-        request exporterRequest: I.ExporterRequest,
         eventLoop: EventLoop
-        ) -> EventLoopFuture<Encodable> {
-        self.handle(request: exporterRequest, eventLoop: eventLoop, database: nil)
-    }
+    ) -> EventLoopFuture<Action<AnyEncodable>>
 }
-
 struct AnyConnectionContext<I: InterfaceExporter>: ConnectionContext {
     private var handleFunc: (
         _: I.ExporterRequest,
-        _: EventLoop,
-        _: Database?
-    ) -> EventLoopFuture<Encodable>
+        _: EventLoop
+    ) -> EventLoopFuture<Action<AnyEncodable>>
     
     init<C: ConnectionContext>(from context: C) where C.I == I {
         var context = context
-        self.handleFunc = { request, eventLoop, database in
-            context.handle(request: request, eventLoop: eventLoop, database: database)
+        self.handleFunc = { request, eventLoop in
+            context.handle(request: request, eventLoop: eventLoop)
         }
     }
     
-    func handle(request exporterRequest: I.ExporterRequest, eventLoop: EventLoop, database: Database?) -> EventLoopFuture<Encodable> {
-        self.handleFunc(exporterRequest, eventLoop, database)
+    func handle(request exporterRequest: I.ExporterRequest, eventLoop: EventLoop) -> EventLoopFuture<Action<AnyEncodable>> {
+        self.handleFunc(exporterRequest, eventLoop)
     }
 }
 
@@ -60,7 +48,7 @@ class InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCon
     
     private let exporter: I
     
-    private var validator: AnyValidator<I, (EventLoop, (() -> Database)?), ValidatedRequest<I, H>>
+    private var validator: AnyValidator<I, EventLoop, ValidatedRequest<I, H>>
     
     private let endpoint: Endpoint<H>
     
@@ -78,21 +66,12 @@ class InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCon
     
     func handle(
         request exporterRequest: I.ExporterRequest,
-                eventLoop: EventLoop,
-                database: Database? = nil
-            ) -> EventLoopFuture<Encodable> {
-        let databaseClosure: (() -> Database)?
-        if let database = database {
-            databaseClosure = { database }
-        } else if let requestWithDatabase = exporterRequest as? WithDatabase {
-            databaseClosure = requestWithDatabase.database
-        } else {
-            databaseClosure = nil
-        }
+                eventLoop: EventLoop
+            ) -> EventLoopFuture<Action<AnyEncodable>> {
         
         
         do {
-            let validatedRequest = try validator.validate(exporterRequest, with: (eventLoop, databaseClosure))
+            let validatedRequest = try validator.validate(exporterRequest, with: eventLoop)
             
             return self.requestHandler(request: validatedRequest)
         } catch {
@@ -102,7 +81,7 @@ class InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCon
 }
 
 extension ConnectionContext where I.ExporterRequest: WithEventLoop {
-    mutating func handle(request: I.ExporterRequest) -> EventLoopFuture<Encodable> {
+    mutating func handle(request: I.ExporterRequest) -> EventLoopFuture<Action<AnyEncodable>> {
         handle(request: request, eventLoop: request.eventLoop)
     }
 }

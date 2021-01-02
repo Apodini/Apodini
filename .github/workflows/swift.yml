@@ -26,9 +26,7 @@ jobs:
       run: xcodebuild -version
     - name: Check Swift version
       run: swift --version
-    - name: Build
-      run: swift build --build-tests
-    - name: Test
+    - name: Build & Test
       run: swift test --enable-code-coverage
     - name: Convert coverage report
       run: xcrun llvm-cov export -format="lcov" .build/debug/ApodiniPackageTests.xctest/Contents/MacOS/ApodiniPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage.lcov
@@ -51,7 +49,5 @@ jobs:
         key: ${{ runner.os }}-${{matrix.linux}}-spm-cachev2-${{ hashFiles('**/Package.resolved') }}
     - name: Check Swift version
       run: swift --version
-    - name: Build
-      run: swift build --build-tests --enable-test-discovery
-    - name: Test
+    - name: Build & Test
       run: swift test --enable-test-discovery

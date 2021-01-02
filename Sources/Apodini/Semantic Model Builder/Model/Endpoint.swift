@@ -58,7 +58,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     let context: Context
     
     let operation: Operation
-
+    
     let handleReturnType: Encodable.Type
     let responseType: Encodable.Type
     
@@ -145,8 +145,8 @@ class EndpointsTreeNode {
     lazy var relationships: [EndpointRelationship] = {
         var relationships: [EndpointRelationship] = []
         
-        for child in children {
-            child.collectRelationships(&relationships)
+        for (name, child) in nodeChildren {
+            child.collectRelationships(name: name, &relationships)
         }
         
         return relationships
@@ -222,14 +222,18 @@ class EndpointsTreeNode {
         relativePath.append(path)
     }
     
-    fileprivate func collectRelationships(_ relationships: inout [EndpointRelationship]) {
+    fileprivate func collectRelationships(name: String, _ relationships: inout [EndpointRelationship]) {
         if !endpoints.isEmpty {
-            relationships.append(EndpointRelationship(destinationPath: absolutePath))
+            relationships.append(EndpointRelationship(name: name, destinationPath: absolutePath))
             return
         }
         
-        for child in children {
-            child.collectRelationships(&relationships)
+        for (childName, child) in nodeChildren {
+            // as Parameter is currently inserted into the path (which will change)
+            // checking against RequestInjectable is a lazy check to determine if this is a path parameter
+            // or just a regular path component. To be adapted.
+            let name = name + (child.path is RequestInjectable ? "" : "_" + childName)
+            child.collectRelationships(name: name, &relationships)
         }
     }
     

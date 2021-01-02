@@ -5,25 +5,6 @@ import NIO
 import Foundation
 import protocol FluentKit.Database
 
-protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
-    /// Returns a description of the Request.
-    /// If the `ExporterRequest` also conforms to `CustomStringConvertible`, its `description`
-    /// will be appended.
-    var description: String { get }
-    /// Returns a debug description of the Request.
-    /// If the `ExporterRequest` also conforms to `CustomDebugStringConvertible`, its `debugDescription`
-    /// will be appended.
-    var debugDescription: String { get }
-
-    var endpoint: AnyEndpoint { get }
-
-    var eventLoop: EventLoop { get }
-
-    var database: (() -> Database)? { get }
-
-    func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element
-}
-
 struct ValidatedRequest<I: InterfaceExporter, H: Handler>: Request {
     var description: String {
         var description = "Validated Request:\n"

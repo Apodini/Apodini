@@ -41,7 +41,8 @@ let package = Package(
                 .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime"),
-                .target(name: "WebSocketInfrastructure")
+                .target(name: "WebSocketInfrastructure"),
+                .target(name: "ProtobufferCoding")
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
