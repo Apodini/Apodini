@@ -252,34 +252,34 @@ final class GuardTests: ApodiniTests {
     }
     
     func testAllActiveGuardsFunction() {
-        func getResetGuard() -> LazyGuard {
-            struct ThrowAwayComponent: Component {
-                var content: some Component {
-                    EmptyComponent()
-                }
+        struct ThrowAwayComponent: Component {
+            var content: some Component {
+                EmptyComponent()
             }
-            
+        }
+        
+        func getResetGuard() -> LazyGuard {
             let throwAwayComponent = ThrowAwayComponent()
             return throwAwayComponent.resetGuards().guard
         }
         
         struct TestSyncGuard: SyncGuard, Equatable {
-            let id: UUID = UUID()
+            let id = UUID()
             
             func check() {}
         }
         
-        let guards: [LazyGuard] = [{ AnyGuard(TestSyncGuard()) }, { AnyGuard(TestSyncGuard()) }]
+        let guards: [LazyGuard] = [ { AnyGuard(TestSyncGuard()) }, { AnyGuard(TestSyncGuard()) }]
         XCTAssertEqual(guards.allActiveGuards.count, 2)
         guards.allActiveGuards.forEach {
             XCTAssertEqual($0().guardType, ObjectIdentifier(TestSyncGuard.self))
         }
         
-        let resettedGuards: [LazyGuard] = [{ AnyGuard(TestSyncGuard()) }, { AnyGuard(TestSyncGuard()) }, getResetGuard()]
+        let resettedGuards: [LazyGuard] = [ { AnyGuard(TestSyncGuard()) }, { AnyGuard(TestSyncGuard()) }, getResetGuard()]
         XCTAssertEqual(resettedGuards.allActiveGuards.count, 0)
         
         
-        let onlyOneGuard: [LazyGuard] = [{ AnyGuard(TestSyncGuard()) }, getResetGuard(), { AnyGuard(TestSyncGuard()) }]
+        let onlyOneGuard: [LazyGuard] = [ { AnyGuard(TestSyncGuard()) }, getResetGuard(), { AnyGuard(TestSyncGuard()) }]
         XCTAssertEqual(onlyOneGuard.allActiveGuards.count, 1)
         onlyOneGuard.allActiveGuards.forEach {
             XCTAssertEqual($0().guardType, ObjectIdentifier(TestSyncGuard.self))
