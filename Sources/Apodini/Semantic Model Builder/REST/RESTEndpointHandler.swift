@@ -9,7 +9,7 @@ import protocol FluentKit.Database
 extension Vapor.Request: ExporterRequest, WithEventLoop {}
 
 struct ResponseContainer: Encodable, ResponseEncodable {
-    var data: AnyEncodable
+    var data: AnyEncodable?
     var links: [String: String]
 
     enum CodingKeys: String, CodingKey {
@@ -17,8 +17,8 @@ struct ResponseContainer: Encodable, ResponseEncodable {
         case links = "_links"
     }
 
-    init(_ data: Encodable, links: [String: String]) {
-        self.data = AnyEncodable(value: data)
+    init(_ data: AnyEncodable?, links: [String: String]) {
+        self.data = data
         self.links = links
     }
 
@@ -29,7 +29,9 @@ struct ResponseContainer: Encodable, ResponseEncodable {
 
         let response = Response()
         do {
-            try response.content.encode(self, using: jsonEncoder)
+            if data != nil {
+                try response.content.encode(self, using: jsonEncoder)
+            }
         } catch {
             return request.eventLoop.makeFailedFuture(error)
         }
@@ -60,8 +62,16 @@ struct RESTEndpointHandler<H: Handler> {
             links[relationship.name] = uriPrefix + relationship.destinationPath.joinPathComponents()
         }
 
-        return response.flatMapThrowing { encodable in
-            ResponseContainer(encodable, links: links)
+        return response.flatMapThrowing { encodableAction in
+            switch encodableAction {
+            case let .send(element),
+                 let .final(element):
+                return ResponseContainer(element, links: links)
+            case .nothing, .end:
+                // nothing to encode,
+                // so leave the response body empty
+                return ResponseContainer(nil, links: links)
+            }
         }
     }
 }

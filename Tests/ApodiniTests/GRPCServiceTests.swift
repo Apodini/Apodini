@@ -30,7 +30,7 @@ final class GRPCServiceTests: XCTestCase {
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
         let service = GRPCService(name: "TestService", using: app)
-        let encodedData = service.encodeResponse(responseString).body.data
+        let encodedData = service.makeResponse(responseString).body.data
         XCTAssertEqual(encodedData, Data(expectedResponseData))
     }
 
@@ -40,7 +40,7 @@ final class GRPCServiceTests: XCTestCase {
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
         let service = GRPCService(name: "TestService", using: app)
-        let encodedData = service.encodeResponse(responseString).body.data
+        let encodedData = service.makeResponse(responseString).body.data
         XCTAssertEqual(encodedData, Data(expectedResponseData))
     }
 
@@ -53,7 +53,7 @@ final class GRPCServiceTests: XCTestCase {
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
         let service = GRPCService(name: "TestService", using: app)
-        let encodedData = service.encodeResponse(response).body.data
+        let encodedData = service.makeResponse(response).body.data
         XCTAssertEqual(encodedData, Data(expectedResponseData))
     }
 }
