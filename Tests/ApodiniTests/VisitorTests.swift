@@ -40,25 +40,30 @@ final class VisitorTests: ApodiniTests {
         #warning("Set up some expectations")
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [SharedSemanticModelBuilder(app).with(exporter: RESTInterfaceExporter.self)])
         TestWebService().accept(visitor)
+        visitor.finishParsing()
     }
     
     func testGraphQLVisitor() {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [GraphQLSemanticModelBuilder(app)])
         TestWebService().accept(visitor)
+        visitor.finishParsing()
     }
     
     func testGRPCVisitor() {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [SharedSemanticModelBuilder(app).with(exporter: GRPCInterfaceExporter.self)])
         TestWebService().accept(visitor)
+        visitor.finishParsing()
     }
     
     func testWebSocketVisitor() {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [WebSocketSemanticModelBuilder(app)])
         TestWebService().accept(visitor)
+        visitor.finishParsing()
     }
     
     func testOpenAPIVisitor() {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [OpenAPISemanticModelBuilder(app)])
         TestWebService().accept(visitor)
+        visitor.finishParsing()
     }
 }

@@ -41,7 +41,6 @@ final class GuardTests: ApodiniTests {
         
         try app.test(.GET, "/v2/") { res in
             XCTAssertEqual(res.status, .ok)
-            XCTAssertEqual(res.body.string, "\"Hello\"")
             waitForExpectations(timeout: 0, handler: nil)
         }
     }

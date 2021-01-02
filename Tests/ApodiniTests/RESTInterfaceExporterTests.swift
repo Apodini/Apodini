@@ -115,6 +115,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
             .with(exporter: RESTInterfaceExporter.self)
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
         testService.accept(visitor)
+        visitor.finishParsing()
 
         let userId = "1234"
         let name = "Rudi"

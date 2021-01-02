@@ -109,6 +109,7 @@ final class ContextNodeTests: ApodiniTests {
 
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
         groupWithSingleComponent.accept(visitor)
+        visitor.finishParsing()
     }
     
     
@@ -148,6 +149,7 @@ final class ContextNodeTests: ApodiniTests {
 
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
         groupWithComponentAndGroup.accept(visitor)
+        visitor.finishParsing()
     }
     
     
@@ -186,5 +188,6 @@ final class ContextNodeTests: ApodiniTests {
 
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
         groupWithGroupAndComponent.accept(visitor)
+        visitor.finishParsing()
     }
 }
