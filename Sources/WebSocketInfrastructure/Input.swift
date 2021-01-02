@@ -127,124 +127,29 @@ public struct SomeInput: Input {
     }
 }
 
-
-public enum Mutability {
-    case constant
-    case variable
-}
-
-public enum Necessity {
-    case required
-    case optional
-}
-
-public struct Parameter<T>: InputParameter {
-    private let mutability: Mutability
-    private let necessity: Necessity
+public struct Parameter<Type>: InputParameter {
     
-    private var _interim: T?
-    private var _value: T?
+    private var _interim: Type??
+    private(set) public var value: Type??
     
-    public var value: T? {
-        return shiftOptional(_value)
-    }
-    
-    public init(mutability: Mutability, necessity: Necessity) {
-        self.mutability = mutability
-        self.necessity = necessity
-        self._value = nil
-    }
+    public init() { }
     
     public mutating func update(_ value: Any) -> ParameterUpdateResult {
-        guard let newValue = assert(value, as: T.self) else {
+        if let newValue = value as? Type {
+            self._interim = newValue
+        } else if value is NSNull {
+            self._interim = .some(nil)
+        } else {
             return .error(.badType)
         }
-        
-        guard let oldValue = _value else {
-            self._interim = newValue
-            return .ok
-        }
-        
-        // must check for mutability, because _value has been set before
-        switch self.mutability {
-        case .variable:
-            self._interim = newValue
-            return .ok
-        case .constant:
-            if unsafeEqual(a: newValue, b: oldValue) {
-                return .ok
-            }
-            return .error(.notMutable)
-        }
+        return .ok
     }
     
     public nonmutating func check() -> ParameterCheckResult {
-        if self._interim == nil {
-            switch self.necessity {
-            case .optional:
-                return .ok
-            case .required:
-                return .missing
-            }
-        } else {
-            return .ok
-        }
+        return .ok
     }
     
     public mutating func apply() {
-        self._value = _interim
+        self.value = _interim
     }
-}
-
-
-
-private func unsafeEqual(a: Any, b: Any) -> Bool {
-    let associatedTypeRequirementsVisitor = EquatableVisitorImplementation()
-    if associatedTypeRequirementsVisitor(a) == nil {
-        return false
-    }
-    return associatedTypeRequirementsVisitor(b) ?? false
-}
-
-private class EquatableVisitorImplementation: EquatableVisitor {
-    var firstValue: Any? = nil
-
-    func callAsFunction<T: Equatable>(_ value: T) -> Bool {
-        if let first = firstValue {
-            if let firstAsT = first as? T {
-                return firstAsT == value
-            } else {
-                return false
-            }
-        } else {
-            firstValue = value
-            return false
-        }
-    }
-}
-
-private func assert<T>(_ value: Any, as type: T.Type = T.self) -> T? {
-    if let asserted = value as? T {
-        return asserted
-    }
-    
-    if value is NSNull {
-        if let o = T.self as? ExpressibleByNilLiteral.Type {
-            return Optional<T>.some(o.init(nilLiteral: ()) as! T)
-        }
-    }
-    
-    return nil
-}
-
-private func shiftOptional<T>(_ value: T?) -> T? {
-    if let nonNilValue = value {
-        return nonNilValue
-    }
-    
-    if let o = T.self as? ExpressibleByNilLiteral.Type {
-        return Optional<T>.some(o.init(nilLiteral: ()) as! T)
-    }
-    
-    return nil
 }

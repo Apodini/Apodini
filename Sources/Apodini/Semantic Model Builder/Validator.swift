@@ -165,9 +165,8 @@ extension ParameterRepresentative: Validator {
     typealias Output = Any
     
     mutating func validate(_ request: E.ExporterRequest, with input: Void) throws -> Any {
-        let value: Any?? = try exporter.retrieveParameter(self.definition, for: request)
+        let typedValue: Type?? = try exporter.retrieveParameter(self.definition, for: request)
         
-        let typedValue = try checkType(of: value)
         try checkNecessity(of: typedValue)
         let result = try checkNullability(of: typedValue)
         try checkMutability(of: typedValue)
@@ -198,13 +197,6 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
     
     private var _initialValueBackup: Type??
     private var initialValue: Type??
-    
-    func checkType(of value: Any??) throws -> Type?? {
-        guard let typedValue = value as? Type?? else {
-            throw InputValidationError.some("Did receive input of wrong type for parameter '\(definition.description)'.")
-        }
-        return typedValue
-    }
     
     func checkNecessity(of value: Type??) throws {
         if value == nil {

@@ -73,7 +73,7 @@ protocol InterfaceExporter {
     /// - Returns: The retrieved value, nil if `ExporterRequest` didn't contain a value for the given `EndpointParameter`
     ///     or "explicit nil" using `Type?(nil)`.
     /// - Throws: Any Apodini Error or any other error happening while decoding.
-    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Any??
+    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type??
 }
 
 // MARK: Interface Exporter Visitor

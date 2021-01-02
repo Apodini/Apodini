@@ -11,7 +11,7 @@
 import OpenCombine
 @_implementationOnly import Runtime
 
-extension AnyInput: ExporterRequest { }
+extension SomeInput: ExporterRequest { }
 
 
 class WebSocketInterfaceExporter: InterfaceExporter {
@@ -25,9 +25,13 @@ class WebSocketInterfaceExporter: InterfaceExporter {
     }
     
     func export<C: Component>(_ endpoint: Endpoint<C>) {
-        let defaultInput = AnyInput()
+        let inputParameters: [(String, InputParameter)] = endpoint.exportParameters(on: self)
+        
+        let defaultInput = SomeInput(parameters: inputParameters.reduce(into: [String: InputParameter](), { result, parameter in
+            result[parameter.0] = parameter.1
+        }))
 
-        self.router.register({ (input: AnyPublisher<AnyInput, Never>, eventLoop: EventLoop, database: Database?) -> (defaultInput: AnyInput, output: AnyPublisher<Message<AnyEncodable>, Error>) in
+        self.router.register({ (input: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, database: Database?) -> (defaultInput: SomeInput, output: AnyPublisher<Message<AnyEncodable>, Error>) in
             let defaultInput = defaultInput
             
             let context = endpoint.createConnectionContext(for: self)
@@ -56,50 +60,15 @@ class WebSocketInterfaceExporter: InterfaceExporter {
         }, on: WebSocketPathBuilder(endpoint.absolutePath).pathIdentifier)
     }
     
-    func retrieveParameter<Type>(_ parameter: EndpointParameter<Type>, for request: AnyInput) throws -> Any?? where Type : Decodable, Type : Encodable {
-        if let value = request.parameters[parameter.name] {
-            return .some(value)
-        }
-        return nil
-    }
-}
-
-// MARK: Input Helpers
-fileprivate extension SomeInput {
-    class WebSocketInputExtractor: EndpointParameterVisitor {
-        func visit<Element>(parameter: EndpointParameter<Element>) -> InputParameter where Element : Decodable, Element : Encodable {
-            parameter.input()
+    func retrieveParameter<Type>(_ parameter: EndpointParameter<Type>, for request: SomeInput) throws -> Type?? where Type : Decodable, Type : Encodable {
+        if let inputParameter = request.parameters[parameter.name] as? WebSocketInfrastructure.Parameter<Type> {
+            return inputParameter.value
+        } else {
+            return nil
         }
     }
     
-    
-    init<C: Component>(from endpoint: Endpoint<C>, with parameterNames: [UUID: String]) {
-        let extractor = WebSocketInputExtractor()
-        self.init(parameters: endpoint.parameters.reduce(into: [String: InputParameter](), { (result, endpointParameter) in
-            if let name = parameterNames[endpointParameter.id] {
-                result[name] = endpointParameter.accept(extractor)
-            }
-        }))
-    }
-}
-
-fileprivate extension EndpointParameter {
-    func input() -> InputParameter {
-        let m: WebSocketInfrastructure.Mutability = self.options.option(for: .mutability) == .constant ? .constant : .variable
-
-//        switch self.necessity {
-//        case .optional:
-//
-//        case .required:
-//
-//        }
-        
-//        if Element.self is ExpressibleByNilLiteral.Type || self.defaultValue != nil {
-//            return WebSocketInfrastructure.Parameter<Element>(mutability: m, necessity: .optional)
-//        } else  {
-//            return WebSocketInfrastructure.Parameter<Element>(mutability: m, necessity: .required)
-//        }
-        
-        return WebSocketInfrastructure.Parameter<Type>(mutability: m, necessity: .optional)
+    func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, InputParameter) where Type : Decodable, Type : Encodable {
+        (parameter.name, WebSocketInfrastructure.Parameter<Type>())
     }
 }
