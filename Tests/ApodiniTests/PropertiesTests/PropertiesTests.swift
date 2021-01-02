@@ -15,7 +15,7 @@ final class PropertiesTests: ApodiniTests {
             ("number", Parameter<Int>(wrappedValue: 42)),
             ("anOtherNumber", Parameter<Int>(wrappedValue: 0)),
             ("string", Parameter<String>(wrappedValue: "Paul")),
-            ("enironment",  Apodini.Environment(\.database))
+            ("enironment", Apodini.Environment(\.database))
         ]
         
         let properties = Apodini.Properties(elements)
