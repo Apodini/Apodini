@@ -1,6 +1,6 @@
 //
 //  TestWebService.swift
-//  
+//
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
@@ -8,22 +8,23 @@
 @testable import Apodini
 import Vapor
 import NIO
+import Runtime
 
 
 struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
         private let message: String?
         @_Request
-        var request: Vapor.Request
+        var request: Apodini.Request
         
         
         init(_ message: String? = nil) {
             self.message = message
         }
         
-        
+
         func check() {
-            request.logger.info("\(message?.description ?? request.description)")
+            print("\(message?.description ?? request.description)")
         }
     }
     
@@ -40,15 +41,29 @@ struct TestWebService: Apodini.WebService {
             "\(emojis) \(response) \(emojis)"
         }
     }
+
+    struct Person: Codable {
+        var name: String
+        var age: Int32
+    }
     
-    struct Greeter: Component {
-        @UselessWrapper var name: String?
-        var dynamics: Dynamics = ["surname": Parameter<String?>()]
-        
+    struct Greeter: Handler {
+        @Properties
+        var properties: [String: Apodini.Property] = ["surname": Parameter<String?>()]
+
+        @Parameter(.http(.path))
+        var name: String
+
+        @Parameter
+        var greet: String?
+
+        @Parameter
+        var father: Person
+
         func handle() -> String {
-            let surnameParameter: Parameter<String?>? = dynamics.surname
-            
-            return (name ?? "Unknown") + " " + (surnameParameter?.wrappedValue ?? "Unknown")
+            let surnameParameter: Parameter<String?>? = _properties.typed(Parameter<String?>.self)["surname"]
+
+            return "\(greet ?? "Hello") \(name) " + (surnameParameter?.wrappedValue ?? "Unknown") + ", child of \(father.name)"
         }
     }
     
@@ -60,12 +75,21 @@ struct TestWebService: Apodini.WebService {
             name
         }
     }
-    
-    @PathParameter
-    var birdID: Bird.IDValue
-    
-    @PathParameter
-    var dummy: String
+
+    struct User: Codable {
+        var id: Int
+    }
+
+    struct UserHandler: Handler {
+        @Parameter var userId: Int
+
+        func handle() -> User {
+            User(id: userId)
+        }
+    }
+
+    @PathParameter var userId: Int
+    @PathParameter var dummy: String
     
     var content: some Component {
         Text("Hello World! 👋")
@@ -82,6 +106,13 @@ struct TestWebService: Apodini.WebService {
         }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
         Group("greet") {
             Greeter()
+                .serviceName("GreetService")
+                .rpcName("greetMe")
+                .operation(.read)
+        }
+        Group("user", $userId) {
+            UserHandler(userId: $userId)
+                .guard(PrintGuard())
         }
         Group("api", "birds") {
             Read<Bird>($dummy)
@@ -97,6 +128,7 @@ struct TestWebService: Apodini.WebService {
     var configuration: Configuration {
         DatabaseConfiguration(.defaultMongoDB(Environment.get("DATABASE_URL") ?? "mongodb://localhost:27017/vapor_database"))
             .addMigrations(CreateBird())
+        HTTP2Configuration()
     
     }
 }

@@ -50,6 +50,12 @@ internal class InternalProtoDecoder: Decoder {
 
         // points to the byte we want to read next
         var readIndex = 0
+        // jump over any leading zero-bytes
+        while readIndex < from.count,
+              from[readIndex] == UInt8(0) {
+            readIndex += 1
+        }
+        // start reading the non-zero bytes
         while readIndex < from.count {
             // byte contains: 5 bits of field tag, 3 bits of field data type
             let byte = from[readIndex]
@@ -74,7 +80,8 @@ internal class InternalProtoDecoder: Decoder {
                     entries[index].append(value)
                 }
             } catch {
-                print("Unable for decode field with tag=\(fieldTag) and type=\(fieldType). Stop decoding.")
+                print("Unable to decode field with tag=\(fieldTag) and type=\(fieldType). Stop decoding.")
+                return
             }
         }
     }

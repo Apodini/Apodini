@@ -13,15 +13,16 @@ import Vapor
 final class GuardTests: XCTestCase {
     struct TestGuard: SyncGuard {
         @_Request
-        var request: Vapor.Request
+        var request: Apodini.Request
         
         func check() {
-            request.logger.info("Execute Guard")
+            // To Do: fix this
+            print("Execute Guard for \(request)")
         }
     }
     
     
-    var component: some Component {
+    var component: some Handler {
         Text("Hallo")
             .operation(.read)
             .guard(TestGuard())
@@ -30,6 +31,6 @@ final class GuardTests: XCTestCase {
     
     func testPrintComponent() {
         let printVisitor = PrintVisitor()
-        component.visit(printVisitor)
+        component.accept(printVisitor)
     }
 }

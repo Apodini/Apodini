@@ -5,9 +5,11 @@
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 
-import Vapor
+import class Vapor.Application
+import struct Vapor.Environment
 import Fluent
 import FluentMongoDriver
+
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
 public protocol WebService: Component, ConfigurationCollection {
@@ -31,9 +33,10 @@ extension WebService {
             let webService = Self()
 
             webService.register(
-                SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self),
+                SharedSemanticModelBuilder(app)
+                    .with(exporter: RESTInterfaceExporter.self)
+                    .with(exporter: GRPCInterfaceExporter.self),
                 GraphQLSemanticModelBuilder(app),
-                GRPCSemanticModelBuilder(app),
                 WebSocketSemanticModelBuilder(app)
             )
 
@@ -73,6 +76,6 @@ extension WebService {
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
         Group {
             content
-        }.visit(visitor)
+        }.accept(visitor)
     }
 }

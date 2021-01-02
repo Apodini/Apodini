@@ -1,17 +1,18 @@
 import Foundation
 import Fluent
 
-public struct Create<T: DatabaseModel>: Component {
+public struct Create<T: DatabaseModel>: Handler {
     
-    @_Database
+    @Apodini.Environment(\.database)
     var database: Fluent.Database
     
     @Parameter
     var object: T
 
-    public func handle() -> EventLoopFuture<T> {
-        return object.save(on: database).map({ _ in
+    public func handle() -> String {
+        object.save(on: database).map({ _ in
             self.object
         })
+        return "Created"
     }
 }

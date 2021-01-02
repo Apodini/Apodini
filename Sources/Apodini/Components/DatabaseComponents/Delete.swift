@@ -1,19 +1,21 @@
 import Foundation
 import Fluent
-import Vapor
+@_implementationOnly import Vapor
 
-public struct Delete<T: DatabaseModel>: Component {
+public struct Delete<T: DatabaseModel>: Handler {
     
-    @_Database
+    @Apodini.Environment(\.database)
     var database: Fluent.Database
 
     @Parameter
     var id: T.IDValue
     
-    public func handle() -> EventLoopFuture<HTTPStatus> {
-        return T.find(id, on: database)
+//    public func handle() -> EventLoopFuture<HTTPStatus> {
+    public func handle() -> String {
+        T.find(id, on: database)
             .unwrap(orError: Abort(.notFound))
             .flatMap({ $0.delete(on: database )})
-            .map({ .ok })
+            .map({ HTTPStatus.ok })
+        return "ok"
     }
 }

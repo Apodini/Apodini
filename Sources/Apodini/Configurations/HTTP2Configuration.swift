@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Vapor
+import class Vapor.Application
 import NIOSSL
 
 /// A `Configuration` for HTTP/2 and TLS.

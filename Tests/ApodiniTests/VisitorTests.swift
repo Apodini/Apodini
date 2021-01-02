@@ -18,7 +18,8 @@ final class VisitorTests: XCTestCase {
     }
     
     struct TestWebService: Apodini.WebService {
-        @ComponentBuilder var content: some Component {
+        @ComponentBuilder
+        var content: some Component {
             Group("Test") {
                 Text("Hallo Bernd")
                     .operation(.update)
@@ -53,31 +54,31 @@ final class VisitorTests: XCTestCase {
     
     func testPrintVisitor() {
         let printVisitor = PrintVisitor()
-        TestWebService().visit(printVisitor)
+        TestWebService().accept(printVisitor)
     }
     
     func testRESTVisitor() {
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self)])
-        TestWebService().visit(visitor)
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [SharedSemanticModelBuilder(app).with(exporter: RESTInterfaceExporter.self)])
+        TestWebService().accept(visitor)
     }
     
     func testGraphQLVisitor() {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [GraphQLSemanticModelBuilder(app)])
-        TestWebService().visit(visitor)
+        TestWebService().accept(visitor)
     }
     
     func testGRPCVisitor() {
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [GRPCSemanticModelBuilder(app)])
-        TestWebService().visit(visitor)
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [SharedSemanticModelBuilder(app).with(exporter: GRPCInterfaceExporter.self)])
+        TestWebService().accept(visitor)
     }
     
     func testWebSocketVisitor() {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [WebSocketSemanticModelBuilder(app)])
-        TestWebService().visit(visitor)
+        TestWebService().accept(visitor)
     }
     
     func testOpenAPIVisitor() {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [OpenAPISemanticModelBuilder(app)])
-        TestWebService().visit(visitor)
+        TestWebService().accept(visitor)
     }
 }

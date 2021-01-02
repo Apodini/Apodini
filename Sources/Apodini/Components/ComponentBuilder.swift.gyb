@@ -7,34 +7,39 @@
 
 @_functionBuilder
 public struct ComponentBuilder {
-    public static func buildBlock() -> EmptyComponent {
-        EmptyComponent()
+    public static func buildIf<T: Component>(_ component: T?) -> T? {
+        return component
     }
     
-    public static func buildBlock<Content>(_ content: Content) -> Content where Content: Component {
-        content
+    public static func buildBlock<T: Component>(_ arg0: T) -> T {
+        return arg0
     }
 
-    % for numberOfComponents in range(2, maximumNumberOfComponents + 1):
-    %{ componentGenerics = ", ".join(["C" + str(i) + " : Component" for i in range(1, numberOfComponents + 1)]) }%
-    %{ arguments = ", ".join(["_ c" + str(i) + ": C" + str(i) + "" for i in range(1, numberOfComponents + 1)]) }%
-    %{ tupleGenerics = ", ".join(["C" + str(i) + "" for i in range(1, numberOfComponents + 1)]) }%
-    %{ components = ", ".join(["c" + str(i) for i in range(1, numberOfComponents + 1)]) }%
-    public static func buildBlock<${componentGenerics}>(${arguments}) -> TupleComponent<(${tupleGenerics})> {
-        return TupleComponent((${components}))
+    public static func buildEither<T: Component>(first: T) -> T {
+        return first
+    }
+    
+    public static func buildEither<T: Component>(second: T) -> T {
+        return second
     }
 
+    public static func buildIf<T: Component>(first: T) -> T {
+        return first
+    }
+
+    % for num_components in range(2, maximumNumberOfComponents):
+%{
+        indices = range(0, num_components)
+        generic_names_in = ['T{}'.format(idx) for idx in indices]
+        generics = ', '.join(['{}: Component'.format(name) for name in generic_names_in])
+        generic_names_out = ['T{}'.format(idx) for idx in indices]
+        param_names = ['arg{}'.format(idx) for idx in indices]
+        params = ', '.join(['_ {}: {}'.format(param, type) for param, type in zip(param_names, generic_names_in)])
+        tuple_ctor_args = param_names
+}%
+    public static func buildBlock<${generics}>(${params}) -> some Component {
+        return TupleComponent<(${', '.join(generic_names_out)})>((${', '.join(tuple_ctor_args)}))
+    }
+    
     % end
-    
-    public static func buildEither<C: Component>(first: C) -> C {
-        first
-    }
-    
-    public static func buildEither<C: Component>(second: C) -> C {
-        second
-    }
-    
-    public static func buildIf<C: Component>(_ component: C?) -> C? {
-        component
-    }
 }

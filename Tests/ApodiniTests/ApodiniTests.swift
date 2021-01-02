@@ -7,14 +7,14 @@
 
 import XCTVapor
 import FluentSQLiteDriver
+@testable import Apodini
 
 class ApodiniTests: XCTestCase {
     // Vapor Application
-    var app: Vapor.Application = Application(.testing)
+    lazy var app: Vapor.Application = Application(.testing)
     // Model Objects
     var bird1 = Bird(name: "Swift", age: 5)
     var bird2 = Bird(name: "Corvus", age: 1)
-    
     
     override func setUpWithError() throws {
         try super.setUpWithError()
@@ -28,12 +28,14 @@ class ApodiniTests: XCTestCase {
             isDefault: true
         )
         
+        EnvironmentValues.shared.database = try database()
+        
         app.migrations.add(
-            CreateBird()
+            CreateBird(),
+            DeviceMigration()
         )
         
         try app.autoMigrate().wait()
-        
         
         try bird1.create(on: database()).wait()
         try bird2.create(on: database()).wait()

@@ -1,33 +1,35 @@
 import Foundation
 import Fluent
 
-public struct Read<Model: DatabaseModel>: Component where Model.IDValue: LosslessStringConvertible {
+public struct Read<Model: DatabaseModel>: Handler where Model.IDValue: LosslessStringConvertible {
     
-    @_Database
+    @Apodini.Environment(\.database)
     var database: Fluent.Database
     
     @Parameter var dummy: String
 
-    @Dynamics var dynamics: [String: Parameter<String>]
+    @Properties var dynamics: [String: Apodini.Property]
     
     
     public init(_ dummy: Parameter<String>) {
         self._dummy = dummy
-        var dynamicValues: [String: Parameter<String>] = [:]
+        var dynamicValues: [String: Parameter<String?>] = [:]
         let infos = QueryBuilder.info(for: Model.self)
         for info in infos {
-            dynamicValues[info.key.description] = Parameter<String>(.database(info))
+            dynamicValues[info.key.description] = Parameter<String?>(.database(info))
         }
-        _dynamics = Dynamics(wrappedValue: dynamicValues)
+        _dynamics = Properties(wrappedValue: dynamicValues)
     }
 
-    public func handle() -> EventLoopFuture<[Model]> {
-        let queryInfo: [FieldKey: String] = dynamics
+//    public func handle() -> EventLoopFuture<[Model]> {
+    public func handle() -> String {
+        let queryInfo: [FieldKey: String] = _dynamics.typed(Parameter<String?>.self)
             .reduce(into: [FieldKey: String?](), { result, entry in
-                result[Model.fieldKey(for: entry.key)] = entry.value.wrappedValue
+                result[Model.fieldKey(for: entry.0)] = entry.1.wrappedValue
             })
             .compactMapValues({ $0 })
         let queryBuilder = Apodini.QueryBuilder(type: Model.self, parameters: queryInfo)
-        return queryBuilder.execute(on: database)
+        queryBuilder.execute(on: database)
+        return queryInfo.debugDescription
     }
 }
