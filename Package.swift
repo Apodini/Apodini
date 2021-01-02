@@ -60,8 +60,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
-                .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
-                .product(name: "CwlPosixPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.linux]))
+                .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS]))
             ]
         ),
         .testTarget(

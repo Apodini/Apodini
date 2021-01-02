@@ -5,13 +5,10 @@
 //  Created by Paul Schmiedmayer on 1/2/21.
 //
 
+
+import XCTest
 #if canImport(CwlPreconditionTesting)
 import CwlPreconditionTesting
-#endif
-#if canImportCwlPosixPreconditionTesting
-import CwlPosixPreconditionTesting
-#endif
-import XCTest
 
 func XCTAssertRuntimeFailure(
     _ expression: @escaping @autoclosure () -> Void,
@@ -24,3 +21,13 @@ func XCTAssertRuntimeFailure(
     }
     XCTFail(message(), file: file, line: line)
 }
+#else
+func XCTAssertRuntimeFailure(
+    _ expression: @escaping @autoclosure () -> Void,
+    _ message: @autoclosure () -> String = "",
+    file: StaticString = #filePath,
+    line: UInt = #line)
+{
+    // Empty implementation for Linux Tests
+}
+#endif
