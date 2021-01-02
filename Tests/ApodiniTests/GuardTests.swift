@@ -36,7 +36,7 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        TestWebService._main(app: app)
+        TestWebService.main(app: app)
         
         
         try app.test(.GET, "/v2/") { res in

@@ -32,7 +32,7 @@ final class ModifierTests: ApodiniTests {
             }
         }
         
-        TestWebService._main(app: app)
+        TestWebService.main(app: app)
         #warning("Set up some expectations!")
     }
     
@@ -58,7 +58,7 @@ final class ModifierTests: ApodiniTests {
             }
         }
         
-        TestWebService._main(app: app)
+        TestWebService.main(app: app)
         #warning("Set up some expectations!")
     }
 }

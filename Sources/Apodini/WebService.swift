@@ -26,15 +26,16 @@ extension WebService {
     public static func main() {
         do {
             #if DEBUG
-            var env = try Vapor.Environment.detect(arguments: [CommandLine.arguments.first ?? ".", "serve", "--env", "development", "--hostname", "0.0.0.0", "--port", "8080"])
+            let arguments = [CommandLine.arguments.first ?? ".", "serve", "--env", "development", "--hostname", "0.0.0.0", "--port", "8080"]
             #else
-            var env = try Vapor.Environment.detect(arguments: [CommandLine.arguments.first ?? ".", "serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8080"])
+            let arguments = [CommandLine.arguments.first ?? ".", "serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8080"]
             #endif
             
+            var env = try Vapor.Environment.detect(arguments: arguments)
             try LoggingSystem.bootstrap(from: &env)
             let app = Application(env)
             
-            _main(app: app)
+            main(app: app)
             
             defer {
                 app.shutdown()
@@ -47,7 +48,7 @@ extension WebService {
     
     /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.main()` to startup an Apodini `WebService`.
     /// - Parameter app: The app instance that should be injected in the Apodini `WebService`
-    static func _main(app: Vapor.Application) {
+    internal static func main(app: Vapor.Application) {
         let webService = Self()
 
         webService.configuration.configure(app)
