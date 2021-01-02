@@ -49,6 +49,40 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
             "Hello Test Handler 3"
         }
     }
+
+    struct TestHandler4: Handler {
+        func handle() -> String {
+            "Hello Test Handler 4"
+        }
+    }
+
+    struct ActionHandler1: Handler {
+        @Apodini.Environment(\.connection)
+        var connection: Connection
+
+        func handle() -> Action<String> {
+            switch connection.state {
+            case .open:
+                return .send("Send")
+            default:
+                return .final("Final")
+            }
+        }
+    }
+
+    struct ActionHandler2: Handler {
+        @Apodini.Environment(\.connection)
+        var connection: Connection
+
+        func handle() -> Action<String> {
+            switch connection.state {
+            case .open:
+                return .nothing
+            default:
+                return .end
+            }
+        }
+    }
     
     struct TestComponent: Component {
         @PathParameter
@@ -110,5 +144,101 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         XCTAssertEqual(nestedEndpoint.absolutePath[1].description, "b")
         XCTAssertEqual(nestedEndpoint.absolutePath[2].description, ":\(nameParameterId.uuidString)")
         XCTAssertEqual(nestedEndpoint.absolutePath[3].description, ":\(someIdParameterId.uuidString)")
+    }
+
+    func testShouldWrapInFinalByDefault() throws {
+        let exporter = RESTInterfaceExporter(app)
+        let handler = TestHandler4()
+        let endpoint = handler.mockEndpoint()
+        let requestHandler = endpoint.createRequestHandler(for: exporter)
+
+        let request = Vapor.Request(application: app,
+                                    method: .GET,
+                                    url: "",
+                                    on: app.eventLoopGroup.next())
+        let expectedString = "Hello Test Handler 4"
+
+        let result = try requestHandler.callAsFunction(request: request).wait()
+        guard case let .final(resultValue) = result else {
+            XCTFail("Expected default to be wrapped in Action.final, but was \(result)")
+            return
+        }
+
+        let resultString = try XCTUnwrap(resultValue.value as? String)
+        XCTAssertEqual(resultString, expectedString)
+    }
+
+    func testActionPassthrough_send() throws {
+        let exporter = RESTInterfaceExporter(app)
+        let handler = ActionHandler1().withEnvironment(Connection(state: .open), for: \.connection)
+        let endpoint = handler.mockEndpoint()
+        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        let request = Vapor.Request(application: app,
+                                    method: .GET,
+                                    url: "",
+                                    on: app.eventLoopGroup.next())
+
+        let result = try requestHandler.callAsFunction(request: request).wait()
+        if case let .send(element) = result {
+            let responseString = try XCTUnwrap(element.value as? String)
+            XCTAssertEqual(responseString, "Send")
+        } else {
+            XCTFail("Expected .send(\"Send\"), but got \(result)")
+        }
+    }
+
+    func testActionPassthrough_final() throws {
+        let exporter = RESTInterfaceExporter(app)
+        let handler = ActionHandler1().withEnvironment(Connection(state: .end), for: \.connection)
+        let endpoint = handler.mockEndpoint()
+        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        let request = Vapor.Request(application: app,
+                                    method: .GET,
+                                    url: "",
+                                    on: app.eventLoopGroup.next())
+
+        let result = try requestHandler.callAsFunction(request: request).wait()
+        if case let .final(element) = result {
+            let responseString = try XCTUnwrap(element.value as? String)
+            XCTAssertEqual(responseString, "Final")
+        } else {
+            XCTFail("Expected .final(\"Final\"), but got \(result)")
+        }
+    }
+
+    func testActionPassthrough_nothing() throws {
+        let exporter = RESTInterfaceExporter(app)
+        let handler = ActionHandler2().withEnvironment(Connection(state: .open), for: \.connection)
+        let endpoint = handler.mockEndpoint()
+        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        let request = Vapor.Request(application: app,
+                                    method: .GET,
+                                    url: "",
+                                    on: app.eventLoopGroup.next())
+
+        let result = try requestHandler.callAsFunction(request: request).wait()
+        if case .nothing = result {
+            XCTAssertTrue(true)
+        } else {
+            XCTFail("Expected .nothing but got \(result)")
+        }
+    }
+
+    func testActionPassthrough_end() throws {
+        let exporter = RESTInterfaceExporter(app)
+        let handler = ActionHandler2().withEnvironment(Connection(state: .end), for: \.connection)
+        let endpoint = handler.mockEndpoint()
+        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        let request = Vapor.Request(application: app,
+                                    method: .GET,
+                                    url: "",
+                                    on: app.eventLoopGroup.next())
+
+        let result = try requestHandler.callAsFunction(request: request).wait()
+        if case .end = result {
+            XCTAssertTrue(true)
+        } else {
+            XCTFail("Expected .end but got \(result)")
+        }
     }
 }

@@ -101,7 +101,11 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         let result = try requestHandler(request: request)
                 .wait()
-        let parametersResult: Parameters = try XCTUnwrap(result as? Parameters)
+        guard case let .final(responseValue) = result else {
+            XCTFail("Expected return value to be wrapped in Action.final by default")
+            return
+        }
+        let parametersResult: Parameters = try XCTUnwrap(responseValue.value as? Parameters)
 
         XCTAssertEqual(parametersResult.param0, "value0")
         XCTAssertEqual(parametersResult.param1, nil)

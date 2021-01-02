@@ -11,70 +11,104 @@ import XCTVapor
 
 
 final class EmojiResponseTransformerTests: ApodiniTests {
-    private static var transformerExpectation: XCTestExpectation?
-            
-    struct EmojiMediator: ResponseTransformer {
-        private let emojis: String
-        
-        
-        init(emojis: String = "✅") {
-            self.emojis = emojis
-        }
-        
-        
-        func transform(response: String) -> String {
-            guard let transformerExpectation = EmojiResponseTransformerTests.transformerExpectation else {
-                fatalError("The test expectation must be set before testing `EmojiMediator`")
-            }
-            transformerExpectation.fulfill()
-            return "\(emojis) \(response) \(emojis)"
-        }
+    private static var emojiTransformerExpectation: XCTestExpectation?
+    private static var helloTransformerExpectation: XCTestExpectation?
+    
+    private struct Content<T: Decodable>: Decodable {
+        let data: T
     }
     
-    struct TestWebService: WebService {
-        var content: some Component {
-            Text("Hello")
-                .response(EmojiMediator())
-            Group("paul") {
-                Text("Hello Paul")
-                    .operation(.update)
-                    .response(EmojiMediator())
-            }
-            Group("bernd") {
-                Text("Hello Bernd")
-                    .response(EmojiMediator())
-                    .operation(.create)
-            }
-        }
+    private func expect<T: Decodable & Comparable>(_ data: T, in response: XCTHTTPResponse) throws {
+        XCTAssertEqual(response.status, .ok)
+        let content = try response.content.decode(Content<T>.self)
+        XCTAssert(content.data == data)
+        waitForExpectations(timeout: 0, handler: nil)
     }
     
     func testResponseMediator() throws {
+        struct EmojiTransformer: ResponseTransformer {
+            private let emojis: String
+            
+            
+            init(emojis: String = "✅") {
+                self.emojis = emojis
+            }
+            
+            
+            func transform(response: String) -> String {
+                guard let transformerExpectation = EmojiResponseTransformerTests.emojiTransformerExpectation else {
+                    fatalError("The test expectation must be set before testing `EmojiTransformer`")
+                }
+                transformerExpectation.fulfill()
+                return "\(emojis) \(response) \(emojis)"
+            }
+        }
+        
+        struct TestWebService: WebService {
+            var content: some Component {
+                Text("Hello")
+                    .response(EmojiTransformer())
+                Group("paul") {
+                    Text("Hello Paul")
+                        .operation(.update)
+                        .response(EmojiTransformer(emojis: "🚀"))
+                }
+                Group("bernd") {
+                    Text("Hello Bernd")
+                        .response(EmojiTransformer())
+                        .operation(.create)
+                }
+            }
+        }
+        
         TestWebService.main(app: app)
         
-        struct Content<T: Decodable>: Decodable {
-            let data: T
-        }
-        
-        func expect<T: Decodable & Comparable>(_ data: T, in response: XCTHTTPResponse) throws {
-            XCTAssertEqual(response.status, .ok)
-            let content = try response.content.decode(Content<T>.self)
-            XCTAssert(content.data == data)
-            waitForExpectations(timeout: 0, handler: nil)
-        }
-        
-        EmojiResponseTransformerTests.transformerExpectation = self.expectation(description: "ResponseTransformer is exectured")
+        EmojiResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is exectured")
         try app.test(.GET, "/v1/") { res in
             try expect("✅ Hello ✅", in: res)
         }
         
-        EmojiResponseTransformerTests.transformerExpectation = self.expectation(description: "ResponseTransformer is exectured")
+        EmojiResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is exectured")
         try app.test(.PUT, "/v1/paul/") { res in
-            try expect("✅ Hello Paul ✅", in: res)
+            try expect("🚀 Hello Paul 🚀", in: res)
         }
         
-        EmojiResponseTransformerTests.transformerExpectation = self.expectation(description: "ResponseTransformer is exectured")
+        EmojiResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is exectured")
         try app.test(.POST, "/v1/bernd/") { res in
             try expect("✅ Hello Bernd ✅", in: res)
+        }
+    }
+    
+    func testActionShouldAllowResponseModifierOnWrappedType() throws {
+        struct HelloResponseTransformer: ResponseTransformer {
+            func transform(response: String) -> String {
+                guard let transformerExpectation = EmojiResponseTransformerTests.helloTransformerExpectation else {
+                    fatalError("The test expectation must be set before testing `EmojiTransformer`")
+                }
+                transformerExpectation.fulfill()
+                
+                return "Hello \(response)"
+            }
+        }
+
+        struct TestHandler: Handler {
+            func handle() -> Action<String> {
+                .final("Paul")
+            }
+        }
+
+        struct TestWebService: WebService {
+            var content: some Component {
+                TestHandler()
+                    .response(HelloResponseTransformer())
+            }
+        }
+
+        TestWebService.main(app: app)
+        
+        EmojiResponseTransformerTests.helloTransformerExpectation = self.expectation(description: "HelloResponseTransformer is exectured")
+        try app.test(.GET, "/v1/") { res in
+            try expect("Hello Paul", in: res)
         }
     }
 }

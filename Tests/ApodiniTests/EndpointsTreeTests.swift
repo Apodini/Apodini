@@ -123,7 +123,11 @@ final class EndpointsTreeTests: ApodiniTests {
         // handle a request (The actual request is unused in the MockExporter)
         let response = try requestHandler(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
-        let responseString: String = try XCTUnwrap(response as? String)
+        guard case let .final(responseValue) = response else {
+            XCTFail("Expected return value to be wrapped in Action.final by default")
+            return
+        }
+        let responseString: String = try XCTUnwrap(responseValue.value as? String)
 
         XCTAssertEqual(responseString, "✅ Hello \(name) ✅")
     }
