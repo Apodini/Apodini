@@ -28,6 +28,6 @@ class ComponentTests: XCTestCase {
         struct NoComponent {}
         let failingTupleComponent = TupleComponent((NoComponent(), NoComponent()))
         let syntaxTreeVisitor = SyntaxTreeVisitor()
-        XCTAssertRuntimeFailure(failingTupleComponent.accept(syntaxTreeVisitor))  
+        XCTAssertRuntimeFailure(failingTupleComponent.accept(syntaxTreeVisitor))
     }
 }
