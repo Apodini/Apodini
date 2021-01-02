@@ -9,7 +9,7 @@ import OpenAPIKit
 final class OpenAPIPathsObjectBuilderTests: XCTestCase {
 
 
-    struct SomeComp: Component {
+    struct SomeComp: Handler {
         @Parameter(.http(.query))
         var name: String
 

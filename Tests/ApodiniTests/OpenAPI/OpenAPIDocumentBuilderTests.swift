@@ -13,7 +13,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
         var someProp = 4
     }
 
-    struct SomeComp: Component {
+    struct SomeComp: Handler {
         @Parameter
         var name: String
 
