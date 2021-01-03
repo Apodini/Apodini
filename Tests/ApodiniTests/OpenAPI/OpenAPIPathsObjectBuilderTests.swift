@@ -10,8 +10,28 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
     struct SomeComp: Handler {
         @Parameter(.http(.query)) var name: String
 
+        @Parameter(.http(.path)) var id: String
+
         func handle() -> String {
             "Hello \(name)!"
+        }
+    }
+
+    struct SomeStruct: Codable {
+        var id = 1
+        var someProp = "somesome"
+    }
+
+    struct ResponseStruct: Codable {
+        var someResponse = "response"
+        var someCount: Int?
+    }
+
+    struct ComplexComp: Handler {
+        @Parameter var someStruct: SomeStruct
+
+        func handle() -> ResponseStruct {
+            ResponseStruct()
         }
     }
 
@@ -40,23 +60,48 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         XCTAssertEqual(builder.path, OpenAPI.Path(stringLiteral: "test/{pathParam}"))
     }
 
-    func testAddPathItem() {
+    func testAddPathItemOperationParams() {
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         let comp = SomeComp()
         var endpoint = comp.mockEndpoint()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
         let endpointTreeNode = EndpointsTreeNode(path: RootPath())
+        endpointTreeNode.addEndpoint(&endpoint, at: ["test/{pathParam}"])
+        pathsObjectBuilder.addPathItem(from: endpoint)
+        let path = OpenAPI.Path(stringLiteral: "test/{pathParam}")
+        let queryParam = Either.parameter(name: "name", context: .query, schema: .string, description: "@Parameter var name: String")
+        let pathParam = Either.parameter(name: "id", context: .path, schema: .string, description: "@Parameter var id: String")
+
+        XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
+        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains(key: path))
+        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in
+            key == path && ((value.get?.parameters.contains(queryParam)) != nil) && ((value.get?.parameters.contains(pathParam)) != nil)
+        })
+    }
+
+    func testAddPathItemWithRequestBodyAndResponseStruct() {
+        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
+        let endpointTreeNode = EndpointsTreeNode(path: RootPath())
+        let comp = ComplexComp()
+        var endpoint = comp.mockEndpoint()
         endpointTreeNode.addEndpoint(&endpoint, at: ["test"])
         pathsObjectBuilder.addPathItem(from: endpoint)
         let path = OpenAPI.Path(stringLiteral: "/test")
+
         let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
-                parameters: [
-                    Either.parameter(name: "name", context: .query, schema: .string, description: "@Parameter var name: String")
-                ],
-                requestBody: nil,
+                parameters: [],
+                requestBody: OpenAPI.Request(
+                        description: "@Parameter var someStruct: SomeStruct",
+                        content: [
+                            .json: .init(schema: .reference(.component(named: "SomeStruct")))
+                        ]
+                ),
                 responses: [
                     .status(code: 200): .init(
-                            OpenAPI.Response(description: "OK", content: [.txt: .init(schema: .string)])),
+                            OpenAPI.Response(description: "OK", content: [
+                                .json: .init(schema: .reference(.component(named: "ResponseStruct")))
+                            ])),
                     .status(code: 401): .init(
                             OpenAPI.Response(description: "Unauthorized")),
                     .status(code: 403): .init(
@@ -73,6 +118,6 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in
             key == path && value == pathItem
         })
-        XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 0)
+        XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 2)
     }
 }
