@@ -9,7 +9,7 @@
 import Vapor
 import NIO
 import Runtime
-import Database
+import ApodiniDatabase
 
 struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
