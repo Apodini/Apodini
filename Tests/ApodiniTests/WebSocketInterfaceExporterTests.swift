@@ -89,7 +89,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
             "bird": NullableOptionalVariableParameter<Bird>(),
             "a": NullableOptionalVariableParameter<UUID>(),
             "param0": NullableOptionalVariableParameter<String>(),
-            "pathA": NullableOptionalVariableParameter<String>(),
+            "pathA": NullableOptionalVariableParameter<String>()
         ])
         
         _ = input.update("bird", using: bird.mockDecoder())
@@ -133,11 +133,11 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         WebSocket.connect(
             to: "ws://localhost:8080/apodini/websocket",
             on: app.eventLoopGroup.next()
-        ) { ws in
+        ) { websocket in
             let contextId = UUID()
             
             // create context on user endpoint
-            ws.send("""
+            websocket.send("""
                 {
                     "context": "\(contextId.uuidString)",
                     "endpoint": "user.::"
@@ -145,7 +145,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
             """)
             
             // send request
-            ws.send("""
+            websocket.send("""
                 {
                     "context": "\(contextId.uuidString)",
                     "parameters": {
@@ -155,24 +155,32 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
                 }
             """)
             
-            ws.onText { ws, string in
-                // await response
-                print(string)
-                let wrappedUser = try! JSONDecoder().decode(DecodedResponseContainer<User>.self, from: string.data(using: .utf8)!)
+            websocket.onText { websocket, string in
+                guard let data = string.data(using: .utf8) else {
+                    XCTFail("Could not decode service message. Expected UTF8.")
+                    return
+                }
+                
+                // await
+                guard let wrappedUser = try? JSONDecoder().decode(DecodedResponseContainer<User>.self, from: data) else {
+                    XCTFail("Could not decode service message.")
+                    return
+                }
                 
                 promise.succeed(wrappedUser.content)
                 
                 // close context
-                ws.send("""
+                websocket.send("""
                     {
                         "context": "\(contextId.uuidString)"
                     }
                 """)
                 
                 // close connection
-                _ = ws.close()
+                _ = websocket.close()
             }
-        }.cascadeFailure(to: promise)
+        }
+        .cascadeFailure(to: promise)
 
         let user = try promise.futureResult.wait()
         
@@ -184,7 +192,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
 private struct MockParameterDecoder<Type>: ParameterDecoder {
     let value: Type??
     
-    func decode<T>(_: T.Type) throws -> T?? where T : Decodable {
+    func decode<T>(_: T.Type) throws -> T?? where T: Decodable {
         if let typedValue = value as? T?? {
             return typedValue
         }
