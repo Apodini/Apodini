@@ -26,7 +26,7 @@ protocol InterfaceExporter {
     associatedtype ExporterRequest: Apodini.ExporterRequest
     /// Defines the return type of the `export` method. The return type is currently unused.
     associatedtype EndpointExportOutput = Void
-    /// Defines the return ype of the `exportParameter` method. For more details see `exportParameter(...)`
+    /// Defines the return type of the `exportParameter` method. For more details see `exportParameter(...)`
     associatedtype ParameterExportOutput = Void
 
     init(_ app: Application)
@@ -73,8 +73,8 @@ protocol InterfaceExporter {
 
 // MARK: Interface Exporter Visitor
 extension InterfaceExporter {
-    func finishedExporting(_ webService: WebServiceModel) {}
     func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) {}
+    func finishedExporting(_ webService: WebServiceModel) {}
 
     func accept(_ visitor: InterfaceExporterVisitor) {
         visitor.visit(exporter: self)
