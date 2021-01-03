@@ -8,8 +8,9 @@
 import Fluent
 import Vapor
 import Apodini
+import ApodiniDatabase
 
-final class Bird: Model, Content {
+final class Bird: DatabaseModel {
     static var schema: String = "Birds"
     
     
@@ -28,6 +29,12 @@ final class Bird: Model, Content {
     }
     
     init() {}
+    
+    func update(_ object: Bird) {
+        self.id = object.id
+        self.age = object.age
+        self.name = object.name
+    }
 }
 
 

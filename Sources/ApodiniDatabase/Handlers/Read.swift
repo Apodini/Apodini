@@ -2,14 +2,23 @@ import Foundation
 import Fluent
 import Apodini
 
+/// A Handler that returns an array of `DatabaseModel` which all conform to the query parameters of the request. It accepts all parameters that represent properties of the specified `DatabaseModel`.
+/// It uses the database that has been specified in the `DatabaseConfiguration`.
+/// An Example using a REST request:
+/// Group("api", "birds") {
+///     Read<Bird>()
+/// }
+/// Sending a request to  ~/api/birds/birds?age=19&name=Foo would return an array of `Bird` object that have an age of 19 and the name Foo.
 public struct Read<Model: DatabaseModel>: Handler where Model.IDValue: LosslessStringConvertible {
     
     @Apodini.Environment(\.database)
-    var database: Fluent.Database
+    private var database: Fluent.Database
     
-    @Parameter var dummy: String
+    @Parameter
+    private var dummy: String
 
-    @Properties var dynamics: [String: Apodini.Property]
+    @Properties
+    private var dynamics: [String: Apodini.Property]
     
     
     public init(_ dummy: Parameter<String>) {

@@ -1,7 +1,7 @@
 import Foundation
 import Apodini
 
-public enum DatabaseParameterMode: PropertyOption {
+internal enum DatabaseParameterMode: PropertyOption {
     case context(DatabaseInjectionContext)
     
     var injectionContext: DatabaseInjectionContext {

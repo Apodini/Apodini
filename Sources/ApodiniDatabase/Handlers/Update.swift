@@ -3,14 +3,18 @@ import Fluent
 @_implementationOnly import Vapor
 import Apodini
 
+/// A Handler that updates a `DatabaseModel` with the given id with the new object of the request.
+/// It uses the database that has been specified in the `DatabaseConfiguration`.
 public struct Update<T: DatabaseModel>: Handler where T.IDValue: LosslessStringConvertible {
     
     @Apodini.Environment(\.database)
-    var database: Fluent.Database
+    private var database: Fluent.Database
     
-    @Parameter var object: T
+    @Parameter
+    private var object: T
     
-    @Parameter var id: T.IDValue
+    @Parameter
+    private var id: T.IDValue
     
 //    public func handle() -> EventLoopFuture<T> {
     public func handle() -> String {

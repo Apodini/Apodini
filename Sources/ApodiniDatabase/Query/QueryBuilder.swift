@@ -10,7 +10,7 @@ import Fluent
 import Vapor
 @_implementationOnly import Runtime
 
-public struct QueryBuilder<Model: DatabaseModel> {
+internal struct QueryBuilder<Model: DatabaseModel> {
     
     private let type: Model.Type
     private var queryString: String? {
@@ -50,7 +50,7 @@ public struct QueryBuilder<Model: DatabaseModel> {
         return _parameters
     }
     
-    public func execute(on database: Fluent.Database) -> EventLoopFuture<[Model]> {
+    internal func execute(on database: Fluent.Database) -> EventLoopFuture<[Model]> {
         
         func accumulateFilters(queryBuilder: inout Fluent.QueryBuilder<Model>, key: FieldKey, value: String, method: DatabaseQuery.Filter.Method) {
             if let intValue = Int(value) {
@@ -70,11 +70,11 @@ public struct QueryBuilder<Model: DatabaseModel> {
     }
     
     @discardableResult
-    public static func fieldKeys<Model: DatabaseModel>(for type: Model.Type) -> [FieldKey] {
+    internal static func fieldKeys<Model: DatabaseModel>(for type: Model.Type) -> [FieldKey] {
         return type.keys
     }
     
-    static func info(for type: Model.Type) -> [ModelInfo] {
+    internal static func info(for type: Model.Type) -> [ModelInfo] {
         var modelInfo: [ModelInfo] = []
         do {
             
