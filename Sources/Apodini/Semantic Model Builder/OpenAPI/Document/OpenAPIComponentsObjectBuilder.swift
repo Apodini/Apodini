@@ -26,7 +26,7 @@ class OpenAPIComponentsObjectBuilder {
     func buildWrapperSchema(for types: [Codable.Type], with necessities: [Necessity]) throws -> JSONSchema {
         let trees: [Node<EnrichedInfo>] = try types.map {
             guard let node = try Self.node($0) else {
-                throw OpenAPIComponentBuilderError("Could not reflect type.")
+                throw OpenAPIComponentBuilderError("Could not reflect type \($0).")
             }
             return node
         }
@@ -38,9 +38,7 @@ class OpenAPIComponentsObjectBuilder {
                     // we need the offset to guarantee distinct property names
                     return $0["\($1.element.value.typeInfo.mangledName)_\($1.offset)"] = schema
                 }
-        let schemaName = trees.map {
-            $0.value.typeInfo.mangledName
-        }.joined(separator: "_")
+        let schemaName = trees.map { $0.value.typeInfo.mangledName }.joined(separator: "_")
         let schema = JSONSchema.object(
                 properties: properties
         )
@@ -58,6 +56,7 @@ class OpenAPIComponentsObjectBuilder {
     }
 
     private func contextMapNode(node: Node<EnrichedInfo>) -> JSONSchema {
+        // swiftlint:disable:next todo
         // TODO: we should also handle optional arrays (e.g., array of cardinalities)
         let isOptional = node.value.cardinality == .zeroToOne
         let isArray = node.value.cardinality == .zeroToMany
@@ -74,7 +73,8 @@ class OpenAPIComponentsObjectBuilder {
             var properties: [String: JSONSchema] = [:]
             for child in node.children {
                 if let propertyInfo = child.value.propertyInfo {
-                    properties[propertyInfo.name] = mapInfo(child.value,
+                    properties[propertyInfo.name] = mapInfo(
+                            child.value,
                             isPrimitive: child.children.isEmpty,
                             isOptional: child.value.cardinality == .zeroToOne,
                             isArray: child.value.cardinality == .zeroToMany)

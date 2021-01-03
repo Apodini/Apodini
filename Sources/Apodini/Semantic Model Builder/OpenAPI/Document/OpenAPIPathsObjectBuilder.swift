@@ -6,7 +6,7 @@
 
 /// Utility to convert `_PathComponent`s to `OpenAPI.Path` format.
 struct OpenAPIPathBuilder: PathBuilder {
-    public lazy var path: OpenAPI.Path = OpenAPI.Path(stringLiteral: self.components.joined(separator: "/"))
+    lazy var path: OpenAPI.Path = OpenAPI.Path(stringLiteral: self.components.joined(separator: "/"))
     var components: [String] = []
     let parameters: [AnyEndpointParameter]
 
@@ -18,11 +18,12 @@ struct OpenAPIPathBuilder: PathBuilder {
     }
 
     mutating func append<T>(_ parameter: Parameter<T>) {
-        guard let p = parameters.first(where:
-        { $0.id == parameter.id }) else {
+        guard let param = parameters.first(where: {
+            $0.id == parameter.id
+        }) else {
             fatalError("Path contains parameter which cannot be found in endpoint's parameters.")
         }
-        components.append("{\(p.name)}")
+        components.append("{\(param.name)}")
     }
 
     mutating func append(_ string: String) {
@@ -58,9 +59,11 @@ struct OpenAPIPathsObjectBuilder {
         pathsObject[path] = pathItem
     }
 
+
     /// https://swagger.io/specification/#operation-object
-    /// TODO: maybe we can achieve better information hiding here, but for now pass in complete `Endpoint` object.
-    mutating private func buildPathItemOperationObject<C: Component>(from endpoint: Endpoint<C>) -> OpenAPI.Operation {
+    // swiftlint:disable:next todo
+    // TODO: maybe we can achieve better information hiding here, but for now pass in complete `Endpoint` object.
+    private mutating func buildPathItemOperationObject<C: Component>(from endpoint: Endpoint<C>) -> OpenAPI.Operation {
         // Get `Parameter.Array` from existing `query` or `path` parameters.
         let parameters: OpenAPI.Parameter.Array = buildParametersArray(from: endpoint.parameters)
 
@@ -70,21 +73,17 @@ struct OpenAPIPathsObjectBuilder {
         // Get `OpenAPI.Response.Map` containing all possible HTTP responses mapped to their status code.
         let responses: OpenAPI.Response.Map = buildResponsesObject(from: endpoint.responseType)
 
-        // Get `OpenAPI.SecurityRequirement`s.
-        let security: [OpenAPI.SecurityRequirement]? = buildSecurityRequirementArray(from: endpoint)
-
         return OpenAPI.Operation(
                 parameters: parameters,
                 requestBody: requestBody,
-                responses: responses,
-                security: security)
+                responses: responses
+        )
     }
 
     /// https://swagger.io/specification/#parameter-object
-    mutating private func buildParametersArray(from parameters: [AnyEndpointParameter]) -> OpenAPI.Parameter.Array {
+    private mutating func buildParametersArray(from parameters: [AnyEndpointParameter]) -> OpenAPI.Parameter.Array {
         parameters.compactMap {
             if let context = $0.openAPIContext {
-                // TODO: what about non-primitive type schemas?
                 return Either.parameter(name: $0.name, context: context, schema: JSONSchema.from($0.propertyType), description: $0.description)
             }
             return nil
@@ -92,32 +91,48 @@ struct OpenAPIPathsObjectBuilder {
     }
 
     /// https://swagger.io/specification/#request-body-object
-    mutating private func buildRequestBodyObject(from parameters: [AnyEndpointParameter]) -> OpenAPI.Request? {
-        var requestBody: OpenAPI.Request? = nil
+    private mutating func buildRequestBodyObject(from parameters: [AnyEndpointParameter]) -> OpenAPI.Request? {
+        var requestBody: OpenAPI.Request?
         let contentParameters = parameters.filter {
             $0.parameterType == .content
         }
-        var requestJSONSchema: JSONSchema? = nil
-        if contentParameters.count == 1 {
-            requestJSONSchema = try! componentsObjectBuilder.buildSchema(for: contentParameters[0].propertyType)
-        } else if !contentParameters.isEmpty {
-            requestJSONSchema = try! componentsObjectBuilder.buildWrapperSchema(for: contentParameters.map { $0.propertyType }, with: contentParameters.map { $0.necessity })
+        var requestJSONSchema: JSONSchema?
+        do {
+            if contentParameters.count == 1 {
+                requestJSONSchema = try componentsObjectBuilder.buildSchema(for: contentParameters[0].propertyType)
+            } else if !contentParameters.isEmpty {
+                requestJSONSchema = try componentsObjectBuilder.buildWrapperSchema(for: contentParameters.map {
+                    $0.propertyType
+                }, with: contentParameters.map {
+                    $0.necessity
+                })
+            }
+        } catch {
+            fatalError("Could not build schema for request body wrapped by parameters \(contentParameters).")
         }
         if let requestJSONSchema = requestJSONSchema {
-            requestBody = OpenAPI.Request(description: contentParameters.map {
-                $0.description
-            }.joined(separator: "\n"),
-            content: [
-                requestJSONSchema.openAPIContentType: .init(schema: requestJSONSchema)
-            ])
+            requestBody = OpenAPI.Request(description: contentParameters
+                    .map {
+                        $0.description
+                    }
+                    .joined(separator: "\n"),
+                    content: [
+                        requestJSONSchema.openAPIContentType: .init(schema: requestJSONSchema)
+                    ]
+            )
         }
         return requestBody
     }
 
     /// https://swagger.io/specification/#responses-object
-    mutating private func buildResponsesObject(from responseType: Encodable.Type) -> OpenAPI.Response.Map {
+    private mutating func buildResponsesObject(from responseType: Encodable.Type) -> OpenAPI.Response.Map {
         var responseContent: OpenAPI.Content.Map = [:]
-        let responseJSONSchema: JSONSchema = try! componentsObjectBuilder.buildSchema(for: responseType)
+        let responseJSONSchema: JSONSchema
+        do {
+            responseJSONSchema = try componentsObjectBuilder.buildSchema(for: responseType)
+        } catch {
+            fatalError("Could not build schema for response body for type \(responseType).")
+        }
         responseContent[responseJSONSchema.openAPIContentType] = .init(schema: responseJSONSchema)
         var responses: OpenAPI.Response.Map = [:]
         responses[.status(code: 200)] = .init(OpenAPI.Response(
@@ -127,23 +142,17 @@ struct OpenAPIPathsObjectBuilder {
                 vendorExtensions: [:])
         )
         responses[.status(code: 401)] = .init(
-            OpenAPI.Response(description: "Unauthorized")
+                OpenAPI.Response(description: "Unauthorized")
         )
         responses[.status(code: 403)] = .init(
-            OpenAPI.Response(description: "Forbidden")
+                OpenAPI.Response(description: "Forbidden")
         )
         responses[.status(code: 404)] = .init(
-            OpenAPI.Response(description: "Not Found")
+                OpenAPI.Response(description: "Not Found")
         )
         responses[.status(code: 500)] = .init(
-            OpenAPI.Response(description: "Internal Server Error")
+                OpenAPI.Response(description: "Internal Server Error")
         )
         return responses
-    }
-
-    /// https://swagger.io/specification/#security-requirement-object
-    mutating private func buildSecurityRequirementArray<C: Component>(from endpoint: Endpoint<C>) -> [OpenAPI.SecurityRequirement]? {
-        let security: [OpenAPI.SecurityRequirement]? = nil
-        return security
     }
 }

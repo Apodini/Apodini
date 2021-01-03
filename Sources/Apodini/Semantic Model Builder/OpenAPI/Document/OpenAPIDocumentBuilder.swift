@@ -31,12 +31,10 @@ struct OpenAPIDocumentBuilder {
                 components: componentsObjectBuilder.componentsObject
         )
     }
-
 }
 
 extension OpenAPIDocumentBuilder {
     var description: String {
-        // TODO: make nicer...
         let encoder = JSONEncoder()
         guard let json = try? encoder.encode(self.document) else {
             return ""

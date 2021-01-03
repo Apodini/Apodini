@@ -12,7 +12,6 @@ import Runtime
 
 
 struct TestWebService: Apodini.WebService {
-
     struct SomeStruct: Vapor.Content {
         var someProp: Int
         var optionalInt: Int?

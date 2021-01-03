@@ -11,6 +11,3 @@ struct OpenAPIComponentBuilderError: Error {
         self.message = message
     }
 }
-
-struct OpenAPISchemaError: Error {
-}

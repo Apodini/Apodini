@@ -49,7 +49,7 @@ extension ParticularType: Equatable {
     }
     
     var isUUID: Bool {
-        ParticularType.init(UUID.self) == self
+        ParticularType(UUID.self) == self
     }
 }
 
