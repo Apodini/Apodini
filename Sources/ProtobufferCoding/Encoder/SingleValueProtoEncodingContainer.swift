@@ -1,0 +1,150 @@
+//
+//  SingleValueProtoEncodingContainer.swift
+//  
+//
+//  Created by Moritz Schüll on 23.12.20.
+//
+
+import Foundation
+
+private struct Wrapper<T: Encodable>: Encodable {
+    var value: T
+}
+
+class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleValueEncodingContainer {
+    private let fieldNumber: Int
+
+    override init(using encoder: InternalProtoEncoder, codingPath: [CodingKey]) {
+        self.fieldNumber = 1
+        super.init(using: encoder, codingPath: codingPath)
+    }
+
+    init(using encoder: InternalProtoEncoder, codingPath: [CodingKey], fieldNumber: Int) {
+        self.fieldNumber = fieldNumber
+        super.init(using: encoder, codingPath: codingPath)
+    }
+
+    func encodeNil() throws {
+        // cannot encode nil
+        throw ProtoError.encodingError("Cannot encode nil")
+    }
+
+    func encode(_ value: Bool) throws {
+        try encodeBool(value, tag: fieldNumber)
+    }
+
+    func encode(_ value: String) throws {
+        try encodeString(value, tag: fieldNumber)
+    }
+
+    func encode(_ value: Double) throws {
+        try encodeDouble(value, tag: fieldNumber)
+    }
+
+    func encode(_ value: Float) throws {
+        try encodeFloat(value, tag: fieldNumber)
+    }
+
+    func encode(_ value: Int) throws {
+        throw ProtoError.encodingError("Int not supported, use Int32 or Int64")
+    }
+
+    func encode(_ value: Int8) throws {
+        throw ProtoError.encodingError("Int8 not supported, use Int32 or Int64")
+    }
+
+    func encode(_ value: Int16) throws {
+        throw ProtoError.encodingError("Int16 not supported, use Int32 or Int64")
+    }
+
+    func encode(_ value: Int32) throws {
+        try encodeInt32(value, tag: fieldNumber)
+    }
+
+    func encode(_ value: Int64) throws {
+        try encodeInt64(value, tag: fieldNumber)
+    }
+
+    func encode(_ value: UInt) throws {
+        throw ProtoError.encodingError("UInt not supported, use UInt32 or UInt64")
+    }
+
+    func encode(_ value: UInt8) throws {
+        throw ProtoError.encodingError("UInt8 not supported, use UInt32 or UInt64")
+    }
+
+    func encode(_ value: UInt16) throws {
+        throw ProtoError.encodingError("UInt16 not supported, use UInt32 or UInt64")
+    }
+
+    func encode(_ value: UInt32) throws {
+        try encodeUInt32(value, tag: fieldNumber)
+    }
+
+    func encode(_ value: UInt64) throws {
+        try encodeUInt64(value, tag: fieldNumber)
+    }
+
+    func encode(_ values: [Bool]) throws {
+        try encodeRepeatedBool(values, tag: fieldNumber)
+    }
+
+    func encode(_ values: [Double]) throws {
+        try encodeRepeatedDouble(values, tag: fieldNumber)
+    }
+
+    func encode(_ values: [Float]) throws {
+        try encodeRepeatedFloat(values, tag: fieldNumber)
+    }
+
+    func encode(_ values: [Int32]) throws {
+        try encodeRepeatedInt32(values, tag: fieldNumber)
+    }
+
+    func encode(_ values: [Int64]) throws {
+        try encodeRepeatedInt64(values, tag: fieldNumber)
+    }
+
+    func encode(_ values: [UInt32]) throws {
+        try encodeRepeatedUInt32(values, tag: fieldNumber)
+    }
+
+    func encode(_ values: [UInt64]) throws {
+        try encodeRepeatedUInt64(values, tag: fieldNumber)
+    }
+
+    func encode(_ values: [Data]) throws {
+        try encodeRepeatedData(values, tag: fieldNumber)
+    }
+
+    func encode(_ values: [String]) throws {
+        try encodeRepeatedString(values, tag: fieldNumber)
+    }
+
+    func encode<T>(_ value: T) throws where T: Encodable {
+        // adds support for arrays of primitive types
+        // by type matching (since they are not part
+        // of the SingleValueEncodingContainer protocol)
+        if T.self == [Bool].self, let value = value as? [Bool] {
+            try encode(value)
+        } else if T.self == [Float].self, let value = value as? [Float] {
+            try encode(value)
+        } else if T.self == [Double].self, let value = value as? [Double] {
+            try encode(value)
+        } else if T.self == [Int32].self, let value = value as? [Int32] {
+            try encode(value)
+        } else if T.self == [Int64].self, let value = value as? [Int64] {
+            try encode(value)
+        } else if T.self == [UInt32].self, let value = value as? [UInt32] {
+            try encode(value)
+        } else if T.self == [UInt64].self, let value = value as? [UInt64] {
+            try encode(value)
+        } else if T.self == [Data].self, let value = value as? [Data] {
+            try encode(value)
+        } else if T.self == [String].self, let value = value as? [String] {
+            try encode(value)
+        } else {
+            throw ProtoError.encodingError("Single value encoding only supported for (repeated) primitive data types")
+        }
+    }
+}

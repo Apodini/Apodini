@@ -10,6 +10,7 @@
 import Fluent
 import FluentMongoDriver
 
+
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
 public protocol WebService: Component, ConfigurationCollection {
     /// The current version of the `WebService`
@@ -20,11 +21,22 @@ public protocol WebService: Component, ConfigurationCollection {
 }
 
 
-public extension WebService {
+extension WebService {
     /// This function is executed to start up an Apodini `WebService`
-    static func main() {
+    public static func main() {
         do {
-            let app = try Self.prepare()
+            #if DEBUG
+            let arguments = [CommandLine.arguments.first ?? ".", "serve", "--env", "development", "--hostname", "0.0.0.0", "--port", "8080"]
+            #else
+            let arguments = [CommandLine.arguments.first ?? ".", "serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8080"]
+            #endif
+            
+            var env = try Vapor.Environment.detect(arguments: arguments)
+            try LoggingSystem.bootstrap(from: &env)
+            let app = Application(env)
+            
+            main(app: app)
+            
             defer {
                 app.shutdown()
             }
@@ -34,49 +46,41 @@ public extension WebService {
         }
     }
     
+    /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.main()` to startup an Apodini `WebService`.
+    /// - Parameter app: The app instance that should be injected in the Apodini `WebService`
+    internal static func main(app: Vapor.Application) {
+        let webService = Self()
+
+        webService.configuration.configure(app)
+        
+        webService.register(
+            SharedSemanticModelBuilder(app)
+                .with(exporter: RESTInterfaceExporter.self)
+                .with(exporter: GRPCInterfaceExporter.self),
+            GraphQLSemanticModelBuilder(app),
+            WebSocketSemanticModelBuilder(app)
+        )
+    }
+    
+    
     /// The current version of the `WebService`
-    var version: Version {
+    public var version: Version {
         Version()
     }
     
+    
     /// An empty initializer used to create an Apodini `WebService`
-    init() {
+    public init() {
         self.init()
     }
 }
 
-internal extension WebService {
-    static func prepare(testing: Bool = false) throws -> Vapor.Application {
-        let environmentName = try Vapor.Environment.detect().name
-        var env: Vapor.Environment
-        
-        if testing {
-            env = .testing
-        } else {
-            env = Vapor.Environment(name: environmentName, arguments: ["vapor"])
-            try LoggingSystem.bootstrap(from: &env)
-        }
-        
-        let app = Application(env)
-        let webService = Self()
-        
-        webService.register(
-            SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self, ProtobufferSemanticModelBuilder.self),
-            GraphQLSemanticModelBuilder(app),
-            GRPCSemanticModelBuilder(app),
-            WebSocketSemanticModelBuilder(app)
-        )
-        
-        webService.configuration.configure(app)
-        
-        return app
-    }
-}
 
 extension WebService {
     func register(_ semanticModelBuilders: SemanticModelBuilder...) {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: semanticModelBuilders)
         self.visit(visitor)
+        visitor.finishParsing()
     }
     
     private func visit(_ visitor: SyntaxTreeVisitor) {
@@ -84,6 +88,6 @@ extension WebService {
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
         Group {
             content
-        }.visit(visitor)
+        }.accept(visitor)
     }
 }

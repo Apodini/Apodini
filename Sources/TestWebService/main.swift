@@ -1,29 +1,24 @@
 //
 //  TestWebService.swift
-//  
+//
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 
-@testable import Apodini
-import Vapor
-import NIO
+import Apodini
 
 
 struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
-        private let message: String?
-        @_Request
-        var request: Apodini.Request
-        
-        
-        init(_ message: String? = nil) {
+        private let message: String
+
+        init(_ message: String = "PrintGuard 👋") {
             self.message = message
         }
         
 
         func check() {
-            print("\(message?.description ?? request.description)")
+            print(message)
         }
     }
     
@@ -41,14 +36,45 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
-    struct Greeter: Component {
-        @Parameter var name: String
+    struct Greeter: Handler {
+        @Properties
+        var properties: [String: Apodini.Property] = ["surname": Parameter<String?>()]
+
+        @Parameter(.http(.path))
+        var name: String
+
+        @Parameter
+        var greet: String?
 
         func handle() -> String {
-            "Hello \(name)"
+            let surnameParameter: Parameter<String?>? = _properties.typed(Parameter<String?>.self)["surname"]
+
+            return "\(greet ?? "Hello") \(name) " + (surnameParameter?.wrappedValue ?? "Unknown")
         }
     }
     
+    @propertyWrapper
+    struct UselessWrapper: DynamicProperty {
+        @Parameter var name: String?
+        
+        var wrappedValue: String? {
+            name
+        }
+    }
+
+    struct User: Codable {
+        var id: Int
+    }
+
+    struct UserHandler: Handler {
+        @Parameter var userId: Int
+
+        func handle() -> User {
+            User(id: userId)
+        }
+    }
+
+    @PathParameter var userId: Int
     
     var content: some Component {
         Text("Hello World! 👋")
@@ -65,6 +91,13 @@ struct TestWebService: Apodini.WebService {
         }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
         Group("greet") {
             Greeter()
+                .serviceName("GreetService")
+                .rpcName("greetMe")
+                .response(EmojiMediator())
+        }
+        Group("user", $userId) {
+            UserHandler(userId: $userId)
+                .guard(PrintGuard())
         }
     }
 }

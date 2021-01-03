@@ -9,22 +9,9 @@ import XCTest
 import Vapor
 @testable import Apodini
 
-final class SharedSemanticModelBuilderTests: XCTestCase {
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    var app: Application!
-    
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        app = Application(.testing)
-    }
-    
-    override func tearDownWithError() throws {
-        try super.tearDownWithError()
-        let app = try XCTUnwrap(self.app)
-        app.shutdown()
-    }
-    
-    struct TestHandler: Component {
+
+final class SharedSemanticModelBuilderTests: ApodiniTests {
+    struct TestHandler: Handler {
         @Parameter
         var name: String
         
@@ -42,7 +29,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         }
     }
     
-    struct TestHandler2: Component {
+    struct TestHandler2: Handler {
         @Parameter
         var name: String
         
@@ -54,12 +41,46 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         }
     }
     
-    struct TestHandler3: Component {
+    struct TestHandler3: Handler {
         @Parameter("someOtherId", .http(.path))
         var id: Int
         
         func handle() -> String {
             "Hello Test Handler 3"
+        }
+    }
+
+    struct TestHandler4: Handler {
+        func handle() -> String {
+            "Hello Test Handler 4"
+        }
+    }
+
+    struct ActionHandler1: Handler {
+        @Apodini.Environment(\.connection)
+        var connection: Connection
+
+        func handle() -> Action<String> {
+            switch connection.state {
+            case .open:
+                return .send("Send")
+            default:
+                return .final("Final")
+            }
+        }
+    }
+
+    struct ActionHandler2: Handler {
+        @Apodini.Environment(\.connection)
+        var connection: Connection
+
+        func handle() -> Action<String> {
+            switch connection.state {
+            case .open:
+                return .nothing
+            default:
+                return .end
+            }
         }
     }
     
@@ -77,18 +98,6 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
             }
         }
     }
-
-    struct EmojiMediator: ResponseTransformer {
-        private let emojis: String
-
-        init(emojis: String = "✅") {
-            self.emojis = emojis
-        }
-
-        func transform(response: String) -> String {
-            "\(emojis) \(response) \(emojis)"
-        }
-    }
     
     func testEndpointsTreeNodes() {
         // swiftlint:disable force_unwrapping
@@ -98,16 +107,17 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         let testComponent = TestComponent()
         Group {
             testComponent.content
-        }.visit(visitor)
+        }.accept(visitor)
+        visitor.finishParsing()
         
         let nameParameterId: UUID = testComponent.$name.id
         let treeNodeA: EndpointsTreeNode = modelBuilder.rootNode.children.first!
         let treeNodeB: EndpointsTreeNode = treeNodeA.children.first { $0.path.description == "b" }!
         let treeNodeNameParameter: EndpointsTreeNode = treeNodeB.children.first!
         let treeNodeSomeOtherIdParameter: EndpointsTreeNode = treeNodeA.children.first { $0.path.description != "b" }!
-        let endpointGroupLevel: Endpoint = treeNodeSomeOtherIdParameter.endpoints.first!.value
+        let endpointGroupLevel: AnyEndpoint = treeNodeSomeOtherIdParameter.endpoints.first!.value
         let someOtherIdParameterId: UUID = endpointGroupLevel.parameters.first { $0.name == "someOtherId" }!.id
-        let endpoint: Endpoint = treeNodeNameParameter.endpoints.first!.value
+        let endpoint: AnyEndpoint = treeNodeNameParameter.endpoints.first!.value
         
         XCTAssertEqual(treeNodeA.endpoints.count, 0)
         XCTAssertEqual(treeNodeB.endpoints.count, 0)
@@ -125,7 +135,7 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         
         // test nested use of path parameter that is only set inside `Handler` (i.e. `TestHandler2`)
         let treeNodeSomeIdParameter: EndpointsTreeNode = treeNodeNameParameter.children.first!
-        let nestedEndpoint: Endpoint = treeNodeSomeIdParameter.endpoints.first!.value
+        let nestedEndpoint: AnyEndpoint = treeNodeSomeIdParameter.endpoints.first!.value
         let someIdParameterId: UUID = nestedEndpoint.parameters.first { $0.name == "someId" }!.id
         
         XCTAssertEqual(nestedEndpoint.parameters.count, 2)
@@ -136,17 +146,99 @@ final class SharedSemanticModelBuilderTests: XCTestCase {
         XCTAssertEqual(nestedEndpoint.absolutePath[3].description, ":\(someIdParameterId.uuidString)")
     }
 
-    func testCreateRequestHandler() throws {
-        let transformer = EmojiMediator(emojis: "✅")
-        let printGuard = AnyGuard(PrintGuard())
-        let requestHandler = SharedSemanticModelBuilder.createRequestHandler(with: TestHandler(),
-                                                                             guards: [ { printGuard } ],
-                                                                             responseModifiers: [ { transformer } ])
-        let name = "Craig"
-        let request = RESTRequest(Vapor.Request(application: app, on: app.eventLoopGroup.next())) { _ in name }
-        let response = try requestHandler(request).wait()
-        let responseString = try XCTUnwrap(response as? String)
+    func testShouldWrapInFinalByDefault() throws {
+        let exporter = RESTInterfaceExporter(app)
+        let handler = TestHandler4()
+        let endpoint = handler.mockEndpoint()
+        let requestHandler = endpoint.createRequestHandler(for: exporter)
 
-        XCTAssert(responseString == "✅ Hello \(name) ✅")
+        let request = Vapor.Request(application: app,
+                                    method: .GET,
+                                    url: "",
+                                    on: app.eventLoopGroup.next())
+        let expectedString = "Hello Test Handler 4"
+
+        let result = try requestHandler.callAsFunction(request: request).wait()
+        guard case let .final(resultValue) = result else {
+            XCTFail("Expected default to be wrapped in Action.final, but was \(result)")
+            return
+        }
+
+        let resultString = try XCTUnwrap(resultValue.value as? String)
+        XCTAssertEqual(resultString, expectedString)
+    }
+
+    func testActionPassthrough_send() throws {
+        let exporter = RESTInterfaceExporter(app)
+        let handler = ActionHandler1().withEnvironment(Connection(state: .open), for: \.connection)
+        let endpoint = handler.mockEndpoint()
+        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        let request = Vapor.Request(application: app,
+                                    method: .GET,
+                                    url: "",
+                                    on: app.eventLoopGroup.next())
+
+        let result = try requestHandler.callAsFunction(request: request).wait()
+        if case let .send(element) = result {
+            let responseString = try XCTUnwrap(element.value as? String)
+            XCTAssertEqual(responseString, "Send")
+        } else {
+            XCTFail("Expected .send(\"Send\"), but got \(result)")
+        }
+    }
+
+    func testActionPassthrough_final() throws {
+        let exporter = RESTInterfaceExporter(app)
+        let handler = ActionHandler1().withEnvironment(Connection(state: .end), for: \.connection)
+        let endpoint = handler.mockEndpoint()
+        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        let request = Vapor.Request(application: app,
+                                    method: .GET,
+                                    url: "",
+                                    on: app.eventLoopGroup.next())
+
+        let result = try requestHandler.callAsFunction(request: request).wait()
+        if case let .final(element) = result {
+            let responseString = try XCTUnwrap(element.value as? String)
+            XCTAssertEqual(responseString, "Final")
+        } else {
+            XCTFail("Expected .final(\"Final\"), but got \(result)")
+        }
+    }
+
+    func testActionPassthrough_nothing() throws {
+        let exporter = RESTInterfaceExporter(app)
+        let handler = ActionHandler2().withEnvironment(Connection(state: .open), for: \.connection)
+        let endpoint = handler.mockEndpoint()
+        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        let request = Vapor.Request(application: app,
+                                    method: .GET,
+                                    url: "",
+                                    on: app.eventLoopGroup.next())
+
+        let result = try requestHandler.callAsFunction(request: request).wait()
+        if case .nothing = result {
+            XCTAssertTrue(true)
+        } else {
+            XCTFail("Expected .nothing but got \(result)")
+        }
+    }
+
+    func testActionPassthrough_end() throws {
+        let exporter = RESTInterfaceExporter(app)
+        let handler = ActionHandler2().withEnvironment(Connection(state: .end), for: \.connection)
+        let endpoint = handler.mockEndpoint()
+        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        let request = Vapor.Request(application: app,
+                                    method: .GET,
+                                    url: "",
+                                    on: app.eventLoopGroup.next())
+
+        let result = try requestHandler.callAsFunction(request: request).wait()
+        if case .end = result {
+            XCTAssertTrue(true)
+        } else {
+            XCTFail("Expected .end but got \(result)")
+        }
     }
 }

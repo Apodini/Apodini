@@ -27,30 +27,30 @@ struct OperationContextKey: ContextKey {
     }
 }
 
-public struct OperationModifier<ModifiedComponent: Component>: Modifier {
-    let component: ModifiedComponent
+
+public struct OperationModifier<H: Handler>: HandlerModifier {
+    public let component: H
     let operation: Operation
     
-    
-    init(_ component: ModifiedComponent, operation: Operation) {
+    init(_ component: H, operation: Operation) {
         self.component = component
         self.operation = operation
     }
 }
 
 
-extension OperationModifier: Visitable {
-    func visit(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(OperationContextKey.self, value: operation, scope: .nextComponent)
-        component.visit(visitor)
+extension OperationModifier: SyntaxTreeVisitable {
+    func accept(_ visitor: SyntaxTreeVisitor) {
+        visitor.addContext(OperationContextKey.self, value: operation, scope: .nextHandler)
+        component.accept(visitor)
     }
 }
 
 
-extension Component {
-    /// A `operation` modifier can be used to explicitly specify the `Operation` for the given `Component`
-    /// - Parameter operation: The `Operation` that is used to for the component
-    /// - Returns: The modified `Component` with a specified `Operation`
+extension Handler {
+    /// A `operation` modifier can be used to explicitly specify the `Operation` for the given `Handler`
+    /// - Parameter operation: The `Operation` that is used to for the handler
+    /// - Returns: The modified `Handler` with a specified `Operation`
     public func operation(_ operation: Operation) -> OperationModifier<Self> {
         OperationModifier(self, operation: operation)
     }

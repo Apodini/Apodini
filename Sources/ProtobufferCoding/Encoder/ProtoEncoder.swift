@@ -34,7 +34,12 @@ internal class InternalProtoEncoder: Encoder {
     }
 
     func singleValueContainer() -> SingleValueEncodingContainer {
-        fatalError("Single value encoding not supported yet")
+        if hasContainer {
+            fatalError("Attempt to create new encoding container while encoder already has one")
+        }
+
+        self.hasContainer = true
+        return SingleValueProtoEncodingContainer(using: self, codingPath: codingPath)
     }
 
     func append(_ value: Data) {
@@ -46,18 +51,59 @@ internal class InternalProtoEncoder: Encoder {
     }
 }
 
+private struct EncodingWrapper<T: Encodable>: Encodable {
+    var element: T
+}
+
 /// Encoder for Protobuffer data.
 /// Coforms to `TopLevelEncoder` from `Combine`, however this is currently ommitted due to compatibility issues.
 public class ProtoEncoder {
     private var encoder: InternalProtoEncoder?
+
+    /// Supported primitive types of the payload.
+    private let primitiveTypes: [Any.Type] = [
+        String.self,
+        Int32.self,
+        Int64.self,
+        UInt32.self,
+        UInt64.self,
+        Double.self,
+        Float.self,
+        [String].self,
+        [Int32].self,
+        [Int64].self,
+        [UInt32].self,
+        [UInt64].self,
+        [Double].self,
+        [Float].self
+    ]
+
+    private func isCollection(_ any: Any) -> Bool {
+        switch Mirror(reflecting: any).displayStyle {
+        case .some(.collection):
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Initializes a new instance.
+    public init() { }
 
     /// Encodes the given value into data.
     /// The value that should be encoded has to comply with `Encodable`,
     /// since the `encode` function of the protocol is used.
     public func encode<T: Encodable>(_ value: T) throws -> Data {
         let encoder = InternalProtoEncoder()
-        try value.encode(to: encoder)
-        return try encoder.getEncoded()
+        if primitiveTypes.contains(where: { $0 == T.self }) ||
+            isCollection(T.self) {
+            let wrapped = EncodingWrapper(element: value)
+            try wrapped.encode(to: encoder)
+            return try encoder.getEncoded()
+        } else {
+            try value.encode(to: encoder)
+            return try encoder.getEncoded()
+        }
     }
 
     /// Creates a new internal encoder and returns an unkeyed
