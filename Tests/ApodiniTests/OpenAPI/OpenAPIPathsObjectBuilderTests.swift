@@ -35,6 +35,15 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         }
     }
 
+    struct WrappingParamsComp: Handler {
+        @Parameter var someStruct1: SomeStruct
+        @Parameter var someStruct2: SomeStruct
+
+        func handle() -> String {
+            "Hello"
+        }
+    }
+
     func testPathBuilder() {
         let pathUUID = UUID()
         let parameter = Parameter<String>(from: pathUUID)
@@ -79,6 +88,37 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         })
     }
 
+    func testAddPathItemOperationWrappedParams() throws {
+        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
+        let comp = WrappingParamsComp()
+        var endpoint = comp.mockEndpoint()
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
+        let endpointTreeNode = EndpointsTreeNode(path: RootPath())
+        endpointTreeNode.addEndpoint(&endpoint, at: ["test"])
+        pathsObjectBuilder.addPathItem(from: endpoint)
+        let path = OpenAPI.Path(stringLiteral: "test")
+
+        let wrappedRef = try componentsObjectBuilder.componentsObject.reference(named: "SomeStruct_SomeStruct", ofType: JSONSchema.self)
+
+        XCTAssertEqual(
+                componentsObjectBuilder.componentsObject[wrappedRef],
+                .object(
+                        properties: [
+                            "SomeStruct_0": .reference(
+                                    .component(named: "SomeStruct")
+                            ),
+                            "SomeStruct_1": .reference(
+                                    .component(named: "SomeStruct")
+                            )
+                        ]
+                )
+        )
+
+        XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
+        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains(key: path))
+        XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 2)
+    }
+
     func testAddPathItemWithRequestBodyAndResponseStruct() {
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
@@ -88,7 +128,6 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         endpointTreeNode.addEndpoint(&endpoint, at: ["test"])
         pathsObjectBuilder.addPathItem(from: endpoint)
         let path = OpenAPI.Path(stringLiteral: "/test")
-
         let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
                 parameters: [],
                 requestBody: OpenAPI.Request(
