@@ -4,27 +4,20 @@
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
-
-@testable import Apodini
-import Vapor
-import NIO
-import Runtime
+import Apodini
 import ApodiniDatabase
 
 struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
-        private let message: String?
-        @_Request
-        var request: Apodini.Request
-        
-        
-        init(_ message: String? = nil) {
+        private let message: String
+
+        init(_ message: String = "PrintGuard 👋") {
             self.message = message
         }
         
 
         func check() {
-            print("\(message?.description ?? request.description)")
+            print(message)
         }
     }
     
@@ -41,11 +34,6 @@ struct TestWebService: Apodini.WebService {
             "\(emojis) \(response) \(emojis)"
         }
     }
-
-    struct Person: Codable {
-        var name: String
-        var age: Int32
-    }
     
     struct Greeter: Handler {
         @Properties
@@ -57,13 +45,10 @@ struct TestWebService: Apodini.WebService {
         @Parameter
         var greet: String?
 
-        @Parameter
-        var father: Person
-
         func handle() -> String {
             let surnameParameter: Parameter<String?>? = _properties.typed(Parameter<String?>.self)["surname"]
 
-            return "\(greet ?? "Hello") \(name) " + (surnameParameter?.wrappedValue ?? "Unknown") + ", child of \(father.name)"
+            return "\(greet ?? "Hello") \(name) " + (surnameParameter?.wrappedValue ?? "Unknown")
         }
     }
     
@@ -108,7 +93,7 @@ struct TestWebService: Apodini.WebService {
             Greeter()
                 .serviceName("GreetService")
                 .rpcName("greetMe")
-                .operation(.read)
+                .response(EmojiMediator())
         }
         Group("user", $userId) {
             UserHandler(userId: $userId)

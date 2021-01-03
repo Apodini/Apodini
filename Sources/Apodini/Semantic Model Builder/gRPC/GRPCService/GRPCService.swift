@@ -45,22 +45,29 @@ extension GRPCService {
         return response
     }
 
-    /// Builds a `Vapor.Response` from the given encodable value.
-    func encodeResponse(_ value: Encodable) -> Vapor.Response {
+    /// Builds a `Vapor.Response` with an empty payload.
+    func makeResponse() -> Vapor.Response {
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/grpc+proto")
+        return Vapor.Response(status: .internalServerError,
+                              version: HTTPVersion(major: 2, minor: 0),
+                              headers: headers,
+                              body: .init(data: Data()))
+    }
+
+    /// Builds a `Vapor.Response` from the given encodable value.
+    func makeResponse(_ value: Encodable) -> Vapor.Response {
         do {
             let data = try encode(value)
+            var headers = HTTPHeaders()
+            headers.add(name: .contentType, value: "application/grpc+proto")
             return Vapor.Response(status: .ok,
                                   version: HTTPVersion(major: 2, minor: 0),
                                   headers: headers,
                                   body: .init(data: data))
         } catch {
             app.logger.report(error: error)
-            return Vapor.Response(status: .internalServerError,
-                                  version: HTTPVersion(major: 2, minor: 0),
-                                  headers: headers,
-                                  body: .init(data: Data()))
+            return makeResponse()
         }
     }
 }
