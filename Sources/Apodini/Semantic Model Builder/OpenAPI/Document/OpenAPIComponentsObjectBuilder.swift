@@ -89,7 +89,7 @@ class OpenAPIComponentsObjectBuilder {
     private func mapInfo(_ info: EnrichedInfo, isPrimitive: Bool, isOptional: Bool, isArray: Bool) -> JSONSchema {
         var value: JSONSchema
         if isPrimitive {
-            value = info.typeInfo.openAPIJSONSchema
+            value = JSONSchema.from(info.typeInfo.type, defaultType: .object)
         } else {
             let schemaName = info.typeInfo.mangledName
             value = JSONSchema.reference(.component(named: schemaName))

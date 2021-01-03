@@ -1,14 +1,12 @@
 //
-//  Created by Lorena Schlesinger on 28.11.20.
+// Created by Lorena Schlesinger on 03.01.21.
 //
 
 @_implementationOnly import OpenAPIKit
-@_implementationOnly import Runtime
 import Foundation
 
-extension TypeInfo {
-
-    var openAPIJSONSchema: JSONSchema {
+extension JSONSchema {
+    static func from<T>(_ type: T, defaultType: JSONSchema = .string) -> JSONSchema {
         switch type {
         case is Int.Type:
             return .integer
@@ -20,11 +18,8 @@ extension TypeInfo {
             return .number(format: .double)
         case is Date.Type:
             return .string(format: .date)
-        case is UUID.Type:
-            return .string
         default:
-            print("OpenAPI schema not found for type \(type).")
-            return .object
+            return defaultType
         }
     }
 }

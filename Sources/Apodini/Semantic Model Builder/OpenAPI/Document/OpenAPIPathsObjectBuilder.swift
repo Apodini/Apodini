@@ -85,7 +85,7 @@ struct OpenAPIPathsObjectBuilder {
         parameters.compactMap {
             if let context = $0.openAPIContext {
                 // TODO: what about non-primitive type schemas?
-                return Either.parameter(name: $0.name, context: context, schema: $0.openAPISchema, description: $0.description)
+                return Either.parameter(name: $0.name, context: context, schema: JSONSchema.from($0.propertyType), description: $0.description)
             }
             return nil
         }

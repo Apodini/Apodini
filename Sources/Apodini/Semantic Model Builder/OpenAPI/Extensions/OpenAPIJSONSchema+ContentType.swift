@@ -15,3 +15,4 @@ extension JSONSchema {
         }
     }
 }
+

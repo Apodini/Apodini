@@ -17,21 +17,4 @@ extension AnyEndpointParameter {
             return nil
         }
     }
-
-    var openAPISchema: JSONSchema {
-        switch self.propertyType {
-        case is Int.Type:
-            return .integer
-        case is Bool.Type:
-            return .boolean
-        case is String.Type:
-            return .string
-        case is Double.Type:
-            return .number(format: .double)
-        case is Date.Type:
-            return .string(format: .date)
-        default:
-            return .string
-        }
-    }
 }
