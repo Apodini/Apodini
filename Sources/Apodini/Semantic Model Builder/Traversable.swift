@@ -105,6 +105,7 @@ private func apply<Element, Target>(_ mutation: (inout Target, _ name: String) t
         element = traversable as! Element
         return
     }
+    
     guard let info = try? typeInfo(of: Element.self) else {
         fatalError("Applying operation on all properties of \((try? typeInfo(of: Target.self))?.name ?? "Unknown Type") on element \(element) failed.")
     }
@@ -119,28 +120,29 @@ private func apply<Element, Target>(_ mutation: (inout Target, _ name: String) t
             assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "\(Target.self) \(property.name) on element \(info.name) must be a struct")
             
             try mutation(&target, property.name)
-            do {
-                try property.set(value: target, on: &element)
-            } catch {
-                fatalError("Applying operation on all properties of \((try? typeInfo(of: Target.self))?.name ?? "Unknown Type") on element \(element) failed.")
-            }
+            let elem = element
+            property.unsafeSet(
+                value: target,
+                on: &element,
+                printing: "Applying operation on all properties of \((try? typeInfo(of: Target.self))?.name ?? "Unknown Type") on element \(elem) failed.")
         case var dynamicProperty as DynamicProperty:
             assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
+            
             try dynamicProperty.apply(mutation)
-            do {
-                try property.set(value: dynamicProperty, on: &element)
-            } catch {
-                fatalError("Applying operation on all properties of \((try? typeInfo(of: Target.self))?.name ?? "Unknown Type") on element \(element) failed.")
-            }
+            let elem = element
+            property.unsafeSet(
+                value: dynamicProperty,
+                on: &element,
+                printing: "Applying operation on all properties of \((try? typeInfo(of: Target.self))?.name ?? "Unknown Type") on element \(elem) failed.")
         case var traversable as Traversable:
             assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "Traversable \(property.name) on element \(info.name) must be a struct")
-        
+
             try traversable.apply(mutation)
-            do {
-                try property.set(value: traversable, on: &element)
-            } catch {
-                fatalError("Applying operation on all properties of \((try? typeInfo(of: Target.self))?.name ?? "Unknown Type") on element \(element) failed.")
-            }
+            let elem = element
+            property.unsafeSet(
+                value: traversable,
+                on: &element,
+                printing: "Applying operation on all properties of \((try? typeInfo(of: Target.self))?.name ?? "Unknown Type") on element \(elem) failed.")
         default:
             break
         }
@@ -206,6 +208,16 @@ extension Properties: Traversable {
             default:
                 break
             }
+        }
+    }
+}
+
+private extension Runtime.PropertyInfo {
+    func unsafeSet<TObject>(value: Any, on object: inout TObject, printing errorMessage: @autoclosure () -> String) {
+        do {
+            try self.set(value: value, on: &object)
+        } catch {
+            fatalError(errorMessage())
         }
     }
 }

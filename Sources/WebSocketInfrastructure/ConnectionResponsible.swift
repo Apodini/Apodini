@@ -12,104 +12,27 @@ import NIOWebSocket
 typealias ContextOpener = (ConnectionResponsible, UUID) -> (ContextResponsible)
 
 class ConnectionResponsible: Identifiable {
+    let websocket: WebSocket
     
-    let ws: WebSocket
+    let database: Database?
     
-    let db: Database?
-    
-    private let onClose: (ID) -> ()
+    private let onClose: (ID) -> Void
     
     private var endpoints: [String: ContextOpener]
     
     private var contexts: [UUID: ContextResponsible] = [:]
     
-    init(_ websocket: WebSocket, database: Database?, onClose: @escaping (ID) -> (), endpoints: [String: ContextOpener]) {
-        self.ws = websocket
-        self.db = database
+    init(_ websocket: WebSocket, database: Database?, onClose: @escaping (ID) -> Void, endpoints: [String: ContextOpener]) {
+        self.websocket = websocket
+        self.database = database
         self.onClose = onClose
         self.endpoints = endpoints
         
-        websocket.onText { ws, message in
+        websocket.onText { _, message in
             var context: UUID?
             
             do {
-                guard let data = message.data(using: .utf8) else {
-                    throw SerializationError.expectedUTF8
-                }
-                let a = try JSONSerialization.jsonObject(with: data, options: [])
-                
-                guard let o = a as? [String: Any] else {
-                    throw SerializationError.expectedObjectAtRoot
-                }
-                
-                var errors: [SerializationError] = []
-                
-                do {
-                    let openMessage = try OpenContextMessage(json: o)
-                    
-                    guard let opener = self.endpoints[openMessage.endpoint] else {
-                        throw ProtocolError.unknownEndpoint(openMessage.endpoint)
-                    }
-                    
-                    guard self.contexts[openMessage.context] == nil else {
-                        throw ProtocolError.openExistingContext(openMessage.context)
-                    }
-                    context = openMessage.context
-                    
-                    self.contexts[openMessage.context] = opener(self, openMessage.context)
-                } catch {
-                    if let serializationError = error as? SerializationError {
-                        errors.append(serializationError)
-                    } else {
-                        throw error
-                    }
-                }
-                
-                if !errors.isEmpty {
-                    do {
-                        let clientMessage = try ClientMessage(json: o)
-                        
-                        context = clientMessage.context
-                        
-                        guard let ctx = self.contexts[clientMessage.context] else {
-                            throw ProtocolError.unknownContext(clientMessage.context)
-                        }
-                        
-                        try ctx.receive(clientMessage.parameters, data)
-                        errors = []
-                    } catch {
-                        if let serializationError = error as? SerializationError {
-                            errors.append(serializationError)
-                        } else {
-                            throw error
-                        }
-                    }
-                }
-                
-                if !errors.isEmpty {
-                    do {
-                        let closeMessage = try CloseContextMessage(json: o)
-                            
-                        context = closeMessage.context
-                        
-                        guard let ctx = self.contexts[closeMessage.context] else {
-                            throw ProtocolError.unknownContext(closeMessage.context)
-                        }
-                        
-                        ctx.complete()
-                        errors = []
-                    } catch {
-                        if let serializationError = error as? SerializationError {
-                            errors.append(serializationError)
-                        } else {
-                            throw error
-                        }
-                    }
-                }
-                
-                if !errors.isEmpty {
-                    throw SerializationError.invalidMessageType(errors)
-                }
+                context = try self.parseMessage(message: message)
             } catch {
                 do {
                     guard let data = String(data: try error.message(on: context).toJSONData(), encoding: .utf8) else {
@@ -137,20 +60,111 @@ class ConnectionResponsible: Identifiable {
                 throw SerializationError.expectedUTF8
             }
             
-            self.ws.send(data)
+            self.websocket.send(data)
         } catch {
             print(error)
         }
     }
     
     func close(_ code: WebSocketErrorCode) {
-        _ = ws.close(code: code)
+        _ = websocket.close(code: code)
     }
     
     func destruct(_ context: UUID) {
         self.contexts[context] = nil
     }
     
+    private func parseMessage(message: String) throws -> UUID? {
+        var context: UUID?
+        
+        guard let data = message.data(using: .utf8) else {
+            throw SerializationError.expectedUTF8
+        }
+        
+        guard let rootObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
+            throw SerializationError.expectedObjectAtRoot
+        }
+        
+        var errors: [SerializationError] = []
+        
+        do {
+            context = try self.parseOpenMessage(from: rootObject)
+        } catch {
+            try Self.handleSerializationError(error, using: &errors)
+        }
+        
+        if !errors.isEmpty {
+            do {
+                context = try self.parseClientMessage(from: rootObject, using: data)
+                errors = []
+            } catch {
+                try Self.handleSerializationError(error, using: &errors)
+            }
+        }
+        
+        if !errors.isEmpty {
+            do {
+                context = try self.parseCloseMessage(from: rootObject)
+                errors = []
+            } catch {
+                try Self.handleSerializationError(error, using: &errors)
+            }
+        }
+        
+        if !errors.isEmpty {
+            throw SerializationError.invalidMessageType(errors)
+        }
+        
+        return context
+    }
+    
+    private func parseOpenMessage(from rootObject: [String: Any]) throws -> UUID {
+        let openMessage = try OpenContextMessage(json: rootObject)
+        
+        guard let opener = self.endpoints[openMessage.endpoint] else {
+            throw ProtocolError.unknownEndpoint(openMessage.endpoint)
+        }
+        
+        guard self.contexts[openMessage.context] == nil else {
+            throw ProtocolError.openExistingContext(openMessage.context)
+        }
+        
+        self.contexts[openMessage.context] = opener(self, openMessage.context)
+        
+        return openMessage.context
+    }
+    
+    private func parseClientMessage(from rootObject: [String: Any], using data: Data) throws -> UUID {
+        let clientMessage = try ClientMessage(json: rootObject)
+        
+        guard let ctx = self.contexts[clientMessage.context] else {
+            throw ProtocolError.unknownContext(clientMessage.context)
+        }
+        
+        try ctx.receive(clientMessage.parameters, data)
+        
+        return clientMessage.context
+    }
+    
+    private func parseCloseMessage(from rootObject: [String: Any]) throws -> UUID {
+        let closeMessage = try CloseContextMessage(json: rootObject)
+        
+        guard let ctx = self.contexts[closeMessage.context] else {
+            throw ProtocolError.unknownContext(closeMessage.context)
+        }
+        
+        ctx.complete()
+        
+        return closeMessage.context
+    }
+    
+    private static func handleSerializationError(_ error: Error, using errors: inout [SerializationError]) throws {
+        if let serializationError = error as? SerializationError {
+            errors.append(serializationError)
+        } else {
+            throw error
+        }
+    }
 }
 
 private enum ProtocolError: WSError {
@@ -186,12 +200,11 @@ private indirect enum SerializationError: WSError {
             return "missing property \(property) on root element"
         case .invalidMessageType(let errors):
             return "Wrong format - possible reasons: \(errors.map { $0.reason }.joined(separator: ", "))"
-            
         }
     }
 }
 
-
+// MARK: Message Types
 
 private struct OpenContextMessage {
     var context: UUID
@@ -269,4 +282,3 @@ private extension Encodable {
     func toJSONData() -> Data? { try? JSONEncoder().encode(self) }
     func toJSONData() throws -> Data { try JSONEncoder().encode(self) }
 }
-

@@ -11,7 +11,7 @@ import Foundation
 // MARK: Unary request handler
 extension GRPCService {
     func createUnaryHandler<C: ConnectionContext>(context: C)
-    -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> where C.I == GRPCInterfaceExporter {
+    -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> where C.Exporter == GRPCInterfaceExporter {
         { (request: Vapor.Request) in
             var context = context
             
@@ -39,7 +39,7 @@ extension GRPCService {
     /// - Parameters:
     ///     - endpoint: The name of the endpoint that should be exposed.
     func exposeUnaryEndpoint<C: ConnectionContext>(name endpoint: String,
-                                                   context: C) where C.I == GRPCInterfaceExporter {
+                                                   context: C) where C.Exporter == GRPCInterfaceExporter {
         let path = [
             Vapor.PathComponent(stringLiteral: serviceName),
             Vapor.PathComponent(stringLiteral: endpoint)

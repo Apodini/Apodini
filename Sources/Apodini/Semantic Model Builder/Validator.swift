@@ -103,12 +103,12 @@ private class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
     func validate(_ request: I.ExporterRequest, with eventLoop: EventLoop) throws -> ValidatedRequest<I, H> {
         var output: [UUID: Any] = [:]
         
-        for i in validators.indices {
+        for validatorIndex in validators.indices {
             do {
-                output[validators[i].0] = try validators[i].1.validate(request, with: Void())
+                output[validators[validatorIndex].0] = try validators[validatorIndex].1.validate(request, with: Void())
             } catch {
-                for j in validators[0..<i].indices {
-                    validators[j].1.reset()
+                for validatorToResetIndex in validators[0..<validatorIndex].indices {
+                    validators[validatorToResetIndex].1.reset()
                 }
                 throw error
             }
@@ -118,8 +118,8 @@ private class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
     }
     
     func reset() {
-        for i in validators.indices {
-            validators[i].1.reset()
+        for validatorIndex in validators.indices {
+            validators[validatorIndex].1.reset()
         }
     }
 }
@@ -139,7 +139,7 @@ private class RepresentativeBuilder<I: InterfaceExporter>: EndpointParameterVisi
     }
     
     func visit<Element: Codable>(parameter: EndpointParameter<Element>) -> AnyValidator<I, Void, Any> {
-        return AnyValidator<I, Void, Any>(ParameterRepresentative<Element, I>(definition: parameter, exporter: self.exporter))
+        AnyValidator<I, Void, Any>(ParameterRepresentative<Element, I>(definition: parameter, exporter: self.exporter))
     }
 }
 
@@ -226,7 +226,10 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
             return result as Any
         } else {
             // return type must be just `Type`
-            let result: Type = (value ?? definition.defaultValue)!
+            guard let unwrappedValue = (value ?? definition.defaultValue) else {
+                fatalError("Could not unwrap opiontal value for \(definition.description) even though it is not an optional. This should have been detected by 'checkNecessity'.")
+            }
+            let result: Type = unwrappedValue
             return result as Any
         }
     }
@@ -238,7 +241,7 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
             switch definition.options.option(for: .mutability) ?? .variable {
             case .constant:
                 if let initialValue = self.initialValue {
-                    if !unsafeEqual(a: initialValue as Any, b: retrievedValue as Any) {
+                    if !unsafeEqual(first: initialValue as Any, second: retrievedValue as Any) {
                         throw InputValidationError.some("Parameter retrieval returned value for constant '\(definition.description)' even though its value has already been defined.")
                     }
                 } else {
@@ -259,16 +262,16 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
 
 // MARK: Helpers
 
-private func unsafeEqual<T>(a: T, b: Any) -> Bool {
+private func unsafeEqual<T>(first: T, second: Any) -> Bool {
     let associatedTypeRequirementsVisitor = EquatableVisitorImplementation()
-    if associatedTypeRequirementsVisitor(a) == nil {
+    if associatedTypeRequirementsVisitor(first) == nil {
         return false
     }
-    return associatedTypeRequirementsVisitor(b) ?? false
+    return associatedTypeRequirementsVisitor(second) ?? false
 }
 
 private class EquatableVisitorImplementation: EquatableVisitor {
-    var firstValue: Any? = nil
+    var firstValue: Any?
 
     func callAsFunction<T: Equatable>(_ value: T) -> Bool {
         if let first = firstValue {
@@ -283,4 +286,3 @@ private class EquatableVisitorImplementation: EquatableVisitor {
         }
     }
 }
-

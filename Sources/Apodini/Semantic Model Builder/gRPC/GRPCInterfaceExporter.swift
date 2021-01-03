@@ -44,12 +44,12 @@ class GRPCInterfaceExporter: InterfaceExporter {
         // is not stable, this is sorting the parameters by name (alphabetically)
         // as a work-aorund to establish reproducable default field tags.
         endpoint.exportParameters(on: self)
-            .sorted(by: { (left, right) in left.0 < right.0 }) // sort by name
-            .map({ $0.1 })  // only keep the UUIDs
+            .sorted(by: { left, right in left.0 < right.0 }) // sort by name
+            .map { $0.1 }  // only keep the UUIDs
             .enumerated()   // enumerate to create default field tags
-            .forEach({ item in
+            .forEach { item in
                 self.parameters[item.element] = item.offset + 1
-            })
+            }
 
         let context = endpoint.createConnectionContext(for: self)
 
@@ -199,7 +199,7 @@ class FieldNumber {
     private var tag = 1
 
     /// Returns the field-number for the current thread.
-    public static func getFieldNumber() -> Int {
+    static func getFieldNumber() -> Int {
         if let singleton = fieldNumber.currentValue {
             return singleton.tag
         }
@@ -209,7 +209,7 @@ class FieldNumber {
     }
 
     /// Sets the field-number for the current thread.
-    public static func setFieldNumber(_ number: Int) {
+    static func setFieldNumber(_ number: Int) {
         if fieldNumber.currentValue != nil {
             fieldNumber.currentValue?.tag = number
         } else {

@@ -75,7 +75,7 @@ class RESTInterfaceExporter: InterfaceExporter {
 
         let exportedParameterNames = endpoint.exportParameters(on: self)
 
-        var endpointHandler = RESTEndpointHandler(for: endpoint, with: endpoint.createConnectionContext(for: self))
+        let endpointHandler = RESTEndpointHandler(for: endpoint, with: endpoint.createConnectionContext(for: self))
         endpointHandler.register(at: routesBuilder, with: operation)
 
         app.logger.info("Exported '\(operation.httpMethod.rawValue) \(pathBuilder.pathDescription)' with parameters: \(exportedParameterNames)")

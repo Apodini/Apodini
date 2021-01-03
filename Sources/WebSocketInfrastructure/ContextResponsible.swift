@@ -12,7 +12,7 @@ import NIOWebSocket
 
 
 protocol ContextResponsible {
-    func receive(_ parameters: [String:Any], _ data: Data) throws
+    func receive(_ parameters: [String: Any], _ data: Data) throws
     
     func complete()
 }
@@ -23,32 +23,41 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     
     let outputSubscriber: AnyCancellable
     
-    let send: (Encodable) -> ()
-    let destruct: () -> ()
-    let close: (WebSocketErrorCode) -> ()
+    let send: (Encodable) -> Void
+    let destruct: () -> Void
+    let close: (WebSocketErrorCode) -> Void
     
-    convenience init(_ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Database?) -> (default: I, output: AnyPublisher<Message<O>, Error>), con: ConnectionResponsible, context: UUID) {
-        
-        self.init(opener, eventLoop: con.ws.eventLoop, database: con.db, send: { msg in
-            if let o = msg as? O {
-                con.send(o, in: context)
-            } else if let s = msg as? String {
-                con.send(s, in: context)
-            } else {
-                print("Could not send message: \(msg)")
-            }
-        }, destruct: {
-            con.destruct(context)
-        }, close: con.close)
+    convenience init(
+        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Database?) ->
+            (default: I, output: AnyPublisher<Message<O>, Error>),
+        con: ConnectionResponsible,
+        context: UUID) {
+        self.init(
+            opener,
+            eventLoop: con.websocket.eventLoop,
+            database: con.database,
+            send: { message in
+                if let output = message as? O {
+                    con.send(output, in: context)
+                } else if let stringMessage = message as? String {
+                    con.send(stringMessage, in: context)
+                } else {
+                    print("Could not send message: \(message)")
+                }
+            },
+            destruct: {
+                con.destruct(context)
+            },
+            close: con.close)
     }
     
     init(
-        _ opener: @escaping (AnyPublisher<I, Never>,  EventLoop, Database?) -> (default: I, output: AnyPublisher<Message<O>, Error>),
+        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Database?) -> (default: I, output: AnyPublisher<Message<O>, Error>),
         eventLoop: EventLoop,
         database: Database?,
-        send: @escaping (Encodable) -> (),
-        destruct: @escaping () -> (),
-        close: @escaping (WebSocketErrorCode) -> ()
+        send: @escaping (Encodable) -> Void,
+        destruct: @escaping () -> Void,
+        close: @escaping (WebSocketErrorCode) -> Void
     ) {
         let receiver = PassthroughSubject<I, Never>()
         
@@ -60,15 +69,15 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         
         self.outputSubscriber = output.sink(receiveCompletion: { completion in
             switch completion {
-            case .failure(_):
-                // TODO: allow for custom error-codes + messages
+            case .failure:
+                #warning("Once the topic of Apodini-Error-Messages has been addressed, those error-types should receive special treatment here.")
                 close(.unexpectedServerError)
             case .finished:
                 destruct()
             }
         }, receiveValue: { message in
             switch message {
-            case .send(let output):
+            case .message(let output):
                 send(output)
             case .error(let err):
                 send("\(err)")
@@ -80,7 +89,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         self.close = close
     }
     
-    func receive(_ parameters: [String:Any], _ data: Data) throws {
+    func receive(_ parameters: [String: Any], _ data: Data) throws {
         for (parameter, _) in parameters {
             switch self.input.update(parameter, using: ClientMessageParameterDecoder(data: data, name: parameter)) {
             case .error(let error):
@@ -97,13 +106,11 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
             self.input.apply()
             self.receiver.send(self.input)
         }
-        
     }
     
     func complete() {
         self.receiver.send(completion: .finished)
     }
-    
 }
 
 enum InputError: WSError {
@@ -114,7 +121,7 @@ enum InputError: WSError {
         switch self {
         case .missing(let parameters):
             return "Invalid input: missing parameters \(parameters.joined(separator: ", "))"
-        case .invalid(let name, let error):
+        case let .invalid(name, error):
             return "Invalid input: \(name) \(error.reason)"
         }
     }
@@ -127,13 +134,12 @@ private struct ClientMessageParameterDecoder: ParameterDecoder {
     let data: Data
     let name: String
     
-    func decode<T>(_ type: T.Type) throws -> T?? where T : Decodable {
+    func decode<T>(_ type: T.Type) throws -> T?? where T: Decodable {
         try JSONDecoder().decodeParameter(type, from: self.data, named: name)
     }
 }
 
 private extension JSONDecoder {
-
     func decodeParameter<T: Decodable>(_ type: T.Type, from data: Data, named key: String) throws -> T?? {
         // Pass the top level key to the decoder.
         userInfo[.parameterName] = key
@@ -141,21 +147,18 @@ private extension JSONDecoder {
         let root = try decode(ParametersWrapper<ParameterWrapper<T>>.self, from: data)
         return root.parameters.value
     }
-
 }
 
 private struct ParameterWrapper<T: Decodable>: Decodable {
-    
     struct AnyKey: CodingKey {
         var stringValue: String
         init?(stringValue: String) {
           self.stringValue = stringValue
         }
-        var intValue: Int? { return nil }
-        init?(intValue: Int) { return nil }
+        var intValue: Int? { nil }
+        init?(intValue: Int) { nil }
     }
     
-
     var value: T??
 
     init(from decoder: Decoder) throws {
@@ -163,6 +166,7 @@ private struct ParameterWrapper<T: Decodable>: Decodable {
             fatalError("Tried to decode parameter without parameterName.")
         }
 
+        // swiftlint:disable:next force_unwrapping
         let key = AnyKey(stringValue: parameterName)!
 
         let container = try decoder.container(keyedBy: AnyKey.self)
@@ -178,9 +182,8 @@ private struct ParameterWrapper<T: Decodable>: Decodable {
 }
 
 private extension CodingUserInfoKey {
-
+    // swiftlint:disable:next force_unwrapping
     static let parameterName = CodingUserInfoKey(rawValue: "parameterName")!
-
 }
 
 private struct ParametersWrapper<T>: Decodable where T: Decodable {

@@ -13,38 +13,41 @@ import Foundation
 /// `ConnectionContext` holds the internal state of an endpoint for one connection
 /// in a format suitable for a specific `InterfaceExporter`.
 protocol ConnectionContext {
-    associatedtype I: InterfaceExporter
+    associatedtype Exporter: InterfaceExporter
     
     mutating func handle(
-        request exporterRequest: I.ExporterRequest,
+        request exporterRequest: Exporter.ExporterRequest,
         eventLoop: EventLoop
     ) -> EventLoopFuture<Action<AnyEncodable>>
 }
 struct AnyConnectionContext<I: InterfaceExporter>: ConnectionContext {
+    typealias Exporter = I
+    
     private var handleFunc: (
         _: I.ExporterRequest,
         _: EventLoop
     ) -> EventLoopFuture<Action<AnyEncodable>>
     
-    init<C: ConnectionContext>(from context: C) where C.I == I {
+    init<C: ConnectionContext>(from context: C) where C.Exporter == I {
         var context = context
         self.handleFunc = { request, eventLoop in
             context.handle(request: request, eventLoop: eventLoop)
         }
     }
     
-    func handle(request exporterRequest: I.ExporterRequest, eventLoop: EventLoop) -> EventLoopFuture<Action<AnyEncodable>> {
+    mutating func handle(request exporterRequest: I.ExporterRequest, eventLoop: EventLoop) -> EventLoopFuture<Action<AnyEncodable>> {
         self.handleFunc(exporterRequest, eventLoop)
     }
 }
 
 extension ConnectionContext {
-    func eraseToAnyConnectionContext() -> AnyConnectionContext<I> {
+    func eraseToAnyConnectionContext() -> AnyConnectionContext<Exporter> {
         AnyConnectionContext(from: self)
     }
 }
 
-class InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionContext {
+struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionContext {
+    typealias Exporter = I
     
     private let exporter: I
     
@@ -64,12 +67,10 @@ class InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCon
         self.validator = endpoint.validator(for: exporter)
     }
     
-    func handle(
+    mutating func handle(
         request exporterRequest: I.ExporterRequest,
-                eventLoop: EventLoop
-            ) -> EventLoopFuture<Action<AnyEncodable>> {
-        
-        
+        eventLoop: EventLoop
+    ) -> EventLoopFuture<Action<AnyEncodable>> {
         do {
             let validatedRequest = try validator.validate(exporterRequest, with: eventLoop)
             
@@ -80,8 +81,8 @@ class InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCon
     }
 }
 
-extension ConnectionContext where I.ExporterRequest: WithEventLoop {
-    mutating func handle(request: I.ExporterRequest) -> EventLoopFuture<Action<AnyEncodable>> {
+extension ConnectionContext where Exporter.ExporterRequest: WithEventLoop {
+    mutating func handle(request: Exporter.ExporterRequest) -> EventLoopFuture<Action<AnyEncodable>> {
         handle(request: request, eventLoop: request.eventLoop)
     }
 }

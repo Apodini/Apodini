@@ -8,6 +8,40 @@
 import Foundation
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
+/// A `ParameterDecoder` allows for decoding an element of given type `T`.
+public protocol ParameterDecoder {
+    /// Try do decode an element of type `T` from the internal data.
+    /// - Returns:
+    ///     - `nil` if the `ParameterDecoder` does not hold any relevant information
+    ///     - `.some(nil)` if the `ParameterDecoder` found `null` at the relevant place
+    ///     - `.some(.some(T))` if the `ParameterDecoder` found an object of type `T` at the relevant place
+    ///
+    func decode<T: Decodable>(_: T.Type) throws -> T??
+}
+
+/// A stateful abstraction for representing validatable input.
+public protocol Input {
+    /// Update the value for the given `parameter` using the given `decoder` and validate this new value.
+    mutating func update(_ parameter: String, using decoder: ParameterDecoder) -> ParameterUpdateResult
+    /// Check the complete `Input` for validity after all parameters have been updated.
+    nonmutating func check() -> InputCheckResult
+    /// Expose the latest updates to its upstream users. E.g. update public variables.
+    mutating func apply()
+}
+
+/// A stateful abstraction for representing a single validatable parameter.
+public protocol InputParameter {
+    /// Update the internal value using the given `decoder` and validate this new value.
+    mutating func update(using decoder: ParameterDecoder) -> ParameterUpdateResult
+    /// Check the parameter` for validity.
+    nonmutating func check() -> ParameterCheckResult
+    /// Expose the latest updates to its upstream users. E.g. update public variables.
+    mutating func apply()
+}
+
+
+/// A default error type that covers most cases relevant when validating
+/// input parameters.
 public enum ParameterUpdateError: WSError {
     case notMutable, badType, notExistant
     
@@ -23,77 +57,68 @@ public enum ParameterUpdateError: WSError {
     }
 }
 
+/// Possible return types for updating a parameter.
 public enum ParameterUpdateResult {
+    /// The parameter could be decoded from the given
+    /// decoder and is valid.
     case ok
+    /// The parameter could not be decoded or it is invalid.
     case error(ParameterUpdateError)
 }
 
-public enum InputCheckResult {
-    case ok
-    case missing([String])
-}
-
-public protocol ParameterDecoder {
-    func decode<T: Decodable>(_: T.Type) throws -> T??
-}
-
-public protocol Input {
-    
-    mutating func update(_ parameter: String, using decoder: ParameterDecoder) -> ParameterUpdateResult
-    
-    mutating func check() -> InputCheckResult
-    
-    mutating func apply()
-}
-
+/// Possible return types for checking a parameters
+/// presence.
 public enum ParameterCheckResult {
+    /// The parameter either is present or it doesn't have
+    /// to be.
     case ok
+    /// The parameter is not present even though it sould.
     case missing
 }
 
-public protocol InputParameter {
-    
-    mutating func update(using decoder: ParameterDecoder) -> ParameterUpdateResult
-    
-    nonmutating func check() -> ParameterCheckResult
-    
-    mutating func apply()
-    
+/// Possible return types for checking the presence of all
+/// parameters.
+public enum InputCheckResult {
+    /// All required parameters are present.
+    case ok
+    /// The listed parameters are missing even though they shouldn't.
+    case missing([String])
 }
 
+
+/// An implementation of `Input` that accumulates results from given `InputParameter`s.
 public struct SomeInput: Input {
-    
-    private(set) public var parameters: [String: InputParameter]
+    public private(set) var parameters: [String: InputParameter]
     
     public init(parameters: [String: InputParameter]) {
         self.parameters = parameters
     }
     
-    
     public mutating func update(_ parameter: String, using decoder: ParameterDecoder) -> ParameterUpdateResult {
-        guard var p = parameters[parameter] else {
+        guard var inputParameter = parameters[parameter] else {
             return .error(.notExistant)
         }
         
-        let result = p.update(using: decoder)
-        parameters[parameter] = p
+        let result = inputParameter.update(using: decoder)
+        parameters[parameter] = inputParameter
         return result
     }
     
     public func check() -> InputCheckResult {
-        return self.parameters.map{ (name, parameter) -> InputCheckResult in
+        self.parameters.map { name, parameter -> InputCheckResult in
             switch parameter.check() {
             case .ok:
                 return .ok
             case .missing:
                 return .missing([name])
             }
-        }.reduce(.ok, { (a, c) in
-            switch a {
+        }
+        .reduce(.ok, { accumulator, current in
+            switch accumulator {
             case .ok:
-                return c
+                return current
             case .missing(let parameters):
-                switch c {
+                switch current {
                 case .ok:
                     return .missing(parameters)
                 case .missing(let newParameters):
@@ -110,10 +135,15 @@ public struct SomeInput: Input {
     }
 }
 
+/// An implementation of `InputParameter` that only asserts type, but not necessity,
+/// mutability or optionality.
 public struct Parameter<Type: Decodable>: InputParameter {
-    
     private var _interim: Type??
-    private(set) public var value: Type??
+    /// The current value set for this `Parameter`. It is:
+    ///     - `nil` if no value was set
+    ///     - `.some(nil)` if an explicit `null` value was set
+    ///     - `.some(.some(T))` if an object of type `T` was set
+    public private(set) var value: Type??
     
     public init() { }
     
@@ -128,7 +158,7 @@ public struct Parameter<Type: Decodable>: InputParameter {
     }
     
     public nonmutating func check() -> ParameterCheckResult {
-        return .ok
+        .ok
     }
     
     public mutating func apply() {

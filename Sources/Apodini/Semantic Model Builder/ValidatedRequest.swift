@@ -52,6 +52,9 @@ struct ValidatedRequest<I: InterfaceExporter, H: Handler>: Request {
     }
 
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element {
-        validatedParameterValues[parameter.id] as! Element
+        guard let value = validatedParameterValues[parameter.id] as? Element else {
+            fatalError("ValidatedRequest could not retrieve parameter \(parameter.description) after validation.")
+        }
+        return value
     }
 }

@@ -2,13 +2,14 @@
 // Created by Andi on 25.12.20.
 //
 
+import XCTest
 import Foundation
 import protocol NIO.EventLoop
 import protocol FluentKit.Database
 @testable import Apodini
 
 
-enum MockRequest { 
+enum MockRequest {
     static func createRequest(
         running eventLoop: EventLoop,
         queuedParameters parameterValues: Any??...
@@ -35,6 +36,11 @@ enum MockRequest {
         
         var validator = endpoint.validator(for: exporter)
         
-        return try! validator.validate("Undefined Exporter Request", with: eventLoop)
+        do {
+            return try validator.validate("Undefined Exporter Request", with: eventLoop)
+        } catch {
+            XCTFail("Validating MockRequest failed. The provided queuedParameters seem to be invalid.")
+            exit(1)
+        }
     }
 }

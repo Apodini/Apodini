@@ -20,44 +20,32 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
         request: ValidatedRequest<I, H>
     ) -> EventLoopFuture<Action<AnyEncodable>> {
         let guardEventLoopFutures = endpoint.guards.map { guardClosure -> EventLoopFuture<Void> in
-            do {
-                return try request.enterRequestContext(with: guardClosure()) { requestGuard in
-                    do {
-                        return try requestGuard.executeGuardCheck(on: request)
-                    } catch {
-                        return request.eventLoop.makeFailedFuture(error)
-                    }
-                }
-            } catch {
-                return request.eventLoop.makeFailedFuture(error)
+            request.enterRequestContext(with: guardClosure()) { requestGuard in
+                requestGuard.executeGuardCheck(on: request)
             }
         }
 
         return EventLoopFuture<Void>
             .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
                 .flatMap { _ in
-                    do {
-                        return try request.enterRequestContext(with: self.endpoint.handler) { handler in
-                            let response = handler.handle()
-                            let promise = request.eventLoop.makePromise(of: Action<AnyEncodable>.self)
-                            let visitor = ActionVisitor(request: request,
-                                                        promise: promise,
-                                                        responseModifiers: self.endpoint.responseTransformers)
-                            switch response {
-                            case let apodiniEncodableResponse as ApodiniEncodable:
-                                // is an Action
-                                // use visitor to access
-                                // wrapped element
-                                apodiniEncodableResponse.accept(visitor)
-                            default:
-                                // not an action
-                                // we can skip the visitor
-                                visitor.visit(encodable: response)
-                            }
-                            return promise.futureResult
+                    request.enterRequestContext(with: self.endpoint.handler) { handler in
+                        let response = handler.handle()
+                        let promise = request.eventLoop.makePromise(of: Action<AnyEncodable>.self)
+                        let visitor = ActionVisitor(request: request,
+                                                    promise: promise,
+                                                    responseModifiers: self.endpoint.responseTransformers)
+                        switch response {
+                        case let apodiniEncodableResponse as ApodiniEncodable:
+                            // is an Action
+                            // use visitor to access
+                            // wrapped element
+                            apodiniEncodableResponse.accept(visitor)
+                        default:
+                            // not an action
+                            // we can skip the visitor
+                            visitor.visit(encodable: response)
                         }
-                    } catch {
-                        return request.eventLoop.makeFailedFuture(error)
+                        return promise.futureResult
                     }
                 }
     }
