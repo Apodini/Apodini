@@ -75,12 +75,12 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         let ref3 = try componentsBuilder.componentsObject.reference(named: "GenericStruct", ofType: JSONSchema.self)
         let ref4 = try componentsBuilder.componentsObject.reference(named: "SomeComplexStruct", ofType: JSONSchema.self)
 
-        XCTAssertEqual(componentsBuilder.componentsObject[ref1], .object(properties: ["someProp": .integer, "id": .string]))
+        XCTAssertEqual(componentsBuilder.componentsObject[ref1], .object(properties: ["someProp": .integer, "id": .string(format: .other("uuid"), required: false)]))
         XCTAssertEqual(componentsBuilder.componentsObject[ref2],
                 .object(
                         properties: [
                             "someInt": .integer(),
-                            "someString": .string()
+                            "someString": .string(required: false)
                         ]
                 )
         )

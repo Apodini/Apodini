@@ -14,8 +14,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
     }
 
     struct SomeComp: Handler {
-        @Parameter
-        var name: String
+        @Parameter var name: String
 
         func handle() -> SomeStruct {
             SomeStruct()
@@ -38,14 +37,26 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                 paths: ["test": .init(
                         get: .init(
                                 parameters: [
-                                    Either.parameter(name: "name", context: .query, schema: .string)
+                                    Either.parameter(name: "name", context: .query, schema: .string, description: "@Parameter var name: String")
                                 ],
                                 responses: [.status(code: 200): .init(
-                                        OpenAPI.Response(description: "", content: [
+                                        OpenAPI.Response(description: "OK", content: [
                                             .json: .init(schema: .reference(
                                                     .component(named: "SomeStruct")
                                             ))
-                                        ]))
+                                        ])),
+                                    .status(code: 401): .init(
+                                            OpenAPI.Response(description: "Unauthorized")
+                                    ),
+                                    .status(code: 403): .init(
+                                            OpenAPI.Response(description: "Forbidden")
+                                    ),
+                                    .status(code: 404): .init(
+                                            OpenAPI.Response(description: "Not Found")
+                                    ),
+                                    .status(code: 500): .init(
+                                            OpenAPI.Response(description: "Internal Server Error")
+                                    )
                                 ]
                         )
                 )],
@@ -53,7 +64,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                         properties: ["someProp": .integer]
                 )])
         )
-        
+
         let builtDocument = documentBuilder.build()
 
         XCTAssertEqual(builtDocument, document)
