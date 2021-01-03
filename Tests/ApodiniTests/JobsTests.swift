@@ -27,6 +27,7 @@ final class JobsTests: ApodiniTests {
     struct KeyStore: ApodiniKeys {
         var failingJob: FailingJob
         var testJob: TestJob
+        var testJob2: TestJob
     }
     
     func testFailingJobs() throws {
@@ -49,6 +50,13 @@ final class JobsTests: ApodiniTests {
         Schedule(TestJob(), on: "* * * * *", \KeyStore.testJob).configure(app)
         let jobConfig = Scheduler.shared.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)]!
         XCTAssertNotNil(jobConfig.scheduled)
+        
+        Schedule(TestJob(), on: "* * * * *", runs: 0, \KeyStore.testJob2).configure(app)
+        let jobConfig2 = Scheduler.shared.jobConfigurations[ObjectIdentifier(\KeyStore.testJob2)]!
+        XCTAssertNil(jobConfig2.scheduled)
+        
+        try Scheduler.shared.dequeue(\KeyStore.testJob)
+        try Scheduler.shared.dequeue(\KeyStore.testJob2)
     }
 }
 // swiftlint:enable force_unwrapping force_cast
