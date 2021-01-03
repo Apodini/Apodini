@@ -1,8 +1,8 @@
-import Foundation
 import Fluent
+import Apodini
 @_implementationOnly import Vapor
 
-public struct Delete<T: DatabaseModel>: Handler {
+public struct Delete<T: Apodini.DatabaseModel>: Handler {
     
     @Apodini.Environment(\.database)
     var database: Fluent.Database

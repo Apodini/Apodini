@@ -8,7 +8,6 @@
 import class Vapor.Application
 import struct Vapor.Environment
 import Fluent
-import FluentMongoDriver
 
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service

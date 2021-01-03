@@ -1,5 +1,6 @@
 import Foundation
 import Fluent
+import Apodini
 
 public struct Read<Model: DatabaseModel>: Handler where Model.IDValue: LosslessStringConvertible {
     
@@ -28,7 +29,7 @@ public struct Read<Model: DatabaseModel>: Handler where Model.IDValue: LosslessS
                 result[Model.fieldKey(for: entry.0)] = entry.1.wrappedValue
             })
             .compactMapValues({ $0 })
-        let queryBuilder = Apodini.QueryBuilder(type: Model.self, parameters: queryInfo)
+        let queryBuilder = QueryBuilder(type: Model.self, parameters: queryInfo)
         queryBuilder.execute(on: database)
         return queryInfo.debugDescription
     }

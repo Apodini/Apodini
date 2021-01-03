@@ -9,7 +9,7 @@
 import Vapor
 import NIO
 import Runtime
-
+import Database
 
 struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
@@ -114,20 +114,20 @@ struct TestWebService: Apodini.WebService {
             UserHandler(userId: $userId)
                 .guard(PrintGuard())
         }
-        Group("api", "birds") {
-            Read<Bird>($dummy)
+//        Group("api", "birds") {
+//            Read<Bird>($dummy)
 //            Create<Bird>()
 //                .operation(.create)
 //            Group($birdID) {
 ////                Get<Bird>(id: $birdID).operation(.read)
 //                Update<Bird>(id: $birdID).operation(.update)
 //            }
-        }
+//        }
     }
     
     var configuration: Configuration {
-        DatabaseConfiguration(.defaultMongoDB(Environment.get("DATABASE_URL") ?? "mongodb://localhost:27017/vapor_database"))
-            .addMigrations(CreateBird())
+//        DatabaseConfiguration(.defaultMongoDB(Environment.get("DATABASE_URL") ?? "mongodb://localhost:27017/vapor_database"))
+//            .addMigrations(CreateBird())
         HTTP2Configuration()
     
     }

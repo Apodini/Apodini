@@ -7,6 +7,7 @@
 
 import XCTVapor
 import FluentSQLiteDriver
+import Database
 @testable import Apodini
 
 class ApodiniTests: XCTestCase {

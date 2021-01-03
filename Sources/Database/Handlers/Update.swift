@@ -1,6 +1,7 @@
 import Foundation
 import Fluent
 @_implementationOnly import Vapor
+import Apodini
 
 public struct Update<T: DatabaseModel>: Handler where T.IDValue: LosslessStringConvertible {
     

@@ -46,6 +46,12 @@ let package = Package(
             ]
         ),
         .target(
+            name: "Database",
+            dependencies: [
+                .target(name: "Apodini")
+            ]
+        ),
+        .target(
             name: "ProtobufferCoding",
             dependencies: [
                 .product(name: "Runtime", package: "Runtime")
@@ -56,6 +62,7 @@ let package = Package(
             name: "ApodiniTests",
             dependencies: [
                 .target(name: "Apodini"),
+                .target(name: "Database"),
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver")
             ]
@@ -69,7 +76,8 @@ let package = Package(
         .target(
             name: "TestWebService",
             dependencies: [
-                .target(name: "Apodini")
+                .target(name: "Apodini"),
+                .target(name: "Database"),
             ]
         )
     ]

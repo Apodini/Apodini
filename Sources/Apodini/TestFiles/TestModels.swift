@@ -69,9 +69,9 @@ public protocol DatabaseModel: Content, Model {
     func update(_ object: Self)
 }
 
-extension DatabaseModel {
+public extension DatabaseModel {
     
-    static func fieldKey(for string: String) -> FieldKey {
+    public static func fieldKey(for string: String) -> FieldKey {
         return Self.keys.first(where: { $0.description == string })!
     }
 }
