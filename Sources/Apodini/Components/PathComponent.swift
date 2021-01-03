@@ -17,10 +17,12 @@ protocol _PathComponent: PathComponent {
     func append<P: PathBuilder>(to pathBuilder: inout P)
 }
 
+
 protocol PathBuilder {
     mutating func append(_ string: String)
     mutating func append<T>(_ parameter: Parameter<T>)
 }
+
 
 struct StringPathBuilder: PathBuilder {
     private let delimiter: String
@@ -49,6 +51,7 @@ struct StringPathBuilder: PathBuilder {
     }
 }
 
+
 extension String: _PathComponent {
     var description: String {
         self
@@ -58,6 +61,7 @@ extension String: _PathComponent {
         pathBuilder.append(self)
     }
 }
+
 
 extension Array where Element == _PathComponent {
     func joinPathComponents(separator: String = "/") -> String {

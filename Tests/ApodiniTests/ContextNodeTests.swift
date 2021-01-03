@@ -6,7 +6,8 @@ import XCTest
 import Vapor
 @testable import Apodini
 
-struct TestComponent: Component {
+
+struct TestComponent: Handler {
     let type: Int
 
     init(_ type: Int) {
@@ -18,6 +19,7 @@ struct TestComponent: Component {
     }
 }
 
+
 struct IntEnvironmentContextKey: ContextKey {
     static var defaultValue: Int = 0
 
@@ -25,6 +27,7 @@ struct IntEnvironmentContextKey: ContextKey {
         value = nextValue()
     }
 }
+
 
 struct IntNextComponentContextKey: ContextKey {
     static var defaultValue: Int = 0
@@ -34,27 +37,34 @@ struct IntNextComponentContextKey: ContextKey {
     }
 }
 
-struct IntModifier<ModifiedComponent: Component>: Modifier, Visitable {
-    let component: ModifiedComponent
+
+struct IntModifier<C: Component>: Modifier, SyntaxTreeVisitable {
+    let component: C
     let scope: Scope
     let value: Int
 
-    init(_ component: ModifiedComponent, scope: Scope, value: Int) {
+    init(_ component: C, scope: Scope, value: Int) {
         self.component = component
         self.scope = scope
         self.value = value
     }
 
-    func visit(_ visitor: SyntaxTreeVisitor) {
+    func accept(_ visitor: SyntaxTreeVisitor) {
         switch scope {
         case .environment:
             visitor.addContext(IntEnvironmentContextKey.self, value: value, scope: .environment)
-        case .nextComponent:
-            visitor.addContext(IntNextComponentContextKey.self, value: value, scope: .nextComponent)
+        case .nextHandler:
+            visitor.addContext(IntNextComponentContextKey.self, value: value, scope: .nextHandler)
         }
-        component.visit(visitor)
+        component.accept(visitor)
     }
 }
+
+
+extension IntModifier: Handler, HandlerModifier where ModifiedComponent: Handler {
+    typealias Response = ModifiedComponent.Response
+}
+
 
 extension Component {
     func modifier(_ scope: Scope, value: Int) -> IntModifier<Self> {
@@ -62,38 +72,26 @@ extension Component {
     }
 }
 
+
 /**
  * Regression test for https://github.com/Apodini/Apodini/issues/12
  */
-final class ContextNodeTests: XCTestCase {
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    var app: Application!
-
+final class ContextNodeTests: ApodiniTests {
     class func buildStringFromPathComponents(_ components: [Apodini.PathComponent]) -> String {
         StringPathBuilder(components).build()
     }
     
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        app = Application(.testing)
-    }
-    
-    override func tearDownWithError() throws {
-        try super.tearDownWithError()
-        let app = try XCTUnwrap(self.app)
-        app.shutdown()
-    }
     
     var groupWithSingleComponent: some Component {
         Group("test") {
             TestComponent(1)
-        }.modifier(.nextComponent, value: 1)
+        }.modifier(.nextHandler, value: 1)
     }
 
     func testGroupWithSingleComponent() {
         class TestSemanticModelBuilder: SemanticModelBuilder {
-            override func register<C: Component>(component: C, withContext context: Context) {
-                if let testComponent = component as? TestComponent {
+            override func register<H: Handler>(handler: H, withContext context: Context) {
+                if let testComponent = handler as? TestComponent {
                     let localInt = context.get(valueFor: IntNextComponentContextKey.self)
 
                     switch testComponent.type {
@@ -104,14 +102,16 @@ final class ContextNodeTests: XCTestCase {
                         XCTFail("Received unknown component type \(testComponent.type)")
                     }
                 } else {
-                    XCTFail("Received registration for unexpected component type \(component)")
+                    XCTFail("Received registration for unexpected component type \(handler)")
                 }
             }
         }
 
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
-        groupWithSingleComponent.visit(visitor)
+        groupWithSingleComponent.accept(visitor)
+        visitor.finishParsing()
     }
+    
     
     var groupWithComponentAndGroup: some Component {
         Group("test") {
@@ -125,8 +125,8 @@ final class ContextNodeTests: XCTestCase {
 
     func testGroupWithComponentAndGroup() {
         class TestSemanticModelBuilder: SemanticModelBuilder {
-            override func register<C: Component>(component: C, withContext context: Context) {
-                if let testComponent = component as? TestComponent {
+            override func register<H: Handler>(handler: H, withContext context: Context) {
+                if let testComponent = handler as? TestComponent {
                     let path = context.get(valueFor: PathComponentContextKey.self)
                     let pathString = ContextNodeTests.buildStringFromPathComponents(path)
                     let environmentInt = context.get(valueFor: IntEnvironmentContextKey.self)
@@ -142,14 +142,16 @@ final class ContextNodeTests: XCTestCase {
                         XCTFail("Received unknown component type \(testComponent.type)")
                     }
                 } else {
-                    XCTFail("Received registration for unexpected component type \(component)")
+                    XCTFail("Received registration for unexpected component type \(handler)")
                 }
             }
         }
 
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
-        groupWithComponentAndGroup.visit(visitor)
+        groupWithComponentAndGroup.accept(visitor)
+        visitor.finishParsing()
     }
+    
     
     var groupWithGroupAndComponent: some Component {
         Group("test") {
@@ -162,8 +164,8 @@ final class ContextNodeTests: XCTestCase {
 
     func testGroupWithGroupAndComponent() {
         class TestSemanticModelBuilder: SemanticModelBuilder {
-            override func register<C: Component>(component: C, withContext context: Context) {
-                if let testComponent = component as? TestComponent {
+            override func register<H: Handler>(handler: H, withContext context: Context) {
+                if let testComponent = handler as? TestComponent {
                     let path = context.get(valueFor: PathComponentContextKey.self)
                     let pathString = ContextNodeTests.buildStringFromPathComponents(path)
                     let environmentInt = context.get(valueFor: IntEnvironmentContextKey.self)
@@ -179,12 +181,13 @@ final class ContextNodeTests: XCTestCase {
                         XCTFail("Received unknown component type \(testComponent.type)")
                     }
                 } else {
-                    XCTFail("Received registration for unexpected component type \(component)")
+                    XCTFail("Received registration for unexpected component type \(handler)")
                 }
             }
         }
 
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
-        groupWithGroupAndComponent.visit(visitor)
+        groupWithGroupAndComponent.accept(visitor)
+        visitor.finishParsing()
     }
 }

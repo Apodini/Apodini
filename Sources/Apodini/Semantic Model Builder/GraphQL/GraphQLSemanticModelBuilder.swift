@@ -79,13 +79,13 @@ class GraphQLSemanticModelBuilder: SemanticModelBuilder {
     }
 
 
-    override func register<C: Component>(component: C, withContext context: Context) {
-        super.register(component: component, withContext: context)
+    override func register<H: Handler>(handler: H, withContext context: Context) {
+        super.register(handler: handler, withContext: context)
 
         let guards = context.get(valueFor: GuardContextKey.self)
         let pathArray = context.get(valueFor: PathComponentContextKey.self)
         let responseTransformerTypes = context.get(valueFor: ResponseContextKey.self)
-
+        print(pathArray)
         // TODO: Instead of taking just  one value from the path array. Use the whole array to build the query structure
         // TODO: How to put handle function to the resolve. How do we utilize _,_,_,_ part?
         if (pathArray.count > 1) {
@@ -95,7 +95,7 @@ class GraphQLSemanticModelBuilder: SemanticModelBuilder {
                 print(context)
                 print(info)
                 print("------")
-                return component.handle() as! String
+                return handler.handle() as! String // TODO: Instead of string try encodable
             })
         }
 
@@ -108,7 +108,7 @@ class GraphQLSemanticModelBuilder: SemanticModelBuilder {
                         fields: fields
                 )
         )
-        print("Registration Done!")
+        print("GraphQL schema creation is done!")
     }
 
 }

@@ -9,11 +9,10 @@
 import XCTest
 
 
-final class PathParameterTests: XCTestCase {
+final class PathParameterTests: ApodiniTests {
     struct TestComponent: Component {
         @PathParameter
         var name: String
-        
         
         var content: some Component {
             Group($name) {
@@ -22,13 +21,13 @@ final class PathParameterTests: XCTestCase {
         }
     }
     
-    struct TestHandler: Component {
+    
+    struct TestHandler: Handler {
         @Parameter
         var name: String
         
         @Parameter
         var times: Int
-        
         
         func handle() -> String {
             (0...times)
@@ -38,6 +37,7 @@ final class PathParameterTests: XCTestCase {
                 .joined(separator: " ")
         }
     }
+    
     
     func testPrintComponent() throws {
         let testComponent = TestComponent()
