@@ -35,7 +35,7 @@ final class ActionTests: XCTestCase {
             mutating func encode(_ value: UInt16) throws { }
             mutating func encode(_ value: UInt32) throws { }
             mutating func encode(_ value: UInt64) throws { }
-            mutating func encode<T>(_ value: T) throws where T : Encodable { }
+            mutating func encode<T>(_ value: T) throws where T: Encodable { }
         }
         
         var codingPath: [CodingKey] = []
