@@ -18,6 +18,8 @@ extension JSONSchema {
             return .number(format: .double)
         case is Date.Type:
             return .string(format: .date)
+        case is UUID.Type:
+            return .string(format: .other("uuid"))
         default:
             return defaultType
         }

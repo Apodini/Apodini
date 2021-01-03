@@ -122,7 +122,8 @@ private extension OpenAPIComponentsObjectBuilder {
         let node = try EnrichedInfo.node(type)
                 .edited(handleOptional)?
                 .edited(handleArray)?
-                .edited(handlePrimitiveType)
+                .edited(handlePrimitiveType)?
+                .edited(handleUUID)
         return node
     }
 }

@@ -5,6 +5,8 @@
 //  Created by Nityananda on 30.11.20.
 //
 
+import Foundation
+
 /// `ParticularType` encapsulates functionality around specific types that may be generic,
 /// or types that may be understood as _scalar_ or _primitive_.
 ///
@@ -44,6 +46,10 @@ extension ParticularType: Equatable {
         supportedScalarTypes
                 .map(ParticularType.init)
                 .contains(self)
+    }
+    
+    var isUUID: Bool {
+        ParticularType.init(UUID.self) == self
     }
 }
 
