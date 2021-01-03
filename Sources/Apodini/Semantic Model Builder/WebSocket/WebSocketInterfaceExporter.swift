@@ -15,7 +15,6 @@ extension SomeInput: ExporterRequest { }
 
 
 class WebSocketInterfaceExporter: InterfaceExporter {
-    
     typealias ExporterRequest = SomeInput
     
     typealias EndpointExportOuput = Void
