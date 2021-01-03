@@ -32,7 +32,7 @@ class ConnectionResponsible: Identifiable {
             var context: UUID?
             
             do {
-                context = try self.parseMessage(message: message)
+                context = try self.processMessage(message: message)
             } catch {
                 do {
                     guard let data = String(data: try error.message(on: context).toJSONData(), encoding: .utf8) else {
@@ -74,7 +74,7 @@ class ConnectionResponsible: Identifiable {
         self.contexts[context] = nil
     }
     
-    private func parseMessage(message: String) throws -> UUID? {
+    private func processMessage(message: String) throws -> UUID? {
         var context: UUID?
         
         guard let data = message.data(using: .utf8) else {
@@ -88,14 +88,14 @@ class ConnectionResponsible: Identifiable {
         var errors: [SerializationError] = []
         
         do {
-            context = try self.parseOpenMessage(from: rootObject)
+            context = try self.processOpenMessage(from: rootObject)
         } catch {
             try Self.handleSerializationError(error, using: &errors)
         }
         
         if !errors.isEmpty {
             do {
-                context = try self.parseClientMessage(from: rootObject, using: data)
+                context = try self.processClientMessage(from: rootObject, using: data)
                 errors = []
             } catch {
                 try Self.handleSerializationError(error, using: &errors)
@@ -104,7 +104,7 @@ class ConnectionResponsible: Identifiable {
         
         if !errors.isEmpty {
             do {
-                context = try self.parseCloseMessage(from: rootObject)
+                context = try self.processCloseMessage(from: rootObject)
                 errors = []
             } catch {
                 try Self.handleSerializationError(error, using: &errors)
@@ -118,7 +118,7 @@ class ConnectionResponsible: Identifiable {
         return context
     }
     
-    private func parseOpenMessage(from rootObject: [String: Any]) throws -> UUID {
+    private func processOpenMessage(from rootObject: [String: Any]) throws -> UUID {
         let openMessage = try OpenContextMessage(json: rootObject)
         
         guard let opener = self.endpoints[openMessage.endpoint] else {
@@ -134,7 +134,7 @@ class ConnectionResponsible: Identifiable {
         return openMessage.context
     }
     
-    private func parseClientMessage(from rootObject: [String: Any], using data: Data) throws -> UUID {
+    private func processClientMessage(from rootObject: [String: Any], using data: Data) throws -> UUID {
         let clientMessage = try ClientMessage(json: rootObject)
         
         guard let ctx = self.contexts[clientMessage.context] else {
@@ -146,7 +146,7 @@ class ConnectionResponsible: Identifiable {
         return clientMessage.context
     }
     
-    private func parseCloseMessage(from rootObject: [String: Any]) throws -> UUID {
+    private func processCloseMessage(from rootObject: [String: Any]) throws -> UUID {
         let closeMessage = try CloseContextMessage(json: rootObject)
         
         guard let ctx = self.contexts[closeMessage.context] else {

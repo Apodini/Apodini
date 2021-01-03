@@ -16,7 +16,7 @@ struct WebSocketPathBuilder: PathBuilder {
             .map { pathComponent in
                 pathComponent.description
             }
-            .joined(separator: "/")
+            .joined(separator: ".")
     }
     
     
@@ -35,7 +35,7 @@ struct WebSocketPathBuilder: PathBuilder {
     }
     
     mutating func append<T>(_ parameter: Parameter<T>) {
-        let pathComponent = parameter.description
+        let pathComponent = ":\(parameter.name ?? ""):"
         pathComponents.append(pathComponent)
     }
 }

@@ -77,7 +77,7 @@ class WebSocketInterfaceExporter: InterfaceExporter {
         _ parameter: EndpointParameter<Type>,
         for request: SomeInput
     ) throws -> Type?? where Type: Decodable, Type: Encodable {
-        if let inputParameter = request.parameters[parameter.name] as? WebSocketInfrastructure.Parameter<Type> {
+        if let inputParameter = request.parameters[parameter.name] as? WebSocketInfrastructure.NullableOptionalVariableParameter<Type> {
             return inputParameter.value
         } else {
             return nil
@@ -85,6 +85,6 @@ class WebSocketInterfaceExporter: InterfaceExporter {
     }
     
     func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, InputParameter) where Type: Decodable, Type: Encodable {
-        (parameter.name, WebSocketInfrastructure.Parameter<Type>())
+        (parameter.name, WebSocketInfrastructure.NullableOptionalVariableParameter<Type>())
     }
 }

@@ -137,7 +137,7 @@ public struct SomeInput: Input {
 
 /// An implementation of `InputParameter` that only asserts type, but not necessity,
 /// mutability or optionality.
-public struct Parameter<Type: Decodable>: InputParameter {
+public struct NullableOptionalVariableParameter<Type: Decodable>: InputParameter {
     private var _interim: Type??
     /// The current value set for this `Parameter`. It is:
     ///     - `nil` if no value was set
