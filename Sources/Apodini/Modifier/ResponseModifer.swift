@@ -82,7 +82,7 @@ public struct ResponseModifier<H: Handler, T: ResponseTransformer>: HandlerModif
 
 extension ResponseModifier: SyntaxTreeVisitable {
     func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(ResponseContextKey.self, value: [responseTransformer], scope: .nextComponent)
+        visitor.addContext(ResponseContextKey.self, value: [responseTransformer], scope: .nextHandler)
         component.accept(visitor)
     }
 }
@@ -117,7 +117,7 @@ public struct ActionResponseModifier<H: Handler, T: ResponseTransformer>: Modifi
 
 extension ActionResponseModifier: SyntaxTreeVisitable {
     func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(ResponseContextKey.self, value: [responseTransformer], scope: .nextComponent)
+        visitor.addContext(ResponseContextKey.self, value: [responseTransformer], scope: .nextHandler)
         component.accept(visitor)
     }
 }

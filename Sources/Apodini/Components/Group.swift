@@ -5,7 +5,6 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-
 struct PathComponentContextKey: ContextKey {
     static var defaultValue: [PathComponent] = []
 
@@ -25,11 +24,19 @@ public struct Group<Content: Component>: Component, SyntaxTreeVisitable {
     }
     
     func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.enterCollection()
-        visitor.enterCollectionItem()
-        visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)
-        content.accept(visitor)
-        visitor.exitCollectionItem()
-        visitor.exitCollection()
+        func forwardToContent() {
+            visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)
+            content.accept(visitor)
+        }
+        
+        if !String(describing: type(of: content)).hasPrefix("TupleComponent<") {
+            visitor.enterContent {
+                visitor.enterComponentContext {
+                    forwardToContent()
+                }
+            }
+        } else {
+            forwardToContent()
+        }
     }
 }
