@@ -4,8 +4,10 @@ import ProtobufferBuilder
 
 final class ProtobufferBuilderTests: XCTestCase {
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
-        let app = try S.prepare(testing: true)
+        let app = Application(.testing)
+        S.main(app: app)
         defer { app.shutdown() }
+        
         try app.test(.GET, "apodini/proto") { res in
             XCTAssertEqual(res.body.string, expectation)
         }
@@ -22,7 +24,7 @@ extension ProtobufferBuilderTests {
             }
         }
         
-        struct HelloWorld: Component {
+        struct HelloWorld: Handler {
             func handle() -> String {
                 "Hello, World!"
             }
@@ -52,7 +54,7 @@ extension ProtobufferBuilderTests {
             }
         }
         
-        struct Greeter: Component {
+        struct Greeter: Handler {
             @Parameter
             var name: String
             

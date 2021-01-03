@@ -5,28 +5,32 @@
 //  Created by Nityananda on 03.12.20.
 //
 
-@_implementationOnly import Vapor
+@_implementationOnly import class Vapor.Application
 import ProtobufferBuilder
 
-class ProtobufferSemanticModelBuilder: SemanticModelBuilder {
-    private let builder = ProtobufferBuilder()
+extension Never: ExporterRequest {}
+
+class ProtobufferInterfaceExporter: InterfaceExporter {
+    typealias ExporterRequest = Never
     
-    required override init(_ app: Application) {
-        super.init(app)
+    private let app: Vapor.Application
+    private let builder: ProtobufferBuilder
+    
+    required init(_ app: Application) {
+        self.app = app
+        self.builder = ProtobufferBuilder()
         
         self.app.get("apodini", "proto") { req in
             self.builder.description
         }
     }
-}
-
-extension ProtobufferSemanticModelBuilder: InterfaceExporter {
-    func export(_ endpoint: Endpoint) {
+    
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let pathComponents = endpoint.context.get(valueFor: PathComponentContextKey.self)
         let serviceName = StringPathBuilder(pathComponents, delimiter: "")
             .build()
             .capitalized
-        let inputType: Any.Type = endpoint.parameters.first?.contentType ?? Void.self
+        let inputType: Any.Type = endpoint.parameters.first?.propertyType ?? Void.self
         
         do {
             try builder.addService(
@@ -37,5 +41,9 @@ extension ProtobufferSemanticModelBuilder: InterfaceExporter {
         } catch {
             app.logger.error("\(error)")
         }
+    }
+    
+    func retrieveParameter<Type>(_ parameter: EndpointParameter<Type>, for request: Never) throws -> Type?? where Type : Decodable, Type : Encodable {
+        nil
     }
 }
