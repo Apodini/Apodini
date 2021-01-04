@@ -62,7 +62,12 @@ class WebSocketInterfaceExporter: InterfaceExporter {
                     switch result {
                     case .success(let response):
                         guard let element = response.element else {
-                            fatalError("The WebSocketExporter does not handle 'Action' yet. Using anything but '.send' or '.final' results in a server-crash.")
+                            fatalError(
+                                """
+                                The WebSocketExporter does not handle 'Action' yet.
+                                Using anything but '.send' or '.final' results in a server-crash.
+                                """
+                            )
                         }
                         output.send(.message(element))
                     case .failure(let error):
