@@ -7,7 +7,7 @@
 import Foundation
 
 
-/// A generic `PropertyOption` that indicates if the `@Parameter`'s value can be updated during the lifetime of its container once it has been set once.
+/// A generic `PropertyOption` that indicates if the `@Parameter`'s value can be updated during the lifetime of its container once it has been set.
 public enum Mutability: PropertyOption {
     /// The `@Parameter` can be updated without restrictions.
     case variable
@@ -20,7 +20,7 @@ extension PropertyOptionKey where PropertyNameSpace == ParameterOptionNameSpace,
 }
 
 extension AnyPropertyOption where PropertyNameSpace == ParameterOptionNameSpace {
-    /// An HTTP specific option that indicates how the `@Parameter` property wrapper should be interpreted by interface exporters using HTTP to identify and multiplex components.
+    /// A generic option that indicates if the `@Parameter`'s value can be updated during the lifetime of its container once it has been set.
     public static func mutability(_ mode: Mutability) -> AnyPropertyOption<ParameterOptionNameSpace> {
         AnyPropertyOption(key: .mutability, value: mode)
     }
