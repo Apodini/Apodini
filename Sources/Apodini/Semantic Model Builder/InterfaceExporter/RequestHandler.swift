@@ -80,16 +80,16 @@ struct ActionVisitor: EncodableContainerVisitor {
         switch action {
         case let .send(element):
             transformResponse(element)
-                    .map { result in
-                        .send(result)
-                    }
-                    .cascade(to: promise)
+                .map { result in
+                    .send(result)
+                }
+                .cascade(to: promise)
         case let .final(element):
             transformResponse(element)
-                    .map { result in
-                        .final(result)
-                    }
-                    .cascade(to: promise)
+                .map { result in
+                    .final(result)
+                }
+                .cascade(to: promise)
         case .nothing:
             // no response to run through the responseModifiers
             promise.succeed(.nothing)
@@ -100,28 +100,17 @@ struct ActionVisitor: EncodableContainerVisitor {
     }
 
     func transformResponse(_ response: Encodable) -> EventLoopFuture<AnyEncodable> {
-        let responseFuture = eventLoop.wrapEncodableIntoFuture(encodable: response)
-        return transformNextResponse(responseFuture, responseModifiers)
-                .map { encodable in
-                    AnyEncodable(value: encodable)
-                }
-    }
-
-    func transformNextResponse(_ response: EventLoopFuture<Encodable>, _ modifiers: [() -> (AnyResponseTransformer)]) -> EventLoopFuture<Encodable> {
-        if modifiers.isEmpty {
-            return response
-        }
-
-        var modifiers = modifiers
-        let next = modifiers.removeFirst()
-
-        return response.flatMap { encodable in
-            let transformed = request.enterRequestContext(with: next()) { responseTransformer in
-                responseTransformer.transform(response: encodable)
+        var response = response
+        for responseTransformer in responseModifiers {
+            response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
+                responseTransformer.transform(response: response)
             }
-            let responseFuture = eventLoop.wrapEncodableIntoFuture(encodable: transformed)
-            return transformNextResponse(responseFuture, modifiers)
         }
+
+        return eventLoop.wrapEncodableIntoFuture(encodable: response)
+            .map { encodable in
+                AnyEncodable(value: encodable)
+            }
     }
 }
 

@@ -1,5 +1,5 @@
 //
-//  ApodiniEncodableTests.swift
+//  CodableTests.swift
 //  
 //
 //  Created by Moritz Schüll on 23.12.20.
@@ -9,7 +9,7 @@ import XCTest
 import NIO
 @testable import Apodini
 
-final class ApodiniEncodableTests: ApodiniTests, EncodableContainerVisitor {
+final class CodableTests: ApodiniTests, EncodableContainerVisitor {
     struct ActionHandler: Handler {
         var message: String
 
@@ -41,14 +41,14 @@ final class ApodiniEncodableTests: ApodiniTests, EncodableContainerVisitor {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        ApodiniEncodableTests.expectedValue = ""
+        CodableTests.expectedValue = ""
     }
 
     func visit<Value: Encodable>(_ action: Action<Value>) {
         switch action {
         case let .final(element):
             // swiftlint:disable:next force_cast
-            XCTAssertEqual(element as! String, ApodiniEncodableTests.expectedValue)
+            XCTAssertEqual(element as! String, CodableTests.expectedValue)
         default:
             XCTFail("Expected value wrapped in .final")
         }
@@ -65,14 +65,15 @@ final class ApodiniEncodableTests: ApodiniTests, EncodableContainerVisitor {
     }
 
     func testShouldCallAction() {
-        ApodiniEncodableTests.expectedValue = "Action"
-        callVisitor(ActionHandler(message: ApodiniEncodableTests.expectedValue))
+        CodableTests.expectedValue = "Action"
+        callVisitor(ActionHandler(message: CodableTests.expectedValue))
     }
 
     func testActionRequestHandling() throws {
-        ApodiniEncodableTests.expectedValue = "ActionWithRequest"
-        let handler = ActionHandler(message: ApodiniEncodableTests.expectedValue)
-        let endpoint = handler.mockEndpoint()
+        CodableTests.expectedValue = "ActionWithRequest"
+        let handler = ActionHandler(message: CodableTests.expectedValue)
+        let modifier = EmojiMediator(emojis: "-")
+        let endpoint = handler.mockEndpoint(responseTransformers: [ { modifier } ])
 
         let exporter = MockExporter<String>()
 
@@ -85,12 +86,12 @@ final class ApodiniEncodableTests: ApodiniTests, EncodableContainerVisitor {
             return
         }
         let stringResult: String = try XCTUnwrap(responseValue.value as? String)
-        XCTAssertEqual(stringResult, ApodiniEncodableTests.expectedValue)
+        XCTAssertEqual(stringResult, "- " + CodableTests.expectedValue + " -")
     }
 
-    func testEventLoopFutureRequestHandling() throws {
-        ApodiniEncodableTests.expectedValue = "ActionWithRequest"
-        let handler = FutureBasedHandler(eventLoop: app.eventLoopGroup.next(), message: ApodiniEncodableTests.expectedValue)
+    func testEventLoopFutureFlattening() throws {
+        CodableTests.expectedValue = "ActionWithRequest"
+        let handler = FutureBasedHandler(eventLoop: app.eventLoopGroup.next(), message: CodableTests.expectedValue)
         let endpoint = handler.mockEndpoint()
 
         let exporter = MockExporter<String>()
@@ -103,8 +104,7 @@ final class ApodiniEncodableTests: ApodiniTests, EncodableContainerVisitor {
             XCTFail("Expected return value of ActionHandler to be wrapped in Action.send")
             return
         }
-        print("Found value \(responseValue.value)")
         let stringResult: String = try XCTUnwrap(responseValue.value as? String)
-        XCTAssertEqual(stringResult, ApodiniEncodableTests.expectedValue)
+        XCTAssertEqual(stringResult, CodableTests.expectedValue)
     }
 }
