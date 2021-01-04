@@ -1,4 +1,3 @@
-// swiftlint:disable force_unwrapping force_cast
 //
 //  File.swift
 //  
@@ -27,7 +26,6 @@ final class JobsTests: ApodiniTests {
     struct KeyStore: ApodiniKeys {
         var failingJob: FailingJob
         var testJob: TestJob
-        var testJob2: TestJob
     }
     
     func testFailingJobs() throws {
@@ -41,22 +39,24 @@ final class JobsTests: ApodiniTests {
         let scheduler = EnvironmentValues.shared.scheduler
         let job = TestJob()
         try scheduler.enqueue(job, with: "*/10 * * * *", \KeyStore.testJob, on: app.eventLoopGroup.next())
-        let environmentJob = EnvironmentValues.shared.values[ObjectIdentifier(\KeyStore.testJob)] as! TestJob
+        let environmentJob = try XCTUnwrap(EnvironmentValues.shared.values[ObjectIdentifier(\KeyStore.testJob)] as? TestJob)
         environmentJob.num = 42
         XCTAssert(environmentJob.num == job.num)
     }
     
-    func testScheduling() throws {
+    func testEveryMinute() throws {
         Schedule(TestJob(), on: "* * * * *", \KeyStore.testJob).configure(app)
-        let jobConfig = Scheduler.shared.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)]!
+        let jobConfig = try XCTUnwrap(Scheduler.shared.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)])
         XCTAssertNotNil(jobConfig.scheduled)
         
-        Schedule(TestJob(), on: "* * * * *", runs: 0, \KeyStore.testJob2).configure(app)
-        let jobConfig2 = Scheduler.shared.jobConfigurations[ObjectIdentifier(\KeyStore.testJob2)]!
-        XCTAssertNil(jobConfig2.scheduled)
+        try Scheduler.shared.dequeue(\KeyStore.testJob)
+    }
+    
+    func testZeroRuns() throws {
+        Schedule(TestJob(), on: "* * * * *", runs: 0, \KeyStore.testJob).configure(app)
+        let jobConfig = try XCTUnwrap(Scheduler.shared.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)])
+        XCTAssertNil(jobConfig.scheduled)
         
         try Scheduler.shared.dequeue(\KeyStore.testJob)
-        try Scheduler.shared.dequeue(\KeyStore.testJob2)
     }
 }
-// swiftlint:enable force_unwrapping force_cast

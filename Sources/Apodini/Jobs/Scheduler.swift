@@ -14,7 +14,7 @@ import NIO
 /// ```
 public class Scheduler {
     internal static var shared = Scheduler()
-
+    
     internal var jobConfigurations: [ObjectIdentifier: JobConfiguration] = [:]
     
     private init() { }
@@ -25,14 +25,14 @@ public class Scheduler {
     /// enqueue(Job(), with: "* * * * *", \KeyStore.job, on: request.eventLoop
     /// ```
     ///
-    /// This method throws an exception if the `Job` uses request based property wrappers or the crontab cannot be parsed.
-    ///
     /// - Parameters:
     ///     - job: The background running task conforming to `Job`s.
     ///     - with: Crontab as a String.
     ///     - runs: Number of times a `Job` should run.
     ///     - keyPath: Associates a `Job` for later retrieval.
     ///     - on: Specifies the event loop the `Job` is exectured on.
+    ///
+    /// - Throws: If the `Job` uses request based property wrappers or the crontab cannot be parsed.
     public func enqueue<K: ApodiniKeys, T: Job>(_ job: T,
                                                 with cronTrigger: String,
                                                 runs: Int? = nil,
@@ -50,9 +50,9 @@ public class Scheduler {
     
     /// Stops the execution of a `Job`.
     ///
-    /// This method throws an exception if the `Job` cannot be found..
-    ///
     /// - Parameter keyPath: Associatesd key path of a `Job`.
+    ///
+    /// - Throws: This method throws an exception if the `Job` cannot be found.
     public func dequeue<K: ApodiniKeys, T: Job>(_ keyPath: KeyPath<K, T>) throws {
         guard let config = jobConfigurations[ObjectIdentifier(keyPath)] else {
             throw JobErrors.notFound
@@ -60,8 +60,10 @@ public class Scheduler {
         
         config.scheduled?.cancel()
     }
-    
-    private func schedule<T: Job>(_ job: T, with config: JobConfiguration, on eventLoop: EventLoop) {
+}
+
+private extension Scheduler {
+    func schedule<T: Job>(_ job: T, with config: JobConfiguration, on eventLoop: EventLoop) {
         guard let nextDate = try? config.cron.next() else {
             return
         }
@@ -74,7 +76,7 @@ public class Scheduler {
         }
     }
     
-    private func schedule<T: Job>(_ job: T, with config: JobConfiguration, _ runs: Int, on eventLoop: EventLoop) {
+    func schedule<T: Job>(_ job: T, with config: JobConfiguration, _ runs: Int, on eventLoop: EventLoop) {
         guard runs > 0, let nextDate = try? config.cron.next() else {
             return
         }
@@ -88,7 +90,7 @@ public class Scheduler {
     }
     
     /// Checks if only valid property wrappers are used with `Job`s.
-    private func checkPropertyWrappers<T: Job>(_ job: T) throws {
+    func checkPropertyWrappers<T: Job>(_ job: T) throws {
         for property in Mirror(reflecting: job).children
         where property.value is RequestInjectable {
             throw JobErrors.requestPropertyWrapper
@@ -96,9 +98,9 @@ public class Scheduler {
     }
     
     /// Generates the environment value of the `Job`.
-    private func generateEnvironmentValue<K: ApodiniKeys, T: Job>(_ job: T,
-                                                                  _ cronTrigger: String,
-                                                                  _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
+    func generateEnvironmentValue<K: ApodiniKeys, T: Job>(_ job: T,
+                                                          _ cronTrigger: String,
+                                                          _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
         let identifier = ObjectIdentifier(keyPath)
         let jobConfiguration = try JobConfiguration(SwifCron(cronTrigger))
         EnvironmentValues.shared.values[identifier] = job
