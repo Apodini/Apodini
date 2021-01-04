@@ -34,7 +34,7 @@ extension ProtobufferBuilderTests {
             syntax = "proto3";
 
             service V1Service {
-              rpc handle (VoidMessage) returns (StringMessage);
+              rpc helloworld (VoidMessage) returns (StringMessage);
             }
 
             message StringMessage {
@@ -67,7 +67,7 @@ extension ProtobufferBuilderTests {
             syntax = "proto3";
 
             service V1Service {
-              rpc handle (StringMessage) returns (StringMessage);
+              rpc greeter (StringMessage) returns (StringMessage);
             }
 
             message StringMessage {
