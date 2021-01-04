@@ -117,11 +117,11 @@ final class EndpointsTreeTests: ApodiniTests {
         // creating a endpoint model from the handler
         let endpoint = handler.mockEndpoint(guards: [ { printGuard } ], responseTransformers: [ { transformer } ])
 
-        // creating a request handler for the exporter
-        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        // creating a context for the exporter
+        var context = endpoint.createConnectionContext(for: exporter)
 
         // handle a request (The actual request is unused in the MockExporter)
-        let response = try requestHandler(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+        let response = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
         guard case let .final(responseValue) = response else {
             XCTFail("Expected return value to be wrapped in Action.final by default")
