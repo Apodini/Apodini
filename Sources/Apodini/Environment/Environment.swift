@@ -44,7 +44,7 @@ public struct EnvironmentValues {
 
 /// A property wrapper to inject pre-defined values  to a `Component`.
 @propertyWrapper
-public struct Environment<K: ApodiniKeys, Value> {
+public struct Environment<K: ApodiniKeys, Value>: Property {
     /// Keypath to access an `EnvironmentValue`.
     internal var keyPath: KeyPath<K, Value>
     internal var dynamicValues: [ObjectIdentifier: Any] = [:]

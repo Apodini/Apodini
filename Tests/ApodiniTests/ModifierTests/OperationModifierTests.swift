@@ -10,32 +10,35 @@ import XCTVapor
 
 
 final class OperationModifierTests: ApodiniTests {
-    func testOperationModifier() throws {
-        struct TestWebService: WebService {
-            var version = Version(prefix: "version", major: 3, minor: 2, patch: 4)
-            
-            var content: some Component {
-                Group("default") {
-                    Text("Read")
-                }
-                Text("Create")
-                    .operation(.read)
+    struct TestWebService: WebService {
+        var version = Version(prefix: "version", major: 3, minor: 2, patch: 4)
+        
+        var content: some Component {
+            Group("default") {
+                Text("Read")
+            }
+            Text("Create")
+                .operation(.read)
+                .operation(.create)
+            Group {
+                Text("Update")
+                    .operation(.delete)
+                    .operation(.update)
+                Text("Delete")
+                    .operation(.delete)
+                Text("Read")
                     .operation(.create)
-                Group {
-                    Text("Update")
-                        .operation(.delete)
-                        .operation(.update)
-                    Text("Delete")
-                        .operation(.delete)
-                    Text("Read")
-                        .operation(.create)
-                        .operation(.read)
-                }
+                    .operation(.read)
             }
         }
-        
+    }
+    
+    override func setUpWithError() throws {
+        try super.setUpWithError()
         TestWebService.main(app: app)
-        
+    }
+    
+    func testRESTOperationModifier() throws {
         struct Content: Decodable {
             let data: String
         }
@@ -65,5 +68,21 @@ final class OperationModifierTests: ApodiniTests {
         try app.test(.GET, "/version3/") { res in
             try expect("Read", in: res)
         }
+    }
+    
+    func testGraphQLOperationModifier() throws {
+        // Add test cases similiar to testRESTOperationModifier once the GraphQL Interface Exporter can deal with the different operations
+    }
+    
+    func testGRPCOperationModifier() throws {
+        // Add test cases similiar to testRESTOperationModifier once the GraphQL Interface Exporter can deal with the different operations
+    }
+    
+    func testWebSocketOperationModifier() throws {
+        // Add test cases similiar to testRESTOperationModifier once the GraphQL Interface Exporter can deal with the different operations
+    }
+    
+    func testOpenAPIOperationModifier() throws {
+        // Add test cases similiar to testRESTOperationModifier once the GraphQL Interface Exporter can deal with the different operations
     }
 }

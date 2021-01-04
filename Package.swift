@@ -26,7 +26,9 @@ let package = Package(
         // Used to parse crontabs in the `Scheduler` class
         .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from:"1.3.0"),
         // Used by target ProtobufferBuilder to inspect `Type`s.
-        .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2")
+        .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
+        // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
+        .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0")
     ],
     targets: [
         .target(
@@ -55,7 +57,8 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .product(name: "XCTVapor", package: "vapor"),
-                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver")
+                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
+                .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS]))
             ]
         ),
         .target(

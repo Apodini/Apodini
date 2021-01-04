@@ -10,7 +10,7 @@ import XCTest
 
 final class JobsTests: ApodiniTests {
     struct FailingJob: Job {
-        @_Request var request: Request
+        @Parameter var userId: Int
         
         func run() { }
     }
