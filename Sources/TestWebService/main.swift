@@ -36,20 +36,21 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
-    struct Greeter: Handler {
-        @Properties
-        var properties: [String: Apodini.Property] = ["surname": Parameter<String?>()]
 
-        @Parameter(.http(.path))
-        var name: String
-
-        @Parameter
-        var greet: String?
-
+    struct TraditionalGreeter: Handler {
+        // one cannot change their gender, it must be provided
+        @Parameter(.mutability(.constant)) var gender: String
+        // one cannot change their surname, but it can be ommitted
+        @Parameter(.mutability(.constant)) var surname: String = ""
+        // one can switch between formal and informal greeting at any time
+        @Parameter var name: String?
+        
         func handle() -> String {
-            let surnameParameter: Parameter<String?>? = _properties.typed(Parameter<String?>.self)["surname"]
-
-            return "\(greet ?? "Hello") \(name) " + (surnameParameter?.wrappedValue ?? "Unknown")
+            if let firstName = name {
+                return "Hi, \(firstName)!"
+            } else {
+                return "Hello, \(gender == "male" ? "Mr." : "Mrs.") \(surname)"
+            }
         }
     }
     
@@ -90,7 +91,7 @@ struct TestWebService: Apodini.WebService {
             }
         }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
         Group("greet") {
-            Greeter()
+            TraditionalGreeter()
                 .serviceName("GreetService")
                 .rpcName("greetMe")
                 .response(EmojiMediator())

@@ -116,7 +116,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
     private func call<I: InterfaceExporter>(exporter: I, for node: EndpointsTreeNode) {
         for (_, endpoint) in node.endpoints {
             #warning("The result of export is currently unused. Could that be useful in the future?")
-            endpoint.exportEndpoint(on: exporter)
+            _ = endpoint.exportEndpoint(on: exporter)
         }
         
         for child in node.children {
