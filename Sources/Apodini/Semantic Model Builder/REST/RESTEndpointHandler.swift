@@ -39,13 +39,13 @@ struct ResponseContainer: Encodable, ResponseEncodable {
     }
 }
 
-struct RESTEndpointHandler<H: Handler> {
+class RESTEndpointHandler<H: Handler> {
     let endpoint: Endpoint<H>
-    let requestHandler: EndpointRequestHandler<RESTInterfaceExporter>
+    var context: AnyConnectionContext<RESTInterfaceExporter>
 
-    init(for endpoint: Endpoint<H>, with requestHandler: EndpointRequestHandler<RESTInterfaceExporter>) {
+    init(for endpoint: Endpoint<H>, with context: AnyConnectionContext<RESTInterfaceExporter>) {
         self.endpoint = endpoint
-        self.requestHandler = requestHandler
+        self.context = context
     }
 
     func register(at routesBuilder: Vapor.RoutesBuilder, with operation: Operation) {
@@ -53,7 +53,7 @@ struct RESTEndpointHandler<H: Handler> {
     }
 
     func handleRequest(request: Vapor.Request) -> EventLoopFuture<ResponseContainer> {
-        let response = requestHandler(request: request)
+        let response = context.handle(request: request)
 
         // swiftlint:disable:next todo
         let uriPrefix = "http://127.0.0.1:8080/" // TODO resolve that somehow

@@ -77,7 +77,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
         let endpoint = handler.mockEndpoint()
 
         let exporter = GRPCInterfaceExporter(app)
-        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
 
         let requestData: [UInt8] =
             [0, 0, 0, 0, 10, 10, 6, 77, 111, 114, 105, 116, 122, 16, 23]
@@ -98,7 +98,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
                                          logger: app.logger,
                                          on: group.next())
 
-        let response = try service.createUnaryHandler(requestHandler: requestHandler)(vaporRequest).wait()
+        let response = try service.createUnaryHandler(context: context)(vaporRequest).wait()
         let responseData = try XCTUnwrap(response.body.data)
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
@@ -111,7 +111,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
         let endpoint = handler.mockEndpoint()
 
         let exporter = GRPCInterfaceExporter(app)
-        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
 
         let requestData: [UInt8] =
             [0, 0, 0, 0, 10, 10, 6, 77, 111, 114, 105, 116, 122, 16, 23]
@@ -137,7 +137,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
                                          logger: app.logger,
                                          on: group.next())
 
-        let response = try service.createUnaryHandler(requestHandler: requestHandler)(vaporRequest).wait()
+        let response = try service.createUnaryHandler(context: context)(vaporRequest).wait()
         let responseData = try XCTUnwrap(response.body.data)
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
