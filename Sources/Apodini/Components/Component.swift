@@ -26,7 +26,7 @@ public protocol Component {
 /// A `Handler` is a `Component` which defines an endpoint and can handle requests.
 public protocol Handler: Component {
     /// The type that is returned from the `handle()` method when the component handles a request. The return type of the `handle` method is encoded into the response send out to the client.
-    associatedtype Response: Encodable
+    associatedtype Response: Apodini.Response
     
     /// A function that is called when a request reaches the `Handler`
     func handle() -> Response

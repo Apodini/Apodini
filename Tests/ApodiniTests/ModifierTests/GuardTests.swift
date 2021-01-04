@@ -16,10 +16,7 @@ final class GuardTests: ApodiniTests {
     
     private struct TestGuard: SyncGuard {
         func check() {
-            guard let guardExpectation = GuardTests.guardExpectation else {
-                fatalError("The test expectation must be set before testing `TestGuard`")
-            }
-            guardExpectation.fulfill()
+            GuardTests.guardExpectation?.fulfill()
         }
     }
     

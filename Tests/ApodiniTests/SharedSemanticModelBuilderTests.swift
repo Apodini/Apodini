@@ -159,13 +159,13 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         let expectedString = "Hello Test Handler 4"
 
         let result = try requestHandler.callAsFunction(request: request).wait()
-        guard case let .final(resultValue) = result else {
-            XCTFail("Expected default to be wrapped in Action.final, but was \(result)")
+        
+        guard case let .automatic(resultValue) = result.typed(String.self) else {
+            XCTFail("Expected default to be wrapped in Action.automatic, but was \(result)")
             return
         }
 
-        let resultString = try XCTUnwrap(resultValue.value as? String)
-        XCTAssertEqual(resultString, expectedString)
+        XCTAssertEqual(resultValue, expectedString)
     }
 
     func testActionPassthrough_send() throws {
@@ -179,9 +179,8 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
                                     on: app.eventLoopGroup.next())
 
         let result = try requestHandler.callAsFunction(request: request).wait()
-        if case let .send(element) = result {
-            let responseString = try XCTUnwrap(element.value as? String)
-            XCTAssertEqual(responseString, "Send")
+        if case let .send(element) = result.typed(String.self) {
+            XCTAssertEqual(element, "Send")
         } else {
             XCTFail("Expected .send(\"Send\"), but got \(result)")
         }
@@ -198,9 +197,8 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
                                     on: app.eventLoopGroup.next())
 
         let result = try requestHandler.callAsFunction(request: request).wait()
-        if case let .final(element) = result {
-            let responseString = try XCTUnwrap(element.value as? String)
-            XCTAssertEqual(responseString, "Final")
+        if case let .final(element) = result.typed(String.self) {
+            XCTAssertEqual(element, "Final")
         } else {
             XCTFail("Expected .final(\"Final\"), but got \(result)")
         }

@@ -5,10 +5,12 @@
 //  Created by Moritz Schüll on 23.12.20.
 //
 
-import XCTest
 @testable import Apodini
+import NIO
+import XCTest
 
-final class ApodiniEncodableTests: ApodiniTests, ApodiniEncodableVisitor {
+
+final class ApodiniEncodableTests: ApodiniTests {
     struct ActionHandler: Handler {
         var message: String
 
@@ -17,39 +19,60 @@ final class ApodiniEncodableTests: ApodiniTests, ApodiniEncodableVisitor {
         }
     }
 
-    static var expectedValue: String = ""
+    struct FutureBasedHandler: Handler {
+        var eventLoop: EventLoop
+        var message: String
 
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        ApodiniEncodableTests.expectedValue = ""
-    }
-
-    func visit<Element>(encodable: Element) where Element: Encodable {
-        XCTFail("Visit for Encodable was called, when visit for Action should have been called")
-    }
-
-    func visit<Element>(action: Action<Element>) where Element: Encodable {
-        switch action {
-        case let .final(element):
-            // swiftlint:disable:next force_cast
-            XCTAssertEqual(element as! String, ApodiniEncodableTests.expectedValue)
-        default:
-            XCTFail("Expected value wrappen in .final")
+        func handle() -> EventLoopFuture<EventLoopFuture<EventLoopFuture<Action<String>>>> {
+            // this tests if the `EventLoopFutureUnwrapper` properly unwraps multiple nested EventLoopFutures
+            // I hope no one would ever do that, but its possible, thus we need to handle it properly
+            eventLoop.makeSucceededFuture(
+                eventLoop.makeSucceededFuture(
+                    eventLoop.makeSucceededFuture(
+                        Action.send(message)
+                    )
+               )
+            )
         }
     }
 
-    func callVisitor<H: Handler>(_ handler: H) {
-        let result = handler.handle()
-        switch result {
-        case let apodiniEncodable as ApodiniEncodable:
-            apodiniEncodable.accept(self)
-        default:
-            XCTFail("Expected ApodiniEncodable")
+    func testActionRequestHandling() throws {
+        let expectedValue = "ActionWithRequest"
+        
+        let handler = ActionHandler(message: expectedValue)
+        let endpoint = handler.mockEndpoint()
+
+        let exporter = MockExporter<String>()
+
+        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        let result = try requestHandler(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+            .wait()
+
+        guard case let .final(responseValue) = result.typed(String.self) else {
+            XCTFail("Expected return value of ActionHandler to be wrapped in Action.final")
+            return
         }
+        
+        XCTAssertEqual(responseValue, expectedValue)
     }
 
-    func testShouldCallAction() {
-        ApodiniEncodableTests.expectedValue = "Action"
-        callVisitor(ActionHandler(message: ApodiniEncodableTests.expectedValue))
+    func testEventLoopFutureRequestHandling() throws {
+        let expectedValue = "ActionWithRequest"
+        
+        let handler = FutureBasedHandler(eventLoop: app.eventLoopGroup.next(), message: expectedValue)
+        let endpoint = handler.mockEndpoint()
+
+        let exporter = MockExporter<String>()
+
+        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        let result = try requestHandler(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+                .wait()
+
+        guard case let .send(responseValue) = result.typed(String.self) else {
+            XCTFail("Expected return value of ActionHandler to be wrapped in Action.send")
+            return
+        }
+       
+        XCTAssertEqual(responseValue, expectedValue)
     }
 }

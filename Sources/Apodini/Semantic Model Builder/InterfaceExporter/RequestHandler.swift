@@ -4,7 +4,6 @@
 
 import class NIO.EventLoopFuture
 import protocol NIO.EventLoop
-import protocol FluentKit.Database
 import struct NIO.EventLoopPromise
 
 class EndpointRequestHandler<I: InterfaceExporter> {
@@ -37,67 +36,34 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler>: Endpoint
                 requestGuard.executeGuardCheck(on: request)
             }
         }
-
+        
         return EventLoopFuture<Void>
             .whenAllSucceed(guardEventLoopFutures, on: eventLoop)
             .flatMap { _ in
                 request.enterRequestContext(with: self.endpoint.handler) { handler in
-                    let response = handler.handle()
-                    let promise = request.eventLoop.makePromise(of: Action<AnyEncodable>.self)
-                    let visitor = ActionVisitor(request: request,
-                                                promise: promise,
-                                                responseModifiers: self.endpoint.responseTransformers)
-                    switch response {
-                    case let apodiniEncodableResponse as ApodiniEncodable:
-                        // is an Action
-                        // use visitor to access
-                        // wrapped element
-                        apodiniEncodableResponse.accept(visitor)
-                    default:
-                        // not an action
-                        // we can skip the visitor
-                        visitor.visit(encodable: response)
-                    }
-                    return promise.futureResult
+                    handler.handle()
+                        .action(on: request.eventLoop)
                 }
             }
-    }
-}
-
-struct ActionVisitor: ApodiniEncodableVisitor {
-    let request: Request
-    let promise: EventLoopPromise<Action<AnyEncodable>>
-    let responseModifiers: [() -> (AnyResponseTransformer)]
-
-    func visit<Element: Encodable>(encodable: Element) {
-        let result = transformResponse(encodable)
-        promise.succeed(.final(result))
-    }
-
-    func visit<Element: Encodable>(action: Action<Element>) {
-        switch action {
-        case let .send(element):
-            let result = transformResponse(element)
-            promise.succeed(.send(result))
-        case let .final(element):
-            let result = transformResponse(element)
-            promise.succeed(.final(result))
-        case .nothing:
-            // no response to run through the responseModifiers
-            promise.succeed(.nothing)
-        case .end:
-            // no response to run through the responseModifiers
-            promise.succeed(.end)
-        }
-    }
-
-    func transformResponse(_ response: Encodable) -> AnyEncodable {
-        var response = response
-        for responseTransformer in responseModifiers {
-            response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
-                responseTransformer.transform(response: response)
+            .flatMap { typedAction -> EventLoopFuture<Action<AnyEncodable>> in
+                self.transformResponse(typedAction.typeErasured, on: request, using: self.endpoint.responseTransformers)
             }
+    }
+    
+
+    private func transformResponse(_ response: Action<AnyEncodable>,
+                                   on request: Request,
+                                   using modifiers: [() -> (AnyResponseTransformer)]) -> EventLoopFuture<Action<AnyEncodable>> {
+        guard let modifier = modifiers.first?() else {
+            return request.eventLoop.makeSucceededFuture(response)
         }
-        return AnyEncodable(value: response)
+
+        return request
+            .enterRequestContext(with: modifier) { responseTransformerInContext in
+                responseTransformerInContext.transform(response: response, on: request.eventLoop)
+            }
+            .flatMap { newResponse in
+                self.transformResponse(newResponse, on: request, using: Array(modifiers.dropFirst()))
+            }
     }
 }

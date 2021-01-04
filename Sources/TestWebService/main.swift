@@ -22,7 +22,7 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
-    struct EmojiMediator: ResponseTransformer {
+    struct EmojiMediator: EncodableResponseTransformer {
         private let emojis: String
         
         
@@ -62,7 +62,7 @@ struct TestWebService: Apodini.WebService {
         }
     }
 
-    struct User: Codable {
+    struct User: Codable, Response {
         var id: Int
     }
 

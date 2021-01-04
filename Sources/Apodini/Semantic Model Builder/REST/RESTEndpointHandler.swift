@@ -22,12 +22,12 @@ struct ResponseContainer: Encodable, ResponseEncodable {
         self.links = links
     }
 
-    func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Response> {
+    func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         let jsonEncoder = JSONEncoder()
         jsonEncoder.outputFormatting = [.withoutEscapingSlashes, .prettyPrinted]
         #warning("We may remove JSONEncoder .prettyPrinted in production or make it configurable in some way")
 
-        let response = Response()
+        let response = Vapor.Response()
         do {
             if data != nil {
                 try response.content.encode(self, using: jsonEncoder)
@@ -62,10 +62,11 @@ struct RESTEndpointHandler<H: Handler> {
             links[relationship.name] = uriPrefix + relationship.destinationPath.joinPathComponents()
         }
 
-        return response.flatMapThrowing { encodableAction in
+        return response.map { encodableAction in
             switch encodableAction {
             case let .send(element),
-                 let .final(element):
+                 let .final(element),
+                 let .automatic(element):
                 return ResponseContainer(element, links: links)
             case .nothing, .end:
                 // nothing to encode,

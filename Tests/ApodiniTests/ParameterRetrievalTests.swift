@@ -35,12 +35,11 @@ class ParameterRetrievalTests: ApodiniTests {
         let requestHandler = endpoint.createRequestHandler(for: exporter)
         let result = try requestHandler(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
-        guard case let .final(responseValue) = result else {
+        guard case let .automatic(responseValue) = result.typed(String.self) else {
             XCTFail("Expected return value to be wrapped in Action.final by default")
             return
         }
-        let stringResult: String = try XCTUnwrap(responseValue.value as? String)
-
-        XCTAssertEqual(stringResult, "Hello Rudi! Hello Rudi! Hello Rudi!")
+        
+        XCTAssertEqual(responseValue, "Hello Rudi! Hello Rudi! Hello Rudi!")
     }
 }

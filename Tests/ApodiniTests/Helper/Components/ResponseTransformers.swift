@@ -4,7 +4,7 @@
 
 @testable import Apodini
 
-struct EmojiMediator: ResponseTransformer {
+struct EmojiMediator: EncodableResponseTransformer {
     private let emojis: String
 
     init(emojis: String = "✅") {

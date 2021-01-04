@@ -5,44 +5,80 @@
 //  Created by Paul Schmiedmayer on 6/27/20.
 //
 
-import XCTest
-import NIO
-import Vapor
-import Fluent
 @testable import Apodini
+import Fluent
+import XCTVapor
 
-// Test commented out until Handlers can return EventLoopFutures
-//final class CustomComponentTests: ApodiniTests {
-//    struct AddBirdsHandler: Handler {
-//        @Apodini.Environment(\.database)
-//        var database: Fluent.Database
-//
-//        @Parameter
-//        var bird: Bird
-//
-//
-//        func handle() -> EventLoopFuture<[Bird]> {
-//            bird.save(on: database)
-//                .flatMap { _ in
-//                    Bird.query(on: database)
-//                        .all()
-//                }
-//        }
-//    }
-//
-//    func testComponentCreation() throws {
-//        let addBird = AddBirdsHandler()
-//        let bird = Bird(name: "Hummingbird", age: 2)
-//
-//        let request = MockRequest.createRequest(on: addBird, running: app.eventLoopGroup.next(), database: self.app.db, queuedParameters: bird)
-//
-//        let responseBirds = try request
-//            .enterRequestContext(with: addBird) { component in
-//                component.handle()
-//            }
-//            .wait()
-//
-//        XCTAssert(responseBirds.count == 3)
-//        XCTAssert(responseBirds[2] == bird)
-//    }
-//}
+
+final class CustomComponentTests: ApodiniTests {
+    struct AddBirdsHandler: Handler {
+        @Apodini.Environment(\.database)
+        var database: Fluent.Database
+
+        @Parameter
+        var bird: Bird
+
+
+        func handle() -> EventLoopFuture<[Bird]> {
+            bird.save(on: database)
+                .flatMap { _ in
+                    Bird.query(on: database)
+                        .all()
+                }
+        }
+    }
+    
+    
+    func testComponentCreation() throws {
+        let addBird = AddBirdsHandler()
+        let endpoint = addBird.mockEndpoint()
+
+        let bird = Bird(name: "Hummingbird", age: 2)
+        let exporter = MockExporter<String>(queued: bird)
+
+        let requestHandler = endpoint.createRequestHandler(for: exporter)
+
+        let result = try requestHandler(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+            .wait()
+        guard case let .automatic(responseValue) = result.typed([Bird].self) else {
+            XCTFail("Expected return value to be wrapped in Action.final by default")
+            return
+        }
+        
+        XCTAssertEqual(responseValue.count, 3)
+        XCTAssertEqual(responseValue[0], bird1)
+        XCTAssertEqual(responseValue[1], bird2)
+        XCTAssertEqual(responseValue[2], bird)
+    }
+    
+    func testComponentRegistration() throws {
+        struct TestWebService: WebService {
+            var content: some Component {
+                AddBirdsHandler()
+            }
+        }
+        
+        TestWebService.main(app: app)
+        
+        
+        let headers: HTTPHeaders = ["Content-Type": "application/json"]
+        
+        let bird3 = Bird(name: "Hummingbird", age: 2)
+        let birdJSON = try JSONEncoder().encode(bird3)
+        let body = ByteBuffer(data: birdJSON)
+        
+        try app.test(.GET, "/v1/", headers: headers, body: body) { res in
+            XCTAssertEqual(res.status, .ok)
+            
+            struct ResponseContent: Decodable {
+                let data: [Bird]
+            }
+            
+            let responseBirds = try res.content.decode(ResponseContent.self).data
+            XCTAssertEqual(responseBirds.count, 3)
+            XCTAssertEqual(responseBirds[0], bird1)
+            XCTAssertEqual(responseBirds[1], bird2)
+            XCTAssertEqual(responseBirds[2], bird3)
+        }
+    }
+}

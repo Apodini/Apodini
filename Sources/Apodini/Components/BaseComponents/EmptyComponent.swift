@@ -113,6 +113,13 @@ extension Never: Encodable {
     }
 }
 
+extension Never: Response {
+    /// Default implementation which will simply crash
+    public func action(on eventLoop: EventLoop) -> EventLoopFuture<Action<Never>> {
+        fatalError("The '\(Self.self)' type cannot be passed as a `Response`")
+    }
+}
+
 extension Handler where Response == Never {
     /// Default implementation which will simply crash
     public func handle() -> Self.Response {
@@ -121,10 +128,10 @@ extension Handler where Response == Never {
 }
 
 
-extension _EmptyComponentCustomNeverImpl: Encodable {
+extension _EmptyComponentCustomNeverImpl: Response {
     /// Default implementation which will simply crash
-    public func encode(to encoder: Encoder) throws {
-        fatalError("The '\(Self.self)' type cannot be encoded")
+    public func action(on eventLoop: EventLoop) -> EventLoopFuture<Action<Never>> {
+        fatalError("The '\(Self.self)' type cannot be passed as a `Response`")
     }
 }
 
