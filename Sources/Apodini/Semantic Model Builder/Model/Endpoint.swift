@@ -32,7 +32,7 @@ protocol AnyEndpoint: CustomStringConvertible {
     var relationships: [EndpointRelationship] { get }
 
     var guards: [LazyGuard] { get }
-    var responseTransformers: [() -> (AnyResponseTransformer)] { get }
+    var responseTransformers: [LazyAnyResponseTransformer] { get }
 
     func exportEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput
 
@@ -72,7 +72,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     }
 
     let guards: [LazyGuard]
-    let responseTransformers: [() -> (AnyResponseTransformer)]
+    let responseTransformers: [LazyAnyResponseTransformer]
     
     
     init(
@@ -81,7 +81,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         context: Context = Context(contextNode: ContextNode()),
         operation: Operation = .automatic,
         guards: [LazyGuard] = [],
-        responseTransformers: [() -> (AnyResponseTransformer)] = [],
+        responseTransformers: [LazyAnyResponseTransformer] = [],
         parameters: [AnyEndpointParameter] = []
     ) {
         self.identifier = identifier

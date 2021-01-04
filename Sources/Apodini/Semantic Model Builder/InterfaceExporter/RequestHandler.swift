@@ -53,7 +53,7 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler>: Endpoint
 
     private func transformResponse(_ response: Action<AnyEncodable>,
                                    on request: Request,
-                                   using modifiers: [() -> (AnyResponseTransformer)]) -> EventLoopFuture<Action<AnyEncodable>> {
+                                   using modifiers: [LazyAnyResponseTransformer]) -> EventLoopFuture<Action<AnyEncodable>> {
         guard let modifier = modifiers.first?() else {
             return request.eventLoop.makeSucceededFuture(response)
         }

@@ -8,10 +8,13 @@
 import NIO
 
 
+typealias LazyAnyResponseTransformer = () -> (AnyResponseTransformer)
+
+
 struct ResponseContextKey: ContextKey {
-    static var defaultValue: [() -> (AnyResponseTransformer)] = []
+    static var defaultValue: [LazyAnyResponseTransformer] = []
     
-    static func reduce(value: inout [() -> (AnyResponseTransformer)], nextValue: () -> [() -> (AnyResponseTransformer)]) {
+    static func reduce(value: inout [LazyAnyResponseTransformer], nextValue: () -> [LazyAnyResponseTransformer]) {
         value.append(contentsOf: nextValue())
     }
 }
