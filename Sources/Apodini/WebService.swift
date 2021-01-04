@@ -56,8 +56,8 @@ extension WebService {
         webService.register(
             SharedSemanticModelBuilder(app)
                 .with(exporter: RESTInterfaceExporter.self)
-                .with(exporter: GRPCInterfaceExporter.self),
-            GraphQLSemanticModelBuilder(app),
+                .with(exporter: GRPCInterfaceExporter.self)
+                .with(exporter: GraphQLInterfaceExporter.self),
             WebSocketSemanticModelBuilder(app)
         )
     }

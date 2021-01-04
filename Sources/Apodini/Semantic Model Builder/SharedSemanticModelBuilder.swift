@@ -37,7 +37,7 @@ class WebServiceModel {
 }
 
 class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor {
-    private var interfaceExporters: [AnyInterfaceExporter] = []
+    private var  interfaceExporters: [AnyInterfaceExporter] = []
 
     let webService: WebServiceModel
     let rootNode: EndpointsTreeNode
