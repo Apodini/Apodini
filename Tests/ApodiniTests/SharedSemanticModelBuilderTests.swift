@@ -22,7 +22,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
 
     struct PrintGuard: SyncGuard {
         func check() {
-            print("Print Guard Executed")
+            print("PrintGuard check executed")
         }
     }
     

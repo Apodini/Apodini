@@ -10,7 +10,7 @@ import NIO
 import XCTest
 
 
-final class ApodiniEncodableTests: ApodiniTests {
+final class ActionTests: ApodiniTests {
     struct ActionHandler: Handler {
         var message: String
 
@@ -18,7 +18,7 @@ final class ApodiniEncodableTests: ApodiniTests {
             .final(message)
         }
     }
-
+    
     struct FutureBasedHandler: Handler {
         var eventLoop: EventLoop
         var message: String
@@ -35,7 +35,8 @@ final class ApodiniEncodableTests: ApodiniTests {
             )
         }
     }
-
+    
+    
     func testActionRequestHandling() throws {
         let expectedValue = "ActionWithRequest"
         

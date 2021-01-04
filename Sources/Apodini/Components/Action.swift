@@ -83,10 +83,6 @@ extension Action {
             return element
         }
     }
-    
-    func transform(using responseTransformer: AnyResponseTransformer, on eventLoop: EventLoop) -> EventLoopFuture<Action<AnyEncodable>> {
-        responseTransformer.transform(response: self.typeErasured, on: eventLoop)
-    }
 }
 
 

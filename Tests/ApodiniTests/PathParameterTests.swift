@@ -1,10 +1,9 @@
 //
 //  PathParameterTests.swift
-//  
+//
 //
 //  Created by Paul Schmiedmayer on 12/3/20.
 //
-
 @testable import Apodini
 import XCTest
 

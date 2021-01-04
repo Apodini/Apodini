@@ -6,6 +6,6 @@
 
 struct PrintGuard: SyncGuard {
     func check() {
-        print("Print Guard executed")
+        print("PrintGuard check executed")
     }
 }
