@@ -34,6 +34,7 @@ final class OperationModifierTests: ApodiniTests {
     }
     
     override func setUpWithError() throws {
+        try super.setUpWithError()
         TestWebService.main(app: app)
     }
     
