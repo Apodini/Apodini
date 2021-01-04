@@ -38,9 +38,9 @@ class ParameterMutabilityTests: ApodiniTests {
         var context = endpoint.createConnectionContext(for: exporter)
         
         // both calls should succeed
-        let _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+        _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
-        let _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+        _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
     }
     
@@ -52,11 +52,11 @@ class ParameterMutabilityTests: ApodiniTests {
 
         var context = endpoint.createConnectionContext(for: exporter)
         
-        // both calls should succeed
-        let _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+        // second call should fail
+        _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
         do {
-            let _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+            _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                     .wait()
             XCTFail("Validation should fail, constant was changed!")
         } catch {}
@@ -70,14 +70,13 @@ class ParameterMutabilityTests: ApodiniTests {
 
         var context = endpoint.createConnectionContext(for: exporter)
         
-        // both calls should succeed
-        let _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+        // second call should fail
+        _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
         do {
-            let _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+            _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                     .wait()
             XCTFail("Validation should fail, constant was changed!")
         } catch {}
     }
 }
-
