@@ -22,27 +22,9 @@ class GRPCInterfaceExporter: InterfaceExporter {
     }
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        var serviceName = endpoint.context.get(valueFor: GRPCServiceNameContextKey.self)
-        // if no explicit servicename is provided via the modifier,
-        // simply use the PathComponents to come up with one
-        if serviceName == GRPCServiceNameContextKey.defaultValue {
-            let components = endpoint.context.get(valueFor: PathComponentContextKey.self)
-            let builder = StringPathBuilder(components, delimiter: "")
-            serviceName = builder.build()
-        }
+        let serviceName = endpoint.serviceName
+        let methodName = endpoint.methodName
 
-        var methodName = endpoint.context.get(valueFor: GRPCMethodNameContextKey.self)
-        // if no explicit methodname is provided via the modifier,
-        // we have to rely on the component name
-        if methodName == GRPCMethodNameContextKey.defaultValue {
-            methodName = "\(H.self)".lowercased()
-        }
-
-        // generate default field tags for all parameters
-        // by enumerating them (proto field tags start from 1)
-        // Note: because the order at which the parameters are received
-        // is not stable, this is sorting the parameters by name (alphabetically)
-        // as a work-aorund to establish reproducable default field tags.
         endpoint.exportParameters(on: self)
             .sorted(by: { left, right in left.0 < right.0 }) // sort by name
             .map { $0.1 }  // only keep the UUIDs
