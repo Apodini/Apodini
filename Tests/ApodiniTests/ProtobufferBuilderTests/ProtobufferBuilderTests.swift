@@ -1,6 +1,5 @@
 import XCTVapor
 @testable import Apodini
-import ProtobufferBuilder
 
 final class ProtobufferBuilderTests: XCTestCase {
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
