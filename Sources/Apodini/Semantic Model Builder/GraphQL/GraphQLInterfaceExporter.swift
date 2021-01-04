@@ -16,10 +16,11 @@ class GraphQLSchemaBuilder {
 //    private var idNameMapper = [String: String]()
     private var tree = [String: Set<String>]()
     private var leafHandler = [String: Encodable]()
+    private var hasIncomingEdge = Set<String>()
 
 
     // GraphQL Related values
-    private var types = [GraphQLObjectType]()
+    private var types = [String: GraphQLObjectType]()
     private var fields = [String: GraphQLField]()
 
 
@@ -27,22 +28,18 @@ class GraphQLSchemaBuilder {
 
     }
 
-    private func findHeads() {
-
-    }
-
     func getTree() -> [String: Set<String>] {
         tree
     }
 
-    func appendSinglePoint(_ name: String, _ handler: Encodable) {
+    private func graphQLFieldCreator(_ name: String, _ handler: Encodable) -> GraphQLField {
         switch handler {
         case let value as String:
-            self.fields[name] = GraphQLField(type: GraphQLString, resolve: { _, args, context, info in
+            return GraphQLField(type: GraphQLString, resolve: { _, args, context, info in
                 value
             })
         default:
-            self.fields[name] = GraphQLField(type: GraphQLString, resolve: { source, args, context, info in
+            return GraphQLField(type: GraphQLString, resolve: { source, args, context, info in
 
                 struct SecretError: Error, CustomStringConvertible {
                     let description: String
@@ -53,45 +50,92 @@ class GraphQLSchemaBuilder {
         }
     }
 
+    private func appendSinglePoint(_ name: String, _ handler: Encodable) {
+        self.fields[name] = self.graphQLFieldCreator(name, handler)
+    }
+
 
     // Generated adjacency list tree
     func append<H: Handler>(_ endpoint: Endpoint<H>) {
-        //print("Endpoint handlers: ", endpoint.handleReturnType)
-        print("->", endpoint.identifier.description, endpoint.absolutePath)
-        leafHandler[endpoint.identifier.description] = endpoint.handler.handle()
         var currentPath = endpoint.absolutePath.map {
-            $0.description
+            $0.description.lowercased()
         }
+
         currentPath.removeFirst()
         // Handle Single points
         if (currentPath.count == 1) {
-            self.appendSinglePoint(currentPath[1], endpoint.handler.handle())
+            self.appendSinglePoint(currentPath[0], endpoint.handler.handle())
             return
         }
+        // Create node names
+        var currentSum = String()
+        for ix in 0..<currentPath.count {
+            currentSum.append(currentPath[ix])
+            currentSum.append("_")
+            currentPath[ix] = currentSum
+        }
+        // Get leaf name
+        let leafName = currentPath.last ?? "None"
 
-        print(endpoint.handleReturnType)
+        // Create handler
+        self.leafHandler[leafName] = endpoint.handler.handle()
+
+        // Create tree
         var indx = currentPath.count - 1
-        while (indx >= 2) {
+        while (indx >= 1) {
             let child = currentPath[indx], parent = currentPath[indx - 1]
-            let child_node = parent + "_" + child
             if (self.tree.keys.contains(parent)) {
-                self.tree[parent]!.insert(child_node)
+                self.tree[parent]!.insert(child)
             } else {
-                self.tree[parent] = [child_node]
+                self.tree[parent] = [child]
             }
+            hasIncomingEdge.insert(child)
             indx -= 1
         }
 
+        print(self.tree)
+        print(self.leafHandler)
+        print("->", self.hasIncomingEdge)
+
+    }
+
+    private func generateSchemaFromTreeHelper(_ node: String) -> GraphQLField {
+        let nodeName = node.components(separatedBy: "_").filter({ $0 != "" }).last ?? "None"
+        if let childrenList = self.tree[node] {
+            var currentFields = [String: GraphQLField]()
+            for child in childrenList {
+                let childName = child.components(separatedBy: "_").filter({ $0 != "" }).last ?? "None"
+                currentFields[childName] = generateSchemaFromTreeHelper(child)
+            }
+            self.types[nodeName] = try! GraphQLObjectType(name: nodeName, fields: currentFields)
+            // Mid Point Field. Resolve might be useless
+            return GraphQLField(type: self.types[nodeName]!, resolve: { _, args, context, info in
+                nodeName
+            })
+        } else {
+            return self.graphQLFieldCreator(nodeName, self.leafHandler[node] ?? "Handler Error")
+        }
+    }
+
+    private func generateSchemaFromTree() {
+        for (parent, _) in self.tree {
+            // It is one of the roots
+            if (!self.hasIncomingEdge.contains(parent)) {
+                let parentName = parent.components(separatedBy: "_").filter({ $0 != "" }).last ?? "None"
+                self.fields[parentName] = generateSchemaFromTreeHelper(parent)
+            }
+        }
     }
 
     func generate() -> GraphQLSchema {
+        self.generateSchemaFromTree()
         let queryType = try! GraphQLObjectType(
                 name: "Apodini",
                 fields: self.fields
         )
         return try! GraphQLSchema(
                 query: queryType,
-                types: self.types
+                types: Array(self.types.values)
         )
     }
 }
@@ -163,19 +207,7 @@ class GraphQLInterfaceExporter: InterfaceExporter {
     }
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-//        print(endpoint.description)
-//        print(endpoint.absolutePath.map { component -> String in component.description })
-//        print(endpoint, ":")
-//        for i in endpoint.relationships {
-//            print(i.name)
-//            print(i.destinationPath)
-//            print("-------")
-//        }
         self.graphQLPath.append(endpoint)
-
-//        print("-----------------------")
-//        // print(endpoint.relationships)
-//        print("This is export")
     }
 
     func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) -> String {
@@ -184,7 +216,6 @@ class GraphQLInterfaceExporter: InterfaceExporter {
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
-        print(self.graphQLPath.getTree())
         self.schema = self.graphQLPath.generate()
         print("This is finishedExporting")
     }
