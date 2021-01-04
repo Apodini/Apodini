@@ -123,7 +123,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         }))
     }
     
-    func testHandlerIdentifierCreation() throws {
+    func testHandlerIdentifierCreationUsingREST() throws {
         struct TestHandler: IdentifiableHandler {
             func handle() -> String {
                 handlerId.description
