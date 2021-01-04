@@ -25,13 +25,13 @@ class GRPCInterfaceExporter: InterfaceExporter {
         let serviceName = endpoint.serviceName
         let methodName = endpoint.methodName
 
-        endpoint.exportParameters(on: self)
-            .sorted(by: { left, right in left.0 < right.0 }) // sort by name
-            .map { $0.1 }  // only keep the UUIDs
-            .enumerated()   // enumerate to create default field tags
-            .forEach { item in
-                self.parameters[item.element] = item.offset + 1
-            }
+        // generate and store the field tags for all parameters
+        // of this endpoint
+        endpoint.parameters
+            .enumerated()
+            .forEach({ param in
+                self.parameters[param.element.id] = param.offset + 1
+            })
 
         let context = endpoint.createConnectionContext(for: self)
 
@@ -49,10 +49,6 @@ class GRPCInterfaceExporter: InterfaceExporter {
         for parameter in endpoint.parameters {
             app.logger.info("\t\(parameter.propertyType) \(parameter.name) = \(getFieldTag(for: parameter) ?? 0);")
         }
-    }
-
-    func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) -> (String, UUID) {
-        (parameter.name, parameter.id)
     }
 
     /// The GRPC exporter handles all parameters equally as body parameters
