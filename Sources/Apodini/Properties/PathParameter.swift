@@ -9,10 +9,12 @@ public struct PathParameter<Element: Codable & LosslessStringConvertible> {
     /// You can never access the wrapped value of a @PathParameter.
     /// Please use a `@Parameter` wrapped property within a `Handler` to access the path property.
     public var wrappedValue: Element {
-        fatalError("""
+        fatalError(
+            """
             You can never access the wrapped value of a @PathParameter.
             Please use a `@Parameter` wrapped property within a `Handler` to access the path property.
-        """)
+            """
+        )
     }
     
     /// Accessing the projected value allows you to pass the `@PathParameter` to a `Handler` or `Component`
@@ -23,13 +25,4 @@ public struct PathParameter<Element: Codable & LosslessStringConvertible> {
     
     /// Creates a new `@PathParameter`
     public init() { }
-    
-    /// Creates a new `@PathParameter` based on a `@PathParameter` passed in from a different `Component`
-    public init(_ parameter: Parameter<Element>) {
-        guard let httpOptions = parameter.option(for: .http), case httpOptions = HTTPParameterMode.path else {
-            fatalError("Only @Parameters with the `.http(.path)` option should be passed down the `Component` tree.")
-        }
-        
-        self.id = parameter.id
-    }
 }
