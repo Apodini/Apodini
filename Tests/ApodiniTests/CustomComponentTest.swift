@@ -36,10 +36,11 @@ final class CustomComponentTests: ApodiniTests {
         let bird = Bird(name: "Hummingbird", age: 2)
         let exporter = MockExporter<String>(queued: bird)
 
-        let requestHandler = endpoint.createRequestHandler(for: exporter)
-
-        let result = try requestHandler(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-            .wait()
+        var context = endpoint.createConnectionContext(for: exporter)
+        
+        let result = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+                .wait()
+        
         guard case let .automatic(responseValue) = result.typed([Bird].self) else {
             XCTFail("Expected return value to be wrapped in Action.final by default")
             return

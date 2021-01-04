@@ -36,9 +36,10 @@ protocol AnyEndpoint: CustomStringConvertible {
 
     func exportEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput
 
-    func createRequestHandler<I: InterfaceExporter>(for exporter: I) -> EndpointRequestHandler<I>
-
+    func createConnectionContext<I: InterfaceExporter>(for exporter: I) -> AnyConnectionContext<I>
+    
     func findParameter(for id: UUID) -> AnyEndpointParameter?
+    
     func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput]
 }
 
@@ -62,7 +63,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     let responseType: Encodable.Type
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
-    let parameters: [AnyEndpointParameter]
+    var parameters: [AnyEndpointParameter]
     
     var absolutePath: [_PathComponent] {
         treeNode.absolutePath
@@ -104,9 +105,9 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     func exportEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
         exporter.export(self)
     }
-
-    func createRequestHandler<I: InterfaceExporter>(for exporter: I) -> EndpointRequestHandler<I> {
-        InternalEndpointRequestHandler(endpoint: self, exporter: exporter)
+    
+    func createConnectionContext<I: InterfaceExporter>(for exporter: I) -> AnyConnectionContext<I> {
+        InternalConnectionContext(for: exporter, on: self).eraseToAnyConnectionContext()
     }
 
     func findParameter(for id: UUID) -> AnyEndpointParameter? {

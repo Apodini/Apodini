@@ -32,8 +32,8 @@ class ParameterRetrievalTests: ApodiniTests {
 
         let exporter = MockExporter<String>(queued: "Rudi", 3, nil, .null)
 
-        let requestHandler = endpoint.createRequestHandler(for: exporter)
-        let result = try requestHandler(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+        var context = endpoint.createConnectionContext(for: exporter)
+        let result = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
         guard case let .automatic(responseValue) = result.typed(String.self) else {
             XCTFail("Expected return value to be wrapped in Action.final by default")

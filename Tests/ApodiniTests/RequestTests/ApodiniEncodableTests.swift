@@ -44,10 +44,10 @@ final class ActionTests: ApodiniTests {
         let endpoint = handler.mockEndpoint()
 
         let exporter = MockExporter<String>()
-
-        let requestHandler = endpoint.createRequestHandler(for: exporter)
-        let result = try requestHandler(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-            .wait()
+        var context = endpoint.createConnectionContext(for: exporter)
+        
+        let result = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+                .wait()
 
         guard case let .final(responseValue) = result.typed(String.self) else {
             XCTFail("Expected return value of ActionHandler to be wrapped in Action.final")
@@ -65,8 +65,9 @@ final class ActionTests: ApodiniTests {
 
         let exporter = MockExporter<String>()
 
-        let requestHandler = endpoint.createRequestHandler(for: exporter)
-        let result = try requestHandler(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+        var context = endpoint.createConnectionContext(for: exporter)
+        
+        let result = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
 
         guard case let .send(responseValue) = result.typed(String.self) else {
