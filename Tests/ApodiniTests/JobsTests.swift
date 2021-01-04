@@ -35,6 +35,12 @@ final class JobsTests: ApodiniTests {
         XCTAssertThrowsError(try Scheduler.shared.enqueue(TestJob(), with: "A B C D E", runs: 5, \KeyStore.testJob, on: app.eventLoopGroup.next()))
     }
     
+    func testFatalError() throws {
+        XCTAssertRuntimeFailure(Schedule(FailingJob(), on: "* * * * *", \KeyStore.failingJob).configure(self.app),
+                                "Request based property wrappers cannot be used with `Job`s")
+        XCTAssertRuntimeFailure(Schedule(TestJob(), on: "A B C D E", \KeyStore.testJob).configure(self.app))
+    }
+    
     func testEnvironmentInjection() throws {
         let scheduler = EnvironmentValues.shared.scheduler
         let job = TestJob()
