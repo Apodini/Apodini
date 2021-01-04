@@ -89,8 +89,8 @@ extension Node {
 
 extension Node {
     func reduce<Result>(
-            _ initialResult: Result,
-            _ nextPartialResult: ([Result], T) throws -> Result
+        _ initialResult: Result,
+        _ nextPartialResult: ([Result], T) throws -> Result
     ) rethrows -> Result {
         let partialResults = try children.map { child in
             try child.reduce(initialResult, nextPartialResult)
@@ -106,7 +106,7 @@ extension Node {
 
 extension Node {
     func edited(
-            _ transform: (Node<T>) throws -> Tree<T>
+        _ transform: (Node<T>) throws -> Tree<T>
     ) rethrows -> Tree<T> {
         guard let intermediate = try transform(self) else {
             return nil
@@ -122,7 +122,7 @@ extension Node {
 
 extension Node {
     func contextMap<U>(
-            _ transform: (Node<T>) throws -> U
+        _ transform: (Node<T>) throws -> U
     ) rethrows -> Node<U> {
         let value = try transform(self)
         let children = try self.children.compactMap { child in

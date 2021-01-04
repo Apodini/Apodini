@@ -30,7 +30,6 @@ let package = Package(
         .target(
             name: "Apodini",
             dependencies: [
-                .target(name: "ProtobufferBuilder"),
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "APNS", package: "apns"),
@@ -60,21 +59,6 @@ let package = Package(
             name: "TestWebService",
             dependencies: [
                 .target(name: "Apodini")
-            ]
-        ),
-        // ProtoBufferBuilder
-        .target(
-            name: "ProtobufferBuilder",
-            dependencies: [
-                .product(name: "Runtime", package: "Runtime")
-            ]
-        ),
-        .testTarget(
-            name: "ProtobufferBuilderTests",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ProtobufferBuilder"),
-                .product(name: "XCTVapor", package: "vapor")
             ]
         ),
         // ProtobufferCoding

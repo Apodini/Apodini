@@ -6,6 +6,6 @@ import Foundation
 
 func handleUUID(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     ParticularType(node.value.typeInfo.type).isUUID
-            ? Node(value: node.value, children: [])
-            : node
+        ? Node(value: node.value, children: [])
+        : node
 }

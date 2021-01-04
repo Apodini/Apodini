@@ -44,8 +44,8 @@ extension ParticularType: Equatable {
 
     var isPrimitive: Bool {
         supportedScalarTypes
-                .map(ParticularType.init)
-                .contains(self)
+            .map(ParticularType.init)
+            .contains(self)
     }
     
     var isUUID: Bool {
