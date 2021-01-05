@@ -17,7 +17,7 @@ class ContextNode {
     }
     
     func copy() -> ContextNode {
-        let newContextNode = ContextNode(nodeLink: parentContextNode?.copy())
+        let newContextNode = ContextNode(nodeLink: parentContextNode)
         newContextNode.nodeOnlyContext = nodeOnlyContext
         newContextNode.context = context
         return newContextNode
