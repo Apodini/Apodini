@@ -32,7 +32,7 @@ class GraphQLSchemaBuilder {
         tree
     }
 
-    private func graphQLFieldCreator(_ name: String, _ handler: Encodable) -> GraphQLField {
+    private func graphQLFieldCreator(_ handler: Encodable) -> GraphQLField {
         switch handler {
         case let value as String:
             return GraphQLField(type: GraphQLString, resolve: { _, args, context, info in
@@ -51,7 +51,7 @@ class GraphQLSchemaBuilder {
     }
 
     private func appendSinglePoint(_ name: String, _ handler: Encodable) {
-        self.fields[name] = self.graphQLFieldCreator(name, handler)
+        self.fields[name] = self.graphQLFieldCreator(handler)
     }
 
 
@@ -113,7 +113,7 @@ class GraphQLSchemaBuilder {
                 nodeName
             })
         } else {
-            return self.graphQLFieldCreator(nodeName, self.leafHandler[node] ?? "Handler Error")
+            return self.graphQLFieldCreator(self.leafHandler[node] ?? "Handler Error")
         }
     }
 
@@ -207,12 +207,11 @@ class GraphQLInterfaceExporter: InterfaceExporter {
     }
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        self.graphQLPath.append(endpoint)
+         self.graphQLPath.append(endpoint)
     }
 
     func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) -> String {
-        print("This is exportParameter")
-        return "HI"
+        parameter.name
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
