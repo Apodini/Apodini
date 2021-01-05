@@ -22,13 +22,16 @@ public struct Update<Model: DatabaseModel>: Handler {
     
 //    public func handle() -> EventLoopFuture<T> {
     public func handle() -> String {
-        Model.find(id, on: database).unwrap(orError: Abort(.notFound)).map({ model -> Model in
-            print(model)
-            model.update(object)
-            model.update(on: database)
-            print(model)
-            return model
-        })
+        // swiftlint:disable:next array_init
+        Model.find(id, on: database)
+            .unwrap(orError: Abort(.notFound))
+            .map { model -> Model in
+                print(model)
+                model.update(object)
+                model.update(on: database)
+            
+                return model
+            }
         return "success"
     }
 }

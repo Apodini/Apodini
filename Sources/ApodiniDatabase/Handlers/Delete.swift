@@ -18,10 +18,11 @@ public struct Delete<Model: DatabaseModel>: Handler {
     
 //    public func handle() -> EventLoopFuture<HTTPStatus> {
     public func handle() -> String {
+        // swiftlint:disable:next array_init
         Model.find(id, on: database)
             .unwrap(orError: Abort(.notFound))
-            .flatMap({ $0.delete(on: database )})
-            .map({ HTTPStatus.ok })
+            .flatMap { $0.delete(on: database )}
+            .map { HTTPStatus.ok }
         return String(HTTPStatus.ok.code)
     }
 }
