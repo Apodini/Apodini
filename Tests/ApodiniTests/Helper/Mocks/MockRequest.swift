@@ -2,6 +2,7 @@
 // Created by Andi on 25.12.20.
 //
 
+import XCTest
 import Foundation
 import protocol NIO.EventLoop
 import protocol FluentKit.Database
@@ -12,7 +13,7 @@ enum MockRequest {
     static func createRequest(
         running eventLoop: EventLoop,
         queuedParameters parameterValues: Any??...
-    ) -> ApodiniRequest<MockExporter<String>, EmptyHandler> {
+    ) -> ValidatedRequest<MockExporter<String>, EmptyHandler> {
         createRequest(on: EmptyHandler(), running: eventLoop, queuedParameters: parameterValues)
     }
 
@@ -20,7 +21,7 @@ enum MockRequest {
         on handler: H,
         running eventLoop: EventLoop,
         queuedParameters parameterValues: Any??...
-    ) -> ApodiniRequest<MockExporter<String>, H> {
+    ) -> ValidatedRequest<MockExporter<String>, H> {
         createRequest(on: handler, running: eventLoop, queuedParameters: parameterValues)
     }
 
@@ -28,9 +29,18 @@ enum MockRequest {
         on handler: H,
         running eventLoop: EventLoop,
         queuedParameters parameterValues: [Any??]
-    ) -> ApodiniRequest<MockExporter<String>, H> {
-        let endpoint = handler.mockEndpoint()
+    ) -> ValidatedRequest<MockExporter<String>, H> {
         let exporter = MockExporter<String>(queued: parameterValues)
-        return ApodiniRequest(for: exporter, with: "Undefined Exporter Request", on: endpoint, running: eventLoop)
+        
+        let endpoint = handler.mockEndpoint()
+        
+        var validator = endpoint.validator(for: exporter)
+        
+        do {
+            return try validator.validate("Undefined Exporter Request", with: eventLoop)
+        } catch {
+            XCTFail("Validating MockRequest failed. The provided queuedParameters seem to be invalid.")
+            exit(1)
+        }
     }
 }

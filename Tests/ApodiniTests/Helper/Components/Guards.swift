@@ -5,10 +5,7 @@
 @testable import Apodini
 
 struct PrintGuard: SyncGuard {
-    @_Request
-    var request: Request
-
     func check() {
-        print(request)
+        print("PrintGuard check executed")
     }
 }

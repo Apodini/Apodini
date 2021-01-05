@@ -34,9 +34,9 @@ final class HandlerIdentifierTests: ApodiniTests {
             }
         }
         
-        let SSMBuilder = SharedSemanticModelBuilder(app)
-        TestWebService().register(SSMBuilder)
-        let allEndpoints = SSMBuilder.rootNode.collectAllEndpoints()
+        let sharedSemanticModelBuilder = SharedSemanticModelBuilder(app)
+        TestWebService().register(sharedSemanticModelBuilder)
+        let allEndpoints = sharedSemanticModelBuilder.rootNode.collectAllEndpoints()
         
         XCTAssertEqual(allEndpoints.count, 2)
         
@@ -121,5 +121,37 @@ final class HandlerIdentifierTests: ApodiniTests {
             endpoint.identifier.rawValue == "1"
                 && endpoint.description == String(describing: Text("b"))
         }))
+    }
+    
+    func testHandlerIdentifierCreationUsingREST() throws {
+        struct TestHandler: IdentifiableHandler {
+            func handle() -> String {
+                handlerId.description
+            }
+            
+            var handlerId: some AnyHandlerIdentifier {
+                AnyHandlerIdentifier(Self.self)
+            }
+        }
+        
+        struct TestWebService: WebService {
+            var content: some Component {
+                TestHandler()
+            }
+        }
+        
+        TestWebService.main(app: app)
+        
+        
+        try app.test(.GET, "/v1/") { res in
+            XCTAssertEqual(res.status, .ok)
+            
+            struct Content: Decodable {
+                let data: String
+            }
+            
+            let content = try res.content.decode(Content.self)
+            XCTAssert(content.data == AnyHandlerIdentifier(TestHandler.self).description)
+        }
     }
 }

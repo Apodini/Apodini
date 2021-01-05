@@ -51,15 +51,15 @@ class GRPCInterfaceExporter: InterfaceExporter {
                 self.parameters[item.element] = item.offset + 1
             }
 
-        let requestHandler = endpoint.createRequestHandler(for: self)
+        let context = endpoint.createConnectionContext(for: self)
 
         // expose the new component via a GRPCService
         // currently unary enpoints are considered here
         if let service = services[serviceName] {
-            service.exposeUnaryEndpoint(name: methodName, requestHandler: requestHandler)
+            service.exposeUnaryEndpoint(name: methodName, context: context)
         } else {
             let service = GRPCService(name: serviceName, using: app)
-            service.exposeUnaryEndpoint(name: methodName, requestHandler: requestHandler)
+            service.exposeUnaryEndpoint(name: methodName, context: context)
             services[serviceName] = service
         }
         

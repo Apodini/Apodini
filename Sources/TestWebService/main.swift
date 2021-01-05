@@ -5,32 +5,66 @@
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 
-@testable import Apodini
-import Vapor
-import NIO
-import Runtime
+import Apodini
 
 
 struct TestWebService: Apodini.WebService {
-    struct SomeStruct: Vapor.Content {
-        var someProp: Int
-        var optionalInt: Int?
-        var optionalString: String?
-        var reqDouble: Double
+    struct PrintGuard: SyncGuard {
+        private let message: String
+
+        init(_ message: String = "PrintGuard 👋") {
+            self.message = message
+        }
+        
+
+        func check() {
+            print(message)
+        }
+    }
+    
+    struct EmojiMediator: ResponseTransformer {
+        private let emojis: String
+        
+        
+        init(emojis: String = "✅") {
+            self.emojis = emojis
+        }
+        
+        
+        func transform(response: String) -> String {
+            "\(emojis) \(response) \(emojis)"
+        }
     }
 
-    struct SomeComp: Handler {
-        @Parameter
-        var name: String?
 
-        func handle() -> SomeStruct {
-            SomeStruct(someProp: 4, reqDouble: 5.0)
+    struct TraditionalGreeter: Handler {
+        // one cannot change their gender, it must be provided
+        @Parameter(.mutability(.constant)) var gender: String
+        // one cannot change their surname, but it can be ommitted
+        @Parameter(.mutability(.constant)) var surname: String = ""
+        // one can switch between formal and informal greeting at any time
+        @Parameter var name: String?
+
+        func handle() -> String {
+            if let firstName = name {
+                return "Hi, \(firstName)!"
+            } else {
+                return "Hello, \(gender == "male" ? "Mr." : "Mrs.") \(surname)"
+            }
+        }
+    }
+    
+    @propertyWrapper
+    struct UselessWrapper: DynamicProperty {
+        @Parameter var name: String?
+        
+        var wrappedValue: String? {
+            name
         }
     }
 
     struct User: Codable {
         var id: Int
-        var name: String?
     }
 
     struct UserHandler: Handler {
@@ -42,16 +76,31 @@ struct TestWebService: Apodini.WebService {
     }
 
     @PathParameter var userId: Int
-
+    
     var content: some Component {
-        Group("complexHandler") {
-            SomeComp()
+        Text("Hello World! 👋")
+            .response(EmojiMediator(emojis: "🎉"))
+            .response(EmojiMediator())
+            .guard(PrintGuard())
+        Group("swift") {
+            Text("Hello Swift! 💻")
+                .response(EmojiMediator())
+                .guard(PrintGuard())
+            Group("5", "3") {
+                Text("Hello Swift 5! 💻")
+            }
+        }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
+        Group("greet") {
+            TraditionalGreeter()
+                .serviceName("GreetService")
+                .rpcName("greetMe")
+                .response(EmojiMediator())
         }
         Group("user", $userId) {
             UserHandler(userId: $userId)
-                    .operation(.update)
+                .guard(PrintGuard())
         }
     }
 }
 
-TestWebService.main()
+try TestWebService.main()

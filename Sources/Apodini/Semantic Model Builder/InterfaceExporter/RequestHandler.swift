@@ -7,20 +7,7 @@ import protocol NIO.EventLoop
 import protocol FluentKit.Database
 import struct NIO.EventLoopPromise
 
-class EndpointRequestHandler<I: InterfaceExporter> {
-    func callAsFunction(request: I.ExporterRequest, eventLoop: EventLoop) -> EventLoopFuture<Action<AnyEncodable>> {
-        // We are doing nothing here. Everything is handled in InternalEndpointRequestHandler
-        fatalError("EndpointRequestHandler.handleRequest() was not overridden. EndpointRequestHandler must not be created manually!")
-    }
-}
-
-extension EndpointRequestHandler where I.ExporterRequest: WithEventLoop {
-    func callAsFunction(request: I.ExporterRequest) -> EventLoopFuture<Action<AnyEncodable>> {
-        callAsFunction(request: request, eventLoop: request.eventLoop)
-    }
-}
-
-class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler>: EndpointRequestHandler<I> {
+class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
     private var endpoint: Endpoint<H>
     private var exporter: I
 
@@ -29,38 +16,38 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler>: Endpoint
         self.exporter = exporter
     }
 
-    override func callAsFunction(request exporterRequest: I.ExporterRequest, eventLoop: EventLoop) -> EventLoopFuture<Action<AnyEncodable>> {
-        let request = ApodiniRequest(for: exporter, with: exporterRequest, on: endpoint, running: eventLoop)
-
-        let guardEventLoopFutures = endpoint.guards.map { guardClosure in
+    func callAsFunction(
+        request: ValidatedRequest<I, H>
+    ) -> EventLoopFuture<Action<AnyEncodable>> {
+        let guardEventLoopFutures = endpoint.guards.map { guardClosure -> EventLoopFuture<Void> in
             request.enterRequestContext(with: guardClosure()) { requestGuard in
                 requestGuard.executeGuardCheck(on: request)
             }
         }
 
         return EventLoopFuture<Void>
-            .whenAllSucceed(guardEventLoopFutures, on: eventLoop)
-            .flatMap { _ in
-                request.enterRequestContext(with: self.endpoint.handler) { handler in
-                    let response = handler.handle()
-                    let promise = request.eventLoop.makePromise(of: Action<AnyEncodable>.self)
-                    let visitor = ActionVisitor(request: request,
-                                                promise: promise,
-                                                responseModifiers: self.endpoint.responseTransformers)
-                    switch response {
-                    case let apodiniEncodableResponse as ApodiniEncodable:
-                        // is an Action
-                        // use visitor to access
-                        // wrapped element
-                        apodiniEncodableResponse.accept(visitor)
-                    default:
-                        // not an action
-                        // we can skip the visitor
-                        visitor.visit(encodable: response)
+            .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
+                .flatMap { _ in
+                    request.enterRequestContext(with: self.endpoint.handler) { handler in
+                        let response = handler.handle()
+                        let promise = request.eventLoop.makePromise(of: Action<AnyEncodable>.self)
+                        let visitor = ActionVisitor(request: request,
+                                                    promise: promise,
+                                                    responseModifiers: self.endpoint.responseTransformers)
+                        switch response {
+                        case let apodiniEncodableResponse as ApodiniEncodable:
+                            // is an Action
+                            // use visitor to access
+                            // wrapped element
+                            apodiniEncodableResponse.accept(visitor)
+                        default:
+                            // not an action
+                            // we can skip the visitor
+                            visitor.visit(encodable: response)
+                        }
+                        return promise.futureResult
                     }
-                    return promise.futureResult
                 }
-            }
     }
 }
 
