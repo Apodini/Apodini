@@ -8,7 +8,6 @@ public protocol DatabaseModel: Content, Model where IDValue == UUID {
 }
 
 internal extension DatabaseModel {
-    
     static func fieldKey(for string: String) -> FieldKey {
         // swiftlint:disable:next force_unwrapping
         Self.keys.first(where: { $0.description == string })!

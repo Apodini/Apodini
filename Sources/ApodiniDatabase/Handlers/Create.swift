@@ -18,10 +18,11 @@ public struct Create<T: DatabaseModel>: Handler {
                 self.object
             }
             .wait()
+        
         // swiftlint:disable:next force_try
-        // swiftlint:disable:next array_init
         return try! T
             .find(result.id, on: database)
+            // swiftlint:disable:next array_init
             .map { object in
                 object
             }

@@ -10,7 +10,6 @@ import Apodini
 /// }
 /// Sending a request to  ~/api/birds/birds?age=19&name=Foo would return an array of `Bird` object that have an age of 19 and the name Foo.
 public struct Read<Model: DatabaseModel>: Handler where Model.IDValue: LosslessStringConvertible {
-    
     @Apodini.Environment(\.database)
     private var database: Fluent.Database
 
@@ -32,7 +31,7 @@ public struct Read<Model: DatabaseModel>: Handler where Model.IDValue: LosslessS
             .reduce(into: [FieldKey: String?](), { result, entry in
                 result[Model.fieldKey(for: entry.0)] = entry.1.wrappedValue
             })
-            .compactMapValues({ $0 })
+            .compactMapValues { $0 }
         let queryBuilder = QueryBuilder(type: Model.self, parameters: queryInfo)
 //        return queryBuilder.execute(on: database)
         return queryInfo.debugDescription
