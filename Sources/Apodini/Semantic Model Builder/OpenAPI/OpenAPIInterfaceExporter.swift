@@ -7,8 +7,6 @@
 import Foundation
 
 class OpenAPIInterfaceExporter: InterfaceExporter {
-    typealias ExporterRequest = Vapor.Request
-
 
     let app: Application
     var documentBuilder: OpenAPIDocumentBuilder
@@ -50,45 +48,6 @@ class OpenAPIInterfaceExporter: InterfaceExporter {
     }
 
     func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Vapor.Request) throws -> Type?? {
-        switch parameter.parameterType {
-        case .lightweight:
-            // Note: Vapor also supports decoding into a struct which holds all query parameters. Though we have the requirement,
-            //   that .lightweight parameter types conform to LosslessStringConvertible, meaning our DSL doesn't allow for that right now
-
-            guard let query = request.query[Type.self, at: parameter.name] else {
-                return nil // the query parameter doesn't exists
-            }
-            return query
-        case .path:
-            guard let stringParameter = request.parameters.get(parameter.pathId) else {
-                return nil // the path parameter didn't exist on that request
-            }
-            guard let losslessStringParameter = parameter as? LosslessStringConvertibleEndpointParameter else {
-                #warning("Must be replaced with a proper error to encode a response to the user")
-                fatalError("Encountered .path Parameter which isn't type of LosslessStringConvertible!")
-            }
-
-            guard let value = losslessStringParameter.initFromDescription(description: stringParameter, type: Type.self) else {
-                #warning("Must be replaced with a proper error to encode a response to the user")
-                fatalError("""
-                           Parsed a .path Parameter, but encountered invalid format when initializing LosslessStringConvertible!
-                           Could not init \(Type.self) for string value '\(stringParameter)'
-                           """)
-            }
-            return value
-        case .content:
-            guard request.body.data != nil else {
-                // If the request doesn't have a body, there is nothing to decide.
-                return nil
-            }
-
-            #warning("""
-                     A Handler could define multiple .content Parameters. In such a case the REST exporter would
-                     need to decode the content via a struct containing those .content parameters as properties.
-                     This is currently unsupported.
-                     """)
-
-            return try request.content.decode(Type.self, using: JSONDecoder())
-        }
+        fatalError("OpenAPIInterfaceExporter is not intended to retrieve parameters.")
     }
 }
