@@ -112,7 +112,6 @@ class ConfigurationBuilderTests: ApodiniTests {
 
         XCTAssert(configurationsTrue.count == 1)
         XCTAssert(configurationsNestedTrue.count == 1)
-        print(type(of: configurationsNestedTrue[0]))
         XCTAssert(configurationsNestedTrue[0] is SomeConfiguration)
 
         let configurationsFalse = try XCTUnwrap(testCollectionFalse.configuration as? [Configuration])
