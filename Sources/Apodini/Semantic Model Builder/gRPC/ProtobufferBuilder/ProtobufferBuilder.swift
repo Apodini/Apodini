@@ -11,7 +11,7 @@
 ///
 /// Call `ProtobufferBuilder.description` for the final output.
 public class ProtobufferBuilder {
-    var messages: Set<Message>
+    var messages: Set<ProtoMessage>
     var services: Set<Service>
     
     /// Create an instance of `ProtobufferBuilder`.
@@ -30,8 +30,8 @@ public extension ProtobufferBuilder {
         inputType: Any.Type,
         returnType: Any.Type
     ) throws {
-        let inputNode = try Message.node(inputType)
-        let outputNode = try Message.node(returnType)
+        let inputNode = try ProtoMessage.node(inputType)
+        let outputNode = try ProtoMessage.node(returnType)
         
         for node in [inputNode, outputNode] {
             node.forEach { element in
@@ -60,28 +60,28 @@ internal extension ProtobufferBuilder {
     /// - Parameter type: the type of the message
     /// - Throws: `Error`s of type `Exception`
     func addMessage(messageType: Any.Type) throws {
-        try Message.node(messageType).forEach { element in
+        try ProtoMessage.node(messageType).forEach { element in
             messages.insert(element)
         }
     }
 }
 
-private extension Message {
-    static func node(_ type: Any.Type) throws -> Node<Message> {
+private extension ProtoMessage {
+    static func node(_ type: Any.Type) throws -> Node<ProtoMessage> {
         let node = try EnrichedInfo.node(type)
             .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handlePrimitiveType)?
-            .map(Message.Property.init)
-            .contextMap(Message.init)
+            .map(ProtoMessage.Property.init)
+            .contextMap(ProtoMessage.init)
             .compactMap { $0 }?
             .filter(isNotPrimitive)
         
         return node ?? Node(value: .scalar(type), children: [])
     }
     
-    static func scalar(_ type: Any.Type) -> Message {
-        Message(
+    static func scalar(_ type: Any.Type) -> ProtoMessage {
+        ProtoMessage(
             name: "\(type)Message",
             properties: [
                 Property(
@@ -95,7 +95,7 @@ private extension Message {
     }
 }
 
-private func isNotPrimitive(_ message: Message) -> Bool {
+private func isNotPrimitive(_ message: ProtoMessage) -> Bool {
     message.name.hasSuffix("Message")
 }
 

@@ -7,7 +7,7 @@
 
 // MARK: - Message
 
-extension Message: CustomStringConvertible {
+extension ProtoMessage: CustomStringConvertible {
     var description: String {
         let properties = self.properties
             .sorted(by: \.uniqueNumber)
@@ -22,7 +22,7 @@ extension Message: CustomStringConvertible {
     }
 }
 
-extension Message.Property: CustomStringConvertible {
+extension ProtoMessage.Property: CustomStringConvertible {
     var description: String {
         let components: [CustomStringConvertible] = [
             fieldRule,
@@ -39,7 +39,7 @@ extension Message.Property: CustomStringConvertible {
     }
 }
 
-extension Message.Property.FieldRule: CustomStringConvertible {
+extension ProtoMessage.Property.FieldRule: CustomStringConvertible {
     var description: String {
         switch self {
         case .optional:

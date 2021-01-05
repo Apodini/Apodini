@@ -7,7 +7,7 @@
 
 @_implementationOnly import Runtime
 
-enum ProtobufferBuilderDidEncounterCircle {}
+enum ArrayDidEncounterCircle {}
 
 func handleArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     let typeInfo = node.value.typeInfo
@@ -21,7 +21,7 @@ func handleArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
         .edited { node in
             // Check if a type is repeated and if it comes true, inject a _trap_.
             node.value.typeInfo.type == typeInfo.type
-                ? try EnrichedInfo.node(ProtobufferBuilderDidEncounterCircle.self)
+                ? try EnrichedInfo.node(ArrayDidEncounterCircle.self)
                 : node
         }
 

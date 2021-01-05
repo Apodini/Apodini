@@ -5,9 +5,9 @@
 //  Created by Nityananda on 12.12.20.
 //
 
-extension Message.Property {
+extension ProtoMessage.Property {
     init?(_ info: EnrichedInfo) throws {
-        guard info.typeInfo.type != ProtobufferBuilderDidEncounterCircle.self else {
+        guard info.typeInfo.type != ArrayDidEncounterCircle.self else {
             return nil
         }
         
@@ -36,7 +36,7 @@ extension Message.Property {
     }
 }
 
-extension Message {
+extension ProtoMessage {
     init?(_ node: Node<Property?>) {
         // If a child is nil, there is a circle in theory.
         // Thus, this message is incomplete.

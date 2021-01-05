@@ -7,7 +7,6 @@
 import Foundation
 
 class OpenAPIInterfaceExporter: InterfaceExporter {
-
     let app: Application
     var documentBuilder: OpenAPIDocumentBuilder
     let configuration: OpenAPIConfiguration
