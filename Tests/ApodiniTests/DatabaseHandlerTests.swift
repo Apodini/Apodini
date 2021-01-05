@@ -4,7 +4,7 @@ import NIO
 import Vapor
 @testable import Apodini
 @testable import ApodiniDatabase
-
+// swiftlint:disable all
 final class DatabaseHandlerTests: ApodiniTests {
 
     func testCreateHandler() throws {
@@ -149,3 +149,4 @@ final class DatabaseHandlerTests: ApodiniTests {
         XCTAssertNil(deletedBird)
     }
 }
+// swiftlint:enable all
