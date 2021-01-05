@@ -204,7 +204,7 @@ final class ResponseTransformerTests: ApodiniTests {
         struct TestWebService: WebService {
             var content: some Component {
                 Group("nothing") {
-                    ActionHandler(action: .end)
+                    ActionHandler(action: .nothing)
                         .response(EmojiEncodableResponseTransformer())
                 }
                 Group("send") {
