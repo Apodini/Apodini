@@ -19,7 +19,7 @@ final class ResponseTransformerTests: ApodiniTests {
         let data: T
     }
     
-    struct OptionalText: Handler {
+    private struct OptionalText: Handler {
         let text: String?
         
         
@@ -33,6 +33,79 @@ final class ResponseTransformerTests: ApodiniTests {
         }
     }
     
+    private struct ActionHandler: Handler {
+        let action: Action<String>
+        
+        func handle() -> Action<String> {
+            action
+        }
+    }
+    
+    private struct EmojiResponseTransformer: ResponseTransformer {
+        private let emojis: String
+
+
+        init(emojis: String = "✅") {
+            self.emojis = emojis
+        }
+
+
+        func transform(response: Action<String>) -> Action<String> {
+            response.map { responseContent in
+                ResponseTransformerTests.emojiTransformerExpectation?.fulfill()
+                return "\(emojis) \(responseContent) \(emojis)"
+            }
+        }
+    }
+    
+    private struct EmojiEncodableResponseTransformer: EncodableResponseTransformer {
+        private let emojis: String
+
+
+        init(emojis: String = "✅") {
+            self.emojis = emojis
+        }
+
+
+        func transform(response: String) -> String {
+            ResponseTransformerTests.emojiTransformerExpectation?.fulfill()
+            return "\(emojis) \(response) \(emojis)"
+        }
+    }
+    
+    private struct OptionalEmojiResponseTransformer: ResponseTransformer {
+        private let emojis: String
+
+
+        init(emojis: String = "✅") {
+            self.emojis = emojis
+        }
+
+
+        func transform(response: Action<String?>) -> Action<String> {
+            response.map { responseContent in
+                ResponseTransformerTests.emojiTransformerExpectation?.fulfill()
+                return "\(emojis) \(responseContent ?? "❓") \(emojis)"
+            }
+        }
+    }
+    
+    // swiftlint:disable:next type_name
+    private struct OptionalEmojiEncodableResponseTransformer: EncodableResponseTransformer {
+        private let emojis: String
+
+
+        init(emojis: String = "✅") {
+            self.emojis = emojis
+        }
+
+
+        func transform(response: String?) -> String {
+            ResponseTransformerTests.emojiTransformerExpectation?.fulfill()
+            return "\(emojis) \(response ?? "❓") \(emojis)"
+        }
+    }
+    
     
     private func expect<T: Decodable & Comparable>(_ data: T, in response: XCTHTTPResponse) throws {
         XCTAssertEqual(response.status, .ok)
@@ -42,35 +115,18 @@ final class ResponseTransformerTests: ApodiniTests {
     }
     
     func testResponseMediator() throws {
-        struct EmojiTransformer: ResponseTransformer {
-            private let emojis: String
-            
-            
-            init(emojis: String = "✅") {
-                self.emojis = emojis
-            }
-            
-            
-            func transform(response: Action<String>) -> Action<String> {
-                response.map { responseContent in
-                    ResponseTransformerTests.emojiTransformerExpectation?.fulfill()
-                    return "\(emojis) \(responseContent) \(emojis)"
-                }
-            }
-        }
-        
         struct TestWebService: WebService {
             var content: some Component {
                 Text("Hello")
-                    .response(EmojiTransformer())
+                    .response(EmojiEncodableResponseTransformer())
                 Group("paul") {
                     Text("Hello Paul")
                         .operation(.update)
-                        .response(EmojiTransformer(emojis: "🚀"))
+                        .response(EmojiEncodableResponseTransformer(emojis: "🚀"))
                 }
                 Group("bernd") {
                     Text("Hello Bernd")
-                        .response(EmojiTransformer())
+                        .response(EmojiEncodableResponseTransformer())
                         .operation(.create)
                 }
             }
@@ -94,61 +150,14 @@ final class ResponseTransformerTests: ApodiniTests {
         }
     }
     
-    func testActionShouldAllowResponseModifierOnWrappedType() throws {
-        struct HelloResponseTransformer: EncodableResponseTransformer {
-            func transform(response: String) -> String {
-                ResponseTransformerTests.helloTransformerExpectation?.fulfill()
-                
-                return "Hello \(response)"
-            }
-        }
-
-        struct TestHandler: Handler {
-            func handle() -> Action<String> {
-                .final("Paul")
-            }
-        }
-
-        struct TestWebService: WebService {
-            var content: some Component {
-                TestHandler()
-                    .response(HelloResponseTransformer())
-            }
-        }
-
-        TestWebService.main(app: app)
-        
-        ResponseTransformerTests.helloTransformerExpectation = self.expectation(description: "HelloResponseTransformer is exectured")
-        try app.test(.GET, "/v1/") { res in
-            try expect("Hello Paul", in: res)
-        }
-    }
-    
-    func testOptionalResponseMediator() throws {
-        struct EmojiTransformer: ResponseTransformer {
-            private let emojis: String
-
-
-            init(emojis: String = "✅") {
-                self.emojis = emojis
-            }
-
-
-            func transform(response: Action<String?>) -> Action<String> {
-                response.map { responseContent in
-                    ResponseTransformerTests.emojiTransformerExpectation?.fulfill()
-                    return "\(emojis) \(responseContent ?? "❓") \(emojis)"
-                }
-            }
-        }
-
+    func testOptionalResponseTransformer() throws {
         struct TestWebService: WebService {
             var content: some Component {
                 OptionalText(nil)
-                    .response(EmojiTransformer())
+                    .response(OptionalEmojiResponseTransformer())
                 Group("paul") {
                     OptionalText("Hello Paul")
-                        .response(EmojiTransformer(emojis: "🚀"))
+                        .response(OptionalEmojiResponseTransformer(emojis: "🚀"))
                 }
             }
         }
@@ -167,28 +176,13 @@ final class ResponseTransformerTests: ApodiniTests {
     }
 
     func testOptionalEncodableResponseMediator() throws {
-        struct EmojiTransformer: EncodableResponseTransformer {
-            private let emojis: String
-
-
-            init(emojis: String = "✅") {
-                self.emojis = emojis
-            }
-
-
-            func transform(response: String?) -> String {
-                ResponseTransformerTests.emojiTransformerExpectation?.fulfill()
-                return "\(emojis) \(response ?? "❓") \(emojis)"
-            }
-        }
-
         struct TestWebService: WebService {
             var content: some Component {
                 OptionalText(nil)
-                    .response(EmojiTransformer())
+                    .response(OptionalEmojiEncodableResponseTransformer())
                 Group("paul") {
                     OptionalText("Hello Paul")
-                        .response(EmojiTransformer(emojis: "🚀"))
+                        .response(OptionalEmojiEncodableResponseTransformer(emojis: "🚀"))
                 }
             }
         }
@@ -204,5 +198,82 @@ final class ResponseTransformerTests: ApodiniTests {
         try app.test(.GET, "/v1/paul/") { res in
             try expect("🚀 Hello Paul 🚀", in: res)
         }
+    }
+    
+    func testEncodableResponseTransformer() throws {
+        struct TestWebService: WebService {
+            var content: some Component {
+                Group("nothing") {
+                    ActionHandler(action: .end)
+                        .response(EmojiEncodableResponseTransformer())
+                }
+                Group("send") {
+                    ActionHandler(action: .send("Paul"))
+                        .response(EmojiEncodableResponseTransformer())
+                }
+                Group("final") {
+                    ActionHandler(action: .final("Paul"))
+                        .response(EmojiEncodableResponseTransformer())
+                }
+                Group("automatic") {
+                    ActionHandler(action: .automatic("Paul"))
+                        .response(EmojiEncodableResponseTransformer())
+                }
+                Group("end") {
+                    ActionHandler(action: .end)
+                        .response(EmojiEncodableResponseTransformer())
+                }
+            }
+        }
+        
+        TestWebService.main(app: app)
+        
+        try app.test(.GET, "/v1/nothing") { response in
+            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(response.body.readableBytes, 0)
+        }
+        
+        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is exectured")
+        try app.test(.GET, "/v1/send") { res in
+            try expect("✅ Paul ✅", in: res)
+        }
+        
+        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is exectured")
+        try app.test(.GET, "/v1/final") { res in
+            try expect("✅ Paul ✅", in: res)
+        }
+        
+        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is exectured")
+        try app.test(.GET, "/v1/automatic") { res in
+            try expect("✅ Paul ✅", in: res)
+        }
+        
+        try app.test(.GET, "/v1/end") { response in
+            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(response.body.readableBytes, 0)
+        }
+    }
+    
+    func testFailingResponseTransformer() throws {
+        let action: Action<Int> = .automatic(42)
+        XCTAssertRuntimeFailure(
+            EmojiEncodableResponseTransformer()
+                .transform(response: action.typeErasured, on: self.app.eventLoopGroup.next())
+        )
+        
+        XCTAssertRuntimeFailure(
+            EmojiResponseTransformer()
+                .transform(response: action.typeErasured, on: self.app.eventLoopGroup.next())
+        )
+        
+        XCTAssertRuntimeFailure(
+            OptionalEmojiEncodableResponseTransformer()
+                .transform(response: action.typeErasured, on: self.app.eventLoopGroup.next())
+        )
+        
+        XCTAssertRuntimeFailure(
+            OptionalEmojiResponseTransformer()
+                .transform(response: action.typeErasured, on: self.app.eventLoopGroup.next())
+        )
     }
 }

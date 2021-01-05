@@ -91,6 +91,16 @@ final class ActionTests: ApodiniTests {
         XCTAssertEqual(intActions[4].element, nil)
     }
     
+    func testActionGeneration() throws {
+        try ["Paul": 42]
+            .action(on: app.eventLoopGroup.next())
+            .map { action in
+                let transformedAction = action.typeErasured.typed([String: Int].self)
+                XCTAssertEqual(transformedAction?.element, ["Paul": 42])
+            }
+            .wait()
+    }
+    
     func testActionTypeErasureFunctionality() {
         let actions: [Action<[String: Int]>] = [
             .nothing,
