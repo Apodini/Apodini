@@ -9,7 +9,7 @@ import Foundation
 
 
 public struct AnyEncodable: Encodable {
-    fileprivate let wrappedValue: Encodable
+    private let wrappedValue: Encodable
     
     
     init(_ wrappedValue: Encodable) {
