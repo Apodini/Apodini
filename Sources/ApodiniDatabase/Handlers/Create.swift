@@ -11,7 +11,7 @@ public struct Create<T: DatabaseModel>: Handler {
     private var object: T
 
     public func handle() -> T? {
-        // swiftlint:disable:next force_try
+        // swiftlint:disable all
         let result = try! object
             .save(on: database)
             .map { _ in
@@ -19,13 +19,12 @@ public struct Create<T: DatabaseModel>: Handler {
             }
             .wait()
         
-        // swiftlint:disable:next force_try
         return try! T
             .find(result.id, on: database)
-            // swiftlint:disable:next array_init
             .map { object in
                 object
             }
             .wait()
+        // swiftlint:enable all
     }
 }

@@ -6,7 +6,6 @@ import Apodini
 /// A Handler that updates a `DatabaseModel` with the given id with the new object of the request.
 /// It uses the database that has been specified in the `DatabaseConfiguration`.
 public struct Update<Model: DatabaseModel>: Handler {
-    
     @Apodini.Environment(\.database)
     private var database: Fluent.Database
     
@@ -22,9 +21,9 @@ public struct Update<Model: DatabaseModel>: Handler {
     
 //    public func handle() -> EventLoopFuture<T> {
     public func handle() -> String {
+        // swiftlint:disable all
         Model.find(id, on: database)
             .unwrap(orError: Abort(.notFound))
-            // swiftlint:disable:next array_init
             .map { model -> Model in
                 print(model)
                 model.update(object)
@@ -33,5 +32,6 @@ public struct Update<Model: DatabaseModel>: Handler {
                 return model
             }
         return "success"
+        // swiftlint:enable all
     }
 }

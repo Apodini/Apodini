@@ -11,15 +11,16 @@ import Vapor
 @_implementationOnly import Runtime
 
 internal struct QueryBuilder<Model: DatabaseModel> {
-    
-    internal var debugDescription: String {
+    internal var debugDescription: String {
         parameters.debugDescription
     }
     
     private let type: Model.Type
     private var queryString: String? {
         didSet {
-            guard let queryString = queryString else { return }
+            guard let queryString = queryString else {
+                return
+            }
             parameters = extract(from: queryString)
         }
     }
@@ -41,17 +42,19 @@ internal struct QueryBuilder<Model: DatabaseModel> {
     }
     
     private func extract(from queryString: String) -> [FieldKey: String] {
-        var _parameters: [FieldKey: String] = [:]
-        let queryParts = queryString.split(separator: "&").map({ String($0) })
+        var foundParameters: [FieldKey: String] = [:]
+        let queryParts = queryString.split(separator: "&").map { String($0) }
         for part in queryParts {
-            let queryParameters = part.split(separator: "=").map({ String($0) })
+            let queryParameters = part.split(separator: "=").map { String($0) }
             guard queryParameters.count == 2 else { fatalError("invalid query") }
             let key = queryParameters[0]
             let value = queryParameters[1]
-            guard let fieldKey = fieldKeys.first(where: { $0.description == key }) else { continue }
-            _parameters[fieldKey] = value
+            guard let fieldKey = fieldKeys.first(where: { $0.description == key }) else {
+                continue
+            }
+            foundParameters[fieldKey] = value
         }
-        return _parameters
+        return foundParameters
     }
     
     internal func execute(on database: Fluent.Database) -> EventLoopFuture<[Model]> {
@@ -104,6 +107,7 @@ internal struct QueryBuilder<Model: DatabaseModel> {
     
     //TODO: Find a better way to do this
     private static func fieldType(for type: Any.Type) -> Any.Type {
+        // swiftlint:disable all
         let fieldTypeString = String(describing: type)
             .replacingOccurrences(of: "FieldProperty", with: "")
             .replacingOccurrences(of: "<", with: "")
@@ -124,6 +128,7 @@ internal struct QueryBuilder<Model: DatabaseModel> {
         default:
             fatalError("Should not happen")
         }
+        // swiftlint:enable all
     }
 }
 
