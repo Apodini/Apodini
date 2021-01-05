@@ -92,6 +92,34 @@ class ConfigurationBuilderTests: ApodiniTests {
 
         XCTAssert(testCollection.counter.number == 3)
     }
+    
+    func testCollectionWithSingleConditionalAndMethodCalls() throws {
+        struct TestCollection: ConfigurationCollection {
+            let triggerConditional: Bool
+
+            var configuration: Configuration {
+                if triggerConditional {
+                    SomeConfiguration()
+                }
+            }
+        }
+        
+        let testCollectionTrue = TestCollection(triggerConditional: true)
+        let testCollectionFalse = TestCollection(triggerConditional: false)
+
+        let configurationsTrue = try XCTUnwrap(testCollectionTrue.configuration as? [Configuration])
+        let configurationsNestedTrue = try XCTUnwrap(configurationsTrue[0] as? [Configuration])
+
+        XCTAssert(configurationsTrue.count == 1)
+        XCTAssert(configurationsNestedTrue.count == 1)
+        print(type(of: configurationsNestedTrue[0]))
+        XCTAssert(configurationsNestedTrue[0] is SomeConfiguration)
+
+        let configurationsFalse = try XCTUnwrap(testCollectionFalse.configuration as? [Configuration])
+
+        XCTAssert(configurationsFalse.count == 1)
+        XCTAssert(configurationsFalse[0] is EmptyConfiguration)
+    }
 
     func testCollectionWithConditional() throws {
         struct TestCollection: ConfigurationCollection {
