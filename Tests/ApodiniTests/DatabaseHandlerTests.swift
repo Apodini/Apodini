@@ -92,7 +92,10 @@ final class DatabaseHandlerTests: ApodiniTests {
                 collectedBody: bodyData,
                 on: app.eventLoopGroup.next()
         )
-        request.parameters.set(":\(handler.idParameter.id)", to: "\(dbBird.id!)")
+        guard let birdId = dbBird.id else {
+            return
+        }
+        request.parameters.set(":\(handler.idParameter.id)", to: "\(birdId)")
         
         let result = try requestHandler(request: request)
                 .wait()

@@ -26,7 +26,7 @@ internal struct QueryBuilder<Model: DatabaseModel> {
     }
 
     private var fieldKeys: [FieldKey] {
-        return type.keys
+        type.keys
     }
 
     private var parameters: [FieldKey: String] = [:]
@@ -58,7 +58,6 @@ internal struct QueryBuilder<Model: DatabaseModel> {
     }
     
     internal func execute(on database: Fluent.Database) -> EventLoopFuture<[Model]> {
-        
         func accumulateFilters(queryBuilder: inout Fluent.QueryBuilder<Model>, key: FieldKey, value: String, method: DatabaseQuery.Filter.Method) {
             if let intValue = Int(value) {
                 queryBuilder.filter(key, method, intValue)
@@ -78,13 +77,12 @@ internal struct QueryBuilder<Model: DatabaseModel> {
     
     @discardableResult
     internal static func fieldKeys<Model: DatabaseModel>(for type: Model.Type) -> [FieldKey] {
-        return type.keys
+        type.keys
     }
     
     internal static func info(for type: Model.Type) -> [ModelInfo] {
         var modelInfo: [ModelInfo] = []
         do {
-            
             let keys = type.keys
             let info = try typeInfo(of: type)
             guard info.properties.count == type.keys.count else {
@@ -97,14 +95,13 @@ internal struct QueryBuilder<Model: DatabaseModel> {
                     modelInfo.append(ModelInfo(key: key, type: type))
                 }
             }
-            
-            
         } catch {
             fatalError("failed to infer info")
         }
         return modelInfo
     }
     
+    // swiftlint:disable:next todo
     //TODO: Find a better way to do this
     private static func fieldType(for type: Any.Type) -> Any.Type {
         // swiftlint:disable all
@@ -131,4 +128,3 @@ internal struct QueryBuilder<Model: DatabaseModel> {
         // swiftlint:enable all
     }
 }
-
