@@ -27,8 +27,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.18.0"),
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
         // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
-        .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0")
-        .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
+        .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
         .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.1.0")
     ],
     targets: [
