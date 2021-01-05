@@ -61,15 +61,15 @@ class WebSocketInterfaceExporter: InterfaceExporter {
                 context.handle(request: inputValue, eventLoop: eventLoop).whenComplete { result in
                     switch result {
                     case .success(let response):
-                        guard let element = response.element else {
-                            fatalError(
-                                """
-                                The WebSocketExporter does not handle 'Action' yet.
-                                Using anything but '.send' or '.final' results in a server-crash.
-                                """
-                            )
-                        }
-                        output.send(.message(element))
+                        #warning(
+                            """
+                            The WebSocketExporter does not handle 'Action' yet.
+                            Using anything but '.send' or '.final' results in a server-crash.
+                            """
+                        )
+                        // As stated in the warning above the WebSocketExporter crashes on `.end` and `.nothing`
+                        // swiftlint:disable:next force_unwrapping
+                        output.send(.message(response.element!))
                     case .failure(let error):
                         output.send(.error(error))
                     }
