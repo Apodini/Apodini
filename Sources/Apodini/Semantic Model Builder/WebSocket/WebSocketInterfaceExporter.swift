@@ -11,7 +11,7 @@
 import OpenCombine
 @_implementationOnly import Runtime
 
-extension SomeInput: ExporterRequest { }
+extension SomeInput: ExporterRequest, Reducible { }
 
 
 class WebSocketInterfaceExporter: InterfaceExporter {

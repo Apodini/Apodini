@@ -7,7 +7,7 @@ import class Vapor.Application
 import class Vapor.Request
 @testable import Apodini
 
-extension String: ExporterRequest {}
+extension String: ExporterRequest, Reducible {}
 
 class MockExporter<Request: ExporterRequest>: InterfaceExporter {
     var parameterValues: [Any??] = []

@@ -17,10 +17,15 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
     }
 
     func callAsFunction(
-        request: ValidatedRequest<I, H>
+        on connection: Connection
     ) -> EventLoopFuture<Action<AnyEncodable>> {
+        guard let request = connection.request else {
+            fatalError("Tried to handle request without request.")
+        }
+        
+        
         let guardEventLoopFutures = endpoint.guards.map { guardClosure -> EventLoopFuture<Void> in
-            request.enterRequestContext(with: guardClosure()) { requestGuard in
+            connection.enterConnectionContext(with: guardClosure()) { requestGuard in
                 requestGuard.executeGuardCheck(on: request)
             }
         }
@@ -28,10 +33,10 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
         return EventLoopFuture<Void>
             .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
                 .flatMap { _ in
-                    request.enterRequestContext(with: self.endpoint.handler) { handler in
+                    connection.enterConnectionContext(with: self.endpoint.handler) { handler in
                         let response = handler.handle()
                         let promise = request.eventLoop.makePromise(of: Action<AnyEncodable>.self)
-                        let visitor = ActionVisitor(request: request,
+                        let visitor = ActionVisitor(connection: connection,
                                                     promise: promise,
                                                     responseModifiers: self.endpoint.responseTransformers)
                         switch response {
@@ -52,7 +57,7 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
 }
 
 struct ActionVisitor: ApodiniEncodableVisitor {
-    let request: Request
+    let connection: Connection
     let promise: EventLoopPromise<Action<AnyEncodable>>
     let responseModifiers: [() -> (AnyResponseTransformer)]
 
@@ -81,7 +86,7 @@ struct ActionVisitor: ApodiniEncodableVisitor {
     func transformResponse(_ response: Encodable) -> AnyEncodable {
         var response = response
         for responseTransformer in responseModifiers {
-            response = request.enterRequestContext(with: responseTransformer()) { responseTransformer in
+            response = connection.enterConnectionContext(with: responseTransformer()) { responseTransformer in
                 responseTransformer.transform(response: response)
             }
         }

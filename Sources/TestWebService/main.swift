@@ -45,11 +45,18 @@ struct TestWebService: Apodini.WebService {
         // one can switch between formal and informal greeting at any time
         @Parameter var name: String?
         
-        func handle() -> String {
+        @Environment(\.connection) var connection: Connection
+        
+        func handle() -> Action<String> {
+            print(connection.state)
+            if connection.state == .end {
+                return .end
+            }
+            
             if let firstName = name {
-                return "Hi, \(firstName)!"
+                return .send("Hi, \(firstName)!")
             } else {
-                return "Hello, \(gender == "male" ? "Mr." : "Mrs.") \(surname)"
+                return .send("Hello, \(gender == "male" ? "Mr." : "Mrs.") \(surname)")
             }
         }
     }

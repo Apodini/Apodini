@@ -6,7 +6,7 @@ import Foundation
 @_implementationOnly import Vapor
 import protocol FluentKit.Database
 
-extension Vapor.Request: ExporterRequest, WithEventLoop {}
+extension Vapor.Request: ExporterRequest, WithEventLoop, Reducible {}
 
 struct ResponseContainer: Encodable, ResponseEncodable {
     var data: AnyEncodable?

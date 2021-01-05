@@ -39,7 +39,7 @@ public struct EnvironmentValues {
 public struct Environment<Value>: Property {
     /// Keypath to access an `EnvironmentValue`.
     internal var keyPath: KeyPath<EnvironmentValues, Value>
-    internal var dynamicValues: [ObjectIdentifier: Any] = [:]
+    internal var dynamicValues: [KeyPath<EnvironmentValues, Value>: Any] = [:]
 
     /// Initializer of `Environment`.
     public init(_ keyPath: KeyPath<EnvironmentValues, Value>) {
@@ -48,7 +48,7 @@ public struct Environment<Value>: Property {
     
     /// The current value of the environment property.
     public var wrappedValue: Value {
-        if let value = dynamicValues[ObjectIdentifier(keyPath)] as? Value {
+        if let value = dynamicValues[keyPath] as? Value {
             return value
         }
         return EnvironmentValues.shared[keyPath: keyPath]
@@ -56,28 +56,6 @@ public struct Environment<Value>: Property {
 
     /// Sets the value for the given KeyPath.
     mutating func setValue(_ value: Value, for keyPath: WritableKeyPath<EnvironmentValues, Value>) {
-        self.dynamicValues[ObjectIdentifier(keyPath)] = value
-    }
-}
-
-extension Component {
-    /// Sets the value for the given key-path
-    /// on properties of this `Component`
-    /// annotated with `@Environment`.
-    func withEnvironment<Value>(_ value: Value, for keyPath: WritableKeyPath<EnvironmentValues, Value>) -> Self {
-        var selfRef = self
-        do {
-            let info = try typeInfo(of: type(of: self))
-
-            for property in info.properties {
-                if var child = (try property.get(from: selfRef)) as? Environment<Value> {
-                    child.setValue(value, for: keyPath)
-                    try property.set(value: child, on: &selfRef)
-                }
-            }
-        } catch {
-            print(error)
-        }
-        return selfRef
+        self.dynamicValues[keyPath] = value
     }
 }
