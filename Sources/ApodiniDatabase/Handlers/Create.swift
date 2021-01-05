@@ -11,10 +11,12 @@ public struct Create<T: DatabaseModel>: Handler {
     @Parameter
     private var object: T
 
-    public func handle() -> String {
-        object.save(on: database).map({ _ in
+    public func handle() -> T? {
+        let result = try! object.save(on: database).map({ _ in
             self.object
-        })
-        return "Created"
+        }).wait()
+        return try! T.find(result.id, on: database).map({ object in
+            object
+        }).wait()
     }
 }

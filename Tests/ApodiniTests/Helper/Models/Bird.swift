@@ -31,7 +31,9 @@ final class Bird: DatabaseModel {
     init() {}
     
     func update(_ object: Bird) {
-        self.id = object.id
+        if object.id != nil {
+            self.id = object.id
+        }
         self.age = object.age
         self.name = object.name
     }

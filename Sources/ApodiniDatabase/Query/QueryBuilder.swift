@@ -12,6 +12,10 @@ import Vapor
 
 internal struct QueryBuilder<Model: DatabaseModel> {
     
+    internal var debugDescription: String {
+        parameters.debugDescription
+    }
+    
     private let type: Model.Type
     private var queryString: String? {
         didSet {

@@ -13,16 +13,11 @@ public struct Read<Model: DatabaseModel>: Handler where Model.IDValue: LosslessS
     
     @Apodini.Environment(\.database)
     private var database: Fluent.Database
-    
-    @Parameter
-    private var dummy: String
 
     @Properties
     private var dynamics: [String: Apodini.Property]
     
-    
-    public init(_ dummy: Parameter<String>) {
-        self._dummy = dummy
+    public init() {
         var dynamicValues: [String: Parameter<String?>] = [:]
         let infos = QueryBuilder.info(for: Model.self)
         for info in infos {
@@ -31,15 +26,15 @@ public struct Read<Model: DatabaseModel>: Handler where Model.IDValue: LosslessS
         _dynamics = Properties(wrappedValue: dynamicValues)
     }
 
-//    public func handle() -> EventLoopFuture<[Model]> {
     public func handle() -> String {
+//    public func handle() -> [Model] {
         let queryInfo: [FieldKey: String] = _dynamics.typed(Parameter<String?>.self)
             .reduce(into: [FieldKey: String?](), { result, entry in
                 result[Model.fieldKey(for: entry.0)] = entry.1.wrappedValue
             })
             .compactMapValues({ $0 })
         let queryBuilder = QueryBuilder(type: Model.self, parameters: queryInfo)
-        queryBuilder.execute(on: database)
+//        return queryBuilder.execute(on: database)
         return queryInfo.debugDescription
     }
 }

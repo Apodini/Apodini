@@ -17,6 +17,7 @@ extension PropertyOptionKey where PropertyNameSpace == ParameterOptionNameSpace,
 }
 
 extension AnyPropertyOption where PropertyNameSpace == ParameterOptionNameSpace {
+    ///A property option allowing to parse a `DatabaseInjectionContext` to the exporter.
     public static func database(_ context: DatabaseInjectionContext) -> AnyPropertyOption<ParameterOptionNameSpace> {
         AnyPropertyOption(key: .databaseContext, value: .context(context))
     }
