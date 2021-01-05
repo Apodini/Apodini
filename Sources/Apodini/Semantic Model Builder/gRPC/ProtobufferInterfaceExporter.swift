@@ -20,7 +20,7 @@ class ProtobufferInterfaceExporter: InterfaceExporter {
         self.app = app
         self.builder = ProtobufferBuilder()
         
-        self.app.get("apodini", "proto") { req in
+        self.app.get("apodini", "proto") { _ in
             self.builder.description
         }
     }
@@ -43,7 +43,7 @@ class ProtobufferInterfaceExporter: InterfaceExporter {
         }
     }
     
-    func retrieveParameter<Type>(_ parameter: EndpointParameter<Type>, for request: Never) throws -> Type?? where Type : Decodable, Type : Encodable {
+    func retrieveParameter<Type>(_ parameter: EndpointParameter<Type>, for request: Never) throws -> Type?? where Type: Decodable, Type: Encodable {
         nil
     }
 }

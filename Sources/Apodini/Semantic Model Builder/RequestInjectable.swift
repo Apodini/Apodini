@@ -10,7 +10,7 @@ import NIO
 
 
 protocol RequestInjectable {
-    mutating func inject(using request: Request) throws
+    mutating func inject(using request: Request)
     func accept(_ visitor: RequestInjectableVisitor)
 }
 
@@ -31,12 +31,12 @@ extension RequestInjectableVisitor {
 }
 
 extension Handler {
-    func extractRequestInjectables() -> [String: RequestInjectable] {
+    func extractRequestInjectables() -> [(String, RequestInjectable)] {
         Apodini.extractRequestInjectables(from: self)
     }
 }
 extension AnyResponseTransformer {
-    func extractRequestInjectables() -> [String: RequestInjectable] {
+    func extractRequestInjectables() -> [(String, RequestInjectable)] {
         Apodini.extractRequestInjectables(from: self)
     }
 }
