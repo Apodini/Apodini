@@ -42,10 +42,12 @@ struct ResponseContainer: Encodable, ResponseEncodable {
 class RESTEndpointHandler<H: Handler> {
     let endpoint: Endpoint<H>
     var context: AnyConnectionContext<RESTInterfaceExporter>
+    let configuration: RESTConfiguration
 
-    init(for endpoint: Endpoint<H>, with context: AnyConnectionContext<RESTInterfaceExporter>) {
+    init(for endpoint: Endpoint<H>, with context: AnyConnectionContext<RESTInterfaceExporter>, configuration: RESTConfiguration) {
         self.endpoint = endpoint
         self.context = context
+        self.configuration = configuration
     }
 
     func register(at routesBuilder: Vapor.RoutesBuilder, with operation: Operation) {
@@ -55,11 +57,9 @@ class RESTEndpointHandler<H: Handler> {
     func handleRequest(request: Vapor.Request) -> EventLoopFuture<ResponseContainer> {
         let response = context.handle(request: request)
 
-        // swiftlint:disable:next todo
-        let uriPrefix = "http://127.0.0.1:8080/" // TODO resolve that somehow
-        var links = ["self": uriPrefix + endpoint.absolutePath.joinPathComponents()]
+        var links = ["self": configuration.uriPrefix + endpoint.absolutePath.asPathString()]
         for relationship in endpoint.relationships {
-            links[relationship.name] = uriPrefix + relationship.destinationPath.joinPathComponents()
+            links[relationship.name] = configuration.uriPrefix + relationship.destinationPath.asPathString()
         }
 
         return response.map { encodableAction in

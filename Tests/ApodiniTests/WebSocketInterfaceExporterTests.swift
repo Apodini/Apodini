@@ -152,13 +152,13 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         
         let userId = "1234"
         let name = "Rudi"
-        
+
         struct UserHandlerInput: Encodable {
             let userId: String
             let name: String
         }
         
-        let user: User = try client.resolve(one: UserHandlerInput(userId: userId, name: name), on: "user.::").wait()
+        let user: User = try client.resolve(one: UserHandlerInput(userId: userId, name: name), on: "user.:userId:").wait()
         
         XCTAssertEqual(user.id, userId)
         XCTAssertEqual(user.name, name)

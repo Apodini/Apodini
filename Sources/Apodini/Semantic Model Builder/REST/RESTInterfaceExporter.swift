@@ -7,34 +7,24 @@ import Foundation
 
 struct RESTPathBuilder: PathBuilder {
     private var pathComponents: [Vapor.PathComponent] = []
-
-
+    private var pathString: [String] = []
     fileprivate var pathDescription: String {
-        pathComponents
-                .map { pathComponent in
-                    pathComponent.description
-                }
-                .joined(separator: "/")
+        pathString.joined(separator: "/")
     }
-
-
-    init(_ pathComponents: [PathComponent]) {
-        for pathComponent in pathComponents {
-            if let pathComponent = pathComponent as? _PathComponent {
-                pathComponent.append(to: &self)
-            }
-        }
-    }
-
 
     mutating func append(_ string: String) {
         let pathComponent = string.lowercased()
         pathComponents.append(.constant(pathComponent))
+        pathString.append(pathComponent)
     }
 
-    mutating func append<T>(_ parameter: Parameter<T>) {
-        let pathComponent = parameter.description
-        pathComponents.append(.parameter(pathComponent))
+    mutating func root() {
+        pathString.append("")
+    }
+
+    mutating func append<Type>(_ parameter: EndpointPathParameter<Type>) {
+        pathComponents.append(.parameter(parameter.pathId))
+        pathString.append(":{\(parameter.name)}")
     }
 
     func routesBuilder(_ app: Vapor.Application) -> Vapor.RoutesBuilder {
@@ -59,29 +49,59 @@ extension Operation {
     }
 }
 
+struct RESTConfiguration {
+    let configuration: HTTPServer.Configuration
+    let bindAddress: BindAddress
+    let uriPrefix: String
+
+    init(_ configuration: HTTPServer.Configuration) {
+        self.configuration = configuration
+        self.bindAddress = configuration.address
+
+        switch bindAddress {
+        case .hostname:
+            var uriPrefix = configuration.tlsConfiguration == nil ? "http://" : "https://"
+            uriPrefix += configuration.hostname
+
+            let port = configuration.port
+            if port != 80 {
+                uriPrefix += ":\(port)"
+            }
+
+            self.uriPrefix = uriPrefix
+        case let .unixDomainSocket(path):
+            self.uriPrefix = path
+        }
+    }
+}
+
 class RESTInterfaceExporter: InterfaceExporter {
     let app: Application
+    let configuration: RESTConfiguration
 
     required init(_ app: Application) {
         self.app = app
+        configuration = RESTConfiguration(app.http.server.configuration)
     }
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        let pathBuilder = RESTPathBuilder(endpoint.absolutePath)
+        var pathBuilder = RESTPathBuilder()
+        endpoint.absolutePath.acceptAll(&pathBuilder)
+
         let routesBuilder = pathBuilder.routesBuilder(app)
 
         let operation = endpoint.operation
 
         let exportedParameterNames = endpoint.exportParameters(on: self)
 
-        let endpointHandler = RESTEndpointHandler(for: endpoint, with: endpoint.createConnectionContext(for: self))
+        let endpointHandler = RESTEndpointHandler(for: endpoint, with: endpoint.createConnectionContext(for: self), configuration: configuration)
         endpointHandler.register(at: routesBuilder, with: operation)
 
         app.logger.info("Exported '\(operation.httpMethod.rawValue) \(pathBuilder.pathDescription)' with parameters: \(exportedParameterNames)")
 
         for relationship in endpoint.relationships {
             let path = relationship.destinationPath
-            app.logger.info("  - links to: \(StringPathBuilder(path).build())")
+            app.logger.info("  - links to: \(path.asPathString())")
         }
     }
 
@@ -98,7 +118,7 @@ class RESTInterfaceExporter: InterfaceExporter {
             for relationship in webService.relationships {
                 app.logger.info("Auto exported '\(HTTPMethod.GET.rawValue) /'")
                 let path = relationship.destinationPath
-                app.logger.info("  - links to: \(StringPathBuilder(path).build())")
+                app.logger.info("  - links to: \(path.asPathString())")
             }
         }
     }

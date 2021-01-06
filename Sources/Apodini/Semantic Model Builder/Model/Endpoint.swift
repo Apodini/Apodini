@@ -28,7 +28,7 @@ protocol AnyEndpoint: CustomStringConvertible {
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     var parameters: [AnyEndpointParameter] { get }
 
-    var absolutePath: [_PathComponent] { get }
+    var absolutePath: [EndpointPath] { get }
     var relationships: [EndpointRelationship] { get }
 
     var guards: [LazyGuard] { get }
@@ -64,17 +64,19 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     var parameters: [AnyEndpointParameter]
-    
-    var absolutePath: [_PathComponent] {
-        treeNode.absolutePath
+
+    var absolutePath: [EndpointPath] {
+        storedAbsolutePath
     }
+    private var storedAbsolutePath: [EndpointPath]! // swiftlint:disable:this implicitly_unwrapped_optional
+
     var relationships: [EndpointRelationship] {
-        treeNode.relationships
+        storedRelationship
     }
+    private var storedRelationship: [EndpointRelationship]! // swiftlint:disable:this implicitly_unwrapped_optional
 
     let guards: [LazyGuard]
     let responseTransformers: [LazyAnyResponseTransformer]
-    
     
     init(
         identifier: AnyHandlerIdentifier,
@@ -82,8 +84,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         context: Context = Context(contextNode: ContextNode()),
         operation: Operation = .automatic,
         guards: [LazyGuard] = [],
-        responseTransformers: [LazyAnyResponseTransformer] = [],
-        parameters: [AnyEndpointParameter] = []
+        responseTransformers: [LazyAnyResponseTransformer] = []
     ) {
         self.identifier = identifier
         self.description = String(describing: handler)
@@ -99,7 +100,13 @@ struct Endpoint<H: Handler>: AnyEndpoint {
             }
             return lastResponseTransformer().transformedResponseContent
         }()
-        self.parameters = parameters
+        self.parameters = handler.buildParametersModel()
+    }
+
+    fileprivate mutating func onInserted(at treeNode: EndpointsTreeNode) {
+        self.treeNode = treeNode
+        self.storedAbsolutePath = treeNode.absolutePath.scoped(on: self)
+        self.storedRelationship = treeNode.relationships.scoped(on: self)
     }
     
     func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
@@ -123,12 +130,12 @@ struct Endpoint<H: Handler>: AnyEndpoint {
 
 
 class EndpointsTreeNode {
-    let path: _PathComponent
+    let path: EndpointPath
     var endpoints: [Operation: AnyEndpoint] = [:]
     
     let parent: EndpointsTreeNode?
-    private var nodeChildren: [String: EndpointsTreeNode] = [:]
-    var children: Dictionary<String, EndpointsTreeNode>.Values {
+    private var nodeChildren: [EndpointPath: EndpointsTreeNode] = [:]
+    var children: Dictionary<EndpointPath, EndpointsTreeNode>.Values {
         nodeChildren.values
     }
     /// If a EndpointsTreeNode A is a child to  a EndpointsTreeNode B and A has an `PathParameter` as its `path`
@@ -136,8 +143,8 @@ class EndpointsTreeNode {
     /// Thus we mark `childContainsPathParameter` to true as soon as we insert a `PathParameter` as a child.
     private var childContainsPathParameter = false
     
-    lazy var absolutePath: [_PathComponent] = {
-        var absolutePath: [_PathComponent] = []
+    lazy var absolutePath: [EndpointPath] = {
+        var absolutePath: [EndpointPath] = []
         collectAbsolutePath(&absolutePath)
         return absolutePath
     }()
@@ -145,80 +152,86 @@ class EndpointsTreeNode {
     lazy var relationships: [EndpointRelationship] = {
         var relationships: [EndpointRelationship] = []
         
-        for (name, child) in nodeChildren {
-            child.collectRelationships(name: name, &relationships)
+        for (path, child) in nodeChildren {
+            child.collectRelationships(name: path.description, &relationships)
         }
         
         return relationships
     }()
     
-    init(path: _PathComponent, parent: EndpointsTreeNode? = nil) {
+    init(path: EndpointPath, parent: EndpointsTreeNode? = nil) {
         self.path = path
         self.parent = parent
     }
     
-    func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, at paths: [PathComponent]) {
-        if paths.isEmpty {
+    func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, context: inout EndpointInsertionContext) {
+        if context.pathEmpty {
+            for parameter in endpoint.parameters {
+                // when the parameter is type of .path and not contained in our path, we must append it to our path
+                if parameter.parameterType == .path && !context.retrievedPathContains(parameter: parameter) {
+                    context.append(parameter: parameter)
+                }
+            }
+
+            if !context.pathEmpty { // we added some additional parameters, see above
+                return addEndpoint(&endpoint, context: &context)
+            }
+
             // swiftlint:disable:next force_unwrapping
             precondition(endpoints[endpoint.operation] == nil, "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)")
             precondition(endpoint.treeNode == nil, "The endpoint \(endpoint.description) is already inserted at some different place")
-            endpoint.treeNode = self
+
+            endpoint.onInserted(at: self)
             endpoints[endpoint.operation] = endpoint
         } else {
-            var pathComponents = paths
-            if let first = pathComponents.removeFirst() as? _PathComponent {
-                var child = nodeChildren[first.description]
-                if child == nil {
-                    // as we create a new child node we need to check if there are colliding path parameters
-                    if let result = PathComponentAnalyzer.analyzePathComponentForParameter(first) {
-                        if result.parameterMode != .path {
-                            fatalError("Parameter can only be used as path component when setting .http() parameter option to .path!")
-                        }
-                        
-                        if childContainsPathParameter { // there are already some children with a path parameter on this level
-                            fatalError("When inserting endpoint \(endpoint.description) we encountered a path parameter collision on level n-\(pathComponents.count): "
-                                        + "You can't have multiple path parameters on the same level!")
-                        } else {
-                            childContainsPathParameter = true
-                        }
+            let next = context.nextPath()
+            var child = nodeChildren[next]
+
+            if child == nil {
+                // as we create a new child node we need to check if there are colliding path parameters
+                switch next {
+                case .parameter:
+                    if childContainsPathParameter { // there are already some children with a path parameter on this level
+                        fatalError("When inserting endpoint \(endpoint.description) we encountered a path parameter collision on level n-\(context.pathCount): "
+                            + "You can't have multiple path parameters on the same level!")
+                    } else {
+                        childContainsPathParameter = true
                     }
-                    
-                    child = EndpointsTreeNode(path: first, parent: self)
-                    nodeChildren[first.description] = child
+                default:
+                    break
                 }
-                
-                // swiftlint:disable:next force_unwrapping
-                child!.addEndpoint(&endpoint, at: pathComponents)
-            } else {
-                fatalError("Encountered PathComponent which isn't a _PathComponent!")
+
+                child = EndpointsTreeNode(path: next, parent: self)
+                nodeChildren[next] = child
             }
+
+            // swiftlint:disable:next force_unwrapping
+            child!.addEndpoint(&endpoint, context: &context)
         }
     }
     
-    private func collectAbsolutePath(_ absolutePath: inout [_PathComponent]) {
-        guard let parent = parent else {
-            return
+    private func collectAbsolutePath(_ absolutePath: inout [EndpointPath]) {
+        if let parent = parent {
+            parent.collectAbsolutePath(&absolutePath)
         }
-        
-        parent.collectAbsolutePath(&absolutePath)
+
         absolutePath.append(path)
     }
     
-    func relativePath(to node: EndpointsTreeNode) -> [_PathComponent] {
-        var relativePath: [_PathComponent] = []
-        collectRelativePath(&relativePath, to: node)
+    func relativePath(from node: EndpointsTreeNode) -> [EndpointPath] {
+        var relativePath: [EndpointPath] = []
+        collectRelativePath(&relativePath, from: node)
         return relativePath
     }
     
-    private func collectRelativePath(_ relativePath: inout [_PathComponent], to node: EndpointsTreeNode) {
+    private func collectRelativePath(_ relativePath: inout [EndpointPath], from node: EndpointsTreeNode) {
         if node === self {
             return
         }
-        guard let parent = parent else {
-            return
+        if let parent = parent {
+            parent.collectRelativePath(&relativePath, from: node)
         }
-        
-        parent.collectRelativePath(&relativePath, to: node)
+
         relativePath.append(path)
     }
     
@@ -228,11 +241,11 @@ class EndpointsTreeNode {
             return
         }
         
-        for (childName, child) in nodeChildren {
+        for (path, child) in nodeChildren {
             // as Parameter is currently inserted into the path (which will change)
             // checking against RequestInjectable is a lazy check to determine if this is a path parameter
             // or just a regular path component. To be adapted.
-            let name = name + (child.path is RequestInjectable ? "" : "_" + childName)
+            let name = path.description + (child.path is RequestInjectable ? "" : "_" + path.description)
             child.collectRelationships(name: name, &relationships)
         }
     }
@@ -247,11 +260,61 @@ class EndpointsTreeNode {
             print("\(indentString)  - \(operation): \(endpoint.description) [\(endpoint.identifier.rawValue)]")
         }
         
-        for child in nodeChildren {
-            child.value.printTree(indent: indent + 1)
+        for child in nodeChildren.values {
+            child.printTree(indent: indent + 1)
         }
         
         print(indentString + "}")
+    }
+}
+
+struct EndpointInsertionContext {
+    private var path: [EndpointPath]
+    /// This array holds all UUIDs of Parameters which were already retrieved from the path array above.
+    /// This is used to decide if we need to add a PathParameter which has a definition in the Handler
+    /// but not a dedicated definition contained in the PathComponents
+    private var retrievedParameters: [UUID] = []
+
+    var pathEmpty: Bool {
+        path.isEmpty
+    }
+    var pathCount: Int {
+        path.count
+    }
+
+    init(pathComponents: [PathComponent]) {
+        self.path = pathComponents.buildPathModel().path
+    }
+
+    func retrievedPathContains(parameter: AnyEndpointParameter) -> Bool {
+        retrievedParameters.contains(parameter.id)
+    }
+
+    mutating func append(parameter: AnyEndpointParameter) {
+        path.append(parameter.derivePathParameterModel())
+    }
+
+    mutating func assertRootPath() {
+        let next = nextPath()
+        switch next {
+        case .root:
+            break
+        default:
+            fatalError("Endpoint Path Model didn't start with a .root path!")
+        }
+    }
+
+    mutating func nextPath() -> EndpointPath {
+        let next = path.removeFirst()
+
+        switch next {
+        case let .parameter(parameter):
+            retrievedParameters.append(parameter.id)
+        default:
+            break
+        }
+
+        return next
     }
 }
 

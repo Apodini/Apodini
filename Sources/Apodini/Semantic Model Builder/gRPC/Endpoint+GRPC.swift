@@ -21,8 +21,7 @@ extension Endpoint {
         // simply use the PathComponents to come up with one
         if serviceName == GRPCServiceNameContextKey.defaultValue {
             let pathComponents = self.context.get(valueFor: PathComponentContextKey.self)
-            serviceName = StringPathBuilder(pathComponents, delimiter: "")
-                .build()
+            serviceName = pathComponents.asPathString(delimiter: "")
                 .capitalized
                 .appending("Service")
         }

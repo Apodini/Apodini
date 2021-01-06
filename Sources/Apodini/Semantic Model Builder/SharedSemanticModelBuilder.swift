@@ -6,19 +6,8 @@ import NIO
 @_implementationOnly import Vapor
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
-/// This struct is used to model the RootPath for the root of the endpoints tree
-struct RootPath: _PathComponent {
-    var description: String {
-        ""
-    }
-
-    func append<P>(to pathBuilder: inout P) where P: PathBuilder {
-        fatalError("RootPath instances should not be appended to anything")
-    }
-}
-
 class WebServiceModel {
-    fileprivate let root = EndpointsTreeNode(path: RootPath())
+    fileprivate let root = EndpointsTreeNode(path: .root)
     fileprivate var finishedParsing = false
     
     lazy var rootEndpoints: [AnyEndpoint] = {
@@ -32,7 +21,10 @@ class WebServiceModel {
     }
     
     fileprivate func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, at paths: [PathComponent]) {
-        root.addEndpoint(&endpoint, at: paths)
+        var context = EndpointInsertionContext(pathComponents: paths)
+        context.assertRootPath()
+
+        root.addEndpoint(&endpoint, context: &context)
     }
 }
 
@@ -65,20 +57,9 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
         super.register(handler: handler, withContext: context)
         
         let operation = context.get(valueFor: OperationContextKey.self)
-        var paths = context.get(valueFor: PathComponentContextKey.self)
+        let paths = context.get(valueFor: PathComponentContextKey.self)
         let guards = context.get(valueFor: GuardContextKey.self).allActiveGuards
         let responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self)
-        
-        let parameterBuilder = ParameterBuilder(from: handler)
-        parameterBuilder.build()
-        
-        for parameter in parameterBuilder.parameters {
-            if parameter.parameterType == .path && !paths.contains(where: { ($0 as? _PathComponent)?.description == ":\(parameter.id)" }) {
-                if let pathComponent = parameterBuilder.requestInjectables[parameter.label] as? _PathComponent {
-                    paths.append(pathComponent)
-                }
-            }
-        }
         
         var endpoint = Endpoint(
             identifier: {
@@ -93,10 +74,9 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
             context: context,
             operation: operation,
             guards: guards,
-            responseTransformers: responseTransformers,
-            parameters: parameterBuilder.parameters
+            responseTransformers: responseTransformers
         )
-        
+
         webService.addEndpoint(&endpoint, at: paths)
     }
     
