@@ -1,5 +1,5 @@
 //
-//  GRPCExporterUtility.swift
+//  Endpoint+GRPC.swift
 //  
 //
 //  Created by Moritz Schüll on 04.01.21.
