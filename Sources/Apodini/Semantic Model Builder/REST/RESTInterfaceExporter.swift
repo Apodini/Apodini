@@ -99,7 +99,7 @@ class RESTInterfaceExporter: InterfaceExporter {
 
         let operation = endpoint.operation
 
-        let exportedParameterNames = endpoint.exportParameters(on: self)
+        let exportedParameterNames = endpoint.exportParameters(on: self, namespace: .individual)
 
         let endpointHandler = RESTEndpointHandler(for: endpoint, with: endpoint.createConnectionContext(for: self), configuration: configuration)
         endpointHandler.register(at: routesBuilder, with: operation)

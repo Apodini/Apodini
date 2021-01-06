@@ -21,7 +21,13 @@ public struct Parameter<Element: Codable>: Property {
 
     
     var id = UUID()
-    var name: String?
+    var name: String? {
+        didSet {
+            if let name = name {
+                precondition(!name.isEmpty, "The name for Parameter cannot be empty!")
+            }
+        }
+    }
     private var element: Element?
     internal var options: PropertyOptionSet<ParameterOptionNameSpace>
     internal var defaultValue: Element?
@@ -40,7 +46,6 @@ public struct Parameter<Element: Codable>: Property {
     /// Creates a new `@Parameter` that indicates input of a `Component` without a default value, different name for the encoding, or special options.
     public init() {
         self.defaultValue = nil
-        self.name = nil
         self.options = PropertyOptionSet()
     }
     
@@ -50,16 +55,17 @@ public struct Parameter<Element: Codable>: Property {
     ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
     public init(_ name: String, _ options: Option...) {
         self.defaultValue = nil
-        self.name = name
         self.options = PropertyOptionSet(options)
+        defer { // swiftlint:disable:this inert_defer
+            self.name = name
+        }
     }
-    
+
     /// Creates a new `@Parameter` that indicates input of a `Component`.
     /// - Parameters:
     ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
     public init(_ options: Option...) {
         self.defaultValue = nil
-        self.name = nil
         self.options = PropertyOptionSet(options)
     }
     
@@ -70,8 +76,10 @@ public struct Parameter<Element: Codable>: Property {
     ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
     public init(wrappedValue defaultValue: Element, _ name: String? = nil, _ options: Option...) {
         self.defaultValue = defaultValue
-        self.name = name
         self.options = PropertyOptionSet(options)
+        defer { // swiftlint:disable:this inert_defer
+            self.name = name
+        }
     }
     
     /// Creates a new `@Parameter` that indicates input of a `Component`.
@@ -80,7 +88,6 @@ public struct Parameter<Element: Codable>: Property {
     ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
     public init(wrappedValue defaultValue: Element, _ options: Option...) {
         self.defaultValue = defaultValue
-        self.name = nil
         self.options = PropertyOptionSet(options)
     }
     

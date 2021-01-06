@@ -60,9 +60,9 @@ class WebSocketInterfaceExporter: InterfaceExporter {
         self.app = app
         self.router = VaporWSRouter(app)
     }
-    
+
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self)
+        let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self, namespace: .global)
         
         let emptyInput = SomeInput(parameters: inputParameters.reduce(into: [String: InputParameter](), { result, parameter in
             result[parameter.name] = parameter.value

@@ -34,14 +34,48 @@ protocol AnyEndpoint: CustomStringConvertible {
     var guards: [LazyGuard] { get }
     var responseTransformers: [LazyAnyResponseTransformer] { get }
 
-    func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput
+    /// This method can be called, to export all `EndpointParameter`s of the given `Endpoint` on the supplied `BaseInterfaceExporter`.
+    /// It will call the `BaseInterfaceExporter.exporterParameter(...)` method for every parameter on this `Endpoint`.
+    ///
+    /// Additionally the caller can also specify Apodini predefined `ParameterNamespace`s as defined in `DefaultParameterNamespace`
+    /// for the parameter name collision check. Default is `DefaultParameterNamespace.individual`.
+    ///
+    /// - Parameters:
+    ///   - exporter: The `BaseInterfaceExporter` to export the parameters on.
+    ///   - namespace: One of the predefined `DefaultParameterNamespace` namespaces.
+    /// - Returns: The result of the individual `BaseInterfaceExporter.exporterParameter(...)` calls.
+    func exportParameters<I: BaseInterfaceExporter>(on exporter: I, namespace: DefaultParameterNamespace) -> [I.ParameterExportOutput]
+
+    /// This method can be called, to export all `EndpointParameter`s of the given `Endpoint` on the supplied `BaseInterfaceExporter`.
+    /// It will call the `BaseInterfaceExporter.exporterParameter(...)` method for every parameter on this `Endpoint`.
+    ///
+    /// Additionally the caller can also specify an array of `ParameterNamespace` to define an overwrite
+    /// for the parameter name collision check. Default is `DefaultParameterNamespace.individual`.
+    ///
+    /// - Parameters:
+    ///   - exporter: The `BaseInterfaceExporter` to export the parameters on.
+    ///   - namespace: Array of `ParameterNamespace`s to do the name collision check.
+    /// - Returns: The result of the individual `BaseInterfaceExporter.exporterParameter(...)` calls.
+    func exportParameters<I: BaseInterfaceExporter>(on exporter: I, namespace: ParameterNamespace...) -> [I.ParameterExportOutput]
 
     func createConnectionContext<I: InterfaceExporter>(for exporter: I) -> AnyConnectionContext<I>
-    
-    func findParameter(for id: UUID) -> AnyEndpointParameter?
-    
-    func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput]
 
+    /// This method returns the instance of a `AnyEndpointParameter` if the given `Endpoint` holds a parameter
+    /// for the supplied parameter id. Otherwise nil is returned.
+    ///
+    /// - Parameter id: The parameter `id` to search for.
+    /// - Returns: Returns the `AnyEndpointParameter` if a parameter with the given `id` exists on that `Endpoint`. Otherwise nil.
+    func findParameter(for id: UUID) -> AnyEndpointParameter?
+
+    /// Internal method which is called to call the `InterfaceExporter.export(...)` method on the given `exporter`.
+    ///
+    /// - Parameter exporter: The `BaseInterfaceExporter` used to export the given `Endpoint`
+    /// - Returns: Whatever the export method of the `InterfaceExporter` returns (which equals to type `EndpointExporterOutput`) is returned here.
+    func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput
+
+    /// Internal method which is called once the `Tree` was finished building, meaning the DSL was parsed completely.
+    ///
+    /// - Parameter treeNode: The tree node where this `Endpoint` is located.
     mutating func finished(at treeNode: EndpointsTreeNode)
 }
 
@@ -128,8 +162,17 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         }
     }
 
-    func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
-        parameters.exportParameters(on: exporter)
+    func exportParameters<I: BaseInterfaceExporter>(on exporter: I, namespace: DefaultParameterNamespace) -> [I.ParameterExportOutput] {
+        exportParameters(on: exporter, namespace.namespace)
+    }
+
+    func exportParameters<I: BaseInterfaceExporter>(on exporter: I, namespace namespaces: ParameterNamespace...) -> [I.ParameterExportOutput] {
+        exportParameters(on: exporter, namespaces)
+    }
+
+    func exportParameters<I: BaseInterfaceExporter>(on exporter: I, _ namespaces: [ParameterNamespace]) -> [I.ParameterExportOutput] {
+        parameters.nameCollisionCheck(on: H.self, in: namespaces)
+        return parameters.exportParameters(on: exporter)
     }
 }
 
