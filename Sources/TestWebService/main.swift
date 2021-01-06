@@ -117,4 +117,4 @@ struct TestWebService: Apodini.WebService {
     }
 }
 
-TestWebService.main()
+try TestWebService.main()

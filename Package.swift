@@ -23,15 +23,20 @@ let package = Package(
             .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.0.0"),
             .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.0.0-beta"),
             .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", from: "0.2.0"),
+            .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.11.0"),
+            .package(url: "https://github.com/apple/swift-nio.git", from: "2.18.0"),
+            // Used by target ProtobufferBuilder to inspect `Type`s.
             .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.1.1"),
+            // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
+            .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
             .package(url: "https://github.com/GraphQLSwift/GraphQL.git", from: "1.1.7"),
             .package(url: "https://github.com/SwiftyJSON/SwiftyJSON.git", from: "5.0.0")
-
         ],
         targets: [
             .target(
                     name: "Apodini",
                     dependencies: [
+                        .target(name: "ProtobufferBuilder"),
                         .product(name: "Vapor", package: "vapor"),
                         .product(name: "Fluent", package: "fluent"),
                         .product(name: "APNS", package: "apns"),
@@ -44,12 +49,45 @@ let package = Package(
                         .product(name: "Runtime", package: "Runtime"),
                         .product(name: "GraphQL", package: "GraphQL"),
                         .product(name: "SwiftyJSON", package: "SwiftyJSON"),
-                        .target(name: "ProtobufferCoding")
+                        .target(name: "WebSocketInfrastructure"),
+                        .target(name: "ProtobufferCoding"),
+
                     ],
                     exclude: [
                         "Components/ComponentBuilder.swift.gyb"
                     ]
             ),
+            .testTarget(
+                    name: "ApodiniTests",
+                    dependencies: [
+                        .target(name: "Apodini"),
+                        .product(name: "XCTVapor", package: "vapor"),
+                        .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
+                        .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS]))
+                    ]
+            ),
+            .target(
+                    name: "TestWebService",
+                    dependencies: [
+                        .target(name: "Apodini")
+                    ]
+            ),
+            // ProtoBufferBuilder
+            .target(
+                    name: "ProtobufferBuilder",
+                    dependencies: [
+                        .product(name: "Runtime", package: "Runtime")
+                    ]
+            ),
+            .testTarget(
+                    name: "ProtobufferBuilderTests",
+                    dependencies: [
+                        .target(name: "Apodini"),
+                        .target(name: "ProtobufferBuilder"),
+                        .product(name: "XCTVapor", package: "vapor")
+                    ]
+            ),
+            // ProtobufferCoding
             .target(
                     name: "ProtobufferCoding",
                     dependencies: [
@@ -58,23 +96,22 @@ let package = Package(
                     exclude: ["README.md"]
             ),
             .testTarget(
-                    name: "ApodiniTests",
-                    dependencies: [
-                        .target(name: "Apodini"),
-                        .product(name: "XCTVapor", package: "vapor"),
-                        .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver")
-                    ]
-            ),
-            .testTarget(
                     name: "ProtobufferCodingTests",
                     dependencies: [
                         .target(name: "ProtobufferCoding")
                     ]
             ),
+            // WebSocket Infrastructure
             .target(
-                    name: "TestWebService",
+                    name: "WebSocketInfrastructure",
                     dependencies: [
-                        .target(name: "Apodini")
+                        .product(name: "OpenCombine", package: "OpenCombine"),
+                        .product(name: "OpenCombineFoundation", package: "OpenCombine"),
+                        .product(name: "Vapor", package: "vapor"),
+                        .product(name: "Fluent", package: "fluent"),
+                        .product(name: "NIOWebSocket", package: "swift-nio"),
+                        .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
+                        .product(name: "Runtime", package: "Runtime")
                     ]
             )
         ]
