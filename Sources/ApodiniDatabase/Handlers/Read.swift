@@ -9,7 +9,7 @@ import Apodini
 ///     Read<Bird>()
 /// }
 /// Sending a request to  ~/api/birds/birds?age=19&name=Foo would return an array of `Bird` object that have an age of 19 and the name Foo.
-public struct Read<Model: DatabaseModel>: Handler where Model.IDValue: LosslessStringConvertible {
+public struct Read<Model: DatabaseModel>: Handler {
     @Apodini.Environment(\.database)
     private var database: Fluent.Database
 
@@ -20,7 +20,7 @@ public struct Read<Model: DatabaseModel>: Handler where Model.IDValue: LosslessS
         var dynamicValues: [String: Parameter<String?>] = [:]
         let infos = QueryBuilder.info(for: Model.self)
         for info in infos {
-            dynamicValues[info.key.description] = Parameter<String?>(.database(info))
+            dynamicValues[info.key.description] = Parameter<String?>(.http(.query))
         }
         _dynamics = Properties(wrappedValue: dynamicValues)
     }
