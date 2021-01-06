@@ -103,9 +103,11 @@ final class DatabaseHandlerTests: ApodiniTests {
             XCTFail("Expected return value to be wrapped in Action.final by default")
             return
         }
+        
         let response = try XCTUnwrap(responseValue.value as? String)
         XCTAssert(response == "success")
-        
+        expectation(description: "database access").isInverted = true
+        waitForExpectations(timeout: 10, handler: nil)
         let newBird = try Bird.find(dbBird.id, on: self.app.db).wait()
 
         XCTAssertNotNil(newBird)
