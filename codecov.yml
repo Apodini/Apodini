@@ -1,12 +1,14 @@
 ignore:
 - "Tests"
 - "Sources/TestWebService"
+- "Sources/Apodini/Components/ComponentBuilder.swift"
+- "Sources/Apodini/Components/EmptyComponentCustomNeverImpl.swift"
 
 codecov:
   require_ci_to_pass: yes
 
 coverage:
-  range: "60...90"
+  range: "75...100"
   precision: 2
   round: up
   status:
@@ -23,7 +25,7 @@ coverage:
         # Choose a minimum coverage ratio that the commit must meet to be considered a success
         target: auto
         # Allow the coverage to drop by X%, and posting a success status.
-        threshold: 15%  
+        threshold: 10%
 
 parsers:
   gcov:

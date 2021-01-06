@@ -30,19 +30,19 @@ extension TypedProperties: Collection {
     public typealias Index = Dictionary<String, P>.Index
     public typealias Element = (String, P)
     
-    public var startIndex: Dictionary<String, P>.Index {
+    public var startIndex: Index {
         self.elements.startIndex
     }
     
-    public var endIndex: Dictionary<String, P>.Index {
+    public var endIndex: Index {
         self.elements.endIndex
     }
     
-    public func index(after index: Dictionary<String, P>.Index) -> Dictionary<String, P>.Index {
+    public func index(after index: Index) -> Index {
         self.elements.index(after: index)
     }
     
-    public subscript(position: Dictionary<String, P>.Index) -> (String, P) {
+    public subscript(position: Index) -> Element {
         self.elements[position]
     }
 }
