@@ -11,6 +11,16 @@ public enum ConfigurationBuilder {
     }
     
     
+    /// A method that enables the use of standalone if statements for `Configuration`s.
+    ///
+    /// - Parameter configuration: The `Configuration` within the if statement.
+    ///
+    /// - Returns: Either the `Configuration` within the branch if the condition evaluates to `true` or an `EmptyConfiguration`.
+    public static func buildIf(_ configuration: Configuration?) -> Configuration {
+        configuration ?? EmptyConfiguration()
+    }
+    
+    
     /// A method that enables the use of if-else statements for `Configuration`s
     ///
     /// - Parameter first: The `Configuration` within the if statement
@@ -28,15 +38,5 @@ public enum ConfigurationBuilder {
     /// - Returns: The `Configuration` within the else statement
     public static func buildEither<C: Configuration>(second: C) -> C {
         second
-    }
-    
-    
-    /// A method that enables the use of standalone if statements for `Configuration`s
-    ///
-    /// - Parameter configuration: The `Configuration` within the if statement
-    ///
-    /// - Returns: The `Configuration` within the if statement
-    public static func buildIf<C: Configuration>(_ configuration: C?) -> C? {
-        configuration
     }
 }
