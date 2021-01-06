@@ -16,24 +16,17 @@ internal struct QueryBuilder<Model: DatabaseModel> {
     }
     
     private let type: Model.Type
-    private var queryString: String? {
-        didSet {
-            guard let queryString = queryString else {
-                return
-            }
-            parameters = extract(from: queryString)
-        }
-    }
 
     private var fieldKeys: [FieldKey] {
         type.keys
     }
 
-    private var parameters: [FieldKey: String] = [:]
+    internal var parameters: [FieldKey: String] = [:]
 
     init(type: Model.Type, queryString: String) {
         self.type = type
-        self.queryString = queryString
+//        self.queryString = queryString
+        self.parameters = extract(from: queryString)
     }
     
     init(type: Model.Type, parameters: [FieldKey: String]) {
@@ -43,7 +36,8 @@ internal struct QueryBuilder<Model: DatabaseModel> {
     
     private func extract(from queryString: String) -> [FieldKey: String] {
         var foundParameters: [FieldKey: String] = [:]
-        let queryParts = queryString.split(separator: "&").map { String($0) }
+        let extractedQueryString = queryString.split(separator: "?")[1]
+        let queryParts = extractedQueryString.split(separator: "&").map { String($0) }
         for part in queryParts {
             let queryParameters = part.split(separator: "=").map { String($0) }
             guard queryParameters.count == 2 else { fatalError("invalid query") }
