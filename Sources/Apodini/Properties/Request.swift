@@ -34,7 +34,8 @@ struct AnyEncodable: Encodable {
     }
 }
 
-
+/// An object that can merge itself and a `new` element
+/// of same type.
 protocol Reducible {
     func reduce(to new: Self) -> Self
 }
