@@ -146,6 +146,9 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         let response = try XCTUnwrap(responseValue.value as? String)
         XCTAssertEqual(response, String(HTTPStatus.ok.code))
+        expectation(description: "database access").isInverted = true
+        waitForExpectations(timeout: 10, handler: nil)
+        
         let deletedBird = try Bird.find(dbBird.id!, on: app.db).wait()
         XCTAssertNil(deletedBird)
     }
