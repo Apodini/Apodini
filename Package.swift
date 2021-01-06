@@ -62,6 +62,12 @@ let package = Package(
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS]))
+            ],
+            exclude: [
+                "ConfigurationTests/mock_fcm.json",
+                "ConfigurationTests/mock_invalid_fcm.json",
+                "ConfigurationTests/mock.p8",
+                "ConfigurationTests/mock.pem"
             ]
         ),
         .target(
