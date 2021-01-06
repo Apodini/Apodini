@@ -68,8 +68,6 @@ class WebSocketInterfaceExporter: InterfaceExporter {
         let emptyInput = SomeInput(parameters: inputParameters.reduce(into: [String: InputParameter](), { result, parameter in
             result[parameter.0] = parameter.1
         }))
-
-        var latestInput = emptyInput
         
         self.router.register({(input: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, _: Database?) -> (
                     defaultInput: SomeInput,
@@ -86,13 +84,12 @@ class WebSocketInterfaceExporter: InterfaceExporter {
             inputCancellable = input.sink(receiveCompletion: { completion in
                 switch completion {
                 case .finished:
-                    Self.handleInputCompletion(with: latestInput, using: &context, on: eventLoop, output: output)
+                    Self.handleInputCompletion(with: emptyInput, using: &context, on: eventLoop, output: output)
                 }
                 
                 inputCancellable?.cancel()
             }, receiveValue: { inputValue in
-                latestInput = inputValue
-                Self.handleRegularInput(with: latestInput, using: &context, on: eventLoop, output: output)
+                Self.handleRegularInput(with: inputValue, using: &context, on: eventLoop, output: output)
             })
 
 
@@ -116,11 +113,11 @@ class WebSocketInterfaceExporter: InterfaceExporter {
     }
     
     private static func handleInputCompletion(
-        with latestInput: SomeInput,
+        with emptyInput: SomeInput,
         using context: inout AnyConnectionContext<WebSocketInterfaceExporter>,
         on eventLoop: EventLoop,
         output: PassthroughSubject<Message<AnyEncodable>, Error>) {
-        context.handle(request: latestInput, eventLoop: eventLoop, final: true).whenComplete { result in
+        context.handle(request: emptyInput, eventLoop: eventLoop, final: true).whenComplete { result in
             switch result {
             case .success(.nothing):
                 output.send(completion: .finished)
