@@ -29,7 +29,7 @@ public struct FCMConfiguration: Configuration {
     private func readJSON() -> ServiceAccount {
         let fileManger = FileManager.default
         guard let data = fileManger.contents(atPath: filePath) else {
-            fatalError("FCM file doesn't exists at path: \(filePath)")
+            fatalError("FCM file doesn't exist at path: \(filePath)")
         }
         guard let serviceAccount = try? JSONDecoder().decode(ServiceAccount.self, from: data) else {
             fatalError("FCM unable to decode serviceAccount from file located at: \(filePath)")
