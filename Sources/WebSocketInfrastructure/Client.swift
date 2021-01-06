@@ -143,7 +143,7 @@ public struct StatelessClient {
         } catch {
             do {
                 let result = try JSONDecoder().decode(ErrorMessage<String>.self, from: data)
-                if result.context == context {
+                if result.context == context || result.context == nil {
                     promise.fail(ServerError.message(result.error))
                     // close connection
                     _ = websocket.close()
