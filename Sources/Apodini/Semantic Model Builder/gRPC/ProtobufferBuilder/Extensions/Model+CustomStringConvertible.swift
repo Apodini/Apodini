@@ -7,7 +7,7 @@
 
 // MARK: - Message
 
-extension ProtoMessage: CustomStringConvertible {
+extension ProtobufferMessage: CustomStringConvertible {
     var description: String {
         let properties = self.properties
             .sorted(by: \.uniqueNumber)
@@ -22,7 +22,7 @@ extension ProtoMessage: CustomStringConvertible {
     }
 }
 
-extension ProtoMessage.Property: CustomStringConvertible {
+extension ProtobufferMessage.Property: CustomStringConvertible {
     var description: String {
         let components: [CustomStringConvertible] = [
             fieldRule,
@@ -39,7 +39,7 @@ extension ProtoMessage.Property: CustomStringConvertible {
     }
 }
 
-extension ProtoMessage.Property.FieldRule: CustomStringConvertible {
+extension ProtobufferMessage.Property.FieldRule: CustomStringConvertible {
     var description: String {
         switch self {
         case .optional:
@@ -54,13 +54,13 @@ extension ProtoMessage.Property.FieldRule: CustomStringConvertible {
 
 // MARK: - Service
 
-extension Service.Method: CustomStringConvertible {
+extension ProtobufferService.Method: CustomStringConvertible {
     var description: String {
         "rpc \(name) (\(input.name)) returns (\(ouput.name));"
     }
 }
 
-extension Service: CustomStringConvertible {
+extension ProtobufferService: CustomStringConvertible {
     var description: String {
         let methods = self.methods
             .map { "  \($0.description)" }

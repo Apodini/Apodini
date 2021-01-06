@@ -7,7 +7,7 @@
 
 // MARK: - Message
 
-struct ProtoMessage: Equatable, Hashable {
+struct ProtobufferMessage: Equatable, Hashable {
     struct Property: Equatable, Hashable {
         enum FieldRule {
             case optional
@@ -27,11 +27,11 @@ struct ProtoMessage: Equatable, Hashable {
 
 // MARK: - Service
 
-struct Service: Equatable, Hashable {
+struct ProtobufferService: Equatable, Hashable {
     struct Method: Equatable, Hashable {
         let name: String
-        let input: ProtoMessage
-        let ouput: ProtoMessage
+        let input: ProtobufferMessage
+        let ouput: ProtobufferMessage
     }
     
     let name: String
