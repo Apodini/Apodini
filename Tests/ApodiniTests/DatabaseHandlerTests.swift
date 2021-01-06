@@ -39,7 +39,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let endpoint = readHandler.mockEndpoint()
 
         let exporter = RESTInterfaceExporter(app)
-        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        var context = endpoint.createConnectionContext(for: exporter)
 
         let uri = URI("http://example.de/test/bird?name=Mockingbird")
         let request = Vapor.Request(
@@ -50,7 +50,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         )
         request.parameters.set("name", to: "Mockingbird")
         
-        let result = try requestHandler(request: request).wait()
+        let result = try context.handle(request: request).wait()
         guard case let .final(responseValue) = result else {
             XCTFail("Expected return value to be wrapped in Action.final by default")
             return
@@ -80,7 +80,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let endpoint = handler.mockEndpoint()
 
         let exporter = RESTInterfaceExporter(app)
-        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        var context = endpoint.createConnectionContext(for: exporter)
 
         let bodyData = ByteBuffer(data: try JSONEncoder().encode(updatedBird))
 
@@ -97,8 +97,8 @@ final class DatabaseHandlerTests: ApodiniTests {
         }
         request.parameters.set(":\(handler.idParameter.id)", to: "\(birdId)")
         
-        let result = try requestHandler(request: request)
-                .wait()
+        let result = try context.handle(request: request).wait()
+        
         guard case let .final(responseValue) = result else {
             XCTFail("Expected return value to be wrapped in Action.final by default")
             return
@@ -127,7 +127,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let endpoint = handler.mockEndpoint()
 
         let exporter = RESTInterfaceExporter(app)
-        let requestHandler = endpoint.createRequestHandler(for: exporter)
+        var context = endpoint.createConnectionContext(for: exporter)
 
         let uri = URI("http://example.de/test/id")
         let request = Vapor.Request(
@@ -138,8 +138,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         )
         request.parameters.set(":\(handler.idParameter.id)", to: "\(dbBird.id!)")
         
-        let result = try requestHandler(request: request)
-                .wait()
+        let result = try context.handle(request: request).wait()
         guard case let .final(responseValue) = result else {
             XCTFail("Expected return value to be wrapped in Action.final by default")
             return
