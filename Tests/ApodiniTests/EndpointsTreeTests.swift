@@ -87,9 +87,9 @@ final class EndpointsTreeTests: ApodiniTests {
         XCTAssertEqual(birthdateParameter.id, testHandler.birthdateParameter.id)
         
         // check whether categorization works
-        XCTAssertEqual(birthdateParameter.parameterType, .content)
-        XCTAssertEqual(timesParameter.parameterType, .lightweight)
-        XCTAssertEqual(nameParameter.parameterType, .path)
+        XCTAssertEqual(birthdateParameter.kind, .content)
+        XCTAssertEqual(timesParameter.kind, .lightweight)
+        XCTAssertEqual(nameParameter.kind, .path)
 
         // check necessity
         XCTAssertEqual(birthdateParameter.necessity, .required)

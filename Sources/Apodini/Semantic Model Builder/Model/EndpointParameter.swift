@@ -7,15 +7,15 @@
 
 import Foundation
 
-/// `@Parameter` categorization needed for certain interface exporters (e.g., HTTP-based).
-enum EndpointParameterType {
+/// `@Parameter` categorization needed for certain interface exporters, e.g., HTTP-based.
+enum EndpointParameterKind {
     case lightweight
     case content
     case path
 }
 
 /// Defines the necessity of a `EndpointParameter`
-enum Necessity {
+enum EndpointParameterNecessity {
     case required
     case optional
 }
@@ -53,15 +53,12 @@ protocol AnyEndpointParameter: CustomStringConvertible {
     var nilIsValidValue: Bool { get }
     /// Holds the options as defined by the user.
     var options: PropertyOptionSet<ParameterOptionNameSpace> { get }
-    /// Defines the `Necessity` of the parameter.
-    var necessity: Necessity { get }
-    /// Defines the `EndpointParameterType` of the parameter.
-    var parameterType: EndpointParameterType { get }
+    /// The `Necessity` of the parameter.
+    var necessity: EndpointParameterNecessity { get }
+    /// The `Kind` of the parameter.
+    var kind: EndpointParameterKind { get }
     /// Specifies the default value for the parameter. Nil if the parameter doesn't have a default value.
     var typeErasuredDefaultValue: Any? { get }
-
-    /// See `CustomStringConvertible`
-    var description: String { get }
 
     func accept<Visitor: EndpointParameterVisitor>(_ visitor: Visitor) -> Visitor.Output
     func accept<Visitor: EndpointParameterThrowingVisitor>(_ visitor: Visitor) throws -> Visitor.Output
@@ -86,7 +83,7 @@ protocol AnyEndpointParameter: CustomStringConvertible {
 struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
     let id: UUID
     var pathId: String {
-        if parameterType != .path {
+        if kind != .path {
             fatalError("Cannot access EndpointParameter.pathId when the parameter type isn't .path!")
         }
         return ":\(id)"
@@ -96,8 +93,8 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
     let propertyType: Codable.Type
     let nilIsValidValue: Bool
     let options: PropertyOptionSet<ParameterOptionNameSpace>
-    let necessity: Necessity
-    let parameterType: EndpointParameterType
+    let necessity: EndpointParameterNecessity
+    let kind: EndpointParameterKind
 
     let defaultValue: Type?
     var typeErasuredDefaultValue: Any? {
@@ -110,7 +107,7 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
          name: String,
          label: String,
          nilIsValidValue: Bool,
-         necessity: Necessity,
+         necessity: EndpointParameterNecessity,
          options: PropertyOptionSet<ParameterOptionNameSpace>,
          defaultValue: Type? = nil
     ) {
@@ -137,14 +134,14 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
         switch httpOption {
         case .path:
             precondition(Type.self is LosslessStringConvertible.Type, "Invalid explicit option .path for '\(description)'. Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
-            parameterType = .path
+            kind = .path
         case .query:
             precondition(Type.self is LosslessStringConvertible.Type, "Invalid explicit option .query for '\(description)'. Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
-            parameterType = .lightweight
+            kind = .lightweight
         case .body:
-            parameterType = .content
+            kind = .content
         default:
-            parameterType = Type.self is LosslessStringConvertible.Type ? .lightweight : .content
+            kind = Type.self is LosslessStringConvertible.Type ? .lightweight : .content
         }
     }
 

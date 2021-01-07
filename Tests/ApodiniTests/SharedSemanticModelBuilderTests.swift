@@ -128,7 +128,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         XCTAssertEqual(endpoint.absolutePath[1].description, "b")
         XCTAssertEqual(endpoint.absolutePath[2].description, ":\(nameParameterId.uuidString)")
         XCTAssertTrue(endpoint.parameters.contains { $0.id == nameParameterId })
-        XCTAssertEqual(endpoint.parameters.first { $0.id == nameParameterId }?.parameterType, .path)
+        XCTAssertEqual(endpoint.parameters.first { $0.id == nameParameterId }?.kind, .path)
         
         // test nested use of path parameter that is only set inside `Handler` (i.e. `TestHandler2`)
         let treeNodeSomeIdParameter: EndpointsTreeNode = treeNodeNameParameter.children.first!
@@ -136,7 +136,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         let someIdParameterId: UUID = nestedEndpoint.parameters.first { $0.name == "someId" }!.id
         
         XCTAssertEqual(nestedEndpoint.parameters.count, 2)
-        XCTAssertTrue(nestedEndpoint.parameters.allSatisfy { $0.parameterType == .path })
+        XCTAssertTrue(nestedEndpoint.parameters.allSatisfy { $0.kind == .path })
         XCTAssertEqual(nestedEndpoint.absolutePath[0].description, "a")
         XCTAssertEqual(nestedEndpoint.absolutePath[1].description, "b")
         XCTAssertEqual(nestedEndpoint.absolutePath[2].description, ":\(nameParameterId.uuidString)")

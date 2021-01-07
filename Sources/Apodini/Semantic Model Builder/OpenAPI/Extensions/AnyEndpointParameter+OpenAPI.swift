@@ -8,7 +8,7 @@ import Foundation
 extension AnyEndpointParameter {
     /// Currently, only `query` and `path` are supported.
     var openAPIContext: OpenAPI.Parameter.Context? {
-        switch self.parameterType {
+        switch self.kind {
         case .lightweight:
             return .query
         case .path:

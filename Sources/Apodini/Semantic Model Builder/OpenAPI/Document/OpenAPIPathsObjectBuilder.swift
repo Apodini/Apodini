@@ -94,7 +94,7 @@ struct OpenAPIPathsObjectBuilder {
     private mutating func buildRequestBodyObject(from parameters: [AnyEndpointParameter]) -> OpenAPI.Request? {
         var requestBody: OpenAPI.Request?
         let contentParameters = parameters.filter {
-            $0.parameterType == .content
+            $0.kind == .content
         }
         var requestJSONSchema: JSONSchema?
         do {

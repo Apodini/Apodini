@@ -9,7 +9,7 @@ protocol EncodeOptionalEndpointParameter {
     func createParameterWithWrappedType(
         name: String,
         label: String,
-        necessity: Necessity
+        necessity: EndpointParameterNecessity
     ) -> AnyEndpointParameter
 }
 
@@ -19,7 +19,7 @@ extension Parameter: EncodeOptionalEndpointParameter where Element: ApodiniOptio
     func createParameterWithWrappedType(
         name: String,
         label: String,
-        necessity: Necessity
+        necessity: EndpointParameterNecessity
     ) -> AnyEndpointParameter {
         let defaultValue = self.defaultValue?.optionalInstance
         

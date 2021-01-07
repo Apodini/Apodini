@@ -67,7 +67,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
         parameterBuilder.build()
         
         for parameter in parameterBuilder.parameters {
-            if parameter.parameterType == .path && !paths.contains(where: { ($0 as? _PathComponent)?.description == ":\(parameter.id)" }) {
+            if parameter.kind == .path && !paths.contains(where: { ($0 as? _PathComponent)?.description == ":\(parameter.id)" }) {
                 if let pathComponent = parameterBuilder.requestInjectables[parameter.label] as? _PathComponent {
                     paths.append(pathComponent)
                 }
