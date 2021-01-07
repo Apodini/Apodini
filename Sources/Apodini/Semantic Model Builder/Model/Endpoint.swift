@@ -227,7 +227,9 @@ extension EndpointsTreeNode {
         parent.collectRelativePath(&relativePath, to: node)
         relativePath.append(path)
     }
-    
+}
+
+extension EndpointsTreeNode {
     fileprivate func collectRelationships(name: String, _ relationships: inout [EndpointRelationship]) {
         if !endpoints.isEmpty {
             relationships.append(EndpointRelationship(name: name, destinationPath: absolutePath))
@@ -282,25 +284,5 @@ extension EndpointsTreeNode {
             }
         
         return set.map(\.endpoint)
-    }
-}
-
-#warning("Create file: Endpoint+CustumStringConvertible.swift...")
-extension EndpointsTreeNode {
-    /// This method prints the tree structure to stdout. Added for debugging purposes.
-    func printTree(indent: Int = 0) {
-        let indentString = String(repeating: "  ", count: indent)
-        
-        print(indentString + path.description + "/ {")
-        
-        for (operation, endpoint) in endpoints {
-            print("\(indentString)  - \(operation): \(endpoint.description) [\(endpoint.identifier.rawValue)]")
-        }
-        
-        for child in nodeChildren {
-            child.value.printTree(indent: indent + 1)
-        }
-        
-        print(indentString + "}")
     }
 }
