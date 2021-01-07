@@ -1,7 +1,6 @@
 @testable import Apodini
 import XCTest
 import XCTVapor
-import Foundation
 
 class APNSConfigurationTests: ApodiniTests {
     let currentPath = URL(fileURLWithPath: #file).deletingLastPathComponent().path

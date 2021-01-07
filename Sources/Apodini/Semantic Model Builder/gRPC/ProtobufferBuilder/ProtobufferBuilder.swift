@@ -27,6 +27,7 @@ public extension ProtobufferBuilder {
     /// - Throws: `Error`s of type `Exception`
     func addService(
         serviceName: String,
+        methodName: String,
         inputType: Any.Type,
         returnType: Any.Type
     ) throws {
@@ -40,12 +41,12 @@ public extension ProtobufferBuilder {
         }
         
         let method = ProtobufferService.Method(
-            name: "handle",
+            name: methodName,
             input: inputNode.value,
             ouput: outputNode.value
         )
-        
-        let name = serviceName + "Service"
+
+        let name = serviceName
         let service = ProtobufferService(
             name: name,
             methods: [method]
