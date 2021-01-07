@@ -20,16 +20,6 @@ enum Necessity {
     case optional
 }
 
-protocol EndpointParameterVisitor {
-    associatedtype Output
-    func visit<Element: Codable>(parameter: EndpointParameter<Element>) -> Output
-}
-
-protocol EndpointParameterThrowingVisitor {
-    associatedtype Output
-    func visit<Element: Codable>(parameter: EndpointParameter<Element>) throws -> Output
-}
-
 /// Describes a type erasured `EndpointParameter`
 protocol AnyEndpointParameter: CustomStringConvertible {
     /// The `UUID` which uniquely identifies the given `AnyEndpointParameter`.
