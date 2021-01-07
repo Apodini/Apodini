@@ -1,11 +1,4 @@
-// swiftlint:disable force_unwrapping first_where
-//
-//  NotificationCenterTests.swift
-//
-//
-//  Created by Alexander Collins on 03.12.20.
-//
-
+// swiftlint:disable first_where
 @testable import Notifications
 import XCTest
 import XCTApodini
@@ -94,7 +87,8 @@ final class NotificationCenterTests: XCTApodiniTest {
             .wait()
             .transform()
  
-        XCTAssertTrue(deviceReturn.topics!.isEmpty)
+        let topics = try XCTUnwrap(deviceReturn.topics)
+        XCTAssertTrue(topics.isEmpty)
     }
     
     func testAPNSFCMRetrieval() throws {
@@ -129,11 +123,11 @@ final class NotificationCenterTests: XCTApodiniTest {
         let notification = Notification(alert: alert, payload: payload)
         
         let apns = notification.transformToAPNS(with: bird)
-        let dataAPNS = apns.data!.data(using: .utf8)!
+        let dataAPNS = try XCTUnwrap(apns.data?.data(using: .utf8))
         let decodedAPNS = try JSONDecoder().decode(Bird.self, from: dataAPNS)
         
         let fcm = notification.transformToFCM(with: bird)
-        let dataFCM = fcm.data["data"]!.data(using: .utf8)!
+        let dataFCM = try XCTUnwrap(fcm.data["data"]?.data(using: .utf8))
         let decodedFCM = try JSONDecoder().decode(Bird.self, from: dataFCM)
         
         XCTAssert(decodedAPNS == bird)
@@ -144,4 +138,4 @@ final class NotificationCenterTests: XCTApodiniTest {
         XCTAssert(fcm.android?.ttl == "2419200s")
     }
 }
-// swiftlint:enable force_unwrapping first_where
+// swiftlint:enable first_where
