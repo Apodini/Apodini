@@ -10,6 +10,7 @@ import XCTest
 #if canImport(CwlPreconditionTesting)
 import CwlPreconditionTesting
 
+/// Asserts that an expression leads to a runtime failure.
 public func XCTAssertRuntimeFailure<T>(
     _ expression: @escaping @autoclosure () -> T,
     _ message: @autoclosure () -> String = "",
@@ -21,6 +22,7 @@ public func XCTAssertRuntimeFailure<T>(
     XCTFail(message(), file: file, line: line)
 }
 #else
+/// Empty implementation used for plattforms that don' support `CwlPreconditionTesting`.
 public func XCTAssertRuntimeFailure<T>(
     _ expression: @escaping @autoclosure () -> T,
     _ message: @autoclosure () -> String = "",

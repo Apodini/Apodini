@@ -98,7 +98,10 @@ extension Component {
     }
 }
 
+/// Helper struct to add objects to `EnvironmentValues`.
 public struct EnvironmentValue<K: ApodiniKeys, Value> {
+    /// Initiliazer of `EnvironmentValue`.
+    /// Adds key path with value to `EnvironmentValues`.
     public init(_ keyPath: KeyPath<K, Value>, _ value: Value) {
         EnvironmentValues.shared.values[ObjectIdentifier(keyPath)] = value
     }
