@@ -8,9 +8,6 @@ protocol AnyEndpoint: CustomStringConvertible {
     /// An identifier which uniquely identifies this endpoint (via its handler)
     /// across multiple compilations and executions of the web service.
     var identifier: AnyHandlerIdentifier { get }
-    
-    /// Description of the `Handler` this endpoint was generated for
-    var description: String { get }
 
     /// The reference to the Context instance should be removed in the "final" state of the semantic model.
     /// I chose to include it for now as it makes the process of moving to a central semantic model easier,
