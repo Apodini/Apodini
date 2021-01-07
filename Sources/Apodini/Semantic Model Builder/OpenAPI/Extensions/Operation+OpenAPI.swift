@@ -1,6 +1,7 @@
 //
 //  Created by Lorena Schlesinger on 15.11.20.
 //
+
 import Foundation
 @_implementationOnly import OpenAPIKit
 

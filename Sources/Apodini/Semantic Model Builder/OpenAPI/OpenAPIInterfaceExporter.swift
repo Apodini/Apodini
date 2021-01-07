@@ -15,7 +15,7 @@ class OpenAPIInterfaceExporter: InterfaceExporter {
         self.app = app
         self.configuration = OpenAPIConfiguration(from: app)
         self.documentBuilder = OpenAPIDocumentBuilder(
-                configuration: configuration
+            configuration: configuration
         )
     }
 
@@ -28,10 +28,6 @@ class OpenAPIInterfaceExporter: InterfaceExporter {
     }
 
     private func serveSpecification() {
-        // swiftlint:disable:next todo
-        // TODO: add YAML and default case?
-        // swiftlint:disable:next todo
-        // TODO: add file export?
         if let outputRoute = configuration.outputEndpoint {
             switch configuration.outputFormat {
             case .JSON:

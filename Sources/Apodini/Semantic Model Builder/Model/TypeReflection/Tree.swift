@@ -26,7 +26,9 @@ struct Node<T> {
 extension Node {
     init(root: T, _ getChildren: (T) throws -> [T]) rethrows {
         let children = try getChildren(root)
-                .map { try Node(root: $0, getChildren) }
+            .map {
+                try Node(root: $0, getChildren)
+            }
 
         self.init(value: root, children: children)
     }
@@ -34,7 +36,7 @@ extension Node {
 
 extension Node {
     func map<U>(
-            _ transform: (T) throws -> U
+        _ transform: (T) throws -> U
     ) rethrows -> Node<U> {
         let value = try transform(self.value)
         let children = try self.children.compactMap { child in
@@ -45,7 +47,7 @@ extension Node {
     }
 
     func compactMap<U>(
-            _ transform: (T) throws -> U?
+        _ transform: (T) throws -> U?
     ) rethrows -> Tree<U> {
         guard let value = try transform(self.value) else {
             return nil
@@ -61,7 +63,7 @@ extension Node {
 
 extension Node {
     func filter(
-            _ isIncluded: (T) throws -> Bool
+        _ isIncluded: (T) throws -> Bool
     ) rethrows -> Tree<T> {
         guard try isIncluded(self.value) else {
             return nil
@@ -75,7 +77,7 @@ extension Node {
     }
 
     func contains(
-            where predicate: (T) throws -> Bool
+        where predicate: (T) throws -> Bool
     ) rethrows -> Bool {
         guard try !predicate(value) else {
             return true

@@ -23,7 +23,9 @@ struct ParticularType {
 
 extension ParticularType: CustomStringConvertible {
     var description: String {
-        String("\(type)".prefix { $0 != "<" })
+        String("\(type)".prefix {
+            $0 != "<"
+        })
     }
 
     var isArray: Bool {
@@ -47,7 +49,7 @@ extension ParticularType: Equatable {
             .map(ParticularType.init)
             .contains(self)
     }
-    
+
     var isUUID: Bool {
         ParticularType(UUID.self) == self
     }
