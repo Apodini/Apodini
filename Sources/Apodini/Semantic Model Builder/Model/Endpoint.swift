@@ -46,9 +46,6 @@ protocol AnyEndpoint: CustomStringConvertible {
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 struct Endpoint<H: Handler>: AnyEndpoint {
-    /// This is a reference to the node where the endpoint is located
-    fileprivate var treeNode: EndpointsTreeNode! // swiftlint:disable:this implicitly_unwrapped_optional
-    
     let identifier: AnyHandlerIdentifier
 
     let description: String
@@ -65,12 +62,8 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     var parameters: [AnyEndpointParameter]
     
-    var absolutePath: [_PathComponent] {
-        treeNode.absolutePath
-    }
-    var relationships: [EndpointRelationship] {
-        treeNode.relationships
-    }
+    fileprivate(set) var absolutePath: [_PathComponent] = []
+    fileprivate(set) var relationships: [EndpointRelationship] = []
 
     let guards: [LazyGuard]
     let responseTransformers: [() -> (AnyResponseTransformer)]
@@ -162,9 +155,13 @@ class EndpointsTreeNode {
     func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, at paths: [PathComponent]) {
         guard !paths.isEmpty else {
             // swiftlint:disable:next force_unwrapping
-            precondition(endpoints[endpoint.operation] == nil, "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)")
-            precondition(endpoint.treeNode == nil, "The endpoint \(endpoint.description) is already inserted at some different place")
-            endpoint.treeNode = self
+            precondition(
+                endpoints[endpoint.operation] == nil,
+                "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)"
+            )
+            
+            endpoint.absolutePath = absolutePath
+            endpoint.relationships = relationships
             endpoints[endpoint.operation] = endpoint
             return
         }
