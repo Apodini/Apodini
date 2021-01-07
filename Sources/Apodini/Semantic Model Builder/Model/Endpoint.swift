@@ -185,10 +185,9 @@ class EndpointsTreeNode {
             endpoints[endpoint.operation] = endpoint
         } else {
             let next = context.nextPath()
+            var child = nodeChildren[next]
 
-            if let child = nodeChildren[next] {
-                child.addEndpoint(&endpoint, context: &context)
-            } else {
+            if child == nil {
                 // as we create a new child node we need to check if there are colliding path parameters
                 switch next {
                 case .parameter:
@@ -202,9 +201,12 @@ class EndpointsTreeNode {
                     break
                 }
 
-                let child = EndpointsTreeNode(path: next, parent: self)
+                child = EndpointsTreeNode(path: next, parent: self)
                 nodeChildren[next] = child
             }
+
+            // swiftlint:disable:next force_unwrapping
+            child!.addEndpoint(&endpoint, context: &context)
         }
     }
     
