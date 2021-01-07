@@ -69,6 +69,20 @@ final class GRPCInterfaceExporterTests: XCTestCase {
         app.shutdown()
     }
 
+    func testDefaultEndpointNaming() throws {
+        let expectedServiceName = "Group1Group2Service"
+        let handler = GRPCTestHandler()
+        let node = ContextNode()
+        node.addContext(PathComponentContextKey.self, value: ["Group2"], scope: .environment)
+        node.addContext(PathComponentContextKey.self, value: ["Group1"], scope: .environment)
+        let endpoint = handler.mockEndpoint(context: Context(contextNode: node))
+
+        let exporter = GRPCInterfaceExporter(app)
+        exporter.export(endpoint)
+
+        XCTAssertNotNil(exporter.services[expectedServiceName])
+    }
+
     func testUnaryRequestHandlerWithOneParamater() throws {
         let serviceName = "TestService"
         let methodName = "testMethod"

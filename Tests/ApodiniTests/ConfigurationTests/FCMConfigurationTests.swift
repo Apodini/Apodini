@@ -1,14 +1,13 @@
 @testable import Apodini
 import XCTest
 import XCTVapor
-import Foundation
 import FCM
 
 class FCMConfigurationTests: ApodiniTests {
     let currentPath = URL(fileURLWithPath: #file).deletingLastPathComponent().path
     
     func testMissingFile() throws {
-        XCTAssertRuntimeFailure(FCMConfiguration("something").configure(self.app), "FCM file doesn't exists at path: something")
+        XCTAssertRuntimeFailure(FCMConfiguration("something").configure(self.app), "FCM file doesn't exist at path: something")
     }
     
     func testMissingProperties() throws {

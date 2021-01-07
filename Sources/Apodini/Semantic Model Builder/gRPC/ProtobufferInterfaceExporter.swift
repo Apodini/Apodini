@@ -25,15 +25,14 @@ class ProtobufferInterfaceExporter: InterfaceExporter {
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        let pathComponents = endpoint.context.get(valueFor: PathComponentContextKey.self)
-        let serviceName = StringPathBuilder(pathComponents, delimiter: "")
-            .build()
-            .capitalized
+        let serviceName = endpoint.serviceName
+        let methodName = endpoint.methodName
         let inputType: Any.Type = endpoint.parameters.first?.propertyType ?? Void.self
         
         do {
             try builder.addService(
                 serviceName: serviceName,
+                methodName: methodName,
                 inputType: inputType,
                 returnType: endpoint.responseType
             )
