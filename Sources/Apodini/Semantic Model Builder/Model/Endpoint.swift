@@ -137,9 +137,11 @@ class EndpointsTreeNode {
     private var childContainsPathParameter = false
     
     lazy var absolutePath: [_PathComponent] = {
-        var absolutePath: [_PathComponent] = []
-        collectAbsolutePath(&absolutePath)
-        return absolutePath
+        guard let parent = parent else {
+            return []
+        }
+        
+        return parent.absolutePath + [path]
     }()
     
     lazy var relationships: [EndpointRelationship] = {
@@ -201,15 +203,6 @@ class EndpointsTreeNode {
 // MARK: Collecting
 
 extension EndpointsTreeNode {
-    private func collectAbsolutePath(_ absolutePath: inout [_PathComponent]) {
-        guard let parent = parent else {
-            return
-        }
-        
-        parent.collectAbsolutePath(&absolutePath)
-        absolutePath.append(path)
-    }
-    
     func relativePath(to node: EndpointsTreeNode) -> [_PathComponent] {
         var relativePath: [_PathComponent] = []
         collectRelativePath(&relativePath, to: node)
