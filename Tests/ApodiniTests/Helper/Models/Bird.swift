@@ -9,25 +9,25 @@ import Fluent
 import Vapor
 import Apodini
 
-public final class Bird: Model, Content {
-    public static var schema: String = "Birds"
+final class Bird: Model, Content {
+    static var schema: String = "Birds"
     
     
     @ID
-    public var id: UUID?
+    var id: UUID?
     @Field(key: "name")
-    public var name: String
+    var name: String
     @Field(key: "age")
-    public var age: Int
+    var age: Int
     
     
-    public init(name: String, age: Int) {
+    init(name: String, age: Int) {
         self.id = nil
         self.name = name
         self.age = age
     }
     
-    public init() {}
+    init() {}
 }
 
 
@@ -46,7 +46,7 @@ struct CreateBird: Migration {
 }
 
 extension Bird: Equatable {
-    public static func == (lhs: Bird, rhs: Bird) -> Bool {
+    static func == (lhs: Bird, rhs: Bird) -> Bool {
         var result = lhs.name == rhs.name && lhs.age == rhs.age
         
         if let lhsId = lhs.id, let rhsId = rhs.id {
