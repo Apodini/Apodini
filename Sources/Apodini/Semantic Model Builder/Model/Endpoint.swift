@@ -244,7 +244,6 @@ extension EndpointsTreeNode {
     }
 }
 
-
 /// Helper type which acts as a Hashable wrapper around `AnyEndpoint` 
 private struct AnyHashableEndpoint: Hashable, Equatable {
     let endpoint: AnyEndpoint
@@ -258,22 +257,31 @@ private struct AnyHashableEndpoint: Hashable, Equatable {
     }
 }
 
-
 extension EndpointsTreeNode {
     func collectAllEndpoints() -> [AnyEndpoint] {
         if let parent = parent {
             return parent.collectAllEndpoints()
         }
-        var endpoints = Set<AnyHashableEndpoint>()
-        collectAllEndpoints(into: &endpoints)
-        return endpoints.map(\.endpoint)
-    }
-    
-    private func collectAllEndpoints(into endpointsSet: inout Set<AnyHashableEndpoint>) {
-        endpointsSet.formUnion(self.endpoints.values.map { AnyHashableEndpoint(endpoint: $0) })
-        for child in children {
-            child.collectAllEndpoints(into: &endpointsSet)
+        
+        let node: Node<EndpointsTreeNode> = Node(root: self) { root in
+            Array(root.children)
         }
+        
+        let hashables: Node<[AnyHashableEndpoint]> = node
+            .map { node in
+                node.endpoints.values.map(AnyHashableEndpoint.init)
+            }
+        
+        let set: Set<AnyHashableEndpoint> = hashables
+            .reduce(Set()) { (partialResults, next) in
+                var set = Set(next)
+                for result in partialResults {
+                    set.formUnion(result)
+                }
+                return set
+            }
+        
+        return set.map(\.endpoint)
     }
 }
 
