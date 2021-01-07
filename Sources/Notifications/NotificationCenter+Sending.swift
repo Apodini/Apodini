@@ -1,10 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Alexander Collins on 22.12.20.
-//
-
 import Fluent
 import APNS
 import FCM

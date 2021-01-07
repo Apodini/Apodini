@@ -55,19 +55,19 @@ let package = Package(
                 "Components/ComponentBuilder.swift.gyb"
             ]
         ),
-        .testTarget(
-            name: "ApodiniTests",
+        .target(
+            name: "XCTApodini",
             dependencies: [
                 .target(name: "Apodini"),
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS]))
-            ],
-            exclude: [
-                "ConfigurationTests/mock_fcm.json",
-                "ConfigurationTests/mock_invalid_fcm.json",
-                "ConfigurationTests/mock.p8",
-                "ConfigurationTests/mock.pem"
+            ]
+        ),
+        .testTarget(
+            name: "ApodiniTests",
+            dependencies: [
+                .target(name: "XCTApodini")
             ]
         ),
         .target(
@@ -116,6 +116,43 @@ let package = Package(
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")
+            ]
+        ),
+        // Jobs
+        .target(
+            name: "Jobs",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "SwifCron", package: "SwifCron")
+            ]
+        ),
+        .testTarget(
+            name: "JobsTests",
+            dependencies: [
+                .target(name: "Jobs"),
+                .target(name: "XCTApodini")
+            ]
+        ),
+        // Notifications
+        .target(
+            name: "Notifications",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "APNS", package: "apns"),
+                .product(name: "FCM", package: "FCM")
+            ]
+        ),
+        .testTarget(
+            name: "NotificationsTests",
+            dependencies: [
+                .target(name: "Notifications"),
+                .target(name: "XCTApodini")
+            ],
+            exclude: [
+                "Helper/mock_fcm.json",
+                "Helper/mock_invalid_fcm.json",
+                "Helper/mock.p8",
+                "Helper/mock.pem"
             ]
         )
     ]

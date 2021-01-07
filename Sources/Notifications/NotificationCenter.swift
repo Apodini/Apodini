@@ -1,16 +1,10 @@
 // swiftlint:disable first_where
-//
-//  NotificationCenter.swift
-//  
-//
-//  Created by Alexander Collins on 12.11.20.
-//
-
 import class Vapor.Application
-import struct Vapor.Abort
+@_implementationOnly import struct Vapor.Abort
 import Fluent
 import APNS
 import FCM
+import Apodini
 
 /// The `NotificationCenter` is responsible for push notifications in Apodini.
 /// It can send messages to both APNS and FCM and also manages storing and configuring of `Device`s in a database.

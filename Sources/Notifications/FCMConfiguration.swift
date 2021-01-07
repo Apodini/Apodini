@@ -1,13 +1,7 @@
-//
-//  File.swift
-//  
-//
-//  Created by Alexander Collins on 30.11.20.
-//
-
 import Foundation
 import FCM
 import class Vapor.Application
+import Apodini
 
 public struct FCMConfiguration: Configuration {
     let filePath: String

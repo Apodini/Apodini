@@ -7,6 +7,7 @@
 
 @testable import Apodini
 import XCTest
+import XCTApodini
 
 
 class ComponentTests: ApodiniTests {

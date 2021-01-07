@@ -1,12 +1,5 @@
-//
-//  File.swift
-//  
-//
-//  Created by Alexander Collins on 14.11.20.
-//
-
 import Fluent
-import Vapor
+@_implementationOnly import Vapor
 
 public final class DeviceDatabaseModel: Model {
     public static let schema = "notification_device"
@@ -78,7 +71,7 @@ public final class Topic: Model {
 
 // swiftlint:disable discouraged_optional_collection
 /// A struct used by the `NotificationCenter` to send push notifications.
-public struct Device: Content {
+public struct Device: Codable {
     /// The id used by a push notification service.
     public var id: String
     /// The push notification service to use when sending a message.
@@ -111,8 +104,6 @@ public enum DeviceType: String, Codable, CaseIterable {
     case apns
     case fcm
 }
-
-extension DeviceType: Content { }
 
 internal struct DeviceMigration: Migration {
     func prepare(on database: Fluent.Database) -> EventLoopFuture<Void> {

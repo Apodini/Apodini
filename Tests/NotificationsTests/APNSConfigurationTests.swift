@@ -1,8 +1,8 @@
-@testable import Apodini
+@testable import Notifications
 import XCTest
-import XCTVapor
+import XCTApodini
 
-class APNSConfigurationTests: ApodiniTests {
+class APNSConfigurationTests: XCTApodiniTest {
     let currentPath = URL(fileURLWithPath: #file).deletingLastPathComponent().path
     
     func testFailingConfiguration() throws {
@@ -10,14 +10,14 @@ class APNSConfigurationTests: ApodiniTests {
     }
     
     func testPEMConfiguration() throws {
-        let path = currentPath + "/mock.pem"
+        let path = currentPath + "/Helper/mock.pem"
         
         XCTAssertNoThrow(APNSConfiguration(.pem(pemPath: path), topic: "", environment: .sandbox).configure(app))
         XCTAssertNotNil(app.apns.configuration)
     }
     
     func testP8Configuration() throws {
-        let path = currentPath + "/mock.p8"
+        let path = currentPath + "/Helper/mock.p8"
         
         XCTAssertNoThrow(APNSConfiguration(.p8(path: path, keyIdentifier: "", teamIdentifier: ""), topic: "", environment: .sandbox).configure(app))
         XCTAssertNotNil(app.apns.configuration)

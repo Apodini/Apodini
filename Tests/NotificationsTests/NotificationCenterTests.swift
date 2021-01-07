@@ -6,19 +6,21 @@
 //  Created by Alexander Collins on 03.12.20.
 //
 
+@testable import Notifications
 import XCTest
-import Vapor
+import XCTApodini
+import XCTVapor
 import Fluent
 import FCM
 import APNS
-@testable import Apodini
 
-final class NotificationCenterTests: ApodiniTests {
+final class NotificationCenterTests: XCTApodiniTest {
     var notificationCenter = NotificationCenter.shared
     
-    override func setUp() {
-        super.setUp()
-        notificationCenter = EnvironmentValues.shared.notificationCenter
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        try super.addMigrations(DeviceMigration())
+        
         notificationCenter.application = self.app
     }
 

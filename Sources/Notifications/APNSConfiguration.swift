@@ -1,6 +1,7 @@
 import class Vapor.Application
 import APNS
 import JWTKit
+import Apodini
 
 
 /// A `Configuration` used for APNS authentication

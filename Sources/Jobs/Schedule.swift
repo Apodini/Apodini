@@ -1,6 +1,7 @@
 import Foundation
 import class Vapor.Application
 import SwifCron
+import Apodini
 
 /// `Configuration` to start `Job`s at server startup.
 public class Schedule<K: ApodiniKeys, T: Job>: Configuration {

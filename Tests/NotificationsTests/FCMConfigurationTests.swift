@@ -1,9 +1,8 @@
-@testable import Apodini
+@testable import Notifications
 import XCTest
-import XCTVapor
-import FCM
+import XCTApodini
 
-class FCMConfigurationTests: ApodiniTests {
+class FCMConfigurationTests: XCTApodiniTest {
     let currentPath = URL(fileURLWithPath: #file).deletingLastPathComponent().path
     
     func testMissingFile() throws {
@@ -11,12 +10,12 @@ class FCMConfigurationTests: ApodiniTests {
     }
     
     func testMissingProperties() throws {
-        let path = currentPath + "/mock_invalid_fcm.json"
+        let path = currentPath + "/Helper/mock_invalid_fcm.json"
         XCTAssertRuntimeFailure(FCMConfiguration(path).configure(self.app), "FCM unable to decode serviceAccount from file located at: \(path)")
     }
     
     func testValidFile() throws {
-        let path = currentPath + "/mock_fcm.json"
+        let path = currentPath + "/Helper/mock_fcm.json"
         
         XCTAssertNoThrow(FCMConfiguration(path).configure(self.app))
         XCTAssertNotNil(app.fcm.configuration)

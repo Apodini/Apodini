@@ -98,6 +98,12 @@ extension Component {
     }
 }
 
+public struct EnvironmentValue<K: ApodiniKeys, Value> {
+    public init(_ keyPath: KeyPath<K, Value>, _ value: Value) {
+        EnvironmentValues.shared.values[ObjectIdentifier(keyPath)] = value
+    }
+}
+
 /// A protocol to define key paths that can be used with `@Environment` to retrieve pre-defined objects.
 public protocol ApodiniKeys { }
 

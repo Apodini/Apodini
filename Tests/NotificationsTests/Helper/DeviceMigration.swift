@@ -6,7 +6,7 @@
 //
 
 import Fluent
-import Apodini
+import Notifications
 
 struct DeviceMigration: Migration {
     func prepare(on database: Fluent.Database) -> EventLoopFuture<Void> {

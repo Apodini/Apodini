@@ -7,6 +7,7 @@
 
 import Apodini
 import XCTest
+import XCTApodini
 
 
 final class ActionTests: XCTestCase {
