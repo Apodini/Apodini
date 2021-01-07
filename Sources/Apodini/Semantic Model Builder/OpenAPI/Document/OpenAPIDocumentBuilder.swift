@@ -25,10 +25,10 @@ struct OpenAPIDocumentBuilder {
 
     func build() -> OpenAPI.Document {
         OpenAPI.Document(
-                info: configuration.info,
-                servers: configuration.servers,
-                paths: pathsObjectBuilder.pathsObject,
-                components: componentsObjectBuilder.componentsObject
+            info: configuration.info,
+            servers: configuration.servers,
+            paths: pathsObjectBuilder.pathsObject,
+            components: componentsObjectBuilder.componentsObject
         )
     }
 }

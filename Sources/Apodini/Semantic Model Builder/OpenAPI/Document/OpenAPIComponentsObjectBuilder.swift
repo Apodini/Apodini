@@ -10,15 +10,15 @@ import Foundation
 /// See: https://swagger.io/specification/#components-object
 class OpenAPIComponentsObjectBuilder {
     var componentsObject: OpenAPI.Components = .init(
-            schemas: [:],
-            responses: [:],
-            parameters: [:],
-            examples: [:],
-            requestBodies: [:],
-            headers: [:],
-            securitySchemes: [:],
-            callbacks: [:],
-            vendorExtensions: [:]
+        schemas: [:],
+        responses: [:],
+        parameters: [:],
+        examples: [:],
+        requestBodies: [:],
+        headers: [:],
+        securitySchemes: [:],
+        callbacks: [:],
+        vendorExtensions: [:]
     )
 
     /// In case more than one type in HTTP body, build wrapper schema.
@@ -31,16 +31,20 @@ class OpenAPIComponentsObjectBuilder {
             return node
         }
         let properties = trees
-                .enumerated()
-                .reduce(into: [String: JSONSchema]()) {
-                    var schema: JSONSchema = $1.element.contextMap(contextMapNode).value
-                    schema = necessities[$1.offset] == .optional ? schema.optionalSchemaObject() : schema
-                    // we need the offset to guarantee distinct property names
-                    return $0["\($1.element.value.typeInfo.mangledName)_\($1.offset)"] = schema
-                }
-        let schemaName = trees.map { $0.value.typeInfo.mangledName }.joined(separator: "_")
+            .enumerated()
+            .reduce(into: [String: JSONSchema]()) {
+                var schema: JSONSchema = $1.element.contextMap(contextMapNode).value
+                schema = necessities[$1.offset] == .optional ? schema.optionalSchemaObject() : schema
+                // we need the offset to guarantee distinct property names
+                return $0["\($1.element.value.typeInfo.mangledName)_\($1.offset)"] = schema
+            }
+        let schemaName = trees
+            .map {
+                $0.value.typeInfo.mangledName
+            }
+            .joined(separator: "_")
         let schema = JSONSchema.object(
-                properties: properties
+            properties: properties
         )
         self.componentsObject.schemas[componentKey(for: schemaName)] = schema
         return JSONSchema.reference(.component(named: schemaName))
@@ -48,7 +52,7 @@ class OpenAPIComponentsObjectBuilder {
 
     func buildSchema(for type: Encodable.Type) throws -> JSONSchema {
         let node: Node<JSONSchema>? = try Self.node(type)?
-                .contextMap(contextMapNode)
+            .contextMap(contextMapNode)
         guard let schema = node?.value else {
             throw OpenAPIComponentBuilderError("Could not reflect type.")
         }
@@ -56,17 +60,15 @@ class OpenAPIComponentsObjectBuilder {
     }
 
     private func contextMapNode(node: Node<EnrichedInfo>) -> JSONSchema {
-        // swiftlint:disable:next todo
-        // TODO: we should also handle optional arrays (e.g., array of cardinalities)
         let isOptional = node.value.cardinality == .zeroToOne
         let isArray = node.value.cardinality == .zeroToMany
         let isPrimitive = node.children.isEmpty
 
         let schema = mapInfo(
-                node.value,
-                isPrimitive: isPrimitive,
-                isOptional: isOptional,
-                isArray: isArray)
+            node.value,
+            isPrimitive: isPrimitive,
+            isOptional: isOptional,
+            isArray: isArray)
 
         let schemaName = node.value.typeInfo.mangledName
         if !isPrimitive && !schemaExists(for: schemaName) {
@@ -74,10 +76,10 @@ class OpenAPIComponentsObjectBuilder {
             for child in node.children {
                 if let propertyInfo = child.value.propertyInfo {
                     properties[propertyInfo.name] = mapInfo(
-                            child.value,
-                            isPrimitive: child.children.isEmpty,
-                            isOptional: child.value.cardinality == .zeroToOne,
-                            isArray: child.value.cardinality == .zeroToMany)
+                        child.value,
+                        isPrimitive: child.children.isEmpty,
+                        isOptional: child.value.cardinality == .zeroToOne,
+                        isArray: child.value.cardinality == .zeroToMany)
                 }
             }
             self.componentsObject.schemas[componentKey(for: schemaName)] = JSONSchema.object(properties: properties)
@@ -120,10 +122,10 @@ class OpenAPIComponentsObjectBuilder {
 private extension OpenAPIComponentsObjectBuilder {
     static func node(_ type: Any.Type) throws -> Node<EnrichedInfo>? {
         let node = try EnrichedInfo.node(type)
-                .edited(handleOptional)?
-                .edited(handleArray)?
-                .edited(handlePrimitiveType)?
-                .edited(handleUUID)
+            .edited(handleOptional)?
+            .edited(handleArray)?
+            .edited(handlePrimitiveType)?
+            .edited(handleUUID)
         return node
     }
 }

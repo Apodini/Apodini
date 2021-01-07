@@ -26,12 +26,9 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         var someProp = 4
     }
 
-    struct GenericStruct<T>: Encodable {
+    struct GenericStruct<T>: Encodable where T: Encodable {
         var list: [T]
         var listLength: Int
-
-        func encode(to encoder: Encoder) throws {
-        }
     }
 
     struct SomeComplexStruct: Encodable {
@@ -76,52 +73,52 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         let ref4 = try componentsBuilder.componentsObject.reference(named: "SomeComplexStruct", ofType: JSONSchema.self)
 
         XCTAssertEqual(
-                componentsBuilder.componentsObject[ref1],
-                .object(properties: [
-                    "someProp": .integer,
-                    "id": .string(format: .other("uuid"), required: false)
-                ])
+            componentsBuilder.componentsObject[ref1],
+            .object(properties: [
+                "someProp": .integer,
+                "id": .string(format: .other("uuid"), required: false)
+            ])
         )
         XCTAssertEqual(
-                componentsBuilder.componentsObject[ref2],
-                .object(
-                        properties: [
-                            "someInt": .integer(),
-                            "someString": .string(required: false)
-                        ]
-                )
+            componentsBuilder.componentsObject[ref2],
+            .object(
+                properties: [
+                    "someInt": .integer(),
+                    "someString": .string(required: false)
+                ]
+            )
         )
         XCTAssertEqual(
-                componentsBuilder.componentsObject[ref3],
-                .object(
-                        properties: [
-                            "list": .array(
-                                    items: .reference(
-                                            .component(named: "SomeStruct")
-                                    )
-                            ),
-                            "listLength": .integer()
-                        ]
-                )
+            componentsBuilder.componentsObject[ref3],
+            .object(
+                properties: [
+                    "list": .array(
+                        items: .reference(
+                            .component(named: "SomeStruct")
+                        )
+                    ),
+                    "listLength": .integer()
+                ]
+            )
         )
         XCTAssertEqual(
-                componentsBuilder.componentsObject[ref4],
-                .object(
-                        properties: [
-                            "someNestedStruct2": .reference(
-                                    .component(named: "SomeNestedStruct")
-                            ),
-                            "someItems": .reference(
-                                    .component(named: "GenericStruct")
-                            ),
-                            "someStruct": .reference(
-                                    .component(named: "SomeStruct")
-                            ),
-                            "someNestedStruct": .reference(
-                                    .component(named: "SomeNestedStruct")
-                            )
-                        ]
-                )
+            componentsBuilder.componentsObject[ref4],
+            .object(
+                properties: [
+                    "someNestedStruct2": .reference(
+                        .component(named: "SomeNestedStruct")
+                    ),
+                    "someItems": .reference(
+                        .component(named: "GenericStruct")
+                    ),
+                    "someStruct": .reference(
+                        .component(named: "SomeStruct")
+                    ),
+                    "someNestedStruct": .reference(
+                        .component(named: "SomeNestedStruct")
+                    )
+                ]
+            )
         )
     }
 }

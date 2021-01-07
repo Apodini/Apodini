@@ -5,14 +5,14 @@
 import Foundation
 @_implementationOnly import OpenAPIKit
 
-extension AnyEndpointParameter {
+extension OpenAPI.Parameter.Context {
     /// Currently, only `query` and `path` are supported.
-    var openAPIContext: OpenAPI.Parameter.Context? {
-        switch self.kind {
+    init?(_ endpointParameter: AnyEndpointParameter) {
+        switch endpointParameter.kind {
         case .lightweight:
-            return .query
+            self = .query
         case .path:
-            return .path
+            self = .path
         case .content:
             return nil
         }

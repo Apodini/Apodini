@@ -45,7 +45,6 @@ public extension ProtobufferBuilder {
             input: inputNode.value,
             ouput: outputNode.value
         )
-        
         let name = serviceName
         let service = ProtobufferService(
             name: name,

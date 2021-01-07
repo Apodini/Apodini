@@ -58,12 +58,11 @@ struct OpenAPIPathsObjectBuilder {
         // Add (or override) `PathItem` to map of paths.
         pathsObject[path] = pathItem
     }
+}
 
-
+private extension OpenAPIPathsObjectBuilder {
     /// https://swagger.io/specification/#operation-object
-    // swiftlint:disable:next todo
-    // TODO: maybe we can achieve better information hiding here, but for now pass in complete `Endpoint` object.
-    private mutating func buildPathItemOperationObject<C: Component>(from endpoint: Endpoint<C>) -> OpenAPI.Operation {
+    mutating func buildPathItemOperationObject<C: Component>(from endpoint: Endpoint<C>) -> OpenAPI.Operation {
         // Get `Parameter.Array` from existing `query` or `path` parameters.
         let parameters: OpenAPI.Parameter.Array = buildParametersArray(from: endpoint.parameters)
 
@@ -74,16 +73,16 @@ struct OpenAPIPathsObjectBuilder {
         let responses: OpenAPI.Response.Map = buildResponsesObject(from: endpoint.responseType)
 
         return OpenAPI.Operation(
-                parameters: parameters,
-                requestBody: requestBody,
-                responses: responses
+            parameters: parameters,
+            requestBody: requestBody,
+            responses: responses
         )
     }
 
     /// https://swagger.io/specification/#parameter-object
-    private mutating func buildParametersArray(from parameters: [AnyEndpointParameter]) -> OpenAPI.Parameter.Array {
+    mutating func buildParametersArray(from parameters: [AnyEndpointParameter]) -> OpenAPI.Parameter.Array {
         parameters.compactMap {
-            if let context = $0.openAPIContext {
+            if let context = OpenAPI.Parameter.Context($0) {
                 return Either.parameter(name: $0.name, context: context, schema: JSONSchema.from($0.propertyType), description: $0.description)
             }
             return nil
@@ -91,7 +90,7 @@ struct OpenAPIPathsObjectBuilder {
     }
 
     /// https://swagger.io/specification/#request-body-object
-    private mutating func buildRequestBodyObject(from parameters: [AnyEndpointParameter]) -> OpenAPI.Request? {
+    mutating func buildRequestBodyObject(from parameters: [AnyEndpointParameter]) -> OpenAPI.Request? {
         var requestBody: OpenAPI.Request?
         let contentParameters = parameters.filter {
             $0.kind == .content
@@ -112,20 +111,20 @@ struct OpenAPIPathsObjectBuilder {
         }
         if let requestJSONSchema = requestJSONSchema {
             requestBody = OpenAPI.Request(description: contentParameters
-                    .map {
-                        $0.description
-                    }
-                    .joined(separator: "\n"),
-                    content: [
-                        requestJSONSchema.openAPIContentType: .init(schema: requestJSONSchema)
-                    ]
+                .map {
+                    $0.description
+                }
+                .joined(separator: "\n"),
+                content: [
+                    requestJSONSchema.openAPIContentType: .init(schema: requestJSONSchema)
+                ]
             )
         }
         return requestBody
     }
 
     /// https://swagger.io/specification/#responses-object
-    private mutating func buildResponsesObject(from responseType: Encodable.Type) -> OpenAPI.Response.Map {
+    mutating func buildResponsesObject(from responseType: Encodable.Type) -> OpenAPI.Response.Map {
         var responseContent: OpenAPI.Content.Map = [:]
         let responseJSONSchema: JSONSchema
         do {
@@ -136,22 +135,22 @@ struct OpenAPIPathsObjectBuilder {
         responseContent[responseJSONSchema.openAPIContentType] = .init(schema: responseJSONSchema)
         var responses: OpenAPI.Response.Map = [:]
         responses[.status(code: 200)] = .init(OpenAPI.Response(
-                description: "OK",
-                headers: nil,
-                content: responseContent,
-                vendorExtensions: [:])
+            description: "OK",
+            headers: nil,
+            content: responseContent,
+            vendorExtensions: [:])
         )
         responses[.status(code: 401)] = .init(
-                OpenAPI.Response(description: "Unauthorized")
+            OpenAPI.Response(description: "Unauthorized")
         )
         responses[.status(code: 403)] = .init(
-                OpenAPI.Response(description: "Forbidden")
+            OpenAPI.Response(description: "Forbidden")
         )
         responses[.status(code: 404)] = .init(
-                OpenAPI.Response(description: "Not Found")
+            OpenAPI.Response(description: "Not Found")
         )
         responses[.status(code: 500)] = .init(
-                OpenAPI.Response(description: "Internal Server Error")
+            OpenAPI.Response(description: "Internal Server Error")
         )
         return responses
     }
