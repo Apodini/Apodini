@@ -51,8 +51,31 @@ struct TestWebService: Apodini.WebService {
 
             return "\(greet ?? "Hello") \(name) " + (surnameParameter?.wrappedValue ?? "Unknown")
         }
+    }
 
 
+    struct TraditionalGreeter: Handler {
+        // one cannot change their gender, it must be provided
+        @Parameter(.mutability(.constant)) var gender: String
+        // one cannot change their surname, but it can be ommitted
+        @Parameter(.mutability(.constant)) var surname: String = ""
+        // one can switch between formal and informal greeting at any time
+        @Parameter var name: String?
+
+        @Environment(\.connection) var connection: Connection
+
+        func handle() -> Action<String> {
+            print(connection.state)
+            if connection.state == .end {
+                return .end
+            }
+
+            if let firstName = name {
+                return .send("Hi, \(firstName)!")
+            } else {
+                return .send("Hello, \(gender == "male" ? "Mr." : "Mrs.") \(surname)")
+            }
+        }
     }
 
     @propertyWrapper

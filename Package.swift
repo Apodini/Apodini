@@ -23,6 +23,8 @@ let package = Package(
             .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.0.0"),
             .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.0.0-beta"),
             .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", from: "0.2.0"),
+            // Used to parse crontabs in the `Scheduler` class
+            .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.0"),
             .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.11.0"),
             .package(url: "https://github.com/apple/swift-nio.git", from: "2.18.0"),
             // Used by target ProtobufferBuilder to inspect `Type`s.
@@ -47,11 +49,11 @@ let package = Package(
                         .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver"),
                         .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                         .product(name: "Runtime", package: "Runtime"),
+                        .product(name: "SwifCron", package: "SwifCron"),
                         .product(name: "GraphQL", package: "GraphQL"),
                         .product(name: "SwiftyJSON", package: "SwiftyJSON"),
                         .target(name: "WebSocketInfrastructure"),
-                        .target(name: "ProtobufferCoding"),
-
+                        .target(name: "ProtobufferCoding")
                     ],
                     exclude: [
                         "Components/ComponentBuilder.swift.gyb"
@@ -64,6 +66,12 @@ let package = Package(
                         .product(name: "XCTVapor", package: "vapor"),
                         .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                         .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS]))
+                    ],
+                    exclude: [
+                        "ConfigurationTests/mock_fcm.json",
+                        "ConfigurationTests/mock_invalid_fcm.json",
+                        "ConfigurationTests/mock.p8",
+                        "ConfigurationTests/mock.pem"
                     ]
             ),
             .target(
@@ -115,5 +123,4 @@ let package = Package(
                     ]
             )
         ]
-
 )
