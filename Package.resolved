@@ -272,6 +272,15 @@
         }
       },
       {
+        "package": "SwifCron",
+        "repositoryURL": "https://github.com/MihaelIsaev/SwifCron.git",
+        "state": {
+          "branch": null,
+          "revision": "effe20321342705e66894d86720c5882e2f4095e",
+          "version": "1.3.1"
+        }
+      },
+      {
         "package": "swift-backtrace",
         "repositoryURL": "https://github.com/swift-server/swift-backtrace.git",
         "state": {
