@@ -12,7 +12,8 @@ enum ConnectionEnvironmentKey: EnvironmentKey {
 }
 
 extension EnvironmentValues {
-    var connection: Connection {
+    /// A Property identifying the `Connection` which provides an abstract view on the underlying protocol's state.
+    public var connection: Connection {
         get { self[ConnectionEnvironmentKey.self] }
         set { self[ConnectionEnvironmentKey.self] = newValue }
     }
@@ -33,6 +34,9 @@ public enum ConnectionState {
 /// should be handled with the `Connection`.
 /// Currently, this is only the state of the connection.
 public struct Connection {
-     /// Holds the state of the current client-side stream.
-     var state: ConnectionState = .end
+    /// Holds the state of the current client-side stream.
+    public var state: ConnectionState = .end
+    
+    /// Holds the latest `Request`
+    var request: Request?
 }
