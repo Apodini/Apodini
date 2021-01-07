@@ -66,7 +66,7 @@ private class ParameterModelBuilder<H: Handler>: RequestInjectableVisitor {
                 `default` = value
             }
 
-            endpointParameter = EndpointParameter<Element>(
+            endpointParameter = EndpointParameter(
                 id: parameter.id,
                 name: parameter.name ?? trimmedLabel,
                 label: label,
@@ -101,7 +101,7 @@ extension Parameter: EncodeOptionalEndpointParameter where Element: ApodiniOptio
             `default` = value.optionalInstance
         }
 
-        return EndpointParameter<Element.Member>(
+        return EndpointParameter(
             id: self.id,
             name: name,
             label: label,

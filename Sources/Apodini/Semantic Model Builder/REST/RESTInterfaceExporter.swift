@@ -60,15 +60,22 @@ struct RESTConfiguration {
 
         switch bindAddress {
         case .hostname:
-            var uriPrefix = configuration.tlsConfiguration == nil ? "http://" : "https://"
-            uriPrefix += configuration.hostname
+            let httpProtocol: String
+            var port = ""
 
-            let port = configuration.port
-            if port != 80 {
-                uriPrefix += ":\(port)"
+            if configuration.tlsConfiguration == nil {
+                httpProtocol = "http://"
+                if configuration.port != 80 {
+                    port = ":\(configuration.port)"
+                }
+            } else {
+                httpProtocol = "https://"
+                if configuration.port != 443 {
+                    port = ":\(configuration.port)"
+                }
             }
 
-            self.uriPrefix = uriPrefix
+            self.uriPrefix = httpProtocol + configuration.hostname + port
         case let .unixDomainSocket(path):
             self.uriPrefix = path
         }

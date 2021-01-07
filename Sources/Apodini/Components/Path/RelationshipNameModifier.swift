@@ -4,7 +4,7 @@
 
 struct RelationshipNameContextKey: ContextKey {
     // Move to Optional type once fixed https://github.com/Apodini/Apodini/issues/75
-    static var defaultValue: String = ""
+    static var defaultValue = ""
 
     static func reduce(value: inout String, nextValue: () -> String) {
         value = nextValue()
