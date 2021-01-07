@@ -26,8 +26,10 @@ struct OpenAPIConfiguration {
     var outputPath: String?
     var outputEndpoint: String? = "openapi"
     var outputFormat: OutputFormat = .JSON
+}
 
-    static func create(from app: Application) -> Self {
+extension OpenAPIConfiguration {
+    init(from app: Application) {
         let host = app.http.server.configuration.hostname
         let port = app.http.server.configuration.port
         var servers: [OpenAPI.Server] = []
@@ -35,6 +37,6 @@ struct OpenAPIConfiguration {
             let server = OpenAPI.Server(url: url)
             servers.append(server)
         }
-        return Self(servers: servers)
+        self.init(servers: servers)
     }
 }

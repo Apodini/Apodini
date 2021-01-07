@@ -13,7 +13,7 @@ class OpenAPIInterfaceExporter: InterfaceExporter {
 
     required init(_ app: Application) {
         self.app = app
-        self.configuration = OpenAPIConfiguration.create(from: app)
+        self.configuration = OpenAPIConfiguration(from: app)
         self.documentBuilder = OpenAPIDocumentBuilder(
                 configuration: configuration
         )
