@@ -66,13 +66,16 @@ struct TestWebService: Apodini.WebService {
 
     struct User: Codable {
         var id: Int
+        var name: String
     }
 
     struct UserHandler: Handler {
         @Parameter var userId: Int
+        @Parameter var userName: String?
 
-        func handle() -> User {
-            User(id: userId)
+        func handle() -> String {
+            return "Hello there, \(userName ?? "Ekin") - \(userId)"
+//            User(id: userId)
         }
     }
 
@@ -110,10 +113,12 @@ struct TestWebService: Apodini.WebService {
 //                    .rpcName("greetMe")
 //                    .response(EmojiMediator())
 //        }
-//        Group("user", $userId) {
-//            UserHandler(userId: $userId)
-//                    .guard(PrintGuard())
-//        }
+        Group("Users") {
+            Group("user", $userId) {
+                UserHandler(userId: $userId)
+                // .guard(PrintGuard())
+            }
+        }
     }
 }
 
