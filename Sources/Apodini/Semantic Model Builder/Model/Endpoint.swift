@@ -200,28 +200,6 @@ class EndpointsTreeNode {
     }
 }
 
-// MARK: Collecting
-
-extension EndpointsTreeNode {
-    func relativePath(to node: EndpointsTreeNode) -> [_PathComponent] {
-        var relativePath: [_PathComponent] = []
-        collectRelativePath(&relativePath, to: node)
-        return relativePath
-    }
-    
-    private func collectRelativePath(_ relativePath: inout [_PathComponent], to node: EndpointsTreeNode) {
-        if node === self {
-            return
-        }
-        guard let parent = parent else {
-            return
-        }
-        
-        parent.collectRelativePath(&relativePath, to: node)
-        relativePath.append(path)
-    }
-}
-
 extension EndpointsTreeNode {
     fileprivate func collectRelationships(name: String, _ relationships: inout [EndpointRelationship]) {
         if !endpoints.isEmpty {
