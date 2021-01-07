@@ -158,41 +158,43 @@ class EndpointsTreeNode {
     }
     
     func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, at paths: [PathComponent]) {
-        if paths.isEmpty {
+        guard !paths.isEmpty else {
             // swiftlint:disable:next force_unwrapping
             precondition(endpoints[endpoint.operation] == nil, "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)")
             precondition(endpoint.treeNode == nil, "The endpoint \(endpoint.description) is already inserted at some different place")
             endpoint.treeNode = self
             endpoints[endpoint.operation] = endpoint
-        } else {
-            var pathComponents = paths
-            if let first = pathComponents.removeFirst() as? _PathComponent {
-                var child = nodeChildren[first.description]
-                if child == nil {
-                    // as we create a new child node we need to check if there are colliding path parameters
-                    if let result = PathComponentAnalyzer.analyzePathComponentForParameter(first) {
-                        if result.parameterMode != .path {
-                            fatalError("Parameter can only be used as path component when setting .http() parameter option to .path!")
-                        }
-                        
-                        if childContainsPathParameter { // there are already some children with a path parameter on this level
-                            fatalError("When inserting endpoint \(endpoint.description) we encountered a path parameter collision on level n-\(pathComponents.count): "
-                                        + "You can't have multiple path parameters on the same level!")
-                        } else {
-                            childContainsPathParameter = true
-                        }
-                    }
-                    
-                    child = EndpointsTreeNode(path: first, parent: self)
-                    nodeChildren[first.description] = child
+            return
+        }
+        
+        var pathComponents = paths
+        
+        guard let first = pathComponents.removeFirst() as? _PathComponent  else {
+            fatalError("Encountered PathComponent which isn't a _PathComponent!")
+        }
+        
+        var child = nodeChildren[first.description]
+        if child == nil {
+            // as we create a new child node we need to check if there are colliding path parameters
+            if let result = PathComponentAnalyzer.analyzePathComponentForParameter(first) {
+                if result.parameterMode != .path {
+                    fatalError("Parameter can only be used as path component when setting .http() parameter option to .path!")
                 }
                 
-                // swiftlint:disable:next force_unwrapping
-                child!.addEndpoint(&endpoint, at: pathComponents)
-            } else {
-                fatalError("Encountered PathComponent which isn't a _PathComponent!")
+                if childContainsPathParameter { // there are already some children with a path parameter on this level
+                    fatalError("When inserting endpoint \(endpoint.description) we encountered a path parameter collision on level n-\(pathComponents.count): "
+                                + "You can't have multiple path parameters on the same level!")
+                } else {
+                    childContainsPathParameter = true
+                }
             }
+            
+            child = EndpointsTreeNode(path: first, parent: self)
+            nodeChildren[first.description] = child
         }
+        
+        // swiftlint:disable:next force_unwrapping
+        child!.addEndpoint(&endpoint, at: pathComponents)
     }
     
     private func collectAbsolutePath(_ absolutePath: inout [_PathComponent]) {
