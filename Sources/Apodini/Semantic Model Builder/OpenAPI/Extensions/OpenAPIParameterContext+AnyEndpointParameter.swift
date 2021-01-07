@@ -3,7 +3,7 @@
 //
 
 import Foundation
-import OpenAPIKit
+@_implementationOnly import OpenAPIKit
 
 extension OpenAPI.Parameter.Context {
     /// Currently, only `query` and `path` are supported.
