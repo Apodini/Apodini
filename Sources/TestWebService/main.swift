@@ -5,6 +5,7 @@
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 
+import Foundation
 import Apodini
 
 
@@ -107,6 +108,11 @@ struct TestWebService: Apodini.WebService {
             UserHandler(userId: $userId)
                 .guard(PrintGuard())
         }
+    }
+
+    var configuration: some Configuration {
+        JSONEncoderConfiguration()
+            .with(\.outputFormatting, value: [.prettyPrinted, .withoutEscapingSlashes])
     }
 }
 
