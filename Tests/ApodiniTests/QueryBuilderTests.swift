@@ -7,7 +7,6 @@ final class QueryBuilderTests: ApodiniTests {
     func testQueryString() throws {
         let queryString = "http://localhost:8080/v1/api/birds/birds?name=Swift&age=5"
         let queryBuilder = QueryBuilder(type: Bird.self, queryString: queryString)
-        queryBuilder.retrieveType(for: Bird.self)
         let expectedParameters = [
             Bird.fieldKey(for: "name"): "Swift",
             Bird.fieldKey(for: "age"): "5"

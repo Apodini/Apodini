@@ -20,9 +20,10 @@ final class DatabaseHandlerTests: ApodiniTests {
 
     func testCreateHandler() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
-        let dbBird = try bird.save(on: self.app.db).map({ _ in
-            bird
-        }).wait()
+        let dbBird = try bird
+            .save(on: self.app.db)
+            .transform(to: bird)
+            .wait()
         XCTAssertNotNil(dbBird.id)
         
         let creationHandler = Create<Bird>()
@@ -41,9 +42,10 @@ final class DatabaseHandlerTests: ApodiniTests {
     
     func testReadHandler() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
-        let dbBird = try bird.save(on: self.app.db).map({ _ in
-            bird
-        }).wait()
+        let dbBird = try bird
+            .save(on: self.app.db)
+            .transform(to: bird)
+            .wait()
         XCTAssertNotNil(dbBird.id)
         
         let readHandler = Read<Bird>()
@@ -80,9 +82,10 @@ final class DatabaseHandlerTests: ApodiniTests {
     
     func testUpdateHandler() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
-        let dbBird = try bird.save(on: self.app.db).map({ _ in
-            bird
-        }).wait()
+        let dbBird = try bird
+            .save(on: self.app.db)
+            .transform(to: bird)
+            .wait()
         XCTAssertNotNil(dbBird.id)
         
         let updatedBird = Bird(name: "FooBird", age: 25)
@@ -121,19 +124,22 @@ final class DatabaseHandlerTests: ApodiniTests {
         XCTAssert(response == "success")
         expectation(description: "database access").isInverted = true
         waitForExpectations(timeout: 10, handler: nil)
-        let newBird = try Bird.find(dbBird.id, on: self.app.db).wait()
+        guard let newBird = try Bird.find(dbBird.id, on: self.app.db).wait() else {
+            XCTFail("Failed to find updated object")
+            return
+        }
 
         XCTAssertNotNil(newBird)
-        XCTAssert(newBird!.name == updatedBird.name, newBird.debugDescription)
-        XCTAssert(newBird!.age == 25)
-        
+        XCTAssert(newBird.name == updatedBird.name, newBird.description)
+        XCTAssert(newBird.age == 25)
     }
     
     func testDeleteHandler() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
-        let dbBird = try bird.save(on: self.app.db).map({ _ in
-            bird
-        }).wait()
+        let dbBird = try bird
+            .save(on: self.app.db)
+            .transform(to: bird)
+            .wait()
         XCTAssertNotNil(dbBird.id)
         
         let handler = Delete<Bird>()
@@ -169,7 +175,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         expectation(description: "database access").isInverted = true
         waitForExpectations(timeout: 10, handler: nil)
         
-        let deletedBird = try Bird.find(dbBird.id!, on: app.db).wait()
+        let deletedBird = try Bird.find(dbBird.id, on: app.db).wait()
         XCTAssertNil(deletedBird)
     }
 }

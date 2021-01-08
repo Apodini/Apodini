@@ -12,7 +12,7 @@ public struct Create<Model: DatabaseModel>: Handler {
 
     public func handle() -> Model? {
         // wait() will be removed once EventloopFuture is working again.
-        // swiftlint:disable force_unwrap
+        // swiftlint:disable force_unwrapping
         try! object.save(on: database).transform(to: object).wait()
     }
 }

@@ -100,16 +100,12 @@ internal struct QueryBuilder<Model: DatabaseModel> {
     // swiftlint:disable:next todo
     //TODO: Find a better way to do this
     private static func fieldType(for type: Any.Type) -> Any.Type {
-        
         guard let fieldTypeString = String(describing: type)
-            .replacingOccurrences(of: "FieldProperty", with: "")
-            .replacingOccurrences(of: "<", with: "")
-            .replacingOccurrences(of: " ", with: "")
-            .replacingOccurrences(of: ">", with: "")
-            .split(separator: ",")
-            .map { String($0) }
-            .last
-        else {
+                .replacingOccurrences(of: "FieldProperty", with: "")
+                .replacingOccurrences(of: "<", with: "")
+                .replacingOccurrences(of: " ", with: "")
+                .replacingOccurrences(of: ">", with: "")
+                .split(separator: ",").map({ String($0) }).last else {
             return String.self
         }
         switch fieldTypeString {

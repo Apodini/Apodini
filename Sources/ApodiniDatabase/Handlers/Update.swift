@@ -21,9 +21,9 @@ public struct Update<Model: DatabaseModel>: Handler {
             .unwrap(orError: Abort(.notFound))
             .map { model -> Model in
                 model.update(object)
-                let _ = model.update(on: database)
+                _ = model.update(on: database)
                 return model
-        }
+            }
         return "success"
     }
 }
