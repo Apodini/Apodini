@@ -2,10 +2,21 @@ import Foundation
 import XCTest
 import NIO
 import Vapor
+import Fluent
 @testable import Apodini
 @testable import ApodiniDatabase
-// swiftlint:disable all
+
 final class DatabaseHandlerTests: ApodiniTests {
+    
+    private func pathParameter(for handler: Any) throws -> Parameter<UUID> {
+        let mirror = Mirror(reflecting: handler)
+        let parameter = mirror.children.compactMap { $0.value as? Parameter<UUID> }.first
+        guard let idParameter = parameter else {
+            //No point in continuing if there is no parameter
+            fatalError("no idParameter found")
+        }
+        return idParameter
+    }
 
     func testCreateHandler() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
@@ -93,9 +104,11 @@ final class DatabaseHandlerTests: ApodiniTests {
                 on: app.eventLoopGroup.next()
         )
         guard let birdId = dbBird.id else {
+            XCTFail("Object found in db has no id")
             return
         }
-        request.parameters.set(":\(handler.idParameter.id)", to: "\(birdId)")
+        let idParameter = try pathParameter(for: handler)
+        request.parameters.set(":\(idParameter.id)", to: "\(birdId)")
         
         let result = try context.handle(request: request).wait()
         
@@ -136,7 +149,14 @@ final class DatabaseHandlerTests: ApodiniTests {
                 url: uri,
                 on: app.eventLoopGroup.next()
         )
-        request.parameters.set(":\(handler.idParameter.id)", to: "\(dbBird.id!)")
+        
+        guard let birdId = dbBird.id else {
+            XCTFail("Object found in db has no id")
+            return
+        }
+        
+        let idParameter = try pathParameter(for: handler)
+        request.parameters.set(":\(idParameter.id)", to: "\(birdId)")
         
         let result = try context.handle(request: request).wait()
         guard case let .final(responseValue) = result else {
@@ -153,4 +173,3 @@ final class DatabaseHandlerTests: ApodiniTests {
         XCTAssertNil(deletedBird)
     }
 }
-// swiftlint:enable all

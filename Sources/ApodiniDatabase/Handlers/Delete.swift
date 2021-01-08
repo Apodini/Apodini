@@ -9,20 +9,14 @@ public struct Delete<Model: DatabaseModel>: Handler {
     private var database: Fluent.Database
 
     @Parameter(.http(.path))
-    var id: UUID
-    
-    var idParameter: Parameter<UUID> {
-        _id
-    }
+    var id: Model.IDValue
     
 //    public func handle() -> EventLoopFuture<HTTPStatus> {
     public func handle() -> String {
-        // swiftlint:disable all
         Model.find(id, on: database)
             .unwrap(orError: Abort(.notFound) )
             .flatMap { $0.delete(on: database ) }
-            .map { HTTPStatus.ok }
+            .transform(to: HTTPStatus.ok)
         return String(HTTPStatus.ok.code)
-        // swiftlint:enable all
     }
 }

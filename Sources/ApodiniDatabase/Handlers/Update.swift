@@ -13,25 +13,17 @@ public struct Update<Model: DatabaseModel>: Handler {
     private var object: Model
     
     @Parameter(.http(.path))
-    var id: UUID
-    
-    var idParameter: Parameter<UUID> {
-        _id
-    }
+    var id: Model.IDValue
     
 //    public func handle() -> EventLoopFuture<T> {
     public func handle() -> String {
-        // swiftlint:disable all
         Model.find(id, on: database)
             .unwrap(orError: Abort(.notFound))
             .map { model -> Model in
-                print(model)
                 model.update(object)
-                model.update(on: database)
-            
+                let _ = model.update(on: database)
                 return model
-            }
+        }
         return "success"
-        // swiftlint:enable all
     }
 }

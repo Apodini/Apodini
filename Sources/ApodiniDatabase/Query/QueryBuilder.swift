@@ -7,7 +7,7 @@
 import Apodini
 import Foundation
 import Fluent
-import Vapor
+@_implementationOnly import Vapor
 @_implementationOnly import Runtime
 
 internal struct QueryBuilder<Model: DatabaseModel> {
@@ -25,7 +25,6 @@ internal struct QueryBuilder<Model: DatabaseModel> {
 
     init(type: Model.Type, queryString: String) {
         self.type = type
-//        self.queryString = queryString
         self.parameters = extract(from: queryString)
     }
     
@@ -36,8 +35,11 @@ internal struct QueryBuilder<Model: DatabaseModel> {
     
     private func extract(from queryString: String) -> [FieldKey: String] {
         var foundParameters: [FieldKey: String] = [:]
-        let extractedQueryString = queryString.split(separator: "?")[1]
-        let queryParts = extractedQueryString.split(separator: "&").map { String($0) }
+        let extractedQueryString = queryString.split(separator: "?")
+        guard extractedQueryString.count >= 2 else {
+            return foundParameters
+        }
+        let queryParts = extractedQueryString[1].split(separator: "&").map { String($0) }
         for part in queryParts {
             let queryParameters = part.split(separator: "=").map { String($0) }
             guard queryParameters.count == 2 else { fatalError("invalid query") }
@@ -98,15 +100,18 @@ internal struct QueryBuilder<Model: DatabaseModel> {
     // swiftlint:disable:next todo
     //TODO: Find a better way to do this
     private static func fieldType(for type: Any.Type) -> Any.Type {
-        // swiftlint:disable all
-        let fieldTypeString = String(describing: type)
+        
+        guard let fieldTypeString = String(describing: type)
             .replacingOccurrences(of: "FieldProperty", with: "")
             .replacingOccurrences(of: "<", with: "")
             .replacingOccurrences(of: " ", with: "")
             .replacingOccurrences(of: ">", with: "")
             .split(separator: ",")
-            .map({ String($0) })
-            .last!
+            .map { String($0) }
+            .last
+        else {
+            return String.self
+        }
         switch fieldTypeString {
         case "String":
             return String.self
@@ -119,6 +124,5 @@ internal struct QueryBuilder<Model: DatabaseModel> {
         default:
             fatalError("Should not happen")
         }
-        // swiftlint:enable all
     }
 }
