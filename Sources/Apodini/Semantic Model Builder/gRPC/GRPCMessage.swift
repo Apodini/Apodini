@@ -1,5 +1,5 @@
 //
-//  GRPCRequest.swift
+//  GRPCMessage.swift
 //  
 //
 //  Created by Moritz Schüll on 07.01.21.
