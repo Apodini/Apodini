@@ -176,6 +176,14 @@ extension PathBuilder {
     mutating func root() {}
 }
 
+protocol PathBuilderWithResult: PathBuilder {
+    associatedtype Result
+
+    init()
+
+    func result() -> Result
+}
+
 // MARK: PathBuilder
 extension EndpointPath {
     func accept<Builder: PathBuilder>(_ builder: inout Builder) {
@@ -191,10 +199,18 @@ extension EndpointPath {
 }
 
 extension Array where Element == EndpointPath {
-    func acceptAll<Builder: PathBuilder>(_ builder: inout Builder) {
+    func build<Builder: PathBuilder>(with builder: inout Builder) {
         for path in self {
             path.accept(&builder)
         }
+    }
+
+    func build<Builder: PathBuilderWithResult>(with type: Builder.Type) -> Builder.Result {
+        var builder: Builder = .init()
+        for path in self {
+            path.accept(&builder)
+        }
+        return builder.result()
     }
 }
 
@@ -209,9 +225,9 @@ extension Array where Element == EndpointPath {
 
 extension Array where Element == EndpointPath {
     func asPathString(delimiter: String = "/") -> String {
-        var stringBuilder = PathStringBuilder(delimiter: delimiter)
-        self.acceptAll(&stringBuilder)
-        return stringBuilder.build()
+        var builder = PathStringBuilder(delimiter: delimiter)
+        build(with: &builder)
+        return builder.result()
     }
 }
 
@@ -237,7 +253,7 @@ private struct PathStringBuilder: PathBuilder {
         paths.append(parameter.description)
     }
 
-    func build() -> String {
+    func result() -> String {
         paths.joined(separator: delimiter)
     }
 }

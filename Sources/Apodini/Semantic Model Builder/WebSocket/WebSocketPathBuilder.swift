@@ -5,15 +5,8 @@
 //  Created by Max Obermeier on 09.12.20.
 //
 
-struct WebSocketPathBuilder: PathBuilder {
+struct WebSocketPathBuilder: PathBuilderWithResult {
     private var path: [String] = []
-    var pathIdentifier: String {
-        path.joined(separator: ".")
-    }
-    
-    init(_ path: [EndpointPath]) {
-        path.acceptAll(&self)
-    }
     
     mutating func append(_ string: String) {
         path.append(string.lowercased())
@@ -21,5 +14,9 @@ struct WebSocketPathBuilder: PathBuilder {
 
     mutating func append<Type>(_ parameter: EndpointPathParameter<Type>) {
         path.append(":\(parameter.name):")
+    }
+
+    func result() -> String {
+        path.joined(separator: ".")
     }
 }

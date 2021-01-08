@@ -93,7 +93,7 @@ class RESTInterfaceExporter: InterfaceExporter {
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         var pathBuilder = RESTPathBuilder()
-        endpoint.absolutePath.acceptAll(&pathBuilder)
+        endpoint.absolutePath.build(with: &pathBuilder)
 
         let routesBuilder = pathBuilder.routesBuilder(app)
 
