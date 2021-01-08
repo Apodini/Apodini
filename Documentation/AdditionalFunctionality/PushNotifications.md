@@ -34,10 +34,10 @@ var configuration: Configuration {
 
 ## Usage
 
-The `NotificationCenter` can be injected to any `Component` or `Job` by using the `@Environment` property wrapper.
+The `NotificationCenter` can be injected to any `Handler` or `Job` by using the `@Environment` property wrapper.
 
 ```swift
-struct NewsAlertComponent: Component {
+struct NewsAlertHandler: Handler {
     @Environment(\.notificationCenter) var notificationCenter: NotificationCener
 
     // ...
@@ -69,10 +69,10 @@ public enum PushNotificationService {
 }
 ```
 
-The web service needs a specific route and `Component` to handle push notification registration. The following example shows how to add a `Device` to the currently authenticated `User`.
+The web service needs a specific route and `Handler` to handle push notification registration. The following example shows how to add a `Device` to the currently authenticated `User`.
 
 ```swift
-struct RegisterComponent: Component {
+struct RegisterHandler: Handler {
     @Request(\.user) var user: User  // The logged in user
 
     @Parameter var device: Device  // The `Device` instance in a request body
@@ -97,10 +97,10 @@ Furthermore, the `NotificationCenter` allows the removal and editing of `Device`
 
 Push notifications can also be used to send data. Objects that are sent with push notifications need to conform to `Encodable` and will be converted to JSON format. This object can then be retrieved using the `data` key from the payload of the push notification.
 
-Example of a `Component` that sends a push notification to an user:
+Example of a `Handler` that sends a push notification to an user:
 
 ```swift
-struct SendNotification: Component {
+struct SendNotification: Handler {
     @Request(\.user) var user: User
 
     @Environment(\.notificationCenter) var notificationCenter: NotificationCener
