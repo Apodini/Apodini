@@ -29,9 +29,9 @@ class GRPCInterfaceExporter: InterfaceExporter {
         // of this endpoint
         endpoint.parameters
             .enumerated()
-            .forEach({ param in
+            .forEach { param in
                 self.parameters[param.element.id] = param.offset + 1
-            })
+            }
 
         let context = endpoint.createConnectionContext(for: self)
 

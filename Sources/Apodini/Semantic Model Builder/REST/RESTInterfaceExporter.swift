@@ -42,7 +42,6 @@ struct RESTPathBuilder: PathBuilder {
     }
 }
 
-
 extension Operation {
     var httpMethod: Vapor.HTTPMethod {
         switch self {

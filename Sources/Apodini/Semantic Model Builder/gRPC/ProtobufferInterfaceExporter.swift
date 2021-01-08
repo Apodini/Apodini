@@ -6,7 +6,6 @@
 //
 
 @_implementationOnly import class Vapor.Application
-import ProtobufferBuilder
 
 extension Never: ExporterRequest {}
 
