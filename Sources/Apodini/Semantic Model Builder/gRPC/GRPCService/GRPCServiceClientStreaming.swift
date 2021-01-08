@@ -15,6 +15,12 @@ extension GRPCService {
         { (request: Vapor.Request) in
             var context = context
 
+            if !self.checkContentType(request: request) {
+                return request.eventLoop.makeFailedFuture(GRPCError.unsupportedContentType(
+                    "Content type is currently not supported by Apodini GRPC exporter. Use Protobuffers instead."
+                ))
+            }
+
             let promise = request.eventLoop.makePromise(of: Vapor.Response.self)
             var lastMessage: GRPCMessage?
             request.body.drain { (bodyStream: BodyStreamResult) in
