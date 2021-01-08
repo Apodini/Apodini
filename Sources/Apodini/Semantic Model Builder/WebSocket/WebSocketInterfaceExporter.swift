@@ -44,7 +44,6 @@ extension BasicInputParameter: ReducibleParameter {
     }
 }
 
-
 class WebSocketInterfaceExporter: InterfaceExporter {
     typealias ExporterRequest = SomeInput
     
@@ -63,10 +62,10 @@ class WebSocketInterfaceExporter: InterfaceExporter {
     }
     
     func export<C: Component>(_ endpoint: Endpoint<C>) {
-        let inputParameters: [(String, InputParameter)] = endpoint.exportParameters(on: self)
+        let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self)
         
         let emptyInput = SomeInput(parameters: inputParameters.reduce(into: [String: InputParameter](), { result, parameter in
-            result[parameter.0] = parameter.1
+            result[parameter.name] = parameter.value
         }))
         
         self.router.register({(input: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, _: Database?) -> (
@@ -74,23 +73,47 @@ class WebSocketInterfaceExporter: InterfaceExporter {
                     output: AnyPublisher<Message<AnyEncodable>, Error>
                 ) in
             var context = endpoint.createConnectionContext(for: self)
-
+            
             let output: PassthroughSubject<Message<AnyEncodable>, Error> = PassthroughSubject()
+            
             var inputCancellable: AnyCancellable?
-            #warning("""
-                The current sink-based implementation does not synchronize requests where 'handle' returns an 'EventLoopFuture'.
-                This can lead to undefined behavior on parallel requests.
-            """)
-            inputCancellable = input.sink(receiveCompletion: { completion in
-                switch completion {
-                case .finished:
-                    Self.handleInputCompletion(with: emptyInput, using: &context, on: eventLoop, output: output)
+            inputCancellable = input.mapError { _ -> Error in }
+            // Handle all incoming client-messages one after another. The `syncMap` automatically
+            // awaits the future and unwrapps it.
+            .syncMap { inputValue -> EventLoopFuture<Action<AnyEncodable>> in
+                context.handle(request: inputValue, eventLoop: eventLoop, final: false)
+            }
+            .sink(
+                // The completion is also synchronized by `syncMap` it waits for any future
+                // to complete before forwarding it.
+                receiveCompletion: { completion in
+                    switch completion {
+                    case .finished:
+                        // We received the close-context message from the client. We evaluate the
+                        // `Handler` one more time before the connection is closed. We have to
+                        // manually await this future. We use an `emptyInput`, which is aggregated
+                        // to the latest input.
+                        context.handle(request: emptyInput, eventLoop: eventLoop, final: true).whenComplete { result in
+                            switch result {
+                            case .success(let action):
+                                Self.handleInputCompletion(result: action, output: output)
+                            case .failure(let error):
+                                output.send(completion: .failure(error))
+                            }
+                        }
+                    case .failure(let error):
+                        // A `Handler` returned an error. For now we just close the connection for all errors.
+                        output.send(completion: .failure(error))
+                    }
+                    // We have to reference the cancellable here so it stays in memory and isn't cancled early.
+                    _ = inputCancellable
+                },
+                // The input was already handled and unwrapped by the `syncMap`. We just have to map the obtained
+                // `Action` to our `output`.
+                receiveValue: { inputValue in
+                    Self.handleRegularInput(result: inputValue, output: output)
                 }
-                
-                inputCancellable?.cancel()
-            }, receiveValue: { inputValue in
-                Self.handleRegularInput(with: inputValue, using: &context, on: eventLoop, output: output)
-            })
+            )
 
 
             return (defaultInput: emptyInput, output: output.eraseToAnyPublisher())
@@ -113,47 +136,35 @@ class WebSocketInterfaceExporter: InterfaceExporter {
     }
     
     private static func handleInputCompletion(
-        with emptyInput: SomeInput,
-        using context: inout AnyConnectionContext<WebSocketInterfaceExporter>,
-        on eventLoop: EventLoop,
+        result: Action<AnyEncodable>,
         output: PassthroughSubject<Message<AnyEncodable>, Error>) {
-        context.handle(request: emptyInput, eventLoop: eventLoop, final: true).whenComplete { result in
-            switch result {
-            case .success(.nothing):
-                output.send(completion: .finished)
-            case .success(.send(let message)):
-                output.send(.message(message))
-                output.send(completion: .finished)
-            case .success(.final(let message)):
-                output.send(.message(message))
-                output.send(completion: .finished)
-            case .success(.end):
-                output.send(completion: .finished)
-            case .failure(let error):
-                output.send(completion: .failure(error))
-            }
+        switch result {
+        case .nothing:
+            output.send(completion: .finished)
+        case .send(let message):
+            output.send(.message(message))
+            output.send(completion: .finished)
+        case .final(let message):
+            output.send(.message(message))
+            output.send(completion: .finished)
+        case .end:
+            output.send(completion: .finished)
         }
     }
     
     private static func handleRegularInput(
-        with latestInput: SomeInput,
-        using context: inout AnyConnectionContext<WebSocketInterfaceExporter>,
-        on eventLoop: EventLoop,
+        result: Action<AnyEncodable>,
         output: PassthroughSubject<Message<AnyEncodable>, Error>) {
-        context.handle(request: latestInput, eventLoop: eventLoop, final: false).whenComplete { result in
-            switch result {
-            case .success(.nothing):
-                break
-            case .success(.send(let message)):
-                output.send(.message(message))
-            case .success(.final(let message)):
-                output.send(.message(message))
-                output.send(completion: .finished)
-            case .success(.end):
-                output.send(completion: .finished)
-            case .failure(let error):
-                output.send(.error(error))
-            }
+        switch result {
+        case .nothing:
+            break
+        case .send(let message):
+            output.send(.message(message))
+        case .final(let message):
+            output.send(.message(message))
+            output.send(completion: .finished)
+        case .end:
+            output.send(completion: .finished)
         }
     }
 }
