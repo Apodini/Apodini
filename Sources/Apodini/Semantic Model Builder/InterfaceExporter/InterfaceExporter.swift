@@ -2,7 +2,7 @@
 // Created by Andi on 22.11.20.
 //
 
-@_implementationOnly import class Vapor.Application
+import class Vapor.Application
 import protocol NIO.EventLoop
 import protocol FluentKit.Database
 
