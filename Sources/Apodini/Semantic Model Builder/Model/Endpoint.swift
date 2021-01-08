@@ -135,28 +135,27 @@ class EndpointsTreeNode {
     }()
     
     lazy var relationships: [EndpointRelationship] = {
-        var relationships: [EndpointRelationship] = []
-        
-        func collectRelationships(_ node: EndpointsTreeNode, name: String, _ relationships: inout [EndpointRelationship]) {
+        func collectRelationships(_ node: EndpointsTreeNode, name: String) -> [EndpointRelationship] {
             guard self.endpoints.isEmpty else {
-                relationships.append(EndpointRelationship(name: name, destinationPath: absolutePath))
-                return
+                return [EndpointRelationship(name: name, destinationPath: absolutePath)]
             }
             
+            var relationships: [EndpointRelationship] = []
             for (childName, child) in node.nodeChildren {
                 // as Parameter is currently inserted into the path (which will change)
                 // checking against RequestInjectable is a lazy check to determine if this is a path parameter
                 // or just a regular path component. To be adapted.
                 let name = name + (child.path is RequestInjectable ? "" : "_" + childName)
-                collectRelationships(child, name: name, &relationships)
+                relationships += collectRelationships(child, name: name)
             }
+            
+            return relationships
         }
         
-        for (name, child) in nodeChildren {
-            collectRelationships(child, name: name, &relationships)
+        return nodeChildren.reduce([]) { result, item in
+            let (name, child) = item
+            return result + collectRelationships(child, name: name)
         }
-        
-        return relationships
     }()
     
     init(path: _PathComponent, parent: EndpointsTreeNode? = nil) {
