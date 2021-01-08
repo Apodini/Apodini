@@ -46,13 +46,13 @@ struct TestWebService: Apodini.WebService {
         @Parameter var name: String?
         
         @Environment(\.connection) var connection: Connection
-        
+
         func handle() -> Action<String> {
             print(connection.state)
             if connection.state == .end {
                 return .end
             }
-            
+
             if let firstName = name {
                 return .send("Hi, \(firstName)!")
             } else {
