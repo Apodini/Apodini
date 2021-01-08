@@ -31,7 +31,8 @@ class WebServiceModel {
         root.relationships
     }
     
-    fileprivate func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, at paths: [PathComponent]) {
+    fileprivate func addEndpoint<H: Handler>(_ endpoint: Endpoint<H>, at paths: [PathComponent]) {
+        var endpoint = endpoint
         root.addEndpoint(&endpoint, at: paths)
     }
 }
@@ -80,7 +81,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
             }
         }
         
-        var endpoint = Endpoint(
+        let endpoint = Endpoint(
             identifier: {
                 if let identifier = handler.getExplicitlySpecifiedIdentifier() {
                     return identifier
@@ -97,7 +98,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
             parameters: parameterBuilder.parameters
         )
         
-        webService.addEndpoint(&endpoint, at: paths)
+        webService.addEndpoint(endpoint, at: paths)
     }
     
     override func finishedRegistration() {
