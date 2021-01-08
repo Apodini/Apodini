@@ -31,7 +31,7 @@ protocol AnyEndpoint: CustomStringConvertible {
     var guards: [LazyGuard] { get }
     var responseTransformers: [() -> (AnyResponseTransformer)] { get }
 
-    func exportEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput
+    func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput
 
     func createConnectionContext<I: InterfaceExporter>(for exporter: I) -> AnyConnectionContext<I>
     
@@ -92,7 +92,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         self.parameters = parameters
     }
     
-    func exportEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
+    func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
         exporter.export(self)
     }
     

@@ -6,7 +6,7 @@
 @_implementationOnly import Vapor
 import Foundation
 
-class OpenAPIInterfaceExporter: InterfaceExporter {
+class OpenAPIInterfaceExporter: StaticInterfaceExporter {
     let app: Application
     var documentBuilder: OpenAPIDocumentBuilder
     let configuration: OpenAPIConfiguration
@@ -40,9 +40,5 @@ class OpenAPIInterfaceExporter: InterfaceExporter {
                 print("Not implemented yet.")
             }
         }
-    }
-
-    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Vapor.Request) throws -> Type?? {
-        fatalError("OpenAPIInterfaceExporter is not intended to retrieve parameters.")
     }
 }
