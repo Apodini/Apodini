@@ -56,7 +56,7 @@ protocol BaseInterfaceExporter {
     func accept(_ visitor: InterfaceExporterVisitor)
 }
 
-// Providing empty default implementations for Parameters
+// Providing empty default implementations for optional methods
 extension BaseInterfaceExporter {
     func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) {}
     func finishedExporting(_ webService: WebServiceModel) {}
@@ -97,7 +97,7 @@ extension InterfaceExporter {
 /// Any InterfaceExporter creating a representation of the WebService must conform to this protocol.
 ///
 /// Such exporters do not actively create a accessible WebService themselves but rather a static representation
-/// of the WebService is created (e.g. a Endpoint serving documentation of the WebService).
+/// of the WebService (e.g. a Endpoint serving documentation of the WebService).
 protocol StaticInterfaceExporter: BaseInterfaceExporter {}
 
 extension StaticInterfaceExporter {
