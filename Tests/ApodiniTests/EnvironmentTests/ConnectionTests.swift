@@ -48,19 +48,23 @@ final class ConnectionTests: XCTestCase {
         let testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage)
 
         var connection = Connection(state: .open)
-        let returnedActionWithOpen = testHandler.withEnvironment(connection, for: \.connection).handle()
-        if case let .send(returnedMessageWithOpen) = returnedActionWithOpen {
-            XCTAssertEqual(returnedMessageWithOpen, openMessage)
-        } else {
-            XCTFail("Expected Action send(\(openMessage)), but was \(returnedActionWithOpen)")
+        connection.enterConnectionContext(with: testHandler) { handler in
+            let returnedActionWithOpen = handler.handle()
+            if case let .send(returnedMessageWithOpen) = returnedActionWithOpen {
+                XCTAssertEqual(returnedMessageWithOpen, openMessage)
+            } else {
+                XCTFail("Expected Action send(\(openMessage)), but was \(returnedActionWithOpen)")
+            }
         }
 
         connection.state = .end
-        let returnedActionWithEnd = testHandler.withEnvironment(connection, for: \.connection).handle()
-        if case let .final(returnedMessageWithEnd) = returnedActionWithEnd {
-            XCTAssertEqual(returnedMessageWithEnd, endMessage)
-        } else {
-            XCTFail("Expected Action final(\(openMessage)), but was \(returnedActionWithEnd)")
+        connection.enterConnectionContext(with: testHandler) { handler in
+            let returnedActionWithEnd = handler.handle()
+            if case let .final(returnedMessageWithEnd) = returnedActionWithEnd {
+                XCTAssertEqual(returnedMessageWithEnd, endMessage)
+            } else {
+                XCTFail("Expected Action final(\(endMessage)), but was \(returnedActionWithEnd)")
+            }
         }
     }
 }

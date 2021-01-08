@@ -1,6 +1,5 @@
 import XCTVapor
 @testable import Apodini
-import ProtobufferBuilder
 
 final class ProtobufferBuilderTests: XCTestCase {
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
@@ -34,7 +33,7 @@ extension ProtobufferBuilderTests {
             syntax = "proto3";
 
             service V1Service {
-              rpc handle (VoidMessage) returns (StringMessage);
+              rpc helloworld (VoidMessage) returns (StringMessage);
             }
 
             message StringMessage {
@@ -67,7 +66,7 @@ extension ProtobufferBuilderTests {
             syntax = "proto3";
 
             service V1Service {
-              rpc handle (StringMessage) returns (StringMessage);
+              rpc greeter (StringMessage) returns (StringMessage);
             }
 
             message StringMessage {

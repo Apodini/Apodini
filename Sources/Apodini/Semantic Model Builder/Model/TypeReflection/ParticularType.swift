@@ -1,17 +1,19 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Nityananda on 30.11.20.
 //
+
+import Foundation
 
 /// `ParticularType` encapsulates functionality around specific types that may be generic,
 /// or types that may be understood as _scalar_ or _primitive_.
 ///
 /// Particular: An antonym for generic.
-internal struct ParticularType {
+struct ParticularType {
     private let type: Any.Type
-    
+
     init(_ type: Any.Type) {
         self.type = type
     }
@@ -21,13 +23,15 @@ internal struct ParticularType {
 
 extension ParticularType: CustomStringConvertible {
     var description: String {
-        String("\(type)".prefix { $0 != "<" })
+        String("\(type)".prefix {
+            $0 != "<"
+        })
     }
-    
+
     var isArray: Bool {
         description == "Array"
     }
-    
+
     var isOptional: Bool {
         description == "Optional"
     }
@@ -39,11 +43,15 @@ extension ParticularType: Equatable {
     static func == (lhs: ParticularType, rhs: ParticularType) -> Bool {
         lhs.description == rhs.description
     }
-    
+
     var isPrimitive: Bool {
         supportedScalarTypes
             .map(ParticularType.init)
             .contains(self)
+    }
+
+    var isUUID: Bool {
+        ParticularType(UUID.self) == self
     }
 }
 

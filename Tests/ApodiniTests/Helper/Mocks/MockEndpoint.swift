@@ -27,4 +27,11 @@ extension Handler {
             parameters: parameterBuilder.parameters
         )
     }
+
+    func mockEndpoint(context: Context) -> Endpoint<Self> {
+        mockEndpoint(context: context,
+                     operation: .automatic,
+                     guards: [],
+                     responseTransformers: [])
+    }
 }
