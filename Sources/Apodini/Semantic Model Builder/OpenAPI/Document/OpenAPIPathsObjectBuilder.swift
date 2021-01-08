@@ -51,7 +51,7 @@ struct OpenAPIPathsObjectBuilder {
         var pathItem = pathsObject[path] ?? OpenAPI.PathItem()
 
         // Get `OpenAPI.HttpMethod` and `OpenAPI.Operation` from endpoint.
-        let httpMethod = endpoint.operation.openAPIHttpMethod
+        let httpMethod = OpenAPI.HttpMethod(endpoint.operation)
         let operation = buildPathItemOperationObject(from: endpoint)
         pathItem.set(operation: operation, for: httpMethod)
 
