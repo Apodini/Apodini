@@ -58,7 +58,7 @@ class GRPCService {
             // - 4 bytes:   big-endian; length of message
             precondition(data.count > 5,
                          "Remaining payload data not long enough to read message from")
-            let _ = data.popFirst() // ignore compressed byte
+            _ = data.popFirst() // ignore compressed byte
             let lengthBytes = [UInt8](data.prefix(4))
             let ulength = lengthBytes.reduce(0) { result, new in
                 result << 8 | UInt32(new)

@@ -16,7 +16,7 @@ extension GRPCService {
             var context = context
 
             let promise = request.eventLoop.makePromise(of: Vapor.Response.self)
-            var lastMessage: GRPCMessage? = nil
+            var lastMessage: GRPCMessage?
             request.body.drain { (bodyStream: BodyStreamResult) in
                 switch bodyStream {
                 case let .buffer(byteBuffer):
@@ -41,7 +41,7 @@ extension GRPCService {
                             // Discard any result that is received back from the handler;
                             // this is a client-streaming handler, thus we only send back
                             // a response in the .end case.
-                            let _ = context.handle(request: message, eventLoop: request.eventLoop, final: false)
+                            _ = context.handle(request: message, eventLoop: request.eventLoop, final: false)
                         })
                 case .end:
                     // send the previously retained lastMessage through the handler
@@ -74,7 +74,7 @@ extension GRPCService {
     /// - Parameters:
     ///     - endpoint: The name of the endpoint that should be exposed.
     func exposeClientStreamingEndpoint<C: ConnectionContext>(name endpoint: String,
-                                                   context: C) where C.Exporter == GRPCInterfaceExporter {
+                                                             context: C) where C.Exporter == GRPCInterfaceExporter {
         let path = [
             Vapor.PathComponent(stringLiteral: serviceName),
             Vapor.PathComponent(stringLiteral: endpoint)
