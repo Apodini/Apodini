@@ -138,7 +138,7 @@ class EndpointsTreeNode {
         var relationships: [EndpointRelationship] = []
         
         func collectRelationships(_ node: EndpointsTreeNode, name: String, _ relationships: inout [EndpointRelationship]) {
-            guard self.endpoints.isEmpty {
+            guard self.endpoints.isEmpty else {
                 relationships.append(EndpointRelationship(name: name, destinationPath: absolutePath))
                 return
             }
