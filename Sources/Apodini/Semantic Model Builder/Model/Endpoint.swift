@@ -234,20 +234,11 @@ extension EndpointsTreeNode {
             Array(root.children)
         }
         
-        let hashables: Node<[AnyHashableEndpoint]> = node
+        return node
             .map { node in
                 node.endpoints.values.map(AnyHashableEndpoint.init)
             }
-        
-        let set: Set<AnyHashableEndpoint> = hashables
-            .reduce(Set()) { (partialResults, next) in
-                var set = Set(next)
-                for result in partialResults {
-                    set.formUnion(result)
-                }
-                return set
-            }
-        
-        return set.map(\.endpoint)
+            .collect2()
+            .map(\.endpoint)
     }
 }

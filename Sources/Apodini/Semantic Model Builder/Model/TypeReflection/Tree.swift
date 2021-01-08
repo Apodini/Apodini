@@ -155,3 +155,25 @@ extension Node: CustomStringConvertible where T: CustomStringConvertible {
         lines.joined(separator: "\n")
     }
 }
+
+extension Node {
+    func collect() -> Set<T> where T: Hashable {
+        reduce(Set()) { (partialResults, next) in
+            var set = Set(arrayLiteral: next)
+            for result in partialResults {
+                set.formUnion(result)
+            }
+            return set
+        }
+    }
+    
+    func collect2<U>() -> Set<U> where T == Array<U>, U: Hashable {
+        reduce(Set()) { (partialResults, next) in
+            var set = Set(next)
+            for result in partialResults {
+                set.formUnion(result)
+            }
+            return set
+        }
+    }
+}
