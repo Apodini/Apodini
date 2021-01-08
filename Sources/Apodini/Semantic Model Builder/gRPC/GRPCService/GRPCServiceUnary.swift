@@ -14,10 +14,26 @@ extension GRPCService {
     -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> where C.Exporter == GRPCInterfaceExporter {
         { (request: Vapor.Request) in
             var context = context
+
+            if !self.checkContentType(request: request) {
+                return request.eventLoop.makeFailedFuture(GRPCError.unsupportedContentType(
+                    "Content type is currently not supported by Apodini GRPC exporter. Use Protobuffers instead."
+                ))
+            }
             
             let promise = request.eventLoop.makePromise(of: Vapor.Response.self)
             request.body.collect().whenSuccess { _ in
-                let response = context.handle(request: request)
+                guard let byteBuffer = request.body.data,
+                      let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
+                    return promise.fail(GRPCError.payloadReadError("Cannot read data from the request-payload"))
+                }
+
+                // retrieve all the GRPC messages that were delivered in the
+                // request payload. Since this is a unary endpointm, it
+                // should be one at max.
+                let message = self.getMessages(from: data).first ?? GRPCMessage(from: Data(), length: 0)
+
+                let response = context.handle(request: message, eventLoop: request.eventLoop, final: true)
                 let result = response.map { encodableAction -> Vapor.Response in
                     switch encodableAction {
                     case let .send(element),

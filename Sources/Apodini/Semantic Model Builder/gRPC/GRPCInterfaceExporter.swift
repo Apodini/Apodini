@@ -37,55 +37,67 @@ class GRPCInterfaceExporter: InterfaceExporter {
 
         // expose the new component via a GRPCService
         // currently unary enpoints are considered here
-        if let service = services[serviceName] {
-            service.exposeUnaryEndpoint(name: methodName, context: context)
+        let service: GRPCService
+        if let srvc = services[serviceName] {
+            service = srvc
         } else {
-            let service = GRPCService(name: serviceName, using: app)
-            service.exposeUnaryEndpoint(name: methodName, context: context)
+            service = GRPCService(name: serviceName, using: app)
             services[serviceName] = service
         }
-        
-        app.logger.info("Exported gRPC endpoint \(serviceName)/\(methodName) with parameters:")
+
+        if endpoint.serviceType == .unary {
+            service.exposeUnaryEndpoint(name: methodName, context: context)
+            app.logger.info("Exported unary gRPC endpoint \(serviceName)/\(methodName) with parameters:")
+        } else if endpoint.serviceType == .clientStreaming {
+            service.exposeClientStreamingEndpoint(name: methodName, context: context)
+            app.logger.info("Exported client-streaming gRPC endpoint \(serviceName)/\(methodName) with parameters:")
+        } else {
+            app.logger.warning("""
+                GRPC exporter currently only supports unary and client-streaming endpoints.
+                Defaulting to unary.
+                Exported unary gRPC endpoint \(serviceName)/\(methodName) with parameters:
+                """)
+            service.exposeUnaryEndpoint(name: methodName, context: context)
+        }
+
         for parameter in endpoint.parameters {
             app.logger.info("\t\(parameter.propertyType) \(parameter.name) = \(getFieldTag(for: parameter) ?? 0);")
         }
     }
 
     /// The GRPC exporter handles all parameters equally as body parameters
-    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Vapor.Request) throws -> Type?? {
-        let contentType = request.headers.first(name: .contentType)
-        switch contentType {
-        case "application/grpc", "application/grpc+proto":
-            guard let fieldTag = getFieldTag(for: parameter) else {
-                // If this occurs, something went fundamentally wrong in usage
-                // of the GRPC exporter.
-                // Each parameter should get a default field tag assigned
-                // above in the export() funtction.
-                fatalError("No default or explicit field tag available")
-            }
-            guard let data = bodyData(from: request) else {
-                throw GRPCError.decodingError("""
-                    No body data available to decode from.
-                    GRPC exporter expects all parameters to be in the body of the request.
-                    """)
-            }
+    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: GRPCMessage) throws -> Type?? {
+        guard let fieldTag = getFieldTag(for: parameter) else {
+            // If this occurs, something went fundamentally wrong in usage
+            // of the GRPC exporter.
+            // Each parameter should get a default field tag assigned
+            // above in the export() funtction.
+            fatalError("No default or explicit field tag available")
+        }
 
-            do {
-                let result: Type = try decodeParameter(from: data, with: fieldTag)
-                return result
-            } catch {
-                // Decoding fails if the parameter is not present
-                // in the payload.
-                // Not-presence of non-optional parameters is
-                // handled in shared model, so we do not care here.
-                return nil
-            }
-        default:
-            // GRPC theoretically would also allow for other
-            // types of payload formats, e.g. JSON.
-            throw GRPCError.unsupportedContentType(
-                "Content type \(contentType ?? "") is currently not supported by Apodini GRPC exporter"
-            )
+        if request.data.count == 0 {
+            throw GRPCError.decodingError("""
+                No body data available to decode from.
+                GRPC exporter expects all parameters to be in the body of the request.
+                """)
+        }
+
+        do {
+            // we need to wrap the type into a struct to
+            // actually have a messsage.
+            let wrappedType = RequestWrapper<Type>.self
+            // set the fieldNumber to the one annotated at the
+            // parameter, or use default interference if none is
+            // annotated at the parameter.
+            FieldNumber.setFieldNumber(fieldTag)
+            let wrappedDecoded = try ProtoDecoder().decode(wrappedType, from: request.data)
+            return wrappedDecoded.request
+        } catch {
+            // Decoding fails if the parameter is not present
+            // in the payload.
+            // Not-presence of non-optional parameters is
+            // handled in shared model, so we do not care here.
+            return nil
         }
     }
 }
@@ -93,44 +105,11 @@ class GRPCInterfaceExporter: InterfaceExporter {
 // MARK: Parameter retrieval utility
 
 extension GRPCInterfaceExporter {
-    /// Returns the data contained in the body of the GRPC request.
-    private func bodyData(from request: Vapor.Request) -> Data? {
-        guard let byteBuffer = request.body.data else {
-            print("Cannot read body data.")
-            return nil
-        }
-        return byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes)
-    }
-
     /// Retrieves explicitly provided Protobuffer field tag, if exists,
     /// or uses default field tag that was generated in `export()`.
     /// - Parameter parameter: The `AnyEndpointParameter` to get the Protobuffer field-tag for.
     private func getFieldTag(for parameter: AnyEndpointParameter) -> Int? {
         parameter.options.option(for: .gRPC)?.fieldNumber ?? parameters[parameter.id]
-    }
-
-    private func decodeParameter<T: Decodable>(from data: Data, with fieldTag: Int) throws -> T {
-        // data has to be longer than 5 bytes, because
-        // the first 5 bytes are prefix (see comment below)
-        if data.count <= 5 {
-            throw GRPCError.decodingError("Data was to short to decode a message from")
-        }
-        // https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md
-        // A message is prefixed by
-        // - 1 byte:    compressed (true / false)
-        // - 4 bytes:   big-endian; length of message
-        // Hence, we cut those 5 bytes to be able to decode
-        // the message itself
-        let message = data.subdata(in: 5 ..< data.count)
-        // we need to wrap the type into a struct to
-        // actually have a messsage.
-        let wrappedType = RequestWrapper<T>.self
-        // set the fieldNumber to the one annotated at the
-        // parameter, or use default interference if none is
-        // annotated at the parameter.
-        FieldNumber.setFieldNumber(fieldTag)
-        let wrappedDecoded = try ProtoDecoder().decode(wrappedType, from: message)
-        return wrappedDecoded.request
     }
 }
 

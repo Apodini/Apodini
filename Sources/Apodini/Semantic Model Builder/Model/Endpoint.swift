@@ -20,6 +20,10 @@ protocol AnyEndpoint: CustomStringConvertible {
 
     var operation: Operation { get }
 
+    /// The communication pattern that is expressed
+    /// by this endpoint.
+    var serviceType: ServiceType { get }
+
     /// Type returned by `Component.handle(...)`
     var handleReturnType: Encodable.Type { get }
     /// Response type ultimately returned by `Component.handle(...)` and possible following `ResponseTransformer`s
@@ -58,6 +62,8 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     let context: Context
     
     let operation: Operation
+
+    let serviceType: ServiceType
     
     let handleReturnType: Encodable.Type
     let responseType: Encodable.Type
@@ -81,6 +87,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         handler: H,
         context: Context = Context(contextNode: ContextNode()),
         operation: Operation = .automatic,
+        serviceType: ServiceType = .unary,
         guards: [LazyGuard] = [],
         responseTransformers: [() -> (AnyResponseTransformer)] = [],
         parameters: [AnyEndpointParameter] = []
@@ -90,6 +97,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         self.handler = handler
         self.context = context
         self.operation = operation
+        self.serviceType = serviceType
         self.handleReturnType = H.Response.self
         self.guards = guards
         self.responseTransformers = responseTransformers

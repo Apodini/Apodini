@@ -101,12 +101,17 @@ struct TestWebService: Apodini.WebService {
             TraditionalGreeter()
                 .serviceName("GreetService")
                 .rpcName("greetMe")
+                .serviceType(.clientStreaming)
                 .response(EmojiMediator())
         }
         Group("user", $userId) {
             UserHandler(userId: $userId)
                 .guard(PrintGuard())
         }
+    }
+
+    var configuration: Configuration {
+        HTTP2Configuration()
     }
 }
 

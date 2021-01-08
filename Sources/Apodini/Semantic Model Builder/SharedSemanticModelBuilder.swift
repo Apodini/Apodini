@@ -59,6 +59,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
         super.register(handler: handler, withContext: context)
         
         let operation = context.get(valueFor: OperationContextKey.self)
+        let serviceType = context.get(valueFor: ServiceTypeContextKey.self)
         var paths = context.get(valueFor: PathComponentContextKey.self)
         let guards = context.get(valueFor: GuardContextKey.self).allActiveGuards
         let responseTransformers = context.get(valueFor: ResponseContextKey.self)
@@ -86,6 +87,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
             handler: handler,
             context: context,
             operation: operation,
+            serviceType: serviceType,
             guards: guards,
             responseTransformers: responseTransformers,
             parameters: parameterBuilder.parameters
