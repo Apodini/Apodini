@@ -7,7 +7,6 @@ import Fluent
 @testable import ApodiniDatabase
 
 final class DatabaseHandlerTests: ApodiniTests {
-    
     private func pathParameter(for handler: Any) throws -> Parameter<UUID> {
         let mirror = Mirror(reflecting: handler)
         let parameter = mirror.children.compactMap { $0.value as? Parameter<UUID> }.first

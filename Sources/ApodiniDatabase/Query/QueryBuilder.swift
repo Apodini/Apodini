@@ -105,7 +105,9 @@ internal struct QueryBuilder<Model: DatabaseModel> {
                 .replacingOccurrences(of: "<", with: "")
                 .replacingOccurrences(of: " ", with: "")
                 .replacingOccurrences(of: ">", with: "")
-                .split(separator: ",").map({ String($0) }).last else {
+                .split(separator: ",")
+                .map({ String($0) })
+                .last else {
             return String.self
         }
         switch fieldTypeString {
