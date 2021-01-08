@@ -63,7 +63,7 @@ final class EnvironmentTests: ApodiniTests {
         // inject the dynamic value via the .withEnvironment
         let response: String = request.enterRequestContext(with: handler) { handler in
             handler
-                .environment(dynamicBirdFacts, for: \.birdFacts)
+                .environment(dynamicBirdFacts, for: \EnvironmentValues.birdFacts)
                 .handle()
         }
 
@@ -98,6 +98,13 @@ final class EnvironmentTests: ApodiniTests {
 
         XCTAssertEqual(response, BirdFacts().someFact)
     }
+    
+    func testCustomEnvironment() throws {
+        XCTAssertRuntimeFailure(EnvironmentValues.shared[\KeyStore.test])
+        
+        EnvironmentValues.shared.values[ObjectIdentifier(\KeyStore.test)] = "Bird"
+        XCTAssert(EnvironmentValues.shared[\KeyStore.test] == "Bird")
+    }
 }
 
 class BirdFacts {
@@ -115,4 +122,8 @@ extension EnvironmentValues {
         get { self[BirdFactsEnvironmentKey.self] }
         set { self[BirdFactsEnvironmentKey.self] = newValue }
     }
+}
+
+struct KeyStore: ApodiniKeys {
+    var test: String
 }

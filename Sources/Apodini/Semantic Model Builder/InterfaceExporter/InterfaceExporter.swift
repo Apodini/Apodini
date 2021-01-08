@@ -7,7 +7,7 @@ import protocol NIO.EventLoop
 import protocol FluentKit.Database
 
 /// The Protocol any Exporter Request type must conform to
-protocol ExporterRequest {}
+protocol ExporterRequest: Reducible {}
 
 /// When your `ExporterRequest` conforms to this protocol, it indicates that it delivers
 /// its own `EventLoop` out of the box. Having that conformance you can use a shorthand

@@ -33,14 +33,3 @@ struct AnyEncodable: Encodable {
         try self.value.encode(to: encoder)
     }
 }
-
-
-protocol Reducible {
-    func reduce(to new: Self) -> Self
-}
-
-extension Reducible {
-    func reduce(to new: Self) -> Self {
-        new
-    }
-}

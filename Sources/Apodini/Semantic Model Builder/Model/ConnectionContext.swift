@@ -9,6 +9,17 @@ import Foundation
 @_implementationOnly import Vapor
 @_implementationOnly import Fluent
 
+/// An object that can merge itself and a `new` element
+/// of same type.
+protocol Reducible {
+    func reduce(to new: Self) -> Self
+}
+
+extension Reducible {
+    func reduce(to new: Self) -> Self {
+        new
+    }
+}
 
 /// `ConnectionContext` holds the internal state of an endpoint for one connection
 /// in a format suitable for a specific `InterfaceExporter`.

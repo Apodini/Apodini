@@ -71,7 +71,7 @@ extension Connection {
     }
     
     private func update<E>(_ element: inout E) {
-        apply({ (environment: inout Environment<Connection>) in
+        apply({ (environment: inout Environment<EnvironmentValues, Connection>) in
             environment.setValue(self, for: \.connection)
         }, to: &element)
     }
@@ -79,10 +79,10 @@ extension Connection {
 
 // MARK: Dynamic Environment Value
 extension Handler {
-    func environment<Value>(_ value: Value, for keyPath: WritableKeyPath<EnvironmentValues, Value>) -> Self {
+    func environment<K: ApodiniKeys, Value>(_ value: Value, for keyPath: WritableKeyPath<K, Value>) -> Self {
         var selfCopy = self
         
-        apply({ (environment: inout Environment<Value>) in
+        apply({ (environment: inout Environment<K, Value>) in
             environment.setValue(value, for: keyPath)
         }, to: &selfCopy)
         
