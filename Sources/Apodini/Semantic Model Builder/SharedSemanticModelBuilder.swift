@@ -20,7 +20,7 @@ class WebServiceModel {
         root.relationships
     }
     
-    fileprivate func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, at paths: [PathComponent]) {
+    func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, at paths: [PathComponent]) {
         var context = EndpointInsertionContext(pathComponents: paths)
         context.assertRootPath()
 

@@ -69,7 +69,7 @@ struct PathModelBuilder: PathComponentParser {
         if let optionalParameter = parameter as? EncodeOptionalPathParameter {
             pathParameter = optionalParameter.createPathParameterWithWrappedType(id: parameter.id)
         } else {
-            pathParameter = EndpointPathParameter<Type>(id: parameter.id, nilIsValidValue: false)
+            pathParameter = EndpointPathParameter<Type>(id: parameter.id)
         }
 
         results.append(

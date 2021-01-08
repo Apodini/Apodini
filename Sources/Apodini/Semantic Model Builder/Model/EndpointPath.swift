@@ -141,7 +141,7 @@ struct EndpointPathParameter<Type: Codable>: AnyEndpointPathParameter {
     }
     private var storedName: String?
 
-    init(id: UUID, nilIsValidValue: Bool) {
+    init(id: UUID, nilIsValidValue: Bool = false) {
         self.id = id
         self.nilIsValidValue = nilIsValidValue
     }
