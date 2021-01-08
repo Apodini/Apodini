@@ -47,9 +47,9 @@ public struct EnvironmentValues {
 public struct Environment<K: ApodiniKeys, Value>: Property {
     /// Keypath to access an `EnvironmentValue`.
     internal var keyPath: KeyPath<K, Value>
-    internal var dynamicValues: [ObjectIdentifier: Any] = [:]
-    
-    /// Initializer of `Environment` for `EnvironmentValues`.
+    internal var dynamicValues: [KeyPath<K, Value>: Any] = [:]
+  
+    /// Initializer of `Environment` specifically for `EnvironmentValues` for less verbose syntax.
     public init(_ keyPath: KeyPath<K, Value>) where K == EnvironmentValues {
         self.keyPath = keyPath
     }
@@ -61,7 +61,7 @@ public struct Environment<K: ApodiniKeys, Value>: Property {
     
     /// The current value of the environment property.
     public var wrappedValue: Value {
-        if let value = dynamicValues[ObjectIdentifier(keyPath)] as? Value {
+        if let value = dynamicValues[keyPath] as? Value {
             return value
         }
         if let key = keyPath as? KeyPath<EnvironmentValues, Value> {
@@ -71,30 +71,8 @@ public struct Environment<K: ApodiniKeys, Value>: Property {
     }
 
     /// Sets the value for the given KeyPath.
-    mutating func setValue(_ value: Value, for keyPath: WritableKeyPath<EnvironmentValues, Value>) {
-        self.dynamicValues[ObjectIdentifier(keyPath)] = value
-    }
-}
-
-extension Component {
-    /// Sets the value for the given key-path
-    /// on properties of this `Component`
-    /// annotated with `@Environment`.
-    func withEnvironment<Value>(_ value: Value, for keyPath: WritableKeyPath<EnvironmentValues, Value>) -> Self {
-        var selfRef = self
-        do {
-            let info = try typeInfo(of: type(of: self))
-
-            for property in info.properties {
-                if var child = (try property.get(from: selfRef)) as? Environment<EnvironmentValues, Value> {
-                    child.setValue(value, for: keyPath)
-                    try property.set(value: child, on: &selfRef)
-                }
-            }
-        } catch {
-            print(error)
-        }
-        return selfRef
+    mutating func setValue(_ value: Value, for keyPath: WritableKeyPath<K, Value>) {
+        self.dynamicValues[keyPath] = value
     }
 }
 

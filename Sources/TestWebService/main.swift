@@ -35,7 +35,7 @@ struct TestWebService: Apodini.WebService {
             "\(emojis) \(response) \(emojis)"
         }
     }
-
+    
 
     struct TraditionalGreeter: Handler {
         // one cannot change their gender, it must be provided
@@ -44,12 +44,19 @@ struct TestWebService: Apodini.WebService {
         @Parameter(.mutability(.constant)) var surname: String = ""
         // one can switch between formal and informal greeting at any time
         @Parameter var name: String?
+        
+        @Environment(\.connection) var connection: Connection
 
-        func handle() -> String {
+        func handle() -> Action<String> {
+            print(connection.state)
+            if connection.state == .end {
+                return .end
+            }
+
             if let firstName = name {
-                return "Hi, \(firstName)!"
+                return .send("Hi, \(firstName)!")
             } else {
-                return "Hello, \(gender == "male" ? "Mr." : "Mrs.") \(surname)"
+                return .send("Hello, \(gender == "male" ? "Mr." : "Mrs.") \(surname)")
             }
         }
     }

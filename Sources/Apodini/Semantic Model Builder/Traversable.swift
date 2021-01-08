@@ -35,12 +35,58 @@ extension Apodini.Request {
         return method(element)
     }
     
-    private func inject<E>(in element: inout E) {
+    fileprivate func inject<E>(in element: inout E) {
         // Inject all properties that can be injected using RequestInjectable
         
         apply({ (requestInjectable: inout RequestInjectable) in
             requestInjectable.inject(using: self)
         }, to: &element)
+    }
+}
+
+// MARK: ConnectionContext
+
+extension Connection {
+    func enterConnectionContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>)
+    -> EventLoopFuture<R> {
+        var element = element
+        
+        if let request = self.request {
+            request.inject(in: &element)
+        }
+        
+        self.update(&element)
+        return method(element)
+    }
+    
+    func enterConnectionContext<E, R>(with element: E, executing method: (E) -> R) -> R {
+        var element = element
+        
+        if let request = self.request {
+            request.inject(in: &element)
+        }
+        
+        self.update(&element)
+        return method(element)
+    }
+    
+    private func update<E>(_ element: inout E) {
+        apply({ (environment: inout Environment<EnvironmentValues, Connection>) in
+            environment.setValue(self, for: \.connection)
+        }, to: &element)
+    }
+}
+
+// MARK: Dynamic Environment Value
+extension Handler {
+    func environment<K: ApodiniKeys, Value>(_ value: Value, for keyPath: WritableKeyPath<K, Value>) -> Self {
+        var selfCopy = self
+        
+        apply({ (environment: inout Environment<K, Value>) in
+            environment.setValue(value, for: keyPath)
+        }, to: &selfCopy)
+        
+        return selfCopy
     }
 }
 
