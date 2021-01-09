@@ -53,6 +53,18 @@ final class EndpointsTreeTests: ApodiniTests {
                 .joined(separator: " ")
         }
     }
+
+    struct TestHandler2: Handler {
+        @Parameter(.http(.path))
+        var secondName: String
+        var nameParameter: Parameter<String> {
+            _secondName
+        }
+
+        func handle() -> String {
+            "Hello \(secondName)"
+        }
+    }
     
     struct TestComponent: Component {
         @PathParameter
@@ -101,6 +113,37 @@ final class EndpointsTreeTests: ApodiniTests {
         // swiftlint:disable:next force_cast
         XCTAssertEqual(timesParameter.typeErasuredDefaultValue as! Int?, 1)
         XCTAssertNil(nameParameter.typeErasuredDefaultValue)
+    }
+
+    func testOverwriteEndpoint() throws {
+        let endpointTreeNode = EndpointsTreeNode(path: RootPath())
+        let comp = TestHandler()
+        var endpoint1 = comp.mockEndpoint()
+        endpointTreeNode.addEndpoint(&endpoint1, at: ["test"])
+
+        XCTAssertRuntimeFailure(endpointTreeNode.addEndpoint(&endpoint1, at: ["test"]))
+    }
+
+    func testAddEndpointWithWrongParameterKind() throws {
+        let endpointTreeNode = EndpointsTreeNode(path: RootPath())
+        let param = Parameter<String>(.http(.query))
+        let comp = TestHandler(name: param)
+        var endpoint1 = comp.mockEndpoint()
+
+        XCTAssertRuntimeFailure(endpointTreeNode.addEndpoint(&endpoint1, at: ["test", param]))
+    }
+
+    func testAddEndpointWithPathCollision() throws {
+        let endpointTreeNode = EndpointsTreeNode(path: RootPath())
+        let param1 = Parameter<String>(from: UUID())
+        let comp = TestHandler(name: param1)
+        let param2 = Parameter<String>(from: UUID())
+        let comp2 = TestHandler2(secondName: param2)
+        var endpoint1 = comp.mockEndpoint()
+        var endpoint2 = comp2.mockEndpoint()
+        endpointTreeNode.addEndpoint(&endpoint1, at: ["test", param1])
+
+        XCTAssertRuntimeFailure(endpointTreeNode.addEndpoint(&endpoint2, at: ["test", param2]))
     }
 
     func testRequestHandler() throws {
