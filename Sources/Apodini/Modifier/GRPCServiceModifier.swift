@@ -5,12 +5,8 @@
 //  Created by Moritz Schüll on 04.12.20.
 //
 
-struct GRPCServiceNameContextKey: ContextKey {
-    static var defaultValue = ""
-
-    static func reduce(value: inout String, nextValue: () -> String) {
-        value = nextValue()
-    }
+struct GRPCServiceNameContextKey: OptionalContextKey {
+    typealias Value = String
 }
 
 public struct GRPCServiceModifier<H: Handler>: HandlerModifier {

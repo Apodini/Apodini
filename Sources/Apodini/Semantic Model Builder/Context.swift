@@ -18,4 +18,8 @@ class Context {
     func get<C: ContextKey>(valueFor contextKey: C.Type = C.self) -> C.Value {
         contextNode.getContextValue(for: contextKey)
     }
+
+    func get<C: OptionalContextKey>(valueFor contextKey: C.Type = C.self) -> C.Value? {
+        contextNode.getContextValue(for: contextKey)
+    }
 }

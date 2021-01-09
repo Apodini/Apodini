@@ -21,10 +21,6 @@ public enum Operation {
 
 struct OperationContextKey: ContextKey {
     static var defaultValue: Operation = .automatic
-    
-    static func reduce(value: inout Operation, nextValue: () -> Operation) {
-        value = nextValue()
-    }
 }
 
 

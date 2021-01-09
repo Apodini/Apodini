@@ -28,21 +28,34 @@ class ContextNode {
             ?? getGlobalContextValue(for: contextKey)
             ?? C.defaultValue
     }
+
+    func getContextValue<C: OptionalContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
+        getNodeOnlyContextValue(for: contextKey)
+            ?? getGlobalContextValue(for: contextKey)
+    }
     
-    private func getNodeOnlyContextValue<C: ContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
+    private func getNodeOnlyContextValue<C: OptionalContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
         nodeOnlyContext[ObjectIdentifier(contextKey)] as? C.Value
     }
     
-    private func getNodeContextValue<C: ContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
+    private func getNodeContextValue<C: OptionalContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
         context[ObjectIdentifier(contextKey)] as? C.Value
     }
     
-    private func getGlobalContextValue<C: ContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
+    private func getGlobalContextValue<C: OptionalContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
         getNodeContextValue(for: contextKey) ?? parentContextNode?.getGlobalContextValue(for: contextKey)
     }
     
-    func addContext<C: ContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
-        var newValue: C.Value
+    func addContext<C: OptionalContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
+        let newValue: C.Value
+
+        if C.Value.self is ExpressibleByNilLiteral.Type {
+            // TODO is there a compile time way to do this?
+            fatalError("""
+                       The `Value` type of a `ContextKey` or `OptionalContextKey` must not be a `Optional` type.
+                       Found \(C.Value.self) as `Value` type for key \(C.self).
+                       """)
+        }
         
         if let currentLocalValue = getNodeOnlyContextValue(for: C.self) ?? getNodeContextValue(for: C.self) {
             // Already existing values in the ContextNode have a higher priority as the modifier for a
@@ -72,13 +85,20 @@ class ContextNode {
             }
             newValue = contextValue
         } else {
-            // If there is no value in the local ContextNode nor in the global context we use the default value
-            // as the old value and the new value as the newValue in the reduce function call.
-            var defaultValue = C.defaultValue
-            C.reduce(value: &defaultValue) {
-                value
+            if let type = contextKey as? ContextKeyWithDefault.Type {
+                // If there is no value in the local ContextNode nor in the global context we use the default value
+                // as the old value and the new value as the newValue in the reduce function call.
+
+                var defaultValue: C.Value = type.getDefaultValue()
+                C.reduce(value: &defaultValue) {
+                    value
+                }
+                newValue = defaultValue
+            } else {
+                // we have a OptionalContextKey, there is no defaultValue with can reduce into
+                // thus we just store the supplied value
+                newValue = value
             }
-            newValue = defaultValue
         }
         
         switch scope {
@@ -98,5 +118,21 @@ class ContextNode {
     func resetContextNode() {
         nodeOnlyContext = [:]
         context = [:]
+    }
+}
+
+// MARK: Helpers to retrieve default value
+
+private protocol ContextKeyWithDefault {
+    static func getDefaultValue<Value>() -> Value
+}
+
+private extension ContextKey {
+    static func getDefaultValue<DefaultValue>() -> DefaultValue {
+        if let value = defaultValue as? DefaultValue {
+            return value
+        }
+
+        fatalError("Failed to cast ContextKey.Value \(Value.self) to expected DefaultValue \(DefaultValue.self)")
     }
 }
