@@ -96,9 +96,8 @@ struct TestWebService: Apodini.WebService {
         @Parameter var userId: Int
         @Parameter var userName: String?
 
-        func handle() -> String {
-            return "Hello there, \(userName ?? "Ekin") - \(userId)"
-//            User(id: userId)
+        func handle() -> User {
+            User(id: userId, name: userName ?? "asdf")
         }
     }
 
@@ -110,7 +109,7 @@ struct TestWebService: Apodini.WebService {
 //            .response(EmojiMediator())
 //            .guard(PrintGuard())
         Group("Desc") {
-            Text("123123")
+            Text("123123").response(EmojiMediator(emojis: "🎉")).response(EmojiMediator())
         }
         Group("swift") {
             Group("FavCount") {
@@ -139,7 +138,7 @@ struct TestWebService: Apodini.WebService {
         Group("Users") {
             Group("user", $userId) {
                 UserHandler(userId: $userId)
-                // .guard(PrintGuard())
+                        // .guard(PrintGuard())
             }
         }
     }

@@ -5,6 +5,8 @@
 @_implementationOnly import Vapor
 import GraphQL
 
+// TODO: Struct -> graphOBJect isntead of string
+
 // GraphQL EventLoop return handler
 let GraphQLEventLoop = try! GraphQLScalarType(
         name: "EventLoop",
@@ -63,10 +65,11 @@ struct GraphQLResponseContainer: Encodable {
         self.data = data
     }
 
-    func encodeResponse() -> String {
-        if let stringData = data?.value as? String {
+    func encodeResponse(with responseTransformers: [AnyResponseTransformer]) -> String {
+        if let stringData = self.data?.value as? String {
             return stringData
         }
+
 
         let jsonEncoder = JSONEncoder()
         jsonEncoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
@@ -74,13 +77,20 @@ struct GraphQLResponseContainer: Encodable {
         var response = String()
         do {
             if let currentData = self.data {
-                print("Current data is ", currentData.value)
-                let encodedData = try jsonEncoder.encode(currentData)
+                var transformedData = currentData
+                for rt in responseTransformers {
+                    transformedData = AnyEncodable(value: rt.transform(response: transformedData))
+                }
+
+                // print("Current data is ", transformedData.value)
+                let encodedData = try jsonEncoder.encode(transformedData)
                 response = String(data: encodedData, encoding: .utf8)!
             }
         } catch {
             response = "Error happened in the data encoding!"
         }
+
+
         return response
     }
 }
@@ -96,8 +106,9 @@ class GraphQLSchemaBuilder {
     private var types = [String: GraphQLObjectType]()
     private var fields = [String: GraphQLField]()
     private var args = [String: [String: GraphQLArgument]]()
+    private var responseTransformers = [String: [AnyResponseTransformer]]()
 
-    private func graphQLFieldCreator(for responseType: Encodable.Type, with context: AnyConnectionContext<GraphQLInterfaceExporter>, with args: [String: GraphQLArgument]) -> GraphQLField {
+    private func graphQLFieldCreator(for responseType: Encodable.Type, _ context: AnyConnectionContext<GraphQLInterfaceExporter>, _ args: [String: GraphQLArgument], _ responseTransformers: [AnyResponseTransformer]) -> GraphQLField {
         var mutableContext = context
         return GraphQLField(type: GraphQLEventLoop, args: args, resolve: { gSource, gArgs, gContext, gInfo in
             let request = GraphQLRequest(source: gSource, args: gArgs, context: gContext, info: gInfo)
@@ -108,7 +119,7 @@ class GraphQLSchemaBuilder {
                 switch encodableAction {
                 case let .send(element),
                      let .final(element):
-                    return GraphQLResponseContainer(element).encodeResponse()
+                    return GraphQLResponseContainer(element).encodeResponse(with: responseTransformers)
                 case .nothing, .end:
                     return "EMPTY?"
                 }
@@ -142,6 +153,13 @@ class GraphQLSchemaBuilder {
 
         // Get leaf name
         let leafName = currentPath.last ?? "None"
+
+        // Handle response transformer
+        self.responseTransformers[leafName] = endpoint.responseTransformers.map {
+            $0()
+        }
+
+        // Handle arguments
         for p in endpoint.parameters {
             let graphqlType = graphqlTypeMap(with: p.propertyType)
             if (p.necessity == .required) {
@@ -154,7 +172,10 @@ class GraphQLSchemaBuilder {
 
         // Handle Single points
         if (currentPath.count == 1) {
-            self.fields[leafName] = self.graphQLFieldCreator(for: endpoint.responseType, with: context, with: self.args[leafName] ?? [:])
+            self.fields[leafName] = self.graphQLFieldCreator(for: endpoint.responseType,
+                    context,
+                    self.args[leafName] ?? [:],
+                    self.responseTransformers[leafName] ?? [])
             return
         }
 
@@ -194,7 +215,10 @@ class GraphQLSchemaBuilder {
 
             return GraphQLField(type: self.types[nodeName]!, resolve: { _, _, _, _ in "Emtpy" })
         } else {
-            return self.graphQLFieldCreator(for: self.leafHandlerResponseType[node]!, with: self.leafHandler[node]!, with: self.args[node] ?? [:])
+            return self.graphQLFieldCreator(for: self.leafHandlerResponseType[node]!,
+                    self.leafHandler[node]!,
+                    self.args[node] ?? [:],
+                    self.responseTransformers[node] ?? [])
         }
     }
 

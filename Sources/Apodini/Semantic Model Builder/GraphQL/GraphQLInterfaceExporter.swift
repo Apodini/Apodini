@@ -41,13 +41,53 @@ class GraphQLInterfaceExporter: InterfaceExporter {
         self.app = app
 
         // For Query
-        app.post("graphql", use: graphql_server)
-
-        // TODO: app.get("graphql") -> For graphql interface
+        app.post("graphql", use: self.graphqlServer)
+        app.get("graphql", use: self.graphQLIDE)
     }
 
+    private func graphQLIDE(_ _: Vapor.Request) -> Response {
+        let html: Response.Body = """
+                                  <html>
+                                    <head>
+                                      <title>GraphiQL</title>
+                                      <link href="https://unpkg.com/graphiql/graphiql.min.css" rel="stylesheet" />
+                                    </head>
+                                    <body style="margin: 0;">
+                                      <div id="graphiql" style="height: 100vh;"></div>
+                                      <script
+                                        crossorigin
+                                        src="https://unpkg.com/react/umd/react.production.min.js"
+                                      ></script>
+                                      <script
+                                        crossorigin
+                                        src="https://unpkg.com/react-dom/umd/react-dom.production.min.js"
+                                      ></script>
+                                      <script
+                                        crossorigin
+                                        src="https://unpkg.com/graphiql/graphiql.min.js"
+                                      ></script>
+                                      <script>
+                                        const graphQLFetcher = graphQLParams =>
+                                          fetch('/graphql', {
+                                            method: 'post',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify(graphQLParams),
+                                          })
+                                            .then(response => response.json())
+                                            .catch(() => response.text());
+                                        ReactDOM.render(
+                                          React.createElement(GraphiQL, { fetcher: graphQLFetcher }),
+                                          document.getElementById('graphiql'),
+                                        );
+                                      </script>
+                                    </body>
+                                  </html>
+                                  """
 
-    private func graphql_server(_ req: Vapor.Request) throws -> EventLoopFuture<String> {
+        return Response(status: .ok, headers: ["Content-Type": "text/html"], body: html)
+    }
+
+    private func graphqlServer(_ req: Vapor.Request) throws -> EventLoopFuture<String> {
         guard let body = req.body.string else {
             throw NetworkError.noBody
         }
@@ -81,6 +121,7 @@ class GraphQLInterfaceExporter: InterfaceExporter {
 
     }
 
+    // We should have parameter for the result struct values and paramters
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         self.graphQLPath.append(for: endpoint, with: endpoint.createConnectionContext(for: self))
     }
