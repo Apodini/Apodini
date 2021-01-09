@@ -69,7 +69,7 @@ extension ConnectionContext {
     }
 }
 
-struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionContext where I.ExporterRequest: Reducible {
+struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionContext {
     typealias Exporter = I
     
     private let exporter: I

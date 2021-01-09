@@ -11,7 +11,7 @@
 import OpenCombine
 @_implementationOnly import Runtime
 
-extension SomeInput: ExporterRequest, Reducible {
+extension SomeInput: ExporterRequest {
     func reduce(to new: SomeInput) -> SomeInput {
         var newParameters: [String: InputParameter] = [:]
         for (name, value) in new.parameters {

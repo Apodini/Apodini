@@ -36,7 +36,7 @@ protocol AnyEndpoint: CustomStringConvertible {
 
     func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput
 
-    func createConnectionContext<I: InterfaceExporter>(for exporter: I) -> AnyConnectionContext<I> where I.ExporterRequest: Reducible
+    func createConnectionContext<I: InterfaceExporter>(for exporter: I) -> AnyConnectionContext<I>
     
     func findParameter(for id: UUID) -> AnyEndpointParameter?
     
@@ -106,7 +106,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         exporter.export(self)
     }
     
-    func createConnectionContext<I: InterfaceExporter>(for exporter: I) -> AnyConnectionContext<I> where I.ExporterRequest: Reducible {
+    func createConnectionContext<I: InterfaceExporter>(for exporter: I) -> AnyConnectionContext<I> {
         InternalConnectionContext(for: exporter, on: self).eraseToAnyConnectionContext()
     }
 
