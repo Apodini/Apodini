@@ -8,7 +8,7 @@ import NIO
 
 class WebServiceModel {
     fileprivate let root = EndpointsTreeNode(path: .root)
-    fileprivate var finishedParsing = false
+    private var finishedParsing = false
     
     lazy var rootEndpoints: [AnyEndpoint] = {
         if !finishedParsing {
@@ -18,6 +18,11 @@ class WebServiceModel {
     }()
     var relationships: [EndpointRelationship] {
         root.relationships
+    }
+
+    func finish() {
+        finishedParsing = true
+        root.finish()
     }
     
     func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, at paths: [PathComponent]) {
@@ -83,7 +88,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
     override func finishedRegistration() {
         super.finishedRegistration()
         
-        webService.finishedParsing = true
+        webService.finish()
         
         webService.root.printTree() // currently only for debugging purposes
 

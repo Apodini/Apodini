@@ -41,6 +41,8 @@ protocol AnyEndpoint: CustomStringConvertible {
     func findParameter(for id: UUID) -> AnyEndpointParameter?
     
     func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput]
+
+    mutating func finished(at treeNode: EndpointsTreeNode)
 }
 
 
@@ -103,9 +105,12 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         self.parameters = handler.buildParametersModel()
     }
 
-    fileprivate mutating func onInserted(at treeNode: EndpointsTreeNode) {
+    fileprivate mutating func inserted(at treeNode: EndpointsTreeNode) {
         self.treeNode = treeNode
         self.storedAbsolutePath = treeNode.absolutePath.scoped(on: self)
+    }
+
+    mutating func finished(at treeNode: EndpointsTreeNode) {
         self.storedRelationship = treeNode.relationships.scoped(on: self)
     }
     
@@ -142,6 +147,8 @@ class EndpointsTreeNode {
     /// B can't have any other children besides A that also have an `PathParameter` at the same location.
     /// Thus we mark `childContainsPathParameter` to true as soon as we insert a `PathParameter` as a child.
     private var childContainsPathParameter = false
+
+    private var finishedConstruction = false
     
     lazy var absolutePath: [EndpointPath] = {
         var absolutePath: [EndpointPath] = []
@@ -150,6 +157,10 @@ class EndpointsTreeNode {
     }()
     
     lazy var relationships: [EndpointRelationship] = {
+        guard finishedConstruction else {
+            fatalError("Constructed endpoint relationships although the tree wasn't finished parsing!")
+        }
+
         var relationships: [EndpointRelationship] = []
         
         for (path, child) in nodeChildren {
@@ -162,6 +173,19 @@ class EndpointsTreeNode {
     init(path: EndpointPath, parent: EndpointsTreeNode? = nil) {
         self.path = path
         self.parent = parent
+    }
+
+    /// This method is called once the tree structure is built completely.
+    /// At this point one can safely construct any relationships between nodes.
+    func finish() {
+        finishedConstruction = true
+        for key in endpoints.keys {
+            endpoints[key]?.finished(at: self)
+        }
+
+        for child in children {
+            child.finish()
+        }
     }
     
     func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, context: inout EndpointInsertionContext) {
@@ -181,7 +205,7 @@ class EndpointsTreeNode {
             precondition(endpoints[endpoint.operation] == nil, "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)")
             precondition(endpoint.treeNode == nil, "The endpoint \(endpoint.description) is already inserted at some different place")
 
-            endpoint.onInserted(at: self)
+            endpoint.inserted(at: self)
             endpoints[endpoint.operation] = endpoint
         } else {
             let next = context.nextPath()
