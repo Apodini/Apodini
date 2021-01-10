@@ -1,128 +1,138 @@
+![concept](https://apodini.github.io/resources/markdown-labels/document_type_concept.svg)
+
 ### Purpose
+
 We are going to talk about the user input and GrapQL parse in this markdown file. We will consider many examples that
-aim to help the user understanding the GraphQL semantic builder. GraphQL engine will serve in the `/graphl` endpoint.
+aim to help the user understanding the GraphQL exporter. GraphQL engine will serve in the `/graphl` endpoint as a POST
+request. So, one can send a request to the aforementioned endpoint. Furthermore, GraphQL IDE will serve in the `/graphl`
+endpoint as a GET request. More precisely, if one visited `/graphql` endpoint in the browser, the website will serve the
+GraphQL IDE.
 
 ### Mapping
-#### Text Component
-The user can define the components as the following.
+
+<table>
+<tr>
+<th>Apodini DSL</th>
+<th>GraphQL Schema</th>
+</tr>
+<tr>
+<td>
+
 ```swift
-Text("Hello World! 👋")
-    .httpMethod(.POST)
-```         
-The engine can answer the following query.
-```graphql   
-query {
- text
+Group("swift") {
+    Text("Hello Swift! 💻")
 }
 ```
-When someone sends this query, the response will the string that lies inside the component which is `Hello World! 👋` in
-our example.
 
-#### Group Component
+</td>
+<td>
 
-The user can define the components as the following.
-```swift
-Group("book") {
-    Group("name") {
-        Text("Around the World in Eighty Days")
-    }
-    Text("Around the World in Eighty Days is an adventure novel that ...")
-}
-```         
-The engine can answer the following query.
-```graphql   
-query {
-    book {
-        name {
-            text
-        }
-    text
-    }
+```graphql  
+type Query {
+   swift: String!
 }
 ```
-When someone sends this query, the `text` will return the string results.
 
--------------------------------------------
-The user can define the components as the following.
+</td>
+</tr>
+<tr>
+<td>
+
 ```swift
 Group("book") {
-    Group("name") {
-        Text("Around the World in Eighty Days")
-    }
-    Text("Around the World in Eighty Days is an adventure novel that ...")
     Group("author") {
         Group("name") {
             Text("Jules Verne")
         }
-        Group("country") {
-            Text("French")
+        Group("born") {
+            Text("February 8, 1828")
         }
     }
-}
-```         
-The code will generate a GraphQL engine that runs in the `/graphl` endpoint. The engine can answer the following query.
-```graphql   
-query {
-    book {
-        name {
-            text
-        }
-        author {
-            name {
-                text
-            }
-            country {
-                text
-            }
-        }
-    text
+    Group("name") {
+        Text("Around the World in Eighty Days")
+    }
+    Group("genre") {
+        Text("Adventure fiction")
+    }
+    Group("description") {
+        Text("Around the World in Eighty Days is an adventure novel ...")
     }
 }
 ```
-When someone sends this query, the `text` will return the string results.
 
+</td>
+<td>
 
-#### Creating Own Component
-The user can define the components as the following.
+```graphql  
+type Author {
+    name: String!
+    born: String!
+}
+
+type Book {
+  author: Author!
+  name: String!
+  genre: String!
+  description: String!
+}
+
+type Query {
+  Book() : Book 
+  Author() : Author 
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>
+
 ```swift
-struct Book {
-    var name : String
-    var author : String
+struct User: Codable {
+    var id: Int
+    var name: String
 }
-struct BookComponent : Component {
-    @Parameter // Property Wrapper
-    var id : Idenfiable 
-    
-    func handle() -> Book {
-        // Fetch from database
-        return Book()
+
+struct UserHandler: Handler {
+    @Parameter var userId: Int
+    @Parameter var userName: String?
+
+    func handle() -> User {
+        User(id: userId, name: userName ?? "Apodini")
     }
 }
 
-Group("book") {
-    BookComponent() { }
-}
-```      
-The code will generate a GraphQL engine that runs in the `/graphl` endpoint. The engine can answer the following query.
-```graphql   
-query {
-    book(id: 12) {
-        name
-        author
-    }
+Group("user") {
+    UserHandler(userId: $userId)
 }
 ```
-When someone sends this query, the `name` and the `author` of the `book` with id `12` will be returned.
 
-#### Combined Components
-The user can define the components as the following.
+</td>
+<td>
+
+```graphql  
+type User {
+    userId: Int!
+    userName: String
+}
+
+type Query {
+  User(userId: Int!, userName: String) : User 
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>
+
 ```swift
 struct Author {
     let name: String
-    let surname : String
+    let surname: String
 }
 
-struct AuthorComponent : Component {
+struct AuthorHandler: Handler {
 
     func handle() -> Author {
         return Author()
@@ -130,35 +140,44 @@ struct AuthorComponent : Component {
 }
 
 struct Book {
-    let name : String
-    let author : [AuthorComponent]
+    let name: String
+    let author: [AuthorComponent]
 }
-struct BookComponent : Component {
-    @Parameter // Property Wrapper
-    var id : Idenfiable 
-    
+
+struct BookHandler: Handler {
+    @Parameter var id: Idenfiable
+
     func handle() -> Book {
-        // Fetch from database
         return Book()
     }
 }
-Group("book") {
-    BookComponent() { }
+
+
+BookHandler() 
+```
+
+</td>
+<td>
+
+```graphql  
+type Author {
+    name: String!
+    surname: String!
 }
-```      
-The code will generate a GraphQL engine that runs in the `/graphl` endpoint. The engine can answer the following query.
-```graphql   
-query {
-    book(id: 12) {
-        author {
-            name
-            surname
-        }
-        name
-    }
+
+type Book {
+    id: ID!
+    author: [Author]!
+    name: String!
+
+}
+
+type Query {
+    Book() : Book 
+    Author() : Author 
 }
 ```
-When someone sends this query, the `name` and the all `author` information of the `book` with id `12` will be returned.
 
-        
- 
+</td>
+</tr>
+</table>
