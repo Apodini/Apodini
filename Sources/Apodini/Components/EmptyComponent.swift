@@ -5,54 +5,37 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-import NIO
+
+/// A `Component` which does not contain any content
+public struct EmptyComponent: Component, SyntaxTreeVisitable {
+    /// `EmptyComponent` does not have any content.
+    /// Accessing this property will result in a run-time crash.
+    public var content: some Component {
+        let imp = { () -> Self in
+            fatalError("'\(Self.self)' does not implement the '\(#function)' property")
+        }
+        return imp()
+    }
+    
+    func accept(_ visitor: SyntaxTreeVisitor) {}
+}
 
 
-extension Never: Component {
-    public typealias Content = Never
+public struct EmptyHandler: Handler, SyntaxTreeVisitable {
     public typealias Response = Never
-    
+    func accept(_ visitor: SyntaxTreeVisitor) {}
+}
+
+extension Component where Content == Never {
+    /// Default implementation which will simply crash
     public var content: Self.Content {
-        fatalError("Never Type has no body")
+        fatalError("'\(Self.self).\(#function)' is not implemented because 'Self.Content' is set to '\(Self.Content.self)'")
     }
-    
-    
+}
+
+extension Handler where Response == Never {
+    /// Default implementation which will simply crash
     public func handle() -> Self.Response {
-        fatalError("Never should never be handled")
+        fatalError("'\(Self.self).\(#function)' is not implemented because 'Self.Response' is set to '\(Self.Response.self)'")
     }
-}
-
-
-extension Never: Encodable {
-    /// Encodes an instance of `Self` to a `HTTPResponse
-    ///
-    /// `Never` must never be encoded!
-    public func encode(to encoder: Encoder) throws {
-        fatalError("Never should never be encoded")
-    }
-}
-
-
-extension Component where Self.Content == Never {
-    /// This `Component` does not include any child `Component`s
-    public var content: Never {
-        fatalError("\(type(of: self)) has no body")
-    }
-}
-
-extension Component where Self.Response == Never {
-    /// This `Component` does not handle any network requests
-    public func handle() -> Never {
-        fatalError("Never should never be handled")
-    }
-}
-
-
-public struct EmptyComponent: Component {
-    public init() {}
-}
-
-
-extension EmptyComponent: Visitable {
-    func visit(_ visitor: SyntaxTreeVisitor) {}
 }

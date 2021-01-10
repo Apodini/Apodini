@@ -1,29 +1,24 @@
 //
 //  TestWebService.swift
-//  
+//
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 
-@testable import Apodini
-import Vapor
-import NIO
+import Apodini
 
 
 struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
-        private let message: String?
-        @_Request
-        var request: Apodini.Request
-        
-        
-        init(_ message: String? = nil) {
+        private let message: String
+
+        init(_ message: String = "PrintGuard 👋") {
             self.message = message
         }
         
 
         func check() {
-            print("\(message?.description ?? request.description)")
+            print(message)
         }
     }
     
@@ -41,14 +36,53 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
-    struct Greeter: Component {
-        @Parameter var name: String
 
-        func handle() -> String {
-            "Hello \(name)"
+    struct TraditionalGreeter: Handler {
+        // one cannot change their gender, it must be provided
+        @Parameter(.mutability(.constant)) var gender: String
+        // one cannot change their surname, but it can be ommitted
+        @Parameter(.mutability(.constant)) var surname: String = ""
+        // one can switch between formal and informal greeting at any time
+        @Parameter var name: String?
+        
+        @Environment(\.connection) var connection: Connection
+
+        func handle() -> Action<String> {
+            print(connection.state)
+            if connection.state == .end {
+                return .end
+            }
+
+            if let firstName = name {
+                return .send("Hi, \(firstName)!")
+            } else {
+                return .send("Hello, \(gender == "male" ? "Mr." : "Mrs.") \(surname)")
+            }
         }
     }
     
+    @propertyWrapper
+    struct UselessWrapper: DynamicProperty {
+        @Parameter var name: String?
+        
+        var wrappedValue: String? {
+            name
+        }
+    }
+
+    struct User: Codable {
+        var id: Int
+    }
+
+    struct UserHandler: Handler {
+        @Parameter var userId: Int
+
+        func handle() -> User {
+            User(id: userId)
+        }
+    }
+
+    @PathParameter var userId: Int
     
     var content: some Component {
         Text("Hello World! 👋")
@@ -64,9 +98,16 @@ struct TestWebService: Apodini.WebService {
             }
         }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
         Group("greet") {
-            Greeter()
+            TraditionalGreeter()
+                .serviceName("GreetService")
+                .rpcName("greetMe")
+                .response(EmojiMediator())
+        }
+        Group("user", $userId) {
+            UserHandler(userId: $userId)
+                .guard(PrintGuard())
         }
     }
 }
 
-TestWebService.main()
+try TestWebService.main()
