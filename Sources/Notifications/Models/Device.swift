@@ -1,5 +1,5 @@
 import Fluent
-@_implementationOnly import Vapor
+import Vapor
 
 public final class DeviceDatabaseModel: Model {
     public static let schema = "notification_device"

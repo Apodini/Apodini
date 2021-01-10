@@ -1,6 +1,5 @@
 // swiftlint:disable first_where
-import class Vapor.Application
-@_implementationOnly import struct Vapor.Abort
+import Vapor
 import Fluent
 import APNS
 import FCM

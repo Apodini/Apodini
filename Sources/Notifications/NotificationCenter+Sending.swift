@@ -1,7 +1,7 @@
 import Fluent
 import APNS
 import FCM
-@_implementationOnly import Vapor
+import Vapor
 
 /// This extension includes methods to send push notifications to `APNS` and `FCM`.
 extension NotificationCenter {
