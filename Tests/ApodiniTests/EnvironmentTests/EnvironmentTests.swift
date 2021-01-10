@@ -64,7 +64,7 @@ final class EnvironmentTests: ApodiniTests {
         // inject the dynamic value via the .withEnvironment
         let response: String = request.enterRequestContext(with: handler) { handler in
             handler
-                .withEnvironment(dynamicBirdFacts, for: \.birdFacts)
+                .environment(dynamicBirdFacts, for: \EnvironmentValues.birdFacts)
                 .handle()
         }
 

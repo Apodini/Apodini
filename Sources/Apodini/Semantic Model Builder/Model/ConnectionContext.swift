@@ -9,6 +9,17 @@ import Foundation
 @_implementationOnly import Vapor
 @_implementationOnly import Fluent
 
+/// An object that can merge itself and a `new` element
+/// of same type.
+protocol Reducible {
+    func reduce(to new: Self) -> Self
+}
+
+extension Reducible {
+    func reduce(to new: Self) -> Self {
+        new
+    }
+}
 
 /// `ConnectionContext` holds the internal state of an endpoint for one connection
 /// in a format suitable for a specific `InterfaceExporter`.
@@ -17,26 +28,38 @@ protocol ConnectionContext {
     
     mutating func handle(
         request exporterRequest: Exporter.ExporterRequest,
-        eventLoop: EventLoop
+        eventLoop: EventLoop,
+        final: Bool
     ) -> EventLoopFuture<Action<AnyEncodable>>
 }
+
+extension ConnectionContext {
+    mutating func handle(
+        request exporterRequest: Exporter.ExporterRequest,
+        eventLoop: EventLoop
+    ) -> EventLoopFuture<Action<AnyEncodable>> {
+        self.handle(request: exporterRequest, eventLoop: eventLoop, final: true)
+    }
+}
+
 struct AnyConnectionContext<I: InterfaceExporter>: ConnectionContext {
     typealias Exporter = I
     
     private var handleFunc: (
         _: I.ExporterRequest,
-        _: EventLoop
+        _: EventLoop,
+        _: Bool
     ) -> EventLoopFuture<Action<AnyEncodable>>
     
     init<C: ConnectionContext>(from context: C) where C.Exporter == I {
         var context = context
-        self.handleFunc = { request, eventLoop in
-            context.handle(request: request, eventLoop: eventLoop)
+        self.handleFunc = { request, eventLoop, final in
+            context.handle(request: request, eventLoop: eventLoop, final: final)
         }
     }
     
-    mutating func handle(request exporterRequest: I.ExporterRequest, eventLoop: EventLoop) -> EventLoopFuture<Action<AnyEncodable>> {
-        self.handleFunc(exporterRequest, eventLoop)
+    mutating func handle(request exporterRequest: I.ExporterRequest, eventLoop: EventLoop, final: Bool) -> EventLoopFuture<Action<AnyEncodable>> {
+        self.handleFunc(exporterRequest, eventLoop, final)
     }
 }
 
@@ -59,6 +82,8 @@ struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCo
         InternalEndpointRequestHandler(endpoint: self.endpoint, exporter: self.exporter)
     }
     
+    private var latestRequest: I.ExporterRequest?
+    
     init(for exporter: I, on endpoint: Endpoint<H>) {
         self.exporter = exporter
         
@@ -69,12 +94,17 @@ struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCo
     
     mutating func handle(
         request exporterRequest: I.ExporterRequest,
-        eventLoop: EventLoop
+        eventLoop: EventLoop,
+        final: Bool
     ) -> EventLoopFuture<Action<AnyEncodable>> {
         do {
-            let validatedRequest = try validator.validate(exporterRequest, with: eventLoop)
+            let newRequest = self.latestRequest?.reduce(to: exporterRequest) ?? exporterRequest
             
-            return self.requestHandler(request: validatedRequest)
+            let validatedRequest = try validator.validate(newRequest, with: eventLoop)
+            
+            self.latestRequest = newRequest
+            
+            return self.requestHandler(on: Connection(state: final ? .end : .open, request: validatedRequest))
         } catch {
             return eventLoop.makeFailedFuture(error)
         }
@@ -84,5 +114,9 @@ struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCo
 extension ConnectionContext where Exporter.ExporterRequest: WithEventLoop {
     mutating func handle(request: Exporter.ExporterRequest) -> EventLoopFuture<Action<AnyEncodable>> {
         handle(request: request, eventLoop: request.eventLoop)
+    }
+    
+    mutating func handle(request: Exporter.ExporterRequest, final: Bool) -> EventLoopFuture<Action<AnyEncodable>> {
+        handle(request: request, eventLoop: request.eventLoop, final: final)
     }
 }

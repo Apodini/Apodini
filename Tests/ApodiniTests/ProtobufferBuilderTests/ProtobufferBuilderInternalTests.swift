@@ -1,5 +1,5 @@
 import XCTest
-@testable import ProtobufferBuilder
+@testable import Apodini
 
 final class ProtobufferBuilderInternalTests: XCTestCase {}
 

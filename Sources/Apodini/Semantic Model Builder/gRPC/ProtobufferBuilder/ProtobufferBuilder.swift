@@ -11,8 +11,8 @@
 ///
 /// Call `ProtobufferBuilder.description` for the final output.
 public class ProtobufferBuilder {
-    var messages: Set<Message>
-    var services: Set<Service>
+    var messages: Set<ProtobufferMessage>
+    var services: Set<ProtobufferService>
     
     /// Create an instance of `ProtobufferBuilder`.
     public init() {
@@ -31,8 +31,8 @@ public extension ProtobufferBuilder {
         inputType: Any.Type,
         returnType: Any.Type
     ) throws {
-        let inputNode = try Message.node(inputType)
-        let outputNode = try Message.node(returnType)
+        let inputNode = try ProtobufferMessage.node(inputType)
+        let outputNode = try ProtobufferMessage.node(returnType)
         
         for node in [inputNode, outputNode] {
             node.forEach { element in
@@ -40,14 +40,14 @@ public extension ProtobufferBuilder {
             }
         }
         
-        let method = Service.Method(
+        let method = ProtobufferService.Method(
             name: methodName,
             input: inputNode.value,
             ouput: outputNode.value
         )
-        
+
         let name = serviceName
-        let service = Service(
+        let service = ProtobufferService(
             name: name,
             methods: [method]
         )
@@ -61,28 +61,28 @@ internal extension ProtobufferBuilder {
     /// - Parameter type: the type of the message
     /// - Throws: `Error`s of type `Exception`
     func addMessage(messageType: Any.Type) throws {
-        try Message.node(messageType).forEach { element in
+        try ProtobufferMessage.node(messageType).forEach { element in
             messages.insert(element)
         }
     }
 }
 
-private extension Message {
-    static func node(_ type: Any.Type) throws -> Node<Message> {
+private extension ProtobufferMessage {
+    static func node(_ type: Any.Type) throws -> Node<ProtobufferMessage> {
         let node = try EnrichedInfo.node(type)
             .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handlePrimitiveType)?
-            .map(Message.Property.init)
-            .contextMap(Message.init)
+            .map(ProtobufferMessage.Property.init)
+            .contextMap(ProtobufferMessage.init)
             .compactMap { $0 }?
             .filter(isNotPrimitive)
         
         return node ?? Node(value: .scalar(type), children: [])
     }
     
-    static func scalar(_ type: Any.Type) -> Message {
-        Message(
+    static func scalar(_ type: Any.Type) -> ProtobufferMessage {
+        ProtobufferMessage(
             name: "\(type)Message",
             properties: [
                 Property(
@@ -96,7 +96,7 @@ private extension Message {
     }
 }
 
-private func isNotPrimitive(_ message: Message) -> Bool {
+private func isNotPrimitive(_ message: ProtobufferMessage) -> Bool {
     message.name.hasSuffix("Message")
 }
 
