@@ -92,11 +92,14 @@ private extension Scheduler {
     
     /// Checks if only valid property wrappers are used with `Job`s.
     func checkPropertyWrappers<T: Job>(_ job: T) throws {
-//        for property in Mirror(reflecting: job).children
-//        where property.value is RequestInjectable {
-//            throw JobErrors.requestPropertyWrapper
-//        }
-        #warning("TODO")
+        for property in Mirror(reflecting: job).children {
+            switch property.value {
+            case is PathComponent, is Connection:
+                throw JobErrors.requestPropertyWrapper
+            default:
+                continue
+            }
+        }
     }
     
     /// Generates the environment value of the `Job`.

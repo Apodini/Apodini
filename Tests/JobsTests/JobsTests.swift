@@ -33,15 +33,14 @@ final class JobsTests: XCTApodiniTest {
     
     func testFailingJobs() throws {
         XCTAssertThrowsError(try Scheduler.shared.dequeue(\KeyStore.failingJob))
-//        XCTAssertThrowsError(try Scheduler.shared.enqueue(FailingJob(), with: "* * * * *", \KeyStore.failingJob, on: app.eventLoopGroup.next()))
+        XCTAssertThrowsError(try Scheduler.shared.enqueue(FailingJob(), with: "* * * * *", \KeyStore.failingJob, on: app.eventLoopGroup.next()))
         XCTAssertThrowsError(try Scheduler.shared.enqueue(TestJob(), with: "* * * *", \KeyStore.testJob, on: app.eventLoopGroup.next()))
         XCTAssertThrowsError(try Scheduler.shared.enqueue(TestJob(), with: "A B C D E", runs: 5, \KeyStore.testJob, on: app.eventLoopGroup.next()))
     }
     
     func testFatalError() throws {
-        #warning("TODO")
-//        XCTAssertRuntimeFailure(Schedule(FailingJob(), on: "* * * * *", \KeyStore.failingJob).configure(self.app),
-//                                "Request based property wrappers cannot be used with `Job`s")
+        XCTAssertRuntimeFailure(Schedule(FailingJob(), on: "* * * * *", \KeyStore.failingJob).configure(self.app),
+                                "Request based property wrappers cannot be used with `Job`s")
         XCTAssertRuntimeFailure(Schedule(TestJob(), on: "A B C D E", \KeyStore.testJob).configure(self.app))
     }
     
