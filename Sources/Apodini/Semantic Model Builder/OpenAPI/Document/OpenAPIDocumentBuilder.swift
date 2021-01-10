@@ -39,6 +39,7 @@ extension OpenAPIDocumentBuilder {
         guard let json = try? encoder.encode(self.document) else {
             return ""
         }
+        // swiftlint:disable:next force_unwrapping
         return String(data: json, encoding: .utf8)!
     }
 }
