@@ -3,6 +3,7 @@ import XCTest
 import NIO
 import Vapor
 import Fluent
+import Runtime
 @testable import Apodini
 @testable import ApodiniDatabase
 
@@ -87,7 +88,24 @@ final class DatabaseHandlerTests: ApodiniTests {
             .wait()
         XCTAssertNotNil(dbBird.id)
         
+        var varBird = dbBird
+        let info = try! typeInfo(of: Bird.self)
+        print(info)
+        let property = try! info.property(named: "_name")
+        let name = try! property.get(from: varBird)
+            
+        print(name)
+        print(varBird)
+        try! property.set(value: "Test", on: &varBird)
+        print(varBird)
+        
+        
+        
+        
         let updatedBird = Bird(name: "FooBird", age: 25)
+        let parameters = [
+            "age": 5
+        ]
         
         let handler = Update<Bird>()
         let endpoint = handler.mockEndpoint()
@@ -95,7 +113,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         var context = endpoint.createConnectionContext(for: exporter)
 
-        let bodyData = ByteBuffer(data: try JSONEncoder().encode(updatedBird))
+        let bodyData = ByteBuffer(data: try JSONEncoder().encode(parameters))
 
         let uri = URI("http://example.de/test/id")
         let request = Vapor.Request(

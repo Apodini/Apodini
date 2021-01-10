@@ -8,6 +8,7 @@
 import XCTVapor
 import FluentSQLiteDriver
 @testable import Apodini
+@testable import ApodiniDatabase
 
 class ApodiniTests: XCTestCase {
     // Vapor Application
@@ -34,6 +35,10 @@ class ApodiniTests: XCTestCase {
             CreateBird(),
             DeviceMigration()
         )
+        
+        print(Bird.description)
+        print(NSClassFromString(Bird.description))
+        
         
         try app.autoMigrate().wait()
         

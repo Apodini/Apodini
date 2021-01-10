@@ -13,7 +13,10 @@ internal extension DatabaseModel {
             return key
         } else {
             fatalError("Unexpectedly found nil. Failed to find a Fieldkey under the given string.")
-            exit(1)
         }
+    }
+    
+    static var description: String {
+        NSStringFromClass(Self.self)
     }
 }

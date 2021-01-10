@@ -81,12 +81,22 @@ internal struct QueryBuilder<Model: DatabaseModel> {
         do {
             let keys = type.keys
             let info = try typeInfo(of: type)
+            for child in Mirror(reflecting: Model()).children {
+                print(child)
+                if let visitable = child.value as? VisitableFieldProperty {
+                    let test = visitable.accept(GenericTypeVisitor())
+                    print(test)
+                }
+            }
             guard info.properties.count == type.keys.count else {
                 fatalError("wrong model")
             }
             for (index, propertyInfo) in info.properties.enumerated() {
                 if propertyInfo.name.replacingOccurrences(of: "_", with: "") == keys[index].description {
                     let key = keys[index]
+                    if let test = propertyInfo.type as? VisitableFieldProperty {
+                        print("mnice")
+                    }
                     let type = Self.fieldType(for: propertyInfo.type)
                     modelInfo.append(ModelInfo(key: key, type: type))
                 }
@@ -123,4 +133,87 @@ internal struct QueryBuilder<Model: DatabaseModel> {
             fatalError("Should not happen")
         }
     }
+}
+
+
+protocol FieldPropertyVisitor where Value: Codable {
+    associatedtype Value
+
+    func visit<Model, V>(_ property: FieldProperty<Model, V>) -> Value
+    
+    static func unwrap<Self>(_ type: Any) -> Self
+}
+
+struct ConcreteTypeVisitor: FieldPropertyVisitor {
+    typealias Value = AnyCodable
+
+    func visit<Model, V>(_ property: FieldProperty<Model, V>) -> AnyCodable where Model : Fields, V : Decodable, V : Encodable {
+        return AnyCodable(property.value)
+    }
+
+    static func unwrap<ConcreteTypeVisitor>(_ type: Any) -> ConcreteTypeVisitor {
+        return type as! ConcreteTypeVisitor
+    }
+//    typealias Value = AnyCodable
+//
+//    func visit<Model, V>(_ property: FieldProperty<Model, V>) -> Value where Model : Fields, V : Decodable, V : Encodable {
+//        AnyCodable(property.value)
+//    }
+
+
+}
+
+struct GenericTypeVisitor: FieldPropertyVisitor {
+    typealias Value = AnyGenericCodable
+
+    func visit<Model, V>(_ property: FieldProperty<Model, V>) -> Value where Model : Fields, V : Decodable, V : Encodable {
+        return AnyGenericCodable(V.self)
+    }
+
+    static func unwrap<ConcreteTypeVisitor>(_ type: Any) -> ConcreteTypeVisitor {
+        return type as! ConcreteTypeVisitor
+    }
+//    typealias Value = AnyCodable
+//
+//    func visit<Model, V>(_ property: FieldProperty<Model, V>) -> Value where Model : Fields, V : Decodable, V : Encodable {
+//        AnyCodable(property.value)
+//    }
+
+
+}
+
+
+
+protocol VisitableFieldProperty {
+    
+    func accept<Visitor: FieldPropertyVisitor>(_ visitor: Visitor) -> Visitor.Value where Visitor.Value == AnyCodable
+    func accept<Visitor: FieldPropertyVisitor>(_ visitor: Visitor) -> Visitor.Value where Visitor.Value == AnyGenericCodable
+}
+
+extension FieldProperty: VisitableFieldProperty {
+
+    func accept<Visitor>(_ visitor: Visitor) -> Visitor.Value where Visitor : FieldPropertyVisitor {
+        visitor.visit(self)
+    }
+
+}
+
+
+
+struct AnyGenericCodable: Codable {
+    
+    var wrappedValue: Codable.Type?
+    
+    init(_ wrappedValue: Codable.Type? = nil) {
+        self.wrappedValue = wrappedValue
+    }
+    
+    func encode(to encoder: Encoder) throws {
+//        wrappedValue?.encode(to: encoder)
+    }
+    
+    init(from decoder: Decoder) throws {
+        self.init()
+    }
+    
 }

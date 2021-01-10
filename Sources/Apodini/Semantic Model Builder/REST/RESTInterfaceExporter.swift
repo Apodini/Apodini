@@ -141,8 +141,13 @@ class RESTInterfaceExporter: InterfaceExporter {
                      need to decode the content via a struct containing those .content parameters as properties.
                      This is currently unsupported.
                      """)
-
-            return try request.content.decode(Type.self, using: JSONDecoder())
+            do {
+                return try request.content.decode(Type.self, using: JSONDecoder())
+            } catch {
+                return nil
+            }
+//            print()
+//            return try request.content.decode(Type.self, using: JSONDecoder())
         }
     }
 }
