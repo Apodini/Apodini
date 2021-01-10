@@ -38,8 +38,6 @@ let package = Package(
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
-                .product(name: "APNS", package: "apns"),
-                .product(name: "FCM", package: "FCM"),
                 .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
@@ -47,7 +45,6 @@ let package = Package(
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
-                .product(name: "SwifCron", package: "SwifCron"),
                 .target(name: "WebSocketInfrastructure"),
                 .target(name: "ProtobufferCoding")
             ],
