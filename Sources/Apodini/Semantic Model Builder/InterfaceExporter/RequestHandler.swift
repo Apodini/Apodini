@@ -32,29 +32,30 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
         return EventLoopFuture<Void>
             .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
             .flatMap { _ in
-                request.enterRequestContext(with: self.endpoint.handler) { handler in
+                connection.enterConnectionContext(with: self.endpoint.handler) { handler in
                     handler.handle()
                         .transformToResponse(on: request.eventLoop)
                 }
             }
             .flatMap { typedAction -> EventLoopFuture<Response<AnyEncodable>> in
-                self.transformResponse(typedAction.typeErasured, on: request, using: self.endpoint.responseTransformers)
+                self.transformResponse(typedAction.typeErasured, using: connection, on: request.eventLoop, using: self.endpoint.responseTransformers)
             }
     }
 
     private func transformResponse(_ response: Response<AnyEncodable>,
-                                   on request: Request,
+                                   using connection: Connection,
+                                   on eventLoop: EventLoop,
                                    using modifiers: [LazyAnyResponseTransformer]) -> EventLoopFuture<Response<AnyEncodable>> {
         guard let modifier = modifiers.first?() else {
-            return request.eventLoop.makeSucceededFuture(response)
+            return eventLoop.makeSucceededFuture(response)
         }
         
-        return request
-            .enterRequestContext(with: modifier) { responseTransformerInContext in
-                responseTransformerInContext.transform(response: response, on: request.eventLoop)
+        return connection
+            .enterConnectionContext(with: modifier) { responseTransformerInContext in
+                responseTransformerInContext.transform(response: response, on: eventLoop)
             }
             .flatMap { newResponse in
-                self.transformResponse(newResponse, on: request, using: Array(modifiers.dropFirst()))
+                self.transformResponse(newResponse, using: connection, on: eventLoop, using: Array(modifiers.dropFirst()))
             }
     }
 }
