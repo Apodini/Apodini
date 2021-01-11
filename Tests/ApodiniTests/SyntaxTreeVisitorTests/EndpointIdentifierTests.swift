@@ -44,11 +44,11 @@ final class HandlerIdentifierTests: ApodiniTests {
         
         XCTAssertTrue(allEndpoints.contains(where: { endpoint in
             endpoint.identifier.rawValue == "0:0"
-                && endpoint.description == String(describing: Text("a"))
+                && endpoint.description == String(describing: type(of: Text("a")))
         }))
         XCTAssertTrue(allEndpoints.contains(where: { endpoint in
             endpoint.identifier.rawValue == "1:0"
-                && endpoint.description == String(describing: Text("b"))
+                && endpoint.description == String(describing: type(of: Text("b")))
         }))
     }
     
@@ -77,19 +77,19 @@ final class HandlerIdentifierTests: ApodiniTests {
         
         XCTAssertTrue(allEndpoints.contains(where: { endpoint in
             endpoint.identifier.rawValue == "0"
-                && endpoint.description == String(describing: Text("a"))
+                && endpoint.description == String(describing: type(of: Text("a")))
         }))
         XCTAssertTrue(allEndpoints.contains(where: { endpoint in
             endpoint.identifier.rawValue == "1"
-                && endpoint.description == String(describing: Text("b"))
+                && endpoint.description == String(describing: type(of: Text("b")))
         }))
         XCTAssertTrue(allEndpoints.contains(where: { endpoint in
             endpoint.identifier.rawValue == "2:0"
-                && endpoint.description == String(describing: Text("c"))
+                && endpoint.description == String(describing: type(of: Text("c")))
         }))
         XCTAssertTrue(allEndpoints.contains(where: { endpoint in
             endpoint.identifier.rawValue == "3:0"
-                && endpoint.description == String(describing: Text("d"))
+                && endpoint.description == String(describing: type(of: Text("d")))
         }))
     }
     
@@ -115,11 +115,11 @@ final class HandlerIdentifierTests: ApodiniTests {
         
         XCTAssertTrue(allEndpoints.contains(where: { endpoint in
             endpoint.identifier.rawValue == "0:0:0"
-                && endpoint.description == String(describing: Text("a"))
+                && endpoint.description == String(describing: type(of: Text("a")))
         }))
         XCTAssertTrue(allEndpoints.contains(where: { endpoint in
             endpoint.identifier.rawValue == "1"
-                && endpoint.description == String(describing: Text("b"))
+                && endpoint.description == String(describing: type(of: Text("b")))
         }))
     }
     

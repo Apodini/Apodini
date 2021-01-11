@@ -51,8 +51,6 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     
     let identifier: AnyHandlerIdentifier
 
-    let description: String
-
     let handler: H
     
     let context: Context
@@ -86,7 +84,6 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         parameters: [AnyEndpointParameter] = []
     ) {
         self.identifier = identifier
-        self.description = String(describing: handler)
         self.handler = handler
         self.context = context
         self.operation = operation
@@ -121,6 +118,18 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     }
 }
 
+extension Endpoint {
+    var description: String {
+        let description = self.context.get(valueFor: DescriptionContextKey.self)
+        return description == DescriptionContextKey.defaultValue ? String(describing: type(of: self.handler)): description
+    }
+}
+
+extension Endpoint: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        String(describing: self.handler)
+    }
+}
 
 class EndpointsTreeNode {
     let path: _PathComponent
