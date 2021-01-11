@@ -44,7 +44,6 @@ final class EnvironmentTests: ApodiniTests {
         
         let birdFacts = BirdFacts()
         EnvironmentObject(birdFacts, \Keys.bird).configure(app)
-        EnvironmentObject(birdFacts, \Keys.bird).configure(app)
         
         let handler = BirdHandler()
         let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())

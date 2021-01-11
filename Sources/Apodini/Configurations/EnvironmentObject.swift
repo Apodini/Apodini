@@ -1,6 +1,8 @@
 import class Vapor.Application
 
 /// A `Configuration` which helps to store and retrieve objects using `@Environment` and the correspond key path.
+///
+/// A warning will be displayed if this action will overwrite a stored property.
 public struct EnvironmentObject<Key: ApodiniKeys, Value>: Configuration {
     private let value: Value
     private let keyPath: KeyPath<Key, Value>

@@ -153,7 +153,7 @@ struct TestWebService: WebService {
     }
 
     var configuration: Configuration {
-        Environment(VisitorObservedObject(), \KeyStore.visitorObservedObject)
+        EnvironmentObject(VisitorObservedObject(), \KeyStore.visitorObservedObject)
         Schedule(SummaryJob(), on: "0 9 * * 5", \KeyStore.summaryJob)
     }
 
