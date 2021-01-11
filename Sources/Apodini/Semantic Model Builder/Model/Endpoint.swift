@@ -235,7 +235,7 @@ extension EndpointsTreeNode {
             .map { node in
                 node.endpoints.values.map(AnyHashableEndpoint.init)
             }
-            .collect2()
+            .collectValues()
             .map(\.endpoint)
     }
 }

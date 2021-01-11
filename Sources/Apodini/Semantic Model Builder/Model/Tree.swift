@@ -157,7 +157,7 @@ extension Node: CustomStringConvertible where T: CustomStringConvertible {
 }
 
 extension Node {
-    func collect() -> Set<T> where T: Hashable {
+    func collectValues() -> Set<T> where T: Hashable {
         reduce(Set()) { (partialResults, next) in
             var set = Set(arrayLiteral: next)
             for result in partialResults {
@@ -167,7 +167,7 @@ extension Node {
         }
     }
     
-    func collect2<U>() -> Set<U> where T == Array<U>, U: Hashable {
+    func collectValues<U>() -> Set<U> where T == Array<U>, U: Hashable {
         reduce(Set()) { (partialResults, next) in
             var set = Set(next)
             for result in partialResults {
