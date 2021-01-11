@@ -40,7 +40,7 @@ final class DescriptionModifierTests: ApodiniTests {
         }
     }
 
-    func testEndpointDescription() {
+    func testEndpointDescription() throws {
         let modelBuilder = SharedSemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [modelBuilder])
         let testComponent = TestComponentDescription()
@@ -49,14 +49,13 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        // swiftlint:disable force_unwrapping
-        let treeNodeA: EndpointsTreeNode = modelBuilder.rootNode.children.first!.children.first!
-        let endpoint: AnyEndpoint = treeNodeA.endpoints.first!.value
+        let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
+        let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
         
         XCTAssertEqual(endpoint.description, "Returns greeting with name parameter.")
     }
     
-    func testEndpointDefaultDescription() {
+    func testEndpointDefaultDescription() throws {
         let modelBuilder = SharedSemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [modelBuilder])
         let testComponent = TestComponentWithoutDescription()
@@ -65,9 +64,9 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        // swiftlint:disable force_unwrapping
-        let treeNodeA: EndpointsTreeNode = modelBuilder.rootNode.children.first!.children.first!
-        let endpoint: AnyEndpoint = treeNodeA.endpoints.first!.value
+    
+        let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
+        let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
         
         XCTAssertEqual(endpoint.description, "TestHandler")
     }
