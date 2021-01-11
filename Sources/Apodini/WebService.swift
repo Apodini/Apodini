@@ -5,9 +5,11 @@
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 
-import Vapor
+@_implementationOnly import class Vapor.Application
+@_implementationOnly import struct Vapor.Environment
 import Fluent
 import FluentMongoDriver
+
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
 public protocol WebService: Component, ConfigurationCollection {
@@ -21,43 +23,52 @@ public protocol WebService: Component, ConfigurationCollection {
 
 extension WebService {
     /// This function is executed to start up an Apodini `WebService`
-    public static func main() {
-        do {
-            let environmentName = try Environment.detect().name
-            var env = Environment(name: environmentName, arguments: ["vapor"])
-            try LoggingSystem.bootstrap(from: &env)
-            let app = Application(env)
+    public static func main() throws {
+        let app = try createApplication()
 
-            let webService = Self()
+        main(app: app)
 
-            webService.register(
-                SharedSemanticModelBuilder(app, interfaceExporters: RESTInterfaceExporter.self),
-                GraphQLSemanticModelBuilder(app),
-                GRPCSemanticModelBuilder(app),
-                WebSocketSemanticModelBuilder(app)
-            )
-
-            webService.configuration.configure(app)
-
-            defer {
-                app.shutdown()
-            }
-            try app.run()
-        } catch {
-            print(error)
+        defer {
+            app.shutdown()
         }
+        try app.run()
+    }
+
+    /// Creates a Vapor.Application and configures the LoggingSystem
+    static func createApplication() throws -> Vapor.Application {
+        #if DEBUG
+        let arguments = [CommandLine.arguments.first ?? ".", "serve", "--env", "development", "--hostname", "0.0.0.0", "--port", "8080"]
+        #else
+        let arguments = [CommandLine.arguments.first ?? ".", "serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8080"]
+        #endif
+
+        var env = try Vapor.Environment.detect(arguments: arguments)
+        try LoggingSystem.bootstrap(from: &env)
+        return Application(env)
+    }
+    
+    /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.main()` to startup an Apodini `WebService`.
+    /// - Parameter app: The app instance that should be injected in the Apodini `WebService`
+    static func main(app: Vapor.Application) {
+        let webService = Self()
+
+        webService.configuration.configure(app)
+        
+        webService.register(
+            SharedSemanticModelBuilder(app)
+                .with(exporter: RESTInterfaceExporter.self)
+                .with(exporter: WebSocketInterfaceExporter.self)
+                .with(exporter: OpenAPIInterfaceExporter.self)
+                .with(exporter: GRPCInterfaceExporter.self)
+                .with(exporter: ProtobufferInterfaceExporter.self),
+            GraphQLSemanticModelBuilder(app)
+        )
     }
     
     
     /// The current version of the `WebService`
     public var version: Version {
         Version()
-    }
-    
-    
-    /// An empty initializer used to create an Apodini `WebService`
-    public init() {
-        self.init()
     }
 }
 
@@ -66,6 +77,7 @@ extension WebService {
     func register(_ semanticModelBuilders: SemanticModelBuilder...) {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: semanticModelBuilders)
         self.visit(visitor)
+        visitor.finishParsing()
     }
     
     private func visit(_ visitor: SyntaxTreeVisitor) {
@@ -73,6 +85,6 @@ extension WebService {
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
         Group {
             content
-        }.visit(visitor)
+        }.accept(visitor)
     }
 }

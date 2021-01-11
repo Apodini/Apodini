@@ -1,21 +1,20 @@
-import Foundation
-import AssociatedTypeRequirementsVisitor
+@_implementationOnly import AssociatedTypeRequirementsVisitor
+
 
 extension SyntaxTreeVisitor {
     enum Error: Swift.Error {
         case attemptedToVisitNoneComponent(Any, visitor: SyntaxTreeVisitor)
     }
 
-    /**
-        Allows you to visit an object that you know implements Component, even if you don't know the concrete type at compile time.
-     */
+    
+    /// Allows you to visit an object that you know implements Component, even if you don't know the concrete type at compile time.
     func unsafeVisitAny(_ value: Any) throws {
-        let associatedTypeRequirementsVisitor = StandardComponentVisitor(visitor: self)
-        if associatedTypeRequirementsVisitor(value) == nil {
+        if StandardComponentVisitor(visitor: self)(value) == nil {
             throw Error.attemptedToVisitNoneComponent(value, visitor: self)
         }
     }
 }
+
 
 private protocol ComponentAssociatedTypeRequirementsVisitor: AssociatedTypeRequirementsVisitor {
     associatedtype Visitor = ComponentAssociatedTypeRequirementsVisitor
@@ -29,6 +28,6 @@ private struct StandardComponentVisitor: ComponentAssociatedTypeRequirementsVisi
     let visitor: SyntaxTreeVisitor
 
     func callAsFunction<T: Component>(_ value: T) {
-        value.visit(visitor)
+        value.accept(visitor)
     }
 }

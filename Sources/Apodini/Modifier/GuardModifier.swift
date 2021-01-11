@@ -5,8 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/27/20.
 //
 
-import Vapor
-import Runtime
+@_implementationOnly import Runtime
 
 
 private struct ResetGuard: SyncGuard {
@@ -21,44 +20,64 @@ struct GuardContextKey: ContextKey {
     static var defaultValue: [LazyGuard] = []
     
     static func reduce(value: inout [LazyGuard], nextValue: () -> [LazyGuard]) {
-        let nextGuards = nextValue()
-        for `guard` in nextGuards {
-            if `guard`().guardType == ObjectIdentifier(ResetGuard.self) {
-                value = []
-            } else {
-                value.append(`guard`)
-            }
+        value.append(contentsOf: nextValue())
+    }
+}
+
+extension Array where Element == LazyGuard {
+    /// The array of `LazyGuard` contains all `Guard`s that have accumalated over the parsing of the DSL
+    /// The developer has the option to reset any previously collected `Guard`s using the `resetGuards()` modifier that appends a `ResetGuard`
+    /// This property filters out all guards that have been applied since the last `ResetGuard` and discards all previously collected `Guard`s and the `ResetGuard`
+    ///
+    /// Examples (the first guard was declared further to the root of the `Component` tree and registered first):
+    ///
+    /// `[Guard1, Guard2, ResetGuard]` -> `[]`
+    ///
+    /// `[Guard1, ResetGuard, Guard2]` -> `[Guard2]`
+    ///
+    /// `[ResetGuard, Guard1, Guard2]` -> `[Guard1, Guard2]`
+    ///
+    /// `[ResetGuard, Guard1, Guard2, ResetGuard]` -> `[]`
+    ///
+    /// `[ResetGuard, Guard1, Guard2, ResetGuard, Guard3]` -> `[Guard3]`
+    var allActiveGuards: [LazyGuard] {
+        guard let lastReserGuardIndex = self.lastIndex(where: { $0().guardType == ObjectIdentifier(ResetGuard.self) }) else {
+            return self
         }
+        return Array(self.dropFirst(lastReserGuardIndex + 1))
     }
 }
 
 
 public struct GuardModifier<C: Component>: Modifier {
-    public typealias Response = C.Response
+    public typealias ModifiedComponent = C
     
-    let component: C
+    public let component: C
     let `guard`: LazyGuard
     
+    public var content: some Component { EmptyComponent() }
     
     init<G: Guard>(_ component: C, guard: @escaping () -> G) {
-        precondition(((try? typeInfo(of: G.self).kind) ?? .none) == .struct, "Guard \((try? typeInfo(of: G.self).name) ?? "unknown") must be a struct")
-        
+        assertTypeIsStruct(G.self, messagePrefix: "Guard")
         self.component = component
         self.guard = { AnyGuard(`guard`()) }
     }
     
     init<G: SyncGuard>(_ component: C, guard: @escaping () -> G) {
-        precondition(((try? typeInfo(of: G.self).kind) ?? .none) == .struct, "Guard \((try? typeInfo(of: G.self).name) ?? "unknown") must be a struct")
-        
+        assertTypeIsStruct(G.self, messagePrefix: "Guard")
         self.component = component
         self.guard = { AnyGuard(`guard`()) }
     }
 }
 
-extension GuardModifier: Visitable {
-    func visit(_ visitor: SyntaxTreeVisitor) {
+extension GuardModifier: Handler, HandlerModifier where Self.ModifiedComponent: Handler {
+    public typealias Response = ModifiedComponent.Response
+}
+
+extension GuardModifier: SyntaxTreeVisitable {
+    func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(GuardContextKey.self, value: [`guard`], scope: .environment)
-        component.visit(visitor)
+        component.accept(visitor)
     }
 }
 

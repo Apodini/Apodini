@@ -5,69 +5,128 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-import Vapor
 
-
+/// The scope of a value assocated with a `ContextKey`
 enum Scope {
-    case nextComponent
+    /// The value is only applied to the next `Handler` and discarded afterwards
+    case nextHandler
+    /// The value is applied to all following `Handler`s located in the substree of the current `Component` in the  synatx tree of the Apodini DSL
     case environment
 }
 
 
-protocol Visitable {
-    func visit(_ visitor: SyntaxTreeVisitor)
+/// The `SyntaxTreeVisitable` makes a type discoverable by a `SyntaxTreeVisitor`.
+///
+/// Each `Component` that needs to provide a custom `accept` implementation **must** conform to `SyntaxTreeVisitable` and **must** provide a custom `accept` implementation.
+protocol SyntaxTreeVisitable {
+    func accept(_ visitor: SyntaxTreeVisitor)
 }
 
 
+/// The `SyntaxTreeVisitor` is used to parse the Apodini DSL and forward the parsed result to the `SemanticModelBuilder`s.
 class SyntaxTreeVisitor {
-    private var asf: String = ""
+    /// The `semanticModelBuilders` that can interpret the Apodini DSL syntax tree collected by the `SyntaxTreeVisitor`
     private let semanticModelBuilders: [SemanticModelBuilder]
+    /// Contains the current `ContextNode` that is used when creating a context for each registerd `Handler`
     private(set) var currentNode = ContextNode()
+    /// The `currentNodeIndexPath` is  used to uniquely identify `Handlers`, even across multiple runs of an Apodini web service if the DSL has not changed.
+    /// We increase the component level specific `currentNodeIndexPath` by one for each `Handler` visited in the same component level to uniquely identify `Handlers` by  the index paths.
+    private var currentNodeIndexPath: [Int] = []
     
+    
+    /// Create a new `SyntaxTreeVisitor` that forwards the collected context and registered `Handlers` to the passed in `semanticModelBuilders`.
+    /// - Parameter semanticModelBuilders: The `semanticModelBuilders` that can interpret the Apodini DSL syntax tree collected by the `SyntaxTreeVisitor`
     init(semanticModelBuilders: [SemanticModelBuilder] = []) {
         self.semanticModelBuilders = semanticModelBuilders
     }
     
-    func enterCollectionItem() {
-        currentNode = currentNode.newContextNode()
+    
+    /// `enterCollection` is used to keep track of the current depth into the web service data structure
+    /// All visits (`accept` call) to a component's content **must** be executed within the closure passed to `enterContent`.
+    ///
+    /// **Depth** is not definied in terms of path components or the exported interface, but simply how many levels of `.content` the `SyntaxTreeVisitor` is while parsing the Apodini DSL
+    func enterContent(_ block: () throws -> Void) rethrows {
+        currentNodeIndexPath.append(0)
+        
+        try block()
+        
+        precondition(currentNodeIndexPath.count >= 1, "Unbalanced calls to {enter|exit}Content. Cannot exit more content levels than were entered.")
+        currentNodeIndexPath.removeLast()
     }
     
+    /// `enterComponentContext` is used by the `SyntaxTreeVisitor` to keep track of the context of a `Component`.
+    /// A `Component` that can contain one or more components **must** call accept of the `Component`s or register `Handler`s within the closure passed to `enterComponentContext` to create a new context
+    /// for the modifiers applied to each `Component` to avoid that one modifier applied to a `Component` is also applied to all subsequent `Component`s.
+    ///
+    /// Please note that `TupleComponent` automatically calls `enterComponentContext` for each of its `Component`s stored in the tuple.
+    func enterComponentContext(_ block: () throws -> Void) rethrows {
+        currentNodeIndexPath[currentNodeIndexPath.endIndex - 1] += 1
+        currentNode = currentNode.newContextNode()
+        
+        try block()
+        
+        if let parentNode = currentNode.parentContextNode {
+            currentNode = parentNode
+        } else {
+            fatalError("Tried exiting a ContextNode which didn't have any parent nodes")
+        }
+    }
+    
+    /// Adds a new context value to the current context of the `SyntaxTreeVisitor`.
+    ///
+    /// Call this function every time you need to register a new context value for a `ContextKey` that need to be available for all subsequent `Handlers` registered in the current `Component` subtree of the Apodini DSL.
+    /// - Parameters:
+    ///   - contextKey: The key of the context value
+    ///   - value: The value that is assocated to the `ContextKey`
+    ///   - scope: The scope of the context value as defined by the `Scope` enum
     func addContext<C: ContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
         currentNode.addContext(contextKey, value: value, scope: scope)
     }
     
-    func getContextValue<C: ContextKey>(for contextKey: C.Type = C.self) -> C.Value {
-        currentNode.getContextValue(for: C.self)
-    }
     
-    func register<C: Component>(component: C) {
+    /// Called every time a new `Handler` is registered
+    /// - Parameter handler: The `Handler` that is registered
+    func visit<H: Handler>(handler: H) {
+        // We increase the component level specific `currentNodeIndexPath` by one for each `Handler` visited in the same component level to uniquely identify `Handlers`
+        // across multiple runs of an Apodini web service.
+        addContext(HandlerIndexPath.ContextKey.self, value: formHandlerIndexPathForCurrentNode(), scope: .nextHandler)
+        
         // We capture the currentContextNode and make a copy that will be used when executing the request as
         // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the
         // currentNode would always result in the last currentNode that was used when visiting the component tree.
         let context = Context(contextNode: currentNode.copy())
         
         for semanticModelBuilder in semanticModelBuilders {
-            semanticModelBuilder.register(component: component, withContext: context)
+            semanticModelBuilder.register(handler: handler, withContext: context)
         }
         
-        finishedRegisteringContext()
-    }
-    
-    private func finishedRegisteringContext() {
         currentNode.resetContextNode()
     }
     
-    func exitCollectionItem() {
-        if let parentNode = currentNode.parentContextNode {
-            currentNode = parentNode
+    /// **Must** be called after finishing the parsinig of the Apodini DSL to trigger the `finishedRegistration` of all `semanticModelBuilders`.
+    func finishParsing() {
+        for builder in semanticModelBuilders {
+            builder.finishedRegistration()
+        }
+    }
+    
+    private func formHandlerIndexPathForCurrentNode() -> HandlerIndexPath {
+        let rawValue = currentNodeIndexPath
+            .map { String($0 - 1) } // We remove one from the current indexPath to have 0 as the first index
+            .joined(separator: ":")
+        return HandlerIndexPath(rawValue: rawValue)
+    }
+}
 
-            if currentNode.parentContextNode == nil { // we exited to the top level node, thus we can call postProcessing
-                for builder in semanticModelBuilders {
-                    builder.finishedRegistration()
-                }
-            }
-        } else {
-            fatalError("Tried exiting a ContextNode which didn't have any parent nodes")
+
+struct HandlerIndexPath: RawRepresentable {
+    let rawValue: String
+    
+    struct ContextKey: Apodini.ContextKey {
+        static let defaultValue: HandlerIndexPath = .init(rawValue: "")
+        
+        static func reduce(value: inout HandlerIndexPath, nextValue: () -> HandlerIndexPath) {
+            value = nextValue()
         }
     }
 }
