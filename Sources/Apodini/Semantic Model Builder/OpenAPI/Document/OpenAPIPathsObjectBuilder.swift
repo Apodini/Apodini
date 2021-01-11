@@ -63,7 +63,7 @@ struct OpenAPIPathsObjectBuilder {
 private extension OpenAPIPathsObjectBuilder {
     /// https://swagger.io/specification/#operation-object
     mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>) -> OpenAPI.Operation {
-        // Get type name of `Handler` as description
+        // Get description which either contains the description explicitly passed via modifier or the type name of `Handler` as default
         let description: String = endpoint.description
 
         // Get `Parameter.Array` from existing `query` or `path` parameters.
