@@ -134,19 +134,16 @@ class RESTInterfaceExporterTests: ApodiniTests {
     
     func testEndpointPaths() throws {
         struct WebService: Apodini.WebService {
-            struct EmptyHandler: Apodini.Handler {
-                typealias Response = Never
-            }
             var content: some Component {
                 Group("api") {
                     Group("user") {
-                        EmptyHandler().operation(.read)
-                        EmptyHandler().operation(.create)
+                        Text("").operation(.read)
+                        Text("").operation(.create)
                     }
                 }
                 Group("api") {
                     Group("post") {
-                        EmptyHandler().operation(.read)
+                        Text("").operation(.read)
                     }
                 }
             }

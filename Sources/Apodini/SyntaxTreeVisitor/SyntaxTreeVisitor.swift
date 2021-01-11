@@ -112,7 +112,7 @@ class SyntaxTreeVisitor {
     
     private func formHandlerIndexPathForCurrentNode() -> HandlerIndexPath {
         let rawValue = currentNodeIndexPath
-            .map { String($0 - 1) } // We remove one from the current indexPath to have 0 as the first index
+            .map { String(max($0, 1) - 1) } // We remove one from the current indexPath to have 0 as the first index
             .joined(separator: ":")
         return HandlerIndexPath(rawValue: rawValue)
     }
