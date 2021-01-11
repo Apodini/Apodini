@@ -28,6 +28,14 @@ struct IntOptionalContextKey: OptionalContextKey {
     typealias Value = Int
 }
 
+struct IntAdditionContextKey: ContextKey {
+    static var defaultValue: Int = 2
+
+    static func reduce(value: inout Value, nextValue: () -> Value) {
+        value += nextValue()
+    }
+}
+
 
 struct IntModifier<C: Component>: Modifier, SyntaxTreeVisitable {
     let component: C
@@ -51,10 +59,10 @@ struct IntModifier<C: Component>: Modifier, SyntaxTreeVisitable {
     }
 }
 
-
 extension IntModifier: Handler, HandlerModifier where ModifiedComponent: Handler {
     typealias Response = ModifiedComponent.Response
 }
+
 
 struct OptionalIntModifier<C: Component>: Modifier, SyntaxTreeVisitable {
     let component: C
@@ -82,6 +90,33 @@ extension OptionalIntModifier: Handler, HandlerModifier where ModifiedComponent:
     typealias Response = ModifiedComponent.Response
 }
 
+
+struct IntAdditionModifier<C: Component>: Modifier, SyntaxTreeVisitable {
+    let component: C
+    let scope: Scope
+    let value: Int
+
+    init(_ component: C, scope: Scope, value: Int) {
+        self.component = component
+        self.scope = scope
+        self.value = value
+    }
+
+    func accept(_ visitor: SyntaxTreeVisitor) {
+        switch scope {
+        case .environment:
+            visitor.addContext(IntAdditionContextKey.self, value: value, scope: .environment)
+        case .nextHandler:
+            visitor.addContext(IntAdditionContextKey.self, value: value, scope: .nextHandler)
+        }
+        component.accept(visitor)
+    }
+}
+
+extension IntAdditionModifier: Handler, HandlerModifier where ModifiedComponent: Handler {
+    typealias Response = ModifiedComponent.Response
+}
+
 extension Component {
     func modifier(_ scope: Scope, value: Int) -> IntModifier<Self> {
         IntModifier(self, scope: scope, value: value)
@@ -89,6 +124,10 @@ extension Component {
 
     func optionalModifier(_ scope: Scope, value: Int) -> OptionalIntModifier<Self> {
         OptionalIntModifier(self, scope: scope, value: value)
+    }
+
+    func addingInt(_ scope: Scope, value: Int) -> IntAdditionModifier<Self> {
+        IntAdditionModifier(self, scope: scope, value: value)
     }
 }
 
@@ -268,6 +307,46 @@ final class ContextNodeTests: ApodiniTests {
 
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
         groupWithOptionalModifier.accept(visitor)
+        visitor.finishParsing()
+    }
+
+    // This test case explicitly test that the reduce function
+    // is called with the default value
+    // default value for the addition is 2
+    var groupWithIntAddition: some Component {
+        Group("test") {
+            TestComponent(1)
+            TestComponent(2)
+                .addingInt(.nextHandler, value: 1)
+        }.addingInt(.environment, value: 1)
+    }
+
+    func testGroupWithIntAddition() {
+        class TestSemanticModelBuilder: SemanticModelBuilder {
+            override func register<H: Handler>(handler: H, withContext context: Context) {
+                if let testComponent = handler as? TestComponent {
+                    let path = context.get(valueFor: PathComponentContextKey.self)
+                    let pathString = ContextNodeTests.buildStringFromPathComponents(path)
+                    let intValue = context.get(valueFor: IntAdditionContextKey.self)
+
+                    switch testComponent.type {
+                    case 1:
+                        XCTAssertEqual(pathString, "test")
+                        XCTAssertEqual(intValue, 3)
+                    case 2:
+                        XCTAssertEqual(pathString, "test")
+                        XCTAssertEqual(intValue, 4)
+                    default:
+                        XCTFail("Received unknown component type \(testComponent.type)")
+                    }
+                } else {
+                    XCTFail("Received registration for unexpected component type \(handler)")
+                }
+            }
+        }
+
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
+        groupWithIntAddition.accept(visitor)
         visitor.finishParsing()
     }
 }

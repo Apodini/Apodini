@@ -124,9 +124,5 @@ struct HandlerIndexPath: RawRepresentable {
     
     struct ContextKey: Apodini.ContextKey {
         static let defaultValue: HandlerIndexPath = .init(rawValue: "")
-        
-        static func reduce(value: inout HandlerIndexPath, nextValue: () -> HandlerIndexPath) {
-            value = nextValue()
-        }
     }
 }

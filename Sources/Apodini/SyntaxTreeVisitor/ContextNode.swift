@@ -5,6 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
+@_implementationOnly import AssociatedTypeRequirementsVisitor
 
 class ContextNode {
     private var nodeOnlyContext: [ObjectIdentifier: Any] = [:]
@@ -84,15 +85,26 @@ class ContextNode {
             }
             newValue = contextValue
         } else {
-            if let type = contextKey as? ContextKeyWithDefault.Type {
-                // If there is no value in the local ContextNode nor in the global context we use the default value
-                // as the old value and the new value as the newValue in the reduce function call.
+            // we need to check if `OptionalContextKey` is type of `ContextKey`
+            // aka if the `ContextKey provides a default value. Because if it provides a defaultValue
+            // we need to call `reduce(...)` with it before inserting.
+            let visitor = StandardContextKeyTypeVisitor()
+            let defaultValue = visitor(contextKey)
 
-                var defaultValue: C.Value = type.getDefaultValue()
-                C.reduce(value: &defaultValue) {
-                    value
+            // if defaultValue is nil the contextKey didn't conform to `ContextKey` => doesn't have a default value
+            if let defaultValue = defaultValue {
+                // the visitor above returns Any, thus we need to properly cast. I can't think of a scenario
+                // where this can't go wrong, but that's what fatalErrors are for right?
+                if var defaultValue = defaultValue as? C.Value {
+                    // If there is no value in the local ContextNode nor in the global context we use the default value
+                    // as the old value and the new value as the newValue in the reduce function call.
+                    C.reduce(value: &defaultValue) {
+                        value
+                    }
+                    newValue = defaultValue
+                } else {
+                    fatalError("Failed to cast type of defaultValue \(type(of: defaultValue)) to expected Type of the ContextKey \(C.Value.self)")
                 }
-                newValue = defaultValue
             } else {
                 // we have a OptionalContextKey, there is no defaultValue with can reduce into
                 // thus we just store the supplied value
@@ -122,16 +134,18 @@ class ContextNode {
 
 // MARK: Helpers to retrieve default value
 
-private protocol ContextKeyWithDefault {
-    static func getDefaultValue<Value>() -> Value
+private protocol ContextKeyTypeVisitor: AssociatedTypeRequirementsTypeVisitor {
+    associatedtype Visitor = ContextKeyTypeVisitor
+    associatedtype Input = ContextKey
+    associatedtype Output
+
+    func callAsFunction<T: ContextKey>(_ type: T.Type) -> Output
 }
 
-private extension ContextKey {
-    static func getDefaultValue<DefaultValue>() -> DefaultValue {
-        if let value = defaultValue as? DefaultValue {
-            return value
-        }
-
-        fatalError("Failed to cast ContextKey.Value \(Value.self) to expected DefaultValue \(DefaultValue.self)")
+private struct StandardContextKeyTypeVisitor: ContextKeyTypeVisitor {
+    func callAsFunction<T: ContextKey>(_ type: T.Type) -> Any {
+        // we can't directly cast here to the desired Type
+        // I tried using generics but that crashes the AssociatedTypesRequirementsKit
+        type.defaultValue
     }
 }
