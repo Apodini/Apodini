@@ -8,7 +8,8 @@ import NIO
 
 /// A common `ResponseTransformable` type that all types returned from a `handle()` method in a `Handler` have to conform to.
 ///
-/// Common types like `String`, `Int` , `Double`, `Float`,`Bool`, and `UUID` and the corresponding `EventLoopFuture`wrappers all confrom to `ResponseTransformable` out of the box.
+/// Common types like `String`, `Int` (including variations like `UInt64`) , `Double`, `Float`,`Bool`, and `UUID`,  and the corresponding `EventLoopFuture`wrappers all confrom to `ResponseTransformable` out of the box.
+/// Collection types (`Array`, `Dictionary`, `Set`) also conform to `ResponseTransformable` if the elements conforrm to `Encodable`.
 /// Types that confrom to `Encodable` can confrom to `ResponseTransformable` without the need to implement any additional methods.
 public protocol ResponseTransformable {
     /// The `Encodable` type that is returned from a `handle()` method in a `Handler`.
