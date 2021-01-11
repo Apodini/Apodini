@@ -7,7 +7,7 @@ import Vapor
 @testable import Apodini
 
 class RESTInterfaceExporterTests: ApodiniTests {
-    struct Parameters: Encodable, Apodini.Response {
+    struct Parameters: Apodini.Content, Decodable {
         var param0: String
         var param1: String?
         var pathA: String
@@ -42,7 +42,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         }
     }
 
-    struct User: Codable, Apodini.Response, Identifiable {
+    struct User: Apodini.Content, Identifiable, Decodable {
         let id: String
         let name: String
     }
@@ -102,7 +102,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         let result = try context.handle(request: request)
                 .wait()
         guard case let .automatic(responseValue) = result.typed(Parameters.self) else {
-            XCTFail("Expected return value to be wrapped in Action.final by default")
+            XCTFail("Expected return value to be wrapped in Response.final by default")
             return
         }
         

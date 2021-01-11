@@ -8,7 +8,7 @@ import Vapor
 @testable import Apodini
 
 final class OpenAPIDocumentBuilderTests: XCTestCase {
-    struct SomeStruct: Vapor.Content, Apodini.Response {
+    struct SomeStruct: Apodini.Content {
         var someProp = 4
     }
 

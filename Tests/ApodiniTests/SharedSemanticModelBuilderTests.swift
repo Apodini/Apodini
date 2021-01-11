@@ -57,7 +57,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         @Apodini.Environment(\.connection)
         var connection: Connection
 
-        func handle() -> Action<String> {
+        func handle() -> Apodini.Response<String> {
             switch connection.state {
             case .open:
                 return .send("Send")
@@ -71,7 +71,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         @Apodini.Environment(\.connection)
         var connection: Connection
 
-        func handle() -> Action<String> {
+        func handle() -> Apodini.Response<String> {
             switch connection.state {
             case .open:
                 return .nothing
@@ -157,7 +157,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
 
         let result = try context.handle(request: request).wait()
         guard case let .automatic(resultValue) = result.typed(String.self) else {
-            XCTFail("Expected default to be wrapped in Action.automatic, but was \(result)")
+            XCTFail("Expected default to be wrapped in Response.automatic, but was \(result)")
             return
         }
 

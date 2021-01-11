@@ -14,7 +14,7 @@ final class ActionTests: ApodiniTests {
     struct ActionHandler: Handler {
         var message: String
 
-        func handle() -> Action<String> {
+        func handle() -> Response<String> {
             .final(message)
         }
     }
@@ -23,13 +23,13 @@ final class ActionTests: ApodiniTests {
         var eventLoop: EventLoop
         var message: String
 
-        func handle() -> EventLoopFuture<EventLoopFuture<EventLoopFuture<Action<String>>>> {
-            // this tests if the `EventLoopFutureUnwrapper` properly unwraps multiple nested EventLoopFutures
-            // I hope no one would ever do that, but its possible, thus we need to handle it properly
+        func handle() -> EventLoopFuture<EventLoopFuture<EventLoopFuture<Response<String>>>> {
+            // Test if `ResponseTransformable` unwraps multiple nested EventLoopFutures
+            // Not desirable but its possible:
             eventLoop.makeSucceededFuture(
                 eventLoop.makeSucceededFuture(
                     eventLoop.makeSucceededFuture(
-                        Action.send(message)
+                        Apodini.Response.send(message)
                     )
                )
             )
@@ -50,7 +50,7 @@ final class ActionTests: ApodiniTests {
                 .wait()
 
         guard case let .final(responseValue) = result.typed(String.self) else {
-            XCTFail("Expected return value of ActionHandler to be wrapped in Action.final")
+            XCTFail("Expected return value of ActionHandler to be wrapped in Response.final")
             return
         }
         
@@ -71,7 +71,7 @@ final class ActionTests: ApodiniTests {
                 .wait()
 
         guard case let .send(responseValue) = result.typed(String.self) else {
-            XCTFail("Expected return value of ActionHandler to be wrapped in Action.send")
+            XCTFail("Expected return value of ActionHandler to be wrapped in Response.send")
             return
         }
        
@@ -79,7 +79,7 @@ final class ActionTests: ApodiniTests {
     }
     
     func testActionMapFunctionality() {
-        let actions: [Action<String>] = [.nothing, .send("42"), .final("42"), .automatic("42"), .end]
+        let actions: [Response<String>] = [.nothing, .send("42"), .final("42"), .automatic("42"), .end]
         
         let intActions = actions.map { action in
             action.map { Int($0) }
@@ -93,7 +93,7 @@ final class ActionTests: ApodiniTests {
     
     func testActionGeneration() throws {
         try ["Paul": 42]
-            .action(on: app.eventLoopGroup.next())
+            .transformToResponse(on: app.eventLoopGroup.next())
             .map { action in
                 let transformedAction = action.typeErasured.typed([String: Int].self)
                 XCTAssertEqual(transformedAction?.element, ["Paul": 42])
@@ -102,7 +102,7 @@ final class ActionTests: ApodiniTests {
     }
     
     func testActionTypeErasureFunctionality() {
-        let actions: [Action<[String: Int]>] = [
+        let actions: [Response<[String: Int]>] = [
             .nothing,
             .send(["Paul": 42]),
             .final(["Paul": 42]),
@@ -114,15 +114,15 @@ final class ActionTests: ApodiniTests {
             action.typeErasured
         }
         typeErasuredActions.forEach { typeErasuredAction in
-            XCTAssert(type(of: typeErasuredAction).self == Action<AnyEncodable>.self)
+            XCTAssert(type(of: typeErasuredAction).self == Response<AnyEncodable>.self)
         }
         
-        // Make sure that type erasing a already type erasured Action doesn't have any effect
+        // Make sure that type erasing a already type erasured Response doesn't have any effect
         let doubbleTypeErasuredActions = typeErasuredActions.map { action in
             action.typeErasured
         }
         doubbleTypeErasuredActions.forEach { typeErasuredAction in
-            XCTAssert(type(of: typeErasuredAction).self == Action<AnyEncodable>.self)
+            XCTAssert(type(of: typeErasuredAction).self == Response<AnyEncodable>.self)
         }
         
         let typedActions = typeErasuredActions.map { typedAction in

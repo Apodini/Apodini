@@ -90,14 +90,14 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         self.handler = handler
         self.context = context
         self.operation = operation
-        self.handleReturnType = H.Response.ResponseContent.self
+        self.handleReturnType = H.Response.Content.self
         self.guards = guards
         self.responseTransformers = responseTransformers
         self.responseType = {
             guard let lastResponseTransformer = responseTransformers.last else {
-                return H.Response.ResponseContent.self
+                return H.Response.Content.self
             }
-            return lastResponseTransformer().transformedResponseType
+            return lastResponseTransformer().transformedResponseContent
         }()
         self.parameters = parameters
     }

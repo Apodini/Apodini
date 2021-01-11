@@ -23,33 +23,6 @@ public protocol Component {
 }
 
 
-/// A `Handler` is a `Component` which defines an endpoint and can handle requests.
-public protocol Handler: Component {
-    /// The type that is returned from the `handle()` method when the component handles a request. The return type of the `handle` method is encoded into the response send out to the client.
-    associatedtype Response: Apodini.Response
-    
-    /// A function that is called when a request reaches the `Handler`
-    func handle() -> Response
-}
-
-
-extension Handler {
-    /// By default, `Handler`s dont't provide any further content
-    public var content: some Component {
-        EmptyComponent()
-    }
-}
-
-
-/// A `Handler` which can be uniquely identified
-public protocol IdentifiableHandler: Handler {
-    /// The type of this handler's identifier
-    associatedtype HandlerIdentifier: AnyHandlerIdentifier
-    
-    /// This handler's identifier
-    var handlerId: HandlerIdentifier { get }
-}
-
 // MARK: Syntax Tree Visitor
 extension Component {
     /// As the `SyntaxTreeVisitable` protocol is internal we are not able to make `Component` conform to the protocol.
@@ -71,16 +44,6 @@ extension Component {
             }
         }
     }
-}
-
-
-/// - parameter T: The type for which to assert that it is a struct
-/// - parameter messagePrefix: An optional string which will be prefixed to the "T must be a struct" message
-internal func assertTypeIsStruct<T>(_: T.Type, messagePrefix: String? = nil) {
-    guard let typeInfo = try? Runtime.typeInfo(of: T.self) else {
-        fatalError("Unable to get type info for type '\(T.self)'")
-    }
-    precondition(typeInfo.kind == .struct, "\(messagePrefix.map { $0 + " " } ?? "")'\(typeInfo.name)' must be a struct")
 }
 
 

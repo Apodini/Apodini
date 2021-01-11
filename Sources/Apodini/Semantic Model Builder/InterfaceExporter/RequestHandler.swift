@@ -17,7 +17,7 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
 
     func callAsFunction(
         on connection: Connection
-    ) -> EventLoopFuture<Action<AnyEncodable>> {
+    ) -> EventLoopFuture<Response<AnyEncodable>> {
         guard let request = connection.request else {
             fatalError("Tried to handle request without request.")
         }
@@ -34,17 +34,17 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
             .flatMap { _ in
                 request.enterRequestContext(with: self.endpoint.handler) { handler in
                     handler.handle()
-                        .action(on: request.eventLoop)
+                        .transformToResponse(on: request.eventLoop)
                 }
             }
-            .flatMap { typedAction -> EventLoopFuture<Action<AnyEncodable>> in
+            .flatMap { typedAction -> EventLoopFuture<Response<AnyEncodable>> in
                 self.transformResponse(typedAction.typeErasured, on: request, using: self.endpoint.responseTransformers)
             }
     }
 
-    private func transformResponse(_ response: Action<AnyEncodable>,
+    private func transformResponse(_ response: Response<AnyEncodable>,
                                    on request: Request,
-                                   using modifiers: [LazyAnyResponseTransformer]) -> EventLoopFuture<Action<AnyEncodable>> {
+                                   using modifiers: [LazyAnyResponseTransformer]) -> EventLoopFuture<Response<AnyEncodable>> {
         guard let modifier = modifiers.first?() else {
             return request.eventLoop.makeSucceededFuture(response)
         }

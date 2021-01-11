@@ -22,7 +22,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         var someProp = "somesome"
     }
 
-    struct ResponseStruct: Codable, Apodini.Response {
+    struct ResponseStruct: Apodini.Content {
         var someResponse = "response"
         var someCount: Int?
     }

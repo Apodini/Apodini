@@ -4,14 +4,14 @@
 
 @testable import Apodini
 
-struct EmojiMediator: EncodableResponseTransformer {
+struct EmojiMediator: ResponseTransformer {
     private let emojis: String
 
     init(emojis: String = "✅") {
         self.emojis = emojis
     }
 
-    func transform(response: String) -> String {
-        "\(emojis) \(response) \(emojis)"
+    func transform(content string: String) -> String {
+        "\(emojis) \(string) \(emojis)"
     }
 }

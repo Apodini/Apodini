@@ -1,17 +1,17 @@
 //
 //  ResponseModifier.swift
-//  Apodini
+//  
 //
-//  Created by Paul Schmiedmayer on 6/26/20.
+//  Created by Paul Schmiedmayer on 1/4/21.
 //
 
-import NIO
+import Foundation
 
 
 typealias LazyAnyResponseTransformer = () -> (AnyResponseTransformer)
 
 
-struct ResponseContextKey: ContextKey {
+struct ResponseTransformerContextKey: ContextKey {
     static var defaultValue: [LazyAnyResponseTransformer] = []
     
     static func reduce(value: inout [LazyAnyResponseTransformer], nextValue: () -> [LazyAnyResponseTransformer]) {
@@ -19,18 +19,16 @@ struct ResponseContextKey: ContextKey {
     }
 }
 
-
-/// A `ResponseModifier` can be used to transform the output of `Handlers`'s response to a different type using a `ResponseTransformer`
-/// by performing a transformation on the `Action` of the `Handlers`.
-public struct ResponseModifier<H: Handler, T: ResponseTransformer>: HandlerModifier where H.Response.ResponseContent == T.Response {
-    public typealias Response = T.TransformedResponse
+/// A `ResponseModifier` can be used to transform the output of `Handler`'s response to a different type using a `ResponseTransformer`
+public struct ResponseModifier<H: Handler, T: ResponseTransformer>: HandlerModifier where H.Response.Content == T.InputContent {
+    public typealias Response = Apodini.Response<T.Content>
     
     public let component: H
     let responseTransformer: () -> (T)
     
     
     init(_ component: H, responseTransformer: @escaping () -> (T)) {
-        assertTypeIsStruct(T.self, messagePrefix: "ResponseTransformer")
+        assertTypeIsStruct(T.self, messagePrefix: "ResponseModifier")
         self.component = component
         self.responseTransformer = responseTransformer
     }
@@ -39,7 +37,7 @@ public struct ResponseModifier<H: Handler, T: ResponseTransformer>: HandlerModif
 
 extension ResponseModifier: SyntaxTreeVisitable {
     func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(ResponseContextKey.self, value: [responseTransformer], scope: .nextHandler)
+        visitor.addContext(ResponseTransformerContextKey.self, value: [responseTransformer], scope: .nextHandler)
         component.accept(visitor)
     }
 }

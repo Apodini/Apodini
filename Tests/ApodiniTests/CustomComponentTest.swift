@@ -42,7 +42,7 @@ final class CustomComponentTests: ApodiniTests {
                 .wait()
         
         guard case let .automatic(responseValue) = result.typed([Bird].self) else {
-            XCTFail("Expected return value to be wrapped in Action.final by default")
+            XCTFail("Expected return value to be wrapped in Response.final by default")
             return
         }
         

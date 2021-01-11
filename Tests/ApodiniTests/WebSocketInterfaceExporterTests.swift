@@ -11,7 +11,7 @@ import WebSocketInfrastructure
 @testable import Apodini
 
 class WebSocketInterfaceExporterTests: ApodiniTests {
-    struct Parameters: Apodini.Response, Codable {
+    struct Parameters: Apodini.Content {
         var param0: String
         var param1: String?
         var pathA: String
@@ -46,7 +46,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         }
     }
 
-    struct User: Content, Identifiable, Codable, Apodini.Response {
+    struct User: Apodini.Content, Identifiable, Decodable {
         let id: String
         let name: String
     }
@@ -105,7 +105,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         let result = try context.handle(request: input, eventLoop: app.eventLoopGroup.next())
                 .wait()
         guard case let .automatic(responseValue) = result.typed(Parameters.self) else {
-            XCTFail("Expected return value to be wrapped in Action.automatic by default")
+            XCTFail("Expected return value to be wrapped in Response.automatic by default")
             return
         }
 

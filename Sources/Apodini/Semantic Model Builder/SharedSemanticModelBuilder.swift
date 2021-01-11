@@ -67,7 +67,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
         let operation = context.get(valueFor: OperationContextKey.self)
         var paths = context.get(valueFor: PathComponentContextKey.self)
         let guards = context.get(valueFor: GuardContextKey.self).allActiveGuards
-        let responseTransformers = context.get(valueFor: ResponseContextKey.self)
+        let responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self)
         
         let parameterBuilder = ParameterBuilder(from: handler)
         parameterBuilder.build()

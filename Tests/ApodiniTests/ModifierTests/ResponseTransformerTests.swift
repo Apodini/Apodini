@@ -34,9 +34,9 @@ final class ResponseTransformerTests: ApodiniTests {
     }
     
     private struct ActionHandler: Handler {
-        let action: Action<String>
+        let action: Apodini.Response<String>
         
-        func handle() -> Action<String> {
+        func handle() -> Apodini.Response<String> {
             action
         }
     }
@@ -50,26 +50,9 @@ final class ResponseTransformerTests: ApodiniTests {
         }
 
 
-        func transform(response: Action<String>) -> Action<String> {
-            response.map { responseContent in
-                ResponseTransformerTests.emojiTransformerExpectation?.fulfill()
-                return "\(emojis) \(responseContent) \(emojis)"
-            }
-        }
-    }
-    
-    private struct EmojiEncodableResponseTransformer: EncodableResponseTransformer {
-        private let emojis: String
-
-
-        init(emojis: String = "✅") {
-            self.emojis = emojis
-        }
-
-
-        func transform(response: String) -> String {
+        func transform(content string: String) -> String {
             ResponseTransformerTests.emojiTransformerExpectation?.fulfill()
-            return "\(emojis) \(response) \(emojis)"
+            return "\(emojis) \(string) \(emojis)"
         }
     }
     
@@ -82,27 +65,9 @@ final class ResponseTransformerTests: ApodiniTests {
         }
 
 
-        func transform(response: Action<String?>) -> Action<String> {
-            response.map { responseContent in
-                ResponseTransformerTests.emojiTransformerExpectation?.fulfill()
-                return "\(emojis) \(responseContent ?? "❓") \(emojis)"
-            }
-        }
-    }
-    
-    // swiftlint:disable:next type_name
-    private struct OptionalEmojiEncodableResponseTransformer: EncodableResponseTransformer {
-        private let emojis: String
-
-
-        init(emojis: String = "✅") {
-            self.emojis = emojis
-        }
-
-
-        func transform(response: String?) -> String {
+        func transform(content string: String?) -> String {
             ResponseTransformerTests.emojiTransformerExpectation?.fulfill()
-            return "\(emojis) \(response ?? "❓") \(emojis)"
+            return "\(emojis) \(string ?? "❓") \(emojis)"
         }
     }
     
@@ -114,19 +79,19 @@ final class ResponseTransformerTests: ApodiniTests {
         waitForExpectations(timeout: 0, handler: nil)
     }
     
-    func testResponseMediator() throws {
+    func testSimpleResponseTransformer() throws {
         struct TestWebService: WebService {
             var content: some Component {
                 Text("Hello")
-                    .response(EmojiEncodableResponseTransformer())
+                    .response(EmojiResponseTransformer())
                 Group("paul") {
                     Text("Hello Paul")
                         .operation(.update)
-                        .response(EmojiEncodableResponseTransformer(emojis: "🚀"))
+                        .response(EmojiResponseTransformer(emojis: "🚀"))
                 }
                 Group("bernd") {
                     Text("Hello Bernd")
-                        .response(EmojiEncodableResponseTransformer())
+                        .response(EmojiResponseTransformer())
                         .operation(.create)
                 }
             }
@@ -134,17 +99,17 @@ final class ResponseTransformerTests: ApodiniTests {
         
         TestWebService.main(app: app)
         
-        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is exectured")
+        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
         try app.test(.GET, "/v1/") { res in
             try expect("✅ Hello ✅", in: res)
         }
         
-        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is exectured")
+        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
         try app.test(.PUT, "/v1/paul/") { res in
             try expect("🚀 Hello Paul 🚀", in: res)
         }
         
-        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is exectured")
+        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
         try app.test(.POST, "/v1/bernd/") { res in
             try expect("✅ Hello Bernd ✅", in: res)
         }
@@ -164,64 +129,39 @@ final class ResponseTransformerTests: ApodiniTests {
 
         TestWebService.main(app: app)
 
-        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is exectured")
+        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
         try app.test(.GET, "/v1/") { res in
             try expect("✅ ❓ ✅", in: res)
         }
 
-        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is exectured")
-        try app.test(.GET, "/v1/paul/") { res in
-            try expect("🚀 Hello Paul 🚀", in: res)
-        }
-    }
-
-    func testOptionalEncodableResponseMediator() throws {
-        struct TestWebService: WebService {
-            var content: some Component {
-                OptionalText(nil)
-                    .response(OptionalEmojiEncodableResponseTransformer())
-                Group("paul") {
-                    OptionalText("Hello Paul")
-                        .response(OptionalEmojiEncodableResponseTransformer(emojis: "🚀"))
-                }
-            }
-        }
-
-        TestWebService.main(app: app)
-        
-        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is exectured")
-        try app.test(.GET, "/v1/") { res in
-            try expect("✅ ❓ ✅", in: res)
-        }
-
-        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is exectured")
+        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
         try app.test(.GET, "/v1/paul/") { res in
             try expect("🚀 Hello Paul 🚀", in: res)
         }
     }
     
-    func testEncodableResponseTransformer() throws {
+    func testResponseTransformer() throws {
         struct TestWebService: WebService {
             var content: some Component {
                 Group("nothing") {
                     ActionHandler(action: .nothing)
-                        .response(EmojiEncodableResponseTransformer())
+                        .response(EmojiResponseTransformer())
                 }
                 Group("send") {
                     ActionHandler(action: .send("Paul"))
-                        .response(EmojiEncodableResponseTransformer())
+                        .response(EmojiResponseTransformer())
                 }
                 Group("final") {
                     ActionHandler(action: .final("Paul"))
-                        .response(EmojiEncodableResponseTransformer())
+                        .response(EmojiResponseTransformer())
                 }
                 Group("automatic") {
                     ActionHandler(action: .automatic("Paul"))
-                        .response(EmojiEncodableResponseTransformer())
+                        .response(EmojiResponseTransformer())
                 }
                 Group("end") {
                     ActionHandler(action: .end)
-                        .response(EmojiEncodableResponseTransformer())
+                        .response(EmojiResponseTransformer())
                 }
             }
         }
@@ -233,17 +173,17 @@ final class ResponseTransformerTests: ApodiniTests {
             XCTAssertEqual(response.body.readableBytes, 0)
         }
         
-        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is exectured")
+        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
         try app.test(.GET, "/v1/send") { res in
             try expect("✅ Paul ✅", in: res)
         }
         
-        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is exectured")
+        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
         try app.test(.GET, "/v1/final") { res in
             try expect("✅ Paul ✅", in: res)
         }
         
-        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is exectured")
+        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
         try app.test(.GET, "/v1/automatic") { res in
             try expect("✅ Paul ✅", in: res)
         }
@@ -255,9 +195,9 @@ final class ResponseTransformerTests: ApodiniTests {
     }
     
     func testFailingResponseTransformer() throws {
-        let action: Action<Int> = .automatic(42)
+        let action: Apodini.Response<Int> = .automatic(42)
         XCTAssertRuntimeFailure(
-            EmojiEncodableResponseTransformer()
+            EmojiResponseTransformer()
                 .transform(response: action.typeErasured, on: self.app.eventLoopGroup.next())
         )
         
@@ -267,7 +207,7 @@ final class ResponseTransformerTests: ApodiniTests {
         )
         
         XCTAssertRuntimeFailure(
-            OptionalEmojiEncodableResponseTransformer()
+            OptionalEmojiResponseTransformer()
                 .transform(response: action.typeErasured, on: self.app.eventLoopGroup.next())
         )
         

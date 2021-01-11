@@ -124,7 +124,7 @@ final class EndpointsTreeTests: ApodiniTests {
         let response = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
         guard case let .automatic(responseValue) = response.typed(String.self) else {
-            XCTFail("Expected return value to be wrapped in Action.final by default")
+            XCTFail("Expected return value to be wrapped in Response.final by default")
             return
         }
         

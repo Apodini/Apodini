@@ -9,7 +9,7 @@ import Fluent
 import Vapor
 import Apodini
 
-final class Bird: Model, Content, Apodini.Response {
+final class Bird: Model, Apodini.Content {
     static var schema: String = "Birds"
     
     
