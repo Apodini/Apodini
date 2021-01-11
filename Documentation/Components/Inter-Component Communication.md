@@ -7,10 +7,10 @@
 
 ## Summary
 
-- The APIs described in this document are used to access, from within a handler's `handle()` function, another handler's the functionality provided by another handler
+- The APIs described in this document are used to access, from within a handler's `handle()` function, the functionality provided by another handler
 - The `InvocableHandler` protocol, which interits from `IdentifiableHandler`, is used to denote `Handler`s which can be remotely invoked (ie, from within a `Handler.handle()` function)
 - The `RemoteHandlerInvocationManager` type implements a helper object which is responsible for coordinating inter-component communication
-- This helper object (you can think of this as a kind of mediator) has knowledge of the web service's structure and use that to determine how to realise interactions bwtween handlers
+- This helper object (you can think of this as a kind of mediator) has knowledge of the web service's structure and use that to determine how to realise interactions between handlers
 - The API as currenly defined only supports invoking components which use the request-response communication pattern
 
 
@@ -24,12 +24,12 @@ public protocol InvocableHandler: IdentifiableHandler where Response: Decodable 
 }
 ```
 
-An `InvocableHandler` is an `IdentifiableHandler` whose `Response` type conforms to `Decodable`, and which optionally defines a custom type for passing parameters to a remote invcation (see below).
+An `InvocableHandler` is an `IdentifiableHandler` whose `Response` type conforms to `Decodable`, and which optionally defines a custom type for passing parameters to a remote invcation (see below for an explanation of how parameter passsing works).
 
 
-## Defining invocable handlers
+## Defining and using invocable handlers
 
-Example:
+Simple example of a handler which accesses another handler's functionality.
 
 ```swift
 struct RandomNumberGenerator: InvocableHandler {
@@ -71,6 +71,7 @@ struct Greeter: Handler {
 
 ## The Remote Invocation Manager
 
+
 The invocation manager acts as a mediator overseeing all inter-handler interactions for a handler. Each handler which wants to other handlers defines its own instance of the invocation manager.
 
 
@@ -83,7 +84,7 @@ An interaction consists of the following parts:
 - sender: the component type which initiated the interaction. This can be any `Handler`
 - target: the component type the sender component is trying to invoke. This must be an `InvocableHandler`
 - target identifier: the identifier of the target component
-- parameters: An object which stores the values we want to pass to target's `@Parameter`s
+- parameters: An object which stores the values we want to pass to the target's `@Parameter`s
 
 An interaction may be one-way (ie, the target doesn't send a response, or the response is discarded by the invocation manager), and the target does not necessarily know if it is being accessed by another handler (via the invocation manager) or by a "normal" client.
 
@@ -136,7 +137,7 @@ func invoke<H: InvocableHandler>(
 
 ## Return values
 
-The remote-invocation API returns `EventLoopFuture`s.  
+The remote-invocation API returns an `EventLoopFuture`.  
 Since invocations may be dispatched either locally or remotely, there is no guarantee as to whether an invocation is realised synchronous or asynchronous.
 
 The returned object is the decoded response from the invoked handler. (This is the reason for the `where Response: Decodable` constraint on the `InvocableHandler` protocol.)
@@ -161,7 +162,17 @@ There are two ways parameters can be specified:
 The `InvocableHandler` protocol defines an (optional) associated type `ParametersStorage`.
 A Handler can implement this type to provide a custom storage object for parameter values.
 
-The storage type consists of two things:
+For handlers defining a parameter storage type, the remote-invocation API is as follows: 
+
+```swift
+func invoke<H: InvocableHandler>(
+    _: H.Type,
+    identifiedBy handlerId: H.HandlerIdentifier,
+    parameters: H.ParametersStorage
+) -> EventLoopFuture<H.Response>
+```
+
+The parameters storage type consists of two things:
 
 - properties for the parameters which should be passed to the Handler
 - a mapping from the `ParametersStorage` properties to the Handler's `@Parameter`s
@@ -185,7 +196,7 @@ struct RandomNumberGenerator: InvocableHandler {
         
         static let mapping: [MappingEntry] = [
             .init(from: \.lowerBound, to: \.$lowerBound),
-            .init(from: \.upperBound, to: \.$upperBound),
+            .init(from: \.upperBound, to: \.$upperBound)
         ]
     }
     
@@ -206,7 +217,7 @@ struct RandomNumberGenerator: InvocableHandler {
 }
 ```
 
-### 2. Array-based parameter lists
+### 2. Array-based parameter passing
 
 If an `InvocableHandler` does not specify a `ParametersStorage` type, the remote-invocation API instead expects an array of keypath-value mappings:
 
@@ -215,7 +226,7 @@ func invoke<H: InvocableHandler>(
     _ handlerType: H.Type,
     identifiedBy handlerId: H.HandlerIdentifier,
     parameters: [CollectedParameter<H>] = []
-) -> EventLoopFuture<H.Response> /* where H.ParametersStorage == _EmptyParametersStorage<H> */
+) -> EventLoopFuture<H.Response> where H.ParametersStorage == _EmptyParametersStorage<H>
 ```
 
 Where `CollectedParameter` is a struct storing:
@@ -223,14 +234,13 @@ Where `CollectedParameter` is a struct storing:
 - a key path to an `@Parameter` within an invocable handler
 - the value which should be passed for this parameter
 
-<!--Similar to how the `ParametersStorage` consisted of the parameter values and a mapping from the values' key paths to their respective `@Parameter`s, this array of mappings contains -->
 
-(`_EmptyParametersStorage ` is a non-initialisable type which is used to indicate that a handler wants to opt in to the array-based parameter passing. For `InvocableHandler` which do not specify a `ParametersStorage` type, the parameter storage defaults to this type.)
+(`_EmptyParametersStorage ` is a non-initialisable type which a Handler can use to opt in to the array-based parameter passing. For `InvocableHandler`s which do not specify a `ParametersStorage` type, the parameter storage defaults to this type.)
 
-Similar to how the `ParametersStorage` consisted of the parameter values alongside an array mapping the key path to a value (within the parameters storage) to the key path of its respective `@Parameter` (within the Handler), the `CollectedParameter`s expected by this function consist of the parameter value and the key path to the value's `@Parameter`.
+Similar to how the `ParametersStorage` consisted of the parameter values alongside an array mapping the key path to a value (within the parameters storage) to the key path of its respective `@Parameter` (within the Handler), the `CollectedParameter`s expected by this function consist of the parameter value and the key path to the handler's `@Parameter`.
 
-Entries for `@Parameter`s which define a default value can be omitted from the parameters array.  
-If the parameters array contains multiple entries for the same `@Parameter` key path, the last one is passed to the invoked handler.  
+Entries for `@Parameter`s which define a default value may be omitted from the parameters array.  
+If the parameters array contains multiple entries for the same `@Parameter` key path, the last one is used.  
 Incomplete parameter lists (eg missing parameters) result in a run-time error.
 
 The advantage of this parameter-passing approach is that the handler doesn't have to write boilerplate code.  
@@ -312,7 +322,7 @@ struct RandomNumberGenerator: InvocableHandler {
         let upperBound: Int
         static let mapping: [MappingEntry] = [
             .init(from: \.lowerBound, to: \.$lowerBound),
-            .init(from: \.upperBound, to: \.$upperBound),
+            .init(from: \.upperBound, to: \.$upperBound)
         ]
     }
     
