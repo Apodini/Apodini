@@ -37,6 +37,25 @@ final class EnvironmentTests: ApodiniTests {
         XCTAssert(response == birdFacts.someFact)
     }
     
+    func testEnvironmentObjectInjection() throws {
+        struct Keys: ApodiniKeys {
+            var bird: BirdFacts
+        }
+        
+        let birdFacts = BirdFacts()
+        EnvironmentObject(birdFacts, \Keys.bird).configure(app)
+        EnvironmentObject(birdFacts, \Keys.bird).configure(app)
+        
+        let handler = BirdHandler()
+        let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
+
+        let response: String = request.enterRequestContext(with: handler) { handler in
+            handler.handle()
+        }
+
+        XCTAssert(response == birdFacts.someFact)
+    }
+    
     func testUpdateEnvironmentValue() throws {
         let birdFacts = BirdFacts()
         let newFact = "Until humans, the Dodo had no predators"
