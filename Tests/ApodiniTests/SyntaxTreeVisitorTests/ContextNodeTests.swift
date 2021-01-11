@@ -36,6 +36,11 @@ struct IntAdditionContextKey: ContextKey {
     }
 }
 
+struct IllegalOptionalContextKey: OptionalContextKey {
+    // The Value of a ContextKey MUST NOT be an Optional type
+    typealias Value = String?
+}
+
 
 struct IntModifier<C: Component>: Modifier, SyntaxTreeVisitable {
     let component: C
@@ -348,5 +353,11 @@ final class ContextNodeTests: ApodiniTests {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
         groupWithIntAddition.accept(visitor)
         visitor.finishParsing()
+    }
+
+    func testAddingIllegalContextKey() {
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [])
+        XCTAssertRuntimeFailure(visitor.addContext(IllegalOptionalContextKey.self, value: nil, scope: .nextHandler))
+        XCTAssertRuntimeFailure(visitor.addContext(IllegalOptionalContextKey.self, value: "test", scope: .nextHandler))
     }
 }
