@@ -79,7 +79,7 @@ final class ActionTests: ApodiniTests {
     }
     
     func testActionMapFunctionality() {
-        let actions: [Response<String>] = [.nothing, .send("42"), .final("42"), .automatic("42"), .end]
+        let actions: [Response<String>] = [.nothing, .send("42"), .final("42"), .end]
         
         let intActions = actions.map { action in
             action.map { Int($0) }
@@ -87,8 +87,7 @@ final class ActionTests: ApodiniTests {
         XCTAssertEqual(intActions[0].element, nil)
         XCTAssertEqual(intActions[1].element, 42)
         XCTAssertEqual(intActions[2].element, 42)
-        XCTAssertEqual(intActions[3].element, 42)
-        XCTAssertEqual(intActions[4].element, nil)
+        XCTAssertEqual(intActions[3].element, nil)
     }
     
     func testActionGeneration() throws {
@@ -106,7 +105,6 @@ final class ActionTests: ApodiniTests {
             .nothing,
             .send(["Paul": 42]),
             .final(["Paul": 42]),
-            .automatic(["Paul": 42]),
             .end
         ]
         
@@ -142,9 +140,7 @@ final class ActionTests: ApodiniTests {
         }
         XCTAssert(typedActionsFailed[1] == nil)
         XCTAssert(typedActionsFailed[2] == nil)
-        XCTAssert(typedActionsFailed[3] == nil)
-        XCTAssert(typedActionsFailed[4] != nil)
-        guard case .end = typedActionsFailed[4] else {
+        guard case .end = typedActionsFailed[3] else {
             XCTFail("typedActionsFailed[0] must be .end as the type mapping shouldn't be affected by the mismatch in types")
             return
         }

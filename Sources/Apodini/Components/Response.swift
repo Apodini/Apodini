@@ -20,9 +20,6 @@ public enum Response<Element: Encodable>: ResponseTransformable {
     /// as a final response to the client.
     /// Will be the last message on the stream sent by the server.
     case final(_ element: Element)
-    /// No specific action was defined by the `Handler` or `ResponseTransformer`.
-    /// The eventual action will be decided by Apodini
-    case automatic(_ element: Element)
     /// Closes the connection, without  sending a response.
     case end
     
@@ -45,8 +42,6 @@ extension Response {
             return .send(transform(element))
         case let .final(element):
             return .final(transform(element))
-        case let .automatic(element):
-            return .automatic(transform(element))
         case .end:
             return .end
         }
@@ -69,11 +64,6 @@ extension Response {
                 return .final(AnyEncodable(element))
             }
             return .final(anyEncodableElement)
-        case let .automatic(element):
-            guard let anyEncodableElement = element as? AnyEncodable else {
-                return .automatic(AnyEncodable(element))
-            }
-            return .automatic(anyEncodableElement)
         case .end:
             return .end
         }
@@ -83,7 +73,7 @@ extension Response {
         switch self {
         case .nothing, .end:
             return nil
-        case let .send(element), let .final(element), let .automatic(element):
+        case let .send(element), let .final(element):
             return element
         }
     }
@@ -102,10 +92,6 @@ extension Response where Element == AnyEncodable {
         case let .final(element):
             return element.typed(T.self).map {
                 .final($0)
-            }
-        case let .automatic(element):
-            return element.typed(T.self).map {
-                .automatic($0)
             }
         case .end:
             return .end

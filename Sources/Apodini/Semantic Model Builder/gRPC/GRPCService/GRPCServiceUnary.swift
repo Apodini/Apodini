@@ -21,8 +21,7 @@ extension GRPCService {
                 let result = response.map { encodableAction -> Vapor.Response in
                     switch encodableAction {
                     case let .send(element),
-                         let .final(element),
-                         let .automatic(element):
+                         let .final(element):
                         return self.makeResponse(element)
                     case .nothing, .end:
                         return self.makeResponse()

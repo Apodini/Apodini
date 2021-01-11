@@ -104,7 +104,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
 
         let result = try context.handle(request: input, eventLoop: app.eventLoopGroup.next())
                 .wait()
-        guard case let .automatic(responseValue) = result.typed(Parameters.self) else {
+        guard case let .final(responseValue) = result.typed(Parameters.self) else {
             XCTFail("Expected return value to be wrapped in Response.automatic by default")
             return
         }

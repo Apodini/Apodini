@@ -155,10 +155,6 @@ final class ResponseTransformerTests: ApodiniTests {
                     ActionHandler(action: .final("Paul"))
                         .response(EmojiResponseTransformer())
                 }
-                Group("automatic") {
-                    ActionHandler(action: .automatic("Paul"))
-                        .response(EmojiResponseTransformer())
-                }
                 Group("end") {
                     ActionHandler(action: .end)
                         .response(EmojiResponseTransformer())
@@ -183,11 +179,6 @@ final class ResponseTransformerTests: ApodiniTests {
             try expect("✅ Paul ✅", in: res)
         }
         
-        ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
-        try app.test(.GET, "/v1/automatic") { res in
-            try expect("✅ Paul ✅", in: res)
-        }
-        
         try app.test(.GET, "/v1/end") { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertEqual(response.body.readableBytes, 0)
@@ -195,7 +186,7 @@ final class ResponseTransformerTests: ApodiniTests {
     }
     
     func testFailingResponseTransformer() throws {
-        let action: Apodini.Response<Int> = .automatic(42)
+        let action: Apodini.Response<Int> = .final(42)
         XCTAssertRuntimeFailure(
             EmojiResponseTransformer()
                 .transform(response: action.typeErasured, on: self.app.eventLoopGroup.next())

@@ -65,8 +65,7 @@ class RESTEndpointHandler<H: Handler> {
         return response.map { encodableAction in
             switch encodableAction {
             case let .send(element),
-                 let .final(element),
-                 let .automatic(element):
+                 let .final(element):
                 return ResponseContainer(element, links: links)
             case .nothing, .end:
                 // nothing to encode,

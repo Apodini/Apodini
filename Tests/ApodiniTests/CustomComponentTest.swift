@@ -41,7 +41,7 @@ final class CustomComponentTests: ApodiniTests {
         let result = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
         
-        guard case let .automatic(responseValue) = result.typed([Bird].self) else {
+        guard case let .final(responseValue) = result.typed([Bird].self) else {
             XCTFail("Expected return value to be wrapped in Response.final by default")
             return
         }

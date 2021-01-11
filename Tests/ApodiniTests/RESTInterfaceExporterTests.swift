@@ -101,7 +101,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         let result = try context.handle(request: request)
                 .wait()
-        guard case let .automatic(responseValue) = result.typed(Parameters.self) else {
+        guard case let .final(responseValue) = result.typed(Parameters.self) else {
             XCTFail("Expected return value to be wrapped in Response.final by default")
             return
         }

@@ -156,7 +156,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         let expectedString = "Hello Test Handler 4"
 
         let result = try context.handle(request: request).wait()
-        guard case let .automatic(resultValue) = result.typed(String.self) else {
+        guard case let .final(resultValue) = result.typed(String.self) else {
             XCTFail("Expected default to be wrapped in Response.automatic, but was \(result)")
             return
         }
