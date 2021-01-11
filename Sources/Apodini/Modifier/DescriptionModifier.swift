@@ -29,7 +29,7 @@ extension DescriptionModifier: SyntaxTreeVisitable {
 
 extension Handler {
     /// A `description` modifier can be used to explicitly specify the `description` for the given `Handler`
-    /// - Parameter operation: The `description` that is used to for the handler
+    /// - Parameter description: The `description` that is used to for the handler
     /// - Returns: The modified `Handler` with a specified `description`
     public func description(_ description: String) -> DescriptionModifier<Self> {
         DescriptionModifier(self, description: description)
