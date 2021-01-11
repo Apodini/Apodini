@@ -34,6 +34,7 @@ struct OpenAPIDocumentBuilder {
 }
 
 extension OpenAPIDocumentBuilder {
+    // swiftlint:disable force_unwrapping
     var description: String {
         let encoder = JSONEncoder()
         guard let json = try? encoder.encode(self.document) else {

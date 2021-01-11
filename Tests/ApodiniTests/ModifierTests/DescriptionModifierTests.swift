@@ -49,6 +49,7 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
+        // swiftlint:disable force_unwrapping
         let treeNodeA: EndpointsTreeNode = modelBuilder.rootNode.children.first!.children.first!
         let endpoint: AnyEndpoint = treeNodeA.endpoints.first!.value
         
@@ -64,6 +65,7 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
+        // swiftlint:disable force_unwrapping
         let treeNodeA: EndpointsTreeNode = modelBuilder.rootNode.children.first!.children.first!
         let endpoint: AnyEndpoint = treeNodeA.endpoints.first!.value
         
