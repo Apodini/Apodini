@@ -8,7 +8,7 @@
 ## Summary
 
 - The APIs described in this document are used to access, from within a handler's `handle()` function, the functionality provided by another handler
-- The `InvocableHandler` protocol, which interits from `IdentifiableHandler`, is used to denote `Handler`s which can be remotely invoked (ie, from within a `Handler.handle()` function)
+- The `InvocableHandler` protocol, which inherits from `IdentifiableHandler`, is used to denote `Handler`s which can be remotely invoked (ie, from within a `Handler.handle()` function)
 - The `RemoteHandlerInvocationManager` type implements a helper object which is responsible for coordinating inter-component communication
 - This helper object (you can think of this as a kind of mediator) has knowledge of the web service's structure and use that to determine how to realise interactions between handlers
 - The API as currenly defined only supports invoking components which use the request-response communication pattern
@@ -24,7 +24,7 @@ public protocol InvocableHandler: IdentifiableHandler where Response: Decodable 
 }
 ```
 
-An `InvocableHandler` is an `IdentifiableHandler` whose `Response` type conforms to `Decodable`, and which optionally defines a custom type for passing parameters to a remote invcation (see below for an explanation of how parameter passsing works).
+An `InvocableHandler` is an `IdentifiableHandler` whose `Response` type conforms to `Decodable`, and which optionally defines a custom type for passing parameters to a remote invocation (see below for an explanation of how parameter passsing works).
 
 
 ## Defining and using invocable handlers
@@ -72,7 +72,7 @@ struct Greeter: Handler {
 ## The Remote Invocation Manager
 
 
-The invocation manager acts as a mediator overseeing all inter-handler interactions for a handler. Each handler which wants to other handlers defines its own instance of the invocation manager.
+The invocation manager acts as a mediator overseeing all inter-handler interactions for a handler. Each handler which wants to interact with other handlers defines its own instance of the invocation manager.
 
 
 ### What's an interaction?
@@ -103,7 +103,7 @@ Broadly speaking, we differentiate between two kinds of interactions:
 
 The invocation manager is responsible for deciding whether the target component should be invoked locally or remotely, thus acting as a dispatcher. It is also responsible for realising the interaction.
 
-The invocation manager has access to the full structure of the web service (eg via the `WebServiceModel` object) and the deployment structure structure (ie information about the number of processes running the web service, the endpoints implemented by each process, etc).
+The invocation manager has access to the full structure of the web service (eg via the `WebServiceModel` object) and the deployment structure (ie information about the number of processes running the web service, the endpoints implemented by each process, etc).
 It uses these data to determine how to best dispatch individual invocations.
 A handler's invocation manager is dynamically detected and provided this information, similarly to how `RequestInjectable`s are handled.
 
@@ -244,7 +244,7 @@ If the parameters array contains multiple entries for the same `@Parameter` key 
 Incomplete parameter lists (eg missing parameters) result in a run-time error.
 
 The advantage of this parameter-passing approach is that the handler doesn't have to write boilerplate code.  
-The downside however is the loss of compile-time well-formedness checking.
+The downside, however, is the loss of compile-time well-formedness checking.
 
 
 
