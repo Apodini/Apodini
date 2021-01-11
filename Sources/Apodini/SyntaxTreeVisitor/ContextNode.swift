@@ -50,7 +50,6 @@ class ContextNode {
         let newValue: C.Value
 
         if C.Value.self is ExpressibleByNilLiteral.Type {
-            // TODO is there a compile time way to do this?
             fatalError("""
                        The `Value` type of a `ContextKey` or `OptionalContextKey` must not be a `Optional` type.
                        Found \(C.Value.self) as `Value` type for key \(C.self).
@@ -62,10 +61,10 @@ class ContextNode {
             // Component are parsed in a reverse order:
             //
             // Component()
-            //     .modifer(1) // Parsed second
-            //     .modifer(2) // Parsed first, stored in `nodeOnlyContext` or `context`
+            //     .modifier(1) // Parsed second
+            //     .modifier(2) // Parsed first, stored in `nodeOnlyContext` or `context`
             //
-            // As we expect that Components is using `2` based on the modifers we pass the `value` as the existing
+            // As we expect that Components is using `2` based on the modifiers we pass the `value` as the existing
             // value and `currentLocalValue` as the new value to take advantage of the reduce function.
             var value = value
             C.reduce(value: &value) {
@@ -78,8 +77,8 @@ class ContextNode {
             // Example:
             // Group {
             //     Component()
-            //         .modifer(2) // We expect Component to use `2`
-            // }.modifer(1)
+            //         .modifier(2) // We expect Component to use `2`
+            // }.modifier(1)
             C.reduce(value: &contextValue) {
                 value
             }
