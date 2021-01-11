@@ -70,7 +70,8 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
         )
 
         let builtDocument = documentBuilder.build()
-
+        
+        XCTAssertNotNil(documentBuilder.jsonDescription)
         XCTAssertEqual(builtDocument, document)
     }
 }
