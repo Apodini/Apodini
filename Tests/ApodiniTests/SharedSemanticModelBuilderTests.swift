@@ -157,7 +157,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
 
         let result = try context.handle(request: request).wait()
         guard case let .final(resultValue) = result.typed(String.self) else {
-            XCTFail("Expected default to be wrapped in Response.automatic, but was \(result)")
+            XCTFail("Expected default to be wrapped in Response.final, but was \(result)")
             return
         }
 
@@ -166,7 +166,8 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
 
     func testActionPassthrough_send() throws {
         let exporter = RESTInterfaceExporter(app)
-        let handler = ActionHandler1().environment(Connection(state: .open), for: \EnvironmentValues.connection)
+        let handler = ActionHandler1()
+            .environment(Connection(state: .open), for: \EnvironmentValues.connection)
         let endpoint = handler.mockEndpoint()
         var context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app,
@@ -174,7 +175,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
                                     url: "",
                                     on: app.eventLoopGroup.next())
 
-        let result = try context.handle(request: request).wait()
+        let result = try context.handle(request: request, final: false).wait()
         if case let .send(element) = result.typed(String.self) {
             XCTAssertEqual(element, "Send")
         } else {
@@ -202,7 +203,8 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
 
     func testActionPassthrough_nothing() throws {
         let exporter = RESTInterfaceExporter(app)
-        let handler = ActionHandler2().environment(Connection(state: .open), for: \EnvironmentValues.connection)
+        let handler = ActionHandler2()
+            .environment(Connection(state: .open), for: \EnvironmentValues.connection)
         let endpoint = handler.mockEndpoint()
         var context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app,
@@ -210,7 +212,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
                                     url: "",
                                     on: app.eventLoopGroup.next())
 
-        let result = try context.handle(request: request).wait()
+        let result = try context.handle(request: request, final: false).wait()
         if case .nothing = result {
             XCTAssertTrue(true)
         } else {
