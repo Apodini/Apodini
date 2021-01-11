@@ -151,16 +151,14 @@ class RESTInterfaceExporterTests: ApodiniTests {
         
         let builder = SharedSemanticModelBuilder(app)
             .with(exporter: RESTInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
-        WebService().accept(visitor)
-        visitor.finishParsing()
+        WebService().register(builder)
         
         let endpointPaths = builder.rootNode
             .collectAllEndpoints()
             .map { StringPathBuilder($0.absolutePath).build() }
         
         let expectedEndpointPaths: [String] = [
-            "api/user", "api/user", "api/post"
+            "v1/api/user", "v1/api/user", "v1/api/post"
         ]
         XCTAssert(endpointPaths.compareIgnoringOrder(expectedEndpointPaths))
     }
