@@ -166,7 +166,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
 
     func testActionPassthrough_send() throws {
         let exporter = RESTInterfaceExporter(app)
-        let handler = ActionHandler1().withEnvironment(Connection(state: .open), for: \.connection)
+        let handler = ActionHandler1().environment(Connection(state: .open), for: \EnvironmentValues.connection)
         let endpoint = handler.mockEndpoint()
         var context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app,
@@ -184,7 +184,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
 
     func testActionPassthrough_final() throws {
         let exporter = RESTInterfaceExporter(app)
-        let handler = ActionHandler1().withEnvironment(Connection(state: .end), for: \.connection)
+        let handler = ActionHandler1().environment(Connection(state: .end), for: \EnvironmentValues.connection)
         let endpoint = handler.mockEndpoint()
         var context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app,
@@ -202,7 +202,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
 
     func testActionPassthrough_nothing() throws {
         let exporter = RESTInterfaceExporter(app)
-        let handler = ActionHandler2().withEnvironment(Connection(state: .open), for: \.connection)
+        let handler = ActionHandler2().environment(Connection(state: .open), for: \EnvironmentValues.connection)
         let endpoint = handler.mockEndpoint()
         var context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app,
@@ -220,7 +220,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
 
     func testActionPassthrough_end() throws {
         let exporter = RESTInterfaceExporter(app)
-        let handler = ActionHandler2().withEnvironment(Connection(state: .end), for: \.connection)
+        let handler = ActionHandler2().environment(Connection(state: .end), for: \EnvironmentValues.connection)
         let endpoint = handler.mockEndpoint()
         var context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app,

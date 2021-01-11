@@ -6,7 +6,7 @@
 import protocol NIO.EventLoop
 
 /// The Protocol any Exporter Request type must conform to
-protocol ExporterRequest {}
+protocol ExporterRequest: Reducible {}
 
 /// When your `ExporterRequest` conforms to this protocol, it indicates that it delivers
 /// its own `EventLoop` out of the box. Having that conformance you can use a shorthand
@@ -15,14 +15,11 @@ protocol WithEventLoop {
     var eventLoop: EventLoop { get }
 }
 
-func null<T>(_ type: T.Type = T.self) -> T? {
-    T?(nil)
-}
-
-/// Any Apodini Interface Exporter must conform to this protocol.
-protocol InterfaceExporter {
-    /// Defines the type of the Request the exporter uses.
-    associatedtype ExporterRequest: Apodini.ExporterRequest
+/// This is the base protocol shared by any Exporter type supported by Apodini.
+/// Currently the following two types are supported:
+/// - `InterfaceExporter`: This type should be used for Exporters serving an accessible WebService
+/// - `StaticInterfaceExporter`: This type should be used for Exporters service a representation of the WebService (e.g. documentation)
+protocol BaseInterfaceExporter {
     /// Defines the return type of the `export` method. The return type is currently unused.
     associatedtype EndpointExportOutput = Void
     /// Defines the return type of the `exportParameter` method. For more details see `exportParameter(...)`
@@ -52,6 +49,24 @@ protocol InterfaceExporter {
     /// - Parameter webService: A model representing the exported `WebService`
     func finishedExporting(_ webService: WebServiceModel)
 
+    /// Internal method used with the `InterfaceExporterVisitor`.
+    /// A proper implementation is provided by default for any exporter type.
+    /// - Parameter visitor: The instance of the `InterfaceExporterVisitor`
+    func accept(_ visitor: InterfaceExporterVisitor)
+}
+
+// Providing empty default implementations for optional methods
+extension BaseInterfaceExporter {
+    func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) {}
+    func finishedExporting(_ webService: WebServiceModel) {}
+}
+
+
+/// Any Interface Exporter creating an accessible WebService must conform to this protocol.
+protocol InterfaceExporter: BaseInterfaceExporter {
+    /// Defines the type of the Request the exporter uses.
+    associatedtype ExporterRequest: Apodini.ExporterRequest
+
     /// This method is called on `EndpointParameter` injection to retrieve the value from the given `ExporterRequest`.
     /// Be aware that the generic `Type` holds the Wrapped type for `Optional`s (see `EndpointParameter`).
     ///
@@ -72,22 +87,35 @@ protocol InterfaceExporter {
 
 // MARK: Interface Exporter Visitor
 extension InterfaceExporter {
-    func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) {}
-    func finishedExporting(_ webService: WebServiceModel) {}
-
     func accept(_ visitor: InterfaceExporterVisitor) {
         visitor.visit(exporter: self)
     }
 }
 
+
+/// Any InterfaceExporter creating a representation of the WebService must conform to this protocol.
+///
+/// Such exporters do not actively create a accessible WebService themselves but rather a static representation
+/// of the WebService (e.g. a Endpoint serving documentation of the WebService).
+protocol StaticInterfaceExporter: BaseInterfaceExporter {}
+
+extension StaticInterfaceExporter {
+    func accept(_ visitor: InterfaceExporterVisitor) {
+        visitor.visit(staticExporter: self)
+    }
+}
+
+
 protocol InterfaceExporterVisitor {
     func visit<I: InterfaceExporter>(exporter: I)
+    func visit<I: StaticInterfaceExporter>(staticExporter: I)
 }
+
 
 struct AnyInterfaceExporter {
     private let _accept: (_ visitor: InterfaceExporterVisitor) -> Void
 
-    init<I: InterfaceExporter>(_ exporter: I) {
+    init<I: BaseInterfaceExporter>(_ exporter: I) {
         _accept = exporter.accept
     }
 

@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Nityananda on 11.12.20.
 //
@@ -13,11 +13,11 @@ struct EnrichedInfo {
         case exactlyOne
         case zeroToMany
     }
-    
+
     let typeInfo: TypeInfo
     let propertyInfo: PropertyInfo?
     let propertiesOffset: Int?
-    
+
     var cardinality: Cardinality = .exactlyOne
 }
 
@@ -28,7 +28,7 @@ extension EnrichedInfo {
             typeInfo: typeInfo,
             propertyInfo: nil,
             propertiesOffset: nil)
-        
+
         return Node(root: root) { info in
             info.typeInfo.properties
                 .enumerated()
@@ -43,11 +43,11 @@ extension EnrichedInfo {
                     } catch {
                         let errorDescription = String(describing: error)
                         let keyword = "Runtime.Kind.opaque"
-                        
+
                         guard !errorDescription.contains(keyword) else {
                             return nil
                         }
-                        
+
                         preconditionFailure(errorDescription)
                     }
                 }

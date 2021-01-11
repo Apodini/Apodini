@@ -16,10 +16,15 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
     }
 
     func callAsFunction(
-        request: ValidatedRequest<I, H>
+        on connection: Connection
     ) -> EventLoopFuture<Action<AnyEncodable>> {
+        guard let request = connection.request else {
+            fatalError("Tried to handle request without request.")
+        }
+        
+        
         let guardEventLoopFutures = endpoint.guards.map { guardClosure -> EventLoopFuture<Void> in
-            request.enterRequestContext(with: guardClosure()) { requestGuard in
+            connection.enterConnectionContext(with: guardClosure()) { requestGuard in
                 requestGuard.executeGuardCheck(on: request)
             }
         }
@@ -36,7 +41,6 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
                 self.transformResponse(typedAction.typeErasured, on: request, using: self.endpoint.responseTransformers)
             }
     }
-    
 
     private func transformResponse(_ response: Action<AnyEncodable>,
                                    on request: Request,
@@ -44,7 +48,7 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
         guard let modifier = modifiers.first?() else {
             return request.eventLoop.makeSucceededFuture(response)
         }
-
+        
         return request
             .enterRequestContext(with: modifier) { responseTransformerInContext in
                 responseTransformerInContext.transform(response: response, on: request.eventLoop)

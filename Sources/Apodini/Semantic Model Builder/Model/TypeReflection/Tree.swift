@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Nityananda on 26.11.20.
 //
@@ -18,7 +18,7 @@ extension Tree {
 
 // MARK: - Node
 
-internal struct Node<T> {
+struct Node<T> {
     let value: T
     let children: [Node<T>]
 }
@@ -26,8 +26,10 @@ internal struct Node<T> {
 extension Node {
     init(root: T, _ getChildren: (T) throws -> [T]) rethrows {
         let children = try getChildren(root)
-            .map { try Node(root: $0, getChildren) }
-        
+            .map {
+                try Node(root: $0, getChildren)
+            }
+
         self.init(value: root, children: children)
     }
 }
@@ -40,21 +42,21 @@ extension Node {
         let children = try self.children.compactMap { child in
             try child.map(transform)
         }
-        
+
         return Node<U>(value: value, children: children)
     }
-    
+
     func compactMap<U>(
         _ transform: (T) throws -> U?
     ) rethrows -> Tree<U> {
         guard let value = try transform(self.value) else {
             return nil
         }
-        
+
         let children = try self.children.compactMap { child in
             try child.compactMap(transform)
         }
-        
+
         return Node<U>(value: value, children: children)
     }
 }
@@ -66,21 +68,21 @@ extension Node {
         guard try isIncluded(self.value) else {
             return nil
         }
-        
+
         let children = try self.children.compactMap { child in
             try child.filter(isIncluded)
         }
-        
+
         return Node(value: value, children: children)
     }
-    
+
     func contains(
         where predicate: (T) throws -> Bool
     ) rethrows -> Bool {
         guard try !predicate(value) else {
             return true
         }
-        
+
         return try children.contains { child in
             try child.contains(where: predicate)
         }
@@ -95,10 +97,10 @@ extension Node {
         let partialResults = try children.map { child in
             try child.reduce(initialResult, nextPartialResult)
         }
-        
+
         return try nextPartialResult(partialResults, value)
     }
-    
+
     func forEach(_ body: (T) throws -> Void) rethrows {
         _ = try map(body)
     }
@@ -111,11 +113,11 @@ extension Node {
         guard let intermediate = try transform(self) else {
             return nil
         }
-        
+
         let children = try intermediate.children.compactMap { child in
             try child.edited(transform)
         }
-        
+
         return Node(value: intermediate.value, children: children)
     }
 }
@@ -128,7 +130,7 @@ extension Node {
         let children = try self.children.compactMap { child in
             try child.contextMap(transform)
         }
-        
+
         return Node<U>(value: value, children: children)
     }
 }
