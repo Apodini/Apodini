@@ -112,8 +112,8 @@ struct IntAdditionModifier<C: Component>: Modifier, SyntaxTreeVisitable {
         switch scope {
         case .environment:
             visitor.addContext(IntAdditionContextKey.self, value: value, scope: .environment)
-        case .nextHandler:
-            visitor.addContext(IntAdditionContextKey.self, value: value, scope: .nextHandler)
+        case .current:
+            visitor.addContext(IntAdditionContextKey.self, value: value, scope: .current)
         }
         component.accept(visitor)
     }
@@ -323,7 +323,7 @@ final class ContextNodeTests: ApodiniTests {
         Group("test") {
             TestComponent(1)
             TestComponent(2)
-                .addingInt(.nextHandler, value: 1)
+                .addingInt(.current, value: 1)
         }.addingInt(.environment, value: 1)
     }
 
@@ -332,7 +332,7 @@ final class ContextNodeTests: ApodiniTests {
             override func register<H: Handler>(handler: H, withContext context: Context) {
                 if let testComponent = handler as? TestComponent {
                     let path = context.get(valueFor: PathComponentContextKey.self)
-                    let pathString = ContextNodeTests.buildStringFromPathComponents(path)
+                    let pathString = path.asPathString()
                     let intValue = context.get(valueFor: IntAdditionContextKey.self)
 
                     switch testComponent.type {
@@ -358,7 +358,7 @@ final class ContextNodeTests: ApodiniTests {
 
     func testAddingIllegalContextKey() {
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [])
-        XCTAssertRuntimeFailure(visitor.addContext(IllegalOptionalContextKey.self, value: nil, scope: .nextHandler))
-        XCTAssertRuntimeFailure(visitor.addContext(IllegalOptionalContextKey.self, value: "test", scope: .nextHandler))
+        XCTAssertRuntimeFailure(visitor.addContext(IllegalOptionalContextKey.self, value: nil, scope: .current))
+        XCTAssertRuntimeFailure(visitor.addContext(IllegalOptionalContextKey.self, value: "test", scope: .current))
     }
 }

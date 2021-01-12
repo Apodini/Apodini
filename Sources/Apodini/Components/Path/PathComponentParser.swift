@@ -3,7 +3,7 @@
 //
 
 protocol PathComponentParser {
-    mutating func addContext<C: ContextKey>(_ contextKey: C.Type, value: C.Value)
+    mutating func addContext<C: OptionalContextKey>(_ contextKey: C.Type, value: C.Value)
 
     mutating func visit(_ string: String)
     mutating func visit(_ version: Version)
@@ -12,7 +12,7 @@ protocol PathComponentParser {
 
 extension PathComponentParser {
     // simple parsers like the `StringPathBuilder` don't need to store the context
-    mutating func addContext<C: ContextKey>(_ contextKey: C.Type, value: C.Value) {}
+    mutating func addContext<C: OptionalContextKey>(_ contextKey: C.Type, value: C.Value) {}
 
     mutating func visit(_ version: Version) {
         visit(version.description)
