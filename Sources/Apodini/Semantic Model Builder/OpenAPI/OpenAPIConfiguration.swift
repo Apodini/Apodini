@@ -30,8 +30,8 @@ struct OpenAPIConfiguration {
 
 extension OpenAPIConfiguration {
     init(from app: Application) {
-        let host = app.http.server.configuration.hostname
-        let port = app.http.server.configuration.port
+        let host = app.vapor.app.http.server.configuration.hostname
+        let port = app.vapor.app.http.server.configuration.port
         var servers: [OpenAPI.Server] = []
         if let url = URL(string: "\(host):\(port)") {
             let server = OpenAPI.Server(url: url)
