@@ -63,39 +63,6 @@ public final class Application {
     /// Keeps track of the application lifecylce
     public var lifecycle: Lifecycle
 
-    /// Keeps track of shared locks
-    public final class Locks {
-        /// main lock
-        public let main: Lock
-        var storage: [ObjectIdentifier: Lock]
-
-        init() {
-            self.main = .init()
-            self.storage = [:]
-        }
-
-        /// get lock for key
-        public func lock<Key>(for key: Key.Type) -> Lock where Key: LockKey {
-            self.main.lock()
-            defer { self.main.unlock() }
-            if let existing = self.storage[ObjectIdentifier(Key.self)] {
-                return existing
-            } else {
-                let new = Lock()
-                self.storage[ObjectIdentifier(Key.self)] = new
-                return new
-            }
-        }
-    }
-
-    /// Holds the applications shared locks
-    public var locks: Locks
-
-    /// Holds the applications main lock
-    public var sync: Lock {
-        self.locks.main
-    }
-
     /// Defines how EventLoopGroups are created
     public enum EventLoopGroupProvider {
         /// use shared EventLoopGroup
@@ -113,7 +80,6 @@ public final class Application {
         case .createNew:
             self.eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         }
-        self.locks = .init()
         self.didShutdown = false
         self.logger = .init(label: "org.apodini.application")
         self.storage = .init(logger: self.logger)
