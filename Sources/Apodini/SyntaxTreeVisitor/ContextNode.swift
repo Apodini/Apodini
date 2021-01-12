@@ -50,7 +50,7 @@ class ContextNode {
     func addContext<C: OptionalContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
         let newValue: C.Value
 
-        if C.Value.self is ExpressibleByNilLiteral.Type {
+        if isOptional(C.Value.self) {
             fatalError("""
                        The `Value` type of a `ContextKey` or `OptionalContextKey` must not be a `Optional` type.
                        Found \(C.Value.self) as `Value` type for key \(C.self).
