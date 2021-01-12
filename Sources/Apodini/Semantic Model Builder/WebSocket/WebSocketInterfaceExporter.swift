@@ -8,7 +8,7 @@
 @_implementationOnly import Vapor
 @_implementationOnly import Fluent
 @_implementationOnly import WebSocketInfrastructure
-import OpenCombine
+@_implementationOnly import OpenCombine
 @_implementationOnly import Runtime
 
 extension SomeInput: ExporterRequest {
@@ -61,7 +61,7 @@ class WebSocketInterfaceExporter: InterfaceExporter {
         self.router = VaporWSRouter(app)
     }
     
-    func export<C: Component>(_ endpoint: Endpoint<C>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self)
         
         let emptyInput = SomeInput(parameters: inputParameters.reduce(into: [String: InputParameter](), { result, parameter in
@@ -80,7 +80,7 @@ class WebSocketInterfaceExporter: InterfaceExporter {
             input.mapError { _ -> Error in }
             // Handle all incoming client-messages one after another. The `syncMap` automatically
             // awaits the future and unwrapps it.
-            .syncMap { inputValue -> EventLoopFuture<Action<AnyEncodable>> in
+            .syncMap { inputValue -> EventLoopFuture<Response<AnyEncodable>> in
                 context.handle(request: inputValue, eventLoop: eventLoop, final: false)
             }
             .sink(
@@ -136,7 +136,7 @@ class WebSocketInterfaceExporter: InterfaceExporter {
     }
     
     private static func handleInputCompletion(
-        result: Action<AnyEncodable>,
+        result: Response<AnyEncodable>,
         output: PassthroughSubject<Message<AnyEncodable>, Error>) {
         switch result {
         case .nothing:
@@ -153,7 +153,7 @@ class WebSocketInterfaceExporter: InterfaceExporter {
     }
     
     private static func handleRegularInput(
-        result: Action<AnyEncodable>,
+        result: Response<AnyEncodable>,
         output: PassthroughSubject<Message<AnyEncodable>, Error>) {
         switch result {
         case .nothing:

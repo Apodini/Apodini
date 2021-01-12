@@ -57,7 +57,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         @Apodini.Environment(\.connection)
         var connection: Connection
 
-        func handle() -> Action<String> {
+        func handle() -> Apodini.Response<String> {
             switch connection.state {
             case .open:
                 return .send("Send")
@@ -71,7 +71,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         @Apodini.Environment(\.connection)
         var connection: Connection
 
-        func handle() -> Action<String> {
+        func handle() -> Apodini.Response<String> {
             switch connection.state {
             case .open:
                 return .nothing
@@ -156,13 +156,12 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         let expectedString = "Hello Test Handler 4"
 
         let result = try context.handle(request: request).wait()
-        guard case let .final(resultValue) = result else {
-            XCTFail("Expected default to be wrapped in Action.final, but was \(result)")
+        guard case let .final(resultValue) = result.typed(String.self) else {
+            XCTFail("Expected default to be wrapped in Response.final, but was \(result)")
             return
         }
 
-        let resultString = try XCTUnwrap(resultValue.value as? String)
-        XCTAssertEqual(resultString, expectedString)
+        XCTAssertEqual(resultValue, expectedString)
     }
 
     func testActionPassthrough_send() throws {
@@ -176,9 +175,8 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
                                     on: app.eventLoopGroup.next())
 
         let result = try context.handle(request: request, final: false).wait()
-        if case let .send(element) = result {
-            let responseString = try XCTUnwrap(element.value as? String)
-            XCTAssertEqual(responseString, "Send")
+        if case let .send(element) = result.typed(String.self) {
+            XCTAssertEqual(element, "Send")
         } else {
             XCTFail("Expected .send(\"Send\"), but got \(result)")
         }
@@ -193,11 +191,10 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
                                     method: .GET,
                                     url: "",
                                     on: app.eventLoopGroup.next())
-
+        
         let result = try context.handle(request: request).wait()
-        if case let .final(element) = result {
-            let responseString = try XCTUnwrap(element.value as? String)
-            XCTAssertEqual(responseString, "Final")
+        if case let .final(element) = result.typed(String.self) {
+            XCTAssertEqual(element, "Final")
         } else {
             XCTFail("Expected .final(\"Final\"), but got \(result)")
         }
