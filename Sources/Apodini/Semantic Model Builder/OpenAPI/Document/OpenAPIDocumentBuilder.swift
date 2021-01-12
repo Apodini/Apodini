@@ -34,11 +34,10 @@ struct OpenAPIDocumentBuilder {
 }
 
 extension OpenAPIDocumentBuilder {
-    var description: String {
-        let encoder = JSONEncoder()
-        guard let json = try? encoder.encode(self.document) else {
-            return ""
-        }
-        return String(data: json, encoding: .utf8)!
+    var jsonDescription: String? {
+        (try? JSONEncoder().encode(self.document))
+            .flatMap { json in
+                String(data: json, encoding: .utf8)
+            }
     }
 }

@@ -29,7 +29,7 @@ protocol AnyEndpoint: CustomStringConvertible {
     var relationships: [EndpointRelationship] { get }
 
     var guards: [LazyGuard] { get }
-    var responseTransformers: [() -> (AnyResponseTransformer)] { get }
+    var responseTransformers: [LazyAnyResponseTransformer] { get }
 
     func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput
 
@@ -63,7 +63,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     fileprivate(set) var relationships: [EndpointRelationship] = []
 
     let guards: [LazyGuard]
-    let responseTransformers: [() -> (AnyResponseTransformer)]
+    let responseTransformers: [LazyAnyResponseTransformer]
     
     
     init(
@@ -72,7 +72,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         context: Context = Context(contextNode: ContextNode()),
         operation: Operation = .automatic,
         guards: [LazyGuard] = [],
-        responseTransformers: [() -> (AnyResponseTransformer)] = [],
+        responseTransformers: [LazyAnyResponseTransformer] = [],
         parameters: [AnyEndpointParameter] = []
     ) {
         self.identifier = identifier
@@ -80,14 +80,14 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         self.handler = handler
         self.context = context
         self.operation = operation
-        self.handleReturnType = H.Response.self
+        self.handleReturnType = H.Response.Content.self
         self.guards = guards
         self.responseTransformers = responseTransformers
         self.responseType = {
             guard let lastResponseTransformer = responseTransformers.last else {
-                return H.Response.self
+                return H.Response.Content.self
             }
-            return lastResponseTransformer().transformedResponseType
+            return lastResponseTransformer().transformedResponseContent
         }()
         self.parameters = parameters
     }
