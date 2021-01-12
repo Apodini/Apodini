@@ -193,7 +193,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
             UserHandlerInput(userId: userId, name: nil),
             UserHandlerInput(userId: userId, name: name),
             UserHandlerInput(userId: userId, name: nil),
-            on: "user.::.stream")
+            on: "user.:userId:.stream")
         .wait()
         
         XCTAssertEqual(user.count, 1)
