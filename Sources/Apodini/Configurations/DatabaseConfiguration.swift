@@ -1,9 +1,9 @@
-@_implementationOnly import struct Vapor.Environment
 import Fluent
-import FluentSQLiteDriver
-import FluentMySQLDriver
-import FluentPostgresDriver
-import FluentMongoDriver
+@_implementationOnly import struct Vapor.Environment
+@_implementationOnly import FluentSQLiteDriver
+@_implementationOnly import FluentMySQLDriver
+@_implementationOnly import FluentPostgresDriver
+@_implementationOnly import FluentMongoDriver
 
 /// A `Configuration` used for Database Access
 public final class DatabaseConfiguration: Configuration {
@@ -129,7 +129,7 @@ public enum DatabaseType {
 }
 
 /// An extension to the `Fluent.SQLiteConfiguration` to enable an initialization with an `Apodini.SQLiteConfig`.
-public extension SQLiteConfiguration {
+extension SQLiteConfiguration {
     /// Enables an initialization of `SQLiteConfiguration` with an `Apodini.SQLiteConfig` object.
     ///
     /// - Parameters:

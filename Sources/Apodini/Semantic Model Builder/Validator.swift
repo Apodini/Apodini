@@ -6,9 +6,8 @@
 //
 
 import Foundation
+import NIO
 @_implementationOnly import AssociatedTypeRequirementsVisitor
-@_implementationOnly import Vapor
-@_implementationOnly import Fluent
 
 // MARK: Protocols
 

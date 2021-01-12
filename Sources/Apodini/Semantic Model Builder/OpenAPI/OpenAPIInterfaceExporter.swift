@@ -3,7 +3,7 @@
 //
 
 @_implementationOnly import OpenAPIKit
-@_implementationOnly import Vapor
+@_implementationOnly import struct Vapor.Abort
 import Foundation
 
 class OpenAPIInterfaceExporter: StaticInterfaceExporter {

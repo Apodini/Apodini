@@ -7,7 +7,7 @@
 //
 
 @_implementationOnly import struct Vapor.Abort
-@_implementationOnly import Fluent
+import Fluent
 import APNS
 import FCM
 import NIO

@@ -3,7 +3,6 @@
 //
 
 import NIO
-@_implementationOnly import Vapor
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 /// This struct is used to model the RootPath for the root of the endpoints tree

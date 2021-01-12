@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import Vapor
+import struct Vapor.Abort
 import Fluent
 import FCM
 import APNS

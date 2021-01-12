@@ -4,7 +4,6 @@
 
 import XCTest
 import OpenAPIKit
-import Vapor
 @testable import Apodini
 
 final class OpenAPIDocumentBuilderTests: XCTestCase {

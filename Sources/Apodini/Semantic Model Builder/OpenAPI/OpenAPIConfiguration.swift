@@ -2,8 +2,8 @@
 //  Created by Lorena Schlesinger on 15.11.20.
 //
 
+import Foundation
 @_implementationOnly import OpenAPIKit
-@_implementationOnly import Vapor
 
 private let openAPIInfoTitle = "Apodini-App"
 private let openAPIInfoVersion = "1.0.0"

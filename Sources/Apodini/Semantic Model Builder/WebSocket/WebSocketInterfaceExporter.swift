@@ -5,8 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-@_implementationOnly import Vapor
-@_implementationOnly import Fluent
+import Fluent
 @_implementationOnly import WebSocketInfrastructure
 @_implementationOnly import OpenCombine
 @_implementationOnly import Runtime
