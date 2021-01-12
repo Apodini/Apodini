@@ -7,7 +7,7 @@ import Vapor
 @testable import Apodini
 
 class RESTInterfaceExporterTests: ApodiniTests {
-    struct Parameters: Codable {
+    struct Parameters: Apodini.Content, Decodable {
         var param0: String
         var param1: String?
         var pathA: String
@@ -42,7 +42,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         }
     }
 
-    struct User: Content, Identifiable {
+    struct User: Apodini.Content, Identifiable, Decodable {
         let id: String
         let name: String
     }
@@ -101,17 +101,16 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         let result = try context.handle(request: request)
                 .wait()
-        guard case let .final(responseValue) = result else {
-            XCTFail("Expected return value to be wrapped in Action.final by default")
+        guard case let .final(responseValue) = result.typed(Parameters.self) else {
+            XCTFail("Expected return value to be wrapped in Response.final by default")
             return
         }
-        let parametersResult: Parameters = try XCTUnwrap(responseValue.value as? Parameters)
-
-        XCTAssertEqual(parametersResult.param0, "value0")
-        XCTAssertEqual(parametersResult.param1, nil)
-        XCTAssertEqual(parametersResult.pathA, "a")
-        XCTAssertEqual(parametersResult.pathB, nil)
-        XCTAssertEqual(parametersResult.bird, body)
+        
+        XCTAssertEqual(responseValue.param0, "value0")
+        XCTAssertEqual(responseValue.param1, nil)
+        XCTAssertEqual(responseValue.pathA, "a")
+        XCTAssertEqual(responseValue.pathB, nil)
+        XCTAssertEqual(responseValue.bird, body)
     }
 
     func testRESTRequest() throws {

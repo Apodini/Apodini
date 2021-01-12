@@ -47,18 +47,6 @@ extension Apodini.Request {
 // MARK: ConnectionContext
 
 extension Connection {
-    func enterConnectionContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>)
-    -> EventLoopFuture<R> {
-        var element = element
-        
-        if let request = self.request {
-            request.inject(in: &element)
-        }
-        
-        self.update(&element)
-        return method(element)
-    }
-    
     func enterConnectionContext<E, R>(with element: E, executing method: (E) -> R) -> R {
         var element = element
         

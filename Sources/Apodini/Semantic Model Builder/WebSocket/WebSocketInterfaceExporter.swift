@@ -8,7 +8,7 @@
 @_implementationOnly import Vapor
 @_implementationOnly import Fluent
 @_implementationOnly import WebSocketInfrastructure
-import OpenCombine
+@_implementationOnly import OpenCombine
 @_implementationOnly import Runtime
 
 extension SomeInput: ExporterRequest { }
@@ -61,7 +61,15 @@ class WebSocketInterfaceExporter: InterfaceExporter {
                 context.handle(request: inputValue, eventLoop: eventLoop).whenComplete { result in
                     switch result {
                     case .success(let response):
-                        output.send(.message(AnyEncodable(value: response)))
+                        #warning(
+                            """
+                            The WebSocketExporter does not handle 'Action' yet.
+                            Using anything but '.send' or '.final' results in a server-crash.
+                            """
+                        )
+                        // As stated in the warning above the WebSocketExporter crashes on `.end` and `.nothing`
+                        // swiftlint:disable:next force_unwrapping
+                        output.send(.message(response.element!))
                     case .failure(let error):
                         output.send(.error(error))
                     }

@@ -11,7 +11,7 @@ struct EmojiMediator: ResponseTransformer {
         self.emojis = emojis
     }
 
-    func transform(response: String) -> String {
-        "\(emojis) \(response) \(emojis)"
+    func transform(content string: String) -> String {
+        "\(emojis) \(string) \(emojis)"
     }
 }
