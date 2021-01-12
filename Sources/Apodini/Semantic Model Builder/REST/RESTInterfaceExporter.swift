@@ -24,7 +24,7 @@ struct RESTPathBuilder: PathBuilder {
 
     mutating func append<Type>(_ parameter: EndpointPathParameter<Type>) {
         pathComponents.append(.parameter(parameter.pathId))
-        pathString.append(":{\(parameter.name)}")
+        pathString.append("{\(parameter.name)}")
     }
 
     func routesBuilder(_ app: Vapor.Application) -> Vapor.RoutesBuilder {

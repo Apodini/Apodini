@@ -29,6 +29,24 @@ enum EndpointPath: CustomStringConvertible, CustomDebugStringConvertible {
         }
     }
 
+    func isString() -> Bool {
+        switch self {
+        case .string:
+            return true
+        default:
+            return false
+        }
+    }
+
+    func isParameter() -> Bool {
+        switch self {
+        case .parameter:
+            return true
+        default:
+            return false
+        }
+    }
+
     func scoped(on endpoint: AnyEndpoint) -> EndpointPath {
         switch self {
         case let .parameter(parameter):
@@ -224,19 +242,28 @@ extension Array where Element == EndpointPath {
 
 
 extension Array where Element == EndpointPath {
-    func asPathString(delimiter: String = "/") -> String {
-        var builder = PathStringBuilder(delimiter: delimiter)
+    func asPathString(delimiter: String = "/", parameterEncoding: PathStringBuilder.ParameterEncodingStyle = .bracketedName) -> String {
+        var builder = PathStringBuilder(delimiter: delimiter, parameterEncoding: parameterEncoding)
         build(with: &builder)
         return builder.result()
     }
 }
 
-private struct PathStringBuilder: PathBuilder {
+struct PathStringBuilder: PathBuilder {
+    enum ParameterEncodingStyle {
+        case bracketedName
+        case name
+        case id
+    }
+
     private let delimiter: String
+    private let parameterEncoding: ParameterEncodingStyle
+
     private var paths: [String] = []
 
-    init(delimiter: String = "/") {
+    fileprivate init(delimiter: String = "/", parameterEncoding: ParameterEncodingStyle = .bracketedName) {
         self.delimiter = delimiter
+        self.parameterEncoding = parameterEncoding
     }
 
     mutating func root() {
@@ -250,7 +277,14 @@ private struct PathStringBuilder: PathBuilder {
     }
 
     mutating func append<Type>(_ parameter: EndpointPathParameter<Type>) {
-        paths.append(parameter.description)
+        switch parameterEncoding {
+        case .bracketedName:
+            paths.append("{\(parameter.name)}")
+        case .name:
+            paths.append(parameter.name)
+        case .id:
+            paths.append(parameter.description)
+        }
     }
 
     func result() -> String {

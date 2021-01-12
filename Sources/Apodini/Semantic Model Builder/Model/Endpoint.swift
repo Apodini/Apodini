@@ -111,7 +111,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     }
 
     mutating func finished(at treeNode: EndpointsTreeNode) {
-        self.storedRelationship = treeNode.relationships.scoped(on: self)
+        self.storedRelationship = treeNode.relationships
     }
     
     func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
@@ -261,15 +261,18 @@ class EndpointsTreeNode {
     
     fileprivate func collectRelationships(name: String, _ relationships: inout [EndpointRelationship]) {
         if !endpoints.isEmpty {
-            relationships.append(EndpointRelationship(name: name, destinationPath: absolutePath))
+            var relationship = EndpointRelationship(name: name, destinationPath: absolutePath)
+
+            if let scopingEndpoint = endpoints.getScopingEndpoint() {
+                relationship.scoped(on: scopingEndpoint)
+            }
+
+            relationships.append(relationship)
             return
         }
         
         for (path, child) in nodeChildren {
-            // as Parameter is currently inserted into the path (which will change)
-            // checking against RequestInjectable is a lazy check to determine if this is a path parameter
-            // or just a regular path component. To be adapted.
-            let name = path.description + (child.path is RequestInjectable ? "" : "_" + path.description)
+            let name = name + (child.path.isParameter() ? "" : "_" + path.description)
             child.collectRelationships(name: name, &relationships)
         }
     }

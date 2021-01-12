@@ -9,17 +9,22 @@ struct EndpointRelationship { // ... to be replaced by a proper Relationship mod
 
 
 extension EndpointRelationship {
-    func scoped(on endpoint: AnyEndpoint) -> EndpointRelationship {
-        var relationship = self
-        relationship.destinationPath = relationship.destinationPath.scoped(on: endpoint)
-        return relationship
+    mutating func scoped(on endpoint: AnyEndpoint) {
+        destinationPath = destinationPath.scoped(on: endpoint)
     }
 }
 
-extension Array where Element == EndpointRelationship {
-    func scoped(on endpoint: AnyEndpoint) -> [EndpointRelationship] {
-        map { relationship in
-            relationship.scoped(on: endpoint)
+// MARK: Endpoint Relationship
+extension Dictionary where Key == Operation, Value == AnyEndpoint {
+    func getScopingEndpoint() -> AnyEndpoint? {
+        let order: [Operation] = [.read, .automatic, .create, .update, .delete]
+
+        for operation in order {
+            if let endpoint = self[operation] {
+                return endpoint
+            }
         }
+
+        return nil
     }
 }
