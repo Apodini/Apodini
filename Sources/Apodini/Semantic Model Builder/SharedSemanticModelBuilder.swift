@@ -106,11 +106,12 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
         
         webService.finishedParsing = true
         
-        // currently only for debugging purposes
-        print(webService.root.debugDescription)
+        app.logger.info(
+            Logger.Message(stringLiteral: webService.root.debugDescription)
+        )
 
         if interfaceExporters.isEmpty {
-            print("[WARN] There aren't any Interface Exporters registered!")
+            app.logger.warning("There aren't any Interface Exporters registered!")
         }
 
         interfaceExporters.acceptAll(self)
