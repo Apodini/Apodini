@@ -3,6 +3,8 @@ ignore:
 - "Sources/TestWebService"
 - "Sources/Apodini/Components/ComponentBuilder.swift"
 - "Sources/Apodini/Components/EmptyComponentCustomNeverImpl.swift"
+- "Sources/Apodini/Components/Component/Component+Never.swift"
+- "Sources/Apodini/Components/Handler/Handler+Never.swift"
 
 codecov:
   require_ci_to_pass: yes
