@@ -20,6 +20,7 @@ public enum Operation {
 }
 
 struct OperationContextKey: ContextKey {
+    typealias Value = Operation
     static var defaultValue: Operation = .automatic
 }
 

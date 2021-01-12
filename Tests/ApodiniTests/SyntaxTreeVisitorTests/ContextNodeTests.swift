@@ -21,6 +21,7 @@ struct TestComponent: Handler {
 
 
 struct IntContextKey: ContextKey {
+    typealias Value = Int
     static var defaultValue: Int = 0
 }
 
@@ -31,7 +32,7 @@ struct IntOptionalContextKey: OptionalContextKey {
 struct IntAdditionContextKey: ContextKey {
     static var defaultValue: Int = 2
 
-    static func reduce(value: inout Value, nextValue: () -> Value) {
+    static func reduce(value: inout Int, nextValue: () -> Int) {
         value += nextValue()
     }
 }

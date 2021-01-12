@@ -36,15 +36,6 @@ extension OptionalContextKey {
 /// A `ContextKey` is a `OptionalContextKey` with the addition of the definition of a default value.
 /// See implications of the reduction logic `OptionalContextKey.reduce(...)`.
 protocol ContextKey: OptionalContextKey {
-    /// The type of the value the `OptionalContextKey` identifies. The value MUST NOT be of type `Optional`.
-    /// The type is equal to `OptionalContextKey.Value`
-    associatedtype DefaultValue
-
     /// The default value this `ContextKey` provides.
-    static var defaultValue: DefaultValue { get }
-}
-
-extension ContextKey {
-    // I know the compiler creates a warning about this, but using it as a type constraint isn't actually the same thing
-    typealias Value = DefaultValue
+    static var defaultValue: Self.Value { get }
 }

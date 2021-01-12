@@ -123,6 +123,7 @@ struct HandlerIndexPath: RawRepresentable {
     let rawValue: String
     
     struct ContextKey: Apodini.ContextKey {
+        typealias Value = HandlerIndexPath
         static let defaultValue: HandlerIndexPath = .init(rawValue: "")
     }
 }
