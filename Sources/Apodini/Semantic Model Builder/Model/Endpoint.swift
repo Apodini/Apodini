@@ -152,9 +152,10 @@ class EndpointsTreeNode {
             return relationships
         }
         
-        return nodeChildren.reduce([]) { result, item in
+        var result = [EndpointRelationship]()
+        return nodeChildren.reduce(into: result) { result, item in
             let (name, child) = item
-            return result + collectRelationships(child, name: name)
+            result.append(contentsOf: collectRelationships(child, name: name))
         }
     }()
     

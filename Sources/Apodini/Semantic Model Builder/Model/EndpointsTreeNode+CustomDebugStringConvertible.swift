@@ -18,7 +18,7 @@ extension EndpointsTreeNode: CustomDebugStringConvertible {
         let tree = node
             .map { value -> String in
                 let operations = value.endpoints
-                    .map { (key, value) -> String in
+                    .map { key, value -> String in
                         "- \(key): \(value.description) [\(value.identifier.rawValue)]\n"
                     }
                     .joined()

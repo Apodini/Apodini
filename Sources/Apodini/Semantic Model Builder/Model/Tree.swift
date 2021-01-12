@@ -139,7 +139,7 @@ extension Node: CustomStringConvertible where T: CustomStringConvertible {
     private var lines: [Substring] {
         let children = self.children
             .map { child in
-                child.lines.enumerated().map { (index, substring) -> Substring in
+                child.lines.enumerated().map { index, substring -> Substring in
                     let prefix = index == 0 ? "→ " : "  "
                     return Substring(prefix + substring)
                 }
@@ -158,8 +158,8 @@ extension Node: CustomStringConvertible where T: CustomStringConvertible {
 
 extension Node {
     func collectValues() -> Set<T> where T: Hashable {
-        reduce(Set()) { (partialResults, next) in
-            var set = Set(arrayLiteral: next)
+        reduce(Set()) { partialResults, next in
+            var set: Set = [next]
             for result in partialResults {
                 set.formUnion(result)
             }
@@ -167,8 +167,8 @@ extension Node {
         }
     }
     
-    func collectValues<U>() -> Set<U> where T == Array<U>, U: Hashable {
-        reduce(Set()) { (partialResults, next) in
+    func collectValues<U>() -> Set<U> where T == [U], U: Hashable {
+        reduce(Set()) { partialResults, next in
             var set = Set(next)
             for result in partialResults {
                 set.formUnion(result)
