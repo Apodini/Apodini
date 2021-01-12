@@ -3,7 +3,6 @@ import Foundation
 
 /// A type erasure for the `PropertyOptionKey`
 public class AnyPropertyOptionKey: Equatable, Hashable {
-    let id = UUID()
     /// Combines two `PropertyOptionKey`s.
     /// - Parameters:
     ///   - lhs: The left hand side `PropertyOptionKey` that should be combined
@@ -13,12 +12,12 @@ public class AnyPropertyOptionKey: Equatable, Hashable {
         fatalError("AnyPropertyOptionKey.combine should be overridden!")
     }
 
-    public static func ==(lhs: AnyPropertyOptionKey, rhs: AnyPropertyOptionKey) -> Bool {
-        lhs.id == rhs.id
+    public static func == (lhs: AnyPropertyOptionKey, rhs: AnyPropertyOptionKey) -> Bool {
+        ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
 
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
+        hasher.combine(ObjectIdentifier(self))
     }
 }
 
