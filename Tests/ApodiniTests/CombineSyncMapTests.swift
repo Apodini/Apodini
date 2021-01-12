@@ -70,7 +70,7 @@ class CombineSyncMapTests: ApodiniTests {
         
         usleep(50 * CombineSyncMapTests.blockTime)
         cancellable.cancel()
-        usleep(5 * CombineSyncMapTests.blockTime)
+        usleep(50 * CombineSyncMapTests.blockTime)
         
         XCTAssertLessThanOrEqual(commonResource, 50)
     }

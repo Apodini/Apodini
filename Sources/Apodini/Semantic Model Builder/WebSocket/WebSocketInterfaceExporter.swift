@@ -76,8 +76,8 @@ class WebSocketInterfaceExporter: InterfaceExporter {
             
             let output: PassthroughSubject<Message<AnyEncodable>, Error> = PassthroughSubject()
             
-            var inputCancellable: AnyCancellable?
-            inputCancellable = input.mapError { _ -> Error in }
+            var cancellables: Set<AnyCancellable> = []
+            input.mapError { _ -> Error in }
             // Handle all incoming client-messages one after another. The `syncMap` automatically
             // awaits the future and unwrapps it.
             .syncMap { inputValue -> EventLoopFuture<Action<AnyEncodable>> in
@@ -106,14 +106,14 @@ class WebSocketInterfaceExporter: InterfaceExporter {
                         output.send(completion: .failure(error))
                     }
                     // We have to reference the cancellable here so it stays in memory and isn't cancled early.
-                    _ = inputCancellable
+                    cancellables.removeAll()
                 },
                 // The input was already handled and unwrapped by the `syncMap`. We just have to map the obtained
                 // `Action` to our `output`.
                 receiveValue: { inputValue in
                     Self.handleRegularInput(result: inputValue, output: output)
                 }
-            )
+            ).store(in: &cancellables)
 
 
             return (defaultInput: emptyInput, output: output.eraseToAnyPublisher())
