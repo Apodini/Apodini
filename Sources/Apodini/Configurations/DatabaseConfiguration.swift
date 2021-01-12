@@ -3,6 +3,7 @@ import Fluent
 import FluentSQLiteDriver
 import FluentMySQLDriver
 import FluentPostgresDriver
+import FluentMongoDriver
 
 /// A `Configuration` used for Database Access
 public final class DatabaseConfiguration: Configuration {

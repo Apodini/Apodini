@@ -1,22 +1,33 @@
 @testable import Apodini
 import XCTest
-import XCTVapor
 
-class ConfigurationBuilderTests: ApodiniTests {
+class ConfigurationBuilderTests: XCTestCase {
     struct SomeConfiguration: Configuration {
-        func configure(_ app: Application) { }
+        func configure(_ app: Apodini.Application) { }
     }
 
     struct CheckConfigurationTriggered: Configuration {
         let counter: ConfigureCounter
 
-        func configure(_ app: Application) {
+        func configure(_ app: Apodini.Application) {
             counter.number += 1
         }
     }
 
     class ConfigureCounter {
         var number = 0
+    }
+
+    var app: Apodini.Application!
+
+    override func setUp() {
+        super.setUp()
+        app = Apodini.Application()
+    }
+
+    override func tearDown() {
+        app.shutdown()
+        super.tearDown()
     }
 
     func testEmptyCollection() throws {

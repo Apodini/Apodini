@@ -5,8 +5,7 @@
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 
-import Fluent
-import FluentMongoDriver
+import Logging
 
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
@@ -36,7 +35,7 @@ extension WebService {
 
     /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.main()` to startup an Apodini `WebService`.
     /// - Parameter app: The app instance that should be injected in the Apodini `WebService`
-    static func main(app: Application) {
+    static func main(app: Apodini.Application) {
         let webService = Self()
 
         webService.configuration.configure(app)
