@@ -6,7 +6,7 @@
 //  Created by Alexander Collins on 12.11.20.
 //
 
-@_implementationOnly import Vapor
+@_implementationOnly import struct Vapor.Abort
 @_implementationOnly import Fluent
 import APNS
 import FCM
@@ -29,8 +29,8 @@ public class NotificationCenter {
     /// NotificationCenter
     internal static var shared = NotificationCenter()
     internal var application: Apodini.Application?
-    private var app: Vapor.Application {
-        guard let app = application?.vapor.app else {
+    private var app: Apodini.Application {
+        guard let app = application else {
             fatalError("The `NotificationCenter` is not configured. Please add the missing configuration to the web service.")
         }
         return app

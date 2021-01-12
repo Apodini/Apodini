@@ -24,14 +24,7 @@ extension Vapor.Application {
     convenience init(from app: Apodini.Application, environment env: Vapor.Environment) {
         self.init(env, .shared(app.eventLoopGroup))
         app.lifecycle.use(LifecycleHandlery(app: self))
-        // APNS
-        self.apns.configuration = app.apns.configuration
-        // Databases
-        for id in app.databases.ids() {
-            if let config = app.databases.configuration(for: id) {
-                self.databases.use(config, as: id)
-            }
-        }
+        
         // HTTP2
         self.http.server.configuration.supportVersions = Set(app.http.supportVersions.map { version in
             switch version {
@@ -40,8 +33,6 @@ extension Vapor.Application {
             }
         })
         self.http.server.configuration.tlsConfiguration = app.http.tlsConfiguration
-        self.apns.configuration = app.apns.configuration
-        self.fcm.configuration = app.fcm.configuration
         self.logger = app.logger
     }
 }
