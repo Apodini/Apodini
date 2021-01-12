@@ -165,11 +165,9 @@ class EndpointsTreeNode {
     
     func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, at paths: [PathComponent]) {
         guard !paths.isEmpty else {
-            // swiftlint:disable:next force_unwrapping
-            precondition(
-                endpoints[endpoint.operation] == nil,
-                "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)"
-            )
+            if let operation = endpoints[endpoint.operation] {
+                preconditionFailure("Tried overwriting endpoint \(operation.description) with \(endpoint.description) for operation \(endpoint.operation)")
+            }
             
             endpoint.absolutePath = absolutePath
             endpoint.relationships = relationships
