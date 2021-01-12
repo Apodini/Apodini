@@ -13,8 +13,8 @@ public struct Update<Model: DatabaseModel>: Handler {
 //    @Properties
 //    private var properties: [String: Apodini.Property]
     
-    @Parameter<[String: AnyCodable]>
-    private var parameters: [String: AnyCodable]
+    @Parameter<[String: AnyConcreteCodable]>
+    private var parameters: [String: AnyConcreteCodable]
     
     @Parameter
     private var object: Model?
@@ -38,8 +38,9 @@ public struct Update<Model: DatabaseModel>: Handler {
     
 //    public func handle() -> EventLoopFuture<T> {
     public func handle() -> String {
-        var updater = Updater<Model>()
-        updater.properties = parameters
+        print("handle")
+        print(parameters)
+        var updater = Updater<Model>(parameters)
         updater.model = object
         updater.modelID = id
         
@@ -64,9 +65,7 @@ public struct Update<Model: DatabaseModel>: Handler {
 }
 
 internal struct Updater<Model: DatabaseModel> {
-    var properties: [String: AnyCodable]?
-    
-    var type: Model.Type
+    var properties: [FieldKey: AnyConcreteCodable]?
     
     var model: Model?
     var modelID: Model.IDValue?
@@ -75,19 +74,21 @@ internal struct Updater<Model: DatabaseModel> {
         properties != nil && model == nil
     }
     
-    init(_ properties: [String: AnyCodable]?, for type: Model.Type) {
-        self.properties = properties
-        self.type = type
+    init(_ properties: [String: AnyConcreteCodable]?) {
+        if let properties = properties {
+            self.properties = properties.reduce(into: [FieldKey: AnyConcreteCodable](), { result, entry in
+                result[Model.fieldKey(for: entry.0)] = entry.1
+            })
+        }
     }
     
     init(_ model: Model, for id: Model.IDValue?) {
         self.model = model
-        self.type = Model.self
         self.modelID = id
     }
     
     init() {
-        self.type = Model.self
+//        self.type = Model.self
     }
     
     func executeUpdate(on database: Database) {
@@ -99,104 +100,54 @@ internal struct Updater<Model: DatabaseModel> {
 //                    _ = model.update(on: database)
 //                    return model
 //                }
+            print(model)
+            print(properties)
         } else {
             print(modelID)
 //            model = Model()
             Model.find(modelID, on: database)
                 .unwrap(orError: Abort(.notFound)).map({ model -> Model in
-                    var varModel = model
+                    var model = model
+                    print(model)
                     for child in Mirror(reflecting: model).children {
-                        print(child)
-                        if let visitable = child.value as? VisitableFieldProperty {
-                            let test = visitable.accept(ConcreteTypeVisitor())
-                            print(test)
+                        guard let visitable = child.value as? UpdatableFieldProperty, let label = child.label, let properties = properties else { continue }
+                        let fieldKey = Model.fieldKey(for: label.trimmed())
+                        print(properties[fieldKey])
+                        if let value = properties[fieldKey] {
+                            let _ 
                         }
+                        
+                        if let visitable = child.value as? UpdatableFieldProperty {
+                            print(child.label!)
+                            
+                            for (key,property) in properties {
+                                let abc = visitable.accept(ConcreteUpdatableFieldPropertyVisitor(updater: property))
+                                print(abc)
+                                print((visitable as? FieldProperty<Model, Int>)?.value)
+                            }
+                        }
+//                        if let visitable = child.value as? VisitableFieldProperty {
+//                            let test = visitable.accept(ConcreteTypeVisitor())
+//                            if let updatable = child.value as? UpdatableFieldProperty {
+//                                for (key,property) in properties! {
+//                                    let abc = updatable.accept(ConcreteUpdatableFieldPropertyVisitor(updater: property))
+//                                    print(abc)
+//                                    print((updatable as? FieldProperty<Model, Int>)?.value)
+//                                }
+//                            }
+//                        }
                     }
-
-                    return varModel
+                    print(model)
+                    return model
                 })
         }
     }
-    
-    
-    
 }
 
-struct AnyCodable: Codable {
-    enum DecodeableType {
-        case string, bool, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uuid, float, double
+extension String {
+    
+    func trimmed() -> Self {
+        self.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "_", with: "")
     }
-    
-    private var types: [DecodeableType] {
-        [.string, .bool, .int, .int8, .int16, .int32, .int64, .uint, .uint8, .uint16, .uint32, .uint64, .uuid, .float, .double]
-    }
-    
-    var wrappedValue: Codable?
-    
-    init(_ wrappedValue: Codable) {
-        self.wrappedValue = wrappedValue
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        try wrappedValue?.encode(to: encoder)
-    }
-    
-    init(from decoder: Decoder) throws {
-        self.init()
-        let values = try decoder.singleValueContainer()
-        for type in types {
-            guard wrappedValue == nil else {
-                return
-            }
-            do {
-                switch type {
-                case .string:
-                    self.wrappedValue = try values.decode(String.self)
-                case .bool:
-                    self.wrappedValue = try values.decode(Bool.self)
-                case .int:
-                    self.wrappedValue = try values.decode(Int.self)
-                case .int8:
-                    self.wrappedValue = try values.decode(Int8.self)
-                case .int16:
-                    self.wrappedValue = try values.decode(Int16.self)
-                case .int32:
-                    self.wrappedValue = try values.decode(Int32.self)
-                case .int64:
-                    self.wrappedValue = try values.decode(Int64.self)
-                case .uint:
-                    self.wrappedValue = try values.decode(UInt.self)
-                case .uint8:
-                    self.wrappedValue = try values.decode(UInt8.self)
-                case .uint16:
-                    self.wrappedValue = try values.decode(UInt16.self)
-                case .uint32:
-                    self.wrappedValue = try values.decode(UInt32.self)
-                case .uint64:
-                    self.wrappedValue = try values.decode(UInt64.self)
-                case .uuid:
-                    self.wrappedValue = try values.decode(UUID.self)
-                case .double:
-                    self.wrappedValue = try values.decode(Double.self)
-                case .float:
-                    self.wrappedValue = try values.decode(Float.self)
-                }
-            } catch(let error) {
-                print(error.localizedDescription)
-            }
-        }
-    }
-    
-    init() {
-        wrappedValue = nil
-    }
-    
-    func typed<T: Codable>(_ type: T.Type = T.self) -> T? {
-             guard let anyCodableWrappedValue = wrappedValue as? AnyCodable else {
-                 return wrappedValue as? T
-             }
-             return anyCodableWrappedValue.typed(T.self)
-    }
-    
     
 }

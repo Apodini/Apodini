@@ -6,7 +6,7 @@ public protocol DatabaseInjectionContext {
     ///A `Fluent.FieldKey`
     var key: FieldKey { get }
     ///The expected type for the fieldkey
-    var type: Any.Type { get }
+    var value: AnyConcreteCodable { get }
 }
 
 ///A struct implementing `DatabaseInjectionContext` and containing a fieldkey and the expected type for that key.
@@ -14,9 +14,9 @@ public struct ModelInfo: DatabaseInjectionContext, Equatable {
     ///A concrete `Fluent.FieldKey`
     public var key: FieldKey
     ///A concrete type for that fieldkey
-    public var type: Any.Type
+    public var value: AnyConcreteCodable
     
     public static func == (lhs: ModelInfo, rhs: ModelInfo) -> Bool {
-        lhs.key == rhs.key && lhs.type == rhs.type
+        lhs.key == rhs.key
     }
 }

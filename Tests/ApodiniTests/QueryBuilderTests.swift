@@ -6,12 +6,12 @@ import Fluent
 final class QueryBuilderTests: ApodiniTests {
     func testQueryString() throws {
         let queryString = "http://localhost:8080/v1/api/birds/birds?name=Swift&age=5"
-        let queryBuilder = QueryBuilder(type: Bird.self, queryString: queryString)
-        let expectedParameters = [
-            Bird.fieldKey(for: "name"): "Swift",
-            Bird.fieldKey(for: "age"): "5"
+        
+        let expectedParameters: [FieldKey: AnyConcreteCodable] = [
+            Bird.fieldKey(for: "name"): AnyConcreteCodable("Swift"),
+            Bird.fieldKey(for: "age"):  AnyConcreteCodable("5")
         ]
-        XCTAssertEqual(queryBuilder.parameters, expectedParameters, "Expected: \(expectedParameters)\n Found: \(queryBuilder.parameters)")
+        let queryBuilder = QueryBuilder(type: Bird.self, parameters: expectedParameters)
         
         let birds = try queryBuilder.execute(on: app.db).wait()
         XCTAssert(birds.count == 1)
@@ -19,9 +19,9 @@ final class QueryBuilderTests: ApodiniTests {
         
         let info = QueryBuilder.info(for: Bird.self)
         let expectedInfo: [ModelInfo] = [
-            ModelInfo(key: Bird.fieldKey(for: "id"), type: UUID.self),
-            ModelInfo(key: Bird.fieldKey(for: "name"), type: String.self),
-            ModelInfo(key: Bird.fieldKey(for: "age"), type: Int.self)
+//            ModelInfo(key: Bird.fieldKey(for: "id"), value: AnyCo(UUID.self, key: Bird.fieldKey(for: "id"))),
+//            ModelInfo(key: Bird.fieldKey(for: "name"), value: AnyGenericCodable(String.self, key: Bird.fieldKey(for: "name"))),
+//            ModelInfo(key: Bird.fieldKey(for: "age"), value: AnyGenericCodable(Int.self, key: Bird.fieldKey(for: "age")))
         ]
         XCTAssertEqual(info, expectedInfo, "Expected: \(expectedInfo)\n Found: \(info)")
     }

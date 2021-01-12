@@ -61,7 +61,8 @@ final class DatabaseHandlerTests: ApodiniTests {
                 url: uri,
                 on: app.eventLoopGroup.next()
         )
-        request.parameters.set("name", to: "Mockingbird")
+//        request.parameters.set("name", to: "Mockingbird")
+//        request.parameters.set("age", to: "6")
         
         let result = try context.handle(request: request).wait()
         guard case let .final(responseValue) = result else {
@@ -73,7 +74,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let queryBuilder = QueryBuilder(
             type: Bird.self,
             parameters: [
-                Bird.fieldKey(for: "name"): "Mockingbird"
+                Bird.fieldKey(for: "name"): AnyConcreteCodable(.string("Mockingbird"))
             ]
         )
         //As Eventloops are currently not working, only the queryBuilder is tested right now.
@@ -103,8 +104,8 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         
         let updatedBird = Bird(name: "FooBird", age: 25)
-        let parameters = [
-            "age": 5
+        let parameters: [String: AnyConcreteCodable] = [
+            "name": AnyConcreteCodable("FooBird")
         ]
         
         let handler = Update<Bird>()

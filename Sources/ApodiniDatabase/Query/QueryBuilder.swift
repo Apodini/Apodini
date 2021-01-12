@@ -21,52 +21,17 @@ internal struct QueryBuilder<Model: DatabaseModel> {
         type.keys
     }
 
-    internal var parameters: [FieldKey: String] = [:]
+    internal var parameters: [FieldKey: AnyConcreteCodable] = [:]
 
-    init(type: Model.Type, queryString: String) {
-        self.type = type
-        self.parameters = extract(from: queryString)
-    }
-    
-    init(type: Model.Type, parameters: [FieldKey: String]) {
+    init(type: Model.Type, parameters: [FieldKey: AnyConcreteCodable]) {
         self.type = type
         self.parameters = parameters
     }
     
-    private func extract(from queryString: String) -> [FieldKey: String] {
-        var foundParameters: [FieldKey: String] = [:]
-        let extractedQueryString = queryString.split(separator: "?")
-        guard extractedQueryString.count >= 2 else {
-            return foundParameters
-        }
-        let queryParts = extractedQueryString[1].split(separator: "&").map { String($0) }
-        for part in queryParts {
-            let queryParameters = part.split(separator: "=").map { String($0) }
-            guard queryParameters.count == 2 else { fatalError("invalid query") }
-            let key = queryParameters[0]
-            let value = queryParameters[1]
-            guard let fieldKey = fieldKeys.first(where: { $0.description == key }) else {
-                continue
-            }
-            foundParameters[fieldKey] = value
-        }
-        return foundParameters
-    }
-    
     internal func execute(on database: Fluent.Database) -> EventLoopFuture<[Model]> {
-        func accumulateFilters(queryBuilder: inout Fluent.QueryBuilder<Model>, key: FieldKey, value: String, method: DatabaseQuery.Filter.Method) {
-            if let intValue = Int(value) {
-                queryBuilder.filter(key, method, intValue)
-            } else if let boolValue = Bool(value) {
-                queryBuilder.filter(key, method, boolValue)
-            } else {
-                queryBuilder.filter(key, method, value)
-            }
-        }
-        
         var queryBuilder = Model.query(on: database)
         for (key, value) in parameters {
-            accumulateFilters(queryBuilder: &queryBuilder, key: key, value: value, method: .equal)
+            queryBuilder.filter(key: key, method: .equal, codableValue: value)
         }
         return queryBuilder.all()
     }
@@ -78,63 +43,59 @@ internal struct QueryBuilder<Model: DatabaseModel> {
     
     internal static func info(for type: Model.Type) -> [ModelInfo] {
         var modelInfo: [ModelInfo] = []
-        do {
-            let keys = type.keys
-            let info = try typeInfo(of: type)
-            for child in Mirror(reflecting: Model()).children {
-                print(child)
-                if let visitable = child.value as? VisitableFieldProperty {
-                    let test = visitable.accept(GenericTypeVisitor())
-                    print(test)
-                }
+        let keys = type.keys
+        for (index, child) in Mirror(reflecting: Model()).children.enumerated() {
+//            print(child)
+            let key = keys[index]
+            if let idVisitable = child.value as? VisitableIDProperty {
+                let concreteCodable = idVisitable.accept(ConcreteIDPropertyVisitor())
+                modelInfo.append(ModelInfo(key: key, value: concreteCodable))
+//                print(Self.parameter(for: concreteCodable))
+//                print(concreteCodable)
             }
-            guard info.properties.count == type.keys.count else {
-                fatalError("wrong model")
+            if let fieldVisitable = child.value as? VisitableFieldProperty {
+                let concreteCodable = fieldVisitable.accept(ConcreteTypeVisitor())
+                modelInfo.append(ModelInfo(key: key, value: concreteCodable))
+//                print(Self.parameter(for: concreteCodable))
+//                print(concreteCodable)
             }
-            for (index, propertyInfo) in info.properties.enumerated() {
-                if propertyInfo.name.replacingOccurrences(of: "_", with: "") == keys[index].description {
-                    let key = keys[index]
-                    if let test = propertyInfo.type as? VisitableFieldProperty {
-                        print("mnice")
-                    }
-                    let type = Self.fieldType(for: propertyInfo.type)
-                    modelInfo.append(ModelInfo(key: key, type: type))
-                }
-            }
-        } catch {
-            fatalError("failed to infer info")
         }
         return modelInfo
     }
     
-    // swiftlint:disable:next todo
-    //TODO: Find a better way to do this
-    private static func fieldType(for type: Any.Type) -> Any.Type {
-        guard let fieldTypeString = String(describing: type)
-                .replacingOccurrences(of: "FieldProperty", with: "")
-                .replacingOccurrences(of: "<", with: "")
-                .replacingOccurrences(of: " ", with: "")
-                .replacingOccurrences(of: ">", with: "")
-                .split(separator: ",")
-                .map({ String($0) })
-                .last else {
-            return String.self
-        }
-        switch fieldTypeString {
-        case "String":
-            return String.self
-        case "Int":
-            return Int.self
-        case "Bool":
-            return Bool.self
-        case "UUID":
-            return UUID.self
-        default:
-            fatalError("Should not happen")
-        }
+    static func parameter<T: Codable>(for: T? = nil) -> Parameter<T?> {
+        Parameter<T?>(.http(.query))
     }
 }
 
+protocol UpdatableFieldPropertyVisitor where Value: Codable {
+    associatedtype Value
+
+    func visit<Model, V>(_ property: inout FieldProperty<Model, V>) -> Value
+}
+
+struct ConcreteUpdatableFieldPropertyVisitor: UpdatableFieldPropertyVisitor {
+    typealias Value = Bool
+    
+    let updater: AnyConcreteCodable
+    
+    func visit<Model, V>(_ property: inout FieldProperty<Model, V>) -> Bool where Model : Fields, V : Decodable, V : Encodable {
+        print(property.value)
+        print(updater.wrappedValue)
+        print(updater.wrappedType)
+        if case 
+        if let conformedValue = Int(5) as? V {
+            property.value = 5 as! V
+            print(property.value)
+            return true
+        }
+        return false
+    }
+}
+
+protocol UpdatableFieldProperty {
+    func accept<Visitor: UpdatableFieldPropertyVisitor>(_ visitor: Visitor) -> Visitor.Value where Visitor.Value == Bool
+}
 
 protocol FieldPropertyVisitor where Value: Codable {
     associatedtype Value
@@ -145,48 +106,35 @@ protocol FieldPropertyVisitor where Value: Codable {
 }
 
 struct ConcreteTypeVisitor: FieldPropertyVisitor {
-    typealias Value = AnyCodable
-
-    func visit<Model, V>(_ property: FieldProperty<Model, V>) -> AnyCodable where Model : Fields, V : Decodable, V : Encodable {
-        return AnyCodable(property.value)
-    }
-
-    static func unwrap<ConcreteTypeVisitor>(_ type: Any) -> ConcreteTypeVisitor {
-        return type as! ConcreteTypeVisitor
-    }
-//    typealias Value = AnyCodable
-//
-//    func visit<Model, V>(_ property: FieldProperty<Model, V>) -> Value where Model : Fields, V : Decodable, V : Encodable {
-//        AnyCodable(property.value)
-//    }
-
-
-}
-
-struct GenericTypeVisitor: FieldPropertyVisitor {
-    typealias Value = AnyGenericCodable
-
+    typealias Value = AnyConcreteCodable
+    
     func visit<Model, V>(_ property: FieldProperty<Model, V>) -> Value where Model : Fields, V : Decodable, V : Encodable {
-        return AnyGenericCodable(V.self)
+        print(property.wrappedValue)
+        return AnyConcreteCodable(property.wrappedValue)
     }
 
     static func unwrap<ConcreteTypeVisitor>(_ type: Any) -> ConcreteTypeVisitor {
         return type as! ConcreteTypeVisitor
     }
-//    typealias Value = AnyCodable
-//
-//    func visit<Model, V>(_ property: FieldProperty<Model, V>) -> Value where Model : Fields, V : Decodable, V : Encodable {
-//        AnyCodable(property.value)
-//    }
-
 
 }
-
-
+//
+//struct GenericTypeVisitor: FieldPropertyVisitor {
+//    typealias Value = AnyGenericCodable
+//
+//    func visit<Model, V>(_ property: FieldProperty<Model, V>) -> Value where Model : Fields, V : Decodable, V : Encodable {
+////        return AnyGenericCodable(AnyParameter(Parameter<V>(.http(.query))), key: property.key)
+//        return AnyGenericCodable(V.self, key: property.key)
+//    }
+//
+//    static func unwrap<ConcreteTypeVisitor>(_ type: Any) -> ConcreteTypeVisitor {
+//        return type as! ConcreteTypeVisitor
+//    }
+//
+//}
 
 protocol VisitableFieldProperty {
-    
-    func accept<Visitor: FieldPropertyVisitor>(_ visitor: Visitor) -> Visitor.Value where Visitor.Value == AnyCodable
+    func accept<Visitor: FieldPropertyVisitor>(_ visitor: Visitor) -> Visitor.Value where Visitor.Value == AnyConcreteCodable
     func accept<Visitor: FieldPropertyVisitor>(_ visitor: Visitor) -> Visitor.Value where Visitor.Value == AnyGenericCodable
 }
 
@@ -198,22 +146,150 @@ extension FieldProperty: VisitableFieldProperty {
 
 }
 
+extension FieldProperty: UpdatableFieldProperty {
+    func accept<Visitor>(_ visitor: Visitor) -> Visitor.Value where Visitor : UpdatableFieldPropertyVisitor, Visitor.Value == Bool {
+        var varSelf = self
+        return visitor.visit(&varSelf)
+    }
+}
 
+protocol IDPropertyVisitor where Value: Codable {
+    associatedtype Value
+    
+    func visit<Model, V>(_ property: IDProperty<Model, V>) -> Value where Model: DatabaseModel
+}
 
-struct AnyGenericCodable: Codable {
+protocol VisitableIDProperty {
     
-    var wrappedValue: Codable.Type?
+    func accept<Visitor: IDPropertyVisitor>(_ visitor: Visitor) -> Visitor.Value where Visitor.Value == AnyConcreteCodable
+    func accept<Visitor: IDPropertyVisitor>(_ visitor: Visitor) -> Visitor.Value where Visitor.Value == AnyGenericCodable
+}
+
+struct ConcreteIDPropertyVisitor: IDPropertyVisitor {
+    typealias Value = AnyConcreteCodable
     
-    init(_ wrappedValue: Codable.Type? = nil) {
-        self.wrappedValue = wrappedValue
+    func visit<Model, V>(_ property: IDProperty<Model, V>) -> AnyConcreteCodable where Model : DatabaseModel, V : Decodable, V : Encodable {
+        AnyConcreteCodable(property.wrappedValue)
+    }
+}
+
+struct GenericIDPropertyVisitor: IDPropertyVisitor {
+    typealias Value = AnyGenericCodable
+    
+    func visit<Model, V>(_ property: IDProperty<Model, V>) -> AnyGenericCodable where Model : DatabaseModel, V : Decodable, V : Encodable {
+        AnyGenericCodable(V.self, key: property.key)
+    }
+}
+
+extension IDProperty: VisitableIDProperty where Model: DatabaseModel {
+    func accept<Visitor>(_ visitor: Visitor) -> Visitor.Value where Visitor : IDPropertyVisitor {
+        visitor.visit(self)
     }
     
-    func encode(to encoder: Encoder) throws {
-//        wrappedValue?.encode(to: encoder)
+}
+
+extension Fluent.QueryBuilder {
+    
+    func filter(key: FieldKey, method: DatabaseQuery.Filter.Method, codableValue: AnyConcreteCodable) {
+        switch codableValue.wrappedType {
+        case .bool(let value):
+            self.filter(key, method, value)
+            break
+        case .string(let value):
+            self.filter(key, method, value)
+            break
+        case .int(let value):
+            self.filter(key, method, value)
+            break
+        case .int8(let value):
+            self.filter(key, method, value)
+            break
+        case .int16(let value):
+            self.filter(key, method, value)
+            break
+        case .int32(let value):
+            self.filter(key, method, value)
+            break
+        case .int64(let value):
+            self.filter(key, method, value)
+            break
+        case .uint(let value):
+            self.filter(key, method, value)
+            break
+        case .uint8(let value):
+            self.filter(key, method, value)
+            break
+        case .uint16(let value):
+            self.filter(key, method, value)
+            break
+        case .uint32(let value):
+            self.filter(key, method, value)
+            break
+        case .uint64(let value):
+            self.filter(key, method, value)
+            break
+        case .uuid(let value):
+            self.filter(key, method, value)
+            break
+        case .float(let value):
+            self.filter(key, method, value)
+            break
+        case .double(let value):
+            self.filter(key, method, value)
+            break
+        case .noValue, .none:
+            break
+        }
     }
     
-    init(from decoder: Decoder) throws {
-        self.init()
+}
+
+protocol TestPropertyVisitor where Value: Codable {
+    associatedtype Value
+
+    func visit(_ value: AnyConcreteCodable) -> Value?
+}
+
+struct IntPropertyVisitor: TestPropertyVisitor {
+    
+    typealias Value = Int
+    
+    func visit(_ value: AnyConcreteCodable) -> Value? {
+        switch value.wrappedType {
+        case .int(let intValue):
+            return intValue
+        default:
+            return nil
+        }
+        
+    }
+}
+
+struct StringPropertyVisitor: TestPropertyVisitor {
+    typealias Value = String
+    
+    func visit(_ value: AnyConcreteCodable) -> Value? {
+        switch value.wrappedType {
+        case .string(let stringValue):
+            return stringValue
+        default:
+            return nil
+        }
+    }
+}
+
+protocol VisitableAnyCodable {
+    func accept<Visitor: TestPropertyVisitor>(_ visitor: Visitor) -> Visitor.Value? where Visitor.Value == Int
+    func accept<Visitor: TestPropertyVisitor>(_ visitor: Visitor) -> Visitor.Value? where Visitor.Value == String
+}
+
+extension AnyConcreteCodable: VisitableAnyCodable {
+    func accept<Visitor>(_ visitor: Visitor) -> Visitor.Value? where Visitor : TestPropertyVisitor, Visitor.Value == Int {
+        visitor.visit(self)
+    }
+    
+    func accept<Visitor>(_ visitor: Visitor) -> Visitor.Value? where Visitor : TestPropertyVisitor, Visitor.Value == String {
+        visitor.visit(self)
     }
     
 }
