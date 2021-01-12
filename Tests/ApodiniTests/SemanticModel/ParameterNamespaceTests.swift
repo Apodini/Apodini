@@ -38,7 +38,7 @@ class ParameterNamespaceTests: ApodiniTests {
         let handler = TestHandler()
         let endpoint = handler.mockEndpoint()
 
-        endpoint.exportParametersMocked(namespace: .individual)
+        endpoint.parameterNameCollisionCheck(in: .individual)
     }
 
     func testGlobalParameterNamespace() {
@@ -46,8 +46,18 @@ class ParameterNamespaceTests: ApodiniTests {
         let endpoint = handler.mockEndpoint()
 
         XCTAssertRuntimeFailure(
-            endpoint.exportParametersMocked(namespace: .global),
+            endpoint.parameterNameCollisionCheck(in: .global),
             "Failed to detect name collisions on .global level"
+        )
+    }
+
+    func testDefaultGlobalParameterNamespace() {
+        let handler = TestHandler()
+        let endpoint = handler.mockEndpoint()
+
+        XCTAssertRuntimeFailure(
+            endpoint.parameterNameCollisionCheck(),
+            "Failed to detect name collisions on .global (default) level"
         )
     }
 
@@ -55,14 +65,14 @@ class ParameterNamespaceTests: ApodiniTests {
         let handler = TestHandler()
         let endpoint = handler.mockEndpoint()
 
-        endpoint.exportParametersMocked(namespace: [.path], [.lightweight, .content])
+        endpoint.parameterNameCollisionCheck(in: .path, [.lightweight, .content])
     }
 
     func testCustom2ParameterNamespace() {
         let handler = TestHandler()
         let endpoint = handler.mockEndpoint()
 
-        endpoint.exportParametersMocked(namespace: [.lightweight], [.path, .content])
+        endpoint.parameterNameCollisionCheck(in: .lightweight, [.path, .content])
     }
 
     func testCustom3ParameterNamespace() {
@@ -71,7 +81,7 @@ class ParameterNamespaceTests: ApodiniTests {
 
 
         XCTAssertRuntimeFailure(
-            endpoint.exportParametersMocked(namespace: [.content], [.lightweight, .path]),
+            endpoint.parameterNameCollisionCheck(in: .content, [.lightweight, .path]),
             "Failed to detect name collisions on custom level"
         )
     }

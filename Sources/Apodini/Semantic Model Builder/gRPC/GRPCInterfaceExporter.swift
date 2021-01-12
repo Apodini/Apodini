@@ -26,7 +26,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
         let methodName = endpoint.methodName
 
         // kick off name collision check
-        endpoint.exportParameters(on: self, namespace: .global)
+        endpoint.exportParameters(on: self)
 
         // generate and store the field tags for all parameters
         // of this endpoint

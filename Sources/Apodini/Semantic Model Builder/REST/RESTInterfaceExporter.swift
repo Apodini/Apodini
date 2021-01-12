@@ -83,6 +83,8 @@ struct RESTConfiguration {
 }
 
 class RESTInterfaceExporter: InterfaceExporter {
+    static let parameterNamespace: [ParameterNamespace] = .individual
+
     let app: Application
     let configuration: RESTConfiguration
 
@@ -99,7 +101,7 @@ class RESTInterfaceExporter: InterfaceExporter {
 
         let operation = endpoint.operation
 
-        let exportedParameterNames = endpoint.exportParameters(on: self, namespace: .individual)
+        let exportedParameterNames = endpoint.exportParameters(on: self)
 
         let endpointHandler = RESTEndpointHandler(for: endpoint, with: endpoint.createConnectionContext(for: self), configuration: configuration)
         endpointHandler.register(at: routesBuilder, with: operation)

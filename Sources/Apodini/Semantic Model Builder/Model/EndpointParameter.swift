@@ -7,13 +7,6 @@
 
 import Foundation
 
-/// `Parameter` categorization needed for certain interface exporters (e.g., HTTP-based).
-enum ParameterType {
-    case lightweight
-    case content
-    case path
-}
-
 /// Defines the necessity of a `EndpointParameter`
 enum Necessity {
     case required

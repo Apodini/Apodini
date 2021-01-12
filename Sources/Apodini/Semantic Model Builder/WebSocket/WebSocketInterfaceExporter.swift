@@ -45,13 +45,6 @@ extension BasicInputParameter: ReducibleParameter {
 }
 
 class WebSocketInterfaceExporter: InterfaceExporter {
-    typealias ExporterRequest = SomeInput
-    
-    typealias EndpointExportOuput = Void
-    
-    typealias ParameterExportOuput = InputParameter
-    
-    
     private let app: Application
     
     private let router: WebSocketInfrastructure.Router
@@ -62,7 +55,7 @@ class WebSocketInterfaceExporter: InterfaceExporter {
     }
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self, namespace: .global)
+        let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self)
         
         let emptyInput = SomeInput(parameters: inputParameters.reduce(into: [String: InputParameter](), { result, parameter in
             result[parameter.name] = parameter.value

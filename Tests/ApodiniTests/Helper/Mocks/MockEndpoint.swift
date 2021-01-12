@@ -25,15 +25,3 @@ extension Handler {
         )
     }
 }
-
-extension Endpoint {
-    func exportParametersMocked(namespace: DefaultParameterNamespace) {
-        let exporter = MockExporter<String>()
-        _ = exportParameters(on: exporter, namespace: namespace)
-    }
-
-    func exportParametersMocked(namespace: ParameterNamespace...) {
-        let exporter = MockExporter<String>()
-        _ = exportParameters(on: exporter, namespace)
-    }
-}

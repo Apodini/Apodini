@@ -4,66 +4,77 @@
 
 import Foundation
 
-/// Anything conforming to this protocol represents a definition of a `EndpointParameter` namespace.
-protocol ParameterNamespace: CustomStringConvertible {
-    /// Used to determine if the given `AnyEndpointParameter` is part of the given namespace.
-    func includes(parameter: AnyEndpointParameter) -> Bool
+struct ParameterNamespace: OptionSet {
+    let rawValue: UInt8
+
+    static let lightweight = ParameterNamespace(rawValue: 1 << 0)
+    static let content = ParameterNamespace(rawValue: 1 << 1)
+    static let path = ParameterNamespace(rawValue: 1 << 2)
+
+    fileprivate static let all: ParameterNamespace = [.lightweight, .content, .path]
 }
 
-/// This enum provides some easy to use definitions for parameter namespaces commonly used.
-enum DefaultParameterNamespace {
+extension ParameterNamespace: CustomStringConvertible {
+    public var description: String {
+        var types: [ParameterType] = []
+
+        if (rawValue & 1) > 0 {
+            types.append(.lightweight)
+        }
+        if (rawValue & 2) > 0 {
+            types.append(.content)
+        }
+        if (rawValue & 4) > 0 {
+            types.append(.path)
+        }
+
+        return types.description
+    }
+}
+
+// MARK: Common ParameterNamespace Definitions
+extension Array where Element == ParameterNamespace {
     /// With the `.global` level, a parameter name must be
     /// unique across all `ParameterType`s on the given `Endpoint`.
-    case global
+    /// This is the default namespace when nothing is specified by the exporter.
+    static let global: [ParameterNamespace] = [.all]
     /// With the `.individual` level, a parameter name must be
     /// unique across all parameters with the same `ParameterTyp` on the given `Endpoint`.
-    /// This is the default namespace when nothing is specified by the exporter.
-    case individual
-
-    var namespace: [ParameterNamespace] {
-        switch self {
-        case .global:
-            return [[.lightweight, .content, .path]]
-        case .individual:
-            return [ParameterType.lightweight, ParameterType.content, ParameterType.path]
-        }
-    }
+    static let individual: [ParameterNamespace] = [.lightweight, .content, .path]
 }
 
-
-extension ParameterType: ParameterNamespace {
-    // A Parameter itself can also be a `ParameterNameSpace`.
-    // But using something like [.path] is shorten and thus nicer to use, probably.
-    func includes(parameter: AnyEndpointParameter) -> Bool {
-        parameter.parameterType == self
-    }
-}
-
-extension ParameterType: CustomStringConvertible {
-    var description: String {
-        switch self {
+extension ParameterNamespace {
+    func contains(type: ParameterType) -> Bool {
+        switch type {
         case .lightweight:
-            return "lightweight"
-        case .content:
-            return "content"
+            return contains(.lightweight)
         case .path:
-            return "path"
+            return contains(.path)
+        case .content:
+            return contains(.content)
         }
     }
 }
 
-extension Array: ParameterNamespace where Element == ParameterType {
-    func includes(parameter: AnyEndpointParameter) -> Bool {
-        self.contains(parameter.parameterType)
+
+// MARK: Parameter Name Collision
+extension AnyEndpoint {
+    /// Internal method which kicks off the parameter namespace collision checks
+    func parameterNameCollisionCheck(in namespaces: [ParameterNamespace]) {
+        parameters.nameCollisionCheck(on: self, in: namespaces)
+    }
+
+    /// Internal method which kicks off the parameter namespace collision checks
+    func parameterNameCollisionCheck(in namespaces: ParameterNamespace...) {
+        parameters.nameCollisionCheck(on: self, in: namespaces)
     }
 }
 
-
-extension Array where Element == AnyEndpointParameter {
-    func nameCollisionCheck<H: Handler>(on handler: H.Type = H.self, in namespaces: [ParameterNamespace]) {
+private extension Array where Element == AnyEndpointParameter {
+    func nameCollisionCheck(on endpoint: AnyEndpoint, in namespaces: [ParameterNamespace]) {
         var namespaces = namespaces
         if namespaces.isEmpty {
-            namespaces = DefaultParameterNamespace.individual.namespace
+            namespaces = .global
         }
 
         for namespace in namespaces {
@@ -77,11 +88,11 @@ extension Array where Element == AnyEndpointParameter {
                     collisions: Set<String>()
                 )
             ) { result, parameter in
-                if namespace.includes(parameter: parameter) {
+                if namespace.contains(type: parameter.parameterType) {
                     let count = result.set.count
                     result.set.insert(parameter.name)
 
-                    if result.set.count == count { // count didn't change => no new element inserted => name collisions
+                    if result.set.count == count { // count didn't change => no new element inserted => name collision
                         result.collisions.insert(parameter.name)
                     }
                 }
@@ -89,7 +100,7 @@ extension Array where Element == AnyEndpointParameter {
 
             if !result.collisions.isEmpty {
                 #warning("Replace by unified parsing error")
-                fatalError("Found colliding parameter names \(result.collisions) on Handler '\(handler)' in namespace \(namespace.description)!")
+                fatalError("Found colliding parameter names \(result.collisions) on Handler '\(endpoint.description)' in namespace \(namespace.description)!")
             }
         }
     }
