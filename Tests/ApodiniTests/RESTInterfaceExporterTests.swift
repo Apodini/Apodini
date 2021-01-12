@@ -159,10 +159,10 @@ class RESTInterfaceExporterTests: ApodiniTests {
         
         let endpointPaths = builder.rootNode
             .collectAllEndpoints()
-            .map { StringPathBuilder($0.absolutePath).build() }
+            .map { $0.absolutePath.asPathString() }
         
         let expectedEndpointPaths: [String] = [
-            "v1/api/user", "v1/api/user", "v1/api/post"
+            "/v1/api/user", "/v1/api/user", "/v1/api/post"
         ]
         XCTAssert(endpointPaths.compareIgnoringOrder(expectedEndpointPaths))
     }
