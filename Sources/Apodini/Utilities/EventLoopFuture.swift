@@ -26,7 +26,7 @@ extension EventLoopFuture {
     public func tryFlatMap<NewValue>(file: StaticString = #file,
                                      line: UInt = #line,
                                      _ callback: @escaping (Value) throws -> EventLoopFuture<NewValue>) -> EventLoopFuture<NewValue> {
-        return self.flatMap(file: file, line: line) { (value: Value) -> EventLoopFuture<NewValue> in
+        self.flatMap(file: file, line: line) { (value: Value) -> EventLoopFuture<NewValue> in
             do {
                 return try callback(value)
             } catch {
