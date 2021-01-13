@@ -23,8 +23,8 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
     func testAddEndpoint() {
         let comp = SomeComp()
         var endpoint = comp.mockEndpoint()
-        let endpointTreeNode = EndpointsTreeNode(path: RootPath())
-        endpointTreeNode.addEndpoint(&endpoint, at: ["test"])
+        let webService = WebServiceModel()
+        webService.addEndpoint(&endpoint, at: ["test"])
 
         let configuration = OpenAPIConfiguration()
 

@@ -41,7 +41,7 @@ public struct OperationModifier<H: Handler>: HandlerModifier {
 
 extension OperationModifier: SyntaxTreeVisitable {
     func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(OperationContextKey.self, value: operation, scope: .nextHandler)
+        visitor.addContext(OperationContextKey.self, value: operation, scope: .current)
         component.accept(visitor)
     }
 }

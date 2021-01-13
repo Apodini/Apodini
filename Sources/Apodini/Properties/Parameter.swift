@@ -121,7 +121,7 @@ extension Parameter: RequestInjectable {
         do {
             element = try request.retrieveParameter(self)
         } catch {
-            fatalError("Injection failed: \(self.description) could not be retrieved from \(request). This was probably caused by a bug/inconsistency in the validation.")
+            fatalError("Injection failed: \(self.id) could not be retrieved from \(request). This was probably caused by a bug/inconsistency in the validation.")
         }
     }
 
@@ -131,11 +131,7 @@ extension Parameter: RequestInjectable {
 }
 
 extension Parameter: _PathComponent {
-    var description: String {
-        ":\(self.id)"
-    }
-    
-    func append<P>(to pathBuilder: inout P) where P: PathBuilder {
-        pathBuilder.append(self)
+    func append<Parser: PathComponentParser>(to parser: inout Parser) {
+        parser.visit(self)
     }
 }

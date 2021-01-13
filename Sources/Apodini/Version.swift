@@ -53,8 +53,8 @@ extension Version: _PathComponent {
         "\(prefix)\(major)"
     }
 
-    func append<P>(to pathBuilder: inout P) where P: PathBuilder {
-        pathBuilder.append(description)
+    func append<Parser: PathComponentParser>(to parser: inout Parser) {
+        parser.visit(self)
     }
 }
 
