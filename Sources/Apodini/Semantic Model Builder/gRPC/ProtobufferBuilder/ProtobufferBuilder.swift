@@ -99,7 +99,3 @@ private extension ProtobufferMessage {
 private func isNotPrimitive(_ message: ProtobufferMessage) -> Bool {
     message.name.hasSuffix("Message")
 }
-
-private func isParameter(_ node: Node<EnrichedInfo>) -> Bool {
-    mangledName(of: node.value.typeInfo.type) == "Parameter"
-}
