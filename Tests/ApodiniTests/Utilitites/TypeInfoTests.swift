@@ -24,7 +24,7 @@ class TypeInfoTests: ApodiniTests {
         XCTAssertEqual(isOptional(Never.self), false)
         
         // A case that should throw an error in isOptional
-        XCTAssertEqual(isOptional((() -> ()).self), false)
+        XCTAssertEqual(isOptional((() -> Void).self), false)
     }
     
     func testDescription() {
