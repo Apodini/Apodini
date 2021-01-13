@@ -58,7 +58,7 @@ class GRPCService {
             // - 4 bytes:   big-endian; length of message
             precondition(data.count > 5,
                          "Remaining payload data not long enough to read message from")
-            _ = data.popFirst() // ignore compressed byte
+            let compressed = data.popFirst() // ignore compressed byte
             let lengthBytes = [UInt8](data.prefix(4))
             let ulength = lengthBytes.reduce(0) { result, new in
                 result << 8 | UInt32(new)
@@ -73,14 +73,14 @@ class GRPCService {
                 // So a second message is to follow
                 hasNext = true
                 let messageData = data.subdata(in: 0..<length)
-                messages.append(GRPCMessage(from: messageData, length: length))
+                messages.append(GRPCMessage(from: messageData, length: length, compressed: compressed == 1))
                 // remove the bytes of this message
                 data = data.advanced(by: length)
             } else if data.count == length {
                 // There is all the data available that belongs to this message,
                 // and no other message follows in the given data.
                 hasNext = false
-                messages.append(GRPCMessage(from: data, length: length))
+                messages.append(GRPCMessage(from: data, length: length, compressed: compressed == 1))
             } else {
                 // data.count < length:
                 // There is not all the data that belongs to this message

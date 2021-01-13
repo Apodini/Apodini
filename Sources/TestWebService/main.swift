@@ -50,7 +50,7 @@ struct TestWebService: Apodini.WebService {
         func handle() -> Action<String> {
             print(connection.state)
             if connection.state == .end {
-                return .end
+                return .final("This is the end")
             }
 
             if let firstName = name {

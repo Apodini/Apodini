@@ -33,8 +33,6 @@ class GRPCInterfaceExporter: InterfaceExporter {
                 self.parameters[param.element.id] = param.offset + 1
             }
 
-        let context = endpoint.createConnectionContext(for: self)
-
         // expose the new component via a GRPCService
         // currently unary enpoints are considered here
         let service: GRPCService
@@ -46,10 +44,14 @@ class GRPCInterfaceExporter: InterfaceExporter {
         }
 
         if endpoint.serviceType == .unary {
+            let context = endpoint.createConnectionContext(for: self)
             service.exposeUnaryEndpoint(name: methodName, context: context)
             app.logger.info("Exported unary gRPC endpoint \(serviceName)/\(methodName) with parameters:")
         } else if endpoint.serviceType == .clientStreaming {
-            service.exposeClientStreamingEndpoint(name: methodName, context: context)
+            let contextCreator = {
+                endpoint.createConnectionContext(for: self)
+            }
+            service.exposeClientStreamingEndpoint(name: methodName, contextCreator: contextCreator)
             app.logger.info("Exported client-streaming gRPC endpoint \(serviceName)/\(methodName) with parameters:")
         } else {
             app.logger.warning("""
@@ -57,6 +59,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
                 Defaulting to unary.
                 Exported unary gRPC endpoint \(serviceName)/\(methodName) with parameters:
                 """)
+            let context = endpoint.createConnectionContext(for: self)
             service.exposeUnaryEndpoint(name: methodName, context: context)
         }
 

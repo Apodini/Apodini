@@ -29,9 +29,9 @@ extension GRPCService {
                 }
 
                 // retrieve all the GRPC messages that were delivered in the
-                // request payload. Since this is a unary endpointm, it
-                // should be one at max.
-                let message = self.getMessages(from: data).first ?? GRPCMessage(from: Data(), length: 0)
+                // request payload. Since this is a unary endpoint, it
+                // should be one at max (so we discard potential following messages).
+                let message = self.getMessages(from: data).first ?? GRPCMessage.DefaultMessage
 
                 let response = context.handle(request: message, eventLoop: request.eventLoop, final: true)
                 let result = response.map { encodableAction -> Vapor.Response in

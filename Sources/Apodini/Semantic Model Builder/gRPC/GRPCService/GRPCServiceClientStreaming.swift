@@ -10,11 +10,9 @@ import Foundation
 
 // MARK: Client streaming request handler
 extension GRPCService {
-    func createClientStreamingHandler<C: ConnectionContext>(context: C)
-    -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> where C.Exporter == GRPCInterfaceExporter {
+    func createClientStreamingHandler(contextCreator: @escaping () -> AnyConnectionContext<GRPCInterfaceExporter>)
+    -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         { (request: Vapor.Request) in
-            var context = context
-
             if !self.checkContentType(request: request) {
                 return request.eventLoop.makeFailedFuture(GRPCError.unsupportedContentType(
                     "Content type is currently not supported by Apodini GRPC exporter. Use Protobuffers instead."
@@ -30,6 +28,10 @@ extension GRPCService {
                         return request.eventLoop.makeFailedFuture(GRPCError.payloadReadError("Cannot read byte-buffer from fragment"))
                     }
 
+                    #if DEBUG
+                    print("\([UInt8](data))")
+                    #endif
+
                     // retrieve all GRPC messages that were delivered in this request
                     // (may be none, one or multiple)
                     var messages = self.getMessages(from: data)
@@ -44,6 +46,10 @@ extension GRPCService {
                         // See `getMessages` internal comments for more details.
                         .filter({ $0.isComplete })
                         .forEach({ message in
+                            // each message delivers all necessary values in GRPC
+                            // so we need a new context for each message, to avoid
+                            // errors for redefining constants
+                            var context = contextCreator()
                             // Discard any result that is received back from the handler;
                             // this is a client-streaming handler, thus we only send back
                             // a response in the .end case.
@@ -52,7 +58,8 @@ extension GRPCService {
                 case .end:
                     // send the previously retained lastMessage through the handler
                     // and set the final flag
-                    let message = lastMessage ?? GRPCMessage(from: Data(), length: 0)
+                    var context = contextCreator()
+                    let message = lastMessage ?? GRPCMessage.DefaultMessage
                     let response = context.handle(request: message, eventLoop: request.eventLoop, final: true)
                     let result = response.map { encodableAction -> Vapor.Response in
                         switch encodableAction {
@@ -79,15 +86,15 @@ extension GRPCService {
     /// The endpoint will be accessible at [host]/[serviceName]/[endpoint].
     /// - Parameters:
     ///     - endpoint: The name of the endpoint that should be exposed.
-    func exposeClientStreamingEndpoint<C: ConnectionContext>(name endpoint: String,
-                                                             context: C) where C.Exporter == GRPCInterfaceExporter {
+    func exposeClientStreamingEndpoint(name endpoint: String,
+                                       contextCreator: @escaping () -> AnyConnectionContext<GRPCInterfaceExporter>) {
         let path = [
             Vapor.PathComponent(stringLiteral: serviceName),
             Vapor.PathComponent(stringLiteral: endpoint)
         ]
 
         app.on(.POST, path) { request in
-            self.createClientStreamingHandler(context: context)(request)
+            self.createClientStreamingHandler(contextCreator: contextCreator)(request)
         }
     }
 }
