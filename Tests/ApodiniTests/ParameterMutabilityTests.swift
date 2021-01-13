@@ -39,7 +39,7 @@ class ParameterMutabilityTests: ApodiniTests {
     
     struct TestHandlerUsingClassType: Handler {
         @Parameter
-        var name: StringClass = StringClass(string: "Apodini")
+        var name = StringClass(string: "Apodini")
         
         @Parameter
         var override: Bool = false
@@ -124,7 +124,10 @@ class ParameterMutabilityTests: ApodiniTests {
         case .some(.final("Apodini")):
             break
         default:
-            XCTFail()
+            XCTFail("""
+                Return value did not match expected value.
+                This is most likely caused by the default value of 'Parameter' being shared across 'Handler's.
+            """)
         }
     }
 }
