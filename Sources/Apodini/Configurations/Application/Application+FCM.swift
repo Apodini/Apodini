@@ -14,7 +14,7 @@ extension Application {
 }
 
 extension FCM {
-    init(app: Apodini.Application) {
+    init(app: Application) {
         self.init(application: app.vapor.app)
     }
 }

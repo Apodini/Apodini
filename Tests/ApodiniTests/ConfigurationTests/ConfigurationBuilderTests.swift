@@ -3,13 +3,13 @@ import XCTest
 
 class ConfigurationBuilderTests: XCTestCase {
     struct SomeConfiguration: Configuration {
-        func configure(_ app: Apodini.Application) { }
+        func configure(_ app: Application) { }
     }
 
     struct CheckConfigurationTriggered: Configuration {
         let counter: ConfigureCounter
 
-        func configure(_ app: Apodini.Application) {
+        func configure(_ app: Application) {
             counter.number += 1
         }
     }
@@ -18,11 +18,11 @@ class ConfigurationBuilderTests: XCTestCase {
         var number = 0
     }
 
-    var app: Apodini.Application!
+    var app: Application!
 
     override func setUp() {
         super.setUp()
-        app = Apodini.Application()
+        app = Application()
     }
 
     override func tearDown() {

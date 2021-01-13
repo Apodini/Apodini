@@ -28,8 +28,8 @@ import NIO
 public class NotificationCenter {
     /// NotificationCenter
     internal static var shared = NotificationCenter()
-    internal var application: Apodini.Application?
-    private var app: Apodini.Application {
+    internal var application: Application?
+    private var app: Application {
         guard let app = application else {
             fatalError("The `NotificationCenter` is not configured. Please add the missing configuration to the web service.")
         }

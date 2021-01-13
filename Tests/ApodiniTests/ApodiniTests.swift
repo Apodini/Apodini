@@ -12,7 +12,7 @@ import FluentSQLiteDriver
 class ApodiniTests: XCTestCase {
     // Vapor Application
     // swiftlint:disable implicitly_unwrapped_optional
-    var app: Apodini.Application!
+    var app: Application!
     // Model Objects
     var bird1 = Bird(name: "Swift", age: 5)
     var bird2 = Bird(name: "Corvus", age: 1)
