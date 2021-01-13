@@ -39,16 +39,25 @@ class ParameterMutabilityTests: ApodiniTests {
     
     struct TestHandlerUsingClassType: Handler {
         @Parameter
-        var name = StringClass(string: "Apodini")
+        var projectName = StringClass(string: "Apodini")
+        
+        @Parameter
+        var organizationName: StringClass? = StringClass(string: "Apodini")
         
         @Parameter
         var override: Bool = false
         
         func handle() -> String {
             if override {
-                self.name.string = "NotApodini"
+                self.projectName.string = "NotApodini"
+                self.organizationName?.string = "AlsoNotApodini"
             }
-            return name.string
+            
+            if let organization = self.organizationName {
+                return "\(organization.string)/\(projectName.string)"
+            } else {
+                return projectName.string
+            }
         }
     }
 
@@ -107,8 +116,8 @@ class ParameterMutabilityTests: ApodiniTests {
         let handler = TestHandlerUsingClassType()
         let endpoint = handler.mockEndpoint()
 
-        let exporter1 = MockExporter<String>(queued: nil, true)
-        let exporter2 = MockExporter<String>(queued: nil)
+        let exporter1 = MockExporter<String>(queued: nil, nil, true)
+        let exporter2 = MockExporter<String>(queued: nil, nil)
 
         var context1 = endpoint.createConnectionContext(for: exporter1)
         var context2 = endpoint.createConnectionContext(for: exporter2)
@@ -121,7 +130,7 @@ class ParameterMutabilityTests: ApodiniTests {
                 .wait()
         
         switch response.typed(String.self) {
-        case .some(.final("Apodini")):
+        case .some(.final("Apodini/Apodini")):
             break
         default:
             XCTFail("""

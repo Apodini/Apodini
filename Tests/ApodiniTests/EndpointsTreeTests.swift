@@ -48,7 +48,7 @@ final class EndpointsTreeTests: ApodiniTests {
             // swiftlint:disable:next force_unwrapping
             (0...times!)
                 .map { _ in
-                    "Hello \(name) born in \("birthdate.year")!"
+                    "Hello \(name) born in \(birthdate.year)!"
                 }
                 .joined(separator: " ")
         }
