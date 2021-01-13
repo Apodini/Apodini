@@ -139,9 +139,41 @@ final class GRPCInterfaceExporterTests: XCTestCase {
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
 
+    /// The unary handler should only consider the first message in case
+    /// it receives multiple messages in one HTTP frame.
+    func testUnaryRequestHandler_2Messages_1Frame() throws {
+        let context = endpoint.createConnectionContext(for: exporter)
+
+        // First one is "Moritz", second one is "Bernd".
+        // Only the first should be considered.
+        let requestData: [UInt8] = [
+            0, 0, 0, 0, 10, 10, 6, 77, 111, 114, 105, 116, 122, 16, 23,
+            0, 0, 0, 0, 9, 10, 5, 66, 101, 114, 110, 100, 16, 23
+        ]
+
+        // let expectedResponseString = "Hello Moritz"
+        let expectedResponseData: [UInt8] =
+            [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
+
+        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        let vaporRequest = Vapor.Request(application: app,
+                                         method: .POST,
+                                         url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
+                                         version: .init(major: 2, minor: 0),
+                                         headers: headers,
+                                         collectedBody: ByteBuffer(bytes: requestData),
+                                         remoteAddress: nil,
+                                         logger: app.logger,
+                                         on: group.next())
+
+        let response = try service.createUnaryHandler(context: context)(vaporRequest).wait()
+        let responseData = try XCTUnwrap(response.body.data)
+        XCTAssertEqual(responseData, Data(expectedResponseData))
+    }
+
     /// Tests the client-streaming handler for a request with
     /// 1 HTTP frame that contains 1 GRPC messages.
-    func testClientStreamingHandlerWithOne_1Message_1Frame() throws {
+    func testClientStreamingHandlerWith_1Message_1Frame() throws {
         let contextCreator = {
             self.endpoint.createConnectionContext(for: self.exporter)
         }
@@ -177,7 +209,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
     ///
     /// The handler should only return the response for the last (second)
     /// message contained in the frame.
-    func testClientStreamingHandlerWithOne_2Messages_1Frame() throws {
+    func testClientStreamingHandlerWith_2Messages_1Frame() throws {
         let contextCreator = {
             self.endpoint.createConnectionContext(for: self.exporter)
         }
@@ -218,7 +250,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
     ///
     /// The handler should only return the response for the last (second)
     /// message contained in the frame.
-    func testClientStreamingHandlerWithOne_2Messages_2Frames() throws {
+    func testClientStreamingHandlerWith_2Messages_2Frames() throws {
         let contextCreator = {
             self.endpoint.createConnectionContext(for: self.exporter)
         }
