@@ -87,10 +87,8 @@ class GRPCService {
                 // in this data object. The remainder will be delivered with
                 // the next frame.
                 //
-                // In my testing, Vapor returned an error 413: Payload Too Large
-                // before the generated GRPC actually started fragmenting the
-                // GRPC message into mutltiple HTTP fragment.
-                // Thus, this case (for now) is not supported.
+                // This is currently not supported.
+                // See GitHub issue #127: https://github.com/Apodini/Apodini/issues/127
                 fatalError("Apodini GRPC exporter does not yet support messages spanning multiple HTTP frames")
             }
         } while hasNext

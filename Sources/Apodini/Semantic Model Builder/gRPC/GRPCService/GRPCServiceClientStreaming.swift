@@ -28,10 +28,6 @@ extension GRPCService {
                         return request.eventLoop.makeFailedFuture(GRPCError.payloadReadError("Cannot read byte-buffer from fragment"))
                     }
 
-                    #if DEBUG
-                    print("\([UInt8](data))")
-                    #endif
-
                     // retrieve all GRPC messages that were delivered in this request
                     // (may be none, one or multiple)
                     var messages = self.getMessages(from: data)

@@ -32,6 +32,12 @@ private struct GRPCTestHandler2: Handler {
     }
 }
 
+private struct GRPCNothingHandler: Handler {
+    func handle() -> Apodini.Response<Int32> {
+        .nothing
+    }
+}
+
 final class GRPCInterfaceExporterTests: XCTestCase {
     // swiftlint:disable implicitly_unwrapped_optional
     fileprivate var app: Application!
@@ -245,6 +251,34 @@ final class GRPCInterfaceExporterTests: XCTestCase {
         // write messages individually
         _ = try stream.write(.buffer(ByteBuffer(bytes: requestData1))).wait()
         _ = try stream.write(.buffer(ByteBuffer(bytes: requestData2))).wait()
+        _ = try stream.write(.end).wait()
+    }
+
+    /// Checks whether the returned response for a `.nothing` is indeed empty.
+    func testClientStreamingHandlerNothingResponse() throws {
+        let handler = GRPCNothingHandler()
+        let endpoint = handler.mockEndpoint()
+        let contextCreator = {
+            endpoint.createConnectionContext(for: self.exporter)
+        }
+
+        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        let vaporRequest = Vapor.Request(application: app,
+                                         method: .POST,
+                                         url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
+                                         on: group.next())
+        vaporRequest.headers = headers
+        let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
+        vaporRequest.bodyStorage = .stream(stream)
+
+        service.createClientStreamingHandler(contextCreator: contextCreator)(vaporRequest)
+            .whenSuccess { response in
+                XCTAssertEqual(response.body.data,
+                               Optional(Data()),
+                               "Received non-empty response but expected empty response")
+            }
+
+        _ = try stream.write(.buffer(ByteBuffer(bytes: requestData1))).wait()
         _ = try stream.write(.end).wait()
     }
 }

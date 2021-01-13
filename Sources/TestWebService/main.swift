@@ -112,10 +112,6 @@ struct TestWebService: Apodini.WebService {
                 .guard(PrintGuard())
         }
     }
-
-    var configuration: Configuration {
-        HTTP2Configuration()
-    }
 }
 
 try TestWebService.main()
