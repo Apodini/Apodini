@@ -116,7 +116,7 @@ class WebSocketInterfaceExporter: InterfaceExporter {
 
 
             return (defaultInput: emptyInput, output: output.eraseToAnyPublisher())
-        }, on: WebSocketPathBuilder(endpoint.absolutePath).pathIdentifier)
+        }, on: endpoint.absolutePath.build(with: WebSocketPathBuilder.self))
     }
     
     func retrieveParameter<Type>(

@@ -75,7 +75,12 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
     @ComponentBuilder
     var testService: some Component {
-        Group("user", $userId) {
+        Group {
+            "user"
+                .hideLink()
+                .relationship(name: "user")
+            $userId
+        } content: {
             UserHandler(userId: $userId)
         }
     }
@@ -100,7 +105,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
                 on: app.eventLoopGroup.next()
         )
         // we hardcode the pathId currently here
-        request.parameters.set(":\(handler.pathAParameter.id)", to: "a")
+        request.parameters.set("\(handler.pathAParameter.id)", to: "a")
 
         let result = try context.handle(request: request)
                 .wait()
@@ -157,10 +162,10 @@ class RESTInterfaceExporterTests: ApodiniTests {
         
         let endpointPaths = builder.rootNode
             .collectAllEndpoints()
-            .map { StringPathBuilder($0.absolutePath).build() }
+            .map { $0.absolutePath.asPathString() }
         
         let expectedEndpointPaths: [String] = [
-            "v1/api/user", "v1/api/user", "v1/api/post"
+            "/v1/api/user", "/v1/api/user", "/v1/api/post"
         ]
         XCTAssert(endpointPaths.compareIgnoringOrder(expectedEndpointPaths))
     }

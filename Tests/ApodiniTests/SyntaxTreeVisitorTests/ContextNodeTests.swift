@@ -52,8 +52,8 @@ struct IntModifier<C: Component>: Modifier, SyntaxTreeVisitable {
         switch scope {
         case .environment:
             visitor.addContext(IntEnvironmentContextKey.self, value: value, scope: .environment)
-        case .nextHandler:
-            visitor.addContext(IntNextComponentContextKey.self, value: value, scope: .nextHandler)
+        case .current:
+            visitor.addContext(IntNextComponentContextKey.self, value: value, scope: .current)
         }
         component.accept(visitor)
     }
@@ -76,15 +76,10 @@ extension Component {
  * Regression test for https://github.com/Apodini/Apodini/issues/12
  */
 final class ContextNodeTests: ApodiniTests {
-    class func buildStringFromPathComponents(_ components: [Apodini.PathComponent]) -> String {
-        StringPathBuilder(components).build()
-    }
-    
-    
     var groupWithSingleComponent: some Component {
         Group("test") {
             TestComponent(1)
-        }.modifier(.nextHandler, value: 1)
+        }.modifier(.current, value: 1)
     }
 
     func testGroupWithSingleComponent() {
@@ -127,7 +122,7 @@ final class ContextNodeTests: ApodiniTests {
             override func register<H: Handler>(handler: H, withContext context: Context) {
                 if let testComponent = handler as? TestComponent {
                     let path = context.get(valueFor: PathComponentContextKey.self)
-                    let pathString = ContextNodeTests.buildStringFromPathComponents(path)
+                    let pathString = path.asPathString()
                     let environmentInt = context.get(valueFor: IntEnvironmentContextKey.self)
 
                     switch testComponent.type {
@@ -166,7 +161,7 @@ final class ContextNodeTests: ApodiniTests {
             override func register<H: Handler>(handler: H, withContext context: Context) {
                 if let testComponent = handler as? TestComponent {
                     let path = context.get(valueFor: PathComponentContextKey.self)
-                    let pathString = ContextNodeTests.buildStringFromPathComponents(path)
+                    let pathString = path.asPathString()
                     let environmentInt = context.get(valueFor: IntEnvironmentContextKey.self)
 
                     switch testComponent.type {

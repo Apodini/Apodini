@@ -71,11 +71,13 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
     func testDefaultEndpointNaming() throws {
         let expectedServiceName = "Group1Group2Service"
+
+        let webService = WebServiceModel()
+
         let handler = GRPCTestHandler()
-        let node = ContextNode()
-        node.addContext(PathComponentContextKey.self, value: ["Group2"], scope: .environment)
-        node.addContext(PathComponentContextKey.self, value: ["Group1"], scope: .environment)
-        let endpoint = handler.mockEndpoint(context: Context(contextNode: node))
+        var endpoint = handler.mockEndpoint()
+
+        webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
 
         let exporter = GRPCInterfaceExporter(app)
         exporter.export(endpoint)
@@ -83,7 +85,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         XCTAssertNotNil(exporter.services[expectedServiceName])
     }
 
-    func testUnaryRequestHandlerWithOneParamater() throws {
+    func testUnaryRequestHandlerWithOneParameter() throws {
         let serviceName = "TestService"
         let methodName = "testMethod"
         let service = GRPCService(name: serviceName, using: app)
