@@ -51,13 +51,13 @@ class ParameterNamespaceTests: ApodiniTests {
         )
     }
 
-    func testDefaultGlobalParameterNamespace() {
+    func testEmptyParameterNamespace() {
         let handler = TestHandler()
         let endpoint = handler.mockEndpoint()
 
         XCTAssertRuntimeFailure(
             endpoint.parameterNameCollisionCheck(),
-            "Failed to detect name collisions on .global (default) level"
+            "Failed to reject empty namespace definition"
         )
     }
 

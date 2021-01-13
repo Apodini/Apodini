@@ -92,7 +92,9 @@ protocol InterfaceExporter: BaseInterfaceExporter {
 
 extension BaseInterfaceExporter {
     static var parameterNamespace: [ParameterNamespace] {
-        [] // default is to return nothing, to distinguish if exporter did actually set something
+        // default namespace (and most strictest namespace)
+        // forces parameter names to be unique across all parameter types
+        .global
     }
 }
 

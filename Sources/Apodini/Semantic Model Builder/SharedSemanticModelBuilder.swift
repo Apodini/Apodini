@@ -119,7 +119,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
             // before we run unnecessary export steps, we first verify that the Endpoint is indeed valid
             // in the case of not allowing lenient namespace definitions we just pass a empty array
             // which will result in the default namespace being used
-            endpoint.parameterNameCollisionCheck(in: allowLenientParameterNamespaces ? I.parameterNamespace : [])
+            endpoint.parameterNameCollisionCheck(in: allowLenientParameterNamespaces ? I.parameterNamespace : .global)
 
             _ = endpoint.exportEndpoint(on: exporter)
         }

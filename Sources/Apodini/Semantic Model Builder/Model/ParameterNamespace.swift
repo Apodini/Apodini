@@ -74,7 +74,7 @@ private extension Array where Element == AnyEndpointParameter {
     func nameCollisionCheck(on endpoint: AnyEndpoint, in namespaces: [ParameterNamespace]) {
         var namespaces = namespaces
         if namespaces.isEmpty {
-            namespaces = .global
+            fatalError("Parameter name collision check was run with empty namespace definition!")
         }
 
         for namespace in namespaces {
