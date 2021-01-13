@@ -1,6 +1,6 @@
 //
 //  EndpointsTreeTests.swift
-//  
+//
 //
 //  Created by Lorena Schlesinger on 06.12.20.
 //
@@ -48,7 +48,7 @@ final class EndpointsTreeTests: ApodiniTests {
             // swiftlint:disable:next force_unwrapping
             (0...times!)
                 .map { _ in
-                    "Hello \(name) born in \(birthdate.year)!"
+                    "Hello \(name) born in \("birthdate.year")!"
                 }
                 .joined(separator: " ")
         }
@@ -60,7 +60,7 @@ final class EndpointsTreeTests: ApodiniTests {
         
         var content: some Component {
             Group("birthdate", $name) {
-                TestHandler(name: $name)
+                TestHandler()
             }
         }
     }
@@ -79,13 +79,13 @@ final class EndpointsTreeTests: ApodiniTests {
         XCTAssertEqual(nameParameter.name, "name")
         XCTAssertEqual(timesParameter.name, "multiply")
         XCTAssertEqual(birthdateParameter.name, "birthdate")
-        
+
         // basic checks to ensure proper parameter parsing
         XCTAssertEqual(nameParameter.id, testHandler.nameParameter.id)
         XCTAssertEqual(timesParameter.id, testHandler.timesParameter.id)
         XCTAssertEqual(timesParameter.options.option(for: PropertyOptionKey.http), testHandler.timesParameter.option(for: PropertyOptionKey.http))
         XCTAssertEqual(birthdateParameter.id, testHandler.birthdateParameter.id)
-        
+
         // check whether categorization works
         XCTAssertEqual(birthdateParameter.parameterType, .content)
         XCTAssertEqual(timesParameter.parameterType, .lightweight)
@@ -97,10 +97,10 @@ final class EndpointsTreeTests: ApodiniTests {
         XCTAssertEqual(nameParameter.necessity, .required)
 
         // check default value
-        XCTAssertNil(birthdateParameter.typeErasuredDefaultValue)
+        XCTAssertNil(birthdateParameter.typeErasuredDefaultValue())
         // swiftlint:disable:next force_cast
-        XCTAssertEqual(timesParameter.typeErasuredDefaultValue as! Int?, 1)
-        XCTAssertNil(nameParameter.typeErasuredDefaultValue)
+        XCTAssertEqual(timesParameter.typeErasuredDefaultValue() as! Int?, 1)
+        XCTAssertNil(nameParameter.typeErasuredDefaultValue())
     }
 
     func testRequestHandler() throws {

@@ -24,7 +24,8 @@ public struct Parameter<Element: Codable>: Property {
     var name: String?
     private var element: Element?
     internal var options: PropertyOptionSet<ParameterOptionNameSpace>
-    internal var defaultValue: Element?
+    internal var defaultValue: () -> Element?
+    internal var defaultClosurePresent: Bool
     
     
     /// The value for the `@Parameter` as defined by the incoming request
@@ -39,7 +40,8 @@ public struct Parameter<Element: Codable>: Property {
     
     /// Creates a new `@Parameter` that indicates input of a `Component` without a default value, different name for the encoding, or special options.
     public init() {
-        self.defaultValue = nil
+        self.defaultValue = { nil }
+        self.defaultClosurePresent = false
         self.name = nil
         self.options = PropertyOptionSet()
     }
@@ -49,7 +51,8 @@ public struct Parameter<Element: Codable>: Property {
     ///   - name: The name that identifies this property when decoding the property from the input of a `Component`
     ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
     public init(_ name: String, _ options: Option...) {
-        self.defaultValue = nil
+        self.defaultValue = { nil }
+        self.defaultClosurePresent = false
         self.name = name
         self.options = PropertyOptionSet(options)
     }
@@ -58,7 +61,8 @@ public struct Parameter<Element: Codable>: Property {
     /// - Parameters:
     ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
     public init(_ options: Option...) {
-        self.defaultValue = nil
+        self.defaultValue = { nil }
+        self.defaultClosurePresent = false
         self.name = nil
         self.options = PropertyOptionSet(options)
     }
@@ -68,8 +72,9 @@ public struct Parameter<Element: Codable>: Property {
     ///   - defaultValue: The default value that should be used in case the interface exporter can not decode the value from the input of the `Component`
     ///   - name: The name that identifies this property when decoding the property from the input of a `Component`
     ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
-    public init(wrappedValue defaultValue: Element, _ name: String? = nil, _ options: Option...) {
+    public init(wrappedValue defaultValue: @autoclosure @escaping () -> Element, _ name: String, _ options: Option...) {
         self.defaultValue = defaultValue
+        self.defaultClosurePresent = true
         self.name = name
         self.options = PropertyOptionSet(options)
     }
@@ -78,10 +83,21 @@ public struct Parameter<Element: Codable>: Property {
     /// - Parameters:
     ///   - defaultValue: The default value that should be used in case the interface exporter can not decode the value from the input of the `Component`
     ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
-    public init(wrappedValue defaultValue: Element, _ options: Option...) {
+    public init(wrappedValue defaultValue: @autoclosure @escaping () -> Element, _ options: Option...) {
         self.defaultValue = defaultValue
+        self.defaultClosurePresent = true
         self.name = nil
         self.options = PropertyOptionSet(options)
+    }
+    
+    /// Creates a new `@Parameter` that indicates input of a `Component`.
+    /// - Parameters:
+    ///   - defaultValue: The default value that should be used in case the interface exporter can not decode the value from the input of the `Component`
+    public init(wrappedValue defaultValue: @autoclosure @escaping () -> Element) {
+        self.defaultValue = defaultValue
+        self.defaultClosurePresent = true
+        self.name = nil
+        self.options = PropertyOptionSet([])
     }
     
     /// Creates a new `@Parameter` that indicates input of a `Component's` `@PathParameter` based on an existing component.
@@ -90,6 +106,8 @@ public struct Parameter<Element: Codable>: Property {
     init(from id: UUID) {
         self.options = PropertyOptionSet([.http(.path)])
         self.id = id
+        self.defaultClosurePresent = false
+        self.defaultValue = { nil }
     }
     
     

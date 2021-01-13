@@ -29,14 +29,14 @@ final class PropertiesTests: ApodiniTests {
                 
         let numberParameters = properties.typed(Parameter<Int>.self)
         XCTAssertEqual(numberParameters.count, 2)
-        XCTAssertEqual(numberParameters["number"]?.defaultValue, (elements[0].1 as? Parameter<Int>)?.defaultValue)
-        XCTAssertEqual(numberParameters["anOtherNumber"]?.defaultValue, (elements[1].1 as? Parameter<Int>)?.defaultValue)
+        XCTAssertEqual(numberParameters["number"]?.defaultValue(), (elements[0].1 as? Parameter<Int>)?.defaultValue())
+        XCTAssertEqual(numberParameters["anOtherNumber"]?.defaultValue(), (elements[1].1 as? Parameter<Int>)?.defaultValue())
         
         let stringParameters = properties.typed(Parameter<String>.self)
         XCTAssertEqual(stringParameters.count, 1)
         stringParameters.forEach {
             XCTAssertEqual($0.0, elements[2].0)
-            XCTAssertEqual($0.1.defaultValue, (elements[2].1 as? Parameter<String>)?.defaultValue)
+            XCTAssertEqual($0.1.defaultValue(), (elements[2].1 as? Parameter<String>)?.defaultValue())
         }
     }
 }

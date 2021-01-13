@@ -28,6 +28,29 @@ class ParameterMutabilityTests: ApodiniTests {
                     .joined(separator: separator)
         }
     }
+    
+    class StringClass: Codable {
+        var string: String
+        
+        init(string: String) {
+            self.string = string
+        }
+    }
+    
+    struct TestHandlerUsingClassType: Handler {
+        @Parameter
+        var name: StringClass = StringClass(string: "Apodini")
+        
+        @Parameter
+        var override: Bool = false
+        
+        func handle() -> String {
+            if override {
+                self.name.string = "NotApodini"
+            }
+            return name.string
+        }
+    }
 
     func testVariableCanBeChanged() throws {
         let handler = TestHandler()
@@ -78,5 +101,30 @@ class ParameterMutabilityTests: ApodiniTests {
                     .wait()
             XCTFail("Validation should fail, constant was changed!")
         } catch {}
+    }
+    
+    func testMutationOnClassTypeDefaultParameterIsNotShared() throws {
+        let handler = TestHandlerUsingClassType()
+        let endpoint = handler.mockEndpoint()
+
+        let exporter1 = MockExporter<String>(queued: nil, true)
+        let exporter2 = MockExporter<String>(queued: nil)
+
+        var context1 = endpoint.createConnectionContext(for: exporter1)
+        var context2 = endpoint.createConnectionContext(for: exporter2)
+        
+        // second call should still return "Apodini"
+        _ = try context1.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+                .wait()
+        
+        let response = try context2.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+                .wait()
+        
+        switch response.typed(String.self) {
+        case .some(.final("Apodini")):
+            break
+        default:
+            XCTFail()
+        }
     }
 }

@@ -54,6 +54,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
             label: "pathParam",
             nilIsValidValue: true,
             necessity: .required,
+            defaultClosurePresent: false,
             options: parameter.options
         )
         let endpointParameter2 = EndpointParameter<String>(
@@ -62,6 +63,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
             label: "queryParam",
             nilIsValidValue: false,
             necessity: .optional,
+            defaultClosurePresent: false,
             options: PropertyOptionSet([.http(.query)])
         )
         var builder = OpenAPIPathBuilder(pathComponents, parameters: [endpointParameter1, endpointParameter2])

@@ -68,7 +68,7 @@ protocol AnyEndpointParameter: CustomStringConvertible {
     /// Defines the `EndpointParameterType` of the parameter.
     var parameterType: EndpointParameterType { get }
     /// Specifies the default value for the parameter. Nil if the parameter doesn't have a default value.
-    var typeErasuredDefaultValue: Any? { get }
+    var typeErasuredDefaultValue: () -> Any? { get }
 
     /// See `CustomStringConvertible`
     var description: String { get }
@@ -109,8 +109,9 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
     let necessity: Necessity
     let parameterType: EndpointParameterType
 
-    let defaultValue: Type?
-    var typeErasuredDefaultValue: Any? {
+    
+    let defaultValue: () -> Type?
+    var typeErasuredDefaultValue: () -> Any? {
         defaultValue
     }
 
@@ -121,8 +122,9 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
          label: String,
          nilIsValidValue: Bool,
          necessity: Necessity,
+         defaultClosurePresent: Bool,
          options: PropertyOptionSet<ParameterOptionNameSpace>,
-         defaultValue: Type? = nil
+         defaultValue: @escaping () -> Type? = { nil }
     ) {
         self.id = id
         self.name = name
@@ -138,8 +140,12 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
         if nilIsValidValue {
             description += "?"
         }
-        if let `default` = defaultValue {
-            description += " = \(`default`)"
+        if defaultClosurePresent {
+            if let value = defaultValue() {
+                description += " = \(value)"
+            } else {
+                description += " = nil"
+            }
         }
         self.description = description
 
@@ -222,19 +228,15 @@ class ParameterBuilder: RequestInjectableVisitor {
                     necessity: .optional
             )
         } else {
-            var `default`: Element?
-            if let value = parameter.defaultValue {
-                `default` = value
-            }
-
             endpointParameter = EndpointParameter<Element>(
                     id: parameter.id,
                     name: parameter.name ?? trimmedLabel,
                     label: label,
                     nilIsValidValue: false,
-                    necessity: parameter.defaultValue == nil ? .required : .optional, // a parameter is optional when a defaultValue is defined
+                    necessity: parameter.defaultClosurePresent ? .optional : .required, // a parameter is optional when a defaultValue is defined
+                    defaultClosurePresent: parameter.defaultClosurePresent,
                     options: parameter.options,
-                    defaultValue: `default`
+                    defaultValue: parameter.defaultValue
             )
         }
 
@@ -257,17 +259,18 @@ extension Parameter: EncodeOptionalEndpointParameter where Element: ApodiniOptio
             label: String,
             necessity: Necessity
     ) -> AnyEndpointParameter {
-        var `default`: Element.Member?
-        if let value = self.defaultValue {
-            `default` = value.optionalInstance
+        var `default`: () -> Element.Member? = { nil }
+        if self.defaultClosurePresent {
+            `default` = { self.defaultValue()?.optionalInstance }
         }
-
+        
         return EndpointParameter<Element.Member>(
                 id: self.id,
                 name: name,
                 label: label,
                 nilIsValidValue: true,
                 necessity: necessity,
+                defaultClosurePresent: self.defaultClosurePresent,
                 options: self.options,
                 defaultValue: `default`
         )
