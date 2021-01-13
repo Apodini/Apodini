@@ -31,9 +31,9 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
         
         return EventLoopFuture<Void>
             .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
-            .flatMap { _ in
-                connection.enterConnectionContext(with: self.endpoint.handler) { handler in
-                    handler.handle()
+            .tryFlatMap { _ in
+                try connection.enterConnectionContext(with: self.endpoint.handler) { handler in
+                    try handler.handle()
                         .transformToResponse(on: request.eventLoop)
                 }
             }

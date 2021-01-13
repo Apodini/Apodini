@@ -47,7 +47,7 @@ extension Apodini.Request {
 // MARK: ConnectionContext
 
 extension Connection {
-    func enterConnectionContext<E, R>(with element: E, executing method: (E) -> R) -> R {
+    func enterConnectionContext<E, R>(with element: E, executing method: (E) throws -> R) rethrows -> R {
         var element = element
         
         if let request = self.request {
@@ -55,7 +55,7 @@ extension Connection {
         }
         
         self.update(&element)
-        return method(element)
+        return try method(element)
     }
     
     private func update<E>(_ element: inout E) {
