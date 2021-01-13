@@ -7,6 +7,7 @@
 
 import XCTest
 import XCTVapor
+import XCTApodini
 @testable import Apodini
 
 

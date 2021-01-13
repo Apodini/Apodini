@@ -43,7 +43,7 @@ final class NotificationCenterTests: XCTApodiniTest {
         let topic = "test"
         let device = Device(id: "321", type: .apns, topics: [topic])
         
-        notificationCenter.register(device: device)
+        try notificationCenter.register(device: device).wait()
 
         try notificationCenter.delete(device: device).wait()
         let devices = try notificationCenter.getAllDevices().wait()
