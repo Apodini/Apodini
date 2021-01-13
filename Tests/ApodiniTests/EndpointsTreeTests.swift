@@ -60,7 +60,7 @@ final class EndpointsTreeTests: ApodiniTests {
         
         var content: some Component {
             Group("birthdate", $name) {
-                TestHandler()
+                TestHandler(name: $name)
             }
         }
     }
