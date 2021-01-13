@@ -54,8 +54,9 @@ public protocol Router {
 ///         "endpoint": "<identifier>"
 ///     }
 ///
-/// **`CloseContextMessage`:** Closes the context with the given `<UUID>`. This message-type may
-/// be sent by either client or server.
+/// **`CloseContextMessage`:** Closes the context with the given `<UUID>`. This message-type must
+/// be sent by both, client and server. Sending this message means "I am not going to send another message
+/// on this context".
 ///
 ///     {
 ///         "context": "<UUID>"

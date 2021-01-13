@@ -419,7 +419,7 @@ To provide such functionality the proposal introduces multiple `PathComponentMod
 existing `ComponentModifiers`. As the `PathComponents` are passed as arguments to a `Group` instance,
 this could quickly get messy in terms of code readability.
 
-Thus this proposal additionally introduces a `PathComponentBuilder` with a corresponding initializer for the `Group` struct.
+Thus this proposal additionally introduces a `PathComponentFunctionBuilder` with a corresponding initializer for the `Group` struct.
 Examples are shown in the following sub chapters.
 
 ### 3.1. Overriding the relationship name

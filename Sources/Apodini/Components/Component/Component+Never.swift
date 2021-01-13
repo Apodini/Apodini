@@ -5,6 +5,8 @@
 //  Created by Paul Schmiedmayer on 1/2/21.
 //
 
+import NIO
+
 /// A custom `Never` type.
 ///
 /// This is required to prevent the type system from using the `extension Component where Content == Never`
@@ -58,6 +60,12 @@ extension Never: Component {
     }
 }
 
+extension Component where Content == Never {
+    /// Default implementation which will simply crash
+    public var content: Self.Content {
+        fatalError("'\(Self.self).\(#function)' is not implemented because 'Self.Content' is set to '\(Self.Content.self)'")
+    }
+}
 
 extension _EmptyComponentCustomNeverImpl: Component {
     public typealias Content = Never
@@ -70,30 +78,5 @@ extension Component where Content == _EmptyComponentCustomNeverImpl {
     /// Default implementation which will simply crash
     public var content: Self.Content {
         fatalError("'\(Self.self).\(#function)' is not implemented because 'Self.Content' is set to '\(Self.Content.self)'")
-    }
-}
-
-
-// MARK: Handler
-
-extension Never: Encodable {
-    /// Default implementation which will simply crash
-    public func encode(to encoder: Encoder) throws {
-        fatalError("The '\(Self.self)' type cannot be encoded")
-    }
-}
-
-
-extension _EmptyComponentCustomNeverImpl: Encodable {
-    /// Default implementation which will simply crash
-    public func encode(to encoder: Encoder) throws {
-        fatalError("The '\(Self.self)' type cannot be encoded")
-    }
-}
-
-extension Handler where Response == _EmptyComponentCustomNeverImpl {
-    /// Default implementation which will simply crash
-    public func handle() -> Self.Response {
-        fatalError("'\(Self.self).\(#function)' is not implemented because 'Self.Response' is set to '\(Self.Response.self)'")
     }
 }

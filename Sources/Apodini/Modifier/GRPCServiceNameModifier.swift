@@ -25,7 +25,7 @@ public struct GRPCServiceModifier<H: Handler>: HandlerModifier {
 
 extension GRPCServiceModifier: SyntaxTreeVisitable {
     func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(GRPCServiceNameContextKey.self, value: serviceName, scope: .nextHandler)
+        visitor.addContext(GRPCServiceNameContextKey.self, value: serviceName, scope: .current)
         component.accept(visitor)
     }
 }

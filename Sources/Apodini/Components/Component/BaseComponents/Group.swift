@@ -22,21 +22,18 @@ public struct Group<Content: Component>: Component, SyntaxTreeVisitable {
         self.pathComponents = pathComponents
         self.content = content()
     }
+
+    public init(@PathComponentFunctionBuilder path: () -> [PathComponent], @ComponentBuilder content: () -> Content) {
+        self.pathComponents = path()
+        self.content = content()
+    }
     
     func accept(_ visitor: SyntaxTreeVisitor) {
-        func forwardToContent() {
-            visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)
-            content.accept(visitor)
-        }
-        
-        if !String(describing: type(of: content)).hasPrefix("TupleComponent<") {
-            visitor.enterContent {
-                visitor.enterComponentContext {
-                    forwardToContent()
-                }
+        visitor.enterContent {
+            visitor.enterComponentContext {
+                visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)
+                content.accept(visitor)
             }
-        } else {
-            forwardToContent()
         }
     }
 }
