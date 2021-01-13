@@ -20,14 +20,8 @@ public struct Parameter<Element: Codable>: Property {
     public typealias Option = AnyPropertyOption<ParameterOptionNameSpace>
 
     
-    var id = UUID()
-    var name: String? {
-        didSet {
-            if let name = name {
-                precondition(!name.isEmpty, "The name for Parameter cannot be empty!")
-            }
-        }
-    }
+    let id: UUID
+    let name: String?
     private var element: Element?
     internal var options: PropertyOptionSet<ParameterOptionNameSpace>
     internal var defaultValue: Element?
@@ -41,12 +35,29 @@ public struct Parameter<Element: Codable>: Property {
         
         return element
     }
+
+
+    private init(
+        id: UUID = UUID(),
+        name: String? = nil,
+        defaultValue: Element? = nil,
+        options: [Option] = []
+    ) {
+        if let name = name {
+            precondition(!name.isEmpty, "The name for Parameter cannot be empty!")
+        }
+
+        self.id = id
+        self.defaultValue = defaultValue
+        self.name = name
+        self.options = PropertyOptionSet(options)
+    }
     
     
     /// Creates a new `@Parameter` that indicates input of a `Component` without a default value, different name for the encoding, or special options.
     public init() {
-        self.defaultValue = nil
-        self.options = PropertyOptionSet()
+        // We need to pass any argument otherwise we would call the same initializer again resulting in a infinite loop
+        self.init(id: UUID())
     }
     
     /// Creates a new `@Parameter` that indicates input of a `Component`.
@@ -54,19 +65,14 @@ public struct Parameter<Element: Codable>: Property {
     ///   - name: The name that identifies this property when decoding the property from the input of a `Component`
     ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
     public init(_ name: String, _ options: Option...) {
-        self.defaultValue = nil
-        self.options = PropertyOptionSet(options)
-        defer { // swiftlint:disable:this inert_defer
-            self.name = name
-        }
+        self.init(name: name, options: options)
     }
 
     /// Creates a new `@Parameter` that indicates input of a `Component`.
     /// - Parameters:
     ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
     public init(_ options: Option...) {
-        self.defaultValue = nil
-        self.options = PropertyOptionSet(options)
+        self.init(options: options)
     }
     
     /// Creates a new `@Parameter` that indicates input of a `Component`.
@@ -75,11 +81,7 @@ public struct Parameter<Element: Codable>: Property {
     ///   - name: The name that identifies this property when decoding the property from the input of a `Component`
     ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
     public init(wrappedValue defaultValue: Element, _ name: String? = nil, _ options: Option...) {
-        self.defaultValue = defaultValue
-        self.options = PropertyOptionSet(options)
-        defer { // swiftlint:disable:this inert_defer
-            self.name = name
-        }
+        self.init(name: name, defaultValue: defaultValue, options: options)
     }
     
     /// Creates a new `@Parameter` that indicates input of a `Component`.
@@ -87,16 +89,14 @@ public struct Parameter<Element: Codable>: Property {
     ///   - defaultValue: The default value that should be used in case the interface exporter can not decode the value from the input of the `Component`
     ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
     public init(wrappedValue defaultValue: Element, _ options: Option...) {
-        self.defaultValue = defaultValue
-        self.options = PropertyOptionSet(options)
+        self.init(defaultValue: defaultValue, options: options)
     }
     
     /// Creates a new `@Parameter` that indicates input of a `Component's` `@PathParameter` based on an existing component.
     /// - Parameter id: The `UUID` that can be passed in from a parent `Component`'s `@PathParameter`.
     /// - Precondition: A `@Parameter` with a specific `http` type `.body` or `.query` can not be passed to a separate component. Please remove the specific `.http` property option or specify the `.http` property option to `.path`.
     init(from id: UUID) {
-        self.options = PropertyOptionSet([.http(.path)])
-        self.id = id
+        self.init(id: id, options: [.http(.path)])
     }
     
     
