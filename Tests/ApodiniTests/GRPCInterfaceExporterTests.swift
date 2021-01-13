@@ -33,13 +33,14 @@ private struct GRPCTestHandler2: Handler {
 }
 
 final class GRPCInterfaceExporterTests: XCTestCase {
-    // swiftlint:disable:next implicitly_unwrapped_optional
+    // swiftlint:disable implicitly_unwrapped_optional
     fileprivate var app: Application!
     fileprivate var service: GRPCService!
     fileprivate var handler: GRPCTestHandler!
     fileprivate var endpoint: Endpoint<GRPCTestHandler>!
     fileprivate var exporter: GRPCInterfaceExporter!
     fileprivate var headers: HTTPHeaders!
+    // swiftlint:enable implicitly_unwrapped_optional
 
     fileprivate let serviceName = "TestService"
     fileprivate let methodName = "testMethod"
@@ -175,9 +176,10 @@ final class GRPCInterfaceExporterTests: XCTestCase {
             self.endpoint.createConnectionContext(for: self.exporter)
         }
 
-        let requestData: [UInt8] =
-            [0, 0, 0, 0, 10, 10, 6, 77, 111, 114, 105, 116, 122, 16, 23,
-             0, 0, 0, 0, 9, 10, 5, 66, 101, 114, 110, 100, 16, 23]
+        let requestData: [UInt8] = [
+            0, 0, 0, 0, 10, 10, 6, 77, 111, 114, 105, 116, 122, 16, 23,
+            0, 0, 0, 0, 9, 10, 5, 66, 101, 114, 110, 100, 16, 23
+        ]
         // let expectedResponseString = "Hello Bernd"
         let expectedResponseData: [UInt8] =
             [0, 0, 0, 0, 13, 10, 11, 72, 101, 108, 108, 111, 32, 66, 101, 114, 110, 100]
