@@ -5,6 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
+@_implementationOnly import AssociatedTypeRequirementsVisitor
 
 class ContextNode {
     private var nodeOnlyContext: [ObjectIdentifier: Any] = [:]
@@ -28,31 +29,43 @@ class ContextNode {
             ?? getGlobalContextValue(for: contextKey)
             ?? C.defaultValue
     }
+
+    func getContextValue<C: OptionalContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
+        getNodeOnlyContextValue(for: contextKey)
+            ?? getGlobalContextValue(for: contextKey)
+    }
     
-    private func getNodeOnlyContextValue<C: ContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
+    private func getNodeOnlyContextValue<C: OptionalContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
         nodeOnlyContext[ObjectIdentifier(contextKey)] as? C.Value
     }
     
-    private func getNodeContextValue<C: ContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
+    private func getNodeContextValue<C: OptionalContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
         context[ObjectIdentifier(contextKey)] as? C.Value
     }
     
-    private func getGlobalContextValue<C: ContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
+    private func getGlobalContextValue<C: OptionalContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
         getNodeContextValue(for: contextKey) ?? parentContextNode?.getGlobalContextValue(for: contextKey)
     }
     
-    func addContext<C: ContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
-        var newValue: C.Value
+    func addContext<C: OptionalContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
+        let newValue: C.Value
+
+        if isOptional(C.Value.self) {
+            fatalError("""
+                       The `Value` type of a `ContextKey` or `OptionalContextKey` must not be a `Optional` type.
+                       Found \(C.Value.self) as `Value` type for key \(C.self).
+                       """)
+        }
         
         if let currentLocalValue = getNodeOnlyContextValue(for: C.self) ?? getNodeContextValue(for: C.self) {
             // Already existing values in the ContextNode have a higher priority as the modifier for a
             // Component are parsed in a reverse order:
             //
             // Component()
-            //     .modifer(1) // Parsed second
-            //     .modifer(2) // Parsed first, stored in `nodeOnlyContext` or `context`
+            //     .modifier(1) // Parsed second
+            //     .modifier(2) // Parsed first, stored in `nodeOnlyContext` or `context`
             //
-            // As we expect that Components is using `2` based on the modifers we pass the `value` as the existing
+            // As we expect that Components is using `2` based on the modifiers we pass the `value` as the existing
             // value and `currentLocalValue` as the new value to take advantage of the reduce function.
             var value = value
             C.reduce(value: &value) {
@@ -65,20 +78,38 @@ class ContextNode {
             // Example:
             // Group {
             //     Component()
-            //         .modifer(2) // We expect Component to use `2`
-            // }.modifer(1)
+            //         .modifier(2) // We expect Component to use `2`
+            // }.modifier(1)
             C.reduce(value: &contextValue) {
                 value
             }
             newValue = contextValue
         } else {
-            // If there is no value in the local ContextNode nor in the global context we use the default value
-            // as the old value and the new value as the newValue in the reduce function call.
-            var defaultValue = C.defaultValue
-            C.reduce(value: &defaultValue) {
-                value
+            // we need to check if `OptionalContextKey` is type of `ContextKey`
+            // aka if the `ContextKey provides a default value. Because if it provides a defaultValue
+            // we need to call `reduce(...)` with it before inserting.
+            let visitor = StandardContextKeyTypeVisitor()
+            let defaultValue = visitor(contextKey)
+
+            // if defaultValue is nil the contextKey didn't conform to `ContextKey` => doesn't have a default value
+            if let defaultValue = defaultValue {
+                // the visitor above returns Any, thus we need to properly cast. I can't think of a scenario
+                // where this can't go wrong, but that's what fatalErrors are for right?
+                if var defaultValue = defaultValue as? C.Value {
+                    // If there is no value in the local ContextNode nor in the global context we use the default value
+                    // as the old value and the new value as the newValue in the reduce function call.
+                    C.reduce(value: &defaultValue) {
+                        value
+                    }
+                    newValue = defaultValue
+                } else {
+                    fatalError("Failed to cast type of defaultValue \(type(of: defaultValue)) to expected Type of the ContextKey \(C.Value.self)")
+                }
+            } else {
+                // we have a OptionalContextKey, there is no defaultValue with can reduce into
+                // thus we just store the supplied value
+                newValue = value
             }
-            newValue = defaultValue
         }
         
         switch scope {
@@ -98,5 +129,23 @@ class ContextNode {
     func resetContextNode() {
         nodeOnlyContext = [:]
         context = [:]
+    }
+}
+
+// MARK: Helpers to retrieve default value
+
+private protocol ContextKeyTypeVisitor: AssociatedTypeRequirementsTypeVisitor {
+    associatedtype Visitor = ContextKeyTypeVisitor
+    associatedtype Input = ContextKey
+    associatedtype Output
+
+    func callAsFunction<T: ContextKey>(_ type: T.Type) -> Output
+}
+
+private struct StandardContextKeyTypeVisitor: ContextKeyTypeVisitor {
+    func callAsFunction<T: ContextKey>(_ type: T.Type) -> Any {
+        // we can't directly cast here to the desired Type
+        // I tried using generics but that crashes the AssociatedTypesRequirementsKit
+        type.defaultValue
     }
 }

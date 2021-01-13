@@ -58,10 +58,6 @@ extension Version: _PathComponent {
     }
 }
 
-struct APIVersionContextKey: ContextKey {
-    static var defaultValue = Version()
-    
-    static func reduce(value: inout Version, nextValue: () -> Version) {
-        value = nextValue()
-    }
+struct APIVersionContextKey: OptionalContextKey {
+    typealias Value = Version
 }
