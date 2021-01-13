@@ -101,5 +101,5 @@ private func isNotPrimitive(_ message: ProtobufferMessage) -> Bool {
 }
 
 private func isParameter(_ node: Node<EnrichedInfo>) -> Bool {
-    ParticularType(node.value.typeInfo.type).description == "Parameter"
+    mangledName(of: node.value.typeInfo.type) == "Parameter"
 }
