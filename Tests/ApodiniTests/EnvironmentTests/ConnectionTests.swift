@@ -20,7 +20,7 @@ final class ConnectionTests: XCTestCase {
         var endMessage: String
         var openMessage: String
 
-        func handle() -> Action<String> {
+        func handle() -> Apodini.Response<String> {
             switch connection.state {
             case .open:
                 return .send(openMessage)
@@ -40,7 +40,7 @@ final class ConnectionTests: XCTestCase {
         if case let .final(returnedMessage) = returnedAction {
             XCTAssertEqual(returnedMessage, endMessage)
         } else {
-            XCTFail("Expected Action final(\(endMessage)), but was \(returnedAction)")
+            XCTFail("Expected Response final(\(endMessage)), but was \(returnedAction)")
         }
     }
 
@@ -53,7 +53,7 @@ final class ConnectionTests: XCTestCase {
             if case let .send(returnedMessageWithOpen) = returnedActionWithOpen {
                 XCTAssertEqual(returnedMessageWithOpen, openMessage)
             } else {
-                XCTFail("Expected Action send(\(openMessage)), but was \(returnedActionWithOpen)")
+                XCTFail("Expected Response send(\(openMessage)), but was \(returnedActionWithOpen)")
             }
         }
 
@@ -63,7 +63,7 @@ final class ConnectionTests: XCTestCase {
             if case let .final(returnedMessageWithEnd) = returnedActionWithEnd {
                 XCTAssertEqual(returnedMessageWithEnd, endMessage)
             } else {
-                XCTFail("Expected Action final(\(endMessage)), but was \(returnedActionWithEnd)")
+                XCTFail("Expected Response final(\(endMessage)), but was \(returnedActionWithEnd)")
             }
         }
     }

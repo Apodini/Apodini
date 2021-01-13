@@ -11,7 +11,7 @@ import WebSocketInfrastructure
 @testable import Apodini
 
 class WebSocketInterfaceExporterTests: ApodiniTests {
-    struct Parameters: Codable {
+    struct Parameters: Apodini.Content {
         var param0: String
         var param1: String?
         var pathA: String
@@ -46,7 +46,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         }
     }
 
-    struct User: Content, Identifiable, Codable {
+    struct User: Apodini.Content, Identifiable, Decodable {
         let id: String
         let name: String
     }
@@ -65,6 +65,25 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
             User(id: userId, name: name)
         }
     }
+    
+    struct StatefulUserHandler: Handler {
+        @Parameter(.mutability(.constant))
+        var userId: User.ID
+        @Parameter
+        var name: String?
+        @Apodini.Environment(\.connection)
+        var connection: Connection
+
+        func handle() -> Apodini.Response<User> {
+            if connection.state == .end {
+                XCTAssertNotNil(name)
+                // swiftlint:disable:next force_unwrapping
+                return .final(User(id: userId, name: name!))
+            } else {
+                return .nothing
+            }
+        }
+    }
 
     @PathParameter
     var userId: User.ID
@@ -73,6 +92,9 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
     var testService: some Component {
         Group("user", $userId) {
             UserHandler(userId: $userId)
+            Group("stream") {
+                StatefulUserHandler(userId: $userId)
+            }
         }
     }
 
@@ -86,10 +108,10 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         let bird = Bird(name: "Rudi", age: 12)
 
         var input = SomeInput(parameters: [
-            "bird": NullableOptionalVariableParameter<Bird>(),
-            "a": NullableOptionalVariableParameter<UUID>(),
-            "param0": NullableOptionalVariableParameter<String>(),
-            "pathA": NullableOptionalVariableParameter<String>()
+            "bird": BasicInputParameter<Bird>(),
+            "a": BasicInputParameter<UUID>(),
+            "param0": BasicInputParameter<String>(),
+            "pathA": BasicInputParameter<String>()
         ])
         
         _ = input.update("bird", using: bird.mockDecoder())
@@ -104,20 +126,19 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
 
         let result = try context.handle(request: input, eventLoop: app.eventLoopGroup.next())
                 .wait()
-        guard case let .final(responseValue) = result else {
-            XCTFail("Expected return value to be wrapped in Action.final by default")
+        guard case let .final(responseValue) = result.typed(Parameters.self) else {
+            XCTFail("Expected return value to be wrapped in Response.automatic by default")
             return
         }
-        let parametersResult: Parameters = try XCTUnwrap(responseValue.value as? Parameters)
 
-        XCTAssertEqual(parametersResult.param0, "value0")
-        XCTAssertEqual(parametersResult.param1, nil)
-        XCTAssertEqual(parametersResult.pathA, "a")
-        XCTAssertEqual(parametersResult.pathB, nil)
-        XCTAssertEqual(parametersResult.bird, bird)
+        XCTAssertEqual(responseValue.param0, "value0")
+        XCTAssertEqual(responseValue.param1, nil)
+        XCTAssertEqual(responseValue.pathA, "a")
+        XCTAssertEqual(responseValue.pathB, nil)
+        XCTAssertEqual(responseValue.bird, bird)
     }
 
-    func testWebSocketConnection() throws {
+    func testWebSocketConnectionRequestResponseSchema() throws {
         let builder = SharedSemanticModelBuilder(app)
             .with(exporter: WebSocketInterfaceExporter.self)
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
@@ -126,66 +147,62 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
 
         try app.start()
         
+        let client = StatelessClient(using: app.eventLoopGroup.next())
+        
+        
         let userId = "1234"
         let name = "Rudi"
-        
-        let promise = app.eventLoopGroup.next().makePromise(of: User.self)
-        WebSocket.connect(
-            to: "ws://localhost:8080/apodini/websocket",
-            on: app.eventLoopGroup.next()
-        ) { websocket in
-            let contextId = UUID()
-            
-            // create context on user endpoint
-            websocket.send("""
-                {
-                    "context": "\(contextId.uuidString)",
-                    "endpoint": "user.::"
-                }
-            """)
-            
-            // send request
-            websocket.send("""
-                {
-                    "context": "\(contextId.uuidString)",
-                    "parameters": {
-                        "userId": "\(userId)",
-                        "name": "\(name)"
-                    }
-                }
-            """)
-            
-            websocket.onText { websocket, string in
-                guard let data = string.data(using: .utf8) else {
-                    XCTFail("Could not decode service message. Expected UTF8.")
-                    return
-                }
-                
-                // await
-                guard let wrappedUser = try? JSONDecoder().decode(DecodedResponseContainer<User>.self, from: data) else {
-                    XCTFail("Could not decode service message.")
-                    return
-                }
-                
-                promise.succeed(wrappedUser.content)
-                
-                // close context
-                websocket.send("""
-                    {
-                        "context": "\(contextId.uuidString)"
-                    }
-                """)
-                
-                // close connection
-                _ = websocket.close()
-            }
-        }
-        .cascadeFailure(to: promise)
 
-        let user = try promise.futureResult.wait()
+        struct UserHandlerInput: Encodable {
+            let userId: String
+            let name: String
+        }
+        
+        let user: User = try client.resolve(one: UserHandlerInput(userId: userId, name: name), on: "user.:userId:").wait()
         
         XCTAssertEqual(user.id, userId)
         XCTAssertEqual(user.name, name)
+    }
+    
+    func testWebSocketConnectionClientStreamSchema() throws {
+        let builder = SharedSemanticModelBuilder(app)
+            .with(exporter: WebSocketInterfaceExporter.self)
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
+        testService.accept(visitor)
+        visitor.finishParsing()
+
+        try app.start()
+        
+        let client = StatelessClient(using: app.eventLoopGroup.next())
+        
+        
+        let userId = "1234"
+        let name = "Rudi"
+        
+        struct UserHandlerInput: Encodable {
+            let userId: String
+            let name: String?
+        }
+        
+        // We test here that the input is aggregated correctly. We expect
+        // both parameters to be defined in the end. JSONEncoder does not
+        // encode an explicit `null` for empty optionals. Thus the third
+        // message does not reset `name` to `nil`.
+        
+        let user: [User] = try client.resolve(
+            UserHandlerInput(userId: userId, name: nil),
+            UserHandlerInput(userId: userId, name: name),
+            UserHandlerInput(userId: userId, name: nil),
+            on: "user.:userId:.stream")
+        .wait()
+        
+        XCTAssertEqual(user.count, 1)
+        
+        if let first = user.first {
+            XCTAssertEqual(first.id, userId)
+            
+            XCTAssertEqual(first.name, name)
+        }
     }
 }
 

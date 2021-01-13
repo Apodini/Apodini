@@ -22,12 +22,12 @@ struct ResponseContainer: Encodable, ResponseEncodable {
         self.links = links
     }
 
-    func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Response> {
+    func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         let jsonEncoder = JSONEncoder()
         jsonEncoder.outputFormatting = [.withoutEscapingSlashes, .prettyPrinted]
         #warning("We may remove JSONEncoder .prettyPrinted in production or make it configurable in some way")
 
-        let response = Response()
+        let response = Vapor.Response()
         do {
             if data != nil {
                 try response.content.encode(self, using: jsonEncoder)
@@ -42,10 +42,12 @@ struct ResponseContainer: Encodable, ResponseEncodable {
 class RESTEndpointHandler<H: Handler> {
     let endpoint: Endpoint<H>
     var context: AnyConnectionContext<RESTInterfaceExporter>
+    let configuration: RESTConfiguration
 
-    init(for endpoint: Endpoint<H>, with context: AnyConnectionContext<RESTInterfaceExporter>) {
+    init(for endpoint: Endpoint<H>, with context: AnyConnectionContext<RESTInterfaceExporter>, configuration: RESTConfiguration) {
         self.endpoint = endpoint
         self.context = context
+        self.configuration = configuration
     }
 
     func register(at routesBuilder: Vapor.RoutesBuilder, with operation: Operation) {
@@ -55,14 +57,12 @@ class RESTEndpointHandler<H: Handler> {
     func handleRequest(request: Vapor.Request) -> EventLoopFuture<ResponseContainer> {
         let response = context.handle(request: request)
 
-        // swiftlint:disable:next todo
-        let uriPrefix = "http://127.0.0.1:8080/" // TODO resolve that somehow
-        var links = ["self": uriPrefix + endpoint.absolutePath.joinPathComponents()]
+        var links = ["self": configuration.uriPrefix + endpoint.absolutePath.asPathString()]
         for relationship in endpoint.relationships {
-            links[relationship.name] = uriPrefix + relationship.destinationPath.joinPathComponents()
+            links[relationship.name] = configuration.uriPrefix + relationship.destinationPath.asPathString()
         }
 
-        return response.flatMapThrowing { encodableAction in
+        return response.map { encodableAction in
             switch encodableAction {
             case let .send(element),
                  let .final(element):

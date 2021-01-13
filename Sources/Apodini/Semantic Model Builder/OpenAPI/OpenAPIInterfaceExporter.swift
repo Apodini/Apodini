@@ -31,12 +31,13 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
         if let outputRoute = configuration.outputEndpoint {
             switch configuration.outputFormat {
             case .JSON:
-                app.get(outputRoute.pathComponents) { (_: Vapor.Request) in
-                    self.documentBuilder.description
+                app.get(outputRoute.pathComponents) { _ -> String in
+                    guard let jsonDescription = self.documentBuilder.jsonDescription else {
+                        throw Abort(.internalServerError)
+                    }
+                    return jsonDescription
                 }
             case .YAML:
-                print("Not implemented yet.")
-            default:
                 print("Not implemented yet.")
             }
         }

@@ -8,7 +8,7 @@ import Vapor
 @testable import Apodini
 
 final class OpenAPIDocumentBuilderTests: XCTestCase {
-    struct SomeStruct: Vapor.Content {
+    struct SomeStruct: Apodini.Content {
         var someProp = 4
     }
 
@@ -23,8 +23,8 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
     func testAddEndpoint() {
         let comp = SomeComp()
         var endpoint = comp.mockEndpoint()
-        let endpointTreeNode = EndpointsTreeNode(path: RootPath())
-        endpointTreeNode.addEndpoint(&endpoint, at: ["test"])
+        let webService = WebServiceModel()
+        webService.addEndpoint(&endpoint, at: ["test"])
 
         let configuration = OpenAPIConfiguration()
 
@@ -70,7 +70,8 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
         )
 
         let builtDocument = documentBuilder.build()
-
+        
+        XCTAssertNotNil(documentBuilder.jsonDescription)
         XCTAssertEqual(builtDocument, document)
     }
 }
