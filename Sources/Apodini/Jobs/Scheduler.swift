@@ -1,5 +1,5 @@
 import Foundation
-import SwifCron
+@_implementationOnly import SwifCron
 import NIO
 
 /// A convenient interface to schedule background running tasks on an event loop using `Job`s and crontab syntax.

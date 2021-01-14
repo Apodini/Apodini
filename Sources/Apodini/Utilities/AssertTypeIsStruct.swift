@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 1/11/21.
 //
 
-import Runtime
+@_implementationOnly import Runtime
 
 
 /// - parameter T: The type for which to assert that it is a struct
