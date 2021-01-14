@@ -23,8 +23,8 @@ public struct Parameter<Element: Codable>: Property {
     let id: UUID
     let name: String?
     private var element: Element?
-    internal var options: PropertyOptionSet<ParameterOptionNameSpace>
-    internal var defaultValue: Element?
+    internal let options: PropertyOptionSet<ParameterOptionNameSpace>
+    internal let defaultValue: Element?
     
     
     /// The value for the `@Parameter` as defined by the incoming request
