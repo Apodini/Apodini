@@ -85,12 +85,12 @@ struct RESTConfiguration {
 class RESTInterfaceExporter: InterfaceExporter {
     static let parameterNamespace: [ParameterNamespace] = .individual
 
-    let app: Application
+    let app: Vapor.Application
     let configuration: RESTConfiguration
 
-    required init(_ app: Application) {
-        self.app = app
-        configuration = RESTConfiguration(app.http.server.configuration)
+    required init(_ app: Apodini.Application) {
+        self.app = app.vapor.app
+        self.configuration = RESTConfiguration(app.vapor.app.http.server.configuration)
     }
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {

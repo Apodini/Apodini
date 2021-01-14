@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_implementationOnly import Vapor
+import NIO
 @_implementationOnly import Runtime
 
 // MARK: RequestInjectable

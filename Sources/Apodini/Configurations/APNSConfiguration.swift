@@ -1,7 +1,5 @@
-import class Vapor.Application
 import APNS
 import JWTKit
-
 
 /// A `Configuration` used for APNS authentication
 public struct APNSConfiguration: Configuration {
@@ -49,7 +47,6 @@ public struct APNSConfiguration: Configuration {
         } catch {
             fatalError("Error setting up APNS: \(error)")
         }
-        NotificationCenter.shared.application = app
     }
 }
 
