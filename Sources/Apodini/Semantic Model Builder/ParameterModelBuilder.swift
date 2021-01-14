@@ -97,8 +97,8 @@ extension Parameter: EncodeOptionalEndpointParameter where Element: ApodiniOptio
                 guard let member = defaultValue().optionalInstance else {
                     fatalError(
                         """
-                        Encountered an internal Apodini error.
-                        Default values of `@Parameter`s are constants should not be changable by the developer using Apodini.
+                        Encountered an internal Apodini error: Default values of `@Parameter`s are constants.
+                        The developer using Apodini should make sure they do not change their value during runtime.
                         The orginal default value for the @Parameter was \(originalDefaultValue) and now it is nil.
                         """
                     )
