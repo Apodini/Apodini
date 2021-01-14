@@ -165,12 +165,6 @@ class RESTInterfaceExporter: InterfaceExporter {
                 return nil
             }
 
-            #warning("""
-                     A Handler could define multiple .content Parameters. In such a case the REST exporter would
-                     need to decode the content via a struct containing those .content parameters as properties.
-                     This is currently unsupported.
-                     """)
-
             return try request.content.decode(Type.self, using: JSONDecoder())
         }
     }
