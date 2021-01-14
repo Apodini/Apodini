@@ -67,6 +67,10 @@ let package = Package(
             dependencies: [
                 .product(name: "XCTVapor", package: "vapor"),
                 .target(name: "XCTApodini")
+            ],
+            exclude: [
+                "ConfigurationTests/Certificates/cert.pem",
+                "ConfigurationTests/Certificates/key.pem"
             ]
         ),
         .target(

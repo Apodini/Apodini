@@ -117,6 +117,7 @@ struct TestWebService: Apodini.WebService {
         } content: {
             UserHandler(userId: $userId)
                 .guard(PrintGuard())
+                .description("Returns `User` by id")
         }
         Group("rand") {
             Random()
