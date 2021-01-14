@@ -67,7 +67,9 @@ let package = Package(
                 "ConfigurationTests/mock_fcm.json",
                 "ConfigurationTests/mock_invalid_fcm.json",
                 "ConfigurationTests/mock.p8",
-                "ConfigurationTests/mock.pem"
+                "ConfigurationTests/mock.pem",
+                "ConfiguartionTests/cert.pem",
+                "ConfiguartionTests/key.pem"
             ]
         ),
         .target(
