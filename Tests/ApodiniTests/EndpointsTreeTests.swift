@@ -97,10 +97,10 @@ final class EndpointsTreeTests: ApodiniTests {
         XCTAssertEqual(nameParameter.necessity, .required)
 
         // check default value
-        XCTAssertNil(birthdateParameter.typeErasuredDefaultValue())
+        XCTAssertNil(birthdateParameter.typeErasuredDefaultValue?())
         // swiftlint:disable:next force_cast
-        XCTAssertEqual(timesParameter.typeErasuredDefaultValue() as! Int?, 1)
-        XCTAssertNil(nameParameter.typeErasuredDefaultValue())
+        XCTAssertEqual(timesParameter.typeErasuredDefaultValue?() as! Int?, 1)
+        XCTAssertNil(nameParameter.typeErasuredDefaultValue?())
     }
 
     func testRequestHandler() throws {

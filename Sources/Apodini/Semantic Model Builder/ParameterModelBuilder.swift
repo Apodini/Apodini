@@ -66,8 +66,7 @@ private class ParameterModelBuilder<H: Handler>: RequestInjectableVisitor {
                 name: parameter.name ?? trimmedLabel,
                 label: label,
                 nilIsValidValue: false,
-                necessity: parameter.defaultClosurePresent ? .optional : .required, // a parameter is optional when a defaultValue is defined
-                defaultClosurePresent: parameter.defaultClosurePresent,
+                necessity: parameter.defaultValue != nil ? .optional : .required, // a parameter is optional when a defaultValue is defined
                 options: parameter.options,
                 defaultValue: parameter.defaultValue
             )
@@ -92,9 +91,20 @@ extension Parameter: EncodeOptionalEndpointParameter where Element: ApodiniOptio
         label: String,
         necessity: Necessity
     ) -> AnyEndpointParameter {
-        var `default`: () -> Element.Member? = { nil }
-        if self.defaultClosurePresent {
-            `default` = { self.defaultValue()?.optionalInstance }
+        var `default`: (() -> Element.Member)?
+        if let defaultValue = self.defaultValue, let originalDefaultValue = defaultValue().optionalInstance {
+            `default` = {
+                guard let member = defaultValue().optionalInstance else {
+                    fatalError(
+                        """
+                        Encountered an internal Apodini error: Default values of `@Parameter`s are constants.
+                        The developer using Apodini should make sure they do not change their value during runtime.
+                        The orginal default value for the @Parameter was \(originalDefaultValue) and now it is nil.
+                        """
+                    )
+                }
+                return member
+            }
         }
         
         return EndpointParameter<Element.Member>(
@@ -103,7 +113,6 @@ extension Parameter: EncodeOptionalEndpointParameter where Element: ApodiniOptio
                 label: label,
                 nilIsValidValue: true,
                 necessity: necessity,
-                defaultClosurePresent: self.defaultClosurePresent,
                 options: self.options,
                 defaultValue: `default`
         )
