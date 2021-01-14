@@ -1,7 +1,12 @@
-import Fluent
-import APNS
+//
+//  NotificationCenter+Sending.swift
+//  
+//
+//  Created by Alexander Collins on 22.12.20.
+//
+
+import NIO
 import FCM
-import Vapor
 
 /// This extension includes methods to send push notifications to `APNS` and `FCM`.
 extension NotificationCenter {

@@ -44,6 +44,8 @@ let package = Package(
                 .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime"),
+                .product(name: "APNS", package: "apns"),
+                .product(name: "FCM", package: "FCM"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                 .target(name: "WebSocketInfrastructure"),
                 .target(name: "ProtobufferCoding")
@@ -119,9 +121,7 @@ let package = Package(
         .target(
             name: "Notifications",
             dependencies: [
-                .target(name: "Apodini"),
-                .product(name: "APNS", package: "apns"),
-                .product(name: "FCM", package: "FCM")
+                .target(name: "Apodini")
             ]
         ),
         .testTarget(

@@ -3,7 +3,7 @@
 //
 
 @_implementationOnly import OpenAPIKit
-@_implementationOnly import Vapor
+@_implementationOnly import struct Vapor.Abort
 import Foundation
 
 class OpenAPIInterfaceExporter: StaticInterfaceExporter {
@@ -33,7 +33,7 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
         if let outputRoute = configuration.outputEndpoint {
             switch configuration.outputFormat {
             case .JSON:
-                app.get(outputRoute.pathComponents) { _ -> String in
+                app.vapor.app.get(outputRoute.pathComponents) { _ -> String in
                     guard let jsonDescription = self.documentBuilder.jsonDescription else {
                         throw Abort(.internalServerError)
                     }

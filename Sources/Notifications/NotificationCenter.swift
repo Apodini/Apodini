@@ -1,8 +1,16 @@
 // swiftlint:disable first_where
-import Vapor
+//
+//  NotificationCenter.swift
+//  
+//
+//  Created by Alexander Collins on 12.11.20.
+//
+
+@_implementationOnly import struct Vapor.Abort
 import Fluent
 import APNS
 import FCM
+import NIO
 import Apodini
 
 /// The `NotificationCenter` is responsible for push notifications in Apodini.
@@ -19,18 +27,18 @@ import Apodini
 ///
 /// - Remark: The `NotificationCenter` is an abstraction of [APNS](https://github.com/vapor/apns) and [FCM](https://github.com/MihaelIsaev/FCM).
 public class NotificationCenter {
-    internal static let shared = NotificationCenter()
+    /// NotificationCenter
+    internal static var shared = NotificationCenter()
     internal var application: Application?
-    
     private var app: Application {
         guard let app = application else {
             fatalError("The `NotificationCenter` is not configured. Please add the missing configuration to the web service.")
         }
         return app
     }
-    
+
     /// Property to directly use the [APNS](https://github.com/vapor/apns) library.
-    public var apns: Application.APNS {
+    public var apns: APNSwiftClient {
         app.apns
     }
     

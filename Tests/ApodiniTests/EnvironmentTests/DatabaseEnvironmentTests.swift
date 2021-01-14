@@ -1,5 +1,4 @@
 import XCTest
-import Vapor
 import protocol Fluent.Database
 import XCTApodini
 @testable import Apodini

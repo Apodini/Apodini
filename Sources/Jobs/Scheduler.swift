@@ -1,5 +1,5 @@
 import Foundation
-import SwifCron
+@_implementationOnly import SwifCron
 import NIO
 import Apodini
 

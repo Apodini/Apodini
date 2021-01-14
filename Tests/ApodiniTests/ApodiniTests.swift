@@ -5,8 +5,6 @@
 //  Created by Paul Schmiedmayer on 7/7/20.
 //
 
-import XCTVapor
-import FluentSQLiteDriver
 import XCTApodini
 @testable import Apodini
 

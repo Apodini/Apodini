@@ -3,7 +3,7 @@
 //
 
 import XCTest
-import Vapor
+import XCTApodini
 @testable import Apodini
 
 

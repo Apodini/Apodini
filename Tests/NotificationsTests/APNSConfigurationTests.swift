@@ -14,6 +14,8 @@ class APNSConfigurationTests: XCTApodiniTest {
         
         XCTAssertNoThrow(APNSConfiguration(.pem(pemPath: path), topic: "", environment: .sandbox).configure(app))
         XCTAssertNotNil(app.apns.configuration)
+        XCTAssertEqual(app.apns.configuration?.environment, .sandbox)
+        XCTAssertEqual(app.apns.configuration?.topic, "")
     }
     
     func testP8Configuration() throws {
@@ -21,5 +23,7 @@ class APNSConfigurationTests: XCTApodiniTest {
         
         XCTAssertNoThrow(APNSConfiguration(.p8(path: path, keyIdentifier: "", teamIdentifier: ""), topic: "", environment: .sandbox).configure(app))
         XCTAssertNotNil(app.apns.configuration)
+        XCTAssertEqual(app.apns.configuration?.environment, .sandbox)
+        XCTAssertEqual(app.apns.configuration?.topic, "")
     }
 }
