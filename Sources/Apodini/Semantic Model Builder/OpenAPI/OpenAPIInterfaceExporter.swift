@@ -7,6 +7,8 @@
 import Foundation
 
 class OpenAPIInterfaceExporter: StaticInterfaceExporter {
+    static var parameterNamespace: [ParameterNamespace] = .individual
+
     let app: Application
     var documentBuilder: OpenAPIDocumentBuilder
     let configuration: OpenAPIConfiguration

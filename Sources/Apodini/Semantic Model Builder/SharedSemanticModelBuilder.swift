@@ -35,6 +35,11 @@ class WebServiceModel {
 
 class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor {
     private var interfaceExporters: [AnyInterfaceExporter] = []
+    /// This property (which is to be made configurable) toggles if the default `ParameterNamespace`
+    /// (which is the strictest option possible) can be overridden by Exporters, which may allow more lenient
+    /// restrictions. In the end the Exporter with the strictest `ParameterNamespace` will dictate the requirements
+    /// towards parameter naming.
+    private let allowLenientParameterNamespaces = true
 
     let webService: WebServiceModel
     let rootNode: EndpointsTreeNode
@@ -111,7 +116,11 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
 
     private func call<I: BaseInterfaceExporter>(exporter: I, for node: EndpointsTreeNode) {
         for (_, endpoint) in node.endpoints {
-            #warning("The result of export is currently unused. Could that be useful in the future?")
+            // before we run unnecessary export steps, we first verify that the Endpoint is indeed valid
+            // in the case of not allowing lenient namespace definitions we just pass a empty array
+            // which will result in the default namespace being used
+            endpoint.parameterNameCollisionCheck(in: allowLenientParameterNamespaces ? I.parameterNamespace : .global)
+
             _ = endpoint.exportEndpoint(on: exporter)
         }
         
