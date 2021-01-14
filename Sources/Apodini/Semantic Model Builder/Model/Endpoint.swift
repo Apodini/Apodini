@@ -34,14 +34,33 @@ protocol AnyEndpoint: CustomStringConvertible {
     var guards: [LazyGuard] { get }
     var responseTransformers: [LazyAnyResponseTransformer] { get }
 
-    func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput
+    /// This method can be called, to export all `EndpointParameter`s of the given `Endpoint` on the supplied `BaseInterfaceExporter`.
+    /// It will call the `BaseInterfaceExporter.exporterParameter(...)` method for every parameter on this `Endpoint`.
+    ///
+    /// This method is particularly useful to access the fully typed version of the `EndpointParameter`.
+    ///
+    /// - Parameter exporter: The `BaseInterfaceExporter` to export the parameters on.
+    /// - Returns: The result of the individual `BaseInterfaceExporter.exporterParameter(...)` calls.
+    func exportParameters<I: BaseInterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput]
 
     func createConnectionContext<I: InterfaceExporter>(for exporter: I) -> AnyConnectionContext<I>
-    
-    func findParameter(for id: UUID) -> AnyEndpointParameter?
-    
-    func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput]
 
+    /// This method returns the instance of a `AnyEndpointParameter` if the given `Endpoint` holds a parameter
+    /// for the supplied parameter id. Otherwise nil is returned.
+    ///
+    /// - Parameter id: The parameter `id` to search for.
+    /// - Returns: Returns the `AnyEndpointParameter` if a parameter with the given `id` exists on that `Endpoint`. Otherwise nil.
+    func findParameter(for id: UUID) -> AnyEndpointParameter?
+
+    /// Internal method which is called to call the `InterfaceExporter.export(...)` method on the given `exporter`.
+    ///
+    /// - Parameter exporter: The `BaseInterfaceExporter` used to export the given `Endpoint`
+    /// - Returns: Whatever the export method of the `InterfaceExporter` returns (which equals to type `EndpointExporterOutput`) is returned here.
+    func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput
+
+    /// Internal method which is called once the `Tree` was finished building, meaning the DSL was parsed completely.
+    ///
+    /// - Parameter treeNode: The tree node where this `Endpoint` is located.
     mutating func finished(at treeNode: EndpointsTreeNode)
 }
 
@@ -127,8 +146,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
             parameter.id == id
         }
     }
-
-    func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
+    func exportParameters<I: BaseInterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
         parameters.exportParameters(on: exporter)
     }
 }

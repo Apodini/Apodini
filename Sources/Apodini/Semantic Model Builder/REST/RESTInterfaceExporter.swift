@@ -83,6 +83,8 @@ struct RESTConfiguration {
 }
 
 class RESTInterfaceExporter: InterfaceExporter {
+    static let parameterNamespace: [ParameterNamespace] = .individual
+
     let app: Application
     let configuration: RESTConfiguration
 
@@ -101,7 +103,7 @@ class RESTInterfaceExporter: InterfaceExporter {
 
         let exportedParameterNames = endpoint.exportParameters(on: self)
 
-        let endpointHandler = RESTEndpointHandler(for: endpoint, with: endpoint.createConnectionContext(for: self), configuration: configuration)
+        let endpointHandler = RESTEndpointHandler(for: endpoint, using: { endpoint.createConnectionContext(for: self) }, configuration: configuration)
         endpointHandler.register(at: routesBuilder, with: operation)
 
         app.logger.info("Exported '\(operation.httpMethod.rawValue) \(pathBuilder.pathDescription)' with parameters: \(exportedParameterNames)")
@@ -162,12 +164,6 @@ class RESTInterfaceExporter: InterfaceExporter {
                 // If the request doesn't have a body, there is nothing to decide.
                 return nil
             }
-
-            #warning("""
-                     A Handler could define multiple .content Parameters. In such a case the REST exporter would
-                     need to decode the content via a struct containing those .content parameters as properties.
-                     This is currently unsupported.
-                     """)
 
             return try request.content.decode(Type.self, using: JSONDecoder())
         }
