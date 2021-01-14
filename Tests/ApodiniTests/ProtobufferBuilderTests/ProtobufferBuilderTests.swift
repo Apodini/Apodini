@@ -16,7 +16,7 @@ final class ProtobufferBuilderTests: XCTestCase {
 // MARK: - Test Components
 
 extension ProtobufferBuilderTests {
-    func testHelloWorldService() throws {
+    func testServiceParametersZero() throws {
         struct WebService: Apodini.WebService {
             var content: some Component {
                 HelloWorld()
@@ -46,7 +46,7 @@ extension ProtobufferBuilderTests {
         try testWebService(WebService.self, expectation: expected)
     }
     
-    func testGreeterService() throws {
+    func testServiceParametersOne() throws {
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Greeter()
@@ -71,6 +71,45 @@ extension ProtobufferBuilderTests {
 
             message StringMessage {
               string value = 1;
+            }
+            """
+        
+        try testWebService(WebService.self, expectation: expected)
+    }
+    
+    func testServiceParametersTwo() throws {
+        struct WebService: Apodini.WebService {
+            var content: some Component {
+                Multiplier()
+            }
+        }
+        
+        struct Multiplier: Handler {
+            @Parameter
+            var x: Int32
+            
+            @Parameter
+            var y: Int32
+            
+            func handle() -> Int32 {
+                x * y
+            }
+        }
+        
+        let expected = """
+            syntax = "proto3";
+
+            service V1Service {
+              rpc multiplier (MultiplierMessage) returns (Int32Message);
+            }
+
+            message Int32Message {
+              int32 value = 1;
+            }
+
+            message MultiplierMessage {
+              int32 x = 1;
+              int32 y = 2;
             }
             """
         
