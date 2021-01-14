@@ -5,12 +5,8 @@
 //  Created by Moritz Schüll on 04.12.20.
 //
 
-struct GRPCServiceNameContextKey: ContextKey {
-    static var defaultValue = ""
-
-    static func reduce(value: inout String, nextValue: () -> String) {
-        value = nextValue()
-    }
+struct GRPCServiceNameContextKey: OptionalContextKey {
+    typealias Value = String
 }
 
 public struct GRPCServiceModifier<H: Handler>: HandlerModifier {
@@ -25,7 +21,7 @@ public struct GRPCServiceModifier<H: Handler>: HandlerModifier {
 
 extension GRPCServiceModifier: SyntaxTreeVisitable {
     func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(GRPCServiceNameContextKey.self, value: serviceName, scope: .nextHandler)
+        visitor.addContext(GRPCServiceNameContextKey.self, value: serviceName, scope: .current)
         component.accept(visitor)
     }
 }

@@ -136,8 +136,8 @@ public struct SomeInput: Input {
 }
 
 /// An implementation of `InputParameter` that only asserts type, but not necessity,
-/// mutability or optionality.
-public struct NullableOptionalVariableParameter<Type: Decodable>: InputParameter {
+/// mutability or optionality and has no state.
+public struct BasicInputParameter<Type: Decodable>: InputParameter {
     private var _interim: Type??
     /// The current value set for this `Parameter`. It is:
     ///     - `nil` if no value was set
@@ -152,7 +152,6 @@ public struct NullableOptionalVariableParameter<Type: Decodable>: InputParameter
             self._interim = try decoder.decode(Type.self)
             return .ok
         } catch {
-            print(error)
             return .error(.badType)
         }
     }
@@ -163,5 +162,6 @@ public struct NullableOptionalVariableParameter<Type: Decodable>: InputParameter
     
     public mutating func apply() {
         self.value = _interim
+        self._interim = nil
     }
 }

@@ -25,7 +25,7 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        GuardTests.guardExpectation = self.expectation(description: "Guard is exectured")
+        GuardTests.guardExpectation = self.expectation(description: "Guard is executed")
         
         struct TestWebService: WebService {
             var version = Version(prefix: "v", major: 2, minor: 1, patch: 0)
@@ -39,7 +39,7 @@ final class GuardTests: ApodiniTests {
         TestWebService.main(app: app)
         
         
-        try app.test(.GET, "/v2/") { res in
+        try app.vapor.app.test(.GET, "/v2/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -67,7 +67,7 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        GuardTests.guardExpectation = self.expectation(description: "Guard is exectured")
+        GuardTests.guardExpectation = self.expectation(description: "Guard is executed")
         
         struct TestWebService: WebService {
             var version = Version(prefix: "v", major: 2, minor: 1, patch: 0)
@@ -81,7 +81,7 @@ final class GuardTests: ApodiniTests {
         TestWebService.main(app: app)
         
         
-        try app.test(.GET, "/v2/") { res in
+        try app.vapor.app.test(.GET, "/v2/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -112,7 +112,7 @@ final class GuardTests: ApodiniTests {
         
         TestWebService.main(app: app)
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -134,7 +134,7 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        GuardTests.guardExpectation = self.expectation(description: "Guard is exectured")
+        GuardTests.guardExpectation = self.expectation(description: "Guard is executed")
         GuardTests.guardExpectation?.expectedFulfillmentCount = 2
         
         struct TestWebService: WebService {
@@ -152,7 +152,7 @@ final class GuardTests: ApodiniTests {
         TestWebService.main(app: app)
         
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -175,7 +175,7 @@ final class GuardTests: ApodiniTests {
         
         TestWebService.main(app: app)
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -204,7 +204,7 @@ final class GuardTests: ApodiniTests {
         
         TestWebService.main(app: app)
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -226,7 +226,7 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        GuardTests.guardExpectation = self.expectation(description: "TestSyncGuard is exectured")
+        GuardTests.guardExpectation = self.expectation(description: "TestSyncGuard is executed")
         
         struct TestWebService: WebService {
             var content: some Component {
@@ -238,7 +238,7 @@ final class GuardTests: ApodiniTests {
         
         TestWebService.main(app: app)
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {

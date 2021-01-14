@@ -1,5 +1,5 @@
 import Foundation
-import SwifCron
+@_implementationOnly import SwifCron
 import NIO
 
 /// A convenient interface to schedule background running tasks on an event loop using `Job`s and crontab syntax.
@@ -30,7 +30,7 @@ public class Scheduler {
     ///     - with: Crontab as a String.
     ///     - runs: Number of times a `Job` should run.
     ///     - keyPath: Associates a `Job` for later retrieval.
-    ///     - on: Specifies the event loop the `Job` is exectured on.
+    ///     - on: Specifies the event loop the `Job` is executed on.
     ///
     /// - Throws: If the `Job` uses request based property wrappers or the crontab cannot be parsed.
     public func enqueue<K: ApodiniKeys, T: Job>(_ job: T,

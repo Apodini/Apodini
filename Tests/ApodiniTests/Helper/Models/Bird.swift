@@ -6,10 +6,10 @@
 //
 
 import Fluent
-import Vapor
-import Apodini
+import Foundation
+@testable import Apodini
 
-final class Bird: Model, Content {
+final class Bird: Model, Apodini.Content {
     static var schema: String = "Birds"
     
     

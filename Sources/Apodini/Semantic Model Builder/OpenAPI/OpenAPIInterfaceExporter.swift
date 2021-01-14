@@ -3,10 +3,12 @@
 //
 
 @_implementationOnly import OpenAPIKit
-@_implementationOnly import Vapor
+@_implementationOnly import struct Vapor.Abort
 import Foundation
 
 class OpenAPIInterfaceExporter: StaticInterfaceExporter {
+    static var parameterNamespace: [ParameterNamespace] = .individual
+
     let app: Application
     var documentBuilder: OpenAPIDocumentBuilder
     let configuration: OpenAPIConfiguration
@@ -31,12 +33,13 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
         if let outputRoute = configuration.outputEndpoint {
             switch configuration.outputFormat {
             case .JSON:
-                app.get(outputRoute.pathComponents) { (_: Vapor.Request) in
-                    self.documentBuilder.description
+                app.vapor.app.get(outputRoute.pathComponents) { _ -> String in
+                    guard let jsonDescription = self.documentBuilder.jsonDescription else {
+                        throw Abort(.internalServerError)
+                    }
+                    return jsonDescription
                 }
             case .YAML:
-                print("Not implemented yet.")
-            default:
                 print("Not implemented yet.")
             }
         }

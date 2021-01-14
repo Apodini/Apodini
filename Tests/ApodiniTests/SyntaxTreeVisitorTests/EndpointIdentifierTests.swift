@@ -7,11 +7,32 @@
 
 import Foundation
 import XCTest
-import Vapor
 @testable import Apodini
 
 
 final class HandlerIdentifierTests: ApodiniTests {
+    // Hashable summary of an endpoint, useful for comparing endpoint arrays
+    private struct EndpointSummary: Hashable {
+        let id: String
+        let path: String
+        let description: String
+
+        init(id: String, path: String, description: String) {
+            self.id = id
+            self.path = path
+            self.description = description
+        }
+
+        init(endpoint: AnyEndpoint) {
+            self.init(
+                id: endpoint.identifier.rawValue,
+                path: endpoint.absolutePath.asPathString(),
+                description: endpoint.description
+            )
+        }
+    }
+
+
     struct TestHandlerType: IdentifiableHandler {
         typealias Response = Never
         let handlerId = ScopedHandlerIdentifier<Self>("main")
@@ -22,6 +43,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         XCTAssertEqual(TestHandlerType().handlerId, AnyHandlerIdentifier("TestHandlerType.main"))
     }
     
+
     func testDefaultHandlerIdentifier() {
         struct TestWebService: WebService {
             var content: some Component {
@@ -34,24 +56,20 @@ final class HandlerIdentifierTests: ApodiniTests {
             }
         }
         
-        let sharedSemanticModelBuilder = SharedSemanticModelBuilder(app)
-        TestWebService().register(sharedSemanticModelBuilder)
-        let allEndpoints = sharedSemanticModelBuilder.rootNode.collectAllEndpoints()
+        let builder = SharedSemanticModelBuilder(app)
+        TestWebService().register(builder)
         
-        XCTAssertEqual(allEndpoints.count, 2)
+        let actualEndpoints: [EndpointSummary] = builder.rootNode.collectAllEndpoints().map(EndpointSummary.init)
         
-        print(allEndpoints.map(\.identifier.rawValue))
+        let expectedEndpoints: [EndpointSummary] = [
+            EndpointSummary(id: "0:0:0", path: "/v1/x", description: String(describing: type(of: Text("a")))),
+            EndpointSummary(id: "0:1:0", path: "/v1/x/y", description: String(describing: type(of: Text("b"))))
+        ]
         
-        XCTAssertTrue(allEndpoints.contains(where: { endpoint in
-            endpoint.identifier.rawValue == "0:0"
-                && endpoint.description == String(describing: Text("a"))
-        }))
-        XCTAssertTrue(allEndpoints.contains(where: { endpoint in
-            endpoint.identifier.rawValue == "1:0"
-                && endpoint.description == String(describing: Text("b"))
-        }))
+        XCTAssert(actualEndpoints.compareIgnoringOrder(expectedEndpoints), "Expected: \(expectedEndpoints). Actual: \(actualEndpoints)")
     }
-    
+
+
     func testDefaultHandlerIdentifier2() {
         struct TestWebService: WebService {
             var content: some Component {
@@ -67,32 +85,22 @@ final class HandlerIdentifierTests: ApodiniTests {
             }
         }
         
-        let SSMBuilder = SharedSemanticModelBuilder(app)
-        TestWebService().register(SSMBuilder)
-        let allEndpoints = SSMBuilder.rootNode.collectAllEndpoints()
+        let builder = SharedSemanticModelBuilder(app)
+        TestWebService().register(builder)
         
-        XCTAssertEqual(allEndpoints.count, 4)
+        let actualEndpoints: [EndpointSummary] = builder.rootNode.collectAllEndpoints().map(EndpointSummary.init)
         
-        print(allEndpoints.map(\.identifier.rawValue))
+        let expectedEndpoints: [EndpointSummary] = [
+            EndpointSummary(id: "0:0", path: "/v1", description: String(describing: type(of: Text("a")))),
+            EndpointSummary(id: "0:1", path: "/v1", description: String(describing: type(of: Text("b")))),
+            EndpointSummary(id: "0:2:0", path: "/v1/x", description: String(describing: type(of: Text("c")))),
+            EndpointSummary(id: "0:3:0", path: "/v1/x/y", description: String(describing: type(of: Text("d"))))
+        ]
         
-        XCTAssertTrue(allEndpoints.contains(where: { endpoint in
-            endpoint.identifier.rawValue == "0"
-                && endpoint.description == String(describing: Text("a"))
-        }))
-        XCTAssertTrue(allEndpoints.contains(where: { endpoint in
-            endpoint.identifier.rawValue == "1"
-                && endpoint.description == String(describing: Text("b"))
-        }))
-        XCTAssertTrue(allEndpoints.contains(where: { endpoint in
-            endpoint.identifier.rawValue == "2:0"
-                && endpoint.description == String(describing: Text("c"))
-        }))
-        XCTAssertTrue(allEndpoints.contains(where: { endpoint in
-            endpoint.identifier.rawValue == "3:0"
-                && endpoint.description == String(describing: Text("d"))
-        }))
+        XCTAssert(actualEndpoints.compareIgnoringOrder(expectedEndpoints), "Expected: \(expectedEndpoints). Actual: \(actualEndpoints)")
     }
-    
+
+
     func testDefaultHandlerIdentifier3() {
         struct TestWebService: WebService {
             var content: some Component {
@@ -105,24 +113,20 @@ final class HandlerIdentifierTests: ApodiniTests {
             }
         }
         
-        let SSMBuilder = SharedSemanticModelBuilder(app)
-        TestWebService().register(SSMBuilder)
-        let allEndpoints = SSMBuilder.rootNode.collectAllEndpoints()
+        let builder = SharedSemanticModelBuilder(app)
+        TestWebService().register(builder)
         
-        XCTAssertEqual(allEndpoints.count, 2)
+        let actualEndpoints: [EndpointSummary] = builder.rootNode.collectAllEndpoints().map(EndpointSummary.init)
         
-        print(allEndpoints.map(\.identifier.rawValue))
+        let expectedEndpoints: [EndpointSummary] = [
+            EndpointSummary(id: "0:0:0:0", path: "/v1/x/y/z", description: String(describing: type(of: Text("a")))),
+            EndpointSummary(id: "0:1", path: "/v1", description: String(describing: type(of: Text("b"))))
+        ]
         
-        XCTAssertTrue(allEndpoints.contains(where: { endpoint in
-            endpoint.identifier.rawValue == "0:0:0"
-                && endpoint.description == String(describing: Text("a"))
-        }))
-        XCTAssertTrue(allEndpoints.contains(where: { endpoint in
-            endpoint.identifier.rawValue == "1"
-                && endpoint.description == String(describing: Text("b"))
-        }))
+        XCTAssert(actualEndpoints.compareIgnoringOrder(expectedEndpoints), "Expected: \(expectedEndpoints). Actual: \(actualEndpoints)")
     }
-    
+
+
     func testHandlerIdentifierCreationUsingREST() throws {
         struct TestHandler: IdentifiableHandler {
             func handle() -> String {
@@ -143,7 +147,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         TestWebService.main(app: app)
         
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {

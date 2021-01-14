@@ -22,7 +22,7 @@ class MockExporter<Request: ExporterRequest>: InterfaceExporter {
         self.parameterValues = parameterValues
     }
 
-    required init(_ app: Application) {}
+    required init(_ app: Apodini.Application) {}
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         // do nothing

@@ -31,8 +31,8 @@ struct TestWebService: Apodini.WebService {
         }
         
         
-        func transform(response: String) -> String {
-            "\(emojis) \(response) \(emojis)"
+        func transform(content string: String) -> String {
+            "\(emojis) \(string) \(emojis)"
         }
     }
     
@@ -47,7 +47,7 @@ struct TestWebService: Apodini.WebService {
         
         @Environment(\.connection) var connection: Connection
 
-        func handle() -> Action<String> {
+        func handle() -> Response<String> {
             print(connection.state)
             if connection.state == .end {
                 return .end
@@ -70,8 +70,16 @@ struct TestWebService: Apodini.WebService {
         }
     }
 
-    struct User: Codable {
+    struct User: Codable, ResponseTransformable {
         var id: Int
+    }
+    
+    struct Random: Handler {
+        @Parameter var number = Int.random()
+        
+        func handle() -> Int {
+            number
+        }
     }
 
     struct UserHandler: Handler {
@@ -103,9 +111,16 @@ struct TestWebService: Apodini.WebService {
                 .rpcName("greetMe")
                 .response(EmojiMediator())
         }
-        Group("user", $userId) {
+        Group {
+            "user"
+            $userId
+        } content: {
             UserHandler(userId: $userId)
                 .guard(PrintGuard())
+                .description("Returns `User` by id")
+        }
+        Group("rand") {
+            Random()
         }
     }
 }
