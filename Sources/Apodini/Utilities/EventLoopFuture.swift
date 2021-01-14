@@ -8,19 +8,16 @@
 import NIO
 
 extension EventLoopFuture {
-    /// When the current `EventLoopFuture<Value>` is fulfilled, run the provided callback, which
-    /// performs a synchronous computation and returns a new value of type `NewValue`. The provided
-    /// callback may optionally `throw`.
+    /// When the current EventLoopFuture<Value> is fulfilled, run the provided callback, which will provide a new EventLoopFuture.
+    /// The provided callback may optionally `throw`.
     ///
-    /// Operations performed in `flatMapThrowing` should not block, or they will block the entire
-    /// event loop. `flatMapThrowing` is intended for use when you have a data-driven function that
-    /// performs a simple data transformation that can potentially error.
+    /// This allows you to dynamically dispatch new asynchronous tasks as phases in a longer series of processing steps.
+    /// Note that you can use the results of the current EventLoopFuture<Value> when determining how to dispatch the next operation.
     ///
     /// If your callback function throws, the returned `EventLoopFuture` will error.
     ///
     /// - parameters:
-    ///     - callback: Function that will receive the value of this `EventLoopFuture` and return
-    ///         a new value lifted into a new `EventLoopFuture`.
+    ///     - callback: Function that will receive the value of this EventLoopFuture and return a new EventLoopFuture. The provided `callback` may optionally `throw`.
     /// - returns: A future that will receive the eventual value.
     @inlinable
     public func tryFlatMap<NewValue>(file: StaticString = #file,
