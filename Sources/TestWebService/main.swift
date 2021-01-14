@@ -73,6 +73,16 @@ struct TestWebService: Apodini.WebService {
     struct User: Codable, ResponseTransformable {
         var id: Int
     }
+    
+    struct Random: Handler {
+        @Parameter var number = Int.random()
+        
+        func handle() -> Int {
+            print(number)
+            print(Int.random())
+            return number
+        }
+    }
 
     struct UserHandler: Handler {
         @Parameter var userId: Int
@@ -109,6 +119,9 @@ struct TestWebService: Apodini.WebService {
         } content: {
             UserHandler(userId: $userId)
                 .guard(PrintGuard())
+        }
+        Group("rand") {
+            Random()
         }
     }
 }
