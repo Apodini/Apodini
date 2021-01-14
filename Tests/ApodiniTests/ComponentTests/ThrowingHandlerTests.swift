@@ -9,6 +9,7 @@
 import NIO
 import XCTest
 import Fluent
+import Vapor
 
 
 class ThrowingErrorTests: ApodiniTests {
@@ -23,7 +24,7 @@ class ThrowingErrorTests: ApodiniTests {
     }
     
     struct ThrowingEventLoopFutureHandler: Handler {
-        @Environment(\.database)
+        @Apodini.Environment(\.database)
         var database: Database
         
         func handle() throws -> EventLoopFuture<String> {
@@ -41,7 +42,7 @@ class ThrowingErrorTests: ApodiniTests {
         
         TestWebService.main(app: app)
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .internalServerError)
         }
     }
@@ -55,7 +56,7 @@ class ThrowingErrorTests: ApodiniTests {
         
         TestWebService.main(app: app)
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .internalServerError)
         }
     }
