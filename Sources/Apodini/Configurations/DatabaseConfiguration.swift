@@ -56,7 +56,7 @@ public final class DatabaseConfiguration: Configuration {
     }
     
     public func addNotifications() -> Self {
-        return self.addMigrations(DeviceMigration())
+        self.addMigrations(DeviceMigration())
     }
     
     private func databaseFactory(for type: DatabaseType) throws -> Fluent.DatabaseConfigurationFactory {

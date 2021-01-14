@@ -41,12 +41,15 @@ struct ResponseContainer: Encodable, ResponseEncodable {
 
 class RESTEndpointHandler<H: Handler> {
     let endpoint: Endpoint<H>
-    var context: AnyConnectionContext<RESTInterfaceExporter>
+    var contextCreator: () -> AnyConnectionContext<RESTInterfaceExporter>
     let configuration: RESTConfiguration
 
-    init(for endpoint: Endpoint<H>, with context: AnyConnectionContext<RESTInterfaceExporter>, configuration: RESTConfiguration) {
+    init(
+        for endpoint: Endpoint<H>,
+        using contextCreator: @escaping () -> AnyConnectionContext<RESTInterfaceExporter>,
+        configuration: RESTConfiguration) {
         self.endpoint = endpoint
-        self.context = context
+        self.contextCreator = contextCreator
         self.configuration = configuration
     }
 
@@ -55,6 +58,7 @@ class RESTEndpointHandler<H: Handler> {
     }
 
     func handleRequest(request: Vapor.Request) -> EventLoopFuture<ResponseContainer> {
+        var context = self.contextCreator()
         let response = context.handle(request: request)
 
         var links = ["self": configuration.uriPrefix + endpoint.absolutePath.asPathString()]
