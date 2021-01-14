@@ -2,12 +2,8 @@
 // Created by Lorena Schlesinger on 10.01.21.
 //
 
-struct DescriptionContextKey: ContextKey {
-    static var defaultValue = ""
-
-    static func reduce(value: inout String, nextValue: () -> String) {
-        value = nextValue()
-    }
+struct DescriptionContextKey: OptionalContextKey {
+    typealias Value = String
 }
 
 public struct DescriptionModifier<H: Handler>: HandlerModifier {
@@ -22,7 +18,7 @@ public struct DescriptionModifier<H: Handler>: HandlerModifier {
 
 extension DescriptionModifier: SyntaxTreeVisitable {
     func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(DescriptionContextKey.self, value: description, scope: .nextHandler)
+        visitor.addContext(DescriptionContextKey.self, value: description, scope: .current)
         component.accept(visitor)
     }
 }

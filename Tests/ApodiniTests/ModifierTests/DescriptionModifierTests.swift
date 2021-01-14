@@ -51,8 +51,9 @@ final class DescriptionModifierTests: ApodiniTests {
 
         let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
         let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
+        let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)
         
-        XCTAssertEqual(endpoint.description, "Returns greeting with name parameter.")
+        XCTAssertEqual(customDescription, "Returns greeting with name parameter.")
     }
     
     func testEndpointDefaultDescription() throws {

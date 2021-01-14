@@ -63,8 +63,8 @@ final class HandlerIdentifierTests: ApodiniTests {
         let actualEndpoints: [EndpointSummary] = builder.rootNode.collectAllEndpoints().map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
-            EndpointSummary(id: "0:0:0", path: "/v1/x", description: String(describing: Text("a"))),
-            EndpointSummary(id: "0:1:0", path: "/v1/x/y", description: String(describing: Text("b")))
+            EndpointSummary(id: "0:0:0", path: "/v1/x", description: String(describing: type(of: Text("a")))),
+            EndpointSummary(id: "0:1:0", path: "/v1/x/y", description: String(describing: type(of: Text("b"))))
         ]
         
         XCTAssert(actualEndpoints.compareIgnoringOrder(expectedEndpoints), "Expected: \(expectedEndpoints). Actual: \(actualEndpoints)")
@@ -92,10 +92,10 @@ final class HandlerIdentifierTests: ApodiniTests {
         let actualEndpoints: [EndpointSummary] = builder.rootNode.collectAllEndpoints().map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
-            EndpointSummary(id: "0:0", path: "/v1", description: String(describing: Text("a"))),
-            EndpointSummary(id: "0:1", path: "/v1", description: String(describing: Text("b"))),
-            EndpointSummary(id: "0:2:0", path: "/v1/x", description: String(describing: Text("c"))),
-            EndpointSummary(id: "0:3:0", path: "/v1/x/y", description: String(describing: Text("d")))
+            EndpointSummary(id: "0:0", path: "/v1", description: String(describing: type(of: Text("a")))),
+            EndpointSummary(id: "0:1", path: "/v1", description: String(describing: type(of: Text("b")))),
+            EndpointSummary(id: "0:2:0", path: "/v1/x", description: String(describing: type(of: Text("c")))),
+            EndpointSummary(id: "0:3:0", path: "/v1/x/y", description: String(describing: type(of: Text("d"))))
         ]
         
         XCTAssert(actualEndpoints.compareIgnoringOrder(expectedEndpoints), "Expected: \(expectedEndpoints). Actual: \(actualEndpoints)")
@@ -120,8 +120,8 @@ final class HandlerIdentifierTests: ApodiniTests {
         let actualEndpoints: [EndpointSummary] = builder.rootNode.collectAllEndpoints().map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
-            EndpointSummary(id: "0:0:0:0", path: "/v1/x/y/z", description: String(describing: Text("a"))),
-            EndpointSummary(id: "0:1", path: "/v1", description: String(describing: Text("b")))
+            EndpointSummary(id: "0:0:0:0", path: "/v1/x/y/z", description: String(describing: type(of: Text("a")))),
+            EndpointSummary(id: "0:1", path: "/v1", description: String(describing: type(of: Text("b"))))
         ]
         
         XCTAssert(actualEndpoints.compareIgnoringOrder(expectedEndpoints), "Expected: \(expectedEndpoints). Actual: \(actualEndpoints)")

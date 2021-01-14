@@ -71,6 +71,8 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     fileprivate var treeNode: EndpointsTreeNode! // swiftlint:disable:this implicitly_unwrapped_optional
     
     let identifier: AnyHandlerIdentifier
+    
+    let description: String
 
     let handler: H
     
@@ -106,6 +108,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         responseTransformers: [LazyAnyResponseTransformer] = []
     ) {
         self.identifier = identifier
+        self.description = String(describing: H.self)
         self.handler = handler
         self.context = context
         self.operation = operation
@@ -145,13 +148,6 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     }
     func exportParameters<I: BaseInterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
         parameters.exportParameters(on: exporter)
-    }
-}
-
-extension Endpoint {
-    var description: String {
-        let description = self.context.get(valueFor: DescriptionContextKey.self)
-        return description == DescriptionContextKey.defaultValue ? String(describing: type(of: self.handler)): description
     }
 }
 
