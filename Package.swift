@@ -57,15 +57,15 @@ let package = Package(
         .target(
             name: "XCTApodini",
             dependencies: [
-                .target(name: "Apodini"),
-                .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
-                .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS]))
+                .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
+                .target(name: "Apodini")
             ]
         ),
         .testTarget(
             name: "ApodiniTests",
             dependencies: [
+                .product(name: "XCTVapor", package: "vapor"),
                 .target(name: "XCTApodini")
             ]
         ),
@@ -127,6 +127,7 @@ let package = Package(
         .testTarget(
             name: "NotificationsTests",
             dependencies: [
+                .product(name: "XCTVapor", package: "vapor"),
                 .target(name: "Notifications"),
                 .target(name: "XCTApodini")
             ],

@@ -1,15 +1,14 @@
 //
-//  File.swift
+//  JobsTests.swift
 //  
 //
 //  Created by Alexander Collins on 29.12.20.
 //
 
-@testable import Jobs
 import XCTApodini
 import XCTest
-import XCTVapor
 import Apodini
+@testable import Jobs
 
 final class JobsTests: XCTApodiniTest {
     struct FailingJob: Job {

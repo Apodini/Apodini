@@ -1,11 +1,11 @@
 // swiftlint:disable first_where
-@testable import Notifications
 import XCTest
 import XCTApodini
-import XCTVapor
 import Fluent
 import FCM
 import APNS
+import XCTVapor
+@testable import Notifications
 
 final class NotificationCenterTests: XCTApodiniTest {
     var notificationCenter = NotificationCenter.shared
