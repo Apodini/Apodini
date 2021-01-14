@@ -7,6 +7,11 @@
 
 @_implementationOnly import Runtime
 
+struct PropertyInfo {
+    let name: String
+    let offset: Int
+}
+
 struct EnrichedInfo {
     enum Cardinality {
         case zeroToOne
@@ -16,7 +21,6 @@ struct EnrichedInfo {
 
     let typeInfo: TypeInfo
     let propertyInfo: PropertyInfo?
-    let propertiesOffset: Int?
 
     var cardinality: Cardinality = .exactlyOne
 }
@@ -26,8 +30,8 @@ extension EnrichedInfo {
         let typeInfo = try Runtime.typeInfo(of: type)
         let root = EnrichedInfo(
             typeInfo: typeInfo,
-            propertyInfo: nil,
-            propertiesOffset: nil)
+            propertyInfo: nil
+        )
 
         return Node(root: root) { info in
             info.typeInfo.properties
@@ -37,8 +41,10 @@ extension EnrichedInfo {
                         let typeInfo = try Runtime.typeInfo(of: propertyInfo.type)
                         return EnrichedInfo(
                             typeInfo: typeInfo,
-                            propertyInfo: propertyInfo,
-                            propertiesOffset: offset + 1
+                            propertyInfo: .init(
+                                name: propertyInfo.name,
+                                offset: offset + 1
+                            )
                         )
                     } catch {
                         let errorDescription = String(describing: error)

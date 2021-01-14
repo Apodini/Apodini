@@ -15,8 +15,12 @@ func handleParameter(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     
     let newEnrichedInfo = EnrichedInfo(
         typeInfo: newNode.value.typeInfo,
-        propertyInfo: node.value.propertyInfo,
-        propertiesOffset: node.value.propertiesOffset
+        propertyInfo: node.value.propertyInfo.map {
+            PropertyInfo(
+                name: String($0.name.dropFirst()),
+                offset: $0.offset
+            )
+        }
     )
 
     return Node(value: newEnrichedInfo, children: newNode.children)

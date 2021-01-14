@@ -15,7 +15,7 @@ extension ProtobufferMessage.Property {
         let name = info.propertyInfo?.name ?? ""
         let suffix = particularType.isPrimitive ? "" : "Message"
         let typeName = try info.typeInfo.compatibleName() + suffix
-        let uniqueNumber = info.propertiesOffset ?? 0
+        let uniqueNumber = info.propertyInfo?.offset ?? 0
         
         let fieldRule: FieldRule
         switch info.cardinality {

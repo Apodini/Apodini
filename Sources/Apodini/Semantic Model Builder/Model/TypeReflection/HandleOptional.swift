@@ -17,8 +17,7 @@ func handleOptional(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
 
     var newEnrichedInfo = EnrichedInfo(
         typeInfo: newNode.value.typeInfo,
-        propertyInfo: node.value.propertyInfo,
-        propertiesOffset: node.value.propertiesOffset
+        propertyInfo: node.value.propertyInfo
     )
     newEnrichedInfo.cardinality = .zeroToOne
 
