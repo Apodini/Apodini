@@ -49,6 +49,12 @@ public class NotificationCenter {
     
     private init() { }
     
+    internal func setup(_ application: Application) {
+        if self.application == nil {
+            self.application = application
+        }
+    }
+    
     /// Saves a `Device` to a database.
     ///
     /// - Parameter device: The `Device` to be saved.
