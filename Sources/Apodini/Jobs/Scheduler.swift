@@ -34,10 +34,10 @@ public class Scheduler {
     ///
     /// - Throws: If the `Job` uses request based property wrappers or the crontab cannot be parsed.
     public func enqueue<K: KeyChain, T: Job>(_ job: T,
-                                                with cronTrigger: String,
-                                                runs: Int? = nil,
-                                                _ keyPath: KeyPath<K, T>,
-                                                on eventLoop: EventLoop) throws {
+                                             with cronTrigger: String,
+                                             runs: Int? = nil,
+                                             _ keyPath: KeyPath<K, T>,
+                                             on eventLoop: EventLoop) throws {
         try checkPropertyWrappers(job)
         let jobConfiguration = try generateEnvironmentValue(job, cronTrigger, keyPath)
         
@@ -99,8 +99,8 @@ private extension Scheduler {
     
     /// Generates the environment value of the `Job`.
     func generateEnvironmentValue<K: KeyChain, T: Job>(_ job: T,
-                                                          _ cronTrigger: String,
-                                                          _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
+                                                       _ cronTrigger: String,
+                                                       _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
         let identifier = ObjectIdentifier(keyPath)
         let jobConfiguration = try JobConfiguration(SwifCron(cronTrigger))
         EnvironmentValues.shared.values[identifier] = job
