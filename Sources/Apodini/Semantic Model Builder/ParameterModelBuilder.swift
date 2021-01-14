@@ -92,10 +92,16 @@ extension Parameter: EncodeOptionalEndpointParameter where Element: ApodiniOptio
         necessity: Necessity
     ) -> AnyEndpointParameter {
         var `default`: (() -> Element.Member)?
-        if let defaultValue = self.defaultValue, defaultValue().optionalInstance != nil {
+        if let defaultValue = self.defaultValue, let originalDefaultValue = defaultValue().optionalInstance {
             `default` = {
                 guard let member = defaultValue().optionalInstance else {
-                    fatalError("Could unwrap the value during startup. Default @Parameter values MUST NOT change.")
+                    fatalError(
+                        """
+                        Encountered an internal Apodini error.
+                        Default values of `@Parameter`s are constants should not be changable by the developer using Apodini.
+                        The orginal default value for the @Parameter was \(originalDefaultValue) and now it is nil.
+                        """
+                    )
                 }
                 return member
             }
