@@ -6,7 +6,6 @@
 //
 
 import XCTest
-import Vapor
 @testable import Apodini
 
 final class ConnectionTests: XCTestCase {

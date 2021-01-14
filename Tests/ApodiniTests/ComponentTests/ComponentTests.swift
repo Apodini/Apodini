@@ -41,7 +41,7 @@ class ComponentTests: ApodiniTests {
         TestWebService.main(app: app)
         
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -63,7 +63,7 @@ class ComponentTests: ApodiniTests {
         TestWebService.main(app: app)
         
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {

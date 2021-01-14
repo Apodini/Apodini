@@ -6,10 +6,10 @@
 //
 
 import XCTest
-import Vapor
+import NIO
 import WebSocketInfrastructure
-@testable import Apodini
 import OpenCombine
+@testable import Apodini
 
 class CombineSyncMapTests: ApodiniTests {
     static let blockTime: UInt32 = 10000
