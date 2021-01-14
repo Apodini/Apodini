@@ -83,6 +83,8 @@ struct RESTConfiguration {
 }
 
 class RESTInterfaceExporter: InterfaceExporter {
+    static let parameterNamespace: [ParameterNamespace] = .individual
+
     let app: Application
     let configuration: RESTConfiguration
 
