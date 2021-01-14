@@ -14,11 +14,10 @@ private extension ProtobufferBuilderTests {
         }
     }
     
-    func buildMessage<T>(_ type: T.Type) throws -> String {
-        let builder = ProtobufferBuilder()
-        try builder.addMessage(messageType: type)
-        
-        return builder.description
+    func buildMessage(_ type: Any.Type) throws -> String {
+        try ProtobufferMessage.node(type)
+            .collectValues()
+            .description
     }
 
 }
@@ -66,8 +65,6 @@ extension ProtobufferBuilderTests {
 extension ProtobufferBuilderTests {
     func testScalarType() throws {
         let expected = """
-            syntax = "proto3";
-
             message StringMessage {
               string value = 1;
             }
@@ -82,8 +79,6 @@ extension ProtobufferBuilderTests {
         }
         
         let expected = """
-            syntax = "proto3";
-
             message MessageMessage {
               optional string value = 1;
             }
@@ -99,8 +94,6 @@ extension ProtobufferBuilderTests {
         }
         
         let expected = """
-            syntax = "proto3";
-
             message TupleOfUInt32AndUInt64Message {
               uint32 first = 1;
               uint64 second = 2;
@@ -121,8 +114,6 @@ extension ProtobufferBuilderTests {
         }
         
         let expected = """
-            syntax = "proto3";
-
             message BoxOfTupleOfUInt32AndUInt64Message {
               TupleOfUInt32AndUInt64Message value = 1;
             }
@@ -143,8 +134,6 @@ extension ProtobufferBuilderTests {
         }
         
         let expected = """
-            syntax = "proto3";
-
             message LocationMessage {
               uint32 latitude = 1;
               uint32 longitude = 2;
@@ -164,8 +153,6 @@ extension ProtobufferBuilderTests {
         }
         
         let expected = """
-            syntax = "proto3";
-
             message AccountMessage {
               repeated TransactionMessage transactions = 1;
             }
@@ -184,8 +171,6 @@ extension ProtobufferBuilderTests {
         }
         
         let expected = """
-            syntax = "proto3";
-
             message NodeMessage {
               repeated NodeMessage children = 1;
             }
@@ -204,8 +189,6 @@ extension ProtobufferBuilderTests {
         }
         
         let expected = """
-            syntax = "proto3";
-
             message FirstMessage {
               SecondMessage value = 1;
             }
@@ -219,7 +202,7 @@ extension ProtobufferBuilderTests {
     }
 }
 
-// MARK: - Test Components
+// MARK: - Test Handlers
 
 extension ProtobufferBuilderTests {
     func testServiceParametersZero() throws {

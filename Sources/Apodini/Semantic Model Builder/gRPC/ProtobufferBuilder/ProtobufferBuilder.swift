@@ -55,53 +55,7 @@ class ProtobufferBuilder {
     }
 }
 
-extension ProtobufferBuilder {
-    /// `addService` builds a Protobuffer service declaration from the type parameter.
-    /// - Parameter type: the type of the service
-    /// - Throws: `Error`s of type `Exception`
-    func addService(
-        serviceName: String,
-        methodName: String,
-        handlerType: Any.Type,
-        returnType: Any.Type
-    ) throws {
-        let inputNode = try ProtobufferMessage.node(handlerType)
-        let outputNode = try ProtobufferMessage.node(returnType)
-        
-        for node in [inputNode, outputNode] {
-            node.forEach { element in
-                messages.insert(element)
-            }
-        }
-        
-        let method = ProtobufferService.Method(
-            name: methodName,
-            input: inputNode.value,
-            ouput: outputNode.value
-        )
-
-        let name = serviceName
-        let service = ProtobufferService(
-            name: name,
-            methods: [method]
-        )
-        
-        services.insert(service)
-    }
-}
-
-internal extension ProtobufferBuilder {
-    /// `addMessage` builds a Protobuffer message declaration from the type parameter.
-    /// - Parameter type: the type of the message
-    /// - Throws: `Error`s of type `Exception`
-    func addMessage(messageType: Any.Type) throws {
-        try ProtobufferMessage.node(messageType).forEach { element in
-            messages.insert(element)
-        }
-    }
-}
-
-private extension ProtobufferMessage {
+internal extension ProtobufferMessage {
     static func node(_ type: Any.Type) throws -> Node<ProtobufferMessage> {
         let node = try EnrichedInfo.node(type)
             .edited(handleParameter)?
