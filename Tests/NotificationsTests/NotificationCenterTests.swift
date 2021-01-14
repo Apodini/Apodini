@@ -5,6 +5,7 @@ import Fluent
 import FCM
 import APNS
 import XCTVapor
+import Apodini
 @testable import Notifications
 
 final class NotificationCenterTests: XCTApodiniTest {
@@ -15,6 +16,20 @@ final class NotificationCenterTests: XCTApodiniTest {
         try super.addMigrations(DeviceMigration())
         
         notificationCenter.application = self.app
+    }
+    
+    func testMissingApplication() throws {
+        notificationCenter.application = nil
+        
+        XCTAssertRuntimeFailure(try? self.notificationCenter.getAllDevices().wait(),
+                                "Fatal error: The `NotificationCenter` is not configured. Please add the missing configuration to the web service.")
+    }
+    
+    func testEnvironmentValue() throws {
+        let value = Apodini.Environment(\.notificationCenter).wrappedValue
+        
+        XCTAssertNotNil(value)
+        XCTAssertNotNil(value.application)
     }
 
     func testDeviceRegistration() throws {
