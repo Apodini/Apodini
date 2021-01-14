@@ -195,7 +195,7 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
     init(definition: EndpointParameter<Type>, exporter: E) {
         self.definition = definition
         self.exporter = exporter
-        self.defaultValue = definition.defaultValue()
+        self.defaultValue = definition.defaultValue?()
     }
     
     private var _initialValueBackup: Type??
