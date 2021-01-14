@@ -9,6 +9,13 @@ import Foundation
 @_implementationOnly import Vapor
 @_implementationOnly import Runtime
 
+// MARK: Activatable
+func activate<Element>(_ subject: inout Element) {
+    apply({ (activatable: inout Activatable) in
+        activatable.activate()
+    }, to: &subject)
+}
+
 // MARK: RequestInjectable
 func extractRequestInjectables<Element>(from subject: Element) -> [(String, RequestInjectable)] {
     var result: [(String, RequestInjectable)] = []
