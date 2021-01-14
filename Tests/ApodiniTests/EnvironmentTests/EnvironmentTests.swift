@@ -60,7 +60,22 @@ final class EnvironmentTests: ApodiniTests {
             handler.handle()
         }
 
-        XCTAssert(response == birdFacts.dodoFact)
+        XCTAssertEqual(response, birdFacts.dodoFact)
+    }
+    
+    func testDuplicateEnvironmentObjectInjection() throws {
+        struct Keys: KeyChain {
+            var bird: BirdFacts
+        }
+        
+        let birdFacts = BirdFacts()
+        let birdFacts2 = BirdFacts()
+        birdFacts2.someFact = ""
+        
+        EnvironmentObject(birdFacts, \Keys.bird).configure(app)
+        EnvironmentObject(birdFacts2, \Keys.bird).configure(app)
+        
+        XCTAssertEqual(birdFacts2.someFact, Environment(\Keys.bird).wrappedValue.someFact)
     }
     
     func testUpdateEnvironmentValue() throws {
