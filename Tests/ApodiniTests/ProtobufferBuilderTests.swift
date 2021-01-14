@@ -19,7 +19,6 @@ private extension ProtobufferBuilderTests {
             .collectValues()
             .description
     }
-
 }
 
 // MARK: - Test Supported Types
@@ -275,13 +274,13 @@ extension ProtobufferBuilderTests {
         
         struct Multiplier: Handler {
             @Parameter
-            var x: Int32
+            var fst: Int32
             
             @Parameter
-            var y: Int32
+            var snd: Int32
             
             func handle() -> Int32 {
-                x * y
+                fst * snd
             }
         }
         
@@ -297,8 +296,8 @@ extension ProtobufferBuilderTests {
             }
 
             message MultiplierMessage {
-              int32 x = 1;
-              int32 y = 2;
+              int32 fst = 1;
+              int32 snd = 2;
             }
             """
         
