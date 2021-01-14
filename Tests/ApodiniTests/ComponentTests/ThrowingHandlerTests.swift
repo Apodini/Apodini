@@ -34,16 +34,4 @@ class ThrowingErrorTests: ApodiniTests {
             XCTAssertEqual(res.status, .internalServerError)
         }
     }
-    
-    func testThrowingHandlerUsingGraphQL() throws {
-        
-    }
-    
-    func testThrowingHandlerUsingGRPC() throws {
-        
-    }
-    
-    func testThrowingHandlerUsingWebSockets() throws {
-        
-    }
 }
