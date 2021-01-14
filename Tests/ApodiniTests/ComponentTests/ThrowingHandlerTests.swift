@@ -6,7 +6,9 @@
 //
 
 @testable import Apodini
+import NIO
 import XCTest
+import Fluent
 
 
 class ThrowingErrorTests: ApodiniTests {
@@ -20,14 +22,37 @@ class ThrowingErrorTests: ApodiniTests {
         }
     }
     
-    struct TestWebService: WebService {
-        var content: some Component {
-            ThrowingHandler()
+    struct ThrowingEventLoopFutureHandler: Handler {
+        @Environment(\.database)
+        var database: Database
+        
+        func handle() throws -> EventLoopFuture<String> {
+            database.eventLoop.makeFailedFuture(MyError(reason: "The operation failed"))
         }
     }
     
     
     func testThrowingHandlerUsingREST() throws {
+        struct TestWebService: WebService {
+            var content: some Component {
+                ThrowingHandler()
+            }
+        }
+        
+        TestWebService.main(app: app)
+        
+        try app.test(.GET, "/v1/") { res in
+            XCTAssertEqual(res.status, .internalServerError)
+        }
+    }
+    
+    func testThrowingEventLoopFutureHandlerUsingREST() throws {
+        struct TestWebService: WebService {
+            var content: some Component {
+                ThrowingEventLoopFutureHandler()
+            }
+        }
+        
         TestWebService.main(app: app)
         
         try app.test(.GET, "/v1/") { res in
