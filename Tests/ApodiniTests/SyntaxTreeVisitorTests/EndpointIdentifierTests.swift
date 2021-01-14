@@ -16,13 +16,13 @@ final class HandlerIdentifierTests: ApodiniTests {
         let id: String
         let path: String
         let description: String
-        
+
         init(id: String, path: String, description: String) {
             self.id = id
             self.path = path
             self.description = description
         }
-        
+
         init(endpoint: AnyEndpoint) {
             self.init(
                 id: endpoint.identifier.rawValue,
@@ -31,8 +31,8 @@ final class HandlerIdentifierTests: ApodiniTests {
             )
         }
     }
-    
-    
+
+
     struct TestHandlerType: IdentifiableHandler {
         typealias Response = Never
         let handlerId = ScopedHandlerIdentifier<Self>("main")
@@ -43,7 +43,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         XCTAssertEqual(TestHandlerType().handlerId, AnyHandlerIdentifier("TestHandlerType.main"))
     }
     
-    
+
     func testDefaultHandlerIdentifier() {
         struct TestWebService: WebService {
             var content: some Component {
@@ -62,14 +62,14 @@ final class HandlerIdentifierTests: ApodiniTests {
         let actualEndpoints: [EndpointSummary] = builder.rootNode.collectAllEndpoints().map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
-            EndpointSummary(id: "0:0:0", path: "/v1/x", description: String(describing: Text("a"))),
-            EndpointSummary(id: "0:1:0", path: "/v1/x/y", description: String(describing: Text("b")))
+            EndpointSummary(id: "0:0:0", path: "/v1/x", description: String(describing: type(of: Text("a")))),
+            EndpointSummary(id: "0:1:0", path: "/v1/x/y", description: String(describing: type(of: Text("b"))))
         ]
         
         XCTAssert(actualEndpoints.compareIgnoringOrder(expectedEndpoints), "Expected: \(expectedEndpoints). Actual: \(actualEndpoints)")
     }
-    
-    
+
+
     func testDefaultHandlerIdentifier2() {
         struct TestWebService: WebService {
             var content: some Component {
@@ -91,16 +91,16 @@ final class HandlerIdentifierTests: ApodiniTests {
         let actualEndpoints: [EndpointSummary] = builder.rootNode.collectAllEndpoints().map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
-            EndpointSummary(id: "0:0", path: "/v1", description: String(describing: Text("a"))),
-            EndpointSummary(id: "0:1", path: "/v1", description: String(describing: Text("b"))),
-            EndpointSummary(id: "0:2:0", path: "/v1/x", description: String(describing: Text("c"))),
-            EndpointSummary(id: "0:3:0", path: "/v1/x/y", description: String(describing: Text("d")))
+            EndpointSummary(id: "0:0", path: "/v1", description: String(describing: type(of: Text("a")))),
+            EndpointSummary(id: "0:1", path: "/v1", description: String(describing: type(of: Text("b")))),
+            EndpointSummary(id: "0:2:0", path: "/v1/x", description: String(describing: type(of: Text("c")))),
+            EndpointSummary(id: "0:3:0", path: "/v1/x/y", description: String(describing: type(of: Text("d"))))
         ]
         
         XCTAssert(actualEndpoints.compareIgnoringOrder(expectedEndpoints), "Expected: \(expectedEndpoints). Actual: \(actualEndpoints)")
     }
-    
-    
+
+
     func testDefaultHandlerIdentifier3() {
         struct TestWebService: WebService {
             var content: some Component {
@@ -119,14 +119,14 @@ final class HandlerIdentifierTests: ApodiniTests {
         let actualEndpoints: [EndpointSummary] = builder.rootNode.collectAllEndpoints().map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
-            EndpointSummary(id: "0:0:0:0", path: "/v1/x/y/z", description: String(describing: Text("a"))),
-            EndpointSummary(id: "0:1", path: "/v1", description: String(describing: Text("b")))
+            EndpointSummary(id: "0:0:0:0", path: "/v1/x/y/z", description: String(describing: type(of: Text("a")))),
+            EndpointSummary(id: "0:1", path: "/v1", description: String(describing: type(of: Text("b"))))
         ]
         
         XCTAssert(actualEndpoints.compareIgnoringOrder(expectedEndpoints), "Expected: \(expectedEndpoints). Actual: \(actualEndpoints)")
     }
-    
-    
+
+
     func testHandlerIdentifierCreationUsingREST() throws {
         struct TestHandler: IdentifiableHandler {
             func handle() -> String {
