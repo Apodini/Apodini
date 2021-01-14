@@ -32,7 +32,7 @@ class ConnectionResponsible: Identifiable {
             var context: UUID?
             
             do {
-                context = try self.processMessage(message: message)
+                try self.processMessage(message: message, retrieving: &context)
             } catch {
                 do {
                     guard let data = String(data: try error.message(on: context).toJSONData(), encoding: .utf8) else {
@@ -87,9 +87,7 @@ class ConnectionResponsible: Identifiable {
         self.contexts[context] = nil
     }
     
-    private func processMessage(message: String) throws -> UUID? {
-        var context: UUID?
-        
+    private func processMessage(message: String, retrieving context: inout UUID?) throws {
         guard let data = message.data(using: .utf8) else {
             throw SerializationError.expectedUTF8
         }
@@ -101,14 +99,14 @@ class ConnectionResponsible: Identifiable {
         var errors: [SerializationError] = []
         
         do {
-            context = try self.processOpenMessage(from: rootObject)
+            try self.processOpenMessage(from: rootObject, retrieving: &context)
         } catch {
             try Self.handleSerializationError(error, using: &errors)
         }
         
         if !errors.isEmpty {
             do {
-                context = try self.processClientMessage(from: rootObject, using: data)
+                try self.processClientMessage(from: rootObject, using: data, retrieving: &context)
                 errors = []
             } catch {
                 try Self.handleSerializationError(error, using: &errors)
@@ -117,7 +115,7 @@ class ConnectionResponsible: Identifiable {
         
         if !errors.isEmpty {
             do {
-                context = try self.processCloseMessage(from: rootObject)
+                try self.processCloseMessage(from: rootObject, retrieving: &context)
                 errors = []
             } catch {
                 try Self.handleSerializationError(error, using: &errors)
@@ -127,48 +125,46 @@ class ConnectionResponsible: Identifiable {
         if !errors.isEmpty {
             throw SerializationError.invalidMessageType(errors)
         }
-        
-        return context
     }
     
-    private func processOpenMessage(from rootObject: [String: Any]) throws -> UUID {
+    private func processOpenMessage(from rootObject: [String: Any], retrieving context: inout UUID?) throws {
         let openMessage = try OpenContextMessage(json: rootObject)
-        
-        guard let opener = self.endpoints[openMessage.endpoint] else {
-            throw ProtocolError.unknownEndpoint(openMessage.endpoint)
-        }
         
         guard self.contexts[openMessage.context] == nil else {
             throw ProtocolError.openExistingContext(openMessage.context)
         }
         
-        self.contexts[openMessage.context] = opener(self, openMessage.context)
+        context = openMessage.context
         
-        return openMessage.context
+        guard let opener = self.endpoints[openMessage.endpoint] else {
+            throw ProtocolError.unknownEndpoint(openMessage.endpoint)
+        }
+        
+        self.contexts[openMessage.context] = opener(self, openMessage.context)
     }
     
-    private func processClientMessage(from rootObject: [String: Any], using data: Data) throws -> UUID {
+    private func processClientMessage(from rootObject: [String: Any], using data: Data, retrieving context: inout UUID?) throws {
         let clientMessage = try DecodableClientMessage(json: rootObject)
         
         guard let ctx = self.contexts[clientMessage.context] else {
             throw ProtocolError.unknownContext(clientMessage.context)
         }
         
-        try ctx.receive(clientMessage.parameters, data)
+        context = clientMessage.context
         
-        return clientMessage.context
+        try ctx.receive(clientMessage.parameters, data)
     }
     
-    private func processCloseMessage(from rootObject: [String: Any]) throws -> UUID? {
+    private func processCloseMessage(from rootObject: [String: Any], retrieving context: inout UUID?) throws {
         let closeMessage = try CloseContextMessage(json: rootObject)
         
         guard let ctx = self.contexts[closeMessage.context] else {
-            return nil
+            return
         }
         
-        ctx.complete()
+        context = closeMessage.context
         
-        return closeMessage.context
+        ctx.complete()
     }
     
     private static func handleSerializationError(_ error: Error, using errors: inout [SerializationError]) throws {

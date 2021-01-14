@@ -22,9 +22,11 @@ public struct Parameter<Element: Codable>: Property {
     
     let id: UUID
     let name: String?
-    private var element: Element?
+    
     internal let options: PropertyOptionSet<ParameterOptionNameSpace>
-    internal let defaultValue: Element?
+    internal let defaultValue: (() -> Element)?
+    
+    private var element: Element?
     
     
     /// The value for the `@Parameter` as defined by the incoming request
@@ -40,7 +42,7 @@ public struct Parameter<Element: Codable>: Property {
     private init(
         id: UUID = UUID(),
         name: String? = nil,
-        defaultValue: Element? = nil,
+        defaultValue: (() -> Element)? = nil,
         options: [Option] = []
     ) {
         if let name = name {
@@ -80,7 +82,7 @@ public struct Parameter<Element: Codable>: Property {
     ///   - defaultValue: The default value that should be used in case the interface exporter can not decode the value from the input of the `Component`
     ///   - name: The name that identifies this property when decoding the property from the input of a `Component`
     ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
-    public init(wrappedValue defaultValue: Element, _ name: String? = nil, _ options: Option...) {
+    public init(wrappedValue defaultValue: @autoclosure @escaping () -> Element, _ name: String, _ options: Option...) {
         self.init(name: name, defaultValue: defaultValue, options: options)
     }
     
@@ -88,8 +90,15 @@ public struct Parameter<Element: Codable>: Property {
     /// - Parameters:
     ///   - defaultValue: The default value that should be used in case the interface exporter can not decode the value from the input of the `Component`
     ///   - options: Options passed on to different interface exporters to clarify the functionality of this `@Parameter` for different API types
-    public init(wrappedValue defaultValue: Element, _ options: Option...) {
+    public init(wrappedValue defaultValue: @autoclosure @escaping () -> Element, _ options: Option...) {
         self.init(defaultValue: defaultValue, options: options)
+    }
+    
+    /// Creates a new `@Parameter` that indicates input of a `Component`.
+    /// - Parameters:
+    ///   - defaultValue: The default value that should be used in case the interface exporter can not decode the value from the input of the `Component`
+    public init(wrappedValue defaultValue: @autoclosure @escaping () -> Element) {
+        self.init(defaultValue: defaultValue)
     }
     
     /// Creates a new `@Parameter` that indicates input of a `Component's` `@PathParameter` based on an existing component.
