@@ -83,6 +83,8 @@ struct RESTConfiguration {
 }
 
 class RESTInterfaceExporter: InterfaceExporter {
+    static let parameterNamespace: [ParameterNamespace] = .individual
+
     let app: Vapor.Application
     let configuration: RESTConfiguration
 
