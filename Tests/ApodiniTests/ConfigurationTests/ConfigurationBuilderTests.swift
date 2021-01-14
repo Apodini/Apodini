@@ -18,6 +18,7 @@ class ConfigurationBuilderTests: XCTestCase {
         var number = 0
     }
 
+    // swiftlint:disable implicitly_unwrapped_optional
     var app: Application!
 
     override func setUp() {

@@ -75,6 +75,27 @@ extension Application.APNS: APNSwiftClient {
         self.application.eventLoopGroup.next()
     }
 
+    // swiftlint:disable function_parameter_count
+    /**
+     APNSwiftConnection send method. Sends a notification to the desired deviceToken.
+     - Parameter payload: the alert to send.
+     - Parameter pushType: push type of the notification.
+     - Parameter deviceToken: device token to send alert to.
+     - Parameter encoder: customer JSON encoder if needed.
+     - Parameter expiration: a date that the notificaiton expires.
+     - Parameter priority: priority to send the notification with.
+     - Parameter collapseIdentifier: a collapse identifier to use for grouping notifications
+     - Parameter topic: the bundle identifier that this notification belongs to.
+
+     For more information see:
+     [Retrieve Your App's Device Token](https://developer.apple.com/documentation/usernotifications/registering_your_app_with_apns#2942135)
+     ### Usage Example: ###
+     ```
+     let apns = APNSwiftConnection.connect()
+     let expiry = Date().addingTimeInterval(5)
+     try apns.send(notification, pushType: .alert, to: "b27a07be2092c7fbb02ab5f62f3135c615e18acc0ddf39a30ffde34d41665276", with: JSONEncoder(), expiration: expiry, priority: 10, collapseIdentifier: "huro2").wait()
+     ```
+     */
     public func send(
         rawBytes payload: ByteBuffer,
         pushType: APNSwiftConnection.PushType,
@@ -106,10 +127,11 @@ extension Application.APNS: APNSwiftClient {
 internal final class APNSConnectionSource: ConnectionPoolSource {
     private let configuration: APNSwiftConfiguration
 
-    public init(configuration: APNSwiftConfiguration) {
+    init(configuration: APNSwiftConfiguration) {
         self.configuration = configuration
     }
-    public func makeConnection(
+
+    func makeConnection(
         logger: Logger,
         on eventLoop: EventLoop
     ) -> EventLoopFuture<APNSwiftConnection> {

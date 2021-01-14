@@ -9,6 +9,7 @@
 import XCTest
 
 final class DatabaseConfigurationTests: XCTestCase {
+    // swiftlint:disable implicitly_unwrapped_optional
     var app: Application!
 
     override func setUp() {
@@ -27,5 +28,4 @@ final class DatabaseConfigurationTests: XCTestCase {
             .configure(self.app)
         XCTAssertNotNil(app.databases.configuration())
     }
-
 }

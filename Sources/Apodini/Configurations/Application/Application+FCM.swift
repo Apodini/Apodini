@@ -8,6 +8,7 @@
 import FCM
 
 extension Application {
+    /// Firebase Cloud Messaging.
     public var fcm: FCM {
         .init(app: self)
     }
