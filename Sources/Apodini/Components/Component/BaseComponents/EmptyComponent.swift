@@ -25,17 +25,3 @@ public struct EmptyHandler: Handler, SyntaxTreeVisitable {
     public typealias Response = Never
     func accept(_ visitor: SyntaxTreeVisitor) {}
 }
-
-extension Component where Content == Never {
-    /// Default implementation which will simply crash
-    public var content: Self.Content {
-        fatalError("'\(Self.self).\(#function)' is not implemented because 'Self.Content' is set to '\(Self.Content.self)'")
-    }
-}
-
-extension Handler where Response == Never {
-    /// Default implementation which will simply crash
-    public func handle() -> Self.Response {
-        fatalError("'\(Self.self).\(#function)' is not implemented because 'Self.Response' is set to '\(Self.Response.self)'")
-    }
-}

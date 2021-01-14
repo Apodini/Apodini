@@ -1,6 +1,6 @@
 //
 //  EndpointsTreeTests.swift
-//  
+//
 //
 //  Created by Lorena Schlesinger on 06.12.20.
 //
@@ -79,13 +79,13 @@ final class EndpointsTreeTests: ApodiniTests {
         XCTAssertEqual(nameParameter.name, "name")
         XCTAssertEqual(timesParameter.name, "multiply")
         XCTAssertEqual(birthdateParameter.name, "birthdate")
-        
+
         // basic checks to ensure proper parameter parsing
         XCTAssertEqual(nameParameter.id, testHandler.nameParameter.id)
         XCTAssertEqual(timesParameter.id, testHandler.timesParameter.id)
         XCTAssertEqual(timesParameter.options.option(for: PropertyOptionKey.http), testHandler.timesParameter.option(for: PropertyOptionKey.http))
         XCTAssertEqual(birthdateParameter.id, testHandler.birthdateParameter.id)
-        
+
         // check whether categorization works
         XCTAssertEqual(birthdateParameter.parameterType, .content)
         XCTAssertEqual(timesParameter.parameterType, .lightweight)
@@ -97,14 +97,14 @@ final class EndpointsTreeTests: ApodiniTests {
         XCTAssertEqual(nameParameter.necessity, .required)
 
         // check default value
-        XCTAssertNil(birthdateParameter.typeErasuredDefaultValue)
+        XCTAssertNil(birthdateParameter.typeErasuredDefaultValue?())
         // swiftlint:disable:next force_cast
-        XCTAssertEqual(timesParameter.typeErasuredDefaultValue as! Int?, 1)
-        XCTAssertNil(nameParameter.typeErasuredDefaultValue)
+        XCTAssertEqual(timesParameter.typeErasuredDefaultValue?() as! Int?, 1)
+        XCTAssertNil(nameParameter.typeErasuredDefaultValue?())
     }
 
     func testRequestHandler() throws {
-        let name = "Craig" // this is the parameter value we want to inject
+        let name = "Paul" // this is the parameter value we want to inject
 
         // setting up a exporter
         let exporter = MockExporter<String>(queued: name)
@@ -123,12 +123,11 @@ final class EndpointsTreeTests: ApodiniTests {
         // handle a request (The actual request is unused in the MockExporter)
         let response = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
-        guard case let .final(responseValue) = response else {
-            XCTFail("Expected return value to be wrapped in Action.final by default")
+        guard case let .final(responseValue) = response.typed(String.self) else {
+            XCTFail("Expected return value to be wrapped in Response.final by default")
             return
         }
-        let responseString: String = try XCTUnwrap(responseValue.value as? String)
-
-        XCTAssertEqual(responseString, "✅ Hello \(name) ✅")
+        
+        XCTAssertEqual(responseValue, "✅ Hello \(name) ✅")
     }
 }
