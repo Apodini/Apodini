@@ -106,7 +106,8 @@ class WebSocketInterfaceExporter: InterfaceExporter {
                 receiveValue: { inputValue in
                     Self.handleRegularInput(result: inputValue, output: output)
                 }
-            ).store(in: &cancellables)
+            )
+            .store(in: &cancellables)
 
 
             return (defaultInput: emptyInput, output: output.eraseToAnyPublisher())

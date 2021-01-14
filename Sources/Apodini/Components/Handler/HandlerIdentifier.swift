@@ -10,7 +10,7 @@
 
 
 /// An `AnyHandlerIdentifier` object identifies a `Handler` regardless of its concrete type.
-public class AnyHandlerIdentifier: RawRepresentable, Hashable, Equatable, CustomStringConvertible {
+open class AnyHandlerIdentifier: RawRepresentable, Hashable, Equatable, CustomStringConvertible {
     public let rawValue: String
     
     public required init(rawValue: String) {
@@ -42,7 +42,7 @@ public class AnyHandlerIdentifier: RawRepresentable, Hashable, Equatable, Custom
 
 /// A `Handler` identifier which is scoped to a specific handler type.
 /// This is the primary way components should be identified and referenced.
-public class ScopedHandlerIdentifier<H: IdentifiableHandler>: AnyHandlerIdentifier {
+open class ScopedHandlerIdentifier<H: IdentifiableHandler>: AnyHandlerIdentifier {
     public required init(rawValue: String) {
         super.init(rawValue: "\(H.self).\(rawValue)")
     }

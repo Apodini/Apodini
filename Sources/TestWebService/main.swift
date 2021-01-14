@@ -104,6 +104,14 @@ struct TestWebService: Apodini.WebService {
     struct User: Codable, ResponseTransformable {
         var id: Int
     }
+    
+    struct Random: Handler {
+        @Parameter var number = Int.random()
+        
+        func handle() -> Int {
+            number
+        }
+    }
 
     struct UserHandler: Handler {
         @Parameter var userId: Int
@@ -144,6 +152,8 @@ struct TestWebService: Apodini.WebService {
         Group("auction") {
             Auction()
                 .response(EmojiMediator(emojis: "🤑", growth: 2))
+        Group("rand") {
+            Random()
         }
     }
 }

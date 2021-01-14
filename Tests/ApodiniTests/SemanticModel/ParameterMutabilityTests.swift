@@ -28,6 +28,38 @@ class ParameterMutabilityTests: ApodiniTests {
                     .joined(separator: separator)
         }
     }
+    
+    class StringClass: Codable {
+        var string: String
+        
+        init(string: String) {
+            self.string = string
+        }
+    }
+    
+    struct TestHandlerUsingClassType: Handler {
+        @Parameter
+        var projectName = StringClass(string: "Apodini")
+        
+        @Parameter
+        var organizationName: StringClass? = StringClass(string: "Apodini")
+        
+        @Parameter
+        var override: Bool = false
+        
+        func handle() -> String {
+            if override {
+                self.projectName.string = "NotApodini"
+                self.organizationName?.string = "AlsoNotApodini"
+            }
+            
+            if let organization = self.organizationName {
+                return "\(organization.string)/\(projectName.string)"
+            } else {
+                return projectName.string
+            }
+        }
+    }
 
     func testVariableCanBeChanged() throws {
         let handler = TestHandler()
@@ -78,5 +110,33 @@ class ParameterMutabilityTests: ApodiniTests {
                     .wait()
             XCTFail("Validation should fail, constant was changed!")
         } catch {}
+    }
+    
+    func testMutationOnClassTypeDefaultParameterIsNotShared() throws {
+        let handler = TestHandlerUsingClassType()
+        let endpoint = handler.mockEndpoint()
+
+        let exporter1 = MockExporter<String>(queued: nil, nil, true)
+        let exporter2 = MockExporter<String>(queued: nil, nil)
+
+        var context1 = endpoint.createConnectionContext(for: exporter1)
+        var context2 = endpoint.createConnectionContext(for: exporter2)
+        
+        // second call should still return "Apodini"
+        _ = try context1.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+                .wait()
+        
+        let response = try context2.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+                .wait()
+        
+        switch response.typed(String.self) {
+        case .some(.final("Apodini/Apodini")):
+            break
+        default:
+            XCTFail("""
+                Return value did not match expected value.
+                This is most likely caused by the default value of 'Parameter' being shared across 'Handler's.
+            """)
+        }
     }
 }
