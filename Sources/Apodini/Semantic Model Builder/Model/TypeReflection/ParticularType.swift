@@ -35,6 +35,10 @@ extension ParticularType: CustomStringConvertible {
     var isOptional: Bool {
         description == "Optional"
     }
+    
+    var isParameter: Bool {
+        description == "Parameter"
+    }
 }
 
 // MARK: - ParticularType: Equatable

@@ -25,17 +25,8 @@ class ProtobufferInterfaceExporter: InterfaceExporter {
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        let serviceName = endpoint.serviceName
-        let methodName = endpoint.methodName
-        let inputType: Any.Type = endpoint.parameters.first?.propertyType ?? Void.self
-        
         do {
-            try builder.addService(
-                serviceName: serviceName,
-                methodName: methodName,
-                inputType: inputType,
-                returnType: endpoint.responseType
-            )
+            try builder.analyze(endpoint: endpoint)
         } catch {
             app.logger.error("\(error)")
         }

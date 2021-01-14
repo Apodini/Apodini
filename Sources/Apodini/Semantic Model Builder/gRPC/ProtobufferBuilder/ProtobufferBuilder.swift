@@ -10,28 +10,62 @@
 /// ProtobufferBuilder builds `.proto` files.
 ///
 /// Call `ProtobufferBuilder.description` for the final output.
-public class ProtobufferBuilder {
-    var messages: Set<ProtobufferMessage>
-    var services: Set<ProtobufferService>
+class ProtobufferBuilder {
+    private(set) var messages: Set<ProtobufferMessage> = .init()
+    private(set) var services: Set<ProtobufferService> = .init()
     
-    /// Create an instance of `ProtobufferBuilder`.
-    public init() {
-        self.messages = Set()
-        self.services = Set()
+    func analyze<H: Handler>(endpoint: Endpoint<H>) throws {
+        let serviceName = endpoint.serviceName
+        let methodName = endpoint.methodName
+        
+        let inputNode: Node<ProtobufferMessage>
+        
+        switch endpoint.parameters.count {
+        case 0:
+            inputNode = try ProtobufferMessage.node(Void.self)
+        case 1:
+            inputNode = try ProtobufferMessage.node(
+                endpoint.parameters[0].propertyType
+            )
+        default:
+            inputNode = try ProtobufferMessage.node(H.self)
+        }
+        
+        let outputNode = try ProtobufferMessage.node(endpoint.responseType)
+        
+        for node in [inputNode, outputNode] {
+            node.forEach { element in
+                messages.insert(element)
+            }
+        }
+        
+        let method = ProtobufferService.Method(
+            name: methodName,
+            input: inputNode.value,
+            ouput: outputNode.value
+        )
+
+        let name = serviceName
+        let service = ProtobufferService(
+            name: name,
+            methods: [method]
+        )
+        
+        services.insert(service)
     }
 }
 
-public extension ProtobufferBuilder {
+extension ProtobufferBuilder {
     /// `addService` builds a Protobuffer service declaration from the type parameter.
     /// - Parameter type: the type of the service
     /// - Throws: `Error`s of type `Exception`
     func addService(
         serviceName: String,
         methodName: String,
-        inputType: Any.Type,
+        handlerType: Any.Type,
         returnType: Any.Type
     ) throws {
-        let inputNode = try ProtobufferMessage.node(inputType)
+        let inputNode = try ProtobufferMessage.node(handlerType)
         let outputNode = try ProtobufferMessage.node(returnType)
         
         for node in [inputNode, outputNode] {
@@ -70,6 +104,7 @@ internal extension ProtobufferBuilder {
 private extension ProtobufferMessage {
     static func node(_ type: Any.Type) throws -> Node<ProtobufferMessage> {
         let node = try EnrichedInfo.node(type)
+            .edited(handleParameter)?
             .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handlePrimitiveType)?
@@ -98,8 +133,4 @@ private extension ProtobufferMessage {
 
 private func isNotPrimitive(_ message: ProtobufferMessage) -> Bool {
     message.name.hasSuffix("Message")
-}
-
-private func isParameter(_ node: Node<EnrichedInfo>) -> Bool {
-    ParticularType(node.value.typeInfo.type).description == "Parameter"
 }
