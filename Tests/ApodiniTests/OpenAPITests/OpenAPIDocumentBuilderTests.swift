@@ -36,6 +36,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
             paths: [
                 "test": .init(
                     get: .init(
+                        description: endpoint.description,
                         parameters: [
                             Either.parameter(name: "name", context: .query, schema: .string, description: "@Parameter var name: String")
                         ],

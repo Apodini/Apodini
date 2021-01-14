@@ -51,7 +51,13 @@ struct OpenAPIPathsObjectBuilder {
 
 private extension OpenAPIPathsObjectBuilder {
     /// https://swagger.io/specification/#operation-object
-    mutating func buildPathItemOperationObject<C: Component>(from endpoint: Endpoint<C>) -> OpenAPI.Operation {
+    mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>) -> OpenAPI.Operation {
+        // Get customDescription if it has been set explicitly passed via modifier
+        let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)
+        
+        // Set endpoint Description to customDescription or `endpoint.description` holding the `Handler`s type name
+        let endpointDescription = customDescription ?? endpoint.description
+
         // Get `Parameter.Array` from existing `query` or `path` parameters.
         let parameters: OpenAPI.Parameter.Array = buildParametersArray(from: endpoint.parameters)
 
@@ -62,6 +68,7 @@ private extension OpenAPIPathsObjectBuilder {
         let responses: OpenAPI.Response.Map = buildResponsesObject(from: endpoint.responseType)
 
         return OpenAPI.Operation(
+            description: endpointDescription,
             parameters: parameters,
             requestBody: requestBody,
             responses: responses
