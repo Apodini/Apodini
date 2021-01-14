@@ -187,11 +187,14 @@ extension ParameterRepresentative: Validator {
 private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
     let definition: EndpointParameter<Type>
     
+    let defaultValue: Type?
+    
     let exporter: E
     
     init(definition: EndpointParameter<Type>, exporter: E) {
         self.definition = definition
         self.exporter = exporter
+        self.defaultValue = definition.defaultValue?()
     }
     
     private var _initialValueBackup: Type??
@@ -221,11 +224,11 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
         
         if definition.nilIsValidValue {
             // return type must be an `Optional<Type>`
-            let result: Type? = value ?? definition.defaultValue
+            let result: Type? = value ?? defaultValue
             return result as Any
         } else {
             // return type must be just `Type`
-            guard let unwrappedValue = (value ?? definition.defaultValue) else {
+            guard let unwrappedValue = (value ?? defaultValue) else {
                 fatalError("Could not unwrap opiontal value for \(definition.description) even though it is not an optional. This should have been detected by 'checkNecessity'.")
             }
             let result: Type = unwrappedValue
@@ -249,7 +252,7 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
             case .variable:
                 break
             }
-        } else if let defaultValue = self.definition.defaultValue {
+        } else if let defaultValue = self.defaultValue {
             self.initialValue = defaultValue
         }
     }

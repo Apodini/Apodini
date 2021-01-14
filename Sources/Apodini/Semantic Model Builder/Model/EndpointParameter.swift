@@ -61,7 +61,7 @@ protocol AnyEndpointParameter: CustomStringConvertible {
     /// Defines the `EndpointParameterType` of the parameter.
     var parameterType: ParameterType { get }
     /// Specifies the default value for the parameter. Nil if the parameter doesn't have a default value.
-    var typeErasuredDefaultValue: Any? { get }
+    var typeErasuredDefaultValue: (() -> Any)? { get }
 
     /// See `CustomStringConvertible`
     var description: String { get }
@@ -104,8 +104,9 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
     let necessity: Necessity
     let parameterType: ParameterType
 
-    let defaultValue: Type?
-    var typeErasuredDefaultValue: Any? {
+    
+    let defaultValue: (() -> Type)?
+    var typeErasuredDefaultValue: (() -> Any)? {
         defaultValue
     }
 
@@ -117,7 +118,7 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
          nilIsValidValue: Bool,
          necessity: Necessity,
          options: PropertyOptionSet<ParameterOptionNameSpace>,
-         defaultValue: Type? = nil
+         defaultValue: (() -> Type)? = nil
     ) {
         self.id = id
         self.name = name
@@ -133,8 +134,8 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
         if nilIsValidValue {
             description += "?"
         }
-        if let `default` = defaultValue {
-            description += " = \(`default`)"
+        if let defaultValue = defaultValue {
+            description += " = \(defaultValue())"
         }
         self.description = description
 
@@ -173,7 +174,6 @@ extension Array where Element == AnyEndpointParameter {
         }
     }
 }
-
 
 protocol LosslessStringConvertibleEndpointParameter {
     /// Initializes a type `T` for which you know that it conforms to `LosslessStringConvertible`.
