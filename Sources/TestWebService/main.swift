@@ -103,7 +103,10 @@ struct TestWebService: Apodini.WebService {
                 .rpcName("greetMe")
                 .response(EmojiMediator())
         }
-        Group("user", $userId) {
+        Group {
+            "user"
+            $userId
+        } content: {
             UserHandler(userId: $userId)
                 .guard(PrintGuard())
         }

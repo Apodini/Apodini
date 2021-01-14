@@ -53,15 +53,11 @@ extension Version: _PathComponent {
         "\(prefix)\(major)"
     }
 
-    func append<P>(to pathBuilder: inout P) where P: PathBuilder {
-        pathBuilder.append(description)
+    func append<Parser: PathComponentParser>(to parser: inout Parser) {
+        parser.visit(self)
     }
 }
 
-struct APIVersionContextKey: ContextKey {
-    static var defaultValue = Version()
-    
-    static func reduce(value: inout Version, nextValue: () -> Version) {
-        value = nextValue()
-    }
+struct APIVersionContextKey: OptionalContextKey {
+    typealias Value = Version
 }

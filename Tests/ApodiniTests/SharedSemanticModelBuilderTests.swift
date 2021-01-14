@@ -98,7 +98,6 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
     
     func testEndpointsTreeNodes() {
         // swiftlint:disable force_unwrapping
-        // swiftlint:disable force_cast
         let modelBuilder = SharedSemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(semanticModelBuilders: [modelBuilder])
         let testComponent = TestComponent()
@@ -120,13 +119,9 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         XCTAssertEqual(treeNodeB.endpoints.count, 0)
         XCTAssertEqual(treeNodeNameParameter.endpoints.count, 1)
         XCTAssertEqual(treeNodeSomeOtherIdParameter.endpoints.count, 1)
-        XCTAssertEqual(endpointGroupLevel.absolutePath[0].description, "a")
-        XCTAssertEqual(endpointGroupLevel.absolutePath[1].description, ":\(someOtherIdParameterId.uuidString)")
-        XCTAssertNoThrow(endpointGroupLevel.absolutePath[1] as! Parameter<Int>)
-        XCTAssertEqual((endpointGroupLevel.absolutePath[1] as! Parameter<Int>).id, someOtherIdParameterId)
-        XCTAssertEqual(endpoint.absolutePath[0].description, "a")
-        XCTAssertEqual(endpoint.absolutePath[1].description, "b")
-        XCTAssertEqual(endpoint.absolutePath[2].description, ":\(nameParameterId.uuidString)")
+
+        XCTAssertEqual(endpointGroupLevel.absolutePath.asPathString(parameterEncoding: .id), "/a/:\(someOtherIdParameterId.uuidString)")
+        XCTAssertEqual(endpoint.absolutePath.asPathString(parameterEncoding: .id), "/a/b/:\(nameParameterId.uuidString)")
         XCTAssertTrue(endpoint.parameters.contains { $0.id == nameParameterId })
         XCTAssertEqual(endpoint.parameters.first { $0.id == nameParameterId }?.parameterType, .path)
         
@@ -137,10 +132,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         
         XCTAssertEqual(nestedEndpoint.parameters.count, 2)
         XCTAssertTrue(nestedEndpoint.parameters.allSatisfy { $0.parameterType == .path })
-        XCTAssertEqual(nestedEndpoint.absolutePath[0].description, "a")
-        XCTAssertEqual(nestedEndpoint.absolutePath[1].description, "b")
-        XCTAssertEqual(nestedEndpoint.absolutePath[2].description, ":\(nameParameterId.uuidString)")
-        XCTAssertEqual(nestedEndpoint.absolutePath[3].description, ":\(someIdParameterId.uuidString)")
+        XCTAssertEqual(nestedEndpoint.absolutePath.asPathString(parameterEncoding: .id), "/a/b/:\(nameParameterId.uuidString)/:\(someIdParameterId.uuidString)")
     }
 
     func testShouldWrapInFinalByDefault() throws {

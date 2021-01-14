@@ -15,23 +15,13 @@ extension Handler {
             guards: [LazyGuard] = [],
             responseTransformers: [LazyAnyResponseTransformer] = []
     ) -> Endpoint<Self> {
-        let parameterBuilder = ParameterBuilder(from: self)
-        parameterBuilder.build()
-        return Endpoint(
+        Endpoint(
             identifier: self.getExplicitlySpecifiedIdentifier() ?? AnyHandlerIdentifier(UUID().uuidString),
             handler: self,
             context: context,
             operation: operation,
             guards: guards,
-            responseTransformers: responseTransformers,
-            parameters: parameterBuilder.parameters
+            responseTransformers: responseTransformers
         )
-    }
-
-    func mockEndpoint(context: Context) -> Endpoint<Self> {
-        mockEndpoint(context: context,
-                     operation: .automatic,
-                     guards: [],
-                     responseTransformers: [])
     }
 }
