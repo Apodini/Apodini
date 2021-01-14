@@ -152,6 +152,7 @@ struct TestWebService: Apodini.WebService {
         Group("auction") {
             Auction()
                 .response(EmojiMediator(emojis: "🤑", growth: 2))
+        }
         Group("rand") {
             Random()
         }

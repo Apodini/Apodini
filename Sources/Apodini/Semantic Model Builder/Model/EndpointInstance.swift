@@ -9,7 +9,6 @@ import Foundation
 
 
 struct EndpointInstance<H: Handler> {
-
     let endpoint: Endpoint<H>
     
     let handler: H
@@ -36,6 +35,5 @@ struct EndpointInstance<H: Handler> {
             return transformer
         }
     }
-    
 }
     

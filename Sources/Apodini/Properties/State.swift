@@ -5,83 +5,71 @@
 //  Created by Max Obermeier on 13.01.21.
 //
 
-// MIT License
-//
-// Copyright (c) 2019 Devran "Cosmo" Uenal
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-
 import Foundation
 
-@propertyWrapper public struct State<Value>: Property {
-    internal var initializer: () -> Value
+/// State can be used to maintain state across multiple evaluations of the same `Handler`..
+/// This is especially helpful for `Handler`s which use `Connection` and do not instantly return
+/// `Response.final(_)`.
+/// - Note `State` has the same scope as the `Connection` available via `@Environment(\.connection)`
+@propertyWrapper
+public struct State<Element>: Property {
+    internal var initializer: () -> Element
     
-    private var _location: AnyLocation<Value>?
+    private var wrapper: Wrapper<Element>?
     
-    public init(wrappedValue value: @escaping @autoclosure () -> Value) {
+    /// Uses the given `Element` as the default value.
+    public init(wrappedValue value: @escaping @autoclosure () -> Element) {
         self.initializer = value
     }
     
-    public var wrappedValue: Value {
+    public var wrappedValue: Element {
         get {
-            guard let location = _location else {
+            guard let wrapper = wrapper else {
                 fatalError("""
                     A State's wrappedValue was accessed before the State was activated.
                     Do not use the wrappedValue internally. Use the initializer instead.
                     """)
             }
             
-            return location._value.pointee
+            return wrapper.value
         }
         nonmutating set {
-            guard let location = _location else {
+            guard let wrapper = wrapper else {
                 fatalError("""
                     A State's wrappedValue was accessed before the State was activated.
                     Do not use the wrappedValue internally. Use the initializer instead.
                     """)
             }
             
-            location._value.pointee = newValue
+            wrapper.value = newValue
         }
     }
 }
 
+extension State where Element: ExpressibleByNilLiteral {
+    /// A convenience initializer that uses `nil` as the initial value.
+    public init() {
+        self.init(wrappedValue: nil)
+    }
+}
+
+/// An `Activatable` element may allocate resources when `activate` is called. These
+/// resources may share information with any copies made from this element after `activate`
+/// was called.
 protocol Activatable {
     mutating func activate()
 }
 
 extension State: Activatable {
     mutating func activate() {
-        self._location = AnyLocation(value: self.initializer())
+        self.wrapper = Wrapper(value: self.initializer())
     }
 }
 
-private class AnyLocation<Value> {
-    internal let _value = UnsafeMutablePointer<Value>.allocate(capacity: 1)
+private class Wrapper<Value> {
+    var value: Value
     
     init(value: Value) {
-        self._value.pointee = value
-    }
-}
-
-extension State where Value: ExpressibleByNilLiteral {
-    public init() {
-        self.init(wrappedValue: nil)
+        self.value = value
     }
 }

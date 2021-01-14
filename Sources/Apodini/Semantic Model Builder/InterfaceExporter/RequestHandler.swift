@@ -23,8 +23,8 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
         }
         
         
-        let guardEventLoopFutures = endpoint.guards.map { `guard` -> EventLoopFuture<Void> in
-            connection.enterConnectionContext(with: `guard`) { requestGuard in
+        let guardEventLoopFutures = endpoint.guards.map { requestGuard -> EventLoopFuture<Void> in
+            connection.enterConnectionContext(with: requestGuard) { requestGuard in
                 requestGuard.executeGuardCheck(on: request)
             }
         }
