@@ -79,7 +79,7 @@ class SyntaxTreeVisitor {
     ///   - contextKey: The key of the context value
     ///   - value: The value that is assocated to the `ContextKey`
     ///   - scope: The scope of the context value as defined by the `Scope` enum
-    func addContext<C: ContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
+    func addContext<C: OptionalContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
         currentNode.addContext(contextKey, value: value, scope: scope)
     }
     
@@ -123,10 +123,7 @@ struct HandlerIndexPath: RawRepresentable {
     let rawValue: String
     
     struct ContextKey: Apodini.ContextKey {
+        typealias Value = HandlerIndexPath
         static let defaultValue: HandlerIndexPath = .init(rawValue: "")
-        
-        static func reduce(value: inout HandlerIndexPath, nextValue: () -> HandlerIndexPath) {
-            value = nextValue()
-        }
     }
 }

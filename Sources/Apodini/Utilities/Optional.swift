@@ -2,6 +2,8 @@
 // Created by Andi on 25.12.20.
 //
 
+@_implementationOnly import Runtime
+
 protocol ApodiniOptional {
     associatedtype Member
 
@@ -22,5 +24,17 @@ extension Optional: ApodiniOptional {
 extension Optional where Wrapped: ExpressibleByNilLiteral {
     static var null: Self {
         .some(nil)
+    }
+}
+
+func isOptional<T>(_ type: T.Type = T.self) -> Bool {
+    do {
+        let typeInfo = try Runtime.typeInfo(of: type)
+        return typeInfo.kind == .optional
+    } catch {
+        // typeInfo(of:) only throws if the `Kind` enum isn't one of the supported cases:
+        //  .struct, .class, .existential, .tuple, .enum, .optional.
+        // Thus if it throws, we know for sure that it isn't a optional.
+        return false
     }
 }
