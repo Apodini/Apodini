@@ -46,7 +46,7 @@ final class EnvironmentTests: ApodiniTests {
             }
         }
         
-        struct Keys: ApodiniKeys {
+        struct Keys: KeyChain {
             var bird: BirdFacts
         }
         
@@ -150,6 +150,6 @@ extension EnvironmentValues {
     }
 }
 
-struct KeyStore: ApodiniKeys {
+struct KeyStore: KeyChain {
     var test: String
 }
