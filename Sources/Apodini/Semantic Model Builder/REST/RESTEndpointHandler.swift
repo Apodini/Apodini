@@ -44,7 +44,10 @@ class RESTEndpointHandler<H: Handler> {
     var contextCreator: () -> AnyConnectionContext<RESTInterfaceExporter>
     let configuration: RESTConfiguration
 
-    init(for endpoint: Endpoint<H>, using contextCreator: @escaping () -> AnyConnectionContext<RESTInterfaceExporter>, configuration: RESTConfiguration) {
+    init(
+        for endpoint: Endpoint<H>,
+        using contextCreator: @escaping () -> AnyConnectionContext<RESTInterfaceExporter>,
+        configuration: RESTConfiguration) {
         self.endpoint = endpoint
         self.contextCreator = contextCreator
         self.configuration = configuration

@@ -78,9 +78,7 @@ struct TestWebService: Apodini.WebService {
         @Parameter var number = Int.random()
         
         func handle() -> Int {
-            print(number)
-            print(Int.random())
-            return number
+            number
         }
     }
 
