@@ -40,4 +40,24 @@ class TypeInfoTests: ApodiniTests {
         XCTAssertEqual(Apodini.mangledName(of: (() -> Void).self), "() -> ()")
         XCTAssertEqual(Apodini.mangledName(of: ((String) -> (Int)).self), "(String) -> Int")
     }
+    
+    func testIsSupportedScalarType() {
+        XCTAssertEqual(isSupportedScalarType(Int32.self), true)
+        XCTAssertEqual(isSupportedScalarType(Int64.self), true)
+        XCTAssertEqual(isSupportedScalarType(UInt32.self), true)
+        XCTAssertEqual(isSupportedScalarType(UInt64.self), true)
+        XCTAssertEqual(isSupportedScalarType(Bool.self), true)
+        XCTAssertEqual(isSupportedScalarType(String.self), true)
+        XCTAssertEqual(isSupportedScalarType(Double.self), true)
+        XCTAssertEqual(isSupportedScalarType(Float.self), true)
+        
+        struct EmptyTest {}
+        struct Test {
+            var test: String
+        }
+        
+        XCTAssertEqual(isSupportedScalarType(Never.self), false)
+        XCTAssertEqual(isSupportedScalarType(Test.self), false)
+        XCTAssertEqual(isSupportedScalarType(EmptyTest.self), false)
+    }
 }
