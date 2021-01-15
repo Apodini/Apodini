@@ -174,9 +174,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
     /// Tests the client-streaming handler for a request with
     /// 1 HTTP frame that contains 1 GRPC messages.
     func testClientStreamingHandlerWith_1Message_1Frame() throws {
-        let contextCreator = {
-            self.endpoint.createConnectionContext(for: self.exporter)
-        }
+        let context = endpoint.createConnectionContext(for: self.exporter)
 
         // let expectedResponseString = "Hello Moritz"
         let expectedResponseData: [UInt8] =
@@ -191,7 +189,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
         vaporRequest.bodyStorage = .stream(stream)
 
-        service.createClientStreamingHandler(contextCreator: contextCreator)(vaporRequest)
+        service.createClientStreamingHandler(context: context)(vaporRequest)
             .whenSuccess { response in
                 guard let responseData = response.body.data else {
                     XCTFail("Received empty response but expected: \(expectedResponseData)")
@@ -210,9 +208,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
     /// The handler should only return the response for the last (second)
     /// message contained in the frame.
     func testClientStreamingHandlerWith_2Messages_1Frame() throws {
-        let contextCreator = {
-            self.endpoint.createConnectionContext(for: self.exporter)
-        }
+        let context = endpoint.createConnectionContext(for: self.exporter)
 
         let requestData: [UInt8] = [
             0, 0, 0, 0, 10, 10, 6, 77, 111, 114, 105, 116, 122, 16, 23,
@@ -231,7 +227,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
         vaporRequest.bodyStorage = .stream(stream)
 
-        service.createClientStreamingHandler(contextCreator: contextCreator)(vaporRequest)
+        service.createClientStreamingHandler(context: context)(vaporRequest)
             .whenSuccess { response in
                 guard let responseData = response.body.data else {
                     XCTFail("Received empty response but expected: \(expectedResponseData)")
@@ -251,9 +247,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
     /// The handler should only return the response for the last (second)
     /// message contained in the frame.
     func testClientStreamingHandlerWith_2Messages_2Frames() throws {
-        let contextCreator = {
-            self.endpoint.createConnectionContext(for: self.exporter)
-        }
+        let context = endpoint.createConnectionContext(for: self.exporter)
 
         // let expectedResponseString = "Hello Bernd"
         let expectedResponseData: [UInt8] =
@@ -269,7 +263,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
         vaporRequest.bodyStorage = .stream(stream)
 
         // get first response
-        service.createClientStreamingHandler(contextCreator: contextCreator)(vaporRequest)
+        service.createClientStreamingHandler(context: context)(vaporRequest)
             .whenSuccess { response in
                 guard let responseData = response.body.data else {
                     XCTFail("Received empty response but expected: \(expectedResponseData)")
@@ -290,9 +284,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
     func testClientStreamingHandlerNothingResponse() throws {
         let handler = GRPCNothingHandler()
         let endpoint = handler.mockEndpoint()
-        let contextCreator = {
-            endpoint.createConnectionContext(for: self.exporter)
-        }
+        let context = endpoint.createConnectionContext(for: self.exporter)
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let vaporRequest = Vapor.Request(application: app,
@@ -303,7 +295,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
         vaporRequest.bodyStorage = .stream(stream)
 
-        service.createClientStreamingHandler(contextCreator: contextCreator)(vaporRequest)
+        service.createClientStreamingHandler(context: context)(vaporRequest)
             .whenSuccess { response in
                 XCTAssertEqual(response.body.data,
                                Optional(Data()),

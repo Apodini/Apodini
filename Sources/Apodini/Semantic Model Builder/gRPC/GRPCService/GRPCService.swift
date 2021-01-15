@@ -14,6 +14,7 @@ import Foundation
 class GRPCService {
     let app: Vapor.Application
     var serviceName: String
+    var methodNames: [String] = []
 
     /// Initializes a new GRPC service.
     /// - Parameters:

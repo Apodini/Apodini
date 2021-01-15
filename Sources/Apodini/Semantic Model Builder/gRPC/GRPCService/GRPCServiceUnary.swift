@@ -13,13 +13,13 @@ extension GRPCService {
     func createUnaryHandler<C: ConnectionContext>(context: C)
     -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> where C.Exporter == GRPCInterfaceExporter {
         { (request: Vapor.Request) in
-            var context = context
-
             if !self.checkContentType(request: request) {
                 return request.eventLoop.makeFailedFuture(GRPCError.unsupportedContentType(
                     "Content type is currently not supported by Apodini GRPC exporter. Use Protobuffers instead."
                 ))
             }
+
+            var context = context
             
             let promise = request.eventLoop.makePromise(of: Vapor.Response.self)
             request.body.collect().whenSuccess { _ in
@@ -55,7 +55,12 @@ extension GRPCService {
     /// - Parameters:
     ///     - endpoint: The name of the endpoint that should be exposed.
     func exposeUnaryEndpoint<C: ConnectionContext>(name endpoint: String,
-                                                   context: C) where C.Exporter == GRPCInterfaceExporter {
+                                                   context: C) throws where C.Exporter == GRPCInterfaceExporter {
+        if methodNames.contains(endpoint) {
+            throw GRPCServiceError.endpointAlreadyExists
+        }
+        methodNames.append(endpoint)
+
         let path = [
             Vapor.PathComponent(stringLiteral: serviceName),
             Vapor.PathComponent(stringLiteral: endpoint)

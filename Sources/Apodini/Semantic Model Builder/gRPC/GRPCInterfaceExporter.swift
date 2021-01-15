@@ -43,28 +43,32 @@ class GRPCInterfaceExporter: InterfaceExporter {
             services[serviceName] = service
         }
 
-        if endpoint.serviceType == .unary {
-            let context = endpoint.createConnectionContext(for: self)
-            service.exposeUnaryEndpoint(name: methodName, context: context)
-            app.logger.info("Exported unary gRPC endpoint \(serviceName)/\(methodName) with parameters:")
-        } else if endpoint.serviceType == .clientStreaming {
-            let contextCreator = {
-                endpoint.createConnectionContext(for: self)
-            }
-            service.exposeClientStreamingEndpoint(name: methodName, contextCreator: contextCreator)
-            app.logger.info("Exported client-streaming gRPC endpoint \(serviceName)/\(methodName) with parameters:")
-        } else {
-            app.logger.warning("""
-                GRPC exporter currently only supports unary and client-streaming endpoints.
-                Defaulting to unary.
-                Exported unary gRPC endpoint \(serviceName)/\(methodName) with parameters:
-                """)
-            let context = endpoint.createConnectionContext(for: self)
-            service.exposeUnaryEndpoint(name: methodName, context: context)
-        }
+        let context = endpoint.createConnectionContext(for: self)
 
-        for parameter in endpoint.parameters {
-            app.logger.info("\t\(parameter.propertyType) \(parameter.name) = \(getFieldTag(for: parameter) ?? 0);")
+        do {
+            if endpoint.serviceType == .unary {
+                try service.exposeUnaryEndpoint(name: methodName, context: context)
+                app.logger.info("Exported unary gRPC endpoint \(serviceName)/\(methodName)")
+            } else if endpoint.serviceType == .clientStreaming {
+                try service.exposeClientStreamingEndpoint(name: methodName, context: context)
+                app.logger.info("Exported client-streaming gRPC endpoint \(serviceName)/\(methodName)")
+            } else {
+                app.logger.warning("""
+                    GRPC exporter currently only supports unary and client-streaming endpoints.
+                    Defaulting to unary.
+                    Exported unary gRPC endpoint \(serviceName)/\(methodName).
+                    """)
+                try service.exposeUnaryEndpoint(name: methodName, context: context)
+            }
+
+            app.logger.info("\tParameters:")
+            for parameter in endpoint.parameters {
+                app.logger.info("\t\t\(parameter.propertyType) \(parameter.name) = \(getFieldTag(for: parameter) ?? 0);")
+            }
+        } catch GRPCServiceError.endpointAlreadyExists {
+            app.logger.error("Tried to overwrite endpoint \(methodName) for gRPC service \(serviceName)")
+        } catch {
+            app.logger.error("Error while exporting endpoint \(methodName) for gRPC service \(serviceName): \(error)")
         }
     }
 
