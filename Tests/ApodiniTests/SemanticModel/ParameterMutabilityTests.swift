@@ -116,6 +116,32 @@ class ParameterMutabilityTests: ApodiniTests {
         let handler = TestHandlerUsingClassType()
         let endpoint = handler.mockEndpoint()
 
+        let exporter = MockExporter<String>(queued: nil, nil, true, nil, nil)
+        var context1 = endpoint.createConnectionContext(for: exporter)
+        var context2 = endpoint.createConnectionContext(for: exporter)
+        
+        // second call should still return "Apodini"
+        _ = try context1.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+                .wait()
+        
+        let response = try context2.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+                .wait()
+        
+        switch response.typed(String.self) {
+        case .some(.final("Apodini/Apodini")):
+            break
+        default:
+            XCTFail("""
+                Return value did not match expected value.
+                This is most likely caused by the default value of 'Parameter' being shared across 'Handler's.
+            """)
+        }
+    }
+    
+    func testMutationOnClassTypeDefaultParameterIsNotSharedMultipleExporters() throws {
+        let handler = TestHandlerUsingClassType()
+        let endpoint = handler.mockEndpoint()
+
         let exporter1 = MockExporter<String>(queued: nil, nil, true)
         let exporter2 = MockExporter<String>(queued: nil, nil)
 
