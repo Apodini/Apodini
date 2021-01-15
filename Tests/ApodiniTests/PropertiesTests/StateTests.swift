@@ -180,6 +180,45 @@ class StateTests: ApodiniTests {
             guards: [syncGuard, asyncGuard],
             responseTransformers: [ { CountTransformerUsingClassType() } ])
 
+        let exporter = MockExporter<String>()
+
+        var context1 = endpoint.createConnectionContext(for: exporter)
+        var context2 = endpoint.createConnectionContext(for: exporter)
+
+        _ = try context1.handle(request: "Example Request", eventLoop: eventLoop)
+                .wait()
+
+        // Call on this context should not be influenced by previous call. Thus do not increase `count`.
+        let response = try context2.handle(request: "Example Request", eventLoop: eventLoop)
+                .wait()
+
+        switch response.typed(String.self) {
+        case .some(.final("")):
+            break
+        default:
+            XCTFail("""
+                Return value did not match expected value.
+                This is most likely caused by the default value of 'Parameter' being shared across 'Handler's.
+            """)
+        }
+    }
+    
+    func testStateIsNotSharedDifferentExportersReferenceType() throws {
+        let eventLoop = app.eventLoopGroup.next()
+
+        let count: Int = 0
+
+        let assertion = { (number: Int) in  XCTAssertEqual(number, count) }
+
+        let handler = TestHandlerUsingClassType()
+
+        let syncGuard = { AnyGuard(CountGuardUsingClassType(callback: assertion)) }
+        let asyncGuard = { AnyGuard(AsyncCountGuardUsingClassType(callback: assertion, eventLoop: eventLoop)) }
+        
+        let endpoint = handler.mockEndpoint(
+            guards: [syncGuard, asyncGuard],
+            responseTransformers: [ { CountTransformerUsingClassType() } ])
+
         let exporter1 = MockExporter<String>()
         let exporter2 = MockExporter<String>()
 
@@ -205,6 +244,45 @@ class StateTests: ApodiniTests {
     }
 
     func testStateIsNotSharedValueType() throws {
+        let eventLoop = app.eventLoopGroup.next()
+
+        let count: Int = 0
+
+        let assertion = { (number: Int) in  XCTAssertEqual(number, count) }
+
+        let handler = TestHandler()
+
+        let syncGuard = { AnyGuard(CountGuard(callback: assertion)) }
+        let asyncGuard = { AnyGuard(AsyncCountGuard(callback: assertion, eventLoop: eventLoop)) }
+        
+        let endpoint = handler.mockEndpoint(
+            guards: [syncGuard, asyncGuard],
+            responseTransformers: [ { CountTransformer() } ])
+
+        let exporter = MockExporter<String>()
+
+        var context1 = endpoint.createConnectionContext(for: exporter)
+        var context2 = endpoint.createConnectionContext(for: exporter)
+
+        _ = try context1.handle(request: "Example Request", eventLoop: eventLoop)
+                .wait()
+
+        // Call on this context should not be influenced by previous call. Thus do not increase `count`.
+        let response = try context2.handle(request: "Example Request", eventLoop: eventLoop)
+                .wait()
+
+        switch response.typed(String.self) {
+        case .some(.final("")):
+            break
+        default:
+            XCTFail("""
+                Return value did not match expected value.
+                This is most likely caused by the default value of 'Parameter' being shared across 'Handler's.
+            """)
+        }
+    }
+    
+    func testStateIsNotSharedDifferentExportersValueType() throws {
         let eventLoop = app.eventLoopGroup.next()
 
         let count: Int = 0
