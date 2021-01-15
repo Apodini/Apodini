@@ -10,18 +10,18 @@ import XCTest
 
 
 class ComponentTests: ApodiniTests {
-    func testAssertTypeIsStruct() throws {
+    func testPreconditionTypeIsStruct() throws {
         class TestClass {}
-        XCTAssertRuntimeFailure(assertTypeIsStruct(TestClass.self))
+        XCTAssertRuntimeFailure(preconditionTypeIsStruct(TestClass.self))
         
         enum TestEnum {}
-        XCTAssertRuntimeFailure(assertTypeIsStruct(TestEnum.self))
+        XCTAssertRuntimeFailure(preconditionTypeIsStruct(TestEnum.self))
         
         struct TestStruct {}
-        assertTypeIsStruct(TestStruct.self)
+        preconditionTypeIsStruct(TestStruct.self)
         
-        XCTAssertRuntimeFailure(assertTypeIsStruct(Never.self))
-        XCTAssertRuntimeFailure(assertTypeIsStruct((() -> Void).self))
+        XCTAssertRuntimeFailure(preconditionTypeIsStruct(Never.self))
+        XCTAssertRuntimeFailure(preconditionTypeIsStruct((() -> Void).self))
     }
     
     func testTupleComponentErrors() throws {
