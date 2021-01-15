@@ -17,15 +17,6 @@ struct EnrichedInfo {
     enum CollectionContext {
         case array
         indirect case dictionary(key: EnrichedInfo, value: EnrichedInfo)
-        
-        var valueType: EnrichedInfo? {
-            switch self {
-            case .dictionary(_, let value):
-                return value
-            default:
-                return nil
-            }
-        }
     }
 
     var typeInfo: TypeInfo
@@ -66,19 +57,15 @@ extension EnrichedInfo: Equatable {
         if lhs.typeInfo.mangledName != rhs.typeInfo.mangledName {
             return false
         }
-        
         if lhs.propertyInfo?.name != rhs.propertyInfo?.name {
             return false
         }
-        
         if lhs.propertiesOffset != rhs.propertiesOffset {
             return false
         }
-        
         if lhs.cardinality != rhs.cardinality {
             return false
         }
-        
         return true
     }
 }
