@@ -6,7 +6,7 @@
 //
 
 @testable import Apodini
-import Runtime
+@_implementationOnly import Runtime
 import XCTest
 
 
