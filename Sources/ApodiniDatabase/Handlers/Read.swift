@@ -19,7 +19,7 @@ public struct Read<Model: DatabaseModel>: Handler {
     private var dynamics: [String: Apodini.Property]
     
     public init() {
-        var dynamicValues: [String: Parameter<AnyConcreteCodable?>] = [:]
+        var dynamicValues: [String: Parameter<AnyCodable?>] = [:]
         let infos = QueryBuilder.info(for: Model.self)
         for info in infos {
             dynamicValues[info.key.description] = QueryBuilder<Model>.parameter(for: info.value)
@@ -35,8 +35,8 @@ public struct Read<Model: DatabaseModel>: Handler {
 //                result[Model.fieldKey(for: entry.0)] = entry.1.wrappedValue
 //            })
 //            .compactMapValues { $0 }
-        let queryInfo: [FieldKey: AnyConcreteCodable] = _dynamics.typed(Parameter<AnyConcreteCodable?>.self)
-            .reduce(into: [FieldKey: AnyConcreteCodable](), { result, entry in
+        let queryInfo: [FieldKey: AnyCodable] = _dynamics.typed(Parameter<AnyCodable?>.self)
+            .reduce(into: [FieldKey: AnyCodable](), { result, entry in
                 result[Model.fieldKey(for: entry.0)] = entry.1.wrappedValue
         }).compactMapValues({ $0 })
             .filter({ (key, value) in value.wrappedType != .noValue })

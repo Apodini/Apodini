@@ -74,7 +74,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let queryBuilder = QueryBuilder(
             type: Bird.self,
             parameters: [
-                Bird.fieldKey(for: "name"): AnyConcreteCodable(.string("Mockingbird"))
+                Bird.fieldKey(for: "name"): AnyCodable(.string("Mockingbird"))
             ]
         )
         //As Eventloops are currently not working, only the queryBuilder is tested right now.
@@ -104,8 +104,9 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         
         let updatedBird = Bird(name: "FooBird", age: 25)
-        let parameters: [String: AnyConcreteCodable] = [
-            "name": AnyConcreteCodable("FooBird")
+        let parameters: [String: AnyCodable] = [
+            "name": AnyCodable("FooBird"),
+//            "age": AnyCodable(25)
         ]
         
         let handler = Update<Bird>()
@@ -149,7 +150,7 @@ final class DatabaseHandlerTests: ApodiniTests {
 
         XCTAssertNotNil(newBird)
         XCTAssert(newBird.name == updatedBird.name, newBird.description)
-        XCTAssert(newBird.age == 25)
+        XCTAssert(newBird.age == 25, newBird.description)
     }
     
     func testDeleteHandler() throws {
