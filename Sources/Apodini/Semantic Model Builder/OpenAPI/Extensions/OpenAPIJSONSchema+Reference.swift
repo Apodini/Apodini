@@ -9,11 +9,8 @@ extension JSONSchema {
         switch self {
         case .reference:
             return true
-        case .array:
-            guard let schema = arrayContext?.items else {
-                return false
-            }
-            return schema.isReference
+        case .array(_, let arrayContext):
+            return (arrayContext.items)?.isReference ?? false
         default:
             return false
         }
