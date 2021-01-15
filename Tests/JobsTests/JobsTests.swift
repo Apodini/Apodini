@@ -25,7 +25,7 @@ final class JobsTests: XCTApodiniTest {
         }
     }
     
-    struct KeyStore: ApodiniKeys {
+    struct KeyStore: KeyChain {
         var failingJob: FailingJob
         var testJob: TestJob
     }

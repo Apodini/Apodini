@@ -44,7 +44,7 @@ public struct EnvironmentValues {
 
 /// A property wrapper to inject pre-defined values  to a `Component`.
 @propertyWrapper
-public struct Environment<K: ApodiniKeys, Value>: Property {
+public struct Environment<K: KeyChain, Value>: Property {
     /// Keypath to access an `EnvironmentValue`.
     internal var keyPath: KeyPath<K, Value>
     internal var dynamicValues: [KeyPath<K, Value>: Any] = [:]
@@ -54,7 +54,7 @@ public struct Environment<K: ApodiniKeys, Value>: Property {
         self.keyPath = keyPath
     }
     
-    /// Initializer of `Environment` for key paths conforming to `ApodiniKeys`.
+    /// Initializer of `Environment` for key paths conforming to `KeyChain`.
     public init(_ keyPath: KeyPath<K, Value>) {
         self.keyPath = keyPath
     }
@@ -86,6 +86,6 @@ public struct EnvironmentValue<K: ApodiniKeys, Value> {
 }
 
 /// A protocol to define key paths that can be used with `@Environment` to retrieve pre-defined objects.
-public protocol ApodiniKeys { }
+public protocol KeyChain { }
 
-extension EnvironmentValues: ApodiniKeys { }
+extension EnvironmentValues: KeyChain { }
