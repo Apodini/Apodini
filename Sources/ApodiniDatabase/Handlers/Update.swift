@@ -19,16 +19,14 @@ public struct Update<Model: DatabaseModel>: Handler {
     @Parameter(.http(.path))
     var id: Model.IDValue
     
-//    public func handle() -> EventLoopFuture<T> {
-    public func handle() -> String {
+    public func handle() -> EventLoopFuture<Model> {
         print("handle")
         print(parameters)
         var updater = Updater<Model>(parameters)
         updater.model = object
         updater.modelID = id
         
-        updater.executeUpdate(on: database)
-        return "success"
+        return updater.executeUpdate(on: database)
     }
 }
 
@@ -46,17 +44,17 @@ internal struct Updater<Model: DatabaseModel> {
         }
     }
     
-    func executeUpdate(on database: Database) {
+    func executeUpdate(on database: Database) -> EventLoopFuture<Model> {
         if let model = model {
-            Model.find(modelID, on: database)
+            return Model.find(modelID, on: database)
                 .unwrap(orError: Abort(.notFound))
                 .map { foundModel -> Model in
                     foundModel.update(model)
-                    _ = foundModel.update(on: database)
+                    _ = foundModel.update(on: database).transform(to: model)
                     return model
                 }
         } else {
-            Model.find(modelID, on: database)
+            return Model.find(modelID, on: database)
                 .unwrap(orError: Abort(.notFound)).map { model -> Model in
                     var model = model
                     print(model)

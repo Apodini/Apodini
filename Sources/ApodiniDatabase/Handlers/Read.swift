@@ -25,25 +25,15 @@ public struct Read<Model: DatabaseModel>: Handler {
             dynamicValues[info.key.description] = QueryBuilder<Model>.parameter(for: info.value)
         }
         _dynamics = Properties(wrappedValue: dynamicValues)
-        print(dynamics)
     }
 
-    public func handle() -> String {
-//    public func handle() -> [Model] {
-//        let queryInfo: [FieldKey: AnyGenericCodable] = _dynamics.typed(Parameter<AnyGenericCodable?>.self)
-//            .reduce(into: [FieldKey: String?](), { result, entry in
-//                result[Model.fieldKey(for: entry.0)] = entry.1.wrappedValue
-//            })
-//            .compactMapValues { $0 }
+    public func handle() -> EventLoopFuture<[Model]> {
         let queryInfo: [FieldKey: AnyCodable] = _dynamics.typed(Parameter<AnyCodable?>.self)
             .reduce(into: [FieldKey: AnyCodable](), { result, entry in
                 result[Model.fieldKey(for: entry.0)] = entry.1.wrappedValue
         }).compactMapValues({ $0 })
             .filter({ (key, value) in value.wrappedType != .noValue })
-        print("info after decoding")
-        print(queryInfo)
         let queryBuilder = QueryBuilder(type: Model.self, parameters: queryInfo)
-        queryBuilder.execute(on: database)
-        return queryInfo.debugDescription
+        return queryBuilder.execute(on: database)
     }
 }

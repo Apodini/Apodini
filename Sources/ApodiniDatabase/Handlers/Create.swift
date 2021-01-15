@@ -10,9 +10,7 @@ public struct Create<Model: DatabaseModel>: Handler {
     @Parameter
     private var object: Model
 
-    public func handle() -> Model? {
-        // wait() will be removed once EventloopFuture is working again.
-        // swiftlint:disable force_try
-        try! object.save(on: database).transform(to: object).wait()
+    public func handle() -> EventLoopFuture<Model> {
+        object.save(on: database).transform(to: object)
     }
 }
