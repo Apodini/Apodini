@@ -22,4 +22,15 @@ final class DatabaseConfigurationTests: XCTestCase {
             .configure(self.app)
         XCTAssertNotNil(app.databases.configuration())
     }
+    
+    func testDatabaseRevert() throws {
+        app.databases.use(
+            .sqlite(.memory),
+            as: .init(string: "DatabaseSchemaTest"),
+            isDefault: true
+        )
+        app.migrations.add(DeviceMigration())
+        try app.autoMigrate().wait()
+        XCTAssertNoThrow(try app.autoRevert().wait())
+    }
 }
