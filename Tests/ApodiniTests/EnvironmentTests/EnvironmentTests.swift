@@ -6,7 +6,6 @@
 //
 
 import XCTest
-import Vapor
 @testable import Apodini
 
 final class EnvironmentTests: ApodiniTests {
@@ -35,6 +34,48 @@ final class EnvironmentTests: ApodiniTests {
 
         EnvironmentValues.shared.birdFacts = birdFacts
         XCTAssert(response == birdFacts.someFact)
+    }
+    
+    func testEnvironmentObjectInjection() throws {
+        struct AnotherBirdHandler: Handler {
+            @Apodini.Environment(\Keys.bird) var bird: BirdFacts
+            
+            func handle() -> String {
+                bird.dodoFact = "Until humans, the Dodo had no predators"
+                return bird.dodoFact
+            }
+        }
+        
+        struct Keys: KeyChain {
+            var bird: BirdFacts
+        }
+        
+        let birdFacts = BirdFacts()
+        EnvironmentObject(birdFacts, \Keys.bird).configure(app)
+        
+        let handler = AnotherBirdHandler()
+        let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
+
+        let response: String = request.enterRequestContext(with: handler) { handler in
+            handler.handle()
+        }
+
+        XCTAssertEqual(response, birdFacts.dodoFact)
+    }
+    
+    func testDuplicateEnvironmentObjectInjection() throws {
+        struct Keys: KeyChain {
+            var bird: BirdFacts
+        }
+        
+        let birdFacts = BirdFacts()
+        let birdFacts2 = BirdFacts()
+        birdFacts2.someFact = ""
+        
+        EnvironmentObject(birdFacts, \Keys.bird).configure(app)
+        EnvironmentObject(birdFacts2, \Keys.bird).configure(app)
+        
+        XCTAssertEqual(birdFacts2.someFact, Environment(\Keys.bird).wrappedValue.someFact)
     }
     
     func testUpdateEnvironmentValue() throws {
@@ -124,6 +165,6 @@ extension EnvironmentValues {
     }
 }
 
-struct KeyStore: ApodiniKeys {
+struct KeyStore: KeyChain {
     var test: String
 }

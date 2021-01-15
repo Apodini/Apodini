@@ -71,7 +71,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     fileprivate var treeNode: EndpointsTreeNode! // swiftlint:disable:this implicitly_unwrapped_optional
     
     let identifier: AnyHandlerIdentifier
-
+    
     let description: String
 
     let handler: H
@@ -108,7 +108,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         responseTransformers: [LazyAnyResponseTransformer] = []
     ) {
         self.identifier = identifier
-        self.description = String(describing: handler)
+        self.description = String(describing: H.self)
         self.handler = handler
         self.context = context
         self.operation = operation
@@ -151,6 +151,11 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     }
 }
 
+extension Endpoint: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        String(describing: self.handler)
+    }
+}
 
 class EndpointsTreeNode {
     let path: EndpointPath

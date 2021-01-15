@@ -39,7 +39,7 @@ final class GuardTests: ApodiniTests {
         TestWebService.main(app: app)
         
         
-        try app.test(.GET, "/v2/") { res in
+        try app.vapor.app.test(.GET, "/v2/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -81,7 +81,7 @@ final class GuardTests: ApodiniTests {
         TestWebService.main(app: app)
         
         
-        try app.test(.GET, "/v2/") { res in
+        try app.vapor.app.test(.GET, "/v2/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -112,7 +112,7 @@ final class GuardTests: ApodiniTests {
         
         TestWebService.main(app: app)
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -152,7 +152,7 @@ final class GuardTests: ApodiniTests {
         TestWebService.main(app: app)
         
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -175,7 +175,7 @@ final class GuardTests: ApodiniTests {
         
         TestWebService.main(app: app)
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -204,7 +204,7 @@ final class GuardTests: ApodiniTests {
         
         TestWebService.main(app: app)
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -238,7 +238,7 @@ final class GuardTests: ApodiniTests {
         
         TestWebService.main(app: app)
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {

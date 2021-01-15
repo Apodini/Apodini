@@ -3,7 +3,7 @@
 //
 
 import XCTest
-import OpenAPIKit
+@_implementationOnly import OpenAPIKit
 @testable import Apodini
 
 final class OpenAPIPathsObjectBuilderTests: XCTestCase {
@@ -136,6 +136,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
 
         let path = OpenAPI.Path(stringLiteral: "/test")
         let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
+            description: endpoint.description,
             parameters: [],
             requestBody: OpenAPI.Request(
                 description: "@Parameter var someStruct: SomeStruct",

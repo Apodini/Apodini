@@ -9,10 +9,8 @@
 
 extension TypeInfo {
     func compatibleName() throws -> String {
-        let type = ParticularType(self.type)
-        
-        if type.isPrimitive {
-            return type.description.lowercased()
+        if isSupportedScalarType(self.type) {
+            return Apodini.mangledName(of: type).lowercased()
         } else {
             let result: String
             

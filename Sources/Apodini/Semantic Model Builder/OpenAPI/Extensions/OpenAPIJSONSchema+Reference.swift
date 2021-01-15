@@ -7,7 +7,7 @@
 extension JSONSchema {
     var isReference: Bool {
         switch self {
-        case .reference(let ref):
+        case .reference:
             return true
         case .array:
             guard let schema = arrayContext?.items else {

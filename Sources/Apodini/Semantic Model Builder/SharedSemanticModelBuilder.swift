@@ -3,7 +3,6 @@
 //
 
 import NIO
-@_implementationOnly import Vapor
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 class WebServiceModel {

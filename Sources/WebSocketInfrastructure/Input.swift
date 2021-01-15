@@ -152,7 +152,6 @@ public struct BasicInputParameter<Type: Decodable>: InputParameter {
             self._interim = try decoder.decode(Type.self)
             return .ok
         } catch {
-            print(error)
             return .error(.badType)
         }
     }
