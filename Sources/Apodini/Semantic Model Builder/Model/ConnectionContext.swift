@@ -6,8 +6,7 @@
 //
 
 import Foundation
-@_implementationOnly import Vapor
-@_implementationOnly import Fluent
+import Fluent
 
 /// An object that can merge itself and a `new` element
 /// of same type.

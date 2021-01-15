@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import Vapor
+import struct Vapor.Abort
 import Fluent
 import FCM
 import APNS
@@ -15,9 +15,10 @@ import APNS
 
 final class NotificationCenterTests: ApodiniTests {
     var notificationCenter = NotificationCenter.shared
-    
+
     override func setUp() {
         super.setUp()
+        var notificationCenter = NotificationCenter.shared
         notificationCenter = EnvironmentValues.shared.notificationCenter
         notificationCenter.application = self.app
     }

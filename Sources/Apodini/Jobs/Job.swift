@@ -1,4 +1,4 @@
-import SwifCron
+@_implementationOnly import SwifCron
 import NIO
 
 /// `Job`s allow to create background running tasks.

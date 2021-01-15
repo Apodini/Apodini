@@ -3,11 +3,11 @@ import XCTVapor
 
 final class ProtobufferBuilderTests: XCTestCase {
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
-        let app = Application(.testing)
+        let app = Application()
         S.main(app: app)
         defer { app.shutdown() }
         
-        try app.test(.GET, "apodini/proto") { res in
+        try app.vapor.app.test(.GET, "apodini/proto") { res in
             XCTAssertEqual(res.body.string, expectation)
         }
     }
