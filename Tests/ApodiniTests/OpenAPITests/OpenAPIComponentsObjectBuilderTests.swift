@@ -4,9 +4,9 @@
 
 import XCTest
 import Foundation
-import OpenAPIKit
-import Runtime
 import NIO
+@_implementationOnly import OpenAPIKit
+@_implementationOnly import Runtime
 @testable import Apodini
 
 final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
@@ -42,25 +42,65 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
             let someString: String?
         }
     }
+    
+    struct ResponseContainer<T>: Encodable where T: Encodable {
+        var data: T
+        var links: [String: String]
+    }
 
     func testBuildSchemaPrimitive() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
 
         // add primitive type (will not be added to components map, but defined inline)
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: type(of: someString)))
-        let schema = try componentsBuilder.buildSchema(for: type(of: someString))
-        XCTAssertEqual(schema, JSONSchema.string())
+        var schema = try componentsBuilder.buildSchema(for: type(of: someString))
+        XCTAssertEqual(schema, .string())
+        
+        XCTAssertNoThrow(try componentsBuilder.buildSchema(for: type(of: someArray)))
+        schema = try componentsBuilder.buildSchema(for: type(of: someArray))
+        XCTAssertEqual(schema, .array(items: .init(.integer())))
+        
+        XCTAssertNoThrow(try componentsBuilder.buildSchema(for: type(of: someDict)))
+        schema = try componentsBuilder.buildSchema(for: type(of: someDict))
+        XCTAssertEqual(schema, .object(additionalProperties: .init(.string())))
+        
         XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 0)
         XCTAssertEqual(componentsBuilder.componentsObject, .noComponents)
     }
-
+    
+    func testBuildSchemaWithWrapperType() throws {
+        let componentsBuilder = OpenAPIComponentsObjectBuilder()
+        XCTAssertNoThrow(try componentsBuilder.buildSchema(for: ResponseContainer<SomeStruct>.self))
+        let schema = try componentsBuilder.buildSchema(for: ResponseContainer<SomeStruct>.self)
+        
+        XCTAssertThrowsError(try JSONSchema.reference(.component(named: "ResponseContainer")).dereferenced(in: componentsBuilder.componentsObject))
+        
+        XCTAssertEqual(schema, .object(properties: [
+            "data": try componentsBuilder.buildSchema(for: SomeStruct.self),
+            "links": try componentsBuilder.buildSchema(for: type(of: someDict))
+        ]))
+        XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 1)
+    }
+    
     func testBuildSchemaComplex_referenceExists() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
-
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: SomeComplexStruct.self))
-        _ = try componentsBuilder.buildSchema(for: SomeComplexStruct.self)
         XCTAssertNoThrow(try JSONSchema.reference(.component(named: "\(SomeComplexStruct.self)")).dereferenced(in: componentsBuilder.componentsObject))
         XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 4)
+    }
+    
+    func testBuildSchemaComplex_arrayReference() throws {
+        let componentsBuilder = OpenAPIComponentsObjectBuilder()
+        XCTAssertNoThrow(try componentsBuilder.buildSchema(for: Array<SomeStruct>.self))
+        XCTAssertNoThrow(try JSONSchema.reference(.component(named: "\(SomeStruct.self)")).dereferenced(in: componentsBuilder.componentsObject))
+        XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 1)
+    }
+    
+    func testBuildSchemaComplex_optionalReference() throws {
+        let componentsBuilder = OpenAPIComponentsObjectBuilder()
+        XCTAssertNoThrow(try componentsBuilder.buildSchema(for: Optional<SomeStruct>.self))
+        XCTAssertNoThrow(try JSONSchema.reference(.component(named: "\(SomeStruct.self)")).dereferenced(in: componentsBuilder.componentsObject))
+        XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 1)
     }
 
     func testBuildSchemaComplex_schemasCorrect() throws {
@@ -83,7 +123,7 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
             componentsBuilder.componentsObject[ref2],
             .object(
                 properties: [
-                    "someInt": .integer(),
+                    "someInt": .integer,
                     "someString": .string(required: false)
                 ]
             )
