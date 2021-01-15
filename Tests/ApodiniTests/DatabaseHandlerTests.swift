@@ -8,6 +8,11 @@ import Runtime
 @testable import ApodiniDatabase
 
 final class DatabaseHandlerTests: ApodiniTests {
+    
+    var vaporApp: Vapor.Application {
+        self.app.vapor.app
+    }
+    
     private func pathParameter(for handler: Any) throws -> Parameter<UUID> {
         let mirror = Mirror(reflecting: handler)
         let parameter = mirror.children.compactMap { $0.value as? Parameter<UUID> }.first
@@ -56,7 +61,7 @@ final class DatabaseHandlerTests: ApodiniTests {
 
         let uri = URI("http://example.de/test/bird?name=Mockingbird")
         let request = Vapor.Request(
-                application: app,
+            application: vaporApp,
                 method: .GET,
                 url: uri,
                 on: app.eventLoopGroup.next()
@@ -65,11 +70,10 @@ final class DatabaseHandlerTests: ApodiniTests {
 //        request.parameters.set("age", to: "6")
         
         let result = try context.handle(request: request).wait()
-        guard case let .final(responseValue) = result else {
+        guard case let .final(responseValue) = result.typed(String.self) else {
             XCTFail("Expected return value to be wrapped in Action.final by default")
             return
         }
-        let response = try XCTUnwrap(responseValue.value as? String)
         
         let queryBuilder = QueryBuilder(
             type: Bird.self,
@@ -78,7 +82,7 @@ final class DatabaseHandlerTests: ApodiniTests {
             ]
         )
         //As Eventloops are currently not working, only the queryBuilder is tested right now.
-        XCTAssertEqual(response, queryBuilder.debugDescription)
+        XCTAssertEqual(responseValue, queryBuilder.debugDescription)
     }
     
     func testUpdateHandler() throws {
@@ -119,7 +123,7 @@ final class DatabaseHandlerTests: ApodiniTests {
 
         let uri = URI("http://example.de/test/id")
         let request = Vapor.Request(
-                application: app,
+                application: vaporApp,
                 method: .PUT,
                 url: uri,
                 collectedBody: bodyData,
@@ -130,17 +134,16 @@ final class DatabaseHandlerTests: ApodiniTests {
             return
         }
         let idParameter = try pathParameter(for: handler)
-        request.parameters.set(":\(idParameter.id)", to: "\(birdId)")
+        request.parameters.set("\(idParameter.id)", to: "\(birdId)")
         
         let result = try context.handle(request: request).wait()
         
-        guard case let .final(responseValue) = result else {
+        guard case let .final(responseValue) = result.typed(String.self) else {
             XCTFail("Expected return value to be wrapped in Action.final by default")
             return
         }
         
-        let response = try XCTUnwrap(responseValue.value as? String)
-        XCTAssert(response == "success")
+        XCTAssert(responseValue == "success")
         expectation(description: "database access").isInverted = true
         waitForExpectations(timeout: 10, handler: nil)
         guard let newBird = try Bird.find(dbBird.id, on: self.app.db).wait() else {
@@ -169,7 +172,7 @@ final class DatabaseHandlerTests: ApodiniTests {
 
         let uri = URI("http://example.de/test/id")
         let request = Vapor.Request(
-                application: app,
+                application: vaporApp,
                 method: .PUT,
                 url: uri,
                 on: app.eventLoopGroup.next()
@@ -184,12 +187,11 @@ final class DatabaseHandlerTests: ApodiniTests {
         request.parameters.set(":\(idParameter.id)", to: "\(birdId)")
         
         let result = try context.handle(request: request).wait()
-        guard case let .final(responseValue) = result else {
+        guard case let .final(response) = result.typed(String.self) else {
             XCTFail("Expected return value to be wrapped in Action.final by default")
             return
         }
         
-        let response = try XCTUnwrap(responseValue.value as? String)
         XCTAssertEqual(response, String(HTTPStatus.ok.code))
         expectation(description: "database access").isInverted = true
         waitForExpectations(timeout: 10, handler: nil)

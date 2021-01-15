@@ -1,8 +1,7 @@
 @testable import Apodini
 import XCTest
-import XCTVapor
 
-class ConfigurationBuilderTests: ApodiniTests {
+class ConfigurationBuilderTests: XCTestCase {
     struct SomeConfiguration: Configuration {
         func configure(_ app: Application) { }
     }
@@ -17,6 +16,19 @@ class ConfigurationBuilderTests: ApodiniTests {
 
     class ConfigureCounter {
         var number = 0
+    }
+
+    // swiftlint:disable implicitly_unwrapped_optional
+    var app: Application!
+
+    override func setUp() {
+        super.setUp()
+        app = Application()
+    }
+
+    override func tearDown() {
+        app.shutdown()
+        super.tearDown()
     }
 
     func testEmptyCollection() throws {

@@ -5,44 +5,46 @@
 //  Created by Paul Schmiedmayer on 6/27/20.
 //
 
-import XCTest
+import XCTVapor
 @testable import Apodini
 
 
 final class ConcatenatedResponseTransformerTests: ApodiniTests {
     private static var firstResponseMediatorExpectation: XCTestExpectation?
     private static var secondResponseMediatorExpectation: XCTestExpectation?
+    private static var thirdResponseMediatorExpectation: XCTestExpectation?
+    
+    
+    struct FirstTestResponseMediator: ResponseTransformer {
+        func transform(content string: String) -> Int {
+            guard let number = Int(string) else {
+                XCTFail("Could not convert \(string) to an `Int`")
+                return 0
+            }
+            
+            ConcatenatedResponseTransformerTests.firstResponseMediatorExpectation?.fulfill()
+            return number
+        }
+    }
+    
+    struct SecondTestResponseMediator: ResponseTransformer {
+        func transform(content number: Int) -> Double {
+            ConcatenatedResponseTransformerTests.secondResponseMediatorExpectation?.fulfill()
+            return Double(number)
+        }
+    }
+    
+    struct ThirdTestResponseMediator: ResponseTransformer {
+        func transform(content number: Double) -> Bool {
+            ConcatenatedResponseTransformerTests.thirdResponseMediatorExpectation?.fulfill()
+            return number == 42.0
+        }
+    }
+    
     
     func testResponseModifer() throws {
-        ConcatenatedResponseTransformerTests.firstResponseMediatorExpectation = self.expectation(description: "First ResponseMediator is exectured")
-        ConcatenatedResponseTransformerTests.secondResponseMediatorExpectation = self.expectation(description: "Second ResponseMediator is exectured")
-        
-        struct FirstTestResponseMediator: ResponseTransformer {
-            func transform(response: String) -> Int {
-                guard let number = Int(response) else {
-                    XCTFail("Could not convert \(response) to an `Int`")
-                    return 0
-                }
-                
-                guard let firstResponseMediatorExpectation = ConcatenatedResponseTransformerTests.firstResponseMediatorExpectation else {
-                    fatalError("The test expectation must be set before testing `FirstTestResponseMediator`")
-                }
-                firstResponseMediatorExpectation.fulfill()
-                
-                return number
-            }
-        }
-        
-        struct SecondTestResponseMediator: ResponseTransformer {
-            func transform(response: Int) -> Double {
-                guard let secondResponseMediatorExpectation = ConcatenatedResponseTransformerTests.secondResponseMediatorExpectation else {
-                    fatalError("The test expectation must be set before testing `SecondTestResponseMediator`")
-                }
-                secondResponseMediatorExpectation.fulfill()
-                
-                return Double(response)
-            }
-        }
+        ConcatenatedResponseTransformerTests.firstResponseMediatorExpectation = self.expectation(description: "First ResponseMediator is executed")
+        ConcatenatedResponseTransformerTests.secondResponseMediatorExpectation = self.expectation(description: "Second ResponseMediator is executed")
         
         
         struct TestWebService: WebService {
@@ -55,7 +57,7 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
         
         TestWebService.main(app: app)
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -64,6 +66,74 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
             
             let content = try res.content.decode(Content.self)
             XCTAssert(content.data == 42.0)
+            waitForExpectations(timeout: 0, handler: nil)
+        }
+    }
+    
+    func testResponseModiferOrder() throws {
+        ConcatenatedResponseTransformerTests.secondResponseMediatorExpectation = self.expectation(description: "Second ResponseMediator is executed")
+        ConcatenatedResponseTransformerTests.thirdResponseMediatorExpectation = self.expectation(description: "Third ResponseMediator is executed")
+        
+        struct Number: Handler {
+            let number: Int
+            
+            init(_ number: Int) {
+                self.number = number
+            }
+            
+            func handle() -> Int {
+                number
+            }
+        }
+        
+        struct TestWebService: WebService {
+            var content: some Component {
+                Number(42)
+                    .response(SecondTestResponseMediator())
+                    .response(ThirdTestResponseMediator())
+            }
+        }
+        
+        TestWebService.main(app: app)
+        
+        try app.vapor.app.test(.GET, "/v1/") { res in
+            XCTAssertEqual(res.status, .ok)
+            
+            struct Content: Decodable {
+                let data: Bool
+            }
+            
+            let content = try res.content.decode(Content.self)
+            XCTAssert(content.data == true)
+            waitForExpectations(timeout: 0, handler: nil)
+        }
+    }
+    
+    func testResponseModiferThree() throws {
+        ConcatenatedResponseTransformerTests.firstResponseMediatorExpectation = self.expectation(description: "First ResponseMediator is executed")
+        ConcatenatedResponseTransformerTests.secondResponseMediatorExpectation = self.expectation(description: "Second ResponseMediator is executed")
+        ConcatenatedResponseTransformerTests.thirdResponseMediatorExpectation = self.expectation(description: "Third ResponseMediator is executed")
+        
+        struct TestWebService: WebService {
+            var content: some Component {
+                Text("42")
+                    .response(FirstTestResponseMediator())
+                    .response(SecondTestResponseMediator())
+                    .response(ThirdTestResponseMediator())
+            }
+        }
+        
+        TestWebService.main(app: app)
+        
+        try app.vapor.app.test(.GET, "/v1/") { res in
+            XCTAssertEqual(res.status, .ok)
+            
+            struct Content: Decodable {
+                let data: Bool
+            }
+            
+            let content = try res.content.decode(Content.self)
+            XCTAssert(content.data == true)
             waitForExpectations(timeout: 0, handler: nil)
         }
     }

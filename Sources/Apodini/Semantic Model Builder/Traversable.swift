@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_implementationOnly import Vapor
+import NIO
 @_implementationOnly import Runtime
 
 // MARK: RequestInjectable
@@ -47,8 +47,7 @@ extension Apodini.Request {
 // MARK: ConnectionContext
 
 extension Connection {
-    func enterConnectionContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>)
-    -> EventLoopFuture<R> {
+    func enterConnectionContext<E, R>(with element: E, executing method: (E) throws -> R) rethrows -> R {
         var element = element
         
         if let request = self.request {
@@ -56,18 +55,7 @@ extension Connection {
         }
         
         self.update(&element)
-        return method(element)
-    }
-    
-    func enterConnectionContext<E, R>(with element: E, executing method: (E) -> R) -> R {
-        var element = element
-        
-        if let request = self.request {
-            request.inject(in: &element)
-        }
-        
-        self.update(&element)
-        return method(element)
+        return try method(element)
     }
     
     private func update<E>(_ element: inout E) {

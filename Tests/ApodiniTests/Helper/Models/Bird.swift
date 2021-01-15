@@ -6,13 +6,12 @@
 //
 
 import Fluent
-import Vapor
-import Apodini
-import ApodiniDatabase
+import Foundation
+@testable import ApodiniDatabase
+@testable import Apodini
 
 final class Bird: DatabaseModel {
     static var schema: String = "Birds"
-    
     
     @ID
     var id: UUID?
