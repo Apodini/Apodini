@@ -53,7 +53,7 @@ struct PathModelBuilder: PathComponentParser {
         let name = currentContext.getContextValue(for: RelationshipNameContextKey.self)
         let hidden = currentContext.getContextValue(for: HideLinkContextKey.self)
         return PathRelationshipContext(
-            relationshipName: name.isEmpty ? nil : name,
+            relationshipName: name,
             linkHidden: hidden
         )
     }

@@ -83,12 +83,14 @@ struct RESTConfiguration {
 }
 
 class RESTInterfaceExporter: InterfaceExporter {
-    let app: Application
+    static let parameterNamespace: [ParameterNamespace] = .individual
+
+    let app: Vapor.Application
     let configuration: RESTConfiguration
 
-    required init(_ app: Application) {
-        self.app = app
-        configuration = RESTConfiguration(app.http.server.configuration)
+    required init(_ app: Apodini.Application) {
+        self.app = app.vapor.app
+        self.configuration = RESTConfiguration(app.vapor.app.http.server.configuration)
     }
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
@@ -101,7 +103,7 @@ class RESTInterfaceExporter: InterfaceExporter {
 
         let exportedParameterNames = endpoint.exportParameters(on: self)
 
-        let endpointHandler = RESTEndpointHandler(for: endpoint, with: endpoint.createConnectionContext(for: self), configuration: configuration)
+        let endpointHandler = RESTEndpointHandler(for: endpoint, using: { endpoint.createConnectionContext(for: self) }, configuration: configuration)
         endpointHandler.register(at: routesBuilder, with: operation)
 
         app.logger.info("Exported '\(operation.httpMethod.rawValue) \(pathBuilder.pathDescription)' with parameters: \(exportedParameterNames)")
@@ -162,12 +164,6 @@ class RESTInterfaceExporter: InterfaceExporter {
                 // If the request doesn't have a body, there is nothing to decide.
                 return nil
             }
-
-            #warning("""
-                     A Handler could define multiple .content Parameters. In such a case the REST exporter would
-                     need to decode the content via a struct containing those .content parameters as properties.
-                     This is currently unsupported.
-                     """)
 
             return try request.content.decode(Type.self, using: JSONDecoder())
         }

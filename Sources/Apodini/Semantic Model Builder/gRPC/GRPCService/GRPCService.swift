@@ -20,9 +20,9 @@ class GRPCService {
     /// - Parameters:
     ///     - name: The name of the service. Will be part of the route at which the service is exposed.
     ///     - handler: The handler method that executes the guards, component's handle method, and modifiers.
-    init(name: String, using app: Vapor.Application) {
+    init(name: String, using app: Application) {
         self.serviceName = name
-        self.app = app
+        self.app = app.vapor.app
     }
 
     internal func checkContentType(request: Vapor.Request) -> Bool {

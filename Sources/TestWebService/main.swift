@@ -38,11 +38,8 @@ struct TestWebService: Apodini.WebService {
     
 
     struct TraditionalGreeter: Handler {
-        // one cannot change their gender, it must be provided
-        @Parameter(.mutability(.constant)) var gender: String
-        // one cannot change their surname, but it can be ommitted
-        @Parameter(.mutability(.constant)) var surname: String = ""
-        // one can switch between formal and informal greeting at any time
+        @Parameter var gender: String
+        @Parameter var surname: String = ""
         @Parameter var name: String?
         
         @Environment(\.connection) var connection: Connection
@@ -72,6 +69,14 @@ struct TestWebService: Apodini.WebService {
 
     struct User: Codable, ResponseTransformable {
         var id: Int
+    }
+    
+    struct Random: Handler {
+        @Parameter var number = Int.random()
+        
+        func handle() -> Int {
+            number
+        }
     }
 
     struct UserHandler: Handler {
@@ -110,6 +115,10 @@ struct TestWebService: Apodini.WebService {
         } content: {
             UserHandler(userId: $userId)
                 .guard(PrintGuard())
+                .description("Returns `User` by id")
+        }
+        Group("rand") {
+            Random()
         }
     }
 }

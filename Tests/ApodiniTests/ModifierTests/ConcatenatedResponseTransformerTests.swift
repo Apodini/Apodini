@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/27/20.
 //
 
-import XCTest
+import XCTVapor
 @testable import Apodini
 
 
@@ -57,7 +57,7 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
         
         TestWebService.main(app: app)
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -96,7 +96,7 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
         
         TestWebService.main(app: app)
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -125,7 +125,7 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
         
         TestWebService.main(app: app)
         
-        try app.test(.GET, "/v1/") { res in
+        try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {

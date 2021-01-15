@@ -7,7 +7,6 @@
 
 import Foundation
 import FCM
-import class Vapor.Application
 
 public struct FCMConfiguration: Configuration {
     let filePath: String
@@ -16,14 +15,13 @@ public struct FCMConfiguration: Configuration {
         self.filePath = filePath
     }
     
-    public func configure(_ app: Vapor.Application) {
+    public func configure(_ app: Application) {
         let serviceAccount = readJSON()
         app.fcm.configuration = .init(email: serviceAccount.client_email,
                                       projectId: serviceAccount.project_id,
                                       key: serviceAccount.private_key,
                                       serverKey: serviceAccount.server_key,
                                       senderId: serviceAccount.sender_id)
-        NotificationCenter.shared.application = app
     }
     
     private func readJSON() -> ServiceAccount {

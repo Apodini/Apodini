@@ -6,7 +6,6 @@
 //
 
 import XCTest
-import Vapor
 import WebSocketInfrastructure
 @testable import Apodini
 
@@ -203,6 +202,33 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
             
             XCTAssertEqual(first.name, name)
         }
+    }
+    
+    func testWebSocketBadTypeError() throws {
+        let builder = SharedSemanticModelBuilder(app)
+            .with(exporter: WebSocketInterfaceExporter.self)
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
+        testService.accept(visitor)
+        visitor.finishParsing()
+
+        try app.start()
+        
+        let client = StatelessClient(using: app.eventLoopGroup.next())
+        
+        
+        let userId = 1234
+        let name = "Rudi"
+
+        struct UserHandlerInput: Encodable {
+            let userId: Int
+            let name: String
+        }
+        
+        do {
+            let user: User = try client.resolve(one: UserHandlerInput(userId: userId, name: name), on: "user.:userId:").wait()
+            _ = user
+            XCTFail("Call should have failed as the userId was provided as int and not string.")
+        } catch { }
     }
 }
 

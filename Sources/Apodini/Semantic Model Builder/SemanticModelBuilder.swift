@@ -5,9 +5,6 @@
 //  Created by Paul Schmiedmayer on 11/3/20.
 //
 
-@_implementationOnly import class Vapor.Application
-
-
 class SemanticModelBuilder {
     private(set) var app: Application
     

@@ -38,9 +38,8 @@ private struct GRPCNothingHandler: Handler {
     }
 }
 
-final class GRPCInterfaceExporterTests: XCTestCase {
+final class GRPCInterfaceExporterTests: ApodiniTests {
     // swiftlint:disable implicitly_unwrapped_optional
-    fileprivate var app: Application!
     fileprivate var service: GRPCService!
     fileprivate var handler: GRPCTestHandler!
     fileprivate var endpoint: Endpoint<GRPCTestHandler>!
@@ -55,19 +54,12 @@ final class GRPCInterfaceExporterTests: XCTestCase {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        app = Application(.testing)
         service = GRPCService(name: serviceName, using: app)
         handler = GRPCTestHandler()
         endpoint = handler.mockEndpoint()
         exporter = GRPCInterfaceExporter(app)
         headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/grpc+proto")
-    }
-
-    override func tearDownWithError() throws {
-        try super.tearDownWithError()
-        let app = try XCTUnwrap(self.app)
-        app.shutdown()
     }
 
     func testDefaultEndpointNaming() throws {
@@ -94,7 +86,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app,
+        let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
                                          url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
                                          version: .init(major: 2, minor: 0),
@@ -124,7 +116,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
         ]
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app,
+        let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
                                          url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
                                          version: .init(major: 2, minor: 0),
@@ -156,7 +148,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app,
+        let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
                                          url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
                                          version: .init(major: 2, minor: 0),
@@ -181,7 +173,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app,
+        let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
                                          url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
                                          on: group.next())
@@ -219,7 +211,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
             [0, 0, 0, 0, 13, 10, 11, 72, 101, 108, 108, 111, 32, 66, 101, 114, 110, 100]
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app,
+        let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
                                          url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
                                          on: group.next())
@@ -254,7 +246,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
             [0, 0, 0, 0, 13, 10, 11, 72, 101, 108, 108, 111, 32, 66, 101, 114, 110, 100]
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app,
+        let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
                                          url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
                                          on: group.next())
@@ -287,7 +279,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
         let context = endpoint.createConnectionContext(for: self.exporter)
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app,
+        let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
                                          url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
                                          on: group.next())
