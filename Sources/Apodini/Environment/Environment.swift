@@ -77,7 +77,7 @@ public struct Environment<K: KeyChain, Value>: Property {
 }
 
 /// Helper struct to add objects to `EnvironmentValues`.
-public struct EnvironmentValue<K: ApodiniKeys, Value> {
+public struct EnvironmentValue<K: KeyChain, Value> {
     /// Initiliazer of `EnvironmentValue`.
     /// Adds key path with value to `EnvironmentValues`.
     public init(_ keyPath: KeyPath<K, Value>, _ value: Value) {
