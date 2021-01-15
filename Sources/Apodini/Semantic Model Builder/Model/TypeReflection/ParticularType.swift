@@ -35,6 +35,10 @@ extension ParticularType: CustomStringConvertible {
     var isOptional: Bool {
         description == "Optional"
     }
+    
+    var isDictionary: Bool {
+        description == "Dictionary"
+    }
 }
 
 // MARK: - ParticularType: Equatable
@@ -56,6 +60,7 @@ extension ParticularType: Equatable {
 }
 
 private let supportedScalarTypes: [Any.Type] = [
+    Int.self,
     Int32.self,
     Int64.self,
     UInt32.self,

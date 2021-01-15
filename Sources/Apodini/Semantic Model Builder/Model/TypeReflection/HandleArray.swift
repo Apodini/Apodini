@@ -35,7 +35,7 @@ func handleArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
         propertyInfo: node.value.propertyInfo,
         propertiesOffset: node.value.propertiesOffset
     )
-    newEnrichedInfo.cardinality = .zeroToMany
+    newEnrichedInfo.cardinality = .zeroToMany(.array)
 
     return Node(value: newEnrichedInfo, children: newNode.children)
 }

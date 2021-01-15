@@ -11,14 +11,76 @@ struct EnrichedInfo {
     enum Cardinality {
         case zeroToOne
         case exactlyOne
-        case zeroToMany
+        case zeroToMany(CollectionContext)
     }
 
-    let typeInfo: TypeInfo
+    enum CollectionContext {
+        case array
+        indirect case dictionary(key: EnrichedInfo, value: EnrichedInfo)
+        
+        var valueType: EnrichedInfo? {
+            switch self {
+            case .dictionary(_, let value):
+                return value
+            default:
+                return nil
+            }
+        }
+    }
+
+    var typeInfo: TypeInfo
     let propertyInfo: PropertyInfo?
     let propertiesOffset: Int?
 
     var cardinality: Cardinality = .exactlyOne
+}
+
+extension EnrichedInfo.Cardinality: Equatable {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case (.zeroToOne, .zeroToOne), (.exactlyOne, .exactlyOne):
+            return true
+        case let (.zeroToMany(lhsCollection), .zeroToMany(rhsCollection)):
+            return (lhsCollection) == (rhsCollection)
+        default:
+            return false
+        }
+    }
+}
+
+extension EnrichedInfo.CollectionContext: Equatable {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case (.array, .array):
+            return true
+        case let (.dictionary(lhsKey, lhsValue), .dictionary(rhsKey, rhsValue)):
+            return (lhsKey, lhsValue) == (rhsKey, rhsValue)
+        default:
+            return false
+        }
+    }
+}
+
+extension EnrichedInfo: Equatable {
+    public static func == (lhs: EnrichedInfo, rhs: EnrichedInfo) -> Bool {
+        if lhs.typeInfo.mangledName != rhs.typeInfo.mangledName {
+            return false
+        }
+        
+        if lhs.propertyInfo?.name != rhs.propertyInfo?.name {
+            return false
+        }
+        
+        if lhs.propertiesOffset != rhs.propertiesOffset {
+            return false
+        }
+        
+        if lhs.cardinality != rhs.cardinality {
+            return false
+        }
+        
+        return true
+    }
 }
 
 extension EnrichedInfo {
