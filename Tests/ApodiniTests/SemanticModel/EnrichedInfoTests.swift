@@ -47,6 +47,17 @@ class EnrichedInfoTests: ApodiniTests {
             )
         )
         XCTAssertNotEqual(
+            EnrichedInfo.Cardinality.zeroToMany(
+                .array
+            ),
+            EnrichedInfo.Cardinality.zeroToMany(
+                .dictionary(
+                    key: keyType,
+                    value: valueType
+                )
+            )
+        )
+        XCTAssertNotEqual(
             EnrichedInfo.Cardinality.zeroToOne,
             EnrichedInfo.Cardinality.exactlyOne
         )
@@ -71,6 +82,11 @@ class EnrichedInfoTests: ApodiniTests {
             propertyInfo: nil,
             propertiesOffset: nil
         )
+        let valueType1 = EnrichedInfo(
+            typeInfo: try typeInfo(of: String.self),
+            propertyInfo: nil,
+            propertiesOffset: nil
+        )
         
         XCTAssertEqual(
             EnrichedInfo.CollectionContext.array,
@@ -83,6 +99,10 @@ class EnrichedInfoTests: ApodiniTests {
         XCTAssertNotEqual(
             EnrichedInfo.CollectionContext.dictionary(key: keyType, value: valueType),
             EnrichedInfo.CollectionContext.array
+        )
+        XCTAssertNotEqual(
+            EnrichedInfo.CollectionContext.dictionary(key: keyType, value: valueType),
+            EnrichedInfo.CollectionContext.dictionary(key: keyType, value: valueType1)
         )
     }
 
