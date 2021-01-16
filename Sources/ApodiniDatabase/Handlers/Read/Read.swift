@@ -29,10 +29,11 @@ public struct Read<Model: DatabaseModel>: Handler {
 
     public func handle() -> EventLoopFuture<[Model]> {
         let queryInfo: [FieldKey: TypeContainer] = _dynamics.typed(Parameter<TypeContainer?>.self)
-            .reduce(into: [FieldKey: TypeContainer](), { result, entry in
+            .reduce(into: [FieldKey: TypeContainer]()) { result, entry in
                 result[Model.fieldKey(for: entry.0)] = entry.1.wrappedValue
-        }).compactMapValues({ $0 })
-            .filter({ (key, value) in value != .noValue })
+            }
+            .compactMapValues { $0 }
+            .filter { (_, value) in value != .noValue }
         let queryBuilder = QueryBuilder(type: Model.self, parameters: queryInfo)
         return queryBuilder.execute(on: database)
     }

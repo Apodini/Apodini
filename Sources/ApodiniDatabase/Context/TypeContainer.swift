@@ -1,12 +1,26 @@
 import Foundation
 import Fluent
-//@testable import Apodini
 
 enum TypeContainer: Codable, Equatable {
-    case string(String), bool(Bool), int(Int), int8(Int8), int16(Int16), int32(Int32), int64(Int64), uint(UInt), uint8(UInt8), uint16(UInt16), uint32(UInt32), uint64(UInt64), uuid(UUID), float(Float), double(Double), noValue
+    case string(String)
+    case bool(Bool)
+    case int(Int)
+    case int8(Int8)
+    case int16(Int16)
+    case int32(Int32)
+    case int64(Int64)
+    case uint(UInt)
+    case uint8(UInt8)
+    case uint16(UInt16)
+    case uint32(UInt32)
+    case uint64(UInt64)
+    case uuid(UUID)
+    case float(Float)
+    case double(Double)
+    case noValue
     
+    // swiftlint:disable cyclomatic_complexity
     init(from decoder: Decoder) throws {
-        // swiftlint:disable cyclomatic_complexity
         let values = try decoder.singleValueContainer()
         self = .noValue
         if let value = try? values.decode(Int.self) {
@@ -42,8 +56,8 @@ enum TypeContainer: Codable, Equatable {
         }
     }
     
+    // swiftlint:disable cyclomatic_complexity
     init(with codable: Codable?) {
-        // swiftlint:disable cyclomatic_complexity
         guard let wrappedValue = codable else {
             self = .noValue
             return
@@ -83,8 +97,8 @@ enum TypeContainer: Codable, Equatable {
         }
     }
     
+    // swiftlint:disable cyclomatic_complexity
     func typed() -> Codable? {
-        // swiftlint:disable cyclomatic_complexity
         switch self {
         case .bool(let value):
             return value
@@ -121,8 +135,8 @@ enum TypeContainer: Codable, Equatable {
         }
     }
     
+    // swiftlint:disable cyclomatic_complexity
     func encode(to encoder: Encoder) throws {
-        // swiftlint:disable cyclomatic_complexity
         var container = encoder.singleValueContainer()
         switch self {
         case .bool(let value):
@@ -158,7 +172,6 @@ enum TypeContainer: Codable, Equatable {
         case .noValue:
             break
         }
-        
     }
 
     var description: String {

@@ -22,8 +22,8 @@ final class UpdaterTests: ApodiniTests {
         }
         
         let updater = Updater<Bird>(parameters, model: nil, modelId: id)
-        let db = try database()
-        let result = try updater.executeUpdate(on: db).wait()
+        let testDatabase = try database()
+        let result = try updater.executeUpdate(on: testDatabase).wait()
         XCTAssert(result.id == dbBird.id)
         XCTAssert(result.name == "FooBird")
     }
@@ -44,8 +44,8 @@ final class UpdaterTests: ApodiniTests {
         }
         
         let updater = Updater<Bird>(nil, model: newBird, modelId: id)
-        let db = try database()
-        let result = try updater.executeUpdate(on: db).wait()
+        let testDatabase = try database()
+        let result = try updater.executeUpdate(on: testDatabase).wait()
         XCTAssert(result == newBird)
     }
 }

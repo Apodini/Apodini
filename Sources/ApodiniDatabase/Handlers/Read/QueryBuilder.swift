@@ -64,8 +64,8 @@ internal struct QueryBuilder<Model: DatabaseModel> {
 }
 
 extension Fluent.QueryBuilder {
+    // swiftlint:disable cyclomatic_complexity
     func filter(key: FieldKey, method: DatabaseQuery.Filter.Method, codableValue: TypeContainer) {
-        // swiftlint:disable cyclomatic_complexity
         switch codableValue {
         case .bool(let value):
             self.filter(key, method, value)
