@@ -136,6 +136,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
 
         let path = OpenAPI.Path(stringLiteral: "/test")
         let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
+            description: endpoint.description,
             parameters: [],
             requestBody: OpenAPI.Request(
                 description: "@Parameter var someStruct: SomeStruct",

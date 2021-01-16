@@ -24,15 +24,19 @@ struct TestWebService: Apodini.WebService {
     
     struct EmojiMediator: ResponseTransformer {
         private let emojis: String
+        private let growth: Int
         
+        @State var amount: Int = 1
         
-        init(emojis: String = "✅") {
+        init(emojis: String = "✅", growth: Int = 1) {
             self.emojis = emojis
+            self.growth = growth
         }
         
         
         func transform(content string: String) -> String {
-            "\(emojis) \(string) \(emojis)"
+            defer { amount *= growth }
+            return "\(String(repeating: emojis, count: amount)) \(string) \(String(repeating: emojis, count: amount))"
         }
     }
     
@@ -61,6 +65,33 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
+    struct Auction: Handler {
+        @Parameter var bid: UInt
+        
+        @Environment(\.connection) var connection: Connection
+        
+        @State var highestBid: UInt = 0
+        
+        static let minimumBid: UInt = 1000
+        
+        func handle() -> Response<String> {
+            if connection.state == .open {
+                if bid > highestBid {
+                    highestBid = bid
+                    return .send("accepted")
+                } else {
+                    return .send("denied")
+                }
+            } else {
+                if highestBid >= Self.minimumBid {
+                    return .final("sold")
+                } else {
+                    return .final("not sold")
+                }
+            }
+        }
+    }
+    
     @propertyWrapper
     struct UselessWrapper: DynamicProperty {
         @Parameter var name: String?
@@ -72,6 +103,14 @@ struct TestWebService: Apodini.WebService {
 
     struct User: Codable, ResponseTransformable {
         var id: Int
+    }
+    
+    struct Random: Handler {
+        @Parameter var number = Int.random()
+        
+        func handle() -> Int {
+            number
+        }
     }
 
     struct UserHandler: Handler {
@@ -109,6 +148,14 @@ struct TestWebService: Apodini.WebService {
         } content: {
             UserHandler(userId: $userId)
                 .guard(PrintGuard())
+                .description("Returns `User` by id")
+        }
+        Group("auction") {
+            Auction()
+                .response(EmojiMediator(emojis: "🤑", growth: 2))
+        }
+        Group("rand") {
+            Random()
         }
     }
 }

@@ -141,7 +141,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         let endpoint = handler.mockEndpoint()
         var context = endpoint.createConnectionContext(for: exporter)
 
-        let request = Vapor.Request(application: app,
+        let request = Vapor.Request(application: app.vapor.app,
                                     method: .GET,
                                     url: "",
                                     on: app.eventLoopGroup.next())
@@ -161,7 +161,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         let handler = ActionHandler1()
         let endpoint = handler.mockEndpoint()
         var context = endpoint.createConnectionContext(for: exporter)
-        let request = Vapor.Request(application: app,
+        let request = Vapor.Request(application: app.vapor.app,
                                     method: .GET,
                                     url: "",
                                     on: app.eventLoopGroup.next())
@@ -179,7 +179,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         let handler = ActionHandler1().environment(Connection(state: .end), for: \EnvironmentValues.connection)
         let endpoint = handler.mockEndpoint()
         var context = endpoint.createConnectionContext(for: exporter)
-        let request = Vapor.Request(application: app,
+        let request = Vapor.Request(application: app.vapor.app,
                                     method: .GET,
                                     url: "",
                                     on: app.eventLoopGroup.next())
@@ -197,7 +197,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         let handler = ActionHandler2()
         let endpoint = handler.mockEndpoint()
         var context = endpoint.createConnectionContext(for: exporter)
-        let request = Vapor.Request(application: app,
+        let request = Vapor.Request(application: app.vapor.app,
                                     method: .GET,
                                     url: "",
                                     on: app.eventLoopGroup.next())
@@ -215,7 +215,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
         let handler = ActionHandler2().environment(Connection(state: .end), for: \EnvironmentValues.connection)
         let endpoint = handler.mockEndpoint()
         var context = endpoint.createConnectionContext(for: exporter)
-        let request = Vapor.Request(application: app,
+        let request = Vapor.Request(application: app.vapor.app,
                                     method: .GET,
                                     url: "",
                                     on: app.eventLoopGroup.next())

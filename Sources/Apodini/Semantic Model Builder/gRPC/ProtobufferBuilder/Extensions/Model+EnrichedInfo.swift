@@ -11,9 +11,8 @@ extension ProtobufferMessage.Property {
             return nil
         }
         
-        let particularType = ParticularType(info.typeInfo.type)
         let name = info.propertyInfo?.name ?? ""
-        let suffix = particularType.isPrimitive ? "" : "Message"
+        let suffix = isSupportedScalarType(info.typeInfo.type) ? "" : "Message"
         let typeName = try info.typeInfo.compatibleName() + suffix
         let uniqueNumber = info.propertyInfo?.offset ?? 0
         

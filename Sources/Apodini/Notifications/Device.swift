@@ -1,12 +1,12 @@
 //
-//  File.swift
+//  DeviceDatabaseModel.swift
 //  
 //
 //  Created by Alexander Collins on 14.11.20.
 //
 
+import Foundation
 import Fluent
-import Vapor
 
 public final class DeviceDatabaseModel: Model {
     public static let schema = "notification_device"

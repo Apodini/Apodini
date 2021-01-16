@@ -7,13 +7,6 @@
 
 import Foundation
 
-/// `@Parameter` categorization needed for certain interface exporters (e.g., HTTP-based).
-enum EndpointParameterType {
-    case lightweight
-    case content
-    case path
-}
-
 /// Defines the necessity of a `EndpointParameter`
 enum Necessity {
     case required
@@ -66,9 +59,9 @@ protocol AnyEndpointParameter: CustomStringConvertible {
     /// Defines the `Necessity` of the parameter.
     var necessity: Necessity { get }
     /// Defines the `EndpointParameterType` of the parameter.
-    var parameterType: EndpointParameterType { get }
+    var parameterType: ParameterType { get }
     /// Specifies the default value for the parameter. Nil if the parameter doesn't have a default value.
-    var typeErasuredDefaultValue: Any? { get }
+    var typeErasuredDefaultValue: (() -> Any)? { get }
 
     /// See `CustomStringConvertible`
     var description: String { get }
@@ -81,7 +74,7 @@ protocol AnyEndpointParameter: CustomStringConvertible {
     ///
     /// - Parameter exporter: The `InterfaceExporter`.
     /// - Returns: Returns what `InterfaceExporter.retrieveParameter(...)` returns.
-    func exportParameter<I: InterfaceExporter>(on exporter: I) -> I.ParameterExportOutput
+    func exportParameter<I: BaseInterfaceExporter>(on exporter: I) -> I.ParameterExportOutput
 
     func derivePathParameterModel() -> EndpointPath
 }
@@ -109,10 +102,11 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
     let nilIsValidValue: Bool
     let options: PropertyOptionSet<ParameterOptionNameSpace>
     let necessity: Necessity
-    let parameterType: EndpointParameterType
+    let parameterType: ParameterType
 
-    let defaultValue: Type?
-    var typeErasuredDefaultValue: Any? {
+    
+    let defaultValue: (() -> Type)?
+    var typeErasuredDefaultValue: (() -> Any)? {
         defaultValue
     }
 
@@ -124,7 +118,7 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
          nilIsValidValue: Bool,
          necessity: Necessity,
          options: PropertyOptionSet<ParameterOptionNameSpace>,
-         defaultValue: Type? = nil
+         defaultValue: (() -> Type)? = nil
     ) {
         self.id = id
         self.name = name
@@ -140,8 +134,8 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
         if nilIsValidValue {
             description += "?"
         }
-        if let `default` = defaultValue {
-            description += " = \(`default`)"
+        if let defaultValue = defaultValue {
+            description += " = \(defaultValue())"
         }
         self.description = description
 
@@ -167,20 +161,19 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
         try visitor.visit(parameter: self)
     }
 
-    func exportParameter<I: InterfaceExporter>(on exporter: I) -> I.ParameterExportOutput {
+    func exportParameter<I: BaseInterfaceExporter>(on exporter: I) -> I.ParameterExportOutput {
         exporter.exportParameter(self)
     }
 }
 
 // MARK: Endpoint Parameter
 extension Array where Element == AnyEndpointParameter {
-    func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
+    func exportParameters<I: BaseInterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
         self.map { parameter -> I.ParameterExportOutput in
             parameter.exportParameter(on: exporter)
         }
     }
 }
-
 
 protocol LosslessStringConvertibleEndpointParameter {
     /// Initializes a type `T` for which you know that it conforms to `LosslessStringConvertible`.

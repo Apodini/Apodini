@@ -11,15 +11,18 @@ extension Never: ExporterRequest {}
 
 class ProtobufferInterfaceExporter: InterfaceExporter {
     typealias ExporterRequest = Never
-    
-    private let app: Vapor.Application
+
+    let app: Application
+    let vaporApp: Vapor.Application
     private let builder: ProtobufferBuilder
     
     required init(_ app: Application) {
         self.app = app
+        self.vaporApp = app.vapor.app
+
         self.builder = ProtobufferBuilder()
         
-        self.app.get("apodini", "proto") { _ in
+        self.vaporApp.get("apodini", "proto") { _ in
             self.builder.description
         }
     }

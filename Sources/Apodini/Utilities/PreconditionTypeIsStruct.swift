@@ -1,16 +1,16 @@
 //
-//  AssertTypeIsStruct.swift
+//  PreconditionTypeIsStruct.swift
 //  
 //
 //  Created by Paul Schmiedmayer on 1/11/21.
 //
 
-import Runtime
+@_implementationOnly import Runtime
 
 
 /// - parameter T: The type for which to assert that it is a struct
 /// - parameter messagePrefix: An optional string which will be prefixed to the "T must be a struct" message
-internal func assertTypeIsStruct<T>(_: T.Type, messagePrefix: String? = nil) {
+internal func preconditionTypeIsStruct<T>(_: T.Type, messagePrefix: String? = nil) {
     guard let typeInfo = try? Runtime.typeInfo(of: T.self) else {
         fatalError("Unable to get type info for type '\(T.self)'")
     }

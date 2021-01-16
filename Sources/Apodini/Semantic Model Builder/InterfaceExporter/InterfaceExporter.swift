@@ -25,6 +25,11 @@ protocol BaseInterfaceExporter {
     /// Defines the return type of the `exportParameter` method. For more details see `exportParameter(...)`
     associatedtype ParameterExportOutput = Void
 
+    /// This property can be used to define the `ParameterNamespace` for `EndpointParameter`s as allowed by the type of Exporter.
+    /// This property is optional to implement and will default to the most strict namespace `.global`,
+    /// enforcing Parameter names to be unique across all different `ParameterType`s.
+    static var parameterNamespace: [ParameterNamespace] { get }
+
     init(_ app: Application)
 
     /// This method is called for every `Endpoint` on start up, which must be exporter
@@ -84,6 +89,15 @@ protocol InterfaceExporter: BaseInterfaceExporter {
     /// - Throws: Any Apodini Error or any other error happening while decoding.
     func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type??
 }
+
+extension BaseInterfaceExporter {
+    static var parameterNamespace: [ParameterNamespace] {
+        // default namespace (and most strictest namespace)
+        // forces parameter names to be unique across all parameter types
+        .global
+    }
+}
+
 
 // MARK: Interface Exporter Visitor
 extension InterfaceExporter {

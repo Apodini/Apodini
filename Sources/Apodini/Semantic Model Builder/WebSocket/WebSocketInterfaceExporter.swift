@@ -5,8 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-@_implementationOnly import Vapor
-@_implementationOnly import Fluent
+import Fluent
 @_implementationOnly import WebSocketInfrastructure
 @_implementationOnly import OpenCombine
 @_implementationOnly import Runtime
@@ -45,22 +44,15 @@ extension BasicInputParameter: ReducibleParameter {
 }
 
 class WebSocketInterfaceExporter: InterfaceExporter {
-    typealias ExporterRequest = SomeInput
-    
-    typealias EndpointExportOuput = Void
-    
-    typealias ParameterExportOuput = InputParameter
-    
-    
     private let app: Application
     
     private let router: WebSocketInfrastructure.Router
     
     required init(_ app: Application) {
         self.app = app
-        self.router = VaporWSRouter(app)
+        self.router = VaporWSRouter(app.vapor.app)
     }
-    
+
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self)
         
@@ -113,7 +105,8 @@ class WebSocketInterfaceExporter: InterfaceExporter {
                 receiveValue: { inputValue in
                     Self.handleRegularInput(result: inputValue, output: output)
                 }
-            ).store(in: &cancellables)
+            )
+            .store(in: &cancellables)
 
 
             return (defaultInput: emptyInput, output: output.eraseToAnyPublisher())
