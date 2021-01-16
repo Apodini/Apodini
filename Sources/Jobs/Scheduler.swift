@@ -18,6 +18,7 @@ public class Scheduler {
     
     internal var jobConfigurations: [ObjectIdentifier: JobConfiguration] = [:]
     
+    /// Empty intializer to create a Singleton.
     private init() { }
     
     /// Schedules a `Job` on an event loop.
@@ -92,13 +93,9 @@ private extension Scheduler {
     
     /// Checks if only valid property wrappers are used with `Job`s.
     func checkPropertyWrappers<T: Job>(_ job: T) throws {
-        for property in Mirror(reflecting: job).children {
-            switch property.value {
-            case is PathComponent, is Connection:
-                throw JobErrors.requestPropertyWrapper
-            default:
-                continue
-            }
+        for property in Mirror(reflecting: job).children
+        where property.value is PathComponent || property.value is Connection {
+            throw JobErrors.requestPropertyWrapper
         }
     }
     

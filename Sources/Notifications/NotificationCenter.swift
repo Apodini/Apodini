@@ -47,8 +47,10 @@ public class NotificationCenter {
         app.fcm
     }
     
+    /// Empty intializer to create a Singleton.
     private init() { }
     
+    /// Sets the `application` property if the `NotificationCenter` was correctly configured.
     internal func setup(_ application: Application) {
         if self.application == nil {
             self.application = application
@@ -67,24 +69,7 @@ public class NotificationCenter {
             .save(on: app.db)
             .flatMap { _ -> EventLoopFuture<Void> in
                 if let topics = device.topics {
-                    return topics
-                        .map {
-                            let topic = Topic(name: $0)
-                            return Topic
-                                .query(on: self.app.db)
-                                .filter(\.$name == topic.name)
-                                .first()
-                                .flatMap { result -> EventLoopFuture<Void> in
-                                    if let topic = result {
-                                        return deviceDatabaseModel.$topics.attach(topic, on: self.app.db)
-                                    } else {
-                                        return topic.save(on: self.app.db).flatMap {
-                                            deviceDatabaseModel.$topics.attach(topic, on: self.app.db)
-                                        }
-                                    }
-                                }
-                        }
-                        .flatten(on: self.app.db.eventLoop)
+                    return self.attach(topics: topics, to: deviceDatabaseModel)
                 } else {
                     return self.app.eventLoopGroup.future(())
                 }
@@ -155,7 +140,11 @@ public class NotificationCenter {
             }
             .first()
             .unwrap(or: Abort(.notFound))
-            .map { topic in topic.devices.map { $0.transform() } }
+            .map { topic in
+                topic.devices.map {
+                    $0.transform()
+                }
+            }
     }
     
     /// Adds a variadic number of  topic to one or more `Device`s.
@@ -171,23 +160,7 @@ public class NotificationCenter {
             .find(device.id, on: app.db)
             .unwrap(or: Abort(.notFound))
             .flatMap { deviceDatabaseModel -> EventLoopFuture<Void> in
-                topicStrings.map {
-                    let topic = Topic(name: $0)
-                    return Topic
-                        .query(on: self.app.db)
-                        .filter(\.$name == topic.name)
-                        .first()
-                        .flatMap { result -> EventLoopFuture<Void> in
-                            if let topic = result {
-                                return deviceDatabaseModel.$topics.attach(topic, on: self.app.db)
-                            } else {
-                                return topic.save(on: self.app.db).flatMap {
-                                    deviceDatabaseModel.$topics.attach(topic, on: self.app.db)
-                                }
-                            }
-                        }
-                }
-                .flatten(on: self.app.db.eventLoop)
+                self.attach(topics: topicStrings, to: deviceDatabaseModel)
             }
     }
     
@@ -227,6 +200,30 @@ public class NotificationCenter {
             .unwrap(or: Abort(.notFound))
             .flatMap { $0.delete(on: self.app.db) }
     }
+    
+    private func attach(topics: [String], to device: DeviceDatabaseModel) -> EventLoopFuture<Void> {
+        topics.map {
+            attach(topic: $0, to: device)
+        }
+        .flatten(on: app.db.eventLoop)
+    }
+    
+    private func attach(topic topicString: String, to device: DeviceDatabaseModel) -> EventLoopFuture<Void> {
+        let topic = Topic(name: topicString)
+        return Topic
+                .query(on: self.app.db)
+                .filter(\.$name == topic.name)
+                .first()
+                .flatMap { result in
+                    if let topic = result {
+                        return device.$topics.attach(topic, on: self.app.db)
+                    } else {
+                        return topic.save(on: self.app.db).flatMap {
+                            device.$topics.attach(topic, on: self.app.db)
+                        }
+                    }
+                }
+        }
 }
 
 enum NotificationCenterEnvironmentKey: EnvironmentKey {

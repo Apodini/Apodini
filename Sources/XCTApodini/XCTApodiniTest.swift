@@ -24,8 +24,6 @@ open class XCTApodiniTest: XCTestCase {
     }
     
     open func addMigrations(_ migrations: Migration...) throws {
-        let app = try XCTUnwrap(self.app)
-        
         app.databases.use(
             .sqlite(.memory),
             as: .init(string: "ApodiniTest"),

@@ -20,6 +20,7 @@ public final class DeviceDatabaseModel: Model {
     @Siblings(through: DeviceTopic.self, from: \.$device, to: \.$topic)
     public var topics: [Topic]
     
+    /// Empty intializer used by Fluent.
     public init() { }
     
     public init(id: String, type: DeviceType) {
@@ -48,6 +49,7 @@ public final class DeviceTopic: Model {
     @Parent(key: .topicId)
     public var topic: Topic
     
+    /// Empty intializer used by Fluent.
     public init() { }
     
     init(id: UUID? = nil, device: DeviceDatabaseModel, topic: Topic) throws {
@@ -69,6 +71,7 @@ public final class Topic: Model {
     @Siblings(through: DeviceTopic.self, from: \.$topic, to: \.$device)
     public var devices: [DeviceDatabaseModel]
     
+    /// Empty intializer used by Fluent.
     public init() { }
     
     public init(name: String) {
