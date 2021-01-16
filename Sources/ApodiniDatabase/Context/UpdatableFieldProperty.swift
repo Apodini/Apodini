@@ -1,24 +1,26 @@
 import Fluent
 
+/// A protocol all field property visitors that want to update values of a `FieldProperty` have to conform to.
+/// It returns whatever has been specified as `Value`.
 protocol UpdatableFieldPropertyVisitor where Value: Codable {
     associatedtype Value
 
     func visit<Model, V>(_ property: inout FieldProperty<Model, V>) -> Value
 }
 
+/// A protocol to make the `FieldProperty` of a database model updatable at run time.
+/// It returns `true` if the update of the given `FieldProperty` was successful, else `false`
 protocol UpdatableFieldProperty {
     func accept<Visitor: UpdatableFieldPropertyVisitor>(_ visitor: Visitor) -> Visitor.Value where Visitor.Value == Bool
 }
 
+/// A concrete implementation of the `UpdatableFieldPropertyVisitor` that updates a given `FieldProperty` and returns an `true` if the update was successful
 struct ConcreteUpdatableFieldPropertyVisitor: UpdatableFieldPropertyVisitor {
     typealias Value = Bool
     
     let updater: AnyCodable
     
     func visit<Model, V>(_ property: inout FieldProperty<Model, V>) -> Bool where Model : Fields, V : Decodable, V : Encodable {
-        print(property.value)
-//        print(updater.wrappedValue)
-        print(updater.wrappedType)
         guard let type = updater.wrappedType else { return false }
         if let value = updater.wrappedType?.typed() as? V {
             property.value = value
