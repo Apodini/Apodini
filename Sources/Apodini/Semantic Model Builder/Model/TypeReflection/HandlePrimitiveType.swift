@@ -6,7 +6,7 @@
 //
 
 func handlePrimitiveType(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
-    ParticularType(node.value.typeInfo.type).isPrimitive
+    isSupportedScalarType(node.value.typeInfo.type)
         ? Node(value: node.value, children: [])
         : node
 }
