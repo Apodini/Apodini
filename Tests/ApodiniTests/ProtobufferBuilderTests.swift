@@ -307,6 +307,49 @@ extension ProtobufferBuilderTests {
         
         try testWebService(WebService.self, expectation: expected)
     }
+    
+    func testServiceParameterOptionGRPC() throws {
+        struct WebService: Apodini.WebService {
+            var content: some Component {
+                LogarithmTester()
+            }
+        }
+        
+        struct LogarithmTester: Handler {
+            @Parameter(.gRPC(.fieldTag(3)))
+            var base: Double
+            
+            @Parameter
+            var exponent: Double
+            
+            @Parameter(.gRPC(.fieldTag(1)))
+            var solution: Double
+            
+            func handle() -> Bool {
+                log(exponent) / log(base) == solution
+            }
+        }
+        
+        let expected = """
+            syntax = "proto3";
+
+            service V1Service {
+              rpc logarithmtester (LogarithmTesterMessage) returns (BoolMessage);
+            }
+
+            message BoolMessage {
+              bool value = 1;
+            }
+
+            message LogarithmTesterMessage {
+              double solution = 1;
+              double exponent = 2;
+              double base = 3;
+            }
+            """
+        
+        try testWebService(WebService.self, expectation: expected)
+    }
 }
 
 // MARK: - Test Misc

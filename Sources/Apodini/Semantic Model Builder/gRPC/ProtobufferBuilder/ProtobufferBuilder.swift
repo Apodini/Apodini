@@ -18,7 +18,27 @@ class ProtobufferBuilder {
         let serviceName = endpoint.serviceName
         let methodName = endpoint.methodName
         
-        let inputNode: Node<ProtobufferMessage> = try ProtobufferMessage.node(H.self)
+        var inputNode = try ProtobufferMessage.node(H.self)
+        
+        let uniqueNumbers = endpoint.parameters.map { $0.options.option(for: .gRPC)?.fieldNumber }
+        let propertiesWithOption = zip(inputNode.value.properties.sorted(by: \.uniqueNumber), uniqueNumbers)
+            .map { property, uniqueNumber in
+                ProtobufferMessage.Property(
+                    fieldRule: property.fieldRule,
+                    name: property.name,
+                    typeName: property.typeName,
+                    uniqueNumber: uniqueNumber ?? property.uniqueNumber
+                )
+            }
+        
+        inputNode = Node(
+            value: ProtobufferMessage(
+                name: inputNode.value.name,
+                properties: Set(propertiesWithOption)
+            ),
+            children: inputNode.children
+        )
+        
         let outputNode = try ProtobufferMessage.node(endpoint.responseType)
         
         for node in [inputNode, outputNode] {
