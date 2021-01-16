@@ -5,7 +5,6 @@ extension DatabaseConfiguration {
     /// 
     /// This will add the models: `DeviceDatabaseModel`, `DeviceTopic`, and `Topic` to the database.
     public func addNotifications() -> Self {
-        _ = self.addMigrations(DeviceMigration())
-        return self
+        self.addMigrations(DeviceMigration())
     }
 }

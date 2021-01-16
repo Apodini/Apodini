@@ -106,7 +106,7 @@ private extension Scheduler {
                                                        _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
         let identifier = ObjectIdentifier(keyPath)
         let jobConfiguration = try JobConfiguration(SwifCron(cronTrigger))
-        _ = EnvironmentValue(keyPath, job)
+        EnvironmentValue(keyPath, job)
         jobConfigurations[identifier] = jobConfiguration
         
         return jobConfiguration

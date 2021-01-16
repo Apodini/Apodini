@@ -80,6 +80,7 @@ public struct Environment<K: KeyChain, Value>: Property {
 public struct EnvironmentValue<K: KeyChain, Value> {
     /// Initiliazer of `EnvironmentValue`.
     /// Adds key path with value to `EnvironmentValues`.
+    @discardableResult
     public init(_ keyPath: KeyPath<K, Value>, _ value: Value) {
         EnvironmentValues.shared.values[ObjectIdentifier(keyPath)] = value
     }
