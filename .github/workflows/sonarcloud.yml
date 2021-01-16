@@ -29,6 +29,8 @@ jobs:
         run: xcodebuild -resultBundlePath Apodini.xcresult -scheme Apodini-Package test -enableCodeCoverage YES
       - name: Gather Test Coverage
         run: ./.github/workflows/cococo Apodini.xcresult > Apodini-Coverage.xml
+      - name: Run SwiftLint
+        run: swiftlint lint --reporter json > swiftlint.json
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
