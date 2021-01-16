@@ -16,13 +16,5 @@ final class QueryBuilderTests: ApodiniTests {
         let birds = try queryBuilder.execute(on: app.db).wait()
         XCTAssert(birds.count == 1)
         XCTAssert(birds[0].name == "Swift")
-        
-        let info = QueryBuilder.info(for: Bird.self)
-        let expectedInfo: [ModelInfo] = [
-//            ModelInfo(key: Bird.fieldKey(for: "id"), value: AnyCo(UUID.self, key: Bird.fieldKey(for: "id"))),
-//            ModelInfo(key: Bird.fieldKey(for: "name"), value: AnyGenericCodable(String.self, key: Bird.fieldKey(for: "name"))),
-//            ModelInfo(key: Bird.fieldKey(for: "age"), value: AnyGenericCodable(Int.self, key: Bird.fieldKey(for: "age")))
-        ]
-        XCTAssertEqual(info, expectedInfo, "Expected: \(expectedInfo)\n Found: \(info)")
     }
 }

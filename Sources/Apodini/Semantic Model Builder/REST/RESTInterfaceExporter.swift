@@ -137,15 +137,11 @@ class RESTInterfaceExporter: InterfaceExporter {
         case .lightweight:
             // Note: Vapor also supports decoding into a struct which holds all query parameters. Though we have the requirement,
             //   that .lightweight parameter types conform to LosslessStringConvertible, meaning our DSL doesn't allow for that right now
-            print("lightweight")
-            print(parameter)
             guard let query = request.query[Type.self, at: parameter.name] else {
                 return nil // the query parameter doesn't exists
             }
             return query
         case .path:
-            print("path")
-            print(parameter)
             guard let stringParameter = request.parameters.get(parameter.pathId) else {
                 return nil // the path parameter didn't exist on that request
             }

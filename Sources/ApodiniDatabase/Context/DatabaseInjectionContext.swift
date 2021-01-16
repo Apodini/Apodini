@@ -12,11 +12,11 @@ protocol DatabaseInjectionContext {
 ///A struct implementing `DatabaseInjectionContext` and containing a fieldkey and the expected type for that key.
 struct ModelInfo: DatabaseInjectionContext, Equatable {
     ///A concrete `Fluent.FieldKey`
-    public var key: FieldKey
+    var key: FieldKey
     ///A concrete type for that fieldkey
-    public var value: TypeContainer
+    var value: TypeContainer
     
-    public static func == (lhs: ModelInfo, rhs: ModelInfo) -> Bool {
+    static func == (lhs: ModelInfo, rhs: ModelInfo) -> Bool {
         lhs.key == rhs.key
     }
 }
