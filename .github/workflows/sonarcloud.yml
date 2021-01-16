@@ -19,6 +19,8 @@ jobs:
           xcode-version: latest
       - name: Install xcparse
         run: brew install chargepoint/xcparse/xcparse
+      - name: Install sonar-scanner
+        run: brew install sonar-scanner
       - uses: actions/cache@v2
         with:
           path: .build
@@ -35,8 +37,8 @@ jobs:
         run: sh ./.github/workflows/sonarcloud.sh action.xccovarchive > Apodini-Coverage.xml
       - name: Run SwiftLint
         run: swiftlint lint --reporter json > swiftlint.json
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+      - name: Run Sonar-Scan
+        run: sonar-scanner
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
