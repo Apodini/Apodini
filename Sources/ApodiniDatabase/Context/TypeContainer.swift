@@ -1,4 +1,6 @@
 import Foundation
+import Fluent
+//@testable import Apodini
 
 enum TypeContainer: Codable, Equatable {
     case string(String), bool(Bool), int(Int), int8(Int8), int16(Int16), int32(Int32), int64(Int64), uint(UInt), uint8(UInt8), uint16(UInt16), uint32(UInt32), uint64(UInt64), uuid(UUID), float(Float), double(Double), noValue
@@ -36,43 +38,6 @@ enum TypeContainer: Codable, Equatable {
             self = .bool(value)
         } else if let value = try? values.decode(String.self) {
             self = .string(value)
-        }
-    }
-    
-    init(with anyCodable: AnyCodable?) {
-        guard let wrappedValue = anyCodable?.wrappedValue else { self = .noValue; return }
-        if let value = wrappedValue as? Int {
-            self = .int(value)
-        } else if let value = wrappedValue as? Int8 {
-            self = .int8(value)
-        } else if let value = wrappedValue as? Int16 {
-            self = .int16(value)
-        } else if let value = wrappedValue as? Int32 {
-            self = .int32(value)
-        } else if let value = wrappedValue as? Int64 {
-            self = .int64(value)
-        } else if let value = wrappedValue as? UInt {
-            self = .uint(value)
-        } else if let value = wrappedValue as? UInt8 {
-            self = .uint8(value)
-        } else if let value = wrappedValue as? UInt16 {
-            self = .uint16(value)
-        } else if let value = wrappedValue as? UInt32 {
-            self = .uint32(value)
-        } else if let value = wrappedValue as? UInt64 {
-            self = .uint64(value)
-        } else if let value = wrappedValue as? Double {
-            self = .double(value)
-        } else if let value = wrappedValue as? Float {
-            self = .float(value)
-        } else if let value = wrappedValue as? UUID {
-            self = .uuid(value)
-        } else if let value = wrappedValue as? Bool {
-            self = .bool(value)
-        } else if let value = wrappedValue as? String {
-            self = .string(value)
-        } else {
-            self = .noValue
         }
     }
     
@@ -190,8 +155,12 @@ enum TypeContainer: Codable, Equatable {
     }
 
     var description: String {
-        String(reflecting: self)
+        self.typed().debugDescription
     }
-    
 }
 
+extension TypeContainer: LosslessStringConvertible {
+    public init?(_ description: String) {
+        self = .noValue
+    }
+}

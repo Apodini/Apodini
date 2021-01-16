@@ -19,7 +19,7 @@ public struct Read<Model: DatabaseModel>: Handler {
     private var dynamics: [String: Apodini.Property]
     
     public init() {
-        var dynamicValues: [String: Parameter<AnyCodable?>] = [:]
+        var dynamicValues: [String: Parameter<TypeContainer?>] = [:]
         let infos = QueryBuilder.info(for: Model.self)
         for info in infos {
             dynamicValues[info.key.description] = QueryBuilder<Model>.parameter(for: info.value)
@@ -28,11 +28,11 @@ public struct Read<Model: DatabaseModel>: Handler {
     }
 
     public func handle() -> EventLoopFuture<[Model]> {
-        let queryInfo: [FieldKey: AnyCodable] = _dynamics.typed(Parameter<AnyCodable?>.self)
-            .reduce(into: [FieldKey: AnyCodable](), { result, entry in
+        let queryInfo: [FieldKey: TypeContainer] = _dynamics.typed(Parameter<TypeContainer?>.self)
+            .reduce(into: [FieldKey: TypeContainer](), { result, entry in
                 result[Model.fieldKey(for: entry.0)] = entry.1.wrappedValue
         }).compactMapValues({ $0 })
-            .filter({ (key, value) in value.wrappedType != .noValue })
+            .filter({ (key, value) in value != .noValue })
         let queryBuilder = QueryBuilder(type: Model.self, parameters: queryInfo)
         return queryBuilder.execute(on: database)
     }

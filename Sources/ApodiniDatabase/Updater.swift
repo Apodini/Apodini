@@ -5,14 +5,14 @@ import Fluent
 /// An Updater classed which is used internally by the `Update` handler. It can take model or single parameters of a model to update
 /// the model found in the database.
 internal struct Updater<Model: DatabaseModel> {
-    var properties: [FieldKey: AnyCodable]?
+    var properties: [FieldKey: TypeContainer]?
     
     var model: Model?
     var modelID: Model.IDValue?
     
-    init(_ properties: [String: AnyCodable]?, model: Model?, modelId: Model.IDValue) {
+    init(_ properties: [String: TypeContainer]?, model: Model?, modelId: Model.IDValue) {
         if let properties = properties {
-            self.properties = properties.reduce(into: [FieldKey: AnyCodable](), { result, entry in
+            self.properties = properties.reduce(into: [FieldKey: TypeContainer](), { result, entry in
                 result[Model.fieldKey(for: entry.0)] = entry.1
             })
         }

@@ -9,8 +9,8 @@ public struct Update<Model: DatabaseModel>: Handler {
     @Apodini.Environment(\.database)
     private var database: Fluent.Database
     
-    @Parameter<[String: AnyCodable]>
-    private var parameters: [String: AnyCodable]
+    @Parameter<[String: TypeContainer]>
+    private var parameters: [String: TypeContainer]
     
     @Parameter
     private var object: Model?

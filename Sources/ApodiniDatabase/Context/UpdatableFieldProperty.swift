@@ -18,11 +18,10 @@ protocol UpdatableFieldProperty {
 struct ConcreteUpdatableFieldPropertyVisitor: UpdatableFieldPropertyVisitor {
     typealias Value = Bool
     
-    let updater: AnyCodable
+    let updater: TypeContainer
     
     func visit<Model, V>(_ property: inout FieldProperty<Model, V>) -> Bool where Model : Fields, V : Decodable, V : Encodable {
-        guard let type = updater.wrappedType else { return false }
-        if let value = updater.wrappedType?.typed() as? V {
+        if let value = updater.typed() as? V {
             property.value = value
             return true
         }

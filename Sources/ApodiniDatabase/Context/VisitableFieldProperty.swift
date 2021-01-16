@@ -3,13 +3,13 @@ import Fluent
 /// A protocol to make the `FieldProperty` of a database model accessible at run time.
 /// It returns an `AnyCodable` object which contains the value associated with this `FieldProperty`
 protocol VisitableFieldProperty {
-    func accept<Visitor: FieldPropertyVisitor>(_ visitor: Visitor) -> Visitor.Value where Visitor.Value == AnyCodable
+    func accept<Visitor: FieldPropertyVisitor>(_ visitor: Visitor) -> Visitor.Value where Visitor.Value == TypeContainer
 }
 
 /// A protocol to make the `FieldProperty` of a database model accessible at run time.
 /// It returns an `AnyCodable` object which contains the value associated with this `IDProperty`
 protocol VisitableIDProperty {
-    func accept<Visitor: IDPropertyVisitor>(_ visitor: Visitor) -> Visitor.Value where Visitor.Value == AnyCodable
+    func accept<Visitor: IDPropertyVisitor>(_ visitor: Visitor) -> Visitor.Value where Visitor.Value == TypeContainer
 }
 
 /// A protocol all field property visitors have to conform to. It returns whatever has been specified as `Value`.
@@ -29,20 +29,21 @@ protocol IDPropertyVisitor where Value: Codable {
 
 /// A concrete implementation of the `FieldPropertyVisitor` that visits a given `FieldProperty` and returns an `AnyCodable` object
 struct ConcreteTypeVisitor: FieldPropertyVisitor {
-    typealias Value = AnyCodable
+    typealias Value = TypeContainer
     
     func visit<Model, V>(_ property: FieldProperty<Model, V>) -> Value where Model : Fields, V : Decodable, V : Encodable {
         let typeContainer = TypeContainer(with: property.value)
-        return AnyCodable(typeContainer)
+//        return AnyCodable(typeContainer)
+        return TypeContainer(with: property.value)
     }
 }
 
 /// A concrete implementation of the `IDPropertyVisitor` that visits a given `IDProperty` and returns an `AnyCodable` object
 struct ConcreteIDPropertyVisitor: IDPropertyVisitor {
-    typealias Value = AnyCodable
+    typealias Value = TypeContainer
     
-    func visit<Model, V>(_ property: IDProperty<Model, V>) -> AnyCodable where Model : DatabaseModel, V : Decodable, V : Encodable {
-        AnyCodable(property.value)
+    func visit<Model, V>(_ property: IDProperty<Model, V>) -> TypeContainer where Model : DatabaseModel, V : Decodable, V : Encodable {
+        TypeContainer(with: property.value)
     }
 }
 

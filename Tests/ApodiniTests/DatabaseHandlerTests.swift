@@ -106,8 +106,8 @@ final class DatabaseHandlerTests: ApodiniTests {
             .wait()
         XCTAssertNotNil(dbBird.id)
         
-        let parameters: [String: AnyCodable] = [
-            "name": AnyCodable("FooBird")
+        let parameters: [String: TypeContainer] = [
+            "name": TypeContainer(with: "FooBird")
         ]
         
         let handler = Update<Bird>()

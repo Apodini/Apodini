@@ -21,9 +21,9 @@ internal struct QueryBuilder<Model: DatabaseModel> {
         type.keys
     }
 
-    internal var parameters: [FieldKey: AnyCodable] = [:]
+    internal var parameters: [FieldKey: TypeContainer] = [:]
 
-    init(type: Model.Type, parameters: [FieldKey: AnyCodable]) {
+    init(type: Model.Type, parameters: [FieldKey: TypeContainer]) {
         self.type = type
         self.parameters = parameters
     }
@@ -177,8 +177,8 @@ internal struct QueryBuilder<Model: DatabaseModel> {
 
 extension Fluent.QueryBuilder {
     
-    func filter(key: FieldKey, method: DatabaseQuery.Filter.Method, codableValue: AnyCodable) {
-        switch codableValue.wrappedType {
+    func filter(key: FieldKey, method: DatabaseQuery.Filter.Method, codableValue: TypeContainer) {
+        switch codableValue {
         case .bool(let value):
             self.filter(key, method, value)
             break
@@ -224,7 +224,7 @@ extension Fluent.QueryBuilder {
         case .double(let value):
             self.filter(key, method, value)
             break
-        case .noValue, .none:
+        case .noValue:
             break
         }
     }
