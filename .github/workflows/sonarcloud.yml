@@ -33,7 +33,7 @@ jobs:
         run: xcodebuild -resultBundlePath Apodini.xcresult -scheme Apodini-Package test -enableCodeCoverage YES
       - name: Generate xccovarchive
         run: xcparse codecov Apodini.xcresult
-      - name: Generate xccovarchive
+      - name: Generate Coverage Report
         run: sh ./.github/workflows/sonarcloud.sh action.xccovarchive > Apodini-Coverage.xml
       - name: Run SwiftLint
         run: swiftlint lint --reporter json > swiftlint.json
