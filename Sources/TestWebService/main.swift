@@ -24,15 +24,19 @@ struct TestWebService: Apodini.WebService {
     
     struct EmojiMediator: ResponseTransformer {
         private let emojis: String
+        private let growth: Int
         
+        @State var amount: Int = 1
         
-        init(emojis: String = "✅") {
+        init(emojis: String = "✅", growth: Int = 1) {
             self.emojis = emojis
+            self.growth = growth
         }
         
         
         func transform(content string: String) -> String {
-            "\(emojis) \(string) \(emojis)"
+            defer { amount *= growth }
+            return "\(String(repeating: emojis, count: amount)) \(string) \(String(repeating: emojis, count: amount))"
         }
     }
     
@@ -54,6 +58,33 @@ struct TestWebService: Apodini.WebService {
                 return .send("Hi, \(firstName)!")
             } else {
                 return .send("Hello, \(gender == "male" ? "Mr." : "Mrs.") \(surname)")
+            }
+        }
+    }
+    
+    struct Auction: Handler {
+        @Parameter var bid: UInt
+        
+        @Environment(\.connection) var connection: Connection
+        
+        @State var highestBid: UInt = 0
+        
+        static let minimumBid: UInt = 1000
+        
+        func handle() -> Response<String> {
+            if connection.state == .open {
+                if bid > highestBid {
+                    highestBid = bid
+                    return .send("accepted")
+                } else {
+                    return .send("denied")
+                }
+            } else {
+                if highestBid >= Self.minimumBid {
+                    return .final("sold")
+                } else {
+                    return .final("not sold")
+                }
             }
         }
     }
@@ -116,6 +147,10 @@ struct TestWebService: Apodini.WebService {
             UserHandler(userId: $userId)
                 .guard(PrintGuard())
                 .description("Returns `User` by id")
+        }
+        Group("auction") {
+            Auction()
+                .response(EmojiMediator(emojis: "🤑", growth: 2))
         }
         Group("rand") {
             Random()

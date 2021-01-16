@@ -28,7 +28,7 @@ public struct ResponseModifier<H: Handler, T: ResponseTransformer>: HandlerModif
     
     
     init(_ component: H, responseTransformer: @escaping () -> (T)) {
-        assertTypeIsStruct(T.self, messagePrefix: "ResponseTransformer")
+        preconditionTypeIsStruct(T.self, messagePrefix: "ResponseTransformer")
         self.component = component
         self.responseTransformer = responseTransformer
     }

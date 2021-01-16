@@ -12,7 +12,7 @@ public protocol Handler: Component {
     associatedtype Response: ResponseTransformable
     
     /// A function that is called when a request reaches the `Handler`
-    func handle() -> Response
+    func handle() throws -> Response
 }
 
 
