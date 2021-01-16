@@ -6,7 +6,8 @@
 //
 
 func handleParameter(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
-    guard ParticularType(node.value.typeInfo.type).isParameter,
+    #warning("Replace Never with Parameter<T>...")
+    guard node.value.typeInfo.type == Never.self,
           let first = node.value.typeInfo.genericTypes.first else {
               return node
           }
