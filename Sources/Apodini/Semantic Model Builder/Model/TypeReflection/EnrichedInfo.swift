@@ -19,7 +19,7 @@ struct EnrichedInfo {
         indirect case dictionary(key: EnrichedInfo, value: EnrichedInfo)
     }
 
-    var typeInfo: TypeInfo
+    let typeInfo: TypeInfo
     let propertyInfo: PropertyInfo?
     let propertiesOffset: Int?
 

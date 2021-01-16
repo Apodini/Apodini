@@ -48,7 +48,7 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         var links: [String: String]
     }
 
-    func testBuildSchemaPrimitive() throws {
+    func testBuildSchemaNonStructs() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
 
         // add primitive type (will not be added to components map, but defined inline)
@@ -68,12 +68,12 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         XCTAssertEqual(componentsBuilder.componentsObject, .noComponents)
     }
     
-    func testBuildSchemaWithWrapperType() throws {
+    func testBuildSchemaforResponseContainer() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: ResponseContainer<SomeStruct>.self))
         let schema = try componentsBuilder.buildSchema(for: ResponseContainer<SomeStruct>.self)
         
-        XCTAssertThrowsError(try JSONSchema.reference(.component(named: "ResponseContainer")).dereferenced(in: componentsBuilder.componentsObject))
+        XCTAssertThrowsError(try JSONSchema.reference(.component(named: "\(ResponseContainer<SomeStruct>.self)")).dereferenced(in: componentsBuilder.componentsObject))
         
         XCTAssertEqual(schema, .object(properties: [
             "data": try componentsBuilder.buildSchema(for: SomeStruct.self),
