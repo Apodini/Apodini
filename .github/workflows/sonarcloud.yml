@@ -11,11 +11,17 @@ on:
 jobs:
   sonarcloud:
     name: SonarCloud
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Check Swift version
+        run: swift --version
+      - name: Generate Xcode Project
+        run: swift package generate-xcodeproj
+      - name: Run Tests
+        run: xcodebuild -resultBundlePath Apodini.xcresult -scheme Apodini-Package test -enableCodeCoverage YES
+      - name: Gather Test Coverage
+        run: ./.github/workflows/cococo Apodini.xcresult > Apodini-Coverage.xml
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
