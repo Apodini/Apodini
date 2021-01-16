@@ -41,7 +41,7 @@ final class UpdaterTests: ApodiniTests {
             return
         }
         
-        let updater = Updater<Bird>(nil, model: newBird, modelId: id)
+        let updater = Updater<Bird>([:], model: newBird, modelId: id)
         let testDatabase = try database()
         let result = try updater.executeUpdate(on: testDatabase).wait()
         XCTAssert(result == newBird)

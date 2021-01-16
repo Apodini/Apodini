@@ -5,7 +5,7 @@ import Fluent
 /// An Updater classed which is used internally by the `Update` handler. It can take model or single parameters of a model to update
 /// the model found in the database.
 internal struct Updater<Model: DatabaseModel> {
-    var properties: [FieldKey: TypeContainer] = []
+    var properties: [FieldKey: TypeContainer] = [:]
     
     var model: Model?
     var modelID: Model.IDValue?
@@ -33,8 +33,8 @@ internal struct Updater<Model: DatabaseModel> {
                 .map { model -> Model in
                     for child in Mirror(reflecting: model).children {
                         guard let visitable = child.value as? UpdatableFieldProperty,
-                              let label = child.label,
-                              let properties = properties else { continue }
+                              let label = child.label
+                        else { continue }
                         let fieldKey = Model.fieldKey(for: label.trimmed())
                         if let value = properties[fieldKey] {
                             if visitable.accept( ConcreteUpdatableFieldPropertyVisitor(updater: value) ) {
