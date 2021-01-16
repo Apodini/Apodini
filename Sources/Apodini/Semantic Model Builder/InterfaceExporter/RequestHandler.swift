@@ -7,10 +7,10 @@ import protocol NIO.EventLoop
 import struct NIO.EventLoopPromise
 
 class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
-    private var endpoint: Endpoint<H>
+    private var endpoint: EndpointInstance<H>
     private var exporter: I
 
-    init(endpoint: Endpoint<H>, exporter: I) {
+    init(endpoint: EndpointInstance<H>, exporter: I) {
         self.endpoint = endpoint
         self.exporter = exporter
     }
@@ -23,8 +23,8 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
         }
         
         
-        let guardEventLoopFutures = endpoint.guards.map { guardClosure -> EventLoopFuture<Void> in
-            connection.enterConnectionContext(with: guardClosure()) { requestGuard in
+        let guardEventLoopFutures = endpoint.guards.map { requestGuard -> EventLoopFuture<Void> in
+            connection.enterConnectionContext(with: requestGuard) { requestGuard in
                 requestGuard.executeGuardCheck(on: request)
             }
         }
@@ -45,8 +45,8 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
     private func transformResponse(_ response: Response<AnyEncodable>,
                                    using connection: Connection,
                                    on eventLoop: EventLoop,
-                                   using modifiers: [LazyAnyResponseTransformer]) -> EventLoopFuture<Response<AnyEncodable>> {
-        guard let modifier = modifiers.first?() else {
+                                   using modifiers: [AnyResponseTransformer]) -> EventLoopFuture<Response<AnyEncodable>> {
+        guard let modifier = modifiers.first else {
             return eventLoop.makeSucceededFuture(response)
         }
         

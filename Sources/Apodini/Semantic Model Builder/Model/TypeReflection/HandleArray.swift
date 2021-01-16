@@ -13,7 +13,7 @@ enum ArrayDidEncounterCircle {
 func handleArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     let typeInfo = node.value.typeInfo
 
-    guard ParticularType(typeInfo.type).isArray,
+    guard mangledName(of: typeInfo.type) == "Array",
           let first = typeInfo.genericTypes.first else {
         return node
     }

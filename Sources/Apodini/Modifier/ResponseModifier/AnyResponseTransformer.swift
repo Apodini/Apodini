@@ -20,3 +20,10 @@ public protocol AnyResponseTransformer {
     /// - Returns: The output as a type erasured `EventLoopFuture<Response<AnyEncodable>>`
     func transform(response: Response<AnyEncodable>, on eventLoop: EventLoop) -> EventLoopFuture<Response<AnyEncodable>>
 }
+
+
+extension AnyResponseTransformer {
+    mutating func activate() {
+        Apodini.activate(&self)
+    }
+}

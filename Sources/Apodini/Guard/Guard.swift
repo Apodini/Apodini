@@ -34,6 +34,12 @@ extension SyncGuard {
     }
 }
 
+extension SyncGuard {
+    mutating func activate() {
+        Apodini.activate(&self)
+    }
+}
+
 
 extension Guard {
     func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
@@ -46,22 +52,56 @@ extension Guard {
     }
 }
 
+extension Guard {
+    mutating func activate() {
+        Apodini.activate(&self)
+    }
+}
+
+private enum SomeGuard {
+    case sync(SyncGuard)
+    case async(Guard)
+    
+    mutating func activate() {
+        switch self {
+        case .sync(var syncGuard):
+            syncGuard.activate()
+            self = .sync(syncGuard)
+        case .async(var asyncGuard):
+            asyncGuard.activate()
+            self = .async(asyncGuard)
+        }
+    }
+    
+    func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
+        switch self {
+        case .sync(let syncGuard):
+            return syncGuard.executeGuardCheck(on: request)
+        case .async(let asyncGuard):
+            return asyncGuard.executeGuardCheck(on: request)
+        }
+    }
+}
 
 struct AnyGuard {
     let guardType: ObjectIdentifier
-    private var _executeGuardCheck: (Request) -> EventLoopFuture<Void>
+    private var _wrapped: SomeGuard
 
     init<G: Guard>(_ guard: G) {
         guardType = ObjectIdentifier(G.self)
-        _executeGuardCheck = `guard`.executeGuardCheck
+        _wrapped = .async(`guard`)
     }
 
     init<G: SyncGuard>(_ guard: G) {
         guardType = ObjectIdentifier(G.self)
-        _executeGuardCheck = `guard`.executeGuardCheck
+        _wrapped = .sync(`guard`)
     }
 
     func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
-        _executeGuardCheck(request)
+        _wrapped.executeGuardCheck(on: request)
+    }
+    
+    mutating func activate() {
+        self._wrapped.activate()
     }
 }

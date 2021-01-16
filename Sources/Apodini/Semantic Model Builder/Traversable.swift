@@ -9,6 +9,13 @@ import Foundation
 import NIO
 @_implementationOnly import Runtime
 
+// MARK: Activatable
+func activate<Element>(_ subject: inout Element) {
+    apply({ (activatable: inout Activatable) in
+        activatable.activate()
+    }, to: &subject)
+}
+
 // MARK: RequestInjectable
 func extractRequestInjectables<Element>(from subject: Element) -> [(String, RequestInjectable)] {
     var result: [(String, RequestInjectable)] = []
@@ -67,7 +74,7 @@ extension Connection {
 
 // MARK: Dynamic Environment Value
 extension Handler {
-    func environment<K: ApodiniKeys, Value>(_ value: Value, for keyPath: WritableKeyPath<K, Value>) -> Self {
+    func environment<K: KeyChain, Value>(_ value: Value, for keyPath: WritableKeyPath<K, Value>) -> Self {
         var selfCopy = self
         
         apply({ (environment: inout Environment<K, Value>) in
