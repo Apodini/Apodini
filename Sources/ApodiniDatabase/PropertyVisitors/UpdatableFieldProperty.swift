@@ -20,7 +20,7 @@ struct ConcreteUpdatableFieldPropertyVisitor: UpdatableFieldPropertyVisitor {
     
     let updater: TypeContainer
     
-    func visit<Model, V>(_ property: inout FieldProperty<Model, V>) -> Bool where Model : Fields, V : Decodable, V : Encodable {
+    func visit<Model, V>(_ property: inout FieldProperty<Model, V>) -> Bool where Model: Fields, V: Decodable, V: Encodable {
         if let value = updater.typed() as? V {
             property.value = value
             return true

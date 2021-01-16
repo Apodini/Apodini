@@ -17,7 +17,6 @@ protocol FieldPropertyVisitor where Value: Codable {
     associatedtype Value
 
     func visit<Model, V>(_ property: FieldProperty<Model, V>) -> Value
-
 }
 
 /// A protocol all id property visitors have to conform to. It returns whatever has been specified as `Value`.
@@ -31,9 +30,7 @@ protocol IDPropertyVisitor where Value: Codable {
 struct ConcreteTypeVisitor: FieldPropertyVisitor {
     typealias Value = TypeContainer
     
-    func visit<Model, V>(_ property: FieldProperty<Model, V>) -> Value where Model : Fields, V : Decodable, V : Encodable {
-        let typeContainer = TypeContainer(with: property.value)
-//        return AnyCodable(typeContainer)
+    func visit<Model, V>(_ property: FieldProperty<Model, V>) -> Value where Model: Fields, V: Decodable, V: Encodable {
         return TypeContainer(with: property.value)
     }
 }
@@ -42,22 +39,19 @@ struct ConcreteTypeVisitor: FieldPropertyVisitor {
 struct ConcreteIDPropertyVisitor: IDPropertyVisitor {
     typealias Value = TypeContainer
     
-    func visit<Model, V>(_ property: IDProperty<Model, V>) -> TypeContainer where Model : DatabaseModel, V : Decodable, V : Encodable {
+    func visit<Model, V>(_ property: IDProperty<Model, V>) -> TypeContainer where Model: DatabaseModel, V: Decodable, V: Encodable {
         TypeContainer(with: property.value)
     }
 }
 
-
 extension FieldProperty: VisitableFieldProperty {
-    func accept<Visitor>(_ visitor: Visitor) -> Visitor.Value where Visitor : FieldPropertyVisitor {
+    func accept<Visitor>(_ visitor: Visitor) -> Visitor.Value where Visitor: FieldPropertyVisitor {
         visitor.visit(self)
     }
-
 }
 
 extension IDProperty: VisitableIDProperty where Model: DatabaseModel {
-    func accept<Visitor>(_ visitor: Visitor) -> Visitor.Value where Visitor : IDPropertyVisitor {
+    func accept<Visitor>(_ visitor: Visitor) -> Visitor.Value where Visitor: IDPropertyVisitor {
         visitor.visit(self)
     }
-    
 }

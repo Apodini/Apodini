@@ -33,7 +33,7 @@ public struct Read<Model: DatabaseModel>: Handler {
                 result[Model.fieldKey(for: entry.0)] = entry.1.wrappedValue
             }
             .compactMapValues { $0 }
-            .filter { (_, value) in value != .noValue }
+            .filter { _, value in value != .noValue }
         let queryBuilder = QueryBuilder(type: Model.self, parameters: queryInfo)
         return queryBuilder.execute(on: database)
     }

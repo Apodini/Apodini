@@ -5,16 +5,14 @@ import Fluent
 /// An Updater classed which is used internally by the `Update` handler. It can take model or single parameters of a model to update
 /// the model found in the database.
 internal struct Updater<Model: DatabaseModel> {
-    var properties: [FieldKey: TypeContainer]?
+    var properties: [FieldKey: TypeContainer] = []
     
     var model: Model?
     var modelID: Model.IDValue?
     
-    init(_ properties: [String: TypeContainer]?, model: Model?, modelId: Model.IDValue) {
-        if let properties = properties {
-            self.properties = properties.reduce(into: [FieldKey: TypeContainer](), { result, entry in
-                result[Model.fieldKey(for: entry.0)] = entry.1
-            })
+    init(_ properties: [String: TypeContainer], model: Model?, modelId: Model.IDValue) {
+        self.properties = properties.reduce(into: [FieldKey: TypeContainer]()) { result, entry in
+            result[Model.fieldKey(for: entry.0)] = entry.1
         }
         self.model = model
         self.modelID = modelId
@@ -31,15 +29,16 @@ internal struct Updater<Model: DatabaseModel> {
                 }
         } else {
             return Model.find(modelID, on: database)
-                .unwrap(orError: Abort(.notFound)).map { model -> Model in
+                .unwrap(orError: Abort(.notFound))
+                .map { model -> Model in
                     for child in Mirror(reflecting: model).children {
                         guard let visitable = child.value as? UpdatableFieldProperty,
                               let label = child.label,
                               let properties = properties else { continue }
                         let fieldKey = Model.fieldKey(for: label.trimmed())
                         if let value = properties[fieldKey] {
-                            if visitable.accept(ConcreteUpdatableFieldPropertyVisitor(updater: value)) {
-                                let _ =  model.update(on: database).transform(to: model)
+                            if visitable.accept( ConcreteUpdatableFieldPropertyVisitor(updater: value) ) {
+                                _ =  model.update(on: database).transform(to: model)
                                 return model
                             } else {
                                 fatalError("the updater was unable to update single properties of")
@@ -47,7 +46,7 @@ internal struct Updater<Model: DatabaseModel> {
                         }
                     }
                     return model
-            }
+                }
         }
     }
 }

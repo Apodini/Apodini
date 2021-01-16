@@ -101,5 +101,4 @@ extension Fluent.QueryBuilder {
             break
         }
     }
-    
 }
