@@ -21,7 +21,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         }
         return idParameter
     }
-
+    
     func testCreateHandler() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
         let dbBird = try bird
@@ -31,11 +31,12 @@ final class DatabaseHandlerTests: ApodiniTests {
         XCTAssertNotNil(dbBird.id)
         
         let creationHandler = Create<Bird>()
-
+        
         let request = MockRequest.createRequest(on: creationHandler, running: app.eventLoopGroup.next(), queuedParameters: bird)
         let response = try request.enterRequestContext(with: creationHandler, executing: { component in
             component.handle()
-        }).wait()
+        })
+        .wait()
         XCTAssert(response == bird)
         
         let foundBird = try Bird.find(response.id, on: app.db).wait()
@@ -60,16 +61,16 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         let readHandler = Read<Bird>()
         let endpoint = readHandler.mockEndpoint()
-
+        
         let exporter = RESTInterfaceExporter(app)
         var context = endpoint.createConnectionContext(for: exporter)
-
+        
         var uri = URI("http://example.de/test/bird?name=Mockingbird")
         var request = Vapor.Request(
             application: vaporApp,
-                method: .GET,
-                url: uri,
-                on: app.eventLoopGroup.next()
+            method: .GET,
+            url: uri,
+            on: app.eventLoopGroup.next()
         )
         
         var result = try context.handle(request: request).wait()
@@ -84,9 +85,9 @@ final class DatabaseHandlerTests: ApodiniTests {
         uri = URI("http://example.de/test/bird?name=Mockingbird&age=21")
         request = Vapor.Request(
             application: vaporApp,
-                method: .GET,
-                url: uri,
-                on: app.eventLoopGroup.next()
+            method: .GET,
+            url: uri,
+            on: app.eventLoopGroup.next()
         )
         result = try context.handle(request: request).wait()
         guard case let .final(value) = result.typed([Bird].self) else {
@@ -111,19 +112,19 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         let handler = Update<Bird>()
         let endpoint = handler.mockEndpoint()
-
+        
         let exporter = RESTInterfaceExporter(app)
         var context = endpoint.createConnectionContext(for: exporter)
-
+        
         let bodyData = ByteBuffer(data: try JSONEncoder().encode(parameters))
-
+        
         let uri = URI("http://example.de/test/id")
         let request = Vapor.Request(
-                application: vaporApp,
-                method: .PUT,
-                url: uri,
-                collectedBody: bodyData,
-                on: app.eventLoopGroup.next()
+            application: vaporApp,
+            method: .PUT,
+            url: uri,
+            collectedBody: bodyData,
+            on: app.eventLoopGroup.next()
         )
         guard let birdId = dbBird.id else {
             XCTFail("Object found in db has no id")
@@ -140,16 +141,14 @@ final class DatabaseHandlerTests: ApodiniTests {
         }
         XCTAssert(responseValue.id == dbBird.id, responseValue.description)
         XCTAssert(responseValue.name == "FooBird", responseValue.description)
-
+        
         guard let newBird = try Bird.find(dbBird.id, on: self.app.db).wait() else {
             XCTFail("Failed to find updated object")
             return
         }
-
+        
         XCTAssertNotNil(newBird)
         XCTAssert(newBird == responseValue, newBird.description)
-        
-        
     }
     
     func testUpdateHandlerWithModel() throws {
@@ -164,19 +163,19 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         let handler = Update<Bird>()
         let endpoint = handler.mockEndpoint()
-
+        
         let exporter = RESTInterfaceExporter(app)
         var context = endpoint.createConnectionContext(for: exporter)
-
+        
         let bodyData = ByteBuffer(data: try JSONEncoder().encode(updatedBird))
-
+        
         let uri = URI("http://example.de/test/id")
         let request = Vapor.Request(
-                application: vaporApp,
-                method: .PUT,
-                url: uri,
-                collectedBody: bodyData,
-                on: app.eventLoopGroup.next()
+            application: vaporApp,
+            method: .PUT,
+            url: uri,
+            collectedBody: bodyData,
+            on: app.eventLoopGroup.next()
         )
         guard let birdId = dbBird.id else {
             XCTFail("Object found in db has no id")
@@ -193,12 +192,12 @@ final class DatabaseHandlerTests: ApodiniTests {
         }
         XCTAssert(responseValue.name == updatedBird.name, responseValue.description)
         XCTAssert(responseValue.age == updatedBird.age, responseValue.description)
-
+        
         guard let newBird = try Bird.find(dbBird.id, on: self.app.db).wait() else {
             XCTFail("Failed to find updated object")
             return
         }
-
+        
         XCTAssertNotNil(newBird)
         XCTAssert(newBird == responseValue, newBird.description)
     }
@@ -213,16 +212,16 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         let handler = Delete<Bird>()
         let endpoint = handler.mockEndpoint()
-
+        
         let exporter = RESTInterfaceExporter(app)
         var context = endpoint.createConnectionContext(for: exporter)
-
+        
         let uri = URI("http://example.de/test/id")
         let request = Vapor.Request(
-                application: vaporApp,
-                method: .PUT,
-                url: uri,
-                on: app.eventLoopGroup.next()
+            application: vaporApp,
+            method: .PUT,
+            url: uri,
+            on: app.eventLoopGroup.next()
         )
         
         guard let birdId = dbBird.id else {

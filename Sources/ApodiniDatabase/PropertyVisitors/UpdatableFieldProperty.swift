@@ -30,7 +30,7 @@ struct ConcreteUpdatableFieldPropertyVisitor: UpdatableFieldPropertyVisitor {
 }
 
 extension FieldProperty: UpdatableFieldProperty {
-    func accept<Visitor>(_ visitor: Visitor) -> Visitor.Value where Visitor : UpdatableFieldPropertyVisitor, Visitor.Value == Bool {
+    func accept<Visitor>(_ visitor: Visitor) -> Visitor.Value where Visitor: UpdatableFieldPropertyVisitor, Visitor.Value == Bool {
         var varSelf = self
         return visitor.visit(&varSelf)
     }

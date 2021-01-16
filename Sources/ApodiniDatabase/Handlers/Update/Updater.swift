@@ -38,7 +38,7 @@ internal struct Updater<Model: DatabaseModel> {
                         let fieldKey = Model.fieldKey(for: label.trimmed())
                         if let value = properties[fieldKey] {
                             if visitable.accept( ConcreteUpdatableFieldPropertyVisitor(updater: value) ) {
-                                _ =  model.update(on: database).transform(to: model)
+                                _ = model.update(on: database).transform(to: model)
                                 return model
                             } else {
                                 fatalError("the updater was unable to update single properties of")

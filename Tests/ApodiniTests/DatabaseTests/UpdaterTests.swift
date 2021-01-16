@@ -5,7 +5,6 @@ import Fluent
 
 final class UpdaterTests: ApodiniTests {
     func testSingleParameterUpdater() throws {
-        
         let bird = Bird(name: "Mockingbird", age: 20)
         let dbBird = try bird
             .save(on: self.app.db)
@@ -29,7 +28,6 @@ final class UpdaterTests: ApodiniTests {
     }
     
     func testModelUpdater() throws {
-        
         let bird = Bird(name: "Mockingbird", age: 20)
         let dbBird = try bird
             .save(on: self.app.db)

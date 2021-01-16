@@ -31,7 +31,7 @@ struct ConcreteTypeVisitor: FieldPropertyVisitor {
     typealias Value = TypeContainer
     
     func visit<Model, V>(_ property: FieldProperty<Model, V>) -> Value where Model: Fields, V: Decodable, V: Encodable {
-        return TypeContainer(with: property.value)
+        TypeContainer(with: property.value)
     }
 }
 
