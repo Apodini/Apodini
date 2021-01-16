@@ -8,7 +8,6 @@ import Runtime
 @testable import ApodiniDatabase
 
 final class DatabaseFieldPropertyTests: ApodiniTests {
-    
     func testFieldPropertyVisitable() {
         let bird = Bird(name: "MockingBird", age: 25)
         let result = bird.$name.accept(ConcreteTypeVisitor())

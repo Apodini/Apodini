@@ -8,7 +8,6 @@ import Runtime
 @testable import ApodiniDatabase
 
 final class DatabaseHandlerTests: ApodiniTests {
-    
     var vaporApp: Vapor.Application {
         self.app.vapor.app
     }
