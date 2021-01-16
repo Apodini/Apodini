@@ -22,7 +22,9 @@ function xccov_to_generic {
       xccov_options="--archive"
     fi
     xcrun xccov view $xccov_options --file-list "$xccovarchive_file" | while read -r file_name; do
-      convert_file "$xccovarchive_file" "$file_name" "$xccov_options"
+      if ! [[ "$file_name" = *"/Apodini/.build/"* || "$file_name" = *"/Apodini/Tests/"* ]]; then
+        convert_file "$xccovarchive_file" "$file_name" "$xccov_options"
+      fi
     done
   done
   echo '</coverage>'
