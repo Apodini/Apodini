@@ -41,9 +41,6 @@ class ApodiniTests: XCTestCase {
             DeviceMigration()
         )
         
-        print(Bird.description)
-        print(NSClassFromString(Bird.description))
-        
         
         try app.autoMigrate().wait()
         
