@@ -18,19 +18,7 @@ class ProtobufferBuilder {
         let serviceName = endpoint.serviceName
         let methodName = endpoint.methodName
         
-        let inputNode: Node<ProtobufferMessage>
-        
-        switch endpoint.parameters.count {
-        case 0:
-            inputNode = try ProtobufferMessage.node(Void.self)
-        case 1:
-            inputNode = try ProtobufferMessage.node(
-                endpoint.parameters[0].propertyType
-            )
-        default:
-            inputNode = try ProtobufferMessage.node(H.self)
-        }
-        
+        let inputNode: Node<ProtobufferMessage> = try ProtobufferMessage.node(H.self)
         let outputNode = try ProtobufferMessage.node(endpoint.responseType)
         
         for node in [inputNode, outputNode] {

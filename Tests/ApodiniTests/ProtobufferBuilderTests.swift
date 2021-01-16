@@ -221,14 +221,14 @@ extension ProtobufferBuilderTests {
             syntax = "proto3";
 
             service V1Service {
-              rpc helloworld (VoidMessage) returns (StringMessage);
+              rpc helloworld (HelloWorldMessage) returns (StringMessage);
             }
+
+            message HelloWorldMessage {}
 
             message StringMessage {
               string value = 1;
             }
-
-            message VoidMessage {}
             """
         
         try testWebService(WebService.self, expectation: expected)
@@ -254,7 +254,11 @@ extension ProtobufferBuilderTests {
             syntax = "proto3";
 
             service V1Service {
-              rpc greeter (StringMessage) returns (StringMessage);
+              rpc greeter (GreeterMessage) returns (StringMessage);
+            }
+
+            message GreeterMessage {
+              string name = 1;
             }
 
             message StringMessage {
