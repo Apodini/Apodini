@@ -18,8 +18,9 @@ public class Scheduler {
     
     internal var jobConfigurations: [ObjectIdentifier: JobConfiguration] = [:]
     
-    /// Empty intializer to create a Singleton.
-    private init() { }
+    private init() {
+        // Empty intializer to create a Singleton.
+    }
     
     /// Schedules a `Job` on an event loop.
     ///

@@ -34,10 +34,10 @@ public struct FCMConfiguration: Configuration {
 
 // swiftlint:disable identifier_name
 struct ServiceAccount: Codable {
-    let project_id: String //NOSONAR
-    let private_key: String //NOSONAR
-    let client_email: String //NOSONAR
-    let server_key: String? //NOSONAR
-    let sender_id: String? //NOSONAR
+    let project_id: String
+    let private_key: String
+    let client_email: String
+    let server_key: String?
+    let sender_id: String?
 }
 // swiftlint:enable identifier_name

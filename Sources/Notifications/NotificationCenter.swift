@@ -47,8 +47,9 @@ public class NotificationCenter {
         app.fcm
     }
     
-    /// Empty intializer to create a Singleton.
-    private init() { }
+    private init() {
+        // Empty intializer to create a Singleton.
+    }
     
     /// Sets the `application` property if the `NotificationCenter` was correctly configured.
     internal func setup(_ application: Application) {
