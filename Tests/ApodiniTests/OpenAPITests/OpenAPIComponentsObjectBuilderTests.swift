@@ -68,7 +68,7 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         XCTAssertEqual(componentsBuilder.componentsObject, .noComponents)
     }
     
-    func testBuildSchemaforResponseContainer() throws {
+    func testBuildSchemaResponseContainer() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: ResponseContainer<SomeStruct>.self))
         let schema = try componentsBuilder.buildSchema(for: ResponseContainer<SomeStruct>.self)
@@ -82,28 +82,28 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 1)
     }
     
-    func testBuildSchemaComplex_referenceExists() throws {
+    func testBuildSchemaReference() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: SomeComplexStruct.self))
         XCTAssertNoThrow(try JSONSchema.reference(.component(named: "\(SomeComplexStruct.self)")).dereferenced(in: componentsBuilder.componentsObject))
         XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 4)
     }
     
-    func testBuildSchemaComplex_arrayReference() throws {
+    func testBuildSchemaArrayReference() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: Array<SomeStruct>.self))
         XCTAssertNoThrow(try JSONSchema.reference(.component(named: "\(SomeStruct.self)")).dereferenced(in: componentsBuilder.componentsObject))
         XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 1)
     }
     
-    func testBuildSchemaComplex_optionalReference() throws {
+    func testBuildSchemaOptionalReference() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: Optional<SomeStruct>.self))
         XCTAssertNoThrow(try JSONSchema.reference(.component(named: "\(SomeStruct.self)")).dereferenced(in: componentsBuilder.componentsObject))
         XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 1)
     }
 
-    func testBuildSchemaComplex_schemasCorrect() throws {
+    func testBuildSchemaCorrect() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
         _ = try componentsBuilder.buildSchema(for: SomeComplexStruct.self)
 
