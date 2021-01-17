@@ -21,6 +21,7 @@ class ApodiniTests: XCTestCase {
     override func tearDown() {
         super.tearDown()
         app.shutdown()
+        RHIInterfaceExporter.resetSingleton()
     }
     
     override func setUpWithError() throws {

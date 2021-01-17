@@ -38,6 +38,7 @@ class RHIInterfaceExporter: InterfaceExporter {
     
     required init(_ app: Apodini.Application) {
         self.app = app
+        // NOTE: if this precondition fails while running tests, chances are you have to call `RHIInterfaceExporter.resetSingleton` in your -tearDown method
         precondition(Self.shared == nil, "-[\(Self.self) \(#function)] cannot be called multiple times")
         Self.shared = self
     }
@@ -76,6 +77,15 @@ class RHIInterfaceExporter: InterfaceExporter {
             }
         }
         throw makeApodiniError("Unable to cast parameter value (of type '\(type(of: value))' to expected type '\(Type.self)'")
+    }
+}
+
+
+extension RHIInterfaceExporter {
+    // Used by the tests to get a new object for every test case.
+    // Ideally this function would be wrapped in some `#if TEST` condition, but that doesn't seem to be a thing
+    internal static func resetSingleton() {
+        Self.shared = nil
     }
 }
 

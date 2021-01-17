@@ -114,7 +114,7 @@ extension RemoteHandlerInvocationManager {
         }
         
         guard let targetEndpoint: Endpoint<H> = RHIIE.getEndpoint(withIdentifier: handlerId, ofType: H.self) else {
-            return eventLoop.makeFailedFuture(makeApodiniError("Unable to find target endpoint"))
+            return eventLoop.makeFailedFuture(makeApodiniError("Unable to find target endpoint. (handlerId: '\(handlerId)', handlerType: '\(H.self)')"))
         }
         
         let request = RHIInterfaceExporter.ExporterRequest(endpoint: targetEndpoint, collectedParameters: collectedInputParams)

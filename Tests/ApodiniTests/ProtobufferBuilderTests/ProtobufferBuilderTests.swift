@@ -11,6 +11,10 @@ final class ProtobufferBuilderTests: XCTestCase {
             XCTAssertEqual(res.body.string, expectation)
         }
     }
+    
+    override func tearDown() {
+        RHIInterfaceExporter.resetSingleton()
+    }
 }
 
 // MARK: - Test Components
