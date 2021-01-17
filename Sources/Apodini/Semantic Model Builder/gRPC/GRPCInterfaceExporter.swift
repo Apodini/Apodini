@@ -22,8 +22,8 @@ class GRPCInterfaceExporter: InterfaceExporter {
     }
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        let serviceName = endpoint.serviceName
-        let methodName = endpoint.methodName
+        let serviceName = GRPCServiceName(from: endpoint)
+        let methodName = GRPCMethodName(from: endpoint)
 
         // kick off name collision check
         _ = endpoint.exportParameters(on: self)
@@ -56,6 +56,9 @@ class GRPCInterfaceExporter: InterfaceExporter {
                 try service.exposeClientStreamingEndpoint(name: methodName, context: context)
                 app.logger.info("Exported client-streaming gRPC endpoint \(serviceName)/\(methodName)")
             } else {
+                // Service-side streaming (and as a consequence also bidirectional streaming)
+                // are not yet supporter.
+                // Refer to issue #142: https://github.com/Apodini/Apodini/issues/142
                 app.logger.warning("""
                     GRPC exporter currently only supports unary and client-streaming endpoints.
                     Defaulting to unary.

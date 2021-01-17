@@ -28,8 +28,8 @@ class ProtobufferInterfaceExporter: InterfaceExporter {
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        let serviceName = endpoint.serviceName
-        let methodName = endpoint.methodName
+        let serviceName = GRPCServiceName(from: endpoint)
+        let methodName = GRPCMethodName(from: endpoint)
         let inputType: Any.Type = endpoint.parameters.first?.propertyType ?? Void.self
         
         do {
