@@ -1,6 +1,5 @@
 import Foundation
 import OpenCombine
-@_implementationOnly import Runtime
 
 public protocol AnySubscribingObject {
     func run()

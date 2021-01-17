@@ -1,6 +1,5 @@
 import Foundation
 
-
 @propertyWrapper
 public struct ObservedObject<Element: ObservableObject>: Property {
     public var wrappedValue: Element {
