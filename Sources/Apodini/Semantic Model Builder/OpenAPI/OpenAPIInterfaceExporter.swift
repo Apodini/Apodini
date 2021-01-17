@@ -3,7 +3,7 @@
 //
 
 @_implementationOnly import OpenAPIKit
-@_implementationOnly import struct Vapor.Abort
+@_implementationOnly import Vapor
 import Foundation
 
 class OpenAPIInterfaceExporter: StaticInterfaceExporter {
@@ -35,13 +35,22 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
             case .JSON:
                 app.vapor.app.get(outputRoute.pathComponents) { _ -> String in
                     guard let jsonDescription = self.documentBuilder.jsonDescription else {
-                        throw Abort(.internalServerError)
+                        throw Vapor.Abort(.internalServerError)
                     }
                     return jsonDescription
                 }
             case .YAML:
                 print("Not implemented yet.")
             }
+        }
+        app.vapor.app.get("ui-openapi") {_ -> Vapor.Response in
+            var headers = HTTPHeaders()
+            headers.add(name: .contentType, value: "text/html")
+            let html = try! NSString(
+                contentsOfFile: "/Users/lschlesinger/Documents/Workspace/study/Apodini/Sources/Apodini/Resources/Views/index.html",
+                encoding: String.Encoding.ascii.rawValue) as String
+            
+            return Vapor.Response(status: .ok, headers: headers, body: .init(string: html))
         }
     }
 }
