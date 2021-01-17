@@ -6,7 +6,6 @@ import XCTest
 import Foundation
 import NIO
 @_implementationOnly import OpenAPIKit
-@_implementationOnly import Runtime
 @testable import Apodini
 
 final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
