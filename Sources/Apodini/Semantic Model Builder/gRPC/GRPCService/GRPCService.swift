@@ -16,6 +16,11 @@ class GRPCService {
     var serviceName: String
     var methodNames: [String] = []
 
+    /// GRPC media type, with unspecified payload encoding
+    static let grpc = HTTPMediaType(type: "application", subType: "grpc")
+    /// GRPC media type, with Protobuffer payload encoding
+    static let grpcproto = HTTPMediaType(type: "application", subType: "grpc+proto")
+
     /// Initializes a new GRPC service.
     /// - Parameters:
     ///     - name: The name of the service. Will be part of the route at which the service is exposed.
@@ -26,9 +31,9 @@ class GRPCService {
     }
 
     internal func checkContentType(request: Vapor.Request) -> Bool {
-        let contentType = request.headers.first(name: .contentType)
-        switch contentType {
-        case "application/grpc", "application/grpc+proto":
+        switch request.content.contentType {
+        case Self.grpc,
+             Self.grpcproto:
             return true
         default:
             // GRPC theoretically would also allow for other
@@ -120,7 +125,7 @@ extension GRPCService {
     /// Builds a `Vapor.Response` with an empty payload.
     func makeResponse() -> Vapor.Response {
         var headers = HTTPHeaders()
-        headers.add(name: .contentType, value: "application/grpc+proto")
+        headers.contentType = Self.grpcproto
         return Vapor.Response(status: .internalServerError,
                               version: HTTPVersion(major: 2, minor: 0),
                               headers: headers,
@@ -132,7 +137,7 @@ extension GRPCService {
         do {
             let data = try encode(value)
             var headers = HTTPHeaders()
-            headers.add(name: .contentType, value: "application/grpc+proto")
+            headers.contentType = Self.grpcproto
             return Vapor.Response(status: .ok,
                                   version: HTTPVersion(major: 2, minor: 0),
                                   headers: headers,
