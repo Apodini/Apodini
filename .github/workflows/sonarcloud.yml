@@ -29,8 +29,6 @@ jobs:
         run: swift --version
       - name: Build & Test
         run: swift test --enable-code-coverage
-      - name: Run Tests
-        run: xcodebuild -resultBundlePath Apodini.xcresult -scheme Apodini-Package test -enableCodeCoverage YES
       - name: Convert coverage report
         run: xcrun llvm-cov export -format="lcov" .build/debug/ApodiniPackageTests.xctest/Contents/MacOS/ApodiniPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage.lcov
       - name: Run SwiftLint
