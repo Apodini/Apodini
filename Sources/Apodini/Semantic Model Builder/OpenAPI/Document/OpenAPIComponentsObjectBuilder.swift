@@ -3,7 +3,6 @@
 //
 
 @_implementationOnly import OpenAPIKit
-@_implementationOnly import Runtime
 import Foundation
 
 /// Corresponds to `components` section in OpenAPI document
