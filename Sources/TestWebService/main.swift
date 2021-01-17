@@ -6,6 +6,12 @@
 //
 
 import Apodini
+import NIO
+
+
+struct SimpleError: Swift.Error {
+    let message: String
+}
 
 
 struct TestWebService: Apodini.WebService {
@@ -40,6 +46,48 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
+    
+    struct RandomNumberGenerator: InvocableHandler {
+        class HandlerIdentifier: ScopedHandlerIdentifier<RandomNumberGenerator> {
+            static let main = HandlerIdentifier("main")
+        }
+        let handlerId = HandlerIdentifier.main
+        
+        @Parameter var lowerBound: Int = 0
+        @Parameter var upperBound: Int = .max
+        
+        func handle() throws -> Int {
+            guard lowerBound <= upperBound else {
+                throw SimpleError(message: "Invalid bounds: lowerBound (\(lowerBound)) must be <= upperBound (\(upperBound))")
+            }
+            return Int.random(in: lowerBound..<upperBound)
+        }
+    }
+    
+    
+    struct NewGreeter: Handler {
+        private var RHI = RemoteHandlerInvocationManager()
+        
+        @Parameter var name: String
+        @Parameter var age: Int
+        
+        init(name: Parameter<String>) {
+            self._name = name
+        }
+        
+        func handle() throws -> EventLoopFuture<String> {
+            RHI.invoke(
+                RandomNumberGenerator.self,
+                identifiedBy: .main,
+                parameters: [.init(\.$upperBound, age)]
+            )
+            .map { randomNumber in
+                "Hello \(name) of age \(age). Your lucky number is \(randomNumber)"
+            }
+        }
+    }
+    
+    
 
     struct TraditionalGreeter: Handler {
         // one cannot change their gender, it must be provided
@@ -64,6 +112,7 @@ struct TestWebService: Apodini.WebService {
             }
         }
     }
+    
     
     struct Auction: Handler {
         @Parameter var bid: UInt
@@ -122,6 +171,7 @@ struct TestWebService: Apodini.WebService {
     }
 
     @PathParameter var userId: Int
+    @PathParameter var name: String
     
     var content: some Component {
         Text("Hello World! 👋")
@@ -142,6 +192,9 @@ struct TestWebService: Apodini.WebService {
                 .rpcName("greetMe")
                 .response(EmojiMediator())
         }
+        Group("greet", "new", $name) {
+            NewGreeter(name: $name)
+        }
         Group {
             "user"
             $userId
@@ -156,6 +209,9 @@ struct TestWebService: Apodini.WebService {
         }
         Group("rand") {
             Random()
+        }
+        Group("random", "int") {
+            RandomNumberGenerator()
         }
     }
 }

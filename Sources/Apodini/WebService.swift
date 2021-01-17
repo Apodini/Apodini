@@ -46,7 +46,8 @@ extension WebService {
                 .with(exporter: WebSocketInterfaceExporter.self)
                 .with(exporter: OpenAPIInterfaceExporter.self)
                 .with(exporter: GRPCInterfaceExporter.self)
-                .with(exporter: ProtobufferInterfaceExporter.self),
+                .with(exporter: ProtobufferInterfaceExporter.self)
+                .with(exporter: RHIInterfaceExporter.self),
             GraphQLSemanticModelBuilder(app)
         )
 
