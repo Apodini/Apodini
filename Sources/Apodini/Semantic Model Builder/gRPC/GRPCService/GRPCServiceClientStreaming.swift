@@ -38,9 +38,10 @@ extension GRPCService {
                     lastMessage = messages.popLast()
 
                     messages
-                        // For now we only support messages delivered in one
-                        // frame, and multiple messages delivered in one frame.
-                        // One message delivered in multiple messages is not yet supported.
+                        // For now we only support
+                        // - one message delivered in one frame,
+                        // - multiple messages delivered in one frame.
+                        // One message delivered in multiple frames is not yet supported.
                         // See `getMessages` internal comments for more details.
                         .filter({ $0.isComplete })
                         .forEach({ message in

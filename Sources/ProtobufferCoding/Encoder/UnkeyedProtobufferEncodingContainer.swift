@@ -7,7 +7,7 @@
 
 import Foundation
 
-class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEncodingContainer {
+class UnkeyedProtobufferEncodingContainer: InternalProtoEncodingContainer, UnkeyedEncodingContainer {
     var currentFieldTag: Int
 
     var count: Int {

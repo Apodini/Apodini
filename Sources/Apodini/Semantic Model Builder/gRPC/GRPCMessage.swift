@@ -26,11 +26,7 @@ class GRPCMessage: Apodini.ExporterRequest {
     /// TRUE if all fragments for this message have been collected.
     /// FALSE othwise.
     var isComplete: Bool {
-        if data.count < length {
-            return false
-        } else {
-            return true
-        }
+        !(data.count < length)
     }
 
     func append(data: Data) {
