@@ -37,7 +37,6 @@ public final class DatabaseConfiguration: Configuration {
             let factory = try databaseFactory(for: self.type)
             databases.use(factory, as: databaseID)
             app.migrations.add(migrations)
-            print(migrations[0].name)
             try app.autoMigrate().wait()
             if let database = app.databases.ids().map({ app.db($0) }).first {
                 EnvironmentValues.shared.database = database
