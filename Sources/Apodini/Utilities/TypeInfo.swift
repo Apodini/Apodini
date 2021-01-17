@@ -35,9 +35,11 @@ func isOptional(_ type: Any.Type) -> Bool {
 
 
 // MARK: - Supported Scalar Types
-private let supportedScalarTypes: [ObjectIdentifier] = [
+private let supportedScalarTypes: Set<ObjectIdentifier> = [
+    ObjectIdentifier(Int.self),
     ObjectIdentifier(Int32.self),
     ObjectIdentifier(Int64.self),
+    ObjectIdentifier(UInt.self),
     ObjectIdentifier(UInt32.self),
     ObjectIdentifier(UInt64.self),
     ObjectIdentifier(Bool.self),
@@ -49,4 +51,15 @@ private let supportedScalarTypes: [ObjectIdentifier] = [
 func isSupportedScalarType(_ type: Any.Type) -> Bool {
     supportedScalarTypes
         .contains(ObjectIdentifier(type))
+}
+
+func isAmbiguousSupportedFixedWidthInteger(_ type: Any.Type) -> Bool {
+    let types = [
+        ObjectIdentifier(Int.self),
+        ObjectIdentifier(UInt.self),
+    ]
+    
+    precondition(supportedScalarTypes.isSuperset(of: types))
+    
+    return types.contains(ObjectIdentifier(type))
 }
