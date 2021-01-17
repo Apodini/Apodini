@@ -18,27 +18,10 @@ class ProtobufferBuilder {
         let serviceName = endpoint.serviceName
         let methodName = endpoint.methodName
         
-        var inputNode = try ProtobufferMessage.node(H.self)
-        
-        let uniqueNumbers = endpoint.parameters.map { $0.options.option(for: .gRPC)?.fieldNumber }
-        let propertiesWithOption = zip(inputNode.value.properties.sorted(by: \.uniqueNumber), uniqueNumbers)
-            .map { property, uniqueNumber in
-                ProtobufferMessage.Property(
-                    fieldRule: property.fieldRule,
-                    name: property.name,
-                    typeName: property.typeName,
-                    uniqueNumber: uniqueNumber ?? property.uniqueNumber
-                )
-            }
-        
-        inputNode = Node(
-            value: ProtobufferMessage(
-                name: inputNode.value.name,
-                properties: Set(propertiesWithOption)
-            ),
-            children: inputNode.children
-        )
-        
+        let inputNode = try ProtobufferMessage.node(H.self)
+            .with(uniqueNumberPreferences: endpoint.parameters.map {
+                $0.options.option(for: .gRPC)?.fieldNumber
+            })
         let outputNode = try ProtobufferMessage.node(endpoint.responseType)
         
         for node in [inputNode, outputNode] {
@@ -95,4 +78,28 @@ internal extension ProtobufferMessage {
 
 private func isNotPrimitive(_ message: ProtobufferMessage) -> Bool {
     message.name.hasSuffix("Message")
+}
+
+private extension Node where T == ProtobufferMessage {
+    func with(uniqueNumberPreferences: [Int?]) -> Self {
+        let propertiesWithPreference = zip(
+            value.properties.sorted(by: \.uniqueNumber),
+            uniqueNumberPreferences
+        )
+        .map { property, uniqueNumber in
+            ProtobufferMessage.Property(
+                fieldRule: property.fieldRule,
+                name: property.name,
+                typeName: property.typeName,
+                uniqueNumber: uniqueNumber ?? property.uniqueNumber
+            )
+        }
+        
+        return Node(
+            value: ProtobufferMessage(
+                name: value.name,
+                properties: Set(propertiesWithPreference)),
+            children: children
+        )
+    }
 }
