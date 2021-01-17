@@ -1,5 +1,5 @@
 import Foundation
-import SwifCron
+@_implementationOnly import SwifCron
 import NIO
 
 /// A convenient interface to schedule background running tasks on an event loop using `Job`s and crontab syntax.
@@ -30,14 +30,14 @@ public class Scheduler {
     ///     - with: Crontab as a String.
     ///     - runs: Number of times a `Job` should run.
     ///     - keyPath: Associates a `Job` for later retrieval.
-    ///     - on: Specifies the event loop the `Job` is exectured on.
+    ///     - on: Specifies the event loop the `Job` is executed on.
     ///
     /// - Throws: If the `Job` uses request based property wrappers or the crontab cannot be parsed.
-    public func enqueue<K: ApodiniKeys, T: Job>(_ job: T,
-                                                with cronTrigger: String,
-                                                runs: Int? = nil,
-                                                _ keyPath: KeyPath<K, T>,
-                                                on eventLoop: EventLoop) throws {
+    public func enqueue<K: KeyChain, T: Job>(_ job: T,
+                                             with cronTrigger: String,
+                                             runs: Int? = nil,
+                                             _ keyPath: KeyPath<K, T>,
+                                             on eventLoop: EventLoop) throws {
         try checkPropertyWrappers(job)
         let jobConfiguration = try generateEnvironmentValue(job, cronTrigger, keyPath)
         
@@ -53,7 +53,7 @@ public class Scheduler {
     /// - Parameter keyPath: Associatesd key path of a `Job`.
     ///
     /// - Throws: This method throws an exception if the `Job` cannot be found.
-    public func dequeue<K: ApodiniKeys, T: Job>(_ keyPath: KeyPath<K, T>) throws {
+    public func dequeue<K: KeyChain, T: Job>(_ keyPath: KeyPath<K, T>) throws {
         guard let config = jobConfigurations[ObjectIdentifier(keyPath)] else {
             throw JobErrors.notFound
         }
@@ -98,9 +98,9 @@ private extension Scheduler {
     }
     
     /// Generates the environment value of the `Job`.
-    func generateEnvironmentValue<K: ApodiniKeys, T: Job>(_ job: T,
-                                                          _ cronTrigger: String,
-                                                          _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
+    func generateEnvironmentValue<K: KeyChain, T: Job>(_ job: T,
+                                                       _ cronTrigger: String,
+                                                       _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
         let identifier = ObjectIdentifier(keyPath)
         let jobConfiguration = try JobConfiguration(SwifCron(cronTrigger))
         EnvironmentValues.shared.values[identifier] = job

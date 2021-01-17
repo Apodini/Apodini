@@ -7,13 +7,6 @@
 
 import Foundation
 
-/// `@Parameter` categorization needed for certain interface exporters (e.g., HTTP-based).
-enum EndpointParameterType {
-    case lightweight
-    case content
-    case path
-}
-
 /// Defines the necessity of a `EndpointParameter`
 enum Necessity {
     case required
@@ -66,9 +59,9 @@ protocol AnyEndpointParameter: CustomStringConvertible {
     /// Defines the `Necessity` of the parameter.
     var necessity: Necessity { get }
     /// Defines the `EndpointParameterType` of the parameter.
-    var parameterType: EndpointParameterType { get }
+    var parameterType: ParameterType { get }
     /// Specifies the default value for the parameter. Nil if the parameter doesn't have a default value.
-    var typeErasuredDefaultValue: Any? { get }
+    var typeErasuredDefaultValue: (() -> Any)? { get }
 
     /// See `CustomStringConvertible`
     var description: String { get }
@@ -81,7 +74,9 @@ protocol AnyEndpointParameter: CustomStringConvertible {
     ///
     /// - Parameter exporter: The `InterfaceExporter`.
     /// - Returns: Returns what `InterfaceExporter.retrieveParameter(...)` returns.
-    func exportParameter<I: InterfaceExporter>(on exporter: I) -> I.ParameterExportOutput
+    func exportParameter<I: BaseInterfaceExporter>(on exporter: I) -> I.ParameterExportOutput
+
+    func derivePathParameterModel() -> EndpointPath
 }
 
 /// Models a `Parameter`. See `AnyEndpointParameter` for detailed documentation.
@@ -99,7 +94,7 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
         if parameterType != .path {
             fatalError("Cannot access EndpointParameter.pathId when the parameter type isn't .path!")
         }
-        return ":\(id)"
+        return "\(id)"
     }
     let name: String
     let label: String
@@ -107,10 +102,11 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
     let nilIsValidValue: Bool
     let options: PropertyOptionSet<ParameterOptionNameSpace>
     let necessity: Necessity
-    let parameterType: EndpointParameterType
+    let parameterType: ParameterType
 
-    let defaultValue: Type?
-    var typeErasuredDefaultValue: Any? {
+    
+    let defaultValue: (() -> Type)?
+    var typeErasuredDefaultValue: (() -> Any)? {
         defaultValue
     }
 
@@ -122,7 +118,7 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
          nilIsValidValue: Bool,
          necessity: Necessity,
          options: PropertyOptionSet<ParameterOptionNameSpace>,
-         defaultValue: Type? = nil
+         defaultValue: (() -> Type)? = nil
     ) {
         self.id = id
         self.name = name
@@ -138,8 +134,8 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
         if nilIsValidValue {
             description += "?"
         }
-        if let `default` = defaultValue {
-            description += " = \(`default`)"
+        if let defaultValue = defaultValue {
+            description += " = \(defaultValue())"
         }
         self.description = description
 
@@ -165,112 +161,17 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
         try visitor.visit(parameter: self)
     }
 
-    func exportParameter<I: InterfaceExporter>(on exporter: I) -> I.ParameterExportOutput {
+    func exportParameter<I: BaseInterfaceExporter>(on exporter: I) -> I.ParameterExportOutput {
         exporter.exportParameter(self)
     }
 }
 
 // MARK: Endpoint Parameter
 extension Array where Element == AnyEndpointParameter {
-    func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
+    func exportParameters<I: BaseInterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
         self.map { parameter -> I.ParameterExportOutput in
             parameter.exportParameter(on: exporter)
         }
-    }
-}
-
-class ParameterBuilder: RequestInjectableVisitor {
-    let orderedRequestInjectables: [(String, RequestInjectable)]
-    let requestInjectables: [String: RequestInjectable]
-    var currentLabel: String?
-
-    var parameters: [AnyEndpointParameter] = []
-
-    init<H: Handler>(from handler: H) {
-        let orderedRequestInjectables = handler.extractRequestInjectables()
-        self.orderedRequestInjectables = orderedRequestInjectables
-        var requestInjectables = [String: RequestInjectable]()
-        for (label, injectable) in orderedRequestInjectables {
-            requestInjectables[label] = injectable
-        }
-        self.requestInjectables = requestInjectables
-    }
-
-    func build() {
-        for (label, requestInjectable) in orderedRequestInjectables {
-            currentLabel = label
-            requestInjectable.accept(self)
-        }
-        currentLabel = nil
-    }
-
-    func visit<Element>(_ parameter: Parameter<Element>) {
-        guard let label = currentLabel else {
-            preconditionFailure("EndpointParameter visited a Parameter where current label wasn't set. Something must have been called out of order!")
-        }
-
-        var trimmedLabel = label
-        if trimmedLabel.first == "_" {
-            trimmedLabel.removeFirst()
-        }
-
-        let endpointParameter: AnyEndpointParameter
-        if let optionalParameter = parameter as? EncodeOptionalEndpointParameter {
-            endpointParameter = optionalParameter.createParameterWithWrappedType(
-                    name: parameter.name ?? trimmedLabel,
-                    label: label,
-                    necessity: .optional
-            )
-        } else {
-            var `default`: Element?
-            if let value = parameter.defaultValue {
-                `default` = value
-            }
-
-            endpointParameter = EndpointParameter<Element>(
-                    id: parameter.id,
-                    name: parameter.name ?? trimmedLabel,
-                    label: label,
-                    nilIsValidValue: false,
-                    necessity: parameter.defaultValue == nil ? .required : .optional, // a parameter is optional when a defaultValue is defined
-                    options: parameter.options,
-                    defaultValue: `default`
-            )
-        }
-
-        parameters.append(endpointParameter)
-    }
-}
-
-protocol EncodeOptionalEndpointParameter {
-    func createParameterWithWrappedType(
-            name: String,
-            label: String,
-            necessity: Necessity
-    ) -> AnyEndpointParameter
-}
-
-// MARK: Parameter Model
-extension Parameter: EncodeOptionalEndpointParameter where Element: ApodiniOptional, Element.Member: Codable {
-    func createParameterWithWrappedType(
-            name: String,
-            label: String,
-            necessity: Necessity
-    ) -> AnyEndpointParameter {
-        var `default`: Element.Member?
-        if let value = self.defaultValue {
-            `default` = value.optionalInstance
-        }
-
-        return EndpointParameter<Element.Member>(
-                id: self.id,
-                name: name,
-                label: label,
-                nilIsValidValue: true,
-                necessity: necessity,
-                options: self.options,
-                defaultValue: `default`
-        )
     }
 }
 
@@ -284,6 +185,7 @@ protocol LosslessStringConvertibleEndpointParameter {
     func initFromDescription<T>(description: String, type: T.Type) -> T?
 }
 
+// MARK: LosslessStringConvertible Initializer
 extension EndpointParameter: LosslessStringConvertibleEndpointParameter where Type: LosslessStringConvertible {
     func initFromDescription<T>(description: String, type: T.Type) -> T? {
         guard T.self is Type.Type else {
@@ -297,31 +199,5 @@ extension EndpointParameter: LosslessStringConvertibleEndpointParameter where Ty
         let instance = Type.init(description)
         // swiftlint:disable:next force_cast
         return instance as! T?
-    }
-}
-
-struct PathComponentAnalyzer: PathBuilder {
-    struct PathParameterAnalyzingResult {
-        var parameterMode: HTTPParameterMode?
-    }
-
-    var result: PathParameterAnalyzingResult?
-
-    mutating func append<T>(_ parameter: Parameter<T>) {
-        result = PathParameterAnalyzingResult(
-                parameterMode: parameter.option(for: .http)
-        )
-    }
-
-    mutating func append(_ string: String) {}
-
-    /// This function does two things:
-    ///   * First it checks if the given `_PathComponent` is of type Parameter. If it is it returns
-    ///     a `PathParameterAnalyzingResult` otherwise it returns nil.
-    ///   * Secondly it retrieves the .http ParameterOption for the Parameter which is stored in the `PathParameterAnalyzingResult`
-    static func analyzePathComponentForParameter(_ pathComponent: _PathComponent) -> PathParameterAnalyzingResult? {
-        var analyzer = PathComponentAnalyzer()
-        pathComponent.append(to: &analyzer)
-        return analyzer.result
     }
 }

@@ -23,7 +23,7 @@ final class JobsTests: ApodiniTests {
         }
     }
     
-    struct KeyStore: ApodiniKeys {
+    struct KeyStore: KeyChain {
         var failingJob: FailingJob
         var testJob: TestJob
     }

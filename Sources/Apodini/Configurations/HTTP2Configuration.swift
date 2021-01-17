@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import class Vapor.Application
 import NIOSSL
 
 /// A `Configuration` for HTTP/2 and TLS.
@@ -48,8 +47,8 @@ public class HTTP2Configuration: Configuration {
                let keyData = keyData {
                 let certificates = try NIOSSLCertificate.fromPEMBytes([UInt8](certData))
                 let privateKey = try NIOSSLPrivateKey(bytes: [UInt8](keyData), format: .pem)
-                app.http.server.configuration.supportVersions = [.one, .two]
-                app.http.server.configuration.tlsConfiguration =
+                app.http.supportVersions = [.one, .two]
+                app.http.tlsConfiguration =
                     .forServer(certificateChain: certificates.map { .certificate($0) },
                                privateKey: .privateKey(privateKey))
                 app.logger.info("Using HTTP/2 and TLS.")

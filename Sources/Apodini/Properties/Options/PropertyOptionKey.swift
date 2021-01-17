@@ -2,7 +2,7 @@ import Foundation
 
 
 /// A type erasure for the `PropertyOptionKey`
-public class AnyPropertyOptionKey: NSObject {
+public class AnyPropertyOptionKey: Equatable, Hashable {
     /// Combines two `PropertyOptionKey`s.
     /// - Parameters:
     ///   - lhs: The left hand side `PropertyOptionKey` that should be combined
@@ -10,6 +10,14 @@ public class AnyPropertyOptionKey: NSObject {
     /// - Returns: The combined `PropertyOptionKey`
     func combine(lhs: Any, rhs: Any) -> Any {
         fatalError("AnyPropertyOptionKey.combine should be overridden!")
+    }
+
+    public static func == (lhs: AnyPropertyOptionKey, rhs: AnyPropertyOptionKey) -> Bool {
+        ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
     }
 }
 

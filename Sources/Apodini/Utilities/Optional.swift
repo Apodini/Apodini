@@ -2,6 +2,8 @@
 // Created by Andi on 25.12.20.
 //
 
+@_implementationOnly import Runtime
+
 protocol ApodiniOptional {
     associatedtype Member
 

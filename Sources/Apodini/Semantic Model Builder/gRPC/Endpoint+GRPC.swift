@@ -16,29 +16,26 @@ extension Endpoint {
     /// the Protobuffer and GRPC exporters
     /// for this `Endpoint`.
     var serviceName: String {
-        var serviceName = self.context.get(valueFor: GRPCServiceNameContextKey.self)
+        if let serviceName = self.context.get(valueFor: GRPCServiceNameContextKey.self) {
+            return serviceName
+        }
+
         // if no explicit servicename is provided via the modifier,
         // simply use the PathComponents to come up with one
-        if serviceName == GRPCServiceNameContextKey.defaultValue {
-            let pathComponents = self.context.get(valueFor: PathComponentContextKey.self)
-            serviceName = StringPathBuilder(pathComponents, delimiter: "")
-                .build()
-                .capitalized
-                .appending("Service")
-        }
-        return serviceName
+        return self.absolutePath.asPathString(delimiter: "", parameterEncoding: .name)
+            .capitalized
+            .appending("Service")
     }
 
     /// The name of the method that is exported
     /// by the Protobuffer and GRPC exporters
     /// for the `handle` method of this `Endpoint`.
     var methodName: String {
-        var methodName = self.context.get(valueFor: GRPCMethodNameContextKey.self)
+        if let methodName = self.context.get(valueFor: GRPCMethodNameContextKey.self) {
+            return methodName
+        }
         // if no explicit methodname is provided via the modifier,
         // we have to rely on the component name
-        if methodName == GRPCMethodNameContextKey.defaultValue {
-            methodName = "\(H.self)".lowercased()
-        }
-        return methodName
+        return "\(H.self)".lowercased()
     }
 }

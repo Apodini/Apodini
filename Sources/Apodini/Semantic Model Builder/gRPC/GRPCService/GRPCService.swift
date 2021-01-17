@@ -19,9 +19,9 @@ class GRPCService {
     /// - Parameters:
     ///     - name: The name of the service. Will be part of the route at which the service is exposed.
     ///     - handler: The handler method that executes the guards, component's handle method, and modifiers.
-    init(name: String, using app: Vapor.Application) {
+    init(name: String, using app: Application) {
         self.serviceName = name
-        self.app = app
+        self.app = app.vapor.app
     }
 }
 
@@ -30,7 +30,7 @@ extension GRPCService {
     /// Encodes the given encodable value
     /// to  `Data` using Protobuffer encoding
     private func encode(_ value: Encodable) throws -> Data {
-        let message = try ProtoEncoder().encode(AnyEncodable(value: value))
+        let message = try ProtoEncoder().encode(AnyEncodable(value))
         // https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md
         // A response is prefixed by
         // - 1 byte:    compressed (true / false)

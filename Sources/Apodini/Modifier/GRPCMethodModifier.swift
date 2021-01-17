@@ -5,12 +5,8 @@
 //  Created by Moritz Schüll on 04.12.20.
 //
 
-struct GRPCMethodNameContextKey: ContextKey {
-    static var defaultValue = ""
-
-    static func reduce(value: inout String, nextValue: () -> String) {
-        value = nextValue()
-    }
+struct GRPCMethodNameContextKey: OptionalContextKey {
+    typealias Value = String
 }
 
 public struct GRPCMethodModifier<H: Handler>: HandlerModifier {
@@ -25,7 +21,7 @@ public struct GRPCMethodModifier<H: Handler>: HandlerModifier {
 
 extension GRPCMethodModifier: SyntaxTreeVisitable {
     func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(GRPCMethodNameContextKey.self, value: methodName, scope: .nextHandler)
+        visitor.addContext(GRPCMethodNameContextKey.self, value: methodName, scope: .current)
         component.accept(visitor)
     }
 }

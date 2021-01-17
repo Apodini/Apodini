@@ -6,8 +6,7 @@
 //
 
 import Foundation
-@_implementationOnly import Vapor
-@_implementationOnly import Fluent
+import Fluent
 
 /// An object that can merge itself and a `new` element
 /// of same type.
@@ -30,14 +29,14 @@ protocol ConnectionContext {
         request exporterRequest: Exporter.ExporterRequest,
         eventLoop: EventLoop,
         final: Bool
-    ) -> EventLoopFuture<Action<AnyEncodable>>
+    ) -> EventLoopFuture<Response<AnyEncodable>>
 }
 
 extension ConnectionContext {
     mutating func handle(
         request exporterRequest: Exporter.ExporterRequest,
         eventLoop: EventLoop
-    ) -> EventLoopFuture<Action<AnyEncodable>> {
+    ) -> EventLoopFuture<Response<AnyEncodable>> {
         self.handle(request: exporterRequest, eventLoop: eventLoop, final: true)
     }
 }
@@ -49,7 +48,7 @@ struct AnyConnectionContext<I: InterfaceExporter>: ConnectionContext {
         _: I.ExporterRequest,
         _: EventLoop,
         _: Bool
-    ) -> EventLoopFuture<Action<AnyEncodable>>
+    ) -> EventLoopFuture<Response<AnyEncodable>>
     
     init<C: ConnectionContext>(from context: C) where C.Exporter == I {
         var context = context
@@ -58,7 +57,7 @@ struct AnyConnectionContext<I: InterfaceExporter>: ConnectionContext {
         }
     }
     
-    mutating func handle(request exporterRequest: I.ExporterRequest, eventLoop: EventLoop, final: Bool) -> EventLoopFuture<Action<AnyEncodable>> {
+    mutating func handle(request exporterRequest: I.ExporterRequest, eventLoop: EventLoop, final: Bool) -> EventLoopFuture<Response<AnyEncodable>> {
         self.handleFunc(exporterRequest, eventLoop, final)
     }
 }
@@ -76,7 +75,7 @@ struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCo
     
     private var validator: AnyValidator<I, EventLoop, ValidatedRequest<I, H>>
     
-    private let endpoint: Endpoint<H>
+    private let endpoint: EndpointInstance<H>
     
     private var requestHandler: InternalEndpointRequestHandler<I, H> {
         InternalEndpointRequestHandler(endpoint: self.endpoint, exporter: self.exporter)
@@ -87,7 +86,7 @@ struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCo
     init(for exporter: I, on endpoint: Endpoint<H>) {
         self.exporter = exporter
         
-        self.endpoint = endpoint
+        self.endpoint = EndpointInstance(from: endpoint)
         
         self.validator = endpoint.validator(for: exporter)
     }
@@ -96,7 +95,7 @@ struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCo
         request exporterRequest: I.ExporterRequest,
         eventLoop: EventLoop,
         final: Bool
-    ) -> EventLoopFuture<Action<AnyEncodable>> {
+    ) -> EventLoopFuture<Response<AnyEncodable>> {
         do {
             let newRequest = self.latestRequest?.reduce(to: exporterRequest) ?? exporterRequest
             
@@ -112,11 +111,11 @@ struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCo
 }
 
 extension ConnectionContext where Exporter.ExporterRequest: WithEventLoop {
-    mutating func handle(request: Exporter.ExporterRequest) -> EventLoopFuture<Action<AnyEncodable>> {
+    mutating func handle(request: Exporter.ExporterRequest) -> EventLoopFuture<Response<AnyEncodable>> {
         handle(request: request, eventLoop: request.eventLoop)
     }
     
-    mutating func handle(request: Exporter.ExporterRequest, final: Bool) -> EventLoopFuture<Action<AnyEncodable>> {
+    mutating func handle(request: Exporter.ExporterRequest, final: Bool) -> EventLoopFuture<Response<AnyEncodable>> {
         handle(request: request, eventLoop: request.eventLoop, final: final)
     }
 }

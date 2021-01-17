@@ -5,10 +5,8 @@
 //  Created by Alexander Collins on 22.12.20.
 //
 
-import Fluent
-import APNS
+import NIO
 import FCM
-@_implementationOnly import Vapor
 
 /// This extension includes methods to send push notifications to `APNS` and `FCM`.
 extension NotificationCenter {
