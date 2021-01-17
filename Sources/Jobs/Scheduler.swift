@@ -1,7 +1,8 @@
 import Foundation
-@_implementationOnly import SwifCron
 import NIO
 import Apodini
+import OpenCombine
+@_implementationOnly import SwifCron
 
 /// A convenient interface to schedule background running tasks on an event loop using `Job`s and crontab syntax.
 ///
@@ -17,6 +18,8 @@ public class Scheduler {
     internal static var shared = Scheduler()
     
     internal var jobConfigurations: [ObjectIdentifier: JobConfiguration] = [:]
+    
+    internal var cancellables: Set<AnyCancellable> = []
     
     private init() {
         // Empty intializer to create a Singleton.
@@ -42,7 +45,7 @@ public class Scheduler {
                                              _ keyPath: KeyPath<K, T>,
                                              on eventLoop: EventLoop) throws {
         try checkPropertyWrappers(job)
-        let jobConfiguration = try generateEnvironmentValue(job, cronTrigger, keyPath)
+        let jobConfiguration = try generateConfiguration(job, cronTrigger, keyPath)
         
         if let runs = runs {
             schedule(job, with: jobConfiguration, runs, on: eventLoop)
@@ -94,19 +97,39 @@ private extension Scheduler {
     
     /// Checks if only valid property wrappers are used with `Job`s.
     func checkPropertyWrappers<T: Job>(_ job: T) throws {
-        for property in Mirror(reflecting: job).children
-        where property.value is PathComponent || property.value is Connection {
-            throw JobErrors.requestPropertyWrapper
+        for property in Mirror(reflecting: job).children {
+            switch property.value {
+            case is Connection:
+                throw JobErrors.requestPropertyWrapper
+            case let observedObject as AnyObservedObject:
+                subscribe(job: job, to: observedObject)
+            default:
+                continue
+            }
         }
     }
     
-    /// Generates the environment value of the `Job`.
-    func generateEnvironmentValue<K: KeyChain, T: Job>(_ job: T,
-                                                       _ cronTrigger: String,
-                                                       _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
+    func subscribe(job: Job, to observedObject: AnyObservedObject) {
+        let builder = ObservedObjectModelBuilder()
+        observedObject.accept(builder)
+        
+        for publisher in builder.publishers {
+            publisher
+                .sink {
+                    observedObject.change(to: true)
+                    job.run()
+                    observedObject.change(to: false)
+                }
+                .store(in: &cancellables)
+        }
+    }
+    
+    /// Generates the configuration of the `Job`.
+    func generateConfiguration<K: KeyChain, T: Job>(_ job: T,
+                                                    _ cronTrigger: String,
+                                                    _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
         let identifier = ObjectIdentifier(keyPath)
         let jobConfiguration = try JobConfiguration(SwifCron(cronTrigger))
-        EnvironmentValue(keyPath, job)
         jobConfigurations[identifier] = jobConfiguration
         
         return jobConfiguration
