@@ -26,7 +26,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
         let methodName = endpoint.methodName
 
         // kick off name collision check
-        endpoint.exportParameters(on: self)
+        _ = endpoint.exportParameters(on: self)
 
         // generate and store the field tags for all parameters
         // of this endpoint
@@ -85,7 +85,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
             fatalError("No default or explicit field tag available")
         }
 
-        if request.data.count == 0 {
+        if request.data.isEmpty {
             throw GRPCError.decodingError("""
                 No body data available to decode from.
                 GRPC exporter expects all parameters to be in the body of the request.
@@ -100,7 +100,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
             // parameter, or use default interference if none is
             // annotated at the parameter.
             FieldNumber.setFieldNumber(fieldTag)
-            let wrappedDecoded = try ProtoDecoder().decode(wrappedType, from: request.data)
+            let wrappedDecoded = try ProtobufferDecoder().decode(wrappedType, from: request.data)
             return wrappedDecoded.request
         } catch {
             // Decoding fails if the parameter is not present
@@ -141,7 +141,7 @@ private struct RequestWrapper<T>: Decodable where T: Decodable {
     /// and should be decoded from the data.
     var request: T
 
-    enum CodingKeys: String, CodingKey, ProtoCodingKey {
+    enum CodingKeys: String, CodingKey, ProtobufferCodingKey {
         case request
         /// Always returns the public `fieldNumber`.
         /// This is needed to be able to influence the field-number

@@ -20,7 +20,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
         codingPath.append(key)
         if let keyValue = key.intValue {
             return keyValue
-        } else if let protoKey = key as? ProtoCodingKey {
+        } else if let protoKey = key as? ProtobufferCodingKey {
             return protoKey.protoRawValue
         } else {
             return try key.defaultProtoRawValue()
@@ -30,7 +30,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
     func encodeNil(forKey key: Key) throws {
         codingPath.append(key)
         // cannot encode nil
-        throw ProtoError.encodingError("Cannot encode nil")
+        throw ProtobufferError.encodingError("Cannot encode nil")
     }
 
     func encode(_ value: Bool, forKey key: Key) throws {
@@ -54,15 +54,15 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
     }
 
     func encode(_ value: Int, forKey key: Key) throws {
-        throw ProtoError.encodingError("Int not supported, use Int32 or Int64")
+        throw ProtobufferError.encodingError("Int not supported, use Int32 or Int64")
     }
 
     func encode(_ value: Int8, forKey key: Key) throws {
-        throw ProtoError.encodingError("Int8 not supported, use Int32 or Int64")
+        throw ProtobufferError.encodingError("Int8 not supported, use Int32 or Int64")
     }
 
     func encode(_ value: Int16, forKey key: Key) throws {
-        throw ProtoError.encodingError("Int16 not supported, use Int32 or Int64")
+        throw ProtobufferError.encodingError("Int16 not supported, use Int32 or Int64")
     }
 
     func encode(_ value: Int32, forKey key: Key) throws {
@@ -76,15 +76,15 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
     }
 
     func encode(_ value: UInt, forKey key: Key) throws {
-        throw ProtoError.encodingError("UInt not supported, use UInt32 or UInt64")
+        throw ProtobufferError.encodingError("UInt not supported, use UInt32 or UInt64")
     }
 
     func encode(_ value: UInt8, forKey key: Key) throws {
-        throw ProtoError.encodingError("UInt8 not supported, use UInt32 or UInt64")
+        throw ProtobufferError.encodingError("UInt8 not supported, use UInt32 or UInt64")
     }
 
     func encode(_ value: UInt16, forKey key: Key) throws {
-        throw ProtoError.encodingError("UInt16 not supported, use UInt32 or UInt64")
+        throw ProtobufferError.encodingError("UInt16 not supported, use UInt32 or UInt64")
     }
 
     func encode(_ value: UInt32, forKey key: Key) throws {
@@ -199,7 +199,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
                     [UInt].self, [UInt8].self, [UInt16].self,
                     [String].self
         ].contains(where: { $0 == T.self }) {
-            throw ProtoError.decodingError("Encoding values of type \(T.self) is not supported yet")
+            throw ProtobufferError.decodingError("Encoding values of type \(T.self) is not supported yet")
         } else {
             // nested message
             try encodeNested(value, forKey: key)

@@ -22,7 +22,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
 
     func encodeNil() throws {
         // cannot encode nil
-        throw ProtoError.encodingError("Cannot encode nil")
+        throw ProtobufferError.encodingError("Cannot encode nil")
     }
 
     func encode(_ value: Bool) throws {
@@ -46,15 +46,15 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     func encode(_ value: Int) throws {
-        throw ProtoError.encodingError("Int not supported, use Int32 or Int64")
+        throw ProtobufferError.encodingError("Int not supported, use Int32 or Int64")
     }
 
     func encode(_ value: Int8) throws {
-        throw ProtoError.encodingError("Int8 not supported, use Int32 or Int64")
+        throw ProtobufferError.encodingError("Int8 not supported, use Int32 or Int64")
     }
 
     func encode(_ value: Int16) throws {
-        throw ProtoError.encodingError("Int16 not supported, use Int32 or Int64")
+        throw ProtobufferError.encodingError("Int16 not supported, use Int32 or Int64")
     }
 
     func encode(_ value: Int32) throws {
@@ -68,15 +68,15 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     func encode(_ value: UInt) throws {
-        throw ProtoError.decodingError("UInt not supported, use UInt32 or UInt64")
+        throw ProtobufferError.decodingError("UInt not supported, use UInt32 or UInt64")
     }
 
     func encode(_ value: UInt8) throws {
-        throw ProtoError.decodingError("UInt8 not supported, use UInt32 or UInt64")
+        throw ProtobufferError.decodingError("UInt8 not supported, use UInt32 or UInt64")
     }
 
     func encode(_ value: UInt16) throws {
-        throw ProtoError.decodingError("UInt16 not supported, use UInt32 or UInt64")
+        throw ProtobufferError.decodingError("UInt16 not supported, use UInt32 or UInt64")
     }
 
     func encode(_ value: UInt32) throws {
@@ -190,7 +190,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
                     [Int].self, [Int8].self, [Int16].self,
                     [UInt].self, [UInt8].self, [UInt16].self
         ].contains(where: { $0 == T.self }) {
-            throw ProtoError.decodingError("Encoding values of type \(T.self) is not supported yet")
+            throw ProtobufferError.decodingError("Encoding values of type \(T.self) is not supported yet")
         } else {
             // nested message
             try encodeNested(value)

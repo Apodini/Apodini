@@ -26,7 +26,7 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
 
     func encodeNil() throws {
         // cannot encode nil
-        throw ProtoError.encodingError("Cannot encode nil")
+        throw ProtobufferError.encodingError("Cannot encode nil")
     }
 
     func encode(_ value: Bool) throws {
@@ -46,15 +46,15 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
     }
 
     func encode(_ value: Int) throws {
-        throw ProtoError.encodingError("Int not supported, use Int32 or Int64")
+        throw ProtobufferError.encodingError("Int not supported, use Int32 or Int64")
     }
 
     func encode(_ value: Int8) throws {
-        throw ProtoError.encodingError("Int8 not supported, use Int32 or Int64")
+        throw ProtobufferError.encodingError("Int8 not supported, use Int32 or Int64")
     }
 
     func encode(_ value: Int16) throws {
-        throw ProtoError.encodingError("Int16 not supported, use Int32 or Int64")
+        throw ProtobufferError.encodingError("Int16 not supported, use Int32 or Int64")
     }
 
     func encode(_ value: Int32) throws {
@@ -66,15 +66,15 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
     }
 
     func encode(_ value: UInt) throws {
-        throw ProtoError.encodingError("UInt not supported, use UInt32 or UInt64")
+        throw ProtobufferError.encodingError("UInt not supported, use UInt32 or UInt64")
     }
 
     func encode(_ value: UInt8) throws {
-        throw ProtoError.encodingError("UInt8 not supported, use UInt32 or UInt64")
+        throw ProtobufferError.encodingError("UInt8 not supported, use UInt32 or UInt64")
     }
 
     func encode(_ value: UInt16) throws {
-        throw ProtoError.encodingError("UInt16 not supported, use UInt32 or UInt64")
+        throw ProtobufferError.encodingError("UInt16 not supported, use UInt32 or UInt64")
     }
 
     func encode(_ value: UInt32) throws {
@@ -144,7 +144,7 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
         } else if T.self == [String].self, let value = value as? [String] {
             try encode(value)
         } else {
-            throw ProtoError.encodingError("Single value encoding only supported for (repeated) primitive data types")
+            throw ProtobufferError.encodingError("Single value encoding only supported for (repeated) primitive data types")
         }
     }
 }

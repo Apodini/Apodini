@@ -6,7 +6,6 @@
 //
 
 import Foundation
-@_implementationOnly import Vapor
 
 class GRPCMessage: Apodini.ExporterRequest {
     /// Default message  that can be used to call handlers in cases

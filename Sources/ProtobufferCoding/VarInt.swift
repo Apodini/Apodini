@@ -19,7 +19,7 @@ enum VarInt {
         var count = 0
         repeat {
             if currentIndex >= data.count {
-                throw ProtoError.decodingError("Not enough data left to decode VarInt properly")
+                throw ProtobufferError.decodingError("Not enough data left to decode VarInt properly")
             }
             let byte = data[currentIndex]
 

@@ -86,7 +86,7 @@ internal class InternalProtoEncodingContainer {
 
     internal func encodeString(_ value: String, tag: Int) throws {
         guard var data = value.data(using: .utf8) else {
-            throw ProtoError.encodingError("Cannot encode data for given key")
+            throw ProtobufferError.encodingError("Cannot encode data for given key")
         }
         data = prependLength(data)
         appendData(data, tag: tag, wireType: .lengthDelimited)

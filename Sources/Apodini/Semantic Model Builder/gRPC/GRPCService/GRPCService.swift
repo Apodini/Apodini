@@ -59,7 +59,7 @@ class GRPCService {
             // - 4 bytes:   big-endian; length of message
             precondition(data.count > 5,
                          "Remaining payload data not long enough to read message from")
-            let compressed = data.popFirst() // ignore compressed byte
+            let compressed = data.popFirst()
             let lengthBytes = [UInt8](data.prefix(4))
             let ulength = lengthBytes.reduce(0) { result, new in
                 result << 8 | UInt32(new)
@@ -102,7 +102,7 @@ extension GRPCService {
     /// Encodes the given encodable value
     /// to  `Data` using Protobuffer encoding
     private func encode(_ value: Encodable) throws -> Data {
-        let message = try ProtoEncoder().encode(AnyEncodable(value))
+        let message = try ProtobufferEncoder().encode(AnyEncodable(value))
         // https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md
         // A response is prefixed by
         // - 1 byte:    compressed (true / false)

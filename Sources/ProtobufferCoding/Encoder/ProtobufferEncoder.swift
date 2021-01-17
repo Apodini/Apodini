@@ -1,5 +1,5 @@
 //
-//  ProtoEncoder.swift
+//  ProtobufferEncoder.swift
 //  
 //
 //  Created by Moritz Schüll on 27.11.20.
@@ -57,7 +57,7 @@ private struct EncodingWrapper<T: Encodable>: Encodable {
 
 /// Encoder for Protobuffer data.
 /// Coforms to `TopLevelEncoder` from `Combine`, however this is currently ommitted due to compatibility issues.
-public class ProtoEncoder {
+public class ProtobufferEncoder {
     private var encoder: InternalProtoEncoder?
 
     /// Supported primitive types of the payload.
@@ -121,7 +121,7 @@ public class ProtoEncoder {
     /// created using `unkeyedContainer()`.
     public func getResult() throws -> Data {
         guard let encoder = encoder else {
-            throw ProtoError.encodingError("No internal encoder initialized. Call unkeyedContainer() first.")
+            throw ProtobufferError.encodingError("No internal encoder initialized. Call unkeyedContainer() first.")
         }
         return try encoder.getEncoded()
     }
