@@ -25,8 +25,7 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
     }
 
     func encodeNil() throws {
-        // cannot encode nil
-        throw ProtoError.encodingError("Cannot encode nil")
+        // nothing to do
     }
 
     func encode(_ value: Bool) throws {
@@ -125,7 +124,29 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
         // adds support for arrays of primitive types
         // by type matching (since they are not part
         // of the SingleValueEncodingContainer protocol)
-        if T.self == [Bool].self, let value = value as? [Bool] {
+        if T.self == Data.self, let value = value as? Data {
+            // simply a byte array
+            // prepend an extra byte containing the length
+            var length = Data([UInt8(value.count)])
+            length.append(value)
+            appendData(length, tag: fieldNumber, wireType: .lengthDelimited)
+        } else if T.self == String.self, let value = value as? String {
+            try encode(value)
+        } else if T.self == Bool.self, let value = value as? Bool {
+            try encode(value)
+        } else if T.self == Int32.self, let value = value as? Int32 {
+            try encode(value)
+        } else if T.self == Int64.self, let value = value as? Int64 {
+            try encode(value)
+        } else if T.self == UInt32.self, let value = value as? UInt32 {
+            try encode(value)
+        } else if T.self == UInt64.self, let value = value as? UInt64 {
+            try encode(value)
+        } else if T.self == Double.self, let value = value as? Double {
+            try encode(value)
+        } else if T.self == Float.self, let value = value as? Float {
+            try encode(value)
+        } else if T.self == [Bool].self, let value = value as? [Bool] {
             try encode(value)
         } else if T.self == [Float].self, let value = value as? [Float] {
             try encode(value)
@@ -143,6 +164,8 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
             try encode(value)
         } else if T.self == [String].self, let value = value as? [String] {
             try encode(value)
+        } else if isOptional(T.self) {
+            try encodeOptional(value, tag: fieldNumber)
         } else {
             throw ProtoError.encodingError("Single value encoding only supported for (repeated) primitive data types")
         }

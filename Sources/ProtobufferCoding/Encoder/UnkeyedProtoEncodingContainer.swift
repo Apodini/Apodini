@@ -21,8 +21,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     func encodeNil() throws {
-        // cannot encode nil
-        throw ProtoError.encodingError("Cannot encode nil")
+        // nothing to do
     }
 
     func encode(_ value: Bool) throws {
@@ -134,11 +133,6 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
         currentFieldTag += 1
     }
 
-    func encodeNested<T: Encodable>(_ value: T) throws {
-        try encodeNestedMessage(value, tag: currentFieldTag)
-        currentFieldTag += 1
-    }
-
     // swiftlint:disable cyclomatic_complexity
     func encode<T>(_ value: T) throws where T: Encodable {
         // we need to switch here to also be able to encode structs with generic types
@@ -191,9 +185,13 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
                     [UInt].self, [UInt8].self, [UInt16].self
         ].contains(where: { $0 == T.self }) {
             throw ProtoError.decodingError("Encoding values of type \(T.self) is not supported yet")
+        } else if isOptional(T.self) {
+            try encodeOptional(value, tag: currentFieldTag)
+            currentFieldTag += 1
         } else {
             // nested message
-            try encodeNested(value)
+            try encodeNestedMessage(value, tag: currentFieldTag)
+            currentFieldTag += 1
         }
     }
     // swiftlint:enable cyclomatic_complexity

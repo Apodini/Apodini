@@ -68,12 +68,17 @@ internal class InternalProtoEncodingContainer {
     }
 
     /// Adds the necessary wire-type and field-tag to the given value and appends it to the encoder.
-    internal func appendData(_ value: Data, tag: Int, wireType: WireType) {
-        // each value is prefixed by 1 byte: 5 bit of tag, 3 bit of type
-        let prefix = UInt8((tag << 3) | wireType.rawValue)
-        var value = value
-        value.insert(prefix, at: 0) // add the prefix at the beginning of the value
-        encoder.append(value)
+    /// - Parameter prefixType: Switch to disable the functionality to prepend the wiretype and field-tag
+    internal func appendData(_ value: Data, tag: Int, wireType: WireType, prefixType: Bool = true) {
+        if prefixType {
+            // each value is prefixed by 1 byte: 5 bit of tag, 3 bit of type
+            let prefix = UInt8((tag << 3) | wireType.rawValue)
+            var value = value
+            value.insert(prefix, at: 0) // add the prefix at the beginning of the value
+            encoder.append(value)
+        } else {
+            encoder.append(value)
+        }
     }
 
     internal func encodeBool(_ value: Bool, tag: Int) throws {
@@ -210,6 +215,16 @@ internal class InternalProtoEncodingContainer {
         for value in values {
             try encodeString(value, tag: tag)
         }
+    }
+
+    internal func encodeOptional<T: Encodable>(_ value: T, tag: Int) throws {
+        let encoder = InternalProtoEncoder()
+        try value.encode(to: encoder)
+        let data = try encoder.getEncoded()
+        // append without any further length or type prefix
+        // (this encoding layer was basically just used to unwrap the optional,
+        // thus should not be reflected in the encoded byte-array)
+        appendData(data, tag: tag, wireType: .lengthDelimited, prefixType: false)
     }
 
     internal func encodeNestedMessage<T: Encodable>(_ value: T, tag: Int) throws {

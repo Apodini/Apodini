@@ -10,12 +10,37 @@ import XCTest
 @testable import ProtobufferCoding
 
 class ProtobufferEncoderTests: XCTestCase {
+    func testEncodeNil() throws {
+        let expected = Data()
+        let number: Optional<Int32> = nil
+
+        let encoded = try ProtoEncoder().encode(number)
+        XCTAssertEqual(encoded, expected, "testEncodeNil")
+    }
+
     func testEncodeSinglePositiveInt32() throws {
         let expected = Data([8, 185, 96])
         let number: Int32 = 12345
 
         let encoded = try ProtoEncoder().encode(number)
         XCTAssertEqual(encoded, expected, "testEncodeSinglePositiveInt32")
+    }
+
+    func testEncodeSinglePositiveOptionalInt32() throws {
+        let expected = Data([8, 185, 96])
+        let number: Optional<Int32> = 12345
+
+        let encoded = try ProtoEncoder().encode(number)
+        XCTAssertEqual(encoded, expected, "testEncodeSinglePositiveOptionalInt32")
+    }
+
+    func testEncodePositiveOptionalInt32Message() throws {
+        let expected = Data([8, 185, 96])
+        let number: Optional<Int32> = 12345
+
+        let message = ProtoTestMessage(content: number)
+        let encoded = try ProtoEncoder().encode(message)
+        XCTAssertEqual(encoded, expected, "testEncodePositiveOptionalInt32Message")
     }
 
     func testEncodePositiveInt32Message() throws {
@@ -118,6 +143,14 @@ class ProtobufferEncoderTests: XCTestCase {
         XCTAssertEqual(encoded, expected, "testEncodeSingleString")
     }
 
+    func testEncodeSingleOptionalString() throws {
+        let expected = Data([10, 11, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100])
+        let content: Optional<String> = "Hello World"
+
+        let encoded = try ProtoEncoder().encode(content)
+        XCTAssertEqual(encoded, expected, "testEncodeSingleOptionalString")
+    }
+
     func testEncodeStringMessage() throws {
         let expected = Data([10, 11, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100])
         let content: String = "Hello World"
@@ -125,6 +158,15 @@ class ProtobufferEncoderTests: XCTestCase {
         let message = ProtoTestMessage(content: content)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeStringMessage")
+    }
+
+    func testEncodeOptionalStringMessage() throws {
+        let expected = Data([10, 11, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100])
+        let content: Optional<String> = "Hello World"
+
+        let message = ProtoTestMessage(content: content)
+        let encoded = try ProtoEncoder().encode(message)
+        XCTAssertEqual(encoded, expected, "testEncodeOptionalStringMessage")
     }
 
     func testEncodeBytesMessage() throws {
@@ -143,6 +185,14 @@ class ProtobufferEncoderTests: XCTestCase {
         let message = ProtoTestMessage(content: content)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeRepeatedBoolMessage")
+    }
+
+    func testEncodeRepeatedInt32() throws {
+        let expected = Data([10, 5, 1, 2, 3, 4, 5])
+        let content: [Int32] = [1, 2, 3, 4, 5]
+
+        let encoded = try ProtoEncoder().encode(content)
+        XCTAssertEqual(encoded, expected, "testEncodeRepeatedInt32")
     }
 
     func testEncodeRepeatedInt32Message() throws {

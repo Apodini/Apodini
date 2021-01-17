@@ -29,8 +29,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
 
     func encodeNil(forKey key: Key) throws {
         codingPath.append(key)
-        // cannot encode nil
-        throw ProtoError.encodingError("Cannot encode nil")
+        // nothing to do
     }
 
     func encode(_ value: Bool, forKey key: Key) throws {
@@ -142,11 +141,6 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
         try encodeRepeatedString(values, tag: keyValue)
     }
 
-    func encodeNested<T: Encodable>(_ value: T, forKey key: Key) throws {
-        let keyValue = try extractIntValue(from: key)
-        try encodeNestedMessage(value, tag: keyValue)
-    }
-
     // swiftlint:disable cyclomatic_complexity
     func encode<T>(_ value: T, forKey key: Key) throws where T: Encodable {
         let keyValue = try extractIntValue(from: key)
@@ -200,9 +194,11 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
                     [String].self
         ].contains(where: { $0 == T.self }) {
             throw ProtoError.decodingError("Encoding values of type \(T.self) is not supported yet")
+        } else if isOptional(T.self) {
+            try encodeOptional(value, tag: keyValue)
         } else {
             // nested message
-            try encodeNested(value, forKey: key)
+            try encodeNestedMessage(value, tag: keyValue)
         }
     }
     // swiftlint:enable cyclomatic_complexity
