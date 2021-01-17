@@ -1,22 +1,24 @@
-@testable import Apodini
+@testable import Notifications
 import XCTest
-import XCTVapor
-import FCM
+import XCTApodini
 
-class FCMConfigurationTests: ApodiniTests {
-    let currentPath = URL(fileURLWithPath: #file).deletingLastPathComponent().path
+class FCMConfigurationTests: XCTApodiniTest {
+    let currentPath = URL(fileURLWithPath: #file).deletingLastPathComponent()
     
     func testMissingFile() throws {
         XCTAssertRuntimeFailure(FCMConfiguration("something").configure(self.app), "FCM file doesn't exist at path: something")
     }
     
     func testMissingProperties() throws {
-        let path = currentPath + "/mock_invalid_fcm.json"
+        let url = URL(string: "Helper/mock_invalid_fcm.json", relativeTo: currentPath)
+        let path = try XCTUnwrap(url).path
+        
         XCTAssertRuntimeFailure(FCMConfiguration(path).configure(self.app), "FCM unable to decode serviceAccount from file located at: \(path)")
     }
     
     func testValidFile() throws {
-        let path = currentPath + "/mock_fcm.json"
+        let url = URL(string: "Helper/mock_fcm.json", relativeTo: currentPath)
+        let path = try XCTUnwrap(url).path
         
         XCTAssertNoThrow(FCMConfiguration(path).configure(self.app))
         XCTAssertNotNil(app.fcm.configuration)

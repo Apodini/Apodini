@@ -1,12 +1,6 @@
-//
-//  File.swift
-//  
-//
-//  Created by Alexander Collins on 30.11.20.
-//
-
 import Foundation
 import FCM
+import Apodini
 
 public struct FCMConfiguration: Configuration {
     let filePath: String
@@ -22,6 +16,7 @@ public struct FCMConfiguration: Configuration {
                                       key: serviceAccount.private_key,
                                       serverKey: serviceAccount.server_key,
                                       senderId: serviceAccount.sender_id)
+        NotificationCenter.shared.setup(app)
     }
     
     private func readJSON() -> ServiceAccount {
