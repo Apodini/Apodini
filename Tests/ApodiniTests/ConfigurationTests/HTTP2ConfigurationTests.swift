@@ -12,8 +12,8 @@ class HTTP2ConfigurationTests: ApodiniTests {
     let currentPath = URL(fileURLWithPath: #file).deletingLastPathComponent().path
 
     func testValidFile() throws {
-        let keyPath = currentPath + "/key.pem"
-        let certPath = currentPath + "/cert.pem"
+        let keyPath = currentPath + "/Certificates/key.pem"
+        let certPath = currentPath + "/Certificates/cert.pem"
 
         HTTP2Configuration()
             .certificate(certPath)

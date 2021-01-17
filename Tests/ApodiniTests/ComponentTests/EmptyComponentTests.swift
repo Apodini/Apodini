@@ -8,7 +8,7 @@
 @testable import Apodini
 @_implementationOnly import Runtime
 import XCTest
-
+import XCTApodini
 
 class EmptyComponentTests: ApodiniTests {
     private struct NeverComponent: Component {
