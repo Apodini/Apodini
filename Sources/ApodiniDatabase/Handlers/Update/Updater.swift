@@ -41,7 +41,7 @@ internal struct Updater<Model: DatabaseModel> {
                                 _ = model.update(on: database).transform(to: model)
                                 return model
                             } else {
-                                fatalError("An error occurred while updating single parameters the model ")
+                                fatalError("An error occurred while updating single parameters of the model ")
                             }
                         }
                     }
