@@ -95,7 +95,7 @@ private extension Scheduler {
     /// Checks if only valid property wrappers are used with `Job`s.
     func checkPropertyWrappers<T: Job>(_ job: T) throws {
         for property in Mirror(reflecting: job).children
-        where property.value is PathComponent || property.value is Connection {
+        where property.value is Connection {
             throw JobErrors.requestPropertyWrapper
         }
     }
