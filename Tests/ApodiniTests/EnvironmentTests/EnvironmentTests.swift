@@ -6,6 +6,7 @@
 //
 
 import XCTest
+import XCTApodini
 @testable import Apodini
 
 final class EnvironmentTests: ApodiniTests {

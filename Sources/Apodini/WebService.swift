@@ -47,8 +47,6 @@ extension WebService {
                 .with(exporter: ProtobufferInterfaceExporter.self),
             GraphQLSemanticModelBuilder(app)
         )
-
-        NotificationCenter.shared.application = app
     }
     
     
