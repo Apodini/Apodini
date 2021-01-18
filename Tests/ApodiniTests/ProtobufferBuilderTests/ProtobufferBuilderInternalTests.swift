@@ -56,9 +56,25 @@ extension ProtobufferBuilderInternalTests {
         XCTAssertEqual(try buildMessage(String.self), expected)
     }
     
-    func testOptionalProperty() throws {
+    func testOptionalPropertyFirstOrder() throws {
         struct Message {
             let value: String?
+        }
+        
+        let expected = """
+            syntax = "proto3";
+
+            message MessageMessage {
+              optional string value = 1;
+            }
+            """
+        
+        XCTAssertEqual(try buildMessage(Message.self), expected)
+    }
+    
+    func testOptionalPropertySecondOrder() throws {
+        struct Message {
+            let value: String??
         }
         
         let expected = """
