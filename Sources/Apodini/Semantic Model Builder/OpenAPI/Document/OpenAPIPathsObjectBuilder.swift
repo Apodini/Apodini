@@ -32,7 +32,7 @@ struct OpenAPIPathsObjectBuilder {
     }
 
     /// https://swagger.io/specification/#path-item-object
-    mutating func addPathItem<C: Component>(from endpoint: Endpoint<C>) {
+    mutating func addPathItem<H: Handler>(from endpoint: Endpoint<H>) {
         // Get OpenAPI-compliant path representation.
         let path = endpoint.absolutePath.build(with: OpenAPIPathBuilder.self)
 
