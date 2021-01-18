@@ -45,8 +45,8 @@ class GraphQLInterfaceExporter: InterfaceExporter {
         app.get("graphql", use: self.graphQLIDE)
     }
 
-    private func graphQLIDE(_ _: Vapor.Request) -> Response {
-        let html: Response.Body = """
+    private func graphQLIDE(_ _: Vapor.Request) -> Vapor.Response {
+        let html: Vapor.Response.Body = """
                                   <html>
                                     <head>
                                       <title>GraphiQL</title>
@@ -84,7 +84,7 @@ class GraphQLInterfaceExporter: InterfaceExporter {
                                   </html>
                                   """
 
-        return Response(status: .ok, headers: ["Content-Type": "text/html"], body: html)
+        return Vapor.Response(status: .ok, headers: ["Content-Type": "text/html"], body: html)
     }
 
     private func graphqlServer(_ req: Vapor.Request) throws -> EventLoopFuture<String> {

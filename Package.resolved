@@ -101,6 +101,15 @@
         }
       },
       {
+        "package": "FineJSON",
+        "repositoryURL": "https://github.com/omochi/FineJSON.git",
+        "state": {
+          "branch": null,
+          "revision": "05101709243cb66d80c92e645210a3b80cf4e17f",
+          "version": "1.14.0"
+        }
+      },
+      {
         "package": "fluent",
         "repositoryURL": "https://github.com/vapor/fluent.git",
         "state": {
@@ -218,6 +227,15 @@
         }
       },
       {
+        "package": "OpenAPIKit",
+        "repositoryURL": "https://github.com/mattpolzin/OpenAPIKit.git",
+        "state": {
+          "branch": null,
+          "revision": "02b8b78da3423ff31e35d6327fa7d37644710b30",
+          "version": "2.1.0"
+        }
+      },
+      {
         "package": "OpenCombine",
         "repositoryURL": "https://github.com/OpenCombine/OpenCombine.git",
         "state": {
@@ -242,6 +260,15 @@
           "branch": null,
           "revision": "3cf24967e54e3e63809593273b45b4e8135da6aa",
           "version": "1.4.0"
+        }
+      },
+      {
+        "package": "RichJSONParser",
+        "repositoryURL": "https://github.com/omochi/RichJSONParser.git",
+        "state": {
+          "branch": null,
+          "revision": "263e2ecfe88d0500fa99e4cbc8c948529d335534",
+          "version": "3.0.0"
         }
       },
       {
@@ -404,6 +431,15 @@
           "branch": null,
           "revision": "2b06a70dfcfa76a2e5079f60e3ae911511f09db0",
           "version": "2.1.2"
+        }
+      },
+      {
+        "package": "Yams",
+        "repositoryURL": "https://github.com/jpsim/Yams.git",
+        "state": {
+          "branch": null,
+          "revision": "138cf1b701cf825233b92ceac919152d5aba8a3f",
+          "version": "4.0.1"
         }
       }
     ]

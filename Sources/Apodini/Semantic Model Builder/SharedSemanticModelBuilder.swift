@@ -53,7 +53,13 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
         interfaceExporters.append(AnyInterfaceExporter(exporter))
         return self
     }
-    
+
+    func with<T: StaticInterfaceExporter>(exporter exporterType: T.Type) -> Self {
+        let exporter = exporterType.init(app)
+        interfaceExporters.append(AnyInterfaceExporter(exporter))
+        return self
+    }
+
 
     override func register<H: Handler>(handler: H, withContext context: Context) {
         super.register(handler: handler, withContext: context)
@@ -61,7 +67,7 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
         let operation = context.get(valueFor: OperationContextKey.self)
         var paths = context.get(valueFor: PathComponentContextKey.self)
         let guards = context.get(valueFor: GuardContextKey.self).allActiveGuards
-        let responseTransformers = context.get(valueFor: ResponseContextKey.self)
+        let responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self)
         
         let parameterBuilder = ParameterBuilder(from: handler)
         parameterBuilder.build()
@@ -113,7 +119,12 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
         exporter.finishedExporting(webService)
     }
 
-    private func call<I: InterfaceExporter>(exporter: I, for node: EndpointsTreeNode) {
+    func visit<I>(staticExporter: I) where I: StaticInterfaceExporter {
+        call(exporter: staticExporter, for: webService.root)
+        staticExporter.finishedExporting(webService)
+    }
+
+    private func call<I: BaseInterfaceExporter>(exporter: I, for node: EndpointsTreeNode) {
         for (_, endpoint) in node.endpoints {
             #warning("The result of export is currently unused. Could that be useful in the future?")
             _ = endpoint.exportEndpoint(on: exporter)

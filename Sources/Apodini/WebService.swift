@@ -58,10 +58,11 @@ extension WebService {
                 SharedSemanticModelBuilder(app)
                         .with(exporter: RESTInterfaceExporter.self)
                         .with(exporter: WebSocketInterfaceExporter.self)
+                        .with(exporter: OpenAPIInterfaceExporter.self)
                         .with(exporter: GRPCInterfaceExporter.self)
                         .with(exporter: ProtobufferInterfaceExporter.self)
                         .with(exporter: GraphQLInterfaceExporter.self)
-        )
+                )
     }
 
 

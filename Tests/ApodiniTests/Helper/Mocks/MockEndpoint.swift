@@ -13,7 +13,7 @@ extension Handler {
             context: Context = Context(contextNode: ContextNode()),
             operation: Operation = .automatic,
             guards: [LazyGuard] = [],
-            responseTransformers: [() -> (AnyResponseTransformer)] = []
+            responseTransformers: [LazyAnyResponseTransformer] = []
     ) -> Endpoint<Self> {
         let parameterBuilder = ParameterBuilder(from: self)
         parameterBuilder.build()

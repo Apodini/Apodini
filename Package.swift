@@ -27,10 +27,10 @@ let package = Package(
             .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.0"),
             .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.11.0"),
             .package(url: "https://github.com/apple/swift-nio.git", from: "2.18.0"),
-            // Used by target ProtobufferBuilder to inspect `Type`s.
             .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.1.1"),
             // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
             .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
+            .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.1.0"),
             .package(url: "https://github.com/GraphQLSwift/GraphQL.git", from: "1.1.7"),
             .package(url: "https://github.com/SwiftyJSON/SwiftyJSON.git", from: "5.0.0")
         ],
@@ -38,7 +38,6 @@ let package = Package(
             .target(
                     name: "Apodini",
                     dependencies: [
-                        .target(name: "ProtobufferBuilder"),
                         .product(name: "Vapor", package: "vapor"),
                         .product(name: "Fluent", package: "fluent"),
                         .product(name: "APNS", package: "apns"),
@@ -49,6 +48,7 @@ let package = Package(
                         .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver"),
                         .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                         .product(name: "Runtime", package: "Runtime"),
+                        .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                         .product(name: "SwifCron", package: "SwifCron"),
                         .product(name: "GraphQL", package: "GraphQL"),
                         .product(name: "SwiftyJSON", package: "SwiftyJSON"),
@@ -78,21 +78,6 @@ let package = Package(
                     name: "TestWebService",
                     dependencies: [
                         .target(name: "Apodini")
-                    ]
-            ),
-            // ProtoBufferBuilder
-            .target(
-                    name: "ProtobufferBuilder",
-                    dependencies: [
-                        .product(name: "Runtime", package: "Runtime")
-                    ]
-            ),
-            .testTarget(
-                    name: "ProtobufferBuilderTests",
-                    dependencies: [
-                        .target(name: "Apodini"),
-                        .target(name: "ProtobufferBuilder"),
-                        .product(name: "XCTVapor", package: "vapor")
                     ]
             ),
             // ProtobufferCoding
