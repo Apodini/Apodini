@@ -39,23 +39,42 @@ class GraphQLSchemaBuilder {
     private var types = [String: GraphQLObjectType]()
     private var fields = [String: GraphQLField]()
     private var args = [String: [String: GraphQLArgument]]()
-    private var responseTransformers = [String: [AnyResponseTransformer]]()
     private var responseTypeTree = [String: Node<EnrichedInfo>]()
 
-    // TODO: Handle array types
-    private func responseTypeHandler(for responseTypeHead: Node<EnrichedInfo>) -> GraphQLOutputType {
-        if (responseTypeHead.value.typeInfo.type == String.self) {
+    private func typeToGraphQL(type: Any.Type) -> GraphQLType? {
+        if (type == String.self) {
             return GraphQLString
         }
-        if (responseTypeHead.value.typeInfo.type == Int.self) {
+        if (type == Int.self) {
             return GraphQLInt
         }
-        if (responseTypeHead.value.typeInfo.type == Bool.self) {
+        if (type == Bool.self) {
             return GraphQLBoolean
         }
-        if (responseTypeHead.value.typeInfo.type == Float.self) {
+        if (type == Float.self) {
             return GraphQLFloat
         }
+        return nil
+    }
+
+    private func responseTypeHandler(for responseTypeHead: Node<EnrichedInfo>) -> GraphQLOutputType {
+        let typeValTemp = self.typeToGraphQL(type: responseTypeHead.value.typeInfo.type)
+        if let typeVal = typeValTemp {
+            return typeVal as! GraphQLOutputType
+        }
+
+        // Array
+        if let newResponseHead = try! responseTypeHead.edited(handleArray) {
+            if (newResponseHead.value.cardinality == .zeroToMany) {
+
+                if let type = self.typeToGraphQL(type: newResponseHead.value.typeInfo.type) {
+                    return GraphQLList(type)
+                } else if let eNode = try? EnrichedInfo.node(newResponseHead.value.typeInfo.type) {
+                    return GraphQLList(responseTypeHandler(for: eNode))
+                }
+            }
+        }
+
         var currentFields = [String: GraphQLField]()
         for c in responseTypeHead.children {
             if let propertyInfo = c.value.propertyInfo {
@@ -64,16 +83,17 @@ class GraphQLSchemaBuilder {
                 })
             }
         }
+
         return try! GraphQLObjectType(name: responseTypeHead.value.typeInfo.name, fields: currentFields)
     }
 
-    private func graphQLFieldCreator(for responseTypeHead: Node<EnrichedInfo>, _ context: AnyConnectionContext<GraphQLInterfaceExporter>, _ args: [String: GraphQLArgument], _ responseTransformers: [AnyResponseTransformer]) -> GraphQLField {
+    private func graphQLFieldCreator(for responseTypeHead: Node<EnrichedInfo>, _ context: AnyConnectionContext<GraphQLInterfaceExporter>, _ args: [String: GraphQLArgument]) -> GraphQLField {
         var mutableContext = context
         let graphQLFieldType = self.responseTypeHandler(for: responseTypeHead)
         return GraphQLField(type: graphQLFieldType, args: args, resolve: { gSource, gArgs, gContext, gEventLoop, gInfo in
             let request = GraphQLRequest(source: gSource, args: gArgs, context: gContext, info: gInfo)
             let vaporRequest = gContext as! Vapor.Request
-            var response: EventLoopFuture<Response<AnyEncodable>> = mutableContext.handle(request: request, eventLoop: vaporRequest.eventLoop.next())
+            let response: EventLoopFuture<Response<AnyEncodable>> = mutableContext.handle(request: request, eventLoop: vaporRequest.eventLoop.next())
 
             return response.flatMapThrowing { encodableAction -> Any? in
                 switch encodableAction {
@@ -92,17 +112,17 @@ class GraphQLSchemaBuilder {
     func append<H: Handler>(for endpoint: Endpoint<H>, with context: AnyConnectionContext<GraphQLInterfaceExporter>) {
         let treeTemp = try! EnrichedInfo.node(endpoint.handleReturnType)
 
-
+        // Remove parameters from the path by using `":" filter`
         var currentPath = endpoint.absolutePath.map {
             $0.description.lowercased()
         }.filter {
             $0.first != ":"
         }
 
-        // TODO: Does starting ":" indicate Parameter? Because it is in the path
-        // TODO: e.g. ->> ["v1", "user", ":1234-asdf-12341234"]
+        // Remove `root`
         currentPath.removeFirst()
-        currentPath.removeFirst() // TODO: Check here. currentPath becomes ["", "v1"]?
+        // Remove `v1`
+        currentPath.removeFirst()
 
         // Create node names
         var currentSum = String()
@@ -116,11 +136,6 @@ class GraphQLSchemaBuilder {
 
         // Get leaf name
         let leafName = currentPath.last ?? "None"
-
-        // Handle response transformer
-        self.responseTransformers[leafName] = endpoint.responseTransformers.map {
-            $0()
-        }
 
         // Handle arguments
         for p in endpoint.parameters {
@@ -139,8 +154,7 @@ class GraphQLSchemaBuilder {
         if (currentPath.count == 1) {
             self.fields[leafName] = self.graphQLFieldCreator(for: self.responseTypeTree[leafName]!,
                     context,
-                    self.args[leafName] ?? [:],
-                    self.responseTransformers[leafName] ?? [])
+                    self.args[leafName] ?? [:])
             return
         }
 
@@ -181,8 +195,7 @@ class GraphQLSchemaBuilder {
         } else {
             return self.graphQLFieldCreator(for: self.responseTypeTree[node]!,
                     self.leafHandler[node]!,
-                    self.args[node] ?? [:],
-                    self.responseTransformers[node] ?? [])
+                    self.args[node] ?? [:])
         }
     }
 

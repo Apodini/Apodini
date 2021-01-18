@@ -29,6 +29,7 @@ struct TestWebService: Apodini.WebService {
         init(emojis: String = "✅") {
             self.emojis = emojis
         }
+
         func transform(content string: String) -> String {
             "\(emojis) \(string) \(emojis)"
 
@@ -87,9 +88,15 @@ struct TestWebService: Apodini.WebService {
         }
     }
 
+    struct Hasan: Codable, ResponseTransformable {
+        var type: String
+        var name: [String]
+    }
+
     struct User: Codable, ResponseTransformable {
         var id: Int
         var name: String
+        var hasan: [Hasan]
     }
 
     struct UserHandler: Handler {
@@ -97,7 +104,7 @@ struct TestWebService: Apodini.WebService {
         @Parameter var userName: String?
 
         func handle() -> User {
-            User(id: userId, name: userName ?? "asdf")
+            User(id: userId, name: userName ?? "asdf", hasan: [Hasan(type:"SA", name: ["AS"]), Hasan(type:"AS", name: ["SA"])])
         }
     }
 
@@ -136,9 +143,9 @@ struct TestWebService: Apodini.WebService {
 //                    .response(EmojiMediator())
 //        }
         Group("Users") {
-            Group("user", $userId) {
-                UserHandler(userId: $userId)
-                        // .guard(PrintGuard())
+            Group("user") {
+                UserHandler()
+                // .guard(PrintGuard())
             }
         }
     }
