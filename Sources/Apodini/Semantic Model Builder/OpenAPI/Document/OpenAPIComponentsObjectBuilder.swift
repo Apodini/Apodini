@@ -20,7 +20,7 @@ class OpenAPIComponentsObjectBuilder {
         vendorExtensions: [:]
     )
 
-    /// In case more than one type in HTTP body, build wrapper schema.
+    /// In case there is more than one type in HTTP body, build wrapper schema.
     /// This function takes a list of types with an associated boolean flag reflecting whether it is optional.
     func buildWrapperSchema(for types: [Codable.Type], with necessities: [Necessity]) throws -> JSONSchema {
         let trees: [Node<EnrichedInfo>] = try types.map {
@@ -123,7 +123,6 @@ class OpenAPIComponentsObjectBuilder {
         return componentKey
     }
 }
-
 
 private extension OpenAPIComponentsObjectBuilder {
     static func node(_ type: Any.Type) throws -> Node<EnrichedInfo>? {

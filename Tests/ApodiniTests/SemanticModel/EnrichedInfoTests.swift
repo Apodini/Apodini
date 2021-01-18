@@ -8,153 +8,53 @@ import XCTest
 @testable import Apodini
 
 class EnrichedInfoTests: ApodiniTests {
-    func testCardinalityIsEquatable() throws {
-        let keyType = EnrichedInfo(
-            typeInfo: try typeInfo(of: String.self),
-            propertyInfo: nil,
-            propertiesOffset: nil
-        )
-        let valueType = EnrichedInfo(
-            typeInfo: try typeInfo(of: Int.self),
-            propertyInfo: nil,
-            propertiesOffset: nil
-        )
-        
-        XCTAssertEqual(
-            EnrichedInfo.Cardinality.zeroToOne,
-            EnrichedInfo.Cardinality.zeroToOne
-        )
-        XCTAssertEqual(
-            EnrichedInfo.Cardinality.exactlyOne,
-            EnrichedInfo.Cardinality.exactlyOne
-        )
-        XCTAssertEqual(
-            EnrichedInfo.Cardinality.zeroToMany(.array),
-            EnrichedInfo.Cardinality.zeroToMany(.array)
-        )
-        XCTAssertEqual(
-            EnrichedInfo.Cardinality.zeroToMany(
-                .dictionary(
-                    key: keyType,
-                    value: valueType
-                )
-            ),
-            EnrichedInfo.Cardinality.zeroToMany(
-                .dictionary(
-                    key: keyType,
-                    value: valueType
-                )
+
+    func testCardinality(_ lhs: Any.Type, _ rhs: Any.Type, isEqual: Bool) throws {
+        let keyPath = \Node<EnrichedInfo>.value.cardinality
+
+        if isEqual {
+            XCTAssertEqual(
+                try EnrichedInfo.node(lhs).edited(handleArray)?.edited(handleDictionary)?[keyPath: keyPath],
+                try EnrichedInfo.node(rhs).edited(handleArray)?.edited(handleDictionary)?[keyPath: keyPath]
             )
-        )
-        XCTAssertNotEqual(
-            EnrichedInfo.Cardinality.zeroToMany(
-                .array
-            ),
-            EnrichedInfo.Cardinality.zeroToMany(
-                .dictionary(
-                    key: keyType,
-                    value: valueType
-                )
+        } else {
+            XCTAssertNotEqual(
+                try EnrichedInfo.node(lhs).edited(handleArray)?.edited(handleDictionary)?[keyPath: keyPath],
+                try EnrichedInfo.node(rhs).edited(handleArray)?.edited(handleDictionary)?[keyPath: keyPath]
             )
-        )
-        XCTAssertNotEqual(
-            EnrichedInfo.Cardinality.zeroToOne,
-            EnrichedInfo.Cardinality.exactlyOne
-        )
-        XCTAssertNotEqual(
-            EnrichedInfo.Cardinality.zeroToOne,
-            EnrichedInfo.Cardinality.zeroToMany(.array)
-        )
-        XCTAssertNotEqual(
-            EnrichedInfo.Cardinality.exactlyOne,
-            EnrichedInfo.Cardinality.zeroToMany(.array)
-        )
+        }
     }
 
-    func testCollectionContextIsEquatable() throws {
-        let keyType = EnrichedInfo(
-            typeInfo: try typeInfo(of: String.self),
-            propertyInfo: nil,
-            propertiesOffset: nil
-        )
-        let valueType = EnrichedInfo(
-            typeInfo: try typeInfo(of: Int.self),
-            propertyInfo: nil,
-            propertiesOffset: nil
-        )
-        let valueType1 = EnrichedInfo(
-            typeInfo: try typeInfo(of: String.self),
-            propertyInfo: nil,
-            propertiesOffset: nil
-        )
-        
-        XCTAssertEqual(
-            EnrichedInfo.CollectionContext.array,
-            EnrichedInfo.CollectionContext.array
-        )
-        XCTAssertEqual(
-            EnrichedInfo.CollectionContext.dictionary(key: keyType, value: valueType),
-            EnrichedInfo.CollectionContext.dictionary(key: keyType, value: valueType)
-        )
-        XCTAssertNotEqual(
-            EnrichedInfo.CollectionContext.dictionary(key: keyType, value: valueType),
-            EnrichedInfo.CollectionContext.array
-        )
-        XCTAssertNotEqual(
-            EnrichedInfo.CollectionContext.dictionary(key: keyType, value: valueType),
-            EnrichedInfo.CollectionContext.dictionary(key: keyType, value: valueType1)
-        )
+    func testEnrichedInfo(_ lhs: Any.Type, _ rhs: Any.Type, isEqual: Bool) throws {
+        if isEqual {
+            XCTAssertEqual(
+                try EnrichedInfo.node(lhs).edited(handleArray)?.edited(handleDictionary)?.value,
+                try EnrichedInfo.node(rhs).edited(handleArray)?.edited(handleDictionary)?.value
+            )
+        } else {
+            XCTAssertNotEqual(
+                try EnrichedInfo.node(lhs).edited(handleArray)?.edited(handleDictionary)?.value,
+                try EnrichedInfo.node(rhs).edited(handleArray)?.edited(handleDictionary)?.value
+            )
+        }
+    }
+
+    func testCardinalityIsEquatable() throws {
+        try testCardinality(String.self, Int.self, isEqual: true)
+        try testCardinality(Array<Int>.self, Array<String>.self, isEqual: true)
+        try testCardinality(Dictionary<Int, String>.self, Dictionary<Int, String>.self, isEqual: true)
+        try testCardinality(Array<String>.self, Dictionary<Int, String>.self, isEqual: false)
+        try testCardinality(String.self, Array<Int>.self, isEqual: false)
+        try testCardinality(String.self, Dictionary<Int, String>.self, isEqual: false)
     }
 
     func testEnrichedInfoIsEquatable() throws {
-        let stringType = EnrichedInfo(
-            typeInfo: try typeInfo(of: String.self),
-            propertyInfo: nil,
-            propertiesOffset: nil
-        )
-        let stringType1 = EnrichedInfo(
-            typeInfo: try typeInfo(of: String.self),
-            propertyInfo: nil,
-            propertiesOffset: nil
-        )
-        let intType = EnrichedInfo(
-            typeInfo: try typeInfo(of: Int.self),
-            propertyInfo: nil,
-            propertiesOffset: nil
-        )
-        let complexReflectedType = try typeInfo(of: Array<Int>.self)
-        let complexReflectedTypeProperty = try typeInfo(of: complexReflectedType.properties[0].type)
-        let complexTypePropertyInfo = EnrichedInfo(
-            typeInfo: complexReflectedTypeProperty,
-            propertyInfo: complexReflectedType.properties[0],
-            propertiesOffset: 0,
-            cardinality: .exactlyOne
-        )
-        let complexTypePropertyInfo1 = EnrichedInfo(
-            typeInfo: complexReflectedTypeProperty,
-            propertyInfo: nil,
-            propertiesOffset: 0,
-            cardinality: .exactlyOne
-        )
-        let complexTypePropertyInfo2 = EnrichedInfo(
-            typeInfo: complexReflectedTypeProperty,
-            propertyInfo: complexReflectedType.properties[0],
-            propertiesOffset: 1,
-            cardinality: .exactlyOne
-        )
-        let complexTypePropertyInfo3 = EnrichedInfo(
-            typeInfo: complexReflectedTypeProperty,
-            propertyInfo: complexReflectedType.properties[0],
-            propertiesOffset: 0,
-            cardinality: .zeroToOne
-        )
-        
-        XCTAssertEqual(stringType, stringType1)
-        XCTAssertNotEqual(stringType, intType)
-        XCTAssertNotEqual(complexTypePropertyInfo, stringType)
-        XCTAssertEqual(complexTypePropertyInfo, complexTypePropertyInfo)
-        XCTAssertNotEqual(complexTypePropertyInfo, complexTypePropertyInfo1)
-        XCTAssertNotEqual(complexTypePropertyInfo, complexTypePropertyInfo2)
-        XCTAssertNotEqual(complexTypePropertyInfo, complexTypePropertyInfo3)
+        try testEnrichedInfo(String.self, Int.self, isEqual: false)
+        try testEnrichedInfo(Array<Int>.self, Array<Int>.self, isEqual: true)
+        try testEnrichedInfo(Array<Int>.self, Array<String>.self, isEqual: false)
+        try testEnrichedInfo(Dictionary<Int, String>.self, Dictionary<Int, String>.self, isEqual: true)
+        try testEnrichedInfo(Array<String>.self, Dictionary<Int, String>.self, isEqual: false)
+        try testEnrichedInfo(String.self, Array<Int>.self, isEqual: false)
+        try testEnrichedInfo(String.self, Dictionary<Int, String>.self, isEqual: false)
     }
 }
