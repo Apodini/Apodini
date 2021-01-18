@@ -48,15 +48,22 @@ extension EnrichedInfo {
                         let traveler = try travelThroughWrappers(propertyInfo.type)
                         var typeInfo = try Runtime.typeInfo(of: traveler.type)
                         
-                        let identifier = ObjectIdentifier(typeInfo.type)
-                        if visitedCompositeTypes.contains(identifier) {
+                        if visitedCompositeTypes.contains(.init(
+                            TypeReflectionDidEncounterRecursion.self
+                        )) {
                             typeInfo = try Runtime.typeInfo(of: TypeReflectionDidEncounterRecursion.self)
                         } else {
-                            if !isSupportedScalarType(typeInfo.type) {
-                                visitedCompositeTypes.append(identifier)
+                            let identifier = ObjectIdentifier(typeInfo.type)
+                            if visitedCompositeTypes.contains(identifier) {
+                                visitedCompositeTypes.append(.init(
+                                    TypeReflectionDidEncounterRecursion.self
+                                ))
+                            } else {
+                                if !isSupportedScalarType(typeInfo.type) {
+                                    visitedCompositeTypes.append(identifier)
+                                }
                             }
                         }
-                        
                         let cardinality = traveler.wrappers.first ?? .exactlyOne
                         
                         return EnrichedInfo(
