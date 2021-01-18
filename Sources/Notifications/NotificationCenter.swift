@@ -38,12 +38,12 @@ public class NotificationCenter {
     }
 
     /// Property to directly use the [APNS](https://github.com/vapor/apns) library.
-    public var apns: APNSwiftClient {
+    internal var apns: APNSwiftClient {
         app.apns
     }
     
     /// Property to directly use the [FCM](https://github.com/MihaelIsaev/FCM) library.
-    public var fcm: FCM {
+    internal var fcm: FCM {
         app.fcm
     }
     
