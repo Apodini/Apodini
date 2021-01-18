@@ -49,6 +49,8 @@ extension WebService {
                 .with(exporter: ProtobufferInterfaceExporter.self),
             GraphQLSemanticModelBuilder(app)
         )
+        app.vapor.app.routes.defaultMaxBodySize = "1mb"
+        EnvironmentValues.shared.application = app
     }
     
     
