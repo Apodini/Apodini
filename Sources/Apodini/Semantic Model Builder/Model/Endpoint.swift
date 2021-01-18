@@ -109,7 +109,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         identifier: AnyHandlerIdentifier,
         handler: H,
         context: Context = Context(contextNode: ContextNode()),
-        operation: Operation = .automatic,
+        operation: Operation? = nil,
         serviceType: ServiceType = .unary,
         guards: [LazyGuard] = [],
         responseTransformers: [LazyAnyResponseTransformer] = []
@@ -118,7 +118,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         self.description = String(describing: H.self)
         self.handler = handler
         self.context = context
-        self.operation = operation
+        self.operation = operation ?? .read
         self.serviceType = serviceType
         self.handleReturnType = H.Response.Content.self
         self.guards = guards
