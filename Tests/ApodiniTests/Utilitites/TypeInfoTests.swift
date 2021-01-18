@@ -17,7 +17,6 @@ class TypeInfoTests: ApodiniTests {
         XCTAssertEqual(isOptional(Int.self), false)
         XCTAssertEqual(isOptional(Test.self), false)
         XCTAssertEqual(isOptional(Optional<Test>.self), true)
-        XCTAssertEqual(isOptional(Optional<Test>.self), true)
         XCTAssertEqual(isOptional(String?.self), true)
         XCTAssertEqual(isOptional(String??.self), true)
         XCTAssertEqual(isOptional(String???.self), true)
@@ -25,6 +24,24 @@ class TypeInfoTests: ApodiniTests {
         
         // A case that should throw an error in isOptional
         XCTAssertEqual(isOptional((() -> Void).self), false)
+    }
+
+    func testIsEnum() {
+        /// A custom type
+        enum Test {
+            case unit
+            case integration
+            case system
+        }
+
+        XCTAssertEqual(isEnum(Test.self), true)
+        XCTAssertEqual(isEnum(Int.self), false)
+        XCTAssertEqual(isEnum(Optional<Test>.self), false)
+        XCTAssertEqual(isEnum(String?.self), false)
+        XCTAssertEqual(isEnum(Never.self), true)
+
+        // A case that should throw an error in isEnum
+        XCTAssertEqual(isEnum((() -> Void).self), false)
     }
     
     func testDescription() {
