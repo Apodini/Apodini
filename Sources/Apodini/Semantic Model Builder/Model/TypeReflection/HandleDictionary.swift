@@ -2,9 +2,6 @@
 //  Created by Lorena Schlesinger on 15.01.21.
 //
 
-import Foundation
-@_implementationOnly import Runtime
-
 func handleDictionary(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     let typeInfo = node.value.typeInfo
 
