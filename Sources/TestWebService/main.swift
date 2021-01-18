@@ -155,6 +155,9 @@ struct TestWebService: Apodini.WebService {
         Group("rand") {
             Random()
         }
+        Group("file") {
+            Uploader(UploadConfiguration(.public, subPath: "Misc/MoreMisc/")).operation(.create)
+        }
     }
 }
 
