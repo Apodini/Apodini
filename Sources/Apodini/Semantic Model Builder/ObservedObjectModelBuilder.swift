@@ -1,17 +1,18 @@
 import Foundation
 import OpenCombine
 
-public protocol AnySubscribingObject {
-    func run()
-}
-
+/// Protocol that defines a visitor pattern for `ObservedObject`s.
 public protocol ObservedObjectVisitor {
+    /// Visits a concrete `ObservedObject`.
     func visit<Element>(_ observed: ObservedObject<Element>)
 }
 
+/// Implementation of an `ObservedObjectVisitor`.
+/// Collects `Published` properties of `ObservedObject`s.
 public class ObservedObjectModelBuilder: ObservedObjectVisitor {
     public var publishers: [AnyPublisher<Void, Never>]
     
+    /// Creates an `ObservedObjectModelBuilder`.
     public init() {
         self.publishers = []
     }

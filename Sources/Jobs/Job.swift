@@ -2,8 +2,9 @@
 import NIO
 import Apodini
 
-/// `Job`s allow to create background running tasks.
-public protocol Job: AnySubscribingObject, ObservableObject {
+/// `Job`s allow to create background running tasks
+/// and conform `ObservableObject` to trigger the evaluation of other objects.
+public protocol Job: ObservableObject {
     /// Method called when the `Job` is executed.
     func run()
 }
