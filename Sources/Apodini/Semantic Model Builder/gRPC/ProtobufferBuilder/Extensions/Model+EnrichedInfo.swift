@@ -67,9 +67,9 @@ fileprivate extension TypeInfo {
         } else {
             switch kind {
             case .struct, .class:
-                return try compatibleGenericName()
+                return try compatibleGenericName() + "Message"
             case .tuple:
-                return try tupleName()
+                return try tupleName() + "Message"
             default:
                 throw ProtobufferBuilderError(message: "Kind: \(kind) is not supported")
             }
