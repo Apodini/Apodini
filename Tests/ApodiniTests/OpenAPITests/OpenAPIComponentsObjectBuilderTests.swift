@@ -19,10 +19,22 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     let someEither: Either<Int, String> = .init("someString")
     let someOptional: String? = nil
     let someOptionalUUID: UUID? = nil
+    let someEnum = Test.system
+
+    enum Test: String, Codable, CaseIterable {
+        case unit
+        case integration
+        case system
+    }
 
     struct SomeStruct: Encodable {
         var id: UUID?
         var someProp = 4
+    }
+
+    struct SomeStructWithEnum: Encodable {
+        var someProp = 4
+        var test: Test
     }
 
     struct GenericStruct<T>: Encodable where T: Encodable {
@@ -35,11 +47,11 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         var someNestedStruct: SomeNestedStruct
         var someNestedStruct2: SomeNestedStruct
         var someItems: GenericStruct<SomeStruct>
-
-        struct SomeNestedStruct: Encodable {
-            let someInt = 123
-            let someString: String?
-        }
+    }
+    
+    struct SomeNestedStruct: Encodable {
+        let someInt = 123
+        let someString: String?
     }
     
     struct ResponseContainer<T>: Encodable where T: Encodable {
@@ -47,10 +59,10 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         var links: [String: String]
     }
 
+    // add primitive types and non structs (will not be added to components map, but defined inline)
     func testBuildSchemaNonStructs() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
 
-        // add primitive type (will not be added to components map, but defined inline)
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: type(of: someString)))
         var schema = try componentsBuilder.buildSchema(for: type(of: someString))
         XCTAssertEqual(schema, .string())
@@ -65,8 +77,16 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         
         XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 0)
         XCTAssertEqual(componentsBuilder.componentsObject, .noComponents)
+
+        XCTAssertNoThrow(try componentsBuilder.buildSchema(for: type(of: someEnum)))
+        schema = try componentsBuilder.buildSchema(for: type(of: someEnum))
+        XCTAssertEqual(schema, .string(allowedValues: Test.allCases.map { .init($0.rawValue) }))
+
+        XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 0)
+        XCTAssertEqual(componentsBuilder.componentsObject, .noComponents)
     }
-    
+
+    // add complex type (will be added to components map)
     func testBuildSchemaResponseContainer() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: ResponseContainer<SomeStruct>.self))
@@ -80,7 +100,7 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         ]))
         XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 1)
     }
-    
+
     func testBuildSchemaReference() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: SomeComplexStruct.self))
@@ -102,14 +122,23 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 1)
     }
 
+    func testBuildSchemaEnumReference() throws {
+        let componentsBuilder = OpenAPIComponentsObjectBuilder()
+        XCTAssertNoThrow(try componentsBuilder.buildSchema(for: SomeStructWithEnum.self))
+        XCTAssertNoThrow(try JSONSchema.reference(.component(named: "\(SomeStructWithEnum.self)")).dereferenced(in: componentsBuilder.componentsObject))
+        XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 1)
+    }
+
     func testBuildSchemaCorrect() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
         _ = try componentsBuilder.buildSchema(for: SomeComplexStruct.self)
+        _ = try componentsBuilder.buildSchema(for: SomeStructWithEnum.self)
 
-        let ref1 = try componentsBuilder.componentsObject.reference(named: "SomeStruct", ofType: JSONSchema.self)
-        let ref2 = try componentsBuilder.componentsObject.reference(named: "SomeNestedStruct", ofType: JSONSchema.self)
+        let ref1 = try componentsBuilder.componentsObject.reference(named: "\(SomeStruct.self)", ofType: JSONSchema.self)
+        let ref2 = try componentsBuilder.componentsObject.reference(named: "\(SomeNestedStruct.self)", ofType: JSONSchema.self)
         let ref3 = try componentsBuilder.componentsObject.reference(named: "GenericStruct", ofType: JSONSchema.self)
-        let ref4 = try componentsBuilder.componentsObject.reference(named: "SomeComplexStruct", ofType: JSONSchema.self)
+        let ref4 = try componentsBuilder.componentsObject.reference(named: "\(SomeComplexStruct.self)", ofType: JSONSchema.self)
+        let ref5 = try componentsBuilder.componentsObject.reference(named: "\(SomeStructWithEnum.self)", ofType: JSONSchema.self)
 
         XCTAssertEqual(
             componentsBuilder.componentsObject[ref1],
@@ -156,6 +185,15 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
                     "someNestedStruct": .reference(
                         .component(named: "SomeNestedStruct")
                     )
+                ]
+            )
+        )
+        XCTAssertEqual(
+            componentsBuilder.componentsObject[ref5],
+            .object(
+                properties: [
+                    "someProp": .integer,
+                    "test": .string(allowedValues: Test.allCases.map { .init($0.rawValue) })
                 ]
             )
         )
