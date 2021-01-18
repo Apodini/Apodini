@@ -121,7 +121,7 @@ public class ProtobufferEncoder {
     /// created using `unkeyedContainer()`.
     public func getResult() throws -> Data {
         guard let encoder = encoder else {
-            throw ProtobufferError.encodingError("No internal encoder initialized. Call unkeyedContainer() first.")
+            throw ProtoError.encodingError("No internal encoder initialized. Call unkeyedContainer() first.")
         }
         return try encoder.getEncoded()
     }

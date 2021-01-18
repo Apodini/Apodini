@@ -65,7 +65,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
            let output = String(data: value, encoding: .utf8) {
             return output
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: Data.Type, forKey key: Key) throws -> Data {
@@ -73,7 +73,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let value = data[keyValue]?.last {
             return value
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: Double.Type, forKey key: Key) throws -> Double {
@@ -81,7 +81,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let value = data[keyValue]?.last {
             return try decodeDouble(value)
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: Float.Type, forKey key: Key) throws -> Float {
@@ -89,19 +89,19 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let value = data[keyValue]?.last {
             return try decodeFloat(value)
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: Int.Type, forKey key: Key) throws -> Int {
-        throw ProtobufferError.decodingError("Int not supported, use Int32 or Int64")
+        throw ProtoError.decodingError("Int not supported, use Int32 or Int64")
     }
 
     func decode(_ type: Int8.Type, forKey key: Key) throws -> Int8 {
-        throw ProtobufferError.decodingError("Int not supported, use Int32 or Int64")
+        throw ProtoError.decodingError("Int not supported, use Int32 or Int64")
     }
 
     func decode(_ type: Int16.Type, forKey key: Key) throws -> Int16 {
-        throw ProtobufferError.decodingError("Int not supported, use Int32 or Int64")
+        throw ProtoError.decodingError("Int not supported, use Int32 or Int64")
     }
 
     func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 {
@@ -109,7 +109,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let value = data[keyValue]?.last {
             return try decodeInt32(value)
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: Int64.Type, forKey key: Key) throws -> Int64 {
@@ -117,19 +117,19 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let value = data[keyValue]?.last {
             return try decodeInt64(value)
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: UInt.Type, forKey key: Key) throws -> UInt {
-        throw ProtobufferError.decodingError("UInt not supported, use UInt32 or UInt64")
+        throw ProtoError.decodingError("UInt not supported, use UInt32 or UInt64")
     }
 
     func decode(_ type: UInt8.Type, forKey key: Key) throws -> UInt8 {
-        throw ProtobufferError.decodingError("UInt8 not supported, use UInt32 or UInt64")
+        throw ProtoError.decodingError("UInt8 not supported, use UInt32 or UInt64")
     }
 
     func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 {
-        throw ProtobufferError.decodingError("UInt8 not supported, use UInt32 or UInt64")
+        throw ProtoError.decodingError("UInt8 not supported, use UInt32 or UInt64")
     }
 
     func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 {
@@ -137,7 +137,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let value = data[keyValue]?.last {
             return try decodeUInt32(value)
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 {
@@ -145,7 +145,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let value = data[keyValue]?.last {
             return try decodeUInt64(value)
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: [Bool].Type, forKey key: Key) throws -> [Bool] {
@@ -153,7 +153,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let value = data[keyValue]?.last {
             return try decodeRepeatedBool(value)
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: [Float].Type, forKey key: Key) throws -> [Float] {
@@ -164,7 +164,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let value = data[keyValue]?.last {
             return try decodeRepeatedFloat(value)
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: [Double].Type, forKey key: Key) throws -> [Double] {
@@ -175,7 +175,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let value = data[keyValue]?.last {
             return try decodeRepeatedDouble(value)
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: [Int32].Type, forKey key: Key) throws -> [Int32] {
@@ -186,7 +186,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let value = data[keyValue]?.last {
             return try decodeRepeatedInt32(value)
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: [Int64].Type, forKey key: Key) throws -> [Int64] {
@@ -197,7 +197,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let value = data[keyValue]?.last {
             return try decodeRepeatedInt64(value)
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: [UInt32].Type, forKey key: Key) throws -> [UInt32] {
@@ -208,7 +208,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let value = data[keyValue]?.last {
             return try decodeRepeatedUInt32(value)
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: [UInt64].Type, forKey key: Key) throws -> [UInt64] {
@@ -219,7 +219,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let value = data[keyValue]?.last {
             return try decodeRepeatedUInt64(value)
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: [Data].Type, forKey key: Key) throws -> [Data] {
@@ -228,7 +228,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
             // the data is already [Data] :D
             return values
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     func decode(_ type: [String].Type, forKey key: Key) throws -> [String] {
@@ -236,7 +236,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let values = data[keyValue] {
             return decodeRepeatedString(values)
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
 
     // swiftlint:disable cyclomatic_complexity
@@ -286,7 +286,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
                     [Int].self, [Int8].self, [Int16].self,
                     [UInt].self, [UInt8].self, [UInt16].self
         ].contains(where: { $0 == T.self }) {
-            throw ProtobufferError.decodingError("Decoding values of type \(T.self) is not supported yet")
+            throw ProtoError.decodingError("Decoding values of type \(T.self) is not supported yet")
         } else {
             // we encountered a nested structure
             let keyValue = try extractIntValue(from: key)
@@ -294,7 +294,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
                 return try ProtobufferDecoder().decode(type, from: value)
             }
         }
-        throw ProtobufferError.decodingError("No data for given key")
+        throw ProtoError.decodingError("No data for given key")
     }
     // swiftlint:enable cyclomatic_complexity
 
@@ -304,7 +304,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let value = data[keyValue]?.last {
             return try InternalProtoDecoder(from: value).container(keyedBy: type)
         }
-        throw ProtobufferError.unsupportedDataType("nestedContainer not available")
+        throw ProtoError.unsupportedDataType("nestedContainer not available")
     }
 
     func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
@@ -312,14 +312,14 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         if let value = data[keyValue]?.last {
             return try InternalProtoDecoder(from: value).unkeyedContainer()
         }
-        throw ProtobufferError.unsupportedDataType("nestedUnkeyedContainer not available")
+        throw ProtoError.unsupportedDataType("nestedUnkeyedContainer not available")
     }
 
     func superDecoder() throws -> Decoder {
         if let referencedBy = referencedBy {
             return InternalProtoDecoder(from: referencedBy)
         }
-        throw ProtobufferError.unsupportedDecodingStrategy("Cannot decode super")
+        throw ProtoError.unsupportedDecodingStrategy("Cannot decode super")
     }
 
     func superDecoder(forKey key: Key) throws -> Decoder {

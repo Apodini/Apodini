@@ -31,6 +31,6 @@ public extension CodingKey {
         where enumCase.name == self.stringValue {
             return index + 1
         }
-        throw ProtobufferError.unknownCodingKey(self)
+        throw ProtoError.unknownCodingKey(self)
     }
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum ProtobufferError: Error {
+public enum ProtoError: Error {
     case unknownCodingKey(_ codingKey: CodingKey)
     case unknownType(_ fieldType: Int)
     case decodingError(_ message: String)
