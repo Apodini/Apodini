@@ -11,6 +11,8 @@ extension JSONSchema {
             return true
         case .array(_, let arrayContext):
             return (arrayContext.items)?.isReference ?? false
+        case .object(_, let objectContext):
+            return (objectContext.additionalProperties?.b)?.isReference ?? false
         default:
             return false
         }
