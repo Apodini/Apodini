@@ -7,6 +7,8 @@ import Vapor
 @testable import Apodini
 
 class RESTInterfaceExporterTests: ApodiniTests {
+    lazy var application = Vapor.Application(.testing)
+
     struct Parameters: Apodini.Content, Decodable {
         var param0: String
         var param1: String?
@@ -73,7 +75,12 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
     @ComponentBuilder
     var testService: some Component {
-        Group("user", $userId) {
+        Group {
+            "user"
+                .hideLink()
+                .relationship(name: "user")
+            $userId
+        } content: {
             UserHandler(userId: $userId)
         }
     }
@@ -89,15 +96,16 @@ class RESTInterfaceExporterTests: ApodiniTests {
         let bodyData = ByteBuffer(data: try JSONEncoder().encode(body))
 
         let uri = URI("http://example.de/test/a?param0=value0")
+
         let request = Vapor.Request(
-                application: app,
+                application: application,
                 method: .POST,
                 url: uri,
                 collectedBody: bodyData,
                 on: app.eventLoopGroup.next()
         )
         // we hardcode the pathId currently here
-        request.parameters.set(":\(handler.pathAParameter.id)", to: "a")
+        request.parameters.set("\(handler.pathAParameter.id)", to: "a")
 
         let result = try context.handle(request: request)
                 .wait()
@@ -122,7 +130,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         let userId = "1234"
         let name = "Rudi"
-        try app.testable(method: .inMemory).test(.GET, "user/\(userId)?name=\(name)") { response in
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "user/\(userId)?name=\(name)") { response in
             XCTAssertEqual(response.status, .ok)
             let container = try response.content.decode(DecodedResponseContainer<User>.self)
             XCTAssertEqual(container.data.id, userId)
@@ -154,10 +162,10 @@ class RESTInterfaceExporterTests: ApodiniTests {
         
         let endpointPaths = builder.rootNode
             .collectAllEndpoints()
-            .map { StringPathBuilder($0.absolutePath).build() }
+            .map { $0.absolutePath.asPathString() }
         
         let expectedEndpointPaths: [String] = [
-            "v1/api/user", "v1/api/user", "v1/api/post"
+            "/v1/api/user", "/v1/api/user", "/v1/api/post"
         ]
         XCTAssert(endpointPaths.compareIgnoringOrder(expectedEndpointPaths))
     }

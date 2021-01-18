@@ -5,29 +5,19 @@
 @_implementationOnly import OpenAPIKit
 
 /// Utility to convert `_PathComponent`s to `OpenAPI.Path` format.
-struct OpenAPIPathBuilder: PathBuilder {
-    lazy var path: OpenAPI.Path = OpenAPI.Path(stringLiteral: self.components.joined(separator: "/"))
+struct OpenAPIPathBuilder: PathBuilderWithResult {
     var components: [String] = []
-    let parameters: [AnyEndpointParameter]
-
-    init(_ pathComponents: [_PathComponent], parameters: [AnyEndpointParameter]) {
-        self.parameters = parameters
-        for pathComponent in pathComponents {
-            pathComponent.append(to: &self)
-        }
-    }
-
-    mutating func append<T>(_ parameter: Parameter<T>) {
-        guard let param = parameters.first(where: {
-            $0.id == parameter.id
-        }) else {
-            fatalError("Path contains parameter which cannot be found in endpoint's parameters.")
-        }
-        components.append("{\(param.name)}")
-    }
 
     mutating func append(_ string: String) {
         components.append(string)
+    }
+
+    mutating func append<Type: Codable>(_ parameter: EndpointPathParameter<Type>) {
+        components.append("{\(parameter.name)}")
+    }
+
+    func result() -> OpenAPI.Path {
+        OpenAPI.Path(stringLiteral: self.components.joined(separator: "/"))
     }
 }
 
@@ -44,8 +34,7 @@ struct OpenAPIPathsObjectBuilder {
     /// https://swagger.io/specification/#path-item-object
     mutating func addPathItem<C: Component>(from endpoint: Endpoint<C>) {
         // Get OpenAPI-compliant path representation.
-        var pathBuilder = OpenAPIPathBuilder(endpoint.absolutePath, parameters: endpoint.parameters)
-        let path = pathBuilder.path
+        let path = endpoint.absolutePath.build(with: OpenAPIPathBuilder.self)
 
         // Get or create `PathItem`.
         var pathItem = pathsObject[path] ?? OpenAPI.PathItem()
@@ -62,7 +51,13 @@ struct OpenAPIPathsObjectBuilder {
 
 private extension OpenAPIPathsObjectBuilder {
     /// https://swagger.io/specification/#operation-object
-    mutating func buildPathItemOperationObject<C: Component>(from endpoint: Endpoint<C>) -> OpenAPI.Operation {
+    mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>) -> OpenAPI.Operation {
+        // Get customDescription if it has been set explicitly passed via modifier
+        let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)
+        
+        // Set endpoint Description to customDescription or `endpoint.description` holding the `Handler`s type name
+        let endpointDescription = customDescription ?? endpoint.description
+
         // Get `Parameter.Array` from existing `query` or `path` parameters.
         let parameters: OpenAPI.Parameter.Array = buildParametersArray(from: endpoint.parameters)
 
@@ -73,6 +68,7 @@ private extension OpenAPIPathsObjectBuilder {
         let responses: OpenAPI.Response.Map = buildResponsesObject(from: endpoint.responseType)
 
         return OpenAPI.Operation(
+            description: endpointDescription,
             parameters: parameters,
             requestBody: requestBody,
             responses: responses

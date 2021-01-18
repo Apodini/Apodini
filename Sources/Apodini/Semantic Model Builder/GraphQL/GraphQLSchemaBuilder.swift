@@ -6,35 +6,6 @@
 import GraphQL
 
 
-// GraphQL EventLoop return handler
-//let GraphQLEventLoop = try! GraphQLScalarType(
-//        name: "EventLoop",
-//        description:
-//        "The `EventLoop(String)` scalar type represents textual data, represented as UTF-8 " +
-//                "character sequences. The String type is most often used by GraphQL to " +
-//                "represent free-form human-readable text.",
-//        serialize: { val in
-//            var res = String()
-//            // TODO: It does work but why ?
-//            (val as! EventLoopFuture<String>).whenSuccess { s in
-//                res = s
-//            }
-//            return try map(from: res)
-//        },
-//        parseValue: {
-//            print("parseValue->", type(of: $0), $0)
-//            return try .string($0.stringValue(converting: true))
-//        },
-//        parseLiteral: { ast in
-//            print("parseLiteral->", type(of: ast), ast)
-//            if let ast = ast as? StringValue {
-//                return .string(ast.value)
-//            }
-//
-//            return .null
-//        }
-//)
-
 func graphqlTypeMap(with type: Codable.Type) -> GraphQLScalarType {
     if (type == String.self) {
         return GraphQLString
@@ -56,43 +27,6 @@ struct GraphQLRequest: ExporterRequest {
     var info: GraphQLResolveInfo
 }
 
-
-//struct GraphQLResponseContainer: Encodable {
-//    var data: AnyEncodable?
-//
-//    init(_ data: AnyEncodable?) {
-//        self.data = data
-//    }
-//
-//    func encodeResponse(with responseTransformers: [AnyResponseTransformer]) -> Any {
-////        if let stringData = self.data?.wrappedValue as? String {
-////            return stringData
-////        }
-//
-//
-//        let jsonEncoder = JSONEncoder()
-//        jsonEncoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
-//
-//        var response = String()
-//        do {
-//            if let currentData = self.data {
-//                var transformedData = currentData
-////                for rt in responseTransformers { // TODO: transforms
-////                    transformedData = AnyEncodable(rt.transform(response: transformedData))
-////                }
-//
-//                // print("Current data is ", transformedData.value)
-//                let encodedData = try jsonEncoder.encode(transformedData)
-//                response = String(data: encodedData, encoding: .utf8)!
-//            }
-//        } catch {
-//            response = "Error happened in the data encoding!"
-//        }
-//
-//
-//        return response
-//    }
-//}
 
 class GraphQLSchemaBuilder {
     private var tree = [String: Set<String>]()
@@ -124,71 +58,39 @@ class GraphQLSchemaBuilder {
         }
         var currentFields = [String: GraphQLField]()
         for c in responseTypeHead.children {
-            if let childName = c.value.propertyInfo?.name {
-                currentFields[childName] = GraphQLField(type: responseTypeHandler(for: c))
+            if let propertyInfo = c.value.propertyInfo {
+                currentFields[propertyInfo.name] = GraphQLField(type: responseTypeHandler(for: c), resolve: { source, args, context, info in
+                    return try propertyInfo.get(from: source)
+                })
             }
         }
-        return try! GraphQLObjectType(name: responseTypeHead.value.typeInfo.name, fields: currentFields, isTypeOf: { source, _, info in
-            print("The info is ->", info)
-            print("The source is ->", source)
-            print(type(of: source))
-            print(responseTypeHead.value.typeInfo.type)
-
-           //print(type(of: source).self === type(of: responseTypeHead.value.typeInfo.type).self)
-
-            return true // source is String // TODO: Fix this with the real value of return type e.g. User
-        })
+        return try! GraphQLObjectType(name: responseTypeHead.value.typeInfo.name, fields: currentFields)
     }
 
     private func graphQLFieldCreator(for responseTypeHead: Node<EnrichedInfo>, _ context: AnyConnectionContext<GraphQLInterfaceExporter>, _ args: [String: GraphQLArgument], _ responseTransformers: [AnyResponseTransformer]) -> GraphQLField {
         var mutableContext = context
         let graphQLFieldType = self.responseTypeHandler(for: responseTypeHead)
-        return GraphQLField(type: graphQLFieldType, args: args, resolve: { gSource, gArgs, gContext, gInfo in
+        return GraphQLField(type: graphQLFieldType, args: args, resolve: { gSource, gArgs, gContext, gEventLoop, gInfo in
             let request = GraphQLRequest(source: gSource, args: gArgs, context: gContext, info: gInfo)
             let vaporRequest = gContext as! Vapor.Request
             var response: EventLoopFuture<Response<AnyEncodable>> = mutableContext.handle(request: request, eventLoop: vaporRequest.eventLoop.next())
-//            print("The tpe info is ",  responseTypeHead.value.typeInfo.properties)
-//            var dict = [String: Any]()
-//            for p in responseTypeHead.value.typeInfo.properties{
-//                dict[p.name] = "12"
-//            }
-//            print("The dict is", dict)
-////            let dict =
-//            let val : Encodable = try JSONDecoder().decode(responseTypeHead.value.typeInfo.type, from: JSONSerialization.data(withJSONObject: dict))
-//            print(val)
-////            // TODO: Transformer
-//            for rt in responseTransformers {
-//                transformedData = AnyEncodable(rt.transform(response: transformedData))
-//            }
-//            print("REsponse type is", gInfo.returnType)
-            let res = response.flatMapThrowing { encodableAction -> String  in
+
+            return response.flatMapThrowing { encodableAction -> Any? in
                 switch encodableAction {
                 case let .send(element),
                      let .final(element):
-                    print("The element is ", element)
-
-//                    print(encodedData)
-                    return "HI"
+                    return element.wrappedValue
                 case .nothing, .end:
                     return "EMPTY?"
                 }
             }
 
-            var mainRes = String()
-
-            res.whenSuccess { s in
-                mainRes = s
-            }
-            print("The main res is ", mainRes)
-            // let dict : [String : Any] =
-            return "HI"
         })
     }
 
     // Generated adjacency list tree
     func append<H: Handler>(for endpoint: Endpoint<H>, with context: AnyConnectionContext<GraphQLInterfaceExporter>) {
         let treeTemp = try! EnrichedInfo.node(endpoint.handleReturnType)
-//        print(self.responseTypeHandler(for: treeTemp))
 
 
         var currentPath = endpoint.absolutePath.map {
@@ -200,6 +102,7 @@ class GraphQLSchemaBuilder {
         // TODO: Does starting ":" indicate Parameter? Because it is in the path
         // TODO: e.g. ->> ["v1", "user", ":1234-asdf-12341234"]
         currentPath.removeFirst()
+        currentPath.removeFirst() // TODO: Check here. currentPath becomes ["", "v1"]?
 
         // Create node names
         var currentSum = String()

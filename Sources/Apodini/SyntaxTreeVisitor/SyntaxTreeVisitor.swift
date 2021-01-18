@@ -6,11 +6,11 @@
 //
 
 
-/// The scope of a value assocated with a `ContextKey`
+/// The scope of a value associated with a `ContextKey`
 enum Scope {
-    /// The value is only applied to the next `Handler` and discarded afterwards
-    case nextHandler
-    /// The value is applied to all following `Handler`s located in the substree of the current `Component` in the  synatx tree of the Apodini DSL
+    /// The value is only applied to the current `ContextNode` and discarded afterwards
+    case current
+    /// The value is applied to all following `ContextNodes`s located in the subtree of the current `ContextNode`
     case environment
 }
 
@@ -79,7 +79,7 @@ class SyntaxTreeVisitor {
     ///   - contextKey: The key of the context value
     ///   - value: The value that is assocated to the `ContextKey`
     ///   - scope: The scope of the context value as defined by the `Scope` enum
-    func addContext<C: ContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
+    func addContext<C: OptionalContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
         currentNode.addContext(contextKey, value: value, scope: scope)
     }
     
@@ -89,7 +89,7 @@ class SyntaxTreeVisitor {
     func visit<H: Handler>(handler: H) {
         // We increase the component level specific `currentNodeIndexPath` by one for each `Handler` visited in the same component level to uniquely identify `Handlers`
         // across multiple runs of an Apodini web service.
-        addContext(HandlerIndexPath.ContextKey.self, value: formHandlerIndexPathForCurrentNode(), scope: .nextHandler)
+        addContext(HandlerIndexPath.ContextKey.self, value: formHandlerIndexPathForCurrentNode(), scope: .current)
         
         // We capture the currentContextNode and make a copy that will be used when executing the request as
         // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the
@@ -123,10 +123,7 @@ struct HandlerIndexPath: RawRepresentable {
     let rawValue: String
     
     struct ContextKey: Apodini.ContextKey {
+        typealias Value = HandlerIndexPath
         static let defaultValue: HandlerIndexPath = .init(rawValue: "")
-        
-        static func reduce(value: inout HandlerIndexPath, nextValue: () -> HandlerIndexPath) {
-            value = nextValue()
-        }
     }
 }

@@ -54,28 +54,30 @@ private struct GRPCTestComponent2: Component {
     }
 }
 
-final class GRPCInterfaceExporterTests: XCTestCase {
+final class GRPCInterfaceExporterTests: ApodiniTests {
     // swiftlint:disable:next implicitly_unwrapped_optional
-    var app: Application!
+    var vaporApp: Vapor.Application!
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        app = Application(.testing)
+        vaporApp = Application(.testing)
     }
 
     override func tearDownWithError() throws {
         try super.tearDownWithError()
-        let app = try XCTUnwrap(self.app)
-        app.shutdown()
+        let vaporApp = try XCTUnwrap(self.vaporApp)
+        vaporApp.shutdown()
     }
 
     func testDefaultEndpointNaming() throws {
         let expectedServiceName = "Group1Group2Service"
+
+        let webService = WebServiceModel()
+
         let handler = GRPCTestHandler()
-        let node = ContextNode()
-        node.addContext(PathComponentContextKey.self, value: ["Group2"], scope: .environment)
-        node.addContext(PathComponentContextKey.self, value: ["Group1"], scope: .environment)
-        let endpoint = handler.mockEndpoint(context: Context(contextNode: node))
+        var endpoint = handler.mockEndpoint()
+
+        webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
 
         let exporter = GRPCInterfaceExporter(app)
         exporter.export(endpoint)
@@ -83,7 +85,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
         XCTAssertNotNil(exporter.services[expectedServiceName])
     }
 
-    func testUnaryRequestHandlerWithOneParamater() throws {
+    func testUnaryRequestHandlerWithOneParameter() throws {
         let serviceName = "TestService"
         let methodName = "testMethod"
         let service = GRPCService(name: serviceName, using: app)
@@ -102,7 +104,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/grpc+proto")
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app,
+        let vaporRequest = Vapor.Request(application: vaporApp,
                                          method: .POST,
                                          url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
                                          version: .init(major: 2, minor: 0),
@@ -141,7 +143,7 @@ final class GRPCInterfaceExporterTests: XCTestCase {
         var headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/grpc+proto")
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app,
+        let vaporRequest = Vapor.Request(application: vaporApp,
                                          method: .POST,
                                          url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
                                          version: .init(major: 2, minor: 0),

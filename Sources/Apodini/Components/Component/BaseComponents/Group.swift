@@ -22,6 +22,11 @@ public struct Group<Content: Component>: Component, SyntaxTreeVisitable {
         self.pathComponents = pathComponents
         self.content = content()
     }
+
+    public init(@PathComponentFunctionBuilder path: () -> [PathComponent], @ComponentBuilder content: () -> Content) {
+        self.pathComponents = path()
+        self.content = content()
+    }
     
     func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.enterContent {

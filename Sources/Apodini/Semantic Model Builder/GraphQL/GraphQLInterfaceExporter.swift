@@ -33,16 +33,16 @@ class GraphQLInterfaceExporter: InterfaceExporter {
     )
 
 
-    let app: Application
+    let app: Vapor.Application
     let graphQLPath: GraphQLSchemaBuilder
 
     required init(_ app: Application) {
         self.graphQLPath = GraphQLSchemaBuilder()
-        self.app = app
+        self.app = app.vapor.app
 
         // For Query
-        app.post("graphql", use: self.graphqlServer)
-        app.get("graphql", use: self.graphQLIDE)
+        self.app.post("graphql", use: self.graphqlServer)
+        self.app.get("graphql", use: self.graphQLIDE)
     }
 
     private func graphQLIDE(_ _: Vapor.Request) -> Vapor.Response {

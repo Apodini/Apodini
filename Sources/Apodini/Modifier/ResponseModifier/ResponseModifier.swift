@@ -28,7 +28,7 @@ public struct ResponseModifier<H: Handler, T: ResponseTransformer>: HandlerModif
     
     
     init(_ component: H, responseTransformer: @escaping () -> (T)) {
-        assertTypeIsStruct(T.self, messagePrefix: "ResponseModifier")
+        preconditionTypeIsStruct(T.self, messagePrefix: "ResponseTransformer")
         self.component = component
         self.responseTransformer = responseTransformer
     }
@@ -37,7 +37,7 @@ public struct ResponseModifier<H: Handler, T: ResponseTransformer>: HandlerModif
 
 extension ResponseModifier: SyntaxTreeVisitable {
     func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(ResponseTransformerContextKey.self, value: [responseTransformer], scope: .nextHandler)
+        visitor.addContext(ResponseTransformerContextKey.self, value: [responseTransformer], scope: .current)
         component.accept(visitor)
     }
 }

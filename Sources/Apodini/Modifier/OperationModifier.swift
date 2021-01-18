@@ -20,11 +20,8 @@ public enum Operation {
 }
 
 struct OperationContextKey: ContextKey {
+    typealias Value = Operation
     static var defaultValue: Operation = .automatic
-    
-    static func reduce(value: inout Operation, nextValue: () -> Operation) {
-        value = nextValue()
-    }
 }
 
 
@@ -41,7 +38,7 @@ public struct OperationModifier<H: Handler>: HandlerModifier {
 
 extension OperationModifier: SyntaxTreeVisitable {
     func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(OperationContextKey.self, value: operation, scope: .nextHandler)
+        visitor.addContext(OperationContextKey.self, value: operation, scope: .current)
         component.accept(visitor)
     }
 }

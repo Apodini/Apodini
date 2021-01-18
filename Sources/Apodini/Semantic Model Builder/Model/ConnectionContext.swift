@@ -6,8 +6,7 @@
 //
 
 import Foundation
-@_implementationOnly import Vapor
-@_implementationOnly import Fluent
+import Fluent
 
 /// An object that can merge itself and a `new` element
 /// of same type.
@@ -76,7 +75,7 @@ struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCo
     
     private var validator: AnyValidator<I, EventLoop, ValidatedRequest<I, H>>
     
-    private let endpoint: Endpoint<H>
+    private let endpoint: EndpointInstance<H>
     
     private var requestHandler: InternalEndpointRequestHandler<I, H> {
         InternalEndpointRequestHandler(endpoint: self.endpoint, exporter: self.exporter)
@@ -87,7 +86,7 @@ struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCo
     init(for exporter: I, on endpoint: Endpoint<H>) {
         self.exporter = exporter
         
-        self.endpoint = endpoint
+        self.endpoint = EndpointInstance(from: endpoint)
         
         self.validator = endpoint.validator(for: exporter)
     }

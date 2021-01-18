@@ -44,40 +44,40 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         }
     }
 
-    func testPathBuilder() {
-        let pathUUID = UUID()
-        let parameter = Parameter<String>(from: pathUUID)
-        let pathComponents: [_PathComponent] = ["test", parameter]
-        let endpointParameter1 = EndpointParameter<String>(
-            id: parameter.id,
-            name: "pathParam",
-            label: "pathParam",
-            nilIsValidValue: true,
-            necessity: .required,
-            options: parameter.options
-        )
-        let endpointParameter2 = EndpointParameter<String>(
-            id: UUID(),
-            name: "queryParam",
-            label: "queryParam",
-            nilIsValidValue: false,
-            necessity: .optional,
-            options: PropertyOptionSet([.http(.query)])
-        )
-        var builder = OpenAPIPathBuilder(pathComponents, parameters: [endpointParameter1, endpointParameter2])
+    @PathParameter var param: String
+    struct HandlerParam: Handler {
+        @Parameter
+        var pathParam: String
 
-        XCTAssertEqual(builder.path, OpenAPI.Path(stringLiteral: "test/{pathParam}"))
+        func handle() -> String {
+            "test"
+        }
+    }
+
+    func testPathBuilder() {
+        let handler = HandlerParam(pathParam: $param)
+        let endpoint = handler.mockEndpoint()
+        var pathParameter = EndpointPathParameter<String>(id: _param.id)
+        pathParameter.scoped(on: endpoint)
+
+        let path: [EndpointPath] = [.string("test"), .parameter(pathParameter)]
+
+        let pathString = path.build(with: OpenAPIPathBuilder.self)
+        XCTAssertEqual(pathString, OpenAPI.Path(stringLiteral: "test/{pathParam}"))
     }
 
     func testAddPathItemOperationParams() {
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
+
+        let webService = WebServiceModel()
+
         let comp = SomeComp()
         var endpoint = comp.mockEndpoint()
-        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
-        let endpointTreeNode = EndpointsTreeNode(path: RootPath())
-        endpointTreeNode.addEndpoint(&endpoint, at: ["test/{pathParam}"])
+        webService.addEndpoint(&endpoint, at: ["test/{pathParam}"])
+
         pathsObjectBuilder.addPathItem(from: endpoint)
-        let path = OpenAPI.Path(stringLiteral: "test/{pathParam}")
+        let path = OpenAPI.Path(stringLiteral: "test/{pathParam}/{id}")
         let queryParam = Either.parameter(name: "name", context: .query, schema: .string, description: "@Parameter var name: String")
         let pathParam = Either.parameter(name: "id", context: .path, schema: .string, description: "@Parameter var id: String")
 
@@ -90,11 +90,14 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
 
     func testAddPathItemOperationWrappedParams() throws {
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
+
+        let webService = WebServiceModel()
+
         let comp = WrappingParamsComp()
         var endpoint = comp.mockEndpoint()
-        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
-        let endpointTreeNode = EndpointsTreeNode(path: RootPath())
-        endpointTreeNode.addEndpoint(&endpoint, at: ["test"])
+        webService.addEndpoint(&endpoint, at: ["test"])
+
         pathsObjectBuilder.addPathItem(from: endpoint)
         let path = OpenAPI.Path(stringLiteral: "test")
 
@@ -122,13 +125,18 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
     func testAddPathItemWithRequestBodyAndResponseStruct() {
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
-        let endpointTreeNode = EndpointsTreeNode(path: RootPath())
+
+        let webService = WebServiceModel()
+
         let comp = ComplexComp()
         var endpoint = comp.mockEndpoint()
-        endpointTreeNode.addEndpoint(&endpoint, at: ["test"])
+        webService.addEndpoint(&endpoint, at: ["test"])
+
         pathsObjectBuilder.addPathItem(from: endpoint)
+
         let path = OpenAPI.Path(stringLiteral: "/test")
         let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
+            description: endpoint.description,
             parameters: [],
             requestBody: OpenAPI.Request(
                 description: "@Parameter var someStruct: SomeStruct",
