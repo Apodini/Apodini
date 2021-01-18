@@ -1,12 +1,6 @@
-//
-//  File.swift
-//  
-//
-//  Created by Alexander Collins on 30.11.20.
-//
-
 import Foundation
 import FCM
+import Apodini
 
 public struct FCMConfiguration: Configuration {
     let filePath: String
@@ -17,11 +11,12 @@ public struct FCMConfiguration: Configuration {
     
     public func configure(_ app: Application) {
         let serviceAccount = readJSON()
-        app.fcm.configuration = .init(email: serviceAccount.client_email,
-                                      projectId: serviceAccount.project_id,
-                                      key: serviceAccount.private_key,
-                                      serverKey: serviceAccount.server_key,
-                                      senderId: serviceAccount.sender_id)
+        app.fcm.configuration = .init(email: serviceAccount.clientEmail,
+                                      projectId: serviceAccount.projectId,
+                                      key: serviceAccount.privateKey,
+                                      serverKey: serviceAccount.serverKey,
+                                      senderId: serviceAccount.senderId)
+        NotificationCenter.shared.setup(app)
     }
     
     private func readJSON() -> ServiceAccount {
@@ -37,12 +32,20 @@ public struct FCMConfiguration: Configuration {
     }
 }
 
-// swiftlint:disable identifier_name
+
 struct ServiceAccount: Codable {
-    let project_id: String
-    let private_key: String
-    let client_email: String
-    let server_key: String?
-    let sender_id: String?
+    let projectId: String
+    let privateKey: String
+    let clientEmail: String
+    let serverKey: String?
+    let senderId: String?
+    
+    
+    enum CodingKeys: String, CodingKey {
+        case projectId = "project_id"
+        case privateKey = "private_key"
+        case clientEmail = "client_email"
+        case serverKey = "server_key"
+        case senderId = "sender_id"
+    }
 }
-// swiftlint:enable identifier_name

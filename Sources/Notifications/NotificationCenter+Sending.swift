@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  NotificationCenter+Sending.swift
 //  
 //
 //  Created by Alexander Collins on 22.12.20.
