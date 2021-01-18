@@ -25,16 +25,9 @@ struct EnrichedInfo {
 
 extension EnrichedInfo {
     static func node(_ type: Any.Type) throws -> Node<EnrichedInfo> {
-        let typeInfo: TypeInfo
-        let cardinality: Cardinality
-        if isOptional(type) {
-            let wrappedType = try Runtime.typeInfo(of: type).genericTypes[0]
-            typeInfo = try Runtime.typeInfo(of: wrappedType)
-            cardinality = .zeroToOne
-        } else {
-            typeInfo = try Runtime.typeInfo(of: type)
-            cardinality = .exactlyOne
-        }
+        let traveler = try travelThroughWrappers(type)
+        let typeInfo = try Runtime.typeInfo(of: traveler.type)
+        let cardinality = traveler.wrappers.first ?? .exactlyOne
         
         let root = EnrichedInfo(
             typeInfo: typeInfo,
@@ -48,16 +41,9 @@ extension EnrichedInfo {
                 .enumerated()
                 .compactMap { offset, propertyInfo in
                     do {
-                        let typeInfo: TypeInfo
-                        let cardinality: Cardinality
-                        if isOptional(propertyInfo.type) {
-                            let wrappedType = try Runtime.typeInfo(of: propertyInfo.type).genericTypes[0]
-                            typeInfo = try Runtime.typeInfo(of: wrappedType)
-                            cardinality = .zeroToOne
-                        } else {
-                            typeInfo = try Runtime.typeInfo(of: propertyInfo.type)
-                            cardinality = .exactlyOne
-                        }
+                        let traveler = try travelThroughWrappers(propertyInfo.type)
+                        let typeInfo = try Runtime.typeInfo(of: traveler.type)
+                        let cardinality = traveler.wrappers.first ?? .exactlyOne
                         
                         return EnrichedInfo(
                             typeInfo: typeInfo,
@@ -114,5 +100,19 @@ extension EnrichedInfo.CollectionContext: Equatable {
         default:
             return false
         }
+    }
+}
+
+// MARK: - Traveler
+
+private func travelThroughWrappers(
+    _ type: Any.Type
+) throws -> (type: Any.Type, wrappers: [EnrichedInfo.Cardinality]) {
+    if isOptional(type) {
+        let wrappedType = try Runtime.typeInfo(of: type).genericTypes[0]
+        let next = try travelThroughWrappers(wrappedType)
+        return (next.type, [.zeroToOne] + next.wrappers)
+    } else {
+        return (type, [])
     }
 }
