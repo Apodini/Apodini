@@ -77,8 +77,8 @@ type Book {
 }
 
 type Query {
-  Book() : Book 
-  Author() : Author 
+  book : Book 
+  author : Author 
 }
 ```
 
