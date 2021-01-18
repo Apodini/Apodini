@@ -78,6 +78,24 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         XCTAssertNotNil(exporter.services[expectedServiceName])
     }
 
+    func testShouldRequireContentTypeHeader() throws {
+        let context = endpoint.createConnectionContext(for: exporter)
+
+        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        let vaporRequest = Vapor.Request(application: app.vapor.app,
+                                         method: .POST,
+                                         url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
+                                         version: .init(major: 2, minor: 0),
+                                         headers: .init(),
+                                         collectedBody: ByteBuffer(bytes: requestData1),
+                                         remoteAddress: nil,
+                                         logger: app.logger,
+                                         on: group.next())
+
+        let handler = service.createUnaryHandler(context: context)
+        XCTAssertThrowsError(try handler(vaporRequest).wait())
+    }
+
     func testUnaryRequestHandlerWithOneParamater() throws {
         let context = endpoint.createConnectionContext(for: exporter)
 
