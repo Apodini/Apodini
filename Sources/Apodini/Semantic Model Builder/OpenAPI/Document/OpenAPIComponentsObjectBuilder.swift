@@ -61,7 +61,7 @@ class OpenAPIComponentsObjectBuilder {
     private func contextMapNode(node: Node<EnrichedInfo>) -> JSONSchema {
         var schema = mapInfo(node)
         let schemaName = node.value.typeInfo.mangledName
-        
+
         if schema.isReference && !schemaExists(for: schemaName) {
             var properties: [String: JSONSchema] = [:]
             for child in node.children {
@@ -98,6 +98,9 @@ class OpenAPIComponentsObjectBuilder {
         } else {
             let schemaName = node.value.typeInfo.mangledName
             schema = JSONSchema.reference(.component(named: schemaName))
+        }
+        if isEnum(node.value.typeInfo.type) {
+            schema = .string(allowedValues: node.value.typeInfo.cases.map { .init($0.name) })
         }
         if isDictionary {
             schema = .object(additionalProperties: .init(schema))

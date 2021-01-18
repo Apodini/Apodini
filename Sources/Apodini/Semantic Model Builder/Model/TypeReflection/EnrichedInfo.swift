@@ -49,7 +49,6 @@ extension EnrichedInfo {
                         guard !errorDescription.contains(keyword) else {
                             return nil
                         }
-
                         preconditionFailure(errorDescription)
                     }
                 }
