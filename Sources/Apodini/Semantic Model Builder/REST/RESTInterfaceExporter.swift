@@ -49,7 +49,7 @@ extension Operation {
 
 struct RESTConfiguration {
     let configuration: HTTPServer.Configuration
-    let bindAddress: BindAddress
+    let bindAddress: Vapor.BindAddress
     let uriPrefix: String
 
     init(_ configuration: HTTPServer.Configuration) {

@@ -7,6 +7,7 @@
 
 import Foundation
 import NIOSSL
+@_implementationOnly import ConsoleKit
 
 /// A `Configuration` for HTTP/2 and TLS.
 /// The configuration can be done in two ways, either via the
@@ -29,15 +30,27 @@ public class HTTP2Configuration: Configuration {
 
     public init() {
         do {
-            for arg in CommandLine.arguments {
-                if arg.starts(with: "--cert=") {
-                    certData = try Data(contentsOf: URL(fileURLWithPath: arg.substring(from: 7)))
-                } else if arg.starts(with: "--key=") {
-                    keyData = try Data(contentsOf: URL(fileURLWithPath: arg.substring(from: 6)))
-                }
-            }
+            var commandInput = CommandInput(arguments: CommandLine.arguments)
+            try detect(from: &commandInput)
         } catch {
-            print("Cannot read certificate / key file provided via command line. Error: \(error)")
+         }
+    }
+
+    func detect(from commandInput: inout CommandInput) throws {
+        struct Signature: CommandSignature {
+            @Option(name: "cert", short: "c", help: "Path of the certificate")
+            var certPath: String?
+            @Option(name: "key", short: "k", help: "Path of the key")
+            var keyPath: String?
+        }
+
+        let signature = try Signature(from: &commandInput)
+
+        if let certPath = signature.certPath, let keyPath = signature.keyPath {
+            certData = try Data(contentsOf: URL(fileURLWithPath: certPath))
+            keyData = try Data(contentsOf: URL(fileURLWithPath: keyPath))
+        } else {
+            print("Cannot read certificate / key file provided via command line")
         }
     }
 
@@ -78,16 +91,5 @@ public class HTTP2Configuration: Configuration {
             print("Cannot read key from file. Error: \(error)")
         }
         return self
-    }
-}
-
-extension String {
-    func index(from: Int) -> Index {
-        self.index(startIndex, offsetBy: from)
-    }
-
-    func substring(from: Int) -> String {
-        let fromIndex = index(from: from)
-        return String(self[fromIndex...])
     }
 }

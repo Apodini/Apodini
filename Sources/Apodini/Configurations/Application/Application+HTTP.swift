@@ -13,6 +13,12 @@ public enum HTTPVersionMajor: Equatable, Hashable {
     case two
 }
 
+/// BindAddress
+public enum BindAddress: Equatable {
+    case hostname(_ hostname: String?, port: Int?)
+    case unixDomainSocket(path: String)
+}
+
 extension Application {
     /// Used to keep track of http related configuration
     public var http: HTTP {
@@ -24,12 +30,14 @@ extension Application {
         final class Storage {
             var supportVersions: Set<HTTPVersionMajor>
             var tlsConfiguration: TLSConfiguration?
+            var address: BindAddress?
 
 
             // swiftlint:disable discouraged_optional_collection
             init(
                 supportVersions: Set<HTTPVersionMajor>? = nil,
-                tlsConfiguration: TLSConfiguration? = nil
+                tlsConfiguration: TLSConfiguration? = nil,
+                address: BindAddress? = nil
             ) {
                 if let supportVersions = supportVersions {
                     self.supportVersions = supportVersions
@@ -37,6 +45,7 @@ extension Application {
                     self.supportVersions = tlsConfiguration == nil ? [.one] : [.one, .two]
                 }
                 self.tlsConfiguration = tlsConfiguration
+                self.address = address
             }
         }
 
@@ -65,6 +74,12 @@ extension Application {
         public var tlsConfiguration: TLSConfiguration? {
             get { storage.tlsConfiguration }
             set { storage.tlsConfiguration = newValue }
+        }
+
+        /// HTTP Server address
+        public var address: BindAddress? {
+            get { storage.address }
+            set { storage.address = newValue }
         }
 
         init(application: Application) {
