@@ -23,9 +23,7 @@ class GRPCMessage: Apodini.ExporterRequest {
         self.compressed = compressed
     }
 
-    /// TRUE if all fragments for this message have been collected.
-    /// FALSE othwise.
-    var isComplete: Bool {
+    var didCollectAllFragments: Bool {
         data.count >= length
     }
 

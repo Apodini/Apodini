@@ -43,7 +43,7 @@ extension GRPCService {
                         // - multiple messages delivered in one frame.
                         // One message delivered in multiple frames is not yet supported.
                         // See `getMessages` internal comments for more details.
-                        .filter(\.isComplete)
+                        .filter(\.didCollectAllFragments)
                         .forEach({ message in
                             // Discard any result that is received back from the handler;
                             // this is a client-streaming handler, thus we only send back
