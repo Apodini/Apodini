@@ -70,7 +70,6 @@ internal extension ProtobufferBuilder {
 private extension ProtobufferMessage {
     static func node(_ type: Any.Type) throws -> Node<ProtobufferMessage> {
         let node = try EnrichedInfo.node(type)
-            .edited(handleArray)?
             .edited(handlePrimitiveType)?
             .map(ProtobufferMessage.Property.init)
             .contextMap(ProtobufferMessage.init)

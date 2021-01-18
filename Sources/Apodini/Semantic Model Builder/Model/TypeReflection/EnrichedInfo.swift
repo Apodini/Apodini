@@ -4,6 +4,8 @@
 
 @_implementationOnly import Runtime
 
+enum TypeReflectionDidEncounterRecursion {}
+
 struct EnrichedInfo {
     enum Cardinality {
         case zeroToOne
@@ -35,6 +37,8 @@ extension EnrichedInfo {
             propertiesOffset: nil,
             cardinality: cardinality
         )
+        
+        var visitedCompositeTypes = [ObjectIdentifier(typeInfo.type)]
 
         return Node(root: root) { info in
             info.typeInfo.properties
@@ -42,7 +46,17 @@ extension EnrichedInfo {
                 .compactMap { offset, propertyInfo in
                     do {
                         let traveler = try travelThroughWrappers(propertyInfo.type)
-                        let typeInfo = try Runtime.typeInfo(of: traveler.type)
+                        var typeInfo = try Runtime.typeInfo(of: traveler.type)
+                        
+                        let identifier = ObjectIdentifier(typeInfo.type)
+                        if visitedCompositeTypes.contains(identifier) {
+                            typeInfo = try Runtime.typeInfo(of: TypeReflectionDidEncounterRecursion.self)
+                        } else {
+                            if !isSupportedScalarType(typeInfo.type) {
+                                visitedCompositeTypes.append(identifier)
+                            }
+                        }
+                        
                         let cardinality = traveler.wrappers.first ?? .exactlyOne
                         
                         return EnrichedInfo(
@@ -105,13 +119,19 @@ extension EnrichedInfo.CollectionContext: Equatable {
 
 // MARK: - Traveler
 
-private func travelThroughWrappers(
-    _ type: Any.Type
-) throws -> (type: Any.Type, wrappers: [EnrichedInfo.Cardinality]) {
+private typealias Traveler = (type: Any.Type, wrappers: [EnrichedInfo.Cardinality])
+
+private func travelThroughWrappers(_ type: Any.Type) throws -> Traveler {
     if isOptional(type) {
         let wrappedType = try Runtime.typeInfo(of: type).genericTypes[0]
         let next = try travelThroughWrappers(wrappedType)
         return (next.type, [.zeroToOne] + next.wrappers)
+        
+    } else if mangledName(of: type) == "Array" {
+        let elementType = try Runtime.typeInfo(of: type).genericTypes[0]
+        let next = try travelThroughWrappers(elementType)
+        return (next.type, [.zeroToMany(.array)] + next.wrappers)
+        
     } else {
         return (type, [])
     }

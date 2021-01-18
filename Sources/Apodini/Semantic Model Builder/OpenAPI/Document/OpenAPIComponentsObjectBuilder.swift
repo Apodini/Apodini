@@ -129,7 +129,6 @@ class OpenAPIComponentsObjectBuilder {
 private extension OpenAPIComponentsObjectBuilder {
     static func node(_ type: Any.Type) throws -> Node<EnrichedInfo>? {
         let node = try EnrichedInfo.node(type)
-            .edited(handleArray)?
             .edited(handleDictionary)?
             .edited(handlePrimitiveType)?
             .edited(handleUUID)
