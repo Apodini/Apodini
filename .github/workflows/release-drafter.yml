@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - release
+      - develop
 
 jobs:
   update_release_draft:
