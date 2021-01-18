@@ -60,7 +60,8 @@ extension Apodini.Application {
 
         func initialize() {
             // swiftlint:disable force_try
-            let env = try! Vapor.Environment.detect()
+            let defaultCLIArguments = [".", "serve", "--env", "production", "--hostname", "0.0.0.0"/*, "--port", "8080"*/]
+            let env = try! Vapor.Environment.detect(arguments: defaultCLIArguments)
             self.application.storage[ConfigurationKey.self] = .init(from: application, environment: env)
         }
 

@@ -8,6 +8,8 @@
 import Logging
 import NIO
 import NIOConcurrencyHelpers
+import ApodiniDeployBuildSupport
+
 
 /// Delegate methods related to application lifecycle
 public protocol LifecycleHandler {
@@ -126,6 +128,9 @@ public final class Application {
     public func run() throws {
         do {
             try self.start()
+            SignalHandling.add(for: .INT) { [weak self] _ in
+                self?.running?.stop()
+            }
             try self.running?.onStop.wait()
         } catch {
             self.logger.report(error: error)
