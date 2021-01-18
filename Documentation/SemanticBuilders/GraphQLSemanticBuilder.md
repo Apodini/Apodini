@@ -112,8 +112,8 @@ Group("user") {
 
 ```graphql  
 type User {
-    userId: Int!
-    userName: String
+    id: Int!
+    name: String
 }
 
 type Query {
@@ -173,8 +173,8 @@ type Book {
 }
 
 type Query {
-    Book() : Book 
-    Author() : Author 
+    book : Book 
+    author : Author 
 }
 ```
 
