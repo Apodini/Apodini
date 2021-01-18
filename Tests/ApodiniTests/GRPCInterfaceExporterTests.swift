@@ -149,6 +149,29 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
 
+    /// Tests request validation for the GRPC exporter.
+    /// Should throw for a payload that does not contain data for all required parameters.
+    func testUnaryRequestHandlerRequiresAllParameters() throws {
+        let endpoint = GRPCTestHandler2().mockEndpoint()
+        let context = endpoint.createConnectionContext(for: exporter)
+
+        let incompleteData: [UInt8] = [0, 0, 0, 0, 8, 10, 6, 77, 111, 114, 105, 116, 122]
+
+        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        let vaporRequest = Vapor.Request(application: app.vapor.app,
+                                         method: .POST,
+                                         url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
+                                         version: .init(major: 2, minor: 0),
+                                         headers: headers,
+                                         collectedBody: ByteBuffer(bytes: incompleteData),
+                                         remoteAddress: nil,
+                                         logger: app.logger,
+                                         on: group.next())
+
+        let handler = service.createUnaryHandler(context: context)
+        XCTAssertThrowsError(try handler(vaporRequest).wait())
+    }
+
     /// The unary handler should only consider the first message in case
     /// it receives multiple messages in one HTTP frame.
     func testUnaryRequestHandler_2Messages_1Frame() throws {
@@ -314,5 +337,36 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
         _ = try stream.write(.buffer(ByteBuffer(bytes: requestData1))).wait()
         _ = try stream.write(.end).wait()
+    }
+
+    func testServiceNameUtility_DefaultName() {
+        let webService = WebServiceModel()
+        webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
+
+        XCTAssertEqual(GRPCServiceName(from: endpoint), "Group1Group2Service")
+    }
+
+    func testServiceNameUtility_CustomName() {
+        let serviceName = "TestService"
+
+        let node = ContextNode()
+        node.addContext(GRPCServiceNameContextKey.self, value: serviceName, scope: .current)
+        endpoint = handler.mockEndpoint(context: Context(contextNode: node))
+
+        XCTAssertEqual(GRPCServiceName(from: endpoint), serviceName)
+    }
+
+    func testMethodNameUtility_DefaultName() {
+        XCTAssertEqual(GRPCMethodName(from: endpoint), "grpctesthandler")
+    }
+
+    func testMethodNameUtility_CustomName() {
+        let methodName = "testMethod"
+
+        let node = ContextNode()
+        node.addContext(GRPCMethodNameContextKey.self, value: methodName, scope: .current)
+        endpoint = handler.mockEndpoint(context: Context(contextNode: node))
+
+        XCTAssertEqual(GRPCMethodName(from: endpoint), methodName)
     }
 }
