@@ -7,6 +7,8 @@
 
 import Apodini
 import NIO
+import ApodiniDeployBuildSupport
+import DeploymentTargetLocalhostRuntimeSupport
 
 
 struct SimpleError: Swift.Error {
@@ -57,6 +59,7 @@ struct TestWebService: Apodini.WebService {
         @Parameter var upperBound: Int = .max
         
         func handle() throws -> Int {
+            print("-[\(Self.self) \(#function)] executed in pid \(getpid())")
             guard lowerBound <= upperBound else {
                 throw SimpleError(message: "Invalid bounds: lowerBound (\(lowerBound)) must be <= upperBound (\(upperBound))")
             }
@@ -76,7 +79,8 @@ struct TestWebService: Apodini.WebService {
         }
         
         func handle() throws -> EventLoopFuture<String> {
-            RHI.invoke(
+            print("-[\(Self.self) \(#function)] executed in pid \(getpid())")
+            return RHI.invoke(
                 RandomNumberGenerator.self,
                 identifiedBy: .main,
                 parameters: [.init(\.$upperBound, age)]
@@ -214,6 +218,15 @@ struct TestWebService: Apodini.WebService {
             RandomNumberGenerator()
         }
     }
+    
+    var deploymentConfig: DeploymentConfig {
+        DeploymentConfig(
+            deploymentGroups: DeploymentGroupsConfig(
+                defaultGrouping: .separateNodes,
+                groups: []
+            )
+        )
+    }
 }
 
-try TestWebService.main()
+try TestWebService.main(deploymentProviders: [LocalhostRuntimeSupport.self])

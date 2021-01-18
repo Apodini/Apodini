@@ -6,10 +6,11 @@ import PackageDescription
 let package = Package(
     name: "Apodini",
     platforms: [
-        .macOS(.v10_15)
+        .macOS(.v11)
     ],
     products: [
-        .library(name: "Apodini", targets: ["Apodini"])
+        .library(name: "Apodini", targets: ["Apodini"]),
+        .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.35.0"),
@@ -30,7 +31,9 @@ let package = Package(
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
         // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
         .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
-        .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.1.0")
+        .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.1.0"),
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0")
     ],
     targets: [
         .target(
@@ -49,7 +52,9 @@ let package = Package(
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                 .product(name: "SwifCron", package: "SwifCron"),
                 .target(name: "WebSocketInfrastructure"),
-                .target(name: "ProtobufferCoding")
+                .target(name: "ProtobufferCoding"),
+                .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "ApodiniDeployRuntimeSupport")
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
@@ -75,7 +80,8 @@ let package = Package(
         .target(
             name: "TestWebService",
             dependencies: [
-                .target(name: "Apodini")
+                .target(name: "Apodini"),
+                .target(name: "DeploymentTargetLocalhostRuntimeSupport")
             ]
         ),
         // ProtobufferCoding
@@ -103,6 +109,46 @@ let package = Package(
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")
+            ]
+        ),
+        // MARK: Deployment-related targets
+        .target(
+            name: "ApodiniDeployBuildSupport",
+            dependencies: [
+                .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        .target(
+            name: "ApodiniDeployRuntimeSupport",
+            dependencies: [
+                .target(name: "ApodiniDeployBuildSupport"),
+            //      .target(name: "Apodini"),
+                .product(name: "Vapor", package: "vapor"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+            ]
+        ),
+        .target(
+            name: "DeploymentTargetLocalhost",
+            dependencies: [
+                .product(name: "Vapor", package: "vapor"),
+                .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "DeploymentTargetLocalhostCommon"),
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        .target(
+            name: "DeploymentTargetLocalhostCommon",
+            dependencies: [
+                .target(name: "ApodiniDeployBuildSupport")
+            ]
+        ),
+        .target(
+            name: "DeploymentTargetLocalhostRuntimeSupport",
+            dependencies: [
+                .target(name: "DeploymentTargetLocalhostCommon"),
+                .target(name: "ApodiniDeployRuntimeSupport")
             ]
         )
     ]

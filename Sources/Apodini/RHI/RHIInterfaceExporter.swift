@@ -7,6 +7,7 @@
 
 import Foundation
 @_implementationOnly import Vapor
+import ApodiniDeployBuildSupport
 
 
 /// A custom internal interface exporter, which:
@@ -97,4 +98,26 @@ extension RHIInterfaceExporter {
 ///         which is otherwise rejected by the type checker.
 internal func dynamicCast<U>(_ value: Any, to _: U.Type) -> U? {
     value as? U
+}
+
+
+extension RHIInterfaceExporter {
+    func exportWebServiceStructure(to outputUrl: URL, deploymentConfig: DeploymentConfig) throws {
+        let webServiceStructure = WebServiceStructure(
+            interfaceExporterId: .init("unused_remove"),
+            endpoints: endpointsById.values.map { endpoint -> ExportedEndpoint in
+                return ExportedEndpoint(
+                    handlerIdRawValue: endpoint.identifier.rawValue,
+                    httpMethod: endpoint.operation.httpMethod.string,
+                    absolutePath: endpoint.absolutePath.asPathString(parameterEncoding: .id),
+                    userInfo: [:]
+                )
+            },
+            deploymentConfig: deploymentConfig
+        )
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        let data = try encoder.encode(webServiceStructure)
+        try data.write(to: outputUrl)
+    }
 }
