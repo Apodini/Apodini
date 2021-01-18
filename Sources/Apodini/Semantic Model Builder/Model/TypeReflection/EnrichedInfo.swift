@@ -38,29 +38,35 @@ extension EnrichedInfo {
             cardinality: cardinality
         )
         
-        var visitedCompositeTypes = [ObjectIdentifier(typeInfo.type)]
-
+        var didEncounterArray = false
+        var visitedCompositeTypes: Set = [ObjectIdentifier(typeInfo.type)]
+        
         return Node(root: root) { info in
             info.typeInfo.properties
                 .enumerated()
                 .compactMap { offset, propertyInfo in
                     do {
                         let traveler = try travelThroughWrappers(propertyInfo.type)
+                        if traveler.wrappers.contains(.zeroToMany(.array)) {
+                            didEncounterArray = true
+                        }
                         var typeInfo = try Runtime.typeInfo(of: traveler.type)
                         
-                        if visitedCompositeTypes.contains(.init(
-                            TypeReflectionDidEncounterRecursion.self
-                        )) {
-                            typeInfo = try Runtime.typeInfo(of: TypeReflectionDidEncounterRecursion.self)
-                        } else {
-                            let identifier = ObjectIdentifier(typeInfo.type)
-                            if visitedCompositeTypes.contains(identifier) {
-                                visitedCompositeTypes.append(.init(
-                                    TypeReflectionDidEncounterRecursion.self
-                                ))
+                        if didEncounterArray {
+                            if visitedCompositeTypes.contains(.init(
+                                TypeReflectionDidEncounterRecursion.self
+                            )) {
+                                typeInfo = try Runtime.typeInfo(of: TypeReflectionDidEncounterRecursion.self)
                             } else {
-                                if !isSupportedScalarType(typeInfo.type) {
-                                    visitedCompositeTypes.append(identifier)
+                                let identifier = ObjectIdentifier(typeInfo.type)
+                                if visitedCompositeTypes.contains(identifier) {
+                                    visitedCompositeTypes.insert(.init(
+                                        TypeReflectionDidEncounterRecursion.self
+                                    ))
+                                } else {
+                                    if !isSupportedScalarType(typeInfo.type) {
+                                        visitedCompositeTypes.insert(identifier)
+                                    }
                                 }
                             }
                         }
