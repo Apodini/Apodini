@@ -45,6 +45,7 @@ public class Scheduler {
                                              _ keyPath: KeyPath<K, T>,
                                              on eventLoop: EventLoop) throws {
         try checkPropertyWrappers(job)
+        EnvironmentValue(keyPath, job)
         let jobConfiguration = try generateConfiguration(job, cronTrigger, keyPath)
         
         if let runs = runs {
@@ -99,7 +100,7 @@ private extension Scheduler {
     func checkPropertyWrappers<T: Job>(_ job: T) throws {
         for property in Mirror(reflecting: job).children {
             switch property.value {
-            case is Connection:
+            case is Connection, is PathComponent:
                 throw JobErrors.requestPropertyWrapper
             case let observedObject as AnyObservedObject:
                 subscribe(job: job, to: observedObject)
