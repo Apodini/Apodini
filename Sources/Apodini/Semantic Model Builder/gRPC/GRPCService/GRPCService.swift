@@ -31,16 +31,14 @@ class GRPCService {
     }
 
     internal func checkContentType(request: Vapor.Request) -> Bool {
-        switch request.content.contentType {
-        case Self.grpc,
-             Self.grpcproto:
+        // GRPC theoretically would also allow for other
+        // types of payload formats, e.g. JSON.
+        // We do only support proto payloads at the moment
+        if request.content.contentType == Self.grpc ||
+            request.content.contentType == Self.grpcproto {
             return true
-        default:
-            // GRPC theoretically would also allow for other
-            // types of payload formats, e.g. JSON.
-            // We do only support proto payloads at the moment
-            return false
         }
+        return false
     }
 
     /// Cuts the given data into the individual GRPC messages it represents.

@@ -10,6 +10,63 @@ import Foundation
 
 // MARK: Client streaming request handler
 extension GRPCService {
+    private func drainBody<C: ConnectionContext>(from request: Vapor.Request,
+                                                 using context: C,
+                                                 promise: EventLoopPromise<Vapor.Response>)
+    where C.Exporter == GRPCInterfaceExporter {
+        var context = context
+        var lastMessage: GRPCMessage?
+        request.body.drain { (bodyStream: BodyStreamResult) in
+            switch bodyStream {
+            case let .buffer(byteBuffer):
+                guard let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
+                    return request.eventLoop.makeFailedFuture(GRPCError.payloadReadError("Cannot read byte-buffer from fragment"))
+                }
+
+                // retrieve all GRPC messages that were delivered in this request
+                // (may be none, one or multiple)
+                var messages = self.getMessages(from: data)
+                // retain the last message, to run it through the handler
+                // once the .end message was received.
+                lastMessage = messages.popLast()
+
+                messages
+                    // For now we only support
+                    // - one message delivered in one frame,
+                    // - multiple messages delivered in one frame.
+                    // One message delivered in multiple frames is not yet supported.
+                    // See `getMessages` internal comments for more details.
+                    .filter(\.didCollectAllFragments)
+                    .forEach({ message in
+                        // Discard any result that is received back from the handler.
+                        // This is a client-streaming handler, thus we only send back
+                        // a response in the .end case.
+                        _ = context.handle(request: message, eventLoop: request.eventLoop, final: false)
+                    })
+            case .end:
+                // send the previously retained lastMessage through the handler
+                // and set the final flag
+                let message = lastMessage ?? GRPCMessage.defaultMessage
+                let response = context.handle(request: message, eventLoop: request.eventLoop, final: true)
+                let result = response.map { encodableAction -> Vapor.Response in
+                    switch encodableAction {
+                    case let .send(element),
+                         let .final(element):
+                        return self.makeResponse(element)
+                    case .nothing, .end:
+                        return self.makeResponse()
+                    }
+                }
+
+                promise.completeWith(result)
+            case let .error(error):
+                return request.eventLoop.makeFailedFuture(error)
+            }
+
+            return request.eventLoop.makeSucceededFuture(())
+        }
+    }
+
     func createClientStreamingHandler<C: ConnectionContext>(context: C)
     -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> where C.Exporter == GRPCInterfaceExporter {
         { (request: Vapor.Request) in
@@ -19,59 +76,8 @@ extension GRPCService {
                 ))
             }
 
-            var context = context
-
             let promise = request.eventLoop.makePromise(of: Vapor.Response.self)
-            var lastMessage: GRPCMessage?
-            request.body.drain { (bodyStream: BodyStreamResult) in
-                switch bodyStream {
-                case let .buffer(byteBuffer):
-                    guard let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
-                        return request.eventLoop.makeFailedFuture(GRPCError.payloadReadError("Cannot read byte-buffer from fragment"))
-                    }
-
-                    // retrieve all GRPC messages that were delivered in this request
-                    // (may be none, one or multiple)
-                    var messages = self.getMessages(from: data)
-                    // retain the last message, to run it through the handler
-                    // once the .end message was received.
-                    lastMessage = messages.popLast()
-
-                    messages
-                        // For now we only support
-                        // - one message delivered in one frame,
-                        // - multiple messages delivered in one frame.
-                        // One message delivered in multiple frames is not yet supported.
-                        // See `getMessages` internal comments for more details.
-                        .filter(\.didCollectAllFragments)
-                        .forEach({ message in
-                            // Discard any result that is received back from the handler;
-                            // this is a client-streaming handler, thus we only send back
-                            // a response in the .end case.
-                            _ = context.handle(request: message, eventLoop: request.eventLoop, final: false)
-                        })
-                case .end:
-                    // send the previously retained lastMessage through the handler
-                    // and set the final flag
-                    let message = lastMessage ?? GRPCMessage.defaultMessage
-                    let response = context.handle(request: message, eventLoop: request.eventLoop, final: true)
-                    let result = response.map { encodableAction -> Vapor.Response in
-                        switch encodableAction {
-                        case let .send(element),
-                             let .final(element):
-                            return self.makeResponse(element)
-                        case .nothing, .end:
-                            return self.makeResponse()
-                        }
-                    }
-
-                    promise.completeWith(result)
-                case let .error(error):
-                    return request.eventLoop.makeFailedFuture(error)
-                }
-
-                return request.eventLoop.makeSucceededFuture(())
-            }
+            self.drainBody(from: request, using: context, promise: promise)
             return promise.futureResult
         }
     }

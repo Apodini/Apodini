@@ -343,7 +343,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let webService = WebServiceModel()
         webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
 
-        XCTAssertEqual(GRPCServiceName(from: endpoint), "Group1Group2Service")
+        XCTAssertEqual(gRPCServiceName(from: endpoint), "Group1Group2Service")
     }
 
     func testServiceNameUtility_CustomName() {
@@ -353,11 +353,11 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         node.addContext(GRPCServiceNameContextKey.self, value: serviceName, scope: .current)
         endpoint = handler.mockEndpoint(context: Context(contextNode: node))
 
-        XCTAssertEqual(GRPCServiceName(from: endpoint), serviceName)
+        XCTAssertEqual(gRPCServiceName(from: endpoint), serviceName)
     }
 
     func testMethodNameUtility_DefaultName() {
-        XCTAssertEqual(GRPCMethodName(from: endpoint), "grpctesthandler")
+        XCTAssertEqual(gRPCMethodName(from: endpoint), "grpctesthandler")
     }
 
     func testMethodNameUtility_CustomName() {
@@ -367,6 +367,6 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         node.addContext(GRPCMethodNameContextKey.self, value: methodName, scope: .current)
         endpoint = handler.mockEndpoint(context: Context(contextNode: node))
 
-        XCTAssertEqual(GRPCMethodName(from: endpoint), methodName)
+        XCTAssertEqual(gRPCMethodName(from: endpoint), methodName)
     }
 }

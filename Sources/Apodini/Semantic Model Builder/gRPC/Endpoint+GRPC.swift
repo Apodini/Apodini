@@ -14,7 +14,7 @@ import Foundation
 /// Returns the name of the service that is exported by
 /// the Protobuffer and GRPC exporters
 /// for this `Endpoint`.
-func GRPCServiceName<H: Handler>(from endpoint: Endpoint<H>) -> String {
+func gRPCServiceName<H: Handler>(from endpoint: Endpoint<H>) -> String {
     if let serviceName = endpoint.context.get(valueFor: GRPCServiceNameContextKey.self) {
         return serviceName
     }
@@ -29,7 +29,7 @@ func GRPCServiceName<H: Handler>(from endpoint: Endpoint<H>) -> String {
 /// Returns the name of the method that is exported
 /// by the Protobuffer and GRPC exporters
 /// for the `handle` method of this `Endpoint`.
-func GRPCMethodName<H: Handler>(from endpoint: Endpoint<H>) -> String {
+func gRPCMethodName<H: Handler>(from endpoint: Endpoint<H>) -> String {
     if let methodName = endpoint.context.get(valueFor: GRPCMethodNameContextKey.self) {
         return methodName
     }
