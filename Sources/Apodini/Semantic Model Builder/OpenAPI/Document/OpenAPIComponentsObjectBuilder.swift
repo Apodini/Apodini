@@ -50,7 +50,8 @@ class OpenAPIComponentsObjectBuilder {
     }
 
     func buildSchema(for type: Encodable.Type) throws -> JSONSchema {
-        let node: Node<JSONSchema>? = try Self.node(type)?
+        let node = try Self
+            .node(type)?
             .contextMap(contextMapNode)
         guard let schema = node?.value else {
             throw OpenAPIComponentBuilderError("Could not reflect type.")
@@ -128,7 +129,6 @@ class OpenAPIComponentsObjectBuilder {
 private extension OpenAPIComponentsObjectBuilder {
     static func node(_ type: Any.Type) throws -> Node<EnrichedInfo>? {
         let node = try EnrichedInfo.node(type)
-            .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handleDictionary)?
             .edited(handlePrimitiveType)?

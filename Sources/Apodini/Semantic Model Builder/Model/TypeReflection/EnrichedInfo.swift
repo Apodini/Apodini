@@ -25,22 +25,45 @@ struct EnrichedInfo {
 
 extension EnrichedInfo {
     static func node(_ type: Any.Type) throws -> Node<EnrichedInfo> {
-        let typeInfo = try Runtime.typeInfo(of: type)
+        let typeInfo: TypeInfo
+        let cardinality: Cardinality
+        if isOptional(type) {
+            let wrappedType = try Runtime.typeInfo(of: type).genericTypes[0]
+            typeInfo = try Runtime.typeInfo(of: wrappedType)
+            cardinality = .zeroToOne
+        } else {
+            typeInfo = try Runtime.typeInfo(of: type)
+            cardinality = .exactlyOne
+        }
+        
         let root = EnrichedInfo(
             typeInfo: typeInfo,
             propertyInfo: nil,
-            propertiesOffset: nil)
+            propertiesOffset: nil,
+            cardinality: cardinality
+        )
 
         return Node(root: root) { info in
             info.typeInfo.properties
                 .enumerated()
                 .compactMap { offset, propertyInfo in
                     do {
-                        let typeInfo = try Runtime.typeInfo(of: propertyInfo.type)
+                        let typeInfo: TypeInfo
+                        let cardinality: Cardinality
+                        if isOptional(propertyInfo.type) {
+                            let wrappedType = try Runtime.typeInfo(of: propertyInfo.type).genericTypes[0]
+                            typeInfo = try Runtime.typeInfo(of: wrappedType)
+                            cardinality = .zeroToOne
+                        } else {
+                            typeInfo = try Runtime.typeInfo(of: propertyInfo.type)
+                            cardinality = .exactlyOne
+                        }
+                        
                         return EnrichedInfo(
                             typeInfo: typeInfo,
                             propertyInfo: propertyInfo,
-                            propertiesOffset: offset + 1
+                            propertiesOffset: offset + 1,
+                            cardinality: cardinality
                         )
                     } catch {
                         let errorDescription = String(describing: error)
