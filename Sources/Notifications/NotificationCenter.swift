@@ -37,16 +37,6 @@ public class NotificationCenter {
         return app
     }
 
-    /// Property to directly use the [APNS](https://github.com/vapor/apns) library.
-    public var apns: APNSwiftClient {
-        app.apns
-    }
-    
-    /// Property to directly use the [FCM](https://github.com/MihaelIsaev/FCM) library.
-    public var fcm: FCM {
-        app.fcm
-    }
-    
     private init() {
         // Empty intializer to create a Singleton.
     }
