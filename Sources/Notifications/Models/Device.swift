@@ -20,7 +20,10 @@ public final class DeviceDatabaseModel: Model {
     @Siblings(through: DeviceTopic.self, from: \.$device, to: \.$topic)
     public var topics: [Topic]
     
-    public init() { }
+    
+    public init() {
+        // Empty intializer used by Fluent.
+    }
     
     public init(id: String, type: DeviceType) {
         self.id = id
@@ -48,7 +51,9 @@ public final class DeviceTopic: Model {
     @Parent(key: .topicId)
     public var topic: Topic
     
-    public init() { }
+    public init() {
+        // Empty intializer used by Fluent.
+    }
     
     init(id: UUID? = nil, device: DeviceDatabaseModel, topic: Topic) throws {
         self.id = id
@@ -69,7 +74,9 @@ public final class Topic: Model {
     @Siblings(through: DeviceTopic.self, from: \.$topic, to: \.$device)
     public var devices: [DeviceDatabaseModel]
     
-    public init() { }
+    public init() {
+        // Empty intializer used by Fluent.
+    }
     
     public init(name: String) {
         self.name = name
@@ -78,7 +85,7 @@ public final class Topic: Model {
 
 // swiftlint:disable discouraged_optional_collection
 /// A struct used by the `NotificationCenter` to send push notifications.
-public struct Device: Content {
+public struct Device: Codable {
     /// The id used by a push notification service.
     public var id: String
     /// The push notification service to use when sending a message.
@@ -111,8 +118,6 @@ public enum DeviceType: String, Codable, CaseIterable {
     case apns
     case fcm
 }
-
-extension DeviceType: Content { }
 
 internal struct DeviceMigration: Migration {
     func prepare(on database: Fluent.Database) -> EventLoopFuture<Void> {

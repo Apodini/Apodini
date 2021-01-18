@@ -8,7 +8,7 @@ import Fluent
 /// A `Configuration` used for Database Access
 public final class DatabaseConfiguration: Configuration {
     private let type: DatabaseType
-    private var migrations: [Migration] = []
+    private(set) var migrations: [Migration] = []
     private var connectionString: String = Vapor.Environment.get("DATABASE_URL") ?? ""
     public var databaseID: DatabaseID {
         switch type {
@@ -53,10 +53,6 @@ public final class DatabaseConfiguration: Configuration {
     public func addMigrations(_ migrations: Migration...) -> Self {
         self.migrations.append(contentsOf: migrations)
         return self
-    }
-    
-    public func addNotifications() -> Self {
-        self.addMigrations(DeviceMigration())
     }
     
     private func databaseFactory(for type: DatabaseType) throws -> Fluent.DatabaseConfigurationFactory {
