@@ -43,7 +43,7 @@ extension GRPCService {
                         // - multiple messages delivered in one frame.
                         // One message delivered in multiple frames is not yet supported.
                         // See `getMessages` internal comments for more details.
-                        .filter({ $0.isComplete })
+                        .filter(\.isComplete)
                         .forEach({ message in
                             // Discard any result that is received back from the handler;
                             // this is a client-streaming handler, thus we only send back
@@ -53,7 +53,7 @@ extension GRPCService {
                 case .end:
                     // send the previously retained lastMessage through the handler
                     // and set the final flag
-                    let message = lastMessage ?? GRPCMessage.DefaultMessage
+                    let message = lastMessage ?? GRPCMessage.defaultMessage
                     let response = context.handle(request: message, eventLoop: request.eventLoop, final: true)
                     let result = response.map { encodableAction -> Vapor.Response in
                         switch encodableAction {
