@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  HTTP2ConfigurationTests.swift
 //  
 //
 //  Created by Tim Gymnich on 14.1.21.
@@ -25,10 +25,7 @@ final class HTTP2ConfigurationTests: ApodiniTests {
 
 
     func testCommandLineArguments() throws {
-        CommandLine.arguments += ["--cert", certPath, "--key", keyPath]
-        HTTP2Configuration()
-            .certificate(certPath)
-            .key(keyPath)
+        HTTP2Configuration(arguments: CommandLine.arguments + ["--cert", certPath, "--key", keyPath])
             .configure(self.app)
 
         XCTAssertNotNil(app.http.tlsConfiguration)

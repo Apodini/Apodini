@@ -28,12 +28,17 @@ public class HTTP2Configuration: Configuration {
     private var certData: Data?
     private var keyData: Data?
 
-    public init() {
+    public convenience init() {
+        self.init(arguments: CommandLine.arguments)
+    }
+
+    init(arguments: [String]) {
         do {
-            var commandInput = CommandInput(arguments: CommandLine.arguments)
+            var commandInput = CommandInput(arguments: arguments)
             try detect(from: &commandInput)
         } catch {
-         }
+            print("Cannot read certificate / key file provided via command line. Error: \(error)")
+        }
     }
 
     func detect(from commandInput: inout CommandInput) throws {

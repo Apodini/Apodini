@@ -21,9 +21,13 @@ public class HTTPConfiguration: Configuration {
     }
 
     /// initalize HTTPConfiguration
-    public init() {
+    convenience public init() {
+        self.init(arguments: CommandLine.arguments)
+    }
+
+    init(arguments: [String]) {
         do {
-            var commandInput = CommandInput(arguments: CommandLine.arguments)
+            var commandInput = CommandInput(arguments: arguments)
             self.address = try detect(from: &commandInput)
         } catch {
             print(error)
