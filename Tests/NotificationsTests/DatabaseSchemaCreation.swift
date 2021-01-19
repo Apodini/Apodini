@@ -1,12 +1,6 @@
-//
-//  DatabaseConfigurationTests.swift
-//  
-//
-//  Created by Tim Gymnich on 13.1.21.
-//
-
-@testable import Apodini
+import Apodini
 import XCTest
+@testable import Notifications
 
 final class DatabaseConfigurationTests: XCTestCase {
     // swiftlint:disable implicitly_unwrapped_optional
@@ -24,7 +18,19 @@ final class DatabaseConfigurationTests: XCTestCase {
 
     func testDatabaseSetup() throws {
         DatabaseConfiguration(.sqlite(.memory))
+            .addNotifications()
             .configure(self.app)
         XCTAssertNotNil(app.databases.configuration())
+    }
+    
+    func testDatabaseRevert() throws {
+        app.databases.use(
+            .sqlite(.memory),
+            as: .init(string: "DatabaseSchemaTest"),
+            isDefault: true
+        )
+        app.migrations.add(DeviceMigration())
+        try app.autoMigrate().wait()
+        XCTAssertNoThrow(try app.autoRevert().wait())
     }
 }

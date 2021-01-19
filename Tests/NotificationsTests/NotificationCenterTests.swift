@@ -1,26 +1,35 @@
-// swiftlint:disable force_unwrapping first_where
-//
-//  NotificationCenterTests.swift
-//
-//
-//  Created by Alexander Collins on 03.12.20.
-//
-
+// swiftlint:disable first_where
 import XCTest
-import struct Vapor.Abort
+import XCTApodini
 import Fluent
 import FCM
 import APNS
-@testable import Apodini
+import XCTVapor
+import Apodini
+@testable import Notifications
 
-final class NotificationCenterTests: ApodiniTests {
+final class NotificationCenterTests: XCTApodiniTest {
     var notificationCenter = NotificationCenter.shared
-
-    override func setUp() {
-        super.setUp()
-        var notificationCenter = NotificationCenter.shared
-        notificationCenter = EnvironmentValues.shared.notificationCenter
+    
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        try super.addMigrations(DeviceMigration())
+        
         notificationCenter.application = self.app
+    }
+    
+    func testMissingApplication() throws {
+        notificationCenter.application = nil
+        
+        XCTAssertRuntimeFailure(try? self.notificationCenter.getAllDevices().wait(),
+                                "Fatal error: The `NotificationCenter` is not configured. Please add the missing configuration to the web service.")
+    }
+    
+    func testEnvironmentValue() throws {
+        let value = Apodini.Environment(\.notificationCenter).wrappedValue
+        
+        XCTAssertNotNil(value)
+        XCTAssertNotNil(value.application)
     }
 
     func testDeviceRegistration() throws {
@@ -49,7 +58,7 @@ final class NotificationCenterTests: ApodiniTests {
         let topic = "test"
         let device = Device(id: "321", type: .apns, topics: [topic])
         
-        notificationCenter.register(device: device)
+        try notificationCenter.register(device: device).wait()
 
         try notificationCenter.delete(device: device).wait()
         let devices = try notificationCenter.getAllDevices().wait()
@@ -93,7 +102,8 @@ final class NotificationCenterTests: ApodiniTests {
             .wait()
             .transform()
  
-        XCTAssertTrue(deviceReturn.topics!.isEmpty)
+        let topics = try XCTUnwrap(deviceReturn.topics)
+        XCTAssertTrue(topics.isEmpty)
     }
     
     func testAPNSFCMRetrieval() throws {
@@ -117,30 +127,66 @@ final class NotificationCenterTests: ApodiniTests {
         XCTAssert(retrievedFCM == fcmDevices.map { Device(id: $0.id ?? "", type: $0.type) })
     }
     
-    func testNotification() throws {
+    func testNotificationWithData() throws {
         let bird = Bird(name: "bird1", age: 2)
         
         let alert = Alert(title: "Title", subtitle: "Subtitle", body: "Body")
         let apnsPayload = APNSPayload(badge: 1, mutableContent: true, category: "general")
-        let fcmPayload = FCMAndroidPayload(restrictedPackageName: "test", notification: FCMAndroidNotification(sound: "default"))
+        let fcmAndroidPayload = FCMAndroidPayload(restrictedPackageName: "test", notification: FCMAndroidNotification(sound: "default"))
+        let fcmWebpushPayload = FCMWebpushPayload(headers: ["key": "value"])
         let payload = Payload(apnsPayload: apnsPayload,
-                              fcmAndroidPayload: fcmPayload)
+                              fcmAndroidPayload: fcmAndroidPayload,
+                              fcmWebpushPayload: fcmWebpushPayload)
         let notification = Notification(alert: alert, payload: payload)
         
-        let apns = notification.transformToAPNS(with: bird)
-        let dataAPNS = apns.data!.data(using: .utf8)!
+        let apnsWithData = notification.transformToAPNS(with: bird)
+        let dataAPNS = try XCTUnwrap(apnsWithData.data?.data(using: .utf8))
         let decodedAPNS = try JSONDecoder().decode(Bird.self, from: dataAPNS)
         
-        let fcm = notification.transformToFCM(with: bird)
-        let dataFCM = fcm.data["data"]!.data(using: .utf8)!
+        let fcmWithData = notification.transformToFCM(with: bird)
+        let dataFCM = try XCTUnwrap(fcmWithData.data["data"]?.data(using: .utf8))
         let decodedFCM = try JSONDecoder().decode(Bird.self, from: dataFCM)
         
         XCTAssert(decodedAPNS == bird)
-        XCTAssert(apns.aps.badge == 1)
-        XCTAssert(apns.aps.contentAvailable == 1)
+        XCTAssert(apnsWithData.aps.badge == 1)
+        XCTAssert(apnsWithData.aps.contentAvailable == 1)
+        
         XCTAssert(decodedFCM == bird)
-        XCTAssert(fcm.android?.priority == .high)
-        XCTAssert(fcm.android?.ttl == "2419200s")
+        XCTAssert(fcmWithData.android?.priority == .high)
+        XCTAssert(fcmWithData.android?.ttl == "2419200s")
+        XCTAssert(fcmWithData.android?.restricted_package_name == fcmAndroidPayload.restrictedPackageName)
+        XCTAssert(fcmWithData.android?.notification == fcmAndroidPayload.notification)
+        XCTAssert(fcmWithData.webpush?.headers == fcmWebpushPayload.headers)
+        
+        let apnsWithoutData = notification.transformToAPNS()
+        let fcmWithoutData = notification.transformToFCM()
+        
+        XCTAssert(apnsWithoutData.aps.contentAvailable == 0)
+        XCTAssert(apnsWithoutData.aps.badge == 1)
+        
+        let apnsAlert = try XCTUnwrap(apnsWithoutData.aps.alert)
+        XCTAssert(apnsAlert.title == alert.title)
+        XCTAssert(apnsAlert.subtitle == alert.subtitle)
+        XCTAssert(apnsAlert.body == alert.body)
+        
+        XCTAssert(fcmWithoutData.android?.priority == .high)
+        XCTAssert(fcmWithoutData.android?.ttl == "2419200s")
+        XCTAssert(fcmWithoutData.android?.restricted_package_name == fcmAndroidPayload.restrictedPackageName)
+        XCTAssert(fcmWithoutData.android?.notification == fcmAndroidPayload.notification)
+        XCTAssert(fcmWithoutData.webpush?.headers == fcmWebpushPayload.headers)
+    }
+    
+    func testDeviceEquatable() throws {
+        let device = Device(id: "1", type: .apns)
+        let deviceDbModel = DeviceDatabaseModel(id: "1", type: .apns)
+        let topic = Topic(name: "1")
+        
+        XCTAssert(device == Device(id: "1", type: .apns))
+        XCTAssertFalse(device == Device(id: "2", type: .apns))
+        XCTAssert(deviceDbModel == DeviceDatabaseModel(id: "1", type: .apns))
+        XCTAssertFalse(deviceDbModel == DeviceDatabaseModel(id: "2", type: .apns))
+        XCTAssert(topic == Topic(name: "1"))
+        XCTAssertFalse(topic == Topic(name: "2"))
     }
 }
-// swiftlint:enable force_unwrapping first_where
+// swiftlint:enable first_where

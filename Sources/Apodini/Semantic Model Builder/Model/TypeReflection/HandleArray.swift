@@ -1,11 +1,6 @@
 //
-//  File.swift
-//
-//
 //  Created by Nityananda on 11.12.20.
 //
-
-@_implementationOnly import Runtime
 
 enum ArrayDidEncounterCircle {
 }
@@ -35,7 +30,7 @@ func handleArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
         propertyInfo: node.value.propertyInfo,
         propertiesOffset: node.value.propertiesOffset
     )
-    newEnrichedInfo.cardinality = .zeroToMany
+    newEnrichedInfo.cardinality = .zeroToMany(.array)
 
     return Node(value: newEnrichedInfo, children: newNode.children)
 }

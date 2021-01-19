@@ -1,6 +1,7 @@
 import Foundation
 @_implementationOnly import SwifCron
 import NIO
+import Apodini
 
 /// A convenient interface to schedule background running tasks on an event loop using `Job`s and crontab syntax.
 ///
@@ -17,7 +18,9 @@ public class Scheduler {
     
     internal var jobConfigurations: [ObjectIdentifier: JobConfiguration] = [:]
     
-    private init() { }
+    private init() {
+        // Empty intializer to create a Singleton.
+    }
     
     /// Schedules a `Job` on an event loop.
     ///
@@ -92,7 +95,7 @@ private extension Scheduler {
     /// Checks if only valid property wrappers are used with `Job`s.
     func checkPropertyWrappers<T: Job>(_ job: T) throws {
         for property in Mirror(reflecting: job).children
-        where property.value is RequestInjectable {
+        where property.value is PathComponent || property.value is Connection {
             throw JobErrors.requestPropertyWrapper
         }
     }
@@ -103,7 +106,7 @@ private extension Scheduler {
                                                        _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
         let identifier = ObjectIdentifier(keyPath)
         let jobConfiguration = try JobConfiguration(SwifCron(cronTrigger))
-        EnvironmentValues.shared.values[identifier] = job
+        EnvironmentValue(keyPath, job)
         jobConfigurations[identifier] = jobConfiguration
         
         return jobConfiguration
