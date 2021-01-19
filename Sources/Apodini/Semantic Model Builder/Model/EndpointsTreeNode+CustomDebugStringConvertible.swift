@@ -8,24 +8,22 @@ extension EndpointsTreeNode: CustomDebugStringConvertible {
             return parent.debugDescription
         }
         
-        let node: Node<EndpointsTreeNode> = Node(root: self) { root in
+        let node = Node(root: self) { root in
             Array(root.children)
         }
-        
-        let tree = node
-            .map { value -> String in
-                let operations = value.endpoints
-                    .map { key, value -> String in
-                        "- \(key): \(value.description) [\(value.identifier.rawValue)]\n"
-                    }
-                    .joined()
-                
-                return """
+        .map { value -> String in
+            let operations = value.endpoints
+                .map { key, value -> String in
+                    "- \(key): \(value.description) [\(value.identifier.rawValue)]\n"
+                }
+                .joined()
+            
+            return """
                 \(value.path.description)/
                 \(operations)
                 """
-            }
+        }
         
-        return tree.description
+        return node.description
     }
 }
