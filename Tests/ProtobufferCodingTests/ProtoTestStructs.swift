@@ -8,6 +8,7 @@
 import Foundation
 @testable import ProtobufferCoding
 
+// swiftlint:disable discouraged_optional_boolean
 struct ProtoTestMessage<T: Codable>: Codable {
     var content: T
     enum CodingKeys: Int, CodingKey {

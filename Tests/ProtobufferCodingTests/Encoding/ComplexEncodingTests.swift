@@ -6,8 +6,6 @@
 //
 
 import Foundation
-
-import Foundation
 import XCTest
 @testable import ProtobufferCoding
 
@@ -51,7 +49,7 @@ class ComplexEncodingTests: XCTestCase {
         numberFloat: 12345.12345
     )
 
-    let expectedComplexMessageWithOptionalsPartiallySet = Data([
+    let expectedComplexMsgWithOptionalsPartsSet = Data([
         8, 199, 159, 255, 255, 255, 255, 255, 255, 255,
         1, 24, 1, 41, 88, 168, 53, 205, 143, 28, 200, 64,
         58, 6, 1, 2, 3, 253, 254, 255, 66, 36, 10, 34,
@@ -61,7 +59,7 @@ class ComplexEncodingTests: XCTestCase {
         104, 116, 46
     ])
 
-    let complexMessageWithOptionalsPartiallySet = ProtoComplexTestMessageWithOptionals(
+    let complexMessageWithOptionalsPartsSet = ProtoComplexTestMessageWithOptionals(
         numberInt32: -12345,
         numberUint32: nil,
         numberBool: true,
@@ -91,9 +89,9 @@ class ComplexEncodingTests: XCTestCase {
     }
 
     func testEncodeComplexMessageWithOptionalsPartiallySet() throws {
-        let encoded = try ProtoEncoder().encode(complexMessageWithOptionalsPartiallySet)
+        let encoded = try ProtoEncoder().encode(complexMessageWithOptionalsPartsSet)
         XCTAssertEqual(encoded,
-                       expectedComplexMessageWithOptionalsPartiallySet,
+                       expectedComplexMsgWithOptionalsPartsSet,
                        "testEncodeComplexMessageWithOptionalsPartiallySet")
     }
 }
