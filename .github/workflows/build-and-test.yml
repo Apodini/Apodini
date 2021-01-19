@@ -27,7 +27,7 @@ jobs:
     - name: Check Swift version
       run: swift --version
     - name: Build & Test
-      run: swift test --enable-code-coverage -Xllvm -Werror
+      run: swift test --enable-code-coverage -Xswiftc -warnings-as-errors
     - name: Convert coverage report
       run: xcrun llvm-cov export -format="lcov" .build/debug/ApodiniPackageTests.xctest/Contents/MacOS/ApodiniPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage.lcov
     - name: Upload coverage to Codecov
@@ -50,4 +50,4 @@ jobs:
     - name: Check Swift version
       run: swift --version
     - name: Build & Test
-      run: swift test --enable-test-discovery -Xllvm -Werror
+      run: swift test --enable-test-discovery -Xswiftc -warnings-as-errors
