@@ -179,10 +179,12 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
             var length = Data([UInt8(value.count)])
             length.append(value)
             appendData(length, tag: keyValue, wireType: .lengthDelimited)
-        } else if isPrimitiveSupported(T.self) {
-            try encodePrimitive(value, forKey: key)
         } else if isPrimitiveSupportedArray(T.self) {
             try encodeArray(value, forKey: key)
+        } else if isOptional(T.self) {
+            try encodeOptional(value, tag: keyValue)
+        } else if isPrimitiveSupported(T.self) {
+            try encodePrimitive(value, forKey: key)
         } else if [
                     Int8.self, Int16.self,
                     UInt8.self, UInt16.self,
@@ -191,8 +193,6 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
                     [String].self
         ].contains(where: { $0 == T.self }) {
             throw ProtoError.decodingError("Encoding values of type \(T.self) is not supported yet")
-        } else if isOptional(T.self) {
-            try encodeOptional(value, tag: keyValue)
         } else {
             // nested message
             try encodeNestedMessage(value, tag: keyValue)

@@ -154,12 +154,12 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
             var length = Data([UInt8(value.count)])
             length.append(value)
             appendData(length, tag: fieldNumber, wireType: .lengthDelimited)
-        } else if isPrimitiveSupported(T.self) {
-            try encodePrimitive(value)
         } else if isPrimitiveSupportedArray(T.self) {
             try encodeArray(value)
         } else if isOptional(T.self) {
             try encodeOptional(value, tag: fieldNumber)
+        } else if isPrimitiveSupported(T.self) {
+            try encodePrimitive(value)
         } else if [
                     Int8.self, Int16.self,
                     UInt8.self, UInt16.self,

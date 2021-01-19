@@ -14,7 +14,18 @@ private let primitiveSupportedTypes: [Any.Type] = [
     UInt64.self,
     Double.self,
     Float.self,
-    Data.self
+    Data.self,
+    String?.self,
+    Bool?.self,
+    Int?.self,
+    Int32?.self,
+    Int64?.self,
+    UInt?.self,
+    UInt32?.self,
+    UInt64?.self,
+    Double?.self,
+    Float?.self,
+    Data?.self
 ]
 
 /// Supported arrays of primitive types.

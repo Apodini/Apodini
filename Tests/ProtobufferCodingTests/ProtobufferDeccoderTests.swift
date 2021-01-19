@@ -26,6 +26,14 @@ class ProtobufferDecoderTests: XCTestCase {
         XCTAssertEqual(message.content, negativeExpected, "testDecodeNegativeInt32")
     }
 
+    func testDecodeOptionalNegativeInt32() throws {
+        let negativeData = Data([8, 199, 159, 255, 255, 255, 255, 255, 255, 255, 1])
+        let negativeExpected: Int32? = -12345
+
+        let message = try ProtoDecoder().decode(ProtoTestMessage<Int32?>.self, from: negativeData)
+        XCTAssertEqual(message.content, negativeExpected, "testDecodeOptionalNegativeInt32")
+    }
+
     func testDecodeUInt32() throws {
         let data = Data([8, 185, 96])
         let expected: UInt32 = 12345
@@ -63,6 +71,14 @@ class ProtobufferDecoderTests: XCTestCase {
 
         let message = try ProtoDecoder().decode(ProtoTestMessage<String>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeString")
+    }
+
+    func testDecodeOptionalString() throws {
+        let data = Data([10, 11, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100])
+        let expected: String? = "Hello World"
+
+        let message = try ProtoDecoder().decode(ProtoTestMessage<String?>.self, from: data)
+        XCTAssertEqual(message.content, expected, "testDecodeOptionalString")
     }
 
     func testDecodeBytes() throws {
@@ -112,6 +128,18 @@ class ProtobufferDecoderTests: XCTestCase {
 
         let message = try ProtoDecoder().decode(ProtoTestMessage<[Float]>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeRepeatedFloat")
+    }
+
+    func testDecodeRepeatedOptionalFloat() throws {
+        let data = Data([
+                            10, 20, 250, 62, 246, 66, 207, 119,
+                            246, 66, 164, 176, 246, 66, 121, 233,
+                            246, 66, 78, 34, 247, 66
+        ])
+        let expected: [Float?] = [123.123, 123.234, 123.345, 123.456, 123.567]
+
+        let message = try ProtoDecoder().decode(ProtoTestMessage<[Float?]>.self, from: data)
+        XCTAssertEqual(message.content, expected, "testDecodeRepeatedOptionalFloat")
     }
 
     func testDecodeRepeatedDouble() throws {

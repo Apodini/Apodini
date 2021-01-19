@@ -171,13 +171,13 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
             length.append(value)
             appendData(length, tag: currentFieldTag, wireType: .lengthDelimited)
             currentFieldTag += 1
-        } else if isPrimitiveSupported(T.self) {
-            try encodePrimitive(value)
         } else if isPrimitiveSupportedArray(T.self) {
             try encodeArray(value)
         } else if isOptional(T.self) {
             try encodeOptional(value, tag: currentFieldTag)
             currentFieldTag += 1
+        } else if isPrimitiveSupported(T.self) {
+            try encodePrimitive(value)
         } else if [
                     Int8.self, Int16.self,
                     UInt8.self, UInt16.self,
