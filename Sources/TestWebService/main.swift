@@ -4,9 +4,7 @@
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
-
 import Apodini
-
 
 struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
