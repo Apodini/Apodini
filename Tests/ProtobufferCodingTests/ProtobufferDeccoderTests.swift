@@ -10,6 +10,22 @@ import XCTest
 @testable import ProtobufferCoding
 
 class ProtobufferDecoderTests: XCTestCase {
+    func testDecodePositiveInt() throws {
+        let positiveData = Data([8, 185, 96])
+        let positiveExpected: Int = 12345
+
+        let message = try ProtoDecoder().decode(ProtoTestMessage<Int>.self, from: positiveData)
+        XCTAssertEqual(message.content, positiveExpected, "testDecodePositiveInt")
+    }
+
+    func testDecodeNegativeInt() throws {
+        let negativeData = Data([8, 199, 159, 255, 255, 255, 255, 255, 255, 255, 1])
+        let negativeExpected: Int = -12345
+
+        let message = try ProtoDecoder().decode(ProtoTestMessage<Int>.self, from: negativeData)
+        XCTAssertEqual(message.content, negativeExpected, "testDecodeNegativeInt")
+    }
+
     func testDecodePositiveInt32() throws {
         let positiveData = Data([8, 185, 96])
         let positiveExpected: Int32 = 12345
@@ -32,6 +48,14 @@ class ProtobufferDecoderTests: XCTestCase {
 
         let message = try ProtoDecoder().decode(ProtoTestMessage<Int32?>.self, from: negativeData)
         XCTAssertEqual(message.content, negativeExpected, "testDecodeOptionalNegativeInt32")
+    }
+
+    func testDecodeUInt() throws {
+        let data = Data([8, 185, 96])
+        let expected: UInt = 12345
+
+        let message = try ProtoDecoder().decode(ProtoTestMessage<UInt>.self, from: data)
+        XCTAssertEqual(message.content, expected, "testDecodeUInt")
     }
 
     func testDecodeUInt32() throws {

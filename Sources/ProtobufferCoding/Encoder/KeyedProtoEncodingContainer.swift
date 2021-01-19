@@ -54,9 +54,9 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
 
     func encode(_ value: Int, forKey key: Key) throws {
         let keyValue = try extractIntValue(from: key)
-        if MemoryLayout<Int>.size == 32 {
+        if MemoryLayout<Int>.size == 4 {
             try encodeInt32(Int32(value), tag: keyValue)
-        } else if MemoryLayout<Int>.size == 64 {
+        } else if MemoryLayout<Int>.size == 8 {
             try encodeInt64(Int64(value), tag: keyValue)
         }
     }
@@ -81,9 +81,9 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
 
     func encode(_ value: UInt, forKey key: Key) throws {
         let keyValue = try extractIntValue(from: key)
-        if MemoryLayout<UInt>.size == 32 {
+        if MemoryLayout<UInt>.size == 4 {
             try encodeUInt32(UInt32(value), tag: keyValue)
-        } else if MemoryLayout<UInt>.size == 64 {
+        } else if MemoryLayout<UInt>.size == 8 {
             try encodeUInt64(UInt64(value), tag: keyValue)
         }
     }
@@ -123,9 +123,9 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
 
     func encode(_ values: [Int], forKey key: Key) throws {
         let keyValue = try extractIntValue(from: key)
-        if MemoryLayout<Int>.size == 32 {
+        if MemoryLayout<Int>.size == 4 {
             try encodeRepeatedInt32(values.compactMap { Int32($0) }, tag: keyValue)
-        } else if MemoryLayout<Int>.size == 64 {
+        } else if MemoryLayout<Int>.size == 8 {
             try encodeRepeatedInt64(values.compactMap { Int64($0) }, tag: keyValue)
         }
     }
@@ -142,9 +142,9 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
 
     func encode(_ values: [UInt], forKey key: Key) throws {
         let keyValue = try extractIntValue(from: key)
-        if MemoryLayout<UInt>.size == 32 {
+        if MemoryLayout<UInt>.size == 4 {
             try encodeRepeatedUInt32(values.compactMap { UInt32($0) }, tag: keyValue)
-        } else if MemoryLayout<UInt>.size == 64 {
+        } else if MemoryLayout<UInt>.size == 8 {
             try encodeRepeatedUInt64(values.compactMap { UInt64($0) }, tag: keyValue)
         }
     }
@@ -188,8 +188,8 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
         } else if [
                     Int8.self, Int16.self,
                     UInt8.self, UInt16.self,
-                    [Int].self, [Int8].self, [Int16].self,
-                    [UInt].self, [UInt8].self, [UInt16].self,
+                    [Int8].self, [Int16].self,
+                    [UInt8].self, [UInt16].self,
                     [String].self
         ].contains(where: { $0 == T.self }) {
             throw ProtoError.decodingError("Encoding values of type \(T.self) is not supported yet")

@@ -45,9 +45,9 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     func encode(_ value: Int) throws {
-        if MemoryLayout<Int>.size == 32 {
+        if MemoryLayout<Int>.size == 4 {
             try encodeInt32(Int32(value), tag: currentFieldTag)
-        } else if MemoryLayout<Int>.size == 64 {
+        } else if MemoryLayout<Int>.size == 8 {
             try encodeInt64(Int64(value), tag: currentFieldTag)
         }
         currentFieldTag += 1
@@ -72,9 +72,9 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     func encode(_ value: UInt) throws {
-        if MemoryLayout<UInt>.size == 32 {
+        if MemoryLayout<UInt>.size == 4 {
             try encodeUInt32(UInt32(value), tag: currentFieldTag)
-        } else if MemoryLayout<UInt>.size == 64 {
+        } else if MemoryLayout<UInt>.size == 8 {
             try encodeUInt64(UInt64(value), tag: currentFieldTag)
         }
         currentFieldTag += 1
@@ -114,9 +114,9 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     func encode(_ values: [Int]) throws {
-        if MemoryLayout<Int>.size == 32 {
+        if MemoryLayout<Int>.size == 4 {
             try encodeRepeatedInt32(values.compactMap { Int32($0) }, tag: currentFieldTag)
-        } else if MemoryLayout<Int>.size == 64 {
+        } else if MemoryLayout<Int>.size == 8 {
             try encodeRepeatedInt64(values.compactMap { Int64($0) }, tag: currentFieldTag)
         }
         currentFieldTag += 1
@@ -133,9 +133,9 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     func encode(_ values: [UInt]) throws {
-        if MemoryLayout<UInt>.size == 32 {
+        if MemoryLayout<UInt>.size == 4 {
             try encodeRepeatedUInt32(values.compactMap { UInt32($0) }, tag: currentFieldTag)
-        } else if MemoryLayout<UInt>.size == 64 {
+        } else if MemoryLayout<UInt>.size == 8 {
             try encodeRepeatedUInt64(values.compactMap { UInt64($0) }, tag: currentFieldTag)
         }
         currentFieldTag += 1
@@ -181,8 +181,8 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
         } else if [
                     Int8.self, Int16.self,
                     UInt8.self, UInt16.self,
-                    [Int].self, [Int8].self, [Int16].self,
-                    [UInt].self, [UInt8].self, [UInt16].self
+                    [Int8].self, [Int16].self,
+                    [UInt8].self, [UInt16].self
         ].contains(where: { $0 == T.self }) {
             throw ProtoError.decodingError("Encoding values of type \(T.self) is not supported yet")
         } else {
