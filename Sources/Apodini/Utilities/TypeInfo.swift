@@ -63,7 +63,7 @@ func isSupportedScalarType(_ type: Any.Type) -> Bool {
         .contains(ObjectIdentifier(type))
 }
 
-func isAmbiguousSupportedFixedWidthInteger(_ type: Any.Type) -> Bool {
+func isSupportedVariableWidthInteger(_ type: Any.Type) -> Bool {
     let types = [
         ObjectIdentifier(Int.self),
         ObjectIdentifier(UInt.self),
