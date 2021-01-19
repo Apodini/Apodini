@@ -9,7 +9,10 @@ let package = Package(
         .macOS(.v10_15)
     ],
     products: [
-        .library(name: "Apodini", targets: ["Apodini"])
+        .library(name: "Apodini", targets: ["Apodini"]),
+        .library(name: "ApodiniDatabase", targets: ["ApodiniDatabase"]),
+        .library(name: "Notifications", targets: ["Notifications"]),
+        .library(name: "Jobs", targets: ["Jobs"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.35.0"),
@@ -65,8 +68,7 @@ let package = Package(
             dependencies: [
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
-                .target(name: "Apodini"),
-                .target(name: "ApodiniDatabase")
+                .target(name: "Apodini")
             ]
         ),
         .testTarget(
