@@ -131,3 +131,26 @@ extension Node {
         return Node<U>(value: value, children: children)
     }
 }
+
+extension Node: CustomStringConvertible where T: CustomStringConvertible {
+    private var lines: [Substring] {
+        let children = self.children
+            .map { child in
+                child.lines
+                    .enumerated()
+                    .map { index, substring -> Substring in
+                        let prefix: Substring = index == 0 ? "→ " : "  "
+                        return prefix + substring
+                    }
+            }
+            .flatMap { $0 }
+        
+        return value.description
+            .split(separator: "\n")
+            + children
+    }
+    
+    var description: String {
+        lines.joined(separator: "\n")
+    }
+}
