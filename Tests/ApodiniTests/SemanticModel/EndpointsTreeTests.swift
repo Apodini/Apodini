@@ -7,6 +7,7 @@
 
 @testable import Apodini
 import XCTest
+import Foundation
 
 
 final class EndpointsTreeTests: ApodiniTests {
@@ -129,5 +130,18 @@ final class EndpointsTreeTests: ApodiniTests {
         }
         
         XCTAssertEqual(responseValue, "✅ Hello \(name) ✅")
+    }
+    
+    func testEndpointPathEquatable() throws {
+        let path1: EndpointPath = .root
+        let path2: EndpointPath = .string("a")
+        let path3: EndpointPath = .parameter(EndpointPathParameter<String>(id: UUID()))
+        
+        XCTAssertEqual(path1, path1)
+        XCTAssertEqual(path2, path2)
+        XCTAssertEqual(path3, path3)
+        XCTAssertNotEqual(path1, path2)
+        XCTAssertNotEqual(path2, path3)
+        XCTAssertNotEqual(path1, path3)
     }
 }

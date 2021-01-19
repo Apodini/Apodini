@@ -4,9 +4,7 @@
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
-
 import Logging
-
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
 public protocol WebService: Component, ConfigurationCollection {

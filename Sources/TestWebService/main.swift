@@ -4,7 +4,6 @@
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
-
 import Apodini
 import NIO
 
@@ -12,7 +11,6 @@ import NIO
 struct SimpleError: Swift.Error {
     let message: String
 }
-
 
 struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {

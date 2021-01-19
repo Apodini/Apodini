@@ -135,7 +135,6 @@ class RESTInterfaceExporter: InterfaceExporter {
         case .lightweight:
             // Note: Vapor also supports decoding into a struct which holds all query parameters. Though we have the requirement,
             //   that .lightweight parameter types conform to LosslessStringConvertible, meaning our DSL doesn't allow for that right now
-
             guard let query = request.query[Type.self, at: parameter.name] else {
                 return nil // the query parameter doesn't exists
             }
@@ -162,8 +161,7 @@ class RESTInterfaceExporter: InterfaceExporter {
                 // If the request doesn't have a body, there is nothing to decide.
                 return nil
             }
-
-            return try request.content.decode(Type.self, using: JSONDecoder())
+            return try? request.content.decode(Type.self, using: JSONDecoder())
         }
     }
 }

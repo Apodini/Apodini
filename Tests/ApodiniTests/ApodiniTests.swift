@@ -7,6 +7,7 @@
 
 import XCTApodini
 @testable import Apodini
+@testable import ApodiniDatabase
 
 class ApodiniTests: XCTApodiniTest {
     // Model Objects
