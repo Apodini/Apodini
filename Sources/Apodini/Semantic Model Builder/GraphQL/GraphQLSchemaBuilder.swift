@@ -30,8 +30,7 @@ struct GraphQLRequest: ExporterRequest {
 
 class GraphQLSchemaBuilder {
     private var tree = [String: Set<String>]()
-    private var leafHandler = [String: AnyConnectionContext<GraphQLInterfaceExporter>]()
-    //private var leafHandlerResponseType = [String: Encodable.Type]()
+    private var leafContext = [String: AnyConnectionContext<GraphQLInterfaceExporter>]()
     private var hasIncomingEdge = Set<String>()
 
 
@@ -59,18 +58,24 @@ class GraphQLSchemaBuilder {
 
     private func responseTypeHandler(for responseTypeHead: Node<EnrichedInfo>) -> GraphQLOutputType {
         let typeValTemp = self.typeToGraphQL(type: responseTypeHead.value.typeInfo.type)
+
+        let typeName = responseTypeHead.value.typeInfo.name
         if let typeVal = typeValTemp {
             return typeVal as! GraphQLOutputType
         }
 
-        // Array
-        if let newResponseHead = try! responseTypeHead.edited(handleArray) {
-            if (newResponseHead.value.cardinality == .zeroToMany) {
 
+        // Array / Optional
+        if let newResponseHead = try! responseTypeHead.edited(handleArray)?.edited(handleOptional) {
+            if (newResponseHead.value.cardinality == .zeroToMany) { // Array
                 if let type = self.typeToGraphQL(type: newResponseHead.value.typeInfo.type) {
                     return GraphQLList(type)
                 } else if let eNode = try? EnrichedInfo.node(newResponseHead.value.typeInfo.type) {
                     return GraphQLList(responseTypeHandler(for: eNode))
+                }
+            } else if (newResponseHead.value.cardinality == .zeroToOne) { // Optional
+                if let eNode = try? EnrichedInfo.node(newResponseHead.value.typeInfo.type) {
+                    return responseTypeHandler(for: eNode)
                 }
             }
         }
@@ -84,7 +89,7 @@ class GraphQLSchemaBuilder {
             }
         }
 
-        return try! GraphQLObjectType(name: responseTypeHead.value.typeInfo.name, fields: currentFields)
+        return try! GraphQLObjectType(name: typeName, fields: currentFields)
     }
 
     private func graphQLFieldCreator(for responseTypeHead: Node<EnrichedInfo>, _ context: AnyConnectionContext<GraphQLInterfaceExporter>, _ args: [String: GraphQLArgument]) -> GraphQLField {
@@ -108,10 +113,9 @@ class GraphQLSchemaBuilder {
         })
     }
 
+    // TODO: Handle relationship info in here. In  the tree generation from endpoint part!
     // Generated adjacency list tree
     func append<H: Handler>(for endpoint: Endpoint<H>, with context: AnyConnectionContext<GraphQLInterfaceExporter>) {
-        let treeTemp = try! EnrichedInfo.node(endpoint.handleReturnType)
-
         // Remove parameters from the path by using `":" filter`
         var currentPath = endpoint.absolutePath.map {
             $0.description.lowercased()
@@ -148,6 +152,8 @@ class GraphQLSchemaBuilder {
 
         }
 
+        // Response type info
+        let treeTemp = try! EnrichedInfo.node(endpoint.handleReturnType)
         self.responseTypeTree[leafName] = treeTemp
 
         // Handle Single points
@@ -159,7 +165,7 @@ class GraphQLSchemaBuilder {
         }
 
         // Create handler
-        self.leafHandler[leafName] = context
+        self.leafContext[leafName] = context
 
         // Create tree
         var indx = currentPath.count - 1
@@ -194,7 +200,7 @@ class GraphQLSchemaBuilder {
             return GraphQLField(type: self.types[nodeName]!, resolve: { _, _, _, _ in "Emtpy" })
         } else {
             return self.graphQLFieldCreator(for: self.responseTypeTree[node]!,
-                    self.leafHandler[node]!,
+                    self.leafContext[node]!,
                     self.args[node] ?? [:])
         }
     }

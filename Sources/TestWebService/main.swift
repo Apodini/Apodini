@@ -104,7 +104,29 @@ struct TestWebService: Apodini.WebService {
         @Parameter var userName: String?
 
         func handle() -> User {
-            User(id: userId, name: userName ?? "asdf", hasan: [Hasan(type:"SA", name: ["AS"]), Hasan(type:"AS", name: ["SA"])])
+            User(id: userId, name: userName ?? "asdf", hasan: [Hasan(type: "SA", name: ["AS"]), Hasan(type: "AS", name: ["SA"])])
+        }
+    }
+
+    struct Book: Codable, ResponseTransformable {
+        var name: String
+        var id: String
+    }
+
+    struct BookHandler: Handler {
+        @Parameter var bookName: String
+
+        func handle() -> Book {
+            Book(name: bookName, id: "20")
+        }
+    }
+
+    struct AuthorHandler: Handler {
+        @Parameter var bookName: String
+
+        func handle() -> [User]? {
+            nil
+            // [User(id: 15, name: "Eko", hasan: [Hasan(type: "sa", name: ["SA", "AS"])])]
         }
     }
 
@@ -115,39 +137,46 @@ struct TestWebService: Apodini.WebService {
 //                .response(EmojiMediator(emojis: "🎉"))
 //            .response(EmojiMediator())
 //            .guard(PrintGuard())
-        Group("Desc") {
-            Text("123123").response(EmojiMediator(emojis: "🎉")).response(EmojiMediator())
+//        Group("Desc") {
+//            Text("123123").response(EmojiMediator(emojis: "🎉")).response(EmojiMediator())
+//        }
+        Group("Book") {
+            BookHandler()
+
+            Group("authors") {
+                AuthorHandler()
+            }
         }
-        Group("swift") {
-            Group("FavCount") {
-                Group("Desc") {
-                    Text("1234")
-                }
-                Group("Name") {
-                    Text("123")
-                }
-            }
-            Group("Desc") {
-                Text("Hello Swift! 💻")
-            }
+//        Group("swift") {
+//            Group("FavCount") {
+//                Group("Desc") {
+//                    Text("1234")
+//                }
+//                Group("Name") {
+//                    Text("123")
+//                }
+//            }
+//            Group("Desc") {
+//                Text("Hello Swift! 💻")
+//            }
 //                .response(EmojiMediator())
 //                .guard(PrintGuard())
 //            Group("5", "3") {
 //                Text("Hello Swift 5! 💻")
 //            }
-        } // .guard(PrintGuard("Someone is accessing Swift 😎!!"))
+//        } // .guard(PrintGuard("Someone is accessing Swift 😎!!"))
 //        Group("greet") {
 //            Greeter()
 //                    .serviceName("GreetService")
 //                    .rpcName("greetMe")
 //                    .response(EmojiMediator())
 //        }
-        Group("Users") {
-            Group("user") {
-                UserHandler()
-                // .guard(PrintGuard())
-            }
-        }
+//        Group("Users") {
+//            Group("user") {
+//                UserHandler()
+//                // .guard(PrintGuard())
+//            }
+//        }
     }
 }
 
