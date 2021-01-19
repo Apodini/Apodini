@@ -40,8 +40,11 @@ struct TestWebService: Apodini.WebService {
     
 
     struct TraditionalGreeter: Handler {
-        @Parameter var gender: String
-        @Parameter var surname: String = ""
+        // one cannot change their gender, it must be provided
+        @Parameter(.mutability(.constant)) var gender: String
+        // one cannot change their surname, but it can be ommitted
+        @Parameter(.mutability(.constant)) var surname: String = ""
+        // one can switch between formal and informal greeting at any time
         @Parameter var name: String?
         
         @Environment(\.connection) var connection: Connection
@@ -49,7 +52,7 @@ struct TestWebService: Apodini.WebService {
         func handle() -> Response<String> {
             print(connection.state)
             if connection.state == .end {
-                return .final("This is the end")
+                return .end
             }
 
             if let firstName = name {
@@ -135,7 +138,6 @@ struct TestWebService: Apodini.WebService {
             TraditionalGreeter()
                 .serviceName("GreetService")
                 .rpcName("greetMe")
-                .serviceType(.clientStreaming)
                 .response(EmojiMediator())
         }
         Group {

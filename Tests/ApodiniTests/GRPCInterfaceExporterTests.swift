@@ -131,7 +131,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         var handler = service.createUnaryHandler(context: context)
         XCTAssertThrowsError(try handler(vaporRequest).wait())
 
-        handler = service.createUnaryHandler(context: context)
+        handler = service.createClientStreamingHandler(context: context)
         XCTAssertThrowsError(try handler(vaporRequest).wait())
     }
 
