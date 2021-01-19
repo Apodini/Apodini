@@ -7,6 +7,7 @@
 
 import Foundation
 
+// swiftlint:disable discouraged_optional_boolean
 class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContainer, KeyedDecodingContainerProtocol {
     var allKeys: [Key]
     let data: [Int: [Data]]

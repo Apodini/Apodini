@@ -1,6 +1,8 @@
 import Foundation
 @_implementationOnly import Runtime
 
+// swiftlint:disable discouraged_optional_boolean
+
 // MARK: - Supported data types
 /// Supported primitive types.
 private let primitiveSupportedTypes: [Any.Type] = [

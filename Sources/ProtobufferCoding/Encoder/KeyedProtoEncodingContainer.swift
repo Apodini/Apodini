@@ -7,6 +7,7 @@
 
 import Foundation
 
+// swiftlint:disable discouraged_optional_boolean
 class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContainer, KeyedEncodingContainerProtocol {
     override init(using encoder: InternalProtoEncoder, codingPath: [CodingKey]) {
         super.init(using: encoder, codingPath: codingPath)

@@ -7,6 +7,7 @@
 
 import Foundation
 
+// swiftlint:disable discouraged_optional_boolean
 class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDecodingContainer {
     var currentIndex: Int
     var values: [[Data]]
@@ -332,7 +333,7 @@ extension  UnkeyedProtoDecodingContainer {
         }
         throw ProtoError.decodingError("No data for given key")
     }
-    
+
     func decodeArray<T>(_ type: T.Type) throws -> T where T: Decodable {
         if T.self == [Bool].self || T.self == [Bool?].self,
            let value = try decode([Bool].self) as? T {

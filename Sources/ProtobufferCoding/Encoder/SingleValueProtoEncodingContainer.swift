@@ -11,6 +11,7 @@ private struct Wrapper<T: Encodable>: Encodable {
     var value: T
 }
 
+// swiftlint:disable discouraged_optional_boolean
 class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleValueEncodingContainer {
     private let fieldNumber: Int
 
