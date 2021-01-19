@@ -16,7 +16,7 @@ private struct AnyHashableEndpoint: Hashable, Equatable {
 }
 
 extension EndpointsTreeNode {
-    func collectAllEndpoints() -> [AnyEndpoint] {
+    func collectEndpoints() -> [AnyEndpoint] {
         if let parent = parent {
             return parent.collectEndpoints()
         }
