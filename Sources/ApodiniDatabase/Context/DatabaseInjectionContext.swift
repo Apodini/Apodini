@@ -10,7 +10,7 @@ protocol DatabaseInjectionContext {
 }
 
 ///A struct implementing `DatabaseInjectionContext` and containing a fieldkey and the expected type for that key.
-struct ModelInfo: DatabaseInjectionContext, Equatable {
+struct ModelInfo: DatabaseInjectionContext {
     ///A concrete `Fluent.FieldKey`
     var key: FieldKey
     ///A concrete type for that fieldkey
