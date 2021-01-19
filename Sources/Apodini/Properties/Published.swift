@@ -26,7 +26,7 @@ public struct Published<Element>: Property {
     }
 }
 
-/// Type-erased `Publised` protocol.
+/// Type-erased `Published` protocol.
 protocol AnyPublished {
     var valueDidChange: (() -> Void)? { get nonmutating set }
 }

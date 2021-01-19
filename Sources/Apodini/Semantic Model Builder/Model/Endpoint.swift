@@ -27,6 +27,8 @@ protocol AnyEndpoint: CustomStringConvertible {
 
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     var parameters: [AnyEndpointParameter] { get }
+    /// All `@ObservedObjects` that are used inside handling `Component`
+    var observedObjects: [AnyObservedObject] { get }
 
     var absolutePath: [EndpointPath] { get }
     var relationships: [EndpointRelationship] { get }
@@ -85,6 +87,8 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     var parameters: [AnyEndpointParameter]
+    /// All `@ObservedObject`s that are used inside handling `Component`
+    var observedObjects: [AnyObservedObject]
 
     var absolutePath: [EndpointPath] {
         storedAbsolutePath
@@ -122,6 +126,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
             return lastResponseTransformer().transformedResponseContent
         }()
         self.parameters = handler.buildParametersModel()
+        self.observedObjects = handler.collectObservedObjects()
     }
 
     fileprivate mutating func inserted(at treeNode: EndpointsTreeNode) {

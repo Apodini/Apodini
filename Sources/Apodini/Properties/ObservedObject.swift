@@ -79,3 +79,21 @@ extension ObservedObject: AnyObservedObject {
         changedWrapper.value = value
     }
 }
+
+extension Handler {
+    /// Collects  every `ObservedObject` in the Handler.
+    func collectObservedObjects() -> [AnyObservedObject] {
+        var observedObjects: [AnyObservedObject] = []
+        
+        for property in Mirror(reflecting: self).children {
+            switch property.value {
+            case let observedObject as AnyObservedObject:
+                observedObjects.append(observedObject)
+            default:
+                continue
+            }
+        }
+        
+        return observedObjects
+    }
+}
