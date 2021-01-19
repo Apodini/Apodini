@@ -10,9 +10,11 @@ import XCTest
 @testable import ProtobufferCoding
 
 class SimpleValueEncodingTests: XCTestCase {
+    // swiftlint:disable:next implicitly_unwrapped_optional
     var unkeyedContainer: UnkeyedProtoEncodingContainer!
 
     override func setUpWithError() throws {
+        try super.setUpWithError()
         unkeyedContainer = try XCTUnwrap(ProtoEncoder().unkeyedContainer() as? UnkeyedProtoEncodingContainer)
     }
 
