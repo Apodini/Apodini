@@ -1,6 +1,7 @@
 ignore:
 - "Tests"
 - "Sources/TestWebService"
+- "Sources/XCTApodini"
 - "Sources/Apodini/Components/ComponentBuilder.swift"
 - "Sources/Apodini/Components/Component/Component+Never.swift"
 - "Sources/Apodini/Components/Handler/Handler+Never.swift"
@@ -9,7 +10,7 @@ codecov:
   require_ci_to_pass: yes
 
 coverage:
-  range: "75...100"
+  range: "80...98"
   precision: 2
   round: up
   status:
@@ -19,14 +20,14 @@ coverage:
         # Choose a minimum coverage ratio that the commit must meet to be considered a success
         target: auto
         # Allow the coverage to drop by X%, and posting a success status.
-        threshold: 0%
+        threshold: 0.05%
     # The patch status only measures lines adjusted in the pull request
     patch:
       default:
         # Choose a minimum coverage ratio that the commit must meet to be considered a success
         target: auto
         # Allow the coverage to drop by X%, and posting a success status.
-        threshold: 10%
+        threshold: 0%
 
 parsers:
   gcov:
