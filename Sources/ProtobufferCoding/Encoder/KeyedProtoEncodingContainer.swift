@@ -141,7 +141,6 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
         try encodeRepeatedString(values, tag: keyValue)
     }
 
-    // swiftlint:disable cyclomatic_complexity
     func encode<T>(_ value: T, forKey key: Key) throws where T: Encodable {
         let keyValue = try extractIntValue(from: key)
         // we need to switch here to also be able to encode structs with generic types
@@ -152,7 +151,28 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
             var length = Data([UInt8(value.count)])
             length.append(value)
             appendData(length, tag: keyValue, wireType: .lengthDelimited)
-        } else if T.self == String.self, let value = value as? String {
+        } else if isPrimitiveSupported(T.self) {
+            try encodePrimitive(value, forKey: key)
+        } else if isPrimitiveSupportedArray(T.self) {
+            try encodeArray(value, forKey: key)
+        } else if [
+                    Int.self, Int8.self, Int16.self,
+                    UInt.self, UInt8.self, UInt16.self,
+                    [Int].self, [Int8].self, [Int16].self,
+                    [UInt].self, [UInt8].self, [UInt16].self,
+                    [String].self
+        ].contains(where: { $0 == T.self }) {
+            throw ProtoError.decodingError("Encoding values of type \(T.self) is not supported yet")
+        } else if isOptional(T.self) {
+            try encodeOptional(value, tag: keyValue)
+        } else {
+            // nested message
+            try encodeNestedMessage(value, tag: keyValue)
+        }
+    }
+
+    private func encodePrimitive<T>(_ value: T, forKey key: Key) throws where T: Encodable {
+        if T.self == String.self, let value = value as? String {
             try encode(value, forKey: key)
         } else if T.self == Bool.self, let value = value as? Bool {
             try encode(value, forKey: key)
@@ -168,7 +188,12 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
             try encode(value, forKey: key)
         } else if T.self == Float.self, let value = value as? Float {
             try encode(value, forKey: key)
-        } else if T.self == [Bool].self, let value = value as? [Bool] {
+        }
+    }
+
+    // swiftlint:disable cyclomatic_complexity
+    private func encodeArray<T>(_ value: T, forKey key: Key) throws where T: Encodable {
+        if T.self == [Bool].self, let value = value as? [Bool] {
             try encode(value, forKey: key)
         } else if T.self == [Float].self, let value = value as? [Float] {
             try encode(value, forKey: key)
@@ -186,19 +211,24 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
             try encode(value, forKey: key)
         } else if T.self == [String].self, let value = value as? [String] {
             try encode(value, forKey: key)
-        } else if [
-                    Int.self, Int8.self, Int16.self,
-                    UInt.self, UInt8.self, UInt16.self,
-                    [Int].self, [Int8].self, [Int16].self,
-                    [UInt].self, [UInt8].self, [UInt16].self,
-                    [String].self
-        ].contains(where: { $0 == T.self }) {
-            throw ProtoError.decodingError("Encoding values of type \(T.self) is not supported yet")
-        } else if isOptional(T.self) {
-            try encodeOptional(value, tag: keyValue)
-        } else {
-            // nested message
-            try encodeNestedMessage(value, tag: keyValue)
+        } else if T.self == [Bool?].self, let value = value as? [Bool?] {
+            try encode(value.compactMap { $0 }, forKey: key)
+        } else if T.self == [Float?].self, let value = value as? [Float?] {
+            try encode(value.compactMap { $0 }, forKey: key)
+        } else if T.self == [Double?].self, let value = value as? [Double?] {
+            try encode(value.compactMap { $0 }, forKey: key)
+        } else if T.self == [Int32?].self, let value = value as? [Int32?] {
+            try encode(value.compactMap { $0 }, forKey: key)
+        } else if T.self == [Int64?].self, let value = value as? [Int64?] {
+            try encode(value.compactMap { $0 }, forKey: key)
+        } else if T.self == [UInt32?].self, let value = value as? [UInt32?] {
+            try encode(value.compactMap { $0 }, forKey: key)
+        } else if T.self == [UInt64?].self, let value = value as? [UInt64?] {
+            try encode(value.compactMap { $0 }, forKey: key)
+        } else if T.self == [Data?].self, let value = value as? [Data?] {
+            try encode(value.compactMap { $0 }, forKey: key)
+        } else if T.self == [String?].self, let value = value as? [String?] {
+            try encode(value.compactMap { $0 }, forKey: key)
         }
     }
     // swiftlint:enable cyclomatic_complexity
