@@ -10,12 +10,20 @@ import XCTest
 @testable import ProtobufferCoding
 
 class SimpleValueEncodingTests: XCTestCase {
+    var unkeyedContainer: UnkeyedProtoEncodingContainer!
+
+    override func setUpWithError() throws {
+        unkeyedContainer = try XCTUnwrap(ProtoEncoder().unkeyedContainer() as? UnkeyedProtoEncodingContainer)
+    }
+
     func testEncodeSingleNil() throws {
         let expected = Data()
         let number: Int32? = nil
 
         let encoded = try ProtoEncoder().encode(number)
+        try unkeyedContainer.encode(number)
         XCTAssertEqual(encoded, expected, "testEncodeNil")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNil")
     }
 
     func testEncodeSingleNilMessage() throws {
@@ -23,17 +31,21 @@ class SimpleValueEncodingTests: XCTestCase {
         let number: Int32? = nil
 
         let message = ProtoTestMessage(content: number)
+        try unkeyedContainer.encode(number)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeNilMessage")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNilMessage")
     }
 
     func testEncodeSingleInt8ShouldThrow() throws {
         let number: Int8 = 123
+        XCTAssertThrowsError(try unkeyedContainer.encode(number))
         XCTAssertThrowsError(try ProtoEncoder().encode(number))
     }
 
     func testEncodeSingleInt16ShouldThrow() throws {
         let number: Int16 = 123
+        XCTAssertThrowsError(try unkeyedContainer.encode(number))
         XCTAssertThrowsError(try ProtoEncoder().encode(number))
     }
 
@@ -42,7 +54,9 @@ class SimpleValueEncodingTests: XCTestCase {
         let number: Int32 = 12345
 
         let encoded = try ProtoEncoder().encode(number)
+        try unkeyedContainer.encode(number)
         XCTAssertEqual(encoded, expected, "testEncodeSinglePositiveInt")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNilMessage")
     }
 
     func testEncodeSinglePositiveInt32() throws {
@@ -50,7 +64,9 @@ class SimpleValueEncodingTests: XCTestCase {
         let number: Int32 = 12345
 
         let encoded = try ProtoEncoder().encode(number)
+        try unkeyedContainer.encode(number)
         XCTAssertEqual(encoded, expected, "testEncodeSinglePositiveInt32")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNilMessage")
     }
 
     func testEncodePositiveInt32Message() throws {
@@ -59,7 +75,9 @@ class SimpleValueEncodingTests: XCTestCase {
 
         let message = ProtoTestMessage(content: number)
         let encoded = try ProtoEncoder().encode(message)
+        try unkeyedContainer.encode(number)
         XCTAssertEqual(encoded, expected, "testEncodePositiveInt32Message")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNilMessage")
     }
 
     func testEncodeSingleNegativeInt32() throws {
@@ -67,7 +85,9 @@ class SimpleValueEncodingTests: XCTestCase {
         let number: Int32 = -12345
 
         let encoded = try ProtoEncoder().encode(number)
+        try unkeyedContainer.encode(number)
         XCTAssertEqual(encoded, expected, "testEncodeSingleNegativeInt32")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNilMessage")
     }
 
     func testEncodeNegativeInt32Message() throws {
@@ -76,7 +96,9 @@ class SimpleValueEncodingTests: XCTestCase {
 
         let message = ProtoTestMessage(content: number)
         let encoded = try ProtoEncoder().encode(message)
+        try unkeyedContainer.encode(number)
         XCTAssertEqual(encoded, expected, "testEncodeNegativeInt32Message")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNilMessage")
     }
 
     func testEncodeSingleUInt() throws {
@@ -84,7 +106,9 @@ class SimpleValueEncodingTests: XCTestCase {
         let number: UInt = 12345
 
         let encoded = try ProtoEncoder().encode(number)
+        try unkeyedContainer.encode(number)
         XCTAssertEqual(encoded, expected, "testEncodeSingleUInt")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNilMessage")
     }
 
     func testEncodeUIntMessage() throws {
@@ -93,16 +117,20 @@ class SimpleValueEncodingTests: XCTestCase {
 
         let message = ProtoTestMessage(content: number)
         let encoded = try ProtoEncoder().encode(message)
+        try unkeyedContainer.encode(number)
         XCTAssertEqual(encoded, expected, "testEncodeUIntMessage")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNilMessage")
     }
 
     func testEncodeUInt8ShouldThrow() throws {
         let number: UInt8 = 123
+        XCTAssertThrowsError(try unkeyedContainer.encode(number))
         XCTAssertThrowsError(try ProtoEncoder().encode(number))
     }
 
     func testEncodeUInt16ShouldThrow() throws {
         let number: UInt16 = 123
+        XCTAssertThrowsError(try unkeyedContainer.encode(number))
         XCTAssertThrowsError(try ProtoEncoder().encode(number))
     }
 
@@ -111,7 +139,9 @@ class SimpleValueEncodingTests: XCTestCase {
         let number: UInt32 = 12345
 
         let encoded = try ProtoEncoder().encode(number)
+        try unkeyedContainer.encode(number)
         XCTAssertEqual(encoded, expected, "testEncodeSingleUInt32")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNilMessage")
     }
 
     func testEncodeUInt32Message() throws {
@@ -127,7 +157,9 @@ class SimpleValueEncodingTests: XCTestCase {
         let expected = Data([8, 1])
 
         let encoded = try ProtoEncoder().encode(true)
+        try unkeyedContainer.encode(true)
         XCTAssertEqual(encoded, expected, "testEncodeSingleBool")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNilMessage")
     }
 
     func testEncodeBoolMessage() throws {
@@ -143,7 +175,9 @@ class SimpleValueEncodingTests: XCTestCase {
         let number: Double = 12345.12345
 
         let encoded = try ProtoEncoder().encode(number)
+        try unkeyedContainer.encode(number)
         XCTAssertEqual(encoded, expected, "testEncodeSingleDouble")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNilMessage")
     }
 
     func testEncodeDoubleMessage() throws {
@@ -160,7 +194,9 @@ class SimpleValueEncodingTests: XCTestCase {
         let number: Float = 12345.12345
 
         let encoded = try ProtoEncoder().encode(number)
+        try unkeyedContainer.encode(number)
         XCTAssertEqual(encoded, expected, "testEncodeSingleFloat")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNilMessage")
     }
 
     func testEncodeFloatMessage() throws {
@@ -177,7 +213,9 @@ class SimpleValueEncodingTests: XCTestCase {
         let content: String = "Hello World"
 
         let encoded = try ProtoEncoder().encode(content)
+        try unkeyedContainer.encode(content)
         XCTAssertEqual(encoded, expected, "testEncodeSingleString")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNilMessage")
     }
 
     func testEncodeStringMessage() throws {
@@ -212,7 +250,9 @@ class SimpleValueEncodingTests: XCTestCase {
         let content: [Int] = [1, 2, 3, 4, 5]
 
         let encoded = try ProtoEncoder().encode(content)
+        try unkeyedContainer.encode(content)
         XCTAssertEqual(encoded, expected, "testEncodeRepeatedInt")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNilMessage")
     }
 
     func testEncodeRepeatedInt32() throws {
@@ -220,7 +260,9 @@ class SimpleValueEncodingTests: XCTestCase {
         let content: [Int32] = [1, 2, 3, 4, 5]
 
         let encoded = try ProtoEncoder().encode(content)
+        try unkeyedContainer.encode(content)
         XCTAssertEqual(encoded, expected, "testEncodeRepeatedInt32")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNilMessage")
     }
 
     func testEncodeRepeatedInt32Message() throws {
@@ -308,8 +350,9 @@ class SimpleValueEncodingTests: XCTestCase {
         let content = ["eins", "zwei", "drei"]
 
         let encoded = try ProtoEncoder().encode(content)
-        print("\([UInt8](encoded))")
+        try unkeyedContainer.encode(content)
         XCTAssertEqual(encoded, expected, "testEncodeRepeatedStringMessage")
+        XCTAssertEqual(unkeyedContainer.encoder.data, expected, "testEncodeNilMessage")
     }
 
     func testEncodeRepeatedStringMessage() throws {
