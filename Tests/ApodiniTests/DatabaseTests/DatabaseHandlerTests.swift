@@ -3,7 +3,7 @@ import XCTest
 import NIO
 import Vapor
 import Fluent
-import Runtime
+@_implementationOnly import Runtime
 @testable import Apodini
 @testable import ApodiniDatabase
 

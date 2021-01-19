@@ -75,7 +75,8 @@ let package = Package(
             name: "ApodiniTests",
             dependencies: [
                 .product(name: "XCTVapor", package: "vapor"),
-                .target(name: "XCTApodini")
+                .target(name: "XCTApodini"),
+                .target(name: "ApodiniDatabase")
             ],
             exclude: [
                 "ConfigurationTests/Certificates/cert.pem",
