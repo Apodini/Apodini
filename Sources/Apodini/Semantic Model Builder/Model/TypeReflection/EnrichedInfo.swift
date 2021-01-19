@@ -4,7 +4,7 @@
 
 @_implementationOnly import Runtime
 
-struct PropertyInfo {
+struct PropertyInfo: Equatable, Hashable {
     let name: String
     let offset: Int
 }
@@ -67,8 +67,7 @@ extension EnrichedInfo {
 extension EnrichedInfo: Equatable {
     public static func == (lhs: EnrichedInfo, rhs: EnrichedInfo) -> Bool {
         lhs.typeInfo.type == rhs.typeInfo.type
-            && lhs.propertyInfo?.name == rhs.propertyInfo?.name
-            && lhs.propertiesOffset == rhs.propertiesOffset
+            && lhs.propertyInfo == rhs.propertyInfo
             && lhs.cardinality == rhs.cardinality
     }
 }
