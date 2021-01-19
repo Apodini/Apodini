@@ -55,7 +55,7 @@ class GRPCService {
         var data = data
         var messages: [GRPCMessage] = []
 
-        while data.count > 5{
+        while data.count > 5 {
             // https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md
             // A message is prefixed by
             // - 1 byte:    compressed (true / false)
