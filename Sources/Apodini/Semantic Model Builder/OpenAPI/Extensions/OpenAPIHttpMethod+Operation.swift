@@ -8,7 +8,7 @@ import Foundation
 extension OpenAPI.HttpMethod {
     init(_ operation: Operation) {
         switch operation {
-        case .automatic, .read:
+        case .read:
             self = .get
         case .create:
             self = .post
