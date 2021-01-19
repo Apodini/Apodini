@@ -8,13 +8,24 @@
 @testable import Apodini
 import XCTest
 
-class HTTP2ConfigurationTests: ApodiniTests {
+final class HTTP2ConfigurationTests: ApodiniTests {
     let currentPath = URL(fileURLWithPath: #file).deletingLastPathComponent().path
+    var keyPath: String { currentPath + "/Certificates/key.pem" }
+    var certPath: String { currentPath + "/Certificates/cert.pem" }
 
     func testValidFile() throws {
-        let keyPath = currentPath + "/Certificates/key.pem"
-        let certPath = currentPath + "/Certificates/cert.pem"
+        HTTP2Configuration()
+            .certificate(certPath)
+            .key(keyPath)
+            .configure(self.app)
 
+        XCTAssertNotNil(app.http.tlsConfiguration)
+        XCTAssertEqual(app.http.supportVersions, [.one, .two])
+    }
+
+
+    func testCommandLineArguments() throws {
+        CommandLine.arguments += ["--cert", certPath, "--key", keyPath]
         HTTP2Configuration()
             .certificate(certPath)
             .key(keyPath)

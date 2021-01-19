@@ -58,11 +58,18 @@ let package = Package(
             ]
         ),
         .target(
+            name: "ApodiniDatabase",
+            dependencies: [
+                .target(name: "Apodini")
+            ]
+        ),
+        .target(
             name: "XCTApodini",
             dependencies: [
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
-                .target(name: "Apodini")
+                .target(name: "Apodini"),
+                .target(name: "ApodiniDatabase")
             ]
         ),
         .testTarget(
@@ -79,7 +86,8 @@ let package = Package(
         .target(
             name: "TestWebService",
             dependencies: [
-                .target(name: "Apodini")
+                .target(name: "Apodini"),
+                .target(name: "ApodiniDatabase")
             ]
         ),
         // ProtobufferCoding
