@@ -12,7 +12,7 @@ struct SwiftComponent: Component {
     var content: some Component {
         Group("swift") {
             Text("Hello Swift! 💻")
-                .response(EmojiMediator())
+                .response(EmojiTransformer())
                 .guard(LogGuard())
             Group("5", "3") {
                 Text("Hello Swift 5! 💻")

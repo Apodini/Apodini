@@ -12,7 +12,7 @@ struct AuctionComponent: Component {
     var content: some Component {
         Group("auction") {
             Auction()
-                .response(EmojiMediator(emojis: "🤑", growth: 2))
+                .response(EmojiTransformer(emojis: "🤑", growth: 2))
         }
     }
 }

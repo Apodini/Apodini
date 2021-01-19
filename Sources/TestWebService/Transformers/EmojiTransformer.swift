@@ -1,5 +1,5 @@
 //
-//  EmojiMediator.swift
+//  EmojiTransformer.swift
 //  
 //
 //  Created by Paul Schmiedmayer on 1/19/21.
@@ -8,7 +8,7 @@
 import Apodini
 
 
-struct EmojiMediator: ResponseTransformer {
+struct EmojiTransformer: ResponseTransformer {
     private let emojis: String
     private let growth: Int
     

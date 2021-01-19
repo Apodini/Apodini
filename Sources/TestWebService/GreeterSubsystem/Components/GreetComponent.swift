@@ -14,7 +14,7 @@ struct GreetComponent: Component {
             TraditionalGreeter()
                 .serviceName("GreetService")
                 .rpcName("greetMe")
-                .response(EmojiMediator())
+                .response(EmojiTransformer())
         }
     }
 }
