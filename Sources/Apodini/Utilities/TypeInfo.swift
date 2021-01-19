@@ -33,6 +33,16 @@ func isOptional(_ type: Any.Type) -> Bool {
     }
 }
 
+// MARK: - Enum
+func isEnum(_ type: Any.Type) -> Bool {
+    do {
+        let typeInfo = try Runtime.typeInfo(of: type)
+        return typeInfo.kind == .enum
+    } catch {
+        return false
+    }
+}
+
 
 // MARK: - Supported Scalar Types
 private let supportedScalarTypes: Set<ObjectIdentifier> = [

@@ -3,7 +3,7 @@
 //
 
 import XCTest
-import OpenAPIKit
+@_implementationOnly import OpenAPIKit
 @testable import Apodini
 
 final class OpenAPIPathsObjectBuilderTests: XCTestCase {

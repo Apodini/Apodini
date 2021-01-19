@@ -6,6 +6,7 @@
 //
 
 import XCTest
+import XCTApodini
 @testable import Apodini
 
 final class EnvironmentTests: ApodiniTests {
@@ -145,6 +146,17 @@ final class EnvironmentTests: ApodiniTests {
         
         EnvironmentValues.shared.values[ObjectIdentifier(\KeyStore.test)] = "Bird"
         XCTAssert(EnvironmentValues.shared[\KeyStore.test] == "Bird")
+    }
+    
+    func testAccessApplicationEnvironment() {
+        EnvironmentValues.shared.values[ObjectIdentifier(Application.Type.self)] = app
+
+        XCTAssert(Environment(\.eventLoopGroup).wrappedValue === app.eventLoopGroup)
+    }
+    
+    func testFaillingApplicationEnvironmentAccess() {
+        XCTAssertRuntimeFailure(Environment(\.apns).wrappedValue,
+                                "Key path not found. The web service wasn't setup correctly")
     }
 }
 

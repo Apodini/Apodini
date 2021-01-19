@@ -7,8 +7,6 @@
 
 /// Defines the Operation of a given endpoint
 public enum Operation {
-    /// This operation is the default for every endpoint.
-    case automatic
     /// The associated endpoint is used for a `create` operation
     case create
     /// The associated endpoint is used for a `read` operation
@@ -19,9 +17,8 @@ public enum Operation {
     case delete
 }
 
-struct OperationContextKey: ContextKey {
+struct OperationContextKey: OptionalContextKey {
     typealias Value = Operation
-    static var defaultValue: Operation = .automatic
 }
 
 
