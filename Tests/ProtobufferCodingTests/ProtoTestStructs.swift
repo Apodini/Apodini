@@ -61,3 +61,15 @@ struct ProtoComplexTestMessage: Codable {
         }
     }
 }
+
+struct ProtoComplexTestMessageWithOptionals: Codable {
+    var numberInt32: Int32?
+    var numberUint32: UInt32?
+    var numberBool: Bool?
+    var enumValue: Int32?
+    var numberDouble: Double?
+    var content: String?
+    var byteData: Data?
+    var nestedMessage: ProtoTestMessage<String>?
+    var numberFloat: Float?
+}
