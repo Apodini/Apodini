@@ -42,6 +42,14 @@ class ProtobufferDecoderTests: XCTestCase {
         XCTAssertEqual(message.content, negativeExpected, "testDecodeNegativeInt32")
     }
 
+    func testDecodeInt64() throws {
+        let positiveData = Data([8, 185, 96])
+        let positiveExpected: Int64 = 12345
+
+        let message = try ProtoDecoder().decode(ProtoTestMessage<Int64>.self, from: positiveData)
+        XCTAssertEqual(message.content, positiveExpected, "testDecodeInt64")
+    }
+
     func testDecodeOptionalNegativeInt32() throws {
         let negativeData = Data([8, 199, 159, 255, 255, 255, 255, 255, 255, 255, 1])
         let negativeExpected: Int32? = -12345
@@ -64,6 +72,14 @@ class ProtobufferDecoderTests: XCTestCase {
 
         let message = try ProtoDecoder().decode(ProtoTestMessage<UInt32>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeUInt32")
+    }
+
+    func testDecodeUInt64() throws {
+        let data = Data([8, 185, 96])
+        let expected: UInt64 = 12345
+
+        let message = try ProtoDecoder().decode(ProtoTestMessage<UInt64>.self, from: data)
+        XCTAssertEqual(message.content, expected, "testDecodeUInt64")
     }
 
     func testDecodeBool() throws {
@@ -119,6 +135,14 @@ class ProtobufferDecoderTests: XCTestCase {
 
         let message = try ProtoDecoder().decode(ProtoTestMessage<[Bool]>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeRepeatedBool")
+    }
+
+    func testDecodeRepeatedInt() throws {
+        let data = Data([10, 5, 1, 2, 3, 4, 5])
+        let expected: [Int] = [1, 2, 3, 4, 5]
+
+        let message = try ProtoDecoder().decode(ProtoTestMessage<[Int]>.self, from: data)
+        XCTAssertEqual(message.content, expected, "testDecodeRepeatedIntMessage")
     }
 
     func testDecodeRepeatedInt32() throws {
@@ -179,12 +203,28 @@ class ProtobufferDecoderTests: XCTestCase {
         XCTAssertEqual(message.content, expected, "testDecodeRepeatedDouble")
     }
 
+    func testDecodeRepeatedUInt() throws {
+        let data = Data([10, 5, 1, 2, 3, 4, 5])
+        let expected: [UInt] = [1, 2, 3, 4, 5]
+
+        let message = try ProtoDecoder().decode(ProtoTestMessage<[UInt]>.self, from: data)
+        XCTAssertEqual(message.content, expected, "testDecodeRepeatedUInt")
+    }
+
     func testDecodeRepeatedUInt32() throws {
         let data = Data([10, 5, 1, 2, 3, 4, 5])
         let expected: [UInt32] = [1, 2, 3, 4, 5]
 
         let message = try ProtoDecoder().decode(ProtoTestMessage<[UInt32]>.self, from: data)
         XCTAssertEqual(message.content, expected, "testDecodeRepeatedUInt32")
+    }
+
+    func testDecodeRepeatedUInt64() throws {
+        let data = Data([10, 5, 1, 2, 3, 4, 5])
+        let expected: [UInt64] = [1, 2, 3, 4, 5]
+
+        let message = try ProtoDecoder().decode(ProtoTestMessage<[UInt64]>.self, from: data)
+        XCTAssertEqual(message.content, expected, "testDecodeRepeatedUInt64")
     }
 
     func testDecodeRepeatedData() throws {
