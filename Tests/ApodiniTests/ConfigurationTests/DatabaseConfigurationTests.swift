@@ -24,7 +24,6 @@ final class DatabaseConfigurationTests: XCTestCase {
 
     func testDatabaseSetup() throws {
         DatabaseConfiguration(.sqlite(.memory))
-            .addNotifications()
             .configure(self.app)
         XCTAssertNotNil(app.databases.configuration())
     }

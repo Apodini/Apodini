@@ -1,7 +1,4 @@
 //
-//  File.swift
-//
-//
 //  Created by Nityananda on 11.12.20.
 //
 
@@ -16,7 +13,12 @@ struct EnrichedInfo {
     enum Cardinality {
         case zeroToOne
         case exactlyOne
-        case zeroToMany
+        case zeroToMany(CollectionContext)
+    }
+
+    enum CollectionContext {
+        case array
+        indirect case dictionary(key: EnrichedInfo, value: EnrichedInfo)
     }
 
     let typeInfo: TypeInfo
@@ -53,10 +55,46 @@ extension EnrichedInfo {
                         guard !errorDescription.contains(keyword) else {
                             return nil
                         }
-
                         preconditionFailure(errorDescription)
                     }
                 }
+        }
+    }
+}
+
+// MARK: - EnrichedInfo: Equatable
+
+extension EnrichedInfo: Equatable {
+    public static func == (lhs: EnrichedInfo, rhs: EnrichedInfo) -> Bool {
+        lhs.typeInfo.type == rhs.typeInfo.type
+            && lhs.propertyInfo?.name == rhs.propertyInfo?.name
+            && lhs.propertiesOffset == rhs.propertiesOffset
+            && lhs.cardinality == rhs.cardinality
+    }
+}
+
+extension EnrichedInfo.Cardinality: Equatable {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case (.zeroToOne, .zeroToOne), (.exactlyOne, .exactlyOne):
+            return true
+        case let (.zeroToMany(lhsCollection), .zeroToMany(rhsCollection)):
+            return (lhsCollection) == (rhsCollection)
+        default:
+            return false
+        }
+    }
+}
+
+extension EnrichedInfo.CollectionContext: Equatable {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case (.array, .array):
+            return true
+        case let (.dictionary(lhsKey, lhsValue), .dictionary(rhsKey, rhsValue)):
+            return (lhsKey, lhsValue) == (rhsKey, rhsValue)
+        default:
+            return false
         }
     }
 }

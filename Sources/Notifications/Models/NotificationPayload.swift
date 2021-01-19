@@ -1,9 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Alexander Collins on 06.12.20.
-//
 import APNS
 import FCM
 

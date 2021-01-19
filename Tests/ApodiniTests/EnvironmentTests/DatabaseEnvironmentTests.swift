@@ -1,5 +1,6 @@
 import XCTest
 import protocol Fluent.Database
+import XCTApodini
 @testable import Apodini
 
 final class DatabaseEnvironmentTests: ApodiniTests {

@@ -1,10 +1,3 @@
-//
-//  Notification.swift
-//  
-//
-//  Created by Alexander Collins on 15.11.20.
-//
-
 import APNS
 import FCM
 import Foundation
