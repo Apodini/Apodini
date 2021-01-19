@@ -21,7 +21,7 @@ public class HTTPConfiguration: Configuration {
     }
 
     /// initalize HTTPConfiguration
-    convenience public init() {
+    public convenience init() {
         self.init(arguments: CommandLine.arguments)
     }
 

@@ -1,10 +1,3 @@
-//
-//  HTTP2ConfigurationTests.swift
-//  
-//
-//  Created by Tim Gymnich on 14.1.21.
-//
-
 @testable import Apodini
 import XCTest
 
