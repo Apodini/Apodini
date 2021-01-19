@@ -19,39 +19,50 @@ internal struct Updater<Model: DatabaseModel> {
     }
     
     func executeUpdate(on database: Database) -> EventLoopFuture<Model> {
-        if let model = model {
-            return Model.find(modelID, on: database)
-                .unwrap(orError: Abort(.notFound))
-                .map { foundModel -> Model in
+        Model
+            .find(modelID, on: database)
+            .unwrap(or: Abort(.notFound))
+            .flatMap { foundModel -> EventLoopFuture<Model> in
+                var foundModel = foundModel
+                if let model = model {
+                    //As there is a model provided by the request,
+                    //it can be just updated in the db
                     foundModel.update(model)
-                    _ = foundModel.update(on: database).transform(to: model)
-                    return model
+                } else {
+                    self.executeUpdateWithParameters(on: &foundModel, database: database)
                 }
-        } else {
-            return Model.find(modelID, on: database)
-                .unwrap(orError: Abort(.notFound))
-                .map { model -> Model in
-                    for child in Mirror(reflecting: model).children {
-                        guard let visitable = child.value as? UpdatableFieldProperty,
-                              let label = child.label
-                        else { continue }
-                        let fieldKey = Model.fieldKey(for: label.trimmed())
-                        if let value = properties[fieldKey] {
-                            if visitable.accept( ConcreteUpdatableFieldPropertyVisitor(updater: value) ) {
-                                _ = model.update(on: database).transform(to: model)
-                                return model
-                            } else {
-                                fatalError("An error occurred while updating single parameters of the model ")
-                            }
-                        }
-                    }
-                    return model
+                return foundModel
+                    .update(on: database)
+                    .transform(to: foundModel)
+            }
+    }
+    
+    /// Private method to handle the update of the `DatabaseModel` when only some properties are provided by the request.
+    /// It iterates over all properties of the model and updates all which are found in the request.
+    private func executeUpdateWithParameters(on model: inout Model, database: Database) {
+        for child in Mirror(reflecting: model).children {
+            guard let visitable = child.value as? UpdatableFieldProperty,
+                  let label = child.label else {
+                continue
+            }
+            let fieldKey = Model.fieldKey(for: label.trimmed())
+            if let value = self.properties[fieldKey] {
+                do {
+                    try visitable.accept(ConcreteUpdatableFieldPropertyVisitor(updater: value))
+                } catch {
+                    print(error.localizedDescription + "\n" +
+                        "An error occurred while trying to update the property \(visitable) of the model \(model) with the new value \(value)")
                 }
+            } else {
+                continue
+            }
         }
     }
 }
 
 fileprivate extension String {
+    /// Returns the string reduced by `_`. This is needed as `Mirror` shows the names of a types properties with a prefixed `_`.
+    /// To use them in the `Updater` correctly, this needs to be removed.
     func trimmed() -> Self {
         self.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "_", with: "")
     }

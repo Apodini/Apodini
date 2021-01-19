@@ -163,17 +163,7 @@ class RESTInterfaceExporter: InterfaceExporter {
                 // If the request doesn't have a body, there is nothing to decide.
                 return nil
             }
-
-            #warning("""
-                     A Handler could define multiple .content Parameters. In such a case the REST exporter would
-                     need to decode the content via a struct containing those .content parameters as properties.
-                     This is currently unsupported.
-                """)
-            do {
-                return try request.content.decode(Type.self, using: JSONDecoder())
-            } catch {
-                return nil
-            }
+            return try? request.content.decode(Type.self, using: JSONDecoder())
         }
     }
 }

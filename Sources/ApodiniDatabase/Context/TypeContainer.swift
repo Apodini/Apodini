@@ -184,5 +184,6 @@ extension TypeContainer: LosslessStringConvertible {
         // As query parameters are currently internally used a `.lightweight` and therefore not initialized using this init,
         // there is currently no mapping for this and will always be defaulted to `.noValue`.Will be added in the future.
         self = .noValue
+        fatalError("This .init should never be called as there is currently no type mapping implemented")
     }
 }

@@ -22,12 +22,11 @@ final class DatabaseFieldPropertyTests: ApodiniTests {
         XCTAssert(result.description == "Optional(\(uuid.uuidString))", result.description)
     }
     
-    func testFieldPropertyUpdatable() {
+    func testFieldPropertyUpdatable() throws {
         let bird = Bird(name: "MockingBird", age: 25)
         let newValueContainer: TypeContainer = .string("FooBird")
-        let result = bird.$name.accept(ConcreteUpdatableFieldPropertyVisitor(updater: newValueContainer))
-        XCTAssert(result == true, bird.description)
-        XCTAssert(bird.name == "FooBird", result.description)
+        XCTAssertNoThrow(try bird.$name.accept(ConcreteUpdatableFieldPropertyVisitor(updater: newValueContainer)))
+        XCTAssert(bird.name == "FooBird")
     }
 
     func result(_ value: String) throws -> String {

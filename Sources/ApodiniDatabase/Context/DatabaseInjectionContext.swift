@@ -15,8 +15,4 @@ struct ModelInfo: DatabaseInjectionContext, Equatable {
     var key: FieldKey
     ///A concrete type for that fieldkey
     var value: TypeContainer
-    
-    static func == (lhs: ModelInfo, rhs: ModelInfo) -> Bool {
-        lhs.key == rhs.key
-    }
 }

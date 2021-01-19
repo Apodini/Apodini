@@ -1,5 +1,5 @@
 import Fluent
-import Vapor
+import Foundation
 import Apodini
 
 ///A protocol all Models that are used with `ApodiniDatabase` need conform to
@@ -13,11 +13,7 @@ internal extension DatabaseModel {
         if let key = Self.keys.first(where: { $0.description == string }) {
             return key
         } else {
-            fatalError("Unexpectedly found nil. Failed to find a Fieldkey under the given string.")
+            fatalError("Unexpectedly found nil. Failed to find a Fieldkey under the given string \(string)")
         }
-    }
-    
-    static var description: String {
-        NSStringFromClass(Self.self)
     }
 }

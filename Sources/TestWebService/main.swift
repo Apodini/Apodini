@@ -121,7 +121,6 @@ struct TestWebService: Apodini.WebService {
     }
 
     @PathParameter var userId: Int
-    @PathParameter var dummy: String
     
     var content: some Component {
         Text("Hello World! 👋")
@@ -157,10 +156,6 @@ struct TestWebService: Apodini.WebService {
         Group("rand") {
             Random()
         }
-    }
-    
-    var configuration: Configuration {
-        HTTP2Configuration()
     }
 }
 

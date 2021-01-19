@@ -11,15 +11,7 @@ import Fluent
 @_implementationOnly import Runtime
 
 internal struct QueryBuilder<Model: DatabaseModel> {
-    internal var debugDescription: String {
-        parameters.debugDescription
-    }
-    
     private let type: Model.Type
-
-    private var fieldKeys: [FieldKey] {
-        type.keys
-    }
 
     internal var parameters: [FieldKey: TypeContainer] = [:]
 
@@ -34,11 +26,6 @@ internal struct QueryBuilder<Model: DatabaseModel> {
             queryBuilder.filter(key: key, method: .equal, codableValue: value)
         }
         return queryBuilder.all()
-    }
-    
-    @discardableResult
-    internal static func fieldKeys<Model: DatabaseModel>(for type: Model.Type) -> [FieldKey] {
-        type.keys
     }
     
     internal static func info(for type: Model.Type) -> [ModelInfo] {
