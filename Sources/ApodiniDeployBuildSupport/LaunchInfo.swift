@@ -45,7 +45,7 @@ public struct DeployedSystemConfiguration: Codable {
     public let deploymentProviderId: DeploymentProviderID
     
     /// Identifier of the node the instance being launched represents
-    public let currentInstanceNodeId: Node.ID
+    public private(set) var currentInstanceNodeId: Node.ID
     
     /// The nodes the system consists of
     public let nodes: [Node]
@@ -89,6 +89,13 @@ public struct DeployedSystemConfiguration: Codable {
     public func readUserInfo<T: Decodable>(as _: T.Type) -> T? {
         return try? JSONDecoder().decode(T.self, from: userInfo)
     }
+    
+    public func withCurrentInstanceNodeId(_ newId: Node.ID) -> Self {
+        var copy = self
+        copy.currentInstanceNodeId = newId
+        return copy
+        
+    }
 }
 
 
@@ -127,12 +134,18 @@ extension DeployedSystemConfiguration {
         public let exportedEndpoints: [ExportedEndpoint]
         
         /// Additional deployment provider specific data
-        public let userInfo: Data?
+        public private(set) var userInfo: Data?
         
         public init<T: Encodable>(id: String, exportedEndpoints: [ExportedEndpoint], userInfo: T?, userInfoType: T.Type = T.self) throws {
             self.id = id
             self.exportedEndpoints = exportedEndpoints
-            self.userInfo = try userInfo.map { try JSONEncoder().encode($0) }
+            //self.userInfo = try userInfo.map { try JSONEncoder().encode($0) }
+            try setUserInfo(userInfo, type: T.self)
+        }
+        
+        
+        private mutating func setUserInfo<T: Encodable>(_ value: T?, type _: T.Type = T.self) throws {
+            self.userInfo = try value.map { try JSONEncoder().encode($0) }
         }
         
         
@@ -154,12 +167,15 @@ extension DeployedSystemConfiguration {
         
         
         public func withUserInfo<T: Encodable>(_ userInfo: T?) throws -> Self {
-            return try Node(id: self.id, exportedEndpoints: self.exportedEndpoints, userInfo: userInfo)
+            var copy = self
+            try copy.setUserInfo(userInfo, type: T.self)
+            return copy
         }
         
-        public func withUserInfo(_ userInfo: _OptionalNilComparisonType) -> Self {
+        
+        //public func withUserInfo(_ userInfo: _OptionalNilComparisonType) -> Self {
             // ?? We can afford the try! here because we're passing nil, meaning that it'll never encode anything, meaning it won't crash ??
-            return try! Node(id: self.id, exportedEndpoints: self.exportedEndpoints, userInfo: nil, userInfoType: Null.self)
-        }
+            //return try! Node(id: self.id, exportedEndpoints: self.exportedEndpoints, userInfo: nil, userInfoType: Null.self)
+        //}
     }
 }

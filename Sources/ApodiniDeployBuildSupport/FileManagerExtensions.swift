@@ -36,9 +36,13 @@ public extension FileManager {
         temporaryDirectory.appendingPathComponent("Apodini", isDirectory: true)
     }
     
-    func lk_getTemporaryFileUrl(fileExtension: String) -> URL {
-        lk_temporaryDirectory
+    
+    func lk_getTemporaryFileUrl(fileExtension: String?) -> URL {
+        var tmpfile = lk_temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
-            .appendingPathExtension(fileExtension)
+        if let ext = fileExtension {
+            tmpfile.appendPathExtension(ext)
+        }
+        return tmpfile
     }
 }

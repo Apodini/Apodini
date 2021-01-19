@@ -8,7 +8,11 @@
 
 import Foundation
 import Logging
-import Darwin.C
+#if os(Linux)
+import Glibc
+#else
+import Darwin
+#endif
 
 
 
@@ -75,7 +79,7 @@ extension DeploymentProvider {
             executableUrl: swiftBin,
             arguments: ["build", "--product", productName],
             captureOutput: false,
-            launchInCurrentGroup: true
+            launchInCurrentProcessGroup: true
         )
         guard try task.launchSync().exitCode == EXIT_SUCCESS else {
             throw ApodiniDeploySupportError.other("Unable to build web service")
@@ -123,7 +127,7 @@ extension DeploymentProvider {
                 modelFileUrl.path
             ],
             captureOutput: false,
-            launchInCurrentGroup: true
+            launchInCurrentProcessGroup: true
         )
         logger.notice("Invoking child process `\(exportWebServiceModelTask.taskStringRepresentation)`")
         let terminationInfo = try exportWebServiceModelTask.launchSync()

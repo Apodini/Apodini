@@ -6,8 +6,13 @@
 //
 
 import Foundation
-import Darwin.POSIX
 import Dispatch
+
+#if os(Linux)
+import Glibc
+#else
+import Darwin
+#endif
 
 
 
@@ -71,7 +76,7 @@ public class Task {
     
     /// Whether the launched task should be put into the same process group as the current process.
     /// Any still-running tasks put in the same group as the current process will be terminated when when the current process exits.
-    private let launchInCurrentGroup: Bool
+    private let launchInCurrentProcessGroup: Bool
     
     public var arguments: [String] {
         willSet {
@@ -84,13 +89,15 @@ public class Task {
     public init(
         executableUrl: URL,
         arguments: [String] = [],
-        captureOutput: Bool = false,
-        launchInCurrentGroup: Bool
+        workingDirectory: URL? = nil,
+        captureOutput: Bool = false, // setting this to false will cause the output to show up in stdout
+        launchInCurrentProcessGroup: Bool
     ) {
         self.executableUrl = executableUrl
         self.arguments = arguments
-        self.launchInCurrentGroup = launchInCurrentGroup
+        self.launchInCurrentProcessGroup = launchInCurrentProcessGroup
         process = Process()
+        process.currentDirectoryURL = workingDirectory
         process.terminationHandler = { [weak self] process in
             self?.processTerminationHandlerImpl(process: process)
         }
@@ -105,7 +112,8 @@ public class Task {
     
     private func launchImpl() throws {
         precondition(!didRun)
-        if launchInCurrentGroup {
+        print("-[\(Self.self) \(#function)] \(taskStringRepresentation)")
+        if launchInCurrentProcessGroup {
             process.executableURL = LKGetCurrentExecutableUrl()
             process.arguments = [Self.ProcessIsChildProcessInvocationWrapper, self.executableUrl.path] + self.arguments
             Self.taskPool.write { set in
@@ -130,6 +138,14 @@ public class Task {
     public func launchAsync(_ terminationHandler: TerminationHandler? = nil) throws {
         self.terminationHandler = terminationHandler
         try launchImpl()
+    }
+    
+    
+    public func launchSyncAndAssertSuccess() throws {
+        let terminationInfo = try launchSync()
+        guard terminationInfo.exitCode == EXIT_SUCCESS else {
+            fatalError("Task '\(taskStringRepresentation)' terminated with non-zero exit code \(terminationInfo.exitCode)")
+        }
     }
     
     
@@ -263,7 +279,7 @@ extension Task {
             }
         }
         
-        execve(argv[0], argv.baseAddress, environ)
+        execve(argv[0]!, argv.baseAddress!, environ)
         perror("execve failed")
         exit(EXIT_FAILURE)
     }

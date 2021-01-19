@@ -10,7 +10,8 @@ let package = Package(
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
-        .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"])
+        .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
+        .executable(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.35.0"),
@@ -33,7 +34,10 @@ let package = Package(
         .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
         .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.1.0"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
-        .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0")
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
+        .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", from: "0.1.0"),
+        .package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime", .upToNextMajor(from: "0.4.0")),
+        .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0")
     ],
     targets: [
         .target(
@@ -81,7 +85,8 @@ let package = Package(
             name: "TestWebService",
             dependencies: [
                 .target(name: "Apodini"),
-                .target(name: "DeploymentTargetLocalhostRuntimeSupport")
+                .target(name: "DeploymentTargetLocalhostRuntimeSupport"),
+                .target(name: "DeploymentTargetAWSLambdaRuntime")
             ]
         ),
         // ProtobufferCoding
@@ -149,6 +154,43 @@ let package = Package(
             dependencies: [
                 .target(name: "DeploymentTargetLocalhostCommon"),
                 .target(name: "ApodiniDeployRuntimeSupport")
+            ]
+        ),
+        
+        .target(
+            name: "DeploymentTargetAWSLambda",
+            dependencies: [
+                .target(name: "DeploymentTargetAWSLambdaCommon"),
+                .target(name: "ApodiniDeployBuildSupport"),
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "SotoS3", package: "soto"),
+                .product(name: "SotoLambda", package: "soto"),
+                .product(name: "SotoApiGatewayV2", package: "soto")
+            ]
+        ),
+        .target(
+            name: "DeploymentTargetAWSLambdaCommon",
+            dependencies: [
+                .target(name: "ApodiniDeployBuildSupport")
+            ]
+        ),
+        .target(
+            name: "DeploymentTargetAWSLambdaRuntime",
+            dependencies: [
+                .target(name: "DeploymentTargetAWSLambdaCommon"),
+                .target(name: "ApodiniDeployRuntimeSupport"),
+                .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
+            ]
+        ),
+        .target(
+            name: "TestWebServiceAWS",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "DeploymentTargetAWSLambdaRuntime")
+                //.product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime"),
+                //.product(name: "AWSLambdaEvents", package: "swift-aws-lambda-runtime"),
+                //.product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
             ]
         )
     ]

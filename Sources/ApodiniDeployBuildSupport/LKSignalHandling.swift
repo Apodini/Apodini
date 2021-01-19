@@ -6,7 +6,11 @@
 //
 
 
-import Darwin.sys.signal
+#if os(Linux)
+import Glibc
+#else
+import Darwin
+#endif
 
 
 public struct Signal: RawRepresentable, Hashable, Equatable {
@@ -51,20 +55,20 @@ public enum SignalHandling {
     
     @discardableResult
     public static func add(for signal: Signal, handler: @escaping SignalHandler) -> SignalHandlerToken {
-        _initIfNecessary(signal: signal)
+        _initSystemSignalHandlerIfNecessary(signal)
         let token = SignalHandlerToken(handler: handler)
         handlersBySignal[signal]!.append(token)
         return token
     }
     
     
-    private static func _initIfNecessary(signal: Signal) {
-        guard handlersBySignal[signal] == nil else {
+    private static func _initSystemSignalHandlerIfNecessary(_ _signal: Signal) { // underscored so that we can access the signal function w/out having to qualify the name
+        guard handlersBySignal[_signal] == nil else {
             // make sure we register only one handler per signal
             return
         }
-        handlersBySignal[signal] = []
-        Darwin.signal(signal.rawValue) { signalValue in
+        handlersBySignal[_signal] = []
+        signal(_signal.rawValue) { signalValue in
             let signal = Signal(rawValue: signalValue)
             Self.handlersBySignal[signal]?.forEach { $0.handler?(signal) }
         }

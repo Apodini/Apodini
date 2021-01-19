@@ -10,7 +10,11 @@ import ApodiniDeployBuildSupport
 import ArgumentParser
 import Logging
 import DeploymentTargetLocalhostCommon
-import Darwin.C.stdlib // exit
+#if os(Linux)
+import Glibc
+#else
+import Darwin
+#endif
 
 
 try Task.handleChildProcessInvocationIfNecessary()
@@ -108,7 +112,7 @@ private struct LocalhostDeploymentProvider: ParsableCommand, DeploymentProvider 
                 executableUrl: executableUrl,
                 arguments: [WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig, systemConfigUrl.path],
                 captureOutput: false,
-                launchInCurrentGroup: true
+                launchInCurrentProcessGroup: true
             )
             try task.launchAsync()
 //            { terminationInfo in

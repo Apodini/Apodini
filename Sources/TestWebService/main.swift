@@ -9,6 +9,7 @@ import Apodini
 import NIO
 import ApodiniDeployBuildSupport
 import DeploymentTargetLocalhostRuntimeSupport
+import DeploymentTargetAWSLambdaRuntime
 
 
 struct SimpleError: Swift.Error {
@@ -86,7 +87,7 @@ struct TestWebService: Apodini.WebService {
                 parameters: [.init(\.$upperBound, age)]
             )
             .map { randomNumber in
-                "Hello \(name) of age \(age). Your lucky number is \(randomNumber)"
+                "Hello \(name) of age \(age). Your random number (in 0...age) is \(randomNumber)"
             }
         }
     }
@@ -229,4 +230,4 @@ struct TestWebService: Apodini.WebService {
     }
 }
 
-try TestWebService.main(deploymentProviders: [LocalhostRuntimeSupport.self])
+try TestWebService.main(deploymentProviders: [LocalhostRuntimeSupport.self, LambdaRuntime.self])
