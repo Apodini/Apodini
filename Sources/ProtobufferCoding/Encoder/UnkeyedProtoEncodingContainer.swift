@@ -7,6 +7,7 @@
 
 import Foundation
 
+// swiftlint:disable discouraged_optional_boolean
 class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEncodingContainer {
     var currentFieldTag: Int
 
