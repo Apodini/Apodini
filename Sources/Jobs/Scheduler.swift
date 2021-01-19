@@ -46,7 +46,7 @@ public class Scheduler {
                                              on eventLoop: EventLoop) throws {
         try checkPropertyWrappers(job)
         EnvironmentValue(keyPath, job)
-        let jobConfiguration = try generateConfiguration(job, cronTrigger, keyPath)
+        let jobConfiguration = try generateConfiguration(cronTrigger, keyPath)
         
         if let runs = runs {
             schedule(job, with: jobConfiguration, runs, on: eventLoop)
@@ -111,17 +111,10 @@ private extension Scheduler {
     }
     
     func subscribe(job: Job, to observedObject: AnyObservedObject) {
-        let builder = ObservedObjectModelBuilder()
-        observedObject.accept(builder)
-        
-        for publisher in builder.publishers {
-            publisher
-                .sink {
-                    observedObject.change(to: true)
-                    job.run()
-                    observedObject.change(to: false)
-                }
-                .store(in: &cancellables)
+        observedObject.valueDidChange = {
+            observedObject.setChanged(to: true)
+            job.run()
+            observedObject.setChanged(to: false)
         }
     }
     
