@@ -17,13 +17,13 @@ struct WrappedRESTResponse<T: Codable>: Vapor.Content {
 
 extension Vapor.ContentContainer {
     func decodeRESTResponseData<T: Codable>(_ type: T.Type) throws -> T {
-        return try self.decode(WrappedRESTResponse<T>.self).data
+        try self.decode(WrappedRESTResponse<T>.self).data
     }
 }
 
 
 private struct TestWebService: Apodini.WebService {
-    struct F: InvocableHandler {
+    struct F: InvocableHandler { // swiftlint:disable:this type_name
         class HandlerIdentifier: ScopedHandlerIdentifier<F> {
             static let main = HandlerIdentifier("main")
         }
@@ -51,7 +51,7 @@ private struct TestWebService: Apodini.WebService {
             case makeSpongebobcase
             
             init?(_ description: String) {
-                if let value = Self.init(rawValue: description) {
+                if let value = Self(rawValue: description) {
                     self = value
                 } else {
                     return nil
@@ -112,10 +112,10 @@ private struct TestWebService: Apodini.WebService {
         }
     }
     
-    
+    // swiftlint:disable identifier_name
     struct Adder: InvocableHandler {
         struct ParametersStorage: ParametersStorageProtocol {
-            typealias HandlerType = Adder
+            typealias HandlerType = Adder // swiftlint:disable:this nesting
             let x: Double
             let y: Double
             
@@ -147,6 +147,7 @@ private struct TestWebService: Apodini.WebService {
             x + y
         }
     }
+    // swiftlint:enable identifier_name
     
     
     struct Calculator: Handler {

@@ -87,7 +87,6 @@ struct TestWebService: Apodini.WebService {
         }
     }
     
-    
 
     struct TraditionalGreeter: Handler {
         // one cannot change their gender, it must be provided
