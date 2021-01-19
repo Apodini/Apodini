@@ -8,7 +8,7 @@
 import Apodini
 
 
-struct TestWebService: Apodini.WebService {    
+struct TestWebService: Apodini.WebService {
     @PathParameter var userId: Int
     
     var content: some Component {
