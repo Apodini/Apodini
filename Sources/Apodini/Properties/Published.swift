@@ -15,15 +15,6 @@ public struct Published<Element>: Property {
             valueDidChange?()
         }
     }
-    
-    var valueDidChange: (() -> Void)? {
-        get {
-            wrappedValueDidChange.value
-        }
-        nonmutating set {
-            wrappedValueDidChange.value = newValue
-        }
-    }
 
     private var wrapper: Wrapper<Element>
     private var wrappedValueDidChange: Wrapper<(() -> Void)?>
@@ -38,4 +29,15 @@ public struct Published<Element>: Property {
 /// Type-erased `Publised` protocol.
 protocol AnyPublished {
     var valueDidChange: (() -> Void)? { get nonmutating set }
+}
+
+extension Published: AnyPublished {
+    var valueDidChange: (() -> Void)? {
+        get {
+            wrappedValueDidChange.value
+        }
+        nonmutating set {
+            wrappedValueDidChange.value = newValue
+        }
+    }
 }
