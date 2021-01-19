@@ -1,5 +1,3 @@
-import OpenCombine
-
 /// Property wrapper that can be used to annotate properties inside of `ObservableObject`s.
 /// The `ObservableObject` will notify its subscribers if a `Published` property changes.
 ///
@@ -14,27 +12,30 @@ public struct Published<Element>: Property {
         }
         nonmutating set {
             wrapper.value = newValue
-            subject.send()
+            valueDidChange?()
+        }
+    }
+    
+    var valueDidChange: (() -> Void)? {
+        get {
+            wrappedValueDidChange.value
+        }
+        nonmutating set {
+            wrappedValueDidChange.value = newValue
         }
     }
 
     private var wrapper: Wrapper<Element>
-    private let subject: PassthroughSubject<Void, Never>
+    private var wrappedValueDidChange: Wrapper<(() -> Void)?>
     
     /// Creates a new `Published` property.
     public init(wrappedValue: Element) {
         wrapper = Wrapper(value: wrappedValue)
-        subject = PassthroughSubject()
+        wrappedValueDidChange = Wrapper(value: nil)
     }
 }
 
 /// Type-erased `Publised` protocol.
 protocol AnyPublished {
-    var publisher: AnyPublisher<Void, Never> { get }
-}
-
-extension Published: AnyPublished {
-    var publisher: AnyPublisher<Void, Never> {
-        subject.eraseToAnyPublisher()
-    }
+    var valueDidChange: (() -> Void)? { get nonmutating set }
 }

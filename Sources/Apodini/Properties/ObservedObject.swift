@@ -28,37 +28,54 @@ public struct ObservedObject<Element: ObservableObject>: Property {
         changedWrapper.value
     }
     
+    public var valueDidChange: (() -> Void)? {
+        get {
+            wrappedValueDidChange.value
+        }
+        nonmutating set {
+            wrappedValueDidChange.value = newValue
+            
+            for property in Mirror(reflecting: wrappedValue).children {
+                switch property.value {
+                case let published as AnyPublished:
+                    published.valueDidChange = valueDidChange
+                default:
+                    continue
+                }
+            }
+        }
+    }
+
     private var objectIdentifer: ObjectIdentifier?
     private var element: Element?
     private var changedWrapper: Wrapper<Bool>
+    private var wrappedValueDidChange: Wrapper<(() -> Void)?>
     
     /// Element passed as an object.
     public init(wrappedValue defaultValue: Element) {
         element = defaultValue
         changedWrapper = Wrapper(value: false)
+        wrappedValueDidChange = Wrapper(value: nil)
     }
     
     /// Element is injected with a key path.
     public init<Key: KeyChain>(_ keyPath: KeyPath<Key, Element>) {
         objectIdentifer = ObjectIdentifier(keyPath)
         changedWrapper = Wrapper(value: false)
+        wrappedValueDidChange = Wrapper(value: nil)
     }
 }
 
 /// Type-erased `ObservedObject` protocol.
 public protocol AnyObservedObject {
-    /// Method used to collect to `ObservedObject`s.
-    func accept(_ observedObjectVisitor: ObservedObjectVisitor)
+    /// Method to be informed about values that have changed
+    var valueDidChange: (() -> Void)? { get nonmutating set }
     /// Sets the `changed` property.
-    func change(to value: Bool)
+    nonmutating func setChanged(to value: Bool)
 }
 
 extension ObservedObject: AnyObservedObject {
-    public func accept(_ observedObjectVisitor: ObservedObjectVisitor) {
-        observedObjectVisitor.visit(self)
-    }
-    
-    public nonmutating func change(to value: Bool) {
+    public nonmutating func setChanged(to value: Bool) {
         changedWrapper.value = value
     }
 }
