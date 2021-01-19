@@ -78,6 +78,42 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         XCTAssertNotNil(exporter.services[expectedServiceName])
     }
 
+    /// Checks that the GRPC exporter considers `.serviceName` context
+    /// values for naming services.
+    func testExplicitEndpointNaming() throws {
+        let expectedServiceName = "MyService"
+
+        let webService = WebServiceModel()
+
+        let handler = GRPCTestHandler()
+        let node = ContextNode()
+        node.addContext(GRPCServiceNameContextKey.self, value: expectedServiceName, scope: .current)
+        var endpoint = handler.mockEndpoint(context: Context(contextNode: node))
+
+        webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
+
+        let exporter = GRPCInterfaceExporter(app)
+        exporter.export(endpoint)
+
+        XCTAssertNotNil(exporter.services[expectedServiceName])
+    }
+
+    func testShouldAcceptMultipleEndpoints() throws {
+        let context = endpoint.createConnectionContext(for: exporter)
+
+        try service.exposeUnaryEndpoint(name: "endpointName1", context: context)
+        XCTAssertNoThrow(try service.exposeUnaryEndpoint(name: "endpointName2", context: context))
+        XCTAssertNoThrow(try service.exposeClientStreamingEndpoint(name: "endpointName3", context: context))
+    }
+
+    func testShouldNotOverwriteExistingEndpoint() throws {
+        let context = endpoint.createConnectionContext(for: exporter)
+
+        try service.exposeUnaryEndpoint(name: "endpointName", context: context)
+        XCTAssertThrowsError(try service.exposeUnaryEndpoint(name: "endpointName", context: context))
+        XCTAssertThrowsError(try service.exposeClientStreamingEndpoint(name: "endpointName", context: context))
+    }
+
     func testShouldRequireContentTypeHeader() throws {
         let context = endpoint.createConnectionContext(for: exporter)
 
@@ -92,7 +128,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        let handler = service.createUnaryHandler(context: context)
+        var handler = service.createUnaryHandler(context: context)
+        XCTAssertThrowsError(try handler(vaporRequest).wait())
+
+        handler = service.createUnaryHandler(context: context)
         XCTAssertThrowsError(try handler(vaporRequest).wait())
     }
 
