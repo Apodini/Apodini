@@ -126,9 +126,7 @@ private extension Scheduler {
     }
     
     /// Generates the configuration of the `Job`.
-    func generateConfiguration<K: KeyChain, T: Job>(_ job: T,
-                                                    _ cronTrigger: String,
-                                                    _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
+    func generateConfiguration<K: KeyChain, T: Job>(_ cronTrigger: String, _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
         let identifier = ObjectIdentifier(keyPath)
         let jobConfiguration = try JobConfiguration(SwifCron(cronTrigger))
         jobConfigurations[identifier] = jobConfiguration
