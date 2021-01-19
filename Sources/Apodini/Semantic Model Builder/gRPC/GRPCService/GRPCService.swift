@@ -54,14 +54,12 @@ class GRPCService {
     internal func getMessages(from data: Data) -> [GRPCMessage] {
         var data = data
         var messages: [GRPCMessage] = []
-        var hasNext = false
-        repeat {
+
+        while data.count > 5{
             // https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md
             // A message is prefixed by
             // - 1 byte:    compressed (true / false)
             // - 4 bytes:   big-endian; length of message
-            precondition(data.count > 5,
-                         "Remaining payload data not long enough to read message from")
             let compressed = data.popFirst()
             let lengthBytes = [UInt8](data.prefix(4))
             let ulength = lengthBytes.reduce(0) { result, new in
@@ -72,19 +70,15 @@ class GRPCService {
             // remove the length bytes
             data = data.advanced(by: 4)
 
-            if data.count > length {
-                // There is more data left than the message is long.
-                // So a second message is to follow
-                hasNext = true
+            if data.count >= length {
+                // There is more data left than the message is long and a second
+                // message is to follow,
+                // or there is all the data available that belongs to this message,
+                // and no other message follows in the given data.
                 let messageData = data.subdata(in: 0..<length)
                 messages.append(GRPCMessage(from: messageData, length: length, compressed: compressed == 1))
                 // remove the bytes of this message
-                data = data.advanced(by: length)
-            } else if data.count == length {
-                // There is all the data available that belongs to this message,
-                // and no other message follows in the given data.
-                hasNext = false
-                messages.append(GRPCMessage(from: data, length: length, compressed: compressed == 1))
+                data = data.dropFirst(length)
             } else {
                 // data.count < length:
                 // There is not all the data that belongs to this message
@@ -95,7 +89,7 @@ class GRPCService {
                 // See GitHub issue #127: https://github.com/Apodini/Apodini/issues/127
                 fatalError("Apodini GRPC exporter does not yet support messages spanning multiple HTTP frames")
             }
-        } while hasNext
+        }
         return messages
     }
 }
