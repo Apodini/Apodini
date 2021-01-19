@@ -18,6 +18,14 @@ class ProtobufferEncoderTests: XCTestCase {
         XCTAssertEqual(encoded, expected, "testEncodeNil")
     }
 
+    func testEncodeSinglePositiveInt() throws {
+        let expected = Data([8, 185, 96])
+        let number: Int32 = 12345
+
+        let encoded = try ProtoEncoder().encode(number)
+        XCTAssertEqual(encoded, expected, "testEncodeSinglePositiveInt")
+    }
+
     func testEncodeSinglePositiveInt32() throws {
         let expected = Data([8, 185, 96])
         let number: Int32 = 12345
@@ -67,6 +75,14 @@ class ProtobufferEncoderTests: XCTestCase {
         let message = ProtoTestMessage(content: number)
         let encoded = try ProtoEncoder().encode(message)
         XCTAssertEqual(encoded, expected, "testEncodeNegativeInt32Message")
+    }
+
+    func testEncodeSingleUInt() throws {
+        let expected = Data([8, 185, 96])
+        let number: UInt32 = 12345
+
+        let encoded = try ProtoEncoder().encode(number)
+        XCTAssertEqual(encoded, expected, "testEncodeSingleUInt")
     }
 
     func testEncodeSingleUInt32() throws {

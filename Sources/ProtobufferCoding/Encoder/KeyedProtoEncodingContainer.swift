@@ -53,7 +53,12 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
     }
 
     func encode(_ value: Int, forKey key: Key) throws {
-        throw ProtoError.encodingError("Int not supported, use Int32 or Int64")
+        let keyValue = try extractIntValue(from: key)
+        if MemoryLayout<Int>.size == 32 {
+            try encodeInt32(Int32(value), tag: keyValue)
+        } else if MemoryLayout<Int>.size == 64 {
+            try encodeInt64(Int64(value), tag: keyValue)
+        }
     }
 
     func encode(_ value: Int8, forKey key: Key) throws {
@@ -75,7 +80,12 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
     }
 
     func encode(_ value: UInt, forKey key: Key) throws {
-        throw ProtoError.encodingError("UInt not supported, use UInt32 or UInt64")
+        let keyValue = try extractIntValue(from: key)
+        if MemoryLayout<UInt>.size == 32 {
+            try encodeUInt32(UInt32(value), tag: keyValue)
+        } else if MemoryLayout<UInt>.size == 64 {
+            try encodeUInt64(UInt64(value), tag: keyValue)
+        }
     }
 
     func encode(_ value: UInt8, forKey key: Key) throws {
@@ -111,6 +121,15 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
         try encodeRepeatedFloat(values, tag: keyValue)
     }
 
+    func encode(_ values: [Int], forKey key: Key) throws {
+        let keyValue = try extractIntValue(from: key)
+        if MemoryLayout<Int>.size == 32 {
+            try encodeRepeatedInt32(values.compactMap { Int32($0) }, tag: keyValue)
+        } else if MemoryLayout<Int>.size == 64 {
+            try encodeRepeatedInt64(values.compactMap { Int64($0) }, tag: keyValue)
+        }
+    }
+
     func encode(_ values: [Int32], forKey key: Key) throws {
         let keyValue = try extractIntValue(from: key)
         try encodeRepeatedInt32(values, tag: keyValue)
@@ -119,6 +138,15 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
     func encode(_ values: [Int64], forKey key: Key) throws {
         let keyValue = try extractIntValue(from: key)
         try encodeRepeatedInt64(values, tag: keyValue)
+    }
+
+    func encode(_ values: [UInt], forKey key: Key) throws {
+        let keyValue = try extractIntValue(from: key)
+        if MemoryLayout<UInt>.size == 32 {
+            try encodeRepeatedUInt32(values.compactMap { UInt32($0) }, tag: keyValue)
+        } else if MemoryLayout<UInt>.size == 64 {
+            try encodeRepeatedUInt64(values.compactMap { UInt64($0) }, tag: keyValue)
+        }
     }
 
     func encode(_ values: [UInt32], forKey key: Key) throws {
@@ -156,8 +184,8 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
         } else if isPrimitiveSupportedArray(T.self) {
             try encodeArray(value, forKey: key)
         } else if [
-                    Int.self, Int8.self, Int16.self,
-                    UInt.self, UInt8.self, UInt16.self,
+                    Int8.self, Int16.self,
+                    UInt8.self, UInt16.self,
                     [Int].self, [Int8].self, [Int16].self,
                     [UInt].self, [UInt8].self, [UInt16].self,
                     [String].self
@@ -176,9 +204,13 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
             try encode(value, forKey: key)
         } else if T.self == Bool.self, let value = value as? Bool {
             try encode(value, forKey: key)
+        } else if T.self == Int.self, let value = value as? Int {
+            try encode(value, forKey: key)
         } else if T.self == Int32.self, let value = value as? Int32 {
             try encode(value, forKey: key)
         } else if T.self == Int64.self, let value = value as? Int64 {
+            try encode(value, forKey: key)
+        } else if T.self == UInt.self, let value = value as? UInt {
             try encode(value, forKey: key)
         } else if T.self == UInt32.self, let value = value as? UInt32 {
             try encode(value, forKey: key)
@@ -199,9 +231,13 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
             try encode(value, forKey: key)
         } else if T.self == [Double].self, let value = value as? [Double] {
             try encode(value, forKey: key)
+        } else if T.self == [Int].self, let value = value as? [Int] {
+            try encode(value, forKey: key)
         } else if T.self == [Int32].self, let value = value as? [Int32] {
             try encode(value, forKey: key)
         } else if T.self == [Int64].self, let value = value as? [Int64] {
+            try encode(value, forKey: key)
+        } else if T.self == [UInt].self, let value = value as? [UInt] {
             try encode(value, forKey: key)
         } else if T.self == [UInt32].self, let value = value as? [UInt32] {
             try encode(value, forKey: key)
@@ -217,9 +253,13 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
             try encode(value.compactMap { $0 }, forKey: key)
         } else if T.self == [Double?].self, let value = value as? [Double?] {
             try encode(value.compactMap { $0 }, forKey: key)
+        } else if T.self == [Int?].self, let value = value as? [Int?] {
+            try encode(value.compactMap { $0 }, forKey: key)
         } else if T.self == [Int32?].self, let value = value as? [Int32?] {
             try encode(value.compactMap { $0 }, forKey: key)
         } else if T.self == [Int64?].self, let value = value as? [Int64?] {
+            try encode(value.compactMap { $0 }, forKey: key)
+        } else if T.self == [UInt?].self, let value = value as? [UInt?] {
             try encode(value.compactMap { $0 }, forKey: key)
         } else if T.self == [UInt32?].self, let value = value as? [UInt32?] {
             try encode(value.compactMap { $0 }, forKey: key)
