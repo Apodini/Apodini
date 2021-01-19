@@ -29,7 +29,7 @@ internal struct Updater<Model: DatabaseModel> {
                     //it can be just updated in the db
                     foundModel.update(model)
                 } else {
-                    self.executeUpdateWithParameters(on: &foundModel, database: database)
+                    self.executeUpdateWithParameters(on: &foundModel)
                 }
                 return foundModel
                     .update(on: database)
@@ -39,7 +39,7 @@ internal struct Updater<Model: DatabaseModel> {
     
     /// Private method to handle the update of the `DatabaseModel` when only some properties are provided by the request.
     /// It iterates over all properties of the model and updates all which are found in the request.
-    private func executeUpdateWithParameters(on model: inout Model, database: Database) {
+    private func executeUpdateWithParameters(on model: inout Model) {
         for child in Mirror(reflecting: model).children {
             guard let visitable = child.value as? UpdatableFieldProperty,
                   let label = child.label else {
@@ -53,8 +53,6 @@ internal struct Updater<Model: DatabaseModel> {
                     print(error.localizedDescription + "\n" +
                         "An error occurred while trying to update the property \(visitable) of the model \(model) with the new value \(value)")
                 }
-            } else {
-                continue
             }
         }
     }

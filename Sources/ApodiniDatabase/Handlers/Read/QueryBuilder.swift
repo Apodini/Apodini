@@ -45,7 +45,7 @@ internal struct QueryBuilder<Model: DatabaseModel> {
         return modelInfo
     }
     
-    static func parameter<T: Codable>(for: T? = nil) -> Parameter<T?> {
+    static func parameter<T: Codable>(_: T? = nil) -> Parameter<T?> {
         Parameter<T?>(.http(.query))
     }
 }

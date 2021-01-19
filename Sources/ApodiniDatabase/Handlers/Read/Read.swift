@@ -22,7 +22,7 @@ public struct Read<Model: DatabaseModel>: Handler {
         var dynamicValues: [String: Parameter<TypeContainer?>] = [:]
         let infos = QueryBuilder.info(for: Model.self)
         for info in infos {
-            dynamicValues[info.key.description] = QueryBuilder<Model>.parameter(for: info.value)
+            dynamicValues[info.key.description] = QueryBuilder<Model>.parameter(info.value)
         }
         _dynamics = Properties(wrappedValue: dynamicValues)
     }
