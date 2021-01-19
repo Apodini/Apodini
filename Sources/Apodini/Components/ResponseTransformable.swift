@@ -60,6 +60,7 @@ extension Int8: ResponseTransformable {}
 extension Int16: ResponseTransformable {}
 extension Int32: ResponseTransformable {}
 extension Int64: ResponseTransformable {}
+extension UInt: ResponseTransformable {}
 extension UInt8: ResponseTransformable {}
 extension UInt16: ResponseTransformable {}
 extension UInt32: ResponseTransformable {}
