@@ -32,12 +32,3 @@ struct OpenAPIDocumentBuilder {
         )
     }
 }
-
-extension OpenAPIDocumentBuilder {
-    var jsonDescription: String? {
-        (try? JSONEncoder().encode(self.document))
-            .flatMap { json in
-                String(data: json, encoding: .utf8)
-            }
-    }
-}

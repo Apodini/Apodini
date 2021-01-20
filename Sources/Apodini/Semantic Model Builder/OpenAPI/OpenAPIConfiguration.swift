@@ -17,15 +17,9 @@ struct OpenAPIConfiguration {
     /// Server configuration.
     var servers: [OpenAPI.Server] = []
 
-    /// Output configuration (e.g., API endpoint or file output).
-    enum OutputFormat {
-        case JSON
-        case YAML
-    }
-
-    var outputPath: String?
-    var outputEndpoint: String? = "openapi"
-    var outputFormat: OutputFormat = .JSON
+    var outputEndpoint: String = "openapi"
+    var swaggerUiEndpoint: String = "openapi-ui"
+    var outputFormat: OpenAPIOutputFormat = .JSON
 }
 
 extension OpenAPIConfiguration {

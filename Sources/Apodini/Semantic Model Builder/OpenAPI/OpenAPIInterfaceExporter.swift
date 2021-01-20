@@ -30,21 +30,14 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
     }
 
     private func serveSpecification() {
-        if let outputRoute = configuration.outputEndpoint {
+        if let output = try? self.documentBuilder.document.output(self.configuration.outputFormat) {
             // register OpenAPI endpoint
-            switch configuration.outputFormat {
-            case .JSON:
-                app.vapor.app.get(outputRoute.pathComponents) { _ -> String in
-                    guard let jsonDescription = self.documentBuilder.jsonDescription else {
-                        throw Vapor.Abort(.internalServerError)
-                    }
-                    return jsonDescription
-                }
-            case .YAML:
-                print("Not implemented yet.")
+            app.vapor.app.get(configuration.outputEndpoint.pathComponents) { _ -> String in
+                output
             }
+            
             // register swagger UI endpoint
-            app.vapor.app.get("ui-openapi") {_ -> Vapor.Response in
+            app.vapor.app.get(configuration.swaggerUiEndpoint.pathComponents) {_ -> Vapor.Response in
                 var headers = HTTPHeaders()
                 headers.add(name: .contentType, value: HTTPMediaType.html.serialize())
                 guard let htmlFile = Bundle.module.path(forResource: "swagger-ui", ofType: "html") else {
@@ -52,7 +45,7 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
                 }
                 var html: String = try NSString(contentsOfFile: htmlFile, encoding: String.Encoding.ascii.rawValue) as String
                 // replace placeholder with actual URL of OpenAPI endpoint
-                html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: outputRoute.pathComponents.string)
+                html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: self.configuration.outputEndpoint.pathComponents.string)
                 return Vapor.Response(status: .ok, headers: headers, body: .init(string: html))
             }
         }
