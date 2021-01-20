@@ -66,6 +66,21 @@ class ConnectionResponsible: Identifiable {
         }
     }
     
+    func send(_ error: Error, in context: UUID) {
+        let encoder = JSONEncoder()
+        do {
+            let jsonData = try encoder.encode(error.message(on: context))
+            
+            guard let data = String(data: jsonData, encoding: .utf8) else {
+                throw SerializationError.expectedUTF8
+            }
+            
+            self.websocket.send(data)
+        } catch {
+            print(error)
+        }
+    }
+    
     func close(_ code: WebSocketErrorCode) {
         _ = websocket.close(code: code)
     }

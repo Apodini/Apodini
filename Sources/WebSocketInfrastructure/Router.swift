@@ -18,6 +18,13 @@ public protocol WSError: Error {
     var reason: String { get }
 }
 
+/// An error type that receives special treatment by the router when sent as a
+/// `completion` on the `output`.  The contained `code` is used to close the
+/// connection.
+public protocol WSClosingError: WSError {
+    var code: WebSocketErrorCode { get }
+}
+
 /// This type defines the `output` that can be sent over an `register`ed connection.
 /// A message can carry an object of fixed type `T` or an `error`.
 public enum Message<T> {
@@ -109,6 +116,10 @@ public class VaporWSRouter: Router {
         self.path = path
     }
     
+    /// - Note: If the `output`'s `completion` is `finished`, only the `context` is closed. If it is
+    /// `failure` the whole connection is closed. By default the `WebSocketErrorCode` used to close
+    /// the connection is `unexpectedServerError`. A `WSClosingError` can be used to specifiy a
+    /// different code.
     public func register<I: Input, O: Encodable>(
         _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Database?) ->
             (default: I, output: AnyPublisher<Message<O>, Error>),
