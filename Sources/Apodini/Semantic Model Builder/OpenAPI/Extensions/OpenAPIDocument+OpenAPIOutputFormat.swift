@@ -9,13 +9,12 @@ import Foundation
 extension OpenAPI.Document {
     func output(_ format: OpenAPIOutputFormat) throws -> String? {
         let output: String?
-        switch (format) {
+        switch format {
         case .JSON:
             output = String(data: try JSONEncoder().encode(self), encoding: .utf8)
         case .YAML:
             output = try YAMLEncoder().encode(self)
         }
         return output
-            
     }
 }

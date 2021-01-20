@@ -49,6 +49,5 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
                 return Vapor.Response(status: .ok, headers: headers, body: .init(string: html))
             }
         }
-        
     }
 }
