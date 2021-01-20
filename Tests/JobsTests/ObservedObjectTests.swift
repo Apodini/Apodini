@@ -18,9 +18,9 @@ final class ObservedObjectTests: XCTApodiniTest {
         }
     }
     
-    struct Observer: Apodini.ObservableObject {
+    class Observer: Apodini.ObservableObject {
         @Apodini.Published var num = 0
-        @Apodini.Published var text = "Hello"
+        var text = "Hello"
     }
     
     struct Keys: KeyChain {
@@ -33,7 +33,7 @@ final class ObservedObjectTests: XCTApodiniTest {
         // Only triggered by observer
         Schedule(job, on: "* * * * *", runs: 0, \Keys.job).configure(app)
         observer.num = 42
-        observer.text = "Hello"
+        observer.text = "Bye"
     }
     
     func testJobObservableInvocationFromAnotherJob() throws {

@@ -1,7 +1,7 @@
 import XCTest
 import NIO
 
-// Helper method to test if a Job was correctly exectuted
+// Helper method to test if a Job was correctly executed
 func XCTAssertScheduling<T>(_ scheduled: Scheduled<T>) {
     var result = false
     var error: Error?
