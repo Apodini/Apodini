@@ -31,6 +31,7 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
 
     private func serveSpecification() {
         if let outputRoute = configuration.outputEndpoint {
+            // register OpenAPI endpoint
             switch configuration.outputFormat {
             case .JSON:
                 app.vapor.app.get(outputRoute.pathComponents) { _ -> String in
@@ -42,15 +43,19 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
             case .YAML:
                 print("Not implemented yet.")
             }
+            // register swagger UI endpoint
+            app.vapor.app.get("ui-openapi") {_ -> Vapor.Response in
+                var headers = HTTPHeaders()
+                headers.add(name: .contentType, value: HTTPMediaType.html.serialize())
+                guard let htmlFile = Bundle.module.path(forResource: "swagger-ui", ofType: "html") else {
+                    throw Vapor.Abort(.internalServerError)
+                }
+                var html: String = try NSString(contentsOfFile: htmlFile, encoding: String.Encoding.ascii.rawValue) as String
+                // replace placeholder with actual URL of OpenAPI endpoint
+                html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: outputRoute.pathComponents.string)
+                return Vapor.Response(status: .ok, headers: headers, body: .init(string: html))
+            }
         }
-        app.vapor.app.get("ui-openapi") {_ -> Vapor.Response in
-            var headers = HTTPHeaders()
-            headers.add(name: .contentType, value: "text/html")
-            let html = try! NSString(
-                contentsOfFile: "/Users/lschlesinger/Documents/Workspace/study/Apodini/Sources/Apodini/Resources/Views/index.html",
-                encoding: String.Encoding.ascii.rawValue) as String
-            
-            return Vapor.Response(status: .ok, headers: headers, body: .init(string: html))
-        }
+        
     }
 }
