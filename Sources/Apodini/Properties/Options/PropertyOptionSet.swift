@@ -30,4 +30,14 @@ struct PropertyOptionSet<Property> {
         
         return option
     }
+    
+    var isEmpty: Bool {
+        self.options.isEmpty
+    }
+}
+
+extension PropertyOptionSet: CustomDebugStringConvertible {
+    var debugDescription: String {
+        "[" + self.options.map { option in "\(option.key)(\(option.value))" }.joined(separator: ", ") + "]"
+    }
 }
