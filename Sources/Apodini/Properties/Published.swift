@@ -6,6 +6,9 @@
 /// for more information.
 @propertyWrapper
 public struct Published<Element>: Property {
+    private var wrapper: Wrapper<Element>
+    private var wrappedValueDidChange: Wrapper<(() -> Void)?>
+    
     public var wrappedValue: Element {
         get {
             wrapper.value
@@ -15,9 +18,6 @@ public struct Published<Element>: Property {
             valueDidChange?()
         }
     }
-
-    private var wrapper: Wrapper<Element>
-    private var wrappedValueDidChange: Wrapper<(() -> Void)?>
     
     /// Creates a new `Published` property.
     public init(wrappedValue: Element) {
@@ -32,6 +32,7 @@ protocol AnyPublished {
 }
 
 extension Published: AnyPublished {
+    /// Closure based approach is used for notifying any changes
     var valueDidChange: (() -> Void)? {
         get {
             wrappedValueDidChange.value

@@ -1,7 +1,6 @@
 import Foundation
 import NIO
 import Apodini
-import OpenCombine
 @_implementationOnly import SwifCron
 
 /// A convenient interface to schedule background running tasks on an event loop using `Job`s and crontab syntax.
@@ -18,8 +17,6 @@ public class Scheduler {
     internal static var shared = Scheduler()
     
     internal var jobConfigurations: [ObjectIdentifier: JobConfiguration] = [:]
-    
-    internal var cancellables: Set<AnyCancellable> = []
     
     private init() {
         // Empty intializer to create a Singleton.
@@ -100,7 +97,7 @@ private extension Scheduler {
     func checkPropertyWrappers<T: Job>(_ job: T) throws {
         for property in Mirror(reflecting: job).children {
             switch property.value {
-            case is Connection, is PathComponent:
+            case is Environment<EnvironmentValues, Connection>:
                 throw JobErrors.requestPropertyWrapper
             case let observedObject as AnyObservedObject:
                 subscribe(job: job, to: observedObject)
