@@ -20,7 +20,6 @@ struct OpenAPIConfiguration {
     var outputFormat: OpenAPIOutputFormat = .JSON
     var outputEndpoint: String = "openapi"
     var swaggerUiEndpoint: String = "openapi-ui"
-
 }
 
 extension OpenAPIConfiguration {
