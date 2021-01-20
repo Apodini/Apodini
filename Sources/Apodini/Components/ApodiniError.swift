@@ -17,7 +17,9 @@ public enum ErrorType: String {
     /// Error types correspoinding to HTTP 4xx codes
     case badInput, notFound, unauthenticated, forbidden
     /// Error types correspoinding to HTTP 5xx codes
-    case `internal`, notAvailable
+    case serverError, notAvailable
+    /// A unspecified custom error
+    case other
 }
 
 /// An error that can be returned from `Handler`s and receives special treatment from compliant interface exporters.
@@ -29,14 +31,14 @@ public struct ApodiniError: Error {
     
     private let options: PropertyOptionSet<ErrorOptionNameSpace>
     
-    internal let `type`: ErrorType?
+    internal let `type`: ErrorType
     
     private let reason: String?
     
     private let description: String?
     
     
-    internal init(type: ErrorType?, reason: String? = nil, description: String? = nil, _ options: [Option]) {
+    internal init(type: ErrorType, reason: String? = nil, description: String? = nil, _ options: [Option]) {
         self.options = PropertyOptionSet(options)
         self.type = `type`
         self.reason = reason
@@ -49,7 +51,7 @@ public struct ApodiniError: Error {
     /// - Parameter `reason`: The **public** reason explaining what led to the this error.
     /// - Parameter `description`: The **internal** description of this error. This will only be exposed in `DEBUG` mode.
     /// - Parameter `options`: Possible exporter-specific options that provide guidance for how to handle this error.
-    public init(type: ErrorType?, reason: String? = nil, description: String? = nil, _ options: Option...) {
+    public init(type: ErrorType, reason: String? = nil, description: String? = nil, _ options: Option...) {
         self.init(type: type, reason: reason, description: description, options)
     }
 }
@@ -57,16 +59,18 @@ public struct ApodiniError: Error {
 // MARK: StandardError
 
 protocol StandardErrorCompliantOption: PropertyOption {
-    static func `default`(for type: ErrorType?) -> Self
+    static func `default`(for type: ErrorType) -> Self
+}
+
+protocol StandardErrorContext {
+    func option<Option: StandardErrorCompliantOption>(for key: PropertyOptionKey<ErrorOptionNameSpace, Option>) -> Option
 }
 
 protocol StandardErrorCompliantExporter: InterfaceExporter {
-    static func messagePrefix(for error: StandardError) -> String
+    static func messagePrefix(for context: StandardErrorContext) -> String
 }
 
-protocol StandardError: Error {
-    func option<Option: StandardErrorCompliantOption>(for key: PropertyOptionKey<ErrorOptionNameSpace, Option>) -> Option
-    
+protocol StandardError: Error, StandardErrorContext {
     func message<E: StandardErrorCompliantExporter>(for exporter: E.Type) -> String
 }
 
@@ -110,29 +114,10 @@ extension ApodiniError: StandardError {
 
 internal extension Error {
     var apodiniError: ApodiniError {
-        ApodiniError(type: nil, description: self.localizedDescription)
-    }
-}
-
-// MARK: CustomDebugStringConvertible
-
-extension ApodiniError: CustomDebugStringConvertible {
-    public var debugDescription: String {
-        var reasonString = ""
-        if let reason = self.reason {
-            reasonString = ", reason: \"\(reason)\""
+        if let apodiniError = self as? ApodiniError {
+            return apodiniError
+        } else {
+            return ApodiniError(type: .other, description: self.localizedDescription)
         }
-        
-        var descriptionString = ""
-        if let description = self.description {
-            descriptionString = ", description: \"\(description)\""
-        }
-        
-        var optionString = ""
-        if options.isEmpty {
-            optionString = ", options: " + options.debugDescription
-        }
-        
-        return "ApodiniError(type: \(self.type?.rawValue ?? "")\(reasonString)\(descriptionString)\(optionString))"
     }
 }
