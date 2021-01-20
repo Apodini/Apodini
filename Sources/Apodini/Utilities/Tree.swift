@@ -4,8 +4,10 @@
 
 // MARK: - Tree
 
-// swiftlint:disable:next syntactic_sugar
+// swiftlint:disable syntactic_sugar
+/// `Tree` is to `Node`, what `[]` is to `Array` or `Set`.
 typealias Tree<T> = Optional<Node<T>>
+// swiftlint:enable syntactic_sugar
 
 extension Tree {
     var isEmpty: Bool {
@@ -15,12 +17,21 @@ extension Tree {
 
 // MARK: - Node
 
+/// `Node` is a wrapper that enables values to be structured in a tree.
 struct Node<T> {
     let value: T
     let children: [Node<T>]
 }
 
 extension Node {
+    /// Initializes an instance of `Node`.
+    ///
+    /// Initialize a `Node` tree from a data structure that already resembles a tree.
+    ///
+    /// - Parameters:
+    ///   - root: The value of the root node.
+    ///   - getChildren: Get node values for a parent's children, recursively.
+    /// - Throws: Rethrows any error of `getChildren`
     init(root: T, _ getChildren: (T) throws -> [T]) rethrows {
         let children = try getChildren(root)
             .map {
@@ -32,9 +43,7 @@ extension Node {
 }
 
 extension Node {
-    func map<U>(
-        _ transform: (T) throws -> U
-    ) rethrows -> Node<U> {
+    func map<U>(_ transform: (T) throws -> U) rethrows -> Node<U> {
         let value = try transform(self.value)
         let children = try self.children.compactMap { child in
             try child.map(transform)
@@ -43,9 +52,7 @@ extension Node {
         return Node<U>(value: value, children: children)
     }
 
-    func compactMap<U>(
-        _ transform: (T) throws -> U?
-    ) rethrows -> Tree<U> {
+    func compactMap<U>(_ transform: (T) throws -> U?) rethrows -> Tree<U> {
         guard let value = try transform(self.value) else {
             return nil
         }
@@ -56,12 +63,8 @@ extension Node {
 
         return Node<U>(value: value, children: children)
     }
-}
-
-extension Node {
-    func filter(
-        _ isIncluded: (T) throws -> Bool
-    ) rethrows -> Tree<T> {
+    
+    func filter(_ isIncluded: (T) throws -> Bool) rethrows -> Tree<T> {
         guard try isIncluded(self.value) else {
             return nil
         }
@@ -73,9 +76,7 @@ extension Node {
         return Node(value: value, children: children)
     }
 
-    func contains(
-        where predicate: (T) throws -> Bool
-    ) rethrows -> Bool {
+    func contains(where predicate: (T) throws -> Bool) rethrows -> Bool {
         guard try !predicate(value) else {
             return true
         }
@@ -84,9 +85,7 @@ extension Node {
             try child.contains(where: predicate)
         }
     }
-}
-
-extension Node {
+    
     func reduce<Result>(
         _ initialResult: Result,
         _ nextPartialResult: ([Result], T) throws -> Result
@@ -104,9 +103,7 @@ extension Node {
 }
 
 extension Node {
-    func edited(
-        _ transform: (Node<T>) throws -> Tree<T>
-    ) rethrows -> Tree<T> {
+    func edited(_ transform: (Node<T>) throws -> Tree<T>) rethrows -> Tree<T> {
         guard let intermediate = try transform(self) else {
             return nil
         }
@@ -117,12 +114,8 @@ extension Node {
 
         return Node(value: intermediate.value, children: children)
     }
-}
-
-extension Node {
-    func contextMap<U>(
-        _ transform: (Node<T>) throws -> U
-    ) rethrows -> Node<U> {
+    
+    func contextMap<U>(_ transform: (Node<T>) throws -> U) rethrows -> Node<U> {
         let value = try transform(self)
         let children = try self.children.compactMap { child in
             try child.contextMap(transform)
@@ -131,6 +124,8 @@ extension Node {
         return Node<U>(value: value, children: children)
     }
 }
+
+// MARK: Node + CustomStringConvertible
 
 extension Node: CustomStringConvertible where T: CustomStringConvertible {
     private var lines: [Substring] {
@@ -145,9 +140,7 @@ extension Node: CustomStringConvertible where T: CustomStringConvertible {
             }
             .flatMap { $0 }
         
-        return value.description
-            .split(separator: "\n")
-            + children
+        return value.description.split(separator: "\n") + children
     }
     
     var description: String {
