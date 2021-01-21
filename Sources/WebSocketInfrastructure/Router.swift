@@ -114,7 +114,11 @@ public class VaporWSRouter: Router {
     private var connections: [ConnectionResponsible.ID: ConnectionResponsible] = [:]
     private let connectionsMutex = NSLock()
 
-    public init(_ app: Application, at path: [PathComponent] = ["apodini", "websocket"], logger: Logger = .init(label: "org.apodini.websocket.vapor_ws_router")) {
+    public init(
+        _ app: Application,
+        at path: [PathComponent] = ["apodini", "websocket"],
+        logger: Logger = .init(label: "org.apodini.websocket.vapor_ws_router")
+    ) {
         self.app = app
         self.path = path
         self.logger = logger
