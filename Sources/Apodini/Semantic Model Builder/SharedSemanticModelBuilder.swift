@@ -96,10 +96,10 @@ class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor
         
         webService.finish()
         
-        webService.root.printTree() // currently only for debugging purposes
+        app.logger.info(.init(stringLiteral: webService.root.debugDescription))
 
         if interfaceExporters.isEmpty {
-            print("[WARN] There aren't any Interface Exporters registered!")
+            app.logger.warning("There aren't any Interface Exporters registered!")
         }
 
         interfaceExporters.acceptAll(self)
