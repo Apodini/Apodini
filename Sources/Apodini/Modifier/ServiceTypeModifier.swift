@@ -7,8 +7,8 @@
 
 import Foundation
 
-/// Used to explicitly define the communicacational
-/// pattern thta is expressed by a `Handler`.
+/// Used to explicitly define the communicational
+/// pattern that is expressed by a `Handler`.
 public enum ServiceType {
     /// Simple request-response
     case unary

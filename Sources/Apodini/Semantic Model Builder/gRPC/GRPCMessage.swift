@@ -8,7 +8,7 @@
 import Foundation
 
 class GRPCMessage: Apodini.ExporterRequest {
-    /// Default message  that can be used to call handlers in cases
+    /// Default message that can be used to call handlers in cases
     /// where no input message was provided.
     /// Content is empty, length is zero, and the compressed flag is not set.
     static let defaultMessage = GRPCMessage(from: Data(), length: 0, compressed: false)

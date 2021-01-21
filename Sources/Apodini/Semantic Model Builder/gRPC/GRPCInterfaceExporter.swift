@@ -90,7 +90,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
 
         if request.data.isEmpty {
             throw GRPCError.decodingError("""
-                No body data available to decode from.
+                No body data available to decode.
                 GRPC exporter expects all parameters to be in the body of the request.
                 """)
         }
