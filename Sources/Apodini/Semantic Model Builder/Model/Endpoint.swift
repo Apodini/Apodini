@@ -20,8 +20,7 @@ protocol AnyEndpoint: CustomStringConvertible {
 
     var operation: Operation { get }
 
-    /// The communication pattern that is expressed
-    /// by this endpoint.
+    /// The communication pattern that is expressed by this endpoint.
     var serviceType: ServiceType { get }
 
     /// Type returned by `Component.handle(...)`
