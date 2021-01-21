@@ -304,23 +304,6 @@ class EndpointsTreeNode {
             child.collectRelationships(name: name, &relationships)
         }
     }
-    
-    /// This method prints the tree structure to stdout. Added for debugging purposes.
-    func printTree(indent: Int = 0) {
-        let indentString = String(repeating: "  ", count: indent)
-        
-        print(indentString + path.description + "/ {")
-        
-        for (operation, endpoint) in endpoints {
-            print("\(indentString)  - \(operation): \(endpoint.description) [\(endpoint.identifier.rawValue)]")
-        }
-        
-        for child in nodeChildren.values {
-            child.printTree(indent: indent + 1)
-        }
-        
-        print(indentString + "}")
-    }
 }
 
 struct EndpointInsertionContext {
