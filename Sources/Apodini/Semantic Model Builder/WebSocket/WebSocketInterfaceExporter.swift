@@ -9,7 +9,7 @@ import Fluent
 @_implementationOnly import WebSocketInfrastructure
 @_implementationOnly import OpenCombine
 @_implementationOnly import Runtime
-@_implementationOnly import NIOWebSocket
+import NIOWebSocket
 
 // MARK: Exporter
 
@@ -99,6 +99,13 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     
     static func messagePrefix(for error: StandardErrorContext) -> String {
         #if DEBUG
+        return Self.debugModeMessagePrefix(for: error)
+        #else
+        return Self.productionModeMessagePrefix(for: error)
+        #endif
+    }
+    
+    private static func debugModeMessagePrefix(for error: StandardErrorContext) -> String {
         switch error.option(for: .wsErrorType) {
         case .badInput:
             return "You fucked up"
@@ -115,7 +122,9 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         case .other:
             return "Something's wrong, I can feel it"
         }
-        #else
+    }
+    
+    private static func productionModeMessagePrefix(for error: StandardErrorContext) -> String {
         switch error.option(for: .wsErrorType) {
         case .badInput:
             return "Bad Input"
@@ -132,7 +141,6 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         case .other:
             return "Error"
         }
-        #endif
     }
     
     private static func handleInputCompletion(

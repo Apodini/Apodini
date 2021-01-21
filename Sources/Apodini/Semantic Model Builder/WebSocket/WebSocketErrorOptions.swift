@@ -7,7 +7,6 @@
 
 import NIOWebSocket
 
-
 // MARK: WebSocketErrorCode
 
 extension WebSocketErrorCode: StandardErrorCompliantOption {
@@ -28,6 +27,7 @@ extension PropertyOptionKey where PropertyNameSpace == ErrorOptionNameSpace, Opt
 }
 
 extension AnyPropertyOption where PropertyNameSpace == ErrorOptionNameSpace {
+    /// An option that holds websocket error codes.
     public static func webSocketErrorCode(_ code: WebSocketErrorCode) -> AnyPropertyOption<ErrorOptionNameSpace> {
         AnyPropertyOption(key: .webSocketErrorCode, value: code)
     }
@@ -73,6 +73,7 @@ extension PropertyOptionKey where PropertyNameSpace == ErrorOptionNameSpace, Opt
 }
 
 extension AnyPropertyOption where PropertyNameSpace == ErrorOptionNameSpace {
+    /// An option that sepcifies the consequence an associated error has on the WebSocket connection and/or context.
     public static func wsConnectionConsequence(_ consequence: WSConnectionConsequence) -> AnyPropertyOption<ErrorOptionNameSpace> {
         AnyPropertyOption(key: .wsConnectionConsequence, value: consequence)
     }
@@ -83,7 +84,7 @@ typealias WSErrorType = ErrorType
 
 extension WSErrorType: StandardErrorCompliantOption {
     static func `default`(for type: ErrorType) -> Self {
-        return type
+        type
     }
 }
 
