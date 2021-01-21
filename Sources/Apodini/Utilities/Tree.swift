@@ -5,7 +5,7 @@
 // MARK: - Tree
 
 // swiftlint:disable syntactic_sugar
-/// `Tree` is to `Node`, what `[]` is to `Array` or `Set`.
+/// `Tree.none` is to `Node`, what `[]` is to `Array` or `Set`.
 typealias Tree<T> = Optional<Node<T>>
 // swiftlint:enable syntactic_sugar
 
