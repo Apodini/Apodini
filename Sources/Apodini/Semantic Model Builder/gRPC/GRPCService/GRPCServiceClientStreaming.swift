@@ -70,7 +70,7 @@ extension GRPCService {
     func createClientStreamingHandler<C: ConnectionContext>(context: C)
     -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> where C.Exporter == GRPCInterfaceExporter {
         { (request: Vapor.Request) in
-            if !self.checkContentType(request: request) {
+            if !self.contentTypeIsSupported(request: request) {
                 return request.eventLoop.makeFailedFuture(GRPCError.unsupportedContentType(
                     "Content type is currently not supported by Apodini GRPC exporter. Use Protobuffers instead."
                 ))

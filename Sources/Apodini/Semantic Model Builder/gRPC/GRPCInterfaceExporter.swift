@@ -39,8 +39,8 @@ class GRPCInterfaceExporter: InterfaceExporter {
         // expose the new component via a GRPCService
         // currently unary enpoints are considered here
         let service: GRPCService
-        if let srvc = services[serviceName] {
-            service = srvc
+        if let existingService = services[serviceName] {
+            service = existingService
         } else {
             service = GRPCService(name: serviceName, using: app)
             services[serviceName] = service
