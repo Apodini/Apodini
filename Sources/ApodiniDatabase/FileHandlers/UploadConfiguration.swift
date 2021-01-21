@@ -1,5 +1,6 @@
 import Foundation
 import NIO
+import Apodini
 
 /// Used to specify the directory in which the file is stored.
 /// It is possible to pass a `subPath` relative to the passed directory.
@@ -50,6 +51,9 @@ public enum Directories: String {
     case working
     /// The resource directory of the web service
     case resource
+    /// The default directory. On Upload this is the `Public` dir.
+    /// On Download this means it looks in all dirs for the file.
+    case `default`
     
     /// Returns the path of the directory of `Self`for the `Application` object
     func path(for app: Application) -> String {
@@ -60,6 +64,8 @@ public enum Directories: String {
             return app.directory.resourcesDirectory
         case .working:
             return app.directory.workingDirectory
+        case .default:
+            return app.directory.publicDirectory
         }
     }
 }

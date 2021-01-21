@@ -5,6 +5,7 @@
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 import Apodini
+import ApodiniDatabase
 
 struct TestWebService: Apodini.WebService {
     struct PrintGuard: SyncGuard {
@@ -156,7 +157,16 @@ struct TestWebService: Apodini.WebService {
             Random()
         }
         Group("file") {
-            Uploader(UploadConfiguration(.public, subPath: "Misc/MoreMisc/")).operation(.create)
+            Uploader(UploadConfiguration(.public, subPath: "Misc/MoreMisc/"))
+                .operation(.create)
+            SingleDownloader(DownloadConfiguration(.default))
+                .operation(.read)
+        }
+        Group("file", "1") {
+            Uploader(UploadConfiguration(.public, subPath: "Misc/Test/"))
+                .operation(.create)
+            MultipleDownloader(DownloadConfiguration(.default))
+                .operation(.read)
         }
     }
 }

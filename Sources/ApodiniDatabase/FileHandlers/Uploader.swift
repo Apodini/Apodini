@@ -1,5 +1,6 @@
 import Foundation
 import NIO
+import Apodini
 
 /// A Handler which enables the upload of files and
 /// images to a specified directory in Apodini.
@@ -8,7 +9,7 @@ public struct Uploader: Handler {
     private var application: Application
     
     @Parameter
-    private var input: Input
+    private var file: File
     
     private var eventLoop: EventLoop {
         application.eventLoopGroup.next()
@@ -25,15 +26,15 @@ public struct Uploader: Handler {
     }
     
     public func handle() throws -> EventLoopFuture<String> {
-        let path = config.validatedPath(application, fileName: input.file.name)
+        let path = config.validatedPath(application, fileName: file.filename)
         return application.fileio
             .openFile(path: path, mode: .write, flags: .allowFileCreation(), eventLoop: eventLoop)
             .flatMap { handler in
                 application.fileio
-                    .write(fileHandle: handler, buffer: input.asByteBuffer, eventLoop: eventLoop)
+                    .write(fileHandle: handler, buffer: file.data, eventLoop: eventLoop)
                     .flatMapThrowing { _ in
                         try handler.close()
-                        return eventLoop.makeSucceededFuture(input.file.name)
+                        return file.filename
                     }
             }
     }
