@@ -103,6 +103,15 @@ extension Node {
 }
 
 extension Node {
+    /// Returns a tree edited by `transform`. Allows to modify the node freely with the information
+    /// of a node and its children, but not the parent.
+    ///
+    /// Editing is performed from the root to the leafs. If a child is removed in the step of its
+    /// parent, `transform` is no longer called with the child.
+    ///
+    /// - Parameter transform: A closure that accepts a node as its argument and returns a tree. A
+    /// return value of `Tree.none` or `nil` is pruned from the tree.
+    /// - Returns: A tree of the non-nil results of calling `transform` with each value of the node.
     func edited(_ transform: (Node<T>) throws -> Tree<T>) rethrows -> Tree<T> {
         guard let intermediate = try transform(self) else {
             return nil
@@ -115,9 +124,16 @@ extension Node {
         return Node(value: intermediate.value, children: children)
     }
     
+    /// Returns a node containing the results of mapping the given closure over the node’s values.
+    ///
+    /// The exact arrangement of the node and its children is preserved.
+    ///
+    /// - Parameter transform: A mapping closure. `transform` accepts the node with all of its
+    /// children as its parameter and returns a transformed value of the same or of a different type.
+    /// - Returns: A node containing the transformed values of this node.
     func contextMap<U>(_ transform: (Node<T>) throws -> U) rethrows -> Node<U> {
         let value = try transform(self)
-        let children = try self.children.compactMap { child in
+        let children = try self.children.map { child in
             try child.contextMap(transform)
         }
 
