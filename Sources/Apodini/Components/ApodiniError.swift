@@ -68,12 +68,22 @@ protocol StandardErrorCompliantOption: PropertyOption {
     static func `default`(for type: ErrorType) -> Self
 }
 
-protocol StandardErrorContext {
-    func option<Option: StandardErrorCompliantOption>(for key: PropertyOptionKey<ErrorOptionNameSpace, Option>) -> Option
-}
+protocol ErrorMessagePrefixStrategy {}
+
+struct StandardErrorMessagePrefix: ErrorMessagePrefixStrategy {}
+
+struct NoErrorMessagePrefix: ErrorMessagePrefixStrategy {}
+
+struct CustomErrorMessagePrefix: ErrorMessagePrefixStrategy {}
 
 protocol StandardErrorCompliantExporter: InterfaceExporter {
-    static func messagePrefix(for context: StandardErrorContext) -> String
+    associatedtype ErrorMessagePrefixStrategy: Apodini.ErrorMessagePrefixStrategy = CustomErrorMessagePrefix
+    
+    static func messagePrefix(for context: StandardErrorContext) -> String?
+}
+
+protocol StandardErrorContext {
+    func option<Option: StandardErrorCompliantOption>(for key: PropertyOptionKey<ErrorOptionNameSpace, Option>) -> Option
 }
 
 protocol StandardError: Error, StandardErrorContext {
@@ -86,27 +96,27 @@ extension ApodiniError: StandardError {
     }
     
     func message<E: StandardErrorCompliantExporter>(for exporter: E.Type) -> String {
-        let prefix = E.messagePrefix(for: self)
+        let prefix: String? = E.messagePrefix(for: self)?.appending(": ")
         
         #if DEBUG
         if let reason = self.reason {
             if let description = self.description {
-                return prefix + ": " + reason + " (" + description + ")"
+                return prefix ?? "" + reason + " (" + description + ")"
             } else {
-                return prefix + ": " + reason
+                return prefix ?? "" + reason
             }
         } else {
             if let description = self.description {
-                return prefix + ": " + description
+                return prefix ?? "" + description
             } else {
-                return prefix
+                return prefix ?? "Undefined Error"
             }
         }
         #else
         if let reason = self.reason {
-            return prefix + ": " + reason
+            return prefix ?? "" + reason
         } else {
-            return prefix
+            return prefix ?? "Undefined Error"
         }
         #endif
     }
@@ -122,4 +132,45 @@ internal extension Error {
             return ApodiniError(type: .other, description: self.localizedDescription)
         }
     }
+}
+
+// MARK: Exporter Defaults
+
+extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == StandardErrorMessagePrefix {
+    static func messagePrefix(for error: StandardErrorContext) -> String? {
+        switch error.option(for: .errorType) {
+        case .badInput:
+            return "Bad Input"
+        case .notFound:
+            return "Resource Not Found"
+        case .unauthenticated:
+            return "Unauthenticated"
+        case .forbidden:
+            return "Forbidden"
+        case .serverError:
+            return "Unexpected Server Error"
+        case .notAvailable:
+            return "Resource Not Available"
+        case .other:
+            return "Error"
+        }
+    }
+}
+
+extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == NoErrorMessagePrefix {
+    static func messagePrefix(for error: StandardErrorContext) -> String? {
+        return nil
+    }
+}
+
+// MARK: Exporter Agnostic Options
+
+extension ErrorType: StandardErrorCompliantOption {
+    static func `default`(for type: ErrorType) -> Self {
+        type
+    }
+}
+
+extension PropertyOptionKey where PropertyNameSpace == ErrorOptionNameSpace, Option == ErrorType {
+    static let errorType = PropertyOptionKey<ErrorOptionNameSpace, ErrorType>()
 }

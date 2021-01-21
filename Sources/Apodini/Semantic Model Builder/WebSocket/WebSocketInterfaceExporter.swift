@@ -99,18 +99,11 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         (parameter.name, WebSocketInfrastructure.BasicInputParameter<Type>())
     }
     
-    static func messagePrefix(for error: StandardErrorContext) -> String {
-        #if DEBUG
-        return Self.debugModeMessagePrefix(for: error)
-        #else
-        return Self.productionModeMessagePrefix(for: error)
-        #endif
-    }
-    
-    private static func debugModeMessagePrefix(for error: StandardErrorContext) -> String {
-        switch error.option(for: .wsErrorType) {
+    #if DEBUG
+    static func messagePrefix(for error: StandardErrorContext) -> String? {
+        switch error.option(for: .errorType) {
         case .badInput:
-            return "You fucked up"
+            return "You messed up"
         case .notFound:
             return "Wow...such empty"
         case .unauthenticated:
@@ -118,32 +111,16 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         case .forbidden:
             return "You shall not pass!"
         case .serverError:
-            return "I fucked up"
+            return "I messed up"
         case .notAvailable:
             return "Not now...I'm busy"
         case .other:
             return "Something's wrong, I can feel it"
         }
     }
-    
-    private static func productionModeMessagePrefix(for error: StandardErrorContext) -> String {
-        switch error.option(for: .wsErrorType) {
-        case .badInput:
-            return "Bad Input"
-        case .notFound:
-            return "Resource Not Found"
-        case .unauthenticated:
-            return "Unauthenticated"
-        case .forbidden:
-            return "Forbidden"
-        case .serverError:
-            return "Unexpected Server Error"
-        case .notAvailable:
-            return "Resource Not Available"
-        case .other:
-            return "Error"
-        }
-    }
+    #else
+    typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
+    #endif
     
     private static func handleCompletionResponse(
         result: Response<AnyEncodable>,

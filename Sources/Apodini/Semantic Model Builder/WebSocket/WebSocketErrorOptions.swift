@@ -78,22 +78,3 @@ extension AnyPropertyOption where PropertyNameSpace == ErrorOptionNameSpace {
         AnyPropertyOption(key: .wsConnectionConsequence, value: consequence)
     }
 }
-
-// MARK: WSErrorType
-typealias WSErrorType = ErrorType
-
-extension WSErrorType: StandardErrorCompliantOption {
-    static func `default`(for type: ErrorType) -> Self {
-        type
-    }
-}
-
-extension PropertyOptionKey where PropertyNameSpace == ErrorOptionNameSpace, Option == WSErrorType {
-    static let wsErrorType = PropertyOptionKey<ErrorOptionNameSpace, WSErrorType>()
-}
-
-extension AnyPropertyOption where PropertyNameSpace == ErrorOptionNameSpace {
-    static func wsErrorType(_ type: WSErrorType) -> AnyPropertyOption<ErrorOptionNameSpace> {
-        AnyPropertyOption(key: .wsErrorType, value: type)
-    }
-}
