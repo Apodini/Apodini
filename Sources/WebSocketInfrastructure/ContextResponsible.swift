@@ -23,7 +23,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     
     let outputSubscriber: AnyCancellable
     
-    let send: (Encodable) -> Void
+    let send: (O) -> Void
     let sendError: (Error) -> Void
     let destruct: () -> Void
     let close: (WebSocketErrorCode) -> Void
@@ -38,13 +38,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
             eventLoop: con.websocket.eventLoop,
             database: con.database,
             send: { message in
-                if let output = message as? O {
-                    con.send(output, in: context)
-                } else if let stringMessage = message as? String {
-                    con.send(stringMessage, in: context)
-                } else {
-                    print("Could not send message: \(message)")
-                }
+                con.send(message, in: context)
             },
             sendError: { error in con.send(error, in: context) },
             destruct: {
@@ -57,7 +51,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Database?) -> (default: I, output: AnyPublisher<Message<O>, Error>),
         eventLoop: EventLoop,
         database: Database?,
-        send: @escaping (Encodable) -> Void,
+        send: @escaping (O) -> Void,
         sendError: @escaping (Error) -> Void,
         destruct: @escaping () -> Void,
         close: @escaping (WebSocketErrorCode) -> Void

@@ -9,6 +9,7 @@ import Fluent
 import Vapor
 import NIOWebSocket
 import OpenCombine
+import Logging
 
 /// An error type that receives special treatment by the router. The router sends the
 /// `reason` to the client if it receives a `WSError` on the `output`. Other error
@@ -104,6 +105,8 @@ public class VaporWSRouter: Router {
     
     private let app: Application
     
+    private let logger: Logger
+    
     private let path: [PathComponent]
     
     private var endpoints: [String: ContextOpener] = [:]
@@ -111,9 +114,10 @@ public class VaporWSRouter: Router {
     private var connections: [ConnectionResponsible.ID: ConnectionResponsible] = [:]
     private let connectionsMutex = NSLock()
 
-    public init(_ app: Application, at path: [PathComponent] = ["apodini", "websocket"]) {
+    public init(_ app: Application, at path: [PathComponent] = ["apodini", "websocket"], logger: Logger = .init(label: "org.apodini.websocket.vapor_ws_router")) {
         self.app = app
         self.path = path
+        self.logger = logger
     }
     
     /// - Note: If the `output`'s `completion` is `finished`, only the `context` is closed. If it is
@@ -125,7 +129,7 @@ public class VaporWSRouter: Router {
             (default: I, output: AnyPublisher<Message<O>, Error>),
         on identifier: String) {
         if self.endpoints[identifier] != nil {
-            print("Endpoint \(identifier) on VaporWSRouter registered at \(path.string) was registered more than once.")
+            self.logger.warning("Endpoint \(identifier) on VaporWSRouter registered at \(path.string) was registered more than once.")
         }
         
         self.endpoints[identifier] = { con, ctx in
@@ -150,7 +154,8 @@ public class VaporWSRouter: Router {
                     self.connections[id] = nil
                     self.connectionsMutex.unlock()
                 },
-                endpoints: self.endpoints
+                endpoints: self.endpoints,
+                logger: self.logger
             )
             self.connections[responsible.id] = responsible
             self.connectionsMutex.unlock()

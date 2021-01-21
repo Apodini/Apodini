@@ -20,7 +20,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     
     required init(_ app: Application) {
         self.app = app
-        self.router = VaporWSRouter(app.vapor.app)
+        self.router = VaporWSRouter(app.vapor.app, logger: app.logger)
     }
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {

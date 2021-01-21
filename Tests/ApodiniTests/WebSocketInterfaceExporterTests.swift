@@ -146,7 +146,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
 
         try app.start()
         
-        let client = StatelessClient(using: app.eventLoopGroup.next())
+        let client = StatelessClient(on: app.eventLoopGroup.next())
         
         
         let userId = "1234"
@@ -172,7 +172,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
 
         try app.start()
         
-        let client = StatelessClient(using: app.eventLoopGroup.next())
+        let client = StatelessClient(on: app.eventLoopGroup.next())
         
         
         let userId = "1234"
@@ -213,7 +213,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
 
         try app.start()
         
-        let client = StatelessClient(using: app.eventLoopGroup.next())
+        let client = StatelessClient(on: app.eventLoopGroup.next())
         
         
         let userId = 1234
