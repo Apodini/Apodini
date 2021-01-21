@@ -159,7 +159,7 @@ extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == Sta
 
 extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == NoErrorMessagePrefix {
     static func messagePrefix(for error: StandardErrorContext) -> String? {
-        return nil
+        nil
     }
 }
 
