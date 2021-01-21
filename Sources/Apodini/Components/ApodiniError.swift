@@ -22,7 +22,7 @@ public enum ErrorType: String {
     case other
 }
 
-/// An error that can be returned from `Handler`s and receives special treatment from compliant interface exporters.
+/// An error that can be thrown from `Handler`s and receives special treatment from compliant interface exporters.
 public struct ApodiniError: Error {
     /// Keys for options that can be used with an `ApodiniError`
     public typealias OptionKey<T: PropertyOption> = PropertyOptionKey<ErrorOptionNameSpace, T>
