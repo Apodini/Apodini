@@ -39,10 +39,9 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             let output: PassthroughSubject<Message<AnyEncodable>, Error> = PassthroughSubject()
             
             var cancellables: Set<AnyCancellable> = []
-            input.mapError { _ -> Error in }
             // Handle all incoming client-messages one after another. The `syncMap` automatically
-            // awaits the future and unwrapps it.
-            .syncMap { inputValue -> EventLoopFuture<Response<AnyEncodable>> in
+            // awaits the future.
+            input.syncMap { inputValue -> EventLoopFuture<Response<AnyEncodable>> in
                 context.handle(request: inputValue, eventLoop: eventLoop, final: false)
             }
             .sink(
@@ -57,22 +56,25 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
                         // to the latest input.
                         context.handle(request: emptyInput, eventLoop: eventLoop, final: true).whenComplete { result in
                             switch result {
-                            case .success(let action):
-                                Self.handleInputCompletion(result: action, output: output)
+                            case .success(let response):
+                                Self.handleCompletionResponse(result: response, output: output)
                             case .failure(let error):
                                 Self.handleError(error: error, output: output, close: true)
                             }
                         }
-                    case .failure(let error):
-                        Self.handleError(error: error, output: output)
                     }
                     // We have to reference the cancellable here so it stays in memory and isn't cancled early.
                     cancellables.removeAll()
                 },
                 // The input was already handled and unwrapped by the `syncMap`. We just have to map the obtained
-                // `Action` to our `output`.
-                receiveValue: { inputValue in
-                    Self.handleRegularInput(result: inputValue, output: output)
+                // `Action` to our `output` or handle the error returned from `handle`.
+                receiveValue: { result in
+                    switch result {
+                    case .success(let response):
+                        Self.handleRegularResponse(result: response, output: output)
+                    case .failure(let error):
+                        Self.handleError(error: error, output: output)
+                    }
                 }
             )
             .store(in: &cancellables)
@@ -143,7 +145,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
     
-    private static func handleInputCompletion(
+    private static func handleCompletionResponse(
         result: Response<AnyEncodable>,
         output: PassthroughSubject<Message<AnyEncodable>, Error>) {
         switch result {
@@ -160,7 +162,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
     
-    private static func handleRegularInput(
+    private static func handleRegularResponse(
         result: Response<AnyEncodable>,
         output: PassthroughSubject<Message<AnyEncodable>, Error>) {
         switch result {

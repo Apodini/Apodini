@@ -91,7 +91,7 @@ extension ApodiniError: StandardError {
         #if DEBUG
         if let reason = self.reason {
             if let description = self.description {
-                return prefix + ": " + reason + "(" + description + ")"
+                return prefix + ": " + reason + " (" + description + ")"
             } else {
                 return prefix + ": " + reason
             }

@@ -31,7 +31,7 @@ public struct Throws {
     /// - Parameter `reason`: The **public** reason explaining what led to the this error.
     /// - Parameter `description`: The **internal** description of this error. This will only be exposed in `DEBUG` mode.
     /// - Parameter `options`: Possible exporter-specific options that provide guidance for how to handle this error.
-    public init(type: ErrorType, reason: String? = nil, description: String? = nil, _ options: ApodiniError.Option...) {
+    public init(_ type: ErrorType, reason: String? = nil, description: String? = nil, _ options: ApodiniError.Option...) {
         self.init(type: type, reason: reason, description: description, options)
     }
     
