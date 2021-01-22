@@ -101,20 +101,20 @@ extension ApodiniError: StandardError {
         #if DEBUG
         if let reason = self.reason {
             if let description = self.description {
-                return prefix ?? "" + reason + " (" + description + ")"
+                return (prefix ?? "") + reason + " (" + description + ")"
             } else {
-                return prefix ?? "" + reason
+                return (prefix ?? "") + reason
             }
         } else {
             if let description = self.description {
-                return prefix ?? "" + description
+                return (prefix ?? "") + description
             } else {
                 return prefix ?? "Undefined Error"
             }
         }
         #else
         if let reason = self.reason {
-            return prefix ?? "" + reason
+            return (prefix ?? "") + reason
         } else {
             return prefix ?? "Undefined Error"
         }

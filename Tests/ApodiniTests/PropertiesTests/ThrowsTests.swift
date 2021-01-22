@@ -72,6 +72,7 @@ class ThrowsTests: ApodiniTests {
     }
     
     func testReasonAndDescriptionPresence() throws {
+        print(ErrorTestHandler(errorCode: 1).evaluationError().message(for: MockExporter<String>.self))
         XCTAssertTrue(ErrorTestHandler(errorCode: 1).evaluationError().message(for: MockExporter<String>.self).contains("!badInput!"))
         #if DEBUG
         XCTAssertTrue(ErrorTestHandler(errorCode: 1).evaluationError().message(for: MockExporter<String>.self).contains("<badInput>"))
@@ -143,7 +144,7 @@ class ThrowsTests: ApodiniTests {
 }
 
 extension MockExporter: StandardErrorCompliantExporter {
-    typealias ErrorMessagePrefixStrategy = NoErrorMessagePrefix
+    typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
 }
 
 private extension Handler {
