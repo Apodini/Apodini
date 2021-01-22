@@ -83,6 +83,45 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
             }
         }
     }
+    
+    struct ThrowingHandlerNoImpact: Handler {
+        @Throws(.other, .webSocketConnectionConsequence(.none)) var error: ApodiniError
+        @Parameter var doThrow: Bool = true
+        
+        func handle() throws -> some ResponseTransformable {
+            if doThrow {
+                throw error
+            } else {
+                return true
+            }
+        }
+    }
+    
+    struct ThrowingHandlerCloseContext: Handler {
+        @Throws(.other, .webSocketConnectionConsequence(.closeContext)) var error: ApodiniError
+        @Parameter var doThrow: Bool = true
+        
+        func handle() throws -> some ResponseTransformable {
+            if doThrow {
+                throw error
+            } else {
+                return true
+            }
+        }
+    }
+    
+    struct ThrowingHandlerCloseChannel: Handler {
+        @Throws(.other, .webSocketConnectionConsequence(.closeChannel)) var error: ApodiniError
+        @Parameter var doThrow: Bool = true
+        
+        func handle() throws -> some ResponseTransformable {
+            if doThrow {
+                throw error
+            } else {
+                return true
+            }
+        }
+    }
 
     @PathParameter
     var userId: User.ID
@@ -93,6 +132,17 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
             UserHandler(userId: $userId)
             Group("stream") {
                 StatefulUserHandler(userId: $userId)
+            }
+        }
+        Group("throwing") {
+            Group("none") {
+                ThrowingHandlerNoImpact()
+            }
+            Group("context") {
+                ThrowingHandlerCloseContext()
+            }
+            Group("channel") {
+                ThrowingHandlerCloseChannel()
             }
         }
     }
@@ -146,7 +196,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
 
         try app.start()
         
-        let client = StatelessClient(using: app.eventLoopGroup.next())
+        let client = StatelessClient(on: app.eventLoopGroup.next())
         
         
         let userId = "1234"
@@ -172,7 +222,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
 
         try app.start()
         
-        let client = StatelessClient(using: app.eventLoopGroup.next())
+        let client = StatelessClient(on: app.eventLoopGroup.next())
         
         
         let userId = "1234"
@@ -213,7 +263,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
 
         try app.start()
         
-        let client = StatelessClient(using: app.eventLoopGroup.next())
+        let client = StatelessClient(on: app.eventLoopGroup.next())
         
         
         let userId = 1234
@@ -228,6 +278,66 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
             let user: User = try client.resolve(one: UserHandlerInput(userId: userId, name: name), on: "user.:userId:").wait()
             _ = user
             XCTFail("Call should have failed as the userId was provided as int and not string.")
+        } catch { }
+    }
+    
+    func testWebSocketThrowingNoInmpact() throws {
+        let builder = SharedSemanticModelBuilder(app)
+            .with(exporter: WebSocketInterfaceExporter.self)
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
+        testService.accept(visitor)
+        visitor.finishParsing()
+
+        try app.start()
+        
+        let client = StatelessClient(on: app.eventLoopGroup.next(), ignoreErrors: true)
+        
+        let output: [Bool] = try client.resolve(
+            true.asInputForThrowingHandler,
+            false.asInputForThrowingHandler,
+            on: "throwing.none")
+            .wait()
+        XCTAssertEqual(output, [true])
+    }
+    
+    func testWebSocketThrowingCloseContext() throws {
+        let builder = SharedSemanticModelBuilder(app)
+            .with(exporter: WebSocketInterfaceExporter.self)
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
+        testService.accept(visitor)
+        visitor.finishParsing()
+
+        try app.start()
+        
+        let client = StatelessClient(on: app.eventLoopGroup.next(), ignoreErrors: true)
+        
+        let output: [Bool] = try client.resolve(
+            true.asInputForThrowingHandler,
+            false.asInputForThrowingHandler,
+            on: "throwing.context")
+            .wait()
+        XCTAssertEqual(output, [])
+    }
+    
+    func testWebSocketThrowingCloseChannel() throws {
+        let builder = SharedSemanticModelBuilder(app)
+            .with(exporter: WebSocketInterfaceExporter.self)
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
+        testService.accept(visitor)
+        visitor.finishParsing()
+
+        try app.start()
+        
+        let client = StatelessClient(on: app.eventLoopGroup.next(), ignoreErrors: true)
+        
+        do {
+            let output: [Bool] = try client.resolve(
+                true.asInputForThrowingHandler,
+                false.asInputForThrowingHandler,
+                on: "throwing.channel")
+                .wait()
+            _ = output
+            XCTFail("Expected WebSocket to close early and thus client to throw an error.")
         } catch { }
     }
 }
@@ -246,5 +356,15 @@ private struct MockParameterDecoder<Type>: ParameterDecoder {
 private extension Decodable {
     func mockDecoder() -> MockParameterDecoder<Self> {
         MockParameterDecoder(value: self)
+    }
+}
+
+private struct ThrowingHandlerInput: Encodable {
+    var doThrow: Bool
+}
+
+private extension Bool {
+    var asInputForThrowingHandler: ThrowingHandlerInput {
+        ThrowingHandlerInput(doThrow: self)
     }
 }

@@ -144,17 +144,7 @@ private class RepresentativeBuilder<I: InterfaceExporter>: EndpointParameterVisi
 
 // MARK: Parameter Validation
 
-#warning("Create PROPER Apodini defined error.")
-enum InputValidationError: ValidationError {
-    case some(String)
-    
-    var localizedDescription: String {
-        switch self {
-        case .some(let message):
-            return message
-        }
-    }
-}
+extension ApodiniError: ValidationError { }
 
 extension ParameterRepresentative: Validator {
     typealias Exporter = E
@@ -208,7 +198,7 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
             
             switch definition.necessity {
             case .required:
-                throw InputValidationError.some("Didn't retrieve any parameters for a required '\(definition.description)'.")
+                throw ApodiniError(type: .badInput, reason: "Didn't retrieve any parameters for a required '\(definition.description)'.")
             case .optional:
                 break
             }
@@ -218,7 +208,7 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
     func checkNullability(of value: Type??) throws -> Any {
         if let retrievedValue = value {
             if retrievedValue == nil && !definition.nilIsValidValue {
-                throw InputValidationError.some("Parameter retrieval returned explicit nil, though explicit nil is not valid for the '\(definition.description)'")
+                throw ApodiniError(type: .badInput, reason: "Parameter retrieval returned explicit nil, though explicit nil is not valid for the '\(definition.description)'.")
             }
         }
         
@@ -244,7 +234,7 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
             case .constant:
                 if let initialValue = self.initialValue {
                     if !unsafeEqual(first: initialValue as Any, second: retrievedValue as Any) {
-                        throw InputValidationError.some("Parameter retrieval returned value for constant '\(definition.description)' even though its value has already been defined.")
+                        throw ApodiniError(type: .badInput, reason: "Parameter retrieval returned value for constant '\(definition.description)' even though its value has already been defined.")
                     }
                 } else {
                     self.initialValue = retrievedValue
