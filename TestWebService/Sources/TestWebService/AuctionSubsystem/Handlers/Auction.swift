@@ -7,10 +7,10 @@
 
 import Apodini
 
-
 struct Auction: Handler {
-    static let minimumBid: UInt = 1000
+    @Throws(.badInput, reason: "The placed bid was too low") var bidTooLowError: ApodiniError
     
+    static let minimumBid: UInt = 1000
     
     @Parameter var bid: UInt
     
@@ -18,14 +18,13 @@ struct Auction: Handler {
     
     @State var highestBid: UInt = 0
     
-    
-    func handle() -> Response<String> {
+    func handle() throws -> Response<String> {
         if connection.state == .open {
             if bid > highestBid {
                 highestBid = bid
-                return .send("accepted")
+                return .send("bid accepted")
             } else {
-                return .send("denied")
+                throw bidTooLowError(description: "highest: \(highestBid); received: \(bid)")
             }
         } else {
             if highestBid >= Self.minimumBid {
