@@ -15,6 +15,6 @@ extension OpenAPI.Document {
         case .YAML:
             output = try YAMLEncoder().encode(self)
         }
-        return output
+        return output?.replacingOccurrences(of: "\\/", with: "/")
     }
 }
