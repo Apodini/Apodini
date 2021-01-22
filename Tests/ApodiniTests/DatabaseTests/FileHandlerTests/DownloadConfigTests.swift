@@ -14,6 +14,7 @@ final class DownloadConfigTests: ApodiniTests {
         
         let request = MockRequest.createRequest(on: uploader, running: app.eventLoopGroup.next(), queuedParameters: file)
         let response = try request.enterRequestContext(with: uploader, executing: { component in
+            // swiftlint:disable force_try
             try! component.handle()
         })
         .wait()
@@ -25,10 +26,11 @@ final class DownloadConfigTests: ApodiniTests {
         let fileInfo = try config.retrieveFileInfo(file.filename, in: directory)
         
         XCTAssertNotNil(fileInfo)
-        XCTAssert(fileInfo!.fileName == file.filename)
-        XCTAssert(fileInfo!.path == directory.publicDirectory + "Misc/Testfile.jpeg")
-        let foundData = try Data(contentsOf: URL(fileURLWithPath: fileInfo!.path))
-        XCTAssert(fileInfo!.readableBytes == foundData.count)
+        let info = try XCTUnwrap(fileInfo)
+        XCTAssert(info.fileName == file.filename)
+        XCTAssert(info.path == directory.publicDirectory + "Misc/Testfile.jpeg")
+        let foundData = try Data(contentsOf: URL(fileURLWithPath: info.path))
+        XCTAssert(info.readableBytes == foundData.count)
     }
     
     func testDownloadConfigInfos() throws {
@@ -39,6 +41,7 @@ final class DownloadConfigTests: ApodiniTests {
         
         var request = MockRequest.createRequest(on: uploader, running: app.eventLoopGroup.next(), queuedParameters: file)
         var response = try request.enterRequestContext(with: uploader, executing: { component in
+            // swiftlint:disable force_try
             try! component.handle()
         })
         .wait()
@@ -50,6 +53,7 @@ final class DownloadConfigTests: ApodiniTests {
         
         request = MockRequest.createRequest(on: uploader, running: app.eventLoopGroup.next(), queuedParameters: file2)
         response = try request.enterRequestContext(with: uploader, executing: { component in
+            // swiftlint:disable force_try
             try! component.handle()
         })
         .wait()
@@ -64,5 +68,4 @@ final class DownloadConfigTests: ApodiniTests {
         XCTAssert(infos[0].fileName == file.filename || infos[0].fileName == file2.filename)
         XCTAssert(infos[1].fileName == file.filename || infos[1].fileName == file2.filename)
     }
-
 }

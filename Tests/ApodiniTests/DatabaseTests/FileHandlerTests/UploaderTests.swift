@@ -5,7 +5,6 @@ import NIO
 @testable import ApodiniDatabase
 
 final class UploaderTests: ApodiniTests {
-    
     func testUploader() throws {
         let uploader = Uploader(UploadConfiguration(.default, subPath: "Misc/"))
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
@@ -13,11 +12,11 @@ final class UploaderTests: ApodiniTests {
         
         let request = MockRequest.createRequest(on: uploader, running: app.eventLoopGroup.next(), queuedParameters: file)
         let response = try request.enterRequestContext(with: uploader, executing: { component in
+            // swiftlint:disable force_try
             try! component.handle()
         })
         .wait()
         XCTAssert(response == file.filename)
-       
     }
     
     func testUploadConfig() throws {

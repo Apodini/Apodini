@@ -13,6 +13,7 @@ final class DownloaderTests: ApodiniTests {
         
         let request = MockRequest.createRequest(on: uploader, running: app.eventLoopGroup.next(), queuedParameters: file)
         let response = try request.enterRequestContext(with: uploader, executing: { component in
+            // swiftlint:disable force_try
             try! component.handle()
         })
         .wait()
@@ -53,6 +54,7 @@ final class DownloaderTests: ApodiniTests {
         
         var request = MockRequest.createRequest(on: uploader, running: app.eventLoopGroup.next(), queuedParameters: file)
         var response = try request.enterRequestContext(with: uploader, executing: { component in
+            // swiftlint:disable force_try
             try! component.handle()
         })
         .wait()
@@ -64,6 +66,7 @@ final class DownloaderTests: ApodiniTests {
         
         request = MockRequest.createRequest(on: uploader, running: app.eventLoopGroup.next(), queuedParameters: file2)
         response = try request.enterRequestContext(with: uploader, executing: { component in
+            // swiftlint:disable force_try
             try! component.handle()
         })
         .wait()

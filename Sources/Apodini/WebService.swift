@@ -53,7 +53,6 @@ extension WebService {
         EnvironmentValues.shared.values[ObjectIdentifier(Application.Type.self)] = app
 
         app.vapor.app.routes.defaultMaxBodySize = "1mb"
-        EnvironmentValues.shared.application = app
     }
     
     
