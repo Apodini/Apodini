@@ -19,7 +19,7 @@ class ProtobufferBuilder {
         let serviceName = gRPCServiceName(from: endpoint)
         let methodName = gRPCMethodName(from: endpoint)
         
-        let inputNode = try ProtobufferMessage.node(H.self)
+        let inputNode = try H.node()
             .with(uniqueNumberPreferences: endpoint.parameters.map {
                 $0.options.option(for: .gRPC)?.fieldNumber
             })
@@ -50,7 +50,6 @@ class ProtobufferBuilder {
 internal extension ProtobufferMessage {
     static func node(_ type: Any.Type) throws -> Node<ProtobufferMessage> {
         let node = try EnrichedInfo.node(type)
-            .edited(handleParameter)?
             .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handlePrimitiveType)?
@@ -103,4 +102,52 @@ private extension Node where T == ProtobufferMessage {
             children: children
         )
     }
+}
+
+private extension Handler {
+    static func node() throws -> Node<ProtobufferMessage> {
+        var node = try EnrichedInfo.node(Self.self)
+        node = try filterParameter(node)
+            
+        let tree = try node
+            .edited(handleOptional)?
+            .edited(handleArray)?
+            .edited(handlePrimitiveType)?
+            .map(ProtobufferMessage.Property.init)
+            .contextMap(ProtobufferMessage.init)
+            .compactMap { $0 }?
+            .filter(isNotPrimitive)
+        
+        if let node = tree {
+            return node
+        } else {
+            throw ProtobufferBuilderError(message: "Unable to analyze handler: \(Self.self)")
+        }
+    }
+}
+
+private func filterParameter(_ handler: Node<EnrichedInfo>) throws -> Node<EnrichedInfo> {
+    let parameters = try handler.children.compactMap { child -> Node<EnrichedInfo>? in
+        guard mangledName(of: child.value.typeInfo.type) == "Parameter",
+              let elementType = child.value.typeInfo.genericTypes.first else {
+            return nil
+        }
+        
+        let elementNode = try EnrichedInfo.node(elementType)
+        let enrichedInfo = EnrichedInfo(
+            typeInfo: elementNode.value.typeInfo,
+            propertyInfo: child.value.propertyInfo.map {
+                PropertyInfo(
+                    // Instances of property wrappers are stored in variables with a "_" prefix.
+                    // https://docs.swift.org/swift-book/LanguageGuide/Properties.html#ID617
+                    name: String($0.name.dropFirst()),
+                    offset: $0.offset
+                )
+            }
+        )
+        
+        return Node(value: enrichedInfo, children: elementNode.children)
+    }
+    
+    return Node(value: handler.value, children: parameters)
 }
