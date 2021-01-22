@@ -25,7 +25,7 @@ final class DownloadsTests: XCTestCase {
         process.standardOutput = pipe
         
         let timeoutExpectation = XCTestExpectation(description: "Timeout Expectation")
-        DispatchQueue.init(label: "TestTimeOut").asyncAfter(deadline: .now() + 1.0) {
+        DispatchQueue(label: "TestTimeOut").asyncAfter(deadline: .now() + 1.0) {
             timeoutExpectation.fulfill()
         }
         
