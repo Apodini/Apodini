@@ -50,11 +50,19 @@ extension EnrichedInfo {
                         )
                     } catch {
                         let errorDescription = String(describing: error)
-                        let keyword = "Runtime.Kind.opaque"
+                        let keywords = [
+                            "\(Runtime.Kind.opaque)",
+                            "\(Runtime.Kind.function)"
+                        ]
 
-                        guard !errorDescription.contains(keyword) else {
+                        let errorIsKnown = keywords.contains(where: { keyword in
+                            errorDescription.contains(keyword)
+                        })
+                        
+                        if errorIsKnown {
                             return nil
                         }
+                        
                         preconditionFailure(errorDescription)
                     }
                 }
