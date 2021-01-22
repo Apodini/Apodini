@@ -8,7 +8,6 @@
 import Fluent
 @_implementationOnly import WebSocketInfrastructure
 @_implementationOnly import OpenCombine
-@_implementationOnly import Runtime
 import NIOWebSocket
 
 // MARK: Exporter
@@ -160,7 +159,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         output: PassthroughSubject<Message<AnyEncodable>, Error>,
         close: Bool = false) {
         let error = error.apodiniError
-        switch error.option(for: .wsConnectionConsequence) {
+        switch error.option(for: .webSocketConnectionConsequence) {
         case .none:
             output.send(.error(error.wsError))
             if close {
@@ -214,7 +213,7 @@ extension BasicInputParameter: ReducibleParameter {
 
 private extension StandardError {
     var wsError: WSError {
-        switch self.option(for: .wsConnectionConsequence) {
+        switch self.option(for: .webSocketConnectionConsequence) {
         case .closeContext:
             return FatalWSError(reason: self.message(for: WebSocketInterfaceExporter.self), code: self.option(for: .webSocketErrorCode))
         default:

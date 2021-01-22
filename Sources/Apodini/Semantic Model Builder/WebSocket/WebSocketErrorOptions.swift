@@ -33,11 +33,11 @@ extension AnyPropertyOption where PropertyNameSpace == ErrorOptionNameSpace {
     }
 }
 
-// MARK: WSConnectionConsequence
+// MARK: WebSocketConnectionConsequence
 
 /// An enum that specifies the effect an `Error` has on the associated
 /// WebSocket connection and context.
-public enum WSConnectionConsequence: StandardErrorCompliantOption {
+public enum WebSocketConnectionConsequence: StandardErrorCompliantOption {
     /// The associated error is reported to the client, but the
     /// context remains open.
     case none
@@ -68,13 +68,13 @@ public enum WSConnectionConsequence: StandardErrorCompliantOption {
     }
 }
 
-extension PropertyOptionKey where PropertyNameSpace == ErrorOptionNameSpace, Option == WSConnectionConsequence {
-    static let wsConnectionConsequence = PropertyOptionKey<ErrorOptionNameSpace, WSConnectionConsequence>()
+extension PropertyOptionKey where PropertyNameSpace == ErrorOptionNameSpace, Option == WebSocketConnectionConsequence {
+    static let webSocketConnectionConsequence = PropertyOptionKey<ErrorOptionNameSpace, WebSocketConnectionConsequence>()
 }
 
 extension AnyPropertyOption where PropertyNameSpace == ErrorOptionNameSpace {
     /// An option that sepcifies the consequence an associated error has on the WebSocket connection and/or context.
-    public static func wsConnectionConsequence(_ consequence: WSConnectionConsequence) -> AnyPropertyOption<ErrorOptionNameSpace> {
-        AnyPropertyOption(key: .wsConnectionConsequence, value: consequence)
+    public static func wsConnectionConsequence(_ consequence: WebSocketConnectionConsequence) -> AnyPropertyOption<ErrorOptionNameSpace> {
+        AnyPropertyOption(key: .webSocketConnectionConsequence, value: consequence)
     }
 }
