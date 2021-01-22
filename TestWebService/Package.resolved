@@ -65,24 +65,6 @@
         }
       },
       {
-        "package": "CwlCatchException",
-        "repositoryURL": "https://github.com/mattgallagher/CwlCatchException.git",
-        "state": {
-          "branch": null,
-          "revision": "f809deb30dc5c9d9b78c872e553261a61177721a",
-          "version": "2.0.0"
-        }
-      },
-      {
-        "package": "CwlPreconditionTesting",
-        "repositoryURL": "https://github.com/mattgallagher/CwlPreconditionTesting.git",
-        "state": {
-          "branch": null,
-          "revision": "02b7a39a99c4da27abe03cab2053a9034379639f",
-          "version": "2.0.0"
-        }
-      },
-      {
         "package": "FCM",
         "repositoryURL": "https://github.com/MihaelIsaev/FCM.git",
         "state": {
@@ -402,8 +384,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "967c2d1f9c473dbb3a5ef8f2e2901f56e21ae79a",
-          "version": "4.38.0"
+          "revision": "63352b6373b3200bff9d58ac09483023226c8990",
+          "version": "4.37.2"
         }
       },
       {

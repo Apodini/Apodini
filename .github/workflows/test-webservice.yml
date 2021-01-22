@@ -1,0 +1,49 @@
+name: Test TestWebService
+
+on:
+  push:
+    branches:
+      - develop
+      - release
+  pull_request:
+    branches:
+      - develop
+      - release
+      
+defaults:
+  run:
+    working-directory: TestWebService
+
+jobs:
+  macos:
+    name: macOS ${{ matrix.configuration }} Test TestWebService
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        configuration: [debug, release]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: maxim-lobanov/setup-xcode@v1.1
+      with:
+        xcode-version: latest
+    - name: Check Xcode version
+      run: xcodebuild -version
+    - name: Check Swift version
+      run: swift --version
+    - name: Build & Test
+      run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
+  linux:
+    name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} Test TestWebService
+    container:
+      image: swift:${{ matrix.linux }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        linux: [bionic, xenial, focal]
+        configuration: [debug, release]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Check Swift version
+      run: swift --version
+    - name: Build & Test
+      run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery

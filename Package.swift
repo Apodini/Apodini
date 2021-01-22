@@ -83,13 +83,6 @@ let package = Package(
                 "ConfigurationTests/Certificates/key.pem"
             ]
         ),
-        .target(
-            name: "TestWebService",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniDatabase")
-            ]
-        ),
         // ProtobufferCoding
         .target(
             name: "ProtobufferCoding",
