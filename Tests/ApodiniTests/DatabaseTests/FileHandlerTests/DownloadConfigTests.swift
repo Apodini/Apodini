@@ -5,7 +5,7 @@ import Vapor
 @testable import Apodini
 @testable import ApodiniDatabase
 
-final class DownloadConfigTests: ApodiniTests {
+final class DownloadConfigTests: FileHandlerTests {
     func testDownloadConfigInfo() throws {
         //Upload file
         let uploader = Uploader(UploadConfiguration(.default, subPath: "Misc/"))

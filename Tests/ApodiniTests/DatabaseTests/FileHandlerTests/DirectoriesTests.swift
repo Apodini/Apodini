@@ -3,7 +3,7 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniDatabase
 
-final class DirectoriesTests: ApodiniTests {
+final class DirectoriesTests: FileHandlerTests {
     func testDirectories() {
         let directory = Environment(\.directory).wrappedValue
         

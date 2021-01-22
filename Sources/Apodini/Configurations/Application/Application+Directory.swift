@@ -58,7 +58,6 @@ public struct Directory {
             }
         }
         #endif
-        print(workingDirectory)
         return Directory(workingDirectory: workingDirectory)
     }
 }

@@ -29,7 +29,7 @@ public struct DownloadConfiguration {
         let searchableDirectories: [String] = directories.map { $0.path(for: directory) }
         
         for dir in searchableDirectories {
-            #if Xcode
+            #if Xcode || DEBUG
             // For an explanation, see below
             guard fileManager.fileExists(atPath: dir) else {
                 continue
@@ -55,7 +55,7 @@ public struct DownloadConfiguration {
         var infos: [FileInfo] = []
         
         for dir in searchableDirectories {
-            #if Xcode
+            #if Xcode || DEBUG
             // As we are in Xcode, we created only a dummy public directory.
             // See Application+Directory.swift
             // This means that `resource` and `working` are missing.

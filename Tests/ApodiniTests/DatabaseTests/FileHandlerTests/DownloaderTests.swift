@@ -5,7 +5,7 @@ import Vapor
 @testable import Apodini
 @testable import ApodiniDatabase
 
-final class DownloaderTests: ApodiniTests {
+final class DownloaderTests: FileHandlerTests {
     func testSingleDownloader() throws {
         let uploader = Uploader(UploadConfiguration(.default, subPath: "Misc/"))
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))

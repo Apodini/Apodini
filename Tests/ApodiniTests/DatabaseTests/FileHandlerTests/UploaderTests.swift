@@ -4,7 +4,7 @@ import NIO
 @testable import Apodini
 @testable import ApodiniDatabase
 
-final class UploaderTests: ApodiniTests {
+final class UploaderTests: FileHandlerTests {
     func testUploader() throws {
         let uploader = Uploader(UploadConfiguration(.default, subPath: "Misc/"))
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
