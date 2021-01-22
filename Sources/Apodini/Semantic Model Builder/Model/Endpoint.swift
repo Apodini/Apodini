@@ -153,6 +153,8 @@ struct Endpoint<H: Handler>: AnyEndpoint {
             parameter.id == id
         }
     }
+    
+    @discardableResult
     func exportParameters<I: BaseInterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
         parameters.exportParameters(on: exporter)
     }
