@@ -12,6 +12,7 @@ import DeploymentTargetAWSLambdaCommon
 import SotoS3
 import SotoLambda
 import SotoApiGatewayV2
+import OpenAPIKit
 
 
 internal func makeError(code: Int = 0, _ message: String) -> Swift.Error {
@@ -26,11 +27,25 @@ try Task.handleChildProcessInvocationIfNecessary()
 typealias DeployedSystemStructure = DeployedSystemConfiguration
 
 
+private func _findExecutable(_ name: String) throws -> URL {
+    guard let url = Task.findExecutable(named: name) else {
+        throw makeError("Unable to find executable '\(name)'")
+    }
+    return url
+}
+
+let dockerBin = try _findExecutable("docker")
+let awsCliBin = try _findExecutable("aws")
+let zipBin = try _findExecutable("zip")
+let chmodBin = try _findExecutable("chmod") // TOOD just use the syscall instead?
+
+
+let logger = Logger(label: "de.lukaskollmer.ApodiniLambda")
+
+
 struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     static let identifier: DeploymentProviderID = LambdaDeploymentProviderId
     static let version: Version = 1
-    
-    private static let dockerImageName = "apodini-lambda-builder"
     
     
     private var FM: FileManager { .default }
@@ -41,15 +56,40 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     @Option
     var productName: String
     
+    @Option
+    var awsProfileName: String = "default"
+    
+    @Option
+    var awsS3BucketName: String = "apodini"
+    
+    @Option
+    var awsApiGatewayApiId: String
+    
+    @Flag(help: "whether to skip the compilation steps and assume that build artifacts from a previous run are still located at the expected places")
+    var awsDeployOnly: Bool = false
+    
     
     var packageRootDir: URL {
         URL(fileURLWithPath: inputPackageRootDir)
     }
     
     
+    
+    var buildFolderUrl: URL {
+        packageRootDir.appendingPathComponent(".build", isDirectory: true)
+    }
+    
+    
+    var tmpDirName: String { "lk_tmp" }
+    
+    var tmpDirUrl: URL {
+        buildFolderUrl.appendingPathComponent(tmpDirName, isDirectory: true)
+    }
+    
+    
+    
     var lambdaOutputDir: URL {
-        return packageRootDir
-            .appendingPathComponent(".build", isDirectory: true)
+        return buildFolderUrl
             .appendingPathComponent("lambda", isDirectory: true)
             .appendingPathComponent(productName, isDirectory: true)
     }
@@ -57,15 +97,36 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     
     
     func run() throws {
+        if awsDeployOnly {
+            logger.notice("Running with the --aws-deploy-only flag. Will skip compilation and try to re-use previous files")
+        }
+        logger.notice("initialising FileManager")
         try FM.lk_initialize()
+        
+        logger.notice("setting working directory to package root dir: \(packageRootDir)")
         try FM.lk_setWorkingDirectory(to: packageRootDir)
         
-        let webServiceStructure = try generateWebServiceStructure()
-        print(webServiceStructure)
-        
-        //let nodes = try computeDefaultDeployedSystemNodes(from: webServiceStructure)
+        logger.notice("creating directory at \(tmpDirUrl)")
+        try FM.createDirectory(at: tmpDirUrl, withIntermediateDirectories: true, attributes: nil)
         
         
+        logger.notice("preparing docker image")
+        let dockerImageName = try prepareDockerImage()
+        logger.notice("successfully built docker image. image name: \(dockerImageName)")
+        
+    
+        logger.notice("generating web service structure")
+        //let webServiceStructure = try readWebServiceStructure(usingDockerImage: dockerImageName)
+        let webServiceStructure = try { () -> WebServiceStructure in
+            if awsDeployOnly {
+                let data = try Data(contentsOf: tmpDirUrl.appendingPathComponent("WebServiceStructure.json", isDirectory: false), options: [])
+                return try JSONDecoder().decode(WebServiceStructure.self, from: data)
+            } else {
+                return try readWebServiceStructure(usingDockerImage: dockerImageName)
+            }
+        }()
+        
+    
         let node = try DeployedSystemStructure.Node(
             id: "0", // todo make this the lambda function arn??
             exportedEndpoints: webServiceStructure.endpoints,
@@ -81,52 +142,140 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
             userInfoType: Null.self
         )
         
-        let lambdaExecutableUrl = try compileForLambda()
         
-        try deploy(deploymentStructure: deploymentStructure, lambdaExecutableUrl: lambdaExecutableUrl)
+        let lambdaExecutableUrl: URL = awsDeployOnly
+            //? //buildFolderUrl.appendingPathComponent("debug", isDirectory: true).appendingPathComponent(productName, isDirectory: false)
+            ? tmpDirUrl.appendingPathComponent("lambda.out", isDirectory: false)
+            : try compileForLambda(usingDockerImage: dockerImageName)
+        
+        
+//        let lambdaExecutableUrl = packageRootDir
+//            .appendingPathComponent(".build", isDirectory: true)
+//            .appendingPathComponent("debug", isDirectory: true)
+//            .appendingPathComponent(productName, isDirectory: false)
+        logger.notice("Starting the AWS stuff")
+        try AWSDeploymentStuff(
+            awsProfileName: awsProfileName,
+            deploymentStructure: deploymentStructure,
+            openApiDocument: try JSONDecoder().decode(OpenAPI.Document.self, from: webServiceStructure.openApiDefinition),
+            tmpDirUrl: self.tmpDirUrl,
+            lambdaExecutableUrl: lambdaExecutableUrl,
+            lambdaSharedObjectFilesUrl: lambdaOutputDir
+        ).apply(
+            s3BucketName: awsS3BucketName,
+            s3ObjectFolderKey: "/lambda-code/",
+            dstApiGateway: awsApiGatewayApiId == "_createNew" ? .createNew : .useExisting(awsApiGatewayApiId)
+        )
         return
     }
     
     
-    func compileForLambda() throws -> URL {
-        let dockerBin = Task.findExecutable(named: "docker")!
-        
-        
-        let buildDockerImageTask = Task( //docker build -t builder .
+    
+    /// - returns: the name of the docker image
+    func prepareDockerImage() throws -> String {
+        let imageName = "apodini-lambda-builder"
+        let task = Task(
             executableUrl: dockerBin,
-            arguments: ["build", "-t", Self.dockerImageName, "."],
+            arguments: ["build", "-t", imageName, "."],
             captureOutput: false,
             launchInCurrentProcessGroup: true
         )
-        try buildDockerImageTask.launchSyncAndAssertSuccess()
+        try task.launchSyncAndAssertSuccess()
+        return imageName
+    }
+    
+    
+    
+    
+    func _runInDocker(imageName: String, bashCommand: String, workingDirectory: URL? = nil) throws {
+        let task = Task(
+            executableUrl: dockerBin,
+            arguments: [
+                "run", "--rm",
+                "--volume", "\(packageRootDir.path):/src/",
+                "--workdir", "/src/", imageName,
+                "bash", "-cl", bashCommand
+            ],
+            workingDirectory: workingDirectory,
+            captureOutput: false,
+            launchInCurrentProcessGroup: true
+        )
+        try task.launchSyncAndAssertSuccess()
+    }
+    
+    
+    func readWebServiceStructure(usingDockerImage dockerImageName: String) throws -> WebServiceStructure {
+        let filename = "WebServiceStructure.json"
+        try _runInDocker(
+            imageName: dockerImageName,
+            bashCommand: [
+                "swift", "run", productName,
+                WellKnownCLIArguments.exportWebServiceModelStructure, ".build/\(tmpDirName)/\(filename)" // can't use self.tmpDirUrl here since that's an absolute path but we need a relative one bc this is running in the docker container which has a different mount path
+            ].joined(separator: " ")
+        )
+        let url = tmpDirUrl.appendingPathComponent(filename, isDirectory: false)
+        let data = try Data(contentsOf: url)
+        return try JSONDecoder().decode(WebServiceStructure.self, from: data) // TODO make this a WebServiceStructure initializer and remove all manual json decoding. same for the encoding. combine this w/ the launchInfo stuff, maybe into a nice protocol or smth like that
+    }
+    
+    
+    
+    /// - returns: the directory containing all build artifacts (ie, the built executable and collected shared object files)
+    func compileForLambda(usingDockerImage dockerImageName: String) throws -> URL {
+        logger.notice("Compiling SPM target '\(productName)' for lambda")
+//        let buildDockerImageTask = Task( //docker build -t builder .
+//            executableUrl: dockerBin,
+//            arguments: ["build", "-t", Self.dockerImageName, "."],
+//            captureOutput: false,
+//            launchInCurrentProcessGroup: true
+//        )
+//        try buildDockerImageTask.launchSyncAndAssertSuccess()
 //        guard try buildDockerImageTask.launchSync().exitCode == EXIT_SUCCESS else {
 //            throw makeError("Unable to build docker image")
 //        }
-//        docker run \
-//          --rm \
-//          --volume "$(pwd):/src/" \
-//          --workdir "/src/" \
-//          builder \
-//          bash -cl "swift build --product TestWebServiceAWS && ./package-lambda.sh TestWebServiceAWS"
         
-        let runDockerContainerTask = Task(
-            executableUrl: dockerBin,
-            arguments: [
-                "run", "--rm", "--volume", "\(packageRootDir.path):/src/", "--workdir", "/src/", Self.dockerImageName,
-                "bash", "-cl", "swift build --product \(productName) && ./collect-shared-object-files.sh \(productName)"
-            ],
-            captureOutput: false,
-            launchInCurrentProcessGroup: true
+//        let lambdaBuildArtifactsOutputDir = URL(fileURLWithPath: ".build/lambda/\(productName)/")
+//        print("\n\nlambdaBuildArtifactsOutputDir", lambdaOutputDir.path, "\n\n")
+        
+        try _runInDocker(
+            imageName: dockerImageName,
+            bashCommand:
+                "swift build --product \(productName) && ./collect-shared-object-files.sh .build/debug/\(productName) .build/lambda/\(productName)/"
         )
-        try runDockerContainerTask.launchSyncAndAssertSuccess()
+        
+//        let runDockerContainerTask = Task(
+//            executableUrl: dockerBin,
+//            arguments: [
+//                "run", "--rm",
+//                "--volume", "\(packageRootDir.path):/src/",
+//                "--workdir", "/src/", dockerImageName,
+//                "bash", "-cl",
+//                "swift build --product \(productName) && ./collect-shared-object-files.sh .build/debug/\(productName) .build/lambda/\(productName)/"
+//            ],
+//            captureOutput: false,
+//            launchInCurrentProcessGroup: true
+//        )
+//        try runDockerContainerTask.launchSyncAndAssertSuccess()
 //        guard try runDockerContainerTask.launchSync().exitCode == EXIT_SUCCESS else {
 //            throw makeError("Error compiling web service for Lambda")
 //        }
         
-        return packageRootDir
-            .appendingPathComponent(".build", isDirectory: true)
+        let outputUrl = buildFolderUrl
             .appendingPathComponent("debug", isDirectory: true)
             .appendingPathComponent(productName, isDirectory: false)
+        let dstExecutableUrl = tmpDirUrl.appendingPathComponent("lambda.out", isDirectory: false)
+        try FM.lk_copyItem(at: outputUrl, to: dstExecutableUrl)
+        return dstExecutableUrl
+        
+//        return buildFolderUrl
+//            .appendingPathComponent("debug", isDirectory: true)
+//            .appendingPathComponent(productName, isDirectory: false)
+        //return lambdaBuildArtifactsOutputDir
+        
+        //return packageRootDir
+        //    .appendingPathComponent(".build", isDirectory: true)
+        //    .appendingPathComponent("debug", isDirectory: true)
+        //    .appendingPathComponent(productName, isDirectory: false)
     }
     
     
@@ -173,7 +322,10 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
         
         let s3UploadTask = Task(
             executableUrl: awsCli,
-            arguments: ["s3", "cp", "\(lambdaOutputDir.path)/lambda.zip", "s3://apodini/lambda-code/TestWebServiceAWS.zip"],
+            arguments: [
+                "--profile", "paul",
+                "s3", "cp", "\(lambdaOutputDir.path)/lambda.zip", "s3://apodini/lambda-code/TestWebServiceAWS.zip"
+            ],
             captureOutput: false,
             launchInCurrentProcessGroup: true
         )
@@ -182,6 +334,7 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
         let updateFunctionCodeTask = Task(
             executableUrl: awsCli,
             arguments: [
+                "--profile", "paul",
                 "--region", "eu-central-1",
                 "lambda", "update-function-code",
                 "--function-name", "apodini-test-function",
@@ -192,16 +345,6 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
             launchInCurrentProcessGroup: true
         )
         try updateFunctionCodeTask.launchSyncAndAssertSuccess()
-        
-//        let region = SotoCore.Region.eucentral1
-//        let client = AWSClient(credentialProvider: .configFile(), httpClientProvider: .createNew)
-        
-//        let s3 = S3(client: client, region: region)
-//        let lambda = Lambda(client: client, region: region)
-//        let apiGateway = ApiGatewayV2(client: client, region: region)
-        
-        
-        //let req = Lambda.UpdateFunctionCodeRequest(functionName: "apodini-test-function", imageUri: <#T##String?#>, publish: <#T##Bool?#>, revisionId: <#T##String?#>, s3Bucket: <#T##String?#>, s3Key: <#T##String?#>, s3ObjectVersion: <#T##String?#>, zipFile: <#T##Data?#>)
     }
     
     
@@ -217,4 +360,5 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
 
 
 LambdaDeploymentProvider.main()
+//LambdaDeploymentProvider.main(["/Users/lukas/Developer/Apodini/", "--product-name=TestWebService"])
 

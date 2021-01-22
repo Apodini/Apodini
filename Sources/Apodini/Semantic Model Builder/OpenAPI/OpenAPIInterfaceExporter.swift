@@ -6,6 +6,12 @@
 @_implementationOnly import struct Vapor.Abort
 import Foundation
 
+
+struct OpenAPIDefStorageKey: StorageKey {
+    //let value: OpenAPI.Document
+    typealias Value = OpenAPI.Document
+}
+
 class OpenAPIInterfaceExporter: StaticInterfaceExporter {
     static var parameterNamespace: [ParameterNamespace] = .individual
 
@@ -27,6 +33,7 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
 
     func finishedExporting(_ webService: WebServiceModel) {
         serveSpecification()
+        app.storage.set(OpenAPIDefStorageKey.self, to: self.documentBuilder.build())
     }
 
     private func serveSpecification() {

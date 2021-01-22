@@ -179,7 +179,7 @@ struct TestWebService: Apodini.WebService {
     @PathParameter var name: String
     
     var content: some Component {
-        Text("Hello World! 👋")
+        Text("!!Hello World??! 👋")
             .response(EmojiMediator(emojis: "🎉"))
             .response(EmojiMediator())
             .guard(PrintGuard())

@@ -45,4 +45,13 @@ public extension FileManager {
         }
         return tmpfile
     }
+    
+    
+    func lk_copyItem(at srcUrl: URL, to dstUrl: URL) throws {
+        // TODO look into the -replace API
+        if fileExists(atPath: dstUrl.path) {
+            try removeItem(at: dstUrl)
+        }
+        try copyItem(at: srcUrl, to: dstUrl)
+    }
 }

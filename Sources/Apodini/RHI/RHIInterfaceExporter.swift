@@ -103,6 +103,8 @@ internal func dynamicCast<U>(_ value: Any, to _: U.Type) -> U? {
 
 extension RHIInterfaceExporter {
     func exportWebServiceStructure(to outputUrl: URL, deploymentConfig: DeploymentConfig) throws {
+        let openApiDefinitionData = try JSONEncoder().encode(self.app.storage.get(OpenAPIDefStorageKey.self)!)
+        print("OPENAPI@RHIIE", openApiDefinitionData)
         let webServiceStructure = WebServiceStructure(
             interfaceExporterId: .init("unused_remove"),
             endpoints: endpointsById.values.map { endpoint -> ExportedEndpoint in
@@ -113,7 +115,8 @@ extension RHIInterfaceExporter {
                     userInfo: [:]
                 )
             },
-            deploymentConfig: deploymentConfig
+            deploymentConfig: deploymentConfig,
+            openApiDefinition: openApiDefinitionData
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted

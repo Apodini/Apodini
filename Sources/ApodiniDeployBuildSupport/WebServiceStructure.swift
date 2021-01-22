@@ -38,15 +38,18 @@ public struct WebServiceStructure: Codable { // TODO this needs a better name. m
     public let interfaceExporterId: ExporterIdentifier
     public let endpoints: [ExportedEndpoint]
     public let deploymentConfig: DeploymentConfig
+    public let openApiDefinition: Data
     
     public init(
         interfaceExporterId: ExporterIdentifier,
         endpoints: [ExportedEndpoint],
-        deploymentConfig: DeploymentConfig
+        deploymentConfig: DeploymentConfig,
+        openApiDefinition: Data
     ) {
         self.interfaceExporterId = interfaceExporterId
         self.endpoints = endpoints
         self.deploymentConfig = deploymentConfig
+        self.openApiDefinition = openApiDefinition
     }
 }
 

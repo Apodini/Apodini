@@ -166,7 +166,10 @@ let package = Package(
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "SotoS3", package: "soto"),
                 .product(name: "SotoLambda", package: "soto"),
-                .product(name: "SotoApiGatewayV2", package: "soto")
+                .product(name: "SotoApiGatewayV2", package: "soto"),
+                .product(name: "SotoIAM", package: "soto"),
+                .product(name: "SotoSTS", package: "soto"),
+                .product(name: "OpenAPIKit", package: "OpenAPIKit")
             ]
         ),
         .target(

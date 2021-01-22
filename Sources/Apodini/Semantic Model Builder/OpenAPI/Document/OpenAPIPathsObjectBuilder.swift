@@ -71,7 +71,8 @@ private extension OpenAPIPathsObjectBuilder {
             description: endpointDescription,
             parameters: parameters,
             requestBody: requestBody,
-            responses: responses
+            responses: responses,
+            vendorExtensions: ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
         )
     }
 

@@ -262,8 +262,7 @@ extension Task {
         guard CommandLine.arguments[lk_safe: 1] == ProcessIsChildProcessInvocationWrapper else {
             return
         }
-        print("pwd", FileManager.default.currentDirectoryPath)
-            
+        
         // adjust our group id to match the parent
         let PI = ProcessInfo.processInfo
         try throwIfPosixError(setpgid(PI.processIdentifier, PI.lk_parentGroupId))
@@ -279,6 +278,7 @@ extension Task {
             }
         }
         
+        print("+[\(Self.self) \(#function)] execve(\(childArgv.first!), \(childArgv.dropFirst()), \(environ))")
         execve(argv[0]!, argv.baseAddress!, environ)
         perror("execve failed")
         exit(EXIT_FAILURE)

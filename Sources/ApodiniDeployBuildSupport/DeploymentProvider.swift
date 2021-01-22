@@ -95,6 +95,8 @@ extension DeploymentProvider {
     }
     
     
+    // TODO rename to generateDefaultWebServiceStructure or smth like that to indicate that this is the default implementation
+    // like, onCurrentMachine, inCurrentProcessContext, forCurrentArch, etc
     public func generateWebServiceStructure() throws -> WebServiceStructure {
         let FM = FileManager.default
         let logger = Logger(label: "ApodiniDeployCLI.Localhost")
@@ -144,7 +146,10 @@ extension DeploymentProvider {
     
     
     
-    public func computeDefaultDeployedSystemNodes(from wsStructure: WebServiceStructure) throws -> [DeployedSystemConfiguration.Node] {
+    public func computeDefaultDeployedSystemNodes(
+        from wsStructure: WebServiceStructure,
+        overrideGrouping customDeploymentGroupGrouping: DeploymentGroupsConfig.DefaultGrouping? = nil
+    ) throws -> [DeployedSystemConfiguration.Node] {
         // TODO how should this handle the same endpoint id being in multiple groups
         // also needs validation to make sure all handler ids specified in groups actually exist in the WS
         
@@ -168,7 +173,7 @@ extension DeploymentProvider {
         let remainingEndpoints: [ExportedEndpoint] = wsStructure.endpoints
             .filter { endpoint in !nodes.contains { $0.exportedEndpoints.contains(endpoint) } }
         
-        switch wsStructure.deploymentConfig.deploymentGroups.defaultGrouping {
+        switch customDeploymentGroupGrouping ?? wsStructure.deploymentConfig.deploymentGroups.defaultGrouping {
         case .singleNode:
             let node = try DeployedSystemConfiguration.Node(
                 id: UUID().uuidString,
