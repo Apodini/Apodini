@@ -96,7 +96,7 @@ extension ApodiniError: StandardError {
     }
     
     func message<E: StandardErrorCompliantExporter>(for exporter: E.Type) -> String {
-        let prefix: String? = E.messagePrefix(for: self)?.appending(": ")
+        let prefix: String? = E.messagePrefix(for: self)?.appending(reason == nil && description == nil ? "" : ": ")
         
         #if DEBUG
         if let reason = self.reason {

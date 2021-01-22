@@ -74,7 +74,7 @@ extension PropertyOptionKey where PropertyNameSpace == ErrorOptionNameSpace, Opt
 
 extension AnyPropertyOption where PropertyNameSpace == ErrorOptionNameSpace {
     /// An option that sepcifies the consequence an associated error has on the WebSocket connection and/or context.
-    public static func wsConnectionConsequence(_ consequence: WebSocketConnectionConsequence) -> AnyPropertyOption<ErrorOptionNameSpace> {
+    public static func webSocketConnectionConsequence(_ consequence: WebSocketConnectionConsequence) -> AnyPropertyOption<ErrorOptionNameSpace> {
         AnyPropertyOption(key: .webSocketConnectionConsequence, value: consequence)
     }
 }

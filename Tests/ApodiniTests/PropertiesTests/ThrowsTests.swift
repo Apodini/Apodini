@@ -91,21 +91,53 @@ class ThrowsTests: ApodiniTests {
     }
     
     func testReasonAndDescriptionOverwrite() throws {
-        XCTAssertTrue(ErrorTestHandler(errorCode: 4, applyChanges: true, reason: "!other!", description: "<other>").evaluationError().message(for: MockExporter<String>.self).contains("!other!"))
+        XCTAssertTrue(ErrorTestHandler(
+                        errorCode: 4,
+                        applyChanges: true,
+                        reason: "!other!",
+                        description: "<other>").evaluationError().message(for: MockExporter<String>.self).contains("!other!"))
         #if DEBUG
-        XCTAssertTrue(ErrorTestHandler(errorCode: 4, applyChanges: true, reason: "!other!", description: "<other>").evaluationError().message(for: MockExporter<String>.self).contains("<other>"))
+        XCTAssertTrue(ErrorTestHandler(
+                        errorCode: 4,
+                        applyChanges: true,
+                        reason: "!other!",
+                        description: "<other>").evaluationError().message(for: MockExporter<String>.self).contains("<other>"))
         #else
-        XCTAssertFalse(ErrorTestHandler(errorCode: 4, applyChanges: true, reason: "!other!", description: "<other>").evaluationError().message(for: MockExporter<String>.self).contains("<other>"))
+        XCTAssertFalse(ErrorTestHandler(
+                        errorCode: 4,
+                        applyChanges: true,
+                        reason: "!other!",
+                        description: "<other>").evaluationError().message(for: MockExporter<String>.self).contains("<other>"))
         #endif
         
-        XCTAssertTrue(ErrorTestHandler(errorCode: 4, applyChanges: true, reason: "!other!", description: nil).evaluationError().message(for: MockExporter<String>.self).contains("!other!"))
-        XCTAssertFalse(ErrorTestHandler(errorCode: 4, applyChanges: true, reason: "!other!", description: nil).evaluationError().message(for: MockExporter<String>.self).contains("<other>"))
+        XCTAssertTrue(ErrorTestHandler(
+                        errorCode: 4,
+                        applyChanges: true,
+                        reason: "!other!",
+                        description: nil).evaluationError().message(for: MockExporter<String>.self).contains("!other!"))
+        XCTAssertFalse(ErrorTestHandler(
+                        errorCode: 4,
+                        applyChanges: true,
+                        reason: "!other!",
+                        description: nil).evaluationError().message(for: MockExporter<String>.self).contains("<other>"))
         
-        XCTAssertFalse(ErrorTestHandler(errorCode: 4, applyChanges: true, reason: nil, description: "<other>").evaluationError().message(for: MockExporter<String>.self).contains("!other!"))
+        XCTAssertFalse(ErrorTestHandler(
+                        errorCode: 4,
+                        applyChanges: true,
+                        reason: nil,
+                        description: "<other>").evaluationError().message(for: MockExporter<String>.self).contains("!other!"))
         #if DEBUG
-        XCTAssertTrue(ErrorTestHandler(errorCode: 4, applyChanges: true, reason: nil, description: "<other>").evaluationError().message(for: MockExporter<String>.self).contains("<other>"))
+        XCTAssertTrue(ErrorTestHandler(
+                        errorCode: 4,
+                        applyChanges: true,
+                        reason: nil,
+                        description: "<other>").evaluationError().message(for: MockExporter<String>.self).contains("<other>"))
         #else
-        XCTAssertFalse(ErrorTestHandler(errorCode: 4, applyChanges: true, reason: nil, description: "<other>").evaluationError().message(for: MockExporter<String>.self).contains("<other>"))
+        XCTAssertFalse(ErrorTestHandler(
+                        errorCode: 4,
+                        applyChanges: true,
+                        reason: nil,
+                        description: "<other>").evaluationError().message(for: MockExporter<String>.self).contains("<other>"))
         #endif
     }
 }
@@ -125,4 +157,3 @@ private extension Handler {
         }
     }
 }
-

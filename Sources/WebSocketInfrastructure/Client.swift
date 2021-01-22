@@ -18,12 +18,19 @@ public struct StatelessClient {
     
     private let eventLoop: EventLoop
     
+    private let ignoreErrors: Bool
+    
     /// Create a `StatelessClient` that will connect to the given `address` once used. All operations
     /// are executed on the given `eventLoop`.
-    public init(address: String = "ws://localhost:8080/apodini/websocket", on eventLoop: EventLoop) {
+    public init(address: String = "ws://localhost:8080/apodini/websocket", on eventLoop: EventLoop, ignoreErrors: Bool = false) {
         self.address = address
-        self.logger = .init(label: "org.apodini.websocket.client")
+        var logger = Logger(label: "org.apodini.websocket.client")
+        #if DEBUG
+        logger.logLevel = .debug
+        #endif
+        self.logger = logger
         self.eventLoop = eventLoop
+        self.ignoreErrors = ignoreErrors
     }
     
     /// Opens a new WebSocket connection, creates a new context on the given `endpoint` and sends
@@ -71,6 +78,17 @@ public struct StatelessClient {
             websocket.onText { websocket, string in
                 self.onText(websocket: websocket, string: string, context: contextId, promise: response, responses: &responses)
             }
+            
+            var done = false
+            response.futureResult.whenSuccess { _ in
+                done = true
+            }
+            
+            websocket.onClose.whenComplete { _ in
+                if !done {
+                    response.fail(ServerError.noMessage)
+                }
+            }
         }
         
         return response.futureResult
@@ -80,7 +98,7 @@ public struct StatelessClient {
         do {
             // create context on user endpoint
             let message = try encode(OpenContextMessage(context: context, endpoint: endpoint))
-            self.logger.debug("<<< \(message)")
+            self.logger.debug(">>> \(message)")
             websocket.send(message, promise: promise)
         } catch {
             promise.fail(error)
@@ -91,7 +109,7 @@ public struct StatelessClient {
         for input in messages {
             do {
                 let message = try encode(ClientMessage(context: context, parameters: input))
-                self.logger.debug("<<< \(message)")
+                self.logger.debug(">>> \(message)")
                 // create context on user endpoint
                 websocket.send(message)
             } catch {
@@ -105,7 +123,7 @@ public struct StatelessClient {
     private func sendClose<O>(context: UUID, to websocket: WebSocket, promise: EventLoopPromise<O>) {
         do {
             let message = try encode(CloseContextMessage(context: context))
-            self.logger.debug("<<< \(message)")
+            self.logger.debug(">>> \(message)")
             // announce end of client-messages
             websocket.send(message)
         } catch {
@@ -122,7 +140,7 @@ public struct StatelessClient {
         promise: EventLoopPromise<[O]>,
         responses: inout [O]
     ) {
-        self.logger.debug(">>> \(string)")
+        self.logger.debug("<<< \(string)")
         
         guard let data = string.data(using: .utf8) else {
             promise.fail(ConversionError.couldNotDecodeUsingUTF8)
@@ -139,7 +157,7 @@ public struct StatelessClient {
         } catch {
             do {
                 let result = try JSONDecoder().decode(ErrorMessage<String>.self, from: data)
-                if result.context == context || result.context == nil {
+                if (result.context == context || result.context == nil) && !self.ignoreErrors {
                     promise.fail(ServerError.message(result.error))
                     // close connection
                     _ = websocket.close()
