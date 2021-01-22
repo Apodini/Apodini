@@ -65,6 +65,9 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     @Option
     var awsApiGatewayApiId: String
     
+    @Option // put all deployment groups into a single lambda. this is mainly here to improve performance when testing
+    var singleLambda: Bool = true
+    
     @Flag(help: "whether to skip the compilation steps and assume that build artifacts from a previous run are still located at the expected places")
     var awsDeployOnly: Bool = false
     
@@ -126,18 +129,23 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
             }
         }()
         
-    
-        let node = try DeployedSystemStructure.Node(
-            id: "0", // todo make this the lambda function arn??
-            exportedEndpoints: webServiceStructure.endpoints,
-            userInfo: nil,
-            userInfoType: Null.self
+        
+        let nodes = try computeDefaultDeployedSystemNodes(
+            from: webServiceStructure,
+            overrideGrouping: singleLambda ? .singleNode : nil
         )
+                
+//        let node = try DeployedSystemStructure.Node(
+//            id: "0", // todo make this the lambda function arn??
+//            exportedEndpoints: webServiceStructure.endpoints,
+//            userInfo: nil,
+//            userInfoType: Null.self
+//        )
         
         let deploymentStructure = try DeployedSystemStructure(
             deploymentProviderId: Self.identifier,
-            currentInstanceNodeId: node.id,
-            nodes: [node],
+            currentInstanceNodeId: nodes[0].id,
+            nodes: nodes,
             userInfo: nil,
             userInfoType: Null.self
         )

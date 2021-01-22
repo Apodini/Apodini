@@ -88,10 +88,16 @@ class AWSDeploymentStuff { // needs a better name
             case .useExisting(let id):
                 return id
             case .createNew:
-                return try apiGateway.createApi(ApiGatewayV2.CreateApiRequest(
+                let apiId = try apiGateway.createApi(ApiGatewayV2.CreateApiRequest(
                     name: "apodini-tmp-api", // doesnt matter will be replaced when importing the openapi spec
                     protocolType: .http
                 )).wait().apiId!
+                _ = try apiGateway.createStage(ApiGatewayV2.CreateStageRequest(
+                    apiId: apiId,
+                    autoDeploy: true,
+                    stageName: "$default"
+                )).wait()
+                return apiId
             }
         }()
         
@@ -170,7 +176,7 @@ class AWSDeploymentStuff { // needs a better name
         var nodeToLambdaFunctionMapping: [DeployedSystemStructure.Node.ID: Lambda.FunctionConfiguration] = [:]
         
         
-        logger.notice("Creating lambda functions for nodes in the web service deployment structure")
+        logger.notice("Creating lambda functions for nodes in the web service deployment structure (#nodes: \(deploymentStructure.nodes.count))")
         for node in deploymentStructure.nodes {
             logger.notice("Creating lambda function for node w/ id \(node.id) (handlers: \(node.exportedEndpoints.map { ($0.httpMethod, $0.absolutePath) })")
             let lambdaName = "apodini-lambda-\(node.id)"
@@ -287,14 +293,29 @@ class AWSDeploymentStuff { // needs a better name
             
             nodeToLambdaFunctionMapping[node.id] = functionConfig
             
-            let addPermissionsResponse = try lambda.addPermission(Lambda.AddPermissionRequest(
-                action: "lambda:InvokeFunction",
-                functionName: functionConfig.functionName!,
-                principal: "apigateway.amazonaws.com",
-                sourceArn: "arn:aws:execute-api:\(awsRegion.rawValue):\(accountId):\(apiGatewayApiId)/*/*/*", // /*/*/v1
-                statementId: UUID().uuidString.lowercased()
-            )).wait()
-            print("addPermissionsResponse", addPermissionsResponse)
+            
+            func grantLambdaPermissions(appiGatewayRessourcePattern pattern: String) throws {
+                // https://docs.aws.amazon.com/lambda/latest/dg/services-apigateway.html
+                _ = try lambda.addPermission(Lambda.AddPermissionRequest(
+                    action: "lambda:InvokeFunction",
+                    functionName: functionConfig.functionName!,
+                    principal: "apigateway.amazonaws.com",
+                    sourceArn: "arn:aws:execute-api:\(awsRegion.rawValue):\(accountId):\(apiGatewayApiId)/\(pattern)",
+                    statementId: UUID().uuidString.lowercased()
+                )).wait()
+            }
+            
+            try grantLambdaPermissions(appiGatewayRessourcePattern: "*/*/*")
+            try grantLambdaPermissions(appiGatewayRessourcePattern: "*/$default")
+            
+//            let addPermissionsResponse = try lambda.addPermission(Lambda.AddPermissionRequest(
+//                action: "lambda:InvokeFunction",
+//                functionName: functionConfig.functionName!,
+//                principal: "apigateway.amazonaws.com",
+//                sourceArn: "arn:aws:execute-api:\(awsRegion.rawValue):\(accountId):\(apiGatewayApiId)/*/*/*", // /*/*/v1
+//                statementId: UUID().uuidString.lowercased()
+//            )).wait()
+//            print("addPermissionsResponse", addPermissionsResponse)
         }
         
         
@@ -307,9 +328,11 @@ class AWSDeploymentStuff { // needs a better name
         
         apiGatewayImportDef.vendorExtensions["x-amazon-apigateway-importexport-version"] = "1.0"
         
+        let apiGatewayExecuteUrl = URL(string: "https://\(apiGatewayApiId).execute-api.\(awsRegion.rawValue).amazonaws.com/")!
+        
         apiGatewayImportDef.servers = [
             OpenAPI.Server(
-                url: URL(string: "https://\(apiGatewayApiId).execute-api.\(awsRegion.rawValue).amazonaws.com/")!,
+                url: apiGatewayExecuteUrl,
                 description: nil,
                 variables: OrderedDictionary<String, OpenAPI.Server.Variable>(),
                 vendorExtensions: Dictionary<String, AnyCodable>()
@@ -342,6 +365,23 @@ class AWSDeploymentStuff { // needs a better name
             return pathItem
         }
         
+        apiGatewayImportDef.paths[OpenAPI.Path(rawValue: "/$default")] = OpenAPI.PathItem(
+            vendorExtensions: [
+                "x-amazon-apigateway-any-method": [
+                    "isDefaultRoute": true,
+                    "x-amazon-apigateway-integration": [
+                        "type": "aws_proxy",
+                        "httpMethod": "POST",
+                        "connectionType": "INTERNET",
+                        "uri": "arn:aws:apigateway:\(awsRegion.rawValue):lambda:path/2015-03-31/functions/\(nodeToLambdaFunctionMapping.first!.value.functionArn!)/invocations",
+                        //"uri": lambdaFunctionConfig.functionArn!,
+                        //"credentials": lambdaFunctionConfig.role!,
+                        "payloadFormatVersion": "2.0"
+                    ]
+                ]
+            ]
+        )
+        
         let openApiDefPath = self.tmpDirUrl.appendingPathComponent("openapi.json", isDirectory: false)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
@@ -357,7 +397,10 @@ class AWSDeploymentStuff { // needs a better name
         //print("reimportReq", reimportRequest)
         
         let res = try apiGateway.reimportApi(reimportRequest).wait()
-        print("uff", res)
+        
+        let numLambdas = deploymentStructure.nodes.count
+        logger.notice("Deployed \(numLambdas) lambda\(numLambdas == 1 ? "" : "s") to api gateway w/ id '\(apiGatewayApiId)'")
+        logger.notice("Invoke URL: \(apiGatewayExecuteUrl)")
     }
 }
 
