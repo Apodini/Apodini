@@ -6,8 +6,8 @@ import Apodini
 /// It is possible to pass a `subPath` relative to the passed directory.
 /// If not existent, sub directories will be automatically created.
 public struct UploadConfiguration {
-    let directory: Directories
-    let subPath: String?
+    private let directories: Directories
+    private let subPath: String?
     
     /// Creates a new `UploadConfiguration` with a given `Directory`
     /// and a sub path if needed.
@@ -15,13 +15,13 @@ public struct UploadConfiguration {
     /// - parameters:
     ///     - directory: A  `Directories` object to specify the directory
     ///     - subPath: An optional subPath relative to the directory
-    public init(_ directory: Directories, subPath: String? = nil) {
-        self.directory = directory
+    public init(_ directories: Directories, subPath: String? = nil) {
+        self.directories = directories
         self.subPath = subPath
     }
     
-    internal func validatedPath(_ app: Application, fileName: String) -> String {
-        let mainPath = directory.path(for: app)
+    internal func validatedPath(_ directory: Directory, fileName: String) -> String {
+        let mainPath = directories.path(for: directory)
         guard let subPath = subPath else {
             return mainPath.appending(fileName)
         }

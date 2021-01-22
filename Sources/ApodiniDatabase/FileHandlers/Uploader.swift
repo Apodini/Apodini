@@ -5,15 +5,17 @@ import Apodini
 /// A Handler which enables the upload of files and
 /// images to a specified directory in Apodini.
 public struct Uploader: Handler {
-    @Environment(\.application)
-    private var application: Application
+    @Environment(\.directory)
+    private var directory: Directory
+    
+    @Environment(\.fileio)
+    private var fileio: NonBlockingFileIO
+    
+    @Environment(\.eventLoopGroup)
+    private var eventLoopGroup: EventLoopGroup
     
     @Parameter
     private var file: File
-    
-    private var eventLoop: EventLoop {
-        application.eventLoopGroup.next()
-    }
     
     private var config: UploadConfiguration
     
@@ -26,12 +28,12 @@ public struct Uploader: Handler {
     }
     
     public func handle() throws -> EventLoopFuture<String> {
-        let path = config.validatedPath(application, fileName: file.filename)
-        return application.fileio
-            .openFile(path: path, mode: .write, flags: .allowFileCreation(), eventLoop: eventLoop)
+        let path = config.validatedPath(directory, fileName: file.filename)
+        return fileio
+            .openFile(path: path, mode: .write, flags: .allowFileCreation(), eventLoop: eventLoopGroup.next())
             .flatMap { handler in
-                application.fileio
-                    .write(fileHandle: handler, buffer: file.data, eventLoop: eventLoop)
+                fileio
+                    .write(fileHandle: handler, buffer: file.data, eventLoop: eventLoopGroup.next())
                     .flatMapThrowing { _ in
                         try handler.close()
                         return file.filename

@@ -47,8 +47,6 @@ public struct Directory {
         if workingDirectory.contains("DerivedData") {
             print("No custom working directory set for this scheme")
             print("Setting dummy directory for debug purposes")
-            #warning("No custom working directory set for this scheme")
-            #warning("Setting dummy directory for debug purposes")
             do {
                 if !FileManager.default.fileExists(atPath: workingDirectory + "/Public/") {
                     try FileManager.default.createDirectory(atPath: workingDirectory + "/Public/",
@@ -60,6 +58,7 @@ public struct Directory {
             }
         }
         #endif
+        print(workingDirectory)
         return Directory(workingDirectory: workingDirectory)
     }
 }

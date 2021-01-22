@@ -8,15 +8,17 @@ import NIO
 /// in the directories specified in the `DownloadConfiguration`.
 /// To download multiple files, please refer to `MultipleDownloader`.
 public struct SingleDownloader: Handler {
-    @Environment(\.application)
-    private var application: Application
+    @Environment(\.directory)
+    private var directory: Directory
+    
+    @Environment(\.fileio)
+    private var fileio: NonBlockingFileIO
+    
+    @Environment(\.eventLoopGroup)
+    private var eventLoopGroup: EventLoopGroup
     
     @Parameter(.http(.path))
     var fileName: String
-    
-    private var eventLoop: EventLoop {
-        application.eventLoopGroup.next()
-    }
     
     private var config: DownloadConfiguration
     
@@ -29,14 +31,14 @@ public struct SingleDownloader: Handler {
     }
     
     public func handle() throws -> EventLoopFuture<File> {
-        guard let info = try config.retrieveFileInfo(fileName, in: application) else {
+        guard let info = try config.retrieveFileInfo(fileName, in: directory) else {
             throw NSError()
         }
-        return application.fileio
-            .openFile(path: info.path, mode: .read, eventLoop: eventLoop)
+        return fileio
+            .openFile(path: info.path, mode: .read, eventLoop: eventLoopGroup.next())
             .flatMap { handler in
-                application.fileio
-                    .read(fileHandle: handler, byteCount: info.readableBytes, allocator: ByteBufferAllocator(), eventLoop: eventLoop)
+                fileio
+                    .read(fileHandle: handler, byteCount: info.readableBytes, allocator: ByteBufferAllocator(), eventLoop: eventLoopGroup.next())
                     .flatMapThrowing { buffer -> File in
                         try handler.close()
                         return File(data: buffer, filename: fileName)

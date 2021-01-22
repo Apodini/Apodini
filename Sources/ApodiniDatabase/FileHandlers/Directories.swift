@@ -14,16 +14,16 @@ public enum Directories: String {
     case `default`
     
     /// Returns the path of the directory of `Self`for the `Application` object
-    func path(for app: Application) -> String {
+    func path(for directory: Directory) -> String {
         switch self {
         case .public:
-            return app.directory.publicDirectory
+            return directory.publicDirectory
         case .resource:
-            return app.directory.resourcesDirectory
+            return directory.resourcesDirectory
         case .working:
-            return app.directory.workingDirectory
+            return directory.workingDirectory
         case .default:
-            return app.directory.publicDirectory
+            return directory.publicDirectory
         }
     }
 }

@@ -7,15 +7,17 @@ import Apodini
 /// in the directories specified in the `DownloadConfiguration`.
 /// If you want to download a single files, please refer to `SingleDownloader`
 public struct MultipleDownloader: Handler {
-    @Environment(\.application)
-    private var application: Application
+    @Environment(\.directory)
+    private var directory: Directory
+    
+    @Environment(\.fileio)
+    private var fileio: NonBlockingFileIO
+    
+    @Environment(\.eventLoopGroup)
+    private var eventLoopGroup: EventLoopGroup
     
     @Parameter(.http(.path))
     var fileName: String
-    
-    private var eventLoop: EventLoop {
-        application.eventLoopGroup.next()
-    }
     
     private var config: DownloadConfiguration
     
@@ -28,34 +30,22 @@ public struct MultipleDownloader: Handler {
     }
     
     public func handle() throws -> EventLoopFuture<[File]> {
-        let infos = try config.retrieveFileInfos(fileName, in: application)
+        let infos = try config.retrieveFileInfos(fileName, in: directory)
+        let eventLoop = eventLoopGroup.next()
         return eventLoop
             .flatten(
                 infos.map { info in
-                    application.fileio
+                    fileio
                         .openFile(path: info.path, mode: .read, eventLoop: eventLoop)
                         .flatMap { handler in
-                            application.fileio
+                            fileio
                                 .read(fileHandle: handler, byteCount: info.readableBytes, allocator: ByteBufferAllocator(), eventLoop: eventLoop)
                                 .flatMapThrowing { buffer -> File in
                                     try handler.close()
-                                    return File(data: buffer, filename: fileName)
+                                    return File(data: buffer, filename: info.fileName)
                                 }
                         }
                 }
             )
-        //        for info in infos {
-        //            eventLoop.flatten(<#T##futures: [EventLoopFuture<T>]##[EventLoopFuture<T>]#>)
-        //            application.fileio.openFile(path: info.path, mode: .read, eventLoop: eventLoop).flatMap { handler in
-        //                application.fileio
-        //                    .read(fileHandle: handler, byteCount: info.readableBytes, allocator: ByteBufferAllocator(), eventLoop: eventLoop)
-        //                    .ma
-        //                    .flatMapThrowing { buffer -> File in
-        //                        try handler.close()
-        //                        return File(data: buffer, filename: fileName)
-        //                    }
-        //            }
-        //        }
-        
     }
 }

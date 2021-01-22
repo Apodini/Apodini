@@ -67,4 +67,6 @@ public struct File: Codable {
     }
 }
 
+extension File: Equatable {}
+
 extension File: ResponseTransformable {}
