@@ -19,6 +19,7 @@ jobs:
     name: macOS ${{ matrix.configuration }} Test TestWebService
     runs-on: macos-latest
     strategy:
+      fail-fast: false
       matrix:
         configuration: [debug, release]
     steps:
@@ -38,6 +39,7 @@ jobs:
       image: swift:${{ matrix.linux }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         linux: [bionic, xenial, focal]
         configuration: [debug, release]
