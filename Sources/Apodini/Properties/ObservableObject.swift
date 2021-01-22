@@ -1,6 +1,16 @@
-/// Objects that notify subscribers when `@Published` properties change.
+/// An object that publishes changes of `@Published` properties.
+/// `ObservableObject`s are used with the property wrapper `@ObservedObject` inside of `Handler`s or `Job`s to re-evaluate them.
 ///
-/// Refer to the documentation of
-/// [ObservedObject](https://github.com/Apodini/Apodini/blob/develop/Documentation/Communicational%20Patterns/2.%20Tooling/2.4.%20ObservedObject.md)
-/// for more information.
+/// Example of an `ObservableObject` with two `@Published` properties.
+/// ```
+/// class Bird: ObservableObject {
+///     @Published var name: String
+///     @Published var age: Int
+///
+///     init(name: String, age: Int) {
+///         self.name = name
+///         self.age = age
+///     }
+/// }
+/// ```
 public protocol ObservableObject {}

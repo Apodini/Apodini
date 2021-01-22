@@ -1,10 +1,10 @@
 import Foundation
 
-/// Property wrapper that subscribes to an `ObservableObject` and evaluates a `Handler` or `Job` on changes.
+/// Property wrapper used inside of a `Handler` or `Job` that subscribes to an `ObservableObject`.
+/// Changes of `@Published` properties of the `ObservableObject` will cause re-evaluations of the `Handler` or `Job`.
+/// `ObservableObject`s can either be passed to the property wrapper as instances or in form of key paths from the environment.
 ///
-/// Refer to the documentation of
-/// [ObservedObject](https://github.com/Apodini/Apodini/blob/develop/Documentation/Communicational%20Patterns/2.%20Tooling/2.4.%20ObservedObject.md)
-/// for more information.
+/// This is helpful for service-side streams or bidirectional communication.
 @propertyWrapper
 public struct ObservedObject<Element: ObservableObject>: Property {
     private var objectIdentifer: ObjectIdentifier?
