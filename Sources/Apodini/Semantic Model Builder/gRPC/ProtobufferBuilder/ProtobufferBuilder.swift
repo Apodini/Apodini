@@ -15,8 +15,8 @@ class ProtobufferBuilder {
     private(set) var services: Set<ProtobufferService> = .init()
     
     func analyze<H: Handler>(endpoint: Endpoint<H>) throws {
-        let serviceName = endpoint.serviceName
-        let methodName = endpoint.methodName
+        let serviceName = gRPCServiceName(from: endpoint)
+        let methodName = gRPCMethodName(from: endpoint)
         
         let inputNode = try ProtobufferMessage.node(H.self)
             .with(uniqueNumberPreferences: endpoint.parameters.map {

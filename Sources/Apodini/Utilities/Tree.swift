@@ -4,8 +4,10 @@
 
 // MARK: - Tree
 
-// swiftlint:disable:next syntactic_sugar
+// swiftlint:disable syntactic_sugar
+/// `Tree.none` is to `Node`, what `[]` is to `Array` or `Set`.
 typealias Tree<T> = Optional<Node<T>>
+// swiftlint:enable syntactic_sugar
 
 extension Tree {
     var isEmpty: Bool {
@@ -15,12 +17,21 @@ extension Tree {
 
 // MARK: - Node
 
+/// `Node` is a wrapper that enables values to be structured in a tree.
 struct Node<T> {
     let value: T
     let children: [Node<T>]
 }
 
 extension Node {
+    /// Initializes an instance of `Node`.
+    ///
+    /// Initialize a `Node` tree from a data structure that already resembles a tree.
+    ///
+    /// - Parameters:
+    ///   - root: The value of the root node.
+    ///   - getChildren: Get node values for a parent's children, recursively.
+    /// - Throws: Rethrows any error of `getChildren`
     init(root: T, _ getChildren: (T) throws -> [T]) rethrows {
         let children = try getChildren(root)
             .map {
@@ -32,9 +43,7 @@ extension Node {
 }
 
 extension Node {
-    func map<U>(
-        _ transform: (T) throws -> U
-    ) rethrows -> Node<U> {
+    func map<U>(_ transform: (T) throws -> U) rethrows -> Node<U> {
         let value = try transform(self.value)
         let children = try self.children.compactMap { child in
             try child.map(transform)
@@ -43,9 +52,7 @@ extension Node {
         return Node<U>(value: value, children: children)
     }
 
-    func compactMap<U>(
-        _ transform: (T) throws -> U?
-    ) rethrows -> Tree<U> {
+    func compactMap<U>(_ transform: (T) throws -> U?) rethrows -> Tree<U> {
         guard let value = try transform(self.value) else {
             return nil
         }
@@ -56,12 +63,8 @@ extension Node {
 
         return Node<U>(value: value, children: children)
     }
-}
-
-extension Node {
-    func filter(
-        _ isIncluded: (T) throws -> Bool
-    ) rethrows -> Tree<T> {
+    
+    func filter(_ isIncluded: (T) throws -> Bool) rethrows -> Tree<T> {
         guard try isIncluded(self.value) else {
             return nil
         }
@@ -73,9 +76,7 @@ extension Node {
         return Node(value: value, children: children)
     }
 
-    func contains(
-        where predicate: (T) throws -> Bool
-    ) rethrows -> Bool {
+    func contains(where predicate: (T) throws -> Bool) rethrows -> Bool {
         guard try !predicate(value) else {
             return true
         }
@@ -84,9 +85,7 @@ extension Node {
             try child.contains(where: predicate)
         }
     }
-}
-
-extension Node {
+    
     func reduce<Result>(
         _ initialResult: Result,
         _ nextPartialResult: ([Result], T) throws -> Result
@@ -104,9 +103,16 @@ extension Node {
 }
 
 extension Node {
-    func edited(
-        _ transform: (Node<T>) throws -> Tree<T>
-    ) rethrows -> Tree<T> {
+    /// Returns a tree edited by `transform`. Allows to modify the node freely with the information
+    /// of a node and its children, but not the parent.
+    ///
+    /// Editing is performed from the root to the leafs. If a child is removed in the step of its
+    /// parent, `transform` is no longer called with the child.
+    ///
+    /// - Parameter transform: A closure that accepts a node as its argument and returns a tree. A
+    /// return value of `Tree.none` or `nil` is pruned from the tree.
+    /// - Returns: A tree of the non-nil results of calling `transform` with each value of the node.
+    func edited(_ transform: (Node<T>) throws -> Tree<T>) rethrows -> Tree<T> {
         guard let intermediate = try transform(self) else {
             return nil
         }
@@ -117,14 +123,17 @@ extension Node {
 
         return Node(value: intermediate.value, children: children)
     }
-}
-
-extension Node {
-    func contextMap<U>(
-        _ transform: (Node<T>) throws -> U
-    ) rethrows -> Node<U> {
+    
+    /// Returns a node containing the results of mapping the given closure over the node’s values.
+    ///
+    /// The exact arrangement of the node and its children is preserved.
+    ///
+    /// - Parameter transform: A mapping closure. `transform` accepts the node with all of its
+    /// children as its parameter and returns a transformed value of the same or of a different type.
+    /// - Returns: A node containing the transformed values of this node.
+    func contextMap<U>(_ transform: (Node<T>) throws -> U) rethrows -> Node<U> {
         let value = try transform(self)
-        let children = try self.children.compactMap { child in
+        let children = try self.children.map { child in
             try child.contextMap(transform)
         }
 
@@ -151,5 +160,28 @@ extension Node {
             }
             return set
         }
+    }
+}
+
+// MARK: Node + CustomStringConvertible
+
+extension Node: CustomStringConvertible where T: CustomStringConvertible {
+    private var lines: [Substring] {
+        let children = self.children
+            .map { child in
+                child.lines
+                    .enumerated()
+                    .map { index, substring -> Substring in
+                        let prefix: Substring = index == 0 ? "→ " : "  "
+                        return prefix + substring
+                    }
+            }
+            .flatMap { $0 }
+        
+        return value.description.split(separator: "\n") + children
+    }
+    
+    var description: String {
+        lines.joined(separator: "\n")
     }
 }
