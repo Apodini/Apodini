@@ -1,11 +1,12 @@
 //
-//  File.swift
-//
-//
 //  Created by Nityananda on 26.11.20.
 //
 
 @_implementationOnly import Runtime
+
+struct ProtobufferBuilderError: Error {
+    let message: String
+}
 
 /// ProtobufferBuilder builds `.proto` files.
 ///
