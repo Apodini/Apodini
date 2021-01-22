@@ -69,7 +69,7 @@ extension Collection {
 // MARK: Other
 
 
-func throwIfPosixError(_ posixErrno: Int32) throws {
+public func throwIfPosixError(_ posixErrno: Int32) throws {
     guard posixErrno != 0 else { return }
     throw NSError(domain: NSPOSIXErrorDomain, code: Int(posixErrno), userInfo: [
         NSLocalizedDescriptionKey: getErrnoString() ?? ""

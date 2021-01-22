@@ -210,6 +210,9 @@ class AWSDeploymentStuff { // needs a better name
             let launchInfoFileUrl = lambdaPackageTmpDir.appendingPathComponent("launchInfo.json", isDirectory: false)
             logger.notice("- adding launchInfo.json")
             try deploymentStructure.withCurrentInstanceNodeId(node.id).writeTo(url: launchInfoFileUrl)
+            try launchInfoFileUrl.path.withCString {
+                try throwIfPosixError(chmod($0, 0o644)) // rw-r--r--
+            }
             
             do {
                 // create & add bootstrap file
@@ -221,12 +224,20 @@ class AWSDeploymentStuff { // needs a better name
                 let bootstrapFileUrl = lambdaPackageTmpDir.appendingPathComponent("bootstrap", isDirectory: false)
                 try bootstrapFileContents.write(to: bootstrapFileUrl, atomically: true, encoding: .utf8)
                 
-                try Task(
-                    executableUrl: chmodBin,
-                    arguments: ["+x", bootstrapFileUrl.path],
-                    captureOutput: false,
-                    launchInCurrentProcessGroup: true
-                ).launchSyncAndAssertSuccess()
+                try bootstrapFileUrl.path.withCString {
+                    try throwIfPosixError(chmod($0, 0o755)) // rwxrwxr-x
+                }
+                
+//                try Task(
+//                    executableUrl: chmodBin,
+//                    arguments: ["+x", bootstrapFileUrl.path],
+//                    captureOutput: false,
+//                    launchInCurrentProcessGroup: true
+//                ).launchSyncAndAssertSuccess()
+                
+                //try throwIfPosixError(bootstrapFileUrl.path.withCString { chmod($0, 0o755) })
+                
+                //chmod(<#T##UnsafePointer<Int8>!#>, <#T##mode_t#>)
             }
             
             logger.notice("zipping lambda package")
@@ -241,55 +252,50 @@ class AWSDeploymentStuff { // needs a better name
             
             logger.notice("uploading lambda package to S3")
             
-            //let s3ObjectKey = [s3ObjectFolderKey, lambdaExecutableUrl.lastPathComponent].joined(separator: "/")
-            let s3ObjectKey = "/\(s3ObjectFolderKey)/\(lambdaExecutableUrl.lastPathComponent).zip"
+            let s3ObjectKey = "\(s3ObjectFolderKey.trimmingCharacters(in: CharacterSet(charactersIn: "/")))/\(lambdaExecutableUrl.lastPathComponent).zip"
             
             try Task(
                 executableUrl: awsCliBin,
-                //arguments: ["s3", "cp", ""],
                 arguments: [
                     "--profile", awsProfileName,
                     "s3", "cp",
                     "\(lambdaPackageTmpDir.path)/\(zipFilename)",
-                    //"s3://\(s3BucketName)/\(s3ObjectFolderKey)/\(lambdaExecutableUrl.lastPathComponent).zip"
                     "s3://\(s3BucketName)/\(s3ObjectKey)"
                 ],
                 captureOutput: false,
                 launchInCurrentProcessGroup: true
             ).launchSyncAndAssertSuccess()
             
-            //let launchConfig = try deploymentStructure.withCurrentInstanceNodeId(node.id).writeTo(url: <#T##URL#>)
             
+            let functionConfig: Lambda.FunctionConfiguration = try { [unowned self] in
+                if let function = allFunctions.first(where: { $0.functionName == lambdaName }) {
+                    logger.notice("Found existing lambda function w/ matching name. Updating code")
+                    let updateCodeRequest = Lambda.UpdateFunctionCodeRequest(
+                        functionName: function.functionName!,
+                        s3Bucket: s3BucketName,
+                        s3Key: s3ObjectKey
+                    )
+                    return try lambda.updateFunctionCode(updateCodeRequest).wait()
+                } else {
+                    logger.notice("Creating new lambda function \(s3BucketName) \(s3ObjectKey)")
+                    let createFunctionRequest = Lambda.CreateFunctionRequest(
+                        code: .init(s3Bucket: s3BucketName, s3Key: s3ObjectKey),
+                        description: "Apodini-created lambda function",
+                        environment: nil, //.init(variables: [String : String]?.none), // TODO?
+                        functionName: lambdaName,
+                        handler: "apodini.main", // doesn;t actually matter
+                        memorySize: nil, // TODO
+                        packageType: .zip,
+                        publish: true,
+                        role: executionRole.arn,
+                        runtime: .providedAl2,
+                        tags: nil, // [String : String]?.none,
+                        timeout: nil // default is 3?
+                    )
+                    return try lambda.createFunction(createFunctionRequest).wait()
+                }
+            }()
             
-            let functionConfig: Lambda.FunctionConfiguration
-            
-            if let function = allFunctions.first(where: { $0.functionName == lambdaName }) {
-                logger.notice("Found existing lambda function w/ matching name. Updating code")
-                let updateCodeRequest = Lambda.UpdateFunctionCodeRequest(
-                    functionName: function.functionName!,
-                    s3Bucket: s3BucketName,
-                    s3Key: s3ObjectKey
-                )
-                functionConfig = try lambda.updateFunctionCode(updateCodeRequest).wait()
-            } else {
-                logger.notice("Creating new lambda function")
-                let createFunctionRequest = Lambda.CreateFunctionRequest(
-                    code: .init(s3Bucket: s3BucketName, s3Key: s3ObjectKey),
-                    description: "Apodini-created lambda function",
-                    environment: nil, //.init(variables: [String : String]?.none), // TODO?
-                    functionName: lambdaName,
-                    handler: "apodini.main", // doesn;t actually matter
-                    memorySize: nil, // TODO
-                    packageType: .zip,
-                    publish: true,
-                    role: executionRole.arn,
-                    runtime: .providedAl2,
-                    tags: nil, // [String : String]?.none,
-                    timeout: nil // default is 3?
-                )
-                functionConfig = try lambda.createFunction(createFunctionRequest).wait()
-                logger.notice("functionConfig: \(functionConfig)")
-            }
             
             nodeToLambdaFunctionMapping[node.id] = functionConfig
             

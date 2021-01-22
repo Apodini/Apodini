@@ -184,7 +184,13 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
         let imageName = "apodini-lambda-builder"
         let task = Task(
             executableUrl: dockerBin,
-            arguments: ["build", "-t", imageName, "."],
+            arguments: [
+                "build", "-t", imageName,
+                "--build-arg", "USER_ID=\(getuid())",
+                "--build-arg", "GROUP_ID=\(getuid())",
+                "--build-arg", "USERNAME=\(NSUserName())",
+                "."
+            ],
             captureOutput: false,
             launchInCurrentProcessGroup: true
         )

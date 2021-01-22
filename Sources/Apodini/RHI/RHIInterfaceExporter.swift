@@ -121,6 +121,8 @@ extension RHIInterfaceExporter {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
         let data = try encoder.encode(webServiceStructure)
+        print("writing encoded webServiceStructure to \(outputUrl)")
         try data.write(to: outputUrl)
+        print("write.success")
     }
 }
