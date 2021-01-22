@@ -5,7 +5,6 @@ import XCTest
 
 final class DirectoriesTests: ApodiniTests {
     func testDirectories() {
-        
         let directory = Environment(\.directory).wrappedValue
         
         let publicDir: Directories = .public
