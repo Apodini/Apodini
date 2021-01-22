@@ -4,24 +4,13 @@
 
 @_implementationOnly import class Vapor.Application
 
-extension Never: ExporterRequest {}
-
-class ProtobufferInterfaceExporter: InterfaceExporter {
-    typealias ExporterRequest = Never
-
-    let app: Application
-    let vaporApp: Vapor.Application
+class ProtobufferInterfaceExporter: StaticInterfaceExporter {
+    private let app: Application
     private let builder: ProtobufferBuilder
     
     required init(_ app: Application) {
         self.app = app
-        self.vaporApp = app.vapor.app
-
         self.builder = ProtobufferBuilder()
-        
-        self.vaporApp.get("apodini", "proto") { _ in
-            self.builder.description
-        }
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
@@ -32,7 +21,11 @@ class ProtobufferInterfaceExporter: InterfaceExporter {
         }
     }
     
-    func retrieveParameter<Type>(_ parameter: EndpointParameter<Type>, for request: Never) throws -> Type?? where Type: Decodable, Type: Encodable {
-        nil
+    func finishedExporting(_ webService: WebServiceModel) {
+        let description = builder.description
+        
+        app.vapor.app.get("apodini", "proto") { _ in
+            description
+        }
     }
 }
