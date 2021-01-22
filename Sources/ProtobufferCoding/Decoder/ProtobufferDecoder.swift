@@ -1,5 +1,5 @@
 //
-//  ProtoDecoder.swift
+//  ProtobufferDecoder.swift
 //
 //
 //  Created by Moritz Schüll on 18.11.20.
@@ -136,7 +136,7 @@ internal class InternalProtoDecoder: Decoder {
 
 /// Decoder for Protobuffer data.
 /// Coforms to `TopLevelDecoder` from `Combine`, however this is currently ommitted due to compatibility issues.
-public class ProtoDecoder {
+public class ProtobufferDecoder {
     /// Init new decoder instance
     public init() {}
 
