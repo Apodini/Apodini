@@ -24,7 +24,7 @@ public struct DownloadConfiguration {
     
     /// An internal function to retrieve the file info. It looks for a file under the fiven name in the `Directories` specified in the initializer.
     /// It returns a `FileInfo` containing the readable bytes of the file as well as the path to it.
-    internal func retrieveFileInfo(_ fileName: String, in directory: Directory) throws -> FileInfo? {
+    internal func retrieveFileInfo(_ fileName: String, in directory: Directory) throws -> FileInfo {
         let fileManager = FileManager.default
         let searchableDirectories: [String] = directories.map { $0.path(for: directory) }
         
@@ -44,7 +44,11 @@ public struct DownloadConfiguration {
                 }
             }
         }
-        return nil
+        throw DecodingError.valueNotFound(
+            FileInfo.self,
+            DecodingError.Context(codingPath: [], debugDescription: "Failed to retrieve the info for the file named \(fileName)." +
+                                        "Possible issues: File was not found under \(directories.debugDescription)")
+        )
     }
     
     /// An internal function to retrieve the file infos for the given filename or extension. It looks for all file under the fiven name in the `Directories` specified in the initializer.

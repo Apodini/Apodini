@@ -31,9 +31,7 @@ public struct SingleDownloader: Handler {
     }
     
     public func handle() throws -> EventLoopFuture<File> {
-        guard let info = try config.retrieveFileInfo(fileName, in: directory) else {
-            throw NSError()
-        }
+        let info = try config.retrieveFileInfo(fileName, in: directory)
         return fileio
             .openFile(path: info.path, mode: .read, eventLoop: eventLoopGroup.next())
             .flatMap { handler in
