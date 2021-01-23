@@ -19,8 +19,7 @@ The `webservice.proto` declaration shall be used to create a gRPC client that ca
 
 We will look into some examples of how `Apodini.ProtobufferInterfaceExporter` translates `Apodini.Handler`s into protocol buffer `Service`s and `Message`s.
 
-
-The following example would result in a service with name `v1greet` and a single RPC method called `greeter`:
+The following example results in a service with name `V1Greeter` and a single RPC method called `greeter`:
 
 ```swift
 var content: some Component {
@@ -29,15 +28,34 @@ var content: some Component {
     }
 }
 ```
-
-Exported description of the gRPC service:
-
+becomes
 ```proto
-service v1greet {
+service V1GreeterService {
     rpc greeter(/**/) returns (/**/);
 }
 ```
 
+### Parameters
+
+All `@Parameters` are dealt with in the same way for gRPC.
+In gRPC the only way a handler can receive parameters is via the message payload.
+This means all parameters will be decoded from the message payload, no matter of which type (`.body`, `.path`, ...) a `@Parameter` is .
+
+```swift
+struct Greeter: Handler {
+    @Parameter var name: String
+
+    func handle() -> String {
+        "Hello \(name)"
+    }
+}
+```
+becomes
+```proto
+message GreeterMessage {
+    string name = 1;
+}
+```
 
 ## Options
 
