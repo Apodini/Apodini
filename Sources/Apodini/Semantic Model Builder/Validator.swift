@@ -6,9 +6,8 @@
 //
 
 import Foundation
+import NIO
 @_implementationOnly import AssociatedTypeRequirementsVisitor
-@_implementationOnly import Vapor
-@_implementationOnly import Fluent
 
 // MARK: Protocols
 
@@ -145,17 +144,7 @@ private class RepresentativeBuilder<I: InterfaceExporter>: EndpointParameterVisi
 
 // MARK: Parameter Validation
 
-#warning("Create PROPER Apodini defined error.")
-enum InputValidationError: ValidationError {
-    case some(String)
-    
-    var localizedDescription: String {
-        switch self {
-        case .some(let message):
-            return message
-        }
-    }
-}
+extension ApodiniError: ValidationError { }
 
 extension ParameterRepresentative: Validator {
     typealias Exporter = E
@@ -188,11 +177,14 @@ extension ParameterRepresentative: Validator {
 private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
     let definition: EndpointParameter<Type>
     
+    let defaultValue: Type?
+    
     let exporter: E
     
     init(definition: EndpointParameter<Type>, exporter: E) {
         self.definition = definition
         self.exporter = exporter
+        self.defaultValue = definition.defaultValue?()
     }
     
     private var _initialValueBackup: Type??
@@ -206,7 +198,7 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
             
             switch definition.necessity {
             case .required:
-                throw InputValidationError.some("Didn't retrieve any parameters for a required '\(definition.description)'.")
+                throw ApodiniError(type: .badInput, reason: "Didn't retrieve any parameters for a required '\(definition.description)'.")
             case .optional:
                 break
             }
@@ -216,17 +208,17 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
     func checkNullability(of value: Type??) throws -> Any {
         if let retrievedValue = value {
             if retrievedValue == nil && !definition.nilIsValidValue {
-                throw InputValidationError.some("Parameter retrieval returned explicit nil, though explicit nil is not valid for the '\(definition.description)'")
+                throw ApodiniError(type: .badInput, reason: "Parameter retrieval returned explicit nil, though explicit nil is not valid for the '\(definition.description)'.")
             }
         }
         
         if definition.nilIsValidValue {
             // return type must be an `Optional<Type>`
-            let result: Type? = value ?? definition.defaultValue
+            let result: Type? = value ?? defaultValue
             return result as Any
         } else {
             // return type must be just `Type`
-            guard let unwrappedValue = (value ?? definition.defaultValue) else {
+            guard let unwrappedValue = (value ?? defaultValue) else {
                 fatalError("Could not unwrap opiontal value for \(definition.description) even though it is not an optional. This should have been detected by 'checkNecessity'.")
             }
             let result: Type = unwrappedValue
@@ -242,7 +234,7 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
             case .constant:
                 if let initialValue = self.initialValue {
                     if !unsafeEqual(first: initialValue as Any, second: retrievedValue as Any) {
-                        throw InputValidationError.some("Parameter retrieval returned value for constant '\(definition.description)' even though its value has already been defined.")
+                        throw ApodiniError(type: .badInput, reason: "Parameter retrieval returned value for constant '\(definition.description)' even though its value has already been defined.")
                     }
                 } else {
                     self.initialValue = retrievedValue
@@ -250,7 +242,7 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
             case .variable:
                 break
             }
-        } else if let defaultValue = self.definition.defaultValue {
+        } else if let defaultValue = self.defaultValue {
             self.initialValue = defaultValue
         }
     }

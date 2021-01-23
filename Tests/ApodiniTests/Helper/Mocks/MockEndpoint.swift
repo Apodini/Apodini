@@ -11,27 +11,17 @@ extension Handler {
     /// - Note: This endpoint's identifier is not guaranteed to be stable
     func mockEndpoint(
             context: Context = Context(contextNode: ContextNode()),
-            operation: Operation = .automatic,
+            operation: Operation? = nil,
             guards: [LazyGuard] = [],
-            responseTransformers: [() -> (AnyResponseTransformer)] = []
+            responseTransformers: [LazyAnyResponseTransformer] = []
     ) -> Endpoint<Self> {
-        let parameterBuilder = ParameterBuilder(from: self)
-        parameterBuilder.build()
-        return Endpoint(
+        Endpoint(
             identifier: self.getExplicitlySpecifiedIdentifier() ?? AnyHandlerIdentifier(UUID().uuidString),
             handler: self,
             context: context,
             operation: operation,
             guards: guards,
-            responseTransformers: responseTransformers,
-            parameters: parameterBuilder.parameters
+            responseTransformers: responseTransformers
         )
-    }
-
-    func mockEndpoint(context: Context) -> Endpoint<Self> {
-        mockEndpoint(context: context,
-                     operation: .automatic,
-                     guards: [],
-                     responseTransformers: [])
     }
 }

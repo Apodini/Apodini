@@ -1,14 +1,14 @@
-import class Vapor.Application
-import struct Vapor.Environment
 import Fluent
-import FluentSQLiteDriver
-import FluentMySQLDriver
-import FluentPostgresDriver
+@_implementationOnly import struct Vapor.Environment
+@_implementationOnly import FluentSQLiteDriver
+@_implementationOnly import FluentMySQLDriver
+@_implementationOnly import FluentPostgresDriver
+@_implementationOnly import FluentMongoDriver
 
 /// A `Configuration` used for Database Access
 public final class DatabaseConfiguration: Configuration {
     private let type: DatabaseType
-    private var migrations: [Migration] = []
+    private(set) var migrations: [Migration] = []
     private var connectionString: String = Vapor.Environment.get("DATABASE_URL") ?? ""
     public var databaseID: DatabaseID {
         switch type {
@@ -52,11 +52,6 @@ public final class DatabaseConfiguration: Configuration {
     ///     - migrations: One or more `Migration` objects that should be migrated by the database
     public func addMigrations(_ migrations: Migration...) -> Self {
         self.migrations.append(contentsOf: migrations)
-        return self
-    }
-    
-    public func addNotifications() -> Self {
-        self.migrations.append(DeviceMigration())
         return self
     }
     
@@ -129,7 +124,7 @@ public enum DatabaseType {
 }
 
 /// An extension to the `Fluent.SQLiteConfiguration` to enable an initialization with an `Apodini.SQLiteConfig`.
-public extension SQLiteConfiguration {
+extension SQLiteConfiguration {
     /// Enables an initialization of `SQLiteConfiguration` with an `Apodini.SQLiteConfig` object.
     ///
     /// - Parameters:

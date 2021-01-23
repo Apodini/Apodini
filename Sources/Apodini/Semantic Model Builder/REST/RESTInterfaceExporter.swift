@@ -7,34 +7,24 @@ import Foundation
 
 struct RESTPathBuilder: PathBuilder {
     private var pathComponents: [Vapor.PathComponent] = []
-
-
+    private var pathString: [String] = []
     fileprivate var pathDescription: String {
-        pathComponents
-                .map { pathComponent in
-                    pathComponent.description
-                }
-                .joined(separator: "/")
+        pathString.joined(separator: "/")
     }
-
-
-    init(_ pathComponents: [PathComponent]) {
-        for pathComponent in pathComponents {
-            if let pathComponent = pathComponent as? _PathComponent {
-                pathComponent.append(to: &self)
-            }
-        }
-    }
-
 
     mutating func append(_ string: String) {
         let pathComponent = string.lowercased()
         pathComponents.append(.constant(pathComponent))
+        pathString.append(pathComponent)
     }
 
-    mutating func append<T>(_ parameter: Parameter<T>) {
-        let pathComponent = parameter.description
-        pathComponents.append(.parameter(pathComponent))
+    mutating func root() {
+        pathString.append("")
+    }
+
+    mutating func append<Type>(_ parameter: EndpointPathParameter<Type>) {
+        pathComponents.append(.parameter(parameter.pathId))
+        pathString.append("{\(parameter.name)}")
     }
 
     func routesBuilder(_ app: Vapor.Application) -> Vapor.RoutesBuilder {
@@ -45,8 +35,6 @@ struct RESTPathBuilder: PathBuilder {
 extension Operation {
     var httpMethod: Vapor.HTTPMethod {
         switch self {
-        case .automatic: // a future implementation will have some sort of inference algorithm
-            return .GET // for now we just use the default GET http method
         case .create:
             return .POST
         case .read:
@@ -59,29 +47,68 @@ extension Operation {
     }
 }
 
-class RESTInterfaceExporter: InterfaceExporter {
-    let app: Application
+struct RESTConfiguration {
+    let configuration: HTTPServer.Configuration
+    let bindAddress: BindAddress
+    let uriPrefix: String
 
-    required init(_ app: Application) {
-        self.app = app
+    init(_ configuration: HTTPServer.Configuration) {
+        self.configuration = configuration
+        self.bindAddress = configuration.address
+
+        switch bindAddress {
+        case .hostname:
+            let httpProtocol: String
+            var port = ""
+
+            if configuration.tlsConfiguration == nil {
+                httpProtocol = "http://"
+                if configuration.port != 80 {
+                    port = ":\(configuration.port)"
+                }
+            } else {
+                httpProtocol = "https://"
+                if configuration.port != 443 {
+                    port = ":\(configuration.port)"
+                }
+            }
+
+            self.uriPrefix = httpProtocol + configuration.hostname + port
+        case let .unixDomainSocket(path):
+            self.uriPrefix = path
+        }
+    }
+}
+
+class RESTInterfaceExporter: InterfaceExporter {
+    static let parameterNamespace: [ParameterNamespace] = .individual
+
+    let app: Vapor.Application
+    let configuration: RESTConfiguration
+
+    required init(_ app: Apodini.Application) {
+        self.app = app.vapor.app
+        self.configuration = RESTConfiguration(app.vapor.app.http.server.configuration)
     }
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        let pathBuilder = RESTPathBuilder(endpoint.absolutePath)
+        var pathBuilder = RESTPathBuilder()
+        endpoint.absolutePath.build(with: &pathBuilder)
+
         let routesBuilder = pathBuilder.routesBuilder(app)
 
         let operation = endpoint.operation
 
         let exportedParameterNames = endpoint.exportParameters(on: self)
 
-        let endpointHandler = RESTEndpointHandler(for: endpoint, with: endpoint.createConnectionContext(for: self))
+        let endpointHandler = RESTEndpointHandler(for: endpoint, using: { endpoint.createConnectionContext(for: self) }, configuration: configuration)
         endpointHandler.register(at: routesBuilder, with: operation)
 
         app.logger.info("Exported '\(operation.httpMethod.rawValue) \(pathBuilder.pathDescription)' with parameters: \(exportedParameterNames)")
 
         for relationship in endpoint.relationships {
             let path = relationship.destinationPath
-            app.logger.info("  - links to: \(StringPathBuilder(path).build())")
+            app.logger.info("  - links to: \(path.asPathString())")
         }
     }
 
@@ -98,7 +125,7 @@ class RESTInterfaceExporter: InterfaceExporter {
             for relationship in webService.relationships {
                 app.logger.info("Auto exported '\(HTTPMethod.GET.rawValue) /'")
                 let path = relationship.destinationPath
-                app.logger.info("  - links to: \(StringPathBuilder(path).build())")
+                app.logger.info("  - links to: \(path.asPathString())")
             }
         }
     }
@@ -108,7 +135,6 @@ class RESTInterfaceExporter: InterfaceExporter {
         case .lightweight:
             // Note: Vapor also supports decoding into a struct which holds all query parameters. Though we have the requirement,
             //   that .lightweight parameter types conform to LosslessStringConvertible, meaning our DSL doesn't allow for that right now
-
             guard let query = request.query[Type.self, at: parameter.name] else {
                 return nil // the query parameter doesn't exists
             }
@@ -135,14 +161,7 @@ class RESTInterfaceExporter: InterfaceExporter {
                 // If the request doesn't have a body, there is nothing to decide.
                 return nil
             }
-
-            #warning("""
-                     A Handler could define multiple .content Parameters. In such a case the REST exporter would
-                     need to decode the content via a struct containing those .content parameters as properties.
-                     This is currently unsupported.
-                     """)
-
-            return try request.content.decode(Type.self, using: JSONDecoder())
+            return try? request.content.decode(Type.self, using: JSONDecoder())
         }
     }
 }

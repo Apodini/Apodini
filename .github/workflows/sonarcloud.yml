@@ -1,0 +1,40 @@
+name: Sonarcloud
+on:
+  push:
+    branches:
+      - develop
+      - release
+  pull_request:
+    branches:
+      - develop
+      - release
+jobs:
+  sonarcloud:
+    name: SonarCloud
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: maxim-lobanov/setup-xcode@v1.1
+        with:
+          xcode-version: latest
+      - name: Install sonar-scanner
+        run: brew install sonar-scanner
+      - uses: actions/cache@v2
+        with:
+          path: .build
+          key: ${{ runner.os }}-spm-cachev2-${{ hashFiles('**/Package.resolved') }}
+      - name: Check Xcode version
+        run: xcodebuild -version
+      - name: Check Swift version
+        run: swift --version
+      - name: Build & Test
+        run: swift test --enable-code-coverage
+      - name: Convert coverage report
+        run: xcrun llvm-cov show .build/debug/ApodiniPackageTests.xctest/Contents/MacOS/ApodiniPackageTests -instr-profile .build/debug/codecov/default.profdata > coverate.info
+      - name: Run SwiftLint
+        run: swiftlint lint --reporter json > swiftlint.json
+      - name: Run Sonar-Scan
+        run: sonar-scanner
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

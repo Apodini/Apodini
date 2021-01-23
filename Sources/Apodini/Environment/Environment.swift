@@ -20,7 +20,7 @@ public struct EnvironmentValues {
     /// Initializer of `EnvironmentValues`.
     init() { }
 
-    /// Accesses the environment value associated with a custom key.
+    /// Accesses the environment value associated with a custom key conforming to `EnvironmentKey`.
     public subscript<K>(key: K.Type) -> K.Value where K: EnvironmentKey {
         get {
             if let value = values[ObjectIdentifier(key)] as? K.Value {
@@ -31,6 +31,14 @@ public struct EnvironmentValues {
         set {
             values[ObjectIdentifier(key)] = newValue
         }
+    }
+    
+    /// Accesses the environment value associated with a custom key of type Application.
+    public subscript<T>(keyPath: KeyPath<Application, T>) -> T {
+        if let app = values[ObjectIdentifier(Application.Type.self)] as? Application {
+            return app[keyPath: keyPath]
+        }
+        fatalError("Key path not found. The web service wasn't setup correctly")
     }
     
     /// Accesses the environment value associated with a custom key.
@@ -44,7 +52,7 @@ public struct EnvironmentValues {
 
 /// A property wrapper to inject pre-defined values  to a `Component`.
 @propertyWrapper
-public struct Environment<K: ApodiniKeys, Value>: Property {
+public struct Environment<K: KeyChain, Value>: Property {
     /// Keypath to access an `EnvironmentValue`.
     internal var keyPath: KeyPath<K, Value>
     internal var dynamicValues: [KeyPath<K, Value>: Any] = [:]
@@ -54,7 +62,12 @@ public struct Environment<K: ApodiniKeys, Value>: Property {
         self.keyPath = keyPath
     }
     
-    /// Initializer of `Environment` for key paths conforming to `ApodiniKeys`.
+    /// Initializer of `Environment` specifically for `Application` for less verbose syntax.
+    public init(_ keyPath: KeyPath<K, Value>) where K == Application {
+        self.keyPath = keyPath
+    }
+    
+    /// Initializer of `Environment` for key paths conforming to `KeyChain`.
     public init(_ keyPath: KeyPath<K, Value>) {
         self.keyPath = keyPath
     }
@@ -67,6 +80,9 @@ public struct Environment<K: ApodiniKeys, Value>: Property {
         if let key = keyPath as? KeyPath<EnvironmentValues, Value> {
             return EnvironmentValues.shared[keyPath: key]
         }
+        if let key = keyPath as? KeyPath<Application, Value> {
+            return EnvironmentValues.shared[key]
+        }
         return EnvironmentValues.shared[keyPath]
     }
 
@@ -76,7 +92,19 @@ public struct Environment<K: ApodiniKeys, Value>: Property {
     }
 }
 
-/// A protocol to define key paths that can be used with `@Environment` to retrieve pre-defined objects.
-public protocol ApodiniKeys { }
+/// Helper struct to add objects to `EnvironmentValues`.
+public struct EnvironmentValue<K: KeyChain, Value> {
+    /// Initiliazer of `EnvironmentValue`.
+    /// Adds key path with value to `EnvironmentValues`.
+    @discardableResult
+    public init(_ keyPath: KeyPath<K, Value>, _ value: Value) {
+        EnvironmentValues.shared.values[ObjectIdentifier(keyPath)] = value
+    }
+}
 
-extension EnvironmentValues: ApodiniKeys { }
+/// A protocol to define key paths that can be used with `@Environment` to retrieve pre-defined objects.
+public protocol KeyChain { }
+
+extension EnvironmentValues: KeyChain { }
+
+extension Application: KeyChain { }

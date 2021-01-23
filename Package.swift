@@ -9,7 +9,10 @@ let package = Package(
         .macOS(.v10_15)
     ],
     products: [
-        .library(name: "Apodini", targets: ["Apodini"])
+        .library(name: "Apodini", targets: ["Apodini"]),
+        .library(name: "ApodiniDatabase", targets: ["ApodiniDatabase"]),
+        .library(name: "Notifications", targets: ["Notifications"]),
+        .library(name: "Jobs", targets: ["Jobs"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.35.0"),
@@ -38,16 +41,15 @@ let package = Package(
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
-                .product(name: "APNS", package: "apns"),
-                .product(name: "FCM", package: "FCM"),
                 .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
                 .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime"),
+                .product(name: "APNS", package: "apns"),
+                .product(name: "FCM", package: "FCM"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
-                .product(name: "SwifCron", package: "SwifCron"),
                 .target(name: "WebSocketInfrastructure"),
                 .target(name: "ProtobufferCoding")
             ],
@@ -55,25 +57,37 @@ let package = Package(
                 "Components/ComponentBuilder.swift.gyb"
             ]
         ),
+        .target(
+            name: "ApodiniDatabase",
+            dependencies: [
+                .target(name: "Apodini")
+            ]
+        ),
+        .target(
+            name: "XCTApodini",
+            dependencies: [
+                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
+                .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
+                .target(name: "Apodini")
+            ]
+        ),
         .testTarget(
             name: "ApodiniTests",
             dependencies: [
-                .target(name: "Apodini"),
                 .product(name: "XCTVapor", package: "vapor"),
-                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
-                .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS]))
+                .target(name: "XCTApodini"),
+                .target(name: "ApodiniDatabase")
             ],
             exclude: [
-                "ConfigurationTests/mock_fcm.json",
-                "ConfigurationTests/mock_invalid_fcm.json",
-                "ConfigurationTests/mock.p8",
-                "ConfigurationTests/mock.pem"
+                "ConfigurationTests/Certificates/cert.pem",
+                "ConfigurationTests/Certificates/key.pem"
             ]
         ),
         .target(
             name: "TestWebService",
             dependencies: [
-                .target(name: "Apodini")
+                .target(name: "Apodini"),
+                .target(name: "ApodiniDatabase")
             ]
         ),
         // ProtobufferCoding
@@ -101,6 +115,42 @@ let package = Package(
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")
+            ]
+        ),
+        // Jobs
+        .target(
+            name: "Jobs",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "SwifCron", package: "SwifCron")
+            ]
+        ),
+        .testTarget(
+            name: "JobsTests",
+            dependencies: [
+                .target(name: "Jobs"),
+                .target(name: "XCTApodini")
+            ]
+        ),
+        // Notifications
+        .target(
+            name: "Notifications",
+            dependencies: [
+                .target(name: "Apodini")
+            ]
+        ),
+        .testTarget(
+            name: "NotificationsTests",
+            dependencies: [
+                .product(name: "XCTVapor", package: "vapor"),
+                .target(name: "Notifications"),
+                .target(name: "XCTApodini")
+            ],
+            exclude: [
+                "Helper/mock_fcm.json",
+                "Helper/mock_invalid_fcm.json",
+                "Helper/mock.p8",
+                "Helper/mock.pem"
             ]
         )
     ]

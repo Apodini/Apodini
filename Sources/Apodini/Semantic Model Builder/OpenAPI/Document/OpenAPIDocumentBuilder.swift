@@ -19,7 +19,7 @@ struct OpenAPIDocumentBuilder {
         self.pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &self.componentsObjectBuilder)
     }
 
-    mutating func addEndpoint<C: Component>(_ endpoint: Endpoint<C>) {
+    mutating func addEndpoint<H: Handler>(_ endpoint: Endpoint<H>) {
         pathsObjectBuilder.addPathItem(from: endpoint)
     }
 
@@ -34,11 +34,10 @@ struct OpenAPIDocumentBuilder {
 }
 
 extension OpenAPIDocumentBuilder {
-    var description: String {
-        let encoder = JSONEncoder()
-        guard let json = try? encoder.encode(self.document) else {
-            return ""
-        }
-        return String(data: json, encoding: .utf8)!
+    var jsonDescription: String? {
+        (try? JSONEncoder().encode(self.document))
+            .flatMap { json in
+                String(data: json, encoding: .utf8)
+            }
     }
 }

@@ -2,9 +2,8 @@
 // Created by Andi on 22.11.20.
 //
 
-import class Vapor.Application
+@_implementationOnly import class Vapor.Application
 import protocol NIO.EventLoop
-import protocol FluentKit.Database
 
 /// The Protocol any Exporter Request type must conform to
 protocol ExporterRequest: Reducible {}
@@ -25,6 +24,11 @@ protocol BaseInterfaceExporter {
     associatedtype EndpointExportOutput = Void
     /// Defines the return type of the `exportParameter` method. For more details see `exportParameter(...)`
     associatedtype ParameterExportOutput = Void
+
+    /// This property can be used to define the `ParameterNamespace` for `EndpointParameter`s as allowed by the type of Exporter.
+    /// This property is optional to implement and will default to the most strict namespace `.global`,
+    /// enforcing Parameter names to be unique across all different `ParameterType`s.
+    static var parameterNamespace: [ParameterNamespace] { get }
 
     init(_ app: Application)
 
@@ -85,6 +89,15 @@ protocol InterfaceExporter: BaseInterfaceExporter {
     /// - Throws: Any Apodini Error or any other error happening while decoding.
     func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type??
 }
+
+extension BaseInterfaceExporter {
+    static var parameterNamespace: [ParameterNamespace] {
+        // default namespace (and most strictest namespace)
+        // forces parameter names to be unique across all parameter types
+        .global
+    }
+}
+
 
 // MARK: Interface Exporter Visitor
 extension InterfaceExporter {

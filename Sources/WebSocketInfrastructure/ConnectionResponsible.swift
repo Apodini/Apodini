@@ -16,23 +16,26 @@ class ConnectionResponsible: Identifiable {
     
     let database: Database?
     
+    let logger: Logger
+    
     private let onClose: (ID) -> Void
     
     private var endpoints: [String: ContextOpener]
     
     private var contexts: [UUID: ContextResponsible] = [:]
     
-    init(_ websocket: WebSocket, database: Database?, onClose: @escaping (ID) -> Void, endpoints: [String: ContextOpener]) {
+    init(_ websocket: WebSocket, database: Database?, onClose: @escaping (ID) -> Void, endpoints: [String: ContextOpener], logger: Logger) {
         self.websocket = websocket
         self.database = database
         self.onClose = onClose
         self.endpoints = endpoints
+        self.logger = logger
         
         websocket.onText { _, message in
             var context: UUID?
             
             do {
-                context = try self.processMessage(message: message)
+                try self.processMessage(message: message, retrieving: &context)
             } catch {
                 do {
                     guard let data = String(data: try error.message(on: context).toJSONData(), encoding: .utf8) else {
@@ -41,7 +44,7 @@ class ConnectionResponsible: Identifiable {
                     
                     websocket.send(data)
                 } catch {
-                    print(error)
+                    self.logger.report(error: error)
                 }
             }
         }
@@ -54,7 +57,7 @@ class ConnectionResponsible: Identifiable {
     func send<D: Encodable>(_ message: D, in context: UUID) {
         let encoder = JSONEncoder()
         do {
-            let jsonData = try encoder.encode(ServiceMessage(context: context, content: message))
+            let jsonData = try encoder.encode(EncodableServiceMessage(context: context, content: message))
             
             guard let data = String(data: jsonData, encoding: .utf8) else {
                 throw SerializationError.expectedUTF8
@@ -62,7 +65,22 @@ class ConnectionResponsible: Identifiable {
             
             self.websocket.send(data)
         } catch {
-            print(error)
+            self.logger.report(error: error)
+        }
+    }
+    
+    func send(_ error: Error, in context: UUID) {
+        let encoder = JSONEncoder()
+        do {
+            let jsonData = try encoder.encode(error.message(on: context))
+            
+            guard let data = String(data: jsonData, encoding: .utf8) else {
+                throw SerializationError.expectedUTF8
+            }
+            
+            self.websocket.send(data)
+        } catch {
+            self.logger.report(error: error)
         }
     }
     
@@ -71,12 +89,23 @@ class ConnectionResponsible: Identifiable {
     }
     
     func destruct(_ context: UUID) {
+        let encoder = JSONEncoder()
+        do {
+            let jsonData = try encoder.encode(CloseContextMessage(context: context))
+            
+            guard let data = String(data: jsonData, encoding: .utf8) else {
+                throw SerializationError.expectedUTF8
+            }
+            
+            self.websocket.send(data)
+        } catch {
+            self.logger.report(error: error)
+        }
+        
         self.contexts[context] = nil
     }
     
-    private func processMessage(message: String) throws -> UUID? {
-        var context: UUID?
-        
+    private func processMessage(message: String, retrieving context: inout UUID?) throws {
         guard let data = message.data(using: .utf8) else {
             throw SerializationError.expectedUTF8
         }
@@ -88,14 +117,14 @@ class ConnectionResponsible: Identifiable {
         var errors: [SerializationError] = []
         
         do {
-            context = try self.processOpenMessage(from: rootObject)
+            try self.processOpenMessage(from: rootObject, retrieving: &context)
         } catch {
             try Self.handleSerializationError(error, using: &errors)
         }
         
         if !errors.isEmpty {
             do {
-                context = try self.processClientMessage(from: rootObject, using: data)
+                try self.processClientMessage(from: rootObject, using: data, retrieving: &context)
                 errors = []
             } catch {
                 try Self.handleSerializationError(error, using: &errors)
@@ -104,7 +133,7 @@ class ConnectionResponsible: Identifiable {
         
         if !errors.isEmpty {
             do {
-                context = try self.processCloseMessage(from: rootObject)
+                try self.processCloseMessage(from: rootObject, retrieving: &context)
                 errors = []
             } catch {
                 try Self.handleSerializationError(error, using: &errors)
@@ -114,48 +143,46 @@ class ConnectionResponsible: Identifiable {
         if !errors.isEmpty {
             throw SerializationError.invalidMessageType(errors)
         }
-        
-        return context
     }
     
-    private func processOpenMessage(from rootObject: [String: Any]) throws -> UUID {
+    private func processOpenMessage(from rootObject: [String: Any], retrieving context: inout UUID?) throws {
         let openMessage = try OpenContextMessage(json: rootObject)
-        
-        guard let opener = self.endpoints[openMessage.endpoint] else {
-            throw ProtocolError.unknownEndpoint(openMessage.endpoint)
-        }
         
         guard self.contexts[openMessage.context] == nil else {
             throw ProtocolError.openExistingContext(openMessage.context)
         }
         
-        self.contexts[openMessage.context] = opener(self, openMessage.context)
+        context = openMessage.context
         
-        return openMessage.context
+        guard let opener = self.endpoints[openMessage.endpoint] else {
+            throw ProtocolError.unknownEndpoint(openMessage.endpoint)
+        }
+        
+        self.contexts[openMessage.context] = opener(self, openMessage.context)
     }
     
-    private func processClientMessage(from rootObject: [String: Any], using data: Data) throws -> UUID {
-        let clientMessage = try ClientMessage(json: rootObject)
+    private func processClientMessage(from rootObject: [String: Any], using data: Data, retrieving context: inout UUID?) throws {
+        let clientMessage = try DecodableClientMessage(json: rootObject)
         
         guard let ctx = self.contexts[clientMessage.context] else {
             throw ProtocolError.unknownContext(clientMessage.context)
         }
         
-        try ctx.receive(clientMessage.parameters, data)
+        context = clientMessage.context
         
-        return clientMessage.context
+        try ctx.receive(clientMessage.parameters, data)
     }
     
-    private func processCloseMessage(from rootObject: [String: Any]) throws -> UUID {
+    private func processCloseMessage(from rootObject: [String: Any], retrieving context: inout UUID?) throws {
         let closeMessage = try CloseContextMessage(json: rootObject)
         
         guard let ctx = self.contexts[closeMessage.context] else {
-            throw ProtocolError.unknownContext(closeMessage.context)
+            return
         }
         
-        ctx.complete()
+        context = closeMessage.context
         
-        return closeMessage.context
+        ctx.complete()
     }
     
     private static func handleSerializationError(_ error: Error, using errors: inout [SerializationError]) throws {
@@ -206,7 +233,7 @@ private indirect enum SerializationError: WSError {
 
 // MARK: Message Types
 
-private struct OpenContextMessage {
+struct OpenContextMessage: Encodable {
     var context: UUID
     var endpoint: String
     
@@ -222,10 +249,19 @@ private struct OpenContextMessage {
         self.context = context
         self.endpoint = endpoint
     }
+    
+    init(context: UUID, endpoint: String) {
+        self.context = context
+        self.endpoint = endpoint
+    }
 }
 
-private struct CloseContextMessage {
+struct CloseContextMessage: Codable {
     var context: UUID
+    
+    init(context: UUID) {
+        self.context = context
+    }
     
     init(json: [String: Any]) throws {
         guard let context = UUID(uuidString: (json["context"] as? String) ?? "") else {
@@ -236,7 +272,7 @@ private struct CloseContextMessage {
     }
 }
 
-private struct ClientMessage {
+private struct DecodableClientMessage {
     var context: UUID
     var parameters: [String: Any]
     
@@ -254,12 +290,22 @@ private struct ClientMessage {
     }
 }
 
-private struct ServiceMessage<C: Encodable>: Encodable {
+struct ClientMessage<I: Encodable>: Encodable {
+    var context: UUID
+    var parameters: I
+}
+
+private struct EncodableServiceMessage<C: Encodable>: Encodable {
     var context: UUID
     var content: C
 }
 
-private struct ErrorMessage<E: Encodable>: Encodable {
+struct ServiceMessage<C: Decodable>: Decodable {
+    var context: UUID
+    var content: C
+}
+
+struct ErrorMessage<E: Codable>: Codable {
     var context: UUID?
     var error: E
 }

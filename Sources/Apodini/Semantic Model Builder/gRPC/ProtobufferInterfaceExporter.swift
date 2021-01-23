@@ -11,22 +11,25 @@ extension Never: ExporterRequest {}
 
 class ProtobufferInterfaceExporter: InterfaceExporter {
     typealias ExporterRequest = Never
-    
-    private let app: Vapor.Application
+
+    let app: Application
+    let vaporApp: Vapor.Application
     private let builder: ProtobufferBuilder
     
     required init(_ app: Application) {
         self.app = app
+        self.vaporApp = app.vapor.app
+
         self.builder = ProtobufferBuilder()
         
-        self.app.get("apodini", "proto") { _ in
+        self.vaporApp.get("apodini", "proto") { _ in
             self.builder.description
         }
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        let serviceName = endpoint.serviceName
-        let methodName = endpoint.methodName
+        let serviceName = gRPCServiceName(from: endpoint)
+        let methodName = gRPCMethodName(from: endpoint)
         let inputType: Any.Type = endpoint.parameters.first?.propertyType ?? Void.self
         
         do {
