@@ -261,7 +261,7 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         } else {
             // we encountered a nested structure
             if let value = popNext().last {
-                return try ProtoDecoder().decode(type, from: value)
+                return try ProtobufferDecoder().decode(type, from: value)
             }
         }
         throw ProtoError.decodingError("No data for given key")

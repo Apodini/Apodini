@@ -34,7 +34,7 @@ public struct TupleComponent<T>: Component, SyntaxTreeVisitable {
                         #if DEBUG
                         fatalError("Attempted to visit value that was not a component. It was instantiated from \(file):\(function): \(error)")
                         #else
-                        fatalError(error)
+                        fatalError("\(error)")
                         #endif
                     }
                 }
