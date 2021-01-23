@@ -57,9 +57,37 @@ message GreeterMessage {
 }
 ```
 
+### Field Numbers
+
+Protobuffers use unique numbers / field tags to identify each field of a message.
+The exporters will enumerate all parameters in the order they are place in the source file by default.
+
+```swift
+struct Greeter: Handler {
+   @Parameter
+   var name: String
+
+   @Parameter
+   var isFormal: Bool
+
+   func handle() -> String {
+       // ...
+   } 
+}
+```
+becomes
+```proto
+message GreeterMessage {
+    string name = 1;
+    bool isFormal = 2;
+}
+```
+
+The same holds for non-primitive paramaters with nested data structures.
+
 ## Options
 
-### Custom service names
+### Custom Service Names
 
 Service names are derived from the `Apodini.Component` tree by default.
 All path components leading to a handler will be concatenated to a unique name.
@@ -100,7 +128,7 @@ var content: some Component {
 }
 ```
 
-### Custom method names
+### Custom Method Names
 
 `Apodini.Handler`s will be exported as methods, with the name of the handler type as the method name.
 The names of methods can also be explicitly set by using the `.methodName` modifier.
@@ -120,5 +148,53 @@ becomes
 service GreetService {
     rpc greetByName(/**/) returns (/**/);
     rpc text(/**/) returns (/**/);
+}
+```
+
+### Custom Field Numbers
+
+Apodini allows you to manually define field tags.
+For parameters of Components, this can be done using the `gRPCParameterOptions.fieldTag`:
+
+```swift
+struct Greeter: Component {
+   @Parameter("name", .gRPC(.fieldTag(2))
+   var name: String
+   // ...
+}
+```
+
+For non-primitive parameters and nested data structures, this can be done using the `CodingKey`s of `Codable` structs.
+Please refer to the documentation of the ProtobufferCoding module [here](<./../../Sources/ProtobufferCoding/README.md>).
+
+#### Mixing automatic inference and custom field numbers
+
+You can also only add manually defined field numbers to some of the parameters, and let Apodini infer the field numbers for the others. 
+Apodini will enumerate all parameters in the order they are place in the source file and override the unique numbers with the manually annotated field tag.
+
+```swift
+struct Greeter: Handler {
+   @Parameter
+   var firstName: String
+
+   // The infered unique number would be 2,
+   // but the annotation overrides it with 5.
+   @Parameter("lastName", .gRPC(.fieldTag(5))
+   var lastName: String 
+
+   @Parameter
+   var isFormal: Bool
+
+   func handle() -> String {
+       // ...
+   } 
+}
+```
+becomes
+```proto
+message GreeterMessage {
+    string firstName = 1;
+    string lastName = 5;
+    bool isFormal = 3;
 }
 ```
