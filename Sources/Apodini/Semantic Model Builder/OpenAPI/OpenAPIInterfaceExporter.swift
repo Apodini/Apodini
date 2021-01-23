@@ -27,6 +27,7 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
 
     func finishedExporting(_ webService: WebServiceModel) {
         serveSpecification()
+        app.storage.set(OpenAPIStorageKey.self, to: documentBuilder.build())
     }
 
     private func serveSpecification() {
