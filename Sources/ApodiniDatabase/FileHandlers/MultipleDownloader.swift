@@ -35,17 +35,21 @@ public struct MultipleDownloader: Handler {
         return eventLoop
             .flatten(
                 infos.map { info in
-                    fileio
-                        .openFile(path: info.path, mode: .read, eventLoop: eventLoop)
-                        .flatMap { handler in
-                            fileio
-                                .read(fileHandle: handler, byteCount: info.readableBytes, allocator: ByteBufferAllocator(), eventLoop: eventLoop)
-                                .flatMapThrowing { buffer -> File in
-                                    try handler.close()
-                                    return File(data: buffer, filename: info.fileName)
-                                }
-                        }
+                    readFile(for: info, on: eventLoop)
                 }
             )
+    }
+    
+    private func readFile(for info: FileInfo, on eventLoop: EventLoop) -> EventLoopFuture<File> {
+        fileio
+            .openFile(path: info.path, mode: .read, eventLoop: eventLoop)
+            .flatMap { handler in
+                fileio
+                    .read(fileHandle: handler, byteCount: info.readableBytes, allocator: ByteBufferAllocator(), eventLoop: eventLoop)
+                    .flatMapThrowing { buffer -> File in
+                        try handler.close()
+                        return File(data: buffer, filename: info.fileName)
+                    }
+            }
     }
 }
