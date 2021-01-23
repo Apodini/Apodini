@@ -9,6 +9,7 @@ import Foundation
 import XCTest
 @testable import ProtobufferCoding
 
+// swiftlint:disable type_body_length
 class SimpleValueEncodingTests: XCTestCase {
     // swiftlint:disable:next implicitly_unwrapped_optional
     var unkeyedContainer: UnkeyedProtoEncodingContainer!

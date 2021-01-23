@@ -95,9 +95,6 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     func decode(_ type: Int.Type, forKey key: Key) throws -> Int {
         let keyValue = try extractIntValue(from: key)
         if let value = data[keyValue]?.last {
-            if Int.bitWidth == 32 {
-
-            }
             if MemoryLayout<Int>.size == 4 {
                 return try Int(decodeInt32(value))
             } else if MemoryLayout<Int>.size == 8 {
