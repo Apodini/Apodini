@@ -20,7 +20,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
         codingPath.append(key)
         if let keyValue = key.intValue {
             return keyValue
-        } else if let protoKey = key as? ProtoCodingKey {
+        } else if let protoKey = key as? ProtobufferCodingKey {
             return protoKey.protoRawValue
         } else {
             return try key.defaultProtoRawValue()

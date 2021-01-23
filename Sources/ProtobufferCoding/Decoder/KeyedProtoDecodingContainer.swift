@@ -30,7 +30,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
         codingPath.append(key)
         if let keyValue = key.intValue {
             return keyValue
-        } else if let protoKey = key as? ProtoCodingKey {
+        } else if let protoKey = key as? ProtobufferCodingKey {
             return protoKey.protoRawValue
         } else {
             return try key.defaultProtoRawValue()
@@ -300,7 +300,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
             // we encountered a nested structure
             let keyValue = try extractIntValue(from: key)
             if let value = data[keyValue]?.last {
-                return try ProtoDecoder().decode(type, from: value)
+                return try ProtobufferDecoder().decode(type, from: value)
             }
         }
         throw ProtoError.decodingError("No data for given key")

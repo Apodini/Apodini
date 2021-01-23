@@ -27,7 +27,7 @@ struct ProtoComplexTestMessage: Codable {
     var nestedMessage: ProtoTestMessage<String>
     var numberFloat: Float
 
-    enum CodingKeys: String, ProtoCodingKey {
+    enum CodingKeys: String, ProtobufferCodingKey {
         case numberInt32
         case numberUint32
         case numberBool

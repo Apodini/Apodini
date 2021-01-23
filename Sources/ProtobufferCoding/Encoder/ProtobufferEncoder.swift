@@ -1,5 +1,5 @@
 //
-//  ProtoEncoder.swift
+//  ProtobufferEncoder.swift
 //  
 //
 //  Created by Moritz Schüll on 27.11.20.
@@ -57,7 +57,7 @@ private struct EncodingWrapper<T: Encodable>: Encodable {
 
 /// Encoder for Protobuffer data.
 /// Coforms to `TopLevelEncoder` from `Combine`, however this is currently ommitted due to compatibility issues.
-public class ProtoEncoder {
+public class ProtobufferEncoder {
     private var encoder: InternalProtoEncoder?
 
     /// Initializes a new instance.

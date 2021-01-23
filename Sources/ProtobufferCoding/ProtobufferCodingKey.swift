@@ -14,7 +14,7 @@ import Foundation
 /// If the `CodingKey` enumeration has `String` raw-values, but the developer does not implement
 /// `ProtoCodingKey`, the `ProtoDecoder` and `ProtoEncoder` will rely on the reflection-based defualt implementation
 /// in the `func _protoRawValue()` of `CodingKey`.
-public protocol ProtoCodingKey: CodingKey {
+public protocol ProtobufferCodingKey: CodingKey {
     /// Returns an integer value for for the enumeration case,
     /// that can be used by the `ProtoDecoder` as the field tag for
     /// the corresponding field in the Protobuffer message.
