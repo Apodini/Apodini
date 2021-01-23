@@ -1,11 +1,15 @@
 import Foundation
 import NIO
 import Apodini
+import Logging
 
 /// Used to specify the directory in which the file is stored.
 /// It is possible to pass a `subPath` relative to the passed directory.
 /// If not existent, sub directories will be automatically created.
 public struct UploadConfiguration {
+    @Environment(\.logger)
+    var logger: Logger
+    
     private let directories: Directories
     private let subPath: String?
     
@@ -37,7 +41,7 @@ public struct UploadConfiguration {
             }
             return url.relativePath.appending("/").appending(fileName)
         } catch {
-            print(error.localizedDescription)
+            logger.error("\(error.localizedDescription)")
             return mainPath.appending(fileName)
         }
     }

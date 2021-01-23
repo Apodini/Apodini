@@ -1,5 +1,4 @@
 import Foundation
-import NIO
 import Apodini
 
 /// Used to specify the directory in which the file is stored.

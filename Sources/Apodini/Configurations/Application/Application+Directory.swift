@@ -4,6 +4,7 @@ import Glibc
 import Darwin.C
 #endif
 import Foundation
+import Logging
 
 /// `Directory` represents a specified directory.
 /// It can also be used to derive a working directory automatically.
@@ -29,6 +30,8 @@ public struct Directory {
     ///
     /// - returns: The derived `Directory` if it could be created, otherwise just "./".
     public static func detect() -> Directory {
+        let logger = Logger(label: "org.apodini.application")
+        
         // get actual working directory
         let cwd = getcwd(nil, Int(PATH_MAX))
         defer {
@@ -45,8 +48,8 @@ public struct Directory {
 
         #if Xcode
         if workingDirectory.contains("DerivedData") {
-            print("No custom working directory set for this scheme")
-            print("Setting dummy directory for debug purposes")
+            logger.warning("No custom working directory set for this scheme")
+            logger.warning("Setting dummy directory for debug purposes")
             do {
                 if !FileManager.default.fileExists(atPath: workingDirectory + "/Public/") {
                     try FileManager.default.createDirectory(atPath: workingDirectory + "/Public/",
@@ -54,7 +57,7 @@ public struct Directory {
                                                             attributes: nil)
                 }
             } catch {
-                print(error.localizedDescription)
+                logger.error("Failed to create dummy directory at \(workingDirectory).\n \(error.localizedDescription)")
             }
         }
         #endif
