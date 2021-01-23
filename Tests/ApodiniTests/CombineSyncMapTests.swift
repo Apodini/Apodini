@@ -21,7 +21,7 @@ class CombineSyncMapTests: ApodiniTests {
         
         let sequence: [Int] = Array(1...100)
         
-        let cancellable = Publishers.Sequence<[Int], Error>(sequence: sequence)
+        let cancellable = Publishers.Sequence<[Int], Never>(sequence: sequence)
         .syncMap { number -> EventLoopFuture<Int> in
             let promise = eventLoop.makePromise(of: Int.self)
             commonResource = number
@@ -34,13 +34,19 @@ class CombineSyncMapTests: ApodiniTests {
         .collect()
         .sink(receiveCompletion: { completion in
             switch completion {
-            case .failure(let error):
-                done.fail(error)
             case .finished:
                 break
             }
         }, receiveValue: { value in
-            done.succeed(value)
+            done.succeed(value.map { result in
+                switch result {
+                case .success(let value):
+                    return value
+                case .failure(let error):
+                    done.fail(error)
+                    return 0
+                }
+            })
         })
         
         XCTAssertEqual(sequence, try done.futureResult.wait())
@@ -110,7 +116,15 @@ class CombineSyncMapTests: ApodiniTests {
                 break
             }
         }, receiveValue: { value in
-            done.succeed(value)
+            done.succeed(value.map { result in
+                switch result {
+                case .success(let value):
+                    return value
+                case .failure(let error):
+                    done.fail(error)
+                    return 0
+                }
+            })
         })
         
         XCTAssertThrowsError(try done.futureResult.wait())
