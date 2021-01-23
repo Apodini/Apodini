@@ -2,9 +2,11 @@
 
 # Protocol Buffers
 
+This file describes how the gRPC interface exporter and the protocol buffer IDL exporter are exporting the web service described in Apodini's DSL.
+
 Protocol buffers are Google's language-neutral, platform-neutral, extensible mechanism for serializing structured data. [Source](https://developers.google.com/protocol-buffers/)
 
-When we use **gRPC**, we mean that this part of the program is responsible for the communication, i.e., remote procedure calls.
+When we use **gRPC** or **GRPC**, we mean that this part of the program is responsible for the communication, i.e., remote procedure calls.
 When we use **protocol buffers** or **Protobuffer**, we mean that this part of the program is responsible to work with Google's IDL.
 
 ## Exporters
