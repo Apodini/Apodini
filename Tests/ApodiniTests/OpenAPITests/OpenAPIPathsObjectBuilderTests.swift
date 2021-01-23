@@ -57,7 +57,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         let webService = WebServiceModel()
 
         let comp = SomeComp()
-        var endpoint = comp.mockEndpoint()
+        var endpoint = comp.mockEndpoint(webservice: webService)
         webService.addEndpoint(&endpoint, at: ["test/{pathParam}"])
 
         pathsObjectBuilder.addPathItem(from: endpoint)
@@ -88,7 +88,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         let webService = WebServiceModel()
 
         let comp = WrappingParamsComp()
-        var endpoint = comp.mockEndpoint()
+        var endpoint = comp.mockEndpoint(webservice: webService)
         webService.addEndpoint(&endpoint, at: ["test"])
 
         pathsObjectBuilder.addPathItem(from: endpoint)
@@ -189,7 +189,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         let webService = WebServiceModel()
 
         let comp = ComplexComp()
-        var endpoint = comp.mockEndpoint()
+        var endpoint = comp.mockEndpoint(webservice: webService)
         webService.addEndpoint(&endpoint, at: ["test"])
 
         pathsObjectBuilder.addPathItem(from: endpoint)

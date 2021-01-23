@@ -2,23 +2,23 @@
 // Created by Andi on 05.01.21.
 //
 
-struct HideLinkContextKey: ContextKey {
-    static var defaultValue = false
-
-    static func reduce(value: inout Bool, nextValue: () -> Bool) {
-        value = nextValue()
-    }
+struct HideLinkContextKey: OptionalContextKey {
+    typealias Value = [Operation]
 }
 
 public struct HideLinkModifier: PathComponentModifier {
     let pathComponent: _PathComponent
+    // defines if only certain endpoints with certain Operations should be hidden
+    // empty array signals to hide everything
+    let operations: [Operation]
 
-    init(_ pathComponent: PathComponent) {
+    init(_ pathComponent: PathComponent, _ operations: [Operation]) {
         self.pathComponent = pathComponent.toInternal()
+        self.operations = operations
     }
 
     func accept<Parser: PathComponentParser>(_ parser: inout Parser) {
-        parser.addContext(HideLinkContextKey.self, value: true)
+        parser.addContext(HideLinkContextKey.self, value: operations)
         pathComponent.accept(&parser)
     }
 }
@@ -26,9 +26,24 @@ public struct HideLinkModifier: PathComponentModifier {
 extension PathComponent {
     /// A `HideLinkModifier` can be used to specify, that linking information to Endpoints
     /// defined under this `PathComponent` should be hidden for Exporter which support that.
-    /// Accessibility of the Endpoint is not impacted by this modifier
-    /// - Returns: The modified `PathComponent`, now marked as hidden
+    /// Accessibility of the Endpoint is not impacted by this modifier.
+    ///
+    /// - Returns: The modified `PathComponent`, now marked as hidden.
     public func hideLink() -> HideLinkModifier {
-        HideLinkModifier(self)
+        HideLinkModifier(self, [])
+    }
+
+    /// A `HideLinkModifier` can be used to specify, that linking information to Endpoints
+    /// defined under this `PathComponent` should be hidden for Exporter which support that.
+    ///
+    /// If supplied operations are supplied, only `Handler`s with the specified `Operation`
+    /// are hidden of the annotated subpath.
+    ///
+    /// Accessibility of the Endpoint is not impacted by this modifier.
+    ///
+    /// - Parameter operations: When specified, hide only `Handler`s with listed `Operation`s.
+    /// - Returns: The modified `PathComponent`, now marked as hidden.
+    public func hideLink(of operations: Operation...) -> HideLinkModifier {
+        HideLinkModifier(self, operations)
     }
 }

@@ -118,6 +118,7 @@ public final class Application {
         self.locks = .init()
         self.didShutdown = false
         self.logger = .init(label: "org.apodini.application")
+        self.logger.logLevel = .debug
         self.storage = .init(logger: self.logger)
         self.lifecycle = .init()
         self.isBooted = false

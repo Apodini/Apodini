@@ -75,8 +75,8 @@ class ObservedObjectTests: ApodiniTests {
         
         struct TestListener: ObservedListener {
             var eventLoop: EventLoop
-            
-            func onObservedDidChange<C: ConnectionContext>(_ observedObject: AnyObservedObject, in context: C) {
+
+            func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<RESTInterfaceExporter>) {
                 do {
                     try context
                         .handle(eventLoop: eventLoop, observedObject: observedObject)
@@ -99,9 +99,6 @@ class ObservedObjectTests: ApodiniTests {
         let handler = TestHandler()
         let endpoint = handler.mockEndpoint(app: app)
         var context = endpoint.createConnectionContext(for: exporter)
-        var anyContext = endpoint
-            .createConnectionContext(for: exporter)
-            .eraseToAnyConnectionContext()
         
         let request = Vapor.Request(
             application: app.vapor.app,
@@ -119,11 +116,9 @@ class ObservedObjectTests: ApodiniTests {
         // send initial mock request through context
         // (to simulate connection initiation by client)
         _ = context.handle(request: request)
-        _ = anyContext.handle(request: request)
-        
+
         // register listener
         context.register(listener: TestListener(eventLoop: app.eventLoopGroup.next()))
-        anyContext.register(listener: TestListener(eventLoop: app.eventLoopGroup.next()))
         // change the value
         testObservable.text = "Hello Swift"
     }
@@ -149,7 +144,7 @@ class ObservedObjectTests: ApodiniTests {
                 self.number = number
             }
             
-            func onObservedDidChange<C: ConnectionContext>(_ observedObject: AnyObservedObject, in context: C) {
+            func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<RESTInterfaceExporter>) {
                 wasCalled = true
             }
             
@@ -210,7 +205,7 @@ class ObservedObjectTests: ApodiniTests {
                 self.eventLoop = eventLoop
             }
             
-            func onObservedDidChange<C: ConnectionContext>(_ observedObject: AnyObservedObject, in context: C) {
+            func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<RESTInterfaceExporter>) {
                 do {
                     try context
                         .handle(eventLoop: eventLoop, observedObject: observedObject)

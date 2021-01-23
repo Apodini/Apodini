@@ -6,7 +6,7 @@
 //
 
 /// Defines the Operation of a given endpoint
-public enum Operation {
+public enum Operation: CaseIterable, Hashable, CustomStringConvertible {
     /// The associated endpoint is used for a `create` operation
     case create
     /// The associated endpoint is used for a `read` operation
@@ -15,6 +15,19 @@ public enum Operation {
     case update
     /// The associated endpoint is used for a `delete` operation
     case delete
+
+    public var description: String {
+        switch self {
+        case .create:
+            return "create"
+        case .read:
+            return "read"
+        case .update:
+            return "update"
+        case .delete:
+            return "delete"
+        }
+    }
 }
 
 struct OperationContextKey: OptionalContextKey {

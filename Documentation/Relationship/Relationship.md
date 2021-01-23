@@ -275,7 +275,7 @@ struct Article: Identifiable, WithRelationships {
   var writtenBy: String
 
   static var relationships: some RelationshipDefinition {
-    References<User>(at: \.writtenBy, as: "author")
+    References<User>(as: "author", at: \.writtenBy)
   }
 }
 // ...
@@ -344,7 +344,7 @@ We have seen how this can work automatically in [2.3.1](#231-implicitly), when t
 But as explained, this isn't possible if the return types don't match up.
 
 Instead the user can explicitly define a `self` relationship. As we don't want the user to rely on any magic string constant
-(e.g. by defining `References<User>(at: \.id, as: "self")`) we introduce another relationship definition
+(e.g. by defining `References<User>(as: "self", at: \.id)`) we introduce another relationship definition
 type `Inherits<User>(at: \.id)`. 
 Additionally a `References` definition MUST NOT have the reserved name `self`.  
 Similar to [2.3.1](#231-implicitly) such a `Inherits` definition will inherit all relationship information from the
@@ -451,7 +451,7 @@ a user can also **add** their own relationship definitions.
 
 By using the information gained in [2.1.](#21-indexing-endpoints-by-their-handler-return-type) and
 [2.2.](#22-using-defaultrelationship-to-resolve-ambiguous-return-type-information), the user can create manual relationships
-just be specifying the return type of the destination and the relationship name using the `.relationship(to:,name:)` modifier.
+just be specifying the return type of the destination and the relationship name using the `.relationship(name:to:)` modifier.
 
 Such a definition might look like the following:
 
@@ -463,7 +463,7 @@ struct TestService: WebService {
     Group {
       "user"
       $userId
-        .relationship(to: Greeting.self, name: "greeter")
+        .relationship(name: "greeter", to: Greeting.self)
     } content: {
       Handler()
     }

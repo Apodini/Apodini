@@ -2,83 +2,9 @@
 // Created by Andi on 22.11.20.
 //
 
-import Foundation
 @_implementationOnly import Vapor
 
-struct RESTPathBuilder: PathBuilder {
-    private var pathComponents: [Vapor.PathComponent] = []
-    private var pathString: [String] = []
-    fileprivate var pathDescription: String {
-        pathString.joined(separator: "/")
-    }
-
-    mutating func append(_ string: String) {
-        let pathComponent = string.lowercased()
-        pathComponents.append(.constant(pathComponent))
-        pathString.append(pathComponent)
-    }
-
-    mutating func root() {
-        pathString.append("")
-    }
-
-    mutating func append<Type>(_ parameter: EndpointPathParameter<Type>) {
-        pathComponents.append(.parameter(parameter.pathId))
-        pathString.append("{\(parameter.name)}")
-    }
-
-    func routesBuilder(_ app: Vapor.Application) -> Vapor.RoutesBuilder {
-        app.routes.grouped(pathComponents)
-    }
-}
-
-extension Operation {
-    var httpMethod: Vapor.HTTPMethod {
-        switch self {
-        case .create:
-            return .POST
-        case .read:
-            return .GET
-        case .update:
-            return .PUT
-        case .delete:
-            return .DELETE
-        }
-    }
-}
-
-struct RESTConfiguration {
-    let configuration: HTTPServer.Configuration
-    let bindAddress: Vapor.BindAddress
-    let uriPrefix: String
-
-    init(_ configuration: HTTPServer.Configuration) {
-        self.configuration = configuration
-        self.bindAddress = configuration.address
-
-        switch bindAddress {
-        case .hostname:
-            let httpProtocol: String
-            var port = ""
-
-            if configuration.tlsConfiguration == nil {
-                httpProtocol = "http://"
-                if configuration.port != 80 {
-                    port = ":\(configuration.port)"
-                }
-            } else {
-                httpProtocol = "https://"
-                if configuration.port != 443 {
-                    port = ":\(configuration.port)"
-                }
-            }
-
-            self.uriPrefix = httpProtocol + configuration.hostname + port
-        case let .unixDomainSocket(path):
-            self.uriPrefix = path
-        }
-    }
-}
+extension Vapor.Request: ExporterRequest, WithEventLoop {}
 
 class RESTInterfaceExporter: InterfaceExporter {
     static let parameterNamespace: [ParameterNamespace] = .individual
@@ -101,13 +27,17 @@ class RESTInterfaceExporter: InterfaceExporter {
 
         let exportedParameterNames = endpoint.exportParameters(on: self)
 
-        let endpointHandler = RESTEndpointHandler(for: endpoint, using: { endpoint.createConnectionContext(for: self) }, configuration: configuration)
+        let endpointHandler = RESTEndpointHandler(configuration: configuration, using: { endpoint.createConnectionContext(for: self) })
         endpointHandler.register(at: routesBuilder, with: operation)
 
         app.logger.info("Exported '\(operation.httpMethod.rawValue) \(pathBuilder.pathDescription)' with parameters: \(exportedParameterNames)")
 
-        for relationship in endpoint.relationships {
-            let path = relationship.destinationPath
+        if endpoint.inheritsRelationship {
+            app.logger.info("  - inherits from: \(endpoint.selfRelationship.destinationPath.asPathString())")
+        }
+
+        for destination in endpoint.relationship(for: .read) {
+            let path = destination.destinationPath
             app.logger.info("  - links to: \(path.asPathString())")
         }
     }
@@ -119,13 +49,18 @@ class RESTInterfaceExporter: InterfaceExporter {
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
-        if webService.rootEndpoints.isEmpty {
-            // if the root path doesn't have endpoints we need to create a custom one to deliver linking entry points.
+        if webService.getEndpoint(for: .read) == nil {
+            // if the root path doesn't have a read endpoint we need to create a custom one to deliver linking entry points.
 
-            for relationship in webService.relationships {
-                app.logger.info("Auto exported '\(HTTPMethod.GET.rawValue) /'")
-                let path = relationship.destinationPath
-                app.logger.info("  - links to: \(path.asPathString())")
+            let relationships = webService.relationships(for: .read)
+
+            let handler = RESTDefaultRootHandler(configuration: configuration, relationships: relationships)
+            handler.register(on: app)
+
+            app.logger.info("Auto exported '\(HTTPMethod.GET.rawValue) /'")
+
+            for relationship in relationships {
+                app.logger.info("  - links to: \(relationship.destinationPath.asPathString())")
             }
         }
     }

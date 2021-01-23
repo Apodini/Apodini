@@ -5,40 +5,10 @@
 import NIO
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
-/// Defines a representation for a `WebService`.
-public class WebServiceModel {
-    fileprivate let root = EndpointsTreeNode(path: .root)
-    private var finishedParsing = false
-
-    /// Holds all `Endpoint`s registered under the root `EndpointPath`.
-    public lazy var rootEndpoints: [AnyEndpoint] = {
-        if !finishedParsing {
-            fatalError("rootEndpoints of the WebServiceModel was accessed before parsing was finished!")
-        }
-        return root.endpoints.map { _, endpoint -> AnyEndpoint in endpoint }
-    }()
-    /// Holds all structural `EndpointRelationship` for all root `Endpoint`s.
-    public var relationships: [EndpointRelationship] {
-        root.relationships
-    }
-
-    func finish() {
-        finishedParsing = true
-        root.finish()
-    }
-    
-    func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, at paths: [PathComponent]) {
-        var context = EndpointInsertionContext(pathComponents: paths)
-        context.assertRootPath()
-
-        root.addEndpoint(&endpoint, context: &context)
-    }
-}
-
 class SemanticModelBuilder: InterfaceExporterVisitor {
     private(set) var app: Application
 
-    private var interfaceExporters: [AnyInterfaceExporter] = []
+    var interfaceExporters: [AnyInterfaceExporter] = []
     /// This property (which is to be made configurable) toggles if the default `ParameterNamespace`
     /// (which is the strictest option possible) can be overridden by Exporters, which may allow more lenient
     /// restrictions. In the end the Exporter with the strictest `ParameterNamespace` will dictate the requirements
@@ -48,10 +18,16 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     let webService: WebServiceModel
     let rootNode: EndpointsTreeNode
 
+    var relationshipInstanceBuilder: RelationshipInstanceBuilder
+    var typeIndexBuilder: TypeIndexBuilder
+
     init(_ app: Application) {
         self.app = app
         webService = WebServiceModel()
-        rootNode = webService.root // used to provide the unit test a reference to the root of the tree
+        rootNode = webService.root
+
+        relationshipInstanceBuilder = RelationshipInstanceBuilder()
+        typeIndexBuilder = TypeIndexBuilder(logger: app.logger)
     }
 
     /// Registers an `InterfaceExporter` instance on the model builder.
@@ -79,12 +55,16 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         let paths = context.get(valueFor: PathComponentContextKey.self)
         var guards = context.get(valueFor: GuardContextKey.self).allActiveGuards
         var responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self)
-        
+
         // Injects the `Application` instance
         let appInjectedHandler = handler.inject(app: app)
         guards = applicationInjectables(to: guards)
         responseTransformers = applicationInjectables(to: responseTransformers)
-        
+
+        let relationshipSources = context.get(valueFor: RelationshipSourceContextKey.self)
+        let relationshipDestinations = context.get(valueFor: RelationshipDestinationContextKey.self)
+        let partialCandidates = context.get(valueFor: RelationshipSourceCandidateContextKey.self)
+
         var endpoint = Endpoint(
             identifier: {
                 if let identifier = handler.getExplicitlySpecifiedIdentifier() {
@@ -94,6 +74,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
                     return AnyHandlerIdentifier(handlerIndexPath.rawValue)
                 }
             }(),
+            webservice: webService,
             handler: appInjectedHandler,
             context: context,
             operation: operation,
@@ -103,12 +84,34 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         )
 
         webService.addEndpoint(&endpoint, at: paths)
+
+        // calling the addEndpoint first, triggers the Operation uniqueness check
+        // and we will have less problems with that in the TypeIndex Builder and Relationship Builders.
+        // Additionally, addEndpoint may cause a insertion of a additional path parameter,
+        // which makes it necessary to be called before any operation relying on the path of the Endpoint.
+
+        relationshipInstanceBuilder.collectRelationshipCandidates(for: endpoint, partialCandidates)
+        relationshipInstanceBuilder.collectSources(for: endpoint, relationshipSources)
+        relationshipInstanceBuilder.collectDestinations(for: endpoint, relationshipDestinations)
+
+        typeIndexBuilder.indexContentType(of: endpoint)
     }
-    
+
     func finishedRegistration() {
         webService.finish()
-        
-        app.logger.info(.init(stringLiteral: webService.root.debugDescription))
+
+        // the order of how relationships are built below strongly reflect our strategy
+        // on how conflicting definitions shadow each other
+        var typeIndex = TypeIndex(from: typeIndexBuilder)
+
+        // below call builds any explicit relationships:
+        relationshipInstanceBuilder.resolveInstances() // `Relationship` instances
+        relationshipInstanceBuilder.index(into: &typeIndex) // type hints
+
+        typeIndex.resolve()
+
+
+        app.logger.info("\(webService.debugDescription)")
 
         if interfaceExporters.isEmpty {
             app.logger.warning("There aren't any Interface Exporters registered!")
@@ -136,7 +139,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
 
             endpoint.exportEndpoint(on: exporter)
         }
-        
+
         for child in node.children {
             call(exporter: exporter, for: child)
         }

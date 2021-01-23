@@ -10,13 +10,15 @@ extension Handler {
     /// Creates a basic Endpoint Model from the `Handler`.
     /// - Note: This endpoint's identifier is not guaranteed to be stable
     func mockEndpoint(
-            context: Context = Context(contextNode: ContextNode()),
-            operation: Operation? = nil,
-            guards: [LazyGuard] = [],
-            responseTransformers: [LazyAnyResponseTransformer] = []
+        webservice: WebServiceModel = WebServiceModel(),
+        context: Context = Context(contextNode: ContextNode()),
+        operation: Operation? = nil,
+        guards: [LazyGuard] = [],
+        responseTransformers: [LazyAnyResponseTransformer] = []
     ) -> Endpoint<Self> {
         Endpoint(
             identifier: self.getExplicitlySpecifiedIdentifier() ?? AnyHandlerIdentifier(UUID().uuidString),
+            webservice: webservice,
             handler: self,
             context: context,
             operation: operation,
@@ -29,6 +31,7 @@ extension Handler {
     /// - Note: This endpoint's identifier is not guaranteed to be stable
     func mockEndpoint(
         app: Application,
+        webservice: WebServiceModel = WebServiceModel(),
         context: Context = Context(contextNode: ContextNode()),
         operation: Operation? = nil,
         guards: [LazyGuard] = [],
@@ -36,6 +39,7 @@ extension Handler {
     ) -> Endpoint<Self> {
         Endpoint(
             identifier: self.getExplicitlySpecifiedIdentifier() ?? AnyHandlerIdentifier(UUID().uuidString),
+            webservice: webservice,
             handler: self.inject(app: app),
             context: context,
             operation: operation,

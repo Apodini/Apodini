@@ -3,7 +3,7 @@ import Foundation
 
 /// A type erasure of a `PropertyOption`
 public struct AnyPropertyOption<PropertyNameSpace> {
-    /// A type erasued `PropertyOptionKey` identfying the `AnyPropertyOption`
+    /// A type erasued `PropertyOptionKey` identifying the `AnyPropertyOption`
     let key: AnyPropertyOptionKey
     /// The value associated with the `key`
     let value: Any

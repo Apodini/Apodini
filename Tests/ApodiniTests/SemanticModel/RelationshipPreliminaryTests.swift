@@ -10,18 +10,15 @@ final class RelationshipPreliminaryTests: XCTestCase {
         var id: String
     }
 
-    func testReferenceCreation() {
-        let model = Model(id: "1234")
+    struct Model2: Identifiable {
+        var id: String
+    }
 
-        let reference = SomeRelationshipReference<Model, Model>(at: \Model.id, as: "reference")
-        XCTAssertEqual(model.id, reference.identifier(for: model))
+    func testReferenceCreation() {
+        _ = RelationshipReference<Model, Model2>(as: "reference", at: \Model.id)
     }
 
     func testInheritanceCreation() {
-        let model = Model(id: "1234")
-
-        let inheritance = SomeRelationshipInheritance<Model, Model>(at: \Model.id)
-        XCTAssertEqual(model.id, inheritance.identifier(for: model))
-        XCTAssertEqual(inheritance.name, "self")
+        _ = RelationshipInheritance<Model, Model2>(at: \Model.id)
     }
 }
