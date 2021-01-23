@@ -9,22 +9,98 @@ When we use **protocol buffers** or **Protobuffer**, we mean that this part of t
 
 ## Exporters
 
-The `Apodini.ProtobufferInterfaceExporter` exposes a Protobuffer declaration of your `Apodini.WebService` in accordance to Google's [proto3 Language Guide](https://developers.google.com/protocol-buffers/docs/proto3).
+The `Apodini.ProtobufferInterfaceExporter` exports a protocol buffer declaration of your `Apodini.WebService` in accordance to Google's [proto3 Language Guide](https://developers.google.com/protocol-buffers/docs/proto3).
 The declaration `webservice.proto` is available at `apodini/webservice.proto`.
 
-The `Apodini.GRPCInterfaceExporter` exposes endpoints for gRPC clients.
+The `Apodini.GRPCInterfaceExporter` exports endpoints for gRPC clients.
 The `webservice.proto` declaration shall be used to create a gRPC client that can communicate with your `Apodini.WebService` without any more work.
 
 ## Translation
 
 We will look into some examples of how `Apodini.ProtobufferInterfaceExporter` translates `Apodini.Handler`s into protocol buffer `Service`s and `Message`s.
 
-...
+
+The following example would result in a service with name `v1greet` and a single RPC method called `greeter`:
+
+```swift
+var content: some Component {
+    Group("greet") {
+        Greeter()
+    }
+}
+```
+
+Exported description of the gRPC service:
+
+```proto
+service v1greet {
+    rpc greeter(/**/) returns (/**/);
+}
+```
+
 
 ## Options
 
-...
+### Custom service names
 
-## Known Issues
+Service names are derived from the `Apodini.Component` tree by default.
+All path components leading to a handler will be concatenated to a unique name.
 
-Swift enumerations are not supported.
+The service name can be explicitly set by using the `.serviceName` modifier.
+
+```swift
+var content: some Component {
+    Group("greet") {
+        Greeter()
+        Text("Hallo Welt")
+    }
+    .serviceName("GreetService")
+}
+```
+becomes
+```proto
+service GreetService {
+    rpc greeter(/**/) returns (/**/);
+    rpc text(/**/) returns (/**/);
+}
+```
+
+The `Apodini.Component` tree needs to be flattend to be representable as a gRPC service.
+Only the `.serviceName` modifier applied at the deepest level of the tree will be considered.
+Thus, the following example would result in the same output as shown above:
+
+```swift
+var content: some Component {
+    Group("messaging") {
+        Group("greet") {
+            Greeter()
+            Text("Hallo Welt")
+        }
+        .serviceName("GreetService")
+    }
+    .serviceName("MessagingService")
+}
+```
+
+### Custom method names
+
+`Apodini.Handler`s will be exported as methods, with the name of the handler type as the method name.
+The names of methods can also be explicitly set by using the `.methodName` modifier.
+
+```swift
+var content: some Component {
+    Group("greet") {
+        Greeter()
+            .methodName("greetByName")
+        Text("Hallo Welt")
+    }
+    .serviceName("GreetService")
+}
+```
+becomes
+```proto
+service GreetService {
+    rpc greetByName(/**/) returns (/**/);
+    rpc text(/**/) returns (/**/);
+}
+```
