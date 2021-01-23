@@ -7,7 +7,6 @@
 
 import Foundation
 
-// swiftlint:disable discouraged_optional_boolean
 class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContainer, KeyedEncodingContainerProtocol {
     override init(using encoder: InternalProtoEncoder, codingPath: [CodingKey]) {
         super.init(using: encoder, codingPath: codingPath)
@@ -225,6 +224,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
     }
 
     // swiftlint:disable cyclomatic_complexity
+    // swiftlint:disable discouraged_optional_boolean
     private func encodeArray<T>(_ value: T, forKey key: Key) throws where T: Encodable {
         if T.self == [Bool].self, let value = value as? [Bool] {
             try encode(value, forKey: key)

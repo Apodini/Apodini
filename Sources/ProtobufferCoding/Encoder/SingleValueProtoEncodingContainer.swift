@@ -11,7 +11,6 @@ private struct Wrapper<T: Encodable>: Encodable {
     var value: T
 }
 
-// swiftlint:disable discouraged_optional_boolean
 class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleValueEncodingContainer {
     private let fieldNumber: Int
 
@@ -198,6 +197,7 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
     }
 
     // swiftlint:disable cyclomatic_complexity
+    // swiftlint:disable discouraged_optional_boolean
     private func encodeArray<T>(_ value: T) throws where T: Encodable {
         if T.self == [Bool].self, let value = value as? [Bool] {
             try encode(value)

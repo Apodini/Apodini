@@ -7,7 +7,6 @@
 
 import Foundation
 
-// swiftlint:disable discouraged_optional_boolean
 class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDecodingContainer {
     var currentIndex: Int
     var values: [[Data]]
@@ -295,6 +294,7 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
 
 // MARK: - Type switching
 // swiftlint:disable cyclomatic_complexity
+// swiftlint:disable discouraged_optional_boolean
 extension  UnkeyedProtoDecodingContainer {
     func decodePrimitive<T>(_ type: T.Type) throws -> T where T: Decodable {
         if T.self == Data.self || T.self == Data?.self,

@@ -7,7 +7,6 @@
 
 import Foundation
 
-// swiftlint:disable discouraged_optional_boolean
 class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEncodingContainer {
     var currentFieldTag: Int
 
@@ -218,6 +217,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     // swiftlint:disable cyclomatic_complexity
+    // swiftlint:disable discouraged_optional_boolean
     private func encodeArray<T>(_ value: T) throws where T: Encodable {
         if T.self == [Bool].self, let value = value as? [Bool] {
             try encode(value)

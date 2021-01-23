@@ -7,7 +7,6 @@
 
 import Foundation
 
-// swiftlint:disable discouraged_optional_boolean
 class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContainer, KeyedDecodingContainerProtocol {
     var allKeys: [Key]
     let data: [Int: [Data]]
@@ -96,6 +95,9 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     func decode(_ type: Int.Type, forKey key: Key) throws -> Int {
         let keyValue = try extractIntValue(from: key)
         if let value = data[keyValue]?.last {
+            if Int.bitWidth == 32 {
+
+            }
             if MemoryLayout<Int>.size == 4 {
                 return try Int(decodeInt32(value))
             } else if MemoryLayout<Int>.size == 8 {
@@ -335,6 +337,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
 // MARK: - Type switching
 // swiftlint:disable cyclomatic_complexity
+// swiftlint:disable discouraged_optional_boolean
 extension KeyedProtoDecodingContainer {
     func decodePrimitive<T>(_ type: T.Type, forKey key: Key) throws -> T where T: Decodable {
         if T.self == Data.self || T.self == Data?.self,
