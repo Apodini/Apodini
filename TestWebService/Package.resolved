@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git",
         "state": {
           "branch": null,
-          "revision": "db08ad5e0dfca1599749facfa5e7db86366e4222",
-          "version": "0.2.2"
+          "revision": "e71ec9822ce06b62011e36272e8014b828916d0b",
+          "version": "0.3.0"
         }
       },
       {
@@ -384,8 +384,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "63352b6373b3200bff9d58ac09483023226c8990",
-          "version": "4.37.2"
+          "revision": "967c2d1f9c473dbb3a5ef8f2e2901f56e21ae79a",
+          "version": "4.38.0"
         }
       },
       {

@@ -24,6 +24,14 @@ private protocol ComponentAssociatedTypeRequirementsVisitor: AssociatedTypeRequi
     func callAsFunction<T: Component>(_ value: T) -> Output
 }
 
+extension ComponentAssociatedTypeRequirementsVisitor {
+    @inline(never)
+    @_optimize(none)
+    func _test() {
+        _ = self(EmptyComponent())
+    }
+}
+
 private struct StandardComponentVisitor: ComponentAssociatedTypeRequirementsVisitor {
     let visitor: SyntaxTreeVisitor
 

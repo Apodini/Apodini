@@ -23,9 +23,9 @@
         "package": "AssociatedTypeRequirementsKit",
         "repositoryURL": "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git",
         "state": {
-          "branch": null,
-          "revision": "db08ad5e0dfca1599749facfa5e7db86366e4222",
-          "version": "0.2.2"
+          "branch": "develop",
+          "revision": "e71ec9822ce06b62011e36272e8014b828916d0b",
+          "version": null
         }
       },
       {

@@ -54,6 +54,14 @@ private protocol HandlerVisitorHelperImplBase: AssociatedTypeRequirementsVisitor
     func callAsFunction<H: Handler>(_ value: H) -> Output
 }
 
+extension HandlerVisitorHelperImplBase {
+    @inline(never)
+    @_optimize(none)
+    func _test() {
+        _ = self(Text(""))
+    }
+}
+
 private struct HandlerVisitorHelperImpl: HandlerVisitorHelperImplBase {
     let visitor: SyntaxTreeVisitor
     func callAsFunction<H: Handler>(_ value: H) {
