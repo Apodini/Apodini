@@ -20,7 +20,7 @@ extension TypeInfo {
             case .tuple:
                 result = try tupleName()
             default:
-                throw ProtobufferBuilderError(message: "Kind: \(kind) is not supported")
+                throw ProtobufferInterfaceExporter.Error(message: "Kind: \(kind) is not supported")
             }
             
             return result
@@ -40,7 +40,7 @@ private extension TypeInfo {
         if type == Void.self {
             return "Void"
         } else {
-            throw ProtobufferBuilderError(message: "Tuple: \(type) is not supported")
+            throw ProtobufferInterfaceExporter.Error(message: "Tuple: \(type) is not supported")
         }
     }
 }
