@@ -72,7 +72,7 @@ fileprivate extension TypeInfo {
             case .tuple:
                 return try tupleName() + "Message"
             default:
-                throw ProtobufferInterfaceExporter.(message: "Kind: \(kind) is not supported")
+                throw ProtobufferInterfaceExporter.Error(message: "Kind: \(kind) is not supported")
             }
         }
     }
