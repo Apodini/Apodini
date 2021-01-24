@@ -127,15 +127,20 @@ class OpenAPIComponentsObjectBuilder {
     }
 }
 
-
-private extension OpenAPIComponentsObjectBuilder {
+extension OpenAPIComponentsObjectBuilder {
     static func node(_ type: Any.Type) throws -> Node<EnrichedInfo>? {
         let node = try EnrichedInfo.node(type)
-            .edited(handleOptional)?
+        return try recursiveEdit(node: node)
+    }
+    
+    private static func recursiveEdit(node: Node<EnrichedInfo>) throws -> Node<EnrichedInfo>? {
+        let before = node.collectValues()
+        let newNode = try node.edited(handleOptional)?
             .edited(handleArray)?
             .edited(handleDictionary)?
             .edited(handlePrimitiveType)?
             .edited(handleUUID)
-        return node
+        let after = newNode?.collectValues()
+        return after != before && newNode != nil ? try recursiveEdit(node: newNode!) : newNode
     }
 }
