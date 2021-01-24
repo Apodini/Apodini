@@ -9,8 +9,9 @@ import protocol FluentKit.Database
 extension Vapor.Request: ExporterRequest, WithEventLoop {}
 
 struct ResponseContainer: Encodable, ResponseEncodable {
+    typealias Links = [String: String]
     var data: AnyEncodable?
-    var links: [String: String]
+    var links: Links
 
     enum CodingKeys: String, CodingKey {
         case data = "data"

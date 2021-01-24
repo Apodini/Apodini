@@ -53,7 +53,7 @@ class OpenAPIComponentsObjectBuilder {
         let schema = try buildSchema(for: type)
         return JSONSchema.object(properties: [
             ResponseContainer.CodingKeys.data.rawValue: schema,
-            ResponseContainer.CodingKeys.links.rawValue: try buildSchema(for: [String: String].self)
+            ResponseContainer.CodingKeys.links.rawValue: try buildSchema(for: ResponseContainer.Links.self)
         ])
     }
 
