@@ -44,7 +44,10 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                                 OpenAPI.Response(
                                     description: "OK",
                                     content: [
-                                        .json: .init(schema: .reference(.component(named: "SomeStruct")))
+                                        .json: .init(schema: .object(properties: [
+                                            ResponseContainer.CodingKeys.data.rawValue: .reference(.component(named: "SomeStruct")),
+                                            ResponseContainer.CodingKeys.links.rawValue: .object(additionalProperties: .init(.string))
+                                        ]))
                                     ]
                                 )
                             ),
@@ -70,7 +73,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
         )
 
         let builtDocument = documentBuilder.build()
-        
+
         XCTAssertNotNil(documentBuilder.jsonDescription)
         XCTAssertEqual(builtDocument, document)
     }

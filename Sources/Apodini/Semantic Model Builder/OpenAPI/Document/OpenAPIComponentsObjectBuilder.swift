@@ -51,7 +51,7 @@ class OpenAPIComponentsObjectBuilder {
 
     func buildResponse(for type: Encodable.Type) throws -> JSONSchema {
         let schema = try buildSchema(for: type)
-        return JSONSchema.object(properties: [
+        return .object(properties: [
             ResponseContainer.CodingKeys.data.rawValue: schema,
             ResponseContainer.CodingKeys.links.rawValue: try buildSchema(for: ResponseContainer.Links.self)
         ])
