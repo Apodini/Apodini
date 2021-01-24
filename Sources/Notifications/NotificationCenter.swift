@@ -1,17 +1,10 @@
 // swiftlint:disable first_where
-//
-//  NotificationCenter.swift
-//  
-//
-//  Created by Alexander Collins on 12.11.20.
-//
-
-@_implementationOnly import struct Vapor.Abort
 import Fluent
 import APNS
 import FCM
 import NIO
 import Apodini
+@_implementationOnly import struct Vapor.Abort
 
 /// The `NotificationCenter` is responsible for push notifications in Apodini.
 /// It can send messages to both APNS and FCM and also manages storing and configuring of `Device`s in a database.
@@ -27,35 +20,10 @@ import Apodini
 ///
 /// - Remark: The `NotificationCenter` is an abstraction of [APNS](https://github.com/vapor/apns) and [FCM](https://github.com/MihaelIsaev/FCM).
 public class NotificationCenter {
-    /// NotificationCenter
-    internal static var shared = NotificationCenter()
-    internal var application: Application?
-    private var app: Application {
-        guard let app = application else {
-            fatalError("The `NotificationCenter` is not configured. Please add the missing configuration to the web service.")
-        }
-        return app
-    }
-
-    /// Property to directly use the [APNS](https://github.com/vapor/apns) library.
-    internal var apns: APNSwiftClient {
-        app.apns
-    }
+    internal var app: Application
     
-    /// Property to directly use the [FCM](https://github.com/MihaelIsaev/FCM) library.
-    internal var fcm: FCM {
-        app.fcm
-    }
-    
-    private init() {
-        // Empty intializer to create a Singleton.
-    }
-    
-    /// Sets the `application` property if the `NotificationCenter` was correctly configured.
-    internal func setup(_ application: Application) {
-        if self.application == nil {
-            self.application = application
-        }
+    public init(app: Application) {
+        self.app = app
     }
     
     /// Saves a `Device` to a database.
@@ -225,16 +193,5 @@ public class NotificationCenter {
                     }
                 }
         }
-}
-
-enum NotificationCenterEnvironmentKey: EnvironmentKey {
-    static var defaultValue = NotificationCenter.shared
-}
-
-extension EnvironmentValues {
-    /// The environment value to use the `NotificationCenter` in a `Component`.
-    public var notificationCenter: NotificationCenter {
-        self[NotificationCenterEnvironmentKey.self]
-    }
 }
 // swiftlint:enable first_where

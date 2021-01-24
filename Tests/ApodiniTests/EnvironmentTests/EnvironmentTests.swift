@@ -1,6 +1,6 @@
 //
 //  EnvironmentTests.swift
-//  
+//
 //
 //  Created by Alexander Collins on 08.12.20.
 //
@@ -12,15 +12,10 @@ import XCTApodini
 final class EnvironmentTests: ApodiniTests {
     struct BirdHandler: Handler {
         @Apodini.Environment(\.birdFacts) var birdFacts: BirdFacts
-        
+
         func handle() -> String {
             birdFacts.someFact
         }
-    }
-
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        EnvironmentValues.shared = EnvironmentValues()
     }
 
     func testEnvironmentInjection() throws {
@@ -33,27 +28,27 @@ final class EnvironmentTests: ApodiniTests {
 
         let birdFacts = BirdFacts()
 
-        EnvironmentValues.shared.birdFacts = birdFacts
+        app.birdFacts = birdFacts
         XCTAssert(response == birdFacts.someFact)
     }
-    
+
     func testEnvironmentObjectInjection() throws {
         struct AnotherBirdHandler: Handler {
             @Apodini.Environment(\Keys.bird) var bird: BirdFacts
-            
+
             func handle() -> String {
                 bird.dodoFact = "Until humans, the Dodo had no predators"
                 return bird.dodoFact
             }
         }
-        
+
         struct Keys: KeyChain {
             var bird: BirdFacts
         }
-        
+
         let birdFacts = BirdFacts()
         EnvironmentObject(birdFacts, \Keys.bird).configure(app)
-        
+
         let handler = AnotherBirdHandler()
         let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
 
@@ -63,29 +58,29 @@ final class EnvironmentTests: ApodiniTests {
 
         XCTAssertEqual(response, birdFacts.dodoFact)
     }
-    
+
     func testDuplicateEnvironmentObjectInjection() throws {
         struct Keys: KeyChain {
             var bird: BirdFacts
         }
-        
+
         let birdFacts = BirdFacts()
         let birdFacts2 = BirdFacts()
         birdFacts2.someFact = ""
-        
+
         EnvironmentObject(birdFacts, \Keys.bird).configure(app)
         EnvironmentObject(birdFacts2, \Keys.bird).configure(app)
-        
+
         XCTAssertEqual(birdFacts2.someFact, Environment(\Keys.bird).wrappedValue.someFact)
     }
-    
+
     func testUpdateEnvironmentValue() throws {
         let birdFacts = BirdFacts()
         let newFact = "Until humans, the Dodo had no predators"
         birdFacts.dodoFact = newFact
 
-        EnvironmentValues.shared.birdFacts = birdFacts
-        let injectedValue = EnvironmentValues.shared[keyPath: \EnvironmentValues.birdFacts]
+        app.birdFacts = birdFacts
+        let injectedValue = app![keyPath: \Application.birdFacts]
 
         XCTAssert(injectedValue.dodoFact == newFact)
     }
@@ -101,11 +96,11 @@ final class EnvironmentTests: ApodiniTests {
         let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
 
         // inject the static value via the shared object
-        EnvironmentValues.shared.birdFacts = staticBirdFacts
+        app.birdFacts = staticBirdFacts
         // inject the dynamic value via the .withEnvironment
         let response: String = request.enterRequestContext(with: handler) { handler in
             handler
-                .environment(dynamicBirdFacts, for: \EnvironmentValues.birdFacts)
+                .environment(dynamicBirdFacts, for: \Application.birdFacts)
                 .handle()
         }
 
@@ -121,7 +116,7 @@ final class EnvironmentTests: ApodiniTests {
         let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
 
         // inject the static value via the shared object
-        EnvironmentValues.shared.birdFacts = staticBirdFacts
+        app.birdFacts = staticBirdFacts
 
         let response: String = request.enterRequestContext(with: handler) { handler in
             handler.handle()
@@ -132,6 +127,7 @@ final class EnvironmentTests: ApodiniTests {
 
     func testShouldReturnDefaultIfNoEnvironment() throws {
         let handler = BirdHandler()
+        app.birdFacts = BirdFacts() // Resets value
         let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
 
         let response: String = request.enterRequestContext(with: handler) { handler in
@@ -140,21 +136,20 @@ final class EnvironmentTests: ApodiniTests {
 
         XCTAssertEqual(response, BirdFacts().someFact)
     }
-    
-    func testCustomEnvironment() throws {
-        XCTAssertRuntimeFailure(EnvironmentValues.shared[\KeyStore.test])
-        
-        EnvironmentValues.shared.values[ObjectIdentifier(\KeyStore.test)] = "Bird"
-        XCTAssert(EnvironmentValues.shared[\KeyStore.test] == "Bird")
-    }
-    
-    func testAccessApplicationEnvironment() {
-        EnvironmentValues.shared.values[ObjectIdentifier(Application.Type.self)] = app
 
+    func testCustomEnvironment() throws {
+        XCTAssertRuntimeFailure(self.app.storage.get(\KeyStore.test))
+
+        app.storage.set(\KeyStore.test, to: "Bird")
+        XCTAssert(app.storage.get(\KeyStore.test) == "Bird")
+    }
+
+    func testAccessApplicationEnvironment() {
         XCTAssert(Environment(\.eventLoopGroup).wrappedValue === app.eventLoopGroup)
     }
-    
+
     func testFaillingApplicationEnvironmentAccess() {
+        AppStorage.app = nil
         XCTAssertRuntimeFailure(Environment(\.apns).wrappedValue,
                                 "Key path not found. The web service wasn't setup correctly")
     }
@@ -162,18 +157,19 @@ final class EnvironmentTests: ApodiniTests {
 
 class BirdFacts {
     var someFact = "Did you know that Apodinae are a subfamily of swifts?"
-    
+
     var dodoFact = "The Dodo lived on the Island of Mauritius"
 }
 
-enum BirdFactsEnvironmentKey: EnvironmentKey {
+enum BirdFactsEnvironmentKey: StorageKey {
+    typealias Value = BirdFacts
     static var defaultValue = BirdFacts()
 }
 
-extension EnvironmentValues {
+extension Application {
     var birdFacts: BirdFacts {
-        get { self[BirdFactsEnvironmentKey.self] }
-        set { self[BirdFactsEnvironmentKey.self] = newValue }
+        get { BirdFactsEnvironmentKey.defaultValue }
+        set { BirdFactsEnvironmentKey.defaultValue  = newValue }
     }
 }
 

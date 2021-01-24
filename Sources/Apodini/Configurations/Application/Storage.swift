@@ -44,16 +44,38 @@ public struct Storage {
             self.set(Key.self, to: newValue)
         }
     }
+    
+    /// Accesses the environment value associated with a custom key.
+    public subscript<Key, Type>(_ keyPath: KeyPath<Key, Type>) -> Type {
+        get {
+            self.get(keyPath)
+        }
+        set {
+            
+            self.set(keyPath, to: newValue)
+        }
+    }
 
     /// Check if application storage contains a certain key
     public func contains<Key>(_ key: Key.Type) -> Bool {
         self.storage.keys.contains(ObjectIdentifier(Key.self))
+    }
+    
+    public func contains<Key, Type>(_ keyPath: KeyPath<Key, Type>) -> Bool {
+        self.storage.keys.contains(ObjectIdentifier(keyPath))
     }
 
     /// Get a a value for a key from application storage
     public func get<Key: StorageKey>(_ key: Key.Type) -> Key.Value? {
         guard let value = self.storage[ObjectIdentifier(Key.self)] as? Value<Key.Value> else {
             return nil
+        }
+        return value.value
+    }
+    
+    public func get<Key, Type>(_ keyPath: KeyPath<Key, Type>) -> Type {
+        guard let value = storage[ObjectIdentifier(keyPath)] as? Value<Type> else {
+            fatalError("Key path not found")
         }
         return value.value
     }
@@ -71,6 +93,10 @@ public struct Storage {
             self.storage[key] = nil
             existing.shutdown(logger: self.logger)
         }
+    }
+    
+    public mutating func set<Key, Type>(_ keyPath: KeyPath<Key, Type>, to value: Type) {
+        self.storage[ObjectIdentifier(keyPath)] = Value(value: value, onShutdown: nil)
     }
 
     /// Handle shutdown in every stored configuration element

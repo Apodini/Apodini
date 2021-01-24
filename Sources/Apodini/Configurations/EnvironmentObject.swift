@@ -16,14 +16,14 @@ public struct EnvironmentObject<Key: KeyChain, Value>: Configuration {
     }
     
     public func configure(_ app: Application) {
-        if let previousValue = EnvironmentValues.shared.values[ObjectIdentifier(keyPath)] {
+        if app.storage.contains(keyPath) {
             app.logger.warning(
                 """
                 A value associated with the key path \(type(of: keyPath)) is already stored.
-                The previous value \(String(describing: previousValue)) will be overwritten with \(String(describing: value)).
+                The previous value \(String(describing: app.storage[keyPath])) will be overwritten with \(String(describing: value)).
                 """
             )
         }
-        EnvironmentValues.shared.values[ObjectIdentifier(keyPath)] = value
+        app.storage[keyPath] = value
     }
 }

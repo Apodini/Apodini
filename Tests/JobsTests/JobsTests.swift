@@ -13,6 +13,10 @@ import Apodini
 final class JobsTests: XCTApodiniTest {
     let everyMinute = "* * * * *"
     
+    var scheduler: Scheduler {
+        app.scheduler
+    }
+    
     struct FailingJob: Job {
         @Parameter var userId: Int
         
@@ -34,10 +38,10 @@ final class JobsTests: XCTApodiniTest {
     }
     
     func testFailingJobs() throws {
-        XCTAssertThrowsError(try Scheduler.shared.dequeue(\KeyStore.failingJob))
-        XCTAssertThrowsError(try Scheduler.shared.enqueue(FailingJob(), with: everyMinute, \KeyStore.failingJob, on: app.eventLoopGroup.next()))
-        XCTAssertThrowsError(try Scheduler.shared.enqueue(TestJob(), with: "* * * *", \KeyStore.testJob, on: app.eventLoopGroup.next()))
-        XCTAssertThrowsError(try Scheduler.shared.enqueue(TestJob(), with: "A B C D E", runs: 5, \KeyStore.testJob, on: app.eventLoopGroup.next()))
+        XCTAssertThrowsError(try scheduler.dequeue(\KeyStore.failingJob))
+        XCTAssertThrowsError(try scheduler.enqueue(FailingJob(), with: everyMinute, \KeyStore.failingJob, on: app.eventLoopGroup.next()))
+        XCTAssertThrowsError(try scheduler.enqueue(TestJob(), with: "* * * *", \KeyStore.testJob, on: app.eventLoopGroup.next()))
+        XCTAssertThrowsError(try scheduler.enqueue(TestJob(), with: "A B C D E", runs: 5, \KeyStore.testJob, on: app.eventLoopGroup.next()))
     }
     
     func testFatalError() throws {
@@ -47,7 +51,6 @@ final class JobsTests: XCTApodiniTest {
     }
     
     func testEnvironmentInjection() throws {
-        let scheduler = Environment(\.scheduler).wrappedValue
         let job = TestJob()
         try scheduler.enqueue(job, with: "*/10 * * * *", \KeyStore.testJob, on: app.eventLoopGroup.next())
         let environmentJob = Environment(\KeyStore.testJob).wrappedValue
@@ -57,17 +60,17 @@ final class JobsTests: XCTApodiniTest {
     
     func testEveryMinute() throws {
         Schedule(TestJob(), on: everyMinute, \KeyStore.testJob).configure(app)
-        let jobConfig = try XCTUnwrap(Scheduler.shared.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)])
+        let jobConfig = try XCTUnwrap(scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)])
         XCTAssertNotNil(jobConfig.scheduled)
         
-        try Scheduler.shared.dequeue(\KeyStore.testJob)
+        try scheduler.dequeue(\KeyStore.testJob)
     }
     
     func testZeroRuns() throws {
         Schedule(TestJob(), on: everyMinute, runs: 0, \KeyStore.testJob).configure(app)
-        let jobConfig = try XCTUnwrap(Scheduler.shared.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)])
+        let jobConfig = try XCTUnwrap(scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)])
         XCTAssertNil(jobConfig.scheduled)
         
-        try Scheduler.shared.dequeue(\KeyStore.testJob)
+        try scheduler.dequeue(\KeyStore.testJob)
     }
 }

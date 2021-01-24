@@ -54,7 +54,7 @@ final class GuardTests: ApodiniTests {
     
     func testGuard() throws {
         struct TestGuard: Guard {
-            @Apodini.Environment(\.database)
+            @Apodini.Environment(\.db)
             var database: Database
             
             func check() -> EventLoopFuture<Void> {

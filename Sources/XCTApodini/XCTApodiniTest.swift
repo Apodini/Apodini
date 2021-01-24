@@ -11,6 +11,7 @@ open class XCTApodiniTest: XCTestCase {
         try super.setUpWithError()
         
         app = Application()
+        AppStorage.app = app
     }
     
     override open func tearDownWithError() throws {

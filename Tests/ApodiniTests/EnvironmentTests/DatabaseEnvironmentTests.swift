@@ -5,16 +5,11 @@ import XCTApodini
 
 final class DatabaseEnvironmentTests: ApodiniTests {
     struct DatabaseComponent: Handler {
-        @Apodini.Environment(\.database) var database: Database
+        @Apodini.Environment(\.db) var database: Database
         
         func handle() -> String {
             database.history.debugDescription
         }
-    }
-    
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        EnvironmentValues.shared.database = try database()
     }
     
     func testEnvironmentInjection() throws {
@@ -27,7 +22,7 @@ final class DatabaseEnvironmentTests: ApodiniTests {
         
         let description = try database().history.debugDescription
         //not ideal to compare history description, but fluent db does not provide an id.
-        XCTAssert(EnvironmentValues.shared.database.history.debugDescription == description)
+        XCTAssert(app.db.history.debugDescription == description)
         XCTAssert(response == description)
     }
 }

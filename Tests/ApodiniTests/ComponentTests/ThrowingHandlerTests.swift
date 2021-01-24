@@ -24,7 +24,7 @@ class ThrowingErrorTests: ApodiniTests {
     }
     
     struct ThrowingEventLoopFutureHandler: Handler {
-        @Apodini.Environment(\.database)
+        @Apodini.Environment(\.db)
         var database: Database
         
         func handle() throws -> EventLoopFuture<String> {

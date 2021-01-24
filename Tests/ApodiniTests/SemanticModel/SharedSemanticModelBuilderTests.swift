@@ -176,7 +176,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
 
     func testActionPassthrough_final() throws {
         let exporter = RESTInterfaceExporter(app)
-        let handler = ActionHandler1().environment(Connection(state: .end), for: \EnvironmentValues.connection)
+        let handler = ActionHandler1().environment(Connection(state: .end), for: \Apodini.Application.connection)
         let endpoint = handler.mockEndpoint()
         var context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app.vapor.app,
@@ -212,7 +212,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
 
     func testActionPassthrough_end() throws {
         let exporter = RESTInterfaceExporter(app)
-        let handler = ActionHandler2().environment(Connection(state: .end), for: \EnvironmentValues.connection)
+        let handler = ActionHandler2().environment(Connection(state: .end), for: \Apodini.Application.connection)
         let endpoint = handler.mockEndpoint()
         var context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app.vapor.app,

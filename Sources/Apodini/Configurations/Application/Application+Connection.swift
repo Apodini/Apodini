@@ -1,21 +1,26 @@
 //
 //  Connection.swift
-//  
+//
 //
 //  Created by Moritz Schüll on 09.12.20.
 //
 
 import Foundation
 
-enum ConnectionEnvironmentKey: EnvironmentKey {
+struct ConnectionEnvironmentKey: StorageKey {
+    typealias Value = Connection
     static var defaultValue = Connection()
 }
 
-extension EnvironmentValues {
+extension Application {
     /// A Property identifying the `Connection` which provides an abstract view on the underlying protocol's state.
     public var connection: Connection {
-        get { self[ConnectionEnvironmentKey.self] }
-        set { self[ConnectionEnvironmentKey.self] = newValue }
+        get {
+            Connection()
+        }
+        set {
+            newValue
+        }
     }
 }
 

@@ -1,7 +1,7 @@
 import Foundation
-@_implementationOnly import SwifCron
 import NIO
 import Apodini
+@_implementationOnly import SwifCron
 
 /// A convenient interface to schedule background running tasks on an event loop using `Job`s and crontab syntax.
 ///
@@ -14,12 +14,12 @@ import Apodini
 /// }
 /// ```
 public class Scheduler {
-    internal static var shared = Scheduler()
-    
     internal var jobConfigurations: [ObjectIdentifier: JobConfiguration] = [:]
     
-    private init() {
-        // Empty intializer to create a Singleton.
+    private var app: Application
+    
+    init(app: Application) {
+        self.app = app
     }
     
     /// Schedules a `Job` on an event loop.
@@ -106,20 +106,11 @@ private extension Scheduler {
                                                        _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
         let identifier = ObjectIdentifier(keyPath)
         let jobConfiguration = try JobConfiguration(SwifCron(cronTrigger))
-        EnvironmentValue(keyPath, job)
+        
+        app.storage[keyPath] = job
+        
         jobConfigurations[identifier] = jobConfiguration
         
         return jobConfiguration
-    }
-}
-
-enum SchedulerEnvironmentKey: EnvironmentKey {
-    static var defaultValue = Scheduler.shared
-}
-
-extension EnvironmentValues {
-    /// The environment value to use the `SchedulerEnvironmentKey` in a `Component`.
-    public var scheduler: Scheduler {
-        self[SchedulerEnvironmentKey.self]
     }
 }

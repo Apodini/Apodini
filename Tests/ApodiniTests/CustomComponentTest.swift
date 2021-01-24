@@ -12,7 +12,7 @@ import XCTVapor
 
 final class CustomComponentTests: ApodiniTests {
     struct AddBirdsHandler: Handler {
-        @Apodini.Environment(\.database)
+        @Apodini.Environment(\.db)
         var database: Fluent.Database
 
         @Parameter

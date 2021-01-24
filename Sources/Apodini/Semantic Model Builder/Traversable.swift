@@ -66,7 +66,7 @@ extension Connection {
     }
     
     private func update<E>(_ element: inout E) {
-        apply({ (environment: inout Environment<EnvironmentValues, Connection>) in
+        apply({ (environment: inout Environment<Application, Connection>) in
             environment.setValue(self, for: \.connection)
         }, to: &element)
     }
