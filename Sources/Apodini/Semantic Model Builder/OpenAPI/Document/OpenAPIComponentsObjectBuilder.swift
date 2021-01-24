@@ -67,7 +67,7 @@ class OpenAPIComponentsObjectBuilder {
     }
 
     private func contextMapNode(node: Node<EnrichedInfo>) -> JSONSchema {
-        var schema = mapInfo(node)
+        let schema = mapInfo(node)
         let schemaName = node.value.typeInfo.mangledName
 
         if schema.isReference && !schemaExists(for: schemaName) {
