@@ -21,7 +21,7 @@ The `webservice.proto` declaration shall be used to create a gRPC client that ca
 
 We will look into some examples of how `Apodini.ProtobufferInterfaceExporter` translates `Apodini.Handler`s into protocol buffer `Service`s and `Message`s.
 
-The following example results in a service with name `V1Greeter` and a single RPC method called `greeter`:
+The following example results in a service with name `V1GreetService` and a single RPC method called `greeter`:
 
 ```swift
 var content: some Component {
@@ -41,7 +41,7 @@ service V1GreeterService {
 
 All `@Parameters` are dealt with in the same way for gRPC.
 In gRPC the only way a handler can receive parameters is via the message payload.
-This means all parameters will be decoded from the message payload, no matter of which type (`.body`, `.path`, ...) a `@Parameter` is .
+This means all parameters will be decoded from the message payload, no matter of which type (`.body`, `.path`, ...) a `@Parameter` is.
 
 ```swift
 struct Greeter: Handler {
@@ -62,7 +62,7 @@ message GreeterMessage {
 ### Field Numbers
 
 Protobuffers use unique numbers / field tags to identify each field of a message.
-The exporters will enumerate all parameters in the order they are place in the source file by default.
+The exporters will enumerate all parameters in the order they are placed in the source file by default.
 
 ```swift
 struct Greeter: Handler {
@@ -85,7 +85,7 @@ message GreeterMessage {
 }
 ```
 
-The same holds for non-primitive paramaters with nested data structures.
+The same holds for non-primitive parameters with nested data structures.
 
 ## Options
 
@@ -169,7 +169,7 @@ struct Greeter: Component {
 For non-primitive parameters and nested data structures, this can be done using the `CodingKey`s of `Codable` structs.
 Please refer to the documentation of the ProtobufferCoding module [here](<./../../Sources/ProtobufferCoding/README.md>).
 
-#### Mixing automatic inference and custom field numbers
+### Mixing automatic inference and custom field numbers
 
 You can also only add manually defined field numbers to some of the parameters, and let Apodini infer the field numbers for the others. 
 Apodini will enumerate all parameters in the order they are place in the source file and override the unique numbers with the manually annotated field tag.
