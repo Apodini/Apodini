@@ -4,6 +4,11 @@
 
 @_implementationOnly import Runtime
 
+struct PropertyInfo: Equatable, Hashable {
+    let name: String
+    let offset: Int
+}
+
 struct EnrichedInfo {
     enum Cardinality {
         case zeroToOne
@@ -18,7 +23,6 @@ struct EnrichedInfo {
 
     let typeInfo: TypeInfo
     let propertyInfo: PropertyInfo?
-    let propertiesOffset: Int?
 
     var cardinality: Cardinality = .exactlyOne
 }
@@ -28,8 +32,8 @@ extension EnrichedInfo {
         let typeInfo = try Runtime.typeInfo(of: type)
         let root = EnrichedInfo(
             typeInfo: typeInfo,
-            propertyInfo: nil,
-            propertiesOffset: nil)
+            propertyInfo: nil
+        )
 
         return Node(root: root) { info in
             info.typeInfo.properties
@@ -39,16 +43,26 @@ extension EnrichedInfo {
                         let typeInfo = try Runtime.typeInfo(of: propertyInfo.type)
                         return EnrichedInfo(
                             typeInfo: typeInfo,
-                            propertyInfo: propertyInfo,
-                            propertiesOffset: offset + 1
+                            propertyInfo: .init(
+                                name: propertyInfo.name,
+                                offset: offset + 1
+                            )
                         )
                     } catch {
                         let errorDescription = String(describing: error)
-                        let keyword = "Runtime.Kind.opaque"
+                        let keywords = [
+                            "\(Runtime.Kind.opaque)",
+                            "\(Runtime.Kind.function)"
+                        ]
 
-                        guard !errorDescription.contains(keyword) else {
+                        let errorIsKnown = keywords.contains(where: { keyword in
+                            errorDescription.contains(keyword)
+                        })
+                        
+                        if errorIsKnown {
                             return nil
                         }
+                        
                         preconditionFailure(errorDescription)
                     }
                 }
@@ -61,8 +75,7 @@ extension EnrichedInfo {
 extension EnrichedInfo: Equatable {
     public static func == (lhs: EnrichedInfo, rhs: EnrichedInfo) -> Bool {
         lhs.typeInfo.type == rhs.typeInfo.type
-            && lhs.propertyInfo?.name == rhs.propertyInfo?.name
-            && lhs.propertiesOffset == rhs.propertiesOffset
+            && lhs.propertyInfo == rhs.propertyInfo
             && lhs.cardinality == rhs.cardinality
     }
 }

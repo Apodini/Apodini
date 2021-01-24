@@ -1,7 +1,4 @@
 //
-//  File.swift
-//  
-//
 //  Created by Nityananda on 12.12.20.
 //
 
@@ -33,7 +30,7 @@ extension ProtobufferMessage.Property {
         
         let name = info.propertyInfo?.name ?? ""
         let typeName = try info.typeInfo.compatibleName()
-        let uniqueNumber = info.propertiesOffset ?? 0
+        let uniqueNumber = info.propertyInfo?.offset ?? 0
         
         let fieldRule: FieldRule
         switch info.cardinality {
@@ -75,7 +72,7 @@ fileprivate extension TypeInfo {
             case .tuple:
                 return try tupleName() + "Message"
             default:
-                throw ProtobufferBuilderError(message: "Kind: \(kind) is not supported")
+                throw ProtobufferInterfaceExporter.(message: "Kind: \(kind) is not supported")
             }
         }
     }
@@ -91,7 +88,7 @@ fileprivate extension TypeInfo {
         if type == Void.self {
             return "Void"
         } else {
-            throw ProtobufferBuilderError(message: "Tuple: \(type) is not supported")
+            throw ProtobufferInterfaceExporter.Error(message: "Tuple: \(type) is not supported")
         }
     }
 }

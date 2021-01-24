@@ -51,6 +51,8 @@ extension WebService {
         // Adds the created application instance to `EnvironmentValues`.
         // Can be used `@Environment` to access properties.
         EnvironmentValues.shared.values[ObjectIdentifier(Application.Type.self)] = app
+
+        app.vapor.app.routes.defaultMaxBodySize = "1mb"
     }
     
     

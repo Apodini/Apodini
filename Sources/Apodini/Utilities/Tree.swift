@@ -141,6 +141,28 @@ extension Node {
     }
 }
 
+extension Node {
+    func collectValues() -> Set<T> where T: Hashable {
+        reduce(Set()) { partialResults, next in
+            var set: Set = [next]
+            for result in partialResults {
+                set.formUnion(result)
+            }
+            return set
+        }
+    }
+    
+    func collectValues<U>() -> Set<U> where T == [U], U: Hashable {
+        reduce(Set()) { partialResults, next in
+            var set = Set(next)
+            for result in partialResults {
+                set.formUnion(result)
+            }
+            return set
+        }
+    }
+}
+
 // MARK: Node + CustomStringConvertible
 
 extension Node: CustomStringConvertible where T: CustomStringConvertible {
