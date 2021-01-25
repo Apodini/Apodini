@@ -39,12 +39,10 @@ enum RelationshipType: Hashable, CustomStringConvertible, CustomDebugStringConve
     }
 
     var checkResolvers: Bool {
-        switch self {
-        case .link:
+        if case .link = self {
             return false
-        default:
-            return true
         }
+        return true
     }
 
     func hash(into hasher: inout Hasher) {
@@ -105,18 +103,17 @@ struct RelationshipSourceCandidate: SomeRelationshipSourceCandidate {
         self.destinationType = partialCandidate.destinationType
         self.reference = endpoint.reference()
 
-        var resolvers: [AnyPathParameterResolver]
-        switch type {
-        case.inheritance:
-            resolvers = endpoint.absolutePath.listPathParameters().resolvers()
-        default:
+        var parameterResolvers: [AnyPathParameterResolver]
+        if case .inheritance = type {
+            parameterResolvers = endpoint.absolutePath.listPathParameters().resolvers()
+        } else {
             // We take all resolver used for inheritance into account in order for this to work
             // the `TypeIndex.resolve` steps MUST parse inheritance candidates FIRST.
-            resolvers = endpoint.selfRelationship.resolvers
+            parameterResolvers = endpoint.selfRelationship.resolvers
         }
 
-        resolvers.append(contentsOf: partialCandidate.resolvers)
-        self.resolvers = resolvers
+        parameterResolvers.append(contentsOf: partialCandidate.resolvers)
+        self.resolvers = parameterResolvers
     }
 
     func ensureResolved() -> RelationshipSourceCandidate {

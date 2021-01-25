@@ -105,12 +105,11 @@ extension Array where Element == StoredEndpointPath {
         }
         let next = removeFirst()
 
-        switch next.path {
-        case .root:
-            break
-        default:
-            fatalError("Tried asserting stored .root but encountered \(next)")
+        if case .root = next.path {
+            return
         }
+
+        fatalError("Tried asserting stored .root but encountered \(next)")
     }
 }
 

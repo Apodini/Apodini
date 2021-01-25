@@ -42,8 +42,7 @@ struct EndpointInsertionContext {
     mutating func nextStoredPath() -> StoredEndpointPath {
         let next = storedPath.removeFirst()
 
-        switch next.path {
-        case let .parameter(parameter):
+        if case let .parameter(parameter) = next.path {
             precondition(!retrievedParameters.contains(parameter.id), {
                 var parameter = parameter.toInternal()
                 parameter.scoped(on: endpoint)
@@ -51,8 +50,6 @@ struct EndpointInsertionContext {
             }())
 
             retrievedParameters.append(parameter.id)
-        default:
-            break
         }
 
         return next
@@ -129,16 +126,15 @@ class EndpointsTreeNode {
 
             if child == nil {
                 // as we create a new child node we need to check if there are colliding path parameters
-                switch next.path {
-                case .parameter:
-                    if childContainsPathParameter { // there are already some children with a path parameter on this level
-                        fatalError("When inserting endpoint \(endpoint.description) we encountered a path parameter collision on level n-\(context.pathCount): "
-                            + "You can't have multiple path parameters on the same level!")
-                    } else {
-                        childContainsPathParameter = true
-                    }
-                default:
-                    break
+                if case .parameter = next.path {
+                    // check that there isn't already some children with a path parameter on this level
+                    precondition(!childContainsPathParameter,
+                                 """
+                                 When inserting endpoint \(endpoint.description) we encountered a path parameter collision \
+                                 on level n-\(context.pathCount): You can't have multiple path parameters on the same level!
+                                 """)
+
+                    childContainsPathParameter = true
                 }
 
                 child = EndpointsTreeNode(storedPath: next, parent: self)

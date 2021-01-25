@@ -22,7 +22,9 @@ public class WebServiceModel: CustomDebugStringConvertible {
 
     private var finishedParsing = false
 
-    init() {}
+    init() {
+        // init default web service
+    }
 
     /// Retrieve the `Endpoint` located under the `EndpointPath.root`.
     /// - Parameter operation: The `Operation` to retrieve the `Endpoint` for.

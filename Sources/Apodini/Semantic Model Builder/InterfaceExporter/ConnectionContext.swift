@@ -26,7 +26,10 @@ public protocol ObservedListener {
 /// `ConnectionContext` holds the internal state of an endpoint for one connection
 /// in a format suitable for a specific `InterfaceExporter`.
 public class ConnectionContext<Exporter: InterfaceExporter> {
-    fileprivate init() {}
+    fileprivate init() {
+        // Marked private as nobody is allowed to instantiate a `ConnectionContext` directly
+        // fileprivate because `InternalConnectionContext` still needs to call it
+    }
 
     /// This method is called for every request which is to be handled.
     /// - Parameters:

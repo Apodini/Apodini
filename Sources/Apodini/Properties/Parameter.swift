@@ -109,12 +109,12 @@ public struct Parameter<Element: Codable>: Property {
     /// - Parameter id: The `UUID` that can be passed in from a parent `Component`'s `@PathParameter`.
     /// - Precondition: A `@Parameter` with a specific `http` type `.body` or `.query` can not be passed to a separate component. Please remove the specific `.http` property option or specify the `.http` property option to `.path`.
     init(from id: UUID, identifying type: IdentifyingType?) {
-        var options: [Option] = [.http(.path)]
+        var pathParameterOptions: [Option] = [.http(.path)]
         if let type = type {
-            options.append(.identifying(type))
+            pathParameterOptions.append(.identifying(type))
         }
 
-        self.init(id: id, options: options)
+        self.init(id: id, options: pathParameterOptions)
     }
     
     

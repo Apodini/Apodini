@@ -195,10 +195,8 @@ public struct RelationshipDestination: CustomStringConvertible, Hashable {
     /// there is a resolver and a value for it.
     internal mutating func resolveParameters(context: ResolveContext) {
         destinationPath = destinationPath.map { path in
-            switch path {
-            case let .parameter(parameter):
+            if case let .parameter(parameter) = path {
                 var parameter = parameter.toInternal()
-
                 if let resolver = resolvers.first(where: { $0.resolves(parameter: parameter) }),
                    let value = resolver.resolve(context: context) {
                     // creates resolved version of the EndpointPathParameter
@@ -206,9 +204,9 @@ public struct RelationshipDestination: CustomStringConvertible, Hashable {
                 }
 
                 return .parameter(parameter)
-            default:
-                return path
             }
+
+            return path
         }
     }
 

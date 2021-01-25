@@ -150,33 +150,8 @@ struct TypeIndex {
                 continue
             }
 
-            if candidate.type.checkResolvers {
-                // we loop through every path parameter of the destination and check if
-                // the definition provides enough information to fill in those parameters at runtime (while request handling).
-                // Additionally we track unused resolvers and print a warning of those.
-                var unresolvedPathParameters: [AnyEndpointPathParameter] = []
-                let unusedResolvers: [AnyPathParameterResolver] = candidate.resolvers
-                    .resolvability(of: entry.reference.absolutePath, unresolved: &unresolvedPathParameters)
-
-                if !unresolvedPathParameters.isEmpty {
-                    if case .explicit = type {
-                        fatalError("""
-                                   Explicit definition of \(candidate) couldn't resolve all path parameter of from \(source) destination \(entry.reference).
-                                   The following path parameter of the destination are missing a resolver: \(
-                                       unresolvedPathParameters.map { "{\($0.name)}" }.joined(separator: ", ")
-                                   )
-                                   """)
-                    }
-
-                    continue
-                }
-
-                if !unusedResolvers.isEmpty, case .explicit = type {
-                    logger.warning("""
-                                   [TypeIndex] The definition of \(candidate) contains resolvers with are unused: \
-                                   \(unusedResolvers.map { $0.description }.joined(separator: ", ")).
-                                   """)
-                }
+            if failsParameterResolvability(for: candidate, on: entry, type: type) {
+                continue
             }
 
             foundSome = true
@@ -214,6 +189,49 @@ struct TypeIndex {
         return foundSome
     }
 
+    /// This method checks the resolvability of path parameters of the relationship destination.
+    /// PathParameter might not be required to be resolvable depending on the relationship type.
+    /// The method might go into fatal error if the path parameter are not resolvable for a explicit definition.
+    ///
+    /// - Parameters:
+    ///   - candidate: The `SomeRelationshipSourceCandidate` to check for.
+    ///   - entry: The `TypeIndexEntry` representing the destination of the relationship.
+    ///   - type: The type of relationship definition.
+    /// - Returns: Returns `true` if the given candidate fails the parameter check.
+    private func failsParameterResolvability(for candidate: SomeRelationshipSourceCandidate, on entry: TypeIndexEntry, type: DefinitionType) -> Bool {
+        if candidate.type.checkResolvers {
+            // we loop through every path parameter of the destination and check if
+            // the definition provides enough information to fill in those parameters at runtime (while request handling).
+            // Additionally we track unused resolvers and print a warning of those.
+            var unresolvedPathParameters: [AnyEndpointPathParameter] = []
+            let unusedResolvers: [AnyPathParameterResolver] = candidate.resolvers
+                .resolvability(of: entry.reference.absolutePath, unresolved: &unresolvedPathParameters)
+
+            if !unresolvedPathParameters.isEmpty {
+                if case .explicit = type {
+                    fatalError("""
+                               Explicit definition of \(candidate) couldn't resolve all path parameter \
+                               from \(candidate.reference) to destination \(entry.reference).
+                               The following path parameter of the destination are missing a resolver: \(
+                                   unresolvedPathParameters.map { "{\($0.name)}" }.joined(separator: ", ")
+                               )
+                               """)
+                }
+
+                return true
+            }
+
+            if !unusedResolvers.isEmpty, case .explicit = type {
+                logger.warning("""
+                               [TypeIndex] The definition of \(candidate) contains resolvers with are unused: \
+                               \(unusedResolvers.map { $0.description }.joined(separator: ", ")).
+                               """)
+            }
+        }
+
+        return false
+    }
+
     /// In order to properly parse multi-inheritance relationship inheritances we need to begin
     /// parsing the topmost inheritance. Thus we sort all our inheritance candidates
     /// by the amount of children, such that we can start parsing with the candidate with the most children.
@@ -236,33 +254,7 @@ struct TypeIndex {
         var inheritanceIndex: [ObjectIdentifier: IndexedInheritance] = [:]
 
         // Step 1: Create all inheritance indexes
-        for sets in candidates.values {
-            for candidate in sets {
-                let inheritedType = candidate.destinationType
-                let subType = candidate.reference.responseType
-
-                let identifier = ObjectIdentifier(inheritedType)
-
-                // we have candidates which are defined to inherit from the same type, those are not problematic
-                // (e.g. /authenticated -> User might inherit from /user/:userId -> User)
-                // => below we ensure that this type duplicate is not added to `subTypes`
-
-                if var inheritance = inheritanceIndex[identifier] {
-                    if subType != inheritedType {
-                        inheritance.subtypes.append(subType)
-                    }
-                    inheritance.inheritanceCandidates.append(candidate)
-
-                    inheritanceIndex[identifier] = inheritance
-                } else {
-                    inheritanceIndex[identifier] = IndexedInheritance(
-                        inheritedType: candidate.destinationType,
-                        subtypes: subType != inheritedType ? [subType] : [],
-                        inheritanceCandidates: [candidate],
-                        maxInheritanceDepth: nil)
-                }
-            }
-        }
+        buildInheritanceIndex(for: candidates, into: &inheritanceIndex)
 
         // Step 2: Check that it doesn't contain circles
         for index in inheritanceIndex.values {
@@ -301,6 +293,43 @@ struct TypeIndex {
                     result.append(candidate)
                 }
             }
+    }
+
+    /// Creates the actual inheritance index used to for cycle checking and calculating the inheritance depth.
+    /// - Parameters:
+    ///   - candidates: The candidates to build the index out.
+    ///   - index: The index to write into.
+    private func buildInheritanceIndex(
+        for candidates: [EndpointReference: Set<IndexedRelationshipInheritanceCandidate>],
+        into index: inout [ObjectIdentifier: IndexedInheritance]
+    ) {
+        for sets in candidates.values {
+            for candidate in sets {
+                let inheritedType = candidate.destinationType
+                let subType = candidate.reference.responseType
+
+                let identifier = ObjectIdentifier(inheritedType)
+
+                // we have candidates which are defined to inherit from the same type, those are not problematic
+                // (e.g. /authenticated -> User might inherit from /user/:userId -> User)
+                // => below we ensure that this type duplicate is not added to `subTypes`
+
+                if var inheritance = index[identifier] {
+                    if subType != inheritedType {
+                        inheritance.subtypes.append(subType)
+                    }
+                    inheritance.inheritanceCandidates.append(candidate)
+
+                    index[identifier] = inheritance
+                } else {
+                    index[identifier] = IndexedInheritance(
+                        inheritedType: candidate.destinationType,
+                        subtypes: subType != inheritedType ? [subType] : [],
+                        inheritanceCandidates: [candidate],
+                        maxInheritanceDepth: nil)
+                }
+            }
+        }
     }
 
     /// Checks for circles in the inheritanceIndex for a given `index`

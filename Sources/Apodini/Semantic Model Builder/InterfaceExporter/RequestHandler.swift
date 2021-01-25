@@ -46,14 +46,18 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
                     using: self.instance.responseTransformers)
 
                 return transformed.map { response -> Response<HandledRequest> in
-                    response.map { anyEncodable in
-                        HandledRequest(
-                            for: instance.endpoint,
-                            response: anyEncodable,
-                            parameters: validatedRequest.validatedParameterValues)
-                    }
+                    mapToHandledRequest(response, validatedRequest: validatedRequest)
                 }
             }
+    }
+
+    private func mapToHandledRequest(_ response: Response<AnyEncodable>, validatedRequest: ValidatedRequest<I, H>) -> Response<HandledRequest> {
+        response.map { anyEncodable in
+            HandledRequest(
+                for: instance.endpoint,
+                response: anyEncodable,
+                parameters: validatedRequest.validatedParameterValues)
+        }
     }
 
     private func transformResponse(_ response: Response<AnyEncodable>,

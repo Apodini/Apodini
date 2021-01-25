@@ -21,52 +21,44 @@ public enum EndpointPath: CustomStringConvertible, CustomDebugStringConvertible 
     }
 
     public var debugDescription: String {
-        switch self {
-        case .root:
+        if case .root = self {
             return "<root>"
-        default:
-            return description
         }
+        return description
     }
 
     public func isString() -> Bool {
-        switch self {
-        case .string:
+        if case .string = self {
             return true
-        default:
-            return false
         }
+        return false
     }
 
     public func isParameter() -> Bool {
-        switch self {
-        case .parameter:
+        if case .parameter = self {
             return true
-        default:
-            return false
         }
+        return false
     }
 
     func scoped(on endpoint: AnyEndpoint) -> EndpointPath {
-        switch self {
-        case let .parameter(parameter):
+        if case let .parameter(parameter) = self {
             var parameter = parameter.toInternal()
             parameter.scoped(on: endpoint)
             return .parameter(parameter)
-        default:
-            return self
         }
+
+        return self
     }
 
     func unscoped() -> EndpointPath {
-        switch self {
-        case let .parameter(parameter):
+        if case let .parameter(parameter) = self {
             var parameter = parameter.toInternal()
             parameter.unscoped()
             return .parameter(parameter)
-        default:
-            return self
         }
+
+        return self
     }
 }
 
@@ -289,12 +281,11 @@ extension Array where Element == EndpointPath {
         }
         let next = removeFirst()
 
-        switch next {
-        case .root:
-            break
-        default:
-            fatalError("Tried asserting .root but encountered \(next)")
+        if case .root = next {
+            return
         }
+
+        fatalError("Tried asserting .root but encountered \(next)")
     }
 }
 
@@ -302,11 +293,8 @@ extension Array where Element == EndpointPath {
 extension Array where Element == EndpointPath {
     func listPathParameters() -> [AnyEndpointPathParameter] {
         reduce(into: []) { result, path in
-            switch path {
-            case let .parameter(parameter):
+            if case let .parameter(parameter) = path {
                 result.append(parameter)
-            default:
-                break
             }
         }
     }
