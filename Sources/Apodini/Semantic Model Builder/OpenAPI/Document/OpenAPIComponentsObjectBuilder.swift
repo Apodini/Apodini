@@ -8,6 +8,7 @@ import Foundation
 enum OpenAPISchemaConstants {
     static let replaceAngleBracket = "_"
     static let replaceCommaSeparation = "-comma-"
+    static let allowedRecursionDepth = 15
 }
 
 /// Corresponds to `components` section in OpenAPI document
@@ -145,10 +146,15 @@ class OpenAPIComponentsObjectBuilder {
 extension OpenAPIComponentsObjectBuilder {
     static func node(_ type: Any.Type) throws -> Node<EnrichedInfo>? {
         let node = try EnrichedInfo.node(type)
-        return try recursiveEdit(node: node)
+        var counter = 0
+        return try recursiveEdit(node: node, counter: &counter)
     }
     
-    private static func recursiveEdit(node: Node<EnrichedInfo>) throws -> Node<EnrichedInfo> {
+    private static func recursiveEdit(node: Node<EnrichedInfo>, counter: inout Int) throws -> Node<EnrichedInfo> {
+        if counter > OpenAPISchemaConstants.allowedRecursionDepth {
+            fatalError("Error occurred during transfering tree of nodes with type \(node.value.typeInfo.name). The recursion depth has exceeded the critical value of \(OpenAPISchemaConstants.allowedRecursionDepth)")
+        }
+        counter += 1
         let before = node.collectValues()
         guard let newNode = try node
             .edited(handleOptional)?
@@ -158,6 +164,6 @@ extension OpenAPIComponentsObjectBuilder {
             .edited(handleUUID) else {
             fatalError("Error occurred during transfering tree of nodes with type \(node.value.typeInfo.name).") }
         let after = newNode.collectValues()
-        return after != before ? try recursiveEdit(node: newNode) : node
+        return after != before ? try recursiveEdit(node: newNode, counter: &counter) : node
     }
 }
