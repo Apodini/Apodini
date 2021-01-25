@@ -35,8 +35,6 @@ protocol ObservedListener {
 protocol ConnectionContext {
     associatedtype Exporter: InterfaceExporter
 
-    var listener: ObservedListener? { get }
-
     mutating func handle(
         request exporterRequest: Exporter.ExporterRequest,
         eventLoop: EventLoop,
@@ -45,7 +43,7 @@ protocol ConnectionContext {
 
     /// Register a listener that will be notified once an observed object did change in the handler
     /// that is being used in this connection.
-    mutating func register<H: Handler>(listener: ObservedListener, on handler: H)
+    mutating func register(listener: ObservedListener)
 }
 
 extension ConnectionContext {
@@ -59,42 +57,33 @@ extension ConnectionContext {
 
 struct AnyConnectionContext<I: InterfaceExporter>: ConnectionContext {
     typealias Exporter = I
-    typealias ConnectionHandler = AnyHandler
-
-    private var internalListener: ObservedListener?
-
-    var listener: ObservedListener? {
-        get {
-            internalListener
-        }
-    }
     
     private var handleFunc: (
         _: I.ExporterRequest,
         _: EventLoop,
         _: Bool
     ) -> EventLoopFuture<Response<AnyEncodable>>
+
+    private var registerFunc: (
+        _: ObservedListener
+    ) -> Void
     
     init<C: ConnectionContext>(from context: C) where C.Exporter == I {
         var context = context
         self.handleFunc = { request, eventLoop, final in
             context.handle(request: request, eventLoop: eventLoop, final: final)
         }
-        self.internalListener = context.listener
+        self.registerFunc = { listener in
+            context.register(listener: listener)
+        }
     }
     
     mutating func handle(request exporterRequest: I.ExporterRequest, eventLoop: EventLoop, final: Bool) -> EventLoopFuture<Response<AnyEncodable>> {
         self.handleFunc(exporterRequest, eventLoop, final)
     }
 
-    mutating func register<H: Handler>(listener: ObservedListener, on handler: H) {
-        self.internalListener = listener
-        // register the given listener for notifications on the handler
-        for obj in handler.collectObservedObjects() {
-            obj.valueDidChange = {
-                self.internalListener?.onObservedDidChange(in: AnyHandler(handler))
-            }
-        }
+    mutating func register(listener: ObservedListener) {
+        self.registerFunc(listener)
     }
 }
 
@@ -104,22 +93,15 @@ extension ConnectionContext {
     }
 }
 
-struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionContext {
+class InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionContext {
     typealias Exporter = I
+    typealias ConnectionHandler = H
     
     private let exporter: I
     
     private var validator: AnyValidator<I, EventLoop, ValidatedRequest<I, H>>
     
-    let endpoint: EndpointInstance<H>
-
-    private var internalListener: ObservedListener?
-
-    var listener: ObservedListener? {
-        get {
-            internalListener
-        }
-    }
+    var endpoint: EndpointInstance<H>
     
     private var requestHandler: InternalEndpointRequestHandler<I, H> {
         InternalEndpointRequestHandler(endpoint: self.endpoint, exporter: self.exporter)
@@ -134,13 +116,8 @@ struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCo
         
         self.validator = endpoint.validator(for: exporter)
     }
-
-    init(for exporter: I, on endpoint: Endpoint<H>, notify listener: ObservedListener) {
-        self.init(for: exporter, on: endpoint)
-        self.register(listener: listener, on: endpoint.handler)
-    }
     
-    mutating func handle(
+    func handle(
         request exporterRequest: I.ExporterRequest,
         eventLoop: EventLoop,
         final: Bool
@@ -158,12 +135,11 @@ struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCo
         }
     }
 
-    mutating func register<H: Handler>(listener: ObservedListener, on handler: H) {
-        self.internalListener = listener
+    func register(listener: ObservedListener) {
         // register the given listener for notifications on the handler
-        for obj in handler.collectObservedObjects() {
+        for obj in endpoint.handler.collectObservedObjects() {
             obj.valueDidChange = {
-                internalListener?.onObservedDidChange(in: AnyHandler(handler))
+                listener.onObservedDidChange(in: AnyHandler(self.endpoint.handler))
             }
         }
     }
