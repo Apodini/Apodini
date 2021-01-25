@@ -85,6 +85,18 @@ extension ProtobufferBuilderTests {
         XCTAssertEqual(try buildMessage(Message.self), expected)
     }
     
+    func testVariableWidthInteger() throws {
+        let bitWidth = Int.bitWidth
+        
+        let expected = """
+            message Int\(bitWidth)Message {
+              int\(bitWidth) value = 1;
+            }
+            """
+        
+        XCTAssertEqual(try buildMessage(Int.self), expected)
+    }
+    
     func testGenericTypeFirstOrder() throws {
         struct Tuple<U, V> {
             let first: U
