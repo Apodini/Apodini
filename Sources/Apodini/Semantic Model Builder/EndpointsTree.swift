@@ -193,23 +193,6 @@ class EndpointsTreeNode {
         absolutePath.append(storedPath.path)
     }
 
-    func relativePath(root node: EndpointsTreeNode) -> [EndpointPath] {
-        var relativePath: [EndpointPath] = []
-        collectRelativePath(&relativePath, root: node)
-        return relativePath
-    }
-
-    private func collectRelativePath(_ relativePath: inout [EndpointPath], root node: EndpointsTreeNode) {
-        if node === self {
-            return
-        }
-        if let parent = parent {
-            parent.collectRelativePath(&relativePath, root: node)
-        }
-
-        relativePath.append(storedPath.path)
-    }
-
     func constructStructuralRelationships() -> [[EndpointPath]: EndpointRelationship] {
         guard finishedConstruction else {
             fatalError("Constructed endpoint relationships although the tree wasn't finished parsing!")
