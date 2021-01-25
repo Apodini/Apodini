@@ -187,7 +187,7 @@ extension TypeIndexBuilder {
     ///    returning the same type, but located under different paths
     ///    (and none of them is marked with `defaultRelationship`). [Conflict]
     /// 2. Ensure that `.defaultRelationship` is only used once on multiple paths for a given Operation
-    /// 3. Handle Handlers located under multiple Path Parameter (currently only one path parameter using `Identifiable`)
+    /// 3. Handle Handlers located under multiple Path Parameter
     ///   3.1. Detect destinations for a given Operation
     ///   3.2. Detect sources (operation independent). Idea is that Handlers having less path parameter in their path
     ///    (but can provide values for the path parameters of a type with more path parameters) can link to those
