@@ -140,7 +140,7 @@ private extension ProtobufferMessage {
     /// .
     ///
     /// The implementation is less than ideal,
-    /// but it shall be sufficient for now.
+    /// but it is sufficient for now.
     var isPrimitive: Bool {
         // TypeInfo.compatibleName is leaking...
         guard name.hasSuffix("Message") else {
