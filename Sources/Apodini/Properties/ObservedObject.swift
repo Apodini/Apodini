@@ -30,8 +30,13 @@ public struct ObservedObject<Element: ObservableObject>: Property {
     
     /// Property to check if the evaluation of the `Handler` or `Job` was triggered by this `ObservableObject`.
     /// Read only property
-    public var changed: Bool {
-        changedWrapper.value
+    public internal(set) var changed: Bool {
+        get {
+            changedWrapper.value
+        }
+        set {
+            changedWrapper.value = newValue
+        }
     }
     
     /// Element passed as an object.
@@ -50,16 +55,13 @@ public struct ObservedObject<Element: ObservableObject>: Property {
 }
 
 /// Type-erased `ObservedObject` protocol.
-public protocol AnyObservedObject {
+protocol AnyObservedObject {
     /// Method to be informed about values that have changed
     var valueDidChange: (() -> Void)? { get nonmutating set }
-    /// Sets the `changed` property.
-    /// Separate setter for `changed` to be read only by the user.
-    nonmutating func setChanged(to value: Bool)
 }
 
 extension ObservedObject: AnyObservedObject {
-    public var valueDidChange: (() -> Void)? {
+    var valueDidChange: (() -> Void)? {
         get {
             wrappedValueDidChange.value
         }
@@ -75,27 +77,5 @@ extension ObservedObject: AnyObservedObject {
                 }
             }
         }
-    }
-    
-    public nonmutating func setChanged(to value: Bool) {
-        changedWrapper.value = value
-    }
-}
-
-extension Handler {
-    /// Collects  every `ObservedObject` in the Handler.
-    func collectObservedObjects() -> [AnyObservedObject] {
-        var observedObjects: [AnyObservedObject] = []
-        
-        for property in Mirror(reflecting: self).children {
-            switch property.value {
-            case let observedObject as AnyObservedObject:
-                observedObjects.append(observedObject)
-            default:
-                continue
-            }
-        }
-        
-        return observedObjects
     }
 }
