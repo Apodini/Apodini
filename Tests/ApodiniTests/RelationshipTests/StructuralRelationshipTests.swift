@@ -93,6 +93,9 @@ class RelationshipTests: ApodiniTests {
                 Group("d".relationship(name: "Test")) {
                     TextParameterized(text: "Test4", id: $id)
                 }
+                Group("e".hideLink()) {
+                    TextParameterized(text: "Test5", id: $id)
+                }
             }
         }
     }
@@ -102,8 +105,11 @@ class RelationshipTests: ApodiniTests {
 
         let result0 = context.request(on: 0) // handling "Test1"
         XCTAssertEqual(
-            result0.formatRelationships(into: [:], with: TestingRelationshipFormatter(hideHidden: true), includeSelf: true),
-            ["self:read": "/a", "namedc:read": "/a/b/{id}/c", "namedTest:read": "/a/b/{id}/d"])
+            result0.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            [
+                "self:read": "/a", "namedc:read": "/a/b/{id}/c", "namedTest:read": "/a/b/{id}/d",
+                "namedc:update": "hidden:/a/b/{id}/c/{id2}", "namede:read": "hidden:/a/b/{id}/e"
+            ])
 
         let result1 = context.request(on: 1, parameters: "value0") // handling "Test2"
         XCTAssertEqual(
@@ -119,5 +125,10 @@ class RelationshipTests: ApodiniTests {
         XCTAssertEqual(
             result3.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
             ["self:read": "/a/b/value0/d"])
+
+        let result4 = context.request(on: 4, parameters: "value0") // handling "Test4"
+        XCTAssertEqual(
+            result4.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            ["self:read": "/a/b/value0/e"])
     }
 }

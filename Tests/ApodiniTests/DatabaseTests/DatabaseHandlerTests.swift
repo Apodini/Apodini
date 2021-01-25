@@ -72,7 +72,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let endpoint = handler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         
         let uri = URI("http://example.de/test/id")
         let request = Vapor.Request(

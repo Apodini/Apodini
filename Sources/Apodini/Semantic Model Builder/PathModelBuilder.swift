@@ -37,13 +37,10 @@ struct PathModelBuilder: PathComponentParser {
 
     func parseCurrentContext() -> PathContext {
         let name = currentContext.getContextValue(for: RelationshipNameContextKey.self)
+        let hidden = currentContext.getContextValue(for: HideLinkContextKey.self) ?? []
         let groupEnd = currentContext.getContextValue(for: MarkGroupEndModifierContextKey.self) ?? false
 
-        if let hidden = currentContext.getContextValue(for: HideLinkContextKey.self) {
-            return PathContext(relationshipName: name, linkHidden: true, hiddenOperations: hidden, groupEnd: groupEnd)
-        } else {
-            return PathContext(relationshipName: name, groupEnd: groupEnd)
-        }
+        return PathContext(relationshipName: name, hiddenOperations: hidden, groupEnd: groupEnd)
     }
 
     mutating func visit(_ string: String) {
@@ -74,23 +71,27 @@ struct StoredEndpointPath: CustomStringConvertible {
     let context: PathContext
 
     static var root: StoredEndpointPath {
-        StoredEndpointPath(path: .root, context: PathContext())
+        StoredEndpointPath(path: .root)
+    }
+
+    init(path: EndpointPath, context: PathContext = PathContext()) {
+        self.path = path
+        self.context = context
     }
 }
 
+/// Represents captured context data for a specific `EndpointPath`.
 struct PathContext {
-    var relationshipName: String?
-    var linkHidden: Bool
-    var hiddenOperations: [Operation]
-    var isGroupEnd: Bool
+    let relationshipName: String?
+    let hiddenOperations: [Operation]
+    let isGroupEnd: Bool
 
-    init(relationshipName: String? = nil, groupEnd: Bool = false) {
-        self.init(relationshipName: relationshipName, linkHidden: false, groupEnd: groupEnd)
+    fileprivate init() {
+        self.init(relationshipName: nil, hiddenOperations: [], groupEnd: false)
     }
 
-    init(relationshipName: String?, linkHidden: Bool, hiddenOperations: [Operation] = [], groupEnd: Bool = false) {
+    init(relationshipName: String?, hiddenOperations: [Operation], groupEnd: Bool) {
         self.relationshipName = relationshipName
-        self.linkHidden = linkHidden
         self.hiddenOperations = hiddenOperations
         self.isGroupEnd = groupEnd
     }

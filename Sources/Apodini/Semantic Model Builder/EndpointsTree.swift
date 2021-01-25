@@ -31,8 +31,7 @@ struct EndpointInsertionContext {
 
     mutating func append(parameter: AnyEndpointParameter) {
         storedPath.append(StoredEndpointPath(
-            path: parameter.toInternal().derivePathParameterModel(),
-            context: PathContext()
+            path: parameter.toInternal().derivePathParameterModel()
         ))
     }
 
@@ -237,12 +236,10 @@ class EndpointsTreeNode {
         _ relationships: inout [[EndpointPath]: EndpointRelationship],
         searchList: [Operation],
         hiddenOperations: Set<Operation>,
-        respectHidden: Bool = false,
         namePrefix: String = "",
         relativeNamingPath: [EndpointPath] = [],
         nameOverride: String? = nil
     ) {
-        let hidden = respectHidden || storedPath.context.linkHidden
         var prefix = namePrefix
         var override = storedPath.context.relationshipName ?? nameOverride
 
@@ -272,19 +269,13 @@ class EndpointsTreeNode {
                     relationship = EndpointRelationship(path: absolutePath)
                 }
 
-
-                var hideLink = false
-                if hidden {
-                    hideLink = hiddenOperations.isEmpty || hiddenOperations.contains(operation)
-                }
-
                 // swiftlint:disable force_unwrapping
                 relationship!.addEndpoint(
                     endpoint,
                     prefix: prefix,
                     relativeNamingPath: relativePath,
                     nameOverride: override,
-                    hideLink: hideLink
+                    hideLink: hiddenOperations.contains(operation)
                 )
             }
         }
@@ -305,7 +296,6 @@ class EndpointsTreeNode {
                 &relationships,
                 searchList: searchList,
                 hiddenOperations: hiddenOperations,
-                respectHidden: hidden,
                 namePrefix: prefix,
                 relativeNamingPath: relativePath,
                 nameOverride: override

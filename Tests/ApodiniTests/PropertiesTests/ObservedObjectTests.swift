@@ -98,8 +98,8 @@ class ObservedObjectTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let handler = TestHandler()
         let endpoint = handler.mockEndpoint(app: app)
-        var context = endpoint.createConnectionContext(for: exporter)
-        
+        let context = endpoint.createConnectionContext(for: exporter)
+
         let request = Vapor.Request(
             application: app.vapor.app,
             method: .POST,
@@ -155,11 +155,11 @@ class ObservedObjectTests: ApodiniTests {
         
         let exporter = RESTInterfaceExporter(app)
         let handler = TestHandler()
-        
+
         let endpoint = handler.mockEndpoint(app: app)
-        var context1 = endpoint.createConnectionContext(for: exporter)
-        var context2 = endpoint.createConnectionContext(for: exporter)
-        
+        let context1 = endpoint.createConnectionContext(for: exporter)
+        let context2 = endpoint.createConnectionContext(for: exporter)
+
         let request = Vapor.Request(
             application: app.vapor.app,
             method: .POST,
@@ -227,10 +227,10 @@ class ObservedObjectTests: ApodiniTests {
         
         let exporter = RESTInterfaceExporter(app)
         let handler = TestHandler()
-        
+
         let endpoint = handler.mockEndpoint(app: app)
-        var context = endpoint.createConnectionContext(for: exporter)
-        
+        let context = endpoint.createConnectionContext(for: exporter)
+
         // send initial mock request through context
         // (to simulate connection initiation by client)
         let request = Vapor.Request(
@@ -274,7 +274,7 @@ class ObservedObjectTests: ApodiniTests {
         usleep(100000)
         
         let endpoint = handler.mockEndpoint(app: app)
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         
         // send initial mock request through context
         // (to simulate connection initiation by client)

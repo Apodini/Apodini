@@ -12,7 +12,7 @@ public struct HideLinkModifier: PathComponentModifier {
     // empty array signals to hide everything
     let operations: [Operation]
 
-    init(_ pathComponent: PathComponent, _ operations: [Operation]) {
+    init(_ pathComponent: PathComponent, _ operations: [Operation] = Operation.allCases) {
         self.pathComponent = pathComponent.toInternal()
         self.operations = operations
     }
@@ -30,7 +30,7 @@ extension PathComponent {
     ///
     /// - Returns: The modified `PathComponent`, now marked as hidden.
     public func hideLink() -> HideLinkModifier {
-        HideLinkModifier(self, [])
+        HideLinkModifier(self)
     }
 
     /// A `HideLinkModifier` can be used to specify, that linking information to Endpoints
