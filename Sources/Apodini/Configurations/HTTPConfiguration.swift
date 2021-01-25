@@ -16,8 +16,22 @@ import NIO
 public class HTTPConfiguration: Configuration {
     private var address: BindAddress?
 
-    enum HTTPConfigurationError: Error {
+    enum HTTPConfigurationError: LocalizedError {
         case incompatibleFlags
+
+        var errorDescription: String? {
+            switch self {
+            case .incompatibleFlags:
+                return "The command line arguments for HTTPConfiguration are invalid."
+            }
+        }
+
+        var recoverySuggestion: String? {
+            switch self {
+            case .incompatibleFlags:
+                return "Example usage of HTTPConfiguration: --hostname 0.0.0.0 --port 8080 or --bind 0.0.0.0:8080"
+            }
+        }
     }
 
     /// initalize HTTPConfiguration
