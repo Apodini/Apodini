@@ -32,11 +32,12 @@ extension Application {
         final class Storage {
             var threadPool: NIOThreadPool
             var running: Application.Running.Storage
-
+            var directory: Directory
             init() {
                 self.threadPool = NIOThreadPool(numberOfThreads: 1)
                 self.threadPool.start()
                 self.running = .init()
+                self.directory = .detect()
             }
         }
 

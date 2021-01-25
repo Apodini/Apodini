@@ -9,7 +9,10 @@ let package = Package(
         .macOS(.v10_15)
     ],
     products: [
-        .library(name: "Apodini", targets: ["Apodini"])
+        .library(name: "Apodini", targets: ["Apodini"]),
+        .library(name: "ApodiniDatabase", targets: ["ApodiniDatabase"]),
+        .library(name: "Notifications", targets: ["Notifications"]),
+        .library(name: "Jobs", targets: ["Jobs"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.35.0"),
@@ -55,6 +58,12 @@ let package = Package(
             ]
         ),
         .target(
+            name: "ApodiniDatabase",
+            dependencies: [
+                .target(name: "Apodini")
+            ]
+        ),
+        .target(
             name: "XCTApodini",
             dependencies: [
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
@@ -66,7 +75,8 @@ let package = Package(
             name: "ApodiniTests",
             dependencies: [
                 .product(name: "XCTVapor", package: "vapor"),
-                .target(name: "XCTApodini")
+                .target(name: "XCTApodini"),
+                .target(name: "ApodiniDatabase")
             ],
             exclude: [
                 "ConfigurationTests/Certificates/cert.pem",
@@ -76,7 +86,8 @@ let package = Package(
         .target(
             name: "TestWebService",
             dependencies: [
-                .target(name: "Apodini")
+                .target(name: "Apodini"),
+                .target(name: "ApodiniDatabase")
             ]
         ),
         // ProtobufferCoding

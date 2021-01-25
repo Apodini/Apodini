@@ -20,6 +20,9 @@ protocol AnyEndpoint: CustomStringConvertible {
 
     var operation: Operation { get }
 
+    /// The communication pattern that is expressed by this endpoint.
+    var serviceType: ServiceType { get }
+
     /// Type returned by `Component.handle(...)`
     var handleReturnType: Encodable.Type { get }
     /// Response type ultimately returned by `Component.handle(...)` and possible following `ResponseTransformer`s
@@ -79,6 +82,8 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     let context: Context
     
     let operation: Operation
+
+    let serviceType: ServiceType
     
     let handleReturnType: Encodable.Type
     let responseType: Encodable.Type
@@ -104,6 +109,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         handler: H,
         context: Context = Context(contextNode: ContextNode()),
         operation: Operation? = nil,
+        serviceType: ServiceType = .unary,
         guards: [LazyGuard] = [],
         responseTransformers: [LazyAnyResponseTransformer] = []
     ) {
@@ -112,6 +118,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         self.handler = handler
         self.context = context
         self.operation = operation ?? .read
+        self.serviceType = serviceType
         self.handleReturnType = H.Response.Content.self
         self.guards = guards
         self.responseTransformers = responseTransformers
@@ -299,23 +306,6 @@ class EndpointsTreeNode {
             child.collectRelationships(name: name, &relationships)
         }
     }
-    
-    /// This method prints the tree structure to stdout. Added for debugging purposes.
-    func printTree(indent: Int = 0) {
-        let indentString = String(repeating: "  ", count: indent)
-        
-        print(indentString + path.description + "/ {")
-        
-        for (operation, endpoint) in endpoints {
-            print("\(indentString)  - \(operation): \(endpoint.description) [\(endpoint.identifier.rawValue)]")
-        }
-        
-        for child in nodeChildren.values {
-            child.printTree(indent: indent + 1)
-        }
-        
-        print(indentString + "}")
-    }
 }
 
 struct EndpointInsertionContext {
@@ -365,38 +355,5 @@ struct EndpointInsertionContext {
         }
 
         return next
-    }
-}
-
-
-/// Helper type which acts as a Hashable wrapper around `AnyEndpoint` 
-private struct AnyHashableEndpoint: Hashable, Equatable {
-    let endpoint: AnyEndpoint
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(endpoint.identifier)
-    }
-    
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.endpoint.identifier == rhs.endpoint.identifier
-    }
-}
-
-
-extension EndpointsTreeNode {
-    func collectAllEndpoints() -> [AnyEndpoint] {
-        if let parent = parent {
-            return parent.collectAllEndpoints()
-        }
-        var endpoints = Set<AnyHashableEndpoint>()
-        collectAllEndpoints(into: &endpoints)
-        return endpoints.map(\.endpoint)
-    }
-    
-    private func collectAllEndpoints(into endpointsSet: inout Set<AnyHashableEndpoint>) {
-        endpointsSet.formUnion(self.endpoints.values.map { AnyHashableEndpoint(endpoint: $0) })
-        for child in children {
-            child.collectAllEndpoints(into: &endpointsSet)
-        }
     }
 }

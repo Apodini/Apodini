@@ -7,11 +7,11 @@
 
 import Fluent
 import Foundation
+@testable import ApodiniDatabase
 @testable import Apodini
 
-final class Bird: Model, Apodini.Content {
+final class Bird: DatabaseModel {
     static var schema: String = "Birds"
-    
     
     @ID
     var id: UUID?
@@ -28,6 +28,14 @@ final class Bird: Model, Apodini.Content {
     }
     
     init() {}
+    
+    func update(_ object: Bird) {
+        if object.id != nil {
+            self.id = object.id
+        }
+        self.age = object.age
+        self.name = object.name
+    }
 }
 
 

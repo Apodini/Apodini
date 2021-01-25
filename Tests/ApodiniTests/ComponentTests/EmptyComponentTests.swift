@@ -26,14 +26,14 @@ class EmptyComponentTests: ApodiniTests {
         let componentSyntaxTreeVisitor = SyntaxTreeVisitor(semanticModelBuilders: [componentSharedSemanticModelBuilder])
         EmptyComponent().accept(componentSyntaxTreeVisitor)
         componentSyntaxTreeVisitor.finishParsing()
-        XCTAssertEqual(componentSharedSemanticModelBuilder.rootNode.collectAllEndpoints().count, 0)
+        XCTAssertEqual(componentSharedSemanticModelBuilder.rootNode.collectEndpoints().count, 0)
         
         
         let handlerSharedSemanticModelBuilder = SharedSemanticModelBuilder(app)
         let handlerSyntaxTreeVisitor = SyntaxTreeVisitor(semanticModelBuilders: [handlerSharedSemanticModelBuilder])
         EmptyHandler().accept(handlerSyntaxTreeVisitor)
         handlerSyntaxTreeVisitor.finishParsing()
-        XCTAssertEqual(componentSharedSemanticModelBuilder.rootNode.collectAllEndpoints().count, 0)
+        XCTAssertEqual(componentSharedSemanticModelBuilder.rootNode.collectEndpoints().count, 0)
     }
     
     func testNeverRuntimeErrors() throws {

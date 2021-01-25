@@ -6,6 +6,11 @@
 
 enum TypeReflectionDidEncounterRecursion {}
 
+struct PropertyInfo: Equatable, Hashable {
+    let name: String
+    let offset: Int
+}
+
 struct EnrichedInfo {
     enum Cardinality {
         case zeroToOne
@@ -20,7 +25,6 @@ struct EnrichedInfo {
 
     let typeInfo: TypeInfo
     let propertyInfo: PropertyInfo?
-    let propertiesOffset: Int?
 
     var cardinality: Cardinality = .exactlyOne
 }
@@ -34,10 +38,9 @@ extension EnrichedInfo {
         let root = EnrichedInfo(
             typeInfo: typeInfo,
             propertyInfo: nil,
-            propertiesOffset: nil,
             cardinality: cardinality
         )
-        
+
         var didEncounterArray = false
         var visitedCompositeTypes: Set = [ObjectIdentifier(typeInfo.type)]
         
@@ -74,18 +77,27 @@ extension EnrichedInfo {
                         
                         return EnrichedInfo(
                             typeInfo: typeInfo,
-                            propertyInfo: propertyInfo,
-                            propertiesOffset: offset + 1,
+                            propertyInfo: .init(
+                                name: propertyInfo.name,
+                                offset: offset + 1
+                            ),
                             cardinality: cardinality
                         )
                     } catch {
                         let errorDescription = String(describing: error)
-                        let keyword = "Runtime.Kind.opaque"
+                        let keywords = [
+                            "\(Runtime.Kind.opaque)",
+                            "\(Runtime.Kind.function)"
+                        ]
 
-                        guard !errorDescription.contains(keyword) else {
+                        let errorIsKnown = keywords.contains(where: { keyword in
+                            errorDescription.contains(keyword)
+                        })
+                        
+                        if errorIsKnown {
                             return nil
                         }
-
+                        
                         preconditionFailure(errorDescription)
                     }
                 }
@@ -98,8 +110,7 @@ extension EnrichedInfo {
 extension EnrichedInfo: Equatable {
     public static func == (lhs: EnrichedInfo, rhs: EnrichedInfo) -> Bool {
         lhs.typeInfo.type == rhs.typeInfo.type
-            && lhs.propertyInfo?.name == rhs.propertyInfo?.name
-            && lhs.propertiesOffset == rhs.propertiesOffset
+            && lhs.propertyInfo == rhs.propertyInfo
             && lhs.cardinality == rhs.cardinality
     }
 }
