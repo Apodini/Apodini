@@ -52,7 +52,7 @@ final class DatabaseHandlerTests: ApodiniTests {
             .wait()
         let birdId = try XCTUnwrap(dbBird.id)
         
-        let handler = SingleRead<Bird>()
+        let handler = ReadOne<Bird>()
         let endpoint = handler.mockEndpoint()
         
         let exporter = RESTInterfaceExporter(app)
@@ -92,7 +92,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         XCTAssertNotNil(dbBird1.id)
         XCTAssertNotNil(dbBird2.id)
         
-        let readHandler = Read<Bird>()
+        let readHandler = ReadAll<Bird>()
         let endpoint = readHandler.mockEndpoint()
         
         let exporter = RESTInterfaceExporter(app)
