@@ -31,10 +31,7 @@ class OpenAPIComponentsObjectBuilder {
     /// This function takes a list of types with an associated boolean flag reflecting whether it is optional.
     func buildWrapperSchema(for types: [Codable.Type], with necessities: [Necessity]) throws -> JSONSchema {
         let trees: [Node<EnrichedInfo>] = try types.map {
-            guard let node = try Self.node($0) else {
-                throw OpenAPIComponentBuilderError("Could not reflect type \($0).")
-            }
-            return node
+            try Self.node($0)
         }
         let properties = trees
             .enumerated()
@@ -57,20 +54,25 @@ class OpenAPIComponentsObjectBuilder {
     }
 
     func buildResponse(for type: Encodable.Type) throws -> JSONSchema {
-        let schema = try buildSchema(for: type)
-        return .object(properties: [
+        let (schema, title) = try buildSchemaWithTitle(for: type)
+        return .object(
+            title: "\(title)Response",
+            properties: [
             ResponseContainer.CodingKeys.data.rawValue: schema,
             ResponseContainer.CodingKeys.links.rawValue: try buildSchema(for: ResponseContainer.Links.self)
         ])
     }
-
+    
     func buildSchema(for type: Encodable.Type) throws -> JSONSchema {
-        let node: Node<JSONSchema>? = try Self.node(type)?
-            .contextMap(contextMapNode)
-        guard let schema = node?.value else {
-            throw OpenAPIComponentBuilderError("Could not reflect type.")
-        }
+        let (schema, _) = try buildSchemaWithTitle(for: type)
         return schema
+    }
+
+    func buildSchemaWithTitle(for type: Encodable.Type) throws -> (JSONSchema, String) {
+        let node: Node<EnrichedInfo> = try Self.node(type)
+        let schemaNode = node.contextMap(contextMapNode)
+        let title = createSchemaName(for: node)
+        return (schemaNode.value, title)
     }
 
     private func contextMapNode(node: Node<EnrichedInfo>) -> JSONSchema {
@@ -84,7 +86,7 @@ class OpenAPIComponentsObjectBuilder {
                     properties[propertyInfo.name] = mapInfo(child)
                 }
             }
-            let schemaObject = JSONSchema.object(properties: properties)
+            let schemaObject = JSONSchema.object(title: schema.title, properties: properties)
             self.componentsObject.schemas[componentKey(for: schemaName)] = schemaObject
         }
         return schema
@@ -133,6 +135,7 @@ class OpenAPIComponentsObjectBuilder {
         if isOptional {
             schema = schema.optionalSchemaObject()
         }
+        
         return schema
     }
 
@@ -150,7 +153,7 @@ class OpenAPIComponentsObjectBuilder {
 }
 
 extension OpenAPIComponentsObjectBuilder {
-    static func node(_ type: Any.Type) throws -> Node<EnrichedInfo>? {
+    static func node(_ type: Any.Type) throws -> Node<EnrichedInfo> {
         let node = try EnrichedInfo.node(type)
         var counter = 0
         return try recursiveEdit(node: node, counter: &counter)
