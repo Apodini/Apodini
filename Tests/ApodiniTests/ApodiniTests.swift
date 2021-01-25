@@ -20,6 +20,7 @@ class ApodiniTests: XCTApodiniTest {
         try super.addMigrations(CreateBird())
 
         EnvironmentValues.shared.database = try database()
+        EnvironmentValues.shared.values[ObjectIdentifier(Application.Type.self)] = app
         
         try bird1.create(on: database()).wait()
         try bird2.create(on: database()).wait()

@@ -16,17 +16,20 @@ class ConnectionResponsible: Identifiable {
     
     let database: Database?
     
+    let logger: Logger
+    
     private let onClose: (ID) -> Void
     
     private var endpoints: [String: ContextOpener]
     
     private var contexts: [UUID: ContextResponsible] = [:]
     
-    init(_ websocket: WebSocket, database: Database?, onClose: @escaping (ID) -> Void, endpoints: [String: ContextOpener]) {
+    init(_ websocket: WebSocket, database: Database?, onClose: @escaping (ID) -> Void, endpoints: [String: ContextOpener], logger: Logger) {
         self.websocket = websocket
         self.database = database
         self.onClose = onClose
         self.endpoints = endpoints
+        self.logger = logger
         
         websocket.onText { _, message in
             var context: UUID?
@@ -41,7 +44,7 @@ class ConnectionResponsible: Identifiable {
                     
                     websocket.send(data)
                 } catch {
-                    print(error)
+                    self.logger.report(error: error)
                 }
             }
         }
@@ -62,7 +65,22 @@ class ConnectionResponsible: Identifiable {
             
             self.websocket.send(data)
         } catch {
-            print(error)
+            self.logger.report(error: error)
+        }
+    }
+    
+    func send(_ error: Error, in context: UUID) {
+        let encoder = JSONEncoder()
+        do {
+            let jsonData = try encoder.encode(error.message(on: context))
+            
+            guard let data = String(data: jsonData, encoding: .utf8) else {
+                throw SerializationError.expectedUTF8
+            }
+            
+            self.websocket.send(data)
+        } catch {
+            self.logger.report(error: error)
         }
     }
     
@@ -81,7 +99,7 @@ class ConnectionResponsible: Identifiable {
             
             self.websocket.send(data)
         } catch {
-            print(error)
+            self.logger.report(error: error)
         }
         
         self.contexts[context] = nil

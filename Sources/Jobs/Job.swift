@@ -1,8 +1,10 @@
-@_implementationOnly import SwifCron
 import NIO
+import Apodini
+@_implementationOnly import SwifCron
 
-/// `Job`s allow to create background running tasks.
-public protocol Job {
+/// `Job`s allow to create background running tasks
+/// and conform `ObservableObject` to trigger the evaluation of other objects.
+public protocol Job: ObservableObject {
     /// Method called when the `Job` is executed.
     func run()
 }
