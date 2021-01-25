@@ -128,7 +128,7 @@ class RelationshipDSLTests: ApodiniTests {
         }
         Group("authenticated") {
             AuthenticatedUserHandler() // 0
-                .relationship(name: "TestB", of: TestB.self)
+                .relationship(name: "TestB", on: TestB.self)
         }
         Group("me") {
             MeUserHandler() // 1
