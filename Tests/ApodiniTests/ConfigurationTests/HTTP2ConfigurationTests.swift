@@ -46,9 +46,11 @@ extension NIOSSLPrivateKeySource: Equatable {
     public static func == (lhs: NIOSSLPrivateKeySource, rhs: NIOSSLPrivateKeySource) -> Bool {
         switch (lhs, rhs) {
         case let (.privateKey(lhsKey), .file(rhsFile)):
+            // swiftlint:disable force_try
             let rhsKey = try! NIOSSLPrivateKey(file: rhsFile, format: .pem)
             return lhsKey == rhsKey
         case let (.file(lhsFile), .privateKey(rhsKey)):
+            // swiftlint:disable force_try
             let lhsKey = try! NIOSSLPrivateKey(file: lhsFile, format: .pem)
             return lhsKey == rhsKey
         case let (.privateKey(lhsKey), .privateKey(rhsKey)) where lhsKey == rhsKey:
