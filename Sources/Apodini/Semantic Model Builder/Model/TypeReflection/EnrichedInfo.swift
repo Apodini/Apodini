@@ -61,7 +61,7 @@ extension EnrichedInfo {
 
 extension EnrichedInfo: Hashable {
     func hash(into hasher: inout Hasher) {
-        hasher.combine(String(describing: "\(self.typeInfo.mangledName)\(self.propertyInfo?.name)\(self.cardinality)"))
+        hasher.combine(String(describing: "\(self.typeInfo.name)\(self.propertyInfo?.name)\(self.cardinality)"))
     }
 }
 

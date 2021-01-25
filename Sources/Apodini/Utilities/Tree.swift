@@ -151,16 +151,6 @@ extension Node {
             return set
         }
     }
-
-    func collectValues<U>() -> Set<U> where T == [U], U: Hashable {
-        reduce(Set()) { partialResults, next in
-            var set = Set(next)
-            for result in partialResults {
-                set.formUnion(result)
-            }
-            return set
-        }
-    }
 }
 
 // MARK: Node + CustomStringConvertible

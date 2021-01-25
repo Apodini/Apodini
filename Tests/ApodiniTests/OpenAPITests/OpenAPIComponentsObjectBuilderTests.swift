@@ -104,7 +104,7 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     func testBuildSchemaReference() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: SomeComplexStruct.self))
-        // XCTAssertNoThrow(try JSONSchema.reference(.component(named: "\(SomeComplexStruct.self)")).dereferenced(in: componentsBuilder.componentsObject))
+        XCTAssertNoThrow(try JSONSchema.reference(.component(named: "\(SomeComplexStruct.self)")).dereferenced(in: componentsBuilder.componentsObject))
         XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 4)
     }
     
@@ -177,7 +177,7 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
                         .component(named: "SomeNestedStruct")
                     ),
                     "someItems": .reference(
-                        .component(named: "GenericStruct")
+                        .component(named: "GenericStruct\(OpenAPISchemaConstants.replaceAngleBracket)SomeStruct\(OpenAPISchemaConstants.replaceAngleBracket)")
                     ),
                     "someStruct": .reference(
                         .component(named: "SomeStruct")

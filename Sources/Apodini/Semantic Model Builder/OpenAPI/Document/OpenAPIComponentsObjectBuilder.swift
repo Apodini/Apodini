@@ -111,7 +111,7 @@ class OpenAPIComponentsObjectBuilder {
         if isPrimitive {
             schema = JSONSchema.from(node.value.typeInfo.type, defaultType: .object)
         } else {
-            let schemaName = node.value.typeInfo.mangledName
+            let schemaName = createSchemaName(for: node)
             schema = JSONSchema.reference(.component(named: schemaName))
         }
         if isEnum(node.value.typeInfo.type) {
@@ -148,7 +148,7 @@ extension OpenAPIComponentsObjectBuilder {
         return try recursiveEdit(node: node)
     }
     
-    private static func recursiveEdit(node: Node<EnrichedInfo>) throws -> Node<EnrichedInfo>? {
+    private static func recursiveEdit(node: Node<EnrichedInfo>) throws -> Node<EnrichedInfo> {
         let before = node.collectValues()
         guard let newNode = try node
             .edited(handleOptional)?
@@ -156,7 +156,7 @@ extension OpenAPIComponentsObjectBuilder {
             .edited(handleDictionary)?
             .edited(handlePrimitiveType)?
             .edited(handleUUID) else {
-            fatalError("Error occurred during transfering tree of nodes with type \(node.value.typeInfo.mangledName).") }
+            fatalError("Error occurred during transfering tree of nodes with type \(node.value.typeInfo.name).") }
         let after = newNode.collectValues()
         return after != before ? try recursiveEdit(node: newNode) : node
     }
