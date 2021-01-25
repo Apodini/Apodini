@@ -5,6 +5,11 @@
 @_implementationOnly import OpenAPIKit
 import Foundation
 
+enum OpenAPISchemaConstants {
+    static let replaceAngleBracket = "_"
+    static let replaceCommaSeparation = "-comma-"
+}
+
 /// Corresponds to `components` section in OpenAPI document
 /// See: https://swagger.io/specification/#components-object
 class OpenAPIComponentsObjectBuilder {
@@ -60,8 +65,7 @@ class OpenAPIComponentsObjectBuilder {
 
     private func contextMapNode(node: Node<EnrichedInfo>) -> JSONSchema {
         var schema = mapInfo(node)
-        let schemaName = node.value.typeInfo.mangledName
-
+        let schemaName = createSchemaName(for: node)
         if schema.isReference && !schemaExists(for: schemaName) {
             var properties: [String: JSONSchema] = [:]
             for child in node.children {
@@ -78,6 +82,17 @@ class OpenAPIComponentsObjectBuilder {
             }
         }
         return schema
+    }
+    
+    private func createSchemaName(for node: Node<EnrichedInfo>) -> String {
+        if !node.value.typeInfo.genericTypes.isEmpty {
+            let openAPICompliantName = node.value.typeInfo.name
+                .replacingOccurrences(of: "(\\>|\\<)", with: OpenAPISchemaConstants.replaceAngleBracket, options: .regularExpression)
+                .replacingOccurrences(of: "(\\,\\s|\\,)", with: OpenAPISchemaConstants.replaceCommaSeparation, options: .regularExpression)
+            return openAPICompliantName
+        } else {
+            return node.value.typeInfo.mangledName
+        }
     }
 
     private func mapInfo(_ node: Node<EnrichedInfo>) -> JSONSchema {
@@ -135,12 +150,14 @@ extension OpenAPIComponentsObjectBuilder {
     
     private static func recursiveEdit(node: Node<EnrichedInfo>) throws -> Node<EnrichedInfo>? {
         let before = node.collectValues()
-        let newNode = try node.edited(handleOptional)?
+        guard let newNode = try node
+            .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handleDictionary)?
             .edited(handlePrimitiveType)?
-            .edited(handleUUID)
-        let after = newNode?.collectValues()
-        return after != before && newNode != nil ? try recursiveEdit(node: newNode!) : newNode
+            .edited(handleUUID) else {
+            fatalError("Error occurred during transfering tree of nodes with type \(node.value.typeInfo.mangledName).") }
+        let after = newNode.collectValues()
+        return after != before ? try recursiveEdit(node: newNode) : node
     }
 }
