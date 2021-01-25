@@ -54,17 +54,12 @@ extension ProtobufferMessage.Property {
 fileprivate extension TypeInfo {
     func compatibleName() throws -> String {
         if isSupportedScalarType(type) {
-            var infix = ""
-            if isSupportedVariableWidthInteger(type) {
-                infix = String(describing: Int.bitWidth)
-            }
-            
             var suffix = ""
-            if !isSupportedScalarType(type) {
-                suffix = "Message"
+            if isSupportedVariableWidthInteger(type) {
+                suffix = String(describing: Int.bitWidth)
             }
             
-            return Apodini.mangledName(of: type).lowercased() + infix + suffix
+            return Apodini.mangledName(of: type).lowercased() + suffix
         } else {
             switch kind {
             case .struct, .class:

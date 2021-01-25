@@ -119,14 +119,21 @@ extension ProtobufferInterfaceExporter.Builder {
     }
     
     static func buildScalarMessage(_ type: Any.Type) -> Node<ProtobufferMessage> {
-        Node(
+        var suffix = ""
+        if isSupportedVariableWidthInteger(type) {
+            suffix = String(describing: Int.bitWidth)
+        }
+        
+        let typeName = "\(type)" + suffix
+        
+        return Node(
             value: ProtobufferMessage(
-                name: "\(type)Message",
+                name: "\(typeName)Message",
                 properties: [
                     .init(
                         fieldRule: .required,
                         name: "value",
-                        typeName: "\(type)".lowercased(),
+                        typeName: typeName.lowercased(),
                         uniqueNumber: 1
                     )
                 ]
