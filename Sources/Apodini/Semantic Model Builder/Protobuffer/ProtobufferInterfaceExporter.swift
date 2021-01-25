@@ -51,7 +51,7 @@ private extension ProtobufferInterfaceExporter {
         let parameterNodes = try endpoint.parameters.map { parameter in
             try Builder.buildMessage(parameter.propertyType)
         }
-        for parameterNode in parameterNodes {
+        for parameterNode in parameterNodes where !parameterNode.value.isPrimitive {
             messages.formUnion(parameterNode.collectValues())
         }
         
@@ -63,7 +63,9 @@ private extension ProtobufferInterfaceExporter {
                 let fieldRule: ProtobufferMessage.Property.FieldRule
                 fieldRule = parameter.nilIsValidValue ? .optional : .required
                 let name = parameter.name
-                let typeName = node.value.name
+                let typeName = node.value.isPrimitive
+                    ? Array(node.value.properties)[0].typeName
+                    : node.value.name
                 
                 let fieldTag = parameter.options.option(for: .gRPC)?.fieldNumber
                 let uniqueNumber = fieldTag ?? (index + 1)
@@ -86,11 +88,13 @@ private extension ProtobufferInterfaceExporter {
         // Service
         let service = ProtobufferService(
             name: gRPCServiceName(from: endpoint),
-            methods: [.init(
-                name: gRPCMethodName(from: endpoint),
-                input: handlerMessage,
-                ouput: outputNode.value
-            )]
+            methods: [
+                .init(
+                    name: gRPCMethodName(from: endpoint),
+                    input: handlerMessage,
+                    ouput: outputNode.value
+                )
+            ]
         )
         services.insert(service)
     }
@@ -100,27 +104,36 @@ private extension ProtobufferInterfaceExporter {
 
 extension ProtobufferInterfaceExporter.Builder {
     static func buildMessage(_ type: Any.Type) throws -> Node<ProtobufferMessage> {
-        let node = try EnrichedInfo.node(type)
+        try buildCompositeMessage(type) ?? buildScalarMessage(type)
+    }
+    
+    static func buildCompositeMessage(_ type: Any.Type) throws -> Tree<ProtobufferMessage> {
+        try EnrichedInfo.node(type)
             .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handlePrimitiveType)?
             .map(ProtobufferMessage.Property.init)
             .contextMap(ProtobufferMessage.init)
             .compactMap { $0 }?
-            .filter(isNotPrimitive)
-        
-        return node ?? Self.buildScalarMessage(type)
+            .filter(!\.isPrimitive)
     }
     
     static func buildScalarMessage(_ type: Any.Type) -> Node<ProtobufferMessage> {
-        Node(
+        var suffix = ""
+        if isSupportedVariableWidthInteger(type) {
+            suffix = String(describing: Int.bitWidth)
+        }
+        
+        let typeName = "\(type)" + suffix
+        
+        return Node(
             value: ProtobufferMessage(
-                name: "\(type)Message",
+                name: "\(typeName)Message",
                 properties: [
                     .init(
                         fieldRule: .required,
                         name: "value",
-                        typeName: "\(type)".lowercased(),
+                        typeName: typeName.lowercased(),
                         uniqueNumber: 1
                     )
                 ]
@@ -130,8 +143,25 @@ extension ProtobufferInterfaceExporter.Builder {
     }
 }
 
-private func isNotPrimitive(_ message: ProtobufferMessage) -> Bool {
-    message.name.hasSuffix("Message")
+private extension ProtobufferMessage {
+    /// .
+    ///
+    /// The implementation is less than ideal,
+    /// but it is sufficient for now.
+    var isPrimitive: Bool {
+        // TypeInfo.compatibleName is leaking...
+        guard name.hasSuffix("Message") else {
+            return true
+        }
+        
+        // Builder.buildScalarMessage is leaking...
+        guard properties.count == 1 else {
+            return false
+        }
+        
+        let typeName = Array(properties)[0].typeName
+        return typeName + "message" == name.lowercased()
+    }
 }
 
 // MARK: - ProtobufferInterfaceExporter: CustomStringConvertible
