@@ -8,6 +8,7 @@
 import Logging
 import NIO
 import NIOConcurrencyHelpers
+import Dispatch
 
 /// Delegate methods related to application lifecycle
 public protocol LifecycleHandler {
@@ -46,6 +47,7 @@ public final class Application {
     public var logger: Logger
     private var didShutdown: Bool
     private var isBooted: Bool
+    private var signalSources: [DispatchSourceSignal] = []
 
     /// Keeps track of all application lifecylce handlers
     public struct Lifecycle {
@@ -139,6 +141,21 @@ public final class Application {
         // allow the server to be stopped or waited for
         let promise = eventLoopGroup.next().makePromise(of: Void.self)
         running = .start(using: promise)
+
+        // setup signal sources for shutdown
+        let signalQueue = DispatchQueue(label: "org.apodini.application.shutdown")
+        func makeSignalSource(_ code: Int32) {
+            let source = DispatchSource.makeSignalSource(signal: code, queue: signalQueue)
+            source.setEventHandler {
+                print() // clear ^C
+                promise.succeed(())
+            }
+            source.resume()
+            self.signalSources.append(source)
+            signal(code, SIG_IGN)
+        }
+        makeSignalSource(SIGTERM)
+        makeSignalSource(SIGINT)
     }
 
     /// Boot the application
@@ -179,6 +196,9 @@ public final class Application {
 
         self.didShutdown = true
         self.logger.trace("Application shutdown complete")
+
+        self.signalSources.forEach { $0.cancel() } // clear refs
+        self.signalSources = []
     }
 
     deinit {

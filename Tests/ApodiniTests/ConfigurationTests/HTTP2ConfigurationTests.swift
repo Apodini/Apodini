@@ -45,13 +45,15 @@ final class HTTP2ConfigurationTests: ApodiniTests {
 extension NIOSSLPrivateKeySource: Equatable {
     public static func == (lhs: NIOSSLPrivateKeySource, rhs: NIOSSLPrivateKeySource) -> Bool {
         switch (lhs, rhs) {
-        case (.privateKey(let lhsKey), .file(let rhsFile)):
+        case let (.privateKey(lhsKey), .file(rhsFile)):
             let rhsKey = try! NIOSSLPrivateKey(file: rhsFile, format: .pem)
             return lhsKey == rhsKey
-        case (.file(let lhsFile), .privateKey(let rhsKey)):
+        case let (.file(lhsFile), .privateKey(rhsKey)):
             let lhsKey = try! NIOSSLPrivateKey(file: lhsFile, format: .pem)
             return lhsKey == rhsKey
-        case (.file(let lhsFile), .file(let rhsFile)) where lhsFile == rhsFile:
+        case let (.privateKey(lhsKey), .privateKey(rhsKey)) where lhsKey == rhsKey:
+            return true
+        case let (.file(lhsFile), .file(rhsFile)) where lhsFile == rhsFile:
             return true
         default:
             return false
