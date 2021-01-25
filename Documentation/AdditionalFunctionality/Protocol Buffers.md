@@ -32,7 +32,7 @@ var content: some Component {
 ```
 becomes
 ```proto
-service V1GreeterService {
+service V1GreetService {
     rpc greeter(/**/) returns (/**/);
 }
 ```
