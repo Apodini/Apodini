@@ -165,7 +165,8 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
                 .status(code: 500): .init(
                     OpenAPI.Response(description: "Internal Server Error"))
             ],
-            security: nil))
+            vendorExtensions: ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
+        ))
 
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains(key: path))

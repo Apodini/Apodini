@@ -67,11 +67,15 @@ private extension OpenAPIPathsObjectBuilder {
         // Get `OpenAPI.Response.Map` containing all possible HTTP responses mapped to their status code.
         let responses: OpenAPI.Response.Map = buildResponsesObject(from: endpoint.responseType)
 
+        // Set custom extensions on operation.
+        let vendorExtensions: [String: AnyCodable] = ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
+
         return OpenAPI.Operation(
             description: endpointDescription,
             parameters: parameters,
             requestBody: requestBody,
-            responses: responses
+            responses: responses,
+            vendorExtensions: vendorExtensions
         )
     }
 

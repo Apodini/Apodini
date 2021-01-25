@@ -63,7 +63,8 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                             .status(code: 500): .init(
                                 OpenAPI.Response(description: "Internal Server Error")
                             )
-                        ]
+                        ],
+                        vendorExtensions: ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
                     )
                 )
             ],
