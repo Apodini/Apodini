@@ -75,6 +75,9 @@ public class HTTPConfiguration: Configuration {
 
     /// Sets the http server address
     public func address(_ address: BindAddress) -> Self {
+        guard self.address == nil else {
+            return self
+        }
         self.address = address
         return self
     }

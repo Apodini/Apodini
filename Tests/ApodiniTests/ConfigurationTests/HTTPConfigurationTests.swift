@@ -43,4 +43,13 @@ final class HTTPConfigurationTests: ApodiniTests {
         XCTAssertNotNil(app.http.address)
         XCTAssertEqual(app.http.address, .unixDomainSocket(path: "/tmp/test"))
     }
+
+    func testCommandLineArgumentOverwrite() {
+        HTTPConfiguration(arguments: CommandLine.arguments + ["--bind", "1.2.3.4:56"])
+            .address(.hostname("7.8.9.10", port: 1112))
+            .configure(app)
+
+        XCTAssertNotNil(app.http.address)
+        XCTAssertEqual(app.http.address, .hostname("1.2.3.4", port: 56))
+    }
 }
