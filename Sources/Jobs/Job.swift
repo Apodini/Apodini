@@ -23,3 +23,7 @@ internal enum JobErrors: Error {
     case requestPropertyWrapper
     case notFound
 }
+
+protocol RequestBasedPropertyWrapper { }
+
+extension Parameter: RequestBasedPropertyWrapper { }

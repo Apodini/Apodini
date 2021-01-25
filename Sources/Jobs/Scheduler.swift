@@ -14,18 +14,37 @@ import Apodini
 /// }
 /// ```
 public class Scheduler {
-    internal static var shared = Scheduler()
-    
+    private let app: Application
     internal var jobConfigurations: [ObjectIdentifier: JobConfiguration] = [:]
     
-    private init() {
-        // Empty intializer to create a Singleton.
+    init(app: Application) {
+        self.app = app
+    }
+    
+    /// Schedules a `Job` on the next event loop of `eventLoopGroup`.
+    ///
+    /// ```
+    /// enqueue(Job(), with: "* * * * *", \KeyStore.job)
+    /// ```
+    ///
+    /// - Parameters:
+    ///     - job: The background running task conforming to `Job`s.
+    ///     - with: Crontab as a String.
+    ///     - runs: Number of times a `Job` should run.
+    ///     - keyPath: Associates a `Job` for later retrieval.
+    ///
+    /// - Throws: If the `Job` uses request based property wrappers or the crontab cannot be parsed.
+    public func enqueue<K: KeyChain, T: Job>(_ job: T,
+                                             with cronTrigger: String,
+                                             runs: Int? = nil,
+                                             _ keyPath: KeyPath<K, T>) throws {
+        try enqueue(job, with: cronTrigger, keyPath, on: app.eventLoopGroup.next())
     }
     
     /// Schedules a `Job` on an event loop.
     ///
     /// ```
-    /// enqueue(Job(), with: "* * * * *", \KeyStore.job, on: request.eventLoop
+    /// enqueue(Job(), with: "* * * * *", \KeyStore.job, on: request.eventLoop)
     /// ```
     ///
     /// - Parameters:
@@ -82,6 +101,7 @@ private extension Scheduler {
     
     func schedule<T: Job>(_ job: T, with config: JobConfiguration, _ runs: Int, on eventLoop: EventLoop) {
         guard runs > 0, let nextDate = try? config.cron.next() else {
+            config.scheduled?.cancel()
             return
         }
         
@@ -97,7 +117,7 @@ private extension Scheduler {
     func checkPropertyWrappers<T: Job>(_ job: T) throws {
         for property in Mirror(reflecting: job).children {
             switch property.value {
-            case is Environment<EnvironmentValues, Connection>:
+            case is Environment<EnvironmentValues, Connection>, is RequestBasedPropertyWrapper:
                 throw JobErrors.requestPropertyWrapper
             case let observedObject as AnyObservedObject:
                 subscribe(job: job, to: observedObject)
@@ -122,16 +142,5 @@ private extension Scheduler {
         jobConfigurations[identifier] = jobConfiguration
         
         return jobConfiguration
-    }
-}
-
-enum SchedulerEnvironmentKey: EnvironmentKey {
-    static var defaultValue = Scheduler.shared
-}
-
-extension EnvironmentValues {
-    /// The environment value to use the `SchedulerEnvironmentKey` in a `Component`.
-    public var scheduler: Scheduler {
-        self[SchedulerEnvironmentKey.self]
     }
 }

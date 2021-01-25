@@ -57,12 +57,12 @@ final class ObservedObjectTests: XCTApodiniTest {
         
         let eventLoop = EmbeddedEventLoop()
         // Schedule every full minute
-        try Scheduler.shared.enqueue(job2, with: "* * * * *", runs: 1, \Keys2.job, on: eventLoop)
+        try app.scheduler.enqueue(job2, with: "* * * * *", runs: 1, \Keys2.job, on: eventLoop)
         // Advancing event loop 70 seconds
         // Job should have been fired by now
         eventLoop.advanceTime(by: .seconds(70))
         
-        let scheduled = try XCTUnwrap(Scheduler.shared.jobConfigurations[ObjectIdentifier(\Keys2.job)]?.scheduled)
+        let scheduled = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\Keys2.job)]?.scheduled)
         
         XCTAssertScheduling(scheduled)
     }
@@ -91,11 +91,11 @@ final class ObservedObjectTests: XCTApodiniTest {
         }
         
         let eventLoop = EmbeddedEventLoop()
-        try Scheduler.shared.enqueue(EmittingJob(), with: "* * * * *", runs: 1, \Keys2.emittingJob, on: eventLoop)
+        try app.scheduler.enqueue(EmittingJob(), with: "* * * * *", runs: 1, \Keys2.emittingJob, on: eventLoop)
         Schedule(SubscribingJob(), on: "* * * * *", runs: 0, \Keys2.subscribingJob).configure(app)
         eventLoop.advanceTime(by: .seconds(70))
         
-        let scheduled = try XCTUnwrap(Scheduler.shared.jobConfigurations[ObjectIdentifier(\Keys2.emittingJob)]?.scheduled)
+        let scheduled = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\Keys2.emittingJob)]?.scheduled)
         
         XCTAssertScheduling(scheduled)
     }
