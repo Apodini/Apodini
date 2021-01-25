@@ -88,11 +88,13 @@ private extension ProtobufferInterfaceExporter {
         // Service
         let service = ProtobufferService(
             name: gRPCServiceName(from: endpoint),
-            methods: [.init(
-                name: gRPCMethodName(from: endpoint),
-                input: handlerMessage,
-                ouput: outputNode.value
-            )]
+            methods: [
+                .init(
+                    name: gRPCMethodName(from: endpoint),
+                    input: handlerMessage,
+                    ouput: outputNode.value
+                )
+            ]
         )
         services.insert(service)
     }
