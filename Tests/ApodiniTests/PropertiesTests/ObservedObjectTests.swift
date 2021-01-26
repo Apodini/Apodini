@@ -1,5 +1,7 @@
 import XCTest
 import XCTApodini
+import NIO
+import Vapor
 @testable import Apodini
 
 class ObservedObjectTests: ApodiniTests {
@@ -56,5 +58,55 @@ class ObservedObjectTests: ApodiniTests {
         XCTAssertEqual(observedObjects.count, 1)
         let observedObject = try XCTUnwrap(observedObjects[0] as? ObservedObject<TestObservable>)
         XCTAssert(observedObject.wrappedValue === testObservable)
+    }
+
+    func testRegisterObservedListener() {
+        struct TestHandler: Handler {
+            @ObservedObject(\Keys.testObservable) var testObservable: TestObservable
+
+            func handle() -> String {
+                testObservable.text
+            }
+        }
+
+        struct TestListener: ObservedListener {
+            var eventLoop: EventLoop
+
+            func onObservedDidChange<C: ConnectionContext>(in context: C) {
+                _ = context
+                    .handle(eventLoop: eventLoop)
+                    .map { result in
+                        do {
+                            let element = try XCTUnwrap(result.element?.typed(String.self))
+                            XCTAssertEqual(element, "Hello Swift")
+                        } catch {
+                            XCTFail("testRegisterObservedListener failed: \(error)")
+                        }
+                    }
+            }
+        }
+
+        let exporter = RESTInterfaceExporter(app)
+        let handler = TestHandler()
+        let endpoint = handler.mockEndpoint()
+        var context = endpoint.createConnectionContext(for: exporter)
+
+        // send initial mock request through context
+        // (to simulate connection initiation by client)
+        let request = Vapor.Request(
+            application: app.vapor.app,
+                method: .POST,
+                url: URI("http://example.de/test/a?param0=value0"),
+                collectedBody: nil,
+                on: app.eventLoopGroup.next()
+        )
+        _ = context.handle(request: request)
+
+        let testObservable = TestObservable()
+        EnvironmentValue(\Keys.testObservable, testObservable)
+        // register listener
+        context.register(listener: TestListener(eventLoop: app.eventLoopGroup.next()))
+        // change the value
+        testObservable.text = "Hello Swift"
     }
 }

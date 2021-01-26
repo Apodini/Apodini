@@ -27,19 +27,21 @@ protocol ObservedListener {
     /// responses to the client.
     var eventLoop: EventLoop { get }
 
-    func onObservedDidChange(in handler: AnyHandler)
+    func onObservedDidChange<C: ConnectionContext>(in context: C)
 }
 
 /// `ConnectionContext` holds the internal state of an endpoint for one connection
 /// in a format suitable for a specific `InterfaceExporter`.
 protocol ConnectionContext {
     associatedtype Exporter: InterfaceExporter
-
+    
     mutating func handle(
         request exporterRequest: Exporter.ExporterRequest,
         eventLoop: EventLoop,
         final: Bool
     ) -> EventLoopFuture<Response<AnyEncodable>>
+
+    func handle(eventLoop: EventLoop) -> EventLoopFuture<Response<AnyEncodable>>
 
     /// Register a listener that will be notified once an observed object did change in the handler
     /// that is being used in this connection.
@@ -64,6 +66,10 @@ struct AnyConnectionContext<I: InterfaceExporter>: ConnectionContext {
         _: Bool
     ) -> EventLoopFuture<Response<AnyEncodable>>
 
+    private var handleObservedChanged: (
+        _: EventLoop
+    ) -> EventLoopFuture<Response<AnyEncodable>>
+
     private var registerFunc: (
         _: ObservedListener
     ) -> Void
@@ -73,6 +79,9 @@ struct AnyConnectionContext<I: InterfaceExporter>: ConnectionContext {
         self.handleFunc = { request, eventLoop, final in
             context.handle(request: request, eventLoop: eventLoop, final: final)
         }
+        self.handleObservedChanged = { eventLoop in
+            context.handle(eventLoop: eventLoop)
+        }
         self.registerFunc = { listener in
             context.register(listener: listener)
         }
@@ -80,6 +89,10 @@ struct AnyConnectionContext<I: InterfaceExporter>: ConnectionContext {
     
     mutating func handle(request exporterRequest: I.ExporterRequest, eventLoop: EventLoop, final: Bool) -> EventLoopFuture<Response<AnyEncodable>> {
         self.handleFunc(exporterRequest, eventLoop, final)
+    }
+
+    func handle(eventLoop: EventLoop) -> EventLoopFuture<Response<AnyEncodable>> {
+        self.handleObservedChanged(eventLoop)
     }
 
     mutating func register(listener: ObservedListener) {
@@ -101,7 +114,7 @@ class InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCon
     
     private var validator: AnyValidator<I, EventLoop, ValidatedRequest<I, H>>
     
-    var endpoint: EndpointInstance<H>
+    private let endpoint: EndpointInstance<H>
     
     private var requestHandler: InternalEndpointRequestHandler<I, H> {
         InternalEndpointRequestHandler(endpoint: self.endpoint, exporter: self.exporter)
@@ -135,11 +148,23 @@ class InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCon
         }
     }
 
+    func handle(eventLoop: EventLoop) -> EventLoopFuture<Response<AnyEncodable>> {
+        do {
+            guard let latestRequest = latestRequest else {
+                fatalError("Can only handle changes to observed object after an initial client-request")
+            }
+            let validatedRequest = try validator.validate(latestRequest, with: eventLoop)
+            return self.requestHandler(on: Connection(state: .open, request: validatedRequest))
+        } catch {
+            return eventLoop.makeFailedFuture(error)
+        }
+    }
+
     func register(listener: ObservedListener) {
         // register the given listener for notifications on the handler
         for obj in endpoint.handler.collectObservedObjects() {
             obj.valueDidChange = {
-                listener.onObservedDidChange(in: AnyHandler(self.endpoint.handler))
+                listener.onObservedDidChange(in: self)
             }
         }
     }

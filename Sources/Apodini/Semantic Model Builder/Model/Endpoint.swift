@@ -148,7 +148,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
         exporter.export(self)
     }
-
+    
     func createConnectionContext<I: InterfaceExporter>(for exporter: I) -> AnyConnectionContext<I> {
         InternalConnectionContext(for: exporter, on: self).eraseToAnyConnectionContext()
     }
