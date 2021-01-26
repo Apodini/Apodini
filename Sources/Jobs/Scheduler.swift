@@ -38,7 +38,7 @@ public class Scheduler {
                                              with cronTrigger: String,
                                              runs: Int? = nil,
                                              _ keyPath: KeyPath<K, T>) throws {
-        try enqueue(job, with: cronTrigger, keyPath, on: app.eventLoopGroup.next())
+        try enqueue(job, with: cronTrigger, runs: runs, keyPath, on: app.eventLoopGroup.next())
     }
     
     /// Schedules a `Job` on an event loop.
