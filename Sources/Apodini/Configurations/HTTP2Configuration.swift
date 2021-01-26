@@ -53,7 +53,7 @@ public class HTTP2Configuration: Configuration {
             if let certPath = signature.certPath, let keyPath = signature.keyPath {
                 let certData = try Data(contentsOf: URL(fileURLWithPath: certPath))
                 let keyData = try Data(contentsOf: URL(fileURLWithPath: keyPath))
-                return (certData,keyData)
+                return (certData, keyData)
             } else {
                 return nil
             }

@@ -17,7 +17,6 @@ public protocol WebService: Component, ConfigurationCollection {
 
 
 extension WebService {
-
     /// This function is executed to start up an Apodini `WebService`
     public static func main() throws {
         try main(waitForCompletion: true)

@@ -2,7 +2,6 @@
 import XCTest
 
 final class WebserviceTests: XCTestCase {
-
     func testMain() throws {
         struct TestWebService: WebService {
             var content: some Component {
