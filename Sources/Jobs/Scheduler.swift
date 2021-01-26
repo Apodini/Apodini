@@ -42,7 +42,8 @@ public class Scheduler {
                                              _ keyPath: KeyPath<K, T>,
                                              on eventLoop: EventLoop) throws {
         try checkPropertyWrappers(job)
-        let jobConfiguration = try generateEnvironmentValue(job, cronTrigger, keyPath)
+        
+        let jobConfiguration = try generateConfiguration(job, cronTrigger, keyPath)
         
         if let runs = runs {
             schedule(job, with: jobConfiguration, runs, on: eventLoop)
@@ -94,16 +95,28 @@ private extension Scheduler {
     
     /// Checks if only valid property wrappers are used with `Job`s.
     func checkPropertyWrappers<T: Job>(_ job: T) throws {
-        for property in Mirror(reflecting: job).children
-        where property.value is PathComponent || property.value is Connection {
-            throw JobErrors.requestPropertyWrapper
+        for property in Mirror(reflecting: job).children {
+            switch property.value {
+            case is Environment<Application, Connection>:
+                throw JobErrors.requestPropertyWrapper
+            case let observedObject as AnyObservedObject:
+                subscribe(job: job, to: observedObject)
+            default:
+                continue
+            }
         }
     }
     
-    /// Generates the environment value of the `Job`.
-    func generateEnvironmentValue<K: KeyChain, T: Job>(_ job: T,
-                                                       _ cronTrigger: String,
-                                                       _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
+    func subscribe(job: Job, to observedObject: AnyObservedObject) {
+        observedObject.valueDidChange = {
+            observedObject.setChanged(to: true)
+            job.run()
+            observedObject.setChanged(to: false)
+        }
+    }
+    
+    /// Generates the configuration of the `Job`.
+    func generateConfiguration<K: KeyChain, T: Job>(_ job: T, _ cronTrigger: String, _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
         let identifier = ObjectIdentifier(keyPath)
         let jobConfiguration = try JobConfiguration(SwifCron(cronTrigger))
         

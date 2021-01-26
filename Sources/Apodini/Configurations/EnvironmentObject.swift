@@ -16,11 +16,11 @@ public struct EnvironmentObject<Key: KeyChain, Value>: Configuration {
     }
     
     public func configure(_ app: Application) {
-        if app.storage.contains(keyPath) {
+        if let oldValue = app.storage[keyPath] {
             app.logger.warning(
                 """
                 A value associated with the key path \(type(of: keyPath)) is already stored.
-                The previous value \(String(describing: app.storage[keyPath])) will be overwritten with \(String(describing: value)).
+                The previous value \(String(describing: oldValue)) will be overwritten with \(String(describing: value))
                 """
             )
         }

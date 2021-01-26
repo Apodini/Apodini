@@ -18,7 +18,7 @@ final class JobsTests: XCTApodiniTest {
     }
     
     struct FailingJob: Job {
-        @Parameter var userId: Int
+        @Environment(\.connection) var connection: Connection
         
         /// Not used by tests
         func run() { }

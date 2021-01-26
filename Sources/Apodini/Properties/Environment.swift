@@ -4,6 +4,7 @@ public struct Environment<K: KeyChain, Value>: Property {
     /// Keypath to access an `EnvironmentValue`.
     internal var keyPath: KeyPath<K, Value>
     internal var dynamicValues: [KeyPath<K, Value>: Any] = [:]
+    // swiftlint:disable force_unwrapping
     private var app = AppStorage.app!
     
     /// Initializer of `Environment` specifically for `Application` for less verbose syntax.
@@ -24,7 +25,10 @@ public struct Environment<K: KeyChain, Value>: Property {
         if let key = keyPath as? KeyPath<Application, Value> {
             return app[keyPath: key]
         }
-        return app.storage[keyPath]
+        if let value = app.storage[keyPath] {
+            return value
+        }
+        fatalError("Key path not found")
     }
 
     /// Sets the value for the given KeyPath.
@@ -33,7 +37,9 @@ public struct Environment<K: KeyChain, Value>: Property {
     }
 }
 
+/// `Application` storage.
 public enum AppStorage {
+    /// Holds the `Application` instance of the web service.
     public static var app: Application?
 }
 

@@ -80,7 +80,7 @@ final class EnvironmentTests: ApodiniTests {
         birdFacts.dodoFact = newFact
 
         app.birdFacts = birdFacts
-        let injectedValue = app![keyPath: \Application.birdFacts]
+        let injectedValue = Environment(\Application.birdFacts).wrappedValue
 
         XCTAssert(injectedValue.dodoFact == newFact)
     }
@@ -138,7 +138,7 @@ final class EnvironmentTests: ApodiniTests {
     }
 
     func testCustomEnvironment() throws {
-        XCTAssertRuntimeFailure(self.app.storage.get(\KeyStore.test))
+        XCTAssertNil(self.app.storage.get(\KeyStore.test))
 
         app.storage.set(\KeyStore.test, to: "Bird")
         XCTAssert(app.storage.get(\KeyStore.test) == "Bird")
@@ -169,7 +169,7 @@ enum BirdFactsEnvironmentKey: StorageKey {
 extension Application {
     var birdFacts: BirdFacts {
         get { BirdFactsEnvironmentKey.defaultValue }
-        set { BirdFactsEnvironmentKey.defaultValue  = newValue }
+        set { BirdFactsEnvironmentKey.defaultValue = newValue }
     }
 }
 

@@ -15,12 +15,13 @@ struct ConnectionEnvironmentKey: StorageKey {
 extension Application {
     /// A Property identifying the `Connection` which provides an abstract view on the underlying protocol's state.
     public var connection: Connection {
-        get {
-            Connection()
-        }
-        set {
-            newValue
-        }
+        get { ConnectionStorageKey.defaultValue }
+        set { ConnectionStorageKey.defaultValue = newValue }
+    }
+    
+    struct ConnectionStorageKey: StorageKey {
+        typealias Value = Connection
+        static var defaultValue = Connection()
     }
 }
 

@@ -46,12 +46,11 @@ public struct Storage {
     }
     
     /// Accesses the environment value associated with a custom key.
-    public subscript<Key, Type>(_ keyPath: KeyPath<Key, Type>) -> Type {
+    public subscript<Key, Type>(_ keyPath: KeyPath<Key, Type>) -> Type? {
         get {
             self.get(keyPath)
         }
         set {
-            
             self.set(keyPath, to: newValue)
         }
     }
@@ -61,6 +60,7 @@ public struct Storage {
         self.storage.keys.contains(ObjectIdentifier(Key.self))
     }
     
+    /// Check if application storage contains a certain key path
     public func contains<Key, Type>(_ keyPath: KeyPath<Key, Type>) -> Bool {
         self.storage.keys.contains(ObjectIdentifier(keyPath))
     }
@@ -73,9 +73,18 @@ public struct Storage {
         return value.value
     }
     
-    public func get<Key, Type>(_ keyPath: KeyPath<Key, Type>) -> Type {
+    /// Get a a value for a key path from application storage
+    public func get<Key, Type>(_ keyPath: KeyPath<Key, Type>) -> Type? {
         guard let value = storage[ObjectIdentifier(keyPath)] as? Value<Type> else {
-            fatalError("Key path not found")
+            return nil
+        }
+        return value.value
+    }
+    
+    /// Get a a value for an `ObjectIdentifier` and a Type from application storage
+    public func get<Element>(_ objectIdentifer: ObjectIdentifier, _ key: Element.Type) -> Element? {
+        guard let value = storage[objectIdentifer] as? Value<Element> else {
+            return nil
         }
         return value.value
     }
@@ -95,8 +104,13 @@ public struct Storage {
         }
     }
     
-    public mutating func set<Key, Type>(_ keyPath: KeyPath<Key, Type>, to value: Type) {
-        self.storage[ObjectIdentifier(keyPath)] = Value(value: value, onShutdown: nil)
+    /// Set a value for a key path in application storage
+    public mutating func set<Key, Type>(_ keyPath: KeyPath<Key, Type>, to value: Type?) {
+        if let value = value {
+            self.storage[ObjectIdentifier(keyPath)] = Value(value: value, onShutdown: nil)
+        } else {
+            self.storage[ObjectIdentifier(keyPath)] = nil
+        }
     }
 
     /// Handle shutdown in every stored configuration element

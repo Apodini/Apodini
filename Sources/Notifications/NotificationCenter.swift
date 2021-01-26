@@ -22,6 +22,7 @@ import Apodini
 public class NotificationCenter {
     internal var app: Application
     
+    /// Initializes the `NotificationCenter` with an `Application` instance.
     public init(app: Application) {
         self.app = app
     }
