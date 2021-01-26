@@ -54,3 +54,12 @@ class RelationshipTestContext {
         }
     }
 }
+
+extension HandledRequest {
+    func formatTestRelationships(hideHidden: Bool = false) -> [String: String] {
+        let formatter = TestingRelationshipFormatter(hideHidden: hideHidden)
+
+        let links = formatRelationships(into: [:], with: formatter)
+        return formatSelfRelationships(into: links, with: formatter)
+    }
+}

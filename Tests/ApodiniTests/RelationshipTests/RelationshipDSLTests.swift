@@ -140,7 +140,7 @@ class RelationshipDSLTests: ApodiniTests {
 
         let authenticatedResult = context.request(on: 0)
         XCTAssertEqual(
-            authenticatedResult.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            authenticatedResult.formatTestRelationships(),
             [
                 "self:read": "/user/5", "tagged:read": "/user/5/post/{postId}",
                 "TestA:read": "/xTestA", "TestB:read": "/xTestB/{param}", "TestC:read": "/xTestC/{cId}"
@@ -148,18 +148,18 @@ class RelationshipDSLTests: ApodiniTests {
 
         let userResult = context.request(on: 2, parameters: 3)
         XCTAssertEqual(
-            userResult.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            userResult.formatTestRelationships(),
             ["self:read": "/user/3", "tagged:read": "/user/3/post/9", "TestA:read": "/xTestA", "TestC:read": "/xTestC/28"])
 
         let postResult = context.request(on: 3, parameters: 3, 10)
         XCTAssertEqual(
-            postResult.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            postResult.formatTestRelationships(),
             ["self:read": "/user/3/post/10"])
 
         // below test case properly ensures that inherited relationships won't shadow the same existing relationship.
         let meResult = context.request(on: 1)
         XCTAssertEqual(
-            meResult.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            meResult.formatTestRelationships(),
             ["self:read": "/user/123", "tagged:read": "/user/123/post/1234", "TestA:read": "/xTestA", "TestC:read": "/xTestC/12345"])
     }
 
@@ -209,12 +209,12 @@ class RelationshipDSLTests: ApodiniTests {
 
         let resultNil = context.request(on: 1, parameters: nil)
         XCTAssertEqual(
-            resultNil.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            resultNil.formatTestRelationships(),
             ["self:read": "/referencing", "referenced:read": "/referenced/{id}"])
 
         let resultRef = context.request(on: 1, parameters: "RefID")
         XCTAssertEqual(
-            resultRef.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            resultRef.formatTestRelationships(),
             ["self:read": "/referencing", "referenced:read": "/referenced/RefID"])
     }
 

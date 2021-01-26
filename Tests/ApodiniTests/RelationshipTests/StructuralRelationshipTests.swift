@@ -55,7 +55,7 @@ class RelationshipTests: ApodiniTests {
 
         let result0 = context.request(on: 0) // handling "Test1"
         XCTAssertEqual(
-            result0.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            result0.formatTestRelationships(),
             [
                 "self:read": "/a", "b_c:read": "/a/b/{id}/c", "b_c:update": "/a/b/{id}/c/{id2}",
                 "b_d:read": "/a/b/{id}/d"
@@ -63,17 +63,17 @@ class RelationshipTests: ApodiniTests {
 
         let result1 = context.request(on: 1, parameters: "value0") // handling "Test2"
         XCTAssertEqual(
-            result1.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            result1.formatTestRelationships(),
             ["self:read": "/a/b/value0/c", "id2:update": "/a/b/value0/c/{id2}"])
 
         let result2 = context.request(on: 2, parameters: "value0", "value1") // handling "Test3"
         XCTAssertEqual(
-            result2.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            result2.formatTestRelationships(),
             ["self:update": "/a/b/value0/c/value1"])
 
         let result3 = context.request(on: 3, parameters: "value0") // handling "Test4"
         XCTAssertEqual(
-            result3.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            result3.formatTestRelationships(),
             ["self:read": "/a/b/value0/d"])
     }
 
@@ -105,7 +105,7 @@ class RelationshipTests: ApodiniTests {
 
         let result0 = context.request(on: 0) // handling "Test1"
         XCTAssertEqual(
-            result0.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            result0.formatTestRelationships(),
             [
                 "self:read": "/a", "namedc:read": "/a/b/{id}/c", "namedTest:read": "/a/b/{id}/d",
                 "namedc:update": "hidden:/a/b/{id}/c/{id2}", "namede:read": "hidden:/a/b/{id}/e"
@@ -113,22 +113,22 @@ class RelationshipTests: ApodiniTests {
 
         let result1 = context.request(on: 1, parameters: "value0") // handling "Test2"
         XCTAssertEqual(
-            result1.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            result1.formatTestRelationships(),
             ["self:read": "/a/b/value0/c", "id2:update": "/a/b/value0/c/{id2}"])
 
         let result2 = context.request(on: 2, parameters: "value0", "value1") // handling "Test3"
         XCTAssertEqual(
-            result2.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            result2.formatTestRelationships(),
             ["self:update": "/a/b/value0/c/value1"])
 
         let result3 = context.request(on: 3, parameters: "value0") // handling "Test4"
         XCTAssertEqual(
-            result3.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            result3.formatTestRelationships(),
             ["self:read": "/a/b/value0/d"])
 
         let result4 = context.request(on: 4, parameters: "value0") // handling "Test4"
         XCTAssertEqual(
-            result4.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            result4.formatTestRelationships(),
             ["self:read": "/a/b/value0/e"])
     }
 }

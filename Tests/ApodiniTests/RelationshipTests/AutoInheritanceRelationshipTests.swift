@@ -45,12 +45,12 @@ class AutoInheritanceRelationshipTests: ApodiniTests {
 
         let userResult = context.request(on: 1, parameters: 5) // handle /user/userId
         XCTAssertEqual(
-            userResult.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            userResult.formatTestRelationships(),
             ["self:read": "/user/5"])
 
         let meResult = context.request(on: 0) // handle /me
         XCTAssertEqual(
-            meResult.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            meResult.formatTestRelationships(),
             ["self:read": "/user/3"])
     }
 
@@ -95,12 +95,12 @@ class AutoInheritanceRelationshipTests: ApodiniTests {
 
         let userResult = context.request(on: 1, parameters: "type0", 5) // handle /user/userId
         XCTAssertEqual(
-            userResult.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            userResult.formatTestRelationships(),
             ["self:read": "/type0/user/5"])
 
         let meResult = context.request(on: 0, parameters: "type0") // handle /me
         XCTAssertEqual(
-            meResult.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            meResult.formatTestRelationships(),
             ["self:read": "/type0/user/3"])
     }
 
@@ -124,12 +124,12 @@ class AutoInheritanceRelationshipTests: ApodiniTests {
 
         let userResult = context.request(on: 1, parameters: 5) // handle /user/userId
         XCTAssertEqual(
-            userResult.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            userResult.formatTestRelationships(),
             ["self:read": "/user/5", "special:read": "/user/5/special"])
 
         let meResult = context.request(on: 0) // handle /me
         XCTAssertEqual(
-            meResult.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            meResult.formatTestRelationships(),
             ["self:read": "/user/3", "special:read": "/user/3/special"])
     }
 
@@ -173,7 +173,7 @@ class AutoInheritanceRelationshipTests: ApodiniTests {
 
         let meResult = context.request(on: 0) // handle /me
         XCTAssertEqual(
-            meResult.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            meResult.formatTestRelationships(),
             ["self:read": "/me"])
     }
 }

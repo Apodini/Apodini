@@ -112,22 +112,22 @@ class MultiInheritanceTests: ApodiniTests {
 
         let resultC = context.request(on: 4, parameters: "cId")
         XCTAssertEqual(
-            resultC.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            resultC.formatTestRelationships(),
             ["self:read": "/testC/cId", "text:read": "/testC/cId/text"])
 
         let resultB = context.request(on: 2)
         XCTAssertEqual(
-            resultB.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            resultB.formatTestRelationships(),
             ["self:read": "/testC/TestCId", "bText:read": "/testB/bText", "text:read": "/testC/TestCId/text"])
 
         let resultA = context.request(on: 0)
         XCTAssertEqual(
-            resultA.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            resultA.formatTestRelationships(),
             ["self:read": "/testB", "aText:read": "/testA/aText", "bText:read": "/testB/bText", "text:read": "/testC/customCId/text"])
 
         let resultZ = context.request(on: 6)
         XCTAssertEqual(
-            resultZ.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            resultZ.formatTestRelationships(),
             ["self:read": "/testC/TestCZId", "text:read": "/testZ/text"]) // own /text shadows the inherited /text
     }
 

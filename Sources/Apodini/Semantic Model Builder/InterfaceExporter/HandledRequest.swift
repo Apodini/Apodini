@@ -29,13 +29,11 @@ public struct HandledRequest: Encodable {
     ///   - initialValue: The initial value the `RelationshipFormatter` should reduce into.
     ///   - formatter: The actual instance of the `RelationshipFormatter`.
     ///   - operation: The `Operation` for which to retrieve all `RelationshipDestination` from the given `Endpoint`.
-    ///   - includeSelf: If true the special self relationship will also be formatted (as last one).
     /// - Returns: The formatted result.
     public func formatRelationships<Formatter: RelationshipFormatter>(
         into initialValue: Formatter.Result,
         with formatter: Formatter,
-        for operation: Operation? = nil,
-        includeSelf: Bool = false
+        for operation: Operation? = nil
     ) -> Formatter.Result {
         let context = ResolveContext(content: response.any(), parameters: parameters)
 
@@ -46,18 +44,51 @@ public struct HandledRequest: Encodable {
             destinations = endpoint.relationships()
         }
 
-        var result = destinations.formatRelationships(into: initialValue, with: formatter, context: context)
+        return destinations.formatRelationships(into: initialValue, with: formatter, context: context)
+    }
 
-        if includeSelf {
-            // calling this last will always ensure any custom named "self" relationships are shadowed.
-            if operation != nil {
-                endpoint.selfRelationship.formatRelationship(with: formatter, result: &result, context: context)
-            } else {
-                result = endpoint.selfRelationships().formatRelationships(into: result, with: formatter, context: context)
-            }
+    /// Used to apply a `RelationshipFormatter` to the self relationships of the `Endpoint`
+    /// with the context of this `HandledRequest` (path parameter values and property values of the response).
+    /// If nil is supplied for the `Operation`, the formatter is called for any `Operation`.
+    /// If there is no self relationship for a specified `Operation`, this call simply returns the initial value.
+    ///
+    /// - Parameters:
+    ///   - initialValue: The initial value the `RelationshipFormatter` should reduce into.
+    ///   - formatter: The actual instance of the `RelationshipFormatter`.
+    ///   - operation: The `Operation` for which to retrieve all self `RelationshipDestination` from the given `Endpoint`.
+    /// - Returns: The formatted result
+    func formatSelfRelationships<Formatter: RelationshipFormatter>(
+        into initialValue: Formatter.Result,
+        with formatter: Formatter,
+        for operation: Operation? = nil
+    ) -> Formatter.Result {
+        let context = ResolveContext(content: response.any(), parameters: parameters)
+
+        var result = initialValue
+
+        if let specifiedOperation = operation {
+            endpoint.selfRelationship(for: specifiedOperation)?.formatRelationship(with: formatter, result: &result, context: context)
+        } else {
+            result = endpoint.selfRelationships().formatRelationships(into: result, with: formatter, context: context)
         }
 
         return result
+    }
+
+    /// Used to apply a `RelationshipFormatter` to THE self relationships of the `Endpoint`
+    /// with the context of this `HandledRequest` (path parameter values and property values of the response).
+    /// It is different to `formatSelfRelationships(into:with:for:)` that it used the one and only self
+    /// `RelationshipDestination` of the Endpoint (Using the Operation of the Endpoint).
+    ///
+    /// - Parameters:
+    ///   - initialValue: The initial value the `RelationshipFormatter` should reduce into.
+    ///   - formatter: The actual instance of the `RelationshipFormatter`.
+    func formatSelfRelationship<Formatter: RelationshipFormatter>(
+        into initialValue: inout Formatter.Result,
+        with formatter: Formatter
+    ) {
+        let context = ResolveContext(content: response.any(), parameters: parameters)
+        endpoint.selfRelationship.formatRelationship(with: formatter, result: &initialValue, context: context)
     }
 }
 

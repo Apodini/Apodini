@@ -26,12 +26,12 @@ class RelationshipInstanceTests: ApodiniTests {
 
         let resultA = context.request(on: 0)
         XCTAssertEqual(
-            resultA.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            resultA.formatTestRelationships(),
             ["self:read": "/a"])
 
         let resultB = context.request(on: 1)
         XCTAssertEqual(
-            resultB.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            resultB.formatTestRelationships(),
             ["self:read": "/b", "test:read": "/a"])
     }
 
@@ -57,17 +57,17 @@ class RelationshipInstanceTests: ApodiniTests {
 
         let resultA = context.request(on: 0)
         XCTAssertEqual(
-            resultA.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            resultA.formatTestRelationships(),
             ["self:read": "/a"])
 
         let resultB = context.request(on: 1)
         XCTAssertEqual(
-            resultB.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            resultB.formatTestRelationships(),
             ["self:read": "/b", "test:read": "/a"])
 
         let resultC = context.request(on: 2)
         XCTAssertEqual(
-            resultC.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            resultC.formatTestRelationships(),
             ["self:read": "/c", "test:read": "/a"])
     }
 
@@ -114,17 +114,17 @@ class RelationshipInstanceTests: ApodiniTests {
 
         let resultA1 = context.request(on: 0)
         XCTAssertEqual(
-            resultA1.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            resultA1.formatTestRelationships(),
             ["self:read": "/a", "self:update": "/a"])
 
         let resultA2 = context.request(on: 1)
         XCTAssertEqual(
-            resultA2.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            resultA2.formatTestRelationships(),
             ["self:update": "/a", "self:read": "/a"])
 
         let resultB = context.request(on: 2)
         XCTAssertEqual(
-            resultB.formatRelationships(into: [:], with: TestingRelationshipFormatter(), includeSelf: true),
+            resultB.formatTestRelationships(),
             ["self:read": "/b", "test:read": "/a", "test:update": "/a"])
     }
 

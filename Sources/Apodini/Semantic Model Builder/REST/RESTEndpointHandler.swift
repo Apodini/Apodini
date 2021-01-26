@@ -27,11 +27,12 @@ struct RESTEndpointHandler {
             case let .send(response),
                  let .final(response):
 
-                let links = response.formatRelationships(
+                let formatter = LinksFormatter(configuration: self.configuration)
+                var links = response.formatRelationships(
                     into: [:],
-                    with: LinksFormatter(configuration: self.configuration),
-                    for: .read,
-                    includeSelf: true)
+                    with: formatter,
+                    for: .read)
+                response.formatSelfRelationship(into: &links, with: formatter)
 
                 let container = ResponseContainer(response.response, links: links)
                 return container.encodeResponse(for: request)
