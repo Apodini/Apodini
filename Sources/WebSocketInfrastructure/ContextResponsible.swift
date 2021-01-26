@@ -33,9 +33,13 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
             (default: I, output: AnyPublisher<Message<O>, Error>),
         con: ConnectionResponsible,
         context: UUID) {
+        guard let websocket = con.websocket else {
+            fatalError("Destructed ConnectionResponsible tried to initialize ContextResponsible!")
+        }
+        
         self.init(
             opener,
-            eventLoop: con.websocket.eventLoop,
+            eventLoop: websocket.eventLoop,
             database: con.database,
             send: { message in
                 con.send(message, in: context)
