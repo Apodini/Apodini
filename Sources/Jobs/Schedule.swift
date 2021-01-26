@@ -21,6 +21,8 @@ public class Schedule<K: KeyChain, T: Job>: Configuration {
         self.cronTrigger = cronTrigger
         self.runs = nil
         self.keyPath = keyPath
+        
+        createEnvironmentValue()
     }
     
     /// Initializes the `Schedule` configuration.
@@ -35,6 +37,8 @@ public class Schedule<K: KeyChain, T: Job>: Configuration {
         self.cronTrigger = cronTrigger
         self.runs = runs
         self.keyPath = keyPath
+        
+        createEnvironmentValue()
     }
     
     /// Enqueues the configured `Job` at server startup.
@@ -46,5 +50,9 @@ public class Schedule<K: KeyChain, T: Job>: Configuration {
         } catch {
             fatalError("Error parsing cron trigger: \(error)")
         }
+    }
+    
+    private func createEnvironmentValue() {
+        EnvironmentValue(keyPath, job)
     }
 }

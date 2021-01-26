@@ -17,7 +17,7 @@ extension EndpointRelationship {
 // MARK: Endpoint Relationship
 extension Dictionary where Key == Operation, Value == AnyEndpoint {
     func getScopingEndpoint() -> AnyEndpoint? {
-        let order: [Operation] = [.read, .automatic, .create, .update, .delete]
+        let order: [Operation] = [.read, .create, .update, .delete]
 
         for operation in order {
             if let endpoint = self[operation] {

@@ -19,7 +19,7 @@ struct OpenAPIDocumentBuilder {
         self.pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &self.componentsObjectBuilder)
     }
 
-    mutating func addEndpoint<C: Component>(_ endpoint: Endpoint<C>) {
+    mutating func addEndpoint<H: Handler>(_ endpoint: Endpoint<H>) {
         pathsObjectBuilder.addPathItem(from: endpoint)
     }
 

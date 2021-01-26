@@ -66,7 +66,7 @@ extension State: Activatable {
     }
 }
 
-private class Wrapper<Value> {
+class Wrapper<Value> {
     var value: Value
     
     init(value: Value) {

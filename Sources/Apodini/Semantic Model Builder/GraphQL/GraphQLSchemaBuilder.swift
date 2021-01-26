@@ -9,7 +9,7 @@ import GraphQL
 func graphqlTypeMap(with type: Codable.Type) -> GraphQLScalarType {
     if (type == String.self) {
         return GraphQLString
-    } else if (type == Int.self) {
+    } else if (type == Int.self || type == UInt.self) {
         return GraphQLInt
     } else if (type == Float.self) {
         return GraphQLFloat
@@ -44,7 +44,7 @@ class GraphQLSchemaBuilder {
         if (type == String.self) {
             return GraphQLString
         }
-        if (type == Int.self) {
+        if (type == Int.self || type == UInt.self) {
             return GraphQLInt
         }
         if (type == Bool.self) {
@@ -66,7 +66,7 @@ class GraphQLSchemaBuilder {
 
         // Array / Optional
         if let newResponseHead = try! responseTypeHead.edited(handleArray)?.edited(handleOptional) {
-            if (newResponseHead.value.cardinality == .zeroToMany) { // Array
+            if (newResponseHead.value.cardinality == .zeroToMany(.array)) { // Array
                 if let eNode = try? EnrichedInfo.node(newResponseHead.value.typeInfo.type) {
                     return GraphQLList(responseTypeHandler(for: eNode))
                 }
@@ -104,7 +104,7 @@ class GraphQLSchemaBuilder {
                      let .final(element):
                     return element.wrappedValue
                 case .nothing, .end:
-                    return "EMPTY?"
+                    return ".nothing, .end"
                 }
             }
 
@@ -125,6 +125,8 @@ class GraphQLSchemaBuilder {
         currentPath.removeFirst()
         // Remove `v1`
         currentPath.removeFirst()
+
+        print("The current path is ->", currentPath)
 
         // Create node names
         var currentSum = String()
@@ -158,7 +160,7 @@ class GraphQLSchemaBuilder {
         // Handle Single points
         if (currentPath.count == 1) {
             self.fields[leafName] = self.graphQLFieldCreator(for: self.responseTypeTree[leafName]!,
-                    context,
+                    self.leafContext[leafName]!,
                     self.args[leafName] ?? [:])
             return
         }
@@ -183,24 +185,35 @@ class GraphQLSchemaBuilder {
         node.components(separatedBy: "_").filter({ $0 != "" }).last ?? "None"
     }
 
+    // To handle `Names must match /^[_a-zA-Z][_a-zA-Z0-9]*$/`
+    private func graphQLRegexCheck(for str: String) -> String {
+        if (Array(str)[0].isNumber) {
+            return "n_" + str
+        } else {
+            return str
+        }
+    }
+
     private func generateSchemaFromTreeHelper(_ node: String) -> GraphQLField {
         let nodeName = self.nameExtractor(for: node)
         if let childrenList = self.tree[node] {
             var currentFields = [String: GraphQLField]()
-            if let responseType = self.responseTypeTree[nodeName], let responseContext = self.leafContext[nodeName] {
-                currentFields[responseType.value.typeInfo.name.lowercased()] = self.graphQLFieldCreator(for: responseType,
+            if let responseType = self.responseTypeTree[nodeName], let responseContext = self.leafContext[nodeName] { // It has handler
+                let fieldName = self.graphQLRegexCheck(for: responseType.value.typeInfo.name.lowercased())
+                currentFields[fieldName] = self.graphQLFieldCreator(for: responseType,
                         responseContext,
                         self.args[nodeName] ?? [:])
             }
 
             for child in childrenList {
-                let childName = nameExtractor(for: child) // child.components(separatedBy: "_").filter({ $0 != "" }).last ?? "None"
+                let childName = self.graphQLRegexCheck(for: self.nameExtractor(for: child)) // child.components(separatedBy: "_").filter({ $0 != "" }).last ?? "None"
                 // if let childrenList = self.tree[node] {
                 currentFields[childName] = generateSchemaFromTreeHelper(child)
             }
-            self.types[nodeName] = try! GraphQLObjectType(name: nodeName, fields: currentFields)
 
-            return GraphQLField(type: self.types[nodeName]!, resolve: { _, _, _, _ in "Emtpy" })
+            let checkedNodeName = self.graphQLRegexCheck(for: nodeName)
+            self.types[checkedNodeName] = try! GraphQLObjectType(name: checkedNodeName, fields: currentFields)
+            return GraphQLField(type: self.types[checkedNodeName]!, resolve: { _, _, _, _ in "Emtpy" })
         } else {
             // Check for if we return USER type for example
             return self.graphQLFieldCreator(for: self.responseTypeTree[node]!,

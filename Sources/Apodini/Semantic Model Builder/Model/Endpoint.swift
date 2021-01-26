@@ -20,6 +20,9 @@ protocol AnyEndpoint: CustomStringConvertible {
 
     var operation: Operation { get }
 
+    /// The communication pattern that is expressed by this endpoint.
+    var serviceType: ServiceType { get }
+
     /// Type returned by `Component.handle(...)`
     var handleReturnType: Encodable.Type { get }
     /// Response type ultimately returned by `Component.handle(...)` and possible following `ResponseTransformer`s
@@ -27,6 +30,8 @@ protocol AnyEndpoint: CustomStringConvertible {
 
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     var parameters: [AnyEndpointParameter] { get }
+    /// All `@ObservedObjects` that are used inside handling `Component`
+    var observedObjects: [AnyObservedObject] { get }
 
     var absolutePath: [EndpointPath] { get }
     var relationships: [EndpointRelationship] { get }
@@ -79,12 +84,16 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     let context: Context
     
     let operation: Operation
+
+    let serviceType: ServiceType
     
     let handleReturnType: Encodable.Type
     let responseType: Encodable.Type
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     var parameters: [AnyEndpointParameter]
+    /// All `@ObservedObject`s that are used inside handling `Component`
+    var observedObjects: [AnyObservedObject]
 
     var absolutePath: [EndpointPath] {
         storedAbsolutePath
@@ -103,7 +112,8 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         identifier: AnyHandlerIdentifier,
         handler: H,
         context: Context = Context(contextNode: ContextNode()),
-        operation: Operation = .automatic,
+        operation: Operation? = nil,
+        serviceType: ServiceType = .unary,
         guards: [LazyGuard] = [],
         responseTransformers: [LazyAnyResponseTransformer] = []
     ) {
@@ -111,7 +121,8 @@ struct Endpoint<H: Handler>: AnyEndpoint {
         self.description = String(describing: H.self)
         self.handler = handler
         self.context = context
-        self.operation = operation
+        self.operation = operation ?? .read
+        self.serviceType = serviceType
         self.handleReturnType = H.Response.Content.self
         self.guards = guards
         self.responseTransformers = responseTransformers
@@ -122,6 +133,7 @@ struct Endpoint<H: Handler>: AnyEndpoint {
             return lastResponseTransformer().transformedResponseContent
         }()
         self.parameters = handler.buildParametersModel()
+        self.observedObjects = handler.collectObservedObjects()
     }
 
     fileprivate mutating func inserted(at treeNode: EndpointsTreeNode) {
@@ -298,23 +310,6 @@ class EndpointsTreeNode {
             let name = name + (child.path.isParameter() ? "" : "_" + path.description)
             child.collectRelationships(name: name, &relationships)
         }
-    }
-    
-    /// This method prints the tree structure to stdout. Added for debugging purposes.
-    func printTree(indent: Int = 0) {
-        let indentString = String(repeating: "  ", count: indent)
-        
-        print(indentString + path.description + "/ {")
-        
-        for (operation, endpoint) in endpoints {
-            print("\(indentString)  - \(operation): \(endpoint.description) [\(endpoint.identifier.rawValue)]")
-        }
-        
-        for child in nodeChildren.values {
-            child.printTree(indent: indent + 1)
-        }
-        
-        print(indentString + "}")
     }
 }
 

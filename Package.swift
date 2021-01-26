@@ -9,7 +9,10 @@ let package = Package(
             .macOS(.v10_15)
         ],
         products: [
-            .library(name: "Apodini", targets: ["Apodini"])
+            .library(name: "Apodini", targets: ["Apodini"]),
+            .library(name: "ApodiniDatabase", targets: ["ApodiniDatabase"]),
+            .library(name: "Notifications", targets: ["Notifications"]),
+            .library(name: "Jobs", targets: ["Jobs"])
         ],
         dependencies: [
             .package(url: "https://github.com/vapor/vapor.git", from: "4.35.0"),
@@ -49,13 +52,19 @@ let package = Package(
                         .product(name: "APNS", package: "apns"),
                         .product(name: "FCM", package: "FCM"),
                         .product(name: "OpenAPIKit", package: "OpenAPIKit"),
-                        .product(name: "GraphQL", package: "GraphQL"),
-                        .product(name: "SwiftyJSON", package: "SwiftyJSON"),
                         .target(name: "WebSocketInfrastructure"),
-                        .target(name: "ProtobufferCoding")
+                        .target(name: "ProtobufferCoding"),
+                        .product(name: "GraphQL", package: "GraphQL"),
+                        .product(name: "SwiftyJSON", package: "SwiftyJSON")
                     ],
                     exclude: [
                         "Components/ComponentBuilder.swift.gyb"
+                    ]
+            ),
+            .target(
+                    name: "ApodiniDatabase",
+                    dependencies: [
+                        .target(name: "Apodini")
                     ]
             ),
             .target(
@@ -70,7 +79,8 @@ let package = Package(
                     name: "ApodiniTests",
                     dependencies: [
                         .product(name: "XCTVapor", package: "vapor"),
-                        .target(name: "XCTApodini")
+                        .target(name: "XCTApodini"),
+                        .target(name: "ApodiniDatabase")
                     ],
                     exclude: [
                         "ConfigurationTests/Certificates/cert.pem",
@@ -80,7 +90,8 @@ let package = Package(
             .target(
                     name: "TestWebService",
                     dependencies: [
-                        .target(name: "Apodini")
+                        .target(name: "Apodini"),
+                        .target(name: "ApodiniDatabase")
                     ]
             ),
             // ProtobufferCoding
