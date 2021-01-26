@@ -37,6 +37,8 @@ class ObservedObjectTests: ApodiniTests {
     }
     
     func testObservedObjectEnvironmentInjection() throws {
+        EnvironmentValues.shared.values.removeAll()
+        
         struct TestHandler: Handler {
             @ObservedObject(\Keys.testObservable) var testObservable: TestObservable
             
@@ -129,8 +131,11 @@ class ObservedObjectTests: ApodiniTests {
 
             var wasCalled = false
             
-            init(eventLoop: EventLoop) {
+            let number: Int
+            
+            init(eventLoop: EventLoop, number: Int) {
                 self.eventLoop = eventLoop
+                self.number = number
             }
             
             func onObservedDidChange<C: ConnectionContext>(in context: C) {
@@ -138,7 +143,7 @@ class ObservedObjectTests: ApodiniTests {
             }
             
             deinit {
-                XCTAssertTrue(wasCalled)
+                XCTAssertTrue(wasCalled, "Number \(number) failed!")
             }
         }
 
@@ -164,8 +169,8 @@ class ObservedObjectTests: ApodiniTests {
         let testObservable = TestObservable()
         EnvironmentValue(\Keys.testObservable, testObservable)
         // register listener
-        context1.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next()))
-        context2.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next()))
+        context1.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next(), number: 1))
+        context2.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next(), number: 2))
         // change the value
         testObservable.text = "Hello Swift"
     }

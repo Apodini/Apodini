@@ -98,7 +98,9 @@ public struct EnvironmentValue<K: KeyChain, Value> {
     /// Adds key path with value to `EnvironmentValues`.
     @discardableResult
     public init(_ keyPath: KeyPath<K, Value>, _ value: Value) {
-        EnvironmentValues.shared.values[ObjectIdentifier(keyPath)] = value
+        let objid = ObjectIdentifier(keyPath)
+        print(objid.hashValue)
+        EnvironmentValues.shared.values[objid] = value
     }
 }
 

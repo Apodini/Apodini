@@ -127,6 +127,8 @@ class InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCon
     
     private var latestRequest: I.ExporterRequest?
     
+    private var observations: [Observation] = []
+    
     init(for exporter: I, on endpoint: Endpoint<H>) {
         self.exporter = exporter
         
@@ -168,9 +170,9 @@ class InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCon
     func register(listener: ObservedListener) {
         // register the given listener for notifications on the handler
         for obj in endpoint.handler.collectObservedObjects() {
-            obj.valueDidChange = {
+            self.observations.append(obj.register({
                 listener.onObservedDidChange(in: self)
-            }
+            }))
         }
     }
 }
