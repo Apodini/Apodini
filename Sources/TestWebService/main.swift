@@ -19,8 +19,8 @@ struct TestWebService: Apodini.WebService {
         AuctionComponent()
         GreetComponent()
         RandomComponent()
-//        SwiftComponent()
-//        UserComponent(userId: _userId)
+        SwiftComponent()
+        UserComponent(userId: _userId)
     }
 }
 
