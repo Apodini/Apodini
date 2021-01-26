@@ -40,15 +40,11 @@ public class HTTPConfiguration: Configuration {
     }
 
     init(arguments: [String]) {
-        do {
-            var commandInput = CommandInput(arguments: arguments)
-            self.address = try detect(from: &commandInput)
-        } catch {
-            print(error)
-        }
+        var commandInput = CommandInput(arguments: arguments)
+        self.address = detect(from: &commandInput)
     }
 
-    func detect(from commandInput: inout CommandInput) throws -> BindAddress? {
+    func detect(from commandInput: inout CommandInput) -> BindAddress? {
         struct Signature: CommandSignature {
             @Option(name: "hostname", short: "H", help: "Set the hostname the server will run on.")
             var hostname: String?
@@ -63,20 +59,25 @@ public class HTTPConfiguration: Configuration {
             var socketPath: String?
         }
 
-        let signature = try Signature(from: &commandInput)
+        do {
+            let signature = try Signature(from: &commandInput)
 
-        switch (signature.hostname, signature.port, signature.bind, signature.socketPath) {
-        case (.none, .none, .none, .none):
-            return nil
-        case (.none, .none, .none, .some(let socketPath)):
-            return .unixDomainSocket(path: socketPath)
-        case (.none, .none, .some(let address), .none):
-            let hostname = address.split(separator: ":").first.flatMap(String.init)
-            let port = address.split(separator: ":").last.flatMap(String.init).flatMap(Int.init)
-            return .hostname(hostname, port: port)
-        case let (hostname, port, .none, .none):
-            return .hostname(hostname, port: port)
-        default: throw HTTPConfigurationError.incompatibleFlags
+            switch (signature.hostname, signature.port, signature.bind, signature.socketPath) {
+            case (.none, .none, .none, .none):
+                return nil
+            case (.none, .none, .none, .some(let socketPath)):
+                return .unixDomainSocket(path: socketPath)
+            case (.none, .none, .some(let address), .none):
+                let hostname = address.split(separator: ":").first.flatMap(String.init)
+                let port = address.split(separator: ":").last.flatMap(String.init).flatMap(Int.init)
+                return .hostname(hostname, port: port)
+            case let (hostname, port, .none, .none):
+                return .hostname(hostname, port: port)
+            default:
+                throw HTTPConfigurationError.incompatibleFlags
+            }
+        } catch {
+            fatalError("Cannot read http server address provided via command line. Error: \(error)")
         }
     }
 

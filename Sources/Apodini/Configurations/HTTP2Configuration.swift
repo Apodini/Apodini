@@ -33,15 +33,13 @@ public class HTTP2Configuration: Configuration {
     }
 
     init(arguments: [String]) {
-        do {
-            var commandInput = CommandInput(arguments: arguments)
-            try detect(from: &commandInput)
-        } catch {
-            print("Cannot read certificate / key file provided via command line. Error: \(error)")
-        }
+        var commandInput = CommandInput(arguments: arguments)
+        let certAndKey = detect(from: &commandInput)
+        self.certData = certAndKey?.cert
+        self.keyData = certAndKey?.key
     }
 
-    func detect(from commandInput: inout CommandInput) throws {
+    func detect(from commandInput: inout CommandInput) -> (cert: Data, key: Data)? {
         struct Signature: CommandSignature {
             @Option(name: "cert", short: "c", help: "Path of the certificate")
             var certPath: String?
@@ -49,13 +47,18 @@ public class HTTP2Configuration: Configuration {
             var keyPath: String?
         }
 
-        let signature = try Signature(from: &commandInput)
+        do {
+            let signature = try Signature(from: &commandInput)
 
-        if let certPath = signature.certPath, let keyPath = signature.keyPath {
-            certData = try Data(contentsOf: URL(fileURLWithPath: certPath))
-            keyData = try Data(contentsOf: URL(fileURLWithPath: keyPath))
-        } else {
-            print("Cannot read certificate / key file provided via command line")
+            if let certPath = signature.certPath, let keyPath = signature.keyPath {
+                let certData = try Data(contentsOf: URL(fileURLWithPath: certPath))
+                let keyData = try Data(contentsOf: URL(fileURLWithPath: keyPath))
+                return (certData,keyData)
+            } else {
+                return nil
+            }
+        } catch {
+            fatalError("Cannot read certificate / key file provided via command line. Error: \(error)")
         }
     }
 
