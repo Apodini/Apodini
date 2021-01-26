@@ -12,7 +12,7 @@ struct EndpointReference: CustomStringConvertible, CustomDebugStringConvertible 
         "Endpoint<\(resolve().description)>(operation: \(operation), at: \(absolutePath.asPathString()))"
     }
 
-    let webservice: WebServiceModel
+    let node: EndpointsTreeNode
 
     /// The absolute path to the `Endpoint` (containing .root as the first element)
     /// The absolutePath MUST be scoped to the reference Endpoint.
@@ -22,19 +22,28 @@ struct EndpointReference: CustomStringConvertible, CustomDebugStringConvertible 
     /// Holds the response type of the `Endpoint`
     let responseType: Any.Type
 
+    init<H: Handler>(on node: EndpointsTreeNode, off endpoint: Endpoint<H>) {
+        self.node = node
+        self.absolutePath = endpoint.absolutePath
+        self.operation = endpoint.operation
+        self.responseType = endpoint.responseType
+    }
+
     /// Resolve the referenced `Endpoint`
-    ///
     /// - Returns: The instance of `AnyEndpoint` this `EndpointReference` references to.
     func resolve() -> _AnyEndpoint {
-        webservice.resolve(self)
+        guard let endpoint = node.endpoints[operation] else {
+            fatalError("Failed to resolve Endpoint at \(absolutePath.asPathString()): Didn't find Endpoint with operation \(operation)")
+        }
+        return endpoint
     }
 
+    /// Mutates the reference `Endpoint`
+    /// - Parameter mutate: The closure mutating the referenced `Endpoint`.
     func resolveAndMutate(_ mutate: (inout _AnyEndpoint) -> Void) {
-        webservice.resolveAndMutate(self, mutate)
-    }
-
-    internal func resolveNode() -> EndpointsTreeNode {
-        webservice.resolveNode(self)
+        var endpoint = resolve()
+        mutate(&endpoint)
+        node.endpoints[operation] = endpoint
     }
 }
 

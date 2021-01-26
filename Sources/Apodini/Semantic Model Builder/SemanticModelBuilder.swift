@@ -74,7 +74,6 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
                     return AnyHandlerIdentifier(handlerIndexPath.rawValue)
                 }
             }(),
-            webservice: webService,
             handler: appInjectedHandler,
             context: context,
             operation: operation,

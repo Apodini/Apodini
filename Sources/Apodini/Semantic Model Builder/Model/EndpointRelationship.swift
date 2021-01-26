@@ -183,7 +183,7 @@ public struct RelationshipDestination: CustomStringConvertible, Hashable {
         hideLink: Bool
     ) {
         self.name = name
-        self.reference = endpoint.reference()
+        self.reference = endpoint.reference
         self.operation = endpoint.operation
         self.destinationPath = absolutePath
         self.hideLink = hideLink

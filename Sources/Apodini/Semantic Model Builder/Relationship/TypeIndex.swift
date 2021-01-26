@@ -107,7 +107,7 @@ struct TypeIndex {
         logger.debug("Starting to resolve inheritances(\(inheritanceCandidates.count))...")
 
         for candidate in inheritanceCandidates {
-            let node = candidate.reference.resolveNode()
+            let node = candidate.reference.node
 
             let resolved = resolve(on: node, for: candidate.reference, candidate: candidate.ensureResolved(), type: candidate.definitionType)
             if resolved {
@@ -118,7 +118,7 @@ struct TypeIndex {
         logger.debug("Starting to resolve links and references(\(collectedOtherCandidates.count))...")
 
         for (reference, candidates) in collectedOtherCandidates {
-            let node = reference.resolveNode()
+            let node = reference.node
 
             for candidate in candidates {
                 precondition(reference == candidate.reference,

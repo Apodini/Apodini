@@ -24,11 +24,11 @@ private struct RelationshipInstance {
     }
 
     mutating func addSource<H: Handler>(_ endpoint: Endpoint<H>) {
-        sources.insert(endpoint.reference())
+        sources.insert(endpoint.reference)
     }
 
     mutating func addDestination<H: Handler>(_ endpoint: Endpoint<H>) {
-        destinations.insert(endpoint.reference())
+        destinations.insert(endpoint.reference)
     }
 }
 
@@ -40,7 +40,7 @@ struct RelationshipInstanceBuilder {
     private var collectedRelationshipCandidates: CollectedPartialRelationshipCandidates = [:]
 
     mutating func collectRelationshipCandidates<H: Handler>(for endpoint: Endpoint<H>, _ partialCandidates: [PartialRelationshipSourceCandidate]) {
-        let reference = endpoint.reference()
+        let reference = endpoint.reference
 
         var collectedCandidates = collectedRelationshipCandidates[reference, default: []]
         collectedCandidates.append(contentsOf: partialCandidates)
@@ -99,7 +99,7 @@ extension RelationshipInstance {
                                                 Please define at least one destination using the `destination(of:)` modifier.
                                                 """)
 
-            let node = source.resolveNode()
+            let node = source.node
             var relationship = EndpointRelationship(path: destinationPath)
 
             for destination in destinations {

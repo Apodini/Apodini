@@ -101,7 +101,7 @@ struct RelationshipSourceCandidate: SomeRelationshipSourceCandidate {
     fileprivate init(from partialCandidate: PartialRelationshipSourceCandidate, endpoint: _AnyEndpoint) {
         self.type = partialCandidate.type
         self.destinationType = partialCandidate.destinationType
-        self.reference = endpoint.reference()
+        self.reference = endpoint.reference
 
         var parameterResolvers: [AnyPathParameterResolver]
         if case .inheritance = type {
@@ -167,7 +167,7 @@ struct PartialRelationshipSourceCandidate: SomeRelationshipSourceCandidate {
     }
 
     mutating func link(to endpoint: _AnyEndpoint) {
-        storedReference = endpoint.reference()
+        storedReference = endpoint.reference
     }
 
     func ensureResolved() -> RelationshipSourceCandidate {

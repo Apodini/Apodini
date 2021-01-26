@@ -49,7 +49,7 @@ struct TypeIndexBuilder: CustomDebugStringConvertible {
         let content = H.Response.Content.self
         let identifier = ObjectIdentifier(content)
 
-        let reference = endpoint.reference()
+        let reference = endpoint.reference
         let markedDefault = endpoint.context.get(valueFor: DefaultRelationshipContextKey.self) ?? false
         let pathParameters = endpoint.absolutePath.listPathParameters()
 

@@ -68,7 +68,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let webService = WebServiceModel()
 
         let handler = GRPCTestHandler()
-        var endpoint = handler.mockEndpoint(webservice: webService)
+        var endpoint = handler.mockEndpoint()
 
         webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
 

@@ -146,40 +146,6 @@ class EndpointsTreeNode {
         }
     }
 
-    // See `EndpointReference`
-    func resolve(_ path: inout [EndpointPath], _ operation: Operation) -> _AnyEndpoint {
-        let node = resolveNode(&path)
-        guard let endpoint = node.endpoints[operation] else {
-            fatalError("Failed to resolve Endpoint at \(absolutePath.asPathString()): Didn't find Endpoint with operation \(operation)")
-        }
-        return endpoint
-    }
-
-    // See `EndpointReference`
-    func resolveAndMutate(_ path: inout [EndpointPath], _ operation: Operation, _ mutate: (inout _AnyEndpoint) -> Void) {
-        let node = resolveNode(&path)
-        guard var endpoint = node.endpoints[operation] else {
-            fatalError("Failed to resolve Endpoint at \(absolutePath.asPathString()): Didn't find Endpoint with operation \(operation)")
-        }
-
-        mutate(&endpoint)
-        node.endpoints[operation] = endpoint
-    }
-
-    // See `EndpointReference`
-    func resolveNode(_ path: inout [EndpointPath]) -> EndpointsTreeNode {
-        if path.isEmpty {
-            return self
-        }
-
-        let next = path.removeFirst()
-        guard let child = nodeChildren[next] else {
-            fatalError("Failed to resolve Endpoint at \(absolutePath.asPathString()): Couldn't continue to resolve \(next.description)+\(path.asPathString()).")
-        }
-
-        return child.resolveNode(&path)
-    }
-
     private func collectAbsolutePath(_ absolutePath: inout [EndpointPath]) {
         if let parent = parent {
             parent.collectAbsolutePath(&absolutePath)
@@ -305,21 +271,13 @@ class EndpointsTreeNode {
     ///   - reference: Reference to the `Endpoint`, use to resolve the `Operation` of the `Endpoint`.
     ///   - relationship: The `EndpointRelationship` which is to be added
     func addRelationship(at reference: EndpointReference, _ relationship: EndpointRelationship) {
-        var empty: [EndpointPath] = []
-        var endpoint = resolve(&empty, reference.operation)
-        precondition(endpoint.absolutePath == reference.absolutePath,
-                     "Called addRelationship(at:) with a seemingly unresolved `EndpointReference`")
-
+        var endpoint = reference.resolve()
         endpoint.addRelationship(relationship)
         endpoints[reference.operation] = endpoint
     }
 
     func addEndpointDestination(at reference: EndpointReference, _ destination: RelationshipDestination) {
-        var empty: [EndpointPath] = []
-        var endpoint = resolve(&empty, reference.operation)
-        precondition(endpoint.absolutePath == reference.absolutePath,
-                     "Called addEndpointDestination(at:) with a seemingly unresolved `EndpointReference`")
-
+        var endpoint = reference.resolve()
         endpoint.addRelationshipDestination(destination: destination, inherited: false)
         endpoints[reference.operation] = endpoint
     }
@@ -330,11 +288,7 @@ class EndpointsTreeNode {
         for operation: Operation,
         resolvers: [AnyPathParameterResolver]
     ) {
-        var empty: [EndpointPath] = []
-        var endpoint = resolve(&empty, reference.operation)
-        precondition(endpoint.absolutePath == reference.absolutePath,
-                     "Called addRelationshipInheritance(at:from:) with a seemingly unresolved `EndpointReference`")
-
+        var endpoint = reference.resolve()
         let inheritance = RelationshipDestination(self: from, resolvers: resolvers)
         endpoint.addRelationshipInheritance(self: inheritance, for: operation)
 

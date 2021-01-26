@@ -67,22 +67,4 @@ public class WebServiceModel: CustomDebugStringConvertible {
         context.assertRootPath()
         root.addEndpoint(&endpoint, context: &context)
     }
-
-    func resolve(_ reference: EndpointReference) -> _AnyEndpoint {
-        var path = reference.absolutePath
-        path.assertRoot()
-        return root.resolve(&path, reference.operation)
-    }
-
-    func resolveAndMutate(_ reference: EndpointReference, _ mutate: (inout _AnyEndpoint) -> Void) {
-        var path = reference.absolutePath
-        path.assertRoot()
-        root.resolveAndMutate(&path, reference.operation, mutate)
-    }
-
-    func resolveNode(_ reference: EndpointReference) -> EndpointsTreeNode {
-        var path = reference.absolutePath
-        path.assertRoot()
-        return root.resolveNode(&path)
-    }
 }

@@ -78,6 +78,14 @@ protocol _AnyEndpoint: AnyEndpoint {
     var guards: [LazyGuard] { get }
     var responseTransformers: [LazyAnyResponseTransformer] { get }
 
+    /// This property holds a `EndpointReference` for the given `Endpoint`.
+    /// The reference can be resolve using `EndpointReference.resolve()`.
+    ///
+    /// The reference can only be accessed once the `Endpoint` is fully inserted into the EndpointsTree.
+    ///
+    /// - Returns: `EndpointReference` to the given `Endpoint´.
+    var reference: EndpointReference { get }
+
     /// Internal method which is called to call the `InterfaceExporter.export(...)` method on the given `exporter`.
     ///
     /// - Parameter exporter: The `BaseInterfaceExporter` used to export the given `Endpoint`
@@ -87,14 +95,6 @@ protocol _AnyEndpoint: AnyEndpoint {
 
     /// Internal method which is called once the `Tree` was finished building, meaning the DSL was parsed completely.
     mutating func finished(with relationships: [[EndpointPath]: EndpointRelationship], self structural: EndpointRelationship)
-
-    /// This method creates a `EndpointReference` for the given `Endpoint`.
-    /// The reference can be resolve using `EndpointReference.resolve()`.
-    ///
-    /// The reference can only be created once the `Endpoint` is fully inserted into the EndpointsTree.
-    ///
-    /// - Returns: `EndpointReference` to the given `Endpoint´.
-    func reference() -> EndpointReference
 
     /// Internal method to add new relationship models to the Endpoint.
     /// - Parameter relationship: The newly added `EndpointRelationship`.
@@ -110,10 +110,17 @@ protocol _AnyEndpoint: AnyEndpoint {
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 public struct Endpoint<H: Handler>: _AnyEndpoint {
-    let webservice: WebServiceModel
     var inserted = false
 
     public let identifier: AnyHandlerIdentifier
+
+    var reference: EndpointReference {
+        guard let endpointReference = storedReference else {
+            fatalError("Tried accessing the `EndpointReference` of the Endpoint of \(H.self) although it wasn't fully inserted into the EndpointsTree")
+        }
+        return endpointReference
+    }
+    private var storedReference: EndpointReference?
 
     public let description: String
 
@@ -160,7 +167,6 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     
     init(
         identifier: AnyHandlerIdentifier,
-        webservice: WebServiceModel,
         handler: H,
         context: Context = Context(contextNode: ContextNode()),
         operation: Operation? = nil,
@@ -169,7 +175,6 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
         responseTransformers: [LazyAnyResponseTransformer] = []
     ) {
         self.identifier = identifier
-        self.webservice = webservice
         self.description = String(describing: H.self)
         self.handler = handler
         self.context = context
@@ -181,13 +186,6 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
         self.responseType = responseTransformers.responseType(for: H.self)
         self.parameters = handler.buildParametersModel()
         self.observedObjects = handler.collectObservedObjects()
-    }
-
-    func reference() -> EndpointReference {
-        guard inserted else {
-            fatalError("Tried creating a `EndpointReference` of the Endpoint of \(H.self) although it wasn't fully inserted into the EndpointsTree")
-        }
-        return EndpointReference(webservice: webservice, absolutePath: absolutePath, operation: operation, responseType: responseType)
     }
     
     func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
@@ -211,7 +209,8 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
 
     mutating func inserted(at treeNode: EndpointsTreeNode) {
         inserted = true
-        self.storedAbsolutePath = treeNode.absolutePath.scoped(on: self)
+        storedAbsolutePath = treeNode.absolutePath.scoped(on: self)
+        storedReference = EndpointReference(on: treeNode, off: self)
     }
 
     mutating func finished(with relationships: [[EndpointPath]: EndpointRelationship], self structural: EndpointRelationship) {
