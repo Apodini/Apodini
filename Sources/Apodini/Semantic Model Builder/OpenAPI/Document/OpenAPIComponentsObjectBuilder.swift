@@ -49,6 +49,14 @@ class OpenAPIComponentsObjectBuilder {
         return JSONSchema.reference(.component(named: schemaName))
     }
 
+    func buildResponse(for type: Encodable.Type) throws -> JSONSchema {
+        let schema = try buildSchema(for: type)
+        return .object(properties: [
+            ResponseContainer.CodingKeys.data.rawValue: schema,
+            ResponseContainer.CodingKeys.links.rawValue: try buildSchema(for: ResponseContainer.Links.self)
+        ])
+    }
+
     func buildSchema(for type: Encodable.Type) throws -> JSONSchema {
         let node = try Self
             .node(type)?
@@ -60,7 +68,7 @@ class OpenAPIComponentsObjectBuilder {
     }
 
     private func contextMapNode(node: Node<EnrichedInfo>) -> JSONSchema {
-        var schema = mapInfo(node)
+        let schema = mapInfo(node)
         let schemaName = node.value.typeInfo.mangledName
 
         if schema.isReference && !schemaExists(for: schemaName) {
@@ -71,12 +79,7 @@ class OpenAPIComponentsObjectBuilder {
                 }
             }
             let schemaObject = JSONSchema.object(properties: properties)
-            // in case of `ResponseContainer` we do not want to create a `schema` here
-            if node.value.typeInfo.mangledName != "ResponseContainer" {
-                self.componentsObject.schemas[componentKey(for: schemaName)] = schemaObject
-            } else {
-                schema = schemaObject
-            }
+            self.componentsObject.schemas[componentKey(for: schemaName)] = schemaObject
         }
         return schema
     }
