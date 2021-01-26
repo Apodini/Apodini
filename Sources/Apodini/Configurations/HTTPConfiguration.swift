@@ -84,6 +84,8 @@ public class HTTPConfiguration: Configuration {
     public func configure(_ app: Application) {
         if let address = address {
             app.http.address = address
+        } else {
+            app.logger.warning("No http server address configured")
         }
     }
 

@@ -74,7 +74,7 @@ public class HTTP2Configuration: Configuration {
                 app.logger.info("No certificate or no key. Starting without HTTP/2.")
             }
         } catch {
-            print("Cannot enable HTTP/2. Starting without HTTP/2. Error: \(error)")
+            app.logger.warning("Cannot enable HTTP/2. Starting without HTTP/2. Error: \(error)")
         }
     }
 
