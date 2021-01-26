@@ -14,18 +14,18 @@ public extension Publisher {
     /// contained value by awaiting the future in a synchronous, but non-blocking way. I.e. the
     /// next call to `transform` can start at earliest once the previous one has completed.
     /// The `EventLoop` is not blocked. Completions also await the currently pending future.
-    func syncMap<Result>(
-        _ transform: @escaping (Output) -> EventLoopFuture<Result>
-    ) -> SyncMap<Self, Result> {
+    func syncMap<Value>(
+        _ transform: @escaping (Output) -> EventLoopFuture<Value>
+    ) -> SyncMap<Self, Value> {
         SyncMap(upstream: self, transform: transform)
     }
 }
 
 /// The `Publisher` behind `Publisher.syncMap`.
-public struct SyncMap<Upstream: Publisher, O>: Publisher where Upstream.Failure == Error {
-    public typealias Failure = Error
+public struct SyncMap<Upstream: Publisher, O>: Publisher {
+    public typealias Failure = Upstream.Failure
     
-    public typealias Output = O
+    public typealias Output = Result<O, Error>
 
     /// The publisher from which this publisher receives elements.
     private let upstream: Upstream
@@ -40,7 +40,7 @@ public struct SyncMap<Upstream: Publisher, O>: Publisher where Upstream.Failure 
     }
 
     public func receive<Downstream: Subscriber>(subscriber: Downstream)
-    where O == Downstream.Input, Downstream.Failure == Failure {
+    where Result<O, Error> == Downstream.Input, Downstream.Failure == Failure {
         upstream.subscribe(Inner(downstream: subscriber, map: transform))
     }
 }
@@ -48,10 +48,10 @@ public struct SyncMap<Upstream: Publisher, O>: Publisher where Upstream.Failure 
 
 private extension SyncMap {
     class Inner<Downstream: Subscriber>: Subscriber, CustomStringConvertible, CustomPlaygroundDisplayConvertible
-    where Downstream.Input == O, Downstream.Failure == Error {
+    where Downstream.Input == Result<O, Error>, Downstream.Failure == Failure {
         typealias Input = Upstream.Output
 
-        typealias Failure = Error
+        typealias Failure = Downstream.Failure
 
         private let downstream: Downstream
 
@@ -98,28 +98,20 @@ private extension SyncMap {
                 self.lock.lock()
                 self.awaiting = false
                 
-                switch result {
-                case .failure(let error):
+                // We pass the result `downstream`.
+                let demand = self.downstream.receive(result)
+                if let completion = self.completion {
+                    // In case we received a `completion` while waiting for the
+                    // future we are done after passing this `completion` `downstream`.
+                    self.subscription = nil
                     self.lock.unlock()
-                    // If one `map` returns a failing future we complete
-                    // with the contained `error`.
-                    self.downstream.receive(completion: .failure(error))
-                case .success(let output):
-                    // If the future succeeds we pass the contianed
-                    // value `downstream`.
-                    let demand = self.downstream.receive(output)
-                    if let completion = self.completion {
-                        // In case we received a `completion` while waiting for the
-                        // future we are done after passing this `completion` `downstream`.
-                        self.lock.unlock()
-                        self.downstream.receive(completion: completion)
-                    } else {
-                        // Otherwise we add the `demand` we obtained from passing
-                        // `output` to `downstream` to our `subscription` which will
-                        // also request one new value.
-                        self.subscription?.request(demand)
-                        self.lock.unlock()
-                    }
+                    self.downstream.receive(completion: completion)
+                } else {
+                    // Otherwise we add the `demand` we obtained from passing
+                    // `output` to `downstream` to our `subscription` which will
+                    // also request one new value.
+                    self.subscription?.request(demand)
+                    self.lock.unlock()
                 }
             }
             self.lock.unlock()
@@ -131,6 +123,7 @@ private extension SyncMap {
             if !self.awaiting {
                 // If not awaiting a future right now, then we have to
                 // forward the completion right now.
+                self.subscription = nil
                 self.downstream.receive(completion: completion)
             } else {
                 // If we are currently waiting for a future to complete,
@@ -156,9 +149,9 @@ private extension SyncMap.Inner {
     // whenever downstream requested new demand. It can be used to call
     // `requestOne` under certain conditions.
     private class Inner: Subscription {
-        var subscription: Subscription
+        var subscription: Subscription?
         
-        private var onDemand: () -> Void
+        private var onDemand: (() -> Void)?
         
         init(upstream: Subscription, onDemand: @escaping () -> Void) {
             self.subscription = upstream
@@ -172,18 +165,20 @@ private extension SyncMap.Inner {
             self.lock.lock()
             self.demand += demand
             self.lock.unlock()
-            self.onDemand()
+            self.onDemand?()
         }
         
         func cancel() {
-            self.subscription.cancel()
+            self.subscription?.cancel()
+            self.subscription = nil
+            self.onDemand = nil
         }
         
         func requestOne() {
             self.lock.lock()
             if demand > 0 {
                 self.demand -= 1
-                self.subscription.request(.max(1))
+                self.subscription?.request(.max(1))
             }
             self.lock.unlock()
         }

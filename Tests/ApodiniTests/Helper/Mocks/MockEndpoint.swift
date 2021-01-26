@@ -11,7 +11,7 @@ extension Handler {
     /// - Note: This endpoint's identifier is not guaranteed to be stable
     func mockEndpoint(
             context: Context = Context(contextNode: ContextNode()),
-            operation: Operation = .automatic,
+            operation: Operation? = nil,
             guards: [LazyGuard] = [],
             responseTransformers: [LazyAnyResponseTransformer] = []
     ) -> Endpoint<Self> {

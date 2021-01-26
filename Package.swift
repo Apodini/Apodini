@@ -10,6 +10,9 @@ let package = Package(
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
+        .library(name: "ApodiniDatabase", targets: ["ApodiniDatabase"]),
+        .library(name: "Notifications", targets: ["Notifications"]),
+        .library(name: "Jobs", targets: ["Jobs"]),
         .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
         .executable(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"])
     ],
@@ -45,16 +48,15 @@ let package = Package(
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
-                .product(name: "APNS", package: "apns"),
-                .product(name: "FCM", package: "FCM"),
                 .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
                 .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime"),
+                .product(name: "APNS", package: "apns"),
+                .product(name: "FCM", package: "FCM"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
-                .product(name: "SwifCron", package: "SwifCron"),
                 .target(name: "WebSocketInfrastructure"),
                 .target(name: "ProtobufferCoding"),
                 .target(name: "ApodiniDeployBuildSupport"),
@@ -64,21 +66,30 @@ let package = Package(
                 "Components/ComponentBuilder.swift.gyb"
             ]
         ),
+        .target(
+            name: "ApodiniDatabase",
+            dependencies: [
+                .target(name: "Apodini")
+            ]
+        ),
+        .target(
+            name: "XCTApodini",
+            dependencies: [
+                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
+                .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
+                .target(name: "Apodini")
+            ]
+        ),
         .testTarget(
             name: "ApodiniTests",
             dependencies: [
-                .target(name: "Apodini"),
                 .product(name: "XCTVapor", package: "vapor"),
-                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
-                .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS]))
+                .target(name: "XCTApodini"),
+                .target(name: "ApodiniDatabase")
             ],
             exclude: [
-                "ConfigurationTests/mock_fcm.json",
-                "ConfigurationTests/mock_invalid_fcm.json",
-                "ConfigurationTests/mock.p8",
-                "ConfigurationTests/mock.pem",
-                "ConfigurationTests/cert.pem",
-                "ConfigurationTests/key.pem"
+                "ConfigurationTests/Certificates/cert.pem",
+                "ConfigurationTests/Certificates/key.pem"
             ]
         ),
         .target(
@@ -86,7 +97,8 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "DeploymentTargetLocalhostRuntimeSupport"),
-                .target(name: "DeploymentTargetAWSLambdaRuntime")
+                .target(name: "DeploymentTargetAWSLambdaRuntime"),
+                .target(name: "ApodiniDatabase")
             ]
         ),
         // ProtobufferCoding
@@ -196,6 +208,42 @@ let package = Package(
                 //.product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime"),
                 //.product(name: "AWSLambdaEvents", package: "swift-aws-lambda-runtime"),
                 //.product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
+            ]
+        ),
+        // Jobs
+        .target(
+            name: "Jobs",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "SwifCron", package: "SwifCron")
+            ]
+        ),
+        .testTarget(
+            name: "JobsTests",
+            dependencies: [
+                .target(name: "Jobs"),
+                .target(name: "XCTApodini")
+            ]
+        ),
+        // Notifications
+        .target(
+            name: "Notifications",
+            dependencies: [
+                .target(name: "Apodini")
+            ]
+        ),
+        .testTarget(
+            name: "NotificationsTests",
+            dependencies: [
+                .product(name: "XCTVapor", package: "vapor"),
+                .target(name: "Notifications"),
+                .target(name: "XCTApodini")
+            ],
+            exclude: [
+                "Helper/mock_fcm.json",
+                "Helper/mock_invalid_fcm.json",
+                "Helper/mock.p8",
+                "Helper/mock.pem"
             ]
         )
     ]

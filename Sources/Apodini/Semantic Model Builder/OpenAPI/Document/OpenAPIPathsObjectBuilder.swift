@@ -32,7 +32,7 @@ struct OpenAPIPathsObjectBuilder {
     }
 
     /// https://swagger.io/specification/#path-item-object
-    mutating func addPathItem<C: Component>(from endpoint: Endpoint<C>) {
+    mutating func addPathItem<H: Handler>(from endpoint: Endpoint<H>) {
         // Get OpenAPI-compliant path representation.
         let path = endpoint.absolutePath.build(with: OpenAPIPathBuilder.self)
 
@@ -67,12 +67,15 @@ private extension OpenAPIPathsObjectBuilder {
         // Get `OpenAPI.Response.Map` containing all possible HTTP responses mapped to their status code.
         let responses: OpenAPI.Response.Map = buildResponsesObject(from: endpoint.responseType)
 
+        // Set custom extensions on operation.
+        let vendorExtensions: [String: AnyCodable] = ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
+
         return OpenAPI.Operation(
             description: endpointDescription,
             parameters: parameters,
             requestBody: requestBody,
             responses: responses,
-            vendorExtensions: ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
+            vendorExtensions: vendorExtensions
         )
     }
 
@@ -125,7 +128,7 @@ private extension OpenAPIPathsObjectBuilder {
         var responseContent: OpenAPI.Content.Map = [:]
         let responseJSONSchema: JSONSchema
         do {
-            responseJSONSchema = try componentsObjectBuilder.buildSchema(for: responseType)
+            responseJSONSchema = try componentsObjectBuilder.buildResponse(for: responseType)
         } catch {
             fatalError("Could not build schema for response body for type \(responseType).")
         }

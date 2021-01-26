@@ -3,7 +3,6 @@
 //
 
 @_implementationOnly import OpenAPIKit
-@_implementationOnly import Runtime
 import Foundation
 
 /// Corresponds to `components` section in OpenAPI document
@@ -50,6 +49,14 @@ class OpenAPIComponentsObjectBuilder {
         return JSONSchema.reference(.component(named: schemaName))
     }
 
+    func buildResponse(for type: Encodable.Type) throws -> JSONSchema {
+        let schema = try buildSchema(for: type)
+        return .object(properties: [
+            ResponseContainer.CodingKeys.data.rawValue: schema,
+            ResponseContainer.CodingKeys.links.rawValue: try buildSchema(for: ResponseContainer.Links.self)
+        ])
+    }
+
     func buildSchema(for type: Encodable.Type) throws -> JSONSchema {
         let node: Node<JSONSchema>? = try Self.node(type)?
             .contextMap(contextMapNode)
@@ -60,49 +67,54 @@ class OpenAPIComponentsObjectBuilder {
     }
 
     private func contextMapNode(node: Node<EnrichedInfo>) -> JSONSchema {
-        let isOptional = node.value.cardinality == .zeroToOne
-        let isArray = node.value.cardinality == .zeroToMany
-        let isPrimitive = node.children.isEmpty
-
-        let schema = mapInfo(
-            node.value,
-            isPrimitive: isPrimitive,
-            isOptional: isOptional,
-            isArray: isArray)
-
+        let schema = mapInfo(node)
         let schemaName = node.value.typeInfo.mangledName
-        if !isPrimitive && !schemaExists(for: schemaName) {
+
+        if schema.isReference && !schemaExists(for: schemaName) {
             var properties: [String: JSONSchema] = [:]
             for child in node.children {
                 if let propertyInfo = child.value.propertyInfo {
-                    properties[propertyInfo.name] = mapInfo(
-                        child.value,
-                        isPrimitive: child.children.isEmpty,
-                        isOptional: child.value.cardinality == .zeroToOne,
-                        isArray: child.value.cardinality == .zeroToMany)
+                    properties[propertyInfo.name] = mapInfo(child)
                 }
             }
-            self.componentsObject.schemas[componentKey(for: schemaName)] = JSONSchema.object(properties: properties)
+            let schemaObject = JSONSchema.object(properties: properties)
+            self.componentsObject.schemas[componentKey(for: schemaName)] = schemaObject
         }
-
         return schema
     }
 
-    private func mapInfo(_ info: EnrichedInfo, isPrimitive: Bool, isOptional: Bool, isArray: Bool) -> JSONSchema {
-        var value: JSONSchema
+    private func mapInfo(_ node: Node<EnrichedInfo>) -> JSONSchema {
+        let isPrimitive = node.children.isEmpty
+        let isOptional = node.value.cardinality == .zeroToOne
+        let isArray = node.value.cardinality == .zeroToMany(.array)
+        let isDictionary: Bool = {
+            if case .zeroToMany(.dictionary) = node.value.cardinality {
+                return true
+            }
+            return false
+        }()
+
+        var schema: JSONSchema
+
         if isPrimitive {
-            value = JSONSchema.from(info.typeInfo.type, defaultType: .object)
+            schema = JSONSchema.from(node.value.typeInfo.type, defaultType: .object)
         } else {
-            let schemaName = info.typeInfo.mangledName
-            value = JSONSchema.reference(.component(named: schemaName))
+            let schemaName = node.value.typeInfo.mangledName
+            schema = JSONSchema.reference(.component(named: schemaName))
+        }
+        if isEnum(node.value.typeInfo.type) {
+            schema = .string(allowedValues: node.value.typeInfo.cases.map { .init($0.name) })
+        }
+        if isDictionary {
+            schema = .object(additionalProperties: .init(schema))
         }
         if isArray {
-            value = .array(items: value)
+            schema = .array(items: schema)
         }
         if isOptional {
-            value = value.optionalSchemaObject()
+            schema = schema.optionalSchemaObject()
         }
-        return value
+        return schema
     }
 
     private func schemaExists(for name: String) -> Bool {
@@ -124,6 +136,7 @@ private extension OpenAPIComponentsObjectBuilder {
         let node = try EnrichedInfo.node(type)
             .edited(handleOptional)?
             .edited(handleArray)?
+            .edited(handleDictionary)?
             .edited(handlePrimitiveType)?
             .edited(handleUUID)
         return node

@@ -38,7 +38,6 @@ extension WebService {
         defer {
             app.shutdown()
         }
-        
         try app.run()
     }
 
@@ -59,8 +58,12 @@ extension WebService {
                 .with(exporter: RHIInterfaceExporter.self),
             GraphQLSemanticModelBuilder(app)
         )
+        
+        // Adds the created application instance to `EnvironmentValues`.
+        // Can be used `@Environment` to access properties.
+        EnvironmentValues.shared.values[ObjectIdentifier(Application.Type.self)] = app
 
-        NotificationCenter.shared.application = app
+        app.vapor.app.routes.defaultMaxBodySize = "1mb"
     }
     
     
