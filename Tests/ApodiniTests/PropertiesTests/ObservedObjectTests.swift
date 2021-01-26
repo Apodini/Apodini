@@ -43,7 +43,7 @@ class ObservedObjectTests: ApodiniTests {
             @ObservedObject(\Keys.testObservable) var testObservable: TestObservable
             
             func handle() -> String {
-                testObservable.text
+                return testObservable.text
             }
         }
         
@@ -96,8 +96,6 @@ class ObservedObjectTests: ApodiniTests {
             .createConnectionContext(for: exporter)
             .eraseToAnyConnectionContext()
 
-        // send initial mock request through context
-        // (to simulate connection initiation by client)
         let request = Vapor.Request(
             application: app.vapor.app,
             method: .POST,
@@ -105,11 +103,16 @@ class ObservedObjectTests: ApodiniTests {
             collectedBody: nil,
             on: app.eventLoopGroup.next()
         )
+
+        // initialize the observable object
+        let testObservable = TestObservable()
+        EnvironmentValue(\Keys.testObservable, testObservable)
+
+        // send initial mock request through context
+        // (to simulate connection initiation by client)
         _ = context.handle(request: request)
         _ = anyContext.handle(request: request)
 
-        let testObservable = TestObservable()
-        EnvironmentValue(\Keys.testObservable, testObservable)
         // register listener
         context.register(listener: TestListener(eventLoop: app.eventLoopGroup.next()))
         anyContext.register(listener: TestListener(eventLoop: app.eventLoopGroup.next()))
@@ -155,8 +158,6 @@ class ObservedObjectTests: ApodiniTests {
         var context1 = endpoint.createConnectionContext(for: exporter)
         var context2 = endpoint.createConnectionContext(for: exporter)
 
-        // send initial mock request through context
-        // (to simulate connection initiation by client)
         let request = Vapor.Request(
             application: app.vapor.app,
             method: .POST,
@@ -164,11 +165,15 @@ class ObservedObjectTests: ApodiniTests {
             collectedBody: nil,
             on: app.eventLoopGroup.next()
         )
-        _ = context1.handle(request: request)
-        _ = context2.handle(request: request)
 
         let testObservable = TestObservable()
         EnvironmentValue(\Keys.testObservable, testObservable)
+
+        // send initial mock request through context
+        // (to simulate connection initiation by client)
+        _ = context1.handle(request: request)
+        _ = context2.handle(request: request)
+
         // register listener
         context1.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next(), number: 1))
         context2.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next(), number: 2))
