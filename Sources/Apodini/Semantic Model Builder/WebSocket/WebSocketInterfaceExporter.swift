@@ -29,19 +29,53 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             result[parameter.name] = parameter.value
         }))
         
-        self.router.register({(input: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, _: Database?) -> (
+        self.router.register({(_input: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, _: Database?) -> (
                     defaultInput: SomeInput,
                     output: AnyPublisher<Message<AnyEncodable>, Error>
                 ) in
+            var cancellables: Set<AnyCancellable> = []
+            
+            // We have to be able to handle both, incoming `_input` and `observation`s
+            // coming from `ObservedObject`s. Thus we open a first gap in the
+            // publisher-chain where we can insert the `observation`s.
+            let input = PassthroughSubject<Evaluation, Never>()
+            
+            // Here we just forward the `_input` into the `input`.
+            _input.sink(receiveCompletion: { _ in
+                input.send(completion: .finished)
+            }, receiveValue: { value in
+                input.send(.input(value))
+            }).store(in: &cancellables)
+            
+            // This listener is notified each time an `ObservedObject` triggers this
+            // instance of the endpoint. Each time we pipe the `observation` into
+            // `input` along with its `promise` which must be succeeded further down
+            // the line.
+            let listener = StandardObservedListener(eventLoop: eventLoop, callback: {
+                let promise = eventLoop.makePromise(of: Void.self)
+                
+                input.send(.observation(promise))
+                
+                return promise.futureResult
+            })
+            
             var context = endpoint.createConnectionContext(for: self)
             
-            let output: PassthroughSubject<Message<AnyEncodable>, Error> = PassthroughSubject()
+            context.register(listener: listener)
             
-            var cancellables: Set<AnyCancellable> = []
-            // Handle all incoming client-messages one after another. The `syncMap` automatically
-            // awaits the future.
-            input.syncMap { inputValue -> EventLoopFuture<Response<AnyEncodable>> in
-                context.handle(request: inputValue, eventLoop: eventLoop, final: false)
+            let output: PassthroughSubject<Message<AnyEncodable>, Error> = PassthroughSubject()
+            // Handle all incoming client-messages and observations one after another.
+            // The `syncMap` automatically awaits the future.
+            input.syncMap { evaluation -> EventLoopFuture<Response<AnyEncodable>> in
+                switch evaluation {
+                case .input(let inputValue):
+                    return context.handle(request: inputValue, eventLoop: eventLoop, final: false)
+                case .observation(let promise):
+                    return context.handle(eventLoop: eventLoop).map { result in
+                        promise.succeed(Void())
+                        return result
+                    }
+                }
             }
             .sink(
                 // The completion is also synchronized by `syncMap` it waits for any future
@@ -172,6 +206,23 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             output.send(completion: .failure(error.wsError))
         }
     }
+}
+
+// MARK: Handling of ObservedObject
+
+private struct StandardObservedListener: ObservedListener {
+    func onObservedDidChange<C>(in context: C) -> EventLoopFuture<Void> where C : ConnectionContext {
+        callback()
+    }
+    
+    var eventLoop: EventLoop
+    
+    var callback: () -> EventLoopFuture<Void>
+}
+
+private enum Evaluation {
+    case input(SomeInput)
+    case observation(EventLoopPromise<Void>)
 }
 
 // MARK: Input Accumulation
