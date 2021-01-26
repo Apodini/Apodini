@@ -95,10 +95,10 @@ class ObservedObjectTests: ApodiniTests {
         // (to simulate connection initiation by client)
         let request = Vapor.Request(
             application: app.vapor.app,
-                method: .POST,
-                url: URI("http://example.de/test/a?param0=value0"),
-                collectedBody: nil,
-                on: app.eventLoopGroup.next()
+            method: .POST,
+            url: URI("http://example.de/test/a?param0=value0"),
+            collectedBody: nil,
+            on: app.eventLoopGroup.next()
         )
         _ = context.handle(request: request)
 
