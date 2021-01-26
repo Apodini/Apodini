@@ -8,7 +8,6 @@ import Foundation
 
 
 struct OpenAPIDefStorageKey: StorageKey {
-    //let value: OpenAPI.Document
     typealias Value = OpenAPI.Document
 }
 
@@ -33,7 +32,7 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
 
     func finishedExporting(_ webService: WebServiceModel) {
         serveSpecification()
-        app.storage.set(OpenAPIDefStorageKey.self, to: self.documentBuilder.build())
+        app.storage.set(OpenAPIDefStorageKey.self, to: documentBuilder.build())
     }
 
     private func serveSpecification() {

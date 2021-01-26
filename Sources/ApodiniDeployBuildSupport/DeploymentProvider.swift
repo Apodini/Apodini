@@ -148,7 +148,8 @@ extension DeploymentProvider {
     
     public func computeDefaultDeployedSystemNodes(
         from wsStructure: WebServiceStructure,
-        overrideGrouping customDeploymentGroupGrouping: DeploymentGroupsConfig.DefaultGrouping? = nil
+        overrideGrouping customDeploymentGroupGrouping: DeploymentGroupsConfig.DefaultGrouping? = nil,
+        nodeIdProvider: ([ExportedEndpoint]) -> String = { _ in UUID().uuidString }
     ) throws -> [DeployedSystemConfiguration.Node] {
         // TODO how should this handle the same endpoint id being in multiple groups
         // also needs validation to make sure all handler ids specified in groups actually exist in the WS
@@ -162,7 +163,7 @@ extension DeploymentProvider {
         // one node per deployment group
         try nodes += wsStructure.deploymentConfig.deploymentGroups.groups.map { deploymentGroup in
             try DeployedSystemConfiguration.Node(
-                id: UUID().uuidString,
+                id: deploymentGroup.id,
                 exportedEndpoints: deploymentGroup.handlerIds.map { getEndpointById($0)! },
                 userInfo: nil, // TODO experiment w/ Null() what does the json look like? why does it (?sometimes?) seem to use an empty object instead of the null literal?
                 userInfoType: Null.self
@@ -176,7 +177,7 @@ extension DeploymentProvider {
         switch customDeploymentGroupGrouping ?? wsStructure.deploymentConfig.deploymentGroups.defaultGrouping {
         case .singleNode:
             let node = try DeployedSystemConfiguration.Node(
-                id: UUID().uuidString,
+                id: nodeIdProvider(remainingEndpoints),
                 exportedEndpoints: remainingEndpoints,
                 userInfo: Null()
             )
@@ -184,7 +185,7 @@ extension DeploymentProvider {
         case .separateNodes:
             try nodes += remainingEndpoints.map { endpoint in
                 try DeployedSystemConfiguration.Node(
-                    id: UUID().uuidString,
+                    id: nodeIdProvider([endpoint]),
                     exportedEndpoints: [endpoint],
                     userInfo: Null()
                 )

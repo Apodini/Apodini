@@ -32,7 +32,7 @@ public struct Null: Codable {
 
 
 
-
+public typealias DeployedSystemConfiguration = DeployedSystemStructure
 
 
 /// The structure of a deployed system.
@@ -40,7 +40,7 @@ public struct Null: Codable {
 /// Each node implements one or more of the deployed `WebService`'s endpoints.
 /// - Note: There may be more than one instances of a node running at a given time,
 ///   for example when deploying to a platform which supports scaling.
-public struct DeployedSystemConfiguration: Codable {
+public struct DeployedSystemStructure: Codable {
     /// Identifier of the deployment provider used to create the deployment
     public let deploymentProviderId: DeploymentProviderID
     
@@ -115,7 +115,7 @@ extension DeployedSystemConfiguration {
     }
     
     /// Returns a random node exporting an endpoint with the specified handler identifier.
-    public func randomNodeExportingEndpoint(withHandlerId handlerId: String) -> Node? {
+    public func randomNodeExportingEndpoint(withHandlerId handlerId: String) -> Node? { // TODO rename from random once we enforce non-duplicate endpoint-node mappings
         return nodesExportingEndpoint(withHandlerId: handlerId).randomElement()
     }
 }

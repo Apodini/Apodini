@@ -140,5 +140,5 @@ private struct LocalhostDeploymentProvider: ParsableCommand, DeploymentProvider 
 }
 
 
-//LocalhostDeploymentProvider.main(["/Users/lukas/Developer/Apodini/", "--product-name=TestWebService"])
-LocalhostDeploymentProvider.main()
+LocalhostDeploymentProvider.main(["/Users/lukas/Developer/Apodini/", "--product-name=TestWebService"])
+//LocalhostDeploymentProvider.main()

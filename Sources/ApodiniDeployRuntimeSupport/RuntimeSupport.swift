@@ -36,13 +36,15 @@ public struct HandlerInvocationParameter {
     // TODO somehow fix this to apodini's endpoint parameter propertytype constraint
     public typealias Value = Codable
     
+    public let stableIdentity: String
     public let name: String // name as set in the @Parameter property wrapper
     public let value: Value
     public let restParameterType: RESTParameterType
 //    let
     
     // TODO we probably need to fix the Encodable to Apodini's thing (ie the EndpointParameter.PropertyTypeConstraint)
-    public init(name: String, value: Value, restParameterType: RESTParameterType) {
+    public init(stableIdentity: String, name: String, value: Value, restParameterType: RESTParameterType) {
+        self.stableIdentity = stableIdentity
         self.name = name
         self.value = value
         self.restParameterType = restParameterType
@@ -107,21 +109,31 @@ private struct AnyEncodableEncodeIntoVaporContentATRVisitor: AnyEncodableATRVisi
 
 
 
+public enum RemoteHandlerInvocationRequestResponse<Response: Decodable> {
+    // url should be just scheme+hostname+port (but no path)
+    case invokeDefault(url: URL)
+    case result(EventLoopFuture<Response>)
+}
 
 
 public protocol DeploymentProviderRuntimeSupport: class {
     static var deploymentProviderId: DeploymentProviderID { get }
     
-    init(systemConfig: DeployedSystemConfiguration)
+    init(deployedSystemStructure: DeployedSystemStructure) throws
     
     func configure(_ app: Vapor.Application) throws
     
-    func invokeRemoteHandler<Response: Decodable>(
+    
+    /// This function is called when a handler uses the remote handler invocation API to invoke another
+    /// handler and the remote handler invocation manager has determined that the invocation's target handler is not in the current node.
+    /// The deployment provider is given the option to manually implement and realise the remote invocation.
+    /// It can also re-delegate this responsibility back to the caller.
+    func handleRemoteHandlerInvocation<Response: Decodable>( // TODO rename requestRemoteHandlerInvocation?
         withId handlerId: String,
         inTargetNode targetNode: DeployedSystemConfiguration.Node,
         responseType: Response.Type,
         parameters: [HandlerInvocationParameter]
-    ) throws -> EventLoopFuture<Response>
+    ) throws -> RemoteHandlerInvocationRequestResponse<Response>
 }
 
 

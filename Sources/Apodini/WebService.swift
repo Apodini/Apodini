@@ -115,14 +115,14 @@ private extension WebService {
             let configUrl = URL(fileURLWithPath: args[2])
             do {
                 let deployedSystemConfiguration = try DeployedSystemConfiguration(contentsOf: configUrl)
-                //currentWebServiceContext?.deployedSystemConfiguration = deployedSystemConfiguration
+                RHIIE.deployedSystemStructure = deployedSystemConfiguration
                 guard
                     let DPRSType = deploymentProviderRuntimes.first(where: { $0.deploymentProviderId == deployedSystemConfiguration.deploymentProviderId })
                 else {
                     throw ApodiniStartupError(message: "Unable to find deployment runtime with id '\(deployedSystemConfiguration.deploymentProviderId.rawValue)'")
                 }
-                let runtimeSupport = DPRSType.init(systemConfig: deployedSystemConfiguration)
-                //currentWebServiceContext?.runtimeSupport = runtimeSupport
+                let runtimeSupport = try DPRSType.init(deployedSystemStructure: deployedSystemConfiguration)
+                RHIIE.deploymentProviderRuntime = runtimeSupport
                 try runtimeSupport.configure(app.vapor.app)
             } catch {
                 throw ApodiniStartupError(message: "Unable to launch with custom config: \(error)")

@@ -79,6 +79,14 @@ protocol AnyEndpointParameter: CustomStringConvertible {
     func derivePathParameterModel() -> EndpointPath
 }
 
+extension AnyEndpointParameter {
+    var hasDefaultValue: Bool {
+        typeErasuredDefaultValue != nil
+    }
+}
+
+
+
 /// Models a `Parameter`. See `AnyEndpointParameter` for detailed documentation.
 ///
 /// Be aware that for optional `Parameter` the generic `Type` holds the wrapped type of the `Optional`.

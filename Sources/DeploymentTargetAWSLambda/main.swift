@@ -60,6 +60,9 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     var awsProfileName: String = "default"
     
     @Option
+    var awsRegion: String = "eu-central-1"
+    
+    @Option
     var awsS3BucketName: String = "apodini"
     
     @Option
@@ -117,7 +120,7 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
         let dockerImageName = try prepareDockerImage()
         logger.notice("successfully built docker image. image name: \(dockerImageName)")
         
-    
+        
         logger.notice("generating web service structure")
         //let webServiceStructure = try readWebServiceStructure(usingDockerImage: dockerImageName)
         let webServiceStructure = try { () -> WebServiceStructure in
@@ -132,7 +135,11 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
         
         let nodes = try computeDefaultDeployedSystemNodes(
             from: webServiceStructure,
-            overrideGrouping: singleLambda ? .singleNode : nil
+            overrideGrouping: singleLambda ? .singleNode : nil,
+            nodeIdProvider: { endpoints in
+                assert(endpoints.count == 1)
+                return endpoints[0].handlerIdRawValue.replacingOccurrences(of: ".", with: "-")
+            }
         )
                 
 //        let node = try DeployedSystemStructure.Node(
@@ -146,8 +153,7 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
             deploymentProviderId: Self.identifier,
             currentInstanceNodeId: nodes[0].id,
             nodes: nodes,
-            userInfo: nil,
-            userInfoType: Null.self
+            userInfo: LambdaDeployedSystemContext(awsRegion: awsRegion, apiGatewayApiId: awsApiGatewayApiId)
         )
         
         
@@ -164,6 +170,7 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
         logger.notice("Starting the AWS stuff")
         try AWSDeploymentStuff(
             awsProfileName: awsProfileName,
+            awsRegionName: awsRegion,
             deploymentStructure: deploymentStructure,
             openApiDocument: try JSONDecoder().decode(OpenAPI.Document.self, from: webServiceStructure.openApiDefinition),
             tmpDirUrl: self.tmpDirUrl,

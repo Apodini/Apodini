@@ -8,6 +8,24 @@
 import Foundation
 @_implementationOnly import Vapor
 import ApodiniDeployBuildSupport
+import ApodiniDeployRuntimeSupport
+
+
+
+extension AnyEndpointParameter {
+    var lk_stableIdentity: String {
+        switch self.parameterType {
+        case .content:
+            return "c:\(self.name)"
+        case .lightweight:
+            return "l:\(self.name)"
+        case .path:
+            return "p:\(self.name)"
+        }
+    }
+}
+
+
 
 
 /// A custom internal interface exporter, which:
@@ -16,25 +34,39 @@ import ApodiniDeployBuildSupport
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
 class RHIInterfaceExporter: InterfaceExporter {
     struct ExporterRequest: Apodini.ExporterRequest {
-        private let imp: (_ endpointParamId: UUID) -> Any?
-        
-        init<H: InvocableHandler>(endpoint: Endpoint<H>, collectedParameters: [CollectedParameter<H>]) {
-            self.imp = { endpointParamId -> Any? in
-                collectedParameters.first { collectedParam in
-                    (endpoint.handler[keyPath: collectedParam.handlerKeyPath] as? AnyParameterID)?.value == endpointParamId
-                }?.value
-            }
+        enum Param {
+            case value(Any)    // the value, as is
+            case encoded(Data) // the value, encoded
         }
         
-        func getValueOfCollectedParameter(for endpointParameter: AnyEndpointParameter) -> Any? {
-            imp(endpointParameter.id)
+        private let parameterValues: [String: Param] // key: stable endpoint param identity
+        
+        init<H: Handler>(endpoint: Endpoint<H>, collectedParameters: [CollectedParameter<H>]) {
+            parameterValues = .init(uniqueKeysWithValues: collectedParameters.map { param -> (String, Param) in
+                let paramId = (endpoint.handler[keyPath: param.handlerKeyPath] as! AnyParameterID).value
+                let endpointParam = endpoint.parameters.first { $0.id == paramId }!
+                return (endpointParam.lk_stableIdentity, .value(param.value))
+            })
+        }
+        
+        init(encodedParameters: [(String, Data)]) {
+            parameterValues = Dictionary(
+                uniqueKeysWithValues: encodedParameters.map { ($0.0, .encoded($0.1)) }
+            )
+        }
+        
+        func getValueOfCollectedParameter(for endpointParameter: AnyEndpointParameter) -> Param? {
+            parameterValues[endpointParameter.lk_stableIdentity]
         }
     }
+    
     
     internal private(set) static var shared: RHIInterfaceExporter?
     
     let app: Apodini.Application
     private var endpointsById: [AnyHandlerIdentifier: AnyEndpoint] = [:]
+    var deployedSystemStructure: DeployedSystemConfiguration?
+    var deploymentProviderRuntime: DeploymentProviderRuntimeSupport?
     
     
     required init(_ app: Apodini.Application) {
@@ -47,15 +79,18 @@ class RHIInterfaceExporter: InterfaceExporter {
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         endpointsById[endpoint.identifier] = endpoint
+        
+        app.vapor.app.add(Vapor.Route(
+            method: .POST,
+            path: ["__apodini", "invoke", .constant(endpoint.identifier.rawValue)],
+            responder: InternalInvocationResponder(RHIIE: self, endpoint: endpoint),
+            requestType: InternalInvocationResponder<H>.Request.self,
+            responseType: InternalInvocationResponder<H>.Response.self
+        ))
     }
     
     
-    func finishedExporting(_ webService: WebServiceModel) {
-        // This is where we will expose the remote-invocation endpoint
-//        app.vapor.app.post(["__apodini", "invoke"]) { request -> String in
-//            String(reflecting: request)
-//        }
-    }
+    //func finishedExporting(_ webService: WebServiceModel) {}
     
     
     func getEndpoint<H: IdentifiableHandler>(withIdentifier identifier: H.HandlerIdentifier, ofType _: H.Type) -> Endpoint<H>? {
@@ -64,20 +99,30 @@ class RHIInterfaceExporter: InterfaceExporter {
     
     
     func retrieveParameter<Type: Codable>(_ endpointParameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type?? {
-        guard let value: Any = request.getValueOfCollectedParameter(for: endpointParameter) else {
+        guard let paramValueContainer = request.getValueOfCollectedParameter(for: endpointParameter) else {
             return Optional<Type?>.none // this should be a "top-level" nil value (ie `.none` instead of `.some(.none)`)
         }
         
         if endpointParameter.nilIsValidValue {
-            if let value: Type? = dynamicCast(value, to: Type?.self) {
-                return .some(value)
+            switch paramValueContainer {
+            case .value(let value):
+                if let value: Type? = dynamicCast(value, to: Type?.self) {
+                    return .some(value)
+                }
+            case .encoded(let data):
+                return try .some(JSONDecoder().decode(Type?.self, from: data))
             }
         } else {
-            if let value = value as? Type {
-                return .some(.some(value))
+            switch paramValueContainer {
+            case .value(let value):
+                if let value = value as? Type {
+                    return .some(.some(value))
+                }
+            case .encoded(let data):
+                return try .some(.some(JSONDecoder().decode(Type.self, from: data)))
             }
         }
-        throw makeApodiniError("Unable to cast parameter value (of type '\(type(of: value))' to expected type '\(Type.self)'")
+        throw makeApodiniError("Unable to cast parameter value (\(paramValueContainer)) to expected type '\(Type.self)'")
     }
 }
 

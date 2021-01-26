@@ -6,6 +6,8 @@
 //
 
 
+import Foundation
+
 
 //public protocol DeploymentConfigInput: Codable {}
 
@@ -43,8 +45,11 @@ public struct DeploymentGroupsConfig: Codable {
     }
     
     public struct Group: Codable {
+        public let id: String
         public let handlerIds: [String] // strongly-type this!
-        public init(handlerIds: [String]) {
+        
+        public init(id: String = UUID().uuidString, handlerIds: [String]) {
+            self.id = id
             self.handlerIds = handlerIds
         }
     }
