@@ -101,6 +101,7 @@ private extension Scheduler {
     
     func schedule<T: Job>(_ job: T, with config: JobConfiguration, _ runs: Int, on eventLoop: EventLoop) {
         guard runs > 0, let nextDate = try? config.cron.next() else {
+            print("CANCEL \(runs)" )
             config.scheduled?.cancel()
             return
         }
