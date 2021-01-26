@@ -7,6 +7,11 @@ final class WebserviceTests: XCTestCase {
             var content: some Component {
                 Text("42")
             }
+
+            var configuration: Configuration {
+                HTTPConfiguration()
+                    .address(.hostname("0.0.0.0", port: 8080))
+            }
         }
 
         try TestWebService.main(waitForCompletion: false)

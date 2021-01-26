@@ -83,7 +83,8 @@ let package = Package(
             ],
             exclude: [
                 "ConfigurationTests/Certificates/cert.pem",
-                "ConfigurationTests/Certificates/key.pem"
+                "ConfigurationTests/Certificates/key.pem",
+                "ConfigurationTests/Certificates/key2.pem"
             ]
         ),
         .target(

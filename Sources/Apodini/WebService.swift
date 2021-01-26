@@ -23,14 +23,16 @@ extension WebService {
     }
 
     /// This function is executed to start up an Apodini `WebService`
-    static func main(waitForCompletion: Bool) throws {
+    @discardableResult
+    static func main(waitForCompletion: Bool) throws -> Application {
         let app = Application()
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
 
         main(app: app)
 
         guard waitForCompletion else {
-            return try app.boot()
+            try app.boot()
+            return app
         }
 
         defer {
@@ -38,6 +40,7 @@ extension WebService {
         }
 
         try app.run()
+        return app
     }
 
     /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.main()` to startup an Apodini `WebService`.
