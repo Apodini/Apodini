@@ -18,7 +18,7 @@ extension KeyPath where Value == Bool {
     ///
     /// - Parameter keyPath: The KeyPath to negate.
     /// - Returns: A closure that can be passed to higher-order functions.
-    static prefix func ! (keyPath: KeyPath<Root, Value>) -> (Root) -> Bool {
+    static prefix func ! (keyPath: KeyPath<Root, Value>) -> (Root) -> Value {
         { !$0[keyPath: keyPath] }
     }
 }
