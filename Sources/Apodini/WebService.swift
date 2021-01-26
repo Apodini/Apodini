@@ -17,17 +17,27 @@ public protocol WebService: Component, ConfigurationCollection {
 
 
 extension WebService {
+
     /// This function is executed to start up an Apodini `WebService`
     public static func main() throws {
+        try main(waitForCompletion: true)
+    }
+
+    /// This function is executed to start up an Apodini `WebService`
+    static func main(waitForCompletion: Bool) throws {
         let app = Application()
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
 
         main(app: app)
-            
+
+        guard waitForCompletion else {
+            return try app.boot()
+        }
+
         defer {
             app.shutdown()
         }
-        
+
         try app.run()
     }
 
