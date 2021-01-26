@@ -27,6 +27,8 @@ protocol ObservedListener {
     /// responses to the client.
     var eventLoop: EventLoop { get }
 
+    /// Callback that will be called by a `ConnectionContext` if an observed value
+    /// in the context's handler did change.
     func onObservedDidChange<C: ConnectionContext>(in context: C)
 }
 
@@ -41,6 +43,9 @@ protocol ConnectionContext {
         final: Bool
     ) -> EventLoopFuture<Response<AnyEncodable>>
 
+    /// Runs through the context's handler with the state after the latest client-request.
+    /// Should be used by exporters after an observed value in the context did change,
+    /// to retrieve the proper message that has to be sent to the client.
     func handle(eventLoop: EventLoop) -> EventLoopFuture<Response<AnyEncodable>>
 
     /// Register a listener that will be notified once an observed object did change in the handler
