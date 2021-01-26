@@ -90,6 +90,9 @@ class ObservedObjectTests: ApodiniTests {
         let handler = TestHandler()
         let endpoint = handler.mockEndpoint()
         var context = endpoint.createConnectionContext(for: exporter)
+        var anyContext = endpoint
+            .createConnectionContext(for: exporter)
+            .eraseToAnyConnectionContext()
 
         // send initial mock request through context
         // (to simulate connection initiation by client)
@@ -101,11 +104,13 @@ class ObservedObjectTests: ApodiniTests {
             on: app.eventLoopGroup.next()
         )
         _ = context.handle(request: request)
+        _ = anyContext.handle(request: request)
 
         let testObservable = TestObservable()
         EnvironmentValue(\Keys.testObservable, testObservable)
         // register listener
         context.register(listener: TestListener(eventLoop: app.eventLoopGroup.next()))
+        anyContext.register(listener: TestListener(eventLoop: app.eventLoopGroup.next()))
         // change the value
         testObservable.text = "Hello Swift"
     }
