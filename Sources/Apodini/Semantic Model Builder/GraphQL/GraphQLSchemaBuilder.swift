@@ -59,7 +59,6 @@ class GraphQLSchemaBuilder {
     private func responseTypeHandler(for responseTypeHead: Node<EnrichedInfo>) -> GraphQLOutputType {
         let typeValTemp = self.typeToGraphQL(type: responseTypeHead.value.typeInfo.type)
 
-        let typeName = responseTypeHead.value.typeInfo.name
         if let typeVal = typeValTemp {
             return typeVal as! GraphQLOutputType
         }
@@ -68,9 +67,7 @@ class GraphQLSchemaBuilder {
         // Array / Optional
         if let newResponseHead = try! responseTypeHead.edited(handleArray)?.edited(handleOptional) {
             if (newResponseHead.value.cardinality == .zeroToMany) { // Array
-                if let type = self.typeToGraphQL(type: newResponseHead.value.typeInfo.type) {
-                    return GraphQLList(type)
-                } else if let eNode = try? EnrichedInfo.node(newResponseHead.value.typeInfo.type) {
+                if let eNode = try? EnrichedInfo.node(newResponseHead.value.typeInfo.type) {
                     return GraphQLList(responseTypeHandler(for: eNode))
                 }
             } else if (newResponseHead.value.cardinality == .zeroToOne) { // Optional
@@ -89,6 +86,7 @@ class GraphQLSchemaBuilder {
             }
         }
 
+        let typeName = responseTypeHead.value.typeInfo.name
         return try! GraphQLObjectType(name: typeName, fields: currentFields)
     }
 
@@ -113,7 +111,7 @@ class GraphQLSchemaBuilder {
         })
     }
 
-    // TODO: Handle relationship info in here. In  the tree generation from endpoint part!
+
     // Generated adjacency list tree
     func append<H: Handler>(for endpoint: Endpoint<H>, with context: AnyConnectionContext<GraphQLInterfaceExporter>) {
         // Remove parameters from the path by using `":" filter`
@@ -152,9 +150,10 @@ class GraphQLSchemaBuilder {
 
         }
 
-        // Response type info
+        // Response type and context info
         let treeTemp = try! EnrichedInfo.node(endpoint.handleReturnType)
         self.responseTypeTree[leafName] = treeTemp
+        self.leafContext[leafName] = context
 
         // Handle Single points
         if (currentPath.count == 1) {
@@ -163,9 +162,6 @@ class GraphQLSchemaBuilder {
                     self.args[leafName] ?? [:])
             return
         }
-
-        // Create handler
-        self.leafContext[leafName] = context
 
         // Create tree
         var indx = currentPath.count - 1
@@ -191,14 +187,22 @@ class GraphQLSchemaBuilder {
         let nodeName = self.nameExtractor(for: node)
         if let childrenList = self.tree[node] {
             var currentFields = [String: GraphQLField]()
+            if let responseType = self.responseTypeTree[nodeName], let responseContext = self.leafContext[nodeName] {
+                currentFields[responseType.value.typeInfo.name.lowercased()] = self.graphQLFieldCreator(for: responseType,
+                        responseContext,
+                        self.args[nodeName] ?? [:])
+            }
+
             for child in childrenList {
-                let childName = child.components(separatedBy: "_").filter({ $0 != "" }).last ?? "None"
+                let childName = nameExtractor(for: child) // child.components(separatedBy: "_").filter({ $0 != "" }).last ?? "None"
+                // if let childrenList = self.tree[node] {
                 currentFields[childName] = generateSchemaFromTreeHelper(child)
             }
             self.types[nodeName] = try! GraphQLObjectType(name: nodeName, fields: currentFields)
 
             return GraphQLField(type: self.types[nodeName]!, resolve: { _, _, _, _ in "Emtpy" })
         } else {
+            // Check for if we return USER type for example
             return self.graphQLFieldCreator(for: self.responseTypeTree[node]!,
                     self.leafContext[node]!,
                     self.args[node] ?? [:])
@@ -227,4 +231,5 @@ class GraphQLSchemaBuilder {
                 types: Array(self.types.values)
         )
     }
+
 }

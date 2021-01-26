@@ -88,17 +88,6 @@ struct TestWebService: Apodini.WebService {
         }
     }
 
-    struct Hasan: Codable, ResponseTransformable {
-        var type: String
-        var name: [String]
-    }
-
-    struct User: Codable, ResponseTransformable {
-        var id: Int
-        var name: String
-        var hasan: [Hasan]
-    }
-
     struct UserHandler: Handler {
         @Parameter var userId: Int
         @Parameter var userName: String?
@@ -107,6 +96,7 @@ struct TestWebService: Apodini.WebService {
             User(id: userId, name: userName ?? "asdf", hasan: [Hasan(type: "SA", name: ["AS"]), Hasan(type: "AS", name: ["SA"])])
         }
     }
+
 
     struct Book: Codable, ResponseTransformable {
         var name: String
@@ -121,12 +111,23 @@ struct TestWebService: Apodini.WebService {
         }
     }
 
+
+    struct Hasan: Codable, ResponseTransformable {
+        var type: String
+        var name: [String]
+    }
+
+    struct User: Codable, ResponseTransformable {
+        var id: Int
+        var name: String
+        var hasan: [Hasan]
+    }
+
     struct AuthorHandler: Handler {
         @Parameter var bookName: String
 
         func handle() -> [User]? {
-            nil
-            // [User(id: 15, name: "Eko", hasan: [Hasan(type: "sa", name: ["SA", "AS"])])]
+            [User(id: 15, name: "Eko", hasan: [Hasan(type: "sa", name: ["SA", "AS"])])]
         }
     }
 
@@ -141,7 +142,8 @@ struct TestWebService: Apodini.WebService {
 //            Text("123123").response(EmojiMediator(emojis: "🎉")).response(EmojiMediator())
 //        }
         Group("Book") {
-            BookHandler()
+            Text("SA")
+            // BookHandler()
 
             Group("authors") {
                 AuthorHandler()
