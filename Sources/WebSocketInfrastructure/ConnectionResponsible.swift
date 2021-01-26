@@ -12,7 +12,7 @@ import NIOWebSocket
 typealias ContextOpener = (ConnectionResponsible, UUID) -> (ContextResponsible)
 
 class ConnectionResponsible: Identifiable {
-    weak var websocket: WebSocket?
+    unowned var websocket: WebSocket
     
     let database: Database?
     
@@ -63,7 +63,7 @@ class ConnectionResponsible: Identifiable {
                 throw SerializationError.expectedUTF8
             }
             
-            self.websocket?.send(data)
+            self.websocket.send(data)
         } catch {
             self.logger.report(error: error)
         }
@@ -78,14 +78,14 @@ class ConnectionResponsible: Identifiable {
                 throw SerializationError.expectedUTF8
             }
             
-            self.websocket?.send(data)
+            self.websocket.send(data)
         } catch {
             self.logger.report(error: error)
         }
     }
     
     func close(_ code: WebSocketErrorCode) {
-        _ = websocket?.close(code: code)
+        _ = websocket.close(code: code)
     }
     
     func destruct(_ context: UUID) {
@@ -97,7 +97,7 @@ class ConnectionResponsible: Identifiable {
                 throw SerializationError.expectedUTF8
             }
             
-            self.websocket?.send(data)
+            self.websocket.send(data)
         } catch {
             self.logger.report(error: error)
         }
