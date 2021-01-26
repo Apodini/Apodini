@@ -21,9 +21,8 @@ struct EndpointInstance<H: Handler> {
         
         var handler = endpoint.handler
         
-        // State
-        
         activate(&handler)
+        
         self.handler = handler
         
         self.guards = endpoint.guards.map { lazyGuard in

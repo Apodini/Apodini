@@ -29,7 +29,7 @@ protocol ObservedListener {
 
     /// Callback that will be called by a `ConnectionContext` if an observed value
     /// in the context's handler did change.
-    func onObservedDidChange<C: ConnectionContext>(in context: C)
+    func onObservedDidChange<C: ConnectionContext>(in context: C) -> EventLoopFuture<Void>
 }
 
 /// `ConnectionContext` holds the internal state of an endpoint for one connection
@@ -169,9 +169,12 @@ class InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCon
 
     func register(listener: ObservedListener) {
         // register the given listener for notifications on the handler
-        for obj in endpoint.handler.collectObservedObjects() {
-            self.observations.append(obj.register({
-                listener.onObservedDidChange(in: self)
+        for object in endpoint.handler.collectObservedObjects() {
+            self.observations.append(object.register({
+                object.changed = true
+                listener.onObservedDidChange(in: self).whenComplete { _ in
+                    object.changed = false
+                }
             }))
         }
     }

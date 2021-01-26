@@ -15,28 +15,41 @@ public struct ObservedObject<Element: ObservableObject>: Property {
             if let element = element {
                 return element
             }
-            guard let objId = objectIdentifer else {
-                fatalError("ObjectIdentifier not present")
+            if let objectIdentifer = objectIdentifer,
+               let element = EnvironmentValues.shared.values[objectIdentifer] as? Element {
+                return element
             }
-            guard let element = EnvironmentValues.shared.values[objId] else {
-                print(objId.hashValue)
-                fatalError("")
-            }
-            
-            guard let elem = element as? Element else {
-                fatalError()
-            }
-            
-            return elem
+            fatalError("The object \(String(describing: self)) cannot be found in the environment.")
         }
         set {
             element = newValue
         }
     }
     
+    private var changedWrapper: Wrapper<Bool>?
+    
     /// Property to check if the evaluation of the `Handler` or `Job` was triggered by this `ObservableObject`.
     /// Read only property
-    public internal(set) var changed: Bool = false
+    public internal (set) var changed: Bool {
+        get {
+            guard let value = changedWrapper?.value else {
+                fatalError("""
+                    A ObservedObjects's 'changed' property was accessed before the
+                    ObservedObject was activated.
+                    """)
+            }
+            return value
+        }
+        nonmutating set {
+            guard let wrapper = changedWrapper else {
+                fatalError("""
+                    A ObservedObjects's 'changed' property was accessed before the
+                    ObservedObject was activated.
+                    """)
+            }
+            wrapper.value = newValue
+        }
+    }
     
     /// Element passed as an object.
     public init(wrappedValue defaultValue: Element) {
@@ -53,6 +66,8 @@ public struct ObservedObject<Element: ObservableObject>: Property {
 protocol AnyObservedObject {
     /// Method to be informed about values that have changed
     func register(_ callback: @escaping () -> Void) -> Observation
+    
+    var changed: Bool { get nonmutating set }
 }
 
 extension ObservedObject: AnyObservedObject {
@@ -69,5 +84,11 @@ extension ObservedObject: AnyObservedObject {
         }
         
         return observation
+    }
+}
+
+extension ObservedObject: Activatable {
+    mutating func activate() {
+        self.changedWrapper = Wrapper(value: false)
     }
 }
