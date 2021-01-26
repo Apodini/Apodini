@@ -90,9 +90,9 @@ class ObservedObjectTests: ApodiniTests {
         let handler = TestHandler()
         let endpoint = handler.mockEndpoint()
         var context = endpoint.createConnectionContext(for: exporter)
-        var anyContext = endpoint
-            .createConnectionContext(for: exporter)
-            .eraseToAnyConnectionContext()
+//        var anyContext = endpoint
+//            .createConnectionContext(for: exporter)
+//            .eraseToAnyConnectionContext()
 
         // send initial mock request through context
         // (to simulate connection initiation by client)
@@ -104,13 +104,68 @@ class ObservedObjectTests: ApodiniTests {
             on: app.eventLoopGroup.next()
         )
         _ = context.handle(request: request)
-        _ = anyContext.handle(request: request)
+//        _ = anyContext.handle(request: request)
 
         let testObservable = TestObservable()
         EnvironmentValue(\Keys.testObservable, testObservable)
         // register listener
         context.register(listener: TestListener(eventLoop: app.eventLoopGroup.next()))
-        anyContext.register(listener: TestListener(eventLoop: app.eventLoopGroup.next()))
+//        anyContext.register(listener: TestListener(eventLoop: app.eventLoopGroup.next()))
+        // change the value
+        testObservable.text = "Hello Swift"
+    }
+    
+    func testObservedListenerNotShared() {
+        struct TestHandler: Handler {
+            @ObservedObject(\Keys.testObservable) var testObservable: TestObservable
+
+            func handle() -> String {
+                testObservable.text
+            }
+        }
+
+        class MandatoryTestListener: ObservedListener {
+            var eventLoop: EventLoop
+
+            var wasCalled = false
+            
+            init(eventLoop: EventLoop) {
+                self.eventLoop = eventLoop
+            }
+            
+            func onObservedDidChange<C: ConnectionContext>(in context: C) {
+                wasCalled = true
+            }
+            
+            deinit {
+                XCTAssertTrue(wasCalled)
+            }
+        }
+
+        let exporter = RESTInterfaceExporter(app)
+        let handler = TestHandler()
+        
+        let endpoint = handler.mockEndpoint()
+        var context1 = endpoint.createConnectionContext(for: exporter)
+        var context2 = endpoint.createConnectionContext(for: exporter)
+
+        // send initial mock request through context
+        // (to simulate connection initiation by client)
+        let request = Vapor.Request(
+            application: app.vapor.app,
+            method: .POST,
+            url: URI("http://example.de/test/a?param0=value0"),
+            collectedBody: nil,
+            on: app.eventLoopGroup.next()
+        )
+        _ = context1.handle(request: request)
+        _ = context2.handle(request: request)
+
+        let testObservable = TestObservable()
+        EnvironmentValue(\Keys.testObservable, testObservable)
+        // register listener
+        context1.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next()))
+        context2.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next()))
         // change the value
         testObservable.text = "Hello Swift"
     }

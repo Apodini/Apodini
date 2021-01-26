@@ -16,10 +16,20 @@ struct EndpointInstance<H: Handler> {
     let guards: [AnyGuard]
     let responseTransformers: [AnyResponseTransformer]
     
-    init(from endpoint: Endpoint<H>) {
+    init(from endpoint: Endpoint<H>, notifying callback: (() -> Void)? = nil) {
         self.endpoint = endpoint
         
         var handler = endpoint.handler
+        
+        // ObservedObject
+        
+//        _ = handler.collectObservedObjects().map { observedObject in
+//            observedObject.valueDidChange = callback
+//        }
+        
+        
+        // State
+        
         activate(&handler)
         self.handler = handler
         
