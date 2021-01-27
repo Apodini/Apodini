@@ -44,7 +44,10 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                                 OpenAPI.Response(
                                     description: "OK",
                                     content: [
-                                        .json: .init(schema: .reference(.component(named: "SomeStruct")))
+                                        .json: .init(schema: .object(properties: [
+                                            ResponseContainer.CodingKeys.data.rawValue: .reference(.component(named: "SomeStruct")),
+                                            ResponseContainer.CodingKeys.links.rawValue: .object(additionalProperties: .init(.string))
+                                        ]))
                                     ]
                                 )
                             ),
@@ -60,7 +63,8 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                             .status(code: 500): .init(
                                 OpenAPI.Response(description: "Internal Server Error")
                             )
-                        ]
+                        ],
+                        vendorExtensions: ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
                     )
                 )
             ],

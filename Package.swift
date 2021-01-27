@@ -34,7 +34,9 @@ let package = Package(
         // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
         .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
         .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.1.0"),
-        .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0")
+        .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
+        // Used to parse command line arguments
+        .package(url: "https://github.com/vapor/console-kit.git", from: "4.2.4")
     ],
     targets: [
         .target(
@@ -53,7 +55,8 @@ let package = Package(
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                 .product(name: "Yams", package: "Yams"),
                 .target(name: "WebSocketInfrastructure"),
-                .target(name: "ProtobufferCoding")
+                .target(name: "ProtobufferCoding"),
+                .product(name: "ConsoleKit", package: "console-kit")
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
@@ -85,7 +88,8 @@ let package = Package(
             ],
             exclude: [
                 "ConfigurationTests/Certificates/cert.pem",
-                "ConfigurationTests/Certificates/key.pem"
+                "ConfigurationTests/Certificates/key.pem",
+                "ConfigurationTests/Certificates/key2.pem"
             ]
         ),
         .target(
