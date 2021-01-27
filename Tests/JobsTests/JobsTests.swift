@@ -14,7 +14,7 @@ final class JobsTests: XCTApodiniTest {
     let everyMinute = "* * * * *"
     
     struct FailingJob: Job {
-        @Parameter var userId: Int
+        @Environment(\.connection) var connection: Connection
         
         /// Not used by tests
         func run() { }
