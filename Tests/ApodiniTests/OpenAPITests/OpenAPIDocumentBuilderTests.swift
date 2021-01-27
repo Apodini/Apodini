@@ -71,7 +71,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
 
         let builtDocument = documentBuilder.build()
         
-        XCTAssertNoThrow(try builtDocument.output(.JSON))
+        XCTAssertNoThrow(try builtDocument.output(.json))
         XCTAssertEqual(builtDocument, document)
     }
 }

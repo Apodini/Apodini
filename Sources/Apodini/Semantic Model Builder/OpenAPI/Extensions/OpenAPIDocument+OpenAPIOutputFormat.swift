@@ -10,9 +10,9 @@ extension OpenAPI.Document {
     func output(_ format: OpenAPIOutputFormat) throws -> String? {
         let output: String?
         switch format {
-        case .JSON:
+        case .json:
             output = String(data: try JSONEncoder().encode(self), encoding: .utf8)
-        case .YAML:
+        case .yaml:
             output = try YAMLEncoder().encode(self)
         }
         return output?.replacingOccurrences(of: "\\/", with: "/")

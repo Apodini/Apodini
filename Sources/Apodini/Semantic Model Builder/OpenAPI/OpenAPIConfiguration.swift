@@ -17,7 +17,7 @@ struct OpenAPIConfiguration {
     /// Server configuration.
     var servers: [OpenAPI.Server] = []
 
-    var outputFormat: OpenAPIOutputFormat = .JSON
+    var outputFormat: OpenAPIOutputFormat = .json
     var outputEndpoint: String = "openapi"
     var swaggerUiEndpoint: String = "openapi-ui"
 }

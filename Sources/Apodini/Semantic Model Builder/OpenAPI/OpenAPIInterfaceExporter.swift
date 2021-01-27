@@ -38,7 +38,7 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
             }
             
             // register swagger UI endpoint
-            app.vapor.app.get(configuration.swaggerUiEndpoint.pathComponents) {_ -> Vapor.Response in
+            app.vapor.app.get(configuration.swaggerUiEndpoint.pathComponents) { _ -> Vapor.Response in
                 var headers = HTTPHeaders()
                 headers.add(name: .contentType, value: HTTPMediaType.html.serialize())
                 guard let htmlFile = Bundle.module.path(forResource: "swagger-ui", ofType: "html") else {

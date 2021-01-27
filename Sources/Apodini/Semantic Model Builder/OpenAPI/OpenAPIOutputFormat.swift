@@ -3,6 +3,6 @@
 //
 
 enum OpenAPIOutputFormat {
-    case JSON
-    case YAML
+    case json
+    case yaml
 }
