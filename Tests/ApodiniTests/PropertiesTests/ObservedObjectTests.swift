@@ -74,17 +74,21 @@ class ObservedObjectTests: ApodiniTests {
         struct TestListener: ObservedListener {
             var eventLoop: EventLoop
 
-            func onObservedDidChange<C: ConnectionContext>(in context: C) -> EventLoopFuture<Void> {
-                context
-                    .handle(eventLoop: eventLoop)
-                    .map { result in
-                        do {
-                            let element = try XCTUnwrap(result.element?.typed(String.self))
-                            XCTAssertEqual(element, "Hello Swift")
-                        } catch {
-                            XCTFail("testRegisterObservedListener failed: \(error)")
-                        }
-                    }
+            func onObservedDidChange<C: ConnectionContext>(_ observedObject: AnyObservedObject, in context: C) {
+                do {
+                    try context
+                        .handle(eventLoop: eventLoop, observedObject: observedObject)
+                        .map { result in
+                            do {
+                                let element = try XCTUnwrap(result.element?.typed(String.self))
+                                XCTAssertEqual(element, "Hello Swift")
+                            } catch {
+                                XCTFail("testRegisterObservedListener failed: \(error)")
+                            }
+                        }.wait()
+                } catch {
+                    XCTFail(error.localizedDescription)
+                }
             }
         }
 
@@ -141,9 +145,8 @@ class ObservedObjectTests: ApodiniTests {
                 self.number = number
             }
             
-            func onObservedDidChange<C: ConnectionContext>(in context: C) -> EventLoopFuture<Void> {
+            func onObservedDidChange<C: ConnectionContext>(_ observedObject: AnyObservedObject, in context: C) {
                 wasCalled = true
-                return eventLoop.makeSucceededFuture(Void())
             }
             
             deinit {
@@ -207,17 +210,21 @@ class ObservedObjectTests: ApodiniTests {
                 self.eventLoop = eventLoop
             }
             
-            func onObservedDidChange<C: ConnectionContext>(in context: C) -> EventLoopFuture<Void> {
-                context
-                    .handle(eventLoop: eventLoop)
-                    .map { result in
-                        do {
-                            let element = try XCTUnwrap(result.element?.typed(String.self))
-                            XCTAssertEqual(element, "Hello Swift")
-                        } catch {
-                            XCTFail("testRegisterObservedListener failed: \(error)")
-                        }
-                    }
+            func onObservedDidChange<C: ConnectionContext>(_ observedObject: AnyObservedObject, in context: C) {
+                do {
+                    try context
+                        .handle(eventLoop: eventLoop, observedObject: observedObject)
+                        .map { result in
+                            do {
+                                let element = try XCTUnwrap(result.element?.typed(String.self))
+                                XCTAssertEqual(element, "Hello Swift")
+                            } catch {
+                                XCTFail("testRegisterObservedListener failed: \(error)")
+                            }
+                        }.wait()
+                } catch {
+                    XCTFail(error.localizedDescription)
+                }
             }
         }
 

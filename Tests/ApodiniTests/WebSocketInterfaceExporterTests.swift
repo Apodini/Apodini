@@ -7,9 +7,12 @@
 
 import XCTest
 import WebSocketInfrastructure
+import NIO
 @testable import Apodini
 
 class WebSocketInterfaceExporterTests: ApodiniTests {
+    static let blockTime: UInt32 = 10000
+    
     struct Parameters: Apodini.Content {
         var param0: String
         var param1: String?
@@ -122,6 +125,56 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
             }
         }
     }
+    
+    class TestObservable: Apodini.ObservableObject {
+        @Apodini.Published var bool: Bool
+        
+        init() {
+            bool = false
+        }
+    }
+    
+    struct BidirectionalHandler: Handler {
+        @Parameter var input: Int
+        
+        @State var latestInput: Int = -1
+        
+        @ObservedObject var observed: TestObservable
+        
+        @Environment(\.connection) var connection: Connection
+        
+        let eventLoop: EventLoop
+        
+        let app: Application
+        
+        
+        func handle() -> EventLoopFuture<Apodini.Response<Bool>> {
+            self.observed.bool.toggle()
+            if connection.state == .end {
+                return eventLoop.makeSucceededFuture(.end)
+            }
+            
+            let promise = eventLoop.makePromise(of: Apodini.Response<Bool>.self)
+            
+            _ = self.app.threadPool.runIfActive(eventLoop: eventLoop) {
+                usleep(WebSocketInterfaceExporterTests.blockTime)
+                if input == latestInput {
+                    // not triggered by input, but by observable
+                    XCTAssertTrue(_observed.changed)
+                    promise.succeed(.send(false))
+                } else {
+                    // triggered by input, not observable
+                    XCTAssertFalse(_observed.changed)
+                    latestInput = input
+                    promise.succeed(.send(true))
+                }
+            }
+            
+            return promise.futureResult
+        }
+    }
+    
+    var testObservable = TestObservable()
 
     @PathParameter
     var userId: User.ID
@@ -144,6 +197,9 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
             Group("channel") {
                 ThrowingHandlerCloseChannel()
             }
+        }
+        Group("bidirectional") {
+            BidirectionalHandler(observed: testObservable, eventLoop: self.app.eventLoopGroup.next(), app: self.app)
         }
     }
 
@@ -252,6 +308,28 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
             
             XCTAssertEqual(first.name, name)
         }
+    }
+    
+    func testWebSocketConnectionBidirectionalStreamSchema() throws {
+        let builder = SharedSemanticModelBuilder(app)
+            .with(exporter: WebSocketInterfaceExporter.self)
+        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
+        testService.accept(visitor)
+        visitor.finishParsing()
+
+        try app.start()
+        
+        let client = StatelessClient(on: app.eventLoopGroup.next())
+        
+        struct BidirectionalHandlerInput: Encodable {
+            let input: Int
+        }
+        
+        let result: [Bool] = try client.resolve(many: (0..<100).map { BidirectionalHandlerInput(input: $0) } ,
+            on: "bidirectional")
+            .wait()
+        
+        XCTAssertGreaterThan(result.count, 100)
     }
     
     func testWebSocketBadTypeError() throws {

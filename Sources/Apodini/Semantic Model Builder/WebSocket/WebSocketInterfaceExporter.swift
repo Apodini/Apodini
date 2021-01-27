@@ -51,12 +51,8 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             // instance of the endpoint. Each time we pipe the `observation` into
             // `input` along with its `promise` which must be succeeded further down
             // the line.
-            let listener = StandardObservedListener(eventLoop: eventLoop, callback: {
-                let promise = eventLoop.makePromise(of: Void.self)
-                
-                input.send(.observation(promise))
-                
-                return promise.futureResult
+            let listener = DelegatingObservedListener(eventLoop: eventLoop, callback: { observedObject in
+                input.send(.observation(observedObject))
             })
             
             var context = endpoint.createConnectionContext(for: self)
@@ -65,16 +61,14 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             
             let output: PassthroughSubject<Message<AnyEncodable>, Error> = PassthroughSubject()
             // Handle all incoming client-messages and observations one after another.
-            // The `syncMap` automatically awaits the future.
-            input.syncMap { evaluation -> EventLoopFuture<Response<AnyEncodable>> in
+            // The `syncMap` automatically awaits the future, while `buffer` makes sure
+            // messages are never dropped.
+            input.buffer().syncMap { evaluation -> EventLoopFuture<Response<AnyEncodable>> in
                 switch evaluation {
                 case .input(let inputValue):
                     return context.handle(request: inputValue, eventLoop: eventLoop, final: false)
-                case .observation(let promise):
-                    return context.handle(eventLoop: eventLoop).map { result in
-                        promise.succeed(Void())
-                        return result
-                    }
+                case .observation(let observedObject):
+                    return context.handle(eventLoop: eventLoop, observedObject: observedObject)
                 }
             }
             .sink(
@@ -210,19 +204,24 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
 
 // MARK: Handling of ObservedObject
 
-private struct StandardObservedListener: ObservedListener {
-    func onObservedDidChange<C>(in context: C) -> EventLoopFuture<Void> where C : ConnectionContext {
-        callback()
+private struct DelegatingObservedListener: ObservedListener {
+    func onObservedDidChange<C>(_ observedObject: AnyObservedObject, in context: C) where C : ConnectionContext {
+        callback(observedObject)
+    }
+    
+    init(eventLoop: EventLoop, callback: @escaping (AnyObservedObject) -> Void) {
+        self.eventLoop = eventLoop
+        self.callback = callback
     }
     
     var eventLoop: EventLoop
     
-    var callback: () -> EventLoopFuture<Void>
+    var callback: (AnyObservedObject) -> Void
 }
 
 private enum Evaluation {
     case input(SomeInput)
-    case observation(EventLoopPromise<Void>)
+    case observation(AnyObservedObject)
 }
 
 // MARK: Input Accumulation

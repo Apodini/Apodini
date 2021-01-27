@@ -29,7 +29,7 @@ protocol ObservedListener {
 
     /// Callback that will be called by a `ConnectionContext` if an observed value
     /// in the context's handler did change.
-    func onObservedDidChange<C: ConnectionContext>(in context: C) -> EventLoopFuture<Void>
+    func onObservedDidChange<C: ConnectionContext>(_ observedObject: AnyObservedObject, in context: C)
 }
 
 /// `ConnectionContext` holds the internal state of an endpoint for one connection
@@ -46,7 +46,7 @@ protocol ConnectionContext {
     /// Runs through the context's handler with the state after the latest client-request.
     /// Should be used by exporters after an observed value in the context did change,
     /// to retrieve the proper message that has to be sent to the client.
-    func handle(eventLoop: EventLoop) -> EventLoopFuture<Response<AnyEncodable>>
+    func handle(eventLoop: EventLoop, observedObject: AnyObservedObject) -> EventLoopFuture<Response<AnyEncodable>>
 
     /// Register a listener that will be notified once an observed object did change in the handler
     /// that is being used in this connection.
@@ -72,7 +72,8 @@ struct AnyConnectionContext<I: InterfaceExporter>: ConnectionContext {
     ) -> EventLoopFuture<Response<AnyEncodable>>
 
     private var handleObservedChanged: (
-        _: EventLoop
+        _: EventLoop,
+        _: AnyObservedObject
     ) -> EventLoopFuture<Response<AnyEncodable>>
 
     private var registerFunc: (
@@ -84,8 +85,8 @@ struct AnyConnectionContext<I: InterfaceExporter>: ConnectionContext {
         self.handleFunc = { request, eventLoop, final in
             context.handle(request: request, eventLoop: eventLoop, final: final)
         }
-        self.handleObservedChanged = { eventLoop in
-            context.handle(eventLoop: eventLoop)
+        self.handleObservedChanged = { eventLoop, observedObject in
+            context.handle(eventLoop: eventLoop, observedObject: observedObject)
         }
         self.registerFunc = { listener in
             context.register(listener: listener)
@@ -96,8 +97,8 @@ struct AnyConnectionContext<I: InterfaceExporter>: ConnectionContext {
         self.handleFunc(exporterRequest, eventLoop, final)
     }
 
-    func handle(eventLoop: EventLoop) -> EventLoopFuture<Response<AnyEncodable>> {
-        self.handleObservedChanged(eventLoop)
+    func handle(eventLoop: EventLoop, observedObject: AnyObservedObject) -> EventLoopFuture<Response<AnyEncodable>> {
+        self.handleObservedChanged(eventLoop, observedObject)
     }
 
     mutating func register(listener: ObservedListener) {
@@ -155,13 +156,17 @@ class InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCon
         }
     }
 
-    func handle(eventLoop: EventLoop) -> EventLoopFuture<Response<AnyEncodable>> {
+    func handle(eventLoop: EventLoop, observedObject: AnyObservedObject) -> EventLoopFuture<Response<AnyEncodable>> {
+        observedObject.changed = true
         do {
             guard let latestRequest = latestRequest else {
                 fatalError("Can only handle changes to observed object after an initial client-request")
             }
             let validatedRequest = try validator.validate(latestRequest, with: eventLoop)
-            return self.requestHandler(on: Connection(state: .open, request: validatedRequest))
+            return self.requestHandler(on: Connection(state: .open, request: validatedRequest)).map { response in
+                observedObject.changed = false
+                return response
+            }
         } catch {
             return eventLoop.makeFailedFuture(error)
         }
@@ -171,10 +176,7 @@ class InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCon
         // register the given listener for notifications on the handler
         for object in endpoint.handler.collectObservedObjects() {
             self.observations.append(object.register({
-                object.changed = true
-                listener.onObservedDidChange(in: self).whenComplete { _ in
-                    object.changed = false
-                }
+                listener.onObservedDidChange(object, in: self)
             }))
         }
     }
