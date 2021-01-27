@@ -17,6 +17,7 @@ public class Scheduler {
     internal static var shared = Scheduler()
     
     internal var jobConfigurations: [ObjectIdentifier: JobConfiguration] = [:]
+    internal var observations: [Observation] = []
     
     private init() {
         // Empty intializer to create a Singleton.
@@ -108,11 +109,11 @@ private extension Scheduler {
     }
     
     func subscribe(job: Job, to observedObject: AnyObservedObject) {
-        observedObject.valueDidChange = {
-            observedObject.setChanged(to: true)
+        self.observations.append(observedObject.register {
+            observedObject.changed = true
             job.run()
-            observedObject.setChanged(to: false)
-        }
+            observedObject.changed = false
+        })
     }
     
     /// Generates the configuration of the `Job`.

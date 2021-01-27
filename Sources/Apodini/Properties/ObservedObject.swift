@@ -29,8 +29,7 @@ public struct ObservedObject<Element: ObservableObject>: Property {
     private var changedWrapper: Wrapper<Bool>?
     
     /// Property to check if the evaluation of the `Handler` or `Job` was triggered by this `ObservableObject`.
-    /// Read only property
-    public internal (set) var changed: Bool {
+    public var changed: Bool {
         get {
             guard let value = changedWrapper?.value else {
                 fatalError("""
@@ -54,16 +53,24 @@ public struct ObservedObject<Element: ObservableObject>: Property {
     /// Element passed as an object.
     public init(wrappedValue defaultValue: Element) {
         element = defaultValue
+        // TODO should not be done here
+        // Currently, invocations via Jobs do not activate
+        // thus they will fail
+        activate()
     }
     
     /// Element is injected with a key path.
     public init<Key: KeyChain>(_ keyPath: KeyPath<Key, Element>) {
         objectIdentifer = ObjectIdentifier(keyPath)
+        // TODO should not be done here
+        // Currently, invocations via Jobs do not activate
+        // thus they will fail
+        activate()
     }
 }
 
 /// Type-erased `ObservedObject` protocol.
-protocol AnyObservedObject {
+public protocol AnyObservedObject {
     /// Method to be informed about values that have changed
     func register(_ callback: @escaping () -> Void) -> Observation
     
@@ -71,7 +78,7 @@ protocol AnyObservedObject {
 }
 
 extension ObservedObject: AnyObservedObject {
-    func register(_ callback: @escaping () -> Void) -> Observation {
+    public func register(_ callback: @escaping () -> Void) -> Observation {
         let observation = Observation(callback)
     
         for property in Mirror(reflecting: wrappedValue).children {

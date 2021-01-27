@@ -41,7 +41,7 @@ struct Weak<T: AnyObject> {
     weak var value: T?
 }
 
-class Observation {
+public class Observation {
     let callback: () -> Void
     
     init(_ callback: @escaping () -> Void) {
