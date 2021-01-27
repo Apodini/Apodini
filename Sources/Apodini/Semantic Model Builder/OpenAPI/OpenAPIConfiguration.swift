@@ -31,7 +31,7 @@ public class OpenAPIConfiguration: Configuration {
     var version: String?
 
     /// Server configuration.
-    var serverUrls: Set<URL> = []
+    var serverUrls: Set<URL> = Set<URL>()
 
     /// OpenAPI output configuration.
     let outputFormat: OpenAPIOutputFormat

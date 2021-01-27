@@ -23,9 +23,14 @@ struct OpenAPIDocumentBuilder {
         pathsObjectBuilder.addPathItem(from: endpoint)
     }
 
+    /// Creates the OpenAPI specification document
+    /// https://swagger.io/specification/#openapi-object
     func build() -> OpenAPI.Document {
         OpenAPI.Document(
-            info: OpenAPI.Document.Info(title: configuration.title ?? "", version: configuration.version ?? ""),
+            info: OpenAPI.Document.Info(
+                title: configuration.title ?? "",
+                version: configuration.version ?? ""
+            ),
             servers: configuration.serverUrls.map { .init(url: $0) },
             paths: pathsObjectBuilder.pathsObject,
             components: componentsObjectBuilder.componentsObject
