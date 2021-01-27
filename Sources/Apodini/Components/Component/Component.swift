@@ -57,7 +57,7 @@ private protocol HandlerVisitorHelperImplBase: AssociatedTypeRequirementsVisitor
 extension HandlerVisitorHelperImplBase {
     @inline(never)
     @_optimize(none)
-    func _test() {
+    fileprivate func _test() {
         _ = self(Text(""))
     }
 }

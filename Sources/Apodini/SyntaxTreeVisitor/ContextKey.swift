@@ -45,9 +45,7 @@ protocol ContextKey: OptionalContextKey, HasDefaultValue {
 }
 
 extension ContextKey {
-
     static var defaultValue: Any {
-        return defaultValue as Self.Value
+        defaultValue as Self.Value
     }
-
 }

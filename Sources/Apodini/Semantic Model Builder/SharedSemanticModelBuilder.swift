@@ -147,7 +147,7 @@ private struct TestHandlerType: IdentifiableHandler {
 extension IdentifiableHandlerATRVisitorHelper {
     @inline(never)
     @_optimize(none)
-    func _test() {
+    fileprivate func _test() {
         _ = self(TestHandlerType())
     }
 }
