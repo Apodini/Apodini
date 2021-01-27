@@ -11,23 +11,54 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
 
     let app: Application
     var documentBuilder: OpenAPIDocumentBuilder
-    let configuration: OpenAPIConfiguration
+    var configuration: OpenAPIConfiguration
 
     required init(_ app: Application) {
         self.app = app
-        self.configuration = OpenAPIConfiguration(from: app)
+        if let storage = app.storage.get(OpenAPIStorageKey.self) {
+            self.configuration = storage.configuration
+        } else {
+            self.configuration = OpenAPIConfiguration()
+        }
         self.documentBuilder = OpenAPIDocumentBuilder(
-            configuration: configuration
+            configuration: &configuration
         )
+        setApplicationServer(from: app)
+        updateStorage()
     }
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         documentBuilder.addEndpoint(endpoint)
+        
+        // set version information from APIContextKey, if version was not defined by developer
+        if self.configuration.version == nil {
+            self.configuration.version = endpoint.context.get(valueFor: APIVersionContextKey.self)?.description
+            updateStorage()
+        }
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
         serveSpecification()
-        app.storage.set(OpenAPIStorageKey.self, to: documentBuilder.build())
+        updateStorage()
+    }
+    
+    private func setApplicationServer(from app: Application) {
+        let `protocol` = app.vapor.app.http.server.configuration.tlsConfiguration != nil ? "https" : "http"
+        let host = app.vapor.app.http.server.configuration.hostname
+        let port = app.vapor.app.http.server.configuration.port
+        if let url = URL(string: "\(`protocol`)://\(host):\(port)") {
+            self.configuration.serverUrls.insert(url)
+        }
+    }
+    
+    private func updateStorage() {
+        app.storage.set(
+            OpenAPIStorageKey.self,
+            to: OpenAPIStorageValue(
+                document: self.documentBuilder.document,
+                configuration: self.configuration
+            )
+        )
     }
 
     private func serveSpecification() {

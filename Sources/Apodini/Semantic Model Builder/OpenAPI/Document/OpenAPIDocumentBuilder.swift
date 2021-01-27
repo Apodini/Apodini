@@ -13,7 +13,7 @@ struct OpenAPIDocumentBuilder {
     var pathsObjectBuilder: OpenAPIPathsObjectBuilder
     var componentsObjectBuilder: OpenAPIComponentsObjectBuilder
 
-    init(configuration: OpenAPIConfiguration) {
+    init(configuration: inout OpenAPIConfiguration) {
         self.configuration = configuration
         self.componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         self.pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &self.componentsObjectBuilder)
@@ -25,8 +25,8 @@ struct OpenAPIDocumentBuilder {
 
     func build() -> OpenAPI.Document {
         OpenAPI.Document(
-            info: configuration.info,
-            servers: configuration.servers,
+            info: OpenAPI.Document.Info(title: configuration.title ?? "", version: configuration.version ?? ""),
+            servers: configuration.serverUrls.map { .init(url: $0) },
             paths: pathsObjectBuilder.pathsObject,
             components: componentsObjectBuilder.componentsObject
         )

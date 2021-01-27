@@ -25,13 +25,13 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
         let webService = WebServiceModel()
         webService.addEndpoint(&endpoint, at: ["test"])
 
-        let configuration = OpenAPIConfiguration()
+        var configuration = OpenAPIConfiguration()
 
-        var documentBuilder = OpenAPIDocumentBuilder(configuration: configuration)
+        var documentBuilder = OpenAPIDocumentBuilder(configuration: &configuration)
         documentBuilder.addEndpoint(endpoint)
         let document = OpenAPI.Document(
-            info: configuration.info,
-            servers: configuration.servers,
+            info: OpenAPI.Document.Info(title: configuration.title ?? "", version: configuration.version ?? ""),
+            servers: configuration.serverUrls.map { .init(url: $0) },
             paths: [
                 "test": .init(
                     get: .init(
