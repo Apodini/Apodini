@@ -86,10 +86,12 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
         let schema = try componentsBuilder.buildResponse(for: SomeStruct.self)
                 
-        XCTAssertEqual(schema, .object(properties: [
+        XCTAssertEqual(schema, .object(
+                        title: "\(SomeStruct.self)Response",
+                        properties: [
             ResponseContainer.CodingKeys.data.rawValue: try componentsBuilder.buildSchema(for: SomeStruct.self),
             ResponseContainer.CodingKeys.links.rawValue: try componentsBuilder.buildSchema(for: ResponseContainer.Links.self)
-        ]))
+                        ]))
         XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 1)
     }
 

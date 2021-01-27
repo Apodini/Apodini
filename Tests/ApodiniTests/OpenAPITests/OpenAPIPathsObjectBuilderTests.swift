@@ -109,10 +109,10 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
             .object(
                 properties: [
                     "SomeStruct_0": .reference(
-                        .component(named: "SomeStruct")
+                        .component(named: "\(SomeStruct.self)")
                     ),
                     "SomeStruct_1": .reference(
-                        .component(named: "SomeStruct")
+                        .component(named: "\(SomeStruct.self)")
                     )
                 ]
             )
@@ -137,12 +137,14 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
 
         let path = OpenAPI.Path(stringLiteral: "/test")
         let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
+            // as there is no custom description in this case, `description` and `operationId` are the same.
             description: endpoint.description,
+            operationId: endpoint.description,
             parameters: [],
             requestBody: OpenAPI.Request(
                 description: "@Parameter var someStruct: SomeStruct",
                 content: [
-                    .json: .init(schema: .reference(.component(named: "SomeStruct")))
+                    .json: .init(schema: .reference(.component(named: "\(SomeStruct.self)")))
                 ]
             ),
             responses: [
@@ -150,10 +152,12 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
                     OpenAPI.Response(
                         description: "OK",
                         content: [
-                            .json: .init(schema: .object(properties: [
-                                ResponseContainer.CodingKeys.data.rawValue: .reference(.component(named: "ResponseStruct")),
-                                ResponseContainer.CodingKeys.links.rawValue: .object(additionalProperties: .init(.string))
-                            ]))
+                            .json: .init(schema: .object(
+                                            title: "\(ResponseStruct.self)Response",
+                                            properties: [
+                                                ResponseContainer.CodingKeys.data.rawValue: .reference(.component(named: "\(ResponseStruct.self)")),
+                                                ResponseContainer.CodingKeys.links.rawValue: .object(additionalProperties: .init(.string))
+                                            ]))
                         ]
                     )),
                 .status(code: 401): .init(

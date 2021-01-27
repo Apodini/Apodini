@@ -35,7 +35,9 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
             paths: [
                 "test": .init(
                     get: .init(
+                        // as there is no custom description in this case, `description` and `operationId` are the same.
                         description: endpoint.description,
+                        operationId: endpoint.description,
                         parameters: [
                             Either.parameter(name: "name", context: .query, schema: .string, description: "@Parameter var name: String")
                         ],
@@ -44,10 +46,11 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                                 OpenAPI.Response(
                                     description: "OK",
                                     content: [
-                                        .json: .init(schema: .object(properties: [
+                                        .json: .init(schema: .object(
+                                                        title: "\(SomeStruct.self)Response", properties: [
                                             ResponseContainer.CodingKeys.data.rawValue: .reference(.component(named: "SomeStruct")),
                                             ResponseContainer.CodingKeys.links.rawValue: .object(additionalProperties: .init(.string))
-                                        ]))
+                                                        ]))
                                     ]
                                 )
                             ),
