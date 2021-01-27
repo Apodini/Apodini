@@ -19,12 +19,7 @@ final class EnvironmentTests: ApodiniTests {
     }
 
     func testEnvironmentInjection() throws {
-        let handler = BirdHandler()
-        let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
-
-        let response: String = request.enterRequestContext(with: handler) { handler in
-            handler.handle()
-        }
+        let response = try XCTUnwrap(mockQuery(component: BirdHandler(), value: String.self, app: app))
 
         let birdFacts = BirdFacts()
 
@@ -49,12 +44,7 @@ final class EnvironmentTests: ApodiniTests {
         let birdFacts = BirdFacts()
         EnvironmentObject(birdFacts, \Keys.bird).configure(app)
 
-        let handler = AnotherBirdHandler()
-        let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
-
-        let response: String = request.enterRequestContext(with: handler) { handler in
-            handler.handle()
-        }
+        let response = try XCTUnwrap(mockQuery(component: AnotherBirdHandler(), value: String.self, app: app))
 
         XCTAssertEqual(response, birdFacts.dodoFact)
     }
@@ -70,8 +60,12 @@ final class EnvironmentTests: ApodiniTests {
 
         EnvironmentObject(birdFacts, \Keys.bird).configure(app)
         EnvironmentObject(birdFacts2, \Keys.bird).configure(app)
+        
+        var environment = Environment(\Keys.bird)
+        environment.inject(app: app)
+        environment.activate()
 
-        XCTAssertEqual(birdFacts2.someFact, Environment(\Keys.bird).wrappedValue.someFact)
+        XCTAssertEqual(birdFacts2.someFact, environment.wrappedValue.someFact)
     }
 
     func testUpdateEnvironmentValue() throws {
@@ -80,13 +74,18 @@ final class EnvironmentTests: ApodiniTests {
         birdFacts.dodoFact = newFact
 
         app.birdFacts = birdFacts
-        let injectedValue = Environment(\Application.birdFacts).wrappedValue
+        
+        var environment = Environment(\Application.birdFacts)
+        environment.inject(app: app)
+        environment.activate()
+        let injectedValue = environment.wrappedValue
 
         XCTAssert(injectedValue.dodoFact == newFact)
     }
 
     func testShouldAccessDynamicEnvironmentValueFirst() throws {
-        let handler = BirdHandler()
+        var handler = BirdHandler()
+        activate(&handler)
         let staticBirdFacts = BirdFacts()
 
         let dynamicBirdFacts = BirdFacts()
@@ -100,6 +99,7 @@ final class EnvironmentTests: ApodiniTests {
         // inject the dynamic value via the .withEnvironment
         let response: String = request.enterRequestContext(with: handler) { handler in
             handler
+                .inject(app: app)
                 .environment(dynamicBirdFacts, for: \Application.birdFacts)
                 .handle()
         }
@@ -108,31 +108,22 @@ final class EnvironmentTests: ApodiniTests {
     }
 
     func testShouldAccessStaticIfNoDynamicAvailable() throws {
-        let handler = BirdHandler()
         let staticBirdFacts = BirdFacts()
         let staticFact = "Until humans, the Dodo had no predators"
         staticBirdFacts.someFact = staticFact
 
-        let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
-
         // inject the static value via the shared object
         app.birdFacts = staticBirdFacts
 
-        let response: String = request.enterRequestContext(with: handler) { handler in
-            handler.handle()
-        }
+        let response = try XCTUnwrap(mockQuery(component: BirdHandler(), value: String.self, app: app))
 
         XCTAssertEqual(response, staticBirdFacts.someFact)
     }
 
     func testShouldReturnDefaultIfNoEnvironment() throws {
-        let handler = BirdHandler()
         app.birdFacts = BirdFacts() // Resets value
-        let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
-
-        let response: String = request.enterRequestContext(with: handler) { handler in
-            handler.handle()
-        }
+     
+        let response = try XCTUnwrap(mockQuery(component: BirdHandler(), value: String.self, app: app))
 
         XCTAssertEqual(response, BirdFacts().someFact)
     }
@@ -144,14 +135,14 @@ final class EnvironmentTests: ApodiniTests {
         XCTAssert(app.storage.get(\KeyStore.test) == "Bird")
     }
 
-    func testAccessApplicationEnvironment() {
-        XCTAssert(Environment(\.eventLoopGroup).wrappedValue === app.eventLoopGroup)
-    }
-
     func testFaillingApplicationEnvironmentAccess() {
-        AppStorage.app = nil
-        XCTAssertRuntimeFailure(Environment(\.apns).wrappedValue,
-                                "Key path not found. The web service wasn't setup correctly")
+        XCTAssertRuntimeFailure(Environment(\.threadPool).wrappedValue,
+                                "The Application instance wasn't injected correctly.")
+        
+        var environment = Environment(\.locks)
+        environment.activate()
+        XCTAssertRuntimeFailure(environment.wrappedValue,
+                                "The wrapped value was accessed before it was activated.")
     }
 }
 

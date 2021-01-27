@@ -12,16 +12,11 @@ final class DownloadConfigTests: FileHandlerTests {
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
         let file = File(data: data, filename: "Testfile.jpeg")
         
-        let request = MockRequest.createRequest(on: uploader, running: app.eventLoopGroup.next(), queuedParameters: file)
-        let response = try request.enterRequestContext(with: uploader, executing: { component in
-            // swiftlint:disable force_try
-            try! component.handle()
-        })
-        .wait()
+        let response = try XCTUnwrap(mockQuery(component: uploader, value: String.self, app: app, queued: file))
+        
         XCTAssert(response == file.filename)
         
-        
-        let directory = Environment(\.directory).wrappedValue
+        let directory = app.directory
         let config = DownloadConfiguration(.default)
         let fileInfo = try config.retrieveFileInfo(file.filename, in: directory)
         
@@ -39,27 +34,19 @@ final class DownloadConfigTests: FileHandlerTests {
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
         let file = File(data: data, filename: "Testfile.jpeg")
         
-        var request = MockRequest.createRequest(on: uploader, running: app.eventLoopGroup.next(), queuedParameters: file)
-        var response = try request.enterRequestContext(with: uploader, executing: { component in
-            // swiftlint:disable force_try
-            try! component.handle()
-        })
-        .wait()
-        XCTAssert(response == file.filename)
+        let result = try XCTUnwrap(mockQuery(component: uploader, value: String.self, app: app, queued: file))
+        
+        XCTAssert(result == file.filename)
         
         // Upload second file
         uploader = Uploader(UploadConfiguration(.default, subPath: "Misc/MoreMisc/"))
         let file2 = File(data: data, filename: "Testfile123.jpeg")
         
-        request = MockRequest.createRequest(on: uploader, running: app.eventLoopGroup.next(), queuedParameters: file2)
-        response = try request.enterRequestContext(with: uploader, executing: { component in
-            // swiftlint:disable force_try
-            try! component.handle()
-        })
-        .wait()
-        XCTAssert(response == file2.filename)
+        let result2 = try XCTUnwrap(mockQuery(component: uploader, value: String.self, app: app, queued: file2))
         
-        let directory = Environment(\.directory).wrappedValue
+        XCTAssert(result2 == file2.filename)
+        
+        let directory = app.directory
         let config = DownloadConfiguration(.default)
         let fileInfos = try config.retrieveFileInfos(".jpeg", in: directory)
         

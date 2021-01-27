@@ -76,7 +76,7 @@ extension Connection {
 extension Handler {
     func environment<K: KeyChain, Value>(_ value: Value, for keyPath: WritableKeyPath<K, Value>) -> Self {
         var selfCopy = self
-        
+
         apply({ (environment: inout Environment<K, Value>) in
             environment.setValue(value, for: keyPath)
         }, to: &selfCopy)
@@ -85,6 +85,22 @@ extension Handler {
     }
 }
 
+// MARK: Application Injectable
+extension Handler {
+    func inject(app: Application) -> Self {
+        var selfCopy = self
+        
+        Apodini.inject(app: app, to: &selfCopy)
+    
+        return selfCopy
+    }
+}
+
+func inject<Element>(app: Application, to subject: inout Element) {
+    apply({ (applicationInjectible: inout ApplicationInjectable) in
+        applicationInjectible.inject(app: app)
+    }, to: &subject)
+}
 
 // MARK: Traversable
 
@@ -190,7 +206,8 @@ private func apply<Element, Target>(_ mutation: (inout Target, _ name: String) t
     }
 }
 
-private func apply<Element, Target>(_ mutation: (inout Target) throws -> Void, to element: inout Element) rethrows {
+/// Applies a mutation to an element.
+public func apply<Element, Target>(_ mutation: (inout Target) throws -> Void, to element: inout Element) rethrows {
     try apply({(target: inout Target, _: String) in
         try mutation(&target)
     }, to: &element)

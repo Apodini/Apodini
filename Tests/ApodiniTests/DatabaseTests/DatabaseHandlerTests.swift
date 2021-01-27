@@ -32,11 +32,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         let creationHandler = Create<Bird>()
         
-        let request = MockRequest.createRequest(on: creationHandler, running: app.eventLoopGroup.next(), queuedParameters: bird)
-        let response = try request.enterRequestContext(with: creationHandler, executing: { component in
-            component.handle()
-        })
-        .wait()
+        let response = try XCTUnwrap(mockQuery(component: creationHandler, value: Bird.self, app: app, queued: bird))
         XCTAssert(response == bird)
         
         let foundBird = try Bird.find(response.id, on: app.db).wait()
@@ -53,7 +49,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let birdId = try XCTUnwrap(dbBird.id)
         
         let handler = ReadOne<Bird>()
-        let endpoint = handler.mockEndpoint()
+        let endpoint = handler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
         var context = endpoint.createConnectionContext(for: exporter)
@@ -93,7 +89,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         XCTAssertNotNil(dbBird2.id)
         
         let readHandler = ReadAll<Bird>()
-        let endpoint = readHandler.mockEndpoint()
+        let endpoint = readHandler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
         var context = endpoint.createConnectionContext(for: exporter)
@@ -144,7 +140,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         ]
         
         let handler = Update<Bird>()
-        let endpoint = handler.mockEndpoint()
+        let endpoint = handler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
         var context = endpoint.createConnectionContext(for: exporter)
@@ -195,7 +191,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let updatedBird = Bird(name: "FooBird", age: 25)
         
         let handler = Update<Bird>()
-        let endpoint = handler.mockEndpoint()
+        let endpoint = handler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
         var context = endpoint.createConnectionContext(for: exporter)
@@ -244,7 +240,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         XCTAssertNotNil(dbBird.id)
         
         let handler = Delete<Bird>()
-        let endpoint = handler.mockEndpoint()
+        let endpoint = handler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
         var context = endpoint.createConnectionContext(for: exporter)

@@ -8,7 +8,7 @@
 import XCTest
 @testable import Apodini
 
-final class ConnectionTests: XCTestCase {
+final class ConnectionTests: ApodiniTests {
     let endMessage = "End"
     let openMessage = "Open"
 
@@ -30,7 +30,8 @@ final class ConnectionTests: XCTestCase {
     }
 
     func testDefaultConnectionEnvironment() {
-        let testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage)
+        var testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage).inject(app: app)
+        activate(&testHandler)
 
         let returnedAction = testHandler.handle()
         // default connection state should be .end
@@ -44,8 +45,9 @@ final class ConnectionTests: XCTestCase {
     }
 
     func testConnectionInjection() {
-        let testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage)
-
+        var testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage).inject(app: app)
+        activate(&testHandler)
+        
         var connection = Connection(state: .open)
         connection.enterConnectionContext(with: testHandler) { handler in
             let returnedActionWithOpen = handler.handle()

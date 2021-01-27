@@ -48,8 +48,6 @@ extension WebService {
             GraphQLSemanticModelBuilder(app)
         )
         
-        AppStorage.app = app
-        
         app.vapor.app.routes.defaultMaxBodySize = "1mb"
     }
     

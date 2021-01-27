@@ -7,21 +7,12 @@
 
 import Foundation
 
-struct ConnectionEnvironmentKey: StorageKey {
-    typealias Value = Connection
-    static var defaultValue = Connection()
-}
-
 extension Application {
     /// A Property identifying the `Connection` which provides an abstract view on the underlying protocol's state.
+    /// - Note: The setter should never be directly called and only serves as a placeholder.
     public var connection: Connection {
-        get { ConnectionStorageKey.defaultValue }
-        set { ConnectionStorageKey.defaultValue = newValue }
-    }
-    
-    struct ConnectionStorageKey: StorageKey {
-        typealias Value = Connection
-        static var defaultValue = Connection()
+        get { Connection() }
+        set { fatalError("The connection cannot be manually set") } // swiftlint:disable:this unused_setter_value
     }
 }
 

@@ -11,14 +11,18 @@ public struct ObservedObject<Element: ObservableObject>: Property {
     private var element: Element?
     private var changedWrapper: Wrapper<Bool>
     private var wrappedValueDidChange: Wrapper<(() -> Void)?>
+    private var app: Application?
     
     public var wrappedValue: Element {
         get {
+            guard let app = app else {
+                fatalError("The Application instance wasn't injected correctly.")
+            }
             if let element = element {
                 return element
             }
             if let objectIdentifer = objectIdentifer,
-               let element = AppStorage.app?.storage.get(objectIdentifer, Element.self) {
+               let element = app.storage.get(objectIdentifer, Element.self) {
                 return element
             }
             fatalError("The object \(String(describing: self)) cannot be found in the environment.")
@@ -79,6 +83,12 @@ extension ObservedObject: AnyObservedObject {
     
     public nonmutating func setChanged(to value: Bool) {
         changedWrapper.value = value
+    }
+}
+
+extension ObservedObject: ApplicationInjectable {
+    public mutating func inject(app: Application) {
+        self.app = app
     }
 }
 

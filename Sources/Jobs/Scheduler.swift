@@ -41,14 +41,14 @@ public class Scheduler {
                                              runs: Int? = nil,
                                              _ keyPath: KeyPath<K, T>,
                                              on eventLoop: EventLoop) throws {
-        try checkPropertyWrappers(job)
-        
-        let jobConfiguration = try generateConfiguration(job, cronTrigger, keyPath)
+        let activatedJob = activate(job: job)
+        let jobConfiguration = try generateConfiguration(activatedJob, cronTrigger, keyPath)
+        try checkPropertyWrappers(activatedJob)
         
         if let runs = runs {
-            schedule(job, with: jobConfiguration, runs, on: eventLoop)
+            schedule(activatedJob, with: jobConfiguration, runs, on: eventLoop)
         } else {
-            schedule(job, with: jobConfiguration, on: eventLoop)
+            schedule(activatedJob, with: jobConfiguration, on: eventLoop)
         }
     }
     
@@ -93,6 +93,15 @@ private extension Scheduler {
         }
     }
     
+    func activate<T: Job>(job: T) -> T {
+        var jobCopy = job
+        
+        jobCopy = jobCopy.injectApplication(app: app)
+        jobCopy = jobCopy.activate()
+        
+        return jobCopy
+    }
+    
     /// Checks if only valid property wrappers are used with `Job`s.
     func checkPropertyWrappers<T: Job>(_ job: T) throws {
         for property in Mirror(reflecting: job).children {
@@ -116,7 +125,9 @@ private extension Scheduler {
     }
     
     /// Generates the configuration of the `Job`.
-    func generateConfiguration<K: KeyChain, T: Job>(_ job: T, _ cronTrigger: String, _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
+    func generateConfiguration<K: KeyChain, T: Job>(_ job: T,
+                                                    _ cronTrigger: String,
+                                                    _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
         let identifier = ObjectIdentifier(keyPath)
         let jobConfiguration = try JobConfiguration(SwifCron(cronTrigger))
         

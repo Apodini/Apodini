@@ -49,8 +49,10 @@ class ObservedObjectTests: ApodiniTests {
         // Test correct injection
         let testObservable = TestObservable()
         app.storage.set(\Keys.testObservable, to: testObservable)
-        print(app.storage.get(\Keys.testObservable))
-        let handler = TestHandler()
+        
+        var handler = TestHandler()
+        handler = handler.inject(app: app)
+        
         let observedObjects = handler.collectObservedObjects()
         
         XCTAssertNoThrow(handler.handle())

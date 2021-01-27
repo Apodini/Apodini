@@ -27,3 +27,10 @@ extension AnyResponseTransformer {
         Apodini.activate(&self)
     }
 }
+
+
+extension AnyResponseTransformer {
+    mutating func inject(app: Application) {
+        Apodini.inject(app: app, to: &self)
+    }
+}

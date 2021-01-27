@@ -4,8 +4,10 @@ public struct Environment<K: KeyChain, Value>: Property {
     /// Keypath to access an `EnvironmentValue`.
     internal var keyPath: KeyPath<K, Value>
     internal var dynamicValues: [KeyPath<K, Value>: Any] = [:]
-    // swiftlint:disable force_unwrapping
-    private var app = AppStorage.app!
+
+    private var app: Application?
+    /// `@Environment` can only be accessed from a `Request`.
+    private var canAccess = false
     
     /// Initializer of `Environment` specifically for `Application` for less verbose syntax.
     public init(_ keyPath: KeyPath<K, Value>) where K == Application {
@@ -19,6 +21,13 @@ public struct Environment<K: KeyChain, Value>: Property {
     
     /// The current value of the environment property.
     public var wrappedValue: Value {
+        guard let app = app else {
+            fatalError("The Application instance wasn't injected correctly.")
+        }
+        guard canAccess else {
+            fatalError("The wrapped value was accessed before it was activated.")
+        }
+        
         if let value = dynamicValues[keyPath] as? Value {
             return value
         }
@@ -37,10 +46,16 @@ public struct Environment<K: KeyChain, Value>: Property {
     }
 }
 
-/// `Application` storage.
-public enum AppStorage {
-    /// Holds the `Application` instance of the web service.
-    public static var app: Application?
+extension Environment: ApplicationInjectable {
+    public mutating func inject(app: Application) {
+        self.app = app
+    }
+}
+
+extension Environment: Activatable {
+    public mutating func activate() {
+        canAccess = true
+    }
 }
 
 /// A protocol to define key paths that can be used with `@Environment` to retrieve pre-defined objects.

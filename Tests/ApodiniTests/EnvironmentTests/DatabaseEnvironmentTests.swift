@@ -14,11 +14,7 @@ final class DatabaseEnvironmentTests: ApodiniTests {
     
     func testEnvironmentInjection() throws {
         let component = DatabaseComponent()
-        let request = MockRequest.createRequest(on: component, running: app.eventLoopGroup.next())
-
-        let response: String = request.enterRequestContext(with: component) { component in
-            component.handle()
-        }
+        let response = try XCTUnwrap(mockQuery(component: component, value: String.self, app: app))
         
         let description = try database().history.debugDescription
         //not ideal to compare history description, but fluent db does not provide an id.

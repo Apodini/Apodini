@@ -159,7 +159,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
     func testActionPassthrough_send() throws {
         let exporter = RESTInterfaceExporter(app)
         let handler = ActionHandler1()
-        let endpoint = handler.mockEndpoint()
+        let endpoint = handler.mockEndpoint(app: app)
         var context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app.vapor.app,
                                     method: .GET,
@@ -177,7 +177,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
     func testActionPassthrough_final() throws {
         let exporter = RESTInterfaceExporter(app)
         let handler = ActionHandler1().environment(Connection(state: .end), for: \Apodini.Application.connection)
-        let endpoint = handler.mockEndpoint()
+        let endpoint = handler.mockEndpoint(app: app)
         var context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app.vapor.app,
                                     method: .GET,
@@ -195,7 +195,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
     func testActionPassthrough_nothing() throws {
         let exporter = RESTInterfaceExporter(app)
         let handler = ActionHandler2()
-        let endpoint = handler.mockEndpoint()
+        let endpoint = handler.mockEndpoint(app: app)
         var context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app.vapor.app,
                                     method: .GET,
@@ -213,7 +213,7 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
     func testActionPassthrough_end() throws {
         let exporter = RESTInterfaceExporter(app)
         let handler = ActionHandler2().environment(Connection(state: .end), for: \Apodini.Application.connection)
-        let endpoint = handler.mockEndpoint()
+        let endpoint = handler.mockEndpoint(app: app)
         var context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app.vapor.app,
                                     method: .GET,
