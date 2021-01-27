@@ -41,10 +41,11 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
             app.vapor.app.get(configuration.swaggerUiEndpoint.pathComponents) { _ -> Vapor.Response in
                 var headers = HTTPHeaders()
                 headers.add(name: .contentType, value: HTTPMediaType.html.serialize())
-                guard let htmlFile = Bundle.module.path(forResource: "swagger-ui", ofType: "html") else {
+                guard let htmlFile = Bundle.module.path(forResource: "swagger-ui", ofType: "html"),
+                      var html = try? String(contentsOfFile: htmlFile)
+                else {
                     throw Vapor.Abort(.internalServerError)
                 }
-                var html: String = try NSString(contentsOfFile: htmlFile, encoding: String.Encoding.ascii.rawValue) as String
                 // replace placeholder with actual URL of OpenAPI endpoint
                 html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: self.configuration.outputEndpoint.pathComponents.string)
                 return Vapor.Response(status: .ok, headers: headers, body: .init(string: html))
