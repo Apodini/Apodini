@@ -189,13 +189,9 @@ class ObservedObjectTests: ApodiniTests {
         let testObservable = TestObservable()
         
         struct TestHandler: Handler {
-            @ObservedObject var observable: TestObservable
+            @ObservedObject(\Keys.testObservable) var observable: TestObservable
             
             @State var shouldBeTriggeredByObservedObject = false
-            
-            init(observable: TestObservable) {
-                self.observable = observable
-            }
 
             func handle() -> String {
                 XCTAssertEqual(_observable.changed, shouldBeTriggeredByObservedObject)
@@ -229,9 +225,10 @@ class ObservedObjectTests: ApodiniTests {
                 }
             }
         }
+        EnvironmentValue(\Keys.testObservable, testObservable)
 
         let exporter = RESTInterfaceExporter(app)
-        let handler = TestHandler(observable: testObservable)
+        let handler = TestHandler()
         
         let endpoint = handler.mockEndpoint()
         var context = endpoint.createConnectionContext(for: exporter)
@@ -255,4 +252,42 @@ class ObservedObjectTests: ApodiniTests {
         // evaluate handler again to check `changed` was reset
         _ = try context.handle(request: request).wait()
     }
+    
+    func testDeferredDefualtValueInitialization() throws {
+        class InitializationObserver: Apodini.ObservableObject {
+            @Apodini.Published var date = Date()
+        }
+        
+        struct TestHandler: Handler {
+            @ObservedObject var observable = InitializationObserver()
+
+            func handle() -> String {
+                XCTAssertLessThan(Date().distance(to: observable.date), TimeInterval(0.1))
+                return "\(observable.date)"
+            }
+        }
+
+        let exporter = RESTInterfaceExporter(app)
+        let handler = TestHandler()
+        
+        // We wait 0.1 seconds after creating the handler so the assertion in the
+        // handler would fail if the stub InitializationObserver was created right
+        // with the handler.
+        usleep(100000)
+        
+        let endpoint = handler.mockEndpoint()
+        var context = endpoint.createConnectionContext(for: exporter)
+
+        // send initial mock request through context
+        // (to simulate connection initiation by client)
+        let request = Vapor.Request(
+            application: app.vapor.app,
+            method: .POST,
+            url: URI("http://example.de/test/a?param0=value0"),
+            collectedBody: nil,
+            on: app.eventLoopGroup.next()
+        )
+        _ = try context.handle(request: request).wait()
+    }
+    
 }

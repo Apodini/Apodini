@@ -9,6 +9,7 @@ import Foundation
 public struct ObservedObject<Element: ObservableObject>: Property {
     private var objectIdentifier: ObjectIdentifier?
     private var element: Element?
+    private let _initializer: (() -> Element)?
     
     public var wrappedValue: Element {
         get {
@@ -51,13 +52,14 @@ public struct ObservedObject<Element: ObservableObject>: Property {
     }
     
     /// Element passed as an object.
-    public init(wrappedValue defaultValue: Element) {
-        self.element = defaultValue
+    public init(wrappedValue initializer: @escaping @autoclosure () -> Element) {
+        self._initializer = initializer
     }
     
     /// Element is injected with a key path.
     public init<Key: KeyChain>(_ keyPath: KeyPath<Key, Element>) {
         self.objectIdentifier = ObjectIdentifier(keyPath)
+        self._initializer = nil
     }
 }
 
@@ -95,6 +97,9 @@ extension ObservedObject: AnyObservedObject {
 extension ObservedObject: Activatable {
     mutating func activate() {
         self.changedWrapper = Wrapper(value: false)
+        if let initializer = self._initializer {
+            self.element = initializer()
+        }
     }
 }
 

@@ -38,7 +38,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
             }
         }
         Group("bidirectional") {
-            BidirectionalHandler(observed: testObservable, eventLoop: self.app.eventLoopGroup.next(), app: self.app)
+            BidirectionalHandler(observed: self.testObservable, eventLoop: self.app.eventLoopGroup.next(), app: self.app)
         }
     }
 
