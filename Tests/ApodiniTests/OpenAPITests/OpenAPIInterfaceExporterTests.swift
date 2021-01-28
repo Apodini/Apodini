@@ -77,12 +77,10 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
         try app.vapor.app.test(.GET, "oas-ui", headers: headers) { res in
             XCTAssertEqual(res.status, .ok)
             
-            XCTAssertNil(Bundle.module.path(forResource: "swagger-ui-wrong", ofType: "html"))
-            
             guard let htmlFile = Bundle.module.path(forResource: "swagger-ui", ofType: "html"),
                   var html = try? String(contentsOfFile: htmlFile)
             else {
-                throw Vapor.Abort(.internalServerError)
+                return XCTFail("Missing Swagger-UI HTML resource.")
             }
             
             html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: "oas")
