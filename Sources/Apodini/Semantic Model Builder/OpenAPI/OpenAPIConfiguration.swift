@@ -8,11 +8,11 @@ import Foundation
 /// Default values used for OpenAPI configuration if not explicitly specified by developer.
 public enum OpenAPIConfigurationDefaults {
     /// Default specification output format.
-    public static let defaultOutputFormat: OpenAPIOutputFormat = .json
+    public static let outputFormat: OpenAPIOutputFormat = .json
     /// Default specification output endpoint.
-    public static let defaultOutputEndpoint: String = "openapi"
+    public static let outputEndpoint: String = "openapi"
     /// Default swagger-ui endpoint.
-    public static let defaultSwaggerUiEndpoint: String = "openapi-ui"
+    public static let swaggerUiEndpoint: String = "openapi-ui"
 }
 
 /// The enclosing storage entity for OpenAPI-related information.
@@ -54,9 +54,9 @@ public class OpenAPIConfiguration: Configuration {
     }
     
     public init(
-        outputFormat: OpenAPIOutputFormat = OpenAPIConfigurationDefaults.defaultOutputFormat,
-        outputEndpoint: String = OpenAPIConfigurationDefaults.defaultOutputEndpoint,
-        swaggerUiEndpoint: String = OpenAPIConfigurationDefaults.defaultSwaggerUiEndpoint,
+        outputFormat: OpenAPIOutputFormat = OpenAPIConfigurationDefaults.outputFormat,
+        outputEndpoint: String = OpenAPIConfigurationDefaults.outputEndpoint,
+        swaggerUiEndpoint: String = OpenAPIConfigurationDefaults.swaggerUiEndpoint,
         title: String? = nil,
         version: String? = nil,
         serverUrls: URL...
