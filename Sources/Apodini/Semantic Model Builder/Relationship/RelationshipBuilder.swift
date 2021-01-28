@@ -117,12 +117,9 @@ class RelationshipBuilder {
         }
     }
 
-    func addRelationshipInheritance(at reference: EndpointReference,
-                                    from: EndpointReference,
-                                    for operation: Operation,
-                                    resolvers: [AnyPathParameterResolver]) {
+    func addRelationshipInheritance(at reference: EndpointReference, from: EndpointReference, resolvers: [AnyPathParameterResolver]) {
         endpoints[reference, default: BuildingEndpoint(for: reference)]
-            .addInheritance(from: from, at: operation, with: resolvers)
+            .addInheritance(from: from, with: resolvers)
 
         // See docs of `RelationshipBuilder.resolveInheritanceRelationship()`.
         needsInheritanceResolving.append(reference)
@@ -271,7 +268,7 @@ private class BuildingEndpoint {
         }
     }
 
-    func addInheritance(from: EndpointReference, at operation: Operation, with resolvers: [AnyPathParameterResolver]) {
+    func addInheritance(from: EndpointReference, with resolvers: [AnyPathParameterResolver]) {
         precondition(!built, "Tried altering relationships for \(reference) after they were built!")
         let destination = RelationshipDestination(self: from, resolvers: resolvers)
 

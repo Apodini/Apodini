@@ -143,7 +143,6 @@ struct TypeIndex {
                 relationshipBuilder.addRelationshipInheritance(
                     at: source,
                     from: destination,
-                    for: operation,
                     resolvers: candidate.resolvers
                 )
             case let .reference(name), let .link(name):
