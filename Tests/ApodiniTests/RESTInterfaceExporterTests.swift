@@ -161,7 +161,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         WebService().register(builder)
         
         let endpointPaths = builder.rootNode
-            .collectAllEndpoints()
+            .collectEndpoints()
             .map { $0.absolutePath.asPathString() }
         
         let expectedEndpointPaths: [String] = [

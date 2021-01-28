@@ -362,36 +362,3 @@ struct EndpointInsertionContext {
         return next
     }
 }
-
-
-/// Helper type which acts as a Hashable wrapper around `AnyEndpoint` 
-private struct AnyHashableEndpoint: Hashable, Equatable {
-    let endpoint: AnyEndpoint
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(endpoint.identifier)
-    }
-    
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.endpoint.identifier == rhs.endpoint.identifier
-    }
-}
-
-
-extension EndpointsTreeNode {
-    func collectAllEndpoints() -> [AnyEndpoint] {
-        if let parent = parent {
-            return parent.collectAllEndpoints()
-        }
-        var endpoints = Set<AnyHashableEndpoint>()
-        collectAllEndpoints(into: &endpoints)
-        return endpoints.map(\.endpoint)
-    }
-    
-    private func collectAllEndpoints(into endpointsSet: inout Set<AnyHashableEndpoint>) {
-        endpointsSet.formUnion(self.endpoints.values.map { AnyHashableEndpoint(endpoint: $0) })
-        for child in children {
-            child.collectAllEndpoints(into: &endpointsSet)
-        }
-    }
-}
