@@ -23,10 +23,6 @@ struct TestWebService: Apodini.WebService {
         SwiftComponent()
         UserComponent(userId: _userId)
     }
-    
-    var configuration: Configuration {
-        VariableWidthIntegerConfiguration(.thirtyTwo)
-    }
 }
 
 try TestWebService.main()

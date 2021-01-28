@@ -361,6 +361,31 @@ extension ProtobufferBuilderTests {
         
         try testWebService(WebService.self, expectation: expected)
     }
+    
+    func testVariableWidthIntegerConfiguration() throws {
+        struct WebService: Apodini.WebService {
+            var content: some Component {
+                Locator()
+            }
+            
+            var configuration: Configuration {
+                VariableWidthIntegerConfiguration(.thirtyTwo)
+            }
+        }
+        
+        struct Locator: Handler {
+            func handle() -> Coordinate {
+                .init(langitude: 0, longitude: 0)
+            }
+        }
+        
+        struct Coordinate: Apodini.Content {
+            let langitude: UInt
+            let longitude: UInt
+        }
+        
+        try testWebService(WebService.self, expectation: "")
+    }
 }
 
 // MARK: - Test Misc
