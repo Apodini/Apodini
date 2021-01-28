@@ -5,6 +5,16 @@
 import Foundation
 @_implementationOnly import OpenAPIKit
 
+/// Default values used for OpenAPI configuration if not explicitly specified by developer.
+public enum OpenAPIConfigurationDefaults {
+    /// Default specification output format.
+    public static let defaultOutputFormat: OpenAPIOutputFormat = .json
+    /// Default specification output endpoint.
+    public static let defaultOutputEndpoint: String = "openapi"
+    /// Default swagger-ui endpoint.
+    public static let defaultSwaggerUiEndpoint: String = "openapi-ui"
+}
+
 /// The enclosing storage entity for OpenAPI-related information.
 struct OpenAPIStorageValue {
     var document: OpenAPI.Document?
@@ -44,9 +54,9 @@ public class OpenAPIConfiguration: Configuration {
     }
     
     public init(
-        outputFormat: OpenAPIOutputFormat = .json,
-        outputEndpoint: String = "openapi",
-        swaggerUiEndpoint: String = "openapi-ui",
+        outputFormat: OpenAPIOutputFormat = OpenAPIConfigurationDefaults.defaultOutputFormat,
+        outputEndpoint: String = OpenAPIConfigurationDefaults.defaultOutputEndpoint,
+        swaggerUiEndpoint: String = OpenAPIConfigurationDefaults.defaultSwaggerUiEndpoint,
         title: String? = nil,
         version: String? = nil,
         serverUrls: URL...
