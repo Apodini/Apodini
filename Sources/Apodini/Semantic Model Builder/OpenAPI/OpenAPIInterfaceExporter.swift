@@ -21,7 +21,7 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
             self.configuration = OpenAPIConfiguration()
         }
         self.documentBuilder = OpenAPIDocumentBuilder(
-            configuration: &configuration
+            configuration: configuration
         )
         setApplicationServer(from: app)
         updateStorage()

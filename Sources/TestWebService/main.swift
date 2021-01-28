@@ -29,7 +29,8 @@ struct TestWebService: Apodini.WebService {
             outputFormat: .json,
             outputEndpoint: "oas",
             swaggerUiEndpoint: "oas-ui",
-            title: "The great TestWebService - presented by Apodini")
+            title: "The great TestWebService - presented by Apodini"
+        )
     }
 }
 

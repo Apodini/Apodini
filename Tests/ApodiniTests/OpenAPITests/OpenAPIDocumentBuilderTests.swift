@@ -27,7 +27,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
 
         var configuration = OpenAPIConfiguration()
 
-        var documentBuilder = OpenAPIDocumentBuilder(configuration: &configuration)
+        var documentBuilder = OpenAPIDocumentBuilder(configuration: configuration)
         documentBuilder.addEndpoint(endpoint)
         let document = OpenAPI.Document(
             info: OpenAPI.Document.Info(title: configuration.title ?? "", version: configuration.version ?? ""),

@@ -16,7 +16,8 @@ final class OpenAPIConfigurationTests: ApodiniTests {
             outputFormat: configuredOutputFormat,
             outputEndpoint: configuredOutputEndpoint,
             swaggerUiEndpoint: configuredSwaggerUiEndpoint,
-            title: configuredTitle)
+            title: configuredTitle
+        )
             .configure(app)
         
         let storage = app.storage.get(OpenAPIStorageKey.self)
