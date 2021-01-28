@@ -44,6 +44,39 @@ final class DatabaseHandlerTests: ApodiniTests {
         XCTAssertEqual(response, foundBird)
     }
     
+    func testSingleReadHandler() throws {
+        let bird = Bird(name: "Mockingbird", age: 20)
+        let dbBird = try bird
+            .save(on: self.app.db)
+            .transform(to: bird)
+            .wait()
+        let birdId = try XCTUnwrap(dbBird.id)
+        
+        let handler = ReadOne<Bird>()
+        let endpoint = handler.mockEndpoint()
+        
+        let exporter = RESTInterfaceExporter(app)
+        var context = endpoint.createConnectionContext(for: exporter)
+        
+        let uri = URI("http://example.de/test/id")
+        let request = Vapor.Request(
+            application: vaporApp,
+            method: .GET,
+            url: uri,
+            on: app.eventLoopGroup.next()
+        )
+        
+        let idParameter = try pathParameter(for: handler)
+        request.parameters.set("\(idParameter.id)", to: "\(birdId)")
+        
+        let result = try context.handle(request: request).wait()
+        guard case let .final(response) = result.typed(Bird.self) else {
+            XCTFail("Expected return value to be wrapped in Action.final by default")
+            return
+        }
+        XCTAssert(response == dbBird)
+    }
+    
     func testReadHandler() throws {
         let bird1 = Bird(name: "Mockingbird", age: 20)
         let dbBird1 = try bird1
@@ -59,7 +92,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         XCTAssertNotNil(dbBird1.id)
         XCTAssertNotNil(dbBird2.id)
         
-        let readHandler = Read<Bird>()
+        let readHandler = ReadAll<Bird>()
         let endpoint = readHandler.mockEndpoint()
         
         let exporter = RESTInterfaceExporter(app)

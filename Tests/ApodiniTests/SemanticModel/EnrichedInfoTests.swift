@@ -11,13 +11,11 @@ class EnrichedInfoTests: ApodiniTests {
     func testCardinalityIsEquatable() throws {
         let keyType = EnrichedInfo(
             typeInfo: try typeInfo(of: String.self),
-            propertyInfo: nil,
-            propertiesOffset: nil
+            propertyInfo: nil
         )
         let valueType = EnrichedInfo(
             typeInfo: try typeInfo(of: Int.self),
-            propertyInfo: nil,
-            propertiesOffset: nil
+            propertyInfo: nil
         )
         
         XCTAssertEqual(
@@ -74,18 +72,15 @@ class EnrichedInfoTests: ApodiniTests {
     func testCollectionContextIsEquatable() throws {
         let keyType = EnrichedInfo(
             typeInfo: try typeInfo(of: String.self),
-            propertyInfo: nil,
-            propertiesOffset: nil
+            propertyInfo: nil
         )
         let valueType = EnrichedInfo(
             typeInfo: try typeInfo(of: Int.self),
-            propertyInfo: nil,
-            propertiesOffset: nil
+            propertyInfo: nil
         )
         let valueType1 = EnrichedInfo(
             typeInfo: try typeInfo(of: String.self),
-            propertyInfo: nil,
-            propertiesOffset: nil
+            propertyInfo: nil
         )
         
         XCTAssertEqual(
@@ -109,43 +104,48 @@ class EnrichedInfoTests: ApodiniTests {
     func testEnrichedInfoIsEquatable() throws {
         let stringType = EnrichedInfo(
             typeInfo: try typeInfo(of: String.self),
-            propertyInfo: nil,
-            propertiesOffset: nil
+            propertyInfo: nil
         )
         let stringType1 = EnrichedInfo(
             typeInfo: try typeInfo(of: String.self),
-            propertyInfo: nil,
-            propertiesOffset: nil
+            propertyInfo: nil
         )
         let intType = EnrichedInfo(
             typeInfo: try typeInfo(of: Int.self),
-            propertyInfo: nil,
-            propertiesOffset: nil
+            propertyInfo: nil
         )
         let complexReflectedType = try typeInfo(of: Array<Int>.self)
         let complexReflectedTypeProperty = try typeInfo(of: complexReflectedType.properties[0].type)
         let complexTypePropertyInfo = EnrichedInfo(
             typeInfo: complexReflectedTypeProperty,
-            propertyInfo: complexReflectedType.properties[0],
-            propertiesOffset: 0,
+            propertyInfo: .init(
+                name: complexReflectedType.properties[0].name,
+                offset: 0
+            ),
             cardinality: .exactlyOne
         )
         let complexTypePropertyInfo1 = EnrichedInfo(
             typeInfo: complexReflectedTypeProperty,
-            propertyInfo: nil,
-            propertiesOffset: 0,
+            propertyInfo: .init(
+                name: "",
+                offset: 0
+            ),
             cardinality: .exactlyOne
         )
         let complexTypePropertyInfo2 = EnrichedInfo(
             typeInfo: complexReflectedTypeProperty,
-            propertyInfo: complexReflectedType.properties[0],
-            propertiesOffset: 1,
+            propertyInfo: .init(
+                name: complexReflectedType.properties[0].name,
+                offset: 1
+            ),
             cardinality: .exactlyOne
         )
         let complexTypePropertyInfo3 = EnrichedInfo(
             typeInfo: complexReflectedTypeProperty,
-            propertyInfo: complexReflectedType.properties[0],
-            propertiesOffset: 0,
+            propertyInfo: .init(
+                name: complexReflectedType.properties[0].name,
+                offset: 0
+            ),
             cardinality: .zeroToOne
         )
         

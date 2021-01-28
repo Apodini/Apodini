@@ -45,6 +45,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
     }
 
     @PathParameter var param: String
+
     struct HandlerParam: Handler {
         @Parameter
         var pathParam: String
@@ -146,9 +147,15 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
             ),
             responses: [
                 .status(code: 200): .init(
-                    OpenAPI.Response(description: "OK", content: [
-                        .json: .init(schema: .reference(.component(named: "ResponseStruct")))
-                    ])),
+                    OpenAPI.Response(
+                        description: "OK",
+                        content: [
+                            .json: .init(schema: .object(properties: [
+                                ResponseContainer.CodingKeys.data.rawValue: .reference(.component(named: "ResponseStruct")),
+                                ResponseContainer.CodingKeys.links.rawValue: .object(additionalProperties: .init(.string))
+                            ]))
+                        ]
+                    )),
                 .status(code: 401): .init(
                     OpenAPI.Response(description: "Unauthorized")),
                 .status(code: 403): .init(
@@ -158,7 +165,8 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
                 .status(code: 500): .init(
                     OpenAPI.Response(description: "Internal Server Error"))
             ],
-            security: nil))
+            vendorExtensions: ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
+        ))
 
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains(key: path))
