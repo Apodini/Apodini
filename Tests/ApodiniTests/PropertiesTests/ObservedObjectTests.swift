@@ -289,5 +289,4 @@ class ObservedObjectTests: ApodiniTests {
         )
         _ = try context.handle(request: request).wait()
     }
-    
 }
