@@ -74,6 +74,12 @@ public protocol AnyObservedObject {
     /// Method to be informed about values that have changed
     func register(_ callback: @escaping () -> Void) -> Observation
     
+    /// Any `ObservedObject` has a `changed` flag that indicates if this object has been
+    /// changed _recently_. The definition of _recently_ depends on the context and usage.
+    /// 
+    /// E.g. for `Handler`s, the `handle()` function is executed every time an `@ObservedObject`
+    /// canges. The `changed` property of this object is set to `true` for the exact time where
+    /// the `handle()` is evaluated because this object changed.
     var changed: Bool { get nonmutating set }
 }
 
@@ -97,5 +103,16 @@ extension ObservedObject: AnyObservedObject {
 extension ObservedObject: Activatable {
     mutating func activate() {
         self.changedWrapper = Wrapper(value: false)
+    }
+}
+
+/// An `Observation` is a token that is obtained from registering a callback to an `ObservedObject`.
+/// The registering instance must hold this token until it no longer whishes to be updated about the
+/// `ObservedObject`'s state. When the token is released, the subscription is canceled.
+public class Observation {
+    let callback: () -> Void
+    
+    internal init(_ callback: @escaping () -> Void) {
+        self.callback = callback
     }
 }

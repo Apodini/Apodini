@@ -40,11 +40,3 @@ extension Published: AnyPublished {
 struct Weak<T: AnyObject> {
     weak var value: T?
 }
-
-public class Observation {
-    let callback: () -> Void
-    
-    init(_ callback: @escaping () -> Void) {
-        self.callback = callback
-    }
-}

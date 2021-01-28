@@ -10,6 +10,16 @@ import NIO
 import Foundation
 
 public extension Publisher {
+    /// A buffer that subscribes with unlimited demand to its upstream while keeping a given
+    /// amount of _events_ in memory until the downstream publisher is ready to receive them.
+    /// - Parameter amount: The number of events that are buffered. If `nil`, the buffer is
+    ///   of unlimited size.
+    ///
+    /// - Note: An _event_ can be either a `completion` or `value`. Both are buffered, i.e.
+    ///   a `completion` is not forwarded instantly, but after the `value` the `Buffer` received
+    ///   it after.
+    /// - Note: While `value`s may be dropped if the buffer is full, the `completion` is never
+    ///   discarded.
     func buffer(
         _ amount: UInt? = nil
     ) -> Buffer<Self> {
@@ -67,7 +77,10 @@ private extension Buffer {
             self.downstream = downstream
             self.bufferSize = bufferSize
         }
-
+        // Instantly request `unlimited` input. If the
+        // downstream requests new demand, try to satisfy it
+        // from the buffer. If the downstream is canceled,
+        // forward cancellation to the upstream instantly.
         func receive(subscription: Subscription) {
             subscription.request(.unlimited)
             self.subscription = subscription
@@ -84,6 +97,8 @@ private extension Buffer {
             }))
         }
 
+        // Add the `value` to the `buffer` and satisfy downstream's
+        // `demand` if applicable.
         func receive(_ input: Input) -> Subscribers.Demand {
             self.lock.lock()
             defer { self.lock.unlock() }
@@ -97,6 +112,8 @@ private extension Buffer {
             return .unlimited
         }
 
+        // Add the `completion` to the `buffer` and satisfy downstream's
+        // `demand` if applicable.
         func receive(completion: Subscribers.Completion<Failure>) {
             self.lock.lock()
             defer { self.lock.unlock() }
@@ -108,14 +125,16 @@ private extension Buffer {
             self.satisfyDemand()
         }
         
+        // Make room for one element. If an element has to be dropped, make
+        // sure it is a `value`, not a `completion`.
         func removeOverflow() {
             if let size = bufferSize {
                 if self.buffer.count == size {
                     if let index = self.buffer.firstIndex(where: { event in
                         switch event {
-                        case .completion(_):
+                        case .completion:
                             return false
-                        case .value(_):
+                        case .value:
                             return true
                         }
                     }) {
@@ -125,8 +144,10 @@ private extension Buffer {
             }
         }
         
+        // Pass `value`s to the downstream until its `demand` is satisfied.
+        // If we find a `completion` we are done and free our memory.
         func satisfyDemand() {
-            outer: while self.demand > 0 && self.buffer.count > 0 {
+            outer: while self.demand > 0 && !self.buffer.isEmpty {
                 self.demand -= 1
                 switch self.buffer.removeFirst() {
                 case .value(let value):
@@ -154,6 +175,8 @@ private extension Buffer.Inner {
 
 
 private extension Buffer.Inner {
+    // The subscription only forwards the interaction with the downstream to the
+    // `Buffer`'s `Subscriber`.
     private class Inner: Subscription {
         var onRequest: ((Subscribers.Demand) -> Void)?
         var onCancel: (() -> Void)?

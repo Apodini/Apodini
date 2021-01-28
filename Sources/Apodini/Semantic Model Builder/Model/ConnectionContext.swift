@@ -21,7 +21,7 @@ extension Reducible {
 }
 
 /// An `ObservedListener` can be notified by a `ConnectionContext` if an observed object
-/// in the connections handler has changed.
+/// in the connection's handler has changed.
 protocol ObservedListener {
     /// The `EventLoop` that is used by this connection to send service-streaming
     /// responses to the client.
@@ -175,9 +175,9 @@ class InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCon
     func register(listener: ObservedListener) {
         // register the given listener for notifications on the handler
         for object in endpoint.handler.collectObservedObjects() {
-            self.observations.append(object.register({
+            self.observations.append(object.register {
                 listener.onObservedDidChange(object, in: self)
-            }))
+            })
         }
     }
 }

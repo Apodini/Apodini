@@ -43,7 +43,7 @@ class ObservedObjectTests: ApodiniTests {
             @ObservedObject(\Keys.testObservable) var testObservable: TestObservable
             
             func handle() -> String {
-                return testObservable.text
+                testObservable.text
             }
         }
         
@@ -85,7 +85,8 @@ class ObservedObjectTests: ApodiniTests {
                             } catch {
                                 XCTFail("testRegisterObservedListener failed: \(error)")
                             }
-                        }.wait()
+                        }
+                        .wait()
                 } catch {
                     XCTFail(error.localizedDescription)
                 }
@@ -221,7 +222,8 @@ class ObservedObjectTests: ApodiniTests {
                             } catch {
                                 XCTFail("testRegisterObservedListener failed: \(error)")
                             }
-                        }.wait()
+                        }
+                        .wait()
                 } catch {
                     XCTFail(error.localizedDescription)
                 }

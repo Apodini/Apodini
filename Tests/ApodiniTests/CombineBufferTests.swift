@@ -22,26 +22,28 @@ class CombineBufferTests: ApodiniTests {
         
         let subject = PassthroughSubject<Int, Never>()
         
-        let cancellable = subject.buffer().syncMap { value -> EventLoopFuture<Int> in
-            let promise = eventLoop.makePromise(of: Int.self)
-            _ = self.app.threadPool.runIfActive(eventLoop: eventLoop) {
-                usleep(CombineBufferTests.blockTime)
-                promise.succeed(value)
-            }
-            return promise.futureResult
-        }
-        .collect()
-        .sink(receiveValue: { value in
-            done.succeed(value.map { result in
-                switch result {
-                case .success(let value):
-                    return value
-                case .failure(let error):
-                    done.fail(error)
-                    return 0
+        let cancellable = subject
+            .buffer()
+            .syncMap { value -> EventLoopFuture<Int> in
+                let promise = eventLoop.makePromise(of: Int.self)
+                _ = self.app.threadPool.runIfActive(eventLoop: eventLoop) {
+                    usleep(CombineBufferTests.blockTime)
+                    promise.succeed(value)
                 }
+                return promise.futureResult
+            }
+            .collect()
+            .sink(receiveValue: { value in
+                done.succeed(value.map { result in
+                    switch result {
+                    case .success(let value):
+                        return value
+                    case .failure(let error):
+                        done.fail(error)
+                        return 0
+                    }
+                })
             })
-        })
         
         sequence.forEach { value in
             subject.send(value)
@@ -62,17 +64,19 @@ class CombineBufferTests: ApodiniTests {
         
         var latestValue: Int?
         
-        let cancellable = subject.buffer().syncMap { value -> EventLoopFuture<Int> in
-            let promise = eventLoop.makePromise(of: Int.self)
-            _ = self.app.threadPool.runIfActive(eventLoop: eventLoop) {
-                usleep(CombineBufferTests.blockTime)
-                latestValue = value
-                promise.succeed(value)
+        let cancellable = subject
+            .buffer()
+            .syncMap { value -> EventLoopFuture<Int> in
+                let promise = eventLoop.makePromise(of: Int.self)
+                _ = self.app.threadPool.runIfActive(eventLoop: eventLoop) {
+                    usleep(CombineBufferTests.blockTime)
+                    latestValue = value
+                    promise.succeed(value)
+                }
+                return promise.futureResult
             }
-            return promise.futureResult
-        }
-        .collect()
-        .sink(receiveValue: { _ in })
+            .collect()
+            .sink(receiveValue: { _ in })
         
         sequence.forEach { value in
             subject.send(value)
@@ -98,26 +102,28 @@ class CombineBufferTests: ApodiniTests {
         
         let subject = PassthroughSubject<Int, Never>()
         
-        let cancellable = subject.buffer().syncMap { value -> EventLoopFuture<Int> in
-            let promise = eventLoop.makePromise(of: Int.self)
-            _ = self.app.threadPool.runIfActive(eventLoop: eventLoop) {
-                usleep(CombineBufferTests.blockTime)
-                promise.succeed(value)
-            }
-            return promise.futureResult
-        }
-        .collect()
-        .sink(receiveValue: { value in
-            done.succeed(value.map { result in
-                switch result {
-                case .success(let value):
-                    return value
-                case .failure(let error):
-                    done.fail(error)
-                    return 0
+        let cancellable = subject
+            .buffer()
+            .syncMap { value -> EventLoopFuture<Int> in
+                let promise = eventLoop.makePromise(of: Int.self)
+                _ = self.app.threadPool.runIfActive(eventLoop: eventLoop) {
+                    usleep(CombineBufferTests.blockTime)
+                    promise.succeed(value)
                 }
+                return promise.futureResult
+            }
+            .collect()
+            .sink(receiveValue: { value in
+                done.succeed(value.map { result in
+                    switch result {
+                    case .success(let value):
+                        return value
+                    case .failure(let error):
+                        done.fail(error)
+                        return 0
+                    }
+                })
             })
-        })
         
         sequence[...50].forEach { value in
             subject.send(value)

@@ -29,23 +29,24 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             result[parameter.name] = parameter.value
         }))
         
-        self.router.register({(_input: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, _: Database?) -> (
+        self.router.register({(clientInput: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, _: Database?) -> (
                     defaultInput: SomeInput,
                     output: AnyPublisher<Message<AnyEncodable>, Error>
                 ) in
             var cancellables: Set<AnyCancellable> = []
             
-            // We have to be able to handle both, incoming `_input` and `observation`s
-            // coming from `ObservedObject`s. Thus we open a first gap in the
-            // publisher-chain where we can insert the `observation`s.
+            // We have to be able to handle both, incoming `clientInput` and
+            // `observation`s coming from `ObservedObject`s. Thus we open a first
+            //  gap in the publisher-chain where we can insert the `observation`s.
             let input = PassthroughSubject<Evaluation, Never>()
             
             // Here we just forward the `_input` into the `input`.
-            _input.sink(receiveCompletion: { _ in
+            clientInput.sink(receiveCompletion: { _ in
                 input.send(completion: .finished)
             }, receiveValue: { value in
                 input.send(.input(value))
-            }).store(in: &cancellables)
+            })
+            .store(in: &cancellables)
             
             // This listener is notified each time an `ObservedObject` triggers this
             // instance of the endpoint. Each time we pipe the `observation` into
@@ -59,52 +60,37 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             
             context.register(listener: listener)
             
+            // We need a second gap in the publisher-chain here so we can map freely between
+            // `value`s and `completion`s.
             let output: PassthroughSubject<Message<AnyEncodable>, Error> = PassthroughSubject()
             // Handle all incoming client-messages and observations one after another.
             // The `syncMap` automatically awaits the future, while `buffer` makes sure
             // messages are never dropped.
-            input.buffer().syncMap { evaluation -> EventLoopFuture<Response<AnyEncodable>> in
-                switch evaluation {
-                case .input(let inputValue):
-                    return context.handle(request: inputValue, eventLoop: eventLoop, final: false)
-                case .observation(let observedObject):
-                    return context.handle(eventLoop: eventLoop, observedObject: observedObject)
-                }
-            }
-            .sink(
-                // The completion is also synchronized by `syncMap` it waits for any future
-                // to complete before forwarding it.
-                receiveCompletion: { completion in
-                    switch completion {
-                    case .finished:
-                        // We received the close-context message from the client. We evaluate the
-                        // `Handler` one more time before the connection is closed. We have to
-                        // manually await this future. We use an `emptyInput`, which is aggregated
-                        // to the latest input.
-                        context.handle(request: emptyInput, eventLoop: eventLoop, final: true).whenComplete { result in
-                            switch result {
-                            case .success(let response):
-                                Self.handleCompletionResponse(result: response, output: output)
-                            case .failure(let error):
-                                Self.handleError(error: error, output: output, close: true)
-                            }
-                        }
-                    }
-                    // We have to reference the cancellable here so it stays in memory and isn't cancled early.
-                    cancellables.removeAll()
-                },
-                // The input was already handled and unwrapped by the `syncMap`. We just have to map the obtained
-                // `Action` to our `output` or handle the error returned from `handle`.
-                receiveValue: { result in
-                    switch result {
-                    case .success(let response):
-                        Self.handleRegularResponse(result: response, output: output)
-                    case .failure(let error):
-                        Self.handleError(error: error, output: output)
+            input
+                .buffer()
+                .syncMap { evaluation -> EventLoopFuture<Response<AnyEncodable>> in
+                    switch evaluation {
+                    case .input(let inputValue):
+                        return context.handle(request: inputValue, eventLoop: eventLoop, final: false)
+                    case .observation(let observedObject):
+                        return context.handle(eventLoop: eventLoop, observedObject: observedObject)
                     }
                 }
-            )
-            .store(in: &cancellables)
+                .sink(
+                    // The completion is also synchronized by `syncMap` it waits for any future
+                    // to complete before forwarding it.
+                    receiveCompletion: { completion in
+                        Self.handleCompletion(completion: completion, context: context, eventLoop: eventLoop, emptyInput: emptyInput)
+                        // We have to reference the cancellable here so it stays in memory and isn't cancled early.
+                        cancellables.removeAll()
+                    },
+                    // The input was already handled and unwrapped by the `syncMap`. We just have to map the obtained
+                    // `Action` to our `output` or handle the error returned from `handle`.
+                    receiveValue: { result in
+                        Self.handleValue(result: result, output: output)
+                    }
+                )
+                .store(in: &cancellables)
 
 
             return (defaultInput: emptyInput, output: output.eraseToAnyPublisher())
@@ -148,6 +134,40 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     #else
     typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
     #endif
+    
+    private static func handleCompletion(
+        completion: Subscribers.Completion<Never>,
+        context: AnyConnectionContext<WebSocketInterfaceExporter>,
+        eventLoop: EventLoop,
+        emptyInput: SomeInput,
+    ) {
+        switch completion {
+        case .finished:
+            // We received the close-context message from the client. We evaluate the
+            // `Handler` one more time before the connection is closed. We have to
+            // manually await this future. We use an `emptyInput`, which is aggregated
+            // to the latest input.
+            context.handle(request: emptyInput, eventLoop: eventLoop, final: true).whenComplete { result in
+                switch result {
+                case .success(let response):
+                    Self.handleCompletionResponse(result: response, output: output)
+                case .failure(let error):
+                    Self.handleError(error: error, output: output, close: true)
+                }
+            }
+        }
+    }
+    
+    private static func handleValue(
+        result: Response<AnyEncodable>,
+        output: PassthroughSubject<Message<AnyEncodable>, Error>) {
+        switch result {
+        case .success(let response):
+            Self.handleRegularResponse(result: response, output: output)
+        case .failure(let error):
+            Self.handleError(error: error, output: output)
+        }
+    }
     
     private static func handleCompletionResponse(
         result: Response<AnyEncodable>,
@@ -205,7 +225,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
 // MARK: Handling of ObservedObject
 
 private struct DelegatingObservedListener: ObservedListener {
-    func onObservedDidChange<C>(_ observedObject: AnyObservedObject, in context: C) where C : ConnectionContext {
+    func onObservedDidChange<C>(_ observedObject: AnyObservedObject, in context: C) where C: ConnectionContext {
         callback(observedObject)
     }
     
