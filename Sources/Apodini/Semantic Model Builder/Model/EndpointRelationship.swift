@@ -18,6 +18,11 @@ public struct EndpointRelationship: Equatable {
     /// (e.g. Relationships added through `Relationship` instances).
     fileprivate var relationshipDestinations: [Operation: RelationshipDestination] = [:]
 
+    /// Holds all `RelationshipDestinations` registered under the particular `EndpointRelationship`.
+    public var destinations: [RelationshipDestination] {
+        Array(relationshipDestinations.values)
+    }
+
     /// Initializes a new `EndpointRelationship` under the unscoped path.
     /// - Parameter path: Unscoped path of destination of the `EndpointRelationship`
     init(path: [EndpointPath]) {
@@ -37,6 +42,12 @@ public struct EndpointRelationship: Equatable {
     /// - Returns: Returns a `RelationshipDestination` for a given `Operation` or nil if it doesn't exists.
     public func get(for operation: Operation) -> RelationshipDestination? {
         relationshipDestinations[operation]
+    }
+
+    /// Internal method to remove a `RelationshipDestination` for a given `Operation`.
+    /// - Parameter operation: The `Operation` to remove the destination for.
+    mutating func remove(for operation: Operation) {
+        relationshipDestinations.removeValue(forKey: operation)
     }
 
     /// Adds a new `RelationshipDestination` to the given `EndpointRelationship` for a given destination `Endpoint`.
@@ -108,17 +119,18 @@ public struct EndpointRelationship: Equatable {
     /// Should the relationship already contain the destination (for the given Operation) it will
     /// be overridden by the supplied destination (meaning naming will be overridden).
     /// - Parameter destination: `RelationshipDestination` to be added.
-    mutating func add(destination: RelationshipDestination, inherited: Bool = false) {
+    mutating func add(destination: RelationshipDestination) {
         precondition(path == destination.destinationPath, "Tried adding a relationship destination under a wrong path.")
-        if inherited && relationshipDestinations[destination.operation] != nil {
+        if relationshipDestinations[destination.operation] != nil {
             return
         }
         relationshipDestinations[destination.operation] = destination
     }
 
-    /// - Returns: Returns all `RelationshipDestinations` registered under the particular `EndpointRelationship`.
-    public func destinations() -> [RelationshipDestination] {
-        Array(relationshipDestinations.values)
+    mutating func replaceAll(resolvers: [AnyPathParameterResolver]) {
+        for operation in relationshipDestinations.keys {
+            relationshipDestinations[operation]?.replace(resolvers: resolvers)
+        }
     }
 
     public static func == (lhs: EndpointRelationship, rhs: EndpointRelationship) -> Bool {
@@ -246,11 +258,22 @@ private struct RelationshipNameBuilder: PathBuilderWithResult {
     }
 }
 
+
+extension Array where Element == EndpointRelationship {
+    func replaceAll(resolvers: [AnyPathParameterResolver]) -> [EndpointRelationship] {
+        map { entry in
+            var relationship = entry
+            relationship.replaceAll(resolvers: resolvers)
+            return relationship
+        }
+    }
+}
+
 extension Array where Element == EndpointRelationship {
     /// Creates a `Set<RelationshipDestination` which ensures that relationship names are unique.
     func unique() -> Set<RelationshipDestination> {
-        self.reduce(into: Set()) { result, relationship in
-            for destination in relationship.destinations() {
+        reduce(into: Set()) { result, relationship in
+            for destination in relationship.destinations {
                 result.update(with: destination)
             }
         }
@@ -259,7 +282,7 @@ extension Array where Element == EndpointRelationship {
     /// Creates a `Set<RelationshipDestination` which ensures that relationship names
     /// are unique (for all collected destination for a given `Operation`)
     func unique(for operation: Operation) -> Set<RelationshipDestination> {
-        self.reduce(into: Set()) { result, relationship in
+        reduce(into: Set()) { result, relationship in
             if let destination = relationship.get(for: operation) {
                 result.update(with: destination)
             }

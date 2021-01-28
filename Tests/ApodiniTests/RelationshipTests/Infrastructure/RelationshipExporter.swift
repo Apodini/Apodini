@@ -13,9 +13,18 @@ class RelationshipExporter: MockExporter<String> {
     }
 
     override func finishedExporting(_ webService: WebServiceModel) {
-        endpoints = endpoints.sorted(by: {lhs, rhs in
-            lhs.absolutePath.asPathString() < rhs.absolutePath.asPathString()
-        })
+        // as we are accessing the endpoints via index, ensure a consistent order for the tests
+        endpoints = endpoints
+            .sorted(by: { lhs, rhs in
+                let lhsString = lhs.absolutePath.asPathString()
+                let rhsString = rhs.absolutePath.asPathString()
+
+                if lhsString == rhsString {
+                    return lhs.operation < rhs.operation
+                }
+
+                return lhs.absolutePath.asPathString() < rhs.absolutePath.asPathString()
+            })
     }
 }
 
@@ -40,4 +49,24 @@ class RelationshipExporterRetriever: InterfaceExporterVisitor {
     }
 
     func visit<I>(staticExporter: I) where I: StaticInterfaceExporter {}
+}
+
+
+extension Apodini.Operation: Comparable {
+    func num() -> Int {
+        switch self {
+        case .read:
+            return 0
+        case .create:
+            return 1
+        case .update:
+            return 2
+        case .delete:
+            return 3
+        }
+    }
+
+    public static func < (lhs: Apodini.Operation, rhs: Apodini.Operation) -> Bool {
+        lhs.num() < rhs.num()
+    }
 }

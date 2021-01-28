@@ -40,7 +40,7 @@ struct EndpointReference: CustomStringConvertible, CustomDebugStringConvertible 
 
     /// Mutates the reference `Endpoint`
     /// - Parameter mutate: The closure mutating the referenced `Endpoint`.
-    func resolveAndMutate(_ mutate: (inout _AnyEndpoint) -> Void) {
+    func resolveAndMutate(_ mutate: @escaping (inout _AnyEndpoint) -> Void) {
         var endpoint = resolve()
         mutate(&endpoint)
         node.endpoints[operation] = endpoint

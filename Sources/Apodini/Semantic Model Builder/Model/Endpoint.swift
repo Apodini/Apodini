@@ -93,18 +93,9 @@ protocol _AnyEndpoint: AnyEndpoint {
     @discardableResult
     func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput
 
-    /// Internal method which is called once the `Tree` was finished building, meaning the DSL was parsed completely.
-    mutating func finished(with relationships: [[EndpointPath]: EndpointRelationship], self structural: EndpointRelationship)
-
-    /// Internal method to add new relationship models to the Endpoint.
-    /// - Parameter relationship: The newly added `EndpointRelationship`.
-    mutating func addRelationship(_ relationship: EndpointRelationship)
-
-    mutating func addRelationshipDestination(destination: RelationshipDestination, inherited: Bool)
-
-    mutating func addRelationshipInheritance(self destination: RelationshipDestination, for operation: Operation)
-
-    mutating func resolveInheritanceRelationship()
+    /// Internal method to initialize the endpoint with built relationships.
+    /// - Parameter result: The `RelationshipBuilderResult` handing over all relationships for the endpoint.
+    mutating func initRelationships(with result: RelationshipBuilderResult)
 }
 
 
@@ -145,9 +136,7 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     }
     private var storedAbsolutePath: [EndpointPath]! // swiftlint:disable:this implicitly_unwrapped_optional
 
-    /// See `storeRelationship(previous:store:)` for more information.
     private var storedRelationship: [EndpointRelationship] = []
-    private var relationshipStorage: [[EndpointPath]: EndpointRelationship]! // swiftlint:disable:this implicitly_unwrapped_optional
 
     public var selfRelationship: RelationshipDestination {
         guard let destination = selfRelationship(for: operation) else {
@@ -213,14 +202,10 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
         storedReference = EndpointReference(on: treeNode, off: self)
     }
 
-    mutating func finished(with relationships: [[EndpointPath]: EndpointRelationship], self structural: EndpointRelationship) {
-        self.relationshipStorage = relationships
-
-        for relationship in relationships.values {
-            storeRelationship(store: relationship)
-        }
-
-        self.structuralSelfRelationship = structural
+    mutating func initRelationships(with result: RelationshipBuilderResult) {
+        self.structuralSelfRelationship = result.structuralSelfRelationship
+        self.inheritedSelfRelationship = result.inheritedSelfRelationship
+        self.storedRelationship = result.relationships
     }
 
     public func relationships() -> Set<RelationshipDestination> {
@@ -255,94 +240,6 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
             relationships.append(inherits)
         }
         return relationships
-    }
-
-    mutating func addRelationship(_ relationship: EndpointRelationship) {
-        if var existing = relationshipStorage[relationship.path] {
-            // existing is probably a structural relationship, thus we override potential
-            // generated destinations names with user defined one (see merge docs).
-            existing.merge(with: relationship)
-            relationshipStorage[relationship.path] = existing
-
-            storeRelationship(previous: existing, store: existing)
-        } else {
-            relationshipStorage[relationship.path] = relationship
-
-            storeRelationship(store: relationship)
-        }
-    }
-
-    mutating func addRelationshipDestination(destination: RelationshipDestination, inherited: Bool = false) {
-        if var existing = relationshipStorage[destination.destinationPath] {
-            existing.add(destination: destination, inherited: inherited)
-            relationshipStorage[destination.destinationPath] = existing
-
-            storeRelationship(previous: existing, store: existing)
-        } else {
-            let relationship = EndpointRelationship(destination: destination)
-            relationshipStorage[destination.destinationPath] = relationship
-
-            storeRelationship(store: relationship, prepend: inherited)
-        }
-    }
-
-    mutating func addRelationshipInheritance(self destination: RelationshipDestination, for operation: Operation) {
-        if var inherited = inheritedSelfRelationship, inherited.path == destination.destinationPath {
-            inherited.add(destination: destination)
-            inheritedSelfRelationship = inherited
-        } else {
-            inheritedSelfRelationship = EndpointRelationship(destination: destination)
-        }
-    }
-
-    /// This method is the key element of our relationship name shadowing.
-    /// The `relationshipStorage` may hold duplicates (in terms of relationship names),
-    /// we use the `storedRelationship` property to persist the order of insertion.
-    /// As we insert automatically generated relationships first and then explicitly defines ones,
-    /// name duplications will overshadow those stored first.
-    ///
-    /// - Parameters:
-    ///   - previous: Defines if the stored Relationship replaces an existing one which needs to be removed.
-    ///   - relationship: Defines the newly added EndpointRelationship
-    private mutating func storeRelationship(previous: EndpointRelationship? = nil, store relationship: EndpointRelationship, prepend: Bool = false) {
-        if let existing = previous, let index = storedRelationship.firstIndex(of: existing) {
-            storedRelationship.remove(at: index)
-        }
-        if prepend {
-            storedRelationship.insert(relationship, at: 0)
-        } else {
-            storedRelationship.append(relationship)
-        }
-    }
-
-    /// Depending on "allowOverwrite" of `addRelationshipInheritance(at:from:allowOverwrite),
-    /// the inherited self relationship may be overwritten
-    /// (e.g. the automatically self relationship derived from type information may be
-    /// overwritten by a explicitly state inheritance definition).
-    /// Thus we CAN't add all the relationship from the inherited Endpoint (as we could need to reverse that operation),
-    /// thus we do a two step operation:
-    /// 1) Go through all relationship candidates a and set `inheritedSelfRelationship`
-    /// 2) Once finished parsing candidates resolve those inheritances (this is what `resolveInheritanceRelationship()` does)
-    mutating func resolveInheritanceRelationship() {
-        guard let inherited = inheritedSelfRelationship else {
-            return
-        }
-
-        for destination in inherited.destinations() {
-            // we will use the resolvers used for for the self link for any inherited relationship
-            let resolvers = destination.resolvers
-
-            let superEndpoint = destination.reference.resolve()
-
-            for var destination in superEndpoint.relationships() {
-                // replace any resolvers for (sub relationships) with those used to resolve the inheritance
-                // (e.g. based on our own properties) we can't resolve path parameters based on properties of the inheritance
-                destination.replace(resolvers: resolvers)
-
-                /// inheritance relationships are shadowed by anything already on the endpoint
-                self.addRelationshipDestination(destination: destination, inherited: true)
-            }
-        }
     }
 }
 

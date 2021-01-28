@@ -43,18 +43,20 @@ struct TypeIndex {
     private let logger: Logger
 
     private var typeIndex: TypeIndexStorage
+    private let relationshipBuilder: RelationshipBuilder
 
     /// Contains automatically collected and explicitly defined inheritances
     fileprivate var collectedInheritanceCandidates: [EndpointReference: Set<IndexedRelationshipInheritanceCandidate>] = [:]
     /// Contains explicitly defined .reference and .link relationships
-    private var collectedOtherCandidates: [EndpointReference: [SomeRelationshipSourceCandidate]] = [:]
+    private var collectedOtherCandidates: [SomeRelationshipSourceCandidate] = []
 
 
-    init(from typeIndexBuilder: TypeIndexBuilder) {
+    init(from typeIndexBuilder: TypeIndexBuilder, buildingWith relationshipBuilder: RelationshipBuilder) {
         self.logger = typeIndexBuilder.logger
 
         let result = typeIndexBuilder.build()
         self.typeIndex = result.typeIndex
+        self.relationshipBuilder = relationshipBuilder
 
         for (reference, candidates) in result.sourceCandidates {
             // non inheritance candidates (which are not generated right now) might have some implications on
@@ -65,84 +67,61 @@ struct TypeIndex {
             let indexedCandidates = candidates.map { IndexedRelationshipInheritanceCandidate(from: $0, type: .implicit) }
             collectedInheritanceCandidates[reference] = Set(indexedCandidates)
         }
+
+        // call the RelationshipBuilder to index their explicitly defined relationship candidates
+        index(candidates: relationshipBuilder.collectedRelationshipCandidates)
     }
 
-    subscript(objectId: ObjectIdentifier, operation: Operation) -> TypeIndexEntry? {
+    private subscript(objectId: ObjectIdentifier, operation: Operation) -> TypeIndexEntry? {
         typeIndex[TypeIdentifier(objectId: objectId, operation: operation)]
     }
 
-    mutating func index(candidates collectedCandidates: CollectedPartialRelationshipCandidates) {
-        for (reference, candidates) in collectedCandidates {
-            for candidate in candidates {
-                if candidate.type == .inheritance {
-                    var set = collectedInheritanceCandidates[reference, default: Set()]
+    private mutating func index(candidates collectedCandidates: [PartialRelationshipSourceCandidate]) {
+        for candidate in collectedCandidates {
+            if candidate.type == .inheritance {
+                var set = collectedInheritanceCandidates[candidate.reference, default: Set()]
 
-                    let indexed = IndexedRelationshipInheritanceCandidate(from: candidate, type: .explicit)
-                    if let replaced = set.update(with: indexed),
-                       replaced.definitionType != .implicit {
-                        // we replaced a explicit inheritance definition with a explicit one (user defined some conflicting information)
+                let indexed = IndexedRelationshipInheritanceCandidate(from: candidate, type: .explicit)
+                if let replaced = set.update(with: indexed),
+                   replaced.definitionType != .implicit {
+                    // we replaced a explicit inheritance definition with a explicit one (user defined some conflicting information)
 
-                        fatalError("""
-                                   Conflicting relationship inheritance definition for \(reference):
-                                   Tried overwriting defined inheritance \(replaced.debugDescription) \
-                                   with second inheritance definition \(indexed.debugDescription)!
-                                   """)
-                    }
-
-                    collectedInheritanceCandidates[reference] = set
-                } else {
-                    var array = collectedOtherCandidates[reference, default: []]
-                    array.append(candidate)
-                    collectedOtherCandidates[reference] = array
+                    fatalError("""
+                               Conflicting relationship inheritance definition for \(candidate.reference):
+                               Tried overwriting defined inheritance \(replaced.debugDescription) \
+                               with second inheritance definition \(indexed.debugDescription)!
+                               """)
                 }
+
+                collectedInheritanceCandidates[candidate.reference] = set
+            } else {
+                collectedOtherCandidates.append(candidate)
             }
         }
     }
 
+    /// Public Interfacing method to be called as last step to resolve all indexed candidates.
     func resolve() {
         let inheritanceCandidates = sortedInheritanceCandidates(candidates: collectedInheritanceCandidates)
-        // ordered array of Endpoints to call `resolveInheritanceRelationship` on
-        var needsInheritanceResolving: [EndpointReference] = []
 
         logger.debug("Starting to resolve inheritances(\(inheritanceCandidates.count))...")
 
         for candidate in inheritanceCandidates {
-            let node = candidate.reference.node
-
-            let resolved = resolve(on: node, for: candidate.reference, candidate: candidate.ensureResolved(), type: candidate.definitionType)
-            if resolved {
-                needsInheritanceResolving.append(candidate.reference)
-            }
+            resolve(candidate: candidate.ensureResolved(using: relationshipBuilder), type: candidate.definitionType)
         }
 
         logger.debug("Starting to resolve links and references(\(collectedOtherCandidates.count))...")
 
-        for (reference, candidates) in collectedOtherCandidates {
-            let node = reference.node
-
-            for candidate in candidates {
-                precondition(reference == candidate.reference,
-                             """
-                             Encountered inconsistency, candidate reference \(candidate.reference.debugDescription) \
-                             didn't match the reference it was added for \(reference.debugDescription)!
-                             """)
-
-                _ = resolve(on: node, for: reference, candidate: candidate.ensureResolved(), type: .explicit)
-            }
-        }
-
-        logger.debug("Resolving inherited relationships in order [\(needsInheritanceResolving.map { $0.description }.joined(separator: ", "))]")
-        for reference in needsInheritanceResolving {
-            reference.resolveAndMutate { $0.resolveInheritanceRelationship() }
+        for candidate in collectedOtherCandidates {
+            resolve(candidate: candidate.ensureResolved(using: relationshipBuilder), type: .explicit)
         }
     }
 
-    private func resolve(on node: EndpointsTreeNode,
-                         for source: EndpointReference,
-                         candidate: SomeRelationshipSourceCandidate,
-                         type: DefinitionType) -> Bool {
+    private func resolve(candidate: SomeRelationshipSourceCandidate, type: DefinitionType) {
         // we need to check afterwards if we found ANY destinations
         var foundSome = false
+
+        let source = candidate.reference
         let objectId = ObjectIdentifier(candidate.destinationType)
 
         for operation in Operation.allCases {
@@ -154,27 +133,28 @@ struct TypeIndex {
                 continue
             }
 
+            let destination = entry.reference
             foundSome = true
 
             switch candidate.type {
             case .inheritance:
-                logger.debug("[TypeIndex] Adding inheritance Relationship to \(source.debugDescription) from \(entry.reference.debugDescription)")
+                logger.debug("[TypeIndex] Adding inheritance Relationship to \(source.debugDescription) from \(destination.debugDescription)")
 
-                // allowOverwrite: strategy=.silence has the double meaning that those relationship candidates
-                // are the result of our automatic return type analysis. Thus they may be overwritten
-                // by an explicit definition.
-                node.addRelationshipInheritance(
+                relationshipBuilder.addRelationshipInheritance(
                     at: source,
-                    from: entry.reference,
+                    from: destination,
                     for: operation,
                     resolvers: candidate.resolvers
                 )
             case let .reference(name), let .link(name):
-                logger.debug("[TypeIndex] Adding relationship \(candidate.type) to \(source.debugDescription) from \(entry.reference.debugDescription)")
-                // `source` and `candidate.reference` hold the reference to the source
-                // `entry.reference` holds the reference to the destination
-                let destination = RelationshipDestination(name: name, destination: entry.reference, resolvers: candidate.resolvers)
-                node.addEndpointDestination(at: source, destination)
+                logger.debug("[TypeIndex] Adding relationship \(candidate.type) to \(source.debugDescription) from \(destination.debugDescription)")
+
+                relationshipBuilder.addDestinationFromExplicitTyping(
+                    at: source,
+                    name: name,
+                    destination: destination,
+                    with: candidate.resolvers
+                )
             }
         }
 
@@ -185,8 +165,6 @@ struct TypeIndex {
                        Didn't find a destination for the given type in the TypeIndex.
                        """)
         }
-
-        return foundSome
     }
 
     /// This method checks the resolvability of path parameters of the relationship destination.
@@ -420,8 +398,8 @@ struct IndexedRelationshipInheritanceCandidate: Hashable, CustomDebugStringConve
     }
 
     /// Returns a resolved version of the candidate representation
-    func ensureResolved() -> RelationshipSourceCandidate {
-        candidate.ensureResolved()
+    func ensureResolved(using builder: RelationshipBuilder) -> RelationshipSourceCandidate {
+        candidate.ensureResolved(using: builder)
     }
 
     func hash(into hasher: inout Hasher) {

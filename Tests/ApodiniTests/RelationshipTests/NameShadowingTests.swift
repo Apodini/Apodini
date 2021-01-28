@@ -8,6 +8,7 @@ import XCTApodini
 
 class NameShadowingTests: ApodiniTests {
     var aRelationship = Relationship(name: "a")
+    var bRelationship = Relationship(name: "b")
 
     struct Number: Handler {
         let int: Int
@@ -47,11 +48,9 @@ class NameShadowingTests: ApodiniTests {
     }
 
     func testInheritedRelationshipShadowing() {
-        return
         // This test cases tests, that inherited relationships do not
         // affect our name shadowing logic:
         // explicit definition (`Relationship` instances) hides -> structural hides -> inherited relationships
-        // TODO rest might show shadowed link if shadowing link is hidden
         let context = RelationshipTestContext(app: app, service: webservice)
 
         let result = context.request(on: 0)

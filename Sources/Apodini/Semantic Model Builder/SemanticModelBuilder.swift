@@ -18,7 +18,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     let webService: WebServiceModel
     let rootNode: EndpointsTreeNode
 
-    var relationshipInstanceBuilder: RelationshipInstanceBuilder
+    var relationshipBuilder: RelationshipBuilder
     var typeIndexBuilder: TypeIndexBuilder
 
     init(_ app: Application) {
@@ -26,7 +26,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         webService = WebServiceModel()
         rootNode = webService.root
 
-        relationshipInstanceBuilder = RelationshipInstanceBuilder()
+        relationshipBuilder = RelationshipBuilder(logger: app.logger)
         typeIndexBuilder = TypeIndexBuilder(logger: app.logger)
     }
 
@@ -61,9 +61,9 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         guards = applicationInjectables(to: guards)
         responseTransformers = applicationInjectables(to: responseTransformers)
 
+        let partialCandidates = context.get(valueFor: RelationshipSourceCandidateContextKey.self)
         let relationshipSources = context.get(valueFor: RelationshipSourceContextKey.self)
         let relationshipDestinations = context.get(valueFor: RelationshipDestinationContextKey.self)
-        let partialCandidates = context.get(valueFor: RelationshipSourceCandidateContextKey.self)
 
         var endpoint = Endpoint(
             identifier: {
@@ -89,9 +89,10 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         // Additionally, addEndpoint may cause a insertion of a additional path parameter,
         // which makes it necessary to be called before any operation relying on the path of the Endpoint.
 
-        relationshipInstanceBuilder.collectRelationshipCandidates(for: endpoint, partialCandidates)
-        relationshipInstanceBuilder.collectSources(for: endpoint, relationshipSources)
-        relationshipInstanceBuilder.collectDestinations(for: endpoint, relationshipDestinations)
+        relationshipBuilder.collect(endpoint: endpoint,
+                                    candidates: partialCandidates,
+                                    sources: relationshipSources,
+                                    destinations: relationshipDestinations)
 
         typeIndexBuilder.indexContentType(of: endpoint)
     }
@@ -101,14 +102,14 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
 
         // the order of how relationships are built below strongly reflect our strategy
         // on how conflicting definitions shadow each other
-        var typeIndex = TypeIndex(from: typeIndexBuilder)
+        let typeIndex = TypeIndex(from: typeIndexBuilder, buildingWith: relationshipBuilder)
 
-        // below call builds any explicit relationships:
-        relationshipInstanceBuilder.resolveInstances() // `Relationship` instances
-        relationshipInstanceBuilder.index(into: &typeIndex) // type hints
-
+        // resolving any type based Relationship creation (inference or Relationship DSL)
         typeIndex.resolve()
 
+        // after we collected any relationships from the `typeIndex.resolve()` step
+        // we can construct the final relationship model.
+        relationshipBuilder.buildAll()
 
         app.logger.info("\(webService.debugDescription)")
 

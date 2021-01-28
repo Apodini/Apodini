@@ -70,7 +70,7 @@ protocol SomeRelationshipSourceCandidate: CustomDebugStringConvertible {
     var resolvers: [AnyPathParameterResolver] { get }
 
     /// Returns a resolved version of the candidate representation
-    func ensureResolved() -> RelationshipSourceCandidate
+    func ensureResolved(using builder: RelationshipBuilder) -> RelationshipSourceCandidate
 }
 
 /// Represents a candidate for a `EndpointRelationship` create using type information
@@ -98,25 +98,27 @@ struct RelationshipSourceCandidate: SomeRelationshipSourceCandidate {
         self.resolvers = resolvers
     }
 
-    fileprivate init(from partialCandidate: PartialRelationshipSourceCandidate, endpoint: _AnyEndpoint) {
+    fileprivate init(from partialCandidate: PartialRelationshipSourceCandidate,
+                     reference: EndpointReference,
+                     using builder: RelationshipBuilder) {
         self.type = partialCandidate.type
         self.destinationType = partialCandidate.destinationType
-        self.reference = endpoint.reference
+        self.reference = reference
 
         var parameterResolvers: [AnyPathParameterResolver]
         if case .inheritance = type {
-            parameterResolvers = endpoint.absolutePath.listPathParameters().resolvers()
+            parameterResolvers = reference.absolutePath.listPathParameters().resolvers()
         } else {
             // We take all resolver used for inheritance into account in order for this to work
             // the `TypeIndex.resolve` steps MUST parse inheritance candidates FIRST.
-            parameterResolvers = endpoint.selfRelationship.resolvers
+            parameterResolvers = builder.selfRelationshipResolvers(for: reference)
         }
 
         parameterResolvers.append(contentsOf: partialCandidate.resolvers)
         self.resolvers = parameterResolvers
     }
 
-    func ensureResolved() -> RelationshipSourceCandidate {
+    func ensureResolved(using builder: RelationshipBuilder) -> RelationshipSourceCandidate {
         self
     }
 }
@@ -170,8 +172,8 @@ struct PartialRelationshipSourceCandidate: SomeRelationshipSourceCandidate {
         storedReference = endpoint.reference
     }
 
-    func ensureResolved() -> RelationshipSourceCandidate {
-        RelationshipSourceCandidate(from: self, endpoint: reference.resolve())
+    func ensureResolved(using builder: RelationshipBuilder) -> RelationshipSourceCandidate {
+        RelationshipSourceCandidate(from: self, reference: reference, using: builder)
     }
 }
 

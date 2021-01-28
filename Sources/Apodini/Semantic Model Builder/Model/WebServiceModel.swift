@@ -17,7 +17,7 @@ public class WebServiceModel: CustomDebugStringConvertible {
             fatalError("Tried retrieving root relationships before WebService was finished parsing!")
         }
 
-        return Array(root.constructStructuralRelationships().values)
+        return Array(RelationshipBuilder.constructStructuralRelationships(for: root).values)
     }()
 
     private var finishedParsing = false

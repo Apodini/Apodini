@@ -4,58 +4,6 @@
 
 import Foundation
 
-struct EndpointInsertionContext {
-    private let endpoint: AnyEndpoint
-    private(set) var storedPath: [StoredEndpointPath]
-
-    /// This array holds all UUIDs of Parameters which were already retrieved from the path array above.
-    /// This is used to decide if we need to add a PathParameter which has a definition in the Handler
-    /// but not a dedicated definition contained in the PathComponents
-    private var retrievedParameters: [UUID] = []
-
-    var pathEmpty: Bool {
-        storedPath.isEmpty
-    }
-    var pathCount: Int {
-        storedPath.count
-    }
-
-    init(for endpoint: AnyEndpoint, with pathComponents: [PathComponent]) {
-        self.endpoint = endpoint
-        self.storedPath = pathComponents.pathModelBuilder().results
-    }
-
-    func retrievedPathContains(parameter: AnyEndpointParameter) -> Bool {
-        retrievedParameters.contains(parameter.id)
-    }
-
-    mutating func append(parameter: AnyEndpointParameter) {
-        storedPath.append(StoredEndpointPath(
-            path: parameter.toInternal().derivePathParameterModel()
-        ))
-    }
-
-    mutating func assertRootPath() {
-        storedPath.assertRoot()
-    }
-
-    mutating func nextStoredPath() -> StoredEndpointPath {
-        let next = storedPath.removeFirst()
-
-        if case let .parameter(parameter) = next.path {
-            precondition(!retrievedParameters.contains(parameter.id), {
-                var parameter = parameter.toInternal()
-                parameter.scoped(on: endpoint)
-                return "The path of \(endpoint.description) contains duplicated path parameter : \(parameter.name)!"
-            }())
-
-            retrievedParameters.append(parameter.id)
-        }
-
-        return next
-    }
-}
-
 class EndpointsTreeNode {
     let storedPath: StoredEndpointPath
     var endpoints: [Operation: _AnyEndpoint] = [:]
@@ -70,7 +18,9 @@ class EndpointsTreeNode {
     /// Thus we mark `childContainsPathParameter` to true as soon as we insert a `PathParameter` as a child.
     private var childContainsPathParameter = false
 
-    private var finishedConstruction = false
+    /// Describes if the `EndpointsTree` is fully built and can be considered stable
+    /// (e.g. to derive information from the structure like Relationships)
+    var finishedConstruction = false
 
     lazy var absolutePath: [EndpointPath] = {
         var absolutePath: [EndpointPath] = []
@@ -87,14 +37,6 @@ class EndpointsTreeNode {
     /// At this point one can safely construct any relationships between nodes.
     func finish() {
         finishedConstruction = true
-
-        // those are all the same independent of the source Endpoint
-        let structuralRelationships = constructStructuralRelationships()
-        let structuralSelfRelationship = constructStructuralSelfRelationship()
-
-        for key in endpoints.keys {
-            endpoints[key]?.finished(with: structuralRelationships, self: structuralSelfRelationship)
-        }
 
         for child in children {
             child.finish()
@@ -153,147 +95,56 @@ class EndpointsTreeNode {
 
         absolutePath.append(storedPath.path)
     }
+}
 
-    func constructStructuralRelationships() -> [[EndpointPath]: EndpointRelationship] {
-        guard finishedConstruction else {
-            fatalError("Constructed endpoint relationships although the tree wasn't finished parsing!")
-        }
+struct EndpointInsertionContext {
+    private let endpoint: AnyEndpoint
+    private(set) var storedPath: [StoredEndpointPath]
 
-        var relationships: [[EndpointPath]: EndpointRelationship] = [:]
+    /// This array holds all UUIDs of Parameters which were already retrieved from the path array above.
+    /// This is used to decide if we need to add a PathParameter which has a definition in the Handler
+    /// but not a dedicated definition contained in the PathComponents
+    private var retrievedParameters: [UUID] = []
 
-        for child in children {
-            let operations = Operation.allCases
-            child.collectRelationships(&relationships, searchList: operations, hiddenOperations: Set(minimumCapacity: operations.count / 2))
-        }
-
-        return relationships
+    var pathEmpty: Bool {
+        storedPath.isEmpty
+    }
+    var pathCount: Int {
+        storedPath.count
     }
 
-    private func constructStructuralSelfRelationship() -> EndpointRelationship {
-        var relationship = EndpointRelationship(path: absolutePath)
-
-        for endpoint in endpoints.values {
-            relationship.addEndpoint(self: endpoint)
-        }
-
-        return relationship
+    init(for endpoint: AnyEndpoint, with pathComponents: [PathComponent]) {
+        self.endpoint = endpoint
+        self.storedPath = pathComponents.pathModelBuilder().results
     }
 
-    /// This method builds all STRUCTURAL Relationships.
-    /// It must be called on a subtree of the desired source node (see `constructRelationships()`).
-    /// This method will recursively traverse all nodes of the subtree until it finds
-    /// a `Endpoint` for every `Operation`.
-    ///
-    /// - Parameters:
-    ///   - relationships: The array to collect all the `EndpointRelationship` instances.
-    ///   - searchList: Contains all the Operations to still search for relationships.
-    ///   - hiddenOperations: The DSL allows to hide certain paths from Relationship indexing.
-    ///         The `Handler.hideLink(...)` modifier can be used in a way to only hide Handlers with
-    ///         a certain `Operation`. This property holds the `Operation` which are hidden for the given subtree.
-    ///   - respectHidden: Defines if we encountered a hideLink previously and must respect the hiddenOperations set.
-    ///   - namePrefix: Prefix to prepend to the relationship name.
-    ///   - relativeNamingPath: A relative path use for naming.
-    ///   - nameOverride: If defined, this value will override the relationship name.
-    private func collectRelationships(
-        _ relationships: inout [[EndpointPath]: EndpointRelationship],
-        searchList: [Operation],
-        hiddenOperations: Set<Operation>,
-        namePrefix: String = "",
-        relativeNamingPath: [EndpointPath] = [],
-        nameOverride: String? = nil
-    ) {
-        var prefix = namePrefix
-        var override = storedPath.context.relationshipName ?? nameOverride
-
-        var relativePath = relativeNamingPath
-        relativePath.append(storedPath.path)
-
-        if storedPath.context.isGroupEnd, let name = override {
-            prefix += name
-            override = nil
-            relativePath = []
-        }
-
-        var hiddenOperations = hiddenOperations
-        for hiddenOperation in storedPath.context.hiddenOperations {
-            hiddenOperations.insert(hiddenOperation)
-        }
-
-        var searchList = searchList
-        var relationship: EndpointRelationship?
-
-        for (operation, endpoint) in endpoints {
-            if let index = searchList.firstIndex(of: operation) {
-                // if the operation is in our search list, we create a relationship for it and remove it from the searchList
-                searchList.remove(at: index)
-
-                if relationship == nil {
-                    relationship = EndpointRelationship(path: absolutePath)
-                }
-
-                // swiftlint:disable force_unwrapping
-                relationship!.addEndpoint(
-                    endpoint,
-                    prefix: prefix,
-                    relativeNamingPath: relativePath,
-                    nameOverride: override,
-                    hideLink: hiddenOperations.contains(operation)
-                )
-            }
-        }
-
-        if let relationship = relationship {
-            precondition(relationships[relationship.path] == nil,
-                         "Trying to collect structural relationship \(relationship) found conflict \(String(describing: relationships[relationship.path]))")
-            relationships[relationship.path] = relationship
-        }
-
-        if searchList.isEmpty {
-            // if the searchList is empty we can stop searching
-            return
-        }
-
-        for child in children {
-            child.collectRelationships(
-                &relationships,
-                searchList: searchList,
-                hiddenOperations: hiddenOperations,
-                namePrefix: prefix,
-                relativeNamingPath: relativePath,
-                nameOverride: override
-            )
-        }
+    func retrievedPathContains(parameter: AnyEndpointParameter) -> Bool {
+        retrievedParameters.contains(parameter.id)
     }
 
-    /// Used to add a `EndpointRelationship` create from a `RelationshipInstance`.
-    ///
-    /// - Parameters:
-    ///   - reference: Reference to the `Endpoint`, use to resolve the `Operation` of the `Endpoint`.
-    ///   - relationship: The `EndpointRelationship` which is to be added
-    func addRelationship(at reference: EndpointReference, _ relationship: EndpointRelationship) {
-        var endpoint = reference.resolve()
-        endpoint.addRelationship(relationship)
-        endpoints[reference.operation] = endpoint
+    mutating func append(parameter: AnyEndpointParameter) {
+        storedPath.append(StoredEndpointPath(
+            path: parameter.toInternal().derivePathParameterModel()
+        ))
     }
 
-    func addEndpointDestination(at reference: EndpointReference, _ destination: RelationshipDestination) {
-        var endpoint = reference.resolve()
-        endpoint.addRelationshipDestination(destination: destination, inherited: false)
-        endpoints[reference.operation] = endpoint
+    mutating func assertRootPath() {
+        storedPath.assertRoot()
     }
 
-    func addRelationshipInheritance(
-        at reference: EndpointReference,
-        from: EndpointReference,
-        for operation: Operation,
-        resolvers: [AnyPathParameterResolver]
-    ) {
-        var endpoint = reference.resolve()
-        let inheritance = RelationshipDestination(self: from, resolvers: resolvers)
-        endpoint.addRelationshipInheritance(self: inheritance, for: operation)
+    mutating func nextStoredPath() -> StoredEndpointPath {
+        let next = storedPath.removeFirst()
 
-        // See docs of `resolveRelationshipInheritance()`.
+        if case let .parameter(parameter) = next.path {
+            precondition(!retrievedParameters.contains(parameter.id), {
+                var parameter = parameter.toInternal()
+                parameter.scoped(on: endpoint)
+                return "The path of \(endpoint.description) contains duplicated path parameter : \(parameter.name)!"
+            }())
 
-        endpoints[reference.operation] = endpoint
+            retrievedParameters.append(parameter.id)
+        }
+
+        return next
     }
 }

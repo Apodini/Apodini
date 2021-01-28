@@ -23,7 +23,7 @@ public protocol WithRelationships {
     typealias Identifying<To: Identifiable> = RelationshipIdentification<Self, To> where To.ID: LosslessStringConvertible
 
     /// Defines `RelationshipDefinition`s for the given `Content` type.
-    @RelationshipBuilder
+    @RelationshipDefinitionBuilder
     static var relationships: Relationships { get }
 }
 
@@ -54,7 +54,7 @@ struct RelationshipSourceCandidateContextKey: ContextKey {
 
 /// A function builder used to aggregate `RelationshipDefinition`.
 @_functionBuilder
-public enum RelationshipBuilder {
+public enum RelationshipDefinitionBuilder {
     /// A method that transforms multiple `RelationshipDefinition`s
     public static func buildBlock(_ definitions: RelationshipDefinition...) -> [RelationshipDefinition] {
         definitions
