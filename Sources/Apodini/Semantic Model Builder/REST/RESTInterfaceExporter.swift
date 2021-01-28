@@ -30,7 +30,7 @@ class RESTInterfaceExporter: InterfaceExporter {
         let endpointHandler = RESTEndpointHandler(configuration: configuration, using: { endpoint.createConnectionContext(for: self) })
         endpointHandler.register(at: routesBuilder, with: operation)
 
-        app.logger.info("Exported '\(operation.httpMethod.rawValue) \(pathBuilder.pathDescription)' with parameters: \(exportedParameterNames)")
+        app.logger.info("Exported '\(Vapor.HTTPMethod(operation).rawValue) \(pathBuilder.pathDescription)' with parameters: \(exportedParameterNames)")
 
         if endpoint.inheritsRelationship {
             app.logger.info("  - inherits from: \(endpoint.selfRelationship.destinationPath.asPathString())")

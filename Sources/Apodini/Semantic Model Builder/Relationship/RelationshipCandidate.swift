@@ -32,9 +32,9 @@ enum RelationshipType: Hashable, CustomStringConvertible, CustomDebugStringConve
         case .inheritance:
             return "inheritance"
         case let .reference(name):
-            return "reference(name: \"\(name)\")"
+            return #"reference(name: "\#(name)")"#
         case let .link(name):
-            return "link(name: \"\(name)\")"
+            return #"link(name: "\#(name)")"#
         }
     }
 

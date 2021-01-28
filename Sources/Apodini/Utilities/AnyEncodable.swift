@@ -9,7 +9,7 @@ import Foundation
 
 
 public struct AnyEncodable: Encodable {
-    private let wrappedValue: Encodable
+    internal let wrappedValue: Encodable
     
     
     init(_ wrappedValue: Encodable) {
@@ -28,9 +28,5 @@ extension AnyEncodable {
             return wrappedValue as? T
         }
         return anyEncodableWrappedValue.typed(T.self)
-    }
-
-    internal func any() -> Any {
-        wrappedValue
     }
 }

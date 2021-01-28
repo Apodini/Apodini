@@ -5,8 +5,7 @@
 //  Created by Max Obermeier on 31.12.20.
 //
 
-import Foundation
-import Fluent
+import NIO
 
 /// An `ObservedListener` can be notified by a `ConnectionContext` if an observed object
 /// in the connection's handler has changed.

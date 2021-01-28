@@ -14,7 +14,7 @@ struct RESTEndpointHandler {
     }
 
     func register(at routesBuilder: Vapor.RoutesBuilder, with operation: Operation) {
-        routesBuilder.on(operation.httpMethod, [], use: self.handleRequest)
+        routesBuilder.on(Vapor.HTTPMethod(operation), [], use: self.handleRequest)
     }
 
     func handleRequest(request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {

@@ -174,7 +174,7 @@ struct ParsedTypeIndexEntryCapture: CustomDebugStringConvertible {
 }
 
 
-// <------------ Everything above has to to with capturing the type data. Everything below is actually building something with the data ------------>
+// MARK: TypeIndexBuilder Building
 
 
 extension TypeIndexBuilder {

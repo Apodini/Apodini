@@ -35,7 +35,7 @@ public struct HandledRequest: Encodable {
         with formatter: Formatter,
         for operation: Operation? = nil
     ) -> Formatter.Result {
-        let context = ResolveContext(content: response.any(), parameters: parameters)
+        let context = ResolveContext(content: response.wrappedValue, parameters: parameters)
 
         let destinations: Set<RelationshipDestination>
         if let operation = operation {
@@ -62,7 +62,7 @@ public struct HandledRequest: Encodable {
         with formatter: Formatter,
         for operation: Operation? = nil
     ) -> Formatter.Result {
-        let context = ResolveContext(content: response.any(), parameters: parameters)
+        let context = ResolveContext(content: response.wrappedValue, parameters: parameters)
 
         var result = initialValue
 
@@ -87,7 +87,7 @@ public struct HandledRequest: Encodable {
         into initialValue: inout Formatter.Result,
         with formatter: Formatter
     ) {
-        let context = ResolveContext(content: response.any(), parameters: parameters)
+        let context = ResolveContext(content: response.wrappedValue, parameters: parameters)
         endpoint.selfRelationship.formatRelationship(with: formatter, result: &initialValue, context: context)
     }
 }
