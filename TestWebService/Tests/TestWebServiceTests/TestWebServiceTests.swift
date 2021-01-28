@@ -31,7 +31,7 @@ final class DownloadsTests: XCTestCase {
         
         try process.run()
         
-        wait(for: [timeoutExpectation], timeout: 10.0)
+        wait(for: [timeoutExpectation], timeout: 6.0)
         
         guard process.isRunning else {
             XCTFail("The server terminated during the setup: \(process.terminationStatus)")
