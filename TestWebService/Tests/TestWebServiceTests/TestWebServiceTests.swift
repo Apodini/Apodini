@@ -25,13 +25,13 @@ final class DownloadsTests: XCTestCase {
         process.standardOutput = pipe
         
         let timeoutExpectation = XCTestExpectation(description: "Timeout Expectation")
-        DispatchQueue(label: "TestTimeOut").asyncAfter(deadline: .now() + 1.0) {
+        DispatchQueue(label: "TestTimeOut").asyncAfter(deadline: .now() + 5.0) {
             timeoutExpectation.fulfill()
         }
         
         try process.run()
         
-        wait(for: [timeoutExpectation], timeout: 1.1)
+        wait(for: [timeoutExpectation], timeout: 10.0)
         
         guard process.isRunning else {
             XCTFail("The server terminated during the setup: \(process.terminationStatus)")
