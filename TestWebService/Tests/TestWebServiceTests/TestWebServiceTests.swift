@@ -20,33 +20,29 @@ final class DownloadsTests: XCTestCase {
 
         let process = Process()
         process.executableURL = testWebServiceBinary
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
         
-        let timeoutExpectation = XCTestExpectation(description: "Timeout Expectation")
-        DispatchQueue(label: "TestTimeOut").asyncAfter(deadline: .now() + 5.0) {
+        var timeoutExpectation = XCTestExpectation(description: "Timeout Expectation")
+        DispatchQueue(label: "TestTimeOut").asyncAfter(deadline: .now() + 2.0) {
             timeoutExpectation.fulfill()
         }
         
         try process.run()
         
-        wait(for: [timeoutExpectation], timeout: 6.0)
+        wait(for: [timeoutExpectation], timeout: 2.5)
         
         guard process.isRunning else {
             XCTFail("The server terminated during the setup: \(process.terminationStatus)")
             return
         }
         
-        process.terminate()
-        
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        guard let output = String(data: data, encoding: .utf8) else {
-            XCTFail("Could not parse the startup output of the web service")
-            return
+        timeoutExpectation = XCTestExpectation(description: "Timeout Expectation")
+        DispatchQueue(label: "TestTimeOut").asyncAfter(deadline: .now() + 0.5) {
+            timeoutExpectation.fulfill()
         }
         
-        print(output)
+        process.terminate()
+        
+        wait(for: [timeoutExpectation], timeout: 1.0)
         
         XCTAssertEqual(process.terminationStatus, 0)
     }
