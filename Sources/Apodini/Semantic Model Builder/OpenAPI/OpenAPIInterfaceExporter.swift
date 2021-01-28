@@ -43,10 +43,17 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
     }
     
     private func setApplicationServer(from app: Application) {
-        let isHttps = app.vapor.app.http.server.configuration.tlsConfiguration != nil
-        let host = app.vapor.app.http.server.configuration.hostname
-        let port = app.vapor.app.http.server.configuration.port
-        if let url = URL(string: "\(isHttps ? "https" : "http")://\(host):\(port)") {
+        let isHttps = app.http.tlsConfiguration != nil
+        var hostName: String?
+        var port: Int?
+        if case let .hostname(configuredHost, port: configuredPort) = app.http.address {
+            hostName = configuredHost
+            port = configuredPort
+        } else {
+            hostName = app.vapor.app.http.server.configuration.hostname
+            port = app.vapor.app.http.server.configuration.port
+        }
+        if let hostName = hostName, let port = port, let url = URL(string: "\(isHttps ? "https" : "http")://\(hostName):\(port)") {
             self.configuration.serverUrls.insert(url)
         }
     }
