@@ -208,15 +208,26 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
             let newPlayers: [Player]
         }
 
-        let tree = try OpenAPIComponentsObjectBuilder.node(Game.self)
+        struct Casino {
+            let tables: [Game]
+        }
         
-        XCTAssertEqual(tree.children.count, 2)
+        let tree = try OpenAPIComponentsObjectBuilder.node(Casino.self)
         
-        // check for correct children
+        XCTAssertEqual(tree?.children.count, 1)
+
+        let tablesNode = tree?.children.first {
+            $0.value.propertyInfo?.name == "tables"
+        }
+
+        XCTAssertEqual(tablesNode?.children.count, 2)
+        XCTAssertTrue(tablesNode?.value.cardinality == .zeroToMany(.array))
+
+        // check for correct children of tablesNode
         let stringNode = try EnrichedInfo.node(String.self)
         let playerNode = try EnrichedInfo.node(Player.self)
-        let newPlayersNode = tree.children.first { $0.value.propertyInfo?.name == "newPlayers" }
-        let playersNode = tree.children.first { $0.value.propertyInfo?.name == "players" }
+        let newPlayersNode = tablesNode?.children.first { $0.value.propertyInfo?.name == "newPlayers" }
+        let playersNode = tablesNode?.children.first { $0.value.propertyInfo?.name == "players" }
         
         XCTAssertEqual(playersNode?.children.count, 2)
         XCTAssertTrue(playersNode?.value.cardinality == .zeroToMany(.dictionary(key: stringNode.value, value: playerNode.value)))
