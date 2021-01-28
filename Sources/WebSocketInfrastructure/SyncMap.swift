@@ -103,6 +103,7 @@ private extension SyncMap {
                 if let completion = self.completion {
                     // In case we received a `completion` while waiting for the
                     // future we are done after passing this `completion` `downstream`.
+                    self.subscription = nil
                     self.lock.unlock()
                     self.downstream.receive(completion: completion)
                 } else {
@@ -122,6 +123,7 @@ private extension SyncMap {
             if !self.awaiting {
                 // If not awaiting a future right now, then we have to
                 // forward the completion right now.
+                self.subscription = nil
                 self.downstream.receive(completion: completion)
             } else {
                 // If we are currently waiting for a future to complete,
@@ -147,9 +149,9 @@ private extension SyncMap.Inner {
     // whenever downstream requested new demand. It can be used to call
     // `requestOne` under certain conditions.
     private class Inner: Subscription {
-        var subscription: Subscription
+        var subscription: Subscription?
         
-        private var onDemand: () -> Void
+        private var onDemand: (() -> Void)?
         
         init(upstream: Subscription, onDemand: @escaping () -> Void) {
             self.subscription = upstream
@@ -163,18 +165,20 @@ private extension SyncMap.Inner {
             self.lock.lock()
             self.demand += demand
             self.lock.unlock()
-            self.onDemand()
+            self.onDemand?()
         }
         
         func cancel() {
-            self.subscription.cancel()
+            self.subscription?.cancel()
+            self.subscription = nil
+            self.onDemand = nil
         }
         
         func requestOne() {
             self.lock.lock()
             if demand > 0 {
                 self.demand -= 1
-                self.subscription.request(.max(1))
+                self.subscription?.request(.max(1))
             }
             self.lock.unlock()
         }
