@@ -25,7 +25,10 @@ extension Handler {
 }
 
 // MARK: Activatable
-func activate<Element>(_ subject: inout Element) {
+
+/// A function that prepares all contained properties (that have to be prepared)
+/// for usage.
+public func activate<Element>(_ subject: inout Element) {
     apply({ (activatable: inout Activatable) in
         activatable.activate()
     }, to: &subject)

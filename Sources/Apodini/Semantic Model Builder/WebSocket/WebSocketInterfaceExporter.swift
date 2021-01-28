@@ -80,7 +80,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
                     // The completion is also synchronized by `syncMap` it waits for any future
                     // to complete before forwarding it.
                     receiveCompletion: { completion in
-                        Self.handleCompletion(completion: completion, context: context, eventLoop: eventLoop, emptyInput: emptyInput)
+                        Self.handleCompletion(completion: completion, context: &context, eventLoop: eventLoop, emptyInput: emptyInput, output: output)
                         // We have to reference the cancellable here so it stays in memory and isn't cancled early.
                         cancellables.removeAll()
                     },

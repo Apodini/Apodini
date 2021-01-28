@@ -46,6 +46,10 @@ public class Scheduler {
         EnvironmentValue(keyPath, job)
         let jobConfiguration = try generateConfiguration(cronTrigger, keyPath)
         
+        // Activate any `ObservedObject`s on the job.
+        var job = job
+        activate(&job)
+        
         if let runs = runs {
             schedule(job, with: jobConfiguration, runs, on: eventLoop)
         } else {

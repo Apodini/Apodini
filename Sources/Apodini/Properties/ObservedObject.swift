@@ -7,7 +7,7 @@ import Foundation
 /// This is helpful for service-side streams or bidirectional communication.
 @propertyWrapper
 public struct ObservedObject<Element: ObservableObject>: Property {
-    private var objectIdentifer: ObjectIdentifier?
+    private var objectIdentifier: ObjectIdentifier?
     private var element: Element?
     
     public var wrappedValue: Element {
@@ -15,7 +15,7 @@ public struct ObservedObject<Element: ObservableObject>: Property {
             if let element = element {
                 return element
             }
-            if let objectIdentifer = objectIdentifer,
+            if let objectIdentifer = objectIdentifier,
                let element = EnvironmentValues.shared.values[objectIdentifer] as? Element {
                 return element
             }
@@ -52,20 +52,12 @@ public struct ObservedObject<Element: ObservableObject>: Property {
     
     /// Element passed as an object.
     public init(wrappedValue defaultValue: Element) {
-        element = defaultValue
-        // TODO should not be done here
-        // Currently, invocations via Jobs do not activate
-        // thus they will fail
-        activate()
+        self.element = defaultValue
     }
     
     /// Element is injected with a key path.
     public init<Key: KeyChain>(_ keyPath: KeyPath<Key, Element>) {
-        objectIdentifer = ObjectIdentifier(keyPath)
-        // TODO should not be done here
-        // Currently, invocations via Jobs do not activate
-        // thus they will fail
-        activate()
+        self.objectIdentifier = ObjectIdentifier(keyPath)
     }
 }
 
@@ -76,7 +68,7 @@ public protocol AnyObservedObject {
     
     /// Any `ObservedObject` has a `changed` flag that indicates if this object has been
     /// changed _recently_. The definition of _recently_ depends on the context and usage.
-    /// 
+    ///
     /// E.g. for `Handler`s, the `handle()` function is executed every time an `@ObservedObject`
     /// canges. The `changed` property of this object is set to `true` for the exact time where
     /// the `handle()` is evaluated because this object changed.
