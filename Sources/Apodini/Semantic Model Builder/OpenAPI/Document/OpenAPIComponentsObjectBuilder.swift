@@ -158,7 +158,7 @@ extension OpenAPIComponentsObjectBuilder {
 
     private static func recursiveEdit(node: Node<EnrichedInfo>, counter: inout Int) throws -> Node<EnrichedInfo> {
         if counter > OpenAPISchemaConstants.allowedRecursionDepth {
-            fatalError("Error occurred during transfering tree of nodes with type \(node.value.typeInfo.name). The recursion depth has exceeded the critical value of \(OpenAPISchemaConstants.allowedRecursionDepth)")
+            fatalError("Error occurred during transfering tree of nodes with type \(node.value.typeInfo.name). The recursion depth has exceeded the critical value of \(OpenAPISchemaConstants.allowedRecursionDepth).")
         }
         counter += 1
         let before = node.collectValues()
@@ -167,8 +167,10 @@ extension OpenAPIComponentsObjectBuilder {
             .edited(handleArray)?
             .edited(handleDictionary)?
             .edited(handlePrimitiveType)?
-            .edited(handleUUID) else {
-            fatalError("Error occurred during transforming tree of nodes with type \(node.value.typeInfo.name).") }
+            .edited(handleUUID)
+        else {
+            fatalError("Error occurred during transforming tree of nodes with type \(node.value.typeInfo.name).")
+        }
         let after = newNode.collectValues()
         return after != before ? try recursiveEdit(node: newNode, counter: &counter) : node
     }
