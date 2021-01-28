@@ -21,6 +21,8 @@ class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     // MARK: Initialization
     required init(_ app: Application) {
         self.app = app
+        
+        app.logger.info("\(app.storage[VariableWidthIntegerConfiguration.Key.self])")
     }
     
     // MARK: Methods
