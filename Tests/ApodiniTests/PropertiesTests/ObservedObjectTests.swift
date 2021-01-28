@@ -263,7 +263,7 @@ class ObservedObjectTests: ApodiniTests {
             @ObservedObject var observable = InitializationObserver()
 
             func handle() -> String {
-                XCTAssertLessThan(Date().distance(to: observable.date), TimeInterval(0.1))
+                XCTAssertLessThan(Date().timeIntervalSince1970 - observable.date.timeIntervalSince1970, TimeInterval(0.1))
                 return "\(observable.date)"
             }
         }
