@@ -80,9 +80,9 @@ class OptionalEncodingTests: XCTestCase {
 
     func testEncodeRepeatedOptionalFloatMessage() throws {
         let expected = Data([
-                                10, 16, 250, 62, 246, 66, 207, 119,
-                                246, 66, 121, 233,
-                                246, 66, 78, 34, 247, 66
+            10, 16, 250, 62, 246, 66, 207, 119,
+            246, 66, 121, 233,
+            246, 66, 78, 34, 247, 66
         ])
         let content: [Float?] = [123.123, 123.234, nil, 123.456, 123.567]
 
@@ -93,9 +93,9 @@ class OptionalEncodingTests: XCTestCase {
 
     func testEncodeRepeatedOptionalDoubleMessage() throws {
         let expected = Data([
-                                10, 16, 117, 107, 126, 84, 52, 111,
-                                157, 65, 219, 209, 228, 84, 52, 111,
-                                157, 65
+            10, 16, 117, 107, 126, 84, 52, 111,
+            157, 65, 219, 209, 228, 84, 52, 111,
+            157, 65
         ])
         let content: [Double?] = [123456789.123456789, 123456789.223456789, nil]
 
