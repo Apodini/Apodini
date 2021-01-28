@@ -3,6 +3,7 @@ import XCTApodini
 import NIO
 import Vapor
 @testable import Apodini
+import Foundation
 
 class ObservedObjectTests: ApodiniTests {
     // check setting changed
