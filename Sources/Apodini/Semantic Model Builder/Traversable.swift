@@ -133,7 +133,8 @@ private func execute<Element, Target>(_ operation: (Target, _ name: String) thro
     }
 }
 
-private func execute<Element, Target>(_ operation: (Target) throws -> Void, on element: Element) rethrows {
+/// Executes an operation to a target in an element.
+public func execute<Element, Target>(_ operation: (Target) throws -> Void, on element: Element) rethrows {
     try execute({(target: Target, _: String) in
         try operation(target)
     }, on: element)
@@ -190,7 +191,8 @@ private func apply<Element, Target>(_ mutation: (inout Target, _ name: String) t
     }
 }
 
-private func apply<Element, Target>(_ mutation: (inout Target) throws -> Void, to element: inout Element) rethrows {
+/// Applies a mutation to an element.
+public func apply<Element, Target>(_ mutation: (inout Target) throws -> Void, to element: inout Element) rethrows {
     try apply({(target: inout Target, _: String) in
         try mutation(&target)
     }, to: &element)

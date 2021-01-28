@@ -15,7 +15,7 @@ final class JobsTests: XCTApodiniTest {
     }
     
     struct FailingJob2: Job {
-        @Environment(\.connection) var connection: Connection
+        @Parameter var parameter: String
         
         /// Not used by tests
         func run() { }
@@ -29,10 +29,19 @@ final class JobsTests: XCTApodiniTest {
         }
     }
     
+    struct StateJob: Job {
+        @State var num = 0
+        
+        func run() {
+            num += 1
+        }
+    }
+    
     struct KeyStore: KeyChain {
         var failingJob: FailingJob
         var failingJob2: FailingJob2
         var testJob: TestJob
+        var stateJob: StateJob
     }
     
     func testFailingJobs() throws {
@@ -63,14 +72,14 @@ final class JobsTests: XCTApodiniTest {
         try app.scheduler.enqueue(TestJob(), with: everyMinute, \KeyStore.testJob, on: eventLoop)
         
         let scheduled = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)]?.scheduled)
-        // Advancing event loop 70 seconds
-        // Job should have been fired by now
-        eventLoop.advanceTime(by: .seconds(70))
-    
+        // Advance event loop to the next minute
+        let second = Calendar.current.component(.second, from: Date())
+        eventLoop.advanceTime(by: .seconds(Int64(60 - second)))
+        
         XCTAssertScheduling(scheduled)
         
         let scheduled2 = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)]?.scheduled)
-        eventLoop.advanceTime(by: .seconds(70))
+        eventLoop.advanceTime(by: .seconds(60))
         
         // Checking next scheduled value
         XCTAssertScheduling(scheduled2)
@@ -90,15 +99,11 @@ final class JobsTests: XCTApodiniTest {
         let eventLoop = EmbeddedEventLoop()
         try app.scheduler.enqueue(TestJob(), with: "* */1 * * *", \KeyStore.testJob, on: eventLoop)
         
+        let scheduled = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)]?.scheduled)
         // Advance event loop to the next hour
         let minute = Calendar.current.component(.minute, from: Date())
         eventLoop.advanceTime(by: .minutes(Int64(60 - minute)))
         
-        let scheduled = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)]?.scheduled)
-        // Advancing event loop 1 hour
-        // Job should have been fired by now
-        eventLoop.advanceTime(by: .hours(1))
-    
         XCTAssertScheduling(scheduled)
         
         let scheduled2 = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)]?.scheduled)
@@ -118,6 +123,19 @@ final class JobsTests: XCTApodiniTest {
         XCTAssertNotNil(error)
     }
     
+    func testStatePropertyWrapper() throws {
+        let eventLoop = EmbeddedEventLoop()
+        
+        try app.scheduler.enqueue(StateJob(), with: everyMinute, \KeyStore.stateJob, on: eventLoop)
+        
+        let second = Calendar.current.component(.second, from: Date())
+        eventLoop.advanceTime(by: .seconds(Int64(60 - second)))
+        
+        let job = Environment(\KeyStore.stateJob).wrappedValue
+        
+        XCTAssertEqual(job.num, 1)
+    }
+    
     func testZeroRuns() throws {
         Schedule(TestJob(), on: everyMinute, runs: 0, \KeyStore.testJob).configure(app)
         let jobConfig = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)])
@@ -128,16 +146,12 @@ final class JobsTests: XCTApodiniTest {
     
     func testTwoRuns() throws {
         let eventLoop = EmbeddedEventLoop()
-        // Advance event loop to the next minute
-        let second = Calendar.current.component(.second, from: Date())
-        eventLoop.advanceTime(by: .seconds(Int64(60 - second)))
-        
         try app.scheduler.enqueue(TestJob(), with: everyMinute, runs: 2, \KeyStore.testJob, on: eventLoop)
         
         let scheduled = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)]?.scheduled)
-        // Advancing event loop 70 seconds
-        // Job should have been fired by now
-        eventLoop.advanceTime(by: .seconds(60))
+        // Advance event loop to the next minute
+        let second = Calendar.current.component(.second, from: Date())
+        eventLoop.advanceTime(by: .seconds(Int64(60 - second)))
         
         XCTAssertScheduling(scheduled)
         

@@ -60,14 +60,25 @@ public class Scheduler {
                                              runs: Int? = nil,
                                              _ keyPath: KeyPath<K, T>,
                                              on eventLoop: EventLoop) throws {
-        try checkPropertyWrappers(job)
-        EnvironmentValue(keyPath, job)
-        let jobConfiguration = try generateConfiguration(cronTrigger, keyPath)
+        // Only valid property wrappers can be used with `Job`s.
+        try job.checkPropertyWrapper()
+        
+        // Activates all `Activatebles`.
+        let activatedJob = job.activate()
+        
+        // Adds the `Job`to `@Environment`.
+        EnvironmentValue(keyPath, activatedJob)
+        
+        // Creates the configuration of the `Job`.
+        let jobConfiguration = try generateConfiguration(cronTrigger, keyPath, eventLoop)
+        
+        // Subscribes to all `ObservedObject`s.
+        activatedJob.subscribe(configuration: jobConfiguration)
         
         if let runs = runs {
-            schedule(job, with: jobConfiguration, runs, on: eventLoop)
+            schedule(activatedJob, with: jobConfiguration, runs, on: eventLoop)
         } else {
-            schedule(job, with: jobConfiguration, on: eventLoop)
+            schedule(activatedJob, with: jobConfiguration, on: eventLoop)
         }
     }
     
@@ -101,7 +112,6 @@ private extension Scheduler {
     
     func schedule<T: Job>(_ job: T, with config: JobConfiguration, _ runs: Int, on eventLoop: EventLoop) {
         guard runs > 0, let nextDate = try? config.cron.next() else {
-            print("CANCEL \(runs)" )
             config.scheduled?.cancel()
             return
         }
@@ -114,32 +124,12 @@ private extension Scheduler {
         }
     }
     
-    /// Checks if only valid property wrappers are used with `Job`s.
-    func checkPropertyWrappers<T: Job>(_ job: T) throws {
-        for property in Mirror(reflecting: job).children {
-            switch property.value {
-            case is Environment<EnvironmentValues, Connection>, is RequestBasedPropertyWrapper:
-                throw JobErrors.requestPropertyWrapper
-            case let observedObject as AnyObservedObject:
-                subscribe(job: job, to: observedObject)
-            default:
-                continue
-            }
-        }
-    }
-    
-    func subscribe(job: Job, to observedObject: AnyObservedObject) {
-        observedObject.valueDidChange = {
-            observedObject.setChanged(to: true)
-            job.run()
-            observedObject.setChanged(to: false)
-        }
-    }
-    
     /// Generates the configuration of the `Job`.
-    func generateConfiguration<K: KeyChain, T: Job>(_ cronTrigger: String, _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
+    func generateConfiguration<K: KeyChain, T: Job>(_ cronTrigger: String,
+                                                    _ keyPath: KeyPath<K, T>,
+                                                    _ eventLoop: EventLoop) throws -> JobConfiguration {
         let identifier = ObjectIdentifier(keyPath)
-        let jobConfiguration = try JobConfiguration(SwifCron(cronTrigger))
+        let jobConfiguration = try JobConfiguration(SwifCron(cronTrigger), eventLoop)
         jobConfigurations[identifier] = jobConfiguration
         
         return jobConfiguration

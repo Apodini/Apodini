@@ -11,10 +11,12 @@ public protocol Job: ObservableObject {
 
 internal class JobConfiguration {
     let cron: SwifCron
+    let eventLoop: EventLoop
     var scheduled: Scheduled<()>?
     
-    init(_ cron: SwifCron, _ scheduled: Scheduled<()>? = nil) {
+    init(_ cron: SwifCron, _ eventLoop: EventLoop, _ scheduled: Scheduled<()>? = nil) {
         self.cron = cron
+        self.eventLoop = eventLoop
         self.scheduled = scheduled
     }
 }
