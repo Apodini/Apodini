@@ -18,8 +18,7 @@ func handleDictionary(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
 
     var newEnrichedInfo = EnrichedInfo(
         typeInfo: valueNode.value.typeInfo,
-        propertyInfo: node.value.propertyInfo,
-        propertiesOffset: node.value.propertiesOffset
+        propertyInfo: node.value.propertyInfo
     )
     
     newEnrichedInfo.cardinality = .zeroToMany(.dictionary(key: keyNode.value, value: valueNode.value))
