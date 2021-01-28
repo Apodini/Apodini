@@ -61,10 +61,16 @@ public class Scheduler {
                                              _ keyPath: KeyPath<K, T>,
                                              on eventLoop: EventLoop) throws {
         // Only valid property wrappers can be used with `Job`s.
-        try job.checkPropertyWrapper()
+        try check(on: job,
+                  for: Environment<EnvironmentValues, Connection>.self,
+                  throw: JobErrors.requestPropertyWrapper)
+        try check(on: job,
+                  for: RequestBasedPropertyWrapper.self,
+                  throw: JobErrors.requestPropertyWrapper)
         
-        // Activates all `Activatebles`.
-        let activatedJob = job.activate()
+        // Activates all `Activatable`s.
+        var activatedJob = job
+        activate(&activatedJob)
         
         // Adds the `Job`to `@Environment`.
         EnvironmentValue(keyPath, activatedJob)
@@ -72,8 +78,21 @@ public class Scheduler {
         // Creates the configuration of the `Job`.
         let jobConfiguration = try generateConfiguration(cronTrigger, keyPath, eventLoop)
         
-        // Subscribes to all `ObservedObject`s.
-        activatedJob.subscribe(configuration: jobConfiguration)
+        // Subscribes to all `ObservedObject`s
+        // using a closure that takes each `ObservedObject`.
+        subscribe(on: activatedJob,
+                  using: { observedObject in
+                    observedObject.setChanged(to: true)
+                    // Executes the `Job` on its own event loop
+                    // And sets changed to false after the execution
+                    _ = jobConfiguration
+                        .scheduled?
+                        .futureResult
+                        .map {
+                            observedObject.setChanged(to: false)
+                        }
+                        .hop(to: jobConfiguration.eventLoop)
+                  })
         
         if let runs = runs {
             schedule(activatedJob, with: jobConfiguration, runs, on: eventLoop)

@@ -10,7 +10,9 @@ import NIO
 @_implementationOnly import Runtime
 
 // MARK: Activatable
-func activate<Element>(_ subject: inout Element) {
+/// A function that prepares all contained properties (that have to be prepared)
+/// for usage.
+public func activate<Element>(_ subject: inout Element) {
     apply({ (activatable: inout Activatable) in
         activatable.activate()
     }, to: &subject)
@@ -85,6 +87,24 @@ extension Handler {
     }
 }
 
+// MARK: Property Check
+
+/// Checks if an illegal element is used inside of a target.
+public func check<Target, Value, E: Error>(on target: Target, for value: Value.Type, throw error: E) throws {
+    try execute({ (_ : Value) in
+        throw error
+    }, on: target)
+}
+
+// MARK: ObservedObject
+
+/// Subscribes to all `ObservedObject`s with a closure.
+public func subscribe<Target>(on target: Target, using callback: @escaping ((AnyObservedObject) -> Void)) {
+    execute({ (observedObject: AnyObservedObject) in
+        observedObject.valueDidChange = { callback(observedObject) }
+    }, on: target)
+}
+
 
 // MARK: Traversable
 
@@ -134,7 +154,7 @@ private func execute<Element, Target>(_ operation: (Target, _ name: String) thro
 }
 
 /// Executes an operation to a target in an element.
-public func execute<Element, Target>(_ operation: (Target) throws -> Void, on element: Element) rethrows {
+private func execute<Element, Target>(_ operation: (Target) throws -> Void, on element: Element) rethrows {
     try execute({(target: Target, _: String) in
         try operation(target)
     }, on: element)
@@ -192,7 +212,7 @@ private func apply<Element, Target>(_ mutation: (inout Target, _ name: String) t
 }
 
 /// Applies a mutation to an element.
-public func apply<Element, Target>(_ mutation: (inout Target) throws -> Void, to element: inout Element) rethrows {
+private func apply<Element, Target>(_ mutation: (inout Target) throws -> Void, to element: inout Element) rethrows {
     try apply({(target: inout Target, _: String) in
         try mutation(&target)
     }, to: &element)
