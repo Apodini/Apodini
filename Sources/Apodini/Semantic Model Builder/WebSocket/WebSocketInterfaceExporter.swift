@@ -137,9 +137,10 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     
     private static func handleCompletion(
         completion: Subscribers.Completion<Never>,
-        context: AnyConnectionContext<WebSocketInterfaceExporter>,
+        context: inout AnyConnectionContext<WebSocketInterfaceExporter>,
         eventLoop: EventLoop,
         emptyInput: SomeInput,
+        output: PassthroughSubject<Message<AnyEncodable>, Error>
     ) {
         switch completion {
         case .finished:
@@ -159,7 +160,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     }
     
     private static func handleValue(
-        result: Response<AnyEncodable>,
+        result: Result<Response<AnyEncodable>, Error>,
         output: PassthroughSubject<Message<AnyEncodable>, Error>) {
         switch result {
         case .success(let response):
