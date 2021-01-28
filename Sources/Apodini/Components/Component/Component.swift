@@ -39,7 +39,9 @@ extension Component {
             HandlerVisitorHelperImpl(visitor: visitor)(self)
             if Self.Content.self != Never.self {
                 visitor.enterContent {
-                    content.accept(visitor)
+                    visitor.enterComponentContext {
+                        content.accept(visitor)
+                    }
                 }
             }
         }
