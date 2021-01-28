@@ -30,11 +30,10 @@ struct OpenAPIConfiguration {
 
 extension OpenAPIConfiguration {
     init(from app: Application) {
-        let `protocol` = app.vapor.app.http.server.configuration.tlsConfiguration != nil ? "https" : "http"
         let host = app.vapor.app.http.server.configuration.hostname
         let port = app.vapor.app.http.server.configuration.port
         var servers: [OpenAPI.Server] = []
-        if let url = URL(string: "\(`protocol`)://\(host):\(port)") {
+        if let url = URL(string: "\(host):\(port)") {
             let server = OpenAPI.Server(url: url)
             servers.append(server)
         }
