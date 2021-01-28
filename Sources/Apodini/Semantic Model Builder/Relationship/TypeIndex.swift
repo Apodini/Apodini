@@ -241,8 +241,7 @@ struct TypeIndex {
         // Step 3: Evaluate inheritance counters
         for type in inheritanceIndex.keys {
             if var index = inheritanceIndex[type], index.maxInheritanceDepth == nil {
-                index.maxInheritanceDepth = calcInheritanceDepth(for: index, in: &inheritanceIndex)
-                inheritanceIndex[type] = index
+                calcInheritanceDepth(for: &index, in: &inheritanceIndex)
             }
         }
 
@@ -266,9 +265,7 @@ struct TypeIndex {
                 return lhsDepth > rhsDepth // descending order
             })
             .reduce(into: []) { result, index in
-                for candidate in index.inheritanceCandidates {
-                    result.append(candidate)
-                }
+                result.append(contentsOf: index.inheritanceCandidates)
             }
     }
 
@@ -341,7 +338,17 @@ struct TypeIndex {
         }
     }
 
-    private func calcInheritanceDepth(for index: IndexedInheritance, in inheritanceIndex: inout [ObjectIdentifier: IndexedInheritance]) -> Int {
+    /// This method evaluates the value for the `IndexedInheritance.maxInheritanceDepth` property.
+    /// This value defines the maximum count of children for a given type.
+    /// This method calls itself recursively and thus other `IndexedInheritance` are touched to evaluate
+    /// their `maxInheritanceDepth`, reducing calls needed for other calculations.
+    ///
+    /// - Parameters:
+    ///   - index: The index instance to calculate the depth value for.
+    ///   - inheritanceIndex: The InheritanceIndex to operate on.
+    /// - Returns: Returns the
+    @discardableResult
+    private func calcInheritanceDepth(for index: inout IndexedInheritance, in inheritanceIndex: inout [ObjectIdentifier: IndexedInheritance]) -> Int {
         if let depth = index.maxInheritanceDepth {
             return depth
         }
@@ -353,23 +360,22 @@ struct TypeIndex {
                 let identifier = ObjectIdentifier(subtype)
 
                 if var subIndex = inheritanceIndex[identifier] {
-                    let depth = calcInheritanceDepth(for: subIndex, in: &inheritanceIndex)
-
-                    subIndex.maxInheritanceDepth = depth
-                    inheritanceIndex[identifier] = subIndex
-
-                    return depth
+                    return calcInheritanceDepth(for: &subIndex, in: &inheritanceIndex)
                 } else {
                     return 0
                 }
             }
             .max()
 
-        if let depth = maxDepth {
-            return depth + 1
-        } else {
-            return 0
+        var depth: Int = 0
+        if let calculatedDepth = maxDepth {
+            depth = calculatedDepth + 1
         }
+
+        index.maxInheritanceDepth = depth
+        inheritanceIndex[ObjectIdentifier(index.inheritedType)] = index
+
+        return depth
     }
 }
 
