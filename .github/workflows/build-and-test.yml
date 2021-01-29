@@ -31,16 +31,16 @@ jobs:
     - name: Check Swift version
       run: swift --version
     - name: Build
-      if: strategy.matrix.configuration == 'release'
+      if: matrix.configuration == 'release'
       run: swift build --configuration ${{ matrix.configuration }}
     - name: Build & Test
-      if: strategy.matrix.configuration == 'debug'
+      if: matrix.configuration == 'debug'
       run: swift test --configuration ${{ matrix.configuration }} --enable-code-coverage
     - name: Convert coverage report
-      if: strategy.matrix.configuration == 'debug'
+      if: matrix.configuration == 'debug'
       run: xcrun llvm-cov export -format="lcov" .build/debug/ApodiniPackageTests.xctest/Contents/MacOS/ApodiniPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage.lcov
     - name: Upload coverage to Codecov
-      if: strategy.matrix.configuration == 'debug'
+      if: matrix.configuration == 'debug'
       uses: codecov/codecov-action@v1
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} test build
@@ -62,8 +62,8 @@ jobs:
     - name: Check Swift version
       run: swift --version
     - name: Build
-      if: strategy.matrix.configuration == 'release'
+      if: matrix.configuration == 'release'
       run: swift build --configuration ${{ matrix.configuration }}
     - name: Build & Test
-      if: strategy.matrix.configuration == 'debug'
+      if: matrix.configuration == 'debug'
       run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
