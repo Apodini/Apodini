@@ -83,11 +83,11 @@ public class Scheduler {
         subscribe(on: activatedJob,
                   using: { observedObject in
                     // Executes the `Job` on its own event loop
-//                    jobConfiguration.eventLoop.execute {
+                    jobConfiguration.eventLoop.execute {
                         observedObject.setChanged(to: true)
                         activatedJob.run()
                         observedObject.setChanged(to: false)
-//                    }
+                    }
                   })
         
         if let runs = runs {
