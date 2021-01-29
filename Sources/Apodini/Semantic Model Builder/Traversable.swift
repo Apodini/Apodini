@@ -113,7 +113,7 @@ extension Handler {
     }
 }
 
-/// Injects an `Application` to a target.
+/// Injects an `Application` instance to a target.
 public func inject<Element>(app: Application, to subject: inout Element) {
     apply({ (applicationInjectible: inout ApplicationInjectable) in
         applicationInjectible.inject(app: app)

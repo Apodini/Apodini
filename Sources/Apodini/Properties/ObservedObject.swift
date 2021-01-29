@@ -108,7 +108,7 @@ extension ObservedObject: Activatable {
 }
 
 extension ObservedObject: ApplicationInjectable {
-    public mutating func inject(app: Application) {
+    mutating func inject(app: Application) {
         self.app = app
     }
 }

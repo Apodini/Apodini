@@ -62,7 +62,7 @@ protocol Activatable {
 }
 
 extension State: Activatable {
-    public mutating func activate() {
+    mutating func activate() {
         self.wrapper = Wrapper(value: self.initializer())
     }
 }

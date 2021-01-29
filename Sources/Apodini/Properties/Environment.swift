@@ -47,13 +47,13 @@ public struct Environment<K: KeyChain, Value>: Property {
 }
 
 extension Environment: ApplicationInjectable {
-    public mutating func inject(app: Application) {
+    mutating func inject(app: Application) {
         self.app = app
     }
 }
 
 extension Environment: Activatable {
-    public mutating func activate() {
+    mutating func activate() {
         canAccess = true
     }
 }
