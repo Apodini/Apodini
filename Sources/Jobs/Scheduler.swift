@@ -73,7 +73,7 @@ public class Scheduler {
         var activatedJob = job
         activate(&activatedJob)
         
-        // Inject the application instance to all `ApplicationInjectables`
+        // Inject the application instance to all `ApplicationInjectables`.
         inject(app: app, to: &activatedJob)
         
         // Adds the `Job`to `@Environment`.
@@ -94,7 +94,7 @@ public class Scheduler {
                                         }
                                     }
         )
-        // Only adds the observation if it is present
+        // Only adds the observation if it is present.
         if let observation = observation {
             observations.append(observation)
         }
