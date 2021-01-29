@@ -5,6 +5,8 @@ public class Published<Element> {
     private var element: Element
     private var observations: [Weak<Observation>] = []
     
+    /// The contained element. When changed all subscribed entities are notified
+    /// **after** the new value has been set.
     public var wrappedValue: Element {
         get {
             element
