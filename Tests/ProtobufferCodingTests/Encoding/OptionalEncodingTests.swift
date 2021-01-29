@@ -15,7 +15,7 @@ class OptionalEncodingTests: XCTestCase {
         let number: Int32? = 12345
 
         let encoded = try ProtobufferEncoder().encode(number)
-        XCTAssertEqual(encoded, expected, "testEncodeSinglePositiveOptionalInt32")
+        XCTAssertEqual(encoded, expected)
     }
 
     func testEncodePositiveOptionalInt32Message() throws {
@@ -24,7 +24,7 @@ class OptionalEncodingTests: XCTestCase {
 
         let message = ProtoTestMessage(content: number)
         let encoded = try ProtobufferEncoder().encode(message)
-        XCTAssertEqual(encoded, expected, "testEncodePositiveOptionalInt32Message")
+        XCTAssertEqual(encoded, expected)
     }
 
     func testEncodeSingleOptionalString() throws {
@@ -32,7 +32,7 @@ class OptionalEncodingTests: XCTestCase {
         let content: String? = "Hello World"
 
         let encoded = try ProtobufferEncoder().encode(content)
-        XCTAssertEqual(encoded, expected, "testEncodeSingleOptionalString")
+        XCTAssertEqual(encoded, expected)
     }
 
     func testEncodeOptionalStringMessage() throws {
@@ -41,7 +41,7 @@ class OptionalEncodingTests: XCTestCase {
 
         let message = ProtoTestMessage(content: content)
         let encoded = try ProtobufferEncoder().encode(message)
-        XCTAssertEqual(encoded, expected, "testEncodeOptionalStringMessage")
+        XCTAssertEqual(encoded, expected)
     }
 
     func testEncodeRepeatedOptionalBoolMessage() throws {
@@ -50,7 +50,7 @@ class OptionalEncodingTests: XCTestCase {
 
         let message = ProtoTestMessage(content: content)
         let encoded = try ProtobufferEncoder().encode(message)
-        XCTAssertEqual(encoded, expected, "testEncodeRepeatedOptionalBoolMessage")
+        XCTAssertEqual(encoded, expected)
     }
 
     func testEncodeRepeatedOptionalInt() throws {
@@ -58,7 +58,7 @@ class OptionalEncodingTests: XCTestCase {
         let content: [Int?] = [1, 2, nil, 4, 5]
 
         let encoded = try ProtobufferEncoder().encode(content)
-        XCTAssertEqual(encoded, expected, "testEncodeRepeatedOptionalInt")
+        XCTAssertEqual(encoded, expected)
     }
 
     func testEncodeRepeatedOptionalInt32() throws {
@@ -66,7 +66,7 @@ class OptionalEncodingTests: XCTestCase {
         let content: [Int32?] = [1, 2, nil, 4, 5]
 
         let encoded = try ProtobufferEncoder().encode(content)
-        XCTAssertEqual(encoded, expected, "testEncodeRepeatedOptionalInt32")
+        XCTAssertEqual(encoded, expected)
     }
 
     func testEncodeRepeatedOptionalInt32Message() throws {
@@ -75,7 +75,7 @@ class OptionalEncodingTests: XCTestCase {
 
         let message = ProtoTestMessage(content: content)
         let encoded = try ProtobufferEncoder().encode(message)
-        XCTAssertEqual(encoded, expected, "testEncodeRepeatedOptionalInt32Message")
+        XCTAssertEqual(encoded, expected)
     }
 
     func testEncodeRepeatedOptionalFloatMessage() throws {
@@ -88,7 +88,7 @@ class OptionalEncodingTests: XCTestCase {
 
         let message = ProtoTestMessage(content: content)
         let encoded = try ProtobufferEncoder().encode(message)
-        XCTAssertEqual(encoded, expected, "testEncodeRepeatedOptionalFloatMessage")
+        XCTAssertEqual(encoded, expected)
     }
 
     func testEncodeRepeatedOptionalDoubleMessage() throws {
@@ -101,7 +101,7 @@ class OptionalEncodingTests: XCTestCase {
 
         let message = ProtoTestMessage(content: content)
         let encoded = try ProtobufferEncoder().encode(message)
-        XCTAssertEqual(encoded, expected, "testEncodeRepeatedOptionalDoubleMessage")
+        XCTAssertEqual(encoded, expected)
     }
 
     func testEncodeRepeatedOptionalUIntMessage() throws {
@@ -110,7 +110,7 @@ class OptionalEncodingTests: XCTestCase {
 
         let message = ProtoTestMessage(content: content)
         let encoded = try ProtobufferEncoder().encode(message)
-        XCTAssertEqual(encoded, expected, "testEncodeRepeatedOptionalUIntMessage")
+        XCTAssertEqual(encoded, expected)
     }
 
     func testEncodeRepeatedOptionalUInt32Message() throws {
@@ -119,6 +119,6 @@ class OptionalEncodingTests: XCTestCase {
 
         let message = ProtoTestMessage(content: content)
         let encoded = try ProtobufferEncoder().encode(message)
-        XCTAssertEqual(encoded, expected, "testEncodeRepeatedOptionalUInt32Message")
+        XCTAssertEqual(encoded, expected)
     }
 }

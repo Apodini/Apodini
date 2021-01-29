@@ -75,23 +75,22 @@ class ComplexEncodingTests: XCTestCase {
 
     func testEncodeComplexMessage() throws {
         let encoded = try ProtobufferEncoder().encode(complexMessage)
-        XCTAssertEqual(encoded, expectedComplexMessage, "testEncodeComplexMessage")
+        XCTAssertEqual(encoded, expectedComplexMessage)
     }
 
     func testEncodeComplexMessageWithOptionalsAllNil() throws {
         let encoded = try ProtobufferEncoder().encode(ProtoComplexTestMessageWithOptionals())
-        XCTAssertEqual(encoded, Data(), "testEncodeComplexMessageWithOptionalsAllNil")
+        XCTAssertEqual(encoded, Data())
     }
 
     func testEncodeComplexMessageWithOptionalsAllSet() throws {
         let encoded = try ProtobufferEncoder().encode(complexMessage)
-        XCTAssertEqual(encoded, expectedComplexMessage, "testEncodeComplexMessageWithOptionalsAllSet")
+        XCTAssertEqual(encoded, expectedComplexMessage)
     }
 
     func testEncodeComplexMessageWithOptionalsPartiallySet() throws {
         let encoded = try ProtobufferEncoder().encode(complexMessageWithOptionalsPartsSet)
         XCTAssertEqual(encoded,
-                       expectedComplexMsgWithOptionalsPartsSet,
-                       "testEncodeComplexMessageWithOptionalsPartiallySet")
+                       expectedComplexMsgWithOptionalsPartsSet)
     }
 }
