@@ -114,7 +114,7 @@ public func check<Target, Value, E: Error>(on target: Target, for value: Value.T
 // MARK: ObservedObject
 
 /// Subscribes to all `ObservedObject`s with a closure.
-public func subscribe<Target>(on target: Target, using callback: @escaping ((AnyObservedObject) -> Void)) -> Observation?  {
+public func subscribe<Target>(on target: Target, using callback: @escaping ((AnyObservedObject) -> Void)) -> Observation? {
     var observation: Observation?
     execute({ (observedObject: AnyObservedObject) in
         observation = observedObject.register { callback(observedObject) }
