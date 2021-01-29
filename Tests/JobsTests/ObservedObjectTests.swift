@@ -33,6 +33,8 @@ final class ObservedObjectTests: XCTApodiniTest {
         // Only triggered by observer
         Schedule(job, on: "* * * * *", runs: 0, \Keys.job).configure(app)
         observer.num = 42
+        // wait for first trigger to be completed
+        usleep(10000)
         observer.text = "Bye"
     }
     
@@ -57,12 +59,12 @@ final class ObservedObjectTests: XCTApodiniTest {
         
         let eventLoop = EmbeddedEventLoop()
         // Schedule every full minute
-        try app.scheduler.enqueue(job2, with: "* * * * *", runs: 1, \Keys2.job, on: eventLoop)
-        // Advancing event loop 70 seconds
-        // Job should have been fired by now
-        eventLoop.advanceTime(by: .seconds(70))
+        try app.scheduler.enqueue(job2, with: "* * * * *", \Keys2.job, on: eventLoop)
         
         let scheduled = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\Keys2.job)]?.scheduled)
+        // Advance event loop to the next minute
+        let second = Calendar.current.component(.second, from: Date())
+        eventLoop.advanceTime(by: .seconds(Int64(60 - second)))
         
         XCTAssertScheduling(scheduled)
     }
@@ -76,10 +78,15 @@ final class ObservedObjectTests: XCTApodiniTest {
             }
         }
         
+        var wasRun: Bool = false
+        
         struct SubscribingJob: Job {
             @ObservedObject(\Keys2.emittingJob) var observedObject: EmittingJob
             
+            let onRun: () -> Void
+            
             func run() {
+                onRun()
                 XCTAssertTrue(_observedObject.changed)
                 XCTAssertEqual(observedObject.num, 42)
             }
@@ -91,12 +98,24 @@ final class ObservedObjectTests: XCTApodiniTest {
         }
         
         let eventLoop = EmbeddedEventLoop()
-        try app.scheduler.enqueue(EmittingJob(), with: "* * * * *", runs: 1, \Keys2.emittingJob, on: eventLoop)
-        Schedule(SubscribingJob(), on: "* * * * *", runs: 0, \Keys2.subscribingJob).configure(app)
-        eventLoop.advanceTime(by: .seconds(70))
+
+        try app.scheduler.enqueue(EmittingJob(), with: "* * * * *", runs: 2, \Keys2.emittingJob, on: eventLoop)
+        Schedule(
+            SubscribingJob(onRun: {
+                wasRun = true
+            }),
+            on: "* * * * *",
+            runs: 0,
+            \Keys2.subscribingJob)
+            .configure(app)
         
         let scheduled = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\Keys2.emittingJob)]?.scheduled)
+        // Advance event loop to the next minute
+        let second = Calendar.current.component(.second, from: Date())
+        eventLoop.advanceTime(by: .seconds(Int64(60 - second)))
         
         XCTAssertScheduling(scheduled)
+        usleep(10000)
+        XCTAssertTrue(wasRun)
     }
 }

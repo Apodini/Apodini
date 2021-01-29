@@ -1,10 +1,3 @@
-//
-//  JobsTests.swift
-//  
-//
-//  Created by Alexander Collins on 29.12.20.
-//
-
 import XCTApodini
 import XCTest
 import Apodini
@@ -25,11 +18,18 @@ final class JobsTests: XCTApodiniTest {
         func run() { }
     }
     
+    struct FailingJob2: Job {
+        @Parameter var parameter: String
+        
+        /// Not used by tests
+        func run() { }
+    }
+    
     class TestJob: Job {
         var num = 0
         
         func run() {
-            print("\(num)")
+            num += 1
         }
     }
     
@@ -52,16 +52,18 @@ final class JobsTests: XCTApodiniTest {
     
     struct KeyStore: KeyChain {
         var failingJob: FailingJob
+        var failingJob2: FailingJob2
         var testJob: TestJob
         var stateJob: StateJob
         var environmentJob: EnvironmentJob
     }
     
     func testFailingJobs() throws {
-        XCTAssertThrowsError(try scheduler.dequeue(\KeyStore.failingJob))
-        XCTAssertThrowsError(try scheduler.enqueue(FailingJob(), with: everyMinute, \KeyStore.failingJob, on: app.eventLoopGroup.next()))
-        XCTAssertThrowsError(try scheduler.enqueue(TestJob(), with: "* * * *", \KeyStore.testJob, on: app.eventLoopGroup.next()))
-        XCTAssertThrowsError(try scheduler.enqueue(TestJob(), with: "A B C D E", runs: 5, \KeyStore.testJob, on: app.eventLoopGroup.next()))
+        XCTAssertThrowsError(try app.scheduler.dequeue(\KeyStore.failingJob))
+        XCTAssertThrowsError(try app.scheduler.enqueue(FailingJob(), with: everyMinute, \KeyStore.failingJob, on: app.eventLoopGroup.next()))
+        XCTAssertThrowsError(try app.scheduler.enqueue(FailingJob2(), with: everyMinute, \KeyStore.failingJob2, on: app.eventLoopGroup.next()))
+        XCTAssertThrowsError(try app.scheduler.enqueue(TestJob(), with: "* * * *", \KeyStore.testJob, on: app.eventLoopGroup.next()))
+        XCTAssertThrowsError(try app.scheduler.enqueue(TestJob(), with: "A B C D E", runs: 5, \KeyStore.testJob, on: app.eventLoopGroup.next()))
     }
     
     func testFatalError() throws {
@@ -78,19 +80,6 @@ final class JobsTests: XCTApodiniTest {
         XCTAssert(job.num == 0)
     }
     
-    func testStatePropertyWrapper() throws {
-        let eventLoop = EmbeddedEventLoop()
-        
-        try scheduler.enqueue(StateJob(), with: everyMinute, \KeyStore.stateJob, on: eventLoop)
-        
-        let second = Calendar.current.component(.second, from: Date())
-        eventLoop.advanceTime(by: .seconds(Int64(60 - second)))
-        
-        let job = environmentJob(\KeyStore.stateJob, app: app)
-
-        XCTAssertEqual(job.num, 1)
-    }
-    
     func testEnvironmentPropertyWrapper() throws {
         let eventLoop = EmbeddedEventLoop()
         
@@ -103,20 +92,98 @@ final class JobsTests: XCTApodiniTest {
         
         XCTAssertTrue(job.contains)
     }
-    
     func testEveryMinute() throws {
-        Schedule(TestJob(), on: everyMinute, \KeyStore.testJob).configure(app)
-        let jobConfig = try XCTUnwrap(scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)])
-        XCTAssertNotNil(jobConfig.scheduled)
+        let eventLoop = EmbeddedEventLoop()
+        try app.scheduler.enqueue(TestJob(), with: everyMinute, \KeyStore.testJob, on: eventLoop)
         
-        try scheduler.dequeue(\KeyStore.testJob)
+        let scheduled = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)]?.scheduled)
+        // Advance event loop to the next minute
+        let second = Calendar.current.component(.second, from: Date())
+        eventLoop.advanceTime(by: .seconds(Int64(60 - second)))
+        
+        XCTAssertScheduling(scheduled)
+        
+        let scheduled2 = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)]?.scheduled)
+        eventLoop.advanceTime(by: .seconds(60))
+        
+        // Checking next scheduled value
+        XCTAssertScheduling(scheduled2)
+        
+        let scheduled3 = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)]?.scheduled)
+        
+        // Remove from scheduler
+        try app.scheduler.dequeue(\KeyStore.testJob)
+        
+        // Check if `Scheduled` was cancelled
+        var error: Error?
+        scheduled3.futureResult.whenFailure { error = $0 }
+        XCTAssertNotNil(error)
+    }
+    
+    func testEveryHour() throws {
+        let eventLoop = EmbeddedEventLoop()
+        try app.scheduler.enqueue(TestJob(), with: "* */1 * * *", \KeyStore.testJob, on: eventLoop)
+        
+        let scheduled = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)]?.scheduled)
+        // Advance event loop to the next hour
+        let minute = Calendar.current.component(.minute, from: Date())
+        eventLoop.advanceTime(by: .minutes(Int64(60 - minute)))
+        
+        XCTAssertScheduling(scheduled)
+        
+        let scheduled2 = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)]?.scheduled)
+        eventLoop.advanceTime(by: .hours(1))
+        
+        // Checking next scheduled value
+        XCTAssertScheduling(scheduled2)
+        
+        let scheduled3 = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)]?.scheduled)
+        
+        // Remove from scheduler
+        try app.scheduler.dequeue(\KeyStore.testJob)
+        
+        // Check if `Scheduled` was cancelled
+        var error: Error?
+        scheduled3.futureResult.whenFailure { error = $0 }
+        XCTAssertNotNil(error)
+    }
+    
+    func testStatePropertyWrapper() throws {
+        let eventLoop = EmbeddedEventLoop()
+        
+        try app.scheduler.enqueue(StateJob(), with: everyMinute, \KeyStore.stateJob, on: eventLoop)
+        
+        let second = Calendar.current.component(.second, from: Date())
+        eventLoop.advanceTime(by: .seconds(Int64(60 - second)))
+        
+        let job = environmentJob(\KeyStore.stateJob, app: app)
+        
+        XCTAssertEqual(job.num, 1)
     }
     
     func testZeroRuns() throws {
         Schedule(TestJob(), on: everyMinute, runs: 0, \KeyStore.testJob).configure(app)
-        let jobConfig = try XCTUnwrap(scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)])
+        let jobConfig = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)])
         XCTAssertNil(jobConfig.scheduled)
+    }
+    
+    func testTwoRuns() throws {
+        let eventLoop = EmbeddedEventLoop()
+        try app.scheduler.enqueue(TestJob(), with: everyMinute, runs: 2, \KeyStore.testJob, on: eventLoop)
         
-        try scheduler.dequeue(\KeyStore.testJob)
+        let scheduled = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)]?.scheduled)
+        // Advance event loop to the next minute
+        let second = Calendar.current.component(.second, from: Date())
+        eventLoop.advanceTime(by: .seconds(Int64(60 - second)))
+        
+        XCTAssertScheduling(scheduled)
+        
+        let scheduled2 = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)]?.scheduled)
+        eventLoop.advanceTime(by: .seconds(60))
+        
+        // Check if `Scheduled` was cancelled
+        var error: Error?
+        scheduled2.futureResult.whenFailure { error = $0 }
+        XCTAssertNotNil(error)
     }
 }

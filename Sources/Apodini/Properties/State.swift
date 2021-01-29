@@ -53,6 +53,14 @@ extension State where Element: ExpressibleByNilLiteral {
     }
 }
 
+/// An `Activatable` element may allocate resources when `activate` is called. These
+/// resources may share information with any copies made from this element after `activate`
+/// was called.
+protocol Activatable {
+    /// Activates the given element.
+    mutating func activate()
+}
+
 extension State: Activatable {
     public mutating func activate() {
         self.wrapper = Wrapper(value: self.initializer())

@@ -58,6 +58,12 @@ extension Environment: Activatable {
     }
 }
 
+/// Properties that need an `Application` instance.
+protocol ApplicationInjectable {
+    /// injects an `Application` instance
+    mutating func inject(app: Application)
+}
+
 /// A protocol to define key paths that can be used with `@Environment` to retrieve pre-defined objects.
 public protocol KeyChain { }
 

@@ -8,10 +8,10 @@ extension Application {
         }
         let newScheduler = Scheduler(app: self)
         self.storage[SchedulerStorageKey.self] = newScheduler
-        
+
         return newScheduler
     }
-    
+
     struct SchedulerStorageKey: StorageKey {
         typealias Value = Scheduler
     }
