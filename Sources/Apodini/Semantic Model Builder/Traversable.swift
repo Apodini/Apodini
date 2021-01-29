@@ -9,6 +9,21 @@ import Foundation
 import NIO
 @_implementationOnly import Runtime
 
+// MARK: ObservableObject
+
+extension Handler {
+    /// Collects  every `ObservedObject` in the Handler.
+    func collectObservedObjects() -> [AnyObservedObject] {
+        var observedObjects: [AnyObservedObject] = []
+        
+        execute({ observedObject in
+            observedObjects.append(observedObject)
+        }, on: self)
+        
+        return observedObjects
+    }
+}
+
 // MARK: Activatable
 /// A function that prepares all contained properties (that have to be prepared)
 /// for usage.
@@ -99,10 +114,12 @@ public func check<Target, Value, E: Error>(on target: Target, for value: Value.T
 // MARK: ObservedObject
 
 /// Subscribes to all `ObservedObject`s with a closure.
-public func subscribe<Target>(on target: Target, using callback: @escaping ((AnyObservedObject) -> Void)) {
+public func subscribe<Target>(on target: Target, using callback: @escaping ((AnyObservedObject) -> Void)) -> Observation?  {
+    var observation: Observation?
     execute({ (observedObject: AnyObservedObject) in
-        observedObject.valueDidChange = { callback(observedObject) }
+        observation = observedObject.register { callback(observedObject) }
     }, on: target)
+    return observation
 }
 
 

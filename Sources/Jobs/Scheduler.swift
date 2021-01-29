@@ -16,6 +16,7 @@ import Apodini
 public class Scheduler {
     private let app: Application
     internal var jobConfigurations: [ObjectIdentifier: JobConfiguration] = [:]
+    internal var observations: [Observation] = []
     
     init(app: Application) {
         self.app = app
@@ -80,15 +81,24 @@ public class Scheduler {
         
         // Subscribes to all `ObservedObject`s
         // using a closure that takes each `ObservedObject`.
-        subscribe(on: activatedJob,
+        let observation = subscribe(on: activatedJob,
                   using: { observedObject in
                     // Executes the `Job` on its own event loop
                     jobConfiguration.eventLoop.execute {
-                        observedObject.setChanged(to: true)
+                        observedObject.changed = true
                         activatedJob.run()
-                        observedObject.setChanged(to: false)
+                        observedObject.changed = false
                     }
-                  })
+                  }
+        )
+        // Only adds the observation if it is present
+        if let observation = observation {
+            observations.append(observation)
+        }
+        
+        // Activate any `ObservedObject`s on the job.
+        var job = job
+        activate(&job)
         
         if let runs = runs {
             schedule(activatedJob, with: jobConfiguration, runs, on: eventLoop)

@@ -78,10 +78,15 @@ final class ObservedObjectTests: XCTApodiniTest {
             }
         }
         
+        var wasRun: Bool = false
+        
         struct SubscribingJob: Job {
             @ObservedObject(\Keys2.emittingJob) var observedObject: EmittingJob
             
+            let onRun: () -> Void
+            
             func run() {
+                onRun()
                 XCTAssertTrue(_observedObject.changed)
                 XCTAssertEqual(observedObject.num, 42)
             }
@@ -93,8 +98,16 @@ final class ObservedObjectTests: XCTApodiniTest {
         }
         
         let eventLoop = EmbeddedEventLoop()
-        try app.scheduler.enqueue(EmittingJob(), with: "* * * * *", \Keys2.emittingJob, on: eventLoop)
-        Schedule(SubscribingJob(), on: "* * * * *", runs: 0, \Keys2.subscribingJob).configure(app)
+
+        try app.scheduler.enqueue(EmittingJob(), with: "* * * * *", runs: 2, \Keys2.emittingJob, on: eventLoop)
+        Schedule(
+            SubscribingJob(onRun: {
+                wasRun = true
+            }),
+            on: "* * * * *",
+            runs: 0,
+            \Keys2.subscribingJob)
+            .configure(app)
         
         let scheduled = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\Keys2.emittingJob)]?.scheduled)
         // Advance event loop to the next minute
@@ -102,5 +115,7 @@ final class ObservedObjectTests: XCTApodiniTest {
         eventLoop.advanceTime(by: .seconds(Int64(60 - second)))
         
         XCTAssertScheduling(scheduled)
+        usleep(10000)
+        XCTAssertTrue(wasRun)
     }
 }
