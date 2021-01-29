@@ -44,7 +44,6 @@ extension Application {
         }
     }
 
-    // swiftlint:disable identifier_name
     /// default database
     public var database: Database {
         self.database(nil)
