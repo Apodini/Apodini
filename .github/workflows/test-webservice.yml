@@ -16,7 +16,7 @@ defaults:
 
 jobs:
   macos:
-    name: macOS ${{ matrix.configuration }} Test TestWebService
+    name: macOS ${{ matrix.configuration }} test TestWebService
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -38,7 +38,7 @@ jobs:
     - name: Build & Test
       run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
   linux:
-    name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} Test TestWebService
+    name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} test TestWebService
     container:
       image: swift:${{ matrix.linux }}
     runs-on: ubuntu-latest

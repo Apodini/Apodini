@@ -12,7 +12,7 @@ on:
 
 jobs:
   macos:
-    name: macOS ${{ matrix.configuration }} Test Build
+    name: macOS ${{ matrix.configuration }} test build
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -31,7 +31,11 @@ jobs:
       run: xcodebuild -version
     - name: Check Swift version
       run: swift --version
+    - name: Build
+      if: strategy.matrix.configuration == 'release'
+      run: swift build --configuration ${{ matrix.configuration }}
     - name: Build & Test
+      if: strategy.matrix.configuration == 'debug'
       run: swift test --configuration ${{ matrix.configuration }} --enable-code-coverage
     - name: Convert coverage report
       if: strategy.matrix.configuration == 'debug'
@@ -40,7 +44,7 @@ jobs:
       if: strategy.matrix.configuration == 'debug'
       uses: codecov/codecov-action@v1
   linux:
-    name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} Test Build
+    name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} test build
     container:
       image: swift:${{ matrix.linux }}
     runs-on: ubuntu-latest
@@ -59,5 +63,9 @@ jobs:
         key: ${{ runner.os }}-${{matrix.linux}}-spm-cachev2-${{ hashFiles('**/Package.resolved') }}
     - name: Check Swift version
       run: swift --version
+    - name: Build
+      if: strategy.matrix.configuration == 'release'
+      run: swift build --configuration ${{ matrix.configuration }}
     - name: Build & Test
+      if: strategy.matrix.configuration == 'debug'
       run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
