@@ -25,7 +25,6 @@ extension Handler {
 }
 
 // MARK: Activatable
-
 /// A function that prepares all contained properties (that have to be prepared)
 /// for usage.
 public func activate<Element>(_ subject: inout Element) {
@@ -103,6 +102,26 @@ extension Handler {
     }
 }
 
+// MARK: Property Check
+
+/// Checks if an illegal element is used inside of a target.
+public func check<Target, Value, E: Error>(on target: Target, for value: Value.Type, throw error: E) throws {
+    try execute({ (_ : Value) in
+        throw error
+    }, on: target)
+}
+
+// MARK: ObservedObject
+
+/// Subscribes to all `ObservedObject`s with a closure.
+public func subscribe<Target>(on target: Target, using callback: @escaping ((AnyObservedObject) -> Void)) -> Observation? {
+    var observation: Observation?
+    execute({ (observedObject: AnyObservedObject) in
+        observation = observedObject.register { callback(observedObject) }
+    }, on: target)
+    return observation
+}
+
 
 // MARK: Traversable
 
@@ -151,6 +170,7 @@ private func execute<Element, Target>(_ operation: (Target, _ name: String) thro
     }
 }
 
+/// Executes an operation to a target in an element.
 private func execute<Element, Target>(_ operation: (Target) throws -> Void, on element: Element) rethrows {
     try execute({(target: Target, _: String) in
         try operation(target)
@@ -208,6 +228,7 @@ private func apply<Element, Target>(_ mutation: (inout Target, _ name: String) t
     }
 }
 
+/// Applies a mutation to an element.
 private func apply<Element, Target>(_ mutation: (inout Target) throws -> Void, to element: inout Element) rethrows {
     try apply({(target: inout Target, _: String) in
         try mutation(&target)

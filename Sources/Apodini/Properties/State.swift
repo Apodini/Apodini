@@ -57,6 +57,7 @@ extension State where Element: ExpressibleByNilLiteral {
 /// resources may share information with any copies made from this element after `activate`
 /// was called.
 protocol Activatable {
+    /// Activates the given element.
     mutating func activate()
 }
 
