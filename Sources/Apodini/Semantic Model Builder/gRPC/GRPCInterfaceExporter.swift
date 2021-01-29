@@ -53,18 +53,11 @@ class GRPCInterfaceExporter: InterfaceExporter {
                 try service.exposeUnaryEndpoint(name: methodName, context: context)
                 app.logger.info("Exported unary gRPC endpoint \(serviceName)/\(methodName)")
             } else if endpoint.serviceType == .clientStreaming {
-                try service.exposeClientStreamingEndpoint(name: methodName, context: context)
+                try service.exposeStreamingEndpoint(name: methodName, context: context)
                 app.logger.info("Exported client-streaming gRPC endpoint \(serviceName)/\(methodName)")
             } else {
-                // Service-side streaming (and as a consequence also bidirectional streaming)
-                // are not yet supporter.
-                // Refer to issue #142: https://github.com/Apodini/Apodini/issues/142
-                app.logger.warning("""
-                    GRPC exporter currently only supports unary and client-streaming endpoints.
-                    Defaulting to unary.
-                    Exported unary gRPC endpoint \(serviceName)/\(methodName).
-                    """)
-                try service.exposeUnaryEndpoint(name: methodName, context: context)
+                try service.exposeStreamingEndpoint(name: methodName, context: context, bidirectional: true)
+                app.logger.info("Exported bidirectional streaming gRPC endpoint \(serviceName)/\(methodName)")
             }
 
             app.logger.info("\tParameters:")

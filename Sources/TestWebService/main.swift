@@ -23,6 +23,12 @@ struct TestWebService: Apodini.WebService {
         SwiftComponent()
         UserComponent(userId: _userId)
     }
+
+    var configuration: Configuration {
+        HTTP2Configuration()
+            .certificate("/Users/moritzschull/Desktop/cert/cert.pem")
+            .key("/Users/moritzschull/Desktop/cert/key.pem")
+    }
 }
 
 try TestWebService.main()

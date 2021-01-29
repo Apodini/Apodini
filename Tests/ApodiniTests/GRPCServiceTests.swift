@@ -10,7 +10,7 @@ import XCTest
 
 final class GRPCServiceTests: ApodiniTests {
     func testPrimitiveResponse() {
-        let responseString = "Hello Moritz"
+        let responseString = Response.final("Hello Moritz").typeErasured
         let expectedResponseData: [UInt8] =
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
@@ -20,7 +20,7 @@ final class GRPCServiceTests: ApodiniTests {
     }
 
     func testCollectionResponse() {
-        let responseString = ["Hello Moritz"]
+        let responseString = Response.final(["Hello Moritz"]).typeErasured
         let expectedResponseData: [UInt8] =
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
@@ -33,7 +33,7 @@ final class GRPCServiceTests: ApodiniTests {
         struct ResponseWrapper: Encodable {
             var response: String
         }
-        let response = ResponseWrapper(response: "Hello Moritz")
+        let response = Response.final(ResponseWrapper(response: "Hello Moritz")).typeErasured
         let expectedResponseData: [UInt8] =
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 

@@ -34,15 +34,7 @@ extension GRPCService {
                 let message = self.getMessages(from: data).first ?? GRPCMessage.defaultMessage
 
                 let response = context.handle(request: message, eventLoop: request.eventLoop, final: true)
-                let result = response.map { encodableAction -> Vapor.Response in
-                    switch encodableAction {
-                    case let .send(element),
-                         let .final(element):
-                        return self.makeResponse(element)
-                    case .nothing, .end:
-                        return self.makeResponse()
-                    }
-                }
+                let result = response.map { self.makeResponse($0) }
 
                 promise.completeWith(result)
             }

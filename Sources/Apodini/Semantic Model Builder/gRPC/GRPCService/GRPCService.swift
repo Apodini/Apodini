@@ -94,7 +94,7 @@ class GRPCService {
 extension GRPCService {
     /// Encodes the given encodable value
     /// to  `Data` using Protobuffer encoding
-    private func encode(_ value: Encodable) throws -> Data {
+    func encode(_ value: Encodable) throws -> Data {
         let message = try ProtobufferEncoder().encode(AnyEncodable(value))
         // https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md
         // A response is prefixed by
@@ -121,18 +121,33 @@ extension GRPCService {
     }
 
     /// Builds a `Vapor.Response` from the given encodable value.
-    func makeResponse(_ value: Encodable) -> Vapor.Response {
+    func makeResponse(_ value: Response<AnyEncodable>) -> Vapor.Response {
         do {
-            let data = try encode(value)
-            var headers = HTTPHeaders()
-            headers.contentType = Self.grpcproto
-            return Vapor.Response(status: .ok,
-                                  version: HTTPVersion(major: 2, minor: 0),
-                                  headers: headers,
-                                  body: .init(data: data))
+            switch value {
+            case let .send(element),
+                 let .final(element):
+                let data = try encode(element)
+                var headers = HTTPHeaders()
+                headers.contentType = Self.grpcproto
+                return Vapor.Response(status: .ok,
+                                      version: HTTPVersion(major: 2, minor: 0),
+                                      headers: headers,
+                                      body: .init(data: data))
+            case .nothing, .end:
+                return self.makeResponse()
+            }
         } catch {
             app.logger.report(error: error)
             return makeResponse()
         }
+    }
+
+    func makeResponse(_ stream: @escaping (BodyStreamWriter) -> ()) -> Vapor.Response {
+        var headers = HTTPHeaders()
+        headers.contentType = Self.grpcproto
+        return Vapor.Response(status: .ok,
+                              version: HTTPVersion(major: 2, minor: 0),
+                              headers: headers,
+                              body: .init(stream: stream))
     }
 }

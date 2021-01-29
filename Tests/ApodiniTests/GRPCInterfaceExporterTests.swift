@@ -103,7 +103,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
         try service.exposeUnaryEndpoint(name: "endpointName1", context: context)
         XCTAssertNoThrow(try service.exposeUnaryEndpoint(name: "endpointName2", context: context))
-        XCTAssertNoThrow(try service.exposeClientStreamingEndpoint(name: "endpointName3", context: context))
+        XCTAssertNoThrow(try service.exposeStreamingEndpoint(name: "endpointName3", context: context))
     }
 
     func testShouldNotOverwriteExistingEndpoint() throws {
@@ -111,7 +111,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
         try service.exposeUnaryEndpoint(name: "endpointName", context: context)
         XCTAssertThrowsError(try service.exposeUnaryEndpoint(name: "endpointName", context: context))
-        XCTAssertThrowsError(try service.exposeClientStreamingEndpoint(name: "endpointName", context: context))
+        XCTAssertThrowsError(try service.exposeStreamingEndpoint(name: "endpointName", context: context))
     }
 
     func testShouldRequireContentTypeHeader() throws {

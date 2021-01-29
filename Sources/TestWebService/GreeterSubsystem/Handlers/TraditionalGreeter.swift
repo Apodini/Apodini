@@ -13,7 +13,7 @@ struct TraditionalGreeter: Handler {
     // one cannot change their surname, but it can be ommitted
     @Parameter(.mutability(.constant)) var surname: String = ""
     // one can change their age, happy birthday!! 🎉
-    @Parameter(.mutability(.constant)) var age: Int
+    @Parameter(.mutability(.constant)) var age: Int32
     // one can switch between formal and informal greeting at any time
     @Parameter var name: String?
     
@@ -25,7 +25,7 @@ struct TraditionalGreeter: Handler {
         logger.info("\(connection.state)")
         
         if connection.state == .end {
-            return .end
+            return .final("Hello, \(surname)! You are now \(age) years old!")
         }
 
         if let firstName = name {
