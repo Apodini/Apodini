@@ -20,7 +20,9 @@ struct EndpointInstance<H: Handler> {
         self.endpoint = endpoint
         
         var handler = endpoint.handler
+        
         activate(&handler)
+        
         self.handler = handler
         
         self.guards = endpoint.guards.map { lazyGuard in

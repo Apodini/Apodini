@@ -9,8 +9,26 @@ import Foundation
 import NIO
 @_implementationOnly import Runtime
 
+// MARK: ObservableObject
+
+extension Handler {
+    /// Collects  every `ObservedObject` in the Handler.
+    func collectObservedObjects() -> [AnyObservedObject] {
+        var observedObjects: [AnyObservedObject] = []
+        
+        execute({ observedObject in
+            observedObjects.append(observedObject)
+        }, on: self)
+        
+        return observedObjects
+    }
+}
+
 // MARK: Activatable
-func activate<Element>(_ subject: inout Element) {
+
+/// A function that prepares all contained properties (that have to be prepared)
+/// for usage.
+public func activate<Element>(_ subject: inout Element) {
     apply({ (activatable: inout Activatable) in
         activatable.activate()
     }, to: &subject)

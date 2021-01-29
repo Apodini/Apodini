@@ -17,6 +17,7 @@ public class Scheduler {
     internal static var shared = Scheduler()
     
     internal var jobConfigurations: [ObjectIdentifier: JobConfiguration] = [:]
+    internal var observations: [Observation] = []
     
     private init() {
         // Empty intializer to create a Singleton.
@@ -44,6 +45,10 @@ public class Scheduler {
         try checkPropertyWrappers(job)
         EnvironmentValue(keyPath, job)
         let jobConfiguration = try generateConfiguration(cronTrigger, keyPath)
+        
+        // Activate any `ObservedObject`s on the job.
+        var job = job
+        activate(&job)
         
         if let runs = runs {
             schedule(job, with: jobConfiguration, runs, on: eventLoop)
@@ -108,11 +113,11 @@ private extension Scheduler {
     }
     
     func subscribe(job: Job, to observedObject: AnyObservedObject) {
-        observedObject.valueDidChange = {
-            observedObject.setChanged(to: true)
+        self.observations.append(observedObject.register {
+            observedObject.changed = true
             job.run()
-            observedObject.setChanged(to: false)
-        }
+            observedObject.changed = false
+        })
     }
     
     /// Generates the configuration of the `Job`.

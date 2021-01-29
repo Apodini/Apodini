@@ -76,10 +76,15 @@ final class ObservedObjectTests: XCTApodiniTest {
             }
         }
         
+        var wasRun: Bool = false
+        
         struct SubscribingJob: Job {
             @ObservedObject(\Keys2.emittingJob) var observedObject: EmittingJob
             
+            let onRun: () -> Void
+            
             func run() {
+                onRun()
                 XCTAssertTrue(_observedObject.changed)
                 XCTAssertEqual(observedObject.num, 42)
             }
@@ -92,11 +97,19 @@ final class ObservedObjectTests: XCTApodiniTest {
         
         let eventLoop = EmbeddedEventLoop()
         try Scheduler.shared.enqueue(EmittingJob(), with: "* * * * *", runs: 1, \Keys2.emittingJob, on: eventLoop)
-        Schedule(SubscribingJob(), on: "* * * * *", runs: 0, \Keys2.subscribingJob).configure(app)
+        Schedule(
+            SubscribingJob(onRun: {
+                wasRun = true
+            }),
+            on: "* * * * *",
+            runs: 0,
+            \Keys2.subscribingJob)
+            .configure(app)
         eventLoop.advanceTime(by: .seconds(70))
         
         let scheduled = try XCTUnwrap(Scheduler.shared.jobConfigurations[ObjectIdentifier(\Keys2.emittingJob)]?.scheduled)
         
         XCTAssertScheduling(scheduled)
+        XCTAssertTrue(wasRun)
     }
 }
