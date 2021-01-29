@@ -24,29 +24,29 @@ final class DatabaseHandlerTests: ApodiniTests {
     
     func testCreateHandler() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
-        let databaseBird = try bird
+        let dbBird = try bird
             .save(on: self.app.database)
             .transform(to: bird)
             .wait()
-        XCTAssertNotNil(databaseBird.id)
+        XCTAssertNotNil(dbBird.id)
         
         let creationHandler = Create<Bird>()
         
         let response = try XCTUnwrap(mockQuery(component: creationHandler, value: Bird.self, app: app, queued: bird))
         XCTAssert(response == bird)
         
-        let foundatabaseird = try Bird.find(response.id, on: app.database).wait()
-        XCTAssertNotNil(foundatabaseird)
-        XCTAssertEqual(response, foundatabaseird)
+        let foundBird = try Bird.find(response.id, on: app.database).wait()
+        XCTAssertNotNil(foundBird)
+        XCTAssertEqual(response, foundBird)
     }
     
     func testSingleReadHandler() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
-        let databaseBird = try bird
+        let dbBird = try bird
             .save(on: self.app.database)
             .transform(to: bird)
             .wait()
-        let birdId = try XCTUnwrap(databaseBird.id)
+        let birdId = try XCTUnwrap(dbBird.id)
         
         let handler = ReadOne<Bird>()
         let endpoint = handler.mockEndpoint(app: app)
@@ -70,23 +70,23 @@ final class DatabaseHandlerTests: ApodiniTests {
             XCTFail("Expected return value to be wrapped in Action.final by default")
             return
         }
-        XCTAssert(response == databaseBird)
+        XCTAssert(response == dbBird)
     }
     
     func testReadHandler() throws {
         let bird1 = Bird(name: "Mockingbird", age: 20)
-        let databaseBird1 = try bird1
+        let dbBird1 = try bird1
             .save(on: self.app.database)
             .transform(to: bird1)
             .wait()
         
         let bird2 = Bird(name: "Mockingbird", age: 21)
-        let databaseBird2 = try bird2
+        let dbBird2 = try bird2
             .save(on: self.app.database)
             .transform(to: bird2)
             .wait()
-        XCTAssertNotNil(databaseBird1.id)
-        XCTAssertNotNil(databaseBird2.id)
+        XCTAssertNotNil(dbBird1.id)
+        XCTAssertNotNil(dbBird2.id)
         
         let readHandler = ReadAll<Bird>()
         let endpoint = readHandler.mockEndpoint(app: app)
@@ -129,12 +129,12 @@ final class DatabaseHandlerTests: ApodiniTests {
     
     func testUpdateHandleWithSingleParameter() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
-        let databaseBird = try bird
+        let dbBird = try bird
             .save(on: self.app.database)
             .transform(to: bird)
             .wait()
-        XCTAssertNotNil(databaseBird.id)
-        
+        XCTAssertNotNil(dbBird.id)
+    
         let parameters: [String: TypeContainer] = [
             "name": TypeContainer(with: "FooBird")
         ]
@@ -155,7 +155,7 @@ final class DatabaseHandlerTests: ApodiniTests {
             collectedBody: bodyData,
             on: app.eventLoopGroup.next()
         )
-        guard let birdId = databaseBird.id else {
+        guard let birdId = dbBird.id else {
             XCTFail("Object found in database has no id")
             return
         }
@@ -168,10 +168,10 @@ final class DatabaseHandlerTests: ApodiniTests {
             XCTFail("Expected return value to be wrapped in Action.final by default")
             return
         }
-        XCTAssert(responseValue.id == databaseBird.id, responseValue.description)
+        XCTAssert(responseValue.id == dbBird.id, responseValue.description)
         XCTAssert(responseValue.name == "FooBird", responseValue.description)
         
-        guard let newBird = try Bird.find(databaseBird.id, on: self.app.database).wait() else {
+        guard let newBird = try Bird.find(dbBird.id, on: self.app.database).wait() else {
             XCTFail("Failed to find updated object")
             return
         }
@@ -182,13 +182,13 @@ final class DatabaseHandlerTests: ApodiniTests {
     
     func testUpdateHandlerWithModel() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
-        let databaseBird = try bird
+        let dbBird = try bird
             .save(on: self.app.database)
             .transform(to: bird)
             .wait()
-        XCTAssertNotNil(databaseBird.id)
+        XCTAssertNotNil(dbBird.id)
         
-        let updatedatabaseird = Bird(name: "FooBird", age: 25)
+        let updatedBird = Bird(name: "FooBird", age: 25)
         
         let handler = Update<Bird>()
         let endpoint = handler.mockEndpoint(app: app)
@@ -196,7 +196,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         var context = endpoint.createConnectionContext(for: exporter)
         
-        let bodyData = ByteBuffer(data: try JSONEncoder().encode(updatedatabaseird))
+        let bodyData = ByteBuffer(data: try JSONEncoder().encode(updatedBird))
         
         let uri = URI("http://example.de/test/id")
         let request = Vapor.Request(
@@ -206,7 +206,7 @@ final class DatabaseHandlerTests: ApodiniTests {
             collectedBody: bodyData,
             on: app.eventLoopGroup.next()
         )
-        guard let birdId = databaseBird.id else {
+        guard let birdId = dbBird.id else {
             XCTFail("Object found in database has no id")
             return
         }
@@ -219,10 +219,10 @@ final class DatabaseHandlerTests: ApodiniTests {
             XCTFail("Expected return value to be wrapped in Action.final by default")
             return
         }
-        XCTAssert(responseValue.name == updatedatabaseird.name, responseValue.description)
-        XCTAssert(responseValue.age == updatedatabaseird.age, responseValue.description)
+        XCTAssert(responseValue.name == updatedBird.name, responseValue.description)
+        XCTAssert(responseValue.age == updatedBird.age, responseValue.description)
         
-        guard let newBird = try Bird.find(databaseBird.id, on: self.app.database).wait() else {
+        guard let newBird = try Bird.find(dbBird.id, on: self.app.database).wait() else {
             XCTFail("Failed to find updated object")
             return
         }
@@ -233,11 +233,11 @@ final class DatabaseHandlerTests: ApodiniTests {
     
     func testDeleteHandler() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
-        let databaseBird = try bird
+        let dbBird = try bird
             .save(on: self.app.database)
             .transform(to: bird)
             .wait()
-        XCTAssertNotNil(databaseBird.id)
+        XCTAssertNotNil(dbBird.id)
         
         let handler = Delete<Bird>()
         let endpoint = handler.mockEndpoint(app: app)
@@ -253,7 +253,7 @@ final class DatabaseHandlerTests: ApodiniTests {
             on: app.eventLoopGroup.next()
         )
         
-        guard let birdId = databaseBird.id else {
+        guard let birdId = dbBird.id else {
             XCTFail("Object saved in database has no id")
             return
         }
@@ -271,7 +271,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         expectation(description: "database access").isInverted = true
         waitForExpectations(timeout: 10, handler: nil)
         
-        let deletedatabaseird = try Bird.find(databaseBird.id, on: app.database).wait()
-        XCTAssertNil(deletedatabaseird)
+        let deletedBird = try Bird.find(dbBird.id, on: app.database).wait()
+        XCTAssertNil(deletedBird)
     }
 }

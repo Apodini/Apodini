@@ -11,7 +11,7 @@ import XCTVapor
 
 
 final class CustomComponentTests: ApodiniTests {
-    struct AddatabaseirdsHandler: Handler {
+    struct AddBirdsHandler: Handler {
         @Apodini.Environment(\.database)
         var database: Fluent.Database
 
@@ -30,8 +30,8 @@ final class CustomComponentTests: ApodiniTests {
     
     
     func testComponentCreation() throws {
-        let addatabaseird = AddatabaseirdsHandler()
-        let endpoint = addatabaseird.mockEndpoint(app: app)
+        let addBird = AddBirdsHandler()
+        let endpoint = addBird.mockEndpoint(app: app)
 
         let bird = Bird(name: "Hummingbird", age: 2)
         let exporter = MockExporter<String>(queued: bird)
@@ -55,7 +55,7 @@ final class CustomComponentTests: ApodiniTests {
     func testComponentRegistration() throws {
         struct TestWebService: WebService {
             var content: some Component {
-                AddatabaseirdsHandler()
+                AddBirdsHandler()
             }
         }
         
