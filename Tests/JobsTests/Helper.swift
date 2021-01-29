@@ -16,10 +16,3 @@ func XCTAssertScheduling<T>(_ scheduled: Scheduled<T>) {
     XCTAssertTrue(result)
     XCTAssertNil(error)
 }
-
-func environmentJob<K: KeyChain, T: Job>(_ keyPath: KeyPath<K, T>, app: Application) -> T {
-    var environment = Environment(keyPath)
-    environment.inject(app: app)
-    environment.activate()
-    return environment.wrappedValue
-}

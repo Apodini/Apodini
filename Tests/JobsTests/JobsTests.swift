@@ -75,7 +75,7 @@ final class JobsTests: XCTApodiniTest {
     func testJobEnvironmentInjection() throws {
         try scheduler.enqueue(TestJob(), with: "*/10 * * * *", \KeyStore.testJob, on: app.eventLoopGroup.next())
         
-        let job = environmentJob(\KeyStore.testJob, app: app)
+        let job = try XCTUnwrap(app.storage[\KeyStore.testJob])
         
         XCTAssert(job.num == 0)
     }
@@ -88,10 +88,11 @@ final class JobsTests: XCTApodiniTest {
         let second = Calendar.current.component(.second, from: Date())
         eventLoop.advanceTime(by: .seconds(Int64(60 - second)))
         
-        let job = environmentJob(\KeyStore.environmentJob, app: app)
+        let job = try XCTUnwrap(app.storage[\KeyStore.environmentJob])
         
         XCTAssertTrue(job.contains)
     }
+    
     func testEveryMinute() throws {
         let eventLoop = EmbeddedEventLoop()
         try app.scheduler.enqueue(TestJob(), with: everyMinute, \KeyStore.testJob, on: eventLoop)
@@ -156,7 +157,7 @@ final class JobsTests: XCTApodiniTest {
         let second = Calendar.current.component(.second, from: Date())
         eventLoop.advanceTime(by: .seconds(Int64(60 - second)))
         
-        let job = environmentJob(\KeyStore.stateJob, app: app)
+        let job = try XCTUnwrap(app.storage[\KeyStore.stateJob])
         
         XCTAssertEqual(job.num, 1)
     }
