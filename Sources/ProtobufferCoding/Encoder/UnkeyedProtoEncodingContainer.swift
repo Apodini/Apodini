@@ -45,11 +45,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     func encode(_ value: Int) throws {
-        if MemoryLayout<Int>.size == 4 {
-            try encodeInt32(Int32(value), tag: currentFieldTag)
-        } else if MemoryLayout<Int>.size == 8 {
-            try encodeInt64(Int64(value), tag: currentFieldTag)
-        }
+        try encodeInt(value, tag: currentFieldTag)
         currentFieldTag += 1
     }
 
@@ -72,11 +68,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     func encode(_ value: UInt) throws {
-        if MemoryLayout<UInt>.size == 4 {
-            try encodeUInt32(UInt32(value), tag: currentFieldTag)
-        } else if MemoryLayout<UInt>.size == 8 {
-            try encodeUInt64(UInt64(value), tag: currentFieldTag)
-        }
+        try encodeUInt(value, tag: currentFieldTag)
         currentFieldTag += 1
     }
 
@@ -114,11 +106,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     func encode(_ values: [Int]) throws {
-        if MemoryLayout<Int>.size == 4 {
-            try encodeRepeatedInt32(values.compactMap { Int32($0) }, tag: currentFieldTag)
-        } else if MemoryLayout<Int>.size == 8 {
-            try encodeRepeatedInt64(values.compactMap { Int64($0) }, tag: currentFieldTag)
-        }
+        try encodeRepeatedInt(values, tag: currentFieldTag)
         currentFieldTag += 1
     }
 
@@ -133,11 +121,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     func encode(_ values: [UInt]) throws {
-        if MemoryLayout<UInt>.size == 4 {
-            try encodeRepeatedUInt32(values.compactMap { UInt32($0) }, tag: currentFieldTag)
-        } else if MemoryLayout<UInt>.size == 8 {
-            try encodeRepeatedUInt64(values.compactMap { UInt64($0) }, tag: currentFieldTag)
-        }
+        try encodeRepeatedUInt(values, tag: currentFieldTag)
         currentFieldTag += 1
     }
 

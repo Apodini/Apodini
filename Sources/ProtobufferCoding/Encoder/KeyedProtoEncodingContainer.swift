@@ -56,11 +56,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
 
     func encode(_ value: Int, forKey key: Key) throws {
         let keyValue = try convertToProtobufferFieldNumber(key)
-        if MemoryLayout<Int>.size == 4 {
-            try encodeInt32(Int32(value), tag: keyValue)
-        } else if MemoryLayout<Int>.size == 8 {
-            try encodeInt64(Int64(value), tag: keyValue)
-        }
+        try encodeInt(value, tag: keyValue)
     }
 
     func encode(_ value: Int8, forKey key: Key) throws {
@@ -83,11 +79,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
 
     func encode(_ value: UInt, forKey key: Key) throws {
         let keyValue = try convertToProtobufferFieldNumber(key)
-        if MemoryLayout<UInt>.size == 4 {
-            try encodeUInt32(UInt32(value), tag: keyValue)
-        } else if MemoryLayout<UInt>.size == 8 {
-            try encodeUInt64(UInt64(value), tag: keyValue)
-        }
+        try encodeUInt(value, tag: keyValue)
     }
 
     func encode(_ value: UInt8, forKey key: Key) throws {
@@ -125,11 +117,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
 
     func encode(_ values: [Int], forKey key: Key) throws {
         let keyValue = try convertToProtobufferFieldNumber(key)
-        if MemoryLayout<Int>.size == 4 {
-            try encodeRepeatedInt32(values.compactMap { Int32($0) }, tag: keyValue)
-        } else if MemoryLayout<Int>.size == 8 {
-            try encodeRepeatedInt64(values.compactMap { Int64($0) }, tag: keyValue)
-        }
+        try encodeRepeatedInt(values, tag: keyValue)
     }
 
     func encode(_ values: [Int32], forKey key: Key) throws {
@@ -144,11 +132,7 @@ class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContaine
 
     func encode(_ values: [UInt], forKey key: Key) throws {
         let keyValue = try convertToProtobufferFieldNumber(key)
-        if MemoryLayout<UInt>.size == 4 {
-            try encodeRepeatedUInt32(values.compactMap { UInt32($0) }, tag: keyValue)
-        } else if MemoryLayout<UInt>.size == 8 {
-            try encodeRepeatedUInt64(values.compactMap { UInt64($0) }, tag: keyValue)
-        }
+        try encodeRepeatedUInt(values, tag: keyValue)
     }
 
     func encode(_ values: [UInt32], forKey key: Key) throws {

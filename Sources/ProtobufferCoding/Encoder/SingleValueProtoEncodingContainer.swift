@@ -45,11 +45,7 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
     }
 
     func encode(_ value: Int) throws {
-        if MemoryLayout<Int>.size == 4 {
-            try encodeInt32(Int32(value), tag: fieldNumber)
-        } else if MemoryLayout<Int>.size == 8 {
-            try encodeInt64(Int64(value), tag: fieldNumber)
-        }
+        try encodeInt(value, tag: fieldNumber)
     }
 
     func encode(_ value: Int8) throws {
@@ -69,11 +65,7 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
     }
 
     func encode(_ value: UInt) throws {
-        if MemoryLayout<UInt>.size == 4 {
-            try encodeUInt32(UInt32(value), tag: fieldNumber)
-        } else if MemoryLayout<UInt>.size == 8 {
-            try encodeUInt64(UInt64(value), tag: fieldNumber)
-        }
+        try encodeUInt(value, tag: fieldNumber)
     }
 
     func encode(_ value: UInt8) throws {
@@ -105,11 +97,7 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
     }
 
     func encode(_ values: [Int]) throws {
-        if MemoryLayout<Int>.size == 4 {
-            try encodeRepeatedInt32(values.compactMap { Int32($0) }, tag: fieldNumber)
-        } else if MemoryLayout<Int>.size == 8 {
-            try encodeRepeatedInt64(values.compactMap { Int64($0) }, tag: fieldNumber)
-        }
+        try encodeRepeatedInt(values, tag: fieldNumber)
     }
 
     func encode(_ values: [Int32]) throws {
@@ -121,11 +109,7 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
     }
 
     func encode(_ values: [UInt]) throws {
-        if MemoryLayout<UInt>.size == 4 {
-            try encodeRepeatedUInt32(values.compactMap { UInt32($0) }, tag: fieldNumber)
-        } else if MemoryLayout<UInt>.size == 8 {
-            try encodeRepeatedUInt64(values.compactMap { UInt64($0) }, tag: fieldNumber)
-        }
+        try encodeRepeatedUInt(values, tag: fieldNumber)
     }
 
     func encode(_ values: [UInt32]) throws {

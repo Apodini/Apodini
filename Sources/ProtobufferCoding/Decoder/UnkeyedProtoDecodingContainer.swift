@@ -81,14 +81,7 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
     }
 
     func decode(_ type: Int.Type) throws -> Int {
-        if let value = popNext().last {
-            if MemoryLayout<Int>.size == 4 {
-                return try Int(decodeInt32(value))
-            } else if MemoryLayout<Int>.size == 8 {
-                return try Int(decodeInt64(value))
-            }
-        }
-        throw ProtoError.decodingError("No data for given key")
+        try Int(from: popNext().last, using: self)
     }
 
     func decode(_ type: Int8.Type) throws -> Int8 {
@@ -114,14 +107,7 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
     }
 
     func decode(_ type: UInt.Type) throws -> UInt {
-        if let value = popNext().last {
-            if MemoryLayout<UInt>.size == 4 {
-                return try UInt(decodeUInt32(value))
-            } else if MemoryLayout<UInt>.size == 8 {
-                return try UInt(decodeUInt64(value))
-            }
-        }
-        throw ProtoError.decodingError("No data for given key")
+        try UInt(from: popNext().last, using: self)
     }
 
     func decode(_ type: UInt8.Type) throws -> UInt8 {
@@ -174,14 +160,7 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
     }
 
     func decode(_ type: [Int].Type) throws -> [Int] {
-        if let value = popNext().last {
-            if MemoryLayout<Int>.size == 4 {
-                return try decodeRepeatedInt32(value).compactMap { Int($0) }
-            } else if MemoryLayout<Int>.size == 8 {
-                return try decodeRepeatedInt64(value).compactMap { Int($0) }
-            }
-        }
-        throw ProtoError.decodingError("No data for given key")
+        try [Int](from: popNext().last, using: self)
     }
 
     func decode(_ type: [Int32].Type) throws -> [Int32] {
@@ -205,14 +184,7 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
     }
 
     func decode(_ type: [UInt].Type) throws -> [UInt] {
-        if let value = popNext().last {
-            if MemoryLayout<UInt>.size == 4 {
-                return try decodeRepeatedUInt32(value).compactMap { UInt($0) }
-            } else if MemoryLayout<UInt>.size == 8 {
-                return try decodeRepeatedUInt64(value).compactMap { UInt($0) }
-            }
-        }
-        throw ProtoError.decodingError("No data for given key")
+        try [UInt](from: popNext().last, using: self)
     }
 
     func decode(_ type: [UInt32].Type) throws -> [UInt32] {

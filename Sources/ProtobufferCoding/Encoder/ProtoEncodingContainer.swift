@@ -107,6 +107,14 @@ internal class InternalProtoEncodingContainer {
         appendData(data, tag: tag, wireType: WireType.bit64)
     }
 
+    internal func encodeInt(_ value: Int, tag: Int) throws {
+        if MemoryLayout<Int>.size == 4 {
+            try encodeInt32(Int32(value), tag: tag)
+        } else if MemoryLayout<Int>.size == 8 {
+            try encodeInt64(Int64(value), tag: tag)
+        }
+    }
+
     internal func encodeInt32(_ value: Int32, tag: Int) throws {
         // we need to encode it as VarInt (run-length encoded number)
         let data = encodeVarInt(value: UInt64(bitPattern: Int64(value)))
@@ -117,6 +125,14 @@ internal class InternalProtoEncodingContainer {
         // we need to encode it as VarInt (run-length encoded number)
         let data = encodeVarInt(value: UInt64(bitPattern: Int64(value)))
         appendData(data, tag: tag, wireType: .varInt)
+    }
+
+    internal func encodeUInt(_ value: UInt, tag: Int) throws {
+        if MemoryLayout<UInt>.size == 4 {
+            try encodeUInt32(UInt32(value), tag: tag)
+        } else if MemoryLayout<UInt>.size == 8 {
+            try encodeUInt64(UInt64(value), tag: tag)
+        }
     }
 
     internal func encodeUInt32(_ value: UInt32, tag: Int) throws {
@@ -162,6 +178,14 @@ internal class InternalProtoEncodingContainer {
         appendData(data, tag: tag, wireType: .lengthDelimited)
     }
 
+    internal func encodeRepeatedInt(_ values: [Int], tag: Int) throws {
+        if MemoryLayout<Int>.size == 4 {
+            try encodeRepeatedInt32(values.compactMap { Int32($0) }, tag: tag)
+        } else if MemoryLayout<Int>.size == 8 {
+            try encodeRepeatedInt64(values.compactMap { Int64($0) }, tag: tag)
+        }
+    }
+
     internal func encodeRepeatedInt32(_ values: [Int32], tag: Int) throws {
         var data = Data()
         for value in values {
@@ -180,6 +204,14 @@ internal class InternalProtoEncodingContainer {
         }
         data = prependLength(data)
         appendData(data, tag: tag, wireType: .lengthDelimited)
+    }
+
+    internal func encodeRepeatedUInt(_ values: [UInt], tag: Int) throws {
+        if MemoryLayout<UInt>.size == 4 {
+            try encodeRepeatedUInt32(values.compactMap { UInt32($0) }, tag: tag)
+        } else if MemoryLayout<UInt>.size == 8 {
+            try encodeRepeatedUInt64(values.compactMap { UInt64($0) }, tag: tag)
+        }
     }
 
     internal func encodeRepeatedUInt32(_ values: [UInt32], tag: Int) throws {
