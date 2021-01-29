@@ -25,7 +25,7 @@ final class NotificationCenterTests: XCTApodiniTest {
         try app.notificationCenter.register(device: device3).wait()
         
         let devices = try app.notificationCenter.getAllDevices().wait()
-        let savedTopic = try Topic.query(on: app.db).filter(\.$name == topic).first().wait()
+        let savedTopic = try Topic.query(on: app.database).filter(\.$name == topic).first().wait()
         let devicesOfTopic = try app.notificationCenter.getDevices(of: topic).wait()
 
         XCTAssert(devices.contains(device))
@@ -76,7 +76,7 @@ final class NotificationCenterTests: XCTApodiniTest {
         try app.notificationCenter.register(device: device).wait()
         try app.notificationCenter.remove(topic: topic, from: device).wait()
         let deviceReturn = try DeviceDatabaseModel
-            .query(on: app.db)
+            .query(on: app.database)
             .filter(\.$id == device.id)
             .with(\.$topics)
             .first()
@@ -100,7 +100,7 @@ final class NotificationCenterTests: XCTApodiniTest {
         ]
         let devices = apnsDevices + fcmDevices
         
-        try devices.create(on: app.db).wait()
+        try devices.create(on: app.database).wait()
         
         let retrievedAPNS = try app.notificationCenter.getAPNSDevices().wait()
         let retrievedFCM = try app.notificationCenter.getFCMDevices().wait()
@@ -160,13 +160,13 @@ final class NotificationCenterTests: XCTApodiniTest {
     
     func testDeviceEquatable() throws {
         let device = Device(id: "1", type: .apns)
-        let deviceDbModel = DeviceDatabaseModel(id: "1", type: .apns)
+        let devicedatabaseModel = DeviceDatabaseModel(id: "1", type: .apns)
         let topic = Topic(name: "1")
         
         XCTAssert(device == Device(id: "1", type: .apns))
         XCTAssertFalse(device == Device(id: "2", type: .apns))
-        XCTAssert(deviceDbModel == DeviceDatabaseModel(id: "1", type: .apns))
-        XCTAssertFalse(deviceDbModel == DeviceDatabaseModel(id: "2", type: .apns))
+        XCTAssert(devicedatabaseModel == DeviceDatabaseModel(id: "1", type: .apns))
+        XCTAssertFalse(devicedatabaseModel == DeviceDatabaseModel(id: "2", type: .apns))
         XCTAssert(topic == Topic(name: "1"))
         XCTAssertFalse(topic == Topic(name: "2"))
     }

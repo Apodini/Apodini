@@ -9,7 +9,7 @@ import Apodini
 /// in the model found under the given `ID` in the database.
 /// It uses the database that has been specified in the `DatabaseConfiguration`.
 public struct Update<Model: DatabaseModel>: Handler {
-    @Apodini.Environment(\.db)
+    @Apodini.Environment(\.database)
     private var database: Fluent.Database
     
     @Parameter<[String: TypeContainer]>

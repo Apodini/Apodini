@@ -12,7 +12,7 @@ import Apodini
 /// Sending a request to  ~/api/birds/birds?age=19&name=Foo would 
 /// return an array of `Bird` object that have an age of 19 and the name Foo.
 public struct ReadAll<Model: DatabaseModel>: Handler {
-    @Apodini.Environment(\.db)
+    @Apodini.Environment(\.database)
     private var database: Fluent.Database
 
     @Properties
