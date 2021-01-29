@@ -22,11 +22,11 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     /// Tries to convert the given CodingKey to an Int, using the following steps:
     ///  - extract Int raw value, if possible
-    ///  - convert to `ProtoCodingKey` and read `protoRawValue` property, if possible
+    ///  - convert to `ProtobufferCodingKey` and read `protoRawValue` property, if possible
     ///  - call default implementation of `_protoRawValue` for `CodingKey`,
     ///    which simply enumerates all cases of the type
     ///  - throws ProtoError.unknownCodingKey, if none of the above works
-    private func extractIntValue(from key: Key) throws -> Int {
+    private func convertToProtobufferFieldNumber(_ key: Key) throws -> Int {
         codingPath.append(key)
         if let keyValue = key.intValue {
             return keyValue
@@ -39,7 +39,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     func contains(_ key: Key) -> Bool {
         do {
-            let keyValue = try extractIntValue(from: key)
+            let keyValue = try convertToProtobufferFieldNumber(key)
             return data.keys.contains(keyValue)
         } catch {
             return false
@@ -51,7 +51,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last,
            value.first != 0 {
             return true
@@ -60,7 +60,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: String.Type, forKey key: Key) throws -> String {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last,
            let output = String(data: value, encoding: .utf8) {
             return output
@@ -69,7 +69,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: Data.Type, forKey key: Key) throws -> Data {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last {
             return value
         }
@@ -77,7 +77,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: Double.Type, forKey key: Key) throws -> Double {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last {
             return try decodeDouble(value)
         }
@@ -85,7 +85,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: Float.Type, forKey key: Key) throws -> Float {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last {
             return try decodeFloat(value)
         }
@@ -93,7 +93,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: Int.Type, forKey key: Key) throws -> Int {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last {
             if MemoryLayout<Int>.size == 4 {
                 return try Int(decodeInt32(value))
@@ -113,7 +113,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last {
             return try decodeInt32(value)
         }
@@ -121,7 +121,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: Int64.Type, forKey key: Key) throws -> Int64 {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last {
             return try decodeInt64(value)
         }
@@ -129,7 +129,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: UInt.Type, forKey key: Key) throws -> UInt {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last {
             if MemoryLayout<UInt>.size == 4 {
                 return try UInt(decodeUInt32(value))
@@ -149,7 +149,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last {
             return try decodeUInt32(value)
         }
@@ -157,7 +157,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last {
             return try decodeUInt64(value)
         }
@@ -165,7 +165,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: [Bool].Type, forKey key: Key) throws -> [Bool] {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last {
             return try decodeRepeatedBool(value)
         }
@@ -173,7 +173,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: [Float].Type, forKey key: Key) throws -> [Float] {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
@@ -184,7 +184,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: [Double].Type, forKey key: Key) throws -> [Double] {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
@@ -195,7 +195,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: [Int].Type, forKey key: Key) throws -> [Int] {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last {
             if MemoryLayout<Int>.size == 4 {
                 return try decodeRepeatedInt32(value).compactMap { Int($0) }
@@ -207,7 +207,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: [Int32].Type, forKey key: Key) throws -> [Int32] {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
@@ -218,7 +218,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: [Int64].Type, forKey key: Key) throws -> [Int64] {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
@@ -229,7 +229,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: [UInt].Type, forKey key: Key) throws -> [UInt] {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last {
             if MemoryLayout<UInt>.size == 4 {
                 return try decodeRepeatedUInt32(value).compactMap { UInt($0) }
@@ -241,7 +241,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: [UInt32].Type, forKey key: Key) throws -> [UInt32] {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
@@ -252,7 +252,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: [UInt64].Type, forKey key: Key) throws -> [UInt64] {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         // as of Proto3, repeated values of scalar numeric types are always encoded as packed
         // thus, there will only be one value for the given key,
         // containing n number
@@ -263,7 +263,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: [Data].Type, forKey key: Key) throws -> [Data] {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let values = data[keyValue] {
             // the data is already [Data] :D
             return values
@@ -272,7 +272,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func decode(_ type: [String].Type, forKey key: Key) throws -> [String] {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let values = data[keyValue] {
             return decodeRepeatedString(values)
         }
@@ -295,7 +295,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
             throw ProtoError.decodingError("Decoding values of type \(T.self) is not supported yet")
         } else {
             // we encountered a nested structure
-            let keyValue = try extractIntValue(from: key)
+            let keyValue = try convertToProtobufferFieldNumber(key)
             if let value = data[keyValue]?.last {
                 return try ProtobufferDecoder().decode(type, from: value)
             }
@@ -305,7 +305,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws
     -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last {
             return try InternalProtoDecoder(from: value).container(keyedBy: type)
         }
@@ -313,7 +313,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     }
 
     func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
-        let keyValue = try extractIntValue(from: key)
+        let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last {
             return try InternalProtoDecoder(from: value).unkeyedContainer()
         }
