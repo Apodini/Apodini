@@ -33,6 +33,8 @@ final class ObservedObjectTests: XCTApodiniTest {
         // Only triggered by observer
         Schedule(job, on: "* * * * *", runs: 0, \Keys.job).configure(app)
         observer.num = 42
+        // wait for first trigger to be completed
+        usleep(10000)
         observer.text = "Bye"
     }
     

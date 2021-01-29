@@ -82,16 +82,12 @@ public class Scheduler {
         // using a closure that takes each `ObservedObject`.
         subscribe(on: activatedJob,
                   using: { observedObject in
-                    observedObject.setChanged(to: true)
                     // Executes the `Job` on its own event loop
-                    // And sets changed to false after the execution
-                    _ = jobConfiguration
-                        .scheduled?
-                        .futureResult
-                        .map {
-                            observedObject.setChanged(to: false)
-                        }
-                        .hop(to: jobConfiguration.eventLoop)
+//                    jobConfiguration.eventLoop.execute {
+                        observedObject.setChanged(to: true)
+                        activatedJob.run()
+                        observedObject.setChanged(to: false)
+//                    }
                   })
         
         if let runs = runs {
