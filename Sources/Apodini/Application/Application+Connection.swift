@@ -9,9 +9,9 @@ import Foundation
 
 extension Application {
     /// A Property identifying the `Connection` which provides an abstract view on the underlying protocol's state.
-    /// - Note: The setter should never be directly called and only serves as a placeholder.
+    /// - Note: This property only serves as a placeholder and should never be called.
     public var connection: Connection {
-        get { Connection() }
+        get { fatalError("The connection should never be called directly") }
         set { fatalError("The connection cannot be manually set") } // swiftlint:disable:this unused_setter_value
     }
 }
