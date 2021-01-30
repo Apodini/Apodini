@@ -150,9 +150,9 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
     }
     
     func testWebSocketConnectionBidirectionalStreamSchema() throws {
-        let builder = SharedSemanticModelBuilder(app)
+        let builder = SemanticModelBuilder(app)
             .with(exporter: WebSocketInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         testService.accept(visitor)
         visitor.finishParsing()
 

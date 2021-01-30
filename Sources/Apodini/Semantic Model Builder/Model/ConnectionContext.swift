@@ -27,7 +27,7 @@ public extension Reducible {
 
 /// An `ObservedListener` can be notified by a `ConnectionContext` if an observed object
 /// in the connection's handler has changed.
-protocol ObservedListener {
+public protocol ObservedListener {
     /// The `EventLoop` that is used by this connection to send service-streaming
     /// responses to the client.
     var eventLoop: EventLoop { get }
@@ -116,11 +116,11 @@ public struct AnyConnectionContext<I: InterfaceExporter>: ConnectionContext {
         self.handleFunc(exporterRequest, eventLoop, final)
     }
 
-    func handle(eventLoop: EventLoop, observedObject: AnyObservedObject) -> EventLoopFuture<Response<AnyEncodable>> {
+    public func handle(eventLoop: EventLoop, observedObject: AnyObservedObject) -> EventLoopFuture<Response<AnyEncodable>> {
         self.handleObservedChanged(eventLoop, observedObject)
     }
 
-    mutating func register(listener: ObservedListener) {
+    public mutating func register(listener: ObservedListener) {
         self.registerFunc(listener)
     }
 }
