@@ -15,16 +15,23 @@ import SotoApiGatewayV2
 import OpenAPIKit
 
 
+// This **must** be the very first statement in here! // TOOD might be able to get rid of this by forking instead?
+try Task.handleChildProcessInvocationIfNecessary()
+
+
+// TODO
+// - need to encode the api gateway id into the lambda name, otherwise, if you want to deploy the same web service to multiple api gateways,
+// it'd overwrite the existing lambdas (which are still being referenced by the other api geteway
+// - aws ressource mgmt
+
+
+
 internal func makeError(code: Int = 0, _ message: String) -> Swift.Error {
     NSError(domain: "LambdaDeploy", code: code, userInfo: [
         NSLocalizedDescriptionKey: message
     ])
 }
 
-
-try Task.handleChildProcessInvocationIfNecessary()
-
-typealias DeployedSystemStructure = DeployedSystemConfiguration
 
 
 private func _findExecutable(_ name: String) throws -> URL {
@@ -37,18 +44,13 @@ private func _findExecutable(_ name: String) throws -> URL {
 let dockerBin = try _findExecutable("docker")
 let awsCliBin = try _findExecutable("aws")
 let zipBin = try _findExecutable("zip")
-let chmodBin = try _findExecutable("chmod") // TOOD just use the syscall instead?
-
+let FM = FileManager.default
 
 let logger = Logger(label: "de.lukaskollmer.ApodiniLambda")
-
 
 struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     static let identifier: DeploymentProviderID = LambdaDeploymentProviderId
     static let version: Version = 1
-    
-    
-    private var FM: FileManager { .default }
     
     @Argument
     var inputPackageRootDir: String
@@ -63,13 +65,10 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     var awsRegion: String = "eu-central-1"
     
     @Option
-    var awsS3BucketName: String = "apodini"
+    var awsS3BucketName: String
     
     @Option
     var awsApiGatewayApiId: String
-    
-    @Option // put all deployment groups into a single lambda. this is mainly here to improve performance when testing
-    var singleLambda: Bool = true
     
     @Flag(help: "whether to skip the compilation steps and assume that build artifacts from a previous run are still located at the expected places")
     var awsDeployOnly: Bool = false
@@ -78,7 +77,6 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     var packageRootDir: URL {
         URL(fileURLWithPath: inputPackageRootDir)
     }
-    
     
     
     var buildFolderUrl: URL {
@@ -93,7 +91,6 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     }
     
     
-    
     var lambdaOutputDir: URL {
         return buildFolderUrl
             .appendingPathComponent("lambda", isDirectory: true)
@@ -102,7 +99,7 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     
     
     
-    func run() throws {
+    mutating func run() throws {
         if awsDeployOnly {
             logger.notice("Running with the --aws-deploy-only flag. Will skip compilation and try to re-use previous files")
         }
@@ -122,7 +119,6 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
         
         
         logger.notice("generating web service structure")
-        //let webServiceStructure = try readWebServiceStructure(usingDockerImage: dockerImageName)
         let webServiceStructure = try { () -> WebServiceStructure in
             if awsDeployOnly {
                 let data = try Data(contentsOf: tmpDirUrl.appendingPathComponent("WebServiceStructure.json", isDirectory: false), options: [])
@@ -135,19 +131,18 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
         
         let nodes = try computeDefaultDeployedSystemNodes(
             from: webServiceStructure,
-            overrideGrouping: singleLambda ? .singleNode : nil,
             nodeIdProvider: { endpoints in
                 assert(endpoints.count == 1)
                 return endpoints[0].handlerIdRawValue.replacingOccurrences(of: ".", with: "-")
             }
         )
-                
-//        let node = try DeployedSystemStructure.Node(
-//            id: "0", // todo make this the lambda function arn??
-//            exportedEndpoints: webServiceStructure.endpoints,
-//            userInfo: nil,
-//            userInfoType: Null.self
-//        )
+        
+        
+        let awsIntegration = AWSDeploymentStuff(awsProfileName: awsProfileName, awsRegionName: awsRegion, tmpDirUrl: self.tmpDirUrl)
+        
+        if awsApiGatewayApiId == "_createNew" {
+            awsApiGatewayApiId = try awsIntegration.createApiGateway(protocolType: .http)
+        }
         
         let deploymentStructure = try DeployedSystemStructure(
             deploymentProviderId: Self.identifier,
@@ -158,36 +153,27 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
         
         
         let lambdaExecutableUrl: URL = awsDeployOnly
-            //? //buildFolderUrl.appendingPathComponent("debug", isDirectory: true).appendingPathComponent(productName, isDirectory: false)
             ? tmpDirUrl.appendingPathComponent("lambda.out", isDirectory: false)
             : try compileForLambda(usingDockerImage: dockerImageName)
         
         
-//        let lambdaExecutableUrl = packageRootDir
-//            .appendingPathComponent(".build", isDirectory: true)
-//            .appendingPathComponent("debug", isDirectory: true)
-//            .appendingPathComponent(productName, isDirectory: false)
         logger.notice("Starting the AWS stuff")
-        try AWSDeploymentStuff(
-            awsProfileName: awsProfileName,
-            awsRegionName: awsRegion,
+        try awsIntegration.deployToLambda(
             deploymentStructure: deploymentStructure,
             openApiDocument: try JSONDecoder().decode(OpenAPI.Document.self, from: webServiceStructure.openApiDefinition),
-            tmpDirUrl: self.tmpDirUrl,
             lambdaExecutableUrl: lambdaExecutableUrl,
-            lambdaSharedObjectFilesUrl: lambdaOutputDir
-        ).apply(
+            lambdaSharedObjectFilesUrl: lambdaOutputDir,
             s3BucketName: awsS3BucketName,
-            s3ObjectFolderKey: "/lambda-code/",
-            dstApiGateway: awsApiGatewayApiId == "_createNew" ? .createNew : .useExisting(awsApiGatewayApiId)
+            s3ObjectFolderKey: "/lambda-code/", // TODO read this from the CLI args? or make it dynamic based on the name of the web service?
+            apiGatewayApiId: awsApiGatewayApiId
         )
-        return
+        logger.notice("Done! Successfully applied the deployment.")
     }
     
     
     
     /// - returns: the name of the docker image
-    func prepareDockerImage() throws -> String {
+    private func prepareDockerImage() throws -> String {
         let imageName = "apodini-lambda-builder"
         let task = Task(
             executableUrl: dockerBin,
@@ -208,7 +194,7 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     
     
     
-    func _runInDocker(imageName: String, bashCommand: String, workingDirectory: URL? = nil) throws {
+    private func runInDocker(imageName: String, bashCommand: String, workingDirectory: URL? = nil) throws {
         let task = Task(
             executableUrl: dockerBin,
             arguments: [
@@ -225,9 +211,9 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     }
     
     
-    func readWebServiceStructure(usingDockerImage dockerImageName: String) throws -> WebServiceStructure {
+    private func readWebServiceStructure(usingDockerImage dockerImageName: String) throws -> WebServiceStructure {
         let filename = "WebServiceStructure.json"
-        try _runInDocker(
+        try runInDocker(
             imageName: dockerImageName,
             bashCommand: [
                 "swift", "run", productName,
@@ -240,146 +226,22 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     }
     
     
-    
     /// - returns: the directory containing all build artifacts (ie, the built executable and collected shared object files)
-    func compileForLambda(usingDockerImage dockerImageName: String) throws -> URL {
+    private func compileForLambda(usingDockerImage dockerImageName: String) throws -> URL {
         logger.notice("Compiling SPM target '\(productName)' for lambda")
-//        let buildDockerImageTask = Task( //docker build -t builder .
-//            executableUrl: dockerBin,
-//            arguments: ["build", "-t", Self.dockerImageName, "."],
-//            captureOutput: false,
-//            launchInCurrentProcessGroup: true
-//        )
-//        try buildDockerImageTask.launchSyncAndAssertSuccess()
-//        guard try buildDockerImageTask.launchSync().exitCode == EXIT_SUCCESS else {
-//            throw makeError("Unable to build docker image")
-//        }
-        
-//        let lambdaBuildArtifactsOutputDir = URL(fileURLWithPath: ".build/lambda/\(productName)/")
-//        print("\n\nlambdaBuildArtifactsOutputDir", lambdaOutputDir.path, "\n\n")
-        
-        try _runInDocker(
+        try runInDocker(
             imageName: dockerImageName,
             bashCommand:
                 "swift build --product \(productName) && ./collect-shared-object-files.sh .build/debug/\(productName) .build/lambda/\(productName)/"
         )
-        
-//        let runDockerContainerTask = Task(
-//            executableUrl: dockerBin,
-//            arguments: [
-//                "run", "--rm",
-//                "--volume", "\(packageRootDir.path):/src/",
-//                "--workdir", "/src/", dockerImageName,
-//                "bash", "-cl",
-//                "swift build --product \(productName) && ./collect-shared-object-files.sh .build/debug/\(productName) .build/lambda/\(productName)/"
-//            ],
-//            captureOutput: false,
-//            launchInCurrentProcessGroup: true
-//        )
-//        try runDockerContainerTask.launchSyncAndAssertSuccess()
-//        guard try runDockerContainerTask.launchSync().exitCode == EXIT_SUCCESS else {
-//            throw makeError("Error compiling web service for Lambda")
-//        }
-        
         let outputUrl = buildFolderUrl
             .appendingPathComponent("debug", isDirectory: true)
             .appendingPathComponent(productName, isDirectory: false)
         let dstExecutableUrl = tmpDirUrl.appendingPathComponent("lambda.out", isDirectory: false)
         try FM.lk_copyItem(at: outputUrl, to: dstExecutableUrl)
         return dstExecutableUrl
-        
-//        return buildFolderUrl
-//            .appendingPathComponent("debug", isDirectory: true)
-//            .appendingPathComponent(productName, isDirectory: false)
-        //return lambdaBuildArtifactsOutputDir
-        
-        //return packageRootDir
-        //    .appendingPathComponent(".build", isDirectory: true)
-        //    .appendingPathComponent("debug", isDirectory: true)
-        //    .appendingPathComponent(productName, isDirectory: false)
-    }
-    
-    
-    
-    func deploy(deploymentStructure: DeployedSystemStructure, lambdaExecutableUrl: URL) throws {
-        for node in deploymentStructure.nodes {
-            let launchInfo = deploymentStructure.withCurrentInstanceNodeId(node.id)
-            //let launchInfoUrl = FM.lk_getTemporaryFileUrl(fileExtension: "json")
-            let launchInfoUrl = lambdaOutputDir.appendingPathComponent("launchConfig.json", isDirectory: false)
-            try launchInfo.writeTo(url: launchInfoUrl)
-            
-            let bootstrapFileUrl = lambdaOutputDir.appendingPathComponent("bootstrap", isDirectory: false)
-            try makeBootstrapFile(launchInfoFileUrl: launchInfoUrl, writeTo: bootstrapFileUrl)
-            //let bootstrapFileTmpUrl = try makeBootstrapFile(launchInfoFileUrl: launchInfoUrl)
-//            let bootstrapFileUrl = lambdaOutputDir.appendingPathComponent("bootstrap", isDirectory: false)
-            //try FM.copyItem(
-//                at: bootstrapFileTmpUrl,
-//                to: lambdaOutputDir.appendingPathComponent("bootstrap", isDirectory: false)
-//            )
-            let makeBootstrapFileExecutableTask = Task(
-                executableUrl: Task.findExecutable(named: "chmod")!,
-                arguments: ["+x", bootstrapFileUrl.path],
-                captureOutput: false,
-                launchInCurrentProcessGroup: true
-            )
-            try makeBootstrapFileExecutableTask.launchSyncAndAssertSuccess()
-            
-            let allItems = try FM.contentsOfDirectory(atPath: lambdaOutputDir.path)
-            print("ALL ITEMS", allItems)
-            
-            let packageLambdaTask = Task(
-                executableUrl: Task.findExecutable(named: "zip")!,
-                arguments: ["lambda.zip"] + allItems,
-                workingDirectory: lambdaOutputDir,
-                captureOutput: false,
-                launchInCurrentProcessGroup: true
-            )
-            
-            try packageLambdaTask.launchSyncAndAssertSuccess()
-        }
-        
-        
-        let awsCli = Task.findExecutable(named: "aws")!
-        
-        let s3UploadTask = Task(
-            executableUrl: awsCli,
-            arguments: [
-                "--profile", "paul",
-                "s3", "cp", "\(lambdaOutputDir.path)/lambda.zip", "s3://apodini/lambda-code/TestWebServiceAWS.zip"
-            ],
-            captureOutput: false,
-            launchInCurrentProcessGroup: true
-        )
-        try s3UploadTask.launchSyncAndAssertSuccess()
-        
-        let updateFunctionCodeTask = Task(
-            executableUrl: awsCli,
-            arguments: [
-                "--profile", "paul",
-                "--region", "eu-central-1",
-                "lambda", "update-function-code",
-                "--function-name", "apodini-test-function",
-                "--s3-bucket", "apodini",
-                "--s3-key", "lambda-code/TestWebServiceAWS.zip"
-            ],
-            captureOutput: false,
-            launchInCurrentProcessGroup: true
-        )
-        try updateFunctionCodeTask.launchSyncAndAssertSuccess()
-    }
-    
-    
-    private func makeBootstrapFile(launchInfoFileUrl: URL, writeTo dstUrl: URL) throws {
-        //let dstUrl = FM.lk_getTemporaryFileUrl(fileExtension: nil)
-        let bootstrapFileContents = """
-        #!/bin/bash
-        ./\(productName) \(WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig) ./\(launchInfoFileUrl.lastPathComponent)
-        """
-        try bootstrapFileContents.write(to: dstUrl, atomically: true, encoding: .utf8)
     }
 }
 
 
 LambdaDeploymentProvider.main()
-//LambdaDeploymentProvider.main(["/Users/lukas/Developer/Apodini/", "--product-name=TestWebService"])
-

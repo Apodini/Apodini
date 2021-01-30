@@ -195,19 +195,8 @@ let package = Package(
             dependencies: [
                 .target(name: "DeploymentTargetAWSLambdaCommon"),
                 .target(name: "ApodiniDeployRuntimeSupport"),
-                .product(name: "AWSLambdaEvents", package: "swift-aws-lambda-runtime"),
-                .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime"),
-                .product(name: "SotoLambda", package: "soto")
-            ]
-        ),
-        .target(
-            name: "TestWebServiceAWS",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "DeploymentTargetAWSLambdaRuntime")
-                //.product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime"),
                 //.product(name: "AWSLambdaEvents", package: "swift-aws-lambda-runtime"),
-                //.product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
+                .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
             ]
         ),
         // Jobs

@@ -99,18 +99,18 @@ struct TestWebService: Apodini.WebService {
     @PathParameter var name: String
     
     var content: some Component {
-//        Text("!!Hello World??! 👋")
-//            .response(EmojiMediator(emojis: "🎉"))
-//            .response(EmojiMediator())
-//            .guard(PrintGuard())
-//        Group("swift") {
-//            Text("Hello Swift! 💻")
-//                .response(EmojiMediator())
-//                .guard(PrintGuard())
-//            Group("5", "3") {
-//                Text("Hello Swift 5! 💻")
-//            }
-//        }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
+        Text("!!Hello World??! 👋")
+            .response(EmojiMediator(emojis: "🎉"))
+            .response(EmojiMediator())
+            .guard(PrintGuard())
+        Group("swift") {
+            Text("Hello Swift! 💻")
+                .response(EmojiMediator())
+                .guard(PrintGuard())
+            Group("5", "3") {
+                Text("Hello Swift 5! 💻")
+            }
+        }.guard(PrintGuard("Someone is accessing Swift 😎!!"))
 //        Group("greet") {
 //            TraditionalGreeter()
 //                .serviceName("GreetService")
@@ -129,7 +129,7 @@ struct TestWebService: Apodini.WebService {
     var deploymentConfig: DeploymentConfig {
         DeploymentConfig(
             deploymentGroups: DeploymentGroupsConfig(
-                defaultGrouping: .separateNodes
+                defaultGrouping: .singleNode
 //                groups: [
 //                    .init(handlerIds: [RandomNumberGenerator.HandlerIdentifier.main]),
 //                    .init(handlerIds: [Greeter.id])

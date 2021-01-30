@@ -8,7 +8,6 @@
 import Foundation
 import Logging
 import NIO
-import SotoS3
 import SotoLambda
 import SotoApiGatewayV2
 import SotoIAM
@@ -18,65 +17,18 @@ import OpenAPIKit
 
 
 
-class Lazy<T> {
-    private let block: () -> T
-    private var _value: T?
 
-    init(_ block: @escaping () -> T) {
-        self.block = block
-    }
-    
-    func value() -> T {
-        if let value = _value {
-            return value
-        } else {
-            _value = block()
-            return _value!
-        }
-    }
-}
-
-
-
-
-class LazyThrowing<T> {
-    private let block: () throws -> T
-    private var _value: T?
-
-    init(_ block: @escaping () throws -> T) {
-        self.block = block
-    }
-    
-    func value() throws -> T {
-        if let value = _value {
-            return value
-        } else {
-            _value = try block()
-            return _value!
-        }
-    }
-}
-
-
-
-
-
-
+/// A type which interacts with AWS to create and configure ressources.
+/// - note: s
 class AWSDeploymentStuff { // needs a better name
-    private let deploymentStructure: DeployedSystemStructure
-    private let openApiDocument: OpenAPI.Document
     private let tmpDirUrl: URL
-    private let lambdaExecutableUrl: URL
-    private let lambdaSharedObjectFilesUrl: URL
     
     private let FM = FileManager.default
-    
     private let threadPool = NIOThreadPool(numberOfThreads: 1) // TODO make this 2 or more?
     
     private let awsProfileName: String
     private let awsRegion: SotoCore.Region
     private let awsClient: AWSClient
-    //private let s3: S3
     private let sts: STS
     private let iam: IAM
     private let lambda: Lambda
@@ -84,23 +36,17 @@ class AWSDeploymentStuff { // needs a better name
     
     private let logger = Logger(label: "de.lukaskollmer.ApodiniLambda.AWSIntegration")
     
+    private var lambdaExecutionRole: IAM.Role?
+    
     
     init(
         awsProfileName: String,
         awsRegionName: String,
-        deploymentStructure: DeployedSystemStructure,
-        openApiDocument: OpenAPI.Document,
-        tmpDirUrl: URL,
-        lambdaExecutableUrl: URL,
-        lambdaSharedObjectFilesUrl: URL
+        tmpDirUrl: URL
     ) {
         self.awsProfileName = awsProfileName
         self.awsRegion = .init(rawValue: awsRegionName)
-        self.deploymentStructure = deploymentStructure
-        self.openApiDocument = openApiDocument
         self.tmpDirUrl = tmpDirUrl
-        self.lambdaSharedObjectFilesUrl = lambdaSharedObjectFilesUrl
-        self.lambdaExecutableUrl = lambdaExecutableUrl
         awsClient = AWSClient(
             credentialProvider: .configFile(profile: awsProfileName),
             retryPolicy: .exponential(),
@@ -120,36 +66,39 @@ class AWSDeploymentStuff { // needs a better name
     
     
     
-    enum ApiGatewayIdInput {
-        case createNew
-        case useExisting(String)
+    
+    /// Creates a new HTTP API Gateway in the specified AWS region.
+    /// - returns: on success, the newly created API's id
+    func createApiGateway(protocolType: SotoApiGatewayV2.ApiGatewayV2.ProtocolType) throws -> String {
+        let apiId = try apiGateway.createApi(ApiGatewayV2.CreateApiRequest(
+            name: "apodini-tmp-api", // doesnt matter will be replaced when importing the openapi spec
+            protocolType: protocolType
+        )).wait().apiId!
+        _ = try apiGateway.createStage(ApiGatewayV2.CreateStageRequest(
+            apiId: apiId,
+            autoDeploy: true,
+            stageName: "$default"
+        )).wait()
+        return apiId
     }
+    
+    
     
     
     /// - parameter s3BucketName: name of the S3 bucket the function should be uploaded to
     /// - parameter s3ObjectFolderKey: key (ie path) of the folder into which the function should be uploaded
-    func apply(s3BucketName: String, s3ObjectFolderKey: String, dstApiGateway apiGatewayIdInput: ApiGatewayIdInput) throws {
+    func deployToLambda(
+        deploymentStructure: DeployedSystemStructure,
+        openApiDocument: OpenAPI.Document,
+        lambdaExecutableUrl: URL,
+        lambdaSharedObjectFilesUrl: URL,
+        s3BucketName: String,
+        s3ObjectFolderKey: String,
+        apiGatewayApiId: String
+    ) throws {
         logger.trace("-[\(Self.self) \(#function)]")
         
         let accountId = try sts.getCallerIdentity(STS.GetCallerIdentityRequest()).wait().account!
-        
-        let apiGatewayApiId: String = try {
-            switch apiGatewayIdInput {
-            case .useExisting(let id):
-                return id
-            case .createNew:
-                let apiId = try apiGateway.createApi(ApiGatewayV2.CreateApiRequest(
-                    name: "apodini-tmp-api", // doesnt matter will be replaced when importing the openapi spec
-                    protocolType: .http
-                )).wait().apiId!
-                _ = try apiGateway.createStage(ApiGatewayV2.CreateStageRequest(
-                    apiId: apiId,
-                    autoDeploy: true,
-                    stageName: "$default"
-                )).wait()
-                return apiId
-            }
-        }()
         
         logger.notice("Fetching list of all lambda functions in AWS account")
         let allFunctionsResponse = try lambda.listFunctions(Lambda.ListFunctionsRequest()).wait()
@@ -182,50 +131,6 @@ class AWSDeploymentStuff { // needs a better name
         //
         
         
-        let executionRole = LazyThrowing<IAM.Role> { [unowned self] in
-            logger.notice("Creating IAM execution role for new functions")
-            let request = IAM.CreateRoleRequest(
-                //assumeRolePolicyDocument: "", // TODO
-                assumeRolePolicyDocument:
-                    #"{"Version": "2012-10-17","Statement": [{ "Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"}, "Action": "sts:AssumeRole"}]}"#,
-                description: nil,
-                path: "/apodini-service-role/",
-                permissionsBoundary: nil,
-                //roleName: "apodini.lambda.executionRole_\(Date().lk_iso8601(includeTime: true))"
-                roleName: "apodini.lambda.executionRole_\(Date().lk_format("yyyy-MM-dd_HHmmss"))"
-            )
-            print(request.roleName)
-            let role = try iam.createRole(request).wait().role
-            logger.notice("New role: name=\(role.roleName) arn=\(role.arn)")
-            func attachRolePolicy(arn: String) throws {
-                logger.notice("Attaching permission policy '\(arn)' to role")
-                try iam.attachRolePolicy(
-                    IAM.AttachRolePolicyRequest(
-                        policyArn: arn,
-                        roleName: role.roleName
-                    )
-                ).wait()
-                print("did attach policy")
-            }
-            
-            try attachRolePolicy(arn: "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole")
-            try attachRolePolicy(arn: "arn:aws:iam::aws:policy/service-role/AWSLambdaRole")
-            
-//            print("This is where we wait...")
-//            sleep(12)
-            
-            
-//            logger.notice("Attaching AWSLambdaBasicExecutionRole policy to role")
-//            try iam.attachRolePolicy(
-//                IAM.AttachRolePolicyRequest(
-//                    policyArn: "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-//                    roleName: role.roleName
-//                )
-//            ).wait()
-            return role
-        }
-        
-        
         var nodeToLambdaFunctionMapping: [DeployedSystemStructure.Node.ID: Lambda.FunctionConfiguration] = [:]
         
         
@@ -250,11 +155,6 @@ class AWSDeploymentStuff { // needs a better name
             }
             
             for sharedObjectFileUrl in try FM.contentsOfDirectory(at: lambdaSharedObjectFilesUrl, includingPropertiesForKeys: nil, options: []) {
-//                logger.notice("- adding shared object file \(sharedObjectFileUrl.lastPathComponent)")
-//                try FM.copyItem(
-//                    at: sharedObjectFileUrl,
-//                    to: lambdaPackageTmpDir.appendingPathComponent(sharedObjectFileUrl.lastPathComponent, isDirectory: false)
-//                )
                 try addToLambdaPackage(sharedObjectFileUrl)
             }
             
@@ -263,9 +163,7 @@ class AWSDeploymentStuff { // needs a better name
             let launchInfoFileUrl = lambdaPackageTmpDir.appendingPathComponent("launchInfo.json", isDirectory: false)
             logger.notice("- adding launchInfo.json")
             try deploymentStructure.withCurrentInstanceNodeId(node.id).writeTo(url: launchInfoFileUrl)
-            try launchInfoFileUrl.path.withCString {
-                try throwIfPosixError(chmod($0, 0o644)) // rw-r--r--
-            }
+            try FM.lk_setPosixPermissions(0o644, forItemAt: launchInfoFileUrl) // rw-r--r--
             
             do {
                 // create & add bootstrap file
@@ -276,21 +174,7 @@ class AWSDeploymentStuff { // needs a better name
                 """
                 let bootstrapFileUrl = lambdaPackageTmpDir.appendingPathComponent("bootstrap", isDirectory: false)
                 try bootstrapFileContents.write(to: bootstrapFileUrl, atomically: true, encoding: .utf8)
-                
-                try bootstrapFileUrl.path.withCString {
-                    try throwIfPosixError(chmod($0, 0o755)) // rwxrwxr-x
-                }
-                
-//                try Task(
-//                    executableUrl: chmodBin,
-//                    arguments: ["+x", bootstrapFileUrl.path],
-//                    captureOutput: false,
-//                    launchInCurrentProcessGroup: true
-//                ).launchSyncAndAssertSuccess()
-                
-                //try throwIfPosixError(bootstrapFileUrl.path.withCString { chmod($0, 0o755) })
-                
-                //chmod(<#T##UnsafePointer<Int8>!#>, <#T##mode_t#>)
+                try FM.lk_setPosixPermissions(0o755, forItemAt: bootstrapFileUrl) // rwxrwxr-x
             }
             
             logger.notice("zipping lambda package")
@@ -331,7 +215,7 @@ class AWSDeploymentStuff { // needs a better name
                     return try lambda.updateFunctionCode(updateCodeRequest).wait()
                 } else {
                     logger.notice("Creating new lambda function \(s3BucketName) \(s3ObjectKey)")
-                    let roleArn = try executionRole.value().arn
+                    let executionRoleArn = try createLambdaExecutionRole().arn
                     let createFunctionRequest = Lambda.CreateFunctionRequest(
                         code: .init(s3Bucket: s3BucketName, s3Key: s3ObjectKey),
                         description: "Apodini-created lambda function",
@@ -341,25 +225,28 @@ class AWSDeploymentStuff { // needs a better name
                         memorySize: nil, // TODO
                         packageType: .zip,
                         publish: true,
-                        role: roleArn,
+                        role: executionRoleArn,
                         runtime: .providedAl2,
                         tags: nil, // [String : String]?.none,
                         timeout: nil // default is 3?
                     )
                     
+                    // The issue here is that, if the IAM role assigned to the new lambda is a newly created role,
+                    // AWS doesn't always let us reference the role, and fails with a "The role defined for the function cannot be assumed by Lambda"
+                    // error message. There is in fact nothing wrong with the role (it can be assumed by the lambda), but
+                    // we, in some cases, have to wait a couple of seconds after creating the IAM role before we can create
+                    // a lambda function referencing it.
+                    // We work around this by, if the function creation failed, checking whether it failed because the IAM role
+                    // wasn't "ready" yet, and, if that is the case, retrying after a couple of seconds.
+                    // see also: https://stackoverflow.com/q/36419442
                     func createLambdaImp(iteration: Int = 1) throws -> Lambda.FunctionConfiguration {
-                        print(#function, iteration)
                         do {
                             return try lambda.createFunction(createFunctionRequest).wait()
-                        //} catch LambdaErrorType.invalidParameterValueException {
-                            
                         } catch let error as LambdaErrorType {
-                            // The role defined for the function cannot be assumed by Lambda
-                            //error.errorCode == LambdaErrorType.invalidParameterValueException.errorCode
                             guard
                                 error.errorCode == LambdaErrorType.invalidParameterValueException.errorCode,
                                 error.context?.message == "The role defined for the function cannot be assumed by Lambda.",
-                                iteration < 5
+                                iteration < 7
                             else {
                                 throw error
                             }
@@ -367,9 +254,7 @@ class AWSDeploymentStuff { // needs a better name
                             return try createLambdaImp(iteration: iteration + 1)
                         }
                     }
-                    
                     return try createLambdaImp()
-                    //return try lambda.createFunction(createFunctionRequest, logger: self.logger).wait()
                 }
             }()
             
@@ -387,18 +272,8 @@ class AWSDeploymentStuff { // needs a better name
                     statementId: UUID().uuidString.lowercased()
                 )).wait()
             }
-            
             try grantLambdaPermissions(appiGatewayRessourcePattern: "*/*/*")
             try grantLambdaPermissions(appiGatewayRessourcePattern: "*/$default")
-            
-//            let addPermissionsResponse = try lambda.addPermission(Lambda.AddPermissionRequest(
-//                action: "lambda:InvokeFunction",
-//                functionName: functionConfig.functionName!,
-//                principal: "apigateway.amazonaws.com",
-//                sourceArn: "arn:aws:execute-api:\(awsRegion.rawValue):\(accountId):\(apiGatewayApiId)/*/*/*", // /*/*/v1
-//                statementId: UUID().uuidString.lowercased()
-//            )).wait()
-//            print("addPermissionsResponse", addPermissionsResponse)
         }
         
         
@@ -406,12 +281,10 @@ class AWSDeploymentStuff { // needs a better name
         // API GATEWAY
         //
         
-        var apiGatewayImportDef = openApiDocument
-        //OpenAPI.Document(openAPIVersion: <#T##OpenAPI.Document.Version#>, info: <#T##OpenAPI.Document.Info#>, servers: <#T##[OpenAPI.Server]#>, paths: <#T##OpenAPI.PathItem.Map#>, components: <#T##OpenAPI.Components#>, security: <#T##[OpenAPI.SecurityRequirement]#>, tags: <#T##[OpenAPI.Tag]?#>, externalDocs: <#T##OpenAPI.ExternalDocumentation?#>, vendorExtensions: <#T##[String : AnyCodable]#>)
-        
-        apiGatewayImportDef.vendorExtensions["x-amazon-apigateway-importexport-version"] = "1.0"
-        
         let apiGatewayExecuteUrl = URL(string: "https://\(apiGatewayApiId).execute-api.\(awsRegion.rawValue).amazonaws.com/")!
+        
+        var apiGatewayImportDef = openApiDocument
+        apiGatewayImportDef.vendorExtensions["x-amazon-apigateway-importexport-version"] = "1.0"
         
         apiGatewayImportDef.servers = [
             OpenAPI.Server(
@@ -433,16 +306,11 @@ class AWSDeploymentStuff { // needs a better name
         
         // TODO add a second __apdini/invoke/handlerId endpoint for each handler
         // (we cant make this use the catch-all route since we want it dispatched to different lambdas based on the invoked handler
-         // apiGatewayImportDef.paths.flatMap(<#T##transform: ((key: OpenAPI.Path, value: OpenAPI.PathItem)) throws -> Sequence##((key: OpenAPI.Path, value: OpenAPI.PathItem)) throws -> Sequence#>)
         apiGatewayImportDef.paths = apiGatewayImportDef.paths.mapValues { (pathItem: OpenAPI.PathItem) -> OpenAPI.PathItem in
             var pathItem = pathItem
             for endpoint in pathItem.endpoints {
                 var operation = endpoint.operation
                 let handlerId = operation.vendorExtensions["x-handlerId"]!.value as! String
-//                let nodes = deploymentStructure.nodesExportingEndpoint(withHandlerId: handlerId)
-//                precondition(nodes.count == 1)
-//                let nodeId = nodes.first!.id
-//                let lambdaFunctionConfig = nodeToLambdaFunctionMapping[nodeId]!
                 let lambdaFunctionConfig = lambdaFunctionConfigForHandlerId(handlerId)
                 operation.vendorExtensions["x-amazon-apigateway-integration"] = [
                     "type": "aws_proxy",
@@ -467,8 +335,6 @@ class AWSDeploymentStuff { // needs a better name
                 let lambdaFunctionConfig = lambdaFunctionConfigForHandlerId(handlerId)
                 let path = OpenAPI.Path(["__apodini", "invoke", handlerId])
                 apiGatewayImportDef.paths[path] = OpenAPI.PathItem(
-                    //post: OpenAPI.Operation.init(responses: OpenAPI.Response.Map.init(dictionaryLiteral: <#T##(OpenAPI.Response.StatusCode, Either<JSONReference<OpenAPI.Response>, OpenAPI.Response>)...##(OpenAPI.Response.StatusCode, Either<JSONReference<OpenAPI.Response>, OpenAPI.Response>)#>)),
-                    
                     post: OpenAPI.Operation(
                         responses: [
                             OpenAPI.Response.StatusCode.default: Either(OpenAPI.Response.init(description: "desc"))
@@ -483,9 +349,6 @@ class AWSDeploymentStuff { // needs a better name
                             ]
                         ]
                     )
-                    //vendorExtensions: [
-                        //Self.xAmazonApigatewayIntegrationKey: AnyCodable(Self.makeApiGatewayOpenApiExtensionDict(awsRegion: awsRegion.rawValue, lambdaArn: lambdaFunctionConfig.functionArn!))
-                    //]
                 )
             }
         }
@@ -528,17 +391,57 @@ class AWSDeploymentStuff { // needs a better name
             apiId: apiGatewayApiId,
             basepath: nil, // TODO?
             body: String(data: try Data(contentsOf: openApiDefPath), encoding: .utf8)!,
-            //body: "file://\(openApiDefPath.path)",
             failOnWarnings: true // Too strict?
         )
-        //print("reimportReq", reimportRequest)
         
-        let res = try apiGateway.reimportApi(reimportRequest).wait()
+        _ = try apiGateway.reimportApi(reimportRequest).wait()
         
         let numLambdas = deploymentStructure.nodes.count
         logger.notice("Deployed \(numLambdas) lambda\(numLambdas == 1 ? "" : "s") to api gateway w/ id '\(apiGatewayApiId)'")
         logger.notice("Invoke URL: \(apiGatewayExecuteUrl)")
     }
+    
+    
+    
+    
+    private func createLambdaExecutionRole() throws -> IAM.Role {
+        if let role = lambdaExecutionRole {
+            return role
+        }
+        
+        // TODO look for existing roles and re-use is possible!
+        logger.notice("Creating IAM execution role for new functions")
+        let request = IAM.CreateRoleRequest(
+            //assumeRolePolicyDocument: "", // TODO
+            assumeRolePolicyDocument:
+                #"{"Version": "2012-10-17","Statement": [{ "Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"}, "Action": "sts:AssumeRole"}]}"#,
+            description: nil,
+            path: "/apodini-service-role/",
+            permissionsBoundary: nil,
+            //roleName: "apodini.lambda.executionRole_\(Date().lk_iso8601(includeTime: true))"
+            roleName: "apodini.lambda.executionRole_\(Date().lk_format("yyyy-MM-dd_HHmmss"))"
+        )
+        print(request.roleName)
+        let role = try iam.createRole(request).wait().role
+        logger.notice("New role: name=\(role.roleName) arn=\(role.arn)")
+        
+        func attachRolePolicy(arn: String) throws {
+            logger.notice("Attaching permission policy '\(arn)' to role")
+            try iam.attachRolePolicy(
+                IAM.AttachRolePolicyRequest(
+                    policyArn: arn,
+                    roleName: role.roleName
+                )
+            ).wait()
+        }
+        
+        try attachRolePolicy(arn: "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole")
+        try attachRolePolicy(arn: "arn:aws:iam::aws:policy/service-role/AWSLambdaRole")
+        
+        self.lambdaExecutionRole = role
+        return role
+    }
+    
     
     
     static let xAmazonApigatewayIntegrationKey = "x-amazon-apigateway-integration"
@@ -560,23 +463,6 @@ class AWSDeploymentStuff { // needs a better name
 
 
 
-//extension SotoLambda.Lambda {
-//    func lk_createFunction(_ input: SotoLambda.Lambda.CreateFunctionRequest) throws -> EventLoopFuture<SotoLambda.Lambda.FunctionConfiguration> {
-//    }
-//}
-
-
-
-
-
-extension Optional {
-    func lk_or(_ value: @autoclosure () -> Wrapped) -> Wrapped {
-        self ?? value()
-    }
-}
-
-
-
 extension Date {
     func lk_iso8601(includeTime: Bool = false) -> String {
         let fmt = ISO8601DateFormatter()
@@ -591,5 +477,15 @@ extension Date {
         let fmt = DateFormatter()
         fmt.dateFormat = formatString
         return fmt.string(from: self)
+    }
+}
+
+
+
+extension FileManager {
+    func lk_setPosixPermissions(_ permissions: mode_t, forItemAt url: URL) throws {
+        try url.absoluteURL.path.withCString {
+            try throwIfPosixError(chmod($0, permissions))
+        }
     }
 }

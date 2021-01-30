@@ -33,6 +33,7 @@ extension WebService {
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
 
         main(app: app)
+        return;
         try lk_handleDeploymentStuff(app: app, deploymentProviderRuntimes: deploymentProviders)
             
         defer {
@@ -51,12 +52,12 @@ extension WebService {
         webService.register(
             SharedSemanticModelBuilder(app)
                 .with(exporter: RESTInterfaceExporter.self)
-                .with(exporter: WebSocketInterfaceExporter.self)
+                //.with(exporter: WebSocketInterfaceExporter.self)
                 .with(exporter: OpenAPIInterfaceExporter.self)
-                .with(exporter: GRPCInterfaceExporter.self)
-                .with(exporter: ProtobufferInterfaceExporter.self)
-                .with(exporter: RHIInterfaceExporter.self),
-            GraphQLSemanticModelBuilder(app)
+                //.with(exporter: GRPCInterfaceExporter.self)
+                //.with(exporter: ProtobufferInterfaceExporter.self)
+                .with(exporter: RHIInterfaceExporter.self)//,
+            //GraphQLSemanticModelBuilder(app)
         )
         
         // Adds the created application instance to `EnvironmentValues`.

@@ -13,6 +13,7 @@ final class ProtobufferBuilderTests: XCTestCase {
     }
     
     override func tearDown() {
+        super.tearDown()
         RHIInterfaceExporter.resetSingleton()
     }
 }
