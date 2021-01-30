@@ -15,23 +15,23 @@ protocol ExporterVisitable {
 
 
 struct AnyInterfaceExporter {
-    private let _accept: (_ visitor: InterfaceExporterVisitor) -> Void
+    private let accept: (_ visitor: InterfaceExporterVisitor) -> Void
 
     init<I: BaseInterfaceExporter>(_ exporter: I) {
         let exporterVisitor = StandardExporterVisitableVisitor()
         if let accept = exporterVisitor(exporter) {
-            _accept = accept
+            self.accept = accept
         } else {
             let staticVisitor = StandardStaticExporterVisitableVisitor()
             guard let accept = staticVisitor(exporter) else {
                 fatalError("Encountered an illegally defined InterfaceExporter: \(I.self)")
             }
-            _accept = accept
+            self.accept = accept
         }
     }
 
     func accept(_ visitor: InterfaceExporterVisitor) {
-        _accept(visitor)
+        accept(visitor)
     }
 }
 
