@@ -3,8 +3,6 @@
 //
 
 import XCTest
-import Foundation
-import NIO
 @_implementationOnly import OpenAPIKit
 @testable import Apodini
 
@@ -15,7 +13,6 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     let someBool = true
     let someDict = ["someKey": "someValue"]
     let someArray = [1, 2, 3]
-    let someEventLoop: EventLoopFuture<Int>? = nil
     let someEither: Either<Int, String> = .init("someString")
     let someOptional: String? = nil
     let someOptionalUUID: UUID? = nil
@@ -84,11 +81,8 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     // add complex type (will be added to components map)
     func testBuildSchemaForResponses() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
-        XCTAssertNoThrow(try componentsBuilder.buildResponse(for: SomeStruct.self))
         let schema = try componentsBuilder.buildResponse(for: SomeStruct.self)
-        
-        XCTAssertThrowsError(try JSONSchema.reference(.component(named: "SomeStruct.self")).dereferenced(in: componentsBuilder.componentsObject))
-        
+                
         XCTAssertEqual(schema, .object(properties: [
             ResponseContainer.CodingKeys.data.rawValue: try componentsBuilder.buildSchema(for: SomeStruct.self),
             ResponseContainer.CodingKeys.links.rawValue: try componentsBuilder.buildSchema(for: ResponseContainer.Links.self)
@@ -126,12 +120,12 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
 
     func testBuildSchemaCorrect() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
-        _ = try componentsBuilder.buildSchema(for: SomeComplexStruct.self)
-        _ = try componentsBuilder.buildSchema(for: SomeStructWithEnum.self)
+        XCTAssertNoThrow(try componentsBuilder.buildSchema(for: SomeComplexStruct.self))
+        XCTAssertNoThrow(try componentsBuilder.buildSchema(for: SomeStructWithEnum.self))
 
         let ref1 = try componentsBuilder.componentsObject.reference(named: "\(SomeStruct.self)", ofType: JSONSchema.self)
         let ref2 = try componentsBuilder.componentsObject.reference(named: "\(SomeNestedStruct.self)", ofType: JSONSchema.self)
-        let ref3 = try componentsBuilder.componentsObject.reference(named: "GenericStruct", ofType: JSONSchema.self)
+        let ref3 = try componentsBuilder.componentsObject.reference(named: "GenericStruct\(OpenAPISchemaConstants.replaceOpenAngleBracket)SomeStruct\(OpenAPISchemaConstants.replaceCloseAngleBracket)", ofType: JSONSchema.self)
         let ref4 = try componentsBuilder.componentsObject.reference(named: "\(SomeComplexStruct.self)", ofType: JSONSchema.self)
         let ref5 = try componentsBuilder.componentsObject.reference(named: "\(SomeStructWithEnum.self)", ofType: JSONSchema.self)
 
@@ -172,7 +166,7 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
                         .component(named: "SomeNestedStruct")
                     ),
                     "someItems": .reference(
-                        .component(named: "GenericStruct")
+                        .component(named: "GenericStruct\(OpenAPISchemaConstants.replaceOpenAngleBracket)SomeStruct\(OpenAPISchemaConstants.replaceCloseAngleBracket)")
                     ),
                     "someStruct": .reference(
                         .component(named: "SomeStruct")
@@ -192,5 +186,57 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
                 ]
             )
         )
+    }
+    
+    func testCreateEnrichedInfoTree() throws {
+        struct Card {
+            let number: Int
+        }
+        
+        struct Player {
+            let hand: [Card]
+            let teamMates: [String: String]
+        }
+
+        struct Game {
+            let players: [String: Player]
+            let newPlayers: [Player]
+        }
+        
+        struct Casino {
+            let tables: [Game]
+        }
+        
+        let tree = try OpenAPIComponentsObjectBuilder.node(Casino.self)
+        
+        XCTAssertEqual(tree?.children.count, 1)
+        
+        let tablesNode = tree?.children.first {
+            $0.value.propertyInfo?.name == "tables"
+        }
+        
+        XCTAssertEqual(tablesNode?.children.count, 2)
+        XCTAssertTrue(tablesNode?.value.cardinality == .zeroToMany(.array))
+        
+        // check for correct children of tablesNode
+        let stringNode = try EnrichedInfo.node(String.self)
+        let playerNode = try EnrichedInfo.node(Player.self)
+        let newPlayersNode = tablesNode?.children.first { $0.value.propertyInfo?.name == "newPlayers" }
+        let playersNode = tablesNode?.children.first { $0.value.propertyInfo?.name == "players" }
+        
+        XCTAssertEqual(playersNode?.children.count, 2)
+        XCTAssertTrue(playersNode?.value.cardinality == .zeroToMany(.dictionary(key: stringNode.value, value: playerNode.value)))
+        XCTAssertEqual(newPlayersNode?.children.count, 2)
+        XCTAssertTrue(newPlayersNode?.value.cardinality == .zeroToMany(.array))
+        
+        let playersHandNode = playersNode?.children.first { $0.value.propertyInfo?.name == "hand" }
+        let newPlayersHandNode = newPlayersNode?.children.first { $0.value.propertyInfo?.name == "hand" }
+        
+        XCTAssertEqual(playersHandNode?.value, newPlayersHandNode?.value)
+        
+        let playersTeamMatesNode = playersNode?.children.first { $0.value.propertyInfo?.name == "teamMates" }
+        let newPlayersTeamMatesNode = newPlayersNode?.children.first { $0.value.propertyInfo?.name == "teamMates" }
+        
+        XCTAssertEqual(playersTeamMatesNode?.value, newPlayersTeamMatesNode?.value)
     }
 }
