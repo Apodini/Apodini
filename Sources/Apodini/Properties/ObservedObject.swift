@@ -7,17 +7,16 @@ import Foundation
 /// This is helpful for service-side streams or bidirectional communication.
 @propertyWrapper
 public struct ObservedObject<Element: ObservableObject>: Property {
-    private var objectIdentifer: ObjectIdentifier?
+    private var objectIdentifier: ObjectIdentifier?
     private var element: Element?
-    private var changedWrapper: Wrapper<Bool>
-    private var wrappedValueDidChange: Wrapper<(() -> Void)?>
+    private let _initializer: (() -> Element)?
     
     public var wrappedValue: Element {
         get {
             if let element = element {
                 return element
             }
-            if let objectIdentifer = objectIdentifer,
+            if let objectIdentifer = objectIdentifier,
                let element = EnvironmentValues.shared.values[objectIdentifer] as? Element {
                 return element
             }
@@ -28,74 +27,89 @@ public struct ObservedObject<Element: ObservableObject>: Property {
         }
     }
     
+    private var changedWrapper: Wrapper<Bool>?
+    
     /// Property to check if the evaluation of the `Handler` or `Job` was triggered by this `ObservableObject`.
-    /// Read only property
     public var changed: Bool {
-        changedWrapper.value
+        get {
+            guard let value = changedWrapper?.value else {
+                fatalError("""
+                    A ObservedObjects's 'changed' property was accessed before the
+                    ObservedObject was activated.
+                    """)
+            }
+            return value
+        }
+        nonmutating set {
+            guard let wrapper = changedWrapper else {
+                fatalError("""
+                    A ObservedObjects's 'changed' property was accessed before the
+                    ObservedObject was activated.
+                    """)
+            }
+            wrapper.value = newValue
+        }
     }
     
     /// Element passed as an object.
-    public init(wrappedValue defaultValue: Element) {
-        element = defaultValue
-        changedWrapper = Wrapper(value: false)
-        wrappedValueDidChange = Wrapper(value: nil)
+    public init(wrappedValue initializer: @escaping @autoclosure () -> Element) {
+        self._initializer = initializer
     }
     
     /// Element is injected with a key path.
     public init<Key: KeyChain>(_ keyPath: KeyPath<Key, Element>) {
-        objectIdentifer = ObjectIdentifier(keyPath)
-        changedWrapper = Wrapper(value: false)
-        wrappedValueDidChange = Wrapper(value: nil)
+        self.objectIdentifier = ObjectIdentifier(keyPath)
+        self._initializer = nil
     }
 }
 
 /// Type-erased `ObservedObject` protocol.
 public protocol AnyObservedObject {
     /// Method to be informed about values that have changed
-    var valueDidChange: (() -> Void)? { get nonmutating set }
-    /// Sets the `changed` property.
-    /// Separate setter for `changed` to be read only by the user.
-    nonmutating func setChanged(to value: Bool)
+    func register(_ callback: @escaping () -> Void) -> Observation
+    
+    /// Any `ObservedObject` has a `changed` flag that indicates if this object has been
+    /// changed _recently_. The definition of _recently_ depends on the context and usage.
+    ///
+    /// E.g. for `Handler`s, the `handle()` function is executed every time an `@ObservedObject`
+    /// canges. The `changed` property of this object is set to `true` for the exact time where
+    /// the `handle()` is evaluated because this object changed.
+    var changed: Bool { get nonmutating set }
 }
 
 extension ObservedObject: AnyObservedObject {
-    public var valueDidChange: (() -> Void)? {
-        get {
-            wrappedValueDidChange.value
-        }
-        nonmutating set {
-            wrappedValueDidChange.value = newValue
-            
-            for property in Mirror(reflecting: wrappedValue).children {
-                switch property.value {
-                case let published as AnyPublished:
-                    published.valueDidChange = valueDidChange
-                default:
-                    continue
-                }
-            }
-        }
-    }
+    public func register(_ callback: @escaping () -> Void) -> Observation {
+        let observation = Observation(callback)
     
-    public nonmutating func setChanged(to value: Bool) {
-        changedWrapper.value = value
-    }
-}
-
-extension Handler {
-    /// Collects  every `ObservedObject` in the Handler.
-    func collectObservedObjects() -> [AnyObservedObject] {
-        var observedObjects: [AnyObservedObject] = []
-        
-        for property in Mirror(reflecting: self).children {
+        for property in Mirror(reflecting: wrappedValue).children {
             switch property.value {
-            case let observedObject as AnyObservedObject:
-                observedObjects.append(observedObject)
+            case let published as AnyPublished:
+                published.register(observation)
             default:
                 continue
             }
         }
         
-        return observedObjects
+        return observation
+    }
+}
+
+extension ObservedObject: Activatable {
+    mutating func activate() {
+        self.changedWrapper = Wrapper(value: false)
+        if let initializer = self._initializer {
+            self.element = initializer()
+        }
+    }
+}
+
+/// An `Observation` is a token that is obtained from registering a callback to an `ObservedObject`.
+/// The registering instance must hold this token until it no longer whishes to be updated about the
+/// `ObservedObject`'s state. When the token is released, the subscription is canceled.
+public class Observation {
+    let callback: () -> Void
+    
+    internal init(_ callback: @escaping () -> Void) {
+        self.callback = callback
     }
 }
