@@ -22,6 +22,8 @@ import DeploymentTargetAWSLambdaCommon
 /// A type which interacts with AWS to create and configure ressources.
 /// - note: s
 class AWSDeploymentStuff { // needs a better name
+    private static let lambdaFunctionNamePrefix = "apodini-lambda"
+    
     private let tmpDirUrl: URL
     
     private let FM = FileManager.default
@@ -115,7 +117,7 @@ class AWSDeploymentStuff { // needs a better name
         
         // Delete old functions
         do {
-            let functionsToBeDeleted = allFunctions.filter { $0.functionName!.hasPrefix("apodini-lambda") }
+            let functionsToBeDeleted = allFunctions.filter { $0.functionName!.hasPrefix(Self.lambdaFunctionNamePrefix) }
             if !functionsToBeDeleted.isEmpty {
                 logger.notice("Deleting old apodini lambda functions")
                 for function in functionsToBeDeleted {
@@ -486,7 +488,10 @@ class AWSDeploymentStuff { // needs a better name
 //            pattern: #"(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:)?(\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\$LATEST|[a-zA-Z0-9-_]+))?"#,
 //            options: []
 //        )
-        let lambdaName = "apodini-lambda-\(node.id.replacingOccurrences(of: ":", with: "-"))"
+        let allowedCharacters = "abcdefghijklmnopqsrtuvwxyzABCDEFGHIJKLMNOPQSRTUVWXYZ0123456789-_"
+        let lambdaName = Self.lambdaFunctionNamePrefix + String(node.id)//.map { allowedCharacters.contains($0) ? $0 : "-" })
+        // TODO make sure we dont acidentally update the same function twice (eg once bc the unmodified name matches and once bc we replace something, which makes it match the other function's name)
+        
         if let function = allFunctions.first(where: { $0.functionName == lambdaName }) {
             logger.notice("Found existing lambda function w/ matching name. Updating code")
             _ = try lambda.updateFunctionConfiguration(Lambda.UpdateFunctionConfigurationRequest(
