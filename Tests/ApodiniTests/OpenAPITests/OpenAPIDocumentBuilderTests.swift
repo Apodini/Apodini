@@ -77,7 +77,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                         title: "\(SomeStruct.self)Response", properties: [
                         ResponseContainer.CodingKeys.data.rawValue: .reference(.component(named: "\(SomeStruct.self)")),
                         ResponseContainer.CodingKeys.links.rawValue: .object(additionalProperties: .init(.string))
-                    ])
+                        ])
                 ]
             )
         )
