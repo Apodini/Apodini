@@ -14,6 +14,7 @@ import SotoIAM
 import SotoSTS
 import ApodiniDeployBuildSupport
 import OpenAPIKit
+import DeploymentTargetAWSLambdaCommon
 
 
 
@@ -89,6 +90,7 @@ class AWSDeploymentStuff { // needs a better name
     /// - parameter s3ObjectFolderKey: key (ie path) of the folder into which the function should be uploaded
     func deployToLambda(
         deploymentStructure: DeployedSystemStructure,
+        handlerTypeDeploymentOptions: HandlerTypeDeploymentOptions,
         openApiDocument: OpenAPI.Document,
         lambdaExecutableUrl: URL,
         lambdaSharedObjectFilesUrl: URL,
@@ -136,8 +138,10 @@ class AWSDeploymentStuff { // needs a better name
         
         logger.notice("Creating lambda functions for nodes in the web service deployment structure (#nodes: \(deploymentStructure.nodes.count))")
         for node in deploymentStructure.nodes {
+            guard let exportedEndpoint = node.exportedEndpoints.first, node.exportedEndpoints.count == 1 else {
+                fatalError("In a Lambda deployment, each node must export exactly one endpoint")
+            }
             logger.notice("Creating lambda function for node w/ id \(node.id) (handlers: \(node.exportedEndpoints.map { ($0.httpMethod, $0.absolutePath) })")
-            let lambdaName = "apodini-lambda-\(node.id)"
             
             logger.notice("Creating lambda package")
             let lambdaPackageTmpDir = tmpDirUrl.appendingPathComponent("lambda-package", isDirectory: true)
@@ -204,59 +208,80 @@ class AWSDeploymentStuff { // needs a better name
             ).launchSyncAndAssertSuccess()
             
             
-            let functionConfig: Lambda.FunctionConfiguration = try { [unowned self] in
-                if let function = allFunctions.first(where: { $0.functionName == lambdaName }) {
-                    logger.notice("Found existing lambda function w/ matching name. Updating code")
-                    let updateCodeRequest = Lambda.UpdateFunctionCodeRequest(
-                        functionName: function.functionName!,
-                        s3Bucket: s3BucketName,
-                        s3Key: s3ObjectKey
-                    )
-                    return try lambda.updateFunctionCode(updateCodeRequest).wait()
-                } else {
-                    logger.notice("Creating new lambda function \(s3BucketName) \(s3ObjectKey)")
-                    let executionRoleArn = try createLambdaExecutionRole().arn
-                    let createFunctionRequest = Lambda.CreateFunctionRequest(
-                        code: .init(s3Bucket: s3BucketName, s3Key: s3ObjectKey),
-                        description: "Apodini-created lambda function",
-                        environment: nil, //.init(variables: [String : String]?.none), // TODO?
-                        functionName: lambdaName,
-                        handler: "apodini.main", // doesn;t actually matter
-                        memorySize: nil, // TODO
-                        packageType: .zip,
-                        publish: true,
-                        role: executionRoleArn,
-                        runtime: .providedAl2,
-                        tags: nil, // [String : String]?.none,
-                        timeout: nil // default is 3?
-                    )
-                    
-                    // The issue here is that, if the IAM role assigned to the new lambda is a newly created role,
-                    // AWS doesn't always let us reference the role, and fails with a "The role defined for the function cannot be assumed by Lambda"
-                    // error message. There is in fact nothing wrong with the role (it can be assumed by the lambda), but
-                    // we, in some cases, have to wait a couple of seconds after creating the IAM role before we can create
-                    // a lambda function referencing it.
-                    // We work around this by, if the function creation failed, checking whether it failed because the IAM role
-                    // wasn't "ready" yet, and, if that is the case, retrying after a couple of seconds.
-                    // see also: https://stackoverflow.com/q/36419442
-                    func createLambdaImp(iteration: Int = 1) throws -> Lambda.FunctionConfiguration {
-                        do {
-                            return try lambda.createFunction(createFunctionRequest).wait()
-                        } catch let error as LambdaErrorType {
-                            guard
-                                error.errorCode == LambdaErrorType.invalidParameterValueException.errorCode,
-                                error.context?.message == "The role defined for the function cannot be assumed by Lambda.",
-                                iteration < 7
-                            else {
-                                throw error
-                            }
-                            sleep(UInt32(2 * iteration)) // linear wait time. not perfect but whatever
-                            return try createLambdaImp(iteration: iteration + 1)
-                        }
-                    }
-                    return try createLambdaImp()
-                }
-            }()
+            let functionConfig = try configureLambdaFunction(
+                forNode: node,
+                allFunctions: allFunctions,
+                handlerDeploymentOptions: handlerTypeDeploymentOptions[exportedEndpoint.handlerTypeIdentifier] ?? .init(),
+                s3BucketName: s3BucketName,
+                s3ObjectKey: s3ObjectKey
+            )
+//            let functionConfig: Lambda.FunctionConfiguration = try { [unowned self] in
+//                if let function = allFunctions.first(where: { $0.functionName == lambdaName }) {
+//                    logger.notice("Found existing lambda function w/ matching name. Updating code")
+//                    let updateCodeRequest = Lambda.UpdateFunctionCodeRequest(
+//                        functionName: function.functionName!,
+//                        s3Bucket: s3BucketName,
+//                        s3Key: s3ObjectKey
+//                    )
+//
+//                    let handlerDeploymentOptions = handlerTypeDeploymentOptions[exportedEndpoint.handlerTypeIdentifier]
+//
+//                    let updateConfigReq = Lambda.UpdateFunctionConfigurationRequest(
+//                        //description: <#T##String?#>,
+//                        //environment: <#T##Lambda.Environment?#>,
+//                        //functionName: <#T##String#>,
+//                        //handler: <#T##String?#>,
+//
+//                        memorySize: handlerDeploymentOptions?.getValue(forOptionKey: LambdaOpt),
+//                        role: <#T##String?#>,
+//                        timeout: <#T##Int?#>
+//                    )
+//
+//                    return try lambda.updateFunctionCode(updateCodeRequest).wait()
+//                } else {
+//                    logger.notice("Creating new lambda function \(s3BucketName) \(s3ObjectKey)")
+//                    let executionRoleArn = try createLambdaExecutionRole().arn
+//                    let createFunctionRequest = Lambda.CreateFunctionRequest(
+//                        code: .init(s3Bucket: s3BucketName, s3Key: s3ObjectKey),
+//                        description: "Apodini-created lambda function",
+//                        environment: nil, //.init(variables: [String : String]?.none), // TODO?
+//                        functionName: lambdaName,
+//                        handler: "apodini.main", // doesn;t actually matter
+//                        memorySize: nil, // TODO
+//                        packageType: .zip,
+//                        publish: true,
+//                        role: executionRoleArn,
+//                        runtime: .providedAl2,
+//                        tags: nil, // [String : String]?.none,
+//                        timeout: nil // default is 3?
+//                    )
+//
+//                    // The issue here is that, if the IAM role assigned to the new lambda is a newly created role,
+//                    // AWS doesn't always let us reference the role, and fails with a "The role defined for the function cannot be assumed by Lambda"
+//                    // error message. There is in fact nothing wrong with the role (it can be assumed by the lambda), but
+//                    // we, in some cases, have to wait a couple of seconds after creating the IAM role before we can create
+//                    // a lambda function referencing it.
+//                    // We work around this by, if the function creation failed, checking whether it failed because the IAM role
+//                    // wasn't "ready" yet, and, if that is the case, retrying after a couple of seconds.
+//                    // see also: https://stackoverflow.com/q/36419442
+//                    func createLambdaImp(iteration: Int = 1) throws -> Lambda.FunctionConfiguration {
+//                        do {
+//                            return try lambda.createFunction(createFunctionRequest).wait()
+//                        } catch let error as LambdaErrorType {
+//                            guard
+//                                error.errorCode == LambdaErrorType.invalidParameterValueException.errorCode,
+//                                error.context?.message == "The role defined for the function cannot be assumed by Lambda.",
+//                                iteration < 7
+//                            else {
+//                                throw error
+//                            }
+//                            sleep(UInt32(2 * iteration)) // linear wait time. not perfect but whatever
+//                            return try createLambdaImp(iteration: iteration + 1)
+//                        }
+//                    }
+//                    return try createLambdaImp()
+//                }
+//            }()
             
             
             nodeToLambdaFunctionMapping[node.id] = functionConfig
@@ -441,6 +466,93 @@ class AWSDeploymentStuff { // needs a better name
         self.lambdaExecutionRole = role
         return role
     }
+    
+    
+    
+    
+    /// Configures a lambda function for a node within our deployed system.
+    /// If a suitable function already exists (determined based on the node's id) this existing function will be re-used.
+    /// Otherwise a new function will be created.
+    /// - returns: the deployed-to function
+    private func configureLambdaFunction(
+        forNode node: DeployedSystemStructure.Node,
+        allFunctions: [Lambda.FunctionConfiguration],
+        handlerDeploymentOptions: HandlerDeploymentOptions,
+        s3BucketName: String,
+        s3ObjectKey: String
+    ) throws -> Lambda.FunctionConfiguration {
+        // TODO?
+//        let lambdaNameRegex = try NSRegularExpression(
+//            pattern: #"(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:)?(\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\$LATEST|[a-zA-Z0-9-_]+))?"#,
+//            options: []
+//        )
+        let lambdaName = "apodini-lambda-\(node.id.replacingOccurrences(of: ":", with: "-"))"
+        if let function = allFunctions.first(where: { $0.functionName == lambdaName }) {
+            logger.notice("Found existing lambda function w/ matching name. Updating code")
+            _ = try lambda.updateFunctionConfiguration(Lambda.UpdateFunctionConfigurationRequest(
+                //description: <#T##String?#>,
+                //environment: <#T##Lambda.Environment?#>,
+                functionName: function.functionArn!,
+                //handler: <#T##String?#>,
+                memorySize: try handlerDeploymentOptions.getValue(forOptionKey: LambdaHandlerOption.memorySize),
+                //role: <#T##String?#>,
+                timeout: try handlerDeploymentOptions.getValue(forOptionKey: LambdaHandlerOption.timeout)
+            )).wait()
+            return try lambda.updateFunctionCode(Lambda.UpdateFunctionCodeRequest(
+                functionName: function.functionName!,
+                s3Bucket: s3BucketName,
+                s3Key: s3ObjectKey
+            )).wait()
+        } else {
+            logger.notice("Creating new lambda function \(lambdaName)")
+            let executionRoleArn = try createLambdaExecutionRole().arn
+            let createFunctionRequest = Lambda.CreateFunctionRequest(
+                code: .init(s3Bucket: s3BucketName, s3Key: s3ObjectKey),
+                description: "Apodini-created lambda function",
+                environment: nil, //.init(variables: [String : String]?.none), // TODO?
+                functionName: lambdaName,
+                handler: "apodini.main", // doesn;t actually matter
+                memorySize: try handlerDeploymentOptions.getValue(forOptionKey: LambdaHandlerOption.memorySize),
+                packageType: .zip,
+                publish: true,
+                role: executionRoleArn,
+                runtime: .providedAl2,
+                tags: nil, // [String : String]?.none,
+                timeout: try handlerDeploymentOptions.getValue(forOptionKey: LambdaHandlerOption.timeout)
+            )
+            print("createReq: \(createFunctionRequest)")
+            
+            // The issue here is that, if the IAM role assigned to the new lambda is a newly created role,
+            // AWS doesn't always let us reference the role, and fails with a "The role defined for the function cannot be assumed by Lambda"
+            // error message. There is in fact nothing wrong with the role (it can be assumed by the lambda), but
+            // we, in some cases, have to wait a couple of seconds after creating the IAM role before we can create
+            // a lambda function referencing it.
+            // We work around this by, if the function creation failed, checking whether it failed because the IAM role
+            // wasn't "ready" yet, and, if that is the case, retrying after a couple of seconds.
+            // see also: https://stackoverflow.com/q/36419442
+            func createLambdaImp(iteration: Int = 1) throws -> Lambda.FunctionConfiguration {
+                do {
+                    print("ughhh")
+                    let retval = try lambda.createFunction(createFunctionRequest).wait()
+                    print("done!")
+                    return retval
+                } catch let error as LambdaErrorType {
+                    guard
+                        error.errorCode == LambdaErrorType.invalidParameterValueException.errorCode,
+                        error.context?.message == "The role defined for the function cannot be assumed by Lambda.",
+                        iteration < 7
+                    else {
+                        print("fuuuck", error)
+                        throw error
+                    }
+                    sleep(UInt32(2 * iteration)) // linear wait time. not perfect but whatever
+                    return try createLambdaImp(iteration: iteration + 1)
+                }
+            }
+            return try createLambdaImp()
+        }
+    }
+    
     
     
     

@@ -73,7 +73,7 @@ class RHIInterfaceExporter: InterfaceExporter {
     private var collectedEndpoints: [CollectedEndpointInfo] = []
     var deployedSystemStructure: DeployedSystemConfiguration?
     var deploymentProviderRuntime: DeploymentProviderRuntimeSupport?
-    private(set) var handlerTypeDeploymentOptions: [String: HandlerDeploymentOptions] = [:]
+    private(set) var handlerTypeDeploymentOptions: HandlerTypeDeploymentOptions = [:]
     
     
     required init(_ app: Apodini.Application) {

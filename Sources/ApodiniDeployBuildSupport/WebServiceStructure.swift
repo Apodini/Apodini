@@ -35,13 +35,13 @@ public struct ExporterIdentifier: RawRepresentable, Codable, Hashable, Equatable
 
 
 public struct WebServiceStructure: Codable { // TODO this needs a better name. maybe Context or Summary?
-    public let handlerTypeDeploymentOptions: [String: HandlerDeploymentOptions] // key: handler type name identifier
+    public let handlerTypeDeploymentOptions: HandlerTypeDeploymentOptions
     public let endpoints: [ExportedEndpoint]
     public let deploymentConfig: DeploymentConfig
     public let openApiDefinition: Data
     
     public init(
-        handlerTypeDeploymentOptions: [String: HandlerDeploymentOptions],
+        handlerTypeDeploymentOptions: HandlerTypeDeploymentOptions,
         endpoints: [ExportedEndpoint],
         deploymentConfig: DeploymentConfig,
         openApiDefinition: Data

@@ -82,28 +82,6 @@ public struct DeploymentConfig: Codable {
 
 
 
-public struct HandlerDeploymentOptions: Codable {
-    public let collectedOptions: [CollectedHandlerConfigOption]
-    
-    public init(_ collectedOptions: CollectedHandlerConfigOption...) {
-        self.collectedOptions = collectedOptions
-    }
-    
-    
-    public func containsEntry<Value>(for optionKey: DeploymentOptionKey<Value>) -> Bool {
-        return collectedOptions.contains { $0.key == optionKey.key }
-    }
-    
-    /// - returns: the value specified for this option key, if a matching entry exists. if no matching entry exists, the default value specified in the option key is returned.
-    /// - throws: if an entry does exist but there was an erorr reading (ie decoding) it/
-    public func getValue<Value>(forOptionKey optionKey: DeploymentOptionKey<Value>) throws -> Value {
-        guard let collectedOption = collectedOptions.first(where: { $0.key == optionKey.key }) else {
-            return optionKey.defaultValue
-        }
-        return try collectedOption.readValue(as: Value.self)
-    }
-}
-
 
 //@_functionBuilder
 //public enum CollectedHandlerConfigOptionArrayBuilder {

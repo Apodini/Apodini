@@ -8,29 +8,49 @@
 import Foundation
 
 
-open class AnyDeploymentOptionKey {
-    public let key: String
+/// key: handler type name identifier
+/// value: list of deployment options collected for this handler type
+public typealias HandlerTypeDeploymentOptions = [String: HandlerDeploymentOptions]
+
+
+public struct HandlerDeploymentOptions: Codable {
+    public let collectedOptions: [CollectedHandlerConfigOption]
     
-    public init(key: String) {
-        self.key = "\(Self.self).\(key)"
+    public init(_ collectedOptions: CollectedHandlerConfigOption...) {
+        self.collectedOptions = collectedOptions
+    }
+    
+    
+    public func containsEntry<Value>(for optionKey: DeploymentOptionKey<Value>) -> Bool {
+        return collectedOptions.contains { $0.key == optionKey.key }
+    }
+    
+    /// - returns: the value specified for this option key, if a matching entry exists. if no matching entry exists, the default value specified in the option key is returned.
+    /// - throws: if an entry does exist but there was an erorr reading (ie decoding) it/
+    public func getValue<Value>(forOptionKey optionKey: DeploymentOptionKey<Value>) throws -> Value {
+        guard let collectedOption = collectedOptions.first(where: { $0.key == optionKey.key }) else {
+            return optionKey.defaultValue
+        }
+        return try collectedOption.readValue(as: Value.self)
     }
 }
 
 
 
-open class DeploymentOptionKey<Value: Codable>: AnyDeploymentOptionKey {
-    public typealias Value = Value
-    
+
+
+
+open class DeploymentOptionKey<Value: Codable> {
+    public let key: String
     public let defaultValue: Value
-    
-    public init<T>(key: String) where Value == Optional<T> { // allow default-value-less initialization if nil is a valid value
-        self.defaultValue = nil
-        super.init(key: key)
-    }
     
     public init(defaultValue: Value, key: String) {
         self.defaultValue = defaultValue
-        super.init(key: key)
+        self.key = "\(Self.self).\(key)"
+    }
+    
+    public convenience init<T>(key: String) where Value == T? { // allow default-value-less initialization if nil is a valid value
+        self.init(defaultValue: nil, key: key)
     }
 }
 

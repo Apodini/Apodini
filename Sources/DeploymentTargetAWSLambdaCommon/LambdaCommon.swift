@@ -37,5 +37,8 @@ public final class LambdaHandlerOptionKey<Value: Codable>: DeploymentOptionKey<V
 
 // All lambda-specific deployment options
 public enum LambdaHandlerOption {
-    public static let memorySizeInMB = LambdaHandlerOptionKey<Int>(defaultValue: 128, key: "memory-size")
+    /// The lambda function's memory size, in MB
+    public static let memorySize = LambdaHandlerOptionKey<Int>(defaultValue: 128, key: "memory-size")
+    /// The lambda function's timeout, in seconds
+    public static let timeout = LambdaHandlerOptionKey<Int>(defaultValue: 3, key: "timeout")
 }

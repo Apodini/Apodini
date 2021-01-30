@@ -17,7 +17,7 @@ struct TestHandler: Handler {
     
     static var deploymentOptions: HandlerDeploymentOptions {
         HandlerDeploymentOptions(
-            .init(key: LambdaHandlerOption.memorySizeInMB, value: 500)
+            .init(key: LambdaHandlerOption.memorySize, value: 256)
         )
     }
 }
@@ -32,11 +32,11 @@ struct TestWebService: Apodini.WebService {
             .response(EmojiTransformer(emojis: "🎉"))
         
         // Bigger Subsystems:
-        AuctionComponent()
-        GreetComponent()
-        RamdomComponent()
-        SwiftComponent()
-        UserComponent(userId: _userId)
+        //AuctionComponent()
+        //GreetComponent()
+        //RamdomComponent()
+        //SwiftComponent()
+        //UserComponent(userId: _userId)
         
         Group("xxx") {
             TestHandler()
