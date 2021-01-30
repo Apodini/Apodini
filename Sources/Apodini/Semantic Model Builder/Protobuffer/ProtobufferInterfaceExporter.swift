@@ -10,7 +10,9 @@ class ProtobufferInterfaceExporter: StaticInterfaceExporter {
         let message: String
     }
 
-    internal enum Builder {}
+    enum Builder {
+        static var variableWidthIntegerPreference: Int?
+    }
     
     // MARK: Properties
     private let app: Application
@@ -22,7 +24,7 @@ class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     required init(_ app: Application) {
         self.app = app
         
-        app.logger.info("\(app.storage[VariableWidthIntegerConfiguration.Key.self])")
+        Builder.variableWidthIntegerPreference = app.storage[VariableWidthIntegerConfiguration.Key.self]?.rawValue
     }
     
     // MARK: Methods
