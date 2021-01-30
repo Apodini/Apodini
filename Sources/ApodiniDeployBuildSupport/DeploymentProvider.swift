@@ -53,8 +53,8 @@ extension DeploymentProvider {
 
 
 
-enum ApodiniDeploySupportError: Error {
-    case other(String)
+struct ApodiniDeploySupportError: Swift.Error { // TODO make this error type public? or even remove and/or replace it?
+    let message: String
 }
 
 
@@ -63,7 +63,7 @@ extension DeploymentProvider {
         if let swiftBin = Task.findExecutable(named: "swift") {
             return swiftBin
         } else {
-            throw ApodiniDeploySupportError.other("unable to find swift compiler executable in search paths")
+            throw ApodiniDeploySupportError(message: "unable to find swift compiler executable in search paths")
         }
     }
     
@@ -82,14 +82,14 @@ extension DeploymentProvider {
             launchInCurrentProcessGroup: true
         )
         guard try task.launchSync().exitCode == EXIT_SUCCESS else {
-            throw ApodiniDeploySupportError.other("Unable to build web service")
+            throw ApodiniDeploySupportError(message: "Unable to build web service")
         }
         let executableUrl = packageRootDir
             .appendingPathComponent(".build", isDirectory: true)
             .appendingPathComponent("debug", isDirectory: true)
             .appendingPathComponent(productName, isDirectory: false)
         guard FileManager.default.fileExists(atPath: executableUrl.path) else {
-            throw ApodiniDeploySupportError.other("Unable to locate compiled executable at expected location '\(executableUrl.path)'")
+            throw ApodiniDeploySupportError(message: "Unable to locate compiled executable at expected location '\(executableUrl.path)'")
         }
         return executableUrl
     }
@@ -107,17 +107,17 @@ extension DeploymentProvider {
         logger.trace("\(packageRootDir)")
         
         guard FM.lk_directoryExists(atUrl: packageRootDir) else {
-            throw ApodiniDeploySupportError.other("unable to find input directory")
+            throw ApodiniDeploySupportError(message: "unable to find input directory")
         }
         
         let packageSwiftFileUrl = packageRootDir.appendingPathComponent("Package.swift")
         guard FM.fileExists(atPath: packageSwiftFileUrl.path) else {
-            throw ApodiniDeploySupportError.other("unable to find Package.swift")
+            throw ApodiniDeploySupportError(message: "unable to find Package.swift")
         }
         
         let modelFileUrl = FM.temporaryDirectory.appendingPathComponent("AM_\(UUID().uuidString).json")
         guard FM.createFile(atPath: modelFileUrl.path, contents: nil, attributes: nil) else {
-            throw ApodiniDeploySupportError.other("Unable to create file")
+            throw ApodiniDeploySupportError(message: "Unable to create file")
         }
         
         let exportWebServiceModelTask = Task(
@@ -134,7 +134,7 @@ extension DeploymentProvider {
         logger.notice("Invoking child process `\(exportWebServiceModelTask.taskStringRepresentation)`")
         let terminationInfo = try exportWebServiceModelTask.launchSync()
         guard terminationInfo.exitCode == EXIT_SUCCESS else {
-            throw ApodiniDeploySupportError.other("Unable to generate model structure")
+            throw ApodiniDeploySupportError(message: "Unable to generate model structure")
         }
         
         logger.notice("model written to '\(modelFileUrl)'")

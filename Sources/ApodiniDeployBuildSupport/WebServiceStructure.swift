@@ -35,18 +35,18 @@ public struct ExporterIdentifier: RawRepresentable, Codable, Hashable, Equatable
 
 
 public struct WebServiceStructure: Codable { // TODO this needs a better name. maybe Context or Summary?
-    public let interfaceExporterId: ExporterIdentifier
+    public let handlerTypeDeploymentOptions: [String: HandlerDeploymentOptions] // key: handler type name identifier
     public let endpoints: [ExportedEndpoint]
     public let deploymentConfig: DeploymentConfig
     public let openApiDefinition: Data
     
     public init(
-        interfaceExporterId: ExporterIdentifier,
+        handlerTypeDeploymentOptions: [String: HandlerDeploymentOptions],
         endpoints: [ExportedEndpoint],
         deploymentConfig: DeploymentConfig,
         openApiDefinition: Data
     ) {
-        self.interfaceExporterId = interfaceExporterId
+        self.handlerTypeDeploymentOptions = handlerTypeDeploymentOptions
         self.endpoints = endpoints
         self.deploymentConfig = deploymentConfig
         self.openApiDefinition = openApiDefinition
@@ -58,6 +58,10 @@ public struct WebServiceStructure: Codable { // TODO this needs a better name. m
 
 
 public struct ExportedEndpoint: Codable, Equatable {
+    /// _Some_ string value which identifies the type of this handler.
+    /// Does not have to contain, or even be related to, the actual type name of the handler.
+    /// This value is used to match an endpoint to any additional data specified at a handler-type-level (eg deployment options)
+    public let handlerTypeIdentifier: String
     /// The `rawValue` of the identifier of the  handler this endpoint was generated for
     public let handlerIdRawValue: String
     
@@ -69,11 +73,13 @@ public struct ExportedEndpoint: Codable, Equatable {
     
     
     public init(
+        handlerTypeIdentifier: String,
         handlerIdRawValue: String,
         httpMethod: String,
         absolutePath: String,
         userInfo: [String: Data]
     ) {
+        self.handlerTypeIdentifier = handlerTypeIdentifier
         self.handlerIdRawValue = handlerIdRawValue
         self.httpMethod = httpMethod
         self.absolutePath = absolutePath

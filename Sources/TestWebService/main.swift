@@ -6,6 +6,21 @@
 //
 
 import Apodini
+import ApodiniDeployBuildSupport
+import DeploymentTargetAWSLambdaCommon
+
+
+struct TestHandler: Handler {
+    func handle() throws -> String {
+        "owoooo"
+    }
+    
+    static var deploymentOptions: HandlerDeploymentOptions {
+        HandlerDeploymentOptions(
+            .init(key: LambdaHandlerOption.memorySizeInMB, value: 500)
+        )
+    }
+}
 
 
 struct TestWebService: Apodini.WebService {
@@ -22,6 +37,10 @@ struct TestWebService: Apodini.WebService {
         RamdomComponent()
         SwiftComponent()
         UserComponent(userId: _userId)
+        
+        Group("xxx") {
+            TestHandler()
+        }
     }
 }
 

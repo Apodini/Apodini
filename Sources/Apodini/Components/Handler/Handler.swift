@@ -5,6 +5,8 @@
 //  Created by Paul Schmiedmayer on 1/11/21.
 //
 
+import ApodiniDeployBuildSupport
+
 
 /// A `Handler` is a `Component` which defines an endpoint and can handle requests.
 public protocol Handler: Component {
@@ -13,6 +15,8 @@ public protocol Handler: Component {
     
     /// A function that is called when a request reaches the `Handler`
     func handle() throws -> Response
+    
+    static var deploymentOptions: HandlerDeploymentOptions { get }
 }
 
 
@@ -20,5 +24,10 @@ extension Handler {
     /// By default, `Handler`s dont't provide any further content
     public var content: some Component {
         EmptyComponent()
+    }
+    
+    /// By default, `Handler`s dont't specify any deployment options
+    public static var deploymentOptions: HandlerDeploymentOptions {
+        HandlerDeploymentOptions()
     }
 }

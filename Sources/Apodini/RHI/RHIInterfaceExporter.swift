@@ -61,12 +61,19 @@ class RHIInterfaceExporter: InterfaceExporter {
     }
     
     
+    private struct CollectedEndpointInfo {
+        let handlerTypeIdentifier: String
+        let endpoint: AnyEndpoint
+    }
+    
     internal private(set) static var shared: RHIInterfaceExporter?
     
     let app: Apodini.Application
-    private var endpointsById: [AnyHandlerIdentifier: AnyEndpoint] = [:]
+    //private var endpointsById: [AnyHandlerIdentifier: AnyEndpoint] = [:]
+    private var collectedEndpoints: [CollectedEndpointInfo] = []
     var deployedSystemStructure: DeployedSystemConfiguration?
     var deploymentProviderRuntime: DeploymentProviderRuntimeSupport?
+    private(set) var handlerTypeDeploymentOptions: [String: HandlerDeploymentOptions] = [:]
     
     
     required init(_ app: Apodini.Application) {
@@ -78,7 +85,9 @@ class RHIInterfaceExporter: InterfaceExporter {
     
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        endpointsById[endpoint.identifier] = endpoint
+        collectedEndpoints.append(.init(handlerTypeIdentifier: "\(H.self)", endpoint: endpoint))
+        // This will overwrite existing values, but since the key (and therefore the handler type) are the same, it won't matter
+        handlerTypeDeploymentOptions["\(H.self)"] = H.deploymentOptions
         
         app.vapor.app.add(Vapor.Route(
             method: .POST,
@@ -94,7 +103,7 @@ class RHIInterfaceExporter: InterfaceExporter {
     
     
     func getEndpoint<H: IdentifiableHandler>(withIdentifier identifier: H.HandlerIdentifier, ofType _: H.Type) -> Endpoint<H>? {
-        endpointsById[identifier] as? Endpoint<H>
+        collectedEndpoints.first { $0.endpoint.identifier == identifier }?.endpoint as? Endpoint<H>
     }
     
     
@@ -149,13 +158,14 @@ internal func dynamicCast<U>(_ value: Any, to _: U.Type) -> U? {
 extension RHIInterfaceExporter {
     func exportWebServiceStructure(to outputUrl: URL, deploymentConfig: DeploymentConfig) throws {
         let openApiDefinitionData = try JSONEncoder().encode(self.app.storage.get(OpenAPIDefStorageKey.self)!)
-        print("OPENAPI@RHIIE", openApiDefinitionData)
         let webServiceStructure = WebServiceStructure(
-            interfaceExporterId: .init("unused_remove"),
-            endpoints: endpointsById.values.map { endpoint -> ExportedEndpoint in
+            handlerTypeDeploymentOptions: handlerTypeDeploymentOptions,
+            endpoints: collectedEndpoints.map { endpointInfo -> ExportedEndpoint in
+                let endpoint = endpointInfo.endpoint
                 return ExportedEndpoint(
+                    handlerTypeIdentifier: endpointInfo.handlerTypeIdentifier,
                     handlerIdRawValue: endpoint.identifier.rawValue,
-                    httpMethod: endpoint.operation.httpMethod.string,
+                    httpMethod: endpoint.operation.httpMethod.string, // TODO remove this and load it from the OpenAPI def instead?. same for the path...
                     absolutePath: endpoint.absolutePath.asPathString(parameterEncoding: .id),
                     userInfo: [:]
                 )
@@ -166,8 +176,6 @@ extension RHIInterfaceExporter {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
         let data = try encoder.encode(webServiceStructure)
-        print("writing encoded webServiceStructure to \(outputUrl)")
         try data.write(to: outputUrl)
-        print("write.success")
     }
 }

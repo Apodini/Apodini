@@ -29,3 +29,13 @@ extension LambdaDeployedSystemContext {
         "\(apiGatewayApiId).execute-api.\(awsRegion).amazonaws.com"
     }
 }
+
+
+// The class used to identify lambda-specific deployment options
+public final class LambdaHandlerOptionKey<Value: Codable>: DeploymentOptionKey<Value> {}
+
+
+// All lambda-specific deployment options
+public enum LambdaHandlerOption {
+    public static let memorySizeInMB = LambdaHandlerOptionKey<Int>(defaultValue: 128, key: "memory-size")
+}

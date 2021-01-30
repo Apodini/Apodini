@@ -32,6 +32,7 @@ class WebServiceModel {
     }
 }
 
+
 class SharedSemanticModelBuilder: SemanticModelBuilder, InterfaceExporterVisitor {
     private var interfaceExporters: [AnyInterfaceExporter] = []
     /// This property (which is to be made configurable) toggles if the default `ParameterNamespace`
