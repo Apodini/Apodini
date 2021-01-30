@@ -23,6 +23,15 @@ struct TestWebService: Apodini.WebService {
         SwiftComponent()
         UserComponent(userId: _userId)
     }
+    
+    var configuration: Configuration {
+        OpenAPIConfiguration(
+            outputFormat: .json,
+            outputEndpoint: "oas",
+            swaggerUiEndpoint: "oas-ui",
+            title: "The great TestWebService - presented by Apodini"
+        )
+    }
 }
 
 try TestWebService.main()

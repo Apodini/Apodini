@@ -9,7 +9,7 @@ struct OpenAPIDocumentBuilder {
     var document: OpenAPI.Document {
         self.build()
     }
-    let configuration: OpenAPIConfiguration
+    var configuration: OpenAPIConfiguration
     var pathsObjectBuilder: OpenAPIPathsObjectBuilder
     var componentsObjectBuilder: OpenAPIComponentsObjectBuilder
 
@@ -23,21 +23,17 @@ struct OpenAPIDocumentBuilder {
         pathsObjectBuilder.addPathItem(from: endpoint)
     }
 
+    /// Creates the OpenAPI specification document
+    /// https://swagger.io/specification/#openapi-object
     func build() -> OpenAPI.Document {
         OpenAPI.Document(
-            info: configuration.info,
-            servers: configuration.servers,
+            info: OpenAPI.Document.Info(
+                title: configuration.title ?? "",
+                version: configuration.version ?? ""
+            ),
+            servers: configuration.serverUrls.map { .init(url: $0) },
             paths: pathsObjectBuilder.pathsObject,
             components: componentsObjectBuilder.componentsObject
         )
-    }
-}
-
-extension OpenAPIDocumentBuilder {
-    var jsonDescription: String? {
-        (try? JSONEncoder().encode(self.document))
-            .flatMap { json in
-                String(data: json, encoding: .utf8)
-            }
     }
 }

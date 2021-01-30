@@ -3,8 +3,6 @@
 //
 
 import XCTest
-import Foundation
-import NIO
 @_implementationOnly import OpenAPIKit
 @testable import Apodini
 
@@ -15,7 +13,6 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     let someBool = true
     let someDict = ["someKey": "someValue"]
     let someArray = [1, 2, 3]
-    let someEventLoop: EventLoopFuture<Int>? = nil
     let someEither: Either<Int, String> = .init("someString")
     let someOptional: String? = nil
     let someOptionalUUID: UUID? = nil
@@ -85,7 +82,7 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     func testBuildSchemaForResponses() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
         let schema = try componentsBuilder.buildResponse(for: SomeStruct.self)
-                
+
         XCTAssertEqual(schema, .object(
                         title: "\(SomeStruct.self)Response",
                         properties: [
@@ -197,7 +194,7 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         struct Card {
             let number: Int
         }
-        
+
         struct Player {
             let hand: [Card]
             let teamMates: [String: String]
@@ -211,9 +208,9 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         struct Casino {
             let tables: [Game]
         }
-        
+
         let tree = try OpenAPIComponentsObjectBuilder.node(Casino.self)
-        
+
         XCTAssertEqual(tree?.children.count, 1)
 
         let tablesNode = tree?.children.first {
@@ -228,20 +225,20 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         let playerNode = try EnrichedInfo.node(Player.self)
         let newPlayersNode = tablesNode?.children.first { $0.value.propertyInfo?.name == "newPlayers" }
         let playersNode = tablesNode?.children.first { $0.value.propertyInfo?.name == "players" }
-        
+
         XCTAssertEqual(playersNode?.children.count, 2)
         XCTAssertTrue(playersNode?.value.cardinality == .zeroToMany(.dictionary(key: stringNode.value, value: playerNode.value)))
         XCTAssertEqual(newPlayersNode?.children.count, 2)
         XCTAssertTrue(newPlayersNode?.value.cardinality == .zeroToMany(.array))
-        
+
         let playersHandNode = playersNode?.children.first { $0.value.propertyInfo?.name == "hand" }
         let newPlayersHandNode = newPlayersNode?.children.first { $0.value.propertyInfo?.name == "hand" }
-        
+
         XCTAssertEqual(playersHandNode?.value, newPlayersHandNode?.value)
-        
+
         let playersTeamMatesNode = playersNode?.children.first { $0.value.propertyInfo?.name == "teamMates" }
         let newPlayersTeamMatesNode = newPlayersNode?.children.first { $0.value.propertyInfo?.name == "teamMates" }
-        
+
         XCTAssertEqual(playersTeamMatesNode?.value, newPlayersTeamMatesNode?.value)
     }
 }

@@ -62,7 +62,7 @@ class OpenAPIComponentsObjectBuilder {
             ResponseContainer.CodingKeys.links.rawValue: try buildSchema(for: ResponseContainer.Links.self)
             ])
     }
-    
+
     func buildSchema(for type: Encodable.Type) throws -> JSONSchema {
         let (schema, _) = try buildSchemaWithTitle(for: type)
         return schema
@@ -135,7 +135,6 @@ class OpenAPIComponentsObjectBuilder {
         if isOptional {
             schema = schema.optionalSchemaObject()
         }
-        
         return schema
     }
 

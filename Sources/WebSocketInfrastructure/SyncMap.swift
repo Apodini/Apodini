@@ -6,7 +6,8 @@
 //
 
 import OpenCombine
-import Vapor
+import NIO
+import Foundation
 
 public extension Publisher {
     /// This function is similar to the normal `map`, but it only takes `transform`ers which
