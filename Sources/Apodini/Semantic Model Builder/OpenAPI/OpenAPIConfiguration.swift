@@ -5,38 +5,67 @@
 import Foundation
 @_implementationOnly import OpenAPIKit
 
-private let openAPIInfoTitle = "Apodini-App"
-private let openAPIInfoVersion = "1.0.0"
-
-
-/// A configuration structure for manually setting OpenAPI information and output locations.
-struct OpenAPIConfiguration {
-    /// General OpenAPI information.
-    var info: OpenAPI.Document.Info = OpenAPI.Document.Info(title: openAPIInfoTitle, version: openAPIInfoVersion)
-
-    /// Server configuration.
-    var servers: [OpenAPI.Server] = []
-
-    /// Output configuration (e.g., API endpoint or file output).
-    enum OutputFormat {
-        case JSON
-        case YAML
-    }
-
-    var outputPath: String?
-    var outputEndpoint: String? = "openapi"
-    var outputFormat: OutputFormat = .JSON
+/// Default values used for OpenAPI configuration if not explicitly specified by developer.
+public enum OpenAPIConfigurationDefaults {
+    /// Default specification output format.
+    public static let outputFormat: OpenAPIOutputFormat = .json
+    /// Default specification output endpoint.
+    public static let outputEndpoint: String = "openapi"
+    /// Default swagger-ui endpoint.
+    public static let swaggerUiEndpoint: String = "openapi-ui"
 }
 
-extension OpenAPIConfiguration {
-    init(from app: Application) {
-        let host = app.vapor.app.http.server.configuration.hostname
-        let port = app.vapor.app.http.server.configuration.port
-        var servers: [OpenAPI.Server] = []
-        if let url = URL(string: "\(host):\(port)") {
-            let server = OpenAPI.Server(url: url)
-            servers.append(server)
-        }
-        self.init(servers: servers)
+/// The enclosing storage entity for OpenAPI-related information.
+struct OpenAPIStorageValue {
+    var document: OpenAPI.Document?
+    var configuration: OpenAPIConfiguration
+}
+
+/// The storage key for OpenAPI-related information.
+struct OpenAPIStorageKey: StorageKey {
+    typealias Value = OpenAPIStorageValue
+}
+
+/// An enum specifying the output format of the OpenAPI specification document.
+public enum OpenAPIOutputFormat {
+    /// JSON format output.
+    case json
+    /// YAML format output.
+    case yaml
+}
+
+/// A configuration structure for manually setting OpenAPI information and output locations.
+public class OpenAPIConfiguration: Configuration {
+    /// General OpenAPI information.
+    var title: String?
+    var version: String?
+
+    /// Server configuration.
+    var serverUrls: Set<URL> = Set<URL>()
+
+    /// OpenAPI output configuration.
+    let outputFormat: OpenAPIOutputFormat
+    let outputEndpoint: String
+    let swaggerUiEndpoint: String
+    
+    /// Configure application.
+    public func configure(_ app: Application) {
+        app.storage.set(OpenAPIStorageKey.self, to: OpenAPIStorageValue(configuration: self))
+    }
+    
+    public init(
+        outputFormat: OpenAPIOutputFormat = OpenAPIConfigurationDefaults.outputFormat,
+        outputEndpoint: String = OpenAPIConfigurationDefaults.outputEndpoint,
+        swaggerUiEndpoint: String = OpenAPIConfigurationDefaults.swaggerUiEndpoint,
+        title: String? = nil,
+        version: String? = nil,
+        serverUrls: URL...
+        ) {
+        self.outputFormat = outputFormat
+        self.outputEndpoint = outputEndpoint
+        self.swaggerUiEndpoint = swaggerUiEndpoint
+        self.serverUrls.formUnion(serverUrls)
+        self.title = title
+        self.version = version
     }
 }

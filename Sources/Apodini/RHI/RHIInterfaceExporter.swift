@@ -157,7 +157,10 @@ internal func dynamicCast<U>(_ value: Any, to _: U.Type) -> U? {
 
 extension RHIInterfaceExporter {
     func exportWebServiceStructure(to outputUrl: URL, deploymentConfig: DeploymentConfig) throws {
-        let openApiDefinitionData = try JSONEncoder().encode(self.app.storage.get(OpenAPIDefStorageKey.self)!)
+        guard let openApiDocument = app.storage.get(OpenAPIStorageKey.self)?.document else {
+            throw makeApodiniError("Unable to get OpenAPI document")
+        }
+        let openApiDefinitionData = try JSONEncoder().encode(openApiDocument)
         let webServiceStructure = WebServiceStructure(
             handlerTypeDeploymentOptions: handlerTypeDeploymentOptions,
             endpoints: collectedEndpoints.map { endpointInfo -> ExportedEndpoint in
