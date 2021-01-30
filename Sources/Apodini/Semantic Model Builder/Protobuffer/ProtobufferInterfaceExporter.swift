@@ -117,32 +117,52 @@ extension ProtobufferInterfaceExporter.Builder {
             .edited(handleArray)?
             .edited(handlePrimitiveType)?
             .map(ProtobufferMessage.Property.init)
+            .map {
+                $0.map(handleVariableWidthInteger)
+            }
             .contextMap(ProtobufferMessage.init)
             .compactMap { $0 }?
             .filter(!\.isPrimitive)
     }
     
     static func buildScalarMessage(_ type: Any.Type) -> Node<ProtobufferMessage> {
-        var suffix = ""
-        if isSupportedVariableWidthInteger(type) {
-            suffix = String(describing: Int.bitWidth)
-        }
-        
-        let typeName = "\(type)" + suffix
+        let typeName = "\(type)".lowercased()
         
         return Node(
             value: ProtobufferMessage(
                 name: "\(typeName)Message",
                 properties: [
-                    .init(
-                        fieldRule: .required,
-                        name: "value",
-                        typeName: typeName.lowercased(),
-                        uniqueNumber: 1
+                    handleVariableWidthInteger(
+                        .init(
+                            fieldRule: .required,
+                            name: "value",
+                            typeName: typeName,
+                            uniqueNumber: 1
+                        )
                     )
                 ]
             ),
             children: []
+        )
+    }
+}
+
+private extension ProtobufferInterfaceExporter.Builder {
+    static func handleVariableWidthInteger(
+        _ property: ProtobufferMessage.Property
+    ) -> ProtobufferMessage.Property {
+        guard ["int", "uint"].contains(property.typeName) else {
+            return property
+        }
+        
+        let suffix = String(variableWidthIntegerPreference ?? Int.bitWidth)
+        let typeName = property.typeName + suffix
+        
+        return .init(
+            fieldRule: property.fieldRule,
+            name: property.name,
+            typeName: typeName,
+            uniqueNumber: property.uniqueNumber
         )
     }
 }
