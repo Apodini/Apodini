@@ -10,14 +10,14 @@ import FCM
 extension Application {
     /// Firebase Cloud Messaging.
     public var fcm: FCM {
-        // Stores FCM in apo storage otherwise a warning will be logged.
-        if let fcm = self.storage[ConfigurationKey.self] {
-            return fcm
+        // Stores FCM in app storage otherwise a warning will be logged.
+        if let storedFcm = self.storage[ConfigurationKey.self] {
+            return storedFcm
         }
-        let fcm = FCM(app: self)
-        self.storage[ConfigurationKey.self] = fcm
+        let newFcm = FCM(app: self)
+        self.storage[ConfigurationKey.self] = newFcm
         
-        return fcm
+        return newFcm
     }
     
     struct ConfigurationKey: StorageKey {
