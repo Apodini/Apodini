@@ -3,8 +3,7 @@
 //
 
 @_implementationOnly import OpenAPIKit
-@_implementationOnly import Vapor
-import Foundation
+@_implementationOnly import Vaporga
 
 class OpenAPIInterfaceExporter: StaticInterfaceExporter {
     static var parameterNamespace: [ParameterNamespace] = .individual
