@@ -211,9 +211,9 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
 
         let tree = try OpenAPIComponentsObjectBuilder.node(Casino.self)
 
-        XCTAssertEqual(tree?.children.count, 1)
+        XCTAssertEqual(tree.children.count, 1)
 
-        let tablesNode = tree?.children.first {
+        let tablesNode = tree.children.first {
             $0.value.propertyInfo?.name == "tables"
         }
 
