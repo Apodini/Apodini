@@ -59,7 +59,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         let builder = SharedSemanticModelBuilder(app)
         TestWebService().register(builder)
         
-        let actualEndpoints: [EndpointSummary] = builder.rootNode.collectAllEndpoints().map(EndpointSummary.init)
+        let actualEndpoints: [EndpointSummary] = builder.rootNode.collectEndpoints().map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
             EndpointSummary(id: "0:0:0", path: "/v1/x", description: String(describing: type(of: Text("a")))),
@@ -88,7 +88,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         let builder = SharedSemanticModelBuilder(app)
         TestWebService().register(builder)
         
-        let actualEndpoints: [EndpointSummary] = builder.rootNode.collectAllEndpoints().map(EndpointSummary.init)
+        let actualEndpoints: [EndpointSummary] = builder.rootNode.collectEndpoints().map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
             EndpointSummary(id: "0:0", path: "/v1", description: String(describing: type(of: Text("a")))),
@@ -116,7 +116,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         let builder = SharedSemanticModelBuilder(app)
         TestWebService().register(builder)
         
-        let actualEndpoints: [EndpointSummary] = builder.rootNode.collectAllEndpoints().map(EndpointSummary.init)
+        let actualEndpoints: [EndpointSummary] = builder.rootNode.collectEndpoints().map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
             EndpointSummary(id: "0:0:0:0", path: "/v1/x/y/z", description: String(describing: type(of: Text("a")))),
@@ -157,5 +157,35 @@ final class HandlerIdentifierTests: ApodiniTests {
             let content = try res.content.decode(Content.self)
             XCTAssert(content.data == AnyHandlerIdentifier(TestHandler.self).description)
         }
+    }
+    
+    
+    func testHandlerIdentifiersForNestedComponents() throws {
+        struct NestedTextComponent: Component {
+            let level: Int
+            var content: AnyComponent {
+                if level <= 0 {
+                    return AnyComponent(Text("text"))
+                } else {
+                    return AnyComponent(NestedTextComponent(level: level - 1))
+                }
+            }
+        }
+        struct TestWebService: Apodini.WebService {
+            var content: some Component {
+                NestedTextComponent(level: 5)
+            }
+        }
+        
+        let builder = SharedSemanticModelBuilder(app)
+        TestWebService().register(builder)
+        
+        let actualEndpoints: [EndpointSummary] = builder.rootNode.collectEndpoints().map(EndpointSummary.init)
+        
+        let expectedEndpoints: [EndpointSummary] = [
+            EndpointSummary(id: "0:0:0:0:0:0:0", path: "/v1", description: String(describing: type(of: Text("text"))))
+        ]
+        
+        XCTAssert(actualEndpoints.compareIgnoringOrder(expectedEndpoints), "Expected: \(expectedEndpoints). Actual: \(actualEndpoints)")
     }
 }

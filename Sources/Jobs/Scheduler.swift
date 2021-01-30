@@ -1,7 +1,7 @@
 import Foundation
-@_implementationOnly import SwifCron
 import NIO
 import Apodini
+@_implementationOnly import SwifCron
 
 /// A convenient interface to schedule background running tasks on an event loop using `Job`s and crontab syntax.
 ///
@@ -14,18 +14,38 @@ import Apodini
 /// }
 /// ```
 public class Scheduler {
-    internal static var shared = Scheduler()
-    
+    private let app: Application
     internal var jobConfigurations: [ObjectIdentifier: JobConfiguration] = [:]
+    internal var observations: [Observation] = []
     
-    private init() {
-        // Empty intializer to create a Singleton.
+    init(app: Application) {
+        self.app = app
+    }
+    
+    /// Schedules a `Job` on the next event loop of `eventLoopGroup`.
+    ///
+    /// ```
+    /// enqueue(Job(), with: "* * * * *", \KeyStore.job)
+    /// ```
+    ///
+    /// - Parameters:
+    ///     - job: The background running task conforming to `Job`s.
+    ///     - with: Crontab as a String.
+    ///     - runs: Number of times a `Job` should run.
+    ///     - keyPath: Associates a `Job` for later retrieval.
+    ///
+    /// - Throws: If the `Job` uses request based property wrappers or the crontab cannot be parsed.
+    public func enqueue<K: KeyChain, T: Job>(_ job: T,
+                                             with cronTrigger: String,
+                                             runs: Int? = nil,
+                                             _ keyPath: KeyPath<K, T>) throws {
+        try enqueue(job, with: cronTrigger, runs: runs, keyPath, on: app.eventLoopGroup.next())
     }
     
     /// Schedules a `Job` on an event loop.
     ///
     /// ```
-    /// enqueue(Job(), with: "* * * * *", \KeyStore.job, on: request.eventLoop
+    /// enqueue(Job(), with: "* * * * *", \KeyStore.job, on: request.eventLoop)
     /// ```
     ///
     /// - Parameters:
@@ -41,13 +61,49 @@ public class Scheduler {
                                              runs: Int? = nil,
                                              _ keyPath: KeyPath<K, T>,
                                              on eventLoop: EventLoop) throws {
-        try checkPropertyWrappers(job)
-        let jobConfiguration = try generateEnvironmentValue(job, cronTrigger, keyPath)
+        // Only valid property wrappers can be used with `Job`s.
+        try check(on: job,
+                  for: Environment<EnvironmentValues, Connection>.self,
+                  throw: JobErrors.requestPropertyWrapper)
+        try check(on: job,
+                  for: RequestBasedPropertyWrapper.self,
+                  throw: JobErrors.requestPropertyWrapper)
+        
+        // Activates all `Activatable`s.
+        var activatedJob = job
+        activate(&activatedJob)
+        
+        // Adds the `Job`to `@Environment`.
+        EnvironmentValue(keyPath, activatedJob)
+        
+        // Creates the configuration of the `Job`.
+        let jobConfiguration = try generateConfiguration(cronTrigger, keyPath, eventLoop)
+        
+        // Subscribes to all `ObservedObject`s
+        // using a closure that takes each `ObservedObject`.
+        let observation = subscribe(on: activatedJob,
+                                    using: { observedObject in
+                                        // Executes the `Job` on its own event loop
+                                        jobConfiguration.eventLoop.execute {
+                                            observedObject.changed = true
+                                            activatedJob.run()
+                                            observedObject.changed = false
+                                        }
+                                    }
+        )
+        // Only adds the observation if it is present
+        if let observation = observation {
+            observations.append(observation)
+        }
+        
+        // Activate any `ObservedObject`s on the job.
+        var job = job
+        activate(&job)
         
         if let runs = runs {
-            schedule(job, with: jobConfiguration, runs, on: eventLoop)
+            schedule(activatedJob, with: jobConfiguration, runs, on: eventLoop)
         } else {
-            schedule(job, with: jobConfiguration, on: eventLoop)
+            schedule(activatedJob, with: jobConfiguration, on: eventLoop)
         }
     }
     
@@ -81,6 +137,7 @@ private extension Scheduler {
     
     func schedule<T: Job>(_ job: T, with config: JobConfiguration, _ runs: Int, on eventLoop: EventLoop) {
         guard runs > 0, let nextDate = try? config.cron.next() else {
+            config.scheduled?.cancel()
             return
         }
         
@@ -92,34 +149,14 @@ private extension Scheduler {
         }
     }
     
-    /// Checks if only valid property wrappers are used with `Job`s.
-    func checkPropertyWrappers<T: Job>(_ job: T) throws {
-        for property in Mirror(reflecting: job).children
-        where property.value is PathComponent || property.value is Connection {
-            throw JobErrors.requestPropertyWrapper
-        }
-    }
-    
-    /// Generates the environment value of the `Job`.
-    func generateEnvironmentValue<K: KeyChain, T: Job>(_ job: T,
-                                                       _ cronTrigger: String,
-                                                       _ keyPath: KeyPath<K, T>) throws -> JobConfiguration {
+    /// Generates the configuration of the `Job`.
+    func generateConfiguration<K: KeyChain, T: Job>(_ cronTrigger: String,
+                                                    _ keyPath: KeyPath<K, T>,
+                                                    _ eventLoop: EventLoop) throws -> JobConfiguration {
         let identifier = ObjectIdentifier(keyPath)
-        let jobConfiguration = try JobConfiguration(SwifCron(cronTrigger))
-        EnvironmentValue(keyPath, job)
+        let jobConfiguration = try JobConfiguration(SwifCron(cronTrigger), eventLoop)
         jobConfigurations[identifier] = jobConfiguration
         
         return jobConfiguration
-    }
-}
-
-enum SchedulerEnvironmentKey: EnvironmentKey {
-    static var defaultValue = Scheduler.shared
-}
-
-extension EnvironmentValues {
-    /// The environment value to use the `SchedulerEnvironmentKey` in a `Component`.
-    public var scheduler: Scheduler {
-        self[SchedulerEnvironmentKey.self]
     }
 }

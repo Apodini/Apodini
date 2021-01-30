@@ -25,13 +25,13 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
         let webService = WebServiceModel()
         webService.addEndpoint(&endpoint, at: ["test"])
 
-        let configuration = OpenAPIConfiguration()
+        var configuration = OpenAPIConfiguration()
 
         var documentBuilder = OpenAPIDocumentBuilder(configuration: configuration)
         documentBuilder.addEndpoint(endpoint)
         let document = OpenAPI.Document(
-            info: configuration.info,
-            servers: configuration.servers,
+            info: OpenAPI.Document.Info(title: configuration.title ?? "", version: configuration.version ?? ""),
+            servers: configuration.serverUrls.map { .init(url: $0) },
             paths: [
                 "test": .init(
                     get: .init(
@@ -44,7 +44,10 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                                 OpenAPI.Response(
                                     description: "OK",
                                     content: [
-                                        .json: .init(schema: .reference(.component(named: "SomeStruct")))
+                                        .json: .init(schema: .object(properties: [
+                                            ResponseContainer.CodingKeys.data.rawValue: .reference(.component(named: "SomeStruct")),
+                                            ResponseContainer.CodingKeys.links.rawValue: .object(additionalProperties: .init(.string))
+                                        ]))
                                     ]
                                 )
                             ),
@@ -60,7 +63,8 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                             .status(code: 500): .init(
                                 OpenAPI.Response(description: "Internal Server Error")
                             )
-                        ]
+                        ],
+                        vendorExtensions: ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
                     )
                 )
             ],
@@ -71,7 +75,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
 
         let builtDocument = documentBuilder.build()
         
-        XCTAssertNotNil(documentBuilder.jsonDescription)
+        XCTAssertNoThrow(try builtDocument.output(.json))
         XCTAssertEqual(builtDocument, document)
     }
 }

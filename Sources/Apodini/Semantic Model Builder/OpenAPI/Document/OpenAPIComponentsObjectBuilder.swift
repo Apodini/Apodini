@@ -5,6 +5,13 @@
 @_implementationOnly import OpenAPIKit
 import Foundation
 
+enum OpenAPISchemaConstants {
+    static let replaceOpenAngleBracket = "of"
+    static let replaceCloseAngleBracket = ""
+    static let replaceCommaSeparation = "and"
+    static let allowedRecursionDepth = 15
+}
+
 /// Corresponds to `components` section in OpenAPI document
 /// See: https://swagger.io/specification/#components-object
 class OpenAPIComponentsObjectBuilder {
@@ -49,6 +56,14 @@ class OpenAPIComponentsObjectBuilder {
         return JSONSchema.reference(.component(named: schemaName))
     }
 
+    func buildResponse(for type: Encodable.Type) throws -> JSONSchema {
+        let schema = try buildSchema(for: type)
+        return .object(properties: [
+            ResponseContainer.CodingKeys.data.rawValue: schema,
+            ResponseContainer.CodingKeys.links.rawValue: try buildSchema(for: ResponseContainer.Links.self)
+        ])
+    }
+
     func buildSchema(for type: Encodable.Type) throws -> JSONSchema {
         let node: Node<JSONSchema>? = try Self.node(type)?
             .contextMap(contextMapNode)
@@ -59,8 +74,8 @@ class OpenAPIComponentsObjectBuilder {
     }
 
     private func contextMapNode(node: Node<EnrichedInfo>) -> JSONSchema {
-        var schema = mapInfo(node)
-        let schemaName = node.value.typeInfo.mangledName
+        let schema = mapInfo(node)
+        let schemaName = createSchemaName(for: node)
 
         if schema.isReference && !schemaExists(for: schemaName) {
             var properties: [String: JSONSchema] = [:]
@@ -70,14 +85,21 @@ class OpenAPIComponentsObjectBuilder {
                 }
             }
             let schemaObject = JSONSchema.object(properties: properties)
-            // in case of `ResponseContainer` we do not want to create a `schema` here
-            if node.value.typeInfo.mangledName != "ResponseContainer" {
-                self.componentsObject.schemas[componentKey(for: schemaName)] = schemaObject
-            } else {
-                schema = schemaObject
-            }
+            self.componentsObject.schemas[componentKey(for: schemaName)] = schemaObject
         }
         return schema
+    }
+
+    private func createSchemaName(for node: Node<EnrichedInfo>) -> String {
+        if !node.value.typeInfo.genericTypes.isEmpty {
+            let openAPICompliantName = node.value.typeInfo.name
+                .replacingOccurrences(of: "<", with: OpenAPISchemaConstants.replaceOpenAngleBracket)
+                .replacingOccurrences(of: ">", with: OpenAPISchemaConstants.replaceCloseAngleBracket)
+                .replacingOccurrences(of: ", ", with: OpenAPISchemaConstants.replaceCommaSeparation)
+            return openAPICompliantName
+        } else {
+            return node.value.typeInfo.mangledName
+        }
     }
 
     private func mapInfo(_ node: Node<EnrichedInfo>) -> JSONSchema {
@@ -96,7 +118,7 @@ class OpenAPIComponentsObjectBuilder {
         if isPrimitive {
             schema = JSONSchema.from(node.value.typeInfo.type, defaultType: .object)
         } else {
-            let schemaName = node.value.typeInfo.mangledName
+            let schemaName = createSchemaName(for: node)
             schema = JSONSchema.reference(.component(named: schemaName))
         }
         if isEnum(node.value.typeInfo.type) {
@@ -127,15 +149,29 @@ class OpenAPIComponentsObjectBuilder {
     }
 }
 
-
-private extension OpenAPIComponentsObjectBuilder {
+extension OpenAPIComponentsObjectBuilder {
     static func node(_ type: Any.Type) throws -> Node<EnrichedInfo>? {
         let node = try EnrichedInfo.node(type)
+        var counter = 0
+        return try recursiveEdit(node: node, counter: &counter)
+    }
+
+    private static func recursiveEdit(node: Node<EnrichedInfo>, counter: inout Int) throws -> Node<EnrichedInfo> {
+        if counter > OpenAPISchemaConstants.allowedRecursionDepth {
+            fatalError("Error occurred during transfering tree of nodes with type \(node.value.typeInfo.name). The recursion depth has exceeded the critical value of \(OpenAPISchemaConstants.allowedRecursionDepth).")
+        }
+        counter += 1
+        let before = node.collectValues()
+        guard let newNode = try node
             .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handleDictionary)?
             .edited(handlePrimitiveType)?
             .edited(handleUUID)
-        return node
+        else {
+            fatalError("Error occurred during transforming tree of nodes with type \(node.value.typeInfo.name).")
+        }
+        let after = newNode.collectValues()
+        return after != before ? try recursiveEdit(node: newNode, counter: &counter) : node
     }
 }
