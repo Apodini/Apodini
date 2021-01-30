@@ -6,7 +6,7 @@
 //
 
 import Fluent
-@_implementationOnly import WebSocketInfrastructure
+import WebSocketInfrastructure // @_implementationOnly is removed as SomeInput conforms to a public protocol
 @_implementationOnly import OpenCombine
 import NIOWebSocket
 
@@ -248,7 +248,7 @@ private enum Evaluation {
 // MARK: Input Accumulation
 
 extension SomeInput: ExporterRequest {
-    func reduce(to new: SomeInput) -> SomeInput {
+    public func reduce(to new: SomeInput) -> SomeInput {
         var newParameters: [String: InputParameter] = [:]
         for (name, value) in new.parameters {
             if let reducible = self.parameters[name] as? ReducibleParameter {

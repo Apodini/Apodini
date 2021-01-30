@@ -11,9 +11,6 @@ import NIO
 
 // MARK: Protocols
 
-/// Every error thrown by a `Validator`'s `validate` method should be a `ValidationError`.
-protocol ValidationError: Error { }
-
 /// A `Validator` is a stateful construct that checks incoming `request`s for a specific connection
 /// handled by a specific `InterfaceExporter`.
 protocol Validator {
@@ -94,7 +91,7 @@ private class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
         self.exporter = exporter
         self.endpoint = endpoint
         self.validators = endpoint.parameters.map { parameter in
-            (parameter.id, parameter.representative(for: exporter))
+            (parameter.id, parameter.toInternal().representative(for: exporter))
         }
     }
     
@@ -123,7 +120,7 @@ private class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
     }
 }
 
-private extension AnyEndpointParameter {
+private extension _AnyEndpointParameter {
     func representative<I: InterfaceExporter>(for exporter: I) -> AnyValidator<I, Void, Any> {
         let builder = RepresentativeBuilder<I>(exporter)
         return self.accept(builder)
@@ -143,8 +140,6 @@ private class RepresentativeBuilder<I: InterfaceExporter>: EndpointParameterVisi
 }
 
 // MARK: Parameter Validation
-
-extension ApodiniError: ValidationError { }
 
 extension ParameterRepresentative: Validator {
     typealias Exporter = E
