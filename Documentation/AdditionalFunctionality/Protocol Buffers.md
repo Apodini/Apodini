@@ -1,4 +1,4 @@
-![document type: vision](https://apodini.github.io/resources/markdown-labels/document_type_vision.svg)
+![documentation](https://apodini.github.io/resources/markdown-labels/document_type_documentation.svg)
 
 # Protocol Buffers
 
@@ -12,10 +12,10 @@ When we use **protocol buffers** or **Protobuffer**, we mean that this part of t
 ## Exporters
 
 The `Apodini.ProtobufferInterfaceExporter` exports a protocol buffer declaration of your `Apodini.WebService` in accordance to Google's [proto3 Language Guide](https://developers.google.com/protocol-buffers/docs/proto3).
-The declaration `webservice.proto` is available at `apodini/webservice.proto`.
+A `.proto` declaration is available at `apodini/proto`.
 
 The `Apodini.GRPCInterfaceExporter` exports endpoints for gRPC clients.
-The `webservice.proto` declaration shall be used to create a gRPC client that can communicate with your `Apodini.WebService` without any more work.
+The `.proto` declaration shall be used to create a gRPC client that can communicate with your `Apodini.WebService` without any more work.
 
 ## Translation
 
