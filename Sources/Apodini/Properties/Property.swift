@@ -12,7 +12,7 @@ import Foundation
 /// - Warning: Only structs can be a `Property`
 public protocol Property { }
 
-/// `DynamicProperty` allows for wrapping `Property`s while maintianing their functionality. By conforming a `struct` to `DynamicProperty`
+/// `DynamicProperty` allows for wrapping `Property`s while maintaining their functionality. By conforming a `struct` to `DynamicProperty`
 /// you make this `struct`'s properties discoverable to the Apodini runtime framework. This can be used to e.g. combine
 /// two property wrappers provided by the Apodini framework into one that merges their functionality
 /// - Warning: Only structs can be a `DynamicProperty`
