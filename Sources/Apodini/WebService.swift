@@ -30,7 +30,10 @@ extension WebService {
     
     /// This function is executed to start up an Apodini `WebService`
     @discardableResult
-    static func main(waitForCompletion: Bool, deploymentProviderRuntimes: [DeploymentProviderRuntimeSupport.Type]) throws -> Application {
+    static func main(
+        waitForCompletion: Bool,
+        deploymentProviderRuntimes: [DeploymentProviderRuntimeSupport.Type] = []
+    ) throws -> Application {
         let app = Application()
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
 
@@ -64,7 +67,8 @@ extension WebService {
                 .with(exporter: WebSocketInterfaceExporter.self)
                 .with(exporter: OpenAPIInterfaceExporter.self)
                 .with(exporter: GRPCInterfaceExporter.self)
-                .with(exporter: ProtobufferInterfaceExporter.self),
+                .with(exporter: ProtobufferInterfaceExporter.self)
+                .with(exporter: RHIInterfaceExporter.self),
             GraphQLSemanticModelBuilder(app)
         )
         

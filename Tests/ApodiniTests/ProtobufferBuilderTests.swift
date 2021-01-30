@@ -2,6 +2,10 @@ import XCTVapor
 @testable import Apodini
 
 final class ProtobufferBuilderTests: XCTestCase {
+    override func tearDown() {
+        super.tearDown()
+        RHIInterfaceExporter.resetSingleton()
+    }
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
         let app = Application()
         S.main(app: app)
