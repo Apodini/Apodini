@@ -126,7 +126,7 @@ extension ProtobufferInterfaceExporter.Builder {
     }
     
     static func buildScalarMessage(_ type: Any.Type) -> Node<ProtobufferMessage> {
-        let typeName = "\(type)".lowercased()
+        let typeName = String(describing: type)
         
         return Node(
             value: ProtobufferMessage(
@@ -136,7 +136,7 @@ extension ProtobufferInterfaceExporter.Builder {
                         .init(
                             fieldRule: .required,
                             name: "value",
-                            typeName: typeName,
+                            typeName: typeName.lowercased(),
                             uniqueNumber: 1
                         )
                     )

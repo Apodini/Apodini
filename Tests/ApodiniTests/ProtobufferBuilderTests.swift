@@ -89,7 +89,7 @@ extension ProtobufferBuilderTests {
         let bitWidth = Int.bitWidth
         
         let expected = """
-            message Int\(bitWidth)Message {
+            message IntMessage {
               int\(bitWidth) value = 1;
             }
             """
