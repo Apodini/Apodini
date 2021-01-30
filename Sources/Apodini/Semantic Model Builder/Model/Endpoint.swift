@@ -283,23 +283,6 @@ class EndpointsTreeNode {
         absolutePath.append(path)
     }
     
-    func relativePath(from node: EndpointsTreeNode) -> [EndpointPath] {
-        var relativePath: [EndpointPath] = []
-        collectRelativePath(&relativePath, from: node)
-        return relativePath
-    }
-    
-    private func collectRelativePath(_ relativePath: inout [EndpointPath], from node: EndpointsTreeNode) {
-        if node === self {
-            return
-        }
-        if let parent = parent {
-            parent.collectRelativePath(&relativePath, from: node)
-        }
-
-        relativePath.append(path)
-    }
-    
     fileprivate func collectRelationships(name: String, _ relationships: inout [EndpointRelationship]) {
         if !endpoints.isEmpty {
             var relationship = EndpointRelationship(name: name, destinationPath: absolutePath)
