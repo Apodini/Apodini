@@ -3,8 +3,6 @@
 //
 
 import XCTest
-import Foundation
-import NIO
 @_implementationOnly import OpenAPIKit
 @testable import Apodini
 
@@ -15,7 +13,6 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     let someBool = true
     let someDict = ["someKey": "someValue"]
     let someArray = [1, 2, 3]
-    let someEventLoop: EventLoopFuture<Int>? = nil
     let someEither: Either<Int, String> = .init("someString")
     let someOptional: String? = nil
     let someOptionalUUID: UUID? = nil
