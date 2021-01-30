@@ -52,6 +52,14 @@ public struct StatelessClient {
     /// completes when the client receives a close-content-message from the server. The future contains
     /// all server-messages received on the relevant context.
     public func resolve<I: Encodable, O: Decodable>(_ inputs: I..., on endpoint: String) -> EventLoopFuture<[O]> {
+        resolve(many: inputs, on: endpoint)
+    }
+    
+    /// Opens a new WebSocket connection, creates a new context on the given `endpoint` and sends
+    /// one client message for each element in `input`. Afterwards it sends a close-context-message. The future
+    /// completes when the client receives a close-content-message from the server. The future contains
+    /// all server-messages received on the relevant context.
+    public func resolve<I: Encodable, O: Decodable>(many inputs: [I], on endpoint: String) -> EventLoopFuture<[O]> {
         let response = eventLoop.makePromise(of: [O].self)
         var responses: [O] = []
         
