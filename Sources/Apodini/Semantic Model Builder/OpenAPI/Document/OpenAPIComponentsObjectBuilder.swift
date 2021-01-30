@@ -37,9 +37,9 @@ class OpenAPIComponentsObjectBuilder {
         return schema
     }
 
-    /// For responses, we create wrapper objects as returned by the REST API.
-    /// Therefore we use the `ResponseContainer`'s CodingKeys
-    /// and store the resulting JSONSchema in the componentsObject.
+    /// For responses, a wrapper object is created as it is returned by the REST API.
+    /// Therefore `ResponseContainer`'s CodingKeys are reused.
+    /// The resulting JSONSchema is stored in the componentsObject.
     func buildResponse(for type: Encodable.Type) throws -> JSONSchema {
         let (schema, title) = try buildSchemaWithTitle(for: type)
         let schemaName = "\(title)Response"
@@ -55,7 +55,7 @@ class OpenAPIComponentsObjectBuilder {
         return .reference(.component(named: schemaName))
     }
 
-    /// In case there is more than one type in HTTP body, we build a wrapper schema.
+    /// In case there is more than one type in HTTP body, a wrapper schema needs to be built.
     /// This function takes a list of types with an associated boolean flag reflecting whether it is optional.
     func buildWrapperSchema(for types: [Codable.Type], with necessities: [Necessity]) throws -> JSONSchema {
         let schemasWithTitles: [(JSONSchema, String)] = try types.map {
@@ -64,7 +64,7 @@ class OpenAPIComponentsObjectBuilder {
         let properties = schemasWithTitles
             .enumerated()
             .reduce(into: [String: JSONSchema]()) {
-                // we need the offset to guarantee distinct property names
+                // Offset is needed to guarantee distinct property names.
                 $0["\($1.element.1)_\($1.offset)"] = $1.element.0
             }
         let schemaName = schemasWithTitles
@@ -90,7 +90,7 @@ extension OpenAPIComponentsObjectBuilder {
             let schemaName = createSchemaName(for: node)
 
             // In case of a reference type that is not yet saved into the componentsObject,
-            // we create the schema and save it.
+            // a new schema is created and saved.
             if schema.isReference && !schemaExists(for: schemaName) {
                 var properties: [String: JSONSchema] = [:]
                 for child in node.children {
