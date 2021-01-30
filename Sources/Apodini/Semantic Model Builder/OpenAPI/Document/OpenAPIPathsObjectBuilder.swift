@@ -54,10 +54,10 @@ private extension OpenAPIPathsObjectBuilder {
     mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>) -> OpenAPI.Operation {
         // Set operationId to concatenated string of operation and `Handler`s type name
         let operationId = "\(endpoint.description)"
-        
+
         // Get customDescription if it has been set explicitly passed via modifier
         let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)
-        
+
         // Set endpoint Description to customDescription or `endpoint.description` holding the `Handler`s type name
         let endpointDescription = customDescription ?? endpoint.description
 

@@ -11,7 +11,7 @@ final class OpenAPIConfigurationTests: ApodiniTests {
         let configuredOutputEndpoint = "oas"
         let configuredSwaggerUiEndpoint = "oas-ui"
         let configuredTitle = "The great TestWebService - presented by Apodini"
-        
+
         OpenAPIConfiguration(
             outputFormat: configuredOutputFormat,
             outputEndpoint: configuredOutputEndpoint,
@@ -19,22 +19,22 @@ final class OpenAPIConfigurationTests: ApodiniTests {
             title: configuredTitle
         )
             .configure(app)
-        
+
         let storage = app.storage.get(OpenAPIStorageKey.self)
-        
+
         XCTAssertNotNil(storage)
         XCTAssertEqual(storage?.configuration.outputFormat, configuredOutputFormat)
         XCTAssertEqual(storage?.configuration.outputEndpoint, configuredOutputEndpoint)
         XCTAssertEqual(storage?.configuration.swaggerUiEndpoint, configuredSwaggerUiEndpoint)
         XCTAssertEqual(storage?.configuration.title, configuredTitle)
     }
-    
+
     func testBuildDocumentWithDefaultConfiguration() {
         OpenAPIConfiguration()
             .configure(app)
-        
+
         let storage = app.storage.get(OpenAPIStorageKey.self)
-        
+
         XCTAssertNotNil(storage)
         XCTAssertEqual(storage?.configuration.outputFormat, OpenAPIConfigurationDefaults.outputFormat)
         XCTAssertEqual(storage?.configuration.outputEndpoint, OpenAPIConfigurationDefaults.outputEndpoint)

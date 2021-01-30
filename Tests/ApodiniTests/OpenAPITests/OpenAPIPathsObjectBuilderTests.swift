@@ -120,7 +120,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
 
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains(key: path))
-        XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 2)
+        XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 3)
     }
 
     func testAddPathItemWithRequestBodyAndResponseStruct() {
@@ -152,12 +152,8 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
                     OpenAPI.Response(
                         description: "OK",
                         content: [
-                            .json: .init(schema: .object(
-                                            title: "\(ResponseStruct.self)Response",
-                                            properties: [
-                                                ResponseContainer.CodingKeys.data.rawValue: .reference(.component(named: "\(ResponseStruct.self)")),
-                                                ResponseContainer.CodingKeys.links.rawValue: .object(additionalProperties: .init(.string))
-                                            ]))
+                            .json: .init(schema: .reference(
+                                .component(named: "\(ResponseStruct.self)Response")))
                         ]
                     )),
                 .status(code: 401): .init(
@@ -177,6 +173,6 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in
             key == path && value == pathItem
         })
-        XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 2)
+        XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 3)
     }
 }
