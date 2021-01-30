@@ -19,7 +19,7 @@ import Apodini
 /// ```
 ///
 /// - Remark: The `NotificationCenter` is an abstraction of [APNS](https://github.com/vapor/apns) and [FCM](https://github.com/MihaelIsaev/FCM).
-public class NotificationCenter {
+public struct NotificationCenter {
     internal var app: Application
     
     /// Initializes the `NotificationCenter` with an `Application` instance.

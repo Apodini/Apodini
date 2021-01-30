@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/vapor/apns.git",
         "state": {
           "branch": null,
-          "revision": "d8e81d9345f71ac7a6cf3637bbc10fdcc48d34f5",
-          "version": "1.0.0"
+          "revision": "a8bc863a718eb23e05b2ae3bfc7de66407b6b85d",
+          "version": "1.0.1"
         }
       },
       {
@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
         "state": {
           "branch": null,
-          "revision": "48e77d4c8d6ad671727b89bef5538ec79c3d7397",
-          "version": "2.1.0"
+          "revision": "ce8213a3e0ec0581c4c39a155e7778401ec5e24a",
+          "version": "2.2.0"
         }
       },
       {
