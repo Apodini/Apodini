@@ -384,7 +384,22 @@ extension ProtobufferBuilderTests {
             let longitude: UInt
         }
         
-        try testWebService(WebService.self, expectation: "")
+        let expected = """
+            syntax = "proto3";
+
+            service V1Service {
+              rpc locator (LocatorMessage) returns (CoordinateMessage);
+            }
+
+            message CoordinateMessage {
+              uint32 langitude = 1;
+              uint32 longitude = 2;
+            }
+
+            message LocatorMessage {}
+            """
+        
+        try testWebService(WebService.self, expectation: expected)
     }
 }
 
