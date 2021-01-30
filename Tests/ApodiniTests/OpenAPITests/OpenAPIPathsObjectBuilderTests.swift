@@ -36,7 +36,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
     }
 
     struct WrappingParamsComp: Handler {
-        @Parameter var someStruct1: SomeStruct
+        @Parameter var someStruct1: SomeStruct?
         @Parameter var someStruct2: SomeStruct
 
         func handle() -> String {

@@ -58,8 +58,12 @@ class OpenAPIComponentsObjectBuilder {
     /// In case there is more than one type in HTTP body, a wrapper schema needs to be built.
     /// This function takes a list of types with an associated boolean flag reflecting whether it is optional.
     func buildWrapperSchema(for types: [Codable.Type], with necessities: [Necessity]) throws -> JSONSchema {
-        let schemasWithTitles: [(JSONSchema, String)] = try types.map {
-            try buildSchemaWithTitle(for: $0)
+        let schemasWithTitles: [(JSONSchema, String)] = try types.enumerated().map {
+            var (schema, title) = try buildSchemaWithTitle(for: $1)
+            if case .optional = necessities[$0] {
+                schema = schema.optionalSchemaObject()
+            }
+            return (schema, title)
         }
         let properties = schemasWithTitles
             .enumerated()
