@@ -4,7 +4,6 @@ import Apodini
 
 /// `Configuration` to start `Job`s at server startup.
 public class Schedule<K: KeyChain, T: Job>: Configuration {
-    private let scheduler = Scheduler.shared
     private let job: T
     private let cronTrigger: String
     private let runs: Int?
@@ -44,7 +43,7 @@ public class Schedule<K: KeyChain, T: Job>: Configuration {
     /// Enqueues the configured `Job` at server startup.
     public func configure(_ app: Application) {
         do {
-            try scheduler.enqueue(job, with: cronTrigger, runs: runs, keyPath, on: app.eventLoopGroup.next())
+            try app.scheduler.enqueue(job, with: cronTrigger, runs: runs, keyPath, on: app.eventLoopGroup.next())
         } catch JobErrors.requestPropertyWrapper {
             fatalError("Request based property wrappers cannot be used with `Job`s")
         } catch {

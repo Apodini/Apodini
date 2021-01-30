@@ -13,15 +13,21 @@ extension Vapor.Application {
         var app: Vapor.Application
 
         func didBoot(_ application: Application) throws {
-            try app.start()
+            if let address = application.http.address {
+                try app.server.start(address: Vapor.BindAddress(from: address))
+            } else {
+                try app.server.start()
+            }
+            try app.boot()
         }
 
         func shutdown(_ application: Application) {
+            app.server.shutdown()
             app.shutdown()
         }
     }
 
-    convenience init(from app: Apodini.Application, environment env: Vapor.Environment) {
+    convenience init(from app: Apodini.Application, environment env: Vapor.Environment = .production) {
         self.init(env, .shared(app.eventLoopGroup))
         app.lifecycle.use(LifecycleHandlery(app: self))
         
@@ -59,16 +65,24 @@ extension Apodini.Application {
         }
 
         func initialize() {
-            // swiftlint:disable force_try
-            let defaultCLIArguments = [".", "serve", "--env", "development"/*, "--hostname", "0.0.0.0", "--port", "8080"*/]
-            let env = try! Vapor.Environment.detect(arguments: defaultCLIArguments)
-            self.application.storage[ConfigurationKey.self] = .init(from: application, environment: env)
+            self.application.storage[ConfigurationKey.self] = .init(from: application)
         }
 
         private let application: Apodini.Application
 
         init(application: Apodini.Application) {
             self.application = application
+        }
+    }
+}
+
+extension Vapor.BindAddress {
+    init(from address: Apodini.BindAddress) {
+        switch address {
+        case let .hostname(host, port):
+            self = .hostname(host, port: port)
+        case .unixDomainSocket(let path):
+            self = .unixDomainSocket(path: path)
         }
     }
 }
