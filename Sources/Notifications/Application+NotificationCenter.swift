@@ -1,7 +1,8 @@
 import Apodini
 
 extension Application {
-    var notificationCenter: NotificationCenter {
+    /// Holds the `NotificationCenter` of the web service.
+    public var notificationCenter: NotificationCenter {
         .init(app: self)
     }
 }
