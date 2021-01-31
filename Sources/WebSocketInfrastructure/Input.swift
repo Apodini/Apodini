@@ -6,7 +6,6 @@
 //
 
 import Foundation
-@_implementationOnly import AssociatedTypeRequirementsVisitor
 
 /// A `ParameterDecoder` allows for decoding an element of given type `T`.
 public protocol ParameterDecoder {
