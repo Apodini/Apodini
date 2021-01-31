@@ -20,11 +20,12 @@ extension GRPCService {
                                                          using context: C,
                                                          promise: EventLoopPromise<Vapor.Response>? = nil,
                                                          responseStream: BodyStreamWriter? = nil,
-                                                         _ callback: @escaping (GRPCMessageResponse) -> Void)
+                                                         _ callback: @escaping (GRPCMessageResponse, EventLoopPromise<Void>) -> Void)
     where C.Exporter == GRPCInterfaceExporter {
         var context = context
         var lastMessage: GRPCMessage?
         request.body.drain { (bodyStream: BodyStreamResult) in
+            let responsePromise = request.eventLoop.makePromise(of: Void.self)
             switch bodyStream {
             case let .buffer(byteBuffer):
                 guard let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
@@ -40,6 +41,10 @@ extension GRPCService {
                 // once the .end message was received.
                 lastMessage = messages.popLast()
 
+                if messages.count == 0 {
+                    responsePromise.succeed(())
+                }
+
                 messages
                     // For now we only support
                     // - one message delivered in one frame,
@@ -49,10 +54,10 @@ extension GRPCService {
                     .filter(\.didCollectAllFragments)
                     .forEach { message in
                         let response = context.handle(request: message, eventLoop: request.eventLoop, final: false)
-                        response.whenFailure { callback(.error($0)) }
+                        response.whenFailure { callback(.error($0), responsePromise) }
                         response.whenSuccess { response in
                             let response = self.makeResponse(response)
-                            callback(.response(response))
+                            callback(.response(response), responsePromise)
                         }
                     }
             case .end:
@@ -60,16 +65,16 @@ extension GRPCService {
                 // and set the final flag
                 let message = lastMessage ?? GRPCMessage.defaultMessage
                 let response = context.handle(request: message, eventLoop: request.eventLoop, final: true)
-                response.whenFailure { callback(.error($0)) }
+                response.whenFailure { callback(.error($0), responsePromise) }
                 response.whenSuccess { response in
                     let response = self.makeResponse(response)
-                    callback(.last(response))
+                    callback(.last(response), responsePromise)
                 }
             case let .error(error):
-                callback(.error(error))
+                callback(.error(error), responsePromise)
             }
 
-            return request.eventLoop.makeSucceededFuture(())
+            return responsePromise.futureResult
         }
     }
 
@@ -77,7 +82,8 @@ extension GRPCService {
     -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> where C.Exporter == GRPCInterfaceExporter {
         { (request: Vapor.Request) in
             let promise = request.eventLoop.makePromise(of: Vapor.Response.self)
-            self.drainClientStream(from: request, using: context) { response in
+            self.drainClientStream(from: request, using: context) { response, responsePromise in
+                responsePromise.succeed(())
                 switch response {
                 case .response(_):
                     // Discard any result that is received back from the handler if no service stream was handed over.
@@ -97,20 +103,20 @@ extension GRPCService {
     func createBidirectionalStreamingHandler<C: ConnectionContext>(context: C)
     -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> where C.Exporter == GRPCInterfaceExporter {
         { (request: Vapor.Request) in
-            let streamingResponse: (BodyStreamWriter) -> Void = { writer in
-                self.drainClientStream(from: request, using: context) { response in
+            let streamingResponse: (BodyStreamWriter) -> () = { writer in
+                self.drainClientStream(from: request, using: context) { response, responsePromise in
                     switch response {
                     case let .response(message):
                         if let buffer = message.body.buffer {
-                            writer.write(.buffer(buffer), promise: nil)
+                            writer.write(.buffer(buffer), promise: responsePromise)
                         }
                     case let .last(message):
                         if let buffer = message.body.buffer {
-                            writer.write(.buffer(buffer), promise: nil)
-                            writer.write(.end, promise: nil)
+                            writer.write(.buffer(buffer), promise: responsePromise)
+                            writer.write(.end, promise: responsePromise)
                         }
                     case let .error(err):
-                        writer.write(.error(err), promise: nil)
+                        writer.write(.error(err), promise: responsePromise)
                     }
                 }
             }
