@@ -28,7 +28,7 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: .build
-        key: ${{ runner.os }}-spm-cache-${{ hashFiles('/Package.resolved') }}
+        key: ${{ runner.os }}-spm-cache-${{ hashFiles('Package.resolved') }}
     - name: Check Xcode version
       run: xcodebuild -version
     - name: Check Swift version
@@ -66,7 +66,7 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: .build
-        key: ${{ runner.os }}-${{matrix.linux}}-spm-cache-${{ hashFiles('/Package.resolved') }}
+        key: ${{ runner.os }}-${{matrix.linux}}-spm-cache-${{ hashFiles('Package.resolved') }}
     - name: Check Swift version
       run: swift --version
     - name: Build
