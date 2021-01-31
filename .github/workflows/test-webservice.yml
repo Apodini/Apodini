@@ -52,7 +52,7 @@ jobs:
       run: apt-get update && apt-get install -y --no-install-recommends libsqlite3-dev
     - name: Install libsqlite3
       if: ${{ startsWith( matrix.linux, 'centos' ) || startsWith( matrix.linux, 'amazonlinux' ) }}
-      run: yum update -y && yum install -y libsqlite3-dev
+      run: yum update -y && yum install -y sqlite-devel
     - uses: actions/cache@v2
       with:
         path: .build
