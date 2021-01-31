@@ -93,8 +93,8 @@ extension OpenAPIComponentsObjectBuilder {
             let schema = deriveSchemaFromEnrichedInfo(node)
             let schemaName = createSchemaName(for: node)
 
-            // In case of a reference type that is not yet saved into the componentsObject,
-            // a new schema is created and saved.
+            // If there is a reference type that is not yet saved into the
+            // componentsObject, a new schema is created and saved.
             if schema.isReference && !schemaExists(for: schemaName) {
                 var properties: [String: JSONSchema] = [:]
                 for child in node.children {
@@ -129,7 +129,7 @@ extension OpenAPIComponentsObjectBuilder {
             schemaName = node.value.typeInfo.mangledName
         }
 
-        // The schemaName is prefixed if the root type cardinality != exactlyOne.
+        // The schemaName is prefixed if the root type cardinality != .exactlyOne.
         if root {
             switch node.value.cardinality {
             case .zeroToOne:
