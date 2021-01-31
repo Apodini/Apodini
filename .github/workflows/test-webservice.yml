@@ -29,7 +29,7 @@ jobs:
         xcode-version: latest
     - uses: actions/cache@v2
       with:
-        path: .build
+        path: TestWebService/.build
         key: ${{ runner.os }}-spm-cache-${{ hashFiles('TestWebService/Package.resolved') }}
     - name: Check Xcode version
       run: xcodebuild -version
@@ -57,7 +57,7 @@ jobs:
       run: yum update -y && yum install -y sqlite-devel
     - uses: actions/cache@v2
       with:
-        path: .build
+        path: TestWebService/.build
         key: ${{ runner.os }}-${{matrix.linux}}-spm-cache-${{ hashFiles('TestWebService/Package.resolved') }}
     - name: Check Swift version
       run: swift --version
