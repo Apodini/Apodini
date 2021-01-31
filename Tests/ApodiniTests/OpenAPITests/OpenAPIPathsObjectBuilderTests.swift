@@ -7,16 +7,6 @@ import XCTest
 @testable import Apodini
 
 final class OpenAPIPathsObjectBuilderTests: XCTestCase {
-    struct SomeComp: Handler {
-        @Parameter(.http(.query)) var name: String
-
-        @Parameter(.http(.path)) var id: String
-
-        func handle() -> String {
-            "Hello \(name)!"
-        }
-    }
-
     struct SomeStruct: Codable {
         var id = 1
         var someProp = "somesome"
@@ -27,35 +17,18 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         var someCount: Int?
     }
 
-    struct ComplexComp: Handler {
-        @Parameter var someStruct: SomeStruct
-
-        func handle() -> ResponseStruct {
-            ResponseStruct()
-        }
-    }
-
-    struct WrappingParamsComp: Handler {
-        @Parameter var someStruct1: SomeStruct?
-        @Parameter var someStruct2: SomeStruct
-
-        func handle() -> String {
-            "Hello"
-        }
-    }
-
     @PathParameter var param: String
 
-    struct HandlerParam: Handler {
-        @Parameter
-        var pathParam: String
-
-        func handle() -> String {
-            "test"
-        }
-    }
-
     func testPathBuilder() {
+        struct HandlerParam: Handler {
+            @Parameter
+            var pathParam: String
+
+            func handle() -> String {
+                "test"
+            }
+        }
+
         let handler = HandlerParam(pathParam: $param)
         let endpoint = handler.mockEndpoint()
         var pathParameter = EndpointPathParameter<String>(id: _param.id)
@@ -68,6 +41,16 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
     }
 
     func testAddPathItemOperationParams() {
+        struct SomeComp: Handler {
+            @Parameter(.http(.query)) var name: String
+
+            @Parameter(.http(.path)) var id: String
+
+            func handle() -> String {
+                "Hello \(name)!"
+            }
+        }
+
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
 
@@ -90,6 +73,15 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
     }
 
     func testAddPathItemOperationWrappedParams() throws {
+        struct WrappingParamsComp: Handler {
+            @Parameter var someStruct1: SomeStruct?
+            @Parameter var someStruct2: SomeStruct
+
+            func handle() -> String {
+                "Hello"
+            }
+        }
+
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
 
@@ -123,7 +115,74 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 3)
     }
 
+    func testAddPathItemOperationArrayParams() throws {
+        struct ArrayParamsComp: Handler {
+            @Parameter var someStructArray: [SomeStruct]
+
+            func handle() -> [SomeStruct] {
+                []
+            }
+        }
+
+        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
+
+        let webService = WebServiceModel()
+
+        let comp = ArrayParamsComp()
+        var endpoint = comp.mockEndpoint()
+        webService.addEndpoint(&endpoint, at: ["test"])
+
+        pathsObjectBuilder.addPathItem(from: endpoint)
+        let path = OpenAPI.Path(stringLiteral: "test")
+
+        let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
+            // as there is no custom description in this case, `description` and `operationId` are the same.
+            description: endpoint.description,
+            operationId: endpoint.description,
+            parameters: [],
+            requestBody: OpenAPI.Request(
+                description: "@Parameter var someStructArray: Array<SomeStruct>",
+                content: [
+                    .json: .init(schema: .array(items: .reference(.component(named: "\(SomeStruct.self)"))))
+                ]
+            ),
+            responses: [
+                .status(code: 200): .init(
+                    OpenAPI.Response(
+                        description: "OK",
+                        content: [
+                            .json: .init(schema: .reference(
+                                .component(named: "Arrayof\(SomeStruct.self)Response")))
+                        ]
+                    )),
+                .status(code: 401): .init(
+                    OpenAPI.Response(description: "Unauthorized")),
+                .status(code: 403): .init(
+                    OpenAPI.Response(description: "Forbidden")),
+                .status(code: 404): .init(
+                    OpenAPI.Response(description: "Not Found")),
+                .status(code: 500): .init(
+                    OpenAPI.Response(description: "Internal Server Error"))
+            ],
+            vendorExtensions: ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
+        ))
+
+        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in
+            key == path && value == pathItem
+        })
+        XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 2)
+    }
+
     func testAddPathItemWithRequestBodyAndResponseStruct() {
+        struct ComplexComp: Handler {
+            @Parameter var someStruct: SomeStruct
+
+            func handle() -> ResponseStruct {
+                ResponseStruct()
+            }
+        }
+
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
 

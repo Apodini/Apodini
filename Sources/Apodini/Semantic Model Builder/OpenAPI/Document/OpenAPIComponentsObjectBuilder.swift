@@ -107,7 +107,7 @@ extension OpenAPIComponentsObjectBuilder {
             }
             return schema
         }
-        let title = createSchemaName(for: node)
+        let title = createSchemaName(for: node, root: true)
         return (schemaNode.value, title)
     }
 
@@ -117,16 +117,36 @@ extension OpenAPIComponentsObjectBuilder {
     }
 
     /// Creates specification compliant schema names.
-    private func createSchemaName(for node: Node<EnrichedInfo>) -> String {
+    private func createSchemaName(for node: Node<EnrichedInfo>, root: Bool = false) -> String {
+        var schemaName: String
         if !node.value.typeInfo.genericTypes.isEmpty {
             let openAPICompliantName = node.value.typeInfo.name
                 .replacingOccurrences(of: "<", with: OpenAPISchemaConstants.replaceOpenAngleBracket)
                 .replacingOccurrences(of: ">", with: OpenAPISchemaConstants.replaceCloseAngleBracket)
                 .replacingOccurrences(of: ", ", with: OpenAPISchemaConstants.replaceCommaSeparation)
-            return openAPICompliantName
+            schemaName = openAPICompliantName
         } else {
-            return node.value.typeInfo.mangledName
+            schemaName = node.value.typeInfo.mangledName
         }
+
+        // in case there is a cardinality != exactlyOne, the schemaName is prefixed
+        if root {
+            switch node.value.cardinality {
+            case .zeroToOne:
+                schemaName = "Optionalof\(schemaName)"
+            case .zeroToMany(let context):
+                switch context {
+                case .dictionary:
+                    schemaName = "Dictionaryof\(schemaName)"
+                case .array:
+                    schemaName = "Arrayof\(schemaName)"
+                }
+            default:
+                return schemaName
+            }
+        }
+
+        return schemaName
     }
 
     /// Constructs a schema with type specific attributes, e.g. optional.

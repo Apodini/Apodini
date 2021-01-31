@@ -80,10 +80,26 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         XCTAssertEqual(componentsBuilder.componentsObject, .noComponents)
     }
 
+    /// Create response schema and add it to components, handle type and array of type differently.
+    func testBuildSchemaForResponsesWithArrayAndDict() throws {
+        let componentsBuilder = OpenAPIComponentsObjectBuilder()
+        let responseSchemaName1 = "\(SomeStruct.self)Response"
+        let responseSchemaName2 = "Arrayof\(SomeStruct.self)Response"
+        let responseSchemaName3 = "Dictionaryof\(SomeStruct.self)Response"
+
+        XCTAssertNoThrow(try componentsBuilder.buildResponse(for: SomeStruct.self))
+        XCTAssertNoThrow(try componentsBuilder.buildResponse(for: Array<SomeStruct>.self))
+        XCTAssertNoThrow(try componentsBuilder.buildResponse(for: Dictionary<String, SomeStruct>.self))
+        XCTAssertNoThrow(try JSONSchema.reference(.component(named: responseSchemaName1)).dereferenced(in: componentsBuilder.componentsObject))
+        XCTAssertNoThrow(try JSONSchema.reference(.component(named: responseSchemaName2)).dereferenced(in: componentsBuilder.componentsObject))
+        XCTAssertNoThrow(try JSONSchema.reference(.component(named: responseSchemaName3)).dereferenced(in: componentsBuilder.componentsObject))
+        XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 4)
+    }
+
     /// Create response schema and add it to components.
     func testBuildSchemaForResponses() throws {
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
-        let schema = try componentsBuilder.buildResponse(for: SomeStruct.self)
+        XCTAssertNoThrow(try componentsBuilder.buildResponse(for: SomeStruct.self))
         let responseSchemaName = "\(SomeStruct.self)Response"
         let ref = try componentsBuilder.componentsObject.reference(named: responseSchemaName, ofType: JSONSchema.self)
 
