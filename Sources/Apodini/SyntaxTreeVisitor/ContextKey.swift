@@ -32,10 +32,20 @@ extension OptionalContextKey {
     }
 }
 
+protocol HasDefaultValue {
+    static var defaultValue: Any { get }
+}
+
 
 /// A `ContextKey` is a `OptionalContextKey` with the addition of the definition of a default value.
 /// See implications of the reduction logic `OptionalContextKey.reduce(...)`.
-protocol ContextKey: OptionalContextKey {
+protocol ContextKey: OptionalContextKey, HasDefaultValue {
     /// The default value this `ContextKey` provides.
     static var defaultValue: Self.Value { get }
+}
+
+extension ContextKey {
+    static var defaultValue: Any {
+        defaultValue as Self.Value
+    }
 }

@@ -1,4 +1,4 @@
-name: Build and Test
+name: Test TestWebService
 
 on:
   push:
@@ -9,10 +9,14 @@ on:
     branches:
       - develop
       - release
+      
+defaults:
+  run:
+    working-directory: TestWebService
 
 jobs:
   macos:
-    name: macOS ${{ matrix.configuration }} test build
+    name: macOS ${{ matrix.configuration }} test TestWebService
     runs-on: macos-latest
     strategy:
       matrix:
@@ -30,20 +34,10 @@ jobs:
       run: xcodebuild -version
     - name: Check Swift version
       run: swift --version
-    - name: Build
-      if: matrix.configuration == 'release'
-      run: swift build --configuration ${{ matrix.configuration }}
     - name: Build & Test
-      if: matrix.configuration == 'debug'
-      run: swift test --configuration ${{ matrix.configuration }} --enable-code-coverage
-    - name: Convert coverage report
-      if: matrix.configuration == 'debug'
-      run: xcrun llvm-cov export -format="lcov" .build/debug/ApodiniPackageTests.xctest/Contents/MacOS/ApodiniPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage.lcov
-    - name: Upload coverage to Codecov
-      if: matrix.configuration == 'debug'
-      uses: codecov/codecov-action@v1
+      run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
   linux:
-    name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} test build
+    name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} test TestWebService
     container:
       image: swift:${{ matrix.linux }}
     runs-on: ubuntu-latest
@@ -65,9 +59,5 @@ jobs:
         key: ${{ runner.os }}-${{matrix.linux}}-spm-cachev2-${{ hashFiles('Package.resolved') }}
     - name: Check Swift version
       run: swift --version
-    - name: Build
-      if: matrix.configuration == 'release'
-      run: swift build --configuration ${{ matrix.configuration }}
     - name: Build & Test
-      if: matrix.configuration == 'debug'
       run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
