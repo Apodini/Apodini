@@ -48,10 +48,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install libsqlite3
-      if: ${{ !startsWith( matrix.linux, 'centos' ) }}
+      if: ${{ !(startsWith( matrix.linux, 'centos' ) || startsWith( matrix.linux, 'amazonlinux' )) }}
       run: apt-get update && apt-get install -y --no-install-recommends libsqlite3-dev
     - name: Install libsqlite3
-      if: ${{ startsWith( matrix.linux, 'centos' ) }}
+      if: ${{ startsWith( matrix.linux, 'centos' ) || startsWith( matrix.linux, 'amazonlinux' ) }}
       run: yum update -y && yum install -y libsqlite3-devel
     - uses: actions/cache@v2
       with:
