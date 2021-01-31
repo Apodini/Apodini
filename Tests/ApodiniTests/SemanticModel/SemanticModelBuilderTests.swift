@@ -10,7 +10,7 @@ import Vapor
 @testable import Apodini
 
 
-final class SharedSemanticModelBuilderTests: ApodiniTests {
+final class SemanticModelBuilderTests: ApodiniTests {
     struct TestHandler: Handler {
         @Parameter
         var name: String
@@ -98,8 +98,8 @@ final class SharedSemanticModelBuilderTests: ApodiniTests {
     
     func testEndpointsTreeNodes() {
         // swiftlint:disable force_unwrapping
-        let modelBuilder = SharedSemanticModelBuilder(app)
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [modelBuilder])
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
         let testComponent = TestComponent()
         Group {
             testComponent.content

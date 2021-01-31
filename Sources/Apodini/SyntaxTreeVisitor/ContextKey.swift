@@ -10,7 +10,7 @@
 /// see `OptionalContextKey.reduce(...)`.
 /// The `OptionalContextKey` is optional in the sense that it doesn't provide a default value, meaning
 /// it may not exists on the `Context` for a given `Handler`.
-protocol OptionalContextKey {
+public protocol OptionalContextKey {
     /// The type of the value the `OptionalContextKey` identifies. The value MUST NOT be of type `Optional`.
     associatedtype Value
 
@@ -32,14 +32,16 @@ extension OptionalContextKey {
     }
 }
 
-protocol HasDefaultValue {
+/// Helper protocol providing access to a type erased default value of a `ContextKey`.
+public protocol HasDefaultValue {
+    /// The type erased default value of the `ContextKey`.
     static var defaultValue: Any { get }
 }
 
 
 /// A `ContextKey` is a `OptionalContextKey` with the addition of the definition of a default value.
 /// See implications of the reduction logic `OptionalContextKey.reduce(...)`.
-protocol ContextKey: OptionalContextKey, HasDefaultValue {
+public protocol ContextKey: OptionalContextKey, HasDefaultValue {
     /// The default value this `ContextKey` provides.
     static var defaultValue: Self.Value { get }
 }

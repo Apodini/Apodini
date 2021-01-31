@@ -40,7 +40,7 @@ private struct PathComponentStringBuilder: PathComponentParser {
         self.delimiter = delimiter
 
         for pathComponent in pathComponents {
-            let pathComponent = toInternalPathComponent(pathComponent)
+            let pathComponent = pathComponent.toInternal()
             pathComponent.accept(&self)
         }
     }

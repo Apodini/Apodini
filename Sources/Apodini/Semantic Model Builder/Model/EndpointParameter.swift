@@ -8,8 +8,11 @@
 import Foundation
 
 /// Defines the necessity of a `EndpointParameter`
-enum Necessity {
+public enum Necessity {
+    /// `.required` necessity describes parameters which require a valuer in any case.
     case required
+    /// `.optional` necessity describes parameters which does not necessarily require a value.
+    /// This does not necessarily translate to `nil` being a valid value.
     case optional
 }
 
@@ -24,7 +27,7 @@ protocol EndpointParameterThrowingVisitor {
 }
 
 /// Describes a type erasured `EndpointParameter`
-protocol AnyEndpointParameter: CustomStringConvertible {
+public protocol AnyEndpointParameter: CustomStringConvertible {
     /// The `UUID` which uniquely identifies the given `AnyEndpointParameter`.
     var id: UUID { get }
     var pathId: String { get }
@@ -54,8 +57,6 @@ protocol AnyEndpointParameter: CustomStringConvertible {
     var propertyType: Codable.Type { get }
     /// See documentation of `propertyType`
     var nilIsValidValue: Bool { get }
-    /// Holds the options as defined by the user.
-    var options: PropertyOptionSet<ParameterOptionNameSpace> { get }
     /// Defines the `Necessity` of the parameter.
     var necessity: Necessity { get }
     /// Defines the `EndpointParameterType` of the parameter.
@@ -66,6 +67,11 @@ protocol AnyEndpointParameter: CustomStringConvertible {
     /// See `CustomStringConvertible`
     var description: String { get }
 
+    /// Can be used to retrieve options configured for this parameter in the `ParameterOptionNameSpace`.
+    func option<Option>(for key: PropertyOptionKey<ParameterOptionNameSpace, Option>) -> Option?
+}
+
+protocol _AnyEndpointParameter: AnyEndpointParameter {
     func accept<Visitor: EndpointParameterVisitor>(_ visitor: Visitor) -> Visitor.Output
     func accept<Visitor: EndpointParameterThrowingVisitor>(_ visitor: Visitor) throws -> Visitor.Output
 
@@ -76,7 +82,18 @@ protocol AnyEndpointParameter: CustomStringConvertible {
     /// - Returns: Returns what `InterfaceExporter.retrieveParameter(...)` returns.
     func exportParameter<I: BaseInterfaceExporter>(on exporter: I) -> I.ParameterExportOutput
 
+    /// Used to derive a `EndpointPath` (specifically a `.parameter(parameter:)` instance)
+    /// from the given `EndpointParameter`.
     func derivePathParameterModel() -> EndpointPath
+}
+
+extension AnyEndpointParameter {
+    func toInternal() -> _AnyEndpointParameter {
+        guard let parameter = self as? _AnyEndpointParameter else {
+            fatalError("Encountered `AnyEndpointParameter` which doesn't conform to `_AnyEndpointParameter`: \(self)!")
+        }
+        return parameter
+    }
 }
 
 /// Models a `Parameter`. See `AnyEndpointParameter` for detailed documentation.
@@ -88,29 +105,29 @@ protocol AnyEndpointParameter: CustomStringConvertible {
 /// ```
 /// the generic holds `String.Type` and not `Optional<String>.self`.
 /// Use the `nilIsValidValue` property to check if the original parameter definition used an `Optional` type.
-struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
-    let id: UUID
-    var pathId: String {
+public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter {
+    public let id: UUID
+    public var pathId: String {
         if parameterType != .path {
             fatalError("Cannot access EndpointParameter.pathId when the parameter type isn't .path!")
         }
         return "\(id)"
     }
-    let name: String
-    let label: String
-    let propertyType: Codable.Type
-    let nilIsValidValue: Bool
-    let options: PropertyOptionSet<ParameterOptionNameSpace>
-    let necessity: Necessity
-    let parameterType: ParameterType
+    public let name: String
+    public let label: String
+    public let propertyType: Codable.Type
+    public let nilIsValidValue: Bool
+    public let necessity: Necessity
+    public let parameterType: ParameterType
 
-    
-    let defaultValue: (() -> Type)?
-    var typeErasuredDefaultValue: (() -> Any)? {
+    public let defaultValue: (() -> Type)?
+    public var typeErasuredDefaultValue: (() -> Any)? {
         defaultValue
     }
 
-    let description: String
+    public let description: String
+
+    let options: PropertyOptionSet<ParameterOptionNameSpace>
 
     init(id: UUID,
          name: String,
@@ -154,9 +171,14 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
         }
     }
 
+    public func option<Option>(for key: PropertyOptionKey<ParameterOptionNameSpace, Option>) -> Option? {
+        options.option(for: key)
+    }
+
     func accept<Visitor: EndpointParameterVisitor>(_ visitor: Visitor) -> Visitor.Output {
         visitor.visit(parameter: self)
     }
+
     func accept<Visitor: EndpointParameterThrowingVisitor>(_ visitor: Visitor) throws -> Visitor.Output {
         try visitor.visit(parameter: self)
     }
@@ -170,12 +192,27 @@ struct EndpointParameter<Type: Codable>: AnyEndpointParameter {
 extension Array where Element == AnyEndpointParameter {
     func exportParameters<I: BaseInterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
         self.map { parameter -> I.ParameterExportOutput in
-            parameter.exportParameter(on: exporter)
+            parameter.toInternal().exportParameter(on: exporter)
         }
     }
 }
 
-protocol LosslessStringConvertibleEndpointParameter {
+// MARK: LosslessStringConvertible Initializer
+public extension EndpointParameter {
+    /// This method can be called for `EndpointParameter` instances where you know that
+    /// the generic `Type` conforms to `LosslessStringConvertible`.
+    /// - Parameter description: The Lossless string description for the `type`
+    /// - Returns: The result of `LosslessStringConvertible.init(...)`. Nil if the Type couldn't be instantiated for the given `String`
+    func initLosslessStringConvertibleParameterValue(from description: String) -> Type? {
+        guard let losslessStringParameter = self as? LosslessStringConvertibleEndpointParameter else {
+            fatalError("Encountered .path Parameter which isn't type of LosslessStringConvertible!")
+        }
+
+        return losslessStringParameter.initFromDescription(description: description, type: Type.self)
+    }
+}
+
+private protocol LosslessStringConvertibleEndpointParameter {
     /// Initializes a type `T` for which you know that it conforms to `LosslessStringConvertible`.
     ///
     /// - Parameters:
@@ -187,7 +224,7 @@ protocol LosslessStringConvertibleEndpointParameter {
 
 // MARK: LosslessStringConvertible Initializer
 extension EndpointParameter: LosslessStringConvertibleEndpointParameter where Type: LosslessStringConvertible {
-    func initFromDescription<T>(description: String, type: T.Type) -> T? {
+    fileprivate func initFromDescription<T>(description: String, type: T.Type) -> T? {
         guard T.self is Type.Type else {
             fatalError("""
                        EndpointParameter.initFromDescription: Tried initializing from LosslessStringConvertible

@@ -3,7 +3,7 @@
 //
 
 extension EndpointsTreeNode: CustomDebugStringConvertible {
-    var debugDescription: String {
+    public var debugDescription: String {
         if let parent = parent {
             return parent.debugDescription
         }
