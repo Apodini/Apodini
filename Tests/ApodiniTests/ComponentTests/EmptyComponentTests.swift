@@ -22,15 +22,15 @@ class EmptyComponentTests: ApodiniTests {
     func testEmptyComponent() throws {
         XCTAssertRuntimeFailure(EmptyComponent().content)
         
-        let componentSharedSemanticModelBuilder = SharedSemanticModelBuilder(app)
-        let componentSyntaxTreeVisitor = SyntaxTreeVisitor(semanticModelBuilders: [componentSharedSemanticModelBuilder])
+        let componentSharedSemanticModelBuilder = SemanticModelBuilder(app)
+        let componentSyntaxTreeVisitor = SyntaxTreeVisitor(modelBuilder: componentSharedSemanticModelBuilder)
         EmptyComponent().accept(componentSyntaxTreeVisitor)
         componentSyntaxTreeVisitor.finishParsing()
         XCTAssertEqual(componentSharedSemanticModelBuilder.rootNode.collectEndpoints().count, 0)
         
         
-        let handlerSharedSemanticModelBuilder = SharedSemanticModelBuilder(app)
-        let handlerSyntaxTreeVisitor = SyntaxTreeVisitor(semanticModelBuilders: [handlerSharedSemanticModelBuilder])
+        let handlerSharedSemanticModelBuilder = SemanticModelBuilder(app)
+        let handlerSyntaxTreeVisitor = SyntaxTreeVisitor(modelBuilder: handlerSharedSemanticModelBuilder)
         EmptyHandler().accept(handlerSyntaxTreeVisitor)
         handlerSyntaxTreeVisitor.finishParsing()
         XCTAssertEqual(componentSharedSemanticModelBuilder.rootNode.collectEndpoints().count, 0)

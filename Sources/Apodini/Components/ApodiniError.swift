@@ -14,9 +14,9 @@ public enum ErrorOptionNameSpace { }
 
 /// A collection of the most important error types where defaults exist for every interface exporter
 public enum ErrorType: String {
-    /// Error types correspoinding to HTTP 4xx codes
+    /// Error types corresponding to HTTP 4xx codes
     case badInput, notFound, unauthenticated, forbidden
-    /// Error types correspoinding to HTTP 5xx codes
+    /// Error types corresponding to HTTP 5xx codes
     case serverError, notAvailable
     /// A unspecified custom error
     case other

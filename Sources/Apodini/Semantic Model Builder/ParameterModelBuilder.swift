@@ -3,7 +3,7 @@
 //
 
 extension Handler {
-    func buildParametersModel() -> [AnyEndpointParameter] {
+    func buildParametersModel() -> [_AnyEndpointParameter] {
         let builder = ParameterModelBuilder(from: self)
             .build()
         return builder.parameters
@@ -15,7 +15,7 @@ private class ParameterModelBuilder<H: Handler>: RequestInjectableVisitor {
     let requestInjectables: [String: RequestInjectable]
     var currentLabel: String?
 
-    var parameters: [AnyEndpointParameter] = []
+    var parameters: [_AnyEndpointParameter] = []
 
     init(from handler: H) {
         let orderedRequestInjectables = handler.extractRequestInjectables()
@@ -53,7 +53,7 @@ private class ParameterModelBuilder<H: Handler>: RequestInjectableVisitor {
                                 """)
         }
 
-        let endpointParameter: AnyEndpointParameter
+        let endpointParameter: _AnyEndpointParameter
         if let optionalParameter = parameter as? EncodeOptionalEndpointParameter {
             endpointParameter = optionalParameter.createParameterWithWrappedType(
                 name: parameter.name ?? trimmedLabel,
@@ -81,7 +81,7 @@ private protocol EncodeOptionalEndpointParameter {
         name: String,
         label: String,
         necessity: Necessity
-    ) -> AnyEndpointParameter
+    ) -> _AnyEndpointParameter
 }
 
 // MARK: Parameter Model
@@ -90,7 +90,7 @@ extension Parameter: EncodeOptionalEndpointParameter where Element: ApodiniOptio
         name: String,
         label: String,
         necessity: Necessity
-    ) -> AnyEndpointParameter {
+    ) -> _AnyEndpointParameter {
         var `default`: (() -> Element.Member)?
         if let defaultValue = self.defaultValue, let originalDefaultValue = defaultValue().optionalInstance {
             `default` = {
