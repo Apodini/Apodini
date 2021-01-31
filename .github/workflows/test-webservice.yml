@@ -19,6 +19,7 @@ jobs:
     name: macOS ${{ matrix.configuration }} test TestWebService
     runs-on: macos-latest
     strategy:
+      fail-fast: false
       matrix:
         configuration: [debug, release]
     steps:
@@ -29,7 +30,7 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: .build
-        key: ${{ runner.os }}-spm-cachev2-${{ hashFiles('Package.resolved') }}
+        key: ${{ runner.os }}-spm-cache-${{ hashFiles('/Package.resolved') }}
     - name: Check Xcode version
       run: xcodebuild -version
     - name: Check Swift version
@@ -42,6 +43,7 @@ jobs:
       image: swift:${{ matrix.linux }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         linux: [bionic, xenial, focal, amazonlinux2, centos8]
         configuration: [debug, release]
@@ -56,7 +58,7 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: .build
-        key: ${{ runner.os }}-${{matrix.linux}}-spm-cachev2-${{ hashFiles('Package.resolved') }}
+        key: ${{ runner.os }}-${{matrix.linux}}-spm-cache-${{ hashFiles('/Package.resolved') }}
     - name: Check Swift version
       run: swift --version
     - name: Build & Test
