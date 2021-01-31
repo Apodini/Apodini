@@ -9,7 +9,7 @@ extension Array where Element == PathComponent {
         var builder = PathModelBuilder()
 
         for component in self {
-            let component = toInternalPathComponent(component)
+            let component = component.toInternal()
             builder.append(component)
         }
 
@@ -38,7 +38,7 @@ struct PathModelBuilder: PathComponentParser {
     mutating func append(_ pathComponent: PathComponent) {
         currentContext = currentContext.newContextNode()
 
-        let pathComponent = toInternalPathComponent(pathComponent)
+        let pathComponent = pathComponent.toInternal()
         pathComponent.accept(&self)
 
         // we don't have multiple context nodes on the same level, but just to behave correctly

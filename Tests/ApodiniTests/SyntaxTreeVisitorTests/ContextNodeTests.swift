@@ -166,7 +166,7 @@ final class ContextNodeTests: ApodiniTests {
             }
         }
 
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
+        let visitor = SyntaxTreeVisitor(modelBuilder: TestSemanticModelBuilder(app))
         groupWithSingleComponent.accept(visitor)
         visitor.finishParsing()
     }
@@ -218,7 +218,7 @@ final class ContextNodeTests: ApodiniTests {
             }
         }
 
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
+        let visitor = SyntaxTreeVisitor(modelBuilder: TestSemanticModelBuilder(app))
         groupWithComponentAndGroup.accept(visitor)
         visitor.finishParsing()
     }
@@ -257,7 +257,7 @@ final class ContextNodeTests: ApodiniTests {
             }
         }
 
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
+        let visitor = SyntaxTreeVisitor(modelBuilder: TestSemanticModelBuilder(app))
         groupWithGroupAndComponent.accept(visitor)
         visitor.finishParsing()
     }
@@ -311,7 +311,7 @@ final class ContextNodeTests: ApodiniTests {
             }
         }
 
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
+        let visitor = SyntaxTreeVisitor(modelBuilder: TestSemanticModelBuilder(app))
         groupWithOptionalModifier.accept(visitor)
         visitor.finishParsing()
     }
@@ -351,13 +351,13 @@ final class ContextNodeTests: ApodiniTests {
             }
         }
 
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [TestSemanticModelBuilder(app)])
+        let visitor = SyntaxTreeVisitor(modelBuilder: TestSemanticModelBuilder(app))
         groupWithIntAddition.accept(visitor)
         visitor.finishParsing()
     }
 
     func testAddingIllegalContextKey() {
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [])
+        let visitor = SyntaxTreeVisitor()
         XCTAssertRuntimeFailure(visitor.addContext(IllegalOptionalContextKey.self, value: nil, scope: .current))
         XCTAssertRuntimeFailure(visitor.addContext(IllegalOptionalContextKey.self, value: "test", scope: .current))
     }

@@ -143,18 +143,14 @@ class RESTInterfaceExporter: InterfaceExporter {
             guard let stringParameter = request.parameters.get(parameter.pathId) else {
                 return nil // the path parameter didn't exist on that request
             }
-            guard let losslessStringParameter = parameter as? LosslessStringConvertibleEndpointParameter else {
-                #warning("Must be replaced with a proper error to encode a response to the user")
-                fatalError("Encountered .path Parameter which isn't type of LosslessStringConvertible!")
+
+            guard let value = parameter.initLosslessStringConvertibleParameterValue(from: stringParameter) else {
+                throw ApodiniError(type: .badInput, reason: """
+                                                            Encountered illegal input for path parameter \(parameter.name).
+                                                            \(Type.self) can't be initialized from \(stringParameter).
+                                                            """)
             }
 
-            guard let value = losslessStringParameter.initFromDescription(description: stringParameter, type: Type.self) else {
-                #warning("Must be replaced with a proper error to encode a response to the user")
-                fatalError("""
-                           Parsed a .path Parameter, but encountered invalid format when initializing LosslessStringConvertible!
-                           Could not init \(Type.self) for string value '\(stringParameter)'
-                           """)
-            }
             return value
         case .content:
             guard request.body.data != nil else {
