@@ -56,7 +56,7 @@ extension Node {
 
         return Node<U>(value: value, children: children)
     }
-    
+
     /// Returns a node containing the non-nil results of calling the given transformation with each
     /// value of this node.
     ///
@@ -93,7 +93,7 @@ extension Node {
 
         return Node(value: value, children: children)
     }
-    
+
     /// Returns a Boolean value indicating whether the node contains a value that satisfies the
     /// given predicate.
     /// - Parameter predicate: A closure that takes a value of the node as its argument and returns
@@ -123,7 +123,7 @@ extension Node {
 
         return try nextPartialResult(partialResults, value)
     }
-    
+
     /// Calls the given closure on each value in the node.
     /// - Parameter body: A closure that takes a value of the node as a parameter.
     func forEach(_ body: (T) throws -> Void) rethrows {
@@ -166,7 +166,7 @@ extension Node {
 
         return Node<U>(value: value, children: children)
     }
-    
+
     /// Collect every value in the node.
     /// - Returns: A set of all values in the node.
     func collectValues() -> Set<T> where T: Hashable {
@@ -178,7 +178,7 @@ extension Node {
             return set
         }
     }
-    
+
     /// Collect every element of an array that is a value in the node.
     /// - Returns: A set of all elements in the node that contains an array.
     func collectValues<U>() -> Set<U> where T == [U], U: Hashable {
