@@ -62,18 +62,16 @@ class RHIInterfaceExporter: InterfaceExporter {
     
     
     private struct CollectedEndpointInfo {
-        let handlerTypeIdentifier: String
         let endpoint: AnyEndpoint
+        let deploymentOptions: HandlerDeploymentOptions
     }
     
     internal private(set) static var shared: RHIInterfaceExporter?
     
     let app: Apodini.Application
-    //private var endpointsById: [AnyHandlerIdentifier: AnyEndpoint] = [:]
     private var collectedEndpoints: [CollectedEndpointInfo] = []
     var deployedSystemStructure: DeployedSystemConfiguration?
     var deploymentProviderRuntime: DeploymentProviderRuntimeSupport?
-    private(set) var handlerTypeDeploymentOptions: HandlerTypeDeploymentOptions = [:]
     
     
     required init(_ app: Apodini.Application) {
@@ -85,9 +83,13 @@ class RHIInterfaceExporter: InterfaceExporter {
     
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        collectedEndpoints.append(.init(handlerTypeIdentifier: "\(H.self)", endpoint: endpoint))
-        // This will overwrite existing values, but since the key (and therefore the handler type) are the same, it won't matter
-        handlerTypeDeploymentOptions["\(H.self)"] = H.deploymentOptions
+        collectedEndpoints.append(CollectedEndpointInfo(
+            endpoint: endpoint,
+            deploymentOptions: H.deploymentOptions
+                .merging(with: endpoint.handler.deploymentOptions, newOptionsPrecedence: .higher)
+                .merging(with: endpoint.context.get(valueFor: HandlerDeploymentOptionsSyntaxNodeContextKey.self), newOptionsPrecedence: .higher)
+        ))
+        
         
         app.vapor.app.add(Vapor.Route(
             method: .POST,
@@ -162,12 +164,11 @@ extension RHIInterfaceExporter {
         }
         let openApiDefinitionData = try JSONEncoder().encode(openApiDocument)
         let webServiceStructure = WebServiceStructure(
-            handlerTypeDeploymentOptions: handlerTypeDeploymentOptions,
             endpoints: collectedEndpoints.map { endpointInfo -> ExportedEndpoint in
                 let endpoint = endpointInfo.endpoint
                 return ExportedEndpoint(
-                    handlerTypeIdentifier: endpointInfo.handlerTypeIdentifier,
                     handlerIdRawValue: endpoint.identifier.rawValue,
+                    deploymentOptions: endpointInfo.deploymentOptions,
                     httpMethod: endpoint.operation.httpMethod.string, // TODO remove this and load it from the OpenAPI def instead?. same for the path...
                     absolutePath: endpoint.absolutePath.asPathString(parameterEncoding: .id),
                     userInfo: [:]

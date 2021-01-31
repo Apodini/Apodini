@@ -16,7 +16,11 @@ public protocol Handler: Component {
     /// A function that is called when a request reaches the `Handler`
     func handle() throws -> Response
     
+    /// Type-level deployment options (ie options which apply to all instances of this type)
     static var deploymentOptions: HandlerDeploymentOptions { get }
+    
+    /// Instance-level deployment options (ie options which apply to just one instance of this type)
+    var deploymentOptions: HandlerDeploymentOptions { get }
 }
 
 
@@ -26,8 +30,45 @@ extension Handler {
         EmptyComponent()
     }
     
-    /// By default, `Handler`s dont't specify any deployment options
+    /// By default, `Handler`s dont't specify any type-level deployment options
     public static var deploymentOptions: HandlerDeploymentOptions {
         HandlerDeploymentOptions()
+    }
+    
+    /// By default, `Handler`s dont't specify any instance-level deployment options
+    public var deploymentOptions: HandlerDeploymentOptions {
+        HandlerDeploymentOptions()
+    }
+}
+
+
+struct HandlerDeploymentOptionsSyntaxNodeContextKey: ContextKey {
+    typealias Value = HandlerDeploymentOptions
+    
+    static let defaultValue = HandlerDeploymentOptions()
+    
+    static func reduce(value: inout HandlerDeploymentOptions, nextValue: () -> HandlerDeploymentOptions) {
+        // Latter-defined options take precedence over previously defined options.
+        // Note that this is different from simply appending and then reversing the array when reading options,
+        // since this preserves the order within each set of options
+        value = value.merging(with: nextValue(), newOptionsPrecedence: .higher)
+    }
+}
+
+
+public struct HandlerDeploymentOptionsModifier<H: Handler>: HandlerModifier, SyntaxTreeVisitable {
+    public let component: H
+    public let deploymentOptions: HandlerDeploymentOptions
+    
+    func accept(_ visitor: SyntaxTreeVisitor) {
+        visitor.addContext(HandlerDeploymentOptionsSyntaxNodeContextKey.self, value: deploymentOptions, scope: .environment)
+        component.accept(visitor)
+    }
+}
+
+
+extension Handler {
+    public func deploymentOptions(_ collectedOptions: CollectedHandlerConfigOption...) -> HandlerDeploymentOptionsModifier<Self> {
+        HandlerDeploymentOptionsModifier(component: self, deploymentOptions: HandlerDeploymentOptions(collectedOptions))
     }
 }

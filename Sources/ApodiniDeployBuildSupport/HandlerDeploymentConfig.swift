@@ -8,18 +8,23 @@
 import Foundation
 
 
-/// key: handler type name identifier
-/// value: list of deployment options collected for this handler type
-public typealias HandlerTypeDeploymentOptions = [String: HandlerDeploymentOptions]
 
-
+/// A collection of handler deployment options.
+/// The same option may defined multiple times, in which case latter-defined options take precedence.
 public struct HandlerDeploymentOptions: Codable {
     public let collectedOptions: [CollectedHandlerConfigOption]
+    
+    public init() {
+        self.collectedOptions = []
+    }
+    
+    public init(_ collectedOptions: [CollectedHandlerConfigOption]) {
+        self.collectedOptions = collectedOptions
+    }
     
     public init(_ collectedOptions: CollectedHandlerConfigOption...) {
         self.collectedOptions = collectedOptions
     }
-    
     
     public func containsEntry<Value>(for optionKey: DeploymentOptionKey<Value>) -> Bool {
         return collectedOptions.contains { $0.key == optionKey.key }
@@ -28,10 +33,28 @@ public struct HandlerDeploymentOptions: Codable {
     /// - returns: the value specified for this option key, if a matching entry exists. if no matching entry exists, the default value specified in the option key is returned.
     /// - throws: if an entry does exist but there was an erorr reading (ie decoding) it/
     public func getValue<Value>(forOptionKey optionKey: DeploymentOptionKey<Value>) throws -> Value {
-        guard let collectedOption = collectedOptions.first(where: { $0.key == optionKey.key }) else {
+        guard let collectedOption = collectedOptions.last(where: { $0.key == optionKey.key }) else {
             return optionKey.defaultValue
         }
         return try collectedOption.readValue(as: Value.self)
+    }
+    
+    
+    public enum OptionsMergingPrecedence {
+        case lower, higher
+    }
+    
+    /// Returns a new options object containing both the current object's options and the other object's options.
+    /// - parameter newOptionsPrecedence: the precedence of the new options, relative to the current options
+    public func merging(with otherOptions: HandlerDeploymentOptions, newOptionsPrecedence: OptionsMergingPrecedence) -> HandlerDeploymentOptions {
+        switch newOptionsPrecedence {
+        case .lower:
+            return HandlerDeploymentOptions(otherOptions.collectedOptions + self.collectedOptions)
+            //return HandlerDeploymentOptions(self.collectedOptions + otherOptions.collectedOptions)
+        case .higher:
+            return HandlerDeploymentOptions(self.collectedOptions + otherOptions.collectedOptions)
+            //return HandlerDeploymentOptions(otherOptions.collectedOptions + self.collectedOptions)
+        }
     }
 }
 

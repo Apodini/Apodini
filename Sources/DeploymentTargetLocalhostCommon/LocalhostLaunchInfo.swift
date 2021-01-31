@@ -18,3 +18,13 @@ public struct LocalhostLaunchInfo: Codable {
         self.port = port
     }
 }
+
+
+
+
+public final class LocalhostDeploymentOptionKey<Value: Codable>: DeploymentOptionKey<Value> {}
+
+
+public enum LocalhostDeploymentOption {
+    public static let processName = LocalhostDeploymentOptionKey<String>.init(defaultValue: "defaultName", key: "process-name")
+}

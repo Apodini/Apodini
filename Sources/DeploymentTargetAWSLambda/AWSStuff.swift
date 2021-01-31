@@ -24,6 +24,7 @@ import DeploymentTargetAWSLambdaCommon
 class AWSDeploymentStuff { // needs a better name
     private static let lambdaFunctionNamePrefix = "apodini-lambda"
     
+    
     private let tmpDirUrl: URL
     
     private let FM = FileManager.default
@@ -92,7 +93,6 @@ class AWSDeploymentStuff { // needs a better name
     /// - parameter s3ObjectFolderKey: key (ie path) of the folder into which the function should be uploaded
     func deployToLambda(
         deploymentStructure: DeployedSystemStructure,
-        handlerTypeDeploymentOptions: HandlerTypeDeploymentOptions,
         openApiDocument: OpenAPI.Document,
         lambdaExecutableUrl: URL,
         lambdaSharedObjectFilesUrl: URL,
@@ -212,8 +212,8 @@ class AWSDeploymentStuff { // needs a better name
             
             let functionConfig = try configureLambdaFunction(
                 forNode: node,
+                exportedEndpoint: exportedEndpoint,
                 allFunctions: allFunctions,
-                handlerDeploymentOptions: handlerTypeDeploymentOptions[exportedEndpoint.handlerTypeIdentifier] ?? .init(),
                 s3BucketName: s3BucketName,
                 s3ObjectKey: s3ObjectKey
             )
@@ -478,8 +478,8 @@ class AWSDeploymentStuff { // needs a better name
     /// - returns: the deployed-to function
     private func configureLambdaFunction(
         forNode node: DeployedSystemStructure.Node,
+        exportedEndpoint: ExportedEndpoint,
         allFunctions: [Lambda.FunctionConfiguration],
-        handlerDeploymentOptions: HandlerDeploymentOptions,
         s3BucketName: String,
         s3ObjectKey: String
     ) throws -> Lambda.FunctionConfiguration {
@@ -489,8 +489,11 @@ class AWSDeploymentStuff { // needs a better name
 //            options: []
 //        )
         let allowedCharacters = "abcdefghijklmnopqsrtuvwxyzABCDEFGHIJKLMNOPQSRTUVWXYZ0123456789-_"
-        let lambdaName = Self.lambdaFunctionNamePrefix + String(node.id)//.map { allowedCharacters.contains($0) ? $0 : "-" })
+        let lambdaName = "\(Self.lambdaFunctionNamePrefix)-\(String(node.id.map { allowedCharacters.contains($0) ? $0 : "-" }))"
         // TODO make sure we dont acidentally update the same function twice (eg once bc the unmodified name matches and once bc we replace something, which makes it match the other function's name)
+        
+        let memorySize: Int = try exportedEndpoint.deploymentOptions.getValue(forOptionKey: LambdaHandlerOption.memorySize)
+        let timeout: Int = try exportedEndpoint.deploymentOptions.getValue(forOptionKey: LambdaHandlerOption.timeout)
         
         if let function = allFunctions.first(where: { $0.functionName == lambdaName }) {
             logger.notice("Found existing lambda function w/ matching name. Updating code")
@@ -499,9 +502,9 @@ class AWSDeploymentStuff { // needs a better name
                 //environment: <#T##Lambda.Environment?#>,
                 functionName: function.functionArn!,
                 //handler: <#T##String?#>,
-                memorySize: try handlerDeploymentOptions.getValue(forOptionKey: LambdaHandlerOption.memorySize),
+                memorySize: memorySize,
                 //role: <#T##String?#>,
-                timeout: try handlerDeploymentOptions.getValue(forOptionKey: LambdaHandlerOption.timeout)
+                timeout: timeout
             )).wait()
             return try lambda.updateFunctionCode(Lambda.UpdateFunctionCodeRequest(
                 functionName: function.functionName!,
@@ -517,15 +520,14 @@ class AWSDeploymentStuff { // needs a better name
                 environment: nil, //.init(variables: [String : String]?.none), // TODO?
                 functionName: lambdaName,
                 handler: "apodini.main", // doesn;t actually matter
-                memorySize: try handlerDeploymentOptions.getValue(forOptionKey: LambdaHandlerOption.memorySize),
+                memorySize: memorySize,
                 packageType: .zip,
                 publish: true,
                 role: executionRoleArn,
                 runtime: .providedAl2,
                 tags: nil, // [String : String]?.none,
-                timeout: try handlerDeploymentOptions.getValue(forOptionKey: LambdaHandlerOption.timeout)
+                timeout: timeout
             )
-            print("createReq: \(createFunctionRequest)")
             
             // The issue here is that, if the IAM role assigned to the new lambda is a newly created role,
             // AWS doesn't always let us reference the role, and fails with a "The role defined for the function cannot be assumed by Lambda"

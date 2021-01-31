@@ -8,6 +8,7 @@
 import Foundation
 
 
+
 public enum WellKnownCLIArguments {
     /// The CLI argument used to tell Apodini to write the web service's structure to disk.
     /// In the support framework so that we can share this constant between Apodini (which needs to check for it)
@@ -35,18 +36,15 @@ public struct ExporterIdentifier: RawRepresentable, Codable, Hashable, Equatable
 
 
 public struct WebServiceStructure: Codable { // TODO this needs a better name. maybe Context or Summary?
-    public let handlerTypeDeploymentOptions: HandlerTypeDeploymentOptions
     public let endpoints: [ExportedEndpoint]
     public let deploymentConfig: DeploymentConfig
     public let openApiDefinition: Data
     
     public init(
-        handlerTypeDeploymentOptions: HandlerTypeDeploymentOptions,
         endpoints: [ExportedEndpoint],
         deploymentConfig: DeploymentConfig,
         openApiDefinition: Data
     ) {
-        self.handlerTypeDeploymentOptions = handlerTypeDeploymentOptions
         self.endpoints = endpoints
         self.deploymentConfig = deploymentConfig
         self.openApiDefinition = openApiDefinition
@@ -58,12 +56,10 @@ public struct WebServiceStructure: Codable { // TODO this needs a better name. m
 
 
 public struct ExportedEndpoint: Codable, Equatable {
-    /// _Some_ string value which identifies the type of this handler.
-    /// Does not have to contain, or even be related to, the actual type name of the handler.
-    /// This value is used to match an endpoint to any additional data specified at a handler-type-level (eg deployment options)
-    public let handlerTypeIdentifier: String
     /// The `rawValue` of the identifier of the  handler this endpoint was generated for
     public let handlerIdRawValue: String
+    /// The endpoint's handler's deployment options
+    public let deploymentOptions: HandlerDeploymentOptions
     
     public let httpMethod: String
     public let absolutePath: String
@@ -73,14 +69,14 @@ public struct ExportedEndpoint: Codable, Equatable {
     
     
     public init(
-        handlerTypeIdentifier: String,
         handlerIdRawValue: String,
+        deploymentOptions: HandlerDeploymentOptions,
         httpMethod: String,
         absolutePath: String,
         userInfo: [String: Data]
     ) {
-        self.handlerTypeIdentifier = handlerTypeIdentifier
         self.handlerIdRawValue = handlerIdRawValue
+        self.deploymentOptions = deploymentOptions
         self.httpMethod = httpMethod
         self.absolutePath = absolutePath
         self.userInfo = userInfo

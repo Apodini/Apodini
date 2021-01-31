@@ -8,6 +8,7 @@
 import Apodini
 import NIO
 import ApodiniDeployBuildSupport
+import DeploymentTargetLocalhostCommon
 import DeploymentTargetLocalhostRuntimeSupport
 import DeploymentTargetAWSLambdaCommon
 import DeploymentTargetAWSLambdaRuntime
@@ -42,6 +43,18 @@ struct RandomNumberGenerator: InvocableHandler {
             return 0
         }
         return Int.random(in: lowerBound...upperBound)
+    }
+    
+    static var deploymentOptions: HandlerDeploymentOptions {
+        HandlerDeploymentOptions(
+            .init(key: LocalhostDeploymentOption.processName, value: "typeLevelName")
+        )
+    }
+    
+    var deploymentOptions: HandlerDeploymentOptions {
+        HandlerDeploymentOptions(
+            .init(key: LocalhostDeploymentOption.processName, value: "instanceLevelName")
+        )
     }
 }
 
@@ -87,7 +100,15 @@ struct TestWebService: Apodini.WebService {
         //UserComponent(userId: _userId)
         
         Group("greet") { NewGreeter() }
-        Group("rand") { RandomNumberGenerator() }
+        Group("rand") {
+            RandomNumberGenerator()
+                .deploymentOptions(
+                    .init(key: LocalhostDeploymentOption.processName, value: "dslLevelName1")
+                )
+                .deploymentOptions(
+                    .init(key: LocalhostDeploymentOption.processName, value: "dslLevelName2")
+                )
+        }
         
         Group("xxx") {
             TestHandler()

@@ -160,7 +160,6 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
         logger.notice("Starting the AWS stuff")
         try awsIntegration.deployToLambda(
             deploymentStructure: deploymentStructure,
-            handlerTypeDeploymentOptions: webServiceStructure.handlerTypeDeploymentOptions,
             openApiDocument: try JSONDecoder().decode(OpenAPI.Document.self, from: webServiceStructure.openApiDefinition),
             lambdaExecutableUrl: lambdaExecutableUrl,
             lambdaSharedObjectFilesUrl: lambdaOutputDir,

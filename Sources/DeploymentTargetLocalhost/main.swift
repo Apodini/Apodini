@@ -17,6 +17,9 @@ import Darwin
 #endif
 
 
+// TODO rename ExportedEndpoint to ExportedEndpointInfo or smth like that!
+
+// TODO if we add a C target, which the target containing tge Task implementation links against (or even add a C file to the target itself), and that target contains a static ctor, we can remove these calls!
 try Task.handleChildProcessInvocationIfNecessary()
 
 
@@ -89,13 +92,12 @@ private struct LocalhostDeploymentProvider: ParsableCommand, DeploymentProvider 
             try node.withUserInfo(LocalhostLaunchInfo(port: self.endpointProcessesBasePort + idx))
         }
         
-        
         let systemConfigs: [DeployedSystemConfiguration] = try nodes.map { node in
             return try DeployedSystemConfiguration(
                 deploymentProviderId: self.identifier,
                 currentInstanceNodeId: node.id,
                 nodes: nodes,
-                userInfo: Null()
+                userInfo: Null() // TODO we have a new thing here?
             )
         }
         
@@ -115,14 +117,6 @@ private struct LocalhostDeploymentProvider: ParsableCommand, DeploymentProvider 
                 launchInCurrentProcessGroup: true
             )
             try task.launchAsync()
-//            { terminationInfo in
-//                print(terminationInfo)
-//                if terminationInfo.exitCode != EXIT_SUCCESS {
-//                    // If one of the processes terminated w/ a non-zero exit code we kill them all
-//                    //Darwin.exit(EXIT_FAILURE)
-//                    print("would exit")
-//                }
-//            }
             let LLI = systemConfig.currentInstanceNode.readUserInfo(as: LocalhostLaunchInfo.self)!
             //logger.notice("endpoint '\(systemConfig.currentInstanceNode.exportedEndpoints[0])' -> :\(LLI.port) @ \(task.pid)")
             logger.notice("instance w pid \(task.pid) listening at :\(LLI.port). exported endpoints: \(systemConfig.currentInstanceNode.exportedEndpoints.map(\.handlerIdRawValue))")
