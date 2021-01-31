@@ -129,7 +129,7 @@ extension OpenAPIComponentsObjectBuilder {
             schemaName = node.value.typeInfo.mangledName
         }
 
-        // in case there is a cardinality != exactlyOne, the schemaName is prefixed
+        // The schemaName is prefixed the root type cardinality != exactlyOne.
         if root {
             switch node.value.cardinality {
             case .zeroToOne:
