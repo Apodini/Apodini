@@ -25,17 +25,21 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
         let webService = WebServiceModel()
         webService.addEndpoint(&endpoint, at: ["test"])
 
-        var configuration = OpenAPIConfiguration()
+        let configuration = OpenAPIConfiguration()
 
         var documentBuilder = OpenAPIDocumentBuilder(configuration: configuration)
         documentBuilder.addEndpoint(endpoint)
         let document = OpenAPI.Document(
             info: OpenAPI.Document.Info(title: configuration.title ?? "", version: configuration.version ?? ""),
-            servers: configuration.serverUrls.map { .init(url: $0) },
+            servers: configuration.serverUrls.map {
+                .init(url: $0)
+            },
             paths: [
                 "test": .init(
                     get: .init(
+                        // as there is no custom description in this case, `description` and `operationId` are the same.
                         description: endpoint.description,
+                        operationId: endpoint.description,
                         parameters: [
                             Either.parameter(name: "name", context: .query, schema: .string, description: "@Parameter var name: String")
                         ],
@@ -44,10 +48,8 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                                 OpenAPI.Response(
                                     description: "OK",
                                     content: [
-                                        .json: .init(schema: .object(properties: [
-                                            ResponseContainer.CodingKeys.data.rawValue: .reference(.component(named: "SomeStruct")),
-                                            ResponseContainer.CodingKeys.links.rawValue: .object(additionalProperties: .init(.string))
-                                        ]))
+                                        .json: .init(schema: .reference(
+                                            .component(named: "\(SomeStruct.self)Response")))
                                     ]
                                 )
                             ),
@@ -69,12 +71,19 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                 )
             ],
             components: .init(
-                schemas: ["SomeStruct": .object(properties: ["someProp": .integer])]
+                schemas: [
+                    "SomeStruct": .object(properties: ["someProp": .integer]),
+                    "SomeStructResponse": .object(
+                        title: "\(SomeStruct.self)Response", properties: [
+                        ResponseContainer.CodingKeys.data.rawValue: .reference(.component(named: "\(SomeStruct.self)")),
+                        ResponseContainer.CodingKeys.links.rawValue: .object(additionalProperties: .init(.string))
+                        ])
+                ]
             )
         )
 
         let builtDocument = documentBuilder.build()
-        
+
         XCTAssertNoThrow(try builtDocument.output(.json))
         XCTAssertEqual(builtDocument, document)
     }
