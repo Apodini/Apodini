@@ -19,6 +19,7 @@ jobs:
     name: macOS ${{ matrix.configuration }} test TestWebService
     runs-on: macos-latest
     strategy:
+      fail-fast: false
       matrix:
         configuration: [debug, release]
     steps:
@@ -28,8 +29,8 @@ jobs:
         xcode-version: latest
     - uses: actions/cache@v2
       with:
-        path: .build
-        key: ${{ runner.os }}-spm-cachev2-${{ hashFiles('Package.resolved') }}
+        path: TestWebService/.build
+        key: ${{ runner.os }}-spm-cache-${{ hashFiles('TestWebService/Package.resolved') }}
     - name: Check Xcode version
       run: xcodebuild -version
     - name: Check Swift version
@@ -42,6 +43,7 @@ jobs:
       image: swift:${{ matrix.linux }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         linux: [bionic, xenial, focal, amazonlinux2, centos8]
         configuration: [debug, release]
@@ -55,8 +57,8 @@ jobs:
       run: yum update -y && yum install -y sqlite-devel
     - uses: actions/cache@v2
       with:
-        path: .build
-        key: ${{ runner.os }}-${{matrix.linux}}-spm-cachev2-${{ hashFiles('Package.resolved') }}
+        path: TestWebService/.build
+        key: ${{ runner.os }}-${{matrix.linux}}-spm-cache-${{ hashFiles('TestWebService/Package.resolved') }}
     - name: Check Swift version
       run: swift --version
     - name: Build & Test
