@@ -139,6 +139,18 @@ private protocol IdentifiableHandlerATRVisitorHelper: AssociatedTypeRequirements
     func callAsFunction<T: IdentifiableHandler>(_ value: T) -> Output
 }
 
+private struct TestHandlerType: IdentifiableHandler {
+    typealias Response = Never
+    let handlerId = ScopedHandlerIdentifier<Self>("main")
+}
+
+extension IdentifiableHandlerATRVisitorHelper {
+    @inline(never)
+    @_optimize(none)
+    fileprivate func _test() {
+        _ = self(TestHandlerType())
+    }
+}
 
 private struct IdentifiableHandlerATRVisitor: IdentifiableHandlerATRVisitorHelper {
     func callAsFunction<T: IdentifiableHandler>(_ value: T) -> AnyHandlerIdentifier {

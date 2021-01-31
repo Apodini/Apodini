@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-@_implementationOnly import AssociatedTypeRequirementsVisitor
+import Foundation
 
 class ContextNode {
     private var nodeOnlyContext: [ObjectIdentifier: Any] = [:]
@@ -88,13 +88,12 @@ class ContextNode {
             // we need to check if `OptionalContextKey` is type of `ContextKey`
             // aka if the `ContextKey provides a default value. Because if it provides a defaultValue
             // we need to call `reduce(...)` with it before inserting.
-            let visitor = StandardContextKeyTypeVisitor()
-            let defaultValue = visitor(contextKey)
 
             // if defaultValue is nil the contextKey didn't conform to `ContextKey` => doesn't have a default value
-            if let defaultValue = defaultValue {
+            if let contextKey = contextKey as? HasDefaultValue.Type {
                 // the visitor above returns Any, thus we need to properly cast. I can't think of a scenario
                 // where this can't go wrong, but that's what fatalErrors are for right?
+                let defaultValue = contextKey.defaultValue
                 if var defaultValue = defaultValue as? C.Value {
                     // If there is no value in the local ContextNode nor in the global context we use the default value
                     // as the old value and the new value as the newValue in the reduce function call.
@@ -129,23 +128,5 @@ class ContextNode {
     func resetContextNode() {
         nodeOnlyContext = [:]
         context = [:]
-    }
-}
-
-// MARK: Helpers to retrieve default value
-
-private protocol ContextKeyTypeVisitor: AssociatedTypeRequirementsTypeVisitor {
-    associatedtype Visitor = ContextKeyTypeVisitor
-    associatedtype Input = ContextKey
-    associatedtype Output
-
-    func callAsFunction<T: ContextKey>(_ type: T.Type) -> Output
-}
-
-private struct StandardContextKeyTypeVisitor: ContextKeyTypeVisitor {
-    func callAsFunction<T: ContextKey>(_ type: T.Type) -> Any {
-        // we can't directly cast here to the desired Type
-        // I tried using generics but that crashes the AssociatedTypesRequirementsKit
-        type.defaultValue
     }
 }

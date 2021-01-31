@@ -6,7 +6,7 @@
 //
 
 
-@_implementationOnly import AssociatedTypeRequirementsVisitor
+import Foundation
 
 
 /// An `AnyHandlerIdentifier` object identifies a `Handler` regardless of its concrete type.

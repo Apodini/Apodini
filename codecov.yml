@@ -1,6 +1,6 @@
 ignore:
 - "Tests"
-- "Sources/TestWebService"
+- "TestWebService"
 - "Sources/XCTApodini"
 - "Sources/Apodini/Components/ComponentBuilder.swift"
 - "Sources/Apodini/Components/Component/Component+Never.swift"
