@@ -45,7 +45,6 @@ let package = Package(
         .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", from: "0.1.0"),
         .package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime", .upToNextMajor(from: "0.4.0")),
         .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0"),
-        .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.4.0"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
         // Used to parse command line arguments
         .package(url: "https://github.com/vapor/console-kit.git", from: "4.2.4")
