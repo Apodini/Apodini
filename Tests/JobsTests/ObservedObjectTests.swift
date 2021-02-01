@@ -23,7 +23,7 @@ final class ObservedObjectTests: XCTApodiniTest {
         var text = "Hello"
     }
     
-    struct Keys: KeyChain {
+    struct Keys: EnvironmentAccessible {
         var job: TestJob
     }
     
@@ -48,7 +48,7 @@ final class ObservedObjectTests: XCTApodiniTest {
             }
         }
         
-        struct Keys2: KeyChain {
+        struct Keys2: EnvironmentAccessible {
             var job: AnotherJob
         }
         
@@ -92,7 +92,7 @@ final class ObservedObjectTests: XCTApodiniTest {
             }
         }
         
-        struct Keys2: KeyChain {
+        struct Keys2: EnvironmentAccessible {
             var emittingJob: EmittingJob
             var subscribingJob: SubscribingJob
         }

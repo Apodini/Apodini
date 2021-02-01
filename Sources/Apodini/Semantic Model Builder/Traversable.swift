@@ -83,7 +83,7 @@ extension Connection {
     }
     
     private func update<E>(_ element: inout E) {
-        apply({ (environment: inout Environment<EnvironmentValues, Connection>) in
+        apply({ (environment: inout Environment<Application, Connection>) in
             environment.setValue(self, for: \.connection)
         }, to: &element)
     }
@@ -91,15 +91,33 @@ extension Connection {
 
 // MARK: Dynamic Environment Value
 extension Handler {
-    func environment<K: KeyChain, Value>(_ value: Value, for keyPath: WritableKeyPath<K, Value>) -> Self {
+    func environment<K: EnvironmentAccessible, Value>(_ value: Value, for keyPath: WritableKeyPath<K, Value>) -> Self {
         var selfCopy = self
-        
+
         apply({ (environment: inout Environment<K, Value>) in
             environment.setValue(value, for: keyPath)
         }, to: &selfCopy)
         
         return selfCopy
     }
+}
+
+// MARK: Application Injectable
+extension Handler {
+    func inject(app: Application) -> Self {
+        var selfCopy = self
+        
+        Apodini.inject(app: app, to: &selfCopy)
+    
+        return selfCopy
+    }
+}
+
+/// Injects an `Application` instance to a target.
+public func inject<Element>(app: Application, to subject: inout Element) {
+    apply({ (applicationInjectible: inout ApplicationInjectable) in
+        applicationInjectible.inject(app: app)
+    }, to: &subject)
 }
 
 // MARK: Property Check
