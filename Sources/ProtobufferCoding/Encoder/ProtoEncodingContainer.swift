@@ -108,6 +108,16 @@ internal class InternalProtoEncodingContainer {
     }
 
     internal func encodeInt(_ value: Int, tag: Int) throws {
+        if let strategy = encoder.variableWidthIntegerStrategy {
+            switch strategy {
+            case .thirtyTwo:
+                try encodeInt32(Int32(value), tag: tag)
+            case .sixtyFour:
+                try encodeInt64(Int64(value), tag: tag)
+            }
+            return
+        }
+        
         if MemoryLayout<Int>.size == 4 {
             try encodeInt32(Int32(value), tag: tag)
         } else if MemoryLayout<Int>.size == 8 {
@@ -128,6 +138,16 @@ internal class InternalProtoEncodingContainer {
     }
 
     internal func encodeUInt(_ value: UInt, tag: Int) throws {
+        if let strategy = encoder.variableWidthIntegerStrategy {
+            switch strategy {
+            case .thirtyTwo:
+                try encodeUInt32(UInt32(value), tag: tag)
+            case .sixtyFour:
+                try encodeUInt64(UInt64(value), tag: tag)
+            }
+            return
+        }
+        
         if MemoryLayout<UInt>.size == 4 {
             try encodeUInt32(UInt32(value), tag: tag)
         } else if MemoryLayout<UInt>.size == 8 {
