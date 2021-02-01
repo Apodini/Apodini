@@ -155,18 +155,18 @@ extension NotificationCenter {
     
     @discardableResult
     private func sendAPNS(_ notification: AcmeNotification, to deviceToken: String) -> EventLoopFuture<Void> {
-        apns.send(notification, to: deviceToken)
+        app.apns.send(notification, to: deviceToken)
     }
     
     @discardableResult
     private func sendFCM(_ message: FCMMessageDefault, to deviceToken: String) -> EventLoopFuture<Void> {
         message.token = deviceToken
-        return fcm.send(message).transform(to: ())
+        return app.fcm.send(message).transform(to: ())
     }
     
     @discardableResult
     private func sendFCM(_ message: FCMMessageDefault, topic: String) -> EventLoopFuture<Void> {
         message.topic = topic
-        return fcm.send(message).transform(to: ())
+        return app.fcm.send(message).transform(to: ())
     }
 }

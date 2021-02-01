@@ -44,14 +44,13 @@ extension Application {
         }
     }
 
-    // swiftlint:disable identifier_name
     /// default database
-    public var db: Database {
-        self.db(nil)
+    public var database: Database {
+        self.database(nil)
     }
 
     /// Get database with id
-    public func db(_ id: DatabaseID?) -> Database {
+    public func database(_ id: DatabaseID?) -> Database {
         // swiftlint:disable force_unwrapping
         self.databases
             .database(

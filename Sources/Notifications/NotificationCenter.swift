@@ -1,11 +1,4 @@
 // swiftlint:disable first_where
-//
-//  NotificationCenter.swift
-//  
-//
-//  Created by Alexander Collins on 12.11.20.
-//
-
 import Fluent
 import APNS
 import FCM
@@ -25,43 +18,18 @@ import Apodini
 /// ```
 ///
 /// - Remark: The `NotificationCenter` is an abstraction of [APNS](https://github.com/vapor/apns) and [FCM](https://github.com/MihaelIsaev/FCM).
-public class NotificationCenter {
-    /// NotificationCenter
-    internal static var shared = NotificationCenter()
-    internal var application: Application?
-    private var app: Application {
-        guard let app = application else {
-            fatalError("The `NotificationCenter` is not configured. Please add the missing configuration to the web service.")
-        }
-        return app
-    }
-    
+public struct NotificationCenter {
     @Throws(.notFound, reason: "Could not find device in database.")
     private var notFoundDevice: ApodiniError
     
     @Throws(.notFound, reason: "Could not find topic in database.")
     private var notFoundTopic: ApodiniError
 
-
-    /// Property to directly use the [APNS](https://github.com/vapor/apns) library.
-    internal var apns: APNSwiftClient {
-        app.apns
-    }
+    internal var app: Application
     
-    /// Property to directly use the [FCM](https://github.com/MihaelIsaev/FCM) library.
-    internal var fcm: FCM {
-        app.fcm
-    }
-    
-    private init() {
-        // Empty intializer to create a Singleton.
-    }
-    
-    /// Sets the `application` property if the `NotificationCenter` was correctly configured.
-    internal func setup(_ application: Application) {
-        if self.application == nil {
-            self.application = application
-        }
+    /// Initializes the `NotificationCenter` with an `Application` instance.
+    public init(app: Application) {
+        self.app = app
     }
     
     /// Saves a `Device` to a database.
@@ -73,7 +41,7 @@ public class NotificationCenter {
     public func register(device: Device) -> EventLoopFuture<Void> {
         let deviceDatabaseModel = device.transform()
         return deviceDatabaseModel
-            .save(on: app.db)
+            .save(on: app.database)
             .flatMap { _ -> EventLoopFuture<Void> in
                 if let topics = device.topics {
                     return self.attach(topics: topics, to: deviceDatabaseModel)
@@ -88,7 +56,7 @@ public class NotificationCenter {
     /// - Returns: An array of all stored `Device`s
     public func getAllDevices() -> EventLoopFuture<[Device]> {
         DeviceDatabaseModel
-            .query(on: app.db)
+            .query(on: app.database)
             .with(\.$topics)
             .all()
             .mapEach { $0.transform() }
@@ -101,7 +69,7 @@ public class NotificationCenter {
     /// - Returns: The `Device` with the corresponding id.
     public func getDevice(id: String) -> EventLoopFuture<Device> {
         DeviceDatabaseModel
-            .query(on: app.db)
+            .query(on: app.database)
             .filter(\.$id == id)
             .with(\.$topics)
             .first()
@@ -114,7 +82,7 @@ public class NotificationCenter {
     /// - Returns: An array of all stored `Device`s with type `apns`.
     public func getAPNSDevices() -> EventLoopFuture<[Device]> {
         DeviceDatabaseModel
-            .query(on: app.db)
+            .query(on: app.database)
             .filter(\.$type == .apns)
             .with(\.$topics)
             .all()
@@ -126,7 +94,7 @@ public class NotificationCenter {
     /// - Returns: An array of all stored `Device`s with type `fcm`.
     public func getFCMDevices() -> EventLoopFuture<[Device]> {
         DeviceDatabaseModel
-            .query(on: app.db)
+            .query(on: app.database)
             .filter(\.$type == .fcm)
             .with(\.$topics)
             .all()
@@ -140,7 +108,7 @@ public class NotificationCenter {
     /// - Returns: An array of all stored `Device`s
     public func getDevices(of topic: String) -> EventLoopFuture<[Device]> {
         Topic
-            .query(on: app.db)
+            .query(on: app.database)
             .filter(\.$name == topic)
             .with(\.$devices) { devices in
                 devices.with(\.$topics)
@@ -164,7 +132,7 @@ public class NotificationCenter {
     @discardableResult
     public func addTopics(_ topicStrings: String..., to device: Device) -> EventLoopFuture<Void> {
         DeviceDatabaseModel
-            .find(device.id, on: app.db)
+            .find(device.id, on: app.database)
             .unwrap(or: self.notFoundDevice)
             .flatMap { deviceDatabaseModel -> EventLoopFuture<Void> in
                 self.attach(topics: topicStrings, to: deviceDatabaseModel)
@@ -181,16 +149,16 @@ public class NotificationCenter {
     @discardableResult
     public func remove(topic: String, from device: Device) -> EventLoopFuture<Void> {
         Topic
-            .query(on: app.db)
+            .query(on: app.database)
             .filter(\.$name == topic)
             .first()
             .unwrap(or: self.notFoundTopic)
             .flatMap { topicModel in
                 DeviceDatabaseModel
-                    .find(device.id, on: self.app.db)
+                    .find(device.id, on: self.app.database)
                     .unwrap(or: self.notFoundDevice)
                     .flatMap { deviceDatabaseModel -> EventLoopFuture<Void> in
-                        deviceDatabaseModel.$topics.detach(topicModel, on: self.app.db)
+                        deviceDatabaseModel.$topics.detach(topicModel, on: self.app.database)
                     }
             }
     }
@@ -203,44 +171,33 @@ public class NotificationCenter {
     @discardableResult
     public func delete(device: Device) -> EventLoopFuture<Void> {
         DeviceDatabaseModel
-            .find(device.id, on: app.db)
+            .find(device.id, on: app.database)
             .unwrap(or: self.notFoundDevice)
-            .flatMap { $0.delete(on: self.app.db) }
+            .flatMap { $0.delete(on: self.app.database) }
     }
     
     private func attach(topics: [String], to device: DeviceDatabaseModel) -> EventLoopFuture<Void> {
         topics.map {
             attach(topic: $0, to: device)
         }
-        .flatten(on: app.db.eventLoop)
+        .flatten(on: app.database.eventLoop)
     }
     
     private func attach(topic topicString: String, to device: DeviceDatabaseModel) -> EventLoopFuture<Void> {
         let topic = Topic(name: topicString)
         return Topic
-                .query(on: self.app.db)
+                .query(on: self.app.database)
                 .filter(\.$name == topic.name)
                 .first()
                 .flatMap { result in
                     if let topic = result {
-                        return device.$topics.attach(topic, method: .ifNotExists, on: self.app.db)
+                        return device.$topics.attach(topic, method: .ifNotExists, on: self.app.database)
                     } else {
-                        return topic.save(on: self.app.db).flatMap {
-                            device.$topics.attach(topic, method: .ifNotExists, on: self.app.db)
+                        return topic.save(on: self.app.database).flatMap {
+                            device.$topics.attach(topic, method: .ifNotExists, on: self.app.database)
                         }
                     }
                 }
         }
-}
-
-enum NotificationCenterEnvironmentKey: EnvironmentKey {
-    static var defaultValue = NotificationCenter.shared
-}
-
-extension EnvironmentValues {
-    /// The environment value to use the `NotificationCenter` in a `Component`.
-    public var notificationCenter: NotificationCenter {
-        self[NotificationCenterEnvironmentKey.self]
-    }
 }
 // swiftlint:enable first_where
