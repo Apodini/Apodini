@@ -5,6 +5,8 @@
 import Foundation
 @_implementationOnly import OpenAPIKit
 
+/// Creates the OpenAPI specification document
+/// https://swagger.io/specification/#openapi-object
 struct OpenAPIDocumentBuilder {
     var document: OpenAPI.Document {
         self.build()
@@ -23,15 +25,15 @@ struct OpenAPIDocumentBuilder {
         pathsObjectBuilder.addPathItem(from: endpoint)
     }
 
-    /// Creates the OpenAPI specification document
-    /// https://swagger.io/specification/#openapi-object
     func build() -> OpenAPI.Document {
         OpenAPI.Document(
             info: OpenAPI.Document.Info(
                 title: configuration.title ?? "",
                 version: configuration.version ?? ""
             ),
-            servers: configuration.serverUrls.map { .init(url: $0) },
+            servers: configuration.serverUrls.map {
+                .init(url: $0)
+            },
             paths: pathsObjectBuilder.pathsObject,
             components: componentsObjectBuilder.componentsObject
         )

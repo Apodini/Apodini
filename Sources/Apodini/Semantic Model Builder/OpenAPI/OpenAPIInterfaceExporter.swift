@@ -4,7 +4,6 @@
 
 @_implementationOnly import OpenAPIKit
 @_implementationOnly import Vapor
-import Foundation
 
 class OpenAPIInterfaceExporter: StaticInterfaceExporter {
     static var parameterNamespace: [ParameterNamespace] = .individual

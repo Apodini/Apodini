@@ -26,7 +26,6 @@ struct ResponseContainer: Encodable, ResponseEncodable {
     func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         let jsonEncoder = JSONEncoder()
         jsonEncoder.outputFormatting = [.withoutEscapingSlashes, .prettyPrinted]
-        #warning("We may remove JSONEncoder .prettyPrinted in production or make it configurable in some way")
 
         let response = Vapor.Response()
         do {

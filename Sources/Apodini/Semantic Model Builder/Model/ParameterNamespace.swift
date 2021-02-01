@@ -4,12 +4,16 @@
 
 import Foundation
 
-struct ParameterNamespace: OptionSet {
-    let rawValue: UInt8
+public struct ParameterNamespace: OptionSet {
+    public let rawValue: UInt8
 
-    static let lightweight = ParameterNamespace(rawValue: 1 << 0)
-    static let content = ParameterNamespace(rawValue: 1 << 1)
-    static let path = ParameterNamespace(rawValue: 1 << 2)
+    public init(rawValue: UInt8) {
+        self.rawValue = rawValue
+    }
+
+    public static let lightweight = ParameterNamespace(rawValue: 1 << 0)
+    public static let content = ParameterNamespace(rawValue: 1 << 1)
+    public static let path = ParameterNamespace(rawValue: 1 << 2)
 
     fileprivate static let all: ParameterNamespace = [.lightweight, .content, .path]
 }
@@ -33,7 +37,7 @@ extension ParameterNamespace: CustomStringConvertible {
 }
 
 // MARK: Common ParameterNamespace Definitions
-extension Array where Element == ParameterNamespace {
+public extension Array where Element == ParameterNamespace {
     /// With the `.global` level, a parameter name must be
     /// unique across all `ParameterType`s on the given `Endpoint`.
     /// This is the default namespace when nothing is specified by the exporter.

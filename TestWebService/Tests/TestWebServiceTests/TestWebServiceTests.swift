@@ -25,13 +25,13 @@ final class DownloadsTests: XCTestCase {
         process.standardError = pipe
         
         var timeoutExpectation = XCTestExpectation(description: "Timeout Expectation")
-        DispatchQueue(label: "TestTimeOut").asyncAfter(deadline: .now() + 2.0) {
+        DispatchQueue(label: "TestTimeOut").asyncAfter(deadline: .now() + 4.0) {
             timeoutExpectation.fulfill()
         }
         
         try process.run()
         
-        wait(for: [timeoutExpectation], timeout: 2.5)
+        wait(for: [timeoutExpectation], timeout: 5.0)
         
         guard process.isRunning else {
             XCTFail("The server terminated during the setup: \(process.terminationStatus)")
@@ -39,13 +39,13 @@ final class DownloadsTests: XCTestCase {
         }
         
         timeoutExpectation = XCTestExpectation(description: "Timeout Expectation")
-        DispatchQueue(label: "TestTimeOut").asyncAfter(deadline: .now() + 0.5) {
+        DispatchQueue(label: "TestTimeOut").asyncAfter(deadline: .now() + 1.0) {
             timeoutExpectation.fulfill()
         }
         
         process.terminate()
         
-        wait(for: [timeoutExpectation], timeout: 1.0)
+        wait(for: [timeoutExpectation], timeout: 2.0)
         
         guard process.terminationStatus == 0 else {
             let data = pipe.fileHandleForReading.readDataToEndOfFile()
