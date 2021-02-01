@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/vapor/apns.git",
         "state": {
           "branch": null,
-          "revision": "a8bc863a718eb23e05b2ae3bfc7de66407b6b85d",
-          "version": "1.0.1"
+          "revision": "f4ed3f973daa78e4b8472c5348b7553117fa05e2",
+          "version": "1.1.0"
         }
       },
       {
@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
         "state": {
           "branch": null,
-          "revision": "ce8213a3e0ec0581c4c39a155e7778401ec5e24a",
-          "version": "2.2.0"
+          "revision": "03e83e2332d13a3c06d5cd70948166e5724c43c7",
+          "version": "2.3.0"
         }
       },
       {
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git",
         "state": {
           "branch": null,
-          "revision": "e71ec9822ce06b62011e36272e8014b828916d0b",
-          "version": "0.3.0"
+          "revision": "d861e6dd41ad0c1096a9a730611fa6a8cc307b0c",
+          "version": "0.3.1"
         }
       },
       {
