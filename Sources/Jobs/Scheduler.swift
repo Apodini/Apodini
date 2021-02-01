@@ -36,9 +36,9 @@ public class Scheduler {
     ///
     /// - Throws: If the `Job` uses request based property wrappers or the crontab cannot be parsed.
     public func enqueue<K: EnvironmentAccessible, T: Job>(_ job: T,
-                                             with cronTrigger: String,
-                                             runs: Int? = nil,
-                                             _ keyPath: KeyPath<K, T>) throws {
+                                                          with cronTrigger: String,
+                                                          runs: Int? = nil,
+                                                          _ keyPath: KeyPath<K, T>) throws {
         try enqueue(job, with: cronTrigger, runs: runs, keyPath, on: app.eventLoopGroup.next())
     }
     
@@ -57,10 +57,10 @@ public class Scheduler {
     ///
     /// - Throws: If the `Job` uses request based property wrappers or the crontab cannot be parsed.
     public func enqueue<K: EnvironmentAccessible, T: Job>(_ job: T,
-                                             with cronTrigger: String,
-                                             runs: Int? = nil,
-                                             _ keyPath: KeyPath<K, T>,
-                                             on eventLoop: EventLoop) throws {
+                                                          with cronTrigger: String,
+                                                          runs: Int? = nil,
+                                                          _ keyPath: KeyPath<K, T>,
+                                                          on eventLoop: EventLoop) throws {
         // Only valid property wrappers can be used with `Job`s.
         try check(on: job,
                   for: Environment<Application, Connection>.self,
@@ -150,8 +150,8 @@ private extension Scheduler {
     
     /// Generates the configuration of the `Job`.
     func generateConfiguration<K: EnvironmentAccessible, T: Job>(_ cronTrigger: String,
-                                                    _ keyPath: KeyPath<K, T>,
-                                                    _ eventLoop: EventLoop) throws -> JobConfiguration {
+                                                                 _ keyPath: KeyPath<K, T>,
+                                                                 _ eventLoop: EventLoop) throws -> JobConfiguration {
         let identifier = ObjectIdentifier(keyPath)
         let jobConfiguration = try JobConfiguration(SwifCron(cronTrigger), eventLoop)
         jobConfigurations[identifier] = jobConfiguration
