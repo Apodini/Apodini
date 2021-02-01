@@ -90,6 +90,7 @@ public class Task {
     }
     
     public var pid: Int32 { process.processIdentifier }
+    public var isRunning: Bool { process.isRunning }
     
     public init(
         executableUrl: URL,
@@ -119,13 +120,11 @@ public class Task {
         precondition(!didRun)
         print("-[\(Self.self) \(#function)] \(taskStringRepresentation)")
         if launchInCurrentProcessGroup {
-            //process.executableURL = LKGetCurrentExecutableUrl()
-            //process.arguments = [Self.processIsChildProcessInvocationWrapper, self.executableUrl.path] + self.arguments
-            process.executableURL = self.executableUrl
-            process.arguments = self.arguments
-            Self.taskPool.write { set in
-                set.insert(self)
-            }
+            process.executableURL = LKGetCurrentExecutableUrl()
+            process.arguments = [Self.processIsChildProcessInvocationWrapper, self.executableUrl.path] + self.arguments
+            //process.executableURL = self.executableUrl
+            //process.arguments = self.arguments
+            Self.taskPool.write { $0.insert(self) }
         } else {
             process.executableURL = self.executableUrl
             process.arguments = self.arguments
@@ -213,8 +212,8 @@ extension Task {
         }
         didRegisterAtexitHandler = true
         atexit {
-            Task.taskPool.read { set in
-                for task in set {
+            Task.taskPool.read { tasks in
+                for task in tasks where task.isRunning {
                     task.terminate()
                 }
             }
