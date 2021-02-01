@@ -14,6 +14,6 @@ struct User: Content, Identifiable, WithRelationships {
     var writtenId = UUID()
 
     static var relationships: Relationships {
-        References<Post>(as: "written", at: \.writtenId)
+        References<Post>(as: "written", identifiedBy: \.writtenId)
     }
 }
