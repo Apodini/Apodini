@@ -59,6 +59,9 @@ let package = Package(
                     ],
                     exclude: [
                         "Components/ComponentBuilder.swift.gyb"
+                    ],
+                    resources: [
+                        .process("Resources")
                     ]
             ),
             .target(

@@ -3,14 +3,11 @@
 //
 
 @_implementationOnly import Vapor
-import GraphQL
+@_implementationOnly import GraphQL
+import Foundation
 
-enum NetworkError: Error {
-    case unauthorised
-    case timeout
-    case serverError
-    case invalidResponse
-    case noBody
+struct QueryInput: Codable {
+    var query: String
 }
 
 
@@ -18,112 +15,59 @@ class GraphQLInterfaceExporter: InterfaceExporter {
 
 
     // GraphQL Schema
-    private var schema = try! GraphQLSchema(
-            query: GraphQLObjectType(
-                    name: "Apodini",
-                    fields: [
-                        "test": GraphQLField(
-                                type: GraphQLString,
-                                resolve: { _, _, _, _ in
-                                    "It is working!"
-                                }
-                        )
-                    ]
-            )
-    )
+    private var schema: GraphQLSchema?
 
 
-    let app: Vapor.Application
+    let app: Application
     let graphQLPath: GraphQLSchemaBuilder
 
     required init(_ app: Application) {
-        self.graphQLPath = GraphQLSchemaBuilder()
-        self.app = app.vapor.app
+        graphQLPath = GraphQLSchemaBuilder()
+        self.app = app
 
-        // For Query
-        self.app.post("graphql", use: self.graphqlServer)
-        self.app.get("graphql", use: self.graphQLIDE)
     }
 
-    private func graphQLIDE(_ _: Vapor.Request) -> Vapor.Response {
-        let html: Vapor.Response.Body = """
-                                        <html>
-                                          <head>
-                                            <title>GraphiQL</title>
-                                            <link href="https://unpkg.com/graphiql/graphiql.min.css" rel="stylesheet" />
-                                          </head>
-                                          <body style="margin: 0;">
-                                            <div id="graphiql" style="height: 100vh;"></div>
-                                            <script
-                                              crossorigin
-                                              src="https://unpkg.com/react/umd/react.production.min.js"
-                                            ></script>
-                                            <script
-                                              crossorigin
-                                              src="https://unpkg.com/react-dom/umd/react-dom.production.min.js"
-                                            ></script>
-                                            <script
-                                              crossorigin
-                                              src="https://unpkg.com/graphiql/graphiql.min.js"
-                                            ></script>
-                                            <script>
-                                              const graphQLFetcher = graphQLParams =>
-                                                fetch('/graphql', {
-                                                  method: 'post',
-                                                  headers: { 'Content-Type': 'application/json' },
-                                                  body: JSON.stringify(graphQLParams),
-                                                })
-                                                  .then(response => response.json())
-                                                  .catch(() => response.text());
-                                              ReactDOM.render(
-                                                React.createElement(GraphiQL, { fetcher: graphQLFetcher }),
-                                                document.getElementById('graphiql'),
-                                              );
-                                            </script>
-                                          </body>
-                                        </html>
-                                        """
+    private func graphQLIDE(_ _: Vapor.Request) throws -> Vapor.Response {
+        guard let htmlFile = Bundle.module.path(forResource: "graphql-ide", ofType: "html"),
+              let html = try? String(contentsOfFile: htmlFile) else {
 
-        return Vapor.Response(status: .ok, headers: ["Content-Type": "text/html"], body: html)
+            throw Vapor.Abort(.internalServerError)
+        }
+
+        return Vapor.Response(status: .ok, headers: ["Content-Type": "text/html"], body: .init(string: html))
     }
 
     private func graphqlServer(_ req: Vapor.Request) throws -> EventLoopFuture<String> {
-        guard let body = req.body.string else {
-            throw NetworkError.noBody
+        guard let body = req.body.string,
+              let data = body.data(using: .utf8) else {
+            throw ApodiniError(type: .badInput, reason: "No body is given!")
         }
 
-        // Create Swift dict
-        var query = "{}"
-        let data = body.data(using: .utf8)!
-        do {
-            if let jsonArray = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: AnyObject] {
-                if let q = jsonArray["query"] as? String {
-                    query = q
-                } else {
-                    print("jsonArray doesn't have query parameter")
-                }
+        let decoder = JSONDecoder()
+        let input = try decoder.decode(QueryInput.self, from: data)
+        let query = input.query
 
-            } else {
-                print("bad json")
-                throw NetworkError.noBody
-            }
-        } catch let error as NSError {
-            print(error)
-            throw NetworkError.noBody
-        }
+        if let genSchema = schema {
+            return try graphql(schema: genSchema,
+                    request: query,
+                    context: req,
+                    eventLoopGroup: req.eventLoop)
+                    .map { result -> String in
+                        result.description
+                    }
+        } else {
+            throw ApodiniError(type: .serverError, reason: "GraphQL schema creation error!")
 
-        return try graphql(schema: self.schema,
-                request: query,
-                context: req,
-                eventLoopGroup: req.eventLoop).map { result -> String in
-            result.description
         }
 
     }
 
     // We should have parameter for the result struct values and paramters
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        self.graphQLPath.append(for: endpoint, with: endpoint.createConnectionContext(for: self))
+        do {
+            try graphQLPath.append(for: endpoint, with: endpoint.createConnectionContext(for: self))
+        } catch {
+        }
     }
 
     func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) -> String {
@@ -131,7 +75,13 @@ class GraphQLInterfaceExporter: InterfaceExporter {
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
-        self.schema = self.graphQLPath.generate()
+        do {
+            schema = try graphQLPath.generate()
+        } catch {
+        }
+
+        self.app.vapor.app.post("graphql", use: graphqlServer)
+        self.app.vapor.app.get("graphql", use: graphQLIDE)
     }
 
     func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: GraphQLRequest) throws -> Type?? {
