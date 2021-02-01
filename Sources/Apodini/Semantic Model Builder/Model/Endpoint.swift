@@ -4,7 +4,7 @@
 import Foundation
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
-protocol AnyEndpoint: CustomStringConvertible {
+public protocol AnyEndpoint: CustomStringConvertible {
     /// An identifier which uniquely identifies this endpoint (via its handler)
     /// across multiple compilations and executions of the web service.
     var identifier: AnyHandlerIdentifier { get }
@@ -36,9 +36,6 @@ protocol AnyEndpoint: CustomStringConvertible {
     var absolutePath: [EndpointPath] { get }
     var relationships: [EndpointRelationship] { get }
 
-    var guards: [LazyGuard] { get }
-    var responseTransformers: [LazyAnyResponseTransformer] { get }
-
     /// This method can be called, to export all `EndpointParameter`s of the given `Endpoint` on the supplied `BaseInterfaceExporter`.
     /// It will call the `BaseInterfaceExporter.exporterParameter(...)` method for every parameter on this `Endpoint`.
     ///
@@ -46,6 +43,7 @@ protocol AnyEndpoint: CustomStringConvertible {
     ///
     /// - Parameter exporter: The `BaseInterfaceExporter` to export the parameters on.
     /// - Returns: The result of the individual `BaseInterfaceExporter.exporterParameter(...)` calls.
+    @discardableResult
     func exportParameters<I: BaseInterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput]
 
     func createConnectionContext<I: InterfaceExporter>(for exporter: I) -> AnyConnectionContext<I>
@@ -56,11 +54,17 @@ protocol AnyEndpoint: CustomStringConvertible {
     /// - Parameter id: The parameter `id` to search for.
     /// - Returns: Returns the `AnyEndpointParameter` if a parameter with the given `id` exists on that `Endpoint`. Otherwise nil.
     func findParameter(for id: UUID) -> AnyEndpointParameter?
+}
+
+protocol _AnyEndpoint: AnyEndpoint {
+    var guards: [LazyGuard] { get }
+    var responseTransformers: [LazyAnyResponseTransformer] { get }
 
     /// Internal method which is called to call the `InterfaceExporter.export(...)` method on the given `exporter`.
     ///
     /// - Parameter exporter: The `BaseInterfaceExporter` used to export the given `Endpoint`
     /// - Returns: Whatever the export method of the `InterfaceExporter` returns (which equals to type `EndpointExporterOutput`) is returned here.
+    @discardableResult
     func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput
 
     /// Internal method which is called once the `Tree` was finished building, meaning the DSL was parsed completely.
@@ -71,36 +75,36 @@ protocol AnyEndpoint: CustomStringConvertible {
 
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
-struct Endpoint<H: Handler>: AnyEndpoint {
+public struct Endpoint<H: Handler>: _AnyEndpoint {
     /// This is a reference to the node where the endpoint is located
     fileprivate var treeNode: EndpointsTreeNode! // swiftlint:disable:this implicitly_unwrapped_optional
     
-    let identifier: AnyHandlerIdentifier
-    
-    let description: String
+    public let identifier: AnyHandlerIdentifier
 
-    let handler: H
-    
-    let context: Context
-    
-    let operation: Operation
+    public let description: String
 
-    let serviceType: ServiceType
-    
-    let handleReturnType: Encodable.Type
-    let responseType: Encodable.Type
+    public let handler: H
+
+    public let context: Context
+
+    public let operation: Operation
+
+    public let serviceType: ServiceType
+
+    public let handleReturnType: Encodable.Type
+    public let responseType: Encodable.Type
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
-    var parameters: [AnyEndpointParameter]
+    public var parameters: [AnyEndpointParameter]
     /// All `@ObservedObject`s that are used inside handling `Component`
-    var observedObjects: [AnyObservedObject]
+    public var observedObjects: [AnyObservedObject]
 
-    var absolutePath: [EndpointPath] {
+    public var absolutePath: [EndpointPath] {
         storedAbsolutePath
     }
     private var storedAbsolutePath: [EndpointPath]! // swiftlint:disable:this implicitly_unwrapped_optional
 
-    var relationships: [EndpointRelationship] {
+    public var relationships: [EndpointRelationship] {
         storedRelationship
     }
     private var storedRelationship: [EndpointRelationship]! // swiftlint:disable:this implicitly_unwrapped_optional
@@ -148,17 +152,19 @@ struct Endpoint<H: Handler>: AnyEndpoint {
     func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
         exporter.export(self)
     }
-    
-    func createConnectionContext<I: InterfaceExporter>(for exporter: I) -> AnyConnectionContext<I> {
+
+    public func createConnectionContext<I: InterfaceExporter>(for exporter: I) -> AnyConnectionContext<I> {
         InternalConnectionContext(for: exporter, on: self).eraseToAnyConnectionContext()
     }
 
-    func findParameter(for id: UUID) -> AnyEndpointParameter? {
+    public func findParameter(for id: UUID) -> AnyEndpointParameter? {
         parameters.first { parameter in
             parameter.id == id
         }
     }
-    func exportParameters<I: BaseInterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
+
+    @discardableResult
+    public func exportParameters<I: BaseInterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
         parameters.exportParameters(on: exporter)
     }
 }
@@ -171,7 +177,7 @@ extension Endpoint: CustomDebugStringConvertible {
 
 class EndpointsTreeNode {
     let path: EndpointPath
-    var endpoints: [Operation: AnyEndpoint] = [:]
+    var endpoints: [Operation: _AnyEndpoint] = [:]
     
     let parent: EndpointsTreeNode?
     private var nodeChildren: [EndpointPath: EndpointsTreeNode] = [:]
@@ -277,23 +283,6 @@ class EndpointsTreeNode {
         absolutePath.append(path)
     }
     
-    func relativePath(from node: EndpointsTreeNode) -> [EndpointPath] {
-        var relativePath: [EndpointPath] = []
-        collectRelativePath(&relativePath, from: node)
-        return relativePath
-    }
-    
-    private func collectRelativePath(_ relativePath: inout [EndpointPath], from node: EndpointsTreeNode) {
-        if node === self {
-            return
-        }
-        if let parent = parent {
-            parent.collectRelativePath(&relativePath, from: node)
-        }
-
-        relativePath.append(path)
-    }
-    
     fileprivate func collectRelationships(name: String, _ relationships: inout [EndpointRelationship]) {
         if !endpoints.isEmpty {
             var relationship = EndpointRelationship(name: name, destinationPath: absolutePath)
@@ -336,7 +325,7 @@ struct EndpointInsertionContext {
     }
 
     mutating func append(parameter: AnyEndpointParameter) {
-        path.append(parameter.derivePathParameterModel())
+        path.append(parameter.toInternal().derivePathParameterModel())
     }
 
     mutating func assertRootPath() {
@@ -360,38 +349,5 @@ struct EndpointInsertionContext {
         }
 
         return next
-    }
-}
-
-
-/// Helper type which acts as a Hashable wrapper around `AnyEndpoint` 
-private struct AnyHashableEndpoint: Hashable, Equatable {
-    let endpoint: AnyEndpoint
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(endpoint.identifier)
-    }
-    
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.endpoint.identifier == rhs.endpoint.identifier
-    }
-}
-
-
-extension EndpointsTreeNode {
-    func collectAllEndpoints() -> [AnyEndpoint] {
-        if let parent = parent {
-            return parent.collectAllEndpoints()
-        }
-        var endpoints = Set<AnyHashableEndpoint>()
-        collectAllEndpoints(into: &endpoints)
-        return endpoints.map(\.endpoint)
-    }
-    
-    private func collectAllEndpoints(into endpointsSet: inout Set<AnyHashableEndpoint>) {
-        endpointsSet.formUnion(self.endpoints.values.map { AnyHashableEndpoint(endpoint: $0) })
-        for child in children {
-            child.collectAllEndpoints(into: &endpointsSet)
-        }
     }
 }

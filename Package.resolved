@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/vapor/apns.git",
         "state": {
           "branch": null,
-          "revision": "d8e81d9345f71ac7a6cf3637bbc10fdcc48d34f5",
-          "version": "1.0.0"
+          "revision": "f4ed3f973daa78e4b8472c5348b7553117fa05e2",
+          "version": "1.1.0"
         }
       },
       {
@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
         "state": {
           "branch": null,
-          "revision": "48e77d4c8d6ad671727b89bef5538ec79c3d7397",
-          "version": "2.1.0"
+          "revision": "03e83e2332d13a3c06d5cd70948166e5724c43c7",
+          "version": "2.3.0"
         }
       },
       {
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git",
         "state": {
           "branch": null,
-          "revision": "cf3bc7f4b57e94d282c5161bd5553289d386191e",
-          "version": "0.2.1"
+          "revision": "e71ec9822ce06b62011e36272e8014b828916d0b",
+          "version": "0.3.0"
         }
       },
       {
@@ -114,8 +114,8 @@
         "repositoryURL": "https://github.com/vapor/fluent.git",
         "state": {
           "branch": null,
-          "revision": "e681c93df3201a2d8ceef15e8a9a0634578df233",
-          "version": "4.0.0"
+          "revision": "855cd81cd129675dcb9adadeca2286281dbc0190",
+          "version": "4.1.0"
         }
       },
       {
@@ -150,8 +150,8 @@
         "repositoryURL": "https://github.com/vapor/fluent-postgres-driver.git",
         "state": {
           "branch": null,
-          "revision": "0a925f4c62bbd77665653e2dbce7217bbc5a971d",
-          "version": "2.1.1"
+          "revision": "11d4fce0c5d8a027a5d131439c9c94dd3230cb8e",
+          "version": "2.1.2"
         }
       },
       {
@@ -200,6 +200,15 @@
         }
       },
       {
+        "package": "multipart-kit",
+        "repositoryURL": "https://github.com/vapor/multipart-kit.git",
+        "state": {
+          "branch": null,
+          "revision": "73706f1883f2ba950d41f18aec7e3a53766d4a6d",
+          "version": "4.0.0"
+        }
+      },
+      {
         "package": "mysql-kit",
         "repositoryURL": "https://github.com/vapor/mysql-kit.git",
         "state": {
@@ -231,8 +240,8 @@
         "repositoryURL": "https://github.com/mattpolzin/OpenAPIKit.git",
         "state": {
           "branch": null,
-          "revision": "02b8b78da3423ff31e35d6327fa7d37644710b30",
-          "version": "2.1.0"
+          "revision": "4986552e76c331a99770428bd2be77ad76068c08",
+          "version": "2.4.0"
         }
       },
       {
@@ -366,8 +375,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "2f9ea477387806a79a8951524ef2d40de917a0e1",
-          "version": "2.24.0"
+          "revision": "43931b7a7daf8120a487601530c8bc03ce711992",
+          "version": "2.25.1"
         }
       },
       {
@@ -420,8 +429,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "b040f90b80ac5906fcf1476a46d360c159f01892",
-          "version": "4.35.0"
+          "revision": "bb87dcff4cf6d86d386308b4cb1393cefa4891a4",
+          "version": "4.39.2"
         }
       },
       {

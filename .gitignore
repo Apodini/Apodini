@@ -10,7 +10,7 @@ xcuserdata/
 
 # Other files
 .DS_Store
-.idea
+.idea/
 
 # Fastlane
 fastlane/report.xml

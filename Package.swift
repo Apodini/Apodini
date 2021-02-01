@@ -15,27 +15,36 @@ let package = Package(
             .library(name: "Jobs", targets: ["Jobs"])
         ],
         dependencies: [
-            .package(url: "https://github.com/vapor/vapor.git", from: "4.35.0"),
-            .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0"),
+            .package(url: "https://github.com/vapor/vapor.git", from: "4.39.1"),
+            .package(url: "https://github.com/vapor/fluent.git", from: "4.1.0"),
             .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.0.1"),
             // Used by the `NotificationCenter` to send push notifications to `APNS`.
-            .package(url: "https://github.com/vapor/apns.git", from: "1.0.0"),
+            .package(url: "https://github.com/vapor/apns.git", from: "1.0.1"),
             // Used by the `NotificationCenter` to send push notifications to `FCM`.
             .package(url: "https://github.com/MihaelIsaev/FCM.git", from: "2.8.0"),
-            .package(url: "https://github.com/vapor/fluent-mongo-driver.git", from: "1.0.0"),
-            .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.0.0"),
-            .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.0.0-beta"),
-            .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", from: "0.2.0"),
+            .package(url: "https://github.com/vapor/fluent-mongo-driver.git", from: "1.0.2"),
+            .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.1.2"),
+            .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.0.0"),
+            // Use to navigate around some of the existentials limitations of the Swift Compiler
+            // As AssociatedTypeRequirementsKit does not follow semantic versioning we constraint it to the current minor version
+            .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", .upToNextMinor(from: "0.3.0")),
             // Used to parse crontabs in the `Scheduler` class
             .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.0"),
-            .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.11.0"),
-            .package(url: "https://github.com/apple/swift-nio.git", from: "2.18.0"),
+            // OpenCombine seems to be only available as a pre release and is not feature complete.
+            // We constrain it to the next minor version as it doen't follow semantic versioning.
+            .package(url: "https://github.com/OpenCombine/OpenCombine.git", .upToNextMinor(from: "0.11.0")),
+            .package(url: "https://github.com/apple/swift-nio.git", from: "2.25.1"),
             .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.1.1"),
             // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
             .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
-            .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.1.0"),
+            .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.4.0"),
+            .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
+            // Used to parse command line arguments
+            .package(url: "https://github.com/vapor/console-kit.git", from: "4.2.4"),
+            // Used for Graphql
             .package(url: "https://github.com/GraphQLSwift/GraphQL.git", from: "1.1.7"),
             .package(url: "https://github.com/SwiftyJSON/SwiftyJSON.git", from: "5.0.0")
+
         ],
         targets: [
             .target(
@@ -52,8 +61,10 @@ let package = Package(
                         .product(name: "APNS", package: "apns"),
                         .product(name: "FCM", package: "FCM"),
                         .product(name: "OpenAPIKit", package: "OpenAPIKit"),
+                        .product(name: "Yams", package: "Yams"),
                         .target(name: "WebSocketInfrastructure"),
                         .target(name: "ProtobufferCoding"),
+                        .product(name: "ConsoleKit", package: "console-kit"),
                         .product(name: "GraphQL", package: "GraphQL"),
                         .product(name: "SwiftyJSON", package: "SwiftyJSON")
                     ],
@@ -87,14 +98,8 @@ let package = Package(
                     ],
                     exclude: [
                         "ConfigurationTests/Certificates/cert.pem",
-                        "ConfigurationTests/Certificates/key.pem"
-                    ]
-            ),
-            .target(
-                    name: "TestWebService",
-                    dependencies: [
-                        .target(name: "Apodini"),
-                        .target(name: "ApodiniDatabase")
+                        "ConfigurationTests/Certificates/key.pem",
+                        "ConfigurationTests/Certificates/key2.pem"
                     ]
             ),
             // ProtobufferCoding

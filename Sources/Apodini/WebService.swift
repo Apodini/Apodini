@@ -20,16 +20,28 @@ public protocol WebService: Component, ConfigurationCollection {
 extension WebService {
     /// This function is executed to start up an Apodini `WebService`
     public static func main() throws {
+        try main(waitForCompletion: true)
+    }
+
+    /// This function is executed to start up an Apodini `WebService`
+    @discardableResult
+    static func main(waitForCompletion: Bool) throws -> Application {
         let app = Application()
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
 
         main(app: app)
+
+        guard waitForCompletion else {
+            try app.boot()
+            return app
+        }
 
         defer {
             app.shutdown()
         }
 
         try app.run()
+        return app
     }
 
     /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.main()` to startup an Apodini `WebService`.
@@ -40,7 +52,7 @@ extension WebService {
         webService.configuration.configure(app)
 
         webService.register(
-                SharedSemanticModelBuilder(app)
+                SemanticModelBuilder(app)
                         .with(exporter: RESTInterfaceExporter.self)
                         .with(exporter: WebSocketInterfaceExporter.self)
                         .with(exporter: OpenAPIInterfaceExporter.self)
@@ -65,8 +77,8 @@ extension WebService {
 
 
 extension WebService {
-    func register(_ semanticModelBuilders: SemanticModelBuilder...) {
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: semanticModelBuilders)
+    func register(_ modelBuilder: SemanticModelBuilder) {
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
         self.visit(visitor)
         visitor.finishParsing()
     }

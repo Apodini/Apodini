@@ -41,8 +41,8 @@ final class DescriptionModifierTests: ApodiniTests {
     }
 
     func testEndpointDescription() throws {
-        let modelBuilder = SharedSemanticModelBuilder(app)
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [modelBuilder])
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
         let testComponent = TestComponentDescription()
         Group {
             testComponent.content
@@ -57,8 +57,8 @@ final class DescriptionModifierTests: ApodiniTests {
     }
     
     func testEndpointDefaultDescription() throws {
-        let modelBuilder = SharedSemanticModelBuilder(app)
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [modelBuilder])
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
         let testComponent = TestComponentWithoutDescription()
         Group {
             testComponent.content
