@@ -6,8 +6,9 @@
 //
 
 import XCTest
-@testable import Vapor
 @testable import Apodini
+@testable import Vapor
+@testable import ApodiniGRPC
 
 private struct GRPCTestHandler: Handler {
     @Parameter("name",

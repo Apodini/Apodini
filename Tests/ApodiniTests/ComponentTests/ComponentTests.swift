@@ -6,6 +6,8 @@
 //
 
 @testable import Apodini
+@testable import ApodiniVaporSupport
+@testable import ApodiniREST
 import XCTest
 import XCTApodini
 
@@ -37,6 +39,11 @@ class ComponentTests: ApodiniTests {
             var content: some Component {
                 AnyComponent(Text("Hello"))
             }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
+            }
         }
         
         TestWebService.main(app: app)
@@ -58,6 +65,11 @@ class ComponentTests: ApodiniTests {
         struct TestWebService: WebService {
             var content: some Component {
                 AnyHandler(Text("Hello"))
+            }
+            
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
             }
         }
         

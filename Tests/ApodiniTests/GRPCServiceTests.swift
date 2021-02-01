@@ -7,6 +7,7 @@
 
 import XCTest
 @testable import Apodini
+@testable import ApodiniGRPC
 
 final class GRPCServiceTests: ApodiniTests {
     override func setUpWithError() throws {

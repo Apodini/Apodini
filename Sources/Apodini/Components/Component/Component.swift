@@ -31,7 +31,7 @@ extension Component {
     ///
     /// Each `Component` that needs to provide a custom `accept` implementation **must** conform to `SyntaxTreeVisitable` and **must** provide a custom `accept` implementation.
     /// We require that each Component that conforms to `SyntaxTreeVisitable` provides its own custom `accept` implementation to avoid an endless loop in the `accept` function.
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         preconditionTypeIsStruct(Self.self, messagePrefix: "Component")
         if let visitable = self as? SyntaxTreeVisitable {
             visitable.accept(visitor)

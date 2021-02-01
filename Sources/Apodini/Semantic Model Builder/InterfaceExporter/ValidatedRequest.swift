@@ -3,7 +3,7 @@
 //
 import NIO
 import Foundation
-import protocol FluentKit.Database
+@_implementationOnly import protocol FluentKit.Database
 
 struct ValidatedRequest<I: InterfaceExporter, H: Handler>: Request {
     var description: String {

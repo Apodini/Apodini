@@ -49,7 +49,7 @@ public struct Version {
 
 
 extension Version: _PathComponent {
-    var description: String {
+    public var description: String {
         "\(prefix)\(major)"
     }
 
@@ -58,6 +58,6 @@ extension Version: _PathComponent {
     }
 }
 
-struct APIVersionContextKey: OptionalContextKey {
-    typealias Value = Version
+public struct APIVersionContextKey: OptionalContextKey {
+    public typealias Value = Version
 }

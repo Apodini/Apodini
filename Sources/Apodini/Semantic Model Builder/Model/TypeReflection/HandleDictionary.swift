@@ -2,7 +2,9 @@
 //  Created by Lorena Schlesinger on 15.01.21.
 //
 
-func handleDictionary(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
+// swiftlint:disable missing_docs
+
+public func handleDictionary(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     let typeInfo = node.value.typeInfo
 
     guard mangledName(of: typeInfo.type) == "Dictionary",

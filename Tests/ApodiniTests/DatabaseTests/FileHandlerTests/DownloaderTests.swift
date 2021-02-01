@@ -4,6 +4,7 @@ import NIO
 import Vapor
 @testable import Apodini
 @testable import ApodiniDatabase
+@testable import ApodiniREST
 
 final class DownloaderTests: FileHandlerTests {
     func testSingleDownloader() throws {
