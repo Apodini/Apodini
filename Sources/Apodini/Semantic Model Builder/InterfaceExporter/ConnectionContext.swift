@@ -37,9 +37,9 @@ public class ConnectionContext<Exporter: InterfaceExporter> {
     ///   - final: True if this request is the last for the given Connection.
     /// - Returns: The response for the given Request.
     public func handle(
-        request exporterRequest: Exporter.ExporterRequest,
-        eventLoop: EventLoop,
-        final: Bool = true
+        request _: Exporter.ExporterRequest,
+        eventLoop _: EventLoop,
+        final _: Bool = true
     ) -> EventLoopFuture<Response<HandledRequest>> {
         fatalError("""
                    A ConnectionContext<\(Exporter.self)> (\(self)) was constructed without properly \
@@ -50,7 +50,7 @@ public class ConnectionContext<Exporter: InterfaceExporter> {
     /// Runs through the context's handler with the state after the latest client-request.
     /// Should be used by exporters after an observed value in the context did change,
     /// to retrieve the proper message that has to be sent to the client.
-    public func handle(eventLoop: EventLoop, observedObject: AnyObservedObject) -> EventLoopFuture<Response<HandledRequest>> {
+    public func handle(eventLoop _: EventLoop, observedObject _: AnyObservedObject) -> EventLoopFuture<Response<HandledRequest>> {
         fatalError("""
                    A ConnectionContext<\(Exporter.self)> (\(self)) was constructed without properly \
                    overriding the handle(request:observedObject:) function.
@@ -59,7 +59,7 @@ public class ConnectionContext<Exporter: InterfaceExporter> {
 
     /// Register a listener that will be notified once an observed object did change in the handler
     /// that is being used in this connection.
-    public func register<Listener: ObservedListener>(listener: Listener) where Listener.Exporter == Exporter {
+    public func register<Listener: ObservedListener>(listener _: Listener) where Listener.Exporter == Exporter {
         fatalError("A ConnectionContext<\(Exporter.self)> (\(self)) was constructed without properly overriding the register(...) function.")
     }
 }
