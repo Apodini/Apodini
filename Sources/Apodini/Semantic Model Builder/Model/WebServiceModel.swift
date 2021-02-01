@@ -33,7 +33,11 @@ public class WebServiceModel: CustomDebugStringConvertible {
         rootEndpoints[operation]
     }
 
-    /// Shortcut for calling `relationships(endpoint: .read, for: for)`
+    /// Shortcut for calling `relationships(endpoint: operation, for: operation)`
+    /// - Parameter operation: Defines the `Operation` for the root `Endpoint`
+    ///     AND for the `RelationshipDestination`s to be retrieved from that endpoint.
+    /// - Returns: The set of `RelationshipDestination`. If the `Endpoint` doesn't exist
+    ///     default structural relationships are returned.
     public func relationships(for operation: Operation) -> Set<RelationshipDestination> {
         relationships(endpoint: operation, for: operation)
     }
@@ -45,7 +49,8 @@ public class WebServiceModel: CustomDebugStringConvertible {
     /// - Parameters:
     ///   - endpoint: The `Operation` of the `Endpoint` to retrieve the Relationships from.
     ///   - operation: The `Operation` of the Relationship destination to create a unique set for.
-    /// - Returns: The set of uniquely named relationship destinations.
+    /// - Returns: The set of uniquely named relationship destinations. If the `Endpoint` doesn't exist
+    ///     default structural relationships are returned.
     public func relationships(endpoint: Operation, for operation: Operation) -> Set<RelationshipDestination> {
         if let endpoint = rootEndpoints[endpoint] {
             return endpoint.relationship(for: operation)

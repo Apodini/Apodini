@@ -3,9 +3,9 @@
 //
 
 struct DefaultRelationshipContextKey: OptionalContextKey {
-    // We really only need to check if the context key exists on a Endpoint
-    // So the type is actually irrelevant, but Bool probably fits best?
-    typealias Value = Bool
+    // This OptionalContextKey doesn't carry any additional context.
+    // We only need to check if the context key exists on a Endpoint
+    typealias Value = Void
 }
 
 public struct DefaultRelationshipModifier<H: Handler>: HandlerModifier {
@@ -18,7 +18,7 @@ public struct DefaultRelationshipModifier<H: Handler>: HandlerModifier {
 
 extension DefaultRelationshipModifier: SyntaxTreeVisitable {
     func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(DefaultRelationshipContextKey.self, value: true, scope: .current)
+        visitor.addContext(DefaultRelationshipContextKey.self, value: (), scope: .current)
         component.accept(visitor)
     }
 }

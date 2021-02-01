@@ -13,6 +13,11 @@ public struct IdentifyingType: PropertyOption, Equatable {
     /// The `Identifiable.ID` type.
     public let idType: Any.Type
 
+    init<Type: Identifiable>(identifying type: Type.Type = Type.self) {
+        self.type = type
+        self.idType = type.ID.self
+    }
+
     public static func == (lhs: IdentifyingType, rhs: IdentifyingType) -> Bool {
         lhs.type == rhs.type && lhs.idType == rhs.idType
     }

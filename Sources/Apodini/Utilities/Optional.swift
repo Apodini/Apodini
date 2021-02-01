@@ -35,7 +35,7 @@ func isNil(_ value: Any) -> Bool {
     return visitor(value) ?? false
 }
 
-protocol ApodiniOptionalVisitor: AssociatedTypeRequirementsVisitor {
+private protocol ApodiniOptionalVisitor: AssociatedTypeRequirementsVisitor {
     associatedtype Visitor = ApodiniOptionalVisitor
     associatedtype Input = ApodiniOptional
     associatedtype Output
@@ -43,16 +43,16 @@ protocol ApodiniOptionalVisitor: AssociatedTypeRequirementsVisitor {
     func callAsFunction<T: ApodiniOptional>(_ value: T) -> Output
 }
 
-extension ApodiniOptionalVisitor {
+private extension ApodiniOptionalVisitor {
     @inline(never)
     @_optimize(none)
-    func _test() { // swiftlint:disable:this identifier_name
+    func _test() {
         let test: String? = "asdf"
         _ = self(test)
     }
 }
 
-struct ApodiniOptionalIsNilVisitor: ApodiniOptionalVisitor {
+private struct ApodiniOptionalIsNilVisitor: ApodiniOptionalVisitor {
     func callAsFunction<T: ApodiniOptional>(_ value: T) -> Bool {
         value.optionalInstance == nil
     }

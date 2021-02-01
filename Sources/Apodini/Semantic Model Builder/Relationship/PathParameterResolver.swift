@@ -40,14 +40,13 @@ struct PathParameterPropertyResolver<Element, Destination: Identifiable>: AnyPat
     let keyPath: PartialKeyPath<Element>
 
     init(destination type: Destination.Type = Destination.self, at keyPath: PartialKeyPath<Element>) {
-        self.identifyingType = IdentifyingType(type: type, idType: Destination.ID.self)
+        self.identifyingType = IdentifyingType(identifying: type)
         self.keyPath = keyPath
     }
 
     func resolves(parameter: AnyEndpointPathParameter) -> Bool {
         // This line basically creates the restriction that we require the `identifyingType`
         // to be supplied with the `@PathParameter` definition.
-        // As the lhs isn't Optional below check will always evaluate to false.
         // Additionally, `parameter.identifyingType` holds the `IdentifyingType` as defined
         // in the `PathParameter`, requiring the `LosslessStringConvertible` and non Optional restriction.
         identifyingType == parameter.identifyingType

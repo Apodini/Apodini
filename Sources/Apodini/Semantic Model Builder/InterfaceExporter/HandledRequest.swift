@@ -77,8 +77,10 @@ public struct HandledRequest: Encodable {
 
     /// Used to apply a `RelationshipFormatter` to THE self relationships of the `Endpoint`
     /// with the context of this `HandledRequest` (path parameter values and property values of the response).
-    /// It is different to `formatSelfRelationships(into:with:for:)` that it used the one and only self
-    /// `RelationshipDestination` of the Endpoint (Using the Operation of the Endpoint).
+    /// It is different to `formatSelfRelationships(into:with:for:)` that it always uses the one and only self
+    /// `RelationshipDestination` where operation equals to the operation of the `Endpoint`.
+    /// Meaning the `RelationshipDestination` truly points to itself. This `RelationshipDestination`
+    /// is guaranteed to exist.
     ///
     /// - Parameters:
     ///   - initialValue: The initial value the `RelationshipFormatter` should reduce into.

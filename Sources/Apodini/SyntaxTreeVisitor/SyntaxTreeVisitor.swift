@@ -100,8 +100,6 @@ class SyntaxTreeVisitor: RelationshipVisitor {
         if let relationships = responseType as? RelationshipVisitable.Type {
             relationships.accept(self)
         }
-        // let relationshipVisitor = StandardRelationshipsVisitor(visitor: self)
-        // relationshipVisitor(responseType)
         
         // We capture the currentContextNode and make a copy that will be used when executing the request as
         // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the

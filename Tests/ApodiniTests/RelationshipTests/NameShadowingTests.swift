@@ -8,7 +8,6 @@ import XCTApodini
 
 class NameShadowingTests: ApodiniTests {
     var aRelationship = Relationship(name: "a")
-    var bRelationship = Relationship(name: "b")
 
     struct Number: Handler {
         let int: Int

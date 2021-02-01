@@ -43,7 +43,8 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
                     typedAction.typeErasured,
                     using: connection,
                     on: request.eventLoop,
-                    using: self.instance.responseTransformers)
+                    using: self.instance.responseTransformers
+                )
 
                 return transformed.map { response -> Response<HandledRequest> in
                     mapToHandledRequest(response, validatedRequest: validatedRequest)
@@ -56,7 +57,8 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
             HandledRequest(
                 for: instance.endpoint,
                 response: anyEncodable,
-                parameters: validatedRequest.validatedParameterValues)
+                parameters: validatedRequest.validatedParameterValues
+            )
         }
     }
 

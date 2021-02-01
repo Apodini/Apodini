@@ -182,7 +182,7 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     }
 
     public func createConnectionContext<I: InterfaceExporter>(for exporter: I) -> ConnectionContext<I> {
-        InternalConnectionContext(for: exporter, on: self)
+        EndpointSpecificConnectionContext(for: exporter, on: self)
     }
 
     public func findParameter(for id: UUID) -> AnyEndpointParameter? {

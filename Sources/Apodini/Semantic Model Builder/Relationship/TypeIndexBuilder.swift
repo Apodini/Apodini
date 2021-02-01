@@ -50,7 +50,7 @@ struct TypeIndexBuilder: CustomDebugStringConvertible {
         let identifier = ObjectIdentifier(content)
 
         let reference = endpoint.reference
-        let markedDefault = endpoint.context.get(valueFor: DefaultRelationshipContextKey.self) ?? false
+        let markedDefault = endpoint.context.get(valueFor: DefaultRelationshipContextKey.self) != nil
         let pathParameters = endpoint.absolutePath.listPathParameters()
 
         if let info = try? typeInfo(of: content),

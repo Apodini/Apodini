@@ -78,7 +78,7 @@ public extension ConnectionContext where Exporter.ExporterRequest: WithEventLoop
 }
 
 
-class InternalConnectionContext<I: InterfaceExporter, H: Handler>: ConnectionContext<I> {
+class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: ConnectionContext<I> {
     private let exporter: I
     private let endpoint: EndpointInstance<H>
 

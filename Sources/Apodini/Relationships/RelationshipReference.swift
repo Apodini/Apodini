@@ -4,7 +4,7 @@
 
 /// A `RelationshipReference` can be used to create a referencing relationship for the annotated `Content` type.
 /// A relationship reference uses the value of properties holding the identifier of the target type
-/// too resolve a relationship with the given values.
+/// to resolve a relationship with the given values.
 public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinition where To.ID: LosslessStringConvertible {
     let name: String
     let destinationType: To.Type
