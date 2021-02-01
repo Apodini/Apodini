@@ -17,4 +17,6 @@ public struct Delete<Model: DatabaseModel>: Handler {
             .flatMap { $0.delete(on: database ) }
             .transform(to: HTTPStatus.ok.code )
     }
+    
+    public init() {}
 }

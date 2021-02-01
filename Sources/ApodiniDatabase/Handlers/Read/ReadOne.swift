@@ -15,4 +15,6 @@ struct ReadOne<Model: DatabaseModel>: Handler {
     func handle() throws -> EventLoopFuture<Model> {
         Model.find(id, on: database).unwrap(orError: objectNotFoundError)
     }
+    
+    public init() {}
 }
