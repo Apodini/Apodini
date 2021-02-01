@@ -22,8 +22,6 @@ internal class InternalProtoDecoder: Decoder {
     var keyIndices: [Int: Int]
 
     /// The strategy that this encoder uses to encode `Int`s and `UInt`s.
-    ///
-    /// Set to `nil` (default) to use the architectures bit width.
     var variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy
 
     init(from data: Data, with variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy) {
@@ -144,8 +142,6 @@ internal class InternalProtoDecoder: Decoder {
 /// Coforms to `TopLevelDecoder` from `Combine`, however this is currently ommitted due to compatibility issues.
 public class ProtobufferDecoder {
     /// The strategy that this encoder uses to encode `Int`s and `UInt`s.
-    ///
-    /// Set to `nil` (default) to use the architectures bit width.
     public var variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy
 
     /// Init new decoder instance

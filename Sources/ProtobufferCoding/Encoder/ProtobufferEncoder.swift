@@ -61,14 +61,18 @@ private struct EncodingWrapper<T: Encodable>: Encodable {
 /// Coforms to `TopLevelEncoder` from `Combine`, however this is currently ommitted due to compatibility issues.
 public class ProtobufferEncoder {
     /// The strategy that this encoder uses to encode `Int`s and `UInt`s.
-    ///
-    /// Set to `nil` (default) to use the architectures bit width.
-    public var variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy?
+    public var variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy
     
     private var encoder: InternalProtoEncoder?
 
     /// Initializes a new instance.
     public init() {
+        if MemoryLayout<Int>.size == 4 {
+            self.variableWidthIntegerCodingStrategy = .thirtyTwo
+        } else {
+            self.variableWidthIntegerCodingStrategy = .sixtyFour
+        }
+        
         encoder?.variableWidthIntegerCodingStrategy = variableWidthIntegerCodingStrategy
     }
 
