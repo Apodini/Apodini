@@ -37,7 +37,9 @@ internal class InternalProtoDecoder: Decoder {
     }
 
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
-        KeyedDecodingContainer(KeyedProtoDecodingContainer(from: self.dictionary, variableWidthIntegerCodingStrategy: variableWidthIntegerCodingStrategy))
+        KeyedDecodingContainer(
+            KeyedProtoDecodingContainer(from: self.dictionary, variableWidthIntegerCodingStrategy: variableWidthIntegerCodingStrategy)
+        )
     }
 
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
