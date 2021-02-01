@@ -10,7 +10,7 @@ import Foundation
 
 
 // MARK: - Mangled Name
-func mangledName(of type: Any.Type) -> String {
+public func mangledName(of type: Any.Type) -> String {
     do {
         let typeInfo = try Runtime.typeInfo(of: type)
         return typeInfo.mangledName
@@ -21,7 +21,7 @@ func mangledName(of type: Any.Type) -> String {
 
 
 // MARK: - Optional
-func isOptional(_ type: Any.Type) -> Bool {
+public func isOptional(_ type: Any.Type) -> Bool {
     do {
         let typeInfo = try Runtime.typeInfo(of: type)
         return typeInfo.kind == .optional
@@ -34,7 +34,7 @@ func isOptional(_ type: Any.Type) -> Bool {
 }
 
 // MARK: - Enum
-func isEnum(_ type: Any.Type) -> Bool {
+public func isEnum(_ type: Any.Type) -> Bool {
     do {
         let typeInfo = try Runtime.typeInfo(of: type)
         return typeInfo.kind == .enum
@@ -58,12 +58,12 @@ private let supportedScalarTypes: Set<ObjectIdentifier> = [
     ObjectIdentifier(Float.self)
 ]
 
-func isSupportedScalarType(_ type: Any.Type) -> Bool {
+public func isSupportedScalarType(_ type: Any.Type) -> Bool {
     supportedScalarTypes
         .contains(ObjectIdentifier(type))
 }
 
-func isSupportedVariableWidthInteger(_ type: Any.Type) -> Bool {
+public func isSupportedVariableWidthInteger(_ type: Any.Type) -> Bool {
     let types = [
         ObjectIdentifier(Int.self),
         ObjectIdentifier(UInt.self)

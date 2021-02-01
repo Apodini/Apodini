@@ -9,6 +9,7 @@ import XCTest
 import WebSocketInfrastructure
 import NIO
 @testable import Apodini
+@testable import ApodiniWebSocket
 
 class WebSocketInterfaceExporterTests: ApodiniTests {
     static let blockTime: UInt32 = 10000

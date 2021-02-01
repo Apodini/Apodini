@@ -2,7 +2,7 @@
 //  Created by Nityananda on 21.12.20.
 //
 
-func handleOptional(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
+public func handleOptional(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     guard isOptional(node.value.typeInfo.type),
           let first = node.value.typeInfo.genericTypes.first else {
         return node

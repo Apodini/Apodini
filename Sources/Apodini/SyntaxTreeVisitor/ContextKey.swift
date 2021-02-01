@@ -27,7 +27,7 @@ public protocol OptionalContextKey {
 }
 
 extension OptionalContextKey {
-    static func reduce(value: inout Self.Value, nextValue: () -> Self.Value) {
+    public static func reduce(value: inout Self.Value, nextValue: () -> Self.Value) {
         value = nextValue()
     }
 }

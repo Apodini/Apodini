@@ -6,7 +6,7 @@ import FCM
 import APNS
 import XCTVapor
 import Apodini
-@testable import Notifications
+@testable import ApodiniNotifications
 
 final class NotificationCenterTests: XCTApodiniTest {
     override func setUpWithError() throws {

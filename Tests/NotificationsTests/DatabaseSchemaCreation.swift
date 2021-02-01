@@ -1,7 +1,7 @@
 import Apodini
 import ApodiniDatabase
 import XCTest
-@testable import Notifications
+@testable import ApodiniNotifications
 
 final class DatabaseConfigurationTests: XCTestCase {
     // swiftlint:disable implicitly_unwrapped_optional

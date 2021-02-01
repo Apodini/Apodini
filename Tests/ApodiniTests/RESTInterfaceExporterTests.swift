@@ -5,6 +5,7 @@
 import XCTest
 import Vapor
 @testable import Apodini
+@testable import ApodiniREST
 
 class RESTInterfaceExporterTests: ApodiniTests {
     lazy var application = Vapor.Application(.testing)

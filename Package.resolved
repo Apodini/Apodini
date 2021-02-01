@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git",
         "state": {
           "branch": null,
-          "revision": "d861e6dd41ad0c1096a9a730611fa6a8cc307b0c",
-          "version": "0.3.1"
+          "revision": "e71ec9822ce06b62011e36272e8014b828916d0b",
+          "version": "0.3.0"
         }
       },
       {
@@ -372,7 +372,7 @@
       },
       {
         "package": "swift-nio-http2",
-        "repositoryURL": "https://github.com/apple/swift-nio-http2.git",
+        "repositoryURL": "https://github.com/apple/swift-nio-http2",
         "state": {
           "branch": null,
           "revision": "d4060ac4d056a48d946298f04968f6f6080cc618",

@@ -2,32 +2,32 @@
 //  Created by Nityananda on 11.12.20.
 //
 
-@_implementationOnly import Runtime
+import Runtime
 
-struct PropertyInfo: Equatable, Hashable {
-    let name: String
-    let offset: Int
+public struct PropertyInfo: Equatable, Hashable {
+    public let name: String
+    public let offset: Int
 }
 
-struct EnrichedInfo {
-    enum Cardinality {
+public struct EnrichedInfo {
+    public enum Cardinality {
         case zeroToOne
         case exactlyOne
         case zeroToMany(CollectionContext)
     }
 
-    enum CollectionContext {
+    public enum CollectionContext {
         case array
         indirect case dictionary(key: EnrichedInfo, value: EnrichedInfo)
     }
 
-    let typeInfo: TypeInfo
-    let propertyInfo: PropertyInfo?
+    public let typeInfo: TypeInfo
+    public let propertyInfo: PropertyInfo?
 
-    var cardinality: Cardinality = .exactlyOne
+    public var cardinality: Cardinality = .exactlyOne
 }
 
-extension EnrichedInfo {
+public extension EnrichedInfo {
     static func node(_ type: Any.Type) throws -> Node<EnrichedInfo> {
         let typeInfo = try Runtime.typeInfo(of: type)
         let root = EnrichedInfo(
@@ -73,7 +73,7 @@ extension EnrichedInfo {
 // MARK: - EnrichedInfo: Hashable
 
 extension EnrichedInfo: Hashable {
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         hasher.combine(String(describing: "\(self.typeInfo.name)\(self.propertyInfo?.name)\(self.cardinality)"))
     }
 }

@@ -1,5 +1,6 @@
 import FluentSQLiteDriver
 import Apodini
+import ApodiniDatabase
 import XCTest
 
 open class XCTApodiniTest: XCTestCase {

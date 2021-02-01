@@ -15,7 +15,7 @@ public struct AnyComponent: Component, SyntaxTreeVisitable {
         _accept = component.accept
     }
     
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         _accept(visitor)
     }
 }
@@ -30,7 +30,7 @@ public struct AnyHandler: Handler, SyntaxTreeVisitable {
         _accept = handler.accept
     }
     
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         _accept(visitor)
     }
 }
