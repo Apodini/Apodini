@@ -6,7 +6,6 @@
 //  Created by Alexander Collins on 12.11.20.
 //
 
-@_implementationOnly import struct Vapor.Abort
 import Fluent
 import APNS
 import FCM
@@ -36,6 +35,13 @@ public class NotificationCenter {
         }
         return app
     }
+    
+    @Throws(.notFound, reason: "Could not find device in database.")
+    private var notFoundDevice: ApodiniError
+    
+    @Throws(.notFound, reason: "Could not find topic in database.")
+    private var notFoundTopic: ApodiniError
+
 
     /// Property to directly use the [APNS](https://github.com/vapor/apns) library.
     internal var apns: APNSwiftClient {
@@ -99,7 +105,7 @@ public class NotificationCenter {
             .filter(\.$id == id)
             .with(\.$topics)
             .first()
-            .unwrap(or: Abort(.notFound))
+            .unwrap(or: self.notFoundDevice)
             .map { $0.transform() }
     }
     
@@ -140,7 +146,7 @@ public class NotificationCenter {
                 devices.with(\.$topics)
             }
             .first()
-            .unwrap(or: Abort(.notFound))
+            .unwrap(or: self.notFoundDevice)
             .map { topic in
                 topic.devices.map {
                     $0.transform()
@@ -159,7 +165,7 @@ public class NotificationCenter {
     public func addTopics(_ topicStrings: String..., to device: Device) -> EventLoopFuture<Void> {
         DeviceDatabaseModel
             .find(device.id, on: app.db)
-            .unwrap(or: Abort(.notFound))
+            .unwrap(or: self.notFoundDevice)
             .flatMap { deviceDatabaseModel -> EventLoopFuture<Void> in
                 self.attach(topics: topicStrings, to: deviceDatabaseModel)
             }
@@ -178,11 +184,11 @@ public class NotificationCenter {
             .query(on: app.db)
             .filter(\.$name == topic)
             .first()
-            .unwrap(or: Abort(.notFound))
+            .unwrap(or: self.notFoundTopic)
             .flatMap { topicModel in
                 DeviceDatabaseModel
                     .find(device.id, on: self.app.db)
-                    .unwrap(or: Abort(.notFound))
+                    .unwrap(or: self.notFoundDevice)
                     .flatMap { deviceDatabaseModel -> EventLoopFuture<Void> in
                         deviceDatabaseModel.$topics.detach(topicModel, on: self.app.db)
                     }
@@ -198,7 +204,7 @@ public class NotificationCenter {
     public func delete(device: Device) -> EventLoopFuture<Void> {
         DeviceDatabaseModel
             .find(device.id, on: app.db)
-            .unwrap(or: Abort(.notFound))
+            .unwrap(or: self.notFoundDevice)
             .flatMap { $0.delete(on: self.app.db) }
     }
     
@@ -217,10 +223,10 @@ public class NotificationCenter {
                 .first()
                 .flatMap { result in
                     if let topic = result {
-                        return device.$topics.attach(topic, on: self.app.db)
+                        return device.$topics.attach(topic, method: .ifNotExists, on: self.app.db)
                     } else {
                         return topic.save(on: self.app.db).flatMap {
-                            device.$topics.attach(topic, on: self.app.db)
+                            device.$topics.attach(topic, method: .ifNotExists, on: self.app.db)
                         }
                     }
                 }

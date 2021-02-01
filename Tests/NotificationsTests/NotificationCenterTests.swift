@@ -58,6 +58,9 @@ final class NotificationCenterTests: XCTApodiniTest {
         let topic = "test"
         let device = Device(id: "321", type: .apns, topics: [topic])
         
+        // Try notFound
+        XCTAssertThrowsError(try notificationCenter.delete(device: device).wait(), "Could not find device in database.")
+        
         try notificationCenter.register(device: device).wait()
 
         try notificationCenter.delete(device: device).wait()
@@ -77,6 +80,8 @@ final class NotificationCenterTests: XCTApodiniTest {
         try notificationCenter.register(device: device).wait()
         try notificationCenter.register(device: device2).wait()
         try notificationCenter.addTopics("topic1", "topic2", "topic3", to: device).wait()
+        // Check if .unique on topics constraint isn't violated
+        try notificationCenter.addTopics("topic1", "topic2", "topic3", to: device).wait()
         try notificationCenter.addTopics("topic1", to: device2).wait()
         let deviceReturn = try notificationCenter.getDevice(id: device.id).wait()
         let deviceTopics = deviceReturn.topics ?? []
@@ -91,7 +96,16 @@ final class NotificationCenterTests: XCTApodiniTest {
         let topic = "topic"
         let device = Device(id: "789", type: .apns, topics: [topic])
         
+        // Check
+        XCTAssertThrowsError(try notificationCenter.remove(topic: topic, from: device).wait())
+        
+        let device2 = Device(id: "010", type: .apns, topics: [topic])
+        try notificationCenter.register(device: device2).wait()
+        
+        XCTAssertThrowsError(try notificationCenter.remove(topic: topic, from: device).wait())
         try notificationCenter.register(device: device).wait()
+        
+        try notificationCenter.addTopics(topic, to: device).wait()
         try notificationCenter.remove(topic: topic, from: device).wait()
         let deviceReturn = try DeviceDatabaseModel
             .query(on: app.db)
