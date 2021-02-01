@@ -12,7 +12,7 @@ public struct AnyEncodable: Encodable {
     private let wrappedValue: Encodable
     
     
-    init(_ wrappedValue: Encodable) {
+    public init(_ wrappedValue: Encodable) {
         self.wrappedValue = wrappedValue
     }
     

@@ -4,6 +4,7 @@
 
 import XCTest
 @testable import Apodini
+@testable import ApodiniOpenAPI
 @_implementationOnly import Yams
 @_implementationOnly import OpenAPIKit
 import XCTVapor

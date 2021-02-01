@@ -8,6 +8,7 @@
 import XCTest
 import Vapor
 @testable import Apodini
+@testable import ApodiniREST
 
 
 final class SemanticModelBuilderTests: ApodiniTests {

@@ -1,4 +1,4 @@
-@testable import Notifications
+@testable import ApodiniNotifications
 import XCTest
 import XCTApodini
 

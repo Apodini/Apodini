@@ -10,8 +10,14 @@ let package = Package(
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
+        .library(name: "ApodiniVaporSupport", targets: ["ApodiniVaporSupport"]),
+        .library(name: "ApodiniREST", targets: ["ApodiniREST"]),
+        .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
+        .library(name: "ApodiniOpenAPI", targets: ["ApodiniOpenAPI"]),
+        .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
+        .library(name: "ApodiniProtobuffer", targets: ["ApodiniProtobuffer"]),
         .library(name: "ApodiniDatabase", targets: ["ApodiniDatabase"]),
-        .library(name: "Notifications", targets: ["Notifications"]),
+        .library(name: "Notifications", targets: ["ApodiniNotifications"]),
         .library(name: "Jobs", targets: ["Jobs"])
     ],
     dependencies: [
@@ -46,7 +52,6 @@ let package = Package(
         .target(
             name: "Apodini",
             dependencies: [
-                .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
@@ -54,19 +59,11 @@ let package = Package(
                 .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime"),
-                .product(name: "APNS", package: "apns"),
-                .product(name: "FCM", package: "FCM"),
-                .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                 .product(name: "Yams", package: "Yams"),
-                .target(name: "WebSocketInfrastructure"),
-                .target(name: "ProtobufferCoding"),
                 .product(name: "ConsoleKit", package: "console-kit")
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
-            ],
-            resources: [
-                .process("Resources")
             ]
         ),
         .target(
@@ -75,20 +72,105 @@ let package = Package(
                 .target(name: "Apodini")
             ]
         ),
+
+        .target(name: "ApodiniVaporSupport",
+                dependencies: [
+                    .target(name: "Apodini"),
+                    .product(name: "Vapor", package: "vapor")
+                ]
+        ),
+
+        .target(name: "ApodiniREST",
+                dependencies: [
+                    .target(name: "Apodini"),
+                    .target(name: "ApodiniVaporSupport")
+                ]
+        ),
+
+        .target(name: "ApodiniGRPC",
+                dependencies: [
+                    .target(name: "Apodini"),
+                    .target(name: "ApodiniVaporSupport")
+                ]
+        ),
+
+        .target(name: "ApodiniOpenAPI",
+                dependencies: [
+                    .target(name: "Apodini"),
+                    .target(name: "ApodiniVaporSupport"),
+                    .product(name: "OpenAPIKit", package: "OpenAPIKit")
+                ],
+                resources: [
+                    .process("Resources")
+                ]
+        ),
+
+        .target(name: "ApodiniWebSocket",
+                dependencies: [
+                    .target(name: "Apodini"),
+                    .target(name: "ApodiniVaporSupport"),
+                    .target(name: "WebSocketInfrastructure")
+                ]
+        ),
+
+        .target(name: "ApodiniProtobuffer",
+                dependencies: [
+                    .target(name: "Apodini"),
+                    .target(name: "ApodiniVaporSupport"),
+                    .target(name: "ProtobufferCoding"),
+                    .target(name: "ApodiniGRPC")
+
+                ]
+        ),
+
+        .target(
+            name: "ApodiniNotifications",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "APNS", package: "apns"),
+                .product(name: "FCM", package: "FCM")
+            ]
+        ),
+
+        .testTarget(
+            name: "NotificationsTests",
+            dependencies: [
+                .product(name: "XCTVapor", package: "vapor"),
+                .target(name: "ApodiniNotifications"),
+                .target(name: "XCTApodini")
+            ],
+            exclude: [
+                "Helper/mock_fcm.json",
+                "Helper/mock_invalid_fcm.json",
+                "Helper/mock.p8",
+                "Helper/mock.pem"
+            ]
+        ),
+
         .target(
             name: "XCTApodini",
             dependencies: [
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
-                .target(name: "Apodini")
+                .target(name: "Apodini"),
+                .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniREST"),
+                .target(name: "ApodiniGRPC"),
+                .target(name: "ApodiniProtobuffer"),
+                .target(name: "ApodiniOpenAPI"),
+                .target(name: "ApodiniWebSocket"),
+                .target(name: "ApodiniNotifications")
             ]
         ),
         .testTarget(
             name: "ApodiniTests",
             dependencies: [
-                .product(name: "XCTVapor", package: "vapor"),
                 .target(name: "XCTApodini"),
-                .target(name: "ApodiniDatabase")
+                .target(name: "ApodiniDatabase"),
+                .product(name: "XCTVapor", package: "vapor"),
+                .product(name: "OpenCombine", package: "OpenCombine"),
+                .product(name: "OpenCombineFoundation", package: "OpenCombine")
             ],
             exclude: [
                 "ConfigurationTests/Certificates/cert.pem",
@@ -136,27 +218,6 @@ let package = Package(
             dependencies: [
                 .target(name: "Jobs"),
                 .target(name: "XCTApodini")
-            ]
-        ),
-        // Notifications
-        .target(
-            name: "Notifications",
-            dependencies: [
-                .target(name: "Apodini")
-            ]
-        ),
-        .testTarget(
-            name: "NotificationsTests",
-            dependencies: [
-                .product(name: "XCTVapor", package: "vapor"),
-                .target(name: "Notifications"),
-                .target(name: "XCTApodini")
-            ],
-            exclude: [
-                "Helper/mock_fcm.json",
-                "Helper/mock_invalid_fcm.json",
-                "Helper/mock.p8",
-                "Helper/mock.pem"
             ]
         )
     ]

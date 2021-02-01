@@ -1,9 +1,10 @@
+import Foundation
 import XCTest
 import XCTApodini
 import NIO
 import Vapor
 @testable import Apodini
-import Foundation
+@testable import ApodiniREST
 
 class ObservedObjectTests: ApodiniTests {
     // check setting changed

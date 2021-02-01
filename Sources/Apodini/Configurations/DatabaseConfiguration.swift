@@ -1,5 +1,5 @@
 import Fluent
-@_implementationOnly import struct Vapor.Environment
+//@_implementationOnly import struct Vapor.Environment
 @_implementationOnly import FluentSQLiteDriver
 @_implementationOnly import FluentMySQLDriver
 @_implementationOnly import FluentPostgresDriver
@@ -9,7 +9,7 @@ import Fluent
 public final class DatabaseConfiguration: Configuration {
     private let type: DatabaseType
     private(set) var migrations: [Migration] = []
-    private var connectionString: String = Vapor.Environment.get("DATABASE_URL") ?? ""
+//    private var connectionString: String = Vapor.Environment.get("DATABASE_URL") ?? ""
     public var databaseID: DatabaseID {
         switch type {
         case .defaultMongoDB:

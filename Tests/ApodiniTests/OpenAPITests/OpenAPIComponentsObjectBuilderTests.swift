@@ -5,6 +5,7 @@
 import XCTest
 @_implementationOnly import OpenAPIKit
 @testable import Apodini
+@testable import ApodiniOpenAPI
 
 final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     let someString = "Some String"

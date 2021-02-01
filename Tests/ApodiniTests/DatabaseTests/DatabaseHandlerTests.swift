@@ -6,6 +6,7 @@ import Fluent
 @_implementationOnly import Runtime
 @testable import Apodini
 @testable import ApodiniDatabase
+@testable import ApodiniREST
 
 final class DatabaseHandlerTests: ApodiniTests {
     var vaporApp: Vapor.Application {

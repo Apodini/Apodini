@@ -52,18 +52,18 @@ extension WebService {
 
         webService.register(
             SemanticModelBuilder(app)
-                .with(exporter: RESTInterfaceExporter.self)
-                .with(exporter: WebSocketInterfaceExporter.self)
-                .with(exporter: OpenAPIInterfaceExporter.self)
-                .with(exporter: GRPCInterfaceExporter.self)
-                .with(exporter: ProtobufferInterfaceExporter.self)
+//                .with(exporter: RESTInterfaceExporter.self)
+//                .with(exporter: WebSocketInterfaceExporter.self)
+//                .with(exporter: OpenAPIInterfaceExporter.self)
+//                .with(exporter: GRPCInterfaceExporter.self)
+//                .with(exporter: ProtobufferInterfaceExporter.self)
         )
         
         // Adds the created application instance to `EnvironmentValues`.
         // Can be used `@Environment` to access properties.
         EnvironmentValues.shared.values[ObjectIdentifier(Application.Type.self)] = app
 
-        app.vapor.app.routes.defaultMaxBodySize = "1mb"
+//        app.vapor.app.routes.defaultMaxBodySize = "1mb"
     }
     
     
