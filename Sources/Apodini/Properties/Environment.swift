@@ -1,6 +1,6 @@
 /// A property wrapper to inject pre-defined values  to a `Component`.
 @propertyWrapper
-public struct Environment<K: KeyChain, Value>: Property {
+public struct Environment<K: EnvironmentAccessible, Value>: Property {
     /// Keypath to access an `EnvironmentValue`.
     internal var keyPath: KeyPath<K, Value>
     internal var dynamicValues: [KeyPath<K, Value>: Any] = [:]
@@ -14,7 +14,7 @@ public struct Environment<K: KeyChain, Value>: Property {
         self.keyPath = keyPath
     }
     
-    /// Initializer of `Environment` for key paths conforming to `KeyChain`.
+    /// Initializer of `Environment` for key paths conforming to `EnvironmentAccessible`.
     public init(_ keyPath: KeyPath<K, Value>) {
         self.keyPath = keyPath
     }
@@ -65,6 +65,6 @@ protocol ApplicationInjectable {
 }
 
 /// A protocol to define key paths that can be used with `@Environment` to retrieve pre-defined objects.
-public protocol KeyChain { }
+public protocol EnvironmentAccessible { }
 
-extension Application: KeyChain { }
+extension Application: EnvironmentAccessible { }

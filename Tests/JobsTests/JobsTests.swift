@@ -50,7 +50,7 @@ final class JobsTests: XCTApodiniTest {
         }
     }
     
-    struct KeyStore: KeyChain {
+    struct KeyStore: EnvironmentAccessible {
         var failingJob: FailingJob
         var failingJob2: FailingJob2
         var testJob: TestJob

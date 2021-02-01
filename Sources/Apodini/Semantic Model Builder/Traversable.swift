@@ -91,7 +91,7 @@ extension Connection {
 
 // MARK: Dynamic Environment Value
 extension Handler {
-    func environment<K: KeyChain, Value>(_ value: Value, for keyPath: WritableKeyPath<K, Value>) -> Self {
+    func environment<K: EnvironmentAccessible, Value>(_ value: Value, for keyPath: WritableKeyPath<K, Value>) -> Self {
         var selfCopy = self
 
         apply({ (environment: inout Environment<K, Value>) in

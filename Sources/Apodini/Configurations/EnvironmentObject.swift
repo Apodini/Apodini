@@ -1,7 +1,7 @@
 /// A `Configuration` which helps to store and retrieve objects using `@Environment` and the correspond key path.
 ///
 /// A warning will be displayed if this action will overwrite a stored property.
-public struct EnvironmentObject<Key: KeyChain, Value>: Configuration {
+public struct EnvironmentObject<Key: EnvironmentAccessible, Value>: Configuration {
     private let value: Value
     private let keyPath: KeyPath<Key, Value>
     
@@ -9,7 +9,7 @@ public struct EnvironmentObject<Key: KeyChain, Value>: Configuration {
     ///
     /// - Parameters:
     ///     - value: Object which is stored.
-    ///     - keyPath: Associates a key path conforming to `KeyChain` with the `value`.
+    ///     - keyPath: Associates a key path conforming to `EnvironmentAccessible` with the `value`.
     public init(_ value: Value, _ keyPath: KeyPath<Key, Value>) {
         self.value = value
         self.keyPath = keyPath

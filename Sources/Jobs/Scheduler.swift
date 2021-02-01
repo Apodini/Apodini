@@ -35,7 +35,7 @@ public class Scheduler {
     ///     - keyPath: Associates a `Job` for later retrieval.
     ///
     /// - Throws: If the `Job` uses request based property wrappers or the crontab cannot be parsed.
-    public func enqueue<K: KeyChain, T: Job>(_ job: T,
+    public func enqueue<K: EnvironmentAccessible, T: Job>(_ job: T,
                                              with cronTrigger: String,
                                              runs: Int? = nil,
                                              _ keyPath: KeyPath<K, T>) throws {
@@ -56,7 +56,7 @@ public class Scheduler {
     ///     - on: Specifies the event loop the `Job` is executed on.
     ///
     /// - Throws: If the `Job` uses request based property wrappers or the crontab cannot be parsed.
-    public func enqueue<K: KeyChain, T: Job>(_ job: T,
+    public func enqueue<K: EnvironmentAccessible, T: Job>(_ job: T,
                                              with cronTrigger: String,
                                              runs: Int? = nil,
                                              _ keyPath: KeyPath<K, T>,
@@ -111,7 +111,7 @@ public class Scheduler {
     /// - Parameter keyPath: Associatesd key path of a `Job`.
     ///
     /// - Throws: This method throws an exception if the `Job` cannot be found.
-    public func dequeue<K: KeyChain, T: Job>(_ keyPath: KeyPath<K, T>) throws {
+    public func dequeue<K: EnvironmentAccessible, T: Job>(_ keyPath: KeyPath<K, T>) throws {
         guard let config = jobConfigurations[ObjectIdentifier(keyPath)] else {
             throw JobErrors.notFound
         }
@@ -149,7 +149,7 @@ private extension Scheduler {
     }
     
     /// Generates the configuration of the `Job`.
-    func generateConfiguration<K: KeyChain, T: Job>(_ cronTrigger: String,
+    func generateConfiguration<K: EnvironmentAccessible, T: Job>(_ cronTrigger: String,
                                                     _ keyPath: KeyPath<K, T>,
                                                     _ eventLoop: EventLoop) throws -> JobConfiguration {
         let identifier = ObjectIdentifier(keyPath)

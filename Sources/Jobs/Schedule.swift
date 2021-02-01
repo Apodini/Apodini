@@ -3,7 +3,7 @@ import Apodini
 @_implementationOnly import SwifCron
 
 /// `Configuration` to start `Job`s at server startup.
-public class Schedule<K: KeyChain, T: Job>: Configuration {
+public class Schedule<K: EnvironmentAccessible, T: Job>: Configuration {
     private let job: T
     private let cronTrigger: String
     private let runs: Int?

@@ -37,7 +37,7 @@ final class EnvironmentTests: ApodiniTests {
             }
         }
 
-        struct Keys: KeyChain {
+        struct Keys: EnvironmentAccessible {
             var bird: BirdFacts
         }
 
@@ -50,7 +50,7 @@ final class EnvironmentTests: ApodiniTests {
     }
 
     func testDuplicateEnvironmentObjectInjection() throws {
-        struct Keys: KeyChain {
+        struct Keys: EnvironmentAccessible {
             var bird: BirdFacts
         }
 
@@ -164,6 +164,6 @@ extension Application {
     }
 }
 
-struct KeyStore: KeyChain {
+struct KeyStore: EnvironmentAccessible {
     var test: String
 }

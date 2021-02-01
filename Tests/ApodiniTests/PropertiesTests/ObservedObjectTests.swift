@@ -17,7 +17,7 @@ class ObservedObjectTests: ApodiniTests {
         }
     }
     
-    struct Keys: KeyChain {
+    struct Keys: EnvironmentAccessible {
         var testObservable: TestObservable
     }
     

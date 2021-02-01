@@ -77,9 +77,11 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         let operation = context.get(valueFor: OperationContextKey.self)
         let serviceType = context.get(valueFor: ServiceTypeContextKey.self)
         let paths = context.get(valueFor: PathComponentContextKey.self)
-         var guards = context.get(valueFor: GuardContextKey.self).allActiveGuards
+        var guards = context.get(valueFor: GuardContextKey.self).allActiveGuards
         var responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self)
         
+        // Injects the `Application` instance
+        let appInjectedHandler = handler.inject(app: app)
         guards = applicationInjectables(to: guards)
         responseTransformers = applicationInjectables(to: responseTransformers)
         
@@ -92,7 +94,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
                     return AnyHandlerIdentifier(handlerIndexPath.rawValue)
                 }
             }(),
-            handler: handler.inject(app: app),
+            handler: appInjectedHandler,
             context: context,
             operation: operation,
             serviceType: serviceType,

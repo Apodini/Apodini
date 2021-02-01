@@ -61,7 +61,7 @@ public struct ObservedObject<Element: ObservableObject>: Property {
     }
     
     /// Element is injected with a key path.
-    public init<Key: KeyChain>(_ keyPath: KeyPath<Key, Element>) {
+    public init<Key: EnvironmentAccessible>(_ keyPath: KeyPath<Key, Element>) {
         self.objectIdentifier = ObjectIdentifier(keyPath)
         self._initializer = nil
     }
