@@ -46,19 +46,16 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         let creationHandler = CreateAll<Bird>()
         
-        let request = MockRequest.createRequest(on: creationHandler, running: app.eventLoopGroup.next(), queuedParameters: [bird, bird2])
-        let response = try request.enterRequestContext(with: creationHandler, executing: { component in
-            component.handle()
-        })
-        .wait()
+        let response = try XCTUnwrap(mockQuery(component: creationHandler, value: [Bird].self, app: app, queued: [bird, bird2]))
+
         XCTAssert(!response.isEmpty)
         XCTAssert(response.contains(bird))
         XCTAssert(response.contains(bird2))
         
-        let foundBird1 = try XCTUnwrap(try Bird.find(response[0].id, on: app.db).wait())
+        let foundBird1 = try XCTUnwrap(try Bird.find(response[0].id, on: app.database).wait())
         XCTAssertNotNil(foundBird1)
         XCTAssert(response.contains(foundBird1))
-        let foundBird2 = try XCTUnwrap(try Bird.find(response[1].id, on: app.db).wait())
+        let foundBird2 = try XCTUnwrap(try Bird.find(response[1].id, on: app.database).wait())
         XCTAssertNotNil(foundBird2)
         XCTAssert(response.contains(foundBird2))
     }
