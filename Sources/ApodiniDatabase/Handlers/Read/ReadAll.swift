@@ -34,6 +34,10 @@ public struct ReadAll<Model: DatabaseModel>: Handler {
             }
             .compactMapValues { $0 }
             .filter { _, value in value != .noValue }
+        // if no query dict is empty, return all items
+        guard !queryInfo.isEmpty else {
+            return Model.query(on: database).all()
+        }
         let queryBuilder = QueryBuilder(type: Model.self, parameters: queryInfo)
         return queryBuilder.execute(on: database)
     }

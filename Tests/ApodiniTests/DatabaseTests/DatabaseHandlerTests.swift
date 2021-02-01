@@ -40,6 +40,29 @@ final class DatabaseHandlerTests: ApodiniTests {
         XCTAssertEqual(response, foundBird)
     }
     
+    func testCreateAllHandler() throws {
+        let bird = Bird(name: "Mockingbird", age: 20)
+        let bird2 = Bird(name: "Hummingbird", age: 25)
+        
+        let creationHandler = CreateAll<Bird>()
+        
+        let request = MockRequest.createRequest(on: creationHandler, running: app.eventLoopGroup.next(), queuedParameters: [bird, bird2])
+        let response = try request.enterRequestContext(with: creationHandler, executing: { component in
+            component.handle()
+        })
+        .wait()
+        XCTAssert(!response.isEmpty)
+        XCTAssert(response.contains(bird))
+        XCTAssert(response.contains(bird2))
+        
+        let foundBird1 = try XCTUnwrap(try Bird.find(response[0].id, on: app.db).wait())
+        XCTAssertNotNil(foundBird1)
+        XCTAssert(response.contains(foundBird1))
+        let foundBird2 = try XCTUnwrap(try Bird.find(response[1].id, on: app.db).wait())
+        XCTAssertNotNil(foundBird2)
+        XCTAssert(response.contains(foundBird2))
+    }
+    
     func testSingleReadHandler() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
         let dbBird = try bird

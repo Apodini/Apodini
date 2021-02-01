@@ -1,4 +1,5 @@
 import Fluent
+import Apodini
 @_implementationOnly import struct Vapor.Environment
 @_implementationOnly import FluentSQLiteDriver
 @_implementationOnly import FluentMySQLDriver
