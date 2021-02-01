@@ -26,7 +26,7 @@ struct UserComponent: Component {
                     .relationship(name: "posts")
                 $postId
             } content: {
-                PostHandler(postId: $postId)
+                PostHandler(userId: $userId, postId: $postId)
                     .guard(LogGuard())
             }
         }

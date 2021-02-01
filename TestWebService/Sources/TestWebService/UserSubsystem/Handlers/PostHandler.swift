@@ -6,6 +6,7 @@ import Foundation
 import Apodini
 
 struct PostHandler: Handler {
+    @Parameter var userId: Int
     @Parameter var postId: UUID
 
     func handle() -> Post {
