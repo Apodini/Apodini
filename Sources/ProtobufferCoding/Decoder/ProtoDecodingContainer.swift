@@ -15,9 +15,14 @@ import Foundation
 /// Offers basic functionality shared by several decoding containers for Protobuffers.
 internal class InternalProtoDecodingContainer {
     var codingPath: [CodingKey]
+    /// The strategy that this container uses to encode `Int`s and `UInt`s.
+    ///
+    /// Set to `nil` (default) to use the architectures bit width.
+    public var variableWidthIntegerStrategy: VariableWidthIntegerStrategy
 
-    internal init(codingPath: [CodingKey] = []) {
+    internal init(codingPath: [CodingKey] = [], variableWidthIntegerStrategy: VariableWidthIntegerStrategy) {
         self.codingPath = codingPath
+        self.variableWidthIntegerStrategy = variableWidthIntegerStrategy
     }
 
     /// Taken from SwiftProtobuf:
@@ -209,9 +214,9 @@ internal extension Int {
         guard let value = value else {
             throw ProtoError.decodingError("No data to initialize from")
         }
-        if MemoryLayout<Int>.size == 4 {
+        if container.variableWidthIntegerStrategy == .thirtyTwo {
             try self.init(container.decodeInt32(value))
-        } else if MemoryLayout<Int>.size == 8 {
+        } else if container.variableWidthIntegerStrategy == .sixtyFour {
             try self.init(container.decodeInt64(value))
         } else {
             throw ProtoError.decodingError("Unknown width of Int type")
@@ -224,9 +229,9 @@ internal extension UInt {
         guard let value = value else {
             throw ProtoError.decodingError("No data to initialize from")
         }
-        if MemoryLayout<UInt>.size == 4 {
+        if container.variableWidthIntegerStrategy == .thirtyTwo {
             try self.init(container.decodeUInt32(value))
-        } else if MemoryLayout<UInt>.size == 8 {
+        } else if container.variableWidthIntegerStrategy == .sixtyFour {
             try self.init(container.decodeUInt64(value))
         } else {
             throw ProtoError.decodingError("Unknown width of UInt type")
@@ -240,9 +245,9 @@ internal extension Array where Element == Int {
             throw ProtoError.decodingError("No data to initialize from")
         }
         self.init()
-        if MemoryLayout<Int>.size == 4 {
+        if container.variableWidthIntegerStrategy == .thirtyTwo {
             try container.decodeRepeatedInt32(value).forEach { self.append(Int($0)) }
-        } else if MemoryLayout<Int>.size == 8 {
+        } else if container.variableWidthIntegerStrategy == .sixtyFour {
             try container.decodeRepeatedInt64(value).forEach { self.append(Int($0)) }
         }
     }
@@ -254,9 +259,9 @@ internal extension Array where Element == UInt {
             throw ProtoError.decodingError("No data to initialize from")
         }
         self.init()
-        if MemoryLayout<UInt>.size == 4 {
+        if container.variableWidthIntegerStrategy == .thirtyTwo {
             try container.decodeRepeatedUInt32(value).forEach { self.append(UInt($0)) }
-        } else if MemoryLayout<UInt>.size == 8 {
+        } else if container.variableWidthIntegerStrategy == .sixtyFour {
             try container.decodeRepeatedUInt64(value).forEach { self.append(UInt($0)) }
         }
     }

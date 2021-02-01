@@ -20,12 +20,15 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
         currentIndex >= values.count
     }
 
-    init(from data: [[Data]], codingPath: [CodingKey] = [], referencedBy: Data? = nil) {
+    init(from data: [[Data]],
+         codingPath: [CodingKey] = [],
+         variableWidthIntegerStrategy: VariableWidthIntegerStrategy,
+         referencedBy: Data? = nil) {
         self.currentIndex = 0
         self.values = data
         self.referencedBy = referencedBy
 
-        super.init(codingPath: codingPath)
+        super.init(codingPath: codingPath, variableWidthIntegerStrategy: variableWidthIntegerStrategy)
     }
 
     private func popNext() -> [Data] {
@@ -244,21 +247,21 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws
     -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
         if let value = popNext().last {
-            return try InternalProtoDecoder(from: value).container(keyedBy: type)
+            return try InternalProtoDecoder(from: value, with: variableWidthIntegerStrategy).container(keyedBy: type)
         }
         throw ProtoError.unsupportedDataType("nestedContainer not available")
     }
 
     func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
         if let value = popNext().last {
-            return try InternalProtoDecoder(from: value).unkeyedContainer()
+            return try InternalProtoDecoder(from: value, with: variableWidthIntegerStrategy).unkeyedContainer()
         }
         throw ProtoError.unsupportedDataType("nestedUnkeyedContainer not available")
     }
 
     func superDecoder() throws -> Decoder {
         if let referencedBy = referencedBy {
-            return InternalProtoDecoder(from: referencedBy)
+            return InternalProtoDecoder(from: referencedBy, with: variableWidthIntegerStrategy)
         }
         throw ProtoError.unsupportedDecodingStrategy("Cannot decode super")
     }
