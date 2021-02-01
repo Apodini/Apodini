@@ -13,7 +13,7 @@ class MultiInheritanceTests: ApodiniTests {
 
         static var relationships: Relationships {
             Inherits<TestB> {
-                Identifying<TestC>(at: \.customC)
+                Identifying<TestC>(identifiedBy: \.customC)
             }
         }
     }
@@ -23,7 +23,7 @@ class MultiInheritanceTests: ApodiniTests {
         var cId: String
 
         static var relationships: Relationships {
-            Inherits<TestC>(at: \.cId)
+            Inherits<TestC>(identifiedBy: \.cId)
         }
     }
 
@@ -32,7 +32,7 @@ class MultiInheritanceTests: ApodiniTests {
         var cId: String
 
         static var relationships: Relationships {
-            Inherits<TestC>(at: \.cId)
+            Inherits<TestC>(identifiedBy: \.cId)
         }
     }
 

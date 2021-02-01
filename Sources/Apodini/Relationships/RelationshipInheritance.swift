@@ -27,7 +27,7 @@ public struct RelationshipInheritance<From, To>: RelationshipDefinition {
     ///   - identifications: A list of resolvers for path parameter of the destination.
     public init(
         from type: To.Type = To.self,
-        @RelationshipIdentificationBuilder<From> at identifications: () -> [AnyRelationshipIdentification]
+        @RelationshipIdentificationBuilder<From> identifiedBy identifications: () -> [AnyRelationshipIdentification]
     ) {
         self.init(from: type, resolvers: identifications().map { $0.resolver })
     }
@@ -39,9 +39,9 @@ extension RelationshipInheritance where To: Identifiable, To.ID: LosslessStringC
     /// - Parameters:
     ///   - type: The type to inherit from.
     ///   - keyPath: A resolver for a path parameter of the destination.
-    public init(from type: To.Type = To.self, at keyPath: KeyPath<From, To.ID>) {
+    public init(from type: To.Type = To.self, identifiedBy keyPath: KeyPath<From, To.ID>) {
         self.init(from: type) {
-            RelationshipIdentification(type, at: keyPath)
+            RelationshipIdentification(type, identifiedBy: keyPath)
         }
     }
 }
@@ -51,7 +51,7 @@ extension RelationshipInheritance where From: Identifiable, To: Identifiable, Fr
     /// As the source type inherits from `Identifiable` the `Identifiable.id` property is automatically added as a resolver.
     /// - Parameter type: The type to inherit from.
     public init(from type: To.Type = To.self) {
-        self.init(from: type, at: \From.id)
+        self.init(from: type, identifiedBy: \From.id)
     }
 }
 

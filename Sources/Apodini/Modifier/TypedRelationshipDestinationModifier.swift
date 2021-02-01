@@ -33,7 +33,7 @@ extension Handler {
     ///   - name: The name of the relationship.
     ///   - type: The return type of the `Handler` the relationship points to.
     /// - Returns: The modified `Handler` with the added Relationship.
-    public func relationship<To>(name: String, on type: To.Type) -> TypedRelationshipDestinationModifier<Self, To> {
+    public func relationship<To>(name: String, to type: To.Type) -> TypedRelationshipDestinationModifier<Self, To> {
         TypedRelationshipDestinationModifier(self, name, type)
     }
 }

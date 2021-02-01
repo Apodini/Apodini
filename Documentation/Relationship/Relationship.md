@@ -275,7 +275,7 @@ struct Article: Identifiable, WithRelationships {
   var writtenBy: String
 
   static var relationships: some RelationshipDefinition {
-    References<User>(as: "author", at: \.writtenBy)
+    References<User>(as: "author", identifiedBy: \.writtenBy)
   }
 }
 // ...
@@ -344,8 +344,8 @@ We have seen how this can work automatically in [2.3.1](#231-implicitly), when t
 But as explained, this isn't possible if the return types don't match up.
 
 Instead the user can explicitly define a `self` relationship. As we don't want the user to rely on any magic string constant
-(e.g. by defining `References<User>(as: "self", at: \.id)`) we introduce another relationship definition
-type `Inherits<User>(at: \.id)`. 
+(e.g. by defining `References<User>(as: "self", identifiedBy: \.id)`) we introduce another relationship definition
+type `Inherits<User>(identifiedBy: \.id)`. 
 Additionally a `References` definition MUST NOT have the reserved name `self`.  
 Similar to [2.3.1](#231-implicitly) such a `Inherits` definition will inherit all relationship information from the
 destination.
@@ -358,7 +358,7 @@ struct MeUser: Identifiable, WithRelationships {
   var loginToken: String
 
   static var relationships: some RelationshipDefinition {
-    Inherits<User>(at: \.id)
+    Inherits<User>(identifiedBy: \.id)
   }
 }
 // ...

@@ -15,10 +15,10 @@ final class RelationshipPreliminaryTests: XCTestCase {
     }
 
     func testReferenceCreation() {
-        _ = RelationshipReference<Model, Model2>(as: "reference", at: \Model.id)
+        _ = RelationshipReference<Model, Model2>(as: "reference", identifiedBy: \Model.id)
     }
 
     func testInheritanceCreation() {
-        _ = RelationshipInheritance<Model, Model2>(at: \Model.id)
+        _ = RelationshipInheritance<Model, Model2>(identifiedBy: \Model.id)
     }
 }

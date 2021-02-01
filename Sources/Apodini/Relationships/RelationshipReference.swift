@@ -15,9 +15,9 @@ public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinit
     ///   - type: The reference type.
     ///   - name: The name of the reference.
     ///   - keyPath: A resolver for the path parameter of the destination.
-    public init(to type: To.Type = To.self, as name: String, at keyPath: KeyPath<From, To.ID>) {
+    public init(to type: To.Type = To.self, as name: String, identifiedBy keyPath: KeyPath<From, To.ID>) {
         self.init(to: type, as: name) {
-            RelationshipIdentification(type, at: keyPath)
+            RelationshipIdentification(type, identifiedBy: keyPath)
         }
     }
 
@@ -26,9 +26,9 @@ public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinit
     ///   - type: The reference type.
     ///   - name: The name of the reference.
     ///   - keyPath: A resolver for the path parameter of the destination.
-    public init(to type: To.Type = To.self, as name: String, at keyPath: KeyPath<From, To.ID?>) {
+    public init(to type: To.Type = To.self, as name: String, identifiedBy keyPath: KeyPath<From, To.ID?>) {
         self.init(to: type, as: name) {
-            RelationshipIdentification(type, at: keyPath)
+            RelationshipIdentification(type, identifiedBy: keyPath)
         }
     }
 
@@ -40,7 +40,7 @@ public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinit
     public init(
         to type: To.Type = To.self,
         as name: String,
-        @RelationshipIdentificationBuilder<From> at identifications: () -> [AnyRelationshipIdentification]
+        @RelationshipIdentificationBuilder<From> identifiedBy identifications: () -> [AnyRelationshipIdentification]
     ) {
         self.name = name
         self.destinationType = type

@@ -24,7 +24,7 @@ public struct RelationshipIdentification<From, To: Identifiable> where To.ID: Lo
     /// - Parameters:
     ///   - type: The identifying type of the `PathParameter` to provide a resolved value.
     ///   - keyPath: KeyPath to the property holding a value for the path parameter.
-    public init(_ type: To.Type = To.self, at keyPath: KeyPath<From, To.ID>) {
+    public init(_ type: To.Type = To.self, identifiedBy keyPath: KeyPath<From, To.ID>) {
         self.type = type
         self.keyPath = keyPath
     }
@@ -33,7 +33,7 @@ public struct RelationshipIdentification<From, To: Identifiable> where To.ID: Lo
     /// - Parameters:
     ///   - type: The identifying type of the `PathParameter` to provide a resolved value.
     ///   - keyPath: KeyPath to the property holding a value for the path parameter.
-    public init(_ type: To.Type = To.self, at keyPath: KeyPath<From, To.ID?>) {
+    public init(_ type: To.Type = To.self, identifiedBy keyPath: KeyPath<From, To.ID?>) {
         self.type = type
         self.keyPath = keyPath
     }

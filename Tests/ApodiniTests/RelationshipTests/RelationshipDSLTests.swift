@@ -14,9 +14,9 @@ class RelationshipDSLTests: ApodiniTests {
         var cId: Int
 
         static var relationships: Relationships {
-            References<Post>(as: "tagged", at: \.taggedPost)
-            Relationship(name: "TestA", of: TestA.self)
-            Relationship(name: "TestC", of: TestC.self, parameter: \.cId)
+            References<Post>(as: "tagged", identifiedBy: \.taggedPost)
+            Relationship(name: "TestA", to: TestA.self)
+            Relationship(name: "TestC", to: TestC.self, parameter: \.cId)
         }
     }
 
@@ -128,7 +128,7 @@ class RelationshipDSLTests: ApodiniTests {
         }
         Group("authenticated") {
             AuthenticatedUserHandler() // 0
-                .relationship(name: "TestB", on: TestB.self)
+                .relationship(name: "TestB", to: TestB.self)
         }
         Group("me") {
             MeUserHandler() // 1
@@ -167,7 +167,7 @@ class RelationshipDSLTests: ApodiniTests {
         var referenced: String?
 
         static var relationships: Relationships {
-            References<Referenced>(as: "referenced", at: \.referenced)
+            References<Referenced>(as: "referenced", identifiedBy: \.referenced)
         }
     }
 

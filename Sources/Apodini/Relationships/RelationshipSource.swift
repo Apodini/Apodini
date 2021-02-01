@@ -16,7 +16,7 @@ public struct RelationshipSource<From, To>: RelationshipDefinition {
     /// - Parameters:
     ///   - name: The name of the relationship.
     ///   - type: The return type of the relationship destination.
-    public init(name: String, of type: To.Type = To.self) {
+    public init(name: String, to type: To.Type = To.self) {
         self.name = name
         self.destinationType = type
         self.resolvers = []
@@ -32,9 +32,9 @@ extension RelationshipSource where To: Identifiable, To.ID: LosslessStringConver
     ///   - name: The name of the relationship.
     ///   - type: The return type of the relationship destination.
     ///   - keyPath: A resolver for a path parameter of the destination.
-    public init(name: String, of type: To.Type = To.self, parameter keyPath: KeyPath<From, To.ID>) {
-        self.init(name: name, of: type) {
-            RelationshipIdentification(type, at: keyPath)
+    public init(name: String, to type: To.Type = To.self, parameter keyPath: KeyPath<From, To.ID>) {
+        self.init(name: name, to: type) {
+            RelationshipIdentification(type, identifiedBy: keyPath)
         }
     }
 
@@ -46,7 +46,7 @@ extension RelationshipSource where To: Identifiable, To.ID: LosslessStringConver
     ///   - identifications: A list of resolvers for path parameter of the destination.
     public init(
         name: String,
-        of type: To.Type = To.self,
+        to type: To.Type = To.self,
         @RelationshipIdentificationBuilder<From> parameters identifications: () -> [AnyRelationshipIdentification]
     ) {
         self.name = name
