@@ -15,9 +15,6 @@ import SotoApiGatewayV2
 import OpenAPIKit
 
 
-// This **must** be the very first statement in here! // TOOD might be able to get rid of this by forking instead?
-try Task.handleChildProcessInvocationIfNecessary()
-
 
 // TODO
 // - need to encode the api gateway id into the lambda name, otherwise, if you want to deploy the same web service to multiple api gateways,

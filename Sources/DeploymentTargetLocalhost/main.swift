@@ -19,10 +19,6 @@ import Darwin
 
 // TODO rename ExportedEndpoint to ExportedEndpointInfo or smth like that!
 
-// TODO if we add a C target, which the target containing tge Task implementation links against (or even add a C file to the target itself), and that target contains a static ctor, we can remove these calls!
-try Task.handleChildProcessInvocationIfNecessary()
-
-
 
 
 enum DeployError: Error {

@@ -16,7 +16,8 @@ import DeploymentTargetAWSLambdaRuntime
 
 struct TestHandler: Handler {
     func handle() throws -> String {
-        "owoooo"
+        fatalError("ugh")
+        return "owoooo"
     }
     
     static var deploymentOptions: HandlerDeploymentOptions {

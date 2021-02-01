@@ -57,6 +57,7 @@ extension WebService {
     /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.main()` to startup an Apodini `WebService`.
     /// - Parameter app: The app instance that should be injected in the Apodini `WebService`
     static func main(app: Application) {
+        print("Apodini.args", CommandLine.arguments)
         let webService = Self()
 
         webService.configuration.configure(app)

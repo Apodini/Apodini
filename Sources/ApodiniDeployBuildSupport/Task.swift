@@ -7,6 +7,7 @@
 
 import Foundation
 import Dispatch
+import CApodiniDeployBuildSupport
 
 #if os(Linux)
 import Glibc
@@ -51,6 +52,10 @@ class ThreadSafeVariable<T> {
 public class Task {
     private static let taskPool = ThreadSafeVariable<Set<Task>>([])
     private static var didRegisterAtexitHandler = false
+    
+    // value for argv[1] if we're supposed to turn into a child process invocation
+    private static let processIsChildProcessInvocationWrapper =
+        String(cString: ApodiniProcessIsChildInvocationWrapperCLIArgument)
     
     
     public enum TaskError: Swift.Error {
@@ -114,8 +119,10 @@ public class Task {
         precondition(!didRun)
         print("-[\(Self.self) \(#function)] \(taskStringRepresentation)")
         if launchInCurrentProcessGroup {
-            process.executableURL = LKGetCurrentExecutableUrl()
-            process.arguments = [Self.ProcessIsChildProcessInvocationWrapper, self.executableUrl.path] + self.arguments
+            //process.executableURL = LKGetCurrentExecutableUrl()
+            //process.arguments = [Self.processIsChildProcessInvocationWrapper, self.executableUrl.path] + self.arguments
+            process.executableURL = self.executableUrl
+            process.arguments = self.arguments
             Self.taskPool.write { set in
                 set.insert(self)
             }
@@ -245,42 +252,5 @@ extension Pipe {
             throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unable to read string from pipe"])
         }
         return string
-    }
-}
-
-
-
-extension Task {
-    // value for argv[1] if we're supposed to turn into a child process invocation
-    private static let ProcessIsChildProcessInvocationWrapper = "__ApodiniDeployCLI.ProcessIsChildProcessInvocationWrapper"
-    
-    
-    /// If this process is the a child invocation wrapper, sets up and launches the child process. In this case, this function will not return.
-    /// Otherwise, nothing will happen and this function will return.
-    /// - Note: You have to **call this function as early as possible** in the program execution!!!
-    public static func handleChildProcessInvocationIfNecessary() throws {
-        guard CommandLine.arguments[lk_safe: 1] == ProcessIsChildProcessInvocationWrapper else {
-            return
-        }
-        
-        // adjust our group id to match the parent
-        let PI = ProcessInfo.processInfo
-        try throwIfPosixError(setpgid(PI.processIdentifier, PI.lk_parentGroupId))
-        
-        // the arguments to pass to the child. first arg is the executable path
-        let childArgv = CommandLine.arguments.dropFirst(2)
-        
-        let argv = UnsafeMutableBufferPointer<UnsafeMutablePointer<CChar>?>.allocate(capacity: childArgv.count + 1) // +1 bc the array is null-terminated
-        argv.initialize(repeating: nil)
-        for (idx, argString) in childArgv.enumerated() {
-            argString.withCString { ptr in
-                argv[idx] = strdup(ptr) // making a copy, just to be safe. not that it would matter, given we're about to nuke the current process
-            }
-        }
-        
-        print("+[\(Self.self) \(#function)] execve(\(childArgv.first!), \(childArgv.dropFirst()), \(environ))")
-        execve(argv[0]!, argv.baseAddress!, environ)
-        perror("execve failed")
-        exit(EXIT_FAILURE)
     }
 }

@@ -217,77 +217,7 @@ class AWSDeploymentStuff { // needs a better name
                 s3BucketName: s3BucketName,
                 s3ObjectKey: s3ObjectKey
             )
-//            let functionConfig: Lambda.FunctionConfiguration = try { [unowned self] in
-//                if let function = allFunctions.first(where: { $0.functionName == lambdaName }) {
-//                    logger.notice("Found existing lambda function w/ matching name. Updating code")
-//                    let updateCodeRequest = Lambda.UpdateFunctionCodeRequest(
-//                        functionName: function.functionName!,
-//                        s3Bucket: s3BucketName,
-//                        s3Key: s3ObjectKey
-//                    )
-//
-//                    let handlerDeploymentOptions = handlerTypeDeploymentOptions[exportedEndpoint.handlerTypeIdentifier]
-//
-//                    let updateConfigReq = Lambda.UpdateFunctionConfigurationRequest(
-//                        //description: <#T##String?#>,
-//                        //environment: <#T##Lambda.Environment?#>,
-//                        //functionName: <#T##String#>,
-//                        //handler: <#T##String?#>,
-//
-//                        memorySize: handlerDeploymentOptions?.getValue(forOptionKey: LambdaOpt),
-//                        role: <#T##String?#>,
-//                        timeout: <#T##Int?#>
-//                    )
-//
-//                    return try lambda.updateFunctionCode(updateCodeRequest).wait()
-//                } else {
-//                    logger.notice("Creating new lambda function \(s3BucketName) \(s3ObjectKey)")
-//                    let executionRoleArn = try createLambdaExecutionRole().arn
-//                    let createFunctionRequest = Lambda.CreateFunctionRequest(
-//                        code: .init(s3Bucket: s3BucketName, s3Key: s3ObjectKey),
-//                        description: "Apodini-created lambda function",
-//                        environment: nil, //.init(variables: [String : String]?.none), // TODO?
-//                        functionName: lambdaName,
-//                        handler: "apodini.main", // doesn;t actually matter
-//                        memorySize: nil, // TODO
-//                        packageType: .zip,
-//                        publish: true,
-//                        role: executionRoleArn,
-//                        runtime: .providedAl2,
-//                        tags: nil, // [String : String]?.none,
-//                        timeout: nil // default is 3?
-//                    )
-//
-//                    // The issue here is that, if the IAM role assigned to the new lambda is a newly created role,
-//                    // AWS doesn't always let us reference the role, and fails with a "The role defined for the function cannot be assumed by Lambda"
-//                    // error message. There is in fact nothing wrong with the role (it can be assumed by the lambda), but
-//                    // we, in some cases, have to wait a couple of seconds after creating the IAM role before we can create
-//                    // a lambda function referencing it.
-//                    // We work around this by, if the function creation failed, checking whether it failed because the IAM role
-//                    // wasn't "ready" yet, and, if that is the case, retrying after a couple of seconds.
-//                    // see also: https://stackoverflow.com/q/36419442
-//                    func createLambdaImp(iteration: Int = 1) throws -> Lambda.FunctionConfiguration {
-//                        do {
-//                            return try lambda.createFunction(createFunctionRequest).wait()
-//                        } catch let error as LambdaErrorType {
-//                            guard
-//                                error.errorCode == LambdaErrorType.invalidParameterValueException.errorCode,
-//                                error.context?.message == "The role defined for the function cannot be assumed by Lambda.",
-//                                iteration < 7
-//                            else {
-//                                throw error
-//                            }
-//                            sleep(UInt32(2 * iteration)) // linear wait time. not perfect but whatever
-//                            return try createLambdaImp(iteration: iteration + 1)
-//                        }
-//                    }
-//                    return try createLambdaImp()
-//                }
-//            }()
-            
-            
             nodeToLambdaFunctionMapping[node.id] = functionConfig
-            
             
             func grantLambdaPermissions(appiGatewayRessourcePattern pattern: String) throws {
                 // https://docs.aws.amazon.com/lambda/latest/dg/services-apigateway.html
@@ -331,8 +261,7 @@ class AWSDeploymentStuff { // needs a better name
         }
         
         
-        // TODO add a second __apdini/invoke/handlerId endpoint for each handler
-        // (we cant make this use the catch-all route since we want it dispatched to different lambdas based on the invoked handler
+        // Add lambda integration metadata for each endpoint
         apiGatewayImportDef.paths = apiGatewayImportDef.paths.mapValues { (pathItem: OpenAPI.PathItem) -> OpenAPI.PathItem in
             var pathItem = pathItem
             for endpoint in pathItem.endpoints {
@@ -356,6 +285,7 @@ class AWSDeploymentStuff { // needs a better name
         }
         
         
+        // Add the endpoints of the internal invocation API
         for (path, pathItem) in apiGatewayImportDef.paths {
             for endpoint in pathItem.endpoints {
                 let handlerId: String = endpoint.operation.vendorExtensions["x-handlerId"]?.value as! String

@@ -83,6 +83,18 @@ public struct DeploymentConfig: Codable {
 
 
 
+// TODO?
+public struct DeploymentConfigV2: Codable {
+    public init(
+        
+    ) {
+        
+    }
+}
+
+
+
+
 //@_functionBuilder
 //public enum CollectedHandlerConfigOptionArrayBuilder {
 //    ////    public static func buildBlock(_ configurations: DeploymentConfigInput...) -> [DeploymentConfigInput] {
