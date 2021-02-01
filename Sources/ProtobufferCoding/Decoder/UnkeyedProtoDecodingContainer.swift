@@ -22,13 +22,13 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
 
     init(from data: [[Data]],
          codingPath: [CodingKey] = [],
-         variableWidthIntegerStrategy: VariableWidthIntegerStrategy,
+         variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy,
          referencedBy: Data? = nil) {
         self.currentIndex = 0
         self.values = data
         self.referencedBy = referencedBy
 
-        super.init(codingPath: codingPath, variableWidthIntegerStrategy: variableWidthIntegerStrategy)
+        super.init(codingPath: codingPath, variableWidthIntegerCodingStrategy: variableWidthIntegerCodingStrategy)
     }
 
     private func popNext() -> [Data] {
@@ -247,21 +247,21 @@ class UnkeyedProtoDecodingContainer: InternalProtoDecodingContainer, UnkeyedDeco
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws
     -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
         if let value = popNext().last {
-            return try InternalProtoDecoder(from: value, with: variableWidthIntegerStrategy).container(keyedBy: type)
+            return try InternalProtoDecoder(from: value, with: variableWidthIntegerCodingStrategy).container(keyedBy: type)
         }
         throw ProtoError.unsupportedDataType("nestedContainer not available")
     }
 
     func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
         if let value = popNext().last {
-            return try InternalProtoDecoder(from: value, with: variableWidthIntegerStrategy).unkeyedContainer()
+            return try InternalProtoDecoder(from: value, with: variableWidthIntegerCodingStrategy).unkeyedContainer()
         }
         throw ProtoError.unsupportedDataType("nestedUnkeyedContainer not available")
     }
 
     func superDecoder() throws -> Decoder {
         if let referencedBy = referencedBy {
-            return InternalProtoDecoder(from: referencedBy, with: variableWidthIntegerStrategy)
+            return InternalProtoDecoder(from: referencedBy, with: variableWidthIntegerCodingStrategy)
         }
         throw ProtoError.unsupportedDecodingStrategy("Cannot decode super")
     }

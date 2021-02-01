@@ -108,7 +108,7 @@ internal class InternalProtoEncodingContainer {
     }
 
     internal func encodeInt(_ value: Int, tag: Int) throws {
-        if let strategy = encoder.variableWidthIntegerStrategy {
+        if let strategy = encoder.variableWidthIntegerCodingStrategy {
             switch strategy {
             case .thirtyTwo:
                 try encodeInt32(Int32(value), tag: tag)
@@ -138,7 +138,7 @@ internal class InternalProtoEncodingContainer {
     }
 
     internal func encodeUInt(_ value: UInt, tag: Int) throws {
-        if let strategy = encoder.variableWidthIntegerStrategy {
+        if let strategy = encoder.variableWidthIntegerCodingStrategy {
             switch strategy {
             case .thirtyTwo:
                 try encodeUInt32(UInt32(value), tag: tag)
@@ -199,7 +199,7 @@ internal class InternalProtoEncodingContainer {
     }
 
     internal func encodeRepeatedInt(_ values: [Int], tag: Int) throws {
-        if let strategy = encoder.variableWidthIntegerStrategy {
+        if let strategy = encoder.variableWidthIntegerCodingStrategy {
             switch strategy {
             case .thirtyTwo:
                 try encodeRepeatedInt32(values.compactMap { Int32($0) }, tag: tag)
@@ -237,7 +237,7 @@ internal class InternalProtoEncodingContainer {
     }
 
     internal func encodeRepeatedUInt(_ values: [UInt], tag: Int) throws {
-        if let strategy = encoder.variableWidthIntegerStrategy {
+        if let strategy = encoder.variableWidthIntegerCodingStrategy {
             switch strategy {
             case .thirtyTwo:
                 try encodeRepeatedUInt32(values.compactMap { UInt32($0) }, tag: tag)

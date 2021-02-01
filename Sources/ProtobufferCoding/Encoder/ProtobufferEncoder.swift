@@ -8,7 +8,7 @@
 import Foundation
 
 internal class InternalProtoEncoder: Encoder {
-    var variableWidthIntegerStrategy: VariableWidthIntegerStrategy?
+    var variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy?
     
     var codingPath: [CodingKey] = []
     var userInfo: [CodingUserInfoKey: Any] = [:]
@@ -63,13 +63,13 @@ public class ProtobufferEncoder {
     /// The strategy that this encoder uses to encode `Int`s and `UInt`s.
     ///
     /// Set to `nil` (default) to use the architectures bit width.
-    public var variableWidthIntegerStrategy: VariableWidthIntegerStrategy?
+    public var variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy?
     
     private var encoder: InternalProtoEncoder?
 
     /// Initializes a new instance.
     public init() {
-        encoder?.variableWidthIntegerStrategy = variableWidthIntegerStrategy
+        encoder?.variableWidthIntegerCodingStrategy = variableWidthIntegerCodingStrategy
     }
 
     /// Encodes the given value into data.

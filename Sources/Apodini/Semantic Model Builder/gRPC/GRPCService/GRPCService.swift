@@ -100,13 +100,14 @@ extension GRPCService {
     /// to  `Data` using Protobuffer encoding
     private func encode(_ value: Encodable) throws -> Data {
         let encoder = ProtobufferEncoder()
+        
         if let configuration = app.storage[VariableWidthIntegerConfiguration.Key.self] {
-            let variableWidthIntegerStragegy: VariableWidthIntegerStrategy?
             switch configuration {
-            case .thirtyTwo: variableWidthIntegerStragegy = .thirtyTwo
-            case .sixtyFour: variableWidthIntegerStragegy = .sixtyFour
+            case .thirtyTwo:
+                encoder.variableWidthIntegerCodingStrategy = .thirtyTwo
+            case .sixtyFour:
+                encoder.variableWidthIntegerCodingStrategy = .sixtyFour
             }
-            encoder.variableWidthIntegerStrategy = variableWidthIntegerStragegy
         }
             
         let message = try encoder.encode(AnyEncodable(value))

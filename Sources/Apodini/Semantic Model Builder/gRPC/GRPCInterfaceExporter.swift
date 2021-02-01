@@ -107,8 +107,10 @@ class GRPCInterfaceExporter: InterfaceExporter {
             let decoder = ProtobufferDecoder()
             if let configuration = app.storage[VariableWidthIntegerConfiguration.Key.self] {
                 switch configuration {
-                case .thirtyTwo: decoder.variableWidthIntegerStrategy = .thirtyTwo
-                case .sixtyFour: decoder.variableWidthIntegerStrategy = .sixtyFour
+                case .thirtyTwo:
+                    decoder.variableWidthIntegerCodingStrategy = .thirtyTwo
+                case .sixtyFour:
+                    decoder.variableWidthIntegerCodingStrategy = .sixtyFour
                 }
             }
 

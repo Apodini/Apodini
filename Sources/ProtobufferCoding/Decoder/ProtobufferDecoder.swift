@@ -24,11 +24,11 @@ internal class InternalProtoDecoder: Decoder {
     /// The strategy that this encoder uses to encode `Int`s and `UInt`s.
     ///
     /// Set to `nil` (default) to use the architectures bit width.
-    var variableWidthIntegerStrategy: VariableWidthIntegerStrategy
+    var variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy
 
-    init(from data: Data, with variableWidthIntegerStrategy: VariableWidthIntegerStrategy) {
+    init(from data: Data, with variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy) {
         self.data = data
-        self.variableWidthIntegerStrategy = variableWidthIntegerStrategy
+        self.variableWidthIntegerCodingStrategy = variableWidthIntegerCodingStrategy
         dictionary = [:]
         entries = []
         keyIndices = [:]
@@ -39,11 +39,11 @@ internal class InternalProtoDecoder: Decoder {
     }
 
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
-        KeyedDecodingContainer(KeyedProtoDecodingContainer(from: self.dictionary, variableWidthIntegerStrategy: variableWidthIntegerStrategy))
+        KeyedDecodingContainer(KeyedProtoDecodingContainer(from: self.dictionary, variableWidthIntegerCodingStrategy: variableWidthIntegerCodingStrategy))
     }
 
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        UnkeyedProtoDecodingContainer(from: entries, codingPath: codingPath, variableWidthIntegerStrategy: variableWidthIntegerStrategy)
+        UnkeyedProtoDecodingContainer(from: entries, codingPath: codingPath, variableWidthIntegerCodingStrategy: variableWidthIntegerCodingStrategy)
     }
 
     func singleValueContainer() throws -> SingleValueDecodingContainer {
@@ -146,14 +146,14 @@ public class ProtobufferDecoder {
     /// The strategy that this encoder uses to encode `Int`s and `UInt`s.
     ///
     /// Set to `nil` (default) to use the architectures bit width.
-    public var variableWidthIntegerStrategy: VariableWidthIntegerStrategy
+    public var variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy
 
     /// Init new decoder instance
     public init() {
         if MemoryLayout<Int>.size == 4 {
-            self.variableWidthIntegerStrategy = .thirtyTwo
+            self.variableWidthIntegerCodingStrategy = .thirtyTwo
         } else {
-            self.variableWidthIntegerStrategy = .sixtyFour
+            self.variableWidthIntegerCodingStrategy = .sixtyFour
         }
     }
 
@@ -161,14 +161,14 @@ public class ProtobufferDecoder {
     /// a given struct of type T (T has to conform to Decodable).
     public func decode<T>(_ type: T.Type, from data: Data) throws
     -> T where T: Decodable {
-        let decoder = InternalProtoDecoder(from: data, with: variableWidthIntegerStrategy)
+        let decoder = InternalProtoDecoder(from: data, with: variableWidthIntegerCodingStrategy)
         return try T(from: decoder)
     }
 
     /// Can be used to  decode an unknown type, e.g. when no `Decodable` struct is available.
     /// Returns a `UnkeyedDecodingContainer` that can be used to sequentially decode the values the data contains.
     public func decode(from data: Data) throws -> UnkeyedDecodingContainer {
-        let decoder = InternalProtoDecoder(from: data, with: variableWidthIntegerStrategy)
+        let decoder = InternalProtoDecoder(from: data, with: variableWidthIntegerCodingStrategy)
         return try decoder.unkeyedContainer()
     }
 }
