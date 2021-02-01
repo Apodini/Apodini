@@ -8,6 +8,8 @@
 import Foundation
 
 internal class InternalProtoEncoder: Encoder {
+    var variableWidthIntegerStrategy: VariableWidthIntegerStrategy?
+    
     var codingPath: [CodingKey] = []
     var userInfo: [CodingUserInfoKey: Any] = [:]
     var data = Data()
@@ -58,10 +60,14 @@ private struct EncodingWrapper<T: Encodable>: Encodable {
 /// Encoder for Protobuffer data.
 /// Coforms to `TopLevelEncoder` from `Combine`, however this is currently ommitted due to compatibility issues.
 public class ProtobufferEncoder {
+    public var variableWidthIntegerStrategy: VariableWidthIntegerStrategy?
+    
     private var encoder: InternalProtoEncoder?
 
     /// Initializes a new instance.
-    public init() { }
+    public init() {
+        encoder?.variableWidthIntegerStrategy = variableWidthIntegerStrategy
+    }
 
     /// Encodes the given value into data.
     /// The value that should be encoded has to comply with `Encodable`,
