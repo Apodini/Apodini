@@ -60,6 +60,9 @@ private struct EncodingWrapper<T: Encodable>: Encodable {
 /// Encoder for Protobuffer data.
 /// Coforms to `TopLevelEncoder` from `Combine`, however this is currently ommitted due to compatibility issues.
 public class ProtobufferEncoder {
+    /// The strategy that this encoder uses to encode `Int`s and `UInt`s.
+    ///
+    /// Set to `nil` (default) to use the architectures bit width.
     public var variableWidthIntegerStrategy: VariableWidthIntegerStrategy?
     
     private var encoder: InternalProtoEncoder?
