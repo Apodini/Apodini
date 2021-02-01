@@ -113,6 +113,28 @@ extension Handler {
     }
 }
 
+// MARK: Application Injectable
+extension Array where Element == LazyGuard {
+    func inject(app: Application) -> Self {
+        map { lazyGuard in
+            var `guard` = lazyGuard()
+            `guard`.inject(app: app)
+            return { `guard` }
+        }
+    }
+}
+
+// MARK: Application Injectable
+extension Array where Element == LazyAnyResponseTransformer {
+    func inject(app: Application) -> Self {
+        map { lazyTransformer in
+            var transformer = lazyTransformer()
+            transformer.inject(app: app)
+            return { transformer }
+        }
+    }
+}
+
 /// Injects an `Application` instance to a target.
 public func inject<Element>(app: Application, to subject: inout Element) {
     apply({ (applicationInjectible: inout ApplicationInjectable) in
