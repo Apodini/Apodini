@@ -23,6 +23,15 @@ public struct VariableWidthIntegerConfiguration: Configuration {
     
     // MARK: Methods
     public func configure(_ app: Application) {
+        guard option.rawValue <= Int.bitWidth else {
+            preconditionFailure(
+                """
+                \(option) requires architecture to have a wider integer bit width. \
+                Try using a smaller option.
+                """
+            )
+        }
+        
         app.storage[Key.self] = option
     }
 }
