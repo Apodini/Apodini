@@ -11,7 +11,7 @@ public struct RelationshipNameModifier: PathComponentModifier {
     let relationshipName: String
 
     init(_ pathComponent: PathComponent, relationshipName: String) {
-        self.pathComponent = toInternalPathComponent(pathComponent)
+        self.pathComponent = pathComponent.toInternal()
         self.relationshipName = relationshipName
     }
 

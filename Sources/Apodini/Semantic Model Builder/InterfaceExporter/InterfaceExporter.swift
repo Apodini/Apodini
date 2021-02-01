@@ -6,12 +6,13 @@
 import protocol NIO.EventLoop
 
 /// The Protocol any Exporter Request type must conform to
-protocol ExporterRequest: Reducible {}
+public protocol ExporterRequest: Reducible {}
 
 /// When your `ExporterRequest` conforms to this protocol, it indicates that it delivers
 /// its own `EventLoop` out of the box. Having that conformance you can use a shorthand
-/// `EndpointRequestHandler.handleRequest(...)` method on without specifying an `EventLoop`.
-protocol WithEventLoop {
+/// `ConnectionContext.handle(...)` method on without specifying an `EventLoop`.
+public protocol WithEventLoop {
+    /// Defines the associated `EventLoop`.
     var eventLoop: EventLoop { get }
 }
 
@@ -19,7 +20,7 @@ protocol WithEventLoop {
 /// Currently the following two types are supported:
 /// - `InterfaceExporter`: This type should be used for Exporters serving an accessible WebService
 /// - `StaticInterfaceExporter`: This type should be used for Exporters service a representation of the WebService (e.g. documentation)
-protocol BaseInterfaceExporter {
+public protocol BaseInterfaceExporter {
     /// Defines the return type of the `export` method. The return type is currently unused.
     associatedtype EndpointExportOutput = Void
     /// Defines the return type of the `exportParameter` method. For more details see `exportParameter(...)`
@@ -30,6 +31,8 @@ protocol BaseInterfaceExporter {
     /// enforcing Parameter names to be unique across all different `ParameterType`s.
     static var parameterNamespace: [ParameterNamespace] { get }
 
+    /// Initializes a new Interface Exporter with a given Application instance.
+    /// - Parameter app: The application containing any necessary state.
     init(_ app: Application)
 
     /// This method is called for every `Endpoint` on start up, which must be exporter
@@ -53,22 +56,19 @@ protocol BaseInterfaceExporter {
     ///
     /// - Parameter webService: A model representing the exported `WebService`
     func finishedExporting(_ webService: WebServiceModel)
-
-    /// Internal method used with the `InterfaceExporterVisitor`.
-    /// A proper implementation is provided by default for any exporter type.
-    /// - Parameter visitor: The instance of the `InterfaceExporterVisitor`
-    func accept(_ visitor: InterfaceExporterVisitor)
 }
 
 // Providing empty default implementations for optional methods
-extension BaseInterfaceExporter {
+public extension BaseInterfaceExporter {
+    /// Default empty implementation as method is optionally to implement
     func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) {}
+    /// Default empty implementation as method is optionally to implement
     func finishedExporting(_ webService: WebServiceModel) {}
 }
 
 
 /// Any Interface Exporter creating an accessible WebService must conform to this protocol.
-protocol InterfaceExporter: BaseInterfaceExporter {
+public protocol InterfaceExporter: BaseInterfaceExporter {
     /// Defines the type of the Request the exporter uses.
     associatedtype ExporterRequest: Apodini.ExporterRequest
 
@@ -90,7 +90,8 @@ protocol InterfaceExporter: BaseInterfaceExporter {
     func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type??
 }
 
-extension BaseInterfaceExporter {
+public extension BaseInterfaceExporter {
+    /// Defines the default `.global` namespace for every interface exporter.
     static var parameterNamespace: [ParameterNamespace] {
         // default namespace (and most strictest namespace)
         // forces parameter names to be unique across all parameter types
@@ -111,37 +112,10 @@ extension InterfaceExporter {
 ///
 /// Such exporters do not actively create a accessible WebService themselves but rather a static representation
 /// of the WebService (e.g. a Endpoint serving documentation of the WebService).
-protocol StaticInterfaceExporter: BaseInterfaceExporter {}
+public protocol StaticInterfaceExporter: BaseInterfaceExporter {}
 
 extension StaticInterfaceExporter {
     func accept(_ visitor: InterfaceExporterVisitor) {
         visitor.visit(staticExporter: self)
-    }
-}
-
-
-protocol InterfaceExporterVisitor {
-    func visit<I: InterfaceExporter>(exporter: I)
-    func visit<I: StaticInterfaceExporter>(staticExporter: I)
-}
-
-
-struct AnyInterfaceExporter {
-    private let _accept: (_ visitor: InterfaceExporterVisitor) -> Void
-
-    init<I: BaseInterfaceExporter>(_ exporter: I) {
-        _accept = exporter.accept
-    }
-
-    func accept(_ visitor: InterfaceExporterVisitor) {
-        _accept(visitor)
-    }
-}
-
-extension Array where Element == AnyInterfaceExporter {
-    func acceptAll(_ visitor: InterfaceExporterVisitor) {
-        for exporter in self {
-            exporter.accept(visitor)
-        }
     }
 }

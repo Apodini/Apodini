@@ -71,7 +71,7 @@ private extension ProtobufferInterfaceExporter {
                     ? Array(node.value.properties)[0].typeName
                     : node.value.name
                 
-                let fieldTag = parameter.options.option(for: .gRPC)?.fieldNumber
+                let fieldTag = parameter.option(for: .gRPC)?.fieldNumber
                 let uniqueNumber = fieldTag ?? (index + 1)
                 
                 return ProtobufferMessage.Property(

@@ -21,8 +21,7 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     func encodeNil() throws {
-        // cannot encode nil
-        throw ProtoError.encodingError("Cannot encode nil")
+        // nothing to do
     }
 
     func encode(_ value: Bool) throws {
@@ -46,7 +45,8 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     func encode(_ value: Int) throws {
-        throw ProtoError.encodingError("Int not supported, use Int32 or Int64")
+        try encodeInt(value, tag: currentFieldTag)
+        currentFieldTag += 1
     }
 
     func encode(_ value: Int8) throws {
@@ -68,7 +68,8 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
     }
 
     func encode(_ value: UInt) throws {
-        throw ProtoError.decodingError("UInt not supported, use UInt32 or UInt64")
+        try encodeUInt(value, tag: currentFieldTag)
+        currentFieldTag += 1
     }
 
     func encode(_ value: UInt8) throws {
@@ -104,6 +105,11 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
         currentFieldTag += 1
     }
 
+    func encode(_ values: [Int]) throws {
+        try encodeRepeatedInt(values, tag: currentFieldTag)
+        currentFieldTag += 1
+    }
+
     func encode(_ values: [Int32]) throws {
         try encodeRepeatedInt32(values, tag: currentFieldTag)
         currentFieldTag += 1
@@ -111,6 +117,11 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
 
     func encode(_ values: [Int64]) throws {
         try encodeRepeatedInt64(values, tag: currentFieldTag)
+        currentFieldTag += 1
+    }
+
+    func encode(_ values: [UInt]) throws {
+        try encodeRepeatedUInt(values, tag: currentFieldTag)
         currentFieldTag += 1
     }
 
@@ -134,12 +145,6 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
         currentFieldTag += 1
     }
 
-    func encodeNested<T: Encodable>(_ value: T) throws {
-        try encodeNestedMessage(value, tag: currentFieldTag)
-        currentFieldTag += 1
-    }
-
-    // swiftlint:disable cyclomatic_complexity
     func encode<T>(_ value: T) throws where T: Encodable {
         // we need to switch here to also be able to encode structs with generic types
         // if struct has generic type, this will always end up here
@@ -150,13 +155,39 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
             length.append(value)
             appendData(length, tag: currentFieldTag, wireType: .lengthDelimited)
             currentFieldTag += 1
-        } else if T.self == String.self, let value = value as? String {
+        } else if isPrimitiveSupportedArray(T.self) {
+            try encodeArray(value)
+        } else if isOptional(T.self) {
+            try encodeOptional(value, tag: currentFieldTag)
+            currentFieldTag += 1
+        } else if isPrimitiveSupported(T.self) {
+            try encodePrimitive(value)
+        } else if [
+                    Int8.self, Int16.self,
+                    UInt8.self, UInt16.self,
+                    [Int8].self, [Int16].self,
+                    [UInt8].self, [UInt16].self
+        ].contains(where: { $0 == T.self }) {
+            throw ProtoError.decodingError("Encoding values of type \(T.self) is not supported yet")
+        } else {
+            // nested message
+            try encodeNestedMessage(value, tag: currentFieldTag)
+            currentFieldTag += 1
+        }
+    }
+
+    private func encodePrimitive<T>(_ value: T) throws where T: Encodable {
+        if T.self == String.self, let value = value as? String {
             try encode(value)
         } else if T.self == Bool.self, let value = value as? Bool {
+            try encode(value)
+        } else if T.self == Int.self, let value = value as? Int {
             try encode(value)
         } else if T.self == Int32.self, let value = value as? Int32 {
             try encode(value)
         } else if T.self == Int64.self, let value = value as? Int64 {
+            try encode(value)
+        } else if T.self == UInt.self, let value = value as? UInt {
             try encode(value)
         } else if T.self == UInt32.self, let value = value as? UInt32 {
             try encode(value)
@@ -166,15 +197,25 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
             try encode(value)
         } else if T.self == Float.self, let value = value as? Float {
             try encode(value)
-        } else if T.self == [Bool].self, let value = value as? [Bool] {
+        }
+    }
+
+    // swiftlint:disable cyclomatic_complexity
+    // swiftlint:disable discouraged_optional_boolean
+    private func encodeArray<T>(_ value: T) throws where T: Encodable {
+        if T.self == [Bool].self, let value = value as? [Bool] {
             try encode(value)
         } else if T.self == [Float].self, let value = value as? [Float] {
             try encode(value)
         } else if T.self == [Double].self, let value = value as? [Double] {
             try encode(value)
+        } else if T.self == [Int].self, let value = value as? [Int] {
+            try encode(value)
         } else if T.self == [Int32].self, let value = value as? [Int32] {
             try encode(value)
         } else if T.self == [Int64].self, let value = value as? [Int64] {
+            try encode(value)
+        } else if T.self == [UInt].self, let value = value as? [UInt] {
             try encode(value)
         } else if T.self == [UInt32].self, let value = value as? [UInt32] {
             try encode(value)
@@ -184,16 +225,28 @@ class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEnco
             try encode(value)
         } else if T.self == [String].self, let value = value as? [String] {
             try encode(value)
-        } else if [
-                    Int.self, Int8.self, Int16.self,
-                    UInt.self, UInt8.self, UInt16.self,
-                    [Int].self, [Int8].self, [Int16].self,
-                    [UInt].self, [UInt8].self, [UInt16].self
-        ].contains(where: { $0 == T.self }) {
-            throw ProtoError.decodingError("Encoding values of type \(T.self) is not supported yet")
-        } else {
-            // nested message
-            try encodeNested(value)
+        } else if T.self == [Bool?].self, let value = value as? [Bool?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [Float?].self, let value = value as? [Float?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [Double?].self, let value = value as? [Double?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [Int?].self, let value = value as? [Int?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [Int32?].self, let value = value as? [Int32?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [Int64?].self, let value = value as? [Int64?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [UInt?].self, let value = value as? [UInt?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [UInt32?].self, let value = value as? [UInt32?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [UInt64?].self, let value = value as? [UInt64?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [Data?].self, let value = value as? [Data?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [String?].self, let value = value as? [String?] {
+            try encode(value.compactMap { $0 })
         }
     }
     // swiftlint:enable cyclomatic_complexity
