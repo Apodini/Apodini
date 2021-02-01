@@ -1,4 +1,5 @@
 import Apodini
+import ApodiniDatabase
 
 extension DatabaseConfiguration {
     /// Adds a database migration which is used by the `NotificationCenter`.

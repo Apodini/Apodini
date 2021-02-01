@@ -16,7 +16,6 @@ public struct FCMConfiguration: Configuration {
                                       key: serviceAccount.privateKey,
                                       serverKey: serviceAccount.serverKey,
                                       senderId: serviceAccount.senderId)
-        NotificationCenter.shared.setup(app)
     }
     
     private func readJSON() -> ServiceAccount {

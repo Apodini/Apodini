@@ -31,7 +31,7 @@ final class CustomComponentTests: ApodiniTests {
     
     func testComponentCreation() throws {
         let addBird = AddBirdsHandler()
-        let endpoint = addBird.mockEndpoint()
+        let endpoint = addBird.mockEndpoint(app: app)
 
         let bird = Bird(name: "Hummingbird", age: 2)
         let exporter = MockExporter<String>(queued: bird)

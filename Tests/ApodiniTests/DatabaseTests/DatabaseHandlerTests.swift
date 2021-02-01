@@ -25,35 +25,51 @@ final class DatabaseHandlerTests: ApodiniTests {
     func testCreateHandler() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
         let dbBird = try bird
-            .save(on: self.app.db)
+            .save(on: self.app.database)
             .transform(to: bird)
             .wait()
         XCTAssertNotNil(dbBird.id)
         
         let creationHandler = Create<Bird>()
         
-        let request = MockRequest.createRequest(on: creationHandler, running: app.eventLoopGroup.next(), queuedParameters: bird)
-        let response = try request.enterRequestContext(with: creationHandler, executing: { component in
-            component.handle()
-        })
-        .wait()
+        let response = try XCTUnwrap(mockQuery(component: creationHandler, value: Bird.self, app: app, queued: bird))
         XCTAssert(response == bird)
         
-        let foundBird = try Bird.find(response.id, on: app.db).wait()
+        let foundBird = try Bird.find(response.id, on: app.database).wait()
         XCTAssertNotNil(foundBird)
         XCTAssertEqual(response, foundBird)
+    }
+    
+    func testCreateAllHandler() throws {
+        let bird = Bird(name: "Mockingbird", age: 20)
+        let bird2 = Bird(name: "Hummingbird", age: 25)
+        
+        let creationHandler = CreateAll<Bird>()
+        
+        let response = try XCTUnwrap(mockQuery(component: creationHandler, value: [Bird].self, app: app, queued: [bird, bird2]))
+
+        XCTAssert(!response.isEmpty)
+        XCTAssert(response.contains(bird))
+        XCTAssert(response.contains(bird2))
+        
+        let foundBird1 = try XCTUnwrap(try Bird.find(response[0].id, on: app.database).wait())
+        XCTAssertNotNil(foundBird1)
+        XCTAssert(response.contains(foundBird1))
+        let foundBird2 = try XCTUnwrap(try Bird.find(response[1].id, on: app.database).wait())
+        XCTAssertNotNil(foundBird2)
+        XCTAssert(response.contains(foundBird2))
     }
     
     func testSingleReadHandler() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
         let dbBird = try bird
-            .save(on: self.app.db)
+            .save(on: self.app.database)
             .transform(to: bird)
             .wait()
         let birdId = try XCTUnwrap(dbBird.id)
         
         let handler = ReadOne<Bird>()
-        let endpoint = handler.mockEndpoint()
+        let endpoint = handler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
         var context = endpoint.createConnectionContext(for: exporter)
@@ -80,20 +96,20 @@ final class DatabaseHandlerTests: ApodiniTests {
     func testReadHandler() throws {
         let bird1 = Bird(name: "Mockingbird", age: 20)
         let dbBird1 = try bird1
-            .save(on: self.app.db)
+            .save(on: self.app.database)
             .transform(to: bird1)
             .wait()
         
         let bird2 = Bird(name: "Mockingbird", age: 21)
         let dbBird2 = try bird2
-            .save(on: self.app.db)
+            .save(on: self.app.database)
             .transform(to: bird2)
             .wait()
         XCTAssertNotNil(dbBird1.id)
         XCTAssertNotNil(dbBird2.id)
         
         let readHandler = ReadAll<Bird>()
-        let endpoint = readHandler.mockEndpoint()
+        let endpoint = readHandler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
         var context = endpoint.createConnectionContext(for: exporter)
@@ -134,17 +150,17 @@ final class DatabaseHandlerTests: ApodiniTests {
     func testUpdateHandleWithSingleParameter() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
         let dbBird = try bird
-            .save(on: self.app.db)
+            .save(on: self.app.database)
             .transform(to: bird)
             .wait()
         XCTAssertNotNil(dbBird.id)
-        
+    
         let parameters: [String: TypeContainer] = [
             "name": TypeContainer(with: "FooBird")
         ]
         
         let handler = Update<Bird>()
-        let endpoint = handler.mockEndpoint()
+        let endpoint = handler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
         var context = endpoint.createConnectionContext(for: exporter)
@@ -160,7 +176,7 @@ final class DatabaseHandlerTests: ApodiniTests {
             on: app.eventLoopGroup.next()
         )
         guard let birdId = dbBird.id else {
-            XCTFail("Object found in db has no id")
+            XCTFail("Object found in database has no id")
             return
         }
         let idParameter = try pathParameter(for: handler)
@@ -175,7 +191,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         XCTAssert(responseValue.id == dbBird.id, responseValue.description)
         XCTAssert(responseValue.name == "FooBird", responseValue.description)
         
-        guard let newBird = try Bird.find(dbBird.id, on: self.app.db).wait() else {
+        guard let newBird = try Bird.find(dbBird.id, on: self.app.database).wait() else {
             XCTFail("Failed to find updated object")
             return
         }
@@ -187,7 +203,7 @@ final class DatabaseHandlerTests: ApodiniTests {
     func testUpdateHandlerWithModel() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
         let dbBird = try bird
-            .save(on: self.app.db)
+            .save(on: self.app.database)
             .transform(to: bird)
             .wait()
         XCTAssertNotNil(dbBird.id)
@@ -195,7 +211,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let updatedBird = Bird(name: "FooBird", age: 25)
         
         let handler = Update<Bird>()
-        let endpoint = handler.mockEndpoint()
+        let endpoint = handler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
         var context = endpoint.createConnectionContext(for: exporter)
@@ -211,7 +227,7 @@ final class DatabaseHandlerTests: ApodiniTests {
             on: app.eventLoopGroup.next()
         )
         guard let birdId = dbBird.id else {
-            XCTFail("Object found in db has no id")
+            XCTFail("Object found in database has no id")
             return
         }
         let idParameter = try pathParameter(for: handler)
@@ -226,7 +242,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         XCTAssert(responseValue.name == updatedBird.name, responseValue.description)
         XCTAssert(responseValue.age == updatedBird.age, responseValue.description)
         
-        guard let newBird = try Bird.find(dbBird.id, on: self.app.db).wait() else {
+        guard let newBird = try Bird.find(dbBird.id, on: self.app.database).wait() else {
             XCTFail("Failed to find updated object")
             return
         }
@@ -238,13 +254,13 @@ final class DatabaseHandlerTests: ApodiniTests {
     func testDeleteHandler() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
         let dbBird = try bird
-            .save(on: self.app.db)
+            .save(on: self.app.database)
             .transform(to: bird)
             .wait()
         XCTAssertNotNil(dbBird.id)
         
         let handler = Delete<Bird>()
-        let endpoint = handler.mockEndpoint()
+        let endpoint = handler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
         var context = endpoint.createConnectionContext(for: exporter)
@@ -258,7 +274,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         )
         
         guard let birdId = dbBird.id else {
-            XCTFail("Object saved in db has no id")
+            XCTFail("Object saved in database has no id")
             return
         }
         
@@ -275,7 +291,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         expectation(description: "database access").isInverted = true
         waitForExpectations(timeout: 10, handler: nil)
         
-        let deletedBird = try Bird.find(dbBird.id, on: app.db).wait()
+        let deletedBird = try Bird.find(dbBird.id, on: app.database).wait()
         XCTAssertNil(deletedBird)
     }
 }

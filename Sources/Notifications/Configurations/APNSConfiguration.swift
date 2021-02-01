@@ -45,7 +45,6 @@ public struct APNSConfiguration: Configuration {
                     environment: environment
                 )
             }
-            NotificationCenter.shared.setup(app)
         } catch {
             fatalError("Error setting up APNS: \(error)")
         }

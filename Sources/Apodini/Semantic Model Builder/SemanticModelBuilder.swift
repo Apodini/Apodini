@@ -77,8 +77,13 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         let operation = context.get(valueFor: OperationContextKey.self)
         let serviceType = context.get(valueFor: ServiceTypeContextKey.self)
         let paths = context.get(valueFor: PathComponentContextKey.self)
-        let guards = context.get(valueFor: GuardContextKey.self).allActiveGuards
-        let responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self)
+        var guards = context.get(valueFor: GuardContextKey.self).allActiveGuards
+        var responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self)
+        
+        // Injects the `Application` instance
+        let appInjectedHandler = handler.inject(app: app)
+        guards = applicationInjectables(to: guards)
+        responseTransformers = applicationInjectables(to: responseTransformers)
         
         var endpoint = Endpoint(
             identifier: {
@@ -89,7 +94,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
                     return AnyHandlerIdentifier(handlerIndexPath.rawValue)
                 }
             }(),
-            handler: handler,
+            handler: appInjectedHandler,
             context: context,
             operation: operation,
             serviceType: serviceType,
@@ -134,6 +139,22 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         
         for child in node.children {
             call(exporter: exporter, for: child)
+        }
+    }
+       
+    private func applicationInjectables(to guards: [LazyGuard]) -> [LazyGuard] {
+        guards.map { lazyGuard in
+            var `guard` = lazyGuard()
+            `guard`.inject(app: app)
+            return { `guard` }
+        }
+    }
+    
+    private func applicationInjectables(to responseTransformers: [LazyAnyResponseTransformer]) -> [LazyAnyResponseTransformer] {
+        responseTransformers.map { lazyTransformer in
+            var transformer = lazyTransformer()
+            transformer.inject(app: app)
+            return { transformer }
         }
     }
 }
