@@ -369,7 +369,7 @@ extension ProtobufferBuilderTests {
             }
             
             var configuration: Configuration {
-                VariableWidthIntegerConfiguration(.thirtyTwo)
+                VariableWidthIntegerConfiguration.thirtyTwo
             }
         }
         
