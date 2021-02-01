@@ -103,7 +103,16 @@ class GRPCInterfaceExporter: InterfaceExporter {
             // parameter, or use default interference if none is
             // annotated at the parameter.
             FieldNumber.setFieldNumber(fieldTag)
-            let wrappedDecoded = try ProtobufferDecoder().decode(wrappedType, from: request.data)
+
+            let decoder = ProtobufferDecoder()
+            if let configuration = app.storage[VariableWidthIntegerConfiguration.Key.self] {
+                switch configuration {
+                case .thirtyTwo: decoder.variableWidthIntegerStrategy = .thirtyTwo
+                case .sixtyFour: decoder.variableWidthIntegerStrategy = .sixtyFour
+                }
+            }
+
+            let wrappedDecoded = try decoder.decode(wrappedType, from: request.data)
             return wrappedDecoded.request
         } catch {
             // Decoding fails if the parameter is not present
