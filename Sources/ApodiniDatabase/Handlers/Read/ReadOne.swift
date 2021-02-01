@@ -2,7 +2,7 @@ import Fluent
 import Apodini
 @_implementationOnly import Vapor
 
-struct ReadOne<Model: DatabaseModel>: Handler {
+public struct ReadOne<Model: DatabaseModel>: Handler {
     @Throws(.notFound, reason: "No object was found in the database under the given id")
     var objectNotFoundError: ApodiniError
     
