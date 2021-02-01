@@ -68,12 +68,17 @@ internal class InternalProtoEncodingContainer {
     }
 
     /// Adds the necessary wire-type and field-tag to the given value and appends it to the encoder.
-    internal func appendData(_ value: Data, tag: Int, wireType: WireType) {
-        // each value is prefixed by 1 byte: 5 bit of tag, 3 bit of type
-        let prefix = UInt8((tag << 3) | wireType.rawValue)
-        var value = value
-        value.insert(prefix, at: 0) // add the prefix at the beginning of the value
-        encoder.append(value)
+    /// - Parameter prefixType: Switch to disable the functionality to prepend the wiretype and field-tag
+    internal func appendData(_ value: Data, tag: Int, wireType: WireType, prefixType: Bool = true) {
+        if prefixType {
+            // each value is prefixed by 1 byte: 5 bit of tag, 3 bit of type
+            let prefix = UInt8((tag << 3) | wireType.rawValue)
+            var value = value
+            value.insert(prefix, at: 0) // add the prefix at the beginning of the value
+            encoder.append(value)
+        } else {
+            encoder.append(value)
+        }
     }
 
     internal func encodeBool(_ value: Bool, tag: Int) throws {
@@ -102,6 +107,14 @@ internal class InternalProtoEncodingContainer {
         appendData(data, tag: tag, wireType: WireType.bit64)
     }
 
+    internal func encodeInt(_ value: Int, tag: Int) throws {
+        if MemoryLayout<Int>.size == 4 {
+            try encodeInt32(Int32(value), tag: tag)
+        } else if MemoryLayout<Int>.size == 8 {
+            try encodeInt64(Int64(value), tag: tag)
+        }
+    }
+
     internal func encodeInt32(_ value: Int32, tag: Int) throws {
         // we need to encode it as VarInt (run-length encoded number)
         let data = encodeVarInt(value: UInt64(bitPattern: Int64(value)))
@@ -112,6 +125,14 @@ internal class InternalProtoEncodingContainer {
         // we need to encode it as VarInt (run-length encoded number)
         let data = encodeVarInt(value: UInt64(bitPattern: Int64(value)))
         appendData(data, tag: tag, wireType: .varInt)
+    }
+
+    internal func encodeUInt(_ value: UInt, tag: Int) throws {
+        if MemoryLayout<UInt>.size == 4 {
+            try encodeUInt32(UInt32(value), tag: tag)
+        } else if MemoryLayout<UInt>.size == 8 {
+            try encodeUInt64(UInt64(value), tag: tag)
+        }
     }
 
     internal func encodeUInt32(_ value: UInt32, tag: Int) throws {
@@ -157,6 +178,14 @@ internal class InternalProtoEncodingContainer {
         appendData(data, tag: tag, wireType: .lengthDelimited)
     }
 
+    internal func encodeRepeatedInt(_ values: [Int], tag: Int) throws {
+        if MemoryLayout<Int>.size == 4 {
+            try encodeRepeatedInt32(values.compactMap { Int32($0) }, tag: tag)
+        } else if MemoryLayout<Int>.size == 8 {
+            try encodeRepeatedInt64(values.compactMap { Int64($0) }, tag: tag)
+        }
+    }
+
     internal func encodeRepeatedInt32(_ values: [Int32], tag: Int) throws {
         var data = Data()
         for value in values {
@@ -175,6 +204,14 @@ internal class InternalProtoEncodingContainer {
         }
         data = prependLength(data)
         appendData(data, tag: tag, wireType: .lengthDelimited)
+    }
+
+    internal func encodeRepeatedUInt(_ values: [UInt], tag: Int) throws {
+        if MemoryLayout<UInt>.size == 4 {
+            try encodeRepeatedUInt32(values.compactMap { UInt32($0) }, tag: tag)
+        } else if MemoryLayout<UInt>.size == 8 {
+            try encodeRepeatedUInt64(values.compactMap { UInt64($0) }, tag: tag)
+        }
     }
 
     internal func encodeRepeatedUInt32(_ values: [UInt32], tag: Int) throws {
@@ -210,6 +247,16 @@ internal class InternalProtoEncodingContainer {
         for value in values {
             try encodeString(value, tag: tag)
         }
+    }
+
+    internal func encodeOptional<T: Encodable>(_ value: T, tag: Int) throws {
+        let encoder = InternalProtoEncoder()
+        try value.encode(to: encoder)
+        let data = try encoder.getEncoded()
+        // append without any further length or type prefix
+        // (this encoding layer was basically just used to unwrap the optional,
+        // thus should not be reflected in the encoded byte-array)
+        appendData(data, tag: tag, wireType: .lengthDelimited, prefixType: false)
     }
 
     internal func encodeNestedMessage<T: Encodable>(_ value: T, tag: Int) throws {

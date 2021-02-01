@@ -63,13 +63,13 @@ extension WebService {
         webService.configuration.configure(app)
 
         webService.register(
-            SharedSemanticModelBuilder(app)
+            SemanticModelBuilder(app)
                 .with(exporter: RESTInterfaceExporter.self)
                 .with(exporter: WebSocketInterfaceExporter.self)
                 .with(exporter: OpenAPIInterfaceExporter.self)
                 .with(exporter: GRPCInterfaceExporter.self)
                 .with(exporter: ProtobufferInterfaceExporter.self)
-                .with(exporter: RHIInterfaceExporter.self),
+                .with(exporter: RHIInterfaceExporter.self), // Note that this one should always be last
             GraphQLSemanticModelBuilder(app)
         )
         
@@ -89,8 +89,8 @@ extension WebService {
 
 
 extension WebService {
-    func register(_ semanticModelBuilders: SemanticModelBuilder...) {
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: semanticModelBuilders)
+    func register(_ modelBuilder: SemanticModelBuilder) {
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
         self.visit(visitor)
         visitor.finishParsing()
     }

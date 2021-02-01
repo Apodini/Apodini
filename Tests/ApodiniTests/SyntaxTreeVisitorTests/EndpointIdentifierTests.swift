@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  EndpointIdentifierTests.swift
 //  
 //
 //  Created by Lukas Kollmer on 2020-12-29.
@@ -56,7 +56,7 @@ final class HandlerIdentifierTests: ApodiniTests {
             }
         }
         
-        let builder = SharedSemanticModelBuilder(app)
+        let builder = SemanticModelBuilder(app)
         TestWebService().register(builder)
         
         let actualEndpoints: [EndpointSummary] = builder.rootNode.collectEndpoints().map(EndpointSummary.init)
@@ -85,7 +85,7 @@ final class HandlerIdentifierTests: ApodiniTests {
             }
         }
         
-        let builder = SharedSemanticModelBuilder(app)
+        let builder = SemanticModelBuilder(app)
         TestWebService().register(builder)
         
         let actualEndpoints: [EndpointSummary] = builder.rootNode.collectEndpoints().map(EndpointSummary.init)
@@ -113,7 +113,7 @@ final class HandlerIdentifierTests: ApodiniTests {
             }
         }
         
-        let builder = SharedSemanticModelBuilder(app)
+        let builder = SemanticModelBuilder(app)
         TestWebService().register(builder)
         
         let actualEndpoints: [EndpointSummary] = builder.rootNode.collectEndpoints().map(EndpointSummary.init)
@@ -177,7 +177,7 @@ final class HandlerIdentifierTests: ApodiniTests {
             }
         }
         
-        let builder = SharedSemanticModelBuilder(app)
+        let builder = SemanticModelBuilder(app)
         TestWebService().register(builder)
         
         let actualEndpoints: [EndpointSummary] = builder.rootNode.collectEndpoints().map(EndpointSummary.init)

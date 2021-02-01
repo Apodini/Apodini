@@ -14,7 +14,7 @@ public struct HideLinkModifier: PathComponentModifier {
     let pathComponent: _PathComponent
 
     init(_ pathComponent: PathComponent) {
-        self.pathComponent = toInternalPathComponent(pathComponent)
+        self.pathComponent = pathComponent.toInternal()
     }
 
     func accept<Parser: PathComponentParser>(_ parser: inout Parser) {

@@ -1,4 +1,5 @@
 import Apodini
+import ApodiniDatabase
 import XCTest
 @testable import Notifications
 

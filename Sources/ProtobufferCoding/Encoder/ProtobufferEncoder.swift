@@ -60,33 +60,6 @@ private struct EncodingWrapper<T: Encodable>: Encodable {
 public class ProtobufferEncoder {
     private var encoder: InternalProtoEncoder?
 
-    /// Supported primitive types of the payload.
-    private let primitiveTypes: [Any.Type] = [
-        String.self,
-        Int32.self,
-        Int64.self,
-        UInt32.self,
-        UInt64.self,
-        Double.self,
-        Float.self,
-        [String].self,
-        [Int32].self,
-        [Int64].self,
-        [UInt32].self,
-        [UInt64].self,
-        [Double].self,
-        [Float].self
-    ]
-
-    private func isCollection(_ any: Any) -> Bool {
-        switch Mirror(reflecting: any).displayStyle {
-        case .some(.collection):
-            return true
-        default:
-            return false
-        }
-    }
-
     /// Initializes a new instance.
     public init() { }
 
@@ -95,7 +68,8 @@ public class ProtobufferEncoder {
     /// since the `encode` function of the protocol is used.
     public func encode<T: Encodable>(_ value: T) throws -> Data {
         let encoder = InternalProtoEncoder()
-        if primitiveTypes.contains(where: { $0 == T.self }) ||
+        if isPrimitiveSupported(T.self) ||
+            isPrimitiveSupportedArray(T.self) ||
             isCollection(T.self) {
             let wrapped = EncodingWrapper(element: value)
             try wrapped.encode(to: encoder)

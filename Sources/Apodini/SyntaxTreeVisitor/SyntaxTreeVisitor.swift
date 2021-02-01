@@ -26,8 +26,8 @@ protocol SyntaxTreeVisitable {
 /// The `SyntaxTreeVisitor` is used to parse the Apodini DSL and forward the parsed result to the `SemanticModelBuilder`s.
 class SyntaxTreeVisitor {
     /// The `semanticModelBuilders` that can interpret the Apodini DSL syntax tree collected by the `SyntaxTreeVisitor`
-    private let semanticModelBuilders: [SemanticModelBuilder]
-    /// Contains the current `ContextNode` that is used when creating a context for each registerd `Handler`
+    private let modelBuilder: SemanticModelBuilder?
+    /// Contains the current `ContextNode` that is used when creating a context for each registered `Handler`
     private(set) var currentNode = ContextNode()
     /// The `currentNodeIndexPath` is  used to uniquely identify `Handlers`, even across multiple runs of an Apodini web service if the DSL has not changed.
     /// We increase the component level specific `currentNodeIndexPath` by one for each `Handler` visited in the same component level to uniquely identify `Handlers` by  the index paths.
@@ -35,16 +35,16 @@ class SyntaxTreeVisitor {
     
     
     /// Create a new `SyntaxTreeVisitor` that forwards the collected context and registered `Handlers` to the passed in `semanticModelBuilders`.
-    /// - Parameter semanticModelBuilders: The `semanticModelBuilders` that can interpret the Apodini DSL syntax tree collected by the `SyntaxTreeVisitor`
-    init(semanticModelBuilders: [SemanticModelBuilder] = []) {
-        self.semanticModelBuilders = semanticModelBuilders
+    /// - Parameter modelBuilder: The `SemanticModelBuilder` that can interpret the Apodini DSL syntax tree collected by the `SyntaxTreeVisitor`
+    init(modelBuilder: SemanticModelBuilder? = nil) {
+        self.modelBuilder = modelBuilder
     }
     
     
     /// `enterCollection` is used to keep track of the current depth into the web service data structure
     /// All visits (`accept` call) to a component's content **must** be executed within the closure passed to `enterContent`.
     ///
-    /// **Depth** is not definied in terms of path components or the exported interface, but simply how many levels of `.content` the `SyntaxTreeVisitor` is while parsing the Apodini DSL
+    /// **Depth** is not defined in terms of path components or the exported interface, but simply how many levels of `.content` the `SyntaxTreeVisitor` is while parsing the Apodini DSL
     func enterContent(_ block: () throws -> Void) rethrows {
         currentNodeIndexPath.append(0)
         
@@ -74,10 +74,11 @@ class SyntaxTreeVisitor {
     
     /// Adds a new context value to the current context of the `SyntaxTreeVisitor`.
     ///
-    /// Call this function every time you need to register a new context value for a `ContextKey` that need to be available for all subsequent `Handlers` registered in the current `Component` subtree of the Apodini DSL.
+    /// Call this function every time you need to register a new context value for a `ContextKey` that need to be available
+    /// for all subsequent `Handlers` registered in the current `Component` subtree of the Apodini DSL.
     /// - Parameters:
     ///   - contextKey: The key of the context value
-    ///   - value: The value that is assocated to the `ContextKey`
+    ///   - value: The value that is associated to the `ContextKey`
     ///   - scope: The scope of the context value as defined by the `Scope` enum
     func addContext<C: OptionalContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
         currentNode.addContext(contextKey, value: value, scope: scope)
@@ -95,19 +96,15 @@ class SyntaxTreeVisitor {
         // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the
         // currentNode would always result in the last currentNode that was used when visiting the component tree.
         let context = Context(contextNode: currentNode.copy())
-        
-        for semanticModelBuilder in semanticModelBuilders {
-            semanticModelBuilder.register(handler: handler, withContext: context)
-        }
+
+        modelBuilder?.register(handler: handler, withContext: context)
         
         currentNode.resetContextNode()
     }
     
-    /// **Must** be called after finishing the parsinig of the Apodini DSL to trigger the `finishedRegistration` of all `semanticModelBuilders`.
+    /// **Must** be called after finishing the parsing of the Apodini DSL to trigger the `finishedRegistration` of all `semanticModelBuilders`.
     func finishParsing() {
-        for builder in semanticModelBuilders {
-            builder.finishedRegistration()
-        }
+        modelBuilder?.finishedRegistration()
     }
     
     private func formHandlerIndexPathForCurrentNode() -> HandlerIndexPath {

@@ -25,4 +25,6 @@ public struct Update<Model: DatabaseModel>: Handler {
         let updater = Updater<Model>(parameters, model: object, modelId: id)
         return updater.executeUpdate(on: database)
     }
+    
+    public init() {}
 }
