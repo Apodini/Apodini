@@ -39,7 +39,7 @@ Apodini `Job`s can be scheduled using the common syntax from [crontab](https://m
 \* \* \* \* \*
 ```
 
-`Job`s can be scheduled at server startup from the `configuration` property using the `Schedule` configuration or from an `Handler` by injecting the `Scheduler` with `@Environment`. The `Scheduler` requires as arguments an instance of a `Job`, the cron expression and a corresponding key path conforming to `KeyChain`.
+`Job`s can be scheduled at server startup from the `configuration` property using the `Schedule` configuration or from an `Handler` by injecting the `Scheduler` with `@Environment`. The `Scheduler` requires as arguments an instance of a `Job`, the cron expression and a corresponding key path conforming to `EnvironmentAccessible`.
 When scheduling `Job`s, Apodini will create a single instance which can be used with `@ObservedObject` to listen to changes of properties annotated with `@Published` or when using `@Environment` to read and change properties of a `Job` using the specified key path.
 
 In addition, the number of times a `Job` is executed can also be defined from the `Schedule` configuration.
@@ -49,7 +49,7 @@ We therefore declare this using the `Schedule` configuration and also add a stru
 Furthermore, we specify that the _MondayService_ should only be executed 5 times.
 
 ```swift
-struct KeyStore: KeyChain {
+struct KeyStore: EnvironmentAccessible {
     var mondayService: MondayService
 }
 
@@ -157,7 +157,7 @@ struct TestWebService: WebService {
         Schedule(SummaryJob(), on: "0 9 * * 5", \KeyStore.summaryJob)
     }
 
-    struct KeyStore: KeyChain {
+    struct KeyStore: EnvironmentAccessible {
         var visitorObservedObject: VisitorObservedObject
         var summaryJob: SummaryJob
     }

@@ -13,4 +13,6 @@ public struct Create<Model: DatabaseModel>: Handler {
     public func handle() -> EventLoopFuture<Model> {
         object.save(on: database).transform(to: object)
     }
+    
+    public init() {}
 }

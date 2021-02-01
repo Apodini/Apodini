@@ -9,15 +9,19 @@ import Foundation
 public struct ObservedObject<Element: ObservableObject>: Property {
     private var objectIdentifier: ObjectIdentifier?
     private var element: Element?
+    private var app: Application?
     private let _initializer: (() -> Element)?
     
     public var wrappedValue: Element {
         get {
+            guard let app = app else {
+                fatalError("The Application instance wasn't injected correctly.")
+            }
             if let element = element {
                 return element
             }
             if let objectIdentifier = objectIdentifier,
-               let element = EnvironmentValues.shared.values[objectIdentifier] as? Element {
+               let element = app.storage.get(objectIdentifier, Element.self) {
                 return element
             }
             fatalError("The object \(String(describing: self)) cannot be found in the environment.")
@@ -57,7 +61,7 @@ public struct ObservedObject<Element: ObservableObject>: Property {
     }
     
     /// Element is injected with a key path.
-    public init<Key: KeyChain>(_ keyPath: KeyPath<Key, Element>) {
+    public init<Key: EnvironmentAccessible>(_ keyPath: KeyPath<Key, Element>) {
         self.objectIdentifier = ObjectIdentifier(keyPath)
         self._initializer = nil
     }
@@ -100,6 +104,12 @@ extension ObservedObject: Activatable {
         if let initializer = self._initializer {
             self.element = initializer()
         }
+    }
+}
+
+extension ObservedObject: ApplicationInjectable {
+    mutating func inject(app: Application) {
+        self.app = app
     }
 }
 
