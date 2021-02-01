@@ -16,9 +16,7 @@ import Foundation
 internal class InternalProtoDecodingContainer {
     var codingPath: [CodingKey]
     /// The strategy that this container uses to encode `Int`s and `UInt`s.
-    ///
-    /// Set to `nil` (default) to use the architectures bit width.
-    public var variableWidthIntegerStrategy: VariableWidthIntegerStrategy
+    var variableWidthIntegerStrategy: VariableWidthIntegerStrategy
 
     internal init(codingPath: [CodingKey] = [], variableWidthIntegerStrategy: VariableWidthIntegerStrategy) {
         self.codingPath = codingPath

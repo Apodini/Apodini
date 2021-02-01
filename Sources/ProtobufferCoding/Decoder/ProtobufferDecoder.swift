@@ -22,8 +22,6 @@ internal class InternalProtoDecoder: Decoder {
     var keyIndices: [Int: Int]
 
     /// The strategy that this encoder uses to encode `Int`s and `UInt`s.
-    ///
-    /// Set to `nil` (default) to use the architectures bit width.
     var variableWidthIntegerStrategy: VariableWidthIntegerStrategy
 
     init(from data: Data, with variableWidthIntegerStrategy: VariableWidthIntegerStrategy) {
