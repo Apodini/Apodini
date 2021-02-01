@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  QueryBuilder.swift
 //  
 //
 //  Created by Felix Desiderato on 08.12.20.

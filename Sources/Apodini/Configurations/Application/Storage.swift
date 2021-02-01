@@ -7,7 +7,7 @@
 
 import Logging
 
-/// Enables swift extensions to declare "storred" properties for use in application configuration
+/// Enables swift extensions to declare "stored" properties for use in application configuration
 public struct Storage {
     var storage: [ObjectIdentifier: AnyStorageValue]
 

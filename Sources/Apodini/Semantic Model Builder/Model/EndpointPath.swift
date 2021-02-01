@@ -4,12 +4,12 @@
 
 import Foundation
 
-enum EndpointPath: CustomStringConvertible, CustomDebugStringConvertible {
+public enum EndpointPath: CustomStringConvertible, CustomDebugStringConvertible {
     case root
     case string(_ path: String)
     case parameter(_ parameter: AnyEndpointPathParameter)
 
-    var description: String {
+    public var description: String {
         switch self {
         case .root:
             return ""
@@ -20,7 +20,7 @@ enum EndpointPath: CustomStringConvertible, CustomDebugStringConvertible {
         }
     }
 
-    var debugDescription: String {
+    public var debugDescription: String {
         switch self {
         case .root:
             return "<root>"
@@ -29,7 +29,7 @@ enum EndpointPath: CustomStringConvertible, CustomDebugStringConvertible {
         }
     }
 
-    func isString() -> Bool {
+    public func isString() -> Bool {
         switch self {
         case .string:
             return true
@@ -38,7 +38,7 @@ enum EndpointPath: CustomStringConvertible, CustomDebugStringConvertible {
         }
     }
 
-    func isParameter() -> Bool {
+    public func isParameter() -> Bool {
         switch self {
         case .parameter:
             return true
@@ -50,7 +50,7 @@ enum EndpointPath: CustomStringConvertible, CustomDebugStringConvertible {
     func scoped(on endpoint: AnyEndpoint) -> EndpointPath {
         switch self {
         case let .parameter(parameter):
-            var parameter = parameter
+            var parameter = parameter.toInternal()
             parameter.scoped(on: endpoint)
             return .parameter(parameter)
         default:
@@ -60,7 +60,7 @@ enum EndpointPath: CustomStringConvertible, CustomDebugStringConvertible {
 }
 
 extension EndpointPath: Equatable {
-    static func == (lhs: EndpointPath, rhs: EndpointPath) -> Bool {
+    public static func == (lhs: EndpointPath, rhs: EndpointPath) -> Bool {
         switch (lhs, rhs) {
         case (.root, .root):
             return true
@@ -75,7 +75,7 @@ extension EndpointPath: Equatable {
 }
 
 extension EndpointPath: Hashable {
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         switch self {
         case .root:
             // we just use the seed of the hasher as the hash value
@@ -89,7 +89,7 @@ extension EndpointPath: Hashable {
 }
 
 /// Describes a type erasured `EndpointPathParameter`
-protocol AnyEndpointPathParameter: CustomStringConvertible {
+public protocol AnyEndpointPathParameter: CustomStringConvertible {
     /// The id uniquely identifying the parameter
     var id: UUID { get }
     /// The string representation of the `id` as it is the only stable and unique information
@@ -101,6 +101,25 @@ protocol AnyEndpointPathParameter: CustomStringConvertible {
     /// Use this property to check if the original parameter definition used an `Optional` type.
     var nilIsValidValue: Bool { get }
 
+    /// This property returns if the scoped Endpoint has a proper `Parameter` definition in the Handler.
+    /// If such definition is not present we can't provide a user friendly name, and thus `name` will default to `pathId`.
+    var scopedEndpointHasDefinedParameter: Bool { get }
+
+    /// The name for the parameter. As PathParameter don't allow for custom name definitions
+    /// this will always be the property name as defined in the `Handler`.
+    var name: String { get }
+}
+
+extension AnyEndpointPathParameter {
+    func toInternal() -> _AnyEndpointPathParameter {
+        guard let parameter = self as? _AnyEndpointPathParameter else {
+            fatalError("Encountered `AnyEndpointPathParameter` which doesn't conform to `_AnyEndpointPathParameter`: \(self)!")
+        }
+        return parameter
+    }
+}
+
+protocol _AnyEndpointPathParameter: AnyEndpointPathParameter {
     /// Internal method to provide `PathBuilder` functionality
     func accept<Builder: PathBuilder>(_ builder: inout Builder)
 
@@ -114,14 +133,6 @@ protocol AnyEndpointPathParameter: CustomStringConvertible {
     ///
     /// - Parameter endpoint: The scope to use for the Parameter
     mutating func scoped(on endpoint: AnyEndpoint)
-
-    /// This property returns if the scoped Endpoint has a proper `Parameter` definition in the Handler.
-    /// If such definition is not present we can't provide a user friendly name, and thus `name` will default to `pathId`.
-    var scopedEndpointHasDefinedParameter: Bool { get }
-
-    /// The name for the parameter. As PathParameter don't allow for custom name definitions
-    /// this will always be the property name as defined in the `Handler`.
-    var name: String { get }
 }
 
 /// Models a `Parameter` created from a `PathParameter`. See `AnyEndpointPathParameter` for detailed documentation.
@@ -133,17 +144,17 @@ protocol AnyEndpointPathParameter: CustomStringConvertible {
 /// ```
 /// the generic holds `String.Type` and not `Optional<String>.self`.
 /// Use the `nilIsValidValue` property to check if the original parameter definition used an `Optional` type.
-struct EndpointPathParameter<Type: Codable>: AnyEndpointPathParameter {
-    let id: UUID
-    var pathId: String {
+public struct EndpointPathParameter<Type: Codable>: _AnyEndpointPathParameter {
+    public let id: UUID
+    public var pathId: String {
         id.uuidString
     }
-    var description: String {
+    public var description: String {
         ":\(id)"
     }
-    var nilIsValidValue: Bool
+    public var nilIsValidValue: Bool
 
-    var scopedEndpointHasDefinedParameter: Bool {
+    public var scopedEndpointHasDefinedParameter: Bool {
         guard let value = storedScopedEndpointHasDefinedParameter else {
             fatalError("Tried accessing 'scopedEndpointHasDefinedParameter' property without a valid Endpoint scope!")
         }
@@ -151,7 +162,7 @@ struct EndpointPathParameter<Type: Codable>: AnyEndpointPathParameter {
     }
     private var storedScopedEndpointHasDefinedParameter: Bool? // swiftlint:disable:this discouraged_optional_boolean
 
-    var name: String {
+    public var name: String {
         guard let name = storedName else {
             fatalError("Tried accessing 'name' property without a valid Endpoint scope!")
         }
@@ -180,21 +191,31 @@ struct EndpointPathParameter<Type: Codable>: AnyEndpointPathParameter {
 }
 
 
-protocol PathBuilder {
-    /// Optional method which is called for `.root` path elements
+/// This protocol describes a Path Builder.
+/// Can be used to traverse any `[EndpointPath]`.
+/// Can be applied using `[EndpointPath].build(...)`.
+public protocol PathBuilder {
+    /// Optional method which is called for `EndpointPath.root` path elements.
+    /// Typically a such path elements are found at the beginning of any array
+    /// representing a absolute path.
     mutating func root()
 
-    /// Called to append a `String` path element
+    /// Called to append a `EndpointPath.string(String)` path element.
+    /// - Parameter string: The string hold by `.string` path.
     mutating func append(_ string: String)
-    /// Called to append a `EndpointPathParameter` element
+    /// Called to append a `EndpointPath.parameter(EndpointPathParameter)` element.
+    /// - Parameter parameter: The fully typed parameter of the `.parameter` path.
     mutating func append<Type>(_ parameter: EndpointPathParameter<Type>)
 }
 
-extension PathBuilder {
+public extension PathBuilder {
+    /// Called to append the `EndpointPath.root` path element.
+    /// Typically a such path elements are found at the beginning of any array
+    /// representing a absolute path.
     mutating func root() {}
 }
 
-protocol PathBuilderWithResult: PathBuilder {
+public protocol PathBuilderWithResult: PathBuilder {
     associatedtype Result
 
     init()
@@ -211,18 +232,24 @@ extension EndpointPath {
         case let .string(string):
             builder.append(string)
         case let .parameter(parameter):
-            parameter.accept(&builder)
+            parameter.toInternal().accept(&builder)
         }
     }
 }
 
-extension Array where Element == EndpointPath {
+public extension Array where Element == EndpointPath {
+    /// Applies and instantiated `PathBuilder` to the given `EndpointPath` array.
+    /// - Parameter builder: The `PathBuilder` to be applied.
     func build<Builder: PathBuilder>(with builder: inout Builder) {
         for path in self {
             path.accept(&builder)
         }
     }
 
+    /// Applies a `PathBuilderWithResult` to the given `EndpointPath` array.
+    /// The path builder will be instantiated using the required initializer of the `PathBuilderResult` protocol.
+    /// - Parameter type: The type of `PathBuilderWithResult` to be used for building.
+    /// - Returns: Returns the result of `PathBuilderResult.result()` after building all paths.
     func build<Builder: PathBuilderWithResult>(with type: Builder.Type) -> Builder.Result {
         var builder: Builder = .init()
         for path in self {
@@ -241,21 +268,34 @@ extension Array where Element == EndpointPath {
 }
 
 
-extension Array where Element == EndpointPath {
-    func asPathString(delimiter: String = "/", parameterEncoding: PathStringBuilder.ParameterEncodingStyle = .bracketedName) -> String {
+public extension Array where Element == EndpointPath {
+    /// Turns the `EndpointPath` array into a string representation using the packaged `PathStringBuilder`.
+    /// - Parameters:
+    ///   - delimiter: Defines the delimiter between the string representation of the different `EndpointPath`s.
+    ///   - parameterEncoding: Defines the `ParameterEncodingStyle` to be used for `EndpointPathParameter`.
+    /// - Returns: The string representation for the `EndpointPath` array.
+    func asPathString(delimiter: String = "/", parameterEncoding: ParameterEncodingStyle = .bracketedName) -> String {
         var builder = PathStringBuilder(delimiter: delimiter, parameterEncoding: parameterEncoding)
         build(with: &builder)
         return builder.result()
     }
 }
 
-struct PathStringBuilder: PathBuilder {
-    enum ParameterEncodingStyle {
-        case bracketedName
-        case name
-        case id
-    }
+/// Defines the how parameter should be encoded when using `[EndpointPath].asPathString(...)` (aka the `PathStringBuilder`)
+public enum ParameterEncodingStyle {
+    /// Uses a RFC 6670 style using.
+    /// Example for parameter named `id`: `{id}`
+    case bracketedName
+    /// Uses the name of the parameter.
+    /// The parameter might not be available, if the `Handler` of the scoped `Endpoint`
+    /// didn't declare a `Parameter` property for the given path parameter.
+    /// In this case the `EndpointPathParameter.id` is used.
+    case name
+    /// Uses the path parameter id.
+    case id
+}
 
+private struct PathStringBuilder: PathBuilder {
     private let delimiter: String
     private let parameterEncoding: ParameterEncodingStyle
 

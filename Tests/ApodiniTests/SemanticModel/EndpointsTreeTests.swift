@@ -71,7 +71,7 @@ final class EndpointsTreeTests: ApodiniTests {
         let testHandler: TestHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
         let endpoint = testHandler.mockEndpoint()
 
-        let parameters: [AnyEndpointParameter] = endpoint.parameters
+        let parameters = endpoint.parameters
         let nameParameter = parameters.first { $0.label == "_name" }!
         let timesParameter = parameters.first { $0.label == "_times" }!
         let birthdateParameter = parameters.first { $0.label == "_birthdate" }!
@@ -84,7 +84,7 @@ final class EndpointsTreeTests: ApodiniTests {
         // basic checks to ensure proper parameter parsing
         XCTAssertEqual(nameParameter.id, testHandler.nameParameter.id)
         XCTAssertEqual(timesParameter.id, testHandler.timesParameter.id)
-        XCTAssertEqual(timesParameter.options.option(for: PropertyOptionKey.http), testHandler.timesParameter.option(for: PropertyOptionKey.http))
+        XCTAssertEqual(timesParameter.option(for: PropertyOptionKey.http), testHandler.timesParameter.option(for: PropertyOptionKey.http))
         XCTAssertEqual(birthdateParameter.id, testHandler.birthdateParameter.id)
 
         // check whether categorization works

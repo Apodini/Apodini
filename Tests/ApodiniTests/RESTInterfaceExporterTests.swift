@@ -122,9 +122,9 @@ class RESTInterfaceExporterTests: ApodiniTests {
     }
 
     func testRESTRequest() throws {
-        let builder = SharedSemanticModelBuilder(app)
+        let builder = SemanticModelBuilder(app)
             .with(exporter: RESTInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -156,7 +156,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
             }
         }
         
-        let builder = SharedSemanticModelBuilder(app)
+        let builder = SemanticModelBuilder(app)
             .with(exporter: RESTInterfaceExporter.self)
         WebService().register(builder)
         
