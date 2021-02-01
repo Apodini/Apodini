@@ -199,6 +199,16 @@ internal class InternalProtoEncodingContainer {
     }
 
     internal func encodeRepeatedInt(_ values: [Int], tag: Int) throws {
+        if let strategy = encoder.variableWidthIntegerStrategy {
+            switch strategy {
+            case .thirtyTwo:
+                try encodeRepeatedInt32(values.compactMap { Int32($0) }, tag: tag)
+            case .sixtyFour:
+                try encodeRepeatedInt64(values.compactMap { Int64($0) }, tag: tag)
+            }
+            return
+        }
+        
         if MemoryLayout<Int>.size == 4 {
             try encodeRepeatedInt32(values.compactMap { Int32($0) }, tag: tag)
         } else if MemoryLayout<Int>.size == 8 {
@@ -227,6 +237,16 @@ internal class InternalProtoEncodingContainer {
     }
 
     internal func encodeRepeatedUInt(_ values: [UInt], tag: Int) throws {
+        if let strategy = encoder.variableWidthIntegerStrategy {
+            switch strategy {
+            case .thirtyTwo:
+                try encodeRepeatedUInt32(values.compactMap { UInt32($0) }, tag: tag)
+            case .sixtyFour:
+                try encodeRepeatedUInt64(values.compactMap { UInt64($0) }, tag: tag)
+            }
+            return
+        }
+        
         if MemoryLayout<UInt>.size == 4 {
             try encodeRepeatedUInt32(values.compactMap { UInt32($0) }, tag: tag)
         } else if MemoryLayout<UInt>.size == 8 {
