@@ -12,7 +12,7 @@ public struct ReadOne<Model: DatabaseModel>: Handler {
     @Parameter(.http(.path))
     var id: Model.IDValue
     
-    func handle() throws -> EventLoopFuture<Model> {
+    public func handle() throws -> EventLoopFuture<Model> {
         Model.find(id, on: database).unwrap(orError: objectNotFoundError)
     }
     
