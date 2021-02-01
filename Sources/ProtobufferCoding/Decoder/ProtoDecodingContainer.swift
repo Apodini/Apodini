@@ -15,9 +15,7 @@ import Foundation
 /// Offers basic functionality shared by several decoding containers for Protobuffers.
 internal class InternalProtoDecodingContainer {
     var codingPath: [CodingKey]
-    /// The strategy that this container uses to encode `Int`s and `UInt`s.
-    ///
-    /// Set to `nil` (default) to use the architectures bit width.
+    /// The strategy that this container uses to decode `Int`s and `UInt`s.
     var variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy
 
     internal init(codingPath: [CodingKey] = [], variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy) {
