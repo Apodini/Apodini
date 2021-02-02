@@ -39,7 +39,9 @@ extension Component {
             HandlerVisitorHelperImpl(visitor: visitor)(self)
             if Self.Content.self != Never.self {
                 visitor.enterContent {
-                    content.accept(visitor)
+                    visitor.enterComponentContext {
+                        content.accept(visitor)
+                    }
                 }
             }
         }
@@ -52,6 +54,14 @@ private protocol HandlerVisitorHelperImplBase: AssociatedTypeRequirementsVisitor
     associatedtype Input = Handler
     associatedtype Output
     func callAsFunction<H: Handler>(_ value: H) -> Output
+}
+
+extension HandlerVisitorHelperImplBase {
+    @inline(never)
+    @_optimize(none)
+    fileprivate func _test() {
+        _ = self(Text(""))
+    }
 }
 
 private struct HandlerVisitorHelperImpl: HandlerVisitorHelperImplBase {

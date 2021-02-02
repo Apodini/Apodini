@@ -202,3 +202,62 @@ internal class InternalProtoDecodingContainer {
         return output
     }
 }
+
+// MARK: - Type extensions
+internal extension Int {
+    init(from value: Data?, using container: InternalProtoDecodingContainer) throws {
+        guard let value = value else {
+            throw ProtoError.decodingError("No data to initialize from")
+        }
+        if MemoryLayout<Int>.size == 4 {
+            try self.init(container.decodeInt32(value))
+        } else if MemoryLayout<Int>.size == 8 {
+            try self.init(container.decodeInt64(value))
+        } else {
+            throw ProtoError.decodingError("Unknown width of Int type")
+        }
+    }
+}
+
+internal extension UInt {
+    init(from value: Data?, using container: InternalProtoDecodingContainer) throws {
+        guard let value = value else {
+            throw ProtoError.decodingError("No data to initialize from")
+        }
+        if MemoryLayout<UInt>.size == 4 {
+            try self.init(container.decodeUInt32(value))
+        } else if MemoryLayout<UInt>.size == 8 {
+            try self.init(container.decodeUInt64(value))
+        } else {
+            throw ProtoError.decodingError("Unknown width of UInt type")
+        }
+    }
+}
+
+internal extension Array where Element == Int {
+    init(from value: Data?, using container: InternalProtoDecodingContainer) throws {
+        guard let value = value else {
+            throw ProtoError.decodingError("No data to initialize from")
+        }
+        self.init()
+        if MemoryLayout<Int>.size == 4 {
+            try container.decodeRepeatedInt32(value).forEach { self.append(Int($0)) }
+        } else if MemoryLayout<Int>.size == 8 {
+            try container.decodeRepeatedInt64(value).forEach { self.append(Int($0)) }
+        }
+    }
+}
+
+internal extension Array where Element == UInt {
+    init(from value: Data?, using container: InternalProtoDecodingContainer) throws {
+        guard let value = value else {
+            throw ProtoError.decodingError("No data to initialize from")
+        }
+        self.init()
+        if MemoryLayout<UInt>.size == 4 {
+            try container.decodeRepeatedUInt32(value).forEach { self.append(UInt($0)) }
+        } else if MemoryLayout<UInt>.size == 8 {
+            try container.decodeRepeatedUInt64(value).forEach { self.append(UInt($0)) }
+        }
+    }
+}

@@ -178,7 +178,7 @@ extension Node {
             return set
         }
     }
-    
+
     /// Collect every element of an array that is a value in the node.
     /// - Returns: A set of all elements in the node that contains an array.
     func collectValues<U>() -> Set<U> where T == [U], U: Hashable {

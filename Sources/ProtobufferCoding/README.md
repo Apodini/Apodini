@@ -8,8 +8,8 @@ The Protobuffer compiler `protoc` serves as a reference on how to map Protobuffe
 
 | Wire type | Protobuffer type | Encoding | Swift type |
 |-|-|-|-|
-| 0 (VarInt) | int32 / int64    | **not** ZigZag    | Int32 / Int64     |
-| 0 (VarInt) | uint32 / uint64  | **not** ZigZag    | UInt32 / UInt64   |
+| 0 (VarInt) | int32 / int64    | **not** ZigZag    | Int / Int32 / Int64     |
+| 0 (VarInt) | uint32 / uint64  | **not** ZigZag    | UInt / UInt32 / UInt64   |
 | *0 (VarInt)* | *sint32 / sint64* | *ZigZag*       | *Int32 / Int64*   |
 | 0 (VarInt) | bool             |                   | Bool              |
 | 0 (VarInt) | enum             | **not** ZigZag    | Int32             |
@@ -36,8 +36,10 @@ Groups (with wire types 3 and 4) are not supported by Apodini, because they are 
 
 | Swift type | Encoding | Protobuffer type | Wire type |
 |-|-|-|-|
+| Int     | **not** ZigZag    | int32 / Int64 (depending on system architecture) | 0 (VarInt) |
 | Int32     | **not** ZigZag    | int32     | 0 (VarInt) |
 | Int64     | **not** ZigZag    | int64     | 0 (VarInt) |
+| UInt      | **not** ZigZag    | uint32 / uint64 (depending on system architecture) | 0 (VarInt) |
 | UInt32    | **not** ZigZag    | uint32    | 0 (VarInt) |
 | UInt64    | **not** ZigZag    | uint32    | 0 (VarInt) |
 | Bool      |                   | bool      | 0 (VarInt) |

@@ -10,29 +10,67 @@ import Fluent
 
 /// An object that can merge itself and a `new` element
 /// of same type.
-protocol Reducible {
+public protocol Reducible {
+    /// Called to reduce self with the given instance.
+    /// Optional to implement. By default new will overwrite the existing instance.
+    /// - Parameter new: The instance to be combined with.
+    /// - Returns: The reduced instance.
     func reduce(to new: Self) -> Self
 }
 
-extension Reducible {
+public extension Reducible {
+    /// Default implementation.
     func reduce(to new: Self) -> Self {
         new
     }
 }
 
+/// An `ObservedListener` can be notified by a `ConnectionContext` if an observed object
+/// in the connection's handler has changed.
+public protocol ObservedListener {
+    /// The `EventLoop` that is used by this connection to send service-streaming
+    /// responses to the client.
+    var eventLoop: EventLoop { get }
+
+    /// Callback that will be called by a `ConnectionContext` if an observed value
+    /// in the context's handler did change.
+    func onObservedDidChange<C: ConnectionContext>(_ observedObject: AnyObservedObject, in context: C)
+}
+
 /// `ConnectionContext` holds the internal state of an endpoint for one connection
 /// in a format suitable for a specific `InterfaceExporter`.
-protocol ConnectionContext {
+public protocol ConnectionContext {
+    /// The `InterfaceExporter` for which the `ConnectionContext` is created.
     associatedtype Exporter: InterfaceExporter
-    
+
+    /// This method is called for every request which is to be handled.
+    /// - Parameters:
+    ///   - exporterRequest: The exporter defined request to be handled.
+    ///   - eventLoop: Defines the `EventLoop` on which the handling process should be run.
+    ///   - final: True if this request is the last for the given Connection.
+    /// - Returns: The response for the given Request.
     mutating func handle(
         request exporterRequest: Exporter.ExporterRequest,
         eventLoop: EventLoop,
         final: Bool
     ) -> EventLoopFuture<Response<AnyEncodable>>
+
+    /// Runs through the context's handler with the state after the latest client-request.
+    /// Should be used by exporters after an observed value in the context did change,
+    /// to retrieve the proper message that has to be sent to the client.
+    func handle(eventLoop: EventLoop, observedObject: AnyObservedObject) -> EventLoopFuture<Response<AnyEncodable>>
+
+    /// Register a listener that will be notified once an observed object did change in the handler
+    /// that is being used in this connection.
+    mutating func register(listener: ObservedListener)
 }
 
 extension ConnectionContext {
+    /// This method is called for every request which is to be handled.
+    /// - Parameters:
+    ///   - exporterRequest: The exporter defined request to be handled.
+    ///   - eventLoop: Defines the `EventLoop` on which the handling process should be run.
+    /// - Returns: The response for the given Request.
     mutating func handle(
         request exporterRequest: Exporter.ExporterRequest,
         eventLoop: EventLoop
@@ -41,24 +79,49 @@ extension ConnectionContext {
     }
 }
 
-struct AnyConnectionContext<I: InterfaceExporter>: ConnectionContext {
-    typealias Exporter = I
+public struct AnyConnectionContext<I: InterfaceExporter>: ConnectionContext {
+    public typealias Exporter = I
     
     private var handleFunc: (
         _: I.ExporterRequest,
         _: EventLoop,
         _: Bool
     ) -> EventLoopFuture<Response<AnyEncodable>>
+
+    private var handleObservedChanged: (
+        _: EventLoop,
+        _: AnyObservedObject
+    ) -> EventLoopFuture<Response<AnyEncodable>>
+
+    private var registerFunc: (
+        _: ObservedListener
+    ) -> Void
     
     init<C: ConnectionContext>(from context: C) where C.Exporter == I {
         var context = context
         self.handleFunc = { request, eventLoop, final in
             context.handle(request: request, eventLoop: eventLoop, final: final)
         }
+        self.handleObservedChanged = { eventLoop, observedObject in
+            context.handle(eventLoop: eventLoop, observedObject: observedObject)
+        }
+        self.registerFunc = { listener in
+            context.register(listener: listener)
+        }
     }
     
-    mutating func handle(request exporterRequest: I.ExporterRequest, eventLoop: EventLoop, final: Bool) -> EventLoopFuture<Response<AnyEncodable>> {
+    public mutating func handle(request exporterRequest: I.ExporterRequest,
+                                eventLoop: EventLoop,
+                                final: Bool) -> EventLoopFuture<Response<AnyEncodable>> {
         self.handleFunc(exporterRequest, eventLoop, final)
+    }
+
+    public func handle(eventLoop: EventLoop, observedObject: AnyObservedObject) -> EventLoopFuture<Response<AnyEncodable>> {
+        self.handleObservedChanged(eventLoop, observedObject)
+    }
+
+    public mutating func register(listener: ObservedListener) {
+        self.registerFunc(listener)
     }
 }
 
@@ -68,8 +131,9 @@ extension ConnectionContext {
     }
 }
 
-struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionContext {
+class InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionContext {
     typealias Exporter = I
+    typealias ConnectionHandler = H
     
     private let exporter: I
     
@@ -83,6 +147,8 @@ struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCo
     
     private var latestRequest: I.ExporterRequest?
     
+    private var observations: [Observation] = []
+    
     init(for exporter: I, on endpoint: Endpoint<H>) {
         self.exporter = exporter
         
@@ -91,7 +157,7 @@ struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCo
         self.validator = endpoint.validator(for: exporter)
     }
     
-    mutating func handle(
+    func handle(
         request exporterRequest: I.ExporterRequest,
         eventLoop: EventLoop,
         final: Bool
@@ -108,13 +174,49 @@ struct InternalConnectionContext<H: Handler, I: InterfaceExporter>: ConnectionCo
             return eventLoop.makeFailedFuture(error)
         }
     }
+
+    func handle(eventLoop: EventLoop, observedObject: AnyObservedObject) -> EventLoopFuture<Response<AnyEncodable>> {
+        observedObject.changed = true
+        do {
+            guard let latestRequest = latestRequest else {
+                fatalError("Can only handle changes to observed object after an initial client-request")
+            }
+            let validatedRequest = try validator.validate(latestRequest, with: eventLoop)
+            return self.requestHandler(on: Connection(state: .open, request: validatedRequest)).map { response in
+                observedObject.changed = false
+                return response
+            }
+        } catch {
+            return eventLoop.makeFailedFuture(error)
+        }
+    }
+
+    func register(listener: ObservedListener) {
+        // register the given listener for notifications on the handler
+        for object in endpoint.handler.collectObservedObjects() {
+            self.observations.append(object.register {
+                listener.onObservedDidChange(object, in: self)
+            })
+        }
+    }
 }
 
-extension ConnectionContext where Exporter.ExporterRequest: WithEventLoop {
+public extension ConnectionContext where Exporter.ExporterRequest: WithEventLoop {
+    /// This method is called for every request which is to be handled.
+    /// Shorthand method for the case where the exporter request conforms to `WithEventLoop`.
+    /// - Parameters:
+    ///   - exporterRequest: The exporter defined request to be handled.
+    /// - Returns: The response for the given Request.
     mutating func handle(request: Exporter.ExporterRequest) -> EventLoopFuture<Response<AnyEncodable>> {
         handle(request: request, eventLoop: request.eventLoop)
     }
-    
+
+    /// This method is called for every request which is to be handled.
+    /// Shorthand method for the case where the exporter request conforms to `WithEventLoop`.
+    /// - Parameters:
+    ///   - exporterRequest: The exporter defined request to be handled.
+    ///   - final: True if this request is the last for the given Connection.
+    /// - Returns: The response for the given Request.
     mutating func handle(request: Exporter.ExporterRequest, final: Bool) -> EventLoopFuture<Response<AnyEncodable>> {
         handle(request: request, eventLoop: request.eventLoop, final: final)
     }

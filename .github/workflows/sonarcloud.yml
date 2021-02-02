@@ -17,12 +17,15 @@ jobs:
       - uses: maxim-lobanov/setup-xcode@v1.1
         with:
           xcode-version: latest
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 11
       - name: Install sonar-scanner
         run: brew install sonar-scanner
       - uses: actions/cache@v2
         with:
           path: .build
-          key: ${{ runner.os }}-spm-cachev2-${{ hashFiles('**/Package.resolved') }}
+          key: ${{ runner.os }}-spm-cache-${{ hashFiles('Package.resolved') }}
       - name: Check Xcode version
         run: xcodebuild -version
       - name: Check Swift version

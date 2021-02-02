@@ -7,121 +7,13 @@
 
 import XCTest
 import WebSocketInfrastructure
+import NIO
 @testable import Apodini
 
 class WebSocketInterfaceExporterTests: ApodiniTests {
-    struct Parameters: Apodini.Content {
-        var param0: String
-        var param1: String?
-        var pathA: String
-        var pathB: String?
-        var bird: Bird
-    }
-
-    struct ParameterRetrievalTestHandler: Handler {
-        @Parameter
-        var param0: String
-        @Parameter
-        var param1: String?
-
-        @Parameter(.http(.path))
-        var pathA: String
-        var pathAParameter: Parameter<String> {
-            _pathA
-        }
-
-        @Parameter(.http(.path))
-        var pathB: String?
-        var pathBParameter: Parameter<String?> {
-            _pathB
-        }
-
-        @Parameter
-        var bird: Bird
-
-
-        func handle() -> Parameters {
-            Parameters(param0: param0, param1: param1, pathA: pathA, pathB: pathB, bird: bird)
-        }
-    }
-
-    struct User: Apodini.Content, Identifiable, Decodable {
-        let id: String
-        let name: String
-    }
+    static let blockTime: UInt32 = 10000
     
-    struct DecodedResponseContainer<Data: Decodable>: Decodable {
-        var content: Data
-    }
-
-    struct UserHandler: Handler {
-        @Parameter
-        var userId: User.ID
-        @Parameter
-        var name: String
-
-        func handle() -> User {
-            User(id: userId, name: name)
-        }
-    }
-    
-    struct StatefulUserHandler: Handler {
-        @Parameter(.mutability(.constant))
-        var userId: User.ID
-        @Parameter
-        var name: String?
-        @Apodini.Environment(\.connection)
-        var connection: Connection
-
-        func handle() -> Apodini.Response<User> {
-            if connection.state == .end {
-                XCTAssertNotNil(name)
-                // swiftlint:disable:next force_unwrapping
-                return .final(User(id: userId, name: name!))
-            } else {
-                return .nothing
-            }
-        }
-    }
-    
-    struct ThrowingHandlerNoImpact: Handler {
-        @Throws(.other, .webSocketConnectionConsequence(.none)) var error: ApodiniError
-        @Parameter var doThrow: Bool = true
-        
-        func handle() throws -> some ResponseTransformable {
-            if doThrow {
-                throw error
-            } else {
-                return true
-            }
-        }
-    }
-    
-    struct ThrowingHandlerCloseContext: Handler {
-        @Throws(.other, .webSocketConnectionConsequence(.closeContext)) var error: ApodiniError
-        @Parameter var doThrow: Bool = true
-        
-        func handle() throws -> some ResponseTransformable {
-            if doThrow {
-                throw error
-            } else {
-                return true
-            }
-        }
-    }
-    
-    struct ThrowingHandlerCloseChannel: Handler {
-        @Throws(.other, .webSocketConnectionConsequence(.closeChannel)) var error: ApodiniError
-        @Parameter var doThrow: Bool = true
-        
-        func handle() throws -> some ResponseTransformable {
-            if doThrow {
-                throw error
-            } else {
-                return true
-            }
-        }
-    }
+    var testObservable = TestObservable()
 
     @PathParameter
     var userId: User.ID
@@ -144,6 +36,9 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
             Group("channel") {
                 ThrowingHandlerCloseChannel()
             }
+        }
+        Group("bidirectional") {
+            BidirectionalHandler(observed: self.testObservable, eventLoop: self.app.eventLoopGroup.next(), app: self.app)
         }
     }
 
@@ -188,9 +83,9 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
     }
 
     func testWebSocketConnectionRequestResponseSchema() throws {
-        let builder = SharedSemanticModelBuilder(app)
+        let builder = SemanticModelBuilder(app)
             .with(exporter: WebSocketInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -214,9 +109,9 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
     }
     
     func testWebSocketConnectionClientStreamSchema() throws {
-        let builder = SharedSemanticModelBuilder(app)
+        let builder = SemanticModelBuilder(app)
             .with(exporter: WebSocketInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -254,10 +149,32 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         }
     }
     
-    func testWebSocketBadTypeError() throws {
-        let builder = SharedSemanticModelBuilder(app)
+    func testWebSocketConnectionBidirectionalStreamSchema() throws {
+        let builder = SemanticModelBuilder(app)
             .with(exporter: WebSocketInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        testService.accept(visitor)
+        visitor.finishParsing()
+
+        try app.start()
+        
+        let client = StatelessClient(on: app.eventLoopGroup.next())
+        
+        struct BidirectionalHandlerInput: Encodable {
+            let input: Int
+        }
+        
+        let result: [Bool] = try client.resolve(many: (0..<100).map { BidirectionalHandlerInput(input: $0) },
+                                                on: "bidirectional")
+            .wait()
+        
+        XCTAssertGreaterThan(result.count, 100)
+    }
+    
+    func testWebSocketBadTypeError() throws {
+        let builder = SemanticModelBuilder(app)
+            .with(exporter: WebSocketInterfaceExporter.self)
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -281,10 +198,10 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         } catch { }
     }
     
-    func testWebSocketThrowingNoInmpact() throws {
-        let builder = SharedSemanticModelBuilder(app)
+    func testWebSocketThrowingNoImpact() throws {
+        let builder = SemanticModelBuilder(app)
             .with(exporter: WebSocketInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -301,9 +218,9 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
     }
     
     func testWebSocketThrowingCloseContext() throws {
-        let builder = SharedSemanticModelBuilder(app)
+        let builder = SemanticModelBuilder(app)
             .with(exporter: WebSocketInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -320,9 +237,9 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
     }
     
     func testWebSocketThrowingCloseChannel() throws {
-        let builder = SharedSemanticModelBuilder(app)
+        let builder = SemanticModelBuilder(app)
             .with(exporter: WebSocketInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(semanticModelBuilders: [builder])
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -341,6 +258,171 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         } catch { }
     }
 }
+
+// MARK: Handlers
+
+struct Parameters: Apodini.Content {
+    var param0: String
+    var param1: String?
+    var pathA: String
+    var pathB: String?
+    var bird: Bird
+}
+
+struct ParameterRetrievalTestHandler: Handler {
+    @Parameter
+    var param0: String
+    @Parameter
+    var param1: String?
+
+    @Parameter(.http(.path))
+    var pathA: String
+    var pathAParameter: Parameter<String> {
+        _pathA
+    }
+
+    @Parameter(.http(.path))
+    var pathB: String?
+    var pathBParameter: Parameter<String?> {
+        _pathB
+    }
+
+    @Parameter
+    var bird: Bird
+
+
+    func handle() -> Parameters {
+        Parameters(param0: param0, param1: param1, pathA: pathA, pathB: pathB, bird: bird)
+    }
+}
+
+struct User: Apodini.Content, Identifiable, Decodable {
+    let id: String
+    let name: String
+}
+
+struct DecodedResponseContainer<Data: Decodable>: Decodable {
+    var content: Data
+}
+
+struct UserHandler: Handler {
+    @Parameter
+    var userId: User.ID
+    @Parameter
+    var name: String
+
+    func handle() -> User {
+        User(id: userId, name: name)
+    }
+}
+
+struct StatefulUserHandler: Handler {
+    @Parameter(.mutability(.constant))
+    var userId: User.ID
+    @Parameter
+    var name: String?
+    @Apodini.Environment(\.connection)
+    var connection: Connection
+
+    func handle() -> Apodini.Response<User> {
+        if connection.state == .end {
+            XCTAssertNotNil(name)
+            // swiftlint:disable:next force_unwrapping
+            return .final(User(id: userId, name: name!))
+        } else {
+            return .nothing
+        }
+    }
+}
+
+struct ThrowingHandlerNoImpact: Handler {
+    @Throws(.other, .webSocketConnectionConsequence(.none)) var error: ApodiniError
+    @Parameter var doThrow: Bool = true
+    
+    func handle() throws -> some ResponseTransformable {
+        if doThrow {
+            throw error
+        } else {
+            return true
+        }
+    }
+}
+
+struct ThrowingHandlerCloseContext: Handler {
+    @Throws(.other, .webSocketConnectionConsequence(.closeContext)) var error: ApodiniError
+    @Parameter var doThrow: Bool = true
+    
+    func handle() throws -> some ResponseTransformable {
+        if doThrow {
+            throw error
+        } else {
+            return true
+        }
+    }
+}
+
+struct ThrowingHandlerCloseChannel: Handler {
+    @Throws(.other, .webSocketConnectionConsequence(.closeChannel)) var error: ApodiniError
+    @Parameter var doThrow: Bool = true
+    
+    func handle() throws -> some ResponseTransformable {
+        if doThrow {
+            throw error
+        } else {
+            return true
+        }
+    }
+}
+
+class TestObservable: Apodini.ObservableObject {
+    @Apodini.Published var bool: Bool
+    
+    init() {
+        bool = false
+    }
+}
+
+struct BidirectionalHandler: Handler {
+    @Parameter var input: Int
+    
+    @State var latestInput: Int = -1
+    
+    @ObservedObject var observed: TestObservable
+    
+    @Environment(\.connection) var connection: Connection
+    
+    let eventLoop: EventLoop
+    
+    let app: Application
+    
+    
+    func handle() -> EventLoopFuture<Apodini.Response<Bool>> {
+        self.observed.bool.toggle()
+        if connection.state == .end {
+            return eventLoop.makeSucceededFuture(.end)
+        }
+        
+        let promise = eventLoop.makePromise(of: Apodini.Response<Bool>.self)
+        
+        _ = self.app.threadPool.runIfActive(eventLoop: eventLoop) {
+            usleep(WebSocketInterfaceExporterTests.blockTime)
+            if input == latestInput {
+                // not triggered by input, but by observable
+                XCTAssertTrue(_observed.changed)
+                promise.succeed(.send(false))
+            } else {
+                // triggered by input, not observable
+                XCTAssertFalse(_observed.changed)
+                latestInput = input
+                promise.succeed(.send(true))
+            }
+        }
+        
+        return promise.futureResult
+    }
+}
+
+// MARK: Helpers
 
 private struct MockParameterDecoder<Type>: ParameterDecoder {
     let value: Type??

@@ -1,11 +1,5 @@
-//
-//  DatabaseConfigurationTests.swift
-//  
-//
-//  Created by Tim Gymnich on 13.1.21.
-//
-
 @testable import Apodini
+@testable import ApodiniDatabase
 import XCTest
 
 final class DatabaseConfigurationTests: XCTestCase {

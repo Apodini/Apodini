@@ -105,6 +105,14 @@ extension EnrichedInfo {
     }
 }
 
+// MARK: - EnrichedInfo: Hashable
+
+extension EnrichedInfo: Hashable {
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(String(describing: "\(self.typeInfo.name)\(self.propertyInfo?.name)\(self.cardinality)"))
+    }
+}
+
 // MARK: - EnrichedInfo: Equatable
 
 extension EnrichedInfo: Equatable {

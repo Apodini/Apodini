@@ -38,6 +38,10 @@ extension SyncGuard {
     mutating func activate() {
         Apodini.activate(&self)
     }
+    
+    mutating func inject(app: Application) {
+        Apodini.inject(app: app, to: &self)
+    }
 }
 
 
@@ -56,6 +60,10 @@ extension Guard {
     mutating func activate() {
         Apodini.activate(&self)
     }
+    
+    mutating func inject(app: Application) {
+        Apodini.inject(app: app, to: &self)
+    }
 }
 
 private enum SomeGuard {
@@ -69,6 +77,17 @@ private enum SomeGuard {
             self = .sync(syncGuard)
         case .async(var asyncGuard):
             asyncGuard.activate()
+            self = .async(asyncGuard)
+        }
+    }
+    
+    mutating func inject(app: Application) {
+        switch self {
+        case .sync(var syncGuard):
+            syncGuard.inject(app: app)
+            self = .sync(syncGuard)
+        case .async(var asyncGuard):
+            asyncGuard.inject(app: app)
             self = .async(asyncGuard)
         }
     }
@@ -103,5 +122,9 @@ struct AnyGuard {
     
     mutating func activate() {
         self._wrapped.activate()
+    }
+    
+    mutating func inject(app: Application) {
+        _wrapped.inject(app: app)
     }
 }
