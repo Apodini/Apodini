@@ -46,6 +46,7 @@ extension Vapor.Application {
 
 
 public extension Apodini.Application {
+    /// Configuration related to vapor.
     var vapor: VaporApp {
         .init(application: self)
     }
@@ -57,6 +58,7 @@ public extension Apodini.Application {
             typealias Value = Vapor.Application
         }
 
+        /// The shared vapor application instance.
         public var app: Vapor.Application {
             if self.application.storage[ConfigurationKey.self] == nil {
                 self.initialize()

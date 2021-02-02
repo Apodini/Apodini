@@ -141,4 +141,3 @@ internal final class APNSConnectionSource: ConnectionPoolSource {
         APNSwiftConnection.connect(configuration: self.configuration, on: eventLoop)
     }
 }
-

@@ -20,6 +20,7 @@ public enum Scope {
 ///
 /// Each `Component` that needs to provide a custom `accept` implementation **must** conform to `SyntaxTreeVisitable` and **must** provide a custom `accept` implementation.
 public protocol SyntaxTreeVisitable {
+    /// Accept a visiting SyntaxTreeVisitor
     func accept(_ visitor: SyntaxTreeVisitor)
 }
 

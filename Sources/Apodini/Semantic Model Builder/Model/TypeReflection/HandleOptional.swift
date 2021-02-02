@@ -2,6 +2,8 @@
 //  Created by Nityananda on 21.12.20.
 //
 
+// swiftlint:disable missing_docs
+
 public func handleOptional(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     guard isOptional(node.value.typeInfo.type),
           let first = node.value.typeInfo.genericTypes.first else {

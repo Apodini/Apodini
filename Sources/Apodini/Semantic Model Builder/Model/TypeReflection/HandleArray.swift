@@ -2,6 +2,8 @@
 //  Created by Nityananda on 11.12.20.
 //
 
+// swiftlint:disable missing_docs
+
 public enum ArrayDidEncounterCircle {}
 
 public func handleArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {

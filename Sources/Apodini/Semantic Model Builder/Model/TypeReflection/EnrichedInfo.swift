@@ -2,6 +2,8 @@
 //  Created by Nityananda on 11.12.20.
 //
 
+// swiftlint:disable missing_docs
+
 import Runtime
 
 public struct PropertyInfo: Equatable, Hashable {

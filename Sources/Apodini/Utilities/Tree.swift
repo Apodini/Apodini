@@ -2,6 +2,7 @@
 //  Created by Nityananda on 26.11.20.
 //
 
+// swiftlint:disable missing_docs
 // MARK: - Tree
 
 // swiftlint:disable syntactic_sugar

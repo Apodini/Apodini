@@ -8,12 +8,10 @@
 import NIO
 
 extension Application {
-
     /// Used to keep track of http related configuration
     public var exporters: Exporters {
         .init(application: self)
     }
-
 
     /// Used to wait for the application to stop
     public final class Exporters {

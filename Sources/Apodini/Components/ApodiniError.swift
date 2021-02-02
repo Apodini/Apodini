@@ -7,6 +7,7 @@
 
 import Foundation
 
+// swiftlint:disable missing_docs
 // MARK: ApodiniError
 
 /// Generic Type that can be used to mark that the options are meant for `ApodiniError`s.

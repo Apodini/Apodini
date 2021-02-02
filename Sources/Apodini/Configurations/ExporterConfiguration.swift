@@ -10,7 +10,6 @@ import NIO
 
 /// A `Configuration` for the used `InterfaceExporter`.
 public class ExporterConfiguration: Configuration {
-
     var semanticModelBuilderBuilder: (SemanticModelBuilder) -> (SemanticModelBuilder) = id
 
     /// initalize ExporterConfiguration
@@ -25,7 +24,7 @@ public class ExporterConfiguration: Configuration {
     public func exporter<T: InterfaceExporter>(_ exporter: T.Type) -> Self {
         let builder = semanticModelBuilderBuilder
         semanticModelBuilderBuilder = { model in
-            return builder(model).with(exporter: exporter)
+            builder(model).with(exporter: exporter)
         }
         return self
     }
@@ -34,7 +33,7 @@ public class ExporterConfiguration: Configuration {
     public func exporter<T: StaticInterfaceExporter>(_ exporter: T.Type) -> Self {
         let builder = semanticModelBuilderBuilder
         semanticModelBuilderBuilder = { model in
-            return builder(model).with(exporter: exporter)
+            builder(model).with(exporter: exporter)
         }
         return self
     }
