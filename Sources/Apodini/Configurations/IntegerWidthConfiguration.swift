@@ -17,6 +17,15 @@ public enum IntegerWidthConfiguration: Int, Configuration {
     case thirtyTwo = 32
     case sixtyFour = 64
     
+    /// `default` is derived from the target's underlying architecture.
+    static let `default`: Self = {
+        if MemoryLayout<Int>.size == 4 {
+            return .thirtyTwo
+        } else {
+            return .sixtyFour
+        }
+    }()
+    
     // MARK: Nested Types
     enum StorageKey: Apodini.StorageKey {
         typealias Value = IntegerWidthConfiguration

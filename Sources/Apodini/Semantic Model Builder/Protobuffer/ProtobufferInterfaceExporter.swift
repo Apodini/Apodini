@@ -11,15 +11,7 @@ class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     }
 
     struct Builder {
-        var integerWidthConfiguration: IntegerWidthConfiguration
-        
-        init() {
-            if MemoryLayout<Int>.size == 4 {
-                self.integerWidthConfiguration = .thirtyTwo
-            } else {
-                self.integerWidthConfiguration = .sixtyFour
-            }
-        }
+        var integerWidthConfiguration: IntegerWidthConfiguration = .default
     }
     
     // MARK: Properties
