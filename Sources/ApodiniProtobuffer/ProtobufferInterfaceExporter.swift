@@ -7,7 +7,7 @@ import ApodiniVaporSupport
 import ApodiniGRPC
 @_implementationOnly import class Vapor.Application
 
-class ProtobufferInterfaceExporter: StaticInterfaceExporter {
+public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     // MARK: Nested Types
     struct Error: Swift.Error {
         let message: String
@@ -22,12 +22,12 @@ class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     private var services: Set<ProtobufferService> = .init()
     
     // MARK: Initialization
-    required init(_ app: Apodini.Application) {
+    public required init(_ app: Apodini.Application) {
         self.app = app
     }
     
     // MARK: Methods
-    func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
         do {
             try exportThrows(endpoint)
         } catch {
@@ -35,7 +35,7 @@ class ProtobufferInterfaceExporter: StaticInterfaceExporter {
         }
     }
     
-    func finishedExporting(_ webService: WebServiceModel) {
+    public func finishedExporting(_ webService: WebServiceModel) {
         let description = self.description
         
         app.vapor.app.get("apodini", "proto") { _ in

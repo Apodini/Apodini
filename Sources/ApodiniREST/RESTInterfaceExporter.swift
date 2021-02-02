@@ -3,22 +3,22 @@
 //
 
 import Apodini
-@_implementationOnly import Vapor
+import Vapor
 
 extension Vapor.Request: ExporterRequest, WithEventLoop {}
 
-class RESTInterfaceExporter: InterfaceExporter {
-    static let parameterNamespace: [ParameterNamespace] = .individual
+public final class RESTInterfaceExporter: InterfaceExporter {
+    public static let parameterNamespace: [ParameterNamespace] = .individual
 
     let app: Vapor.Application
     let configuration: RESTConfiguration
 
-    required init(_ app: Apodini.Application) {
+    required public init(_ app: Apodini.Application) {
         self.app = app.vapor.app
         self.configuration = RESTConfiguration(app.vapor.app.http.server.configuration)
     }
 
-    func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
         var pathBuilder = RESTPathBuilder()
         endpoint.absolutePath.build(with: &pathBuilder)
 
@@ -43,13 +43,13 @@ class RESTInterfaceExporter: InterfaceExporter {
         }
     }
 
-    func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) -> String {
+    public func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) -> String {
         // This is currently just a example on how one can use the exportParameter method
         // The return type can be whatever you want
         parameter.name
     }
 
-    func finishedExporting(_ webService: WebServiceModel) {
+    public func finishedExporting(_ webService: WebServiceModel) {
         if webService.getEndpoint(for: .read) == nil {
             // if the root path doesn't have a read endpoint we need to create a custom one to deliver linking entry points.
 
@@ -66,7 +66,7 @@ class RESTInterfaceExporter: InterfaceExporter {
         }
     }
 
-    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Vapor.Request) throws -> Type?? {
+    public func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Vapor.Request) throws -> Type?? {
         switch parameter.parameterType {
         case .lightweight:
             // Note: Vapor also supports decoding into a struct which holds all query parameters. Though we have the requirement,

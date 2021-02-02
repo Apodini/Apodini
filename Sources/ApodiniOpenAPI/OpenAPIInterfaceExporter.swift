@@ -7,14 +7,14 @@ import ApodiniVaporSupport
 @_implementationOnly import Vapor
 @_implementationOnly import OpenAPIKit
 
-class OpenAPIInterfaceExporter: StaticInterfaceExporter {
-    static var parameterNamespace: [ParameterNamespace] = .individual
+public final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
+    public static var parameterNamespace: [ParameterNamespace] = .individual
 
     let app: Apodini.Application
     var documentBuilder: OpenAPIDocumentBuilder
     var configuration: OpenAPIConfiguration
 
-    required init(_ app: Apodini.Application) {
+    public required init(_ app: Apodini.Application) {
         self.app = app
         if let storage = app.storage.get(OpenAPIStorageKey.self) {
             self.configuration = storage.configuration
@@ -28,7 +28,7 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
         updateStorage()
     }
 
-    func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
         documentBuilder.addEndpoint(endpoint)
         
         // set version information from APIContextKey, if version was not defined by developer
@@ -38,7 +38,7 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
         }
     }
 
-    func finishedExporting(_ webService: WebServiceModel) {
+    public func finishedExporting(_ webService: WebServiceModel) {
         serveSpecification()
         updateStorage()
     }

@@ -3,7 +3,7 @@
 //
 
 import Apodini
-@_implementationOnly import Vapor
+import Vapor
 
 extension Vapor.HTTPMethod {
     init(_ operation: Apodini.Operation) {

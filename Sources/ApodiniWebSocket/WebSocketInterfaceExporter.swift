@@ -14,17 +14,17 @@ import NIOWebSocket
 
 // MARK: Exporter
 
-class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
+public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private let app: Application
     
     private let router: WebSocketInfrastructure.Router
     
-    required init(_ app: Application) {
+    required public init(_ app: Application) {
         self.app = app
         self.router = VaporWSRouter(app.vapor.app, logger: app.logger)
     }
 
-    func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self)
         
         let emptyInput = SomeInput(parameters: inputParameters.reduce(into: [String: InputParameter](), { result, parameter in
@@ -99,7 +99,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }, on: endpoint.absolutePath.build(with: WebSocketPathBuilder.self))
     }
     
-    func retrieveParameter<Type>(
+    public func retrieveParameter<Type>(
         _ parameter: EndpointParameter<Type>,
         for request: SomeInput
     ) throws -> Type?? where Type: Decodable, Type: Encodable {
@@ -110,12 +110,12 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
     
-    func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, InputParameter) where Type: Decodable, Type: Encodable {
+    public func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, InputParameter) where Type: Decodable, Type: Encodable {
         (parameter.name, WebSocketInfrastructure.BasicInputParameter<Type>())
     }
     
     #if DEBUG
-    static func messagePrefix(for error: StandardErrorContext) -> String? {
+    public static func messagePrefix(for error: StandardErrorContext) -> String? {
         switch error.option(for: .errorType) {
         case .badInput:
             return "You messed up"
