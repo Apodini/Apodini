@@ -13,6 +13,14 @@ public struct RelationshipSource<From, To>: RelationshipDefinition {
     let resolvers: [AnyPathParameterResolver]
 
     /// Creates a new `RelationshipSource` with the specified name targeting a `Handler` which returns the specified type.
+    ///
+    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// ```swift
+    /// static var relationships: Relationships {
+    ///   Relationship<SomeType>(name: "someName")
+    /// }
+    /// ```
+    ///
     /// - Parameters:
     ///   - name: The name of the relationship.
     ///   - type: The return type of the relationship destination.
@@ -28,6 +36,14 @@ public struct RelationshipSource<From, To>: RelationshipDefinition {
 extension RelationshipSource where To: Identifiable, To.ID: LosslessStringConvertible {
     /// Creates a new `RelationshipSource` with the specified name targeting a `Handler` which returns the specified type.
     /// Additionally it adds a specified resolver for a path parameter in the path of the destination.
+    ///
+    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// ```swift
+    /// static var relationships: Relationships {
+    ///   Relationship<SomeType>(name: "someName", parameter: \.someProperty)
+    /// }
+    /// ```
+    ///
     /// - Parameters:
     ///   - name: The name of the relationship.
     ///   - type: The return type of the relationship destination.
@@ -40,6 +56,20 @@ extension RelationshipSource where To: Identifiable, To.ID: LosslessStringConver
 
     /// Creates a new `RelationshipSource` with the specified name targeting a `Handler` which returns the specified type.
     /// Additionally it adds specified resolvers for a path parameter in the path of the destination.
+    ///
+    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// ```swift
+    /// static var relationships: Relationships {
+    ///   Relationship<SomeType>(name: "someName") {
+    ///     // Every entry here relates to one `PathParameter` definition
+    ///     // in the path of the destination. Those `Identifying definitions will be
+    ///     // used to resolve any `PathParameter` annotated with the same identifying type.
+    ///     Identifying<SomeOtherType>(identifiedBy: \.someId0)
+    ///     Identifying<SomeType>(identifiedBy: \.someId1)
+    ///   }
+    /// }
+    /// ```
+    ///
     /// - Parameters:
     ///   - name: The name of the relationship.
     ///   - type: The return type of the relationship destination.

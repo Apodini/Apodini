@@ -15,6 +15,14 @@ public struct RelationshipInheritance<From, To>: RelationshipDefinition {
     }
 
     /// Creates a new `RelationshipInheritance`, inheriting from the specified type.
+    ///
+    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// ```swift
+    /// static var relationships: Relationships {
+    ///   Inherits<SomeType>()
+    /// }
+    /// ```
+    ///
     /// - Parameter type: The type to inherit from.
     public init(from type: To.Type = To.self) {
         self.init(from: type, resolvers: [])
@@ -22,6 +30,20 @@ public struct RelationshipInheritance<From, To>: RelationshipDefinition {
 
     /// Creates a new `RelationshipInheritance`, inheriting from the specified type using the specified resolver.
     /// Additionally it adds specified resolvers for a path parameter in the path of the destination.
+    ///
+    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// ```swift
+    /// static var relationships: Relationships {
+    ///   Inherits<SomeType> {
+    ///     // Every entry here relates to one `PathParameter` definition
+    ///     // in the path of the destination. `Identifying` must be added
+    ///     // for the identifying type of the `PathParameter`
+    ///     Identifying<SomeOtherType>(identifiedBy: \.someId0)
+    ///     Identifying<SomeType>(identifiedBy: \.someId1)
+    ///   }
+    /// }
+    /// ```
+    ///
     /// - Parameters:
     ///   - type: The type to inherit from.
     ///   - identifications: A list of resolvers for path parameter of the destination.
@@ -36,6 +58,14 @@ public struct RelationshipInheritance<From, To>: RelationshipDefinition {
 extension RelationshipInheritance where To: Identifiable, To.ID: LosslessStringConvertible {
     /// Creates a new `RelationshipInheritance`, inheriting from the specified type using the specified resolver.
     /// Additionally it adds a specified resolver for a path parameter in the path of the destination.
+    ///
+    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// ```swift
+    /// static var relationships: Relationships {
+    ///   Inherits<SomeType>(identifiedBy: \.someId)
+    /// }
+    /// ```
+    ///
     /// - Parameters:
     ///   - type: The type to inherit from.
     ///   - keyPath: A resolver for a path parameter of the destination.
@@ -49,6 +79,16 @@ extension RelationshipInheritance where To: Identifiable, To.ID: LosslessStringC
 extension RelationshipInheritance where From: Identifiable, To: Identifiable, From.ID == To.ID, To.ID: LosslessStringConvertible {
     /// Creates a new `RelationshipInheritance`, inheriting from the specified type using the specified resolver.
     /// As the source type inherits from `Identifiable` the `Identifiable.id` property is automatically added as a resolver.
+    ///
+    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// ```swift
+    /// static var relationships: Relationships {
+    ///   // if the self type conforms to `Identifiable` \.id will be automatically added
+    ///   // as a resolver for the Self type, if this shortcut init is chosen.
+    ///   Inherits<SomeType>()
+    /// }
+    /// ```
+    ///
     /// - Parameter type: The type to inherit from.
     public init(from type: To.Type = To.self) {
         self.init(from: type, identifiedBy: \From.id)

@@ -12,6 +12,14 @@ public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinit
 
     /// Creates a new `RelationshipReference`, referencing from the specified type using the specified resolver.
     /// - Parameters:
+    ///
+    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// ```swift
+    /// static var relationships: Relationships {
+    ///   References<SomeType>(as: "someName", identifiedBy: \.someId)
+    /// }
+    /// ```
+    ///
     ///   - type: The reference type.
     ///   - name: The name of the reference.
     ///   - keyPath: A resolver for the path parameter of the destination.
@@ -22,6 +30,16 @@ public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinit
     }
 
     /// Creates a new `RelationshipReference`, referencing from the specified type using the specified resolver.
+    ///
+    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// ```swift
+    /// static var relationships: Relationships {
+    ///   // The \.someId property is of type Optional. The path parameter will only be resolved
+    ///   // if the parameter value is present
+    ///   References<SomeType>(as: "someName", identifiedBy: \.someId)
+    /// }
+    /// ```
+    ///
     /// - Parameters:
     ///   - type: The reference type.
     ///   - name: The name of the reference.
@@ -33,6 +51,20 @@ public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinit
     }
 
     /// Creates a new `RelationshipReference`, referencing from the specified type using the specified resolvers.
+    ///
+    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// ```swift
+    /// static var relationships: Relationships {
+    ///   References<SomeType>(as: "someName") {
+    ///     // Every entry here relates to one `PathParameter` definition
+    ///     // in the path of the destination. `Identifying` must be added
+    ///     // for the identifying type of the `PathParameter`
+    ///     Identifying<SomeOtherType>(identifiedBy: \.someId0)
+    ///     Identifying<SomeType>(identifiedBy: \.someId1)
+    ///   }
+    /// }
+    /// ```
+    ///
     /// - Parameters:
     ///   - type: The reference type.
     ///   - name: The name of the reference.

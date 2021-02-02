@@ -21,6 +21,12 @@ public struct RelationshipIdentification<From, To: Identifiable> where To.ID: Lo
     let keyPath: PartialKeyPath<From>
 
     /// Initializes a new `RelationshipIdentification`.
+    ///
+    /// Within the the `WithRelationships` protocol you can use the `Identifying` typealias:
+    /// ```swift
+    /// Identifying<SomeType>(identifiedBy: \.someId)
+    /// ```
+    ///
     /// - Parameters:
     ///   - type: The identifying type of the `PathParameter` to provide a resolved value.
     ///   - keyPath: KeyPath to the property holding a value for the path parameter.
@@ -30,6 +36,13 @@ public struct RelationshipIdentification<From, To: Identifiable> where To.ID: Lo
     }
 
     /// Initializes a new `RelationshipIdentification`.
+    ///
+    /// Within the the `WithRelationships` protocol you can use the `Identifying` typealias:
+    /// ```swift
+    /// // \.someId is of type Optional, thus the Parameter is only resolved when value is non nil.
+    /// Identifying<SomeType>(identifiedBy: \.someId)
+    /// ```
+    ///
     /// - Parameters:
     ///   - type: The identifying type of the `PathParameter` to provide a resolved value.
     ///   - keyPath: KeyPath to the property holding a value for the path parameter.
