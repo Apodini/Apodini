@@ -1,6 +1,7 @@
 import XCTVapor
 @testable import Apodini
 @testable import ApodiniProtobuffer
+@testable import ApodiniGRPC
 
 final class ProtobufferBuilderTests: XCTestCase {
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
@@ -221,6 +222,12 @@ extension ProtobufferBuilderTests {
             var content: some Component {
                 HelloWorld()
             }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(GRPCInterfaceExporter.self)
+                    .exporter(ProtobufferInterfaceExporter.self)
+            }
         }
         
         struct HelloWorld: Handler {
@@ -250,6 +257,12 @@ extension ProtobufferBuilderTests {
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Greeter()
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(GRPCInterfaceExporter.self)
+                    .exporter(ProtobufferInterfaceExporter.self)
             }
         }
         
@@ -285,6 +298,12 @@ extension ProtobufferBuilderTests {
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Multiplier()
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(GRPCInterfaceExporter.self)
+                    .exporter(ProtobufferInterfaceExporter.self)
             }
         }
         
@@ -324,6 +343,12 @@ extension ProtobufferBuilderTests {
         struct WebService: Apodini.WebService {
             var content: some Component {
                 LogarithmTester()
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(GRPCInterfaceExporter.self)
+                    .exporter(ProtobufferInterfaceExporter.self)
             }
         }
         

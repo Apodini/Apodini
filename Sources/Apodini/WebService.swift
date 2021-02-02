@@ -51,12 +51,7 @@ extension WebService {
         webService.configuration.configure(app)
 
         webService.register(
-            SemanticModelBuilder(app)
-//                .with(exporter: RESTInterfaceExporter.self)
-//                .with(exporter: WebSocketInterfaceExporter.self)
-//                .with(exporter: OpenAPIInterfaceExporter.self)
-//                .with(exporter: GRPCInterfaceExporter.self)
-//                .with(exporter: ProtobufferInterfaceExporter.self)
+            app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app))
         )
         
         // Adds the created application instance to `EnvironmentValues`.

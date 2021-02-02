@@ -4,6 +4,7 @@
 
 import XCTest
 @testable import Apodini
+@testable import ApodiniVaporSupport
 @testable import ApodiniOpenAPI
 @_implementationOnly import Yams
 @_implementationOnly import OpenAPIKit
@@ -24,6 +25,8 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
 
             var configuration: Configuration {
                 OpenAPIConfiguration()
+                ExporterConfiguration()
+                    .exporter(OpenAPIInterfaceExporter.self)
             }
         }
 
@@ -63,6 +66,8 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
                     outputEndpoint: "oas",
                     swaggerUiEndpoint: "oas-ui"
                 )
+                ExporterConfiguration()
+                .exporter(OpenAPIInterfaceExporter.self)
             }
         }
 
