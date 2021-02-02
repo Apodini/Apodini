@@ -4,7 +4,6 @@ import APNS
 import FCM
 import NIO
 import Apodini
-@_implementationOnly import struct Vapor.Abort
 
 /// The `NotificationCenter` is responsible for push notifications in Apodini.
 /// It can send messages to both APNS and FCM and also manages storing and configuring of `Device`s in a database.
@@ -20,6 +19,12 @@ import Apodini
 ///
 /// - Remark: The `NotificationCenter` is an abstraction of [APNS](https://github.com/vapor/apns) and [FCM](https://github.com/MihaelIsaev/FCM).
 public struct NotificationCenter {
+    @Throws(.notFound, reason: "Could not find device in database.")
+    private var notFoundDevice: ApodiniError
+    
+    @Throws(.notFound, reason: "Could not find topic in database.")
+    private var notFoundTopic: ApodiniError
+
     internal var app: Application
     
     /// Initializes the `NotificationCenter` with an `Application` instance.
@@ -68,7 +73,7 @@ public struct NotificationCenter {
             .filter(\.$id == id)
             .with(\.$topics)
             .first()
-            .unwrap(or: Abort(.notFound))
+            .unwrap(or: self.notFoundDevice)
             .map { $0.transform() }
     }
     
@@ -109,7 +114,7 @@ public struct NotificationCenter {
                 devices.with(\.$topics)
             }
             .first()
-            .unwrap(or: Abort(.notFound))
+            .unwrap(or: self.notFoundDevice)
             .map { topic in
                 topic.devices.map {
                     $0.transform()
@@ -128,7 +133,7 @@ public struct NotificationCenter {
     public func addTopics(_ topicStrings: String..., to device: Device) -> EventLoopFuture<Void> {
         DeviceDatabaseModel
             .find(device.id, on: app.database)
-            .unwrap(or: Abort(.notFound))
+            .unwrap(or: self.notFoundDevice)
             .flatMap { deviceDatabaseModel -> EventLoopFuture<Void> in
                 self.attach(topics: topicStrings, to: deviceDatabaseModel)
             }
@@ -147,11 +152,11 @@ public struct NotificationCenter {
             .query(on: app.database)
             .filter(\.$name == topic)
             .first()
-            .unwrap(or: Abort(.notFound))
+            .unwrap(or: self.notFoundTopic)
             .flatMap { topicModel in
                 DeviceDatabaseModel
                     .find(device.id, on: self.app.database)
-                    .unwrap(or: Abort(.notFound))
+                    .unwrap(or: self.notFoundDevice)
                     .flatMap { deviceDatabaseModel -> EventLoopFuture<Void> in
                         deviceDatabaseModel.$topics.detach(topicModel, on: self.app.database)
                     }
@@ -167,7 +172,7 @@ public struct NotificationCenter {
     public func delete(device: Device) -> EventLoopFuture<Void> {
         DeviceDatabaseModel
             .find(device.id, on: app.database)
-            .unwrap(or: Abort(.notFound))
+            .unwrap(or: self.notFoundDevice)
             .flatMap { $0.delete(on: self.app.database) }
     }
     
@@ -186,10 +191,10 @@ public struct NotificationCenter {
                 .first()
                 .flatMap { result in
                     if let topic = result {
-                        return device.$topics.attach(topic, on: self.app.database)
+                        return device.$topics.attach(topic, method: .ifNotExists, on: self.app.database)
                     } else {
                         return topic.save(on: self.app.database).flatMap {
-                            device.$topics.attach(topic, on: self.app.database)
+                            device.$topics.attach(topic, method: .ifNotExists, on: self.app.database)
                         }
                     }
                 }
