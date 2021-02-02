@@ -123,6 +123,41 @@ final class NotificationCenterTests: XCTApodiniTest {
         XCTAssert(retrievedFCM == fcmDevices.map { Device(id: $0.id ?? "", type: $0.type) })
     }
     
+    func testDeviceRetrievalFromTopic() throws {
+        // Test topic not found
+        XCTAssertThrowsError(try app.notificationCenter.getAPNSDevices(of: "test").wait())
+        XCTAssertThrowsError(try app.notificationCenter.getFCMDevices(of: "test").wait())
+        
+        let device = Device(id: "999", type: .apns, topics: ["test"])
+        try app.notificationCenter.register(device: device).wait()
+        
+        var apnsDevices = try app.notificationCenter.getAPNSDevices(of: "test").wait()
+        // Test empty retrieval
+        var fcmDevices = try app.notificationCenter.getFCMDevices(of: "test").wait()
+        
+        XCTAssertEqual(apnsDevices, [device])
+        XCTAssertEqual(fcmDevices, [])
+        
+        let device2 = Device(id: "888", type: .apns, topics: ["test"])
+        let device3 = Device(id: "777", type: .apns, topics: ["all"])
+        let device4 = Device(id: "666", type: .apns, topics: ["test"])
+        let device5 = Device(id: "555", type: .fcm, topics: ["test"])
+        let device6 = Device(id: "444", type: .fcm)
+        
+        try app.notificationCenter.register(device: device2).wait()
+        try app.notificationCenter.register(device: device3).wait()
+        try app.notificationCenter.register(device: device4).wait()
+        try app.notificationCenter.register(device: device5).wait()
+        try app.notificationCenter.register(device: device6).wait()
+
+        apnsDevices = try app.notificationCenter.getAPNSDevices(of: "test").wait()
+        fcmDevices = try app.notificationCenter.getFCMDevices(of: "test").wait()
+        
+        // Test correct retrieval
+        XCTAssertEqual(apnsDevices, [device, device2, device4])
+        XCTAssertEqual(fcmDevices, [device5])
+    }
+    
     func testNotificationWithData() throws {
         let bird = Bird(name: "bird1", age: 2)
         
