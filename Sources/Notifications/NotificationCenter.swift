@@ -34,26 +34,12 @@ public struct NotificationCenter {
     
     // Checks the APNS Configuration.
     internal var isAPNSConfigured: Bool {
-        if app.apns.configuration == nil {
-            app.logger.error("""
-                APNS is not configured correctly.
-                Please use the `APNSConfiguration` in the `configuration` property.
-            """)
-            return false
-        }
-        return true
+        app.apns.configuration != nil
     }
     
     // Checks the FCM Configuration.
     internal var isFCMConfigured: Bool {
-        if app.fcm.configuration == nil {
-            app.logger.error("""
-                FCM is not configured correctly.
-                Please use the `FCMConfiguration` in the `configuration` property.
-            """)
-            return false
-        }
-        return true
+        app.fcm.configuration != nil
     }
     
     /// Saves a `Device` to a database.
