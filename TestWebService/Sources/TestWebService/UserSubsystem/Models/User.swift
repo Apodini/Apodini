@@ -7,7 +7,6 @@
 
 import Apodini
 
-
 struct User: Codable, ResponseTransformable {
     var id: Int
 }

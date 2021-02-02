@@ -7,7 +7,6 @@
 
 import Apodini
 
-
 struct AuctionComponent: Component {
     var content: some Component {
         Group("auction") {

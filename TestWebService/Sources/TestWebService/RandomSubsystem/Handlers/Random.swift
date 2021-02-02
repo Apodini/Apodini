@@ -7,10 +7,9 @@
 
 import Apodini
 
-
 struct Random: Handler {
     @Parameter var number = Int.random()
-    
+
     func handle() -> Int {
         number
     }

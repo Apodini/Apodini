@@ -10,11 +10,9 @@ struct QueryInput: Codable {
     var query: String
 }
 
-
 class GraphQLInterfaceExporter: InterfaceExporter {
     // GraphQL Schema
     private var schema: GraphQLSchema?
-
 
     let app: Application
     let graphQLPath: GraphQLSchemaBuilder

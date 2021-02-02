@@ -7,7 +7,6 @@
 
 import Apodini
 
-
 struct UserHandler: Handler {
     @Parameter var userId: Int
 

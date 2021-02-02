@@ -8,7 +8,6 @@
 import Apodini
 import Logging
 
-
 struct TraditionalGreeter: Handler {
     // one cannot change their surname, but it can be ommitted
     @Parameter(.mutability(.constant)) var surname: String = ""
@@ -16,14 +15,13 @@ struct TraditionalGreeter: Handler {
     @Parameter(.mutability(.constant)) var age: Int
     // one can switch between formal and informal greeting at any time
     @Parameter var name: String?
-    
+
     @Environment(\.connection) var connection: Connection
     @Environment(\.logger) var logger: Logger
 
-    
     func handle() -> Response<String> {
         logger.info("\(connection.state)")
-        
+
         if connection.state == .end {
             return .end
         }

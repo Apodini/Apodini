@@ -7,11 +7,9 @@
 
 import Apodini
 
-
 struct UserComponent: Component {
     @PathParameter var userId: Int
-    
-    
+
     var content: some Component {
         Group {
             "user"

@@ -7,7 +7,6 @@
 
 import Apodini
 
-
 struct RandomComponent: Component {
     var content: some Component {
         Group("rand") {

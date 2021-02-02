@@ -7,7 +7,6 @@
 
 import Apodini
 
-
 struct TestWebService: Apodini.WebService {
     @PathParameter var userId: Int
 

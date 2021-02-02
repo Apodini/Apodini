@@ -5,7 +5,6 @@
 @_implementationOnly import Vapor
 @_implementationOnly import GraphQL
 
-
 func graphqlTypeMap(with type: Codable.Type) throws -> GraphQLScalarType {
     if type == String.self {
         return GraphQLString
@@ -26,12 +25,10 @@ struct GraphQLRequest: ExporterRequest {
     var info: GraphQLResolveInfo
 }
 
-
 class GraphQLSchemaBuilder {
     private var tree = [String: Set<String>]()
     private var leafContext = [String: AnyConnectionContext<GraphQLInterfaceExporter>]()
     private var hasIncomingEdge = Set<String>()
-
 
     // GraphQL Related values
     private var types = [String: GraphQLObjectType]()
@@ -62,7 +59,6 @@ class GraphQLSchemaBuilder {
             return typeVal
         }
 
-
         // Array / Optional
         if let newResponseHead = try? responseTypeHead.edited(handleArray)?.edited(handleOptional) {
             if newResponseHead.value.cardinality == .zeroToMany(.array) { // Array
@@ -77,9 +73,9 @@ class GraphQLSchemaBuilder {
         }
 
         var currentFields = [String: GraphQLField]()
-        for c in responseTypeHead.children {
-            if let propertyInfo = c.value.runtimePropertyInfo {
-                currentFields[propertyInfo.name] = GraphQLField(type: try responseTypeHandler(for: c), resolve: { source, args, context, info in
+        for child in responseTypeHead.children {
+            if let propertyInfo = child.value.runtimePropertyInfo {
+                currentFields[propertyInfo.name] = GraphQLField(type: try responseTypeHandler(for: child), resolve: { source, _, _, _ in
                     return try propertyInfo.get(from: source)
                 })
             }
@@ -92,7 +88,7 @@ class GraphQLSchemaBuilder {
     private func graphQLFieldCreator(for responseTypeHead: Node<EnrichedInfo>, _ context: AnyConnectionContext<GraphQLInterfaceExporter>, _ args: [String: GraphQLArgument]) throws -> GraphQLField {
         var mutableContext = context
         let graphQLFieldType = try self.responseTypeHandler(for: responseTypeHead)
-        return GraphQLField(type: graphQLFieldType, args: args, resolve: { gSource, gArgs, gContext, gEventLoop, gInfo in
+        return GraphQLField(type: graphQLFieldType, args: args, resolve: { gSource, gArgs, gContext, _, gInfo in
             let request = GraphQLRequest(source: gSource, args: gArgs, context: gContext, info: gInfo)
             guard let vaporRequest = gContext as? Vapor.Request else {
                 throw ApodiniError(type: .serverError, reason: "Casting Error - Vapor.Request")
@@ -125,14 +121,13 @@ class GraphQLSchemaBuilder {
         // Remove `v1`
         currentPath.removeFirst()
 
-
         // Create node names
         var currentSum = String()
         if currentPath.count > 1 {
-            for ix in 0..<currentPath.count {
-                currentSum.append(currentPath[ix])
+            for idx in 0..<currentPath.count {
+                currentSum.append(currentPath[idx])
                 currentSum.append("_")
-                currentPath[ix] = currentSum
+                currentPath[idx] = currentSum
             }
         }
 
@@ -140,12 +135,12 @@ class GraphQLSchemaBuilder {
         let leafName = currentPath.last ?? "None"
 
         // Handle arguments
-        for p in endpoint.parameters {
-            let graphqlType = try graphqlTypeMap(with: p.propertyType)
-            if p.necessity == .required {
-                self.args[leafName, default: [:]][p.name] = GraphQLArgument(type: GraphQLNonNull(graphqlType), description: p.description)
+        for par in endpoint.parameters {
+            let graphqlType = try graphqlTypeMap(with: par.propertyType)
+            if par.necessity == .required {
+                self.args[leafName, default: [:]][par.name] = GraphQLArgument(type: GraphQLNonNull(graphqlType), description: par.description)
             } else {
-                self.args[leafName, default: [:]][p.name] = GraphQLArgument(type: graphqlType, description: p.description)
+                self.args[leafName, default: [:]][par.name] = GraphQLArgument(type: graphqlType, description: par.description)
             }
 
         }
@@ -175,7 +170,6 @@ class GraphQLSchemaBuilder {
             hasIncomingEdge.insert(child)
             indx -= 1
         }
-
 
     }
 
