@@ -8,6 +8,7 @@
 import Foundation
 import Apodini
 
+/// gRPC message
 public final class GRPCMessage: Apodini.ExporterRequest {
     /// Default message that can be used to call handlers in cases
     /// where no input message was provided.

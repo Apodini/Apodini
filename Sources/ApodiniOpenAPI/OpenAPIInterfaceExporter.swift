@@ -7,6 +7,7 @@ import ApodiniVaporSupport
 @_implementationOnly import Vapor
 @_implementationOnly import OpenAPIKit
 
+/// Apodini Interface Exporter for OpenAPI.
 public final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
     public static var parameterNamespace: [ParameterNamespace] = .individual
 
@@ -14,6 +15,7 @@ public final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
     var documentBuilder: OpenAPIDocumentBuilder
     var configuration: OpenAPIConfiguration
 
+    /// Initalize`OpenAPIInterfaceExporter` from `Application`
     public required init(_ app: Apodini.Application) {
         self.app = app
         if let storage = app.storage.get(OpenAPIStorageKey.self) {

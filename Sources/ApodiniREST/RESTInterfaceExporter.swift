@@ -7,13 +7,15 @@ import Vapor
 
 extension Vapor.Request: ExporterRequest, WithEventLoop {}
 
+/// Apodini Interface Exporter for REST.
 public final class RESTInterfaceExporter: InterfaceExporter {
     public static let parameterNamespace: [ParameterNamespace] = .individual
 
     let app: Vapor.Application
     let configuration: RESTConfiguration
 
-    required public init(_ app: Apodini.Application) {
+    /// Initalize `RESTInterfaceExporter` from `Application`
+    public required init(_ app: Apodini.Application) {
         self.app = app.vapor.app
         self.configuration = RESTConfiguration(app.vapor.app.http.server.configuration)
     }

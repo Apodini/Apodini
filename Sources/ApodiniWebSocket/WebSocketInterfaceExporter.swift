@@ -14,12 +14,16 @@ import NIOWebSocket
 
 // MARK: Exporter
 
+/// The WebSocket exporter uses a custom JSON based protocol on top of WebSocket's text messages.
+/// This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel.
+/// The Apodini service listens on /apodini/websocket for clients that want to communicate via the WebSocket Interface Exporter.
 public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private let app: Application
     
     private let router: WebSocketInfrastructure.Router
-    
-    required public init(_ app: Application) {
+
+    /// Initalize a `WebSocketInterfaceExporter` from an `Application`
+    public required init(_ app: Application) {
         self.app = app
         self.router = VaporWSRouter(app.vapor.app, logger: app.logger)
     }
@@ -98,7 +102,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             return (defaultInput: emptyInput, output: output.eraseToAnyPublisher())
         }, on: endpoint.absolutePath.build(with: WebSocketPathBuilder.self))
     }
-    
+
     public func retrieveParameter<Type>(
         _ parameter: EndpointParameter<Type>,
         for request: SomeInput
@@ -109,7 +113,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             return nil
         }
     }
-    
+
     public func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, InputParameter) where Type: Decodable, Type: Encodable {
         (parameter.name, WebSocketInfrastructure.BasicInputParameter<Type>())
     }

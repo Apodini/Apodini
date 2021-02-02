@@ -11,11 +11,13 @@ import Apodini
 @_implementationOnly import NIOHPACK
 @_implementationOnly import ProtobufferCoding
 
+/// Apodini Interface Exporter for gRPC
 public final class GRPCInterfaceExporter: InterfaceExporter {
     let app: Apodini.Application
     var services: [String: GRPCService]
     var parameters: [UUID: Int]
 
+    /// Initalize `GRPCInterfaceExporter` from `Application`
     public required init(_ app: Apodini.Application) {
         self.app = app
         self.services = [:]
@@ -76,7 +78,6 @@ public final class GRPCInterfaceExporter: InterfaceExporter {
         }
     }
 
-    /// The GRPC exporter handles all parameters equally as body parameters
     public func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: GRPCMessage) throws -> Type?? {
         guard let fieldTag = getFieldTag(for: parameter) else {
             // If this occurs, something went fundamentally wrong in usage
@@ -163,7 +164,7 @@ private struct RequestWrapper<T>: Decodable where T: Decodable {
 /// be decoding multiple requests at the same time.
 private var fieldNumber = ThreadSpecificVariable<FieldNumber>()
 
-class FieldNumber {
+final class FieldNumber {
     private var tag = 1
 
     /// Returns the field-number for the current thread.
