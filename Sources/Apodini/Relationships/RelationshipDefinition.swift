@@ -2,46 +2,61 @@
 // Created by Andi on 20.12.20.
 //
 
-protocol RelationshipDefinition {}
+/// The `WithRelationships` protocol can be used on `Content` definitions
+/// on the return type of a `Handler` (the `Content` returned by last `ResponseTransformer` or
+/// the `Handler` if there aren't any transformers).
+/// The `relationships` property can be used to define `RelationshipDefinition`s for
+/// the `Content` type annotated with this protocol.
+public protocol WithRelationships {
+    /// Defines a array of `RelationshipDefinition`s
+    typealias Relationships = [RelationshipDefinition]
 
-struct SomeRelationshipReference<From, To: Identifiable>: RelationshipDefinition {
-    var name: String
-    var type: To.Type
-    var keyPath: KeyPath<From, To.ID>
+    /// Shorthand for using a pretyped `RelationshipReference`.
+    typealias References<To: Identifiable> = RelationshipReference<Self, To> where To.ID: LosslessStringConvertible
+    /// Shorthand for using a pretyped `RelationshipInheritance`.
+    typealias Inherits<To> = RelationshipInheritance<Self, To>
 
-    init(to type: To.Type = To.self, at keyPath: KeyPath<From, To.ID>, as name: String) {
-        self.name = name
-        self.type = type
-        self.keyPath = keyPath
+    /// Shorthand for using a pretyped `RelationshipSource`.
+    typealias Relationship<To> = RelationshipSource<Self, To>
 
-        if name == "self" {
-            fatalError("The relationship name 'self' is reserved. To model relationship inheritance please use `Inherits`!")
+    /// Shorthand for using a pretyped `RelationshipIdentification`.
+    typealias Identifying<To: Identifiable> = RelationshipIdentification<Self, To> where To.ID: LosslessStringConvertible
+
+    /// Defines `RelationshipDefinition`s for the given `Content` type.
+    @RelationshipDefinitionBuilder
+    static var relationships: Relationships { get }
+}
+
+/// A `RelationshipDefinition` defines any sort of relationship information for the
+/// given `Content` type annotated with `WithRelationships`.
+public protocol RelationshipDefinition {}
+
+extension RelationshipDefinition {
+    func accept(_ visit: SyntaxTreeVisitor) {
+        if let visitable = self as? SyntaxTreeVisitable {
+            visitable.accept(visit)
+        } else {
+            fatalError("\(self) conforms to \(RelationshipDefinition.self) but doesn't conform to \(SyntaxTreeVisitable.self)!")
         }
     }
+}
 
-    func identifier(for from: From) -> To.ID {
-        from[keyPath: keyPath]
+
+struct RelationshipSourceCandidateContextKey: ContextKey {
+    typealias Value = [PartialRelationshipSourceCandidate]
+    static let defaultValue: Value = []
+
+    static func reduce(value: inout [PartialRelationshipSourceCandidate], nextValue: () -> [PartialRelationshipSourceCandidate]) {
+        value.append(contentsOf: nextValue())
     }
 }
 
-struct SomeRelationshipInheritance<From, To: Identifiable>: RelationshipDefinition {
-    let name: String = "self" // reserved relationship name to signal inheritance
-    var type: To.Type
-    var keyPath: KeyPath<From, To.ID>
 
-    init(from type: To.Type = To.self, at keyPath: KeyPath<From, To.ID>) {
-        self.type = type
-        self.keyPath = keyPath
+/// A function builder used to aggregate `RelationshipDefinition`.
+@_functionBuilder
+public enum RelationshipDefinitionBuilder {
+    /// A method that transforms multiple `RelationshipDefinition`s
+    public static func buildBlock(_ definitions: RelationshipDefinition...) -> [RelationshipDefinition] {
+        definitions
     }
-
-    func identifier(for from: From) -> To.ID {
-        from[keyPath: keyPath]
-    }
-}
-
-protocol WithRelationships {
-    typealias References<To: Identifiable> = SomeRelationshipReference<Self, To>
-    typealias Inherits<To: Identifiable> = SomeRelationshipInheritance<Self, To>
-    associatedtype Relationships: RelationshipDefinition
-    static var relationships: Relationships { get }
 }

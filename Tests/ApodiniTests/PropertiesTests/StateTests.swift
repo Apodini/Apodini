@@ -122,7 +122,7 @@ class StateTests: ApodiniTests {
 
         let exporter = MockExporter<String>()
 
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         
         var response = try context.handle(request: "Example Request", eventLoop: eventLoop)
                 .wait()
@@ -182,8 +182,8 @@ class StateTests: ApodiniTests {
 
         let exporter = MockExporter<String>()
 
-        var context1 = endpoint.createConnectionContext(for: exporter)
-        var context2 = endpoint.createConnectionContext(for: exporter)
+        let context1 = endpoint.createConnectionContext(for: exporter)
+        let context2 = endpoint.createConnectionContext(for: exporter)
 
         _ = try context1.handle(request: "Example Request", eventLoop: eventLoop)
                 .wait()
@@ -222,8 +222,8 @@ class StateTests: ApodiniTests {
         let exporter1 = MockExporter<String>()
         let exporter2 = MockExporter<String>()
 
-        var context1 = endpoint.createConnectionContext(for: exporter1)
-        var context2 = endpoint.createConnectionContext(for: exporter2)
+        let context1 = endpoint.createConnectionContext(for: exporter1)
+        let context2 = endpoint.createConnectionContext(for: exporter2)
 
         _ = try context1.handle(request: "Example Request", eventLoop: eventLoop)
                 .wait()
@@ -261,8 +261,8 @@ class StateTests: ApodiniTests {
 
         let exporter = MockExporter<String>()
 
-        var context1 = endpoint.createConnectionContext(for: exporter)
-        var context2 = endpoint.createConnectionContext(for: exporter)
+        let context1 = endpoint.createConnectionContext(for: exporter)
+        let context2 = endpoint.createConnectionContext(for: exporter)
 
         _ = try context1.handle(request: "Example Request", eventLoop: eventLoop)
                 .wait()
@@ -301,8 +301,8 @@ class StateTests: ApodiniTests {
         let exporter1 = MockExporter<String>()
         let exporter2 = MockExporter<String>()
 
-        var context1 = endpoint.createConnectionContext(for: exporter1)
-        var context2 = endpoint.createConnectionContext(for: exporter2)
+        let context1 = endpoint.createConnectionContext(for: exporter1)
+        let context2 = endpoint.createConnectionContext(for: exporter2)
 
         _ = try context1.handle(request: "Example Request", eventLoop: eventLoop)
                 .wait()

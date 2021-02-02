@@ -28,6 +28,18 @@ class MockExporter<Request: ExporterRequest>: InterfaceExporter {
         // do nothing
     }
 
+    func finishedExporting(_ webService: WebServiceModel) {
+        // do nothing
+    }
+
+    func append(injected: Any??...) {
+        append(injected: injected)
+    }
+
+    func append(injected: [Any??]) {
+        parameterValues.append(contentsOf: injected)
+    }
+
     func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Request) throws -> Type?? {
         guard let first = parameterValues.first else {
             print("WARN: MockExporter failed to retrieve next parameter for '\(parameter.description)'. Queue is empty")

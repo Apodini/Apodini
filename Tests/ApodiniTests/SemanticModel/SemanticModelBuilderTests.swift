@@ -105,12 +105,12 @@ final class SemanticModelBuilderTests: ApodiniTests {
             testComponent.content
         }.accept(visitor)
         visitor.finishParsing()
-        
+
         let nameParameterId: UUID = testComponent.$name.id
         let treeNodeA: EndpointsTreeNode = modelBuilder.rootNode.children.first!
-        let treeNodeB: EndpointsTreeNode = treeNodeA.children.first { $0.path.description == "b" }!
+        let treeNodeB: EndpointsTreeNode = treeNodeA.children.first { $0.storedPath.description == "b" }!
         let treeNodeNameParameter: EndpointsTreeNode = treeNodeB.children.first!
-        let treeNodeSomeOtherIdParameter: EndpointsTreeNode = treeNodeA.children.first { $0.path.description != "b" }!
+        let treeNodeSomeOtherIdParameter: EndpointsTreeNode = treeNodeA.children.first { $0.storedPath.description != "b" }!
         let endpointGroupLevel: AnyEndpoint = treeNodeSomeOtherIdParameter.endpoints.first!.value
         let someOtherIdParameterId: UUID = endpointGroupLevel.parameters.first { $0.name == "someOtherId" }!.id
         let endpoint: AnyEndpoint = treeNodeNameParameter.endpoints.first!.value
@@ -139,7 +139,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let handler = TestHandler4()
         let endpoint = handler.mockEndpoint()
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
 
         let request = Vapor.Request(application: app.vapor.app,
                                     method: .GET,
@@ -160,7 +160,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let handler = ActionHandler1()
         let endpoint = handler.mockEndpoint(app: app)
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app.vapor.app,
                                     method: .GET,
                                     url: "",
@@ -178,7 +178,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let handler = ActionHandler1().environment(Connection(state: .end), for: \Apodini.Application.connection)
         let endpoint = handler.mockEndpoint(app: app)
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app.vapor.app,
                                     method: .GET,
                                     url: "",
@@ -196,7 +196,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let handler = ActionHandler2()
         let endpoint = handler.mockEndpoint(app: app)
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app.vapor.app,
                                     method: .GET,
                                     url: "",
@@ -214,7 +214,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let handler = ActionHandler2().environment(Connection(state: .end), for: \Apodini.Application.connection)
         let endpoint = handler.mockEndpoint(app: app)
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app.vapor.app,
                                     method: .GET,
                                     url: "",
