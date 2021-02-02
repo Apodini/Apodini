@@ -18,7 +18,7 @@ let package = Package(
         .library(name: "ApodiniProtobuffer", targets: ["ApodiniProtobuffer"]),
         .library(name: "ApodiniDatabase", targets: ["ApodiniDatabase"]),
         .library(name: "ApodiniNotifications", targets: ["ApodiniNotifications"]),
-        .library(name: "Jobs", targets: ["Jobs"])
+        .library(name: "ApodiniJobs", targets: ["ApodiniJobs"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.39.1"),
@@ -223,18 +223,18 @@ let package = Package(
                 .product(name: "Runtime", package: "Runtime")
             ]
         ),
-        // Jobs
+        // ApodiniJobs
         .target(
-            name: "Jobs",
+            name: "ApodiniJobs",
             dependencies: [
                 .target(name: "Apodini"),
                 .product(name: "SwifCron", package: "SwifCron")
             ]
         ),
         .testTarget(
-            name: "JobsTests",
+            name: "ApodiniJobsTests",
             dependencies: [
-                .target(name: "Jobs"),
+                .target(name: "ApodiniJobs"),
                 .target(name: "XCTApodini")
             ]
         )

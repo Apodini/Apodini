@@ -2,7 +2,7 @@ import XCTApodini
 import XCTest
 import Apodini
 import NIO
-@testable import Jobs
+@testable import ApodiniJobs
 
 final class ObservedObjectTests: XCTApodiniTest {
     struct TestJob: Job {
