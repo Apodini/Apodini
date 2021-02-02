@@ -47,21 +47,25 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         let endpoint = handler.mockEndpoint()
 
         let exporter = WebSocketInterfaceExporter(app)
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
 
         let bird = Bird(name: "Rudi", age: 12)
 
         var input = SomeInput(parameters: [
             "bird": BasicInputParameter<Bird>(),
             "a": BasicInputParameter<UUID>(),
+            "b": BasicInputParameter<UUID>(),
             "param0": BasicInputParameter<String>(),
-            "pathA": BasicInputParameter<String>()
+            "pathA": BasicInputParameter<String>(),
+            "pathB": BasicInputParameter<String>()
         ])
         
         _ = input.update("bird", using: bird.mockDecoder())
         _ = input.update("a", using: handler.pathAParameter.id.mockDecoder())
+        _ = input.update("b", using: handler.pathBParameter.id.mockDecoder())
         _ = input.update("param0", using: "value0".mockDecoder())
         _ = input.update("pathA", using: "a".mockDecoder())
+        _ = input.update("pathB", using: "b".mockDecoder())
         
         _ = input.check()
         input.apply()
@@ -78,7 +82,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         XCTAssertEqual(responseValue.param0, "value0")
         XCTAssertEqual(responseValue.param1, nil)
         XCTAssertEqual(responseValue.pathA, "a")
-        XCTAssertEqual(responseValue.pathB, nil)
+        XCTAssertEqual(responseValue.pathB, "b")
         XCTAssertEqual(responseValue.bird, bird)
     }
 
@@ -282,8 +286,8 @@ struct ParameterRetrievalTestHandler: Handler {
     }
 
     @Parameter(.http(.path))
-    var pathB: String?
-    var pathBParameter: Parameter<String?> {
+    var pathB: String
+    var pathBParameter: Parameter<String> {
         _pathB
     }
 

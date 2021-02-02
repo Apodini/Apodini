@@ -8,10 +8,13 @@
 import Apodini
 
 
-struct RamdomComponent: Component {
+struct RandomComponent: Component {
+    let greeterRelationship: Relationship
+
     var content: some Component {
         Group("rand") {
             Random()
+                .relationship(to: greeterRelationship)
         }
     }
 }

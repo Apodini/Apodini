@@ -25,7 +25,7 @@ struct GuardContextKey: ContextKey {
 }
 
 extension Array where Element == LazyGuard {
-    /// The array of `LazyGuard` contains all `Guard`s that have accumalated over the parsing of the DSL
+    /// The array of `LazyGuard` contains all `Guard`s that have accumulated over the parsing of the DSL
     /// The developer has the option to reset any previously collected `Guard`s using the `resetGuards()` modifier that appends a `ResetGuard`
     /// This property filters out all guards that have been applied since the last `ResetGuard` and discards all previously collected `Guard`s and the `ResetGuard`
     ///

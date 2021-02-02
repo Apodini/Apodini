@@ -8,7 +8,7 @@
 import NIO
 
 
-/// Used to return from the `handle` method by `Handerl`s
+/// Used to return from the `handle` method by `Handler`s
 public enum Response<Element: Encodable>: ResponseTransformable {
     /// Indicates that the request was processed
     /// and **no** response should be sent to the client.
@@ -86,11 +86,30 @@ extension Response where Element == AnyEncodable {
         case .nothing:
             return .nothing
         case let .send(element):
-            return element.typed(T.self).map {
+            return element.typed(type).map {
                 .send($0)
             }
         case let .final(element):
-            return element.typed(T.self).map {
+            return element.typed(type).map {
+                .final($0)
+            }
+        case .end:
+            return .end
+        }
+    }
+}
+
+extension Response where Element == EnrichedContent {
+    func typed<T: Encodable>(_ type: T.Type = T.self) -> Response<T>? {
+        switch self {
+        case .nothing:
+            return .nothing
+        case let .send(element):
+            return element.typed(type).map {
+                .send($0)
+            }
+        case let .final(element):
+            return element.typed(type).map {
                 .final($0)
             }
         case .end:
