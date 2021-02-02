@@ -24,7 +24,7 @@ import NIOSSL
 ///     .cerrtificate("/some/path/cert.pem")
 ///     .key("/some/path/key.pem")
 /// ```
-public class HTTP2Configuration: Configuration {
+public final class HTTP2Configuration: Configuration {
     private var certData: Data?
     private var keyData: Data?
 

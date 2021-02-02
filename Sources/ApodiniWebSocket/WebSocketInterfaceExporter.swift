@@ -14,17 +14,21 @@ import NIOWebSocket
 
 // MARK: Exporter
 
-class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
+/// The WebSocket exporter uses a custom JSON based protocol on top of WebSocket's text messages.
+/// This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel.
+/// The Apodini service listens on /apodini/websocket for clients that want to communicate via the WebSocket Interface Exporter.
+public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private let app: Application
     
     private let router: WebSocketInfrastructure.Router
-    
-    required init(_ app: Application) {
+
+    /// Initalize a `WebSocketInterfaceExporter` from an `Application`
+    public required init(_ app: Application) {
         self.app = app
         self.router = VaporWSRouter(app.vapor.app, logger: app.logger)
     }
 
-    func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self)
         
         let emptyInput = SomeInput(parameters: inputParameters.reduce(into: [String: InputParameter](), { result, parameter in
@@ -98,8 +102,8 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             return (defaultInput: emptyInput, output: output.eraseToAnyPublisher())
         }, on: endpoint.absolutePath.build(with: WebSocketPathBuilder.self))
     }
-    
-    func retrieveParameter<Type>(
+
+    public func retrieveParameter<Type>(
         _ parameter: EndpointParameter<Type>,
         for request: SomeInput
     ) throws -> Type?? where Type: Decodable, Type: Encodable {
@@ -109,13 +113,13 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             return nil
         }
     }
-    
-    func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, InputParameter) where Type: Decodable, Type: Encodable {
+
+    public func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, InputParameter) where Type: Decodable, Type: Encodable {
         (parameter.name, WebSocketInfrastructure.BasicInputParameter<Type>())
     }
     
     #if DEBUG
-    static func messagePrefix(for error: StandardErrorContext) -> String? {
+    public static func messagePrefix(for error: StandardErrorContext) -> String? {
         switch error.option(for: .errorType) {
         case .badInput:
             return "You messed up"

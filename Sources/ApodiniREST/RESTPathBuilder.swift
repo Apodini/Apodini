@@ -3,7 +3,7 @@
 //
 
 import Apodini
-@_implementationOnly import Vapor
+import Vapor
 
 struct RESTPathBuilder: PathBuilder {
     private var pathComponents: [Vapor.PathComponent] = []

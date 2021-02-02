@@ -3,7 +3,7 @@
 //
 
 import Apodini
-@_implementationOnly import Vapor
+import Vapor
 
 /// A RoutesHandler which is automatically registered to the root path
 /// if there is no Endpoint registered under the root, in order to server entry point links.

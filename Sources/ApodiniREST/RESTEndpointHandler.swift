@@ -5,7 +5,7 @@
 import Foundation
 import Apodini
 import ApodiniVaporSupport
-@_implementationOnly import Vapor
+import Vapor
 
 struct RESTEndpointHandler {
     var contextCreator: () -> ConnectionContext<RESTInterfaceExporter>

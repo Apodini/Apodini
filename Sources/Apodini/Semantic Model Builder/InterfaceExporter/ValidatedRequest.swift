@@ -3,7 +3,6 @@
 //
 import NIO
 import Foundation
-@_implementationOnly import protocol FluentKit.Database
 
 struct ValidatedRequest<I: InterfaceExporter, H: Handler>: Request {
     var description: String {
@@ -33,22 +32,18 @@ struct ValidatedRequest<I: InterfaceExporter, H: Handler>: Request {
 
     var eventLoop: EventLoop
 
-    var database: (() -> Database)?
-
     init(
         for exporter: I,
         with request: I.ExporterRequest,
         using validatedParameterValues: [UUID: Any],
         on endpoint: Endpoint<H>,
-        running eventLoop: EventLoop,
-        database: (() -> Database)? = nil
+        running eventLoop: EventLoop
     ) {
         self.exporter = exporter
         self.exporterRequest = request
         self.validatedParameterValues = validatedParameterValues
         self.storedEndpoint = endpoint
         self.eventLoop = eventLoop
-        self.database = database
     }
 
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element {

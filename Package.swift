@@ -36,7 +36,7 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.0.0"),
         // Use to navigate around some of the existentials limitations of the Swift Compiler
         // As AssociatedTypeRequirementsKit does not follow semantic versioning we constraint it to the current minor version
-        .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", .upToNextMinor(from: "0.3.0")),
+        .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", .upToNextMinor(from: "0.3.2")),
         // Used to parse crontabs in the `Scheduler` class
         .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from:"1.3.0"),
         // OpenCombine seems to be only available as a pre release and is not feature complete.
@@ -62,8 +62,6 @@ let package = Package(
             dependencies: [
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "NIO", package: "swift-nio"),
-                .product(name: "FluentKit", package: "fluent-kit"),
-                .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOHTTP2", package: "swift-nio-http2"),
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
                 .product(name: "Logging", package: "swift-log"),
@@ -107,7 +105,8 @@ let package = Package(
         .target(name: "ApodiniGRPC",
                 dependencies: [
                     .target(name: "Apodini"),
-                    .target(name: "ApodiniVaporSupport")
+                    .target(name: "ApodiniVaporSupport"),
+                    .target(name: "ProtobufferCoding")
                 ]
         ),
 

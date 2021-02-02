@@ -2,7 +2,7 @@
 // Created by Andreas Bauer on 22.01.21.
 //
 
-@_implementationOnly import Vapor
+import Vapor
 
 struct RESTConfiguration {
     let configuration: HTTPServer.Configuration

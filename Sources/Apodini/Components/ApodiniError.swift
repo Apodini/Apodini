@@ -71,7 +71,7 @@ public protocol StandardErrorCompliantOption: PropertyOption {
 
 public protocol ErrorMessagePrefixStrategy {}
 
-struct StandardErrorMessagePrefix: ErrorMessagePrefixStrategy {}
+public struct StandardErrorMessagePrefix: ErrorMessagePrefixStrategy {}
 
 struct NoErrorMessagePrefix: ErrorMessagePrefixStrategy {}
 
