@@ -65,11 +65,11 @@ class GraphQLSchemaBuilder {
 
         // Array / Optional
         if let newResponseHead = try? responseTypeHead.edited(handleArray)?.edited(handleOptional) {
-            if (newResponseHead.value.cardinality == .zeroToMany(.array)) { // Array
+            if newResponseHead.value.cardinality == .zeroToMany(.array) { // Array
                 if let eNode = try? EnrichedInfo.node(newResponseHead.value.typeInfo.type) {
                     return try GraphQLList(responseTypeHandler(for: eNode))
                 }
-            } else if (newResponseHead.value.cardinality == .zeroToOne) { // Optional
+            } else if newResponseHead.value.cardinality == .zeroToOne { // Optional
                 if let eNode = try? EnrichedInfo.node(newResponseHead.value.typeInfo.type) {
                     return try responseTypeHandler(for: eNode)
                 }
@@ -126,7 +126,7 @@ class GraphQLSchemaBuilder {
 
         // Create node names
         var currentSum = String()
-        if (currentPath.count > 1) {
+        if currentPath.count > 1 {
             for ix in 0..<currentPath.count {
                 currentSum.append(currentPath[ix])
                 currentSum.append("_")
@@ -140,7 +140,7 @@ class GraphQLSchemaBuilder {
         // Handle arguments
         for p in endpoint.parameters {
             let graphqlType = try graphqlTypeMap(with: p.propertyType)
-            if (p.necessity == .required) {
+            if p.necessity == .required {
                 self.args[leafName, default: [:]][p.name] = GraphQLArgument(type: GraphQLNonNull(graphqlType), description: p.description)
             } else {
                 self.args[leafName, default: [:]][p.name] = GraphQLArgument(type: graphqlType, description: p.description)
@@ -154,7 +154,7 @@ class GraphQLSchemaBuilder {
         self.leafContext[leafName] = context
 
         // Handle Single points
-        if (currentPath.count == 1) {
+        if currentPath.count == 1 {
             self.fields[leafName] = try self.graphQLFieldCreator(for: self.responseTypeTree[leafName]!,
                 self.leafContext[leafName]!,
                 self.args[leafName] ?? [:])
@@ -165,7 +165,7 @@ class GraphQLSchemaBuilder {
         var indx = currentPath.count - 1
         while (indx >= 1) {
             let child = currentPath[indx], parent = currentPath[indx - 1]
-            if (self.tree.keys.contains(parent)) {
+            if self.tree.keys.contains(parent) {
                 self.tree[parent]!.insert(child)
             } else {
                 self.tree[parent] = [child]
@@ -183,7 +183,7 @@ class GraphQLSchemaBuilder {
 
     private func graphQLRegexCheck(for str: String) -> String {
         // To handle `Names must match /^[_a-zA-Z][_a-zA-Z0-9]*$/`
-        if (Array(str)[0].isNumber) {
+        if Array(str)[0].isNumber {
             return "n_" + str
         } else {
             return str
@@ -220,7 +220,7 @@ class GraphQLSchemaBuilder {
     private func generateSchemaFromTree() throws {
         for (parent, _) in self.tree {
             // It is one of the roots
-            if (!self.hasIncomingEdge.contains(parent)) {
+            if !self.hasIncomingEdge.contains(parent) {
                 let parentName = self.nameExtractor(for: parent)
                 self.fields[parentName] = try generateSchemaFromTreeHelper(parent)
             }
