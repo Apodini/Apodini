@@ -2,6 +2,7 @@
 // Created by Andreas Bauer on 22.01.21.
 //
 
+import Apodini
 @_implementationOnly import Vapor
 
 /// A RoutesHandler which is automatically registered to the root path

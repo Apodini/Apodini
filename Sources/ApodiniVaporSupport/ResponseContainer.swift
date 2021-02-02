@@ -19,7 +19,11 @@ public struct ResponseContainer: Encodable, ResponseEncodable {
         case links = "_links"
     }
 
-    public init(_ data: AnyEncodable?, links: [String: String]) {
+    public init(links: [String: String]) {
+        self.links = links
+    }
+
+    public init(_ data: AnyEncodable, links: [String: String]) {
         self.data = data
         self.links = links
     }
@@ -30,9 +34,7 @@ public struct ResponseContainer: Encodable, ResponseEncodable {
 
         let response = Vapor.Response()
         do {
-            if data != nil {
-                try response.content.encode(self, using: jsonEncoder)
-            }
+            try response.content.encode(self, using: jsonEncoder)
         } catch {
             return request.eventLoop.makeFailedFuture(error)
         }

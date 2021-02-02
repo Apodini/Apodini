@@ -16,7 +16,7 @@ struct RESTEndpointHandler {
         self.contextCreator = contextCreator
     }
 
-    func register(at routesBuilder: Vapor.RoutesBuilder, with operation: Operation) {
+    func register(at routesBuilder: Vapor.RoutesBuilder, with operation: Apodini.Operation) {
         routesBuilder.on(Vapor.HTTPMethod(operation), [], use: self.handleRequest)
     }
 
@@ -25,7 +25,7 @@ struct RESTEndpointHandler {
 
         let responseFuture = context.handle(request: request)
 
-        return responseFuture.flatMap { (encodableAction: Response<EnrichedContent>) in
+        return responseFuture.flatMap { (encodableAction: Apodini.Response<EnrichedContent>) in
             switch encodableAction {
             case let .send(response),
                  let .final(response):

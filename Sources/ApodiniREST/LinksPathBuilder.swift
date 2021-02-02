@@ -2,6 +2,7 @@
 // Created by Andreas Bauer on 09.01.21.
 //
 
+import Apodini
 import Foundation
 
 struct LinksFormatter: RelationshipFormatter {

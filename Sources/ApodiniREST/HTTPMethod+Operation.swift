@@ -2,10 +2,11 @@
 // Created by Andreas Bauer on 22.01.21.
 //
 
+import Apodini
 @_implementationOnly import Vapor
 
 extension Vapor.HTTPMethod {
-    init(_ operation: Operation) {
+    init(_ operation: Apodini.Operation) {
         switch operation {
         case .create:
             self =  .POST
