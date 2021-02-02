@@ -2,8 +2,7 @@
 //  Created by Nityananda on 11.12.20.
 //
 
-enum ArrayDidEncounterCircle {
-}
+enum ArrayDidEncounterCircle {}
 
 func handleArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     let typeInfo = node.value.typeInfo
