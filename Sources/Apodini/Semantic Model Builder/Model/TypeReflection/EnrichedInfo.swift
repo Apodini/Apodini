@@ -23,7 +23,7 @@ struct EnrichedInfo {
 
     let typeInfo: TypeInfo
     let propertyInfo: PropertyInfo?
-    var runtimePropertyInfo: Runtime.PropertyInfo? = nil
+    var runtimePropertyInfo: Runtime.PropertyInfo?
 
     var cardinality: Cardinality = .exactlyOne
 }
@@ -84,7 +84,7 @@ extension EnrichedInfo: Hashable {
 // MARK: - EnrichedInfo: Equatable
 
 extension EnrichedInfo: Equatable {
-    public static func ==(lhs: EnrichedInfo, rhs: EnrichedInfo) -> Bool {
+    public static func == (lhs: EnrichedInfo, rhs: EnrichedInfo) -> Bool {
         lhs.typeInfo.type == rhs.typeInfo.type
             && lhs.propertyInfo == rhs.propertyInfo
             && lhs.cardinality == rhs.cardinality
@@ -92,7 +92,7 @@ extension EnrichedInfo: Equatable {
 }
 
 extension EnrichedInfo.Cardinality: Equatable {
-    public static func ==(lhs: Self, rhs: Self) -> Bool {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case (.zeroToOne, .zeroToOne), (.exactlyOne, .exactlyOne):
             return true
@@ -105,7 +105,7 @@ extension EnrichedInfo.Cardinality: Equatable {
 }
 
 extension EnrichedInfo.CollectionContext: Equatable {
-    public static func ==(lhs: Self, rhs: Self) -> Bool {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case (.array, .array):
             return true
