@@ -3,8 +3,7 @@ import Apodini
 @_implementationOnly import SwifCron
 
 /// `Configuration` to start `Job`s at server startup.
-public class Schedule<K: KeyChain, T: Job>: Configuration {
-    private let scheduler = Scheduler.shared
+public class Schedule<K: EnvironmentAccessible, T: Job>: Configuration {
     private let job: T
     private let cronTrigger: String
     private let runs: Int?
@@ -25,8 +24,6 @@ public class Schedule<K: KeyChain, T: Job>: Configuration {
         self.cronTrigger = cronTrigger
         self.runs = nil
         self.keyPath = keyPath
-        
-        createEnvironmentValue()
     }
     
     /// Initializes the `Schedule` configuration.
@@ -45,22 +42,16 @@ public class Schedule<K: KeyChain, T: Job>: Configuration {
         self.cronTrigger = cronTrigger
         self.runs = runs
         self.keyPath = keyPath
-        
-        createEnvironmentValue()
     }
     
     /// Enqueues the configured `Job` at server startup.
     public func configure(_ app: Application) {
         do {
-            try scheduler.enqueue(job, with: cronTrigger, runs: runs, keyPath, on: app.eventLoopGroup.next())
+            try app.scheduler.enqueue(job, with: cronTrigger, runs: runs, keyPath, on: app.eventLoopGroup.next())
         } catch JobErrors.requestPropertyWrapper {
             fatalError("Request based property wrappers cannot be used with `Job`s")
         } catch {
             fatalError("Error parsing cron trigger: \(error)")
         }
-    }
-    
-    private func createEnvironmentValue() {
-        EnvironmentValue(keyPath, job)
     }
 }

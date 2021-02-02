@@ -25,8 +25,7 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
     }
 
     func encodeNil() throws {
-        // cannot encode nil
-        throw ProtoError.encodingError("Cannot encode nil")
+        // nothing to do
     }
 
     func encode(_ value: Bool) throws {
@@ -46,7 +45,7 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
     }
 
     func encode(_ value: Int) throws {
-        throw ProtoError.encodingError("Int not supported, use Int32 or Int64")
+        try encodeInt(value, tag: fieldNumber)
     }
 
     func encode(_ value: Int8) throws {
@@ -66,7 +65,7 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
     }
 
     func encode(_ value: UInt) throws {
-        throw ProtoError.encodingError("UInt not supported, use UInt32 or UInt64")
+        try encodeUInt(value, tag: fieldNumber)
     }
 
     func encode(_ value: UInt8) throws {
@@ -97,12 +96,20 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
         try encodeRepeatedFloat(values, tag: fieldNumber)
     }
 
+    func encode(_ values: [Int]) throws {
+        try encodeRepeatedInt(values, tag: fieldNumber)
+    }
+
     func encode(_ values: [Int32]) throws {
         try encodeRepeatedInt32(values, tag: fieldNumber)
     }
 
     func encode(_ values: [Int64]) throws {
         try encodeRepeatedInt64(values, tag: fieldNumber)
+    }
+
+    func encode(_ values: [UInt]) throws {
+        try encodeRepeatedUInt(values, tag: fieldNumber)
     }
 
     func encode(_ values: [UInt32]) throws {
@@ -125,15 +132,70 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
         // adds support for arrays of primitive types
         // by type matching (since they are not part
         // of the SingleValueEncodingContainer protocol)
+        if T.self == Data.self, let value = value as? Data {
+            // simply a byte array
+            // prepend an extra byte containing the length
+            var length = Data([UInt8(value.count)])
+            length.append(value)
+            appendData(length, tag: fieldNumber, wireType: .lengthDelimited)
+        } else if isPrimitiveSupportedArray(T.self) {
+            try encodeArray(value)
+        } else if isOptional(T.self) {
+            try encodeOptional(value, tag: fieldNumber)
+        } else if isPrimitiveSupported(T.self) {
+            try encodePrimitive(value)
+        } else if [
+                    Int8.self, Int16.self,
+                    UInt8.self, UInt16.self,
+                    [Int8].self, [Int16].self,
+                    [UInt8].self, [UInt16].self
+        ].contains(where: { $0 == T.self }) {
+            throw ProtoError.decodingError("Encoding values of type \(T.self) is not supported yet")
+        } else {
+            throw ProtoError.encodingError("Single value encoding only supported for (repeated) primitive data types")
+        }
+    }
+
+    private func encodePrimitive<T>(_ value: T) throws where T: Encodable {
+        if T.self == String.self, let value = value as? String {
+            try encode(value)
+        } else if T.self == Bool.self, let value = value as? Bool {
+            try encode(value)
+        } else if T.self == Int.self, let value = value as? Int {
+            try encode(value)
+        } else if T.self == Int32.self, let value = value as? Int32 {
+            try encode(value)
+        } else if T.self == Int64.self, let value = value as? Int64 {
+            try encode(value)
+        } else if T.self == UInt.self, let value = value as? UInt {
+            try encode(value)
+        } else if T.self == UInt32.self, let value = value as? UInt32 {
+            try encode(value)
+        } else if T.self == UInt64.self, let value = value as? UInt64 {
+            try encode(value)
+        } else if T.self == Double.self, let value = value as? Double {
+            try encode(value)
+        } else if T.self == Float.self, let value = value as? Float {
+            try encode(value)
+        }
+    }
+
+    // swiftlint:disable cyclomatic_complexity
+    // swiftlint:disable discouraged_optional_boolean
+    private func encodeArray<T>(_ value: T) throws where T: Encodable {
         if T.self == [Bool].self, let value = value as? [Bool] {
             try encode(value)
         } else if T.self == [Float].self, let value = value as? [Float] {
             try encode(value)
         } else if T.self == [Double].self, let value = value as? [Double] {
             try encode(value)
+        } else if T.self == [Int].self, let value = value as? [Int] {
+            try encode(value)
         } else if T.self == [Int32].self, let value = value as? [Int32] {
             try encode(value)
         } else if T.self == [Int64].self, let value = value as? [Int64] {
+            try encode(value)
+        } else if T.self == [UInt].self, let value = value as? [UInt] {
             try encode(value)
         } else if T.self == [UInt32].self, let value = value as? [UInt32] {
             try encode(value)
@@ -143,8 +205,29 @@ class SingleValueProtoEncodingContainer: InternalProtoEncodingContainer, SingleV
             try encode(value)
         } else if T.self == [String].self, let value = value as? [String] {
             try encode(value)
-        } else {
-            throw ProtoError.encodingError("Single value encoding only supported for (repeated) primitive data types")
+        } else if T.self == [Bool?].self, let value = value as? [Bool?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [Float?].self, let value = value as? [Float?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [Double?].self, let value = value as? [Double?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [Int?].self, let value = value as? [Int?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [Int32?].self, let value = value as? [Int32?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [Int64?].self, let value = value as? [Int64?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [UInt?].self, let value = value as? [UInt?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [UInt32?].self, let value = value as? [UInt32?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [UInt64?].self, let value = value as? [UInt64?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [Data?].self, let value = value as? [Data?] {
+            try encode(value.compactMap { $0 })
+        } else if T.self == [String?].self, let value = value as? [String?] {
+            try encode(value.compactMap { $0 })
         }
     }
+    // swiftlint:enable cyclomatic_complexity
 }

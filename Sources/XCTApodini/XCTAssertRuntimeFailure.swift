@@ -1,13 +1,13 @@
 //
 //  XCTAssertRuntimeFailure.swift
-//  
+//
 //
 //  Created by Paul Schmiedmayer on 1/2/21.
 //
 
 
 import XCTest
-#if canImport(CwlPreconditionTesting)
+#if canImport(CwlPreconditionTesting) && DEBUG
 import CwlPreconditionTesting
 
 /// Asserts that an expression leads to a runtime failure.

@@ -1,10 +1,12 @@
 /// Property wrapper that can be used to annotate properties inside of `ObservableObject`s.
 /// The `ObservableObject` will notify its subscribers if a `Published` property changes.
 @propertyWrapper
-public class Published<Element>: Property {
+public class Published<Element> {
     private var element: Element
     private var observations: [Weak<Observation>] = []
     
+    /// The contained element. When changed all subscribed entities are notified
+    /// **after** the new value has been set.
     public var wrappedValue: Element {
         get {
             element

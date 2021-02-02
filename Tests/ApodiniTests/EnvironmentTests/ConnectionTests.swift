@@ -8,17 +8,17 @@
 import XCTest
 @testable import Apodini
 
-final class ConnectionTests: XCTestCase {
+final class ConnectionTests: ApodiniTests {
     let endMessage = "End"
     let openMessage = "Open"
-
+    
     struct TestHandler: Handler {
         @Apodini.Environment(\.connection)
         var connection: Connection
-
+        
         var endMessage: String
         var openMessage: String
-
+        
         func handle() -> Apodini.Response<String> {
             switch connection.state {
             case .open:
@@ -28,24 +28,32 @@ final class ConnectionTests: XCTestCase {
             }
         }
     }
-
-    func testDefaultConnectionEnvironment() {
-        let testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage)
-
-        let returnedAction = testHandler.handle()
+    
+    func testDefaultConnectionEnvironment() throws {
+        var testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage).inject(app: app)
+        activate(&testHandler)
+        
+        let endpoint = testHandler.mockEndpoint(app: app)
+        let exporter = MockExporter<String>()
+        var context = endpoint.createConnectionContext(for: exporter)
+        let result = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
+            .wait()
+        
         // default connection state should be .end
         // thus, we expect a .final(endMessage) here from
         // the TestComponent
-        if case let .final(returnedMessage) = returnedAction {
-            XCTAssertEqual(returnedMessage, endMessage)
-        } else {
-            XCTFail("Expected Response final(\(endMessage)), but was \(returnedAction)")
+        guard case let .final(returnedMessage) = result.typed(String.self) else {
+            XCTFail("Expected Response final(\(endMessage)), but was \(result)")
+            return
         }
+        
+        XCTAssertEqual(returnedMessage, endMessage)
     }
-
+    
     func testConnectionInjection() {
-        let testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage)
-
+        var testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage).inject(app: app)
+        activate(&testHandler)
+        
         var connection = Connection(state: .open)
         connection.enterConnectionContext(with: testHandler) { handler in
             let returnedActionWithOpen = handler.handle()
@@ -55,7 +63,7 @@ final class ConnectionTests: XCTestCase {
                 XCTFail("Expected Response send(\(openMessage)), but was \(returnedActionWithOpen)")
             }
         }
-
+        
         connection.state = .end
         connection.enterConnectionContext(with: testHandler) { handler in
             let returnedActionWithEnd = handler.handle()

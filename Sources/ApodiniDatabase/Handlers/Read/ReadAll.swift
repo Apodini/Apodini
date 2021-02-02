@@ -10,7 +10,7 @@ import Apodini
 ///     Read<Bird>()
 /// }
 /// Sending a request to  ~/api/birds/birds?age=19&name=Foo would 
-///return an array of `Bird` object that have an age of 19 and the name Foo.
+/// return an array of `Bird` object that have an age of 19 and the name Foo.
 public struct ReadAll<Model: DatabaseModel>: Handler {
     @Apodini.Environment(\.database)
     private var database: Fluent.Database
@@ -34,6 +34,10 @@ public struct ReadAll<Model: DatabaseModel>: Handler {
             }
             .compactMapValues { $0 }
             .filter { _, value in value != .noValue }
+        // if no query dict is empty, return all items
+        guard !queryInfo.isEmpty else {
+            return Model.query(on: database).all()
+        }
         let queryBuilder = QueryBuilder(type: Model.self, parameters: queryInfo)
         return queryBuilder.execute(on: database)
     }

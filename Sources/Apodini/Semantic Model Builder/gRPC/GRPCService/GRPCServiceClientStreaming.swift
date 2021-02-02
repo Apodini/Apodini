@@ -81,6 +81,12 @@ extension GRPCService {
     func createClientStreamingHandler<C: ConnectionContext>(context: C)
     -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> where C.Exporter == GRPCInterfaceExporter {
         { (request: Vapor.Request) in
+            if !self.contentTypeIsSupported(request: request) {
+                return request.eventLoop.makeFailedFuture(GRPCError.unsupportedContentType(
+                    "Content type is currently not supported by Apodini GRPC exporter. Use Protobuffers instead."
+                ))
+            }
+            
             let promise = request.eventLoop.makePromise(of: Vapor.Response.self)
             self.drainClientStream(from: request, using: context) { response, responsePromise in
                 responsePromise.succeed(())
@@ -103,6 +109,12 @@ extension GRPCService {
     func createBidirectionalStreamingHandler<C: ConnectionContext>(context: C)
     -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> where C.Exporter == GRPCInterfaceExporter {
         { (request: Vapor.Request) in
+            if !self.contentTypeIsSupported(request: request) {
+                return request.eventLoop.makeFailedFuture(GRPCError.unsupportedContentType(
+                    "Content type is currently not supported by Apodini GRPC exporter. Use Protobuffers instead."
+                ))
+            }
+
             let streamingResponse: (BodyStreamWriter) -> () = { writer in
                 self.drainClientStream(from: request, using: context) { response, responsePromise in
                     switch response {
@@ -145,12 +157,6 @@ extension GRPCService {
         ]
 
         app.on(.POST, path, body: .stream) { request -> EventLoopFuture<Vapor.Response> in
-            if !self.contentTypeIsSupported(request: request) {
-                return request.eventLoop.makeFailedFuture(GRPCError.unsupportedContentType(
-                    "Content type is currently not supported by Apodini GRPC exporter. Use Protobuffers instead."
-                ))
-            }
-
             if bidirectional {
                 return self.createBidirectionalStreamingHandler(context: context)(request)
             } else {

@@ -115,12 +115,12 @@ extension GRPCInterfaceExporter {
     /// or uses default field tag that was generated in `export()`.
     /// - Parameter parameter: The `AnyEndpointParameter` to get the Protobuffer field-tag for.
     private func getFieldTag(for parameter: AnyEndpointParameter) -> Int? {
-        parameter.options.option(for: .gRPC)?.fieldNumber ?? parameters[parameter.id]
+        parameter.option(for: .gRPC)?.fieldNumber ?? parameters[parameter.id]
     }
 }
 
 extension GRPCParameterOptions {
-    /// Extractes the Protobuffer field-number from the
+    /// Extracts the Protobuffer field-number from the
     /// `GRPCParameterOptions` instance.
     var fieldNumber: Int {
         switch self {

@@ -32,11 +32,13 @@ extension _PathComponent {
     }
 }
 
-func toInternalPathComponent(_ pathComponent: PathComponent) -> _PathComponent {
-    guard let pathComponent = pathComponent as? _PathComponent else {
-        fatalError("Encountered `PathComponent` which doesn't conform to `_PathComponent`!")
+extension PathComponent {
+    func toInternal() -> _PathComponent {
+        guard let pathComponent = self as? _PathComponent else {
+            fatalError("Encountered `PathComponent` which doesn't conform to `_PathComponent`: \(self)!")
+        }
+        return pathComponent
     }
-    return pathComponent
 }
 
 extension String: _PathComponent {

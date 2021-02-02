@@ -7,7 +7,7 @@
 
 import Logging
 
-/// Enables swift extensions to declare "storred" properties for use in application configuration
+/// Enables swift extensions to declare "stored" properties for use in application configuration
 public struct Storage {
     var storage: [ObjectIdentifier: AnyStorageValue]
 
@@ -44,15 +44,46 @@ public struct Storage {
             self.set(Key.self, to: newValue)
         }
     }
+    
+    /// Accesses the environment value associated with a custom key.
+    public subscript<Key, Type>(_ keyPath: KeyPath<Key, Type>) -> Type? {
+        get {
+            self.get(keyPath)
+        }
+        set {
+            self.set(keyPath, to: newValue)
+        }
+    }
 
     /// Check if application storage contains a certain key
     public func contains<Key>(_ key: Key.Type) -> Bool {
         self.storage.keys.contains(ObjectIdentifier(Key.self))
     }
+    
+    /// Check if application storage contains a certain key path
+    public func contains<Key, Type>(_ keyPath: KeyPath<Key, Type>) -> Bool {
+        self.storage.keys.contains(ObjectIdentifier(keyPath))
+    }
 
     /// Get a a value for a key from application storage
     public func get<Key: StorageKey>(_ key: Key.Type) -> Key.Value? {
         guard let value = self.storage[ObjectIdentifier(Key.self)] as? Value<Key.Value> else {
+            return nil
+        }
+        return value.value
+    }
+    
+    /// Get a a value for a key path from application storage
+    public func get<Key, Type>(_ keyPath: KeyPath<Key, Type>) -> Type? {
+        guard let value = storage[ObjectIdentifier(keyPath)] as? Value<Type> else {
+            return nil
+        }
+        return value.value
+    }
+    
+    /// Get a a value for an `ObjectIdentifier` and a Type from application storage
+    public func get<Element>(_ objectIdentifer: ObjectIdentifier, _ key: Element.Type) -> Element? {
+        guard let value = storage[objectIdentifer] as? Value<Element> else {
             return nil
         }
         return value.value
@@ -70,6 +101,15 @@ public struct Storage {
         } else if let existing = self.storage[key] {
             self.storage[key] = nil
             existing.shutdown(logger: self.logger)
+        }
+    }
+    
+    /// Set a value for a key path in application storage
+    public mutating func set<Key, Type>(_ keyPath: KeyPath<Key, Type>, to value: Type?) {
+        if let value = value {
+            self.storage[ObjectIdentifier(keyPath)] = Value(value: value, onShutdown: nil)
+        } else {
+            self.storage[ObjectIdentifier(keyPath)] = nil
         }
     }
 
