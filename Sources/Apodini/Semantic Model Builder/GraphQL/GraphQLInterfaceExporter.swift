@@ -41,9 +41,13 @@ class GraphQLInterfaceExporter: InterfaceExporter {
         let query = input.query
 
         if let genSchema = schema {
-            return try graphql(schema: genSchema, request: query, context: req, eventLoopGroup: req.eventLoop).map { result -> String in
-                result.description
-            }
+            return try graphql(schema: genSchema,
+                request: query,
+                context: req,
+                eventLoopGroup: req.eventLoop)
+                .map { result -> String in
+                    result.description
+                }
         } else {
             throw ApodiniError(type: .serverError, reason: "GraphQL schema creation error!")
         }
@@ -73,7 +77,8 @@ class GraphQLInterfaceExporter: InterfaceExporter {
         app.vapor.app.get("graphql", use: graphQLIDE)
     }
 
-    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: GraphQLRequest) throws -> Type?? {
+    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>,
+                                            for request: GraphQLRequest) throws -> Type?? {
         if let queryArgDict = request.args.dictionary,
            let val = queryArgDict[parameter.name] {
             if val.isNumber {

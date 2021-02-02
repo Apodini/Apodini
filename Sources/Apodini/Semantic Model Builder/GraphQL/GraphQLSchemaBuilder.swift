@@ -75,9 +75,10 @@ class GraphQLSchemaBuilder {
         var currentFields = [String: GraphQLField]()
         for child in responseTypeHead.children {
             if let propertyInfo = child.value.runtimePropertyInfo {
-                currentFields[propertyInfo.name] = GraphQLField(type: try responseTypeHandler(for: child), resolve: { source, _, _, _ in
-                    return try propertyInfo.get(from: source)
-                })
+                currentFields[propertyInfo.name] = GraphQLField(type: try responseTypeHandler(for: child),
+                    resolve: { source, _, _, _ in
+                        try propertyInfo.get(from: source)
+                    })
             }
         }
 
@@ -85,7 +86,9 @@ class GraphQLSchemaBuilder {
         return try GraphQLObjectType(name: typeName, fields: currentFields)
     }
 
-    private func graphQLFieldCreator(for responseTypeHead: Node<EnrichedInfo>, _ context: AnyConnectionContext<GraphQLInterfaceExporter>, _ args: [String: GraphQLArgument]) throws -> GraphQLField {
+    private func graphQLFieldCreator(for responseTypeHead: Node<EnrichedInfo>,
+                                     _ context: AnyConnectionContext<GraphQLInterfaceExporter>,
+                                     _ args: [String: GraphQLArgument]) throws -> GraphQLField {
         var mutableContext = context
         let graphQLFieldType = try self.responseTypeHandler(for: responseTypeHead)
         return GraphQLField(type: graphQLFieldType, args: args, resolve: { gSource, gArgs, gContext, _, gInfo in
@@ -93,7 +96,8 @@ class GraphQLSchemaBuilder {
             guard let vaporRequest = gContext as? Vapor.Request else {
                 throw ApodiniError(type: .serverError, reason: "Casting Error - Vapor.Request")
             }
-            let response: EventLoopFuture<Response<AnyEncodable>> = mutableContext.handle(request: request, eventLoop: vaporRequest.eventLoop.next())
+            let response: EventLoopFuture<Response<AnyEncodable>> = mutableContext.handle(request: request,
+                eventLoop: vaporRequest.eventLoop.next())
 
             return response.flatMapThrowing { encodableAction -> Any? in
                 switch encodableAction {
@@ -108,7 +112,8 @@ class GraphQLSchemaBuilder {
         })
     }
 
-    func append<H: Handler>(for endpoint: Endpoint<H>, with context: AnyConnectionContext<GraphQLInterfaceExporter>) throws {
+    func append<H: Handler>(for endpoint: Endpoint<H>,
+                            with context: AnyConnectionContext<GraphQLInterfaceExporter>) throws {
         // Remove parameters from the path by using `":" filter`
         var currentPath = endpoint.absolutePath.map {
             $0.description.lowercased()
@@ -138,9 +143,11 @@ class GraphQLSchemaBuilder {
         for par in endpoint.parameters {
             let graphqlType = try graphqlTypeMap(with: par.propertyType)
             if par.necessity == .required {
-                self.args[leafName, default: [:]][par.name] = GraphQLArgument(type: GraphQLNonNull(graphqlType), description: par.description)
+                self.args[leafName, default: [:]][par.name] = GraphQLArgument(type: GraphQLNonNull(graphqlType),
+                    description: par.description)
             } else {
-                self.args[leafName, default: [:]][par.name] = GraphQLArgument(type: graphqlType, description: par.description)
+                self.args[leafName, default: [:]][par.name] = GraphQLArgument(type: graphqlType,
+                    description: par.description)
             }
 
         }
@@ -174,7 +181,7 @@ class GraphQLSchemaBuilder {
     }
 
     private func nameExtractor(for node: String) throws -> String {
-        let filteredArray = node.components(separatedBy: "_").filter({ $0 != "" })
+        let filteredArray = node.components(separatedBy: "_").filter({ !$0.isEmpty })
         guard let lastValue = filteredArray.last else {
             throw ApodiniError(type: .serverError, reason: "Name Extracting Error - nameExtractor Function")
         }
@@ -194,7 +201,8 @@ class GraphQLSchemaBuilder {
         let nodeName = try self.nameExtractor(for: node)
         if let childrenList = self.tree[node] {
             var currentFields = [String: GraphQLField]()
-            if let responseType = self.responseTypeTree[nodeName], let responseContext = self.leafContext[nodeName] { // It has handler
+            if let responseType = self.responseTypeTree[nodeName],
+               let responseContext = self.leafContext[nodeName] { // It has handler
                 let fieldName = self.graphQLRegexCheck(for: responseType.value.typeInfo.name.lowercased())
                 currentFields[fieldName] = try self.graphQLFieldCreator(for: responseType,
                     responseContext,
