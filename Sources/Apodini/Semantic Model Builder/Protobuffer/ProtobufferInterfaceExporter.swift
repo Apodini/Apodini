@@ -10,18 +10,21 @@ class ProtobufferInterfaceExporter: StaticInterfaceExporter {
         let message: String
     }
 
-    enum Builder {
-        static var integerWidthConfiguration: IntegerWidthConfiguration = {
+    struct Builder {
+        var integerWidthConfiguration: IntegerWidthConfiguration
+        
+        init() {
             if MemoryLayout<Int>.size == 4 {
-                return .thirtyTwo
+                self.integerWidthConfiguration = .thirtyTwo
             } else {
-                return .sixtyFour
+                self.integerWidthConfiguration = .sixtyFour
             }
-        }()
+        }
     }
     
     // MARK: Properties
     private let app: Application
+    private let builder: Builder
     
     private var messages: Set<ProtobufferMessage> = .init()
     private var services: Set<ProtobufferService> = .init()
@@ -30,9 +33,11 @@ class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     required init(_ app: Application) {
         self.app = app
         
+        var builder = Builder()
         app.storage[IntegerWidthConfiguration.StorageKey.self].map {
-            Builder.integerWidthConfiguration = $0
+            builder.integerWidthConfiguration = $0
         }
+        self.builder = builder
     }
     
     // MARK: Methods
@@ -56,12 +61,12 @@ class ProtobufferInterfaceExporter: StaticInterfaceExporter {
 private extension ProtobufferInterfaceExporter {
     func exportThrows<H: Handler>(_ endpoint: Endpoint<H>) throws {
         // Output
-        let outputNode = try Builder.buildMessage(endpoint.responseType)
+        let outputNode = try builder.buildMessage(endpoint.responseType)
         messages.formUnion(outputNode.collectValues())
         
         // Input
         let parameterNodes = try endpoint.parameters.map { parameter in
-            try Builder.buildMessage(parameter.propertyType)
+            try builder.buildMessage(parameter.propertyType)
         }
         for parameterNode in parameterNodes where !parameterNode.value.isPrimitive {
             messages.formUnion(parameterNode.collectValues())
@@ -115,11 +120,11 @@ private extension ProtobufferInterfaceExporter {
 // MARK: - ProtobufferInterfaceExporter.Builder Implementation
 
 extension ProtobufferInterfaceExporter.Builder {
-    static func buildMessage(_ type: Any.Type) throws -> Node<ProtobufferMessage> {
+    func buildMessage(_ type: Any.Type) throws -> Node<ProtobufferMessage> {
         try buildCompositeMessage(type) ?? buildScalarMessage(type)
     }
     
-    static func buildCompositeMessage(_ type: Any.Type) throws -> Tree<ProtobufferMessage> {
+    func buildCompositeMessage(_ type: Any.Type) throws -> Tree<ProtobufferMessage> {
         try EnrichedInfo.node(type)
             .edited(handleOptional)?
             .edited(handleArray)?
@@ -133,7 +138,7 @@ extension ProtobufferInterfaceExporter.Builder {
             .filter(!\.isPrimitive)
     }
     
-    static func buildScalarMessage(_ type: Any.Type) -> Node<ProtobufferMessage> {
+    func buildScalarMessage(_ type: Any.Type) -> Node<ProtobufferMessage> {
         let typeName = String(describing: type)
         
         return Node(
@@ -156,7 +161,7 @@ extension ProtobufferInterfaceExporter.Builder {
 }
 
 private extension ProtobufferInterfaceExporter.Builder {
-    static func handleVariableWidthInteger(
+    func handleVariableWidthInteger(
         _ property: ProtobufferMessage.Property
     ) -> ProtobufferMessage.Property {
         guard ["int", "uint"].contains(property.typeName) else {

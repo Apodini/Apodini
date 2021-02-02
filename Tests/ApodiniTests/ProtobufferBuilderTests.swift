@@ -13,7 +13,7 @@ final class ProtobufferBuilderTests: XCTestCase {
     }
     
     func buildMessage(_ type: Any.Type) throws -> String {
-        try ProtobufferInterfaceExporter.Builder
+        try ProtobufferInterfaceExporter.Builder()
             .buildMessage(type)
             .collectValues()
             .description
