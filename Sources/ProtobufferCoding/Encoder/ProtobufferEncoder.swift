@@ -8,14 +8,20 @@
 import Foundation
 
 internal class InternalProtoEncoder: Encoder {
-    var integerWidthCodingStrategy: IntegerWidthCodingStrategy?
+    var integerWidthCodingStrategy: IntegerWidthCodingStrategy
     
     var codingPath: [CodingKey] = []
     var userInfo: [CodingUserInfoKey: Any] = [:]
     var data = Data()
     var hasContainer = false
 
-    init() { }
+    init() {
+        if MemoryLayout<Int>.size == 4 {
+            self.integerWidthCodingStrategy = .thirtyTwo
+        } else {
+            self.integerWidthCodingStrategy = .sixtyFour
+        }
+    }
 
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key: CodingKey {
         if hasContainer {
