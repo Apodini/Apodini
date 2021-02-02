@@ -101,7 +101,7 @@ extension GRPCService {
     private func encode(_ value: Encodable) throws -> Data {
         let encoder = ProtobufferEncoder()
         
-        if let configuration = app.storage[VariableWidthIntegerConfiguration.Key.self] {
+        if let configuration = app.storage[IntegerWidthConfiguration.StorageKey.self] {
             switch configuration {
             case .thirtyTwo:
                 encoder.variableWidthIntegerCodingStrategy = .thirtyTwo

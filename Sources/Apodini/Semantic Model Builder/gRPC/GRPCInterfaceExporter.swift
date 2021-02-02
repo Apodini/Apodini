@@ -102,7 +102,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
             FieldNumber.setFieldNumber(fieldTag)
 
             let decoder = ProtobufferDecoder()
-            if let configuration = app.storage[VariableWidthIntegerConfiguration.Key.self] {
+            if let configuration = app.storage[IntegerWidthConfiguration.StorageKey.self] {
                 switch configuration {
                 case .thirtyTwo:
                     decoder.variableWidthIntegerCodingStrategy = .thirtyTwo

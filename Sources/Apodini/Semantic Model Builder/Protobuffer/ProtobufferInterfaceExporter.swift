@@ -11,7 +11,13 @@ class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     }
 
     enum Builder {
-        static var variableWidthIntegerConfiguration: VariableWidthIntegerConfiguration?
+        static var integerWidthConfiguration: IntegerWidthConfiguration = {
+            if MemoryLayout<Int>.size == 4 {
+                return .thirtyTwo
+            } else {
+                return .sixtyFour
+            }
+        }()
     }
     
     // MARK: Properties
@@ -24,7 +30,9 @@ class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     required init(_ app: Application) {
         self.app = app
         
-        Builder.variableWidthIntegerConfiguration = app.storage[VariableWidthIntegerConfiguration.Key.self]
+        app.storage[IntegerWidthConfiguration.StorageKey.self].map {
+            Builder.integerWidthConfiguration = $0
+        }
     }
     
     // MARK: Methods
@@ -155,7 +163,7 @@ private extension ProtobufferInterfaceExporter.Builder {
             return property
         }
         
-        let suffix = String(variableWidthIntegerConfiguration?.rawValue ?? Int.bitWidth)
+        let suffix = String(integerWidthConfiguration.rawValue)
         let typeName = property.typeName + suffix
         
         return .init(

@@ -362,14 +362,14 @@ extension ProtobufferBuilderTests {
         try testWebService(WebService.self, expectation: expected)
     }
     
-    func testVariableWidthIntegerConfiguration() throws {
+    func testIntegerWidthConfiguration() throws {
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Locator()
             }
             
             var configuration: Configuration {
-                VariableWidthIntegerConfiguration.thirtyTwo
+                IntegerWidthConfiguration.thirtyTwo
             }
         }
         
