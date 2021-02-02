@@ -372,7 +372,7 @@
       },
       {
         "package": "swift-nio-http2",
-        "repositoryURL": "https://github.com/apple/swift-nio-http2",
+        "repositoryURL": "https://github.com/apple/swift-nio-http2.git",
         "state": {
           "branch": null,
           "revision": "d4060ac4d056a48d946298f04968f6f6080cc618",

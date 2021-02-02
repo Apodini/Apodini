@@ -28,7 +28,7 @@ public struct Node<T> {
     }
 }
 
-extension Node {
+public extension Node {
     /// Initializes an instance of `Node`.
     ///
     /// Initialize a `Node` tree from a data structure that already resembles a tree.
@@ -36,7 +36,7 @@ extension Node {
     ///   - root: The value of the root node.
     ///   - getChildren: Get node values for a parent's children, recursively.
     /// - Throws: Rethrows any error of `getChildren`
-    public init(root: T, _ getChildren: (T) throws -> [T]) rethrows {
+    init(root: T, _ getChildren: (T) throws -> [T]) rethrows {
         let children = try getChildren(root)
             .map {
                 try Node(root: $0, getChildren)

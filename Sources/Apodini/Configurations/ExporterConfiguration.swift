@@ -8,15 +8,12 @@
 import Foundation
 import NIO
 
-/// A `Configuration` for HTTP.
-/// The configuration can be done in two ways, either via the
-/// command line arguments --hostname, --port and --bind or via the
-/// function `address`
+/// A `Configuration` for the used `InterfaceExporter`.
 public class ExporterConfiguration: Configuration {
 
     var semanticModelBuilderBuilder: (SemanticModelBuilder) -> (SemanticModelBuilder) = id
 
-    /// initalize HTTPConfiguration
+    /// initalize ExporterConfiguration
     public init() {}
 
     /// Configure application
@@ -24,7 +21,7 @@ public class ExporterConfiguration: Configuration {
         app.exporters.semanticModelBuilderBuilder = semanticModelBuilderBuilder
     }
 
-    /// Sets the http server address
+    /// Adds an `InterfaceExporter`
     public func exporter<T: InterfaceExporter>(_ exporter: T.Type) -> Self {
         let builder = semanticModelBuilderBuilder
         semanticModelBuilderBuilder = { model in
@@ -33,6 +30,7 @@ public class ExporterConfiguration: Configuration {
         return self
     }
 
+    /// Adds an `InterfaceExporter`
     public func exporter<T: StaticInterfaceExporter>(_ exporter: T.Type) -> Self {
         let builder = semanticModelBuilderBuilder
         semanticModelBuilderBuilder = { model in

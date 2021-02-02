@@ -47,7 +47,7 @@ let package = Package(
         // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.8.0"),
         // HTTP/2 support for SwiftNIO
-        .package(url: "https://github.com/apple/swift-nio-http2", from: "1.13.0"),
+        .package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.13.0"),
         // Swift logging API
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
@@ -152,7 +152,7 @@ let package = Package(
         ),
 
         .testTarget(
-            name: "NotificationsTests",
+            name: "ApodiniNotificationsTests",
             dependencies: [
                 .product(name: "XCTVapor", package: "vapor"),
                 .target(name: "ApodiniNotifications"),
