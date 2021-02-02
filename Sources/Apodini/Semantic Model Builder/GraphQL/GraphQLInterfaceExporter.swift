@@ -24,7 +24,6 @@ class GraphQLInterfaceExporter: InterfaceExporter {
     required init(_ app: Application) {
         graphQLPath = GraphQLSchemaBuilder()
         self.app = app
-
     }
 
     private func graphQLIDE(_ _: Vapor.Request) throws -> Vapor.Response {
@@ -57,9 +56,7 @@ class GraphQLInterfaceExporter: InterfaceExporter {
                 }
         } else {
             throw ApodiniError(type: .serverError, reason: "GraphQL schema creation error!")
-
         }
-
     }
 
     // We should have parameter for the result struct values and paramters
@@ -67,6 +64,7 @@ class GraphQLInterfaceExporter: InterfaceExporter {
         do {
             try graphQLPath.append(for: endpoint, with: endpoint.createConnectionContext(for: self))
         } catch {
+            app.logger.log(level: .error, "Export error for \(endpoint)")
         }
     }
 
@@ -78,19 +76,20 @@ class GraphQLInterfaceExporter: InterfaceExporter {
         do {
             schema = try graphQLPath.generate()
         } catch {
+            app.logger.log(level: .error, "Schema Creation Error!")
         }
 
-        self.app.vapor.app.post("graphql", use: graphqlServer)
-        self.app.vapor.app.get("graphql", use: graphQLIDE)
+        app.vapor.app.post("graphql", use: graphqlServer)
+        app.vapor.app.get("graphql", use: graphQLIDE)
     }
 
     func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: GraphQLRequest) throws -> Type?? {
         if let queryArgDict = request.args.dictionary,
            let val = queryArgDict[parameter.name] {
 
-            if (val.isNumber) {
+            if val.isNumber {
                 return val.int as? Type
-            } else if (val.isString) {
+            } else if val.isString {
                 return val.string as? Type
             }
             return nil

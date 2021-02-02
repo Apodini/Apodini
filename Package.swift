@@ -42,9 +42,7 @@ let package = Package(
         // Used to parse command line arguments
         .package(url: "https://github.com/vapor/console-kit.git", from: "4.2.4"),
         // Used for Graphql
-        .package(url: "https://github.com/GraphQLSwift/GraphQL.git", from: "1.1.7"),
-        .package(url: "https://github.com/SwiftyJSON/SwiftyJSON.git", from: "5.0.0")
-
+        .package(url: "https://github.com/GraphQLSwift/GraphQL.git", from: "1.1.7")
     ],
     targets: [
         .target(
@@ -60,8 +58,7 @@ let package = Package(
                 .target(name: "WebSocketInfrastructure"),
                 .target(name: "ProtobufferCoding"),
                 .product(name: "ConsoleKit", package: "console-kit"),
-                .product(name: "GraphQL", package: "GraphQL"),
-                .product(name: "SwiftyJSON", package: "SwiftyJSON")
+                .product(name: "GraphQL", package: "GraphQL")
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
