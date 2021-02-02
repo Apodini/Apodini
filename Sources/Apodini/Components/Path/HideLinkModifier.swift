@@ -9,7 +9,6 @@ struct HideLinkContextKey: OptionalContextKey {
 public struct HideLinkModifier: PathComponentModifier {
     let pathComponent: _PathComponent
     // defines if only certain endpoints with certain Operations should be hidden
-    // empty array signals to hide everything
     let operations: [Operation]
 
     init(_ pathComponent: PathComponent, _ operations: [Operation] = Operation.allCases) {

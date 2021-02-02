@@ -36,7 +36,7 @@ class RESTInterfaceExporter: InterfaceExporter {
             app.logger.info("  - inherits from: \(endpoint.selfRelationship.destinationPath.asPathString())")
         }
 
-        for destination in endpoint.relationship(for: .read) {
+        for destination in endpoint.relationships(for: .read) {
             let path = destination.destinationPath
             app.logger.info("  - links to: \(path.asPathString())")
         }
@@ -52,7 +52,7 @@ class RESTInterfaceExporter: InterfaceExporter {
         if webService.getEndpoint(for: .read) == nil {
             // if the root path doesn't have a read endpoint we need to create a custom one to deliver linking entry points.
 
-            let relationships = webService.relationships(for: .read)
+            let relationships = webService.rootRelationships(for: .read)
 
             let handler = RESTDefaultRootHandler(configuration: configuration, relationships: relationships)
             handler.register(on: app)

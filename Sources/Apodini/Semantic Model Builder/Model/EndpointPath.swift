@@ -91,7 +91,7 @@ extension EndpointPath: Hashable {
     }
 }
 
-/// Describes a type erasured `EndpointPathParameter`
+/// Describes a type erased `EndpointPathParameter`
 public protocol AnyEndpointPathParameter: CustomStringConvertible {
     /// The id uniquely identifying the parameter
     var id: UUID { get }
@@ -131,7 +131,7 @@ public protocol AnyEndpointPathParameter: CustomStringConvertible {
     /// The value for the given path parameter in the context of a specific request.
     /// Nil if the path parameter does not have a resolved value.
     /// See `resolved(value:)` for restrictions.
-    var erasuredResolvedValue: Any? { get }
+    var erasedResolvedValue: Any? { get }
 }
 
 extension AnyEndpointPathParameter {
@@ -169,7 +169,7 @@ protocol _AnyEndpointPathParameter: AnyEndpointPathParameter {
     /// A instance is only in that state within the context of a particular request.
     ///
     /// The following properties are only available on resolved `EndpointPathParameter`s:
-    /// - `erasuredResolvedValue`
+    /// - `erasedResolvedValue`
     /// - `resolvedValue` (if you have access to the generic instance)
     ///
     /// - Parameter value: The resolved value for thus PathParameter.
@@ -218,7 +218,7 @@ public struct EndpointPathParameter<Type: Codable>: _AnyEndpointPathParameter {
     private var storedName: String?
 
     var resolvedValue: Type?
-    public var erasuredResolvedValue: Any? {
+    public var erasedResolvedValue: Any? {
         resolvedValue
     }
 

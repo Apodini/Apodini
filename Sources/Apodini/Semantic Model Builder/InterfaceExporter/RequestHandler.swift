@@ -18,7 +18,7 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
     func callAsFunction(
         with validatedRequest: ValidatedRequest<I, H>,
         on connection: Connection
-    ) -> EventLoopFuture<Response<HandledRequest>> {
+    ) -> EventLoopFuture<Response<EnrichedContent>> {
         guard let request = connection.request else {
             fatalError("Tried to handle request without request.")
         }
@@ -38,7 +38,7 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
                         .transformToResponse(on: request.eventLoop)
                 }
             }
-            .flatMap { typedAction -> EventLoopFuture<Response<HandledRequest>> in
+            .flatMap { typedAction -> EventLoopFuture<Response<EnrichedContent>> in
                 let transformed = self.transformResponse(
                     typedAction.typeErasured,
                     using: connection,
@@ -46,15 +46,15 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
                     using: self.instance.responseTransformers
                 )
 
-                return transformed.map { response -> Response<HandledRequest> in
-                    mapToHandledRequest(response, validatedRequest: validatedRequest)
+                return transformed.map { response -> Response<EnrichedContent> in
+                    mapToEnrichedContent(response, validatedRequest: validatedRequest)
                 }
             }
     }
 
-    private func mapToHandledRequest(_ response: Response<AnyEncodable>, validatedRequest: ValidatedRequest<I, H>) -> Response<HandledRequest> {
+    private func mapToEnrichedContent(_ response: Response<AnyEncodable>, validatedRequest: ValidatedRequest<I, H>) -> Response<EnrichedContent> {
         response.map { anyEncodable in
-            HandledRequest(
+            EnrichedContent(
                 for: instance.endpoint,
                 response: anyEncodable,
                 parameters: validatedRequest.validatedParameterValues

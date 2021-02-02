@@ -4,6 +4,7 @@
 
 
 import XCTest
+import XCTApodini
 @testable import Apodini
 
 class RelationshipTestContext {
@@ -39,23 +40,24 @@ class RelationshipTestContext {
         endpoints[index]
     }
 
-    func request(on index: Int, request: String = "Example Request", parameters: Any??...) -> HandledRequest {
+    func request(on index: Int, request: String = "Example Request", parameters: Any??...) -> EnrichedContent {
         exporter.append(injected: parameters)
 
         let endpoint = endpoints[index]
         let context = endpoint.createConnectionContext(for: exporter)
 
         do {
-            return try context.handle(request: request, eventLoop: app.eventLoopGroup.next())
+            return try XCTUnwrap(
+                try context.handle(request: request, eventLoop: app.eventLoopGroup.next())
                 .wait()
-                .forceUnwrap()
+            )
         } catch {
             fatalError("Error when handling Relationship request: \(error)")
         }
     }
 }
 
-extension HandledRequest {
+extension EnrichedContent {
     func formatTestRelationships(hideHidden: Bool = false) -> [String: String] {
         let formatter = TestingRelationshipFormatter(hideHidden: hideHidden)
 

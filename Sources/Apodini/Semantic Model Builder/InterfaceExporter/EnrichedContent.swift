@@ -4,8 +4,8 @@
 
 import Foundation
 
-/// A HandledRequest describes the outcome of a `ConnectionContext.handle(...)`.
-public struct HandledRequest: Encodable {
+/// A `EnrichedContent` describes the outcome of a `ConnectionContext.handle(...)`.
+public struct EnrichedContent: Encodable {
     private let endpoint: AnyEndpoint
 
     let response: AnyEncodable
@@ -22,7 +22,7 @@ public struct HandledRequest: Encodable {
     }
 
     /// Used to apply a `RelationshipFormatter` to Relationships for a given `Operation`
-    /// with the context of this `HandledRequest` (path parameter values and property values of the response).
+    /// with the context of this `EnrichedContent` (path parameter values and property values of the response).
     /// If nil is supplied for the `Operation`, the formatter is called for any `Operation`.
     ///
     /// - Parameters:
@@ -39,7 +39,7 @@ public struct HandledRequest: Encodable {
 
         let destinations: Set<RelationshipDestination>
         if let operation = operation {
-            destinations = endpoint.relationship(for: operation)
+            destinations = endpoint.relationships(for: operation)
         } else {
             destinations = endpoint.relationships()
         }
@@ -48,7 +48,7 @@ public struct HandledRequest: Encodable {
     }
 
     /// Used to apply a `RelationshipFormatter` to the self relationships of the `Endpoint`
-    /// with the context of this `HandledRequest` (path parameter values and property values of the response).
+    /// with the context of this `EnrichedContent` (path parameter values and property values of the response).
     /// If nil is supplied for the `Operation`, the formatter is called for any `Operation`.
     /// If there is no self relationship for a specified `Operation`, this call simply returns the initial value.
     ///
@@ -76,7 +76,7 @@ public struct HandledRequest: Encodable {
     }
 
     /// Used to apply a `RelationshipFormatter` to THE self relationships of the `Endpoint`
-    /// with the context of this `HandledRequest` (path parameter values and property values of the response).
+    /// with the context of this `EnrichedContent` (path parameter values and property values of the response).
     /// It is different to `formatSelfRelationships(into:with:for:)` that it always uses the one and only self
     /// `RelationshipDestination` where operation equals to the operation of the `Endpoint`.
     /// Meaning the `RelationshipDestination` truly points to itself. This `RelationshipDestination`
@@ -94,7 +94,7 @@ public struct HandledRequest: Encodable {
     }
 }
 
-extension HandledRequest {
+extension EnrichedContent {
     // Having this extension mimicking `AnyEncodable` makes it transparent
     // to exporters who are only interested in the raw response value
     // and ignore stuff like Relationships.

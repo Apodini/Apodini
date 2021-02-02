@@ -45,7 +45,7 @@ public protocol AnyEndpoint: CustomStringConvertible {
     /// are unique (for all collected destination for a given `Operation`)
     /// - Parameter operation :The `Operation` of the Relationship destination to create a unique set for.
     /// - Returns: The set of uniquely named relationship destinations.
-    func relationship(for operation: Operation) -> Set<RelationshipDestination>
+    func relationships(for operation: Operation) -> Set<RelationshipDestination>
 
     /// Returns the special "self" Relationship for all `Operation`s.
     func selfRelationships() -> Set<RelationshipDestination>
@@ -215,7 +215,7 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
         return storedRelationship.unique()
     }
 
-    public func relationship(for operation: Operation) -> Set<RelationshipDestination> {
+    public func relationships(for operation: Operation) -> Set<RelationshipDestination> {
         storedRelationship.unique(for: operation)
     }
 

@@ -40,7 +40,7 @@ public class ConnectionContext<Exporter: InterfaceExporter> {
         request _: Exporter.ExporterRequest,
         eventLoop _: EventLoop,
         final _: Bool = true
-    ) -> EventLoopFuture<Response<HandledRequest>> {
+    ) -> EventLoopFuture<Response<EnrichedContent>> {
         fatalError("""
                    A ConnectionContext<\(Exporter.self)> (\(self)) was constructed without properly \
                    overriding the handle(request:eventLoop:final:) function.
@@ -50,7 +50,7 @@ public class ConnectionContext<Exporter: InterfaceExporter> {
     /// Runs through the context's handler with the state after the latest client-request.
     /// Should be used by exporters after an observed value in the context did change,
     /// to retrieve the proper message that has to be sent to the client.
-    public func handle(eventLoop _: EventLoop, observedObject _: AnyObservedObject) -> EventLoopFuture<Response<HandledRequest>> {
+    public func handle(eventLoop _: EventLoop, observedObject _: AnyObservedObject) -> EventLoopFuture<Response<EnrichedContent>> {
         fatalError("""
                    A ConnectionContext<\(Exporter.self)> (\(self)) was constructed without properly \
                    overriding the handle(request:observedObject:) function.
@@ -72,7 +72,7 @@ public extension ConnectionContext where Exporter.ExporterRequest: WithEventLoop
     ///   - exporterRequest: The exporter defined request to be handled.
     ///   - final: True if this request is the last for the given Connection.
     /// - Returns: The response for the given Request.
-    func handle(request: Exporter.ExporterRequest, final: Bool = true) -> EventLoopFuture<Response<HandledRequest>> {
+    func handle(request: Exporter.ExporterRequest, final: Bool = true) -> EventLoopFuture<Response<EnrichedContent>> {
         handle(request: request, eventLoop: request.eventLoop, final: final)
     }
 }
@@ -100,7 +100,7 @@ class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: Conne
         request exporterRequest: I.ExporterRequest,
         eventLoop: EventLoop,
         final: Bool = true
-    ) -> EventLoopFuture<Response<HandledRequest>> {
+    ) -> EventLoopFuture<Response<EnrichedContent>> {
         do {
             let newRequest = self.latestRequest?.reduce(to: exporterRequest) ?? exporterRequest
             let validatedRequest = try validator.validate(newRequest, with: eventLoop)
@@ -115,7 +115,7 @@ class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: Conne
         }
     }
 
-    override func handle(eventLoop: EventLoop, observedObject: AnyObservedObject) -> EventLoopFuture<Response<HandledRequest>> {
+    override func handle(eventLoop: EventLoop, observedObject: AnyObservedObject) -> EventLoopFuture<Response<EnrichedContent>> {
         observedObject.changed = true
         do {
             guard let latestRequest = latestRequest else {

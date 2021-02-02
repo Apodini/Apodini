@@ -38,5 +38,6 @@ public struct PathParameter<Element: Codable & LosslessStringConvertible> {
     /// - Parameter type: The type the PathParameter value identifies.
     public init<Type: Encodable & Identifiable>(identifying type: Type.Type = Type.self) where Element == Type.ID {
         self.identifyingType = IdentifyingType(identifying: type)
+        self.init()
     }
 }

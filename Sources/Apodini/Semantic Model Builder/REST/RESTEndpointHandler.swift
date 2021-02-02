@@ -22,7 +22,7 @@ struct RESTEndpointHandler {
 
         let responseFuture = context.handle(request: request)
 
-        return responseFuture.flatMap { (encodableAction: Response<HandledRequest>) in
+        return responseFuture.flatMap { (encodableAction: Response<EnrichedContent>) in
             switch encodableAction {
             case let .send(response),
                  let .final(response):

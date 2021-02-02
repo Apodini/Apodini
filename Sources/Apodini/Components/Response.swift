@@ -99,7 +99,7 @@ extension Response where Element == AnyEncodable {
     }
 }
 
-extension Response where Element == HandledRequest {
+extension Response where Element == EnrichedContent {
     func typed<T: Encodable>(_ type: T.Type = T.self) -> Response<T>? {
         switch self {
         case .nothing:
