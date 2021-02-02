@@ -69,8 +69,7 @@ extension WebService {
                 .with(exporter: OpenAPIInterfaceExporter.self)
                 .with(exporter: GRPCInterfaceExporter.self)
                 .with(exporter: ProtobufferInterfaceExporter.self)
-                .with(exporter: RHIInterfaceExporter.self), // Note that this one should always be last
-            GraphQLSemanticModelBuilder(app)
+                .with(exporter: RHIInterfaceExporter.self) // Note that this one should always be last
         )
         
         // Adds the created application instance to `EnvironmentValues`.

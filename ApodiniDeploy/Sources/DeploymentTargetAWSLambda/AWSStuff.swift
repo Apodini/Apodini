@@ -169,7 +169,7 @@ class AWSDeploymentStuff { // needs a better name
             let launchInfoFileUrl = lambdaPackageTmpDir.appendingPathComponent("launchInfo.json", isDirectory: false)
             logger.notice("- adding launchInfo.json")
             try deploymentStructure.withCurrentInstanceNodeId(node.id).writeTo(url: launchInfoFileUrl)
-            try FM.lk_setPosixPermissions(0o644, forItemAt: launchInfoFileUrl) // rw-r--r--
+            try FM.lk_setPosixPermissions("rw-r--r--", forItemAt: launchInfoFileUrl)
             
             do {
                 // create & add bootstrap file
@@ -180,7 +180,7 @@ class AWSDeploymentStuff { // needs a better name
                 """
                 let bootstrapFileUrl = lambdaPackageTmpDir.appendingPathComponent("bootstrap", isDirectory: false)
                 try bootstrapFileContents.write(to: bootstrapFileUrl, atomically: true, encoding: .utf8)
-                try FM.lk_setPosixPermissions(0o755, forItemAt: bootstrapFileUrl) // rwxrwxr-x
+                try FM.lk_setPosixPermissions("rwxrwxr-x", forItemAt: bootstrapFileUrl)
             }
             
             logger.notice("zipping lambda package")
@@ -526,15 +526,5 @@ extension Date {
         let fmt = DateFormatter()
         fmt.dateFormat = formatString
         return fmt.string(from: self)
-    }
-}
-
-
-
-extension FileManager {
-    func lk_setPosixPermissions(_ permissions: mode_t, forItemAt url: URL) throws {
-        try url.absoluteURL.path.withCString {
-            try throwIfPosixError(chmod($0, permissions))
-        }
     }
 }

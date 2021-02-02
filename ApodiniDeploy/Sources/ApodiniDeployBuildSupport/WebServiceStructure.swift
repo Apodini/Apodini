@@ -45,6 +45,7 @@ public struct WebServiceStructure: Codable { // TODO this needs a better name. m
         deploymentConfig: DeploymentConfig,
         openApiDefinition: Data
     ) {
+        print("!!!!~!!!CREATING A WEBSERVICESTRUCTURE~~~~~")
         self.endpoints = endpoints
         self.deploymentConfig = deploymentConfig
         self.openApiDefinition = openApiDefinition

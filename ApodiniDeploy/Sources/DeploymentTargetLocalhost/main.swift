@@ -68,6 +68,9 @@ private struct LocalhostDeploymentProvider: ParsableCommand, DeploymentProvider 
         let FM = FileManager.default
         try FM.lk_initialize()
         
+        logger.notice("setting working directory to package root dir: \(packageRootDir)")
+        try FM.lk_setWorkingDirectory(to: packageRootDir)
+        
         logger.notice("Compiling target '\(productName)'")
         let executableUrl = try buildWebService()
         logger.notice("Target executable url: \(executableUrl.path)")
@@ -130,5 +133,5 @@ private struct LocalhostDeploymentProvider: ParsableCommand, DeploymentProvider 
 }
 
 
-LocalhostDeploymentProvider.main(["/Users/lukas/Developer/Apodini/", "--product-name=TestWebService"])
-//LocalhostDeploymentProvider.main()
+//LocalhostDeploymentProvider.main(["/Users/lukas/Developer/Apodini/", "--product-name=TestWebService"])
+LocalhostDeploymentProvider.main()

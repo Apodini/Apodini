@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 
 
 const char *const ApodiniProcessIsChildInvocationWrapperCLIArgument = "__ApodiniDeployCLI.ProcessIsChildProcessInvocationWrapper";
@@ -13,6 +14,21 @@ const char *const ApodiniProcessIsChildInvocationWrapperCLIArgument = "__Apodini
 // process group. We want all processes to be in the same group so that signals like SIGINT are sent to all processes.
 __attribute__((constructor))
 static void LKHandleTaskChildProcessLaunchIfNecessary(int argc, const char * argv[], const char *const envp[]) {
+#if 0 && DEBUG
+    // print cwd
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        printf("LAUNCH>CWD: %s\n", cwd);
+    }
+    // print invocation info
+    for (size_t idx = 0; idx < argc; idx++) {
+        printf("argv[%zu]: %s\n", idx, argv[idx]);
+    }
+    printf("ENV:\n");
+    for (__auto_type *env = envp; *env != 0; env++) {
+        printf("%s\n", *env);
+    }
+#endif
     if (!(argc >= 2 && strcmp(argv[1], ApodiniProcessIsChildInvocationWrapperCLIArgument) == 0)) {
         // Nothing to do if the program isn't being launched with the special parameter
         return;

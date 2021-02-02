@@ -86,12 +86,20 @@ private protocol AnyEncodableATRVisitorBase: AssociatedTypeRequirementsVisitor {
     func callAsFunction<T: Encodable>(_ value: T) -> Output
 }
 
+extension AnyEncodableATRVisitorBase {
+    @inline(never) @_optimize(none)
+    func _test() {
+        _ = self(12)
+    }
+}
+
 private struct AnyEncodableEncodeUsingEncoderATRVisitor: AnyEncodableATRVisitorBase {
     let encoder: AnyEncoder
     func callAsFunction<T: Encodable>(_ value: T) -> Result<Data, Error> {
         .init(catching: { try encoder.encode(value) })
     }
 }
+
 
 private struct AnyEncodableEncodeIntoVaporContentATRVisitor: AnyEncodableATRVisitorBase {
     let boxedContentContainer: Box<Vapor.ContentContainer>

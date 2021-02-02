@@ -45,6 +45,21 @@ let FM = FileManager.default
 
 let logger = Logger(label: "de.lukaskollmer.ApodiniLambda")
 
+
+
+//struct A: ExpressibleByStringLiteral {
+//    init?(_ value: String) {
+//        print(#function)
+//    }
+//    init(stringLiteral value: String) {
+//        print(#function)
+//    }
+//}
+//
+//_ = A("123")
+//_ = A.init("123")
+
+
 struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     static let identifier: DeploymentProviderID = LambdaDeploymentProviderId
     static let version: Version = 1
@@ -172,17 +187,25 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     /// - returns: the name of the docker image
     private func prepareDockerImage() throws -> String {
         let imageName = "apodini-lambda-builder"
+        let dockerfileUrl = tmpDirUrl.appendingPathComponent("Dockerfile", isDirectory: false)
+        try dockerfileContents.write(to: dockerfileUrl, atomically: true, encoding: .utf8)
+        try dockerignoreContents.write(to: dockerfileUrl.appendingPathExtension("dockerignore"), atomically: true, encoding: .utf8)
         let task = Task(
             executableUrl: dockerBin,
             arguments: [
-                "build", "-t", imageName,
+                "build",
+                "-f", dockerfileUrl.path,
+                "-t", imageName,
                 "--build-arg", "USER_ID=\(getuid())",
                 "--build-arg", "GROUP_ID=\(getuid())",
                 "--build-arg", "USERNAME=\(NSUserName())",
                 "."
             ],
             captureOutput: false,
-            launchInCurrentProcessGroup: true
+            launchInCurrentProcessGroup: true,
+            environment: [
+                "DOCKER_BUILDKIT": "1"
+            ]
         )
         try task.launchSyncAndAssertSuccess()
         return imageName
@@ -196,9 +219,12 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
             executableUrl: dockerBin,
             arguments: [
                 "run", "--rm",
-                "--volume", "\(packageRootDir.path):/src/",
-                "--workdir", "/src/", imageName,
-                "bash", "-cl", bashCommand
+                //"--volume", "\(packageRootDir.path):/src/",
+                //"--workdir", "/src/", imageName,
+                "--volume", "\(packageRootDir.path)/..:/src/",
+                "--workdir", "/src/\(packageRootDir.lastPathComponent)",
+                imageName,
+                "bash", "-cl", "pwd && ls -la .. && echo pre && \(bashCommand) && echo post"
             ],
             workingDirectory: workingDirectory,
             captureOutput: false,
@@ -210,6 +236,10 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     
     private func readWebServiceStructure(usingDockerImage dockerImageName: String) throws -> WebServiceStructure {
         let filename = "WebServiceStructure.json"
+//        try runInDocker(
+//            imageName: dockerImageName,
+//            bashCommand: "swift build --product \(productName)"
+//        )
         try runInDocker(
             imageName: dockerImageName,
             bashCommand: [
@@ -226,10 +256,16 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     /// - returns: the directory containing all build artifacts (ie, the built executable and collected shared object files)
     private func compileForLambda(usingDockerImage dockerImageName: String) throws -> URL {
         logger.notice("Compiling SPM target '\(productName)' for lambda")
+        // path of the shared object files script, relative to the docker container's root.
+        //let sharedObjectFilesScriptPath = ".build/lk_tmp/collect-shared-object-files.sh"
+        let collectSharedObjectFilesScriptUrl = tmpDirUrl.appendingPathComponent("collect-shared-object-files.sh", isDirectory: false)
+        try collectSharedObjectFilesScriptContents.write(to: collectSharedObjectFilesScriptUrl, atomically: true, encoding: .utf8)
+        //try FM.lk_setPosixPermissions(0o744, forItemAt: collectSharedObjectFilesScriptUrl) // rwxr--r--
+        try FM.lk_setPosixPermissions("rwxr--r--", forItemAt: collectSharedObjectFilesScriptUrl)
         try runInDocker(
             imageName: dockerImageName,
             bashCommand:
-                "swift build --product \(productName) && ./collect-shared-object-files.sh .build/debug/\(productName) .build/lambda/\(productName)/"
+                "swift build --product \(productName) && .build/lk_tmp/collect-shared-object-files.sh .build/debug/\(productName) .build/lambda/\(productName)/"
         )
         let outputUrl = buildFolderUrl
             .appendingPathComponent("debug", isDirectory: true)
@@ -239,6 +275,48 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
         return dstExecutableUrl
     }
 }
+
+
+
+private let dockerfileContents: String = """
+FROM swift:5.3-amazonlinux2
+
+ARG USER_ID
+ARG GROUP_ID
+ARG USERNAME
+
+RUN yum -y install zip sqlite-devel
+
+RUN groupadd --gid $GROUP_ID $USERNAME \
+    && useradd -s /bin/bash --uid $USER_ID --gid $GROUP_ID -m $USERNAME
+
+USER $USERNAME
+"""
+
+
+private let dockerignoreContents: String = """
+.build/
+"""
+
+
+
+private let collectSharedObjectFilesScriptContents: String = """
+#!/bin/bash
+
+set -eux
+
+# executable=$1
+executable_path=$1 # path to the built executable
+output_dir=$2      # path of the directory we should copy the object files to
+
+# target=".build/lambda/$executable"
+rm -rf "$output_dir"
+mkdir -p "$output_dir"
+# cp ".build/debug/$executable" "$target/"
+# add the target deps based on ldd
+ldd "$executable_path" | grep swift | awk '{print $3}' | xargs cp -Lv -t "$output_dir"
+# zip lambda.zip *
+"""
 
 
 LambdaDeploymentProvider.main()

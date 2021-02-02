@@ -84,29 +84,47 @@ public class Task {
     private let launchInCurrentProcessGroup: Bool
     
     public var arguments: [String] {
-        willSet {
-            precondition(!didRun, "Cannot change arguments of already launched task")
-        }
+        willSet { assertCanMutate() }
     }
+    
+    public var environment: [String: String] {
+        willSet { assertCanMutate() }
+    }
+    /// Whether the process should inherit its parent's (ie, the current process') environment variables
+    public var inheritsParentEnvironment: Bool {
+        willSet { assertCanMutate() }
+    }
+    
     
     public var pid: Int32 { process.processIdentifier }
     public var isRunning: Bool { process.isRunning }
+    
+    
+    private func assertCanMutate() {
+        precondition(!isRunning, "Cannot mutate running task")
+    }
+    
     
     public init(
         executableUrl: URL,
         arguments: [String] = [],
         workingDirectory: URL? = nil,
         captureOutput: Bool = false, // setting this to false will cause the output to show up in stdout
-        launchInCurrentProcessGroup: Bool
+        launchInCurrentProcessGroup: Bool,
+        environment: [String: String] = [:],
+        inheritsParentEnvironment: Bool = true
     ) {
         self.executableUrl = executableUrl
         self.arguments = arguments
         self.launchInCurrentProcessGroup = launchInCurrentProcessGroup
+        self.environment = environment
+        self.inheritsParentEnvironment = inheritsParentEnvironment
         process = Process()
-        process.currentDirectoryURL = workingDirectory
+        process.currentDirectoryURL = workingDirectory?.absoluteURL // apparently Process doesn't properly resolve relative urls?
         process.terminationHandler = { [weak self] process in
             self?.processTerminationHandlerImpl(process: process)
         }
+        process.environment = environment
         if captureOutput {
             process.standardOutput = stdoutPipe
             process.standardError = stderrPipe
@@ -122,12 +140,18 @@ public class Task {
         if launchInCurrentProcessGroup {
             process.executableURL = LKGetCurrentExecutableUrl()
             process.arguments = [Self.processIsChildProcessInvocationWrapper, self.executableUrl.path] + self.arguments
-            //process.executableURL = self.executableUrl
-            //process.arguments = self.arguments
             Self.taskPool.write { $0.insert(self) }
         } else {
             process.executableURL = self.executableUrl
             process.arguments = self.arguments
+        }
+        if inheritsParentEnvironment {
+            process.environment = ProcessInfo.processInfo.environment
+            for (key, value) in self.environment {
+                process.environment![key] = value
+            }
+        } else {
+            process.environment = self.environment
         }
         didRun = true
         try process.run()
@@ -164,9 +188,7 @@ public class Task {
         precondition(process == self.process)
         self.terminationHandler?(TerminationInfo(exitCode: process.terminationStatus, reason: process.terminationReason))
         self.terminationHandler = nil
-        Self.taskPool.write { set in
-            set.remove(self)
-        }
+        Self.taskPool.write { $0.remove(self) }
     }
     
     
