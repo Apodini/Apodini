@@ -7,7 +7,7 @@
 /// the `Handler` if there aren't any transformers).
 /// The `relationships` property can be used to define `RelationshipDefinition`s for
 /// the `Content` type annotated with this protocol.
-public protocol WithRelationships: RelationshipVisitable {
+public protocol WithRelationships {
     /// Defines a array of `RelationshipDefinition`s
     typealias Relationships = [RelationshipDefinition]
 
@@ -25,13 +25,6 @@ public protocol WithRelationships: RelationshipVisitable {
     /// Defines `RelationshipDefinition`s for the given `Content` type.
     @RelationshipDefinitionBuilder
     static var relationships: Relationships { get }
-}
-
-public extension WithRelationships {
-    /// Standard implementation, calling the given `RelationshipVisitor` with self.
-    static func accept(_ visitor: RelationshipVisitor) {
-        visitor.visit(self)
-    }
 }
 
 /// A `RelationshipDefinition` defines any sort of relationship information for the

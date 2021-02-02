@@ -5,6 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
+@_implementationOnly import AssociatedTypeRequirementsVisitor
 
 /// The scope of a value associated with a `ContextKey`
 enum Scope {
@@ -24,7 +25,7 @@ protocol SyntaxTreeVisitable {
 
 
 /// The `SyntaxTreeVisitor` is used to parse the Apodini DSL and forward the parsed result to the `SemanticModelBuilder`s.
-class SyntaxTreeVisitor: RelationshipVisitor {
+class SyntaxTreeVisitor {
     /// The `semanticModelBuilders` that can interpret the Apodini DSL syntax tree collected by the `SyntaxTreeVisitor`
     private let modelBuilder: SemanticModelBuilder?
     /// Contains the current `ContextNode` that is used when creating a context for each registered `Handler`
@@ -97,9 +98,8 @@ class SyntaxTreeVisitor: RelationshipVisitor {
 
         // Intermediate solution to parse `Content` types conforming to `WithRelationships`
         // until the Metadata DSL creates a unified solution for such metadata.
-        if let relationships = responseType as? RelationshipVisitable.Type {
-            relationships.accept(self)
-        }
+        let visitor = StandardRelationshipsVisitor(visitor: self)
+        visitor(responseType)
         
         // We capture the currentContextNode and make a copy that will be used when executing the request as
         // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the
@@ -109,12 +109,6 @@ class SyntaxTreeVisitor: RelationshipVisitor {
         modelBuilder?.register(handler: handler, withContext: context)
         
         currentNode.resetContextNode()
-    }
-
-    func visit<Relationships: WithRelationships>(_ relationships: Relationships.Type) {
-        for definition in relationships.relationships {
-            definition.accept(self)
-        }
     }
     
     /// **Must** be called after finishing the parsing of the Apodini DSL to trigger the `finishedRegistration` of all `semanticModelBuilders`.
