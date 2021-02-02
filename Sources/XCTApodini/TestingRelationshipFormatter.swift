@@ -4,14 +4,18 @@
 
 @testable import Apodini
 
-struct TestingRelationshipFormatter: RelationshipFormatter {
-    var hideHidden: Bool = false
+public struct TestingRelationshipFormatter: RelationshipFormatter {
+    var hideHidden: Bool
 
-    func format(destination: RelationshipDestination) -> String? {
+    public init(hideHidden: Bool = false) {
+        self.hideHidden = hideHidden
+    }
+
+    public func format(destination: RelationshipDestination) -> String? {
         (destination.hideLink ? "hidden:" : "") + destination.destinationPath.asPathString(parameterEncoding: .valueOrName)
     }
 
-    func reduce(representation: String, of: RelationshipDestination, into: inout [String: String]) {
+    public func reduce(representation: String, of: RelationshipDestination, into: inout [String: String]) {
         if of.hideLink && hideHidden {
             return
         }

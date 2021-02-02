@@ -5,7 +5,7 @@
 import XCTest
 import Apodini
 
-func XCTUnwrap<T: Encodable>(
+public func XCTUnwrap<T: Encodable>(
     _ expression: @autoclosure () throws -> Response<T>,
     _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,
@@ -20,5 +20,5 @@ func XCTUnwrap<T: Encodable>(
         result = nil
     }
 
-    return try XCTUnwrap(result, message: message, file: file, line: line)
+    return try XCTUnwrap(result, message(), file: file, line: line)
 }

@@ -3,8 +3,8 @@
 //
 
 
-import XCTest
 import XCTApodini
+import XCTest
 @testable import Apodini
 
 class RelationshipTestContext {
@@ -47,10 +47,8 @@ class RelationshipTestContext {
         let context = endpoint.createConnectionContext(for: exporter)
 
         do {
-            return try XCTUnwrap(
-                try context.handle(request: request, eventLoop: app.eventLoopGroup.next())
-                .wait()
-            )
+            let response: Response<EnrichedContent> = try context.handle(request: request, eventLoop: app.eventLoopGroup.next()).wait()
+            return try XCTUnwrap(response)
         } catch {
             fatalError("Error when handling Relationship request: \(error)")
         }
