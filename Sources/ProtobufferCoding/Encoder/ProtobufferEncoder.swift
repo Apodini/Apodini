@@ -8,7 +8,7 @@
 import Foundation
 
 internal class InternalProtoEncoder: Encoder {
-    var variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy?
+    var integerWidthCodingStrategy: IntegerWidthCodingStrategy?
     
     var codingPath: [CodingKey] = []
     var userInfo: [CodingUserInfoKey: Any] = [:]
@@ -61,19 +61,19 @@ private struct EncodingWrapper<T: Encodable>: Encodable {
 /// Coforms to `TopLevelEncoder` from `Combine`, however this is currently ommitted due to compatibility issues.
 public class ProtobufferEncoder {
     /// The strategy that this encoder uses to encode `Int`s and `UInt`s.
-    public var variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy
+    public var integerWidthCodingStrategy: IntegerWidthCodingStrategy
     
     private var encoder: InternalProtoEncoder?
 
     /// Initializes a new instance.
     public init() {
         if MemoryLayout<Int>.size == 4 {
-            self.variableWidthIntegerCodingStrategy = .thirtyTwo
+            self.integerWidthCodingStrategy = .thirtyTwo
         } else {
-            self.variableWidthIntegerCodingStrategy = .sixtyFour
+            self.integerWidthCodingStrategy = .sixtyFour
         }
         
-        encoder?.variableWidthIntegerCodingStrategy = variableWidthIntegerCodingStrategy
+        encoder?.integerWidthCodingStrategy = integerWidthCodingStrategy
     }
 
     /// Encodes the given value into data.

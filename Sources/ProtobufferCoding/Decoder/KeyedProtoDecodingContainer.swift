@@ -14,13 +14,13 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
 
     init(from data: [Int: [Data]],
          codingPath: [CodingKey] = [],
-         variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy,
+         integerWidthCodingStrategy: IntegerWidthCodingStrategy,
          referencedBy: Data? = nil) {
         self.data = data
         self.referencedBy = referencedBy
         allKeys = []
 
-        super.init(codingPath: codingPath, variableWidthIntegerCodingStrategy: variableWidthIntegerCodingStrategy)
+        super.init(codingPath: codingPath, integerWidthCodingStrategy: integerWidthCodingStrategy)
     }
 
     /// Tries to convert the given CodingKey to an Int, using the following steps:
@@ -282,7 +282,7 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
         let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last {
-            return try InternalProtoDecoder(from: value, with: variableWidthIntegerCodingStrategy).container(keyedBy: type)
+            return try InternalProtoDecoder(from: value, with: integerWidthCodingStrategy).container(keyedBy: type)
         }
         throw ProtoError.unsupportedDataType("nestedContainer not available")
     }
@@ -290,14 +290,14 @@ class KeyedProtoDecodingContainer<Key: CodingKey>: InternalProtoDecodingContaine
     func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
         let keyValue = try convertToProtobufferFieldNumber(key)
         if let value = data[keyValue]?.last {
-            return try InternalProtoDecoder(from: value, with: variableWidthIntegerCodingStrategy).unkeyedContainer()
+            return try InternalProtoDecoder(from: value, with: integerWidthCodingStrategy).unkeyedContainer()
         }
         throw ProtoError.unsupportedDataType("nestedUnkeyedContainer not available")
     }
 
     func superDecoder() throws -> Decoder {
         if let referencedBy = referencedBy {
-            return InternalProtoDecoder(from: referencedBy, with: variableWidthIntegerCodingStrategy)
+            return InternalProtoDecoder(from: referencedBy, with: integerWidthCodingStrategy)
         }
         throw ProtoError.unsupportedDecodingStrategy("Cannot decode super")
     }

@@ -16,11 +16,11 @@ import Foundation
 internal class InternalProtoDecodingContainer {
     var codingPath: [CodingKey]
     /// The strategy that this container uses to decode `Int`s and `UInt`s.
-    var variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy
+    var integerWidthCodingStrategy: IntegerWidthCodingStrategy
 
-    internal init(codingPath: [CodingKey] = [], variableWidthIntegerCodingStrategy: VariableWidthIntegerCodingStrategy) {
+    internal init(codingPath: [CodingKey] = [], integerWidthCodingStrategy: IntegerWidthCodingStrategy) {
         self.codingPath = codingPath
-        self.variableWidthIntegerCodingStrategy = variableWidthIntegerCodingStrategy
+        self.integerWidthCodingStrategy = integerWidthCodingStrategy
     }
 
     /// Taken from SwiftProtobuf:
@@ -212,9 +212,9 @@ internal extension Int {
         guard let value = value else {
             throw ProtoError.decodingError("No data to initialize from")
         }
-        if container.variableWidthIntegerCodingStrategy == .thirtyTwo {
+        if container.integerWidthCodingStrategy == .thirtyTwo {
             try self.init(container.decodeInt32(value))
-        } else if container.variableWidthIntegerCodingStrategy == .sixtyFour {
+        } else if container.integerWidthCodingStrategy == .sixtyFour {
             try self.init(container.decodeInt64(value))
         } else {
             throw ProtoError.decodingError("Unknown width of Int type")
@@ -227,9 +227,9 @@ internal extension UInt {
         guard let value = value else {
             throw ProtoError.decodingError("No data to initialize from")
         }
-        if container.variableWidthIntegerCodingStrategy == .thirtyTwo {
+        if container.integerWidthCodingStrategy == .thirtyTwo {
             try self.init(container.decodeUInt32(value))
-        } else if container.variableWidthIntegerCodingStrategy == .sixtyFour {
+        } else if container.integerWidthCodingStrategy == .sixtyFour {
             try self.init(container.decodeUInt64(value))
         } else {
             throw ProtoError.decodingError("Unknown width of UInt type")
@@ -243,9 +243,9 @@ internal extension Array where Element == Int {
             throw ProtoError.decodingError("No data to initialize from")
         }
         self.init()
-        if container.variableWidthIntegerCodingStrategy == .thirtyTwo {
+        if container.integerWidthCodingStrategy == .thirtyTwo {
             try container.decodeRepeatedInt32(value).forEach { self.append(Int($0)) }
-        } else if container.variableWidthIntegerCodingStrategy == .sixtyFour {
+        } else if container.integerWidthCodingStrategy == .sixtyFour {
             try container.decodeRepeatedInt64(value).forEach { self.append(Int($0)) }
         }
     }
@@ -257,9 +257,9 @@ internal extension Array where Element == UInt {
             throw ProtoError.decodingError("No data to initialize from")
         }
         self.init()
-        if container.variableWidthIntegerCodingStrategy == .thirtyTwo {
+        if container.integerWidthCodingStrategy == .thirtyTwo {
             try container.decodeRepeatedUInt32(value).forEach { self.append(UInt($0)) }
-        } else if container.variableWidthIntegerCodingStrategy == .sixtyFour {
+        } else if container.integerWidthCodingStrategy == .sixtyFour {
             try container.decodeRepeatedUInt64(value).forEach { self.append(UInt($0)) }
         }
     }

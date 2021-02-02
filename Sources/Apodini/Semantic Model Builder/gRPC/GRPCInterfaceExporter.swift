@@ -105,9 +105,9 @@ class GRPCInterfaceExporter: InterfaceExporter {
             if let configuration = app.storage[IntegerWidthConfiguration.StorageKey.self] {
                 switch configuration {
                 case .thirtyTwo:
-                    decoder.variableWidthIntegerCodingStrategy = .thirtyTwo
+                    decoder.integerWidthCodingStrategy = .thirtyTwo
                 case .sixtyFour:
-                    decoder.variableWidthIntegerCodingStrategy = .sixtyFour
+                    decoder.integerWidthCodingStrategy = .sixtyFour
                 }
             }
 

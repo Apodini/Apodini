@@ -104,9 +104,9 @@ extension GRPCService {
         if let configuration = app.storage[IntegerWidthConfiguration.StorageKey.self] {
             switch configuration {
             case .thirtyTwo:
-                encoder.variableWidthIntegerCodingStrategy = .thirtyTwo
+                encoder.integerWidthCodingStrategy = .thirtyTwo
             case .sixtyFour:
-                encoder.variableWidthIntegerCodingStrategy = .sixtyFour
+                encoder.integerWidthCodingStrategy = .sixtyFour
             }
         }
             
