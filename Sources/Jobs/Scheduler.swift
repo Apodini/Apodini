@@ -35,10 +35,10 @@ public class Scheduler {
     ///     - keyPath: Associates a `Job` for later retrieval.
     ///
     /// - Throws: If the `Job` uses request based property wrappers or the crontab cannot be parsed.
-    public func enqueue<K: KeyChain, T: Job>(_ job: T,
-                                             with cronTrigger: String,
-                                             runs: Int? = nil,
-                                             _ keyPath: KeyPath<K, T>) throws {
+    public func enqueue<K: EnvironmentAccessible, T: Job>(_ job: T,
+                                                          with cronTrigger: String,
+                                                          runs: Int? = nil,
+                                                          _ keyPath: KeyPath<K, T>) throws {
         try enqueue(job, with: cronTrigger, runs: runs, keyPath, on: app.eventLoopGroup.next())
     }
     
@@ -56,14 +56,14 @@ public class Scheduler {
     ///     - on: Specifies the event loop the `Job` is executed on.
     ///
     /// - Throws: If the `Job` uses request based property wrappers or the crontab cannot be parsed.
-    public func enqueue<K: KeyChain, T: Job>(_ job: T,
-                                             with cronTrigger: String,
-                                             runs: Int? = nil,
-                                             _ keyPath: KeyPath<K, T>,
-                                             on eventLoop: EventLoop) throws {
+    public func enqueue<K: EnvironmentAccessible, T: Job>(_ job: T,
+                                                          with cronTrigger: String,
+                                                          runs: Int? = nil,
+                                                          _ keyPath: KeyPath<K, T>,
+                                                          on eventLoop: EventLoop) throws {
         // Only valid property wrappers can be used with `Job`s.
         try check(on: job,
-                  for: Environment<EnvironmentValues, Connection>.self,
+                  for: Environment<Application, Connection>.self,
                   throw: JobErrors.requestPropertyWrapper)
         try check(on: job,
                   for: RequestBasedPropertyWrapper.self,
@@ -73,8 +73,11 @@ public class Scheduler {
         var activatedJob = job
         activate(&activatedJob)
         
+        // Inject the application instance to all `ApplicationInjectables`.
+        inject(app: app, to: &activatedJob)
+        
         // Adds the `Job`to `@Environment`.
-        EnvironmentValue(keyPath, activatedJob)
+        app.storage[keyPath] = activatedJob
         
         // Creates the configuration of the `Job`.
         let jobConfiguration = try generateConfiguration(cronTrigger, keyPath, eventLoop)
@@ -91,14 +94,10 @@ public class Scheduler {
                                         }
                                     }
         )
-        // Only adds the observation if it is present
+        // Only adds the observation if it is present.
         if let observation = observation {
             observations.append(observation)
         }
-        
-        // Activate any `ObservedObject`s on the job.
-        var job = job
-        activate(&job)
         
         if let runs = runs {
             schedule(activatedJob, with: jobConfiguration, runs, on: eventLoop)
@@ -112,7 +111,7 @@ public class Scheduler {
     /// - Parameter keyPath: Associatesd key path of a `Job`.
     ///
     /// - Throws: This method throws an exception if the `Job` cannot be found.
-    public func dequeue<K: KeyChain, T: Job>(_ keyPath: KeyPath<K, T>) throws {
+    public func dequeue<K: EnvironmentAccessible, T: Job>(_ keyPath: KeyPath<K, T>) throws {
         guard let config = jobConfigurations[ObjectIdentifier(keyPath)] else {
             throw JobErrors.notFound
         }
@@ -150,9 +149,9 @@ private extension Scheduler {
     }
     
     /// Generates the configuration of the `Job`.
-    func generateConfiguration<K: KeyChain, T: Job>(_ cronTrigger: String,
-                                                    _ keyPath: KeyPath<K, T>,
-                                                    _ eventLoop: EventLoop) throws -> JobConfiguration {
+    func generateConfiguration<K: EnvironmentAccessible, T: Job>(_ cronTrigger: String,
+                                                                 _ keyPath: KeyPath<K, T>,
+                                                                 _ eventLoop: EventLoop) throws -> JobConfiguration {
         let identifier = ObjectIdentifier(keyPath)
         let jobConfiguration = try JobConfiguration(SwifCron(cronTrigger), eventLoop)
         jobConfigurations[identifier] = jobConfiguration

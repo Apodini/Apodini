@@ -1,4 +1,5 @@
 @testable import Apodini
+@testable import ApodiniDatabase
 import XCTest
 
 final class DatabaseConfigurationTests: XCTestCase {

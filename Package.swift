@@ -51,11 +51,6 @@ let package = Package(
             name: "Apodini",
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
-                .product(name: "Fluent", package: "fluent"),
-                .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
-                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
-                .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
-                .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime"),
                 .product(name: "APNS", package: "apns"),
@@ -78,6 +73,12 @@ let package = Package(
         .target(
             name: "ApodiniDatabase",
             dependencies: [
+                .product(name: "Vapor", package: "vapor"),
+                .product(name: "Fluent", package: "fluent"),
+                .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
+                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
+                .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
+                .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver"),
                 .target(name: "Apodini")
             ]
         ),
@@ -148,7 +149,8 @@ let package = Package(
         .target(
             name: "Notifications",
             dependencies: [
-                .target(name: "Apodini")
+                .target(name: "Apodini"),
+                .target(name: "ApodiniDatabase")
             ]
         ),
         .testTarget(

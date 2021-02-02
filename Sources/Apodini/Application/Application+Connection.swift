@@ -1,21 +1,19 @@
 //
 //  Connection.swift
-//  
+//
 //
 //  Created by Moritz Schüll on 09.12.20.
 //
 
 import Foundation
 
-enum ConnectionEnvironmentKey: EnvironmentKey {
-    static var defaultValue = Connection()
-}
-
-extension EnvironmentValues {
+extension Application {
     /// A Property identifying the `Connection` which provides an abstract view on the underlying protocol's state.
+    ///
+    /// This property only serves as a placeholder and should never be called.
     public var connection: Connection {
-        get { self[ConnectionEnvironmentKey.self] }
-        set { self[ConnectionEnvironmentKey.self] = newValue }
+        get { fatalError("The connection should never be called directly") }
+        set { fatalError("The connection cannot be manually set") } // swiftlint:disable:this unused_setter_value
     }
 }
 

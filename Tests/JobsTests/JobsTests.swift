@@ -7,6 +7,10 @@ import NIO
 final class JobsTests: XCTApodiniTest {
     let everyMinute = "* * * * *"
     
+    var scheduler: Scheduler {
+        app.scheduler
+    }
+    
     struct FailingJob: Job {
         @Environment(\.connection) var connection: Connection
         
@@ -37,11 +41,21 @@ final class JobsTests: XCTApodiniTest {
         }
     }
     
-    struct KeyStore: KeyChain {
+    struct EnvironmentJob: Job {
+        @Environment(\.storage) var storage: Storage
+        @State var contains = false
+        
+        func run() {
+            contains = storage.contains(\KeyStore.environmentJob)
+        }
+    }
+    
+    struct KeyStore: EnvironmentAccessible {
         var failingJob: FailingJob
         var failingJob2: FailingJob2
         var testJob: TestJob
         var stateJob: StateJob
+        var environmentJob: EnvironmentJob
     }
     
     func testFailingJobs() throws {
@@ -58,13 +72,25 @@ final class JobsTests: XCTApodiniTest {
         XCTAssertRuntimeFailure(Schedule(TestJob(), on: "A B C D E", \KeyStore.testJob).configure(self.app))
     }
     
-    func testEnvironmentInjection() throws {
-        let job = TestJob()
-        try app.scheduler.enqueue(job, with: "*/10 * * * *", \KeyStore.testJob)
-        let environmentJob = Environment(\KeyStore.testJob).wrappedValue
-        environmentJob.num = 42
-        XCTAssert(environmentJob.num == job.num)
-        try app.scheduler.dequeue(\KeyStore.testJob)
+    func testJobEnvironmentInjection() throws {
+        try scheduler.enqueue(TestJob(), with: "*/10 * * * *", \KeyStore.testJob, on: app.eventLoopGroup.next())
+        
+        let job = try XCTUnwrap(app.storage[\KeyStore.testJob])
+        
+        XCTAssert(job.num == 0)
+    }
+    
+    func testEnvironmentPropertyWrapper() throws {
+        let eventLoop = EmbeddedEventLoop()
+        
+        try scheduler.enqueue(EnvironmentJob(), with: everyMinute, \KeyStore.environmentJob, on: eventLoop)
+        
+        let second = Calendar.current.component(.second, from: Date())
+        eventLoop.advanceTime(by: .seconds(Int64(60 - second)))
+        
+        let job = try XCTUnwrap(app.storage[\KeyStore.environmentJob])
+        
+        XCTAssertTrue(job.contains)
     }
     
     func testEveryMinute() throws {
@@ -131,7 +157,7 @@ final class JobsTests: XCTApodiniTest {
         let second = Calendar.current.component(.second, from: Date())
         eventLoop.advanceTime(by: .seconds(Int64(60 - second)))
         
-        let job = Environment(\KeyStore.stateJob).wrappedValue
+        let job = try XCTUnwrap(app.storage[\KeyStore.stateJob])
         
         XCTAssertEqual(job.num, 1)
     }
@@ -140,8 +166,6 @@ final class JobsTests: XCTApodiniTest {
         Schedule(TestJob(), on: everyMinute, runs: 0, \KeyStore.testJob).configure(app)
         let jobConfig = try XCTUnwrap(app.scheduler.jobConfigurations[ObjectIdentifier(\KeyStore.testJob)])
         XCTAssertNil(jobConfig.scheduled)
-        
-        try app.scheduler.dequeue(\KeyStore.testJob)
     }
     
     func testTwoRuns() throws {
