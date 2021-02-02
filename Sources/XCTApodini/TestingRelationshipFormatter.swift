@@ -2,7 +2,7 @@
 // Created by Andreas Bauer on 23.01.21.
 //
 
-@testable import Apodini
+import Apodini
 
 public struct TestingRelationshipFormatter: RelationshipFormatter {
     var hideHidden: Bool
