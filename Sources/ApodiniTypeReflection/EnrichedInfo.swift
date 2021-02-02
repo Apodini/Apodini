@@ -3,10 +3,16 @@
 //
 
 import Runtime
+import Apodini
 
 public struct PropertyInfo: Equatable, Hashable {
     public let name: String
     public let offset: Int
+    
+    public init(name: String, offset: Int) {
+        self.name = name
+        self.offset = offset
+    }
 }
 
 public struct EnrichedInfo {
@@ -24,7 +30,17 @@ public struct EnrichedInfo {
     public let typeInfo: TypeInfo
     public let propertyInfo: PropertyInfo?
 
-    public var cardinality: Cardinality = .exactlyOne
+    public var cardinality: Cardinality
+    
+    public init(
+        typeInfo: TypeInfo,
+        propertyInfo: PropertyInfo?,
+        cardinality: Cardinality = .exactlyOne
+    ) {
+        self.typeInfo = typeInfo
+        self.propertyInfo = propertyInfo
+        self.cardinality = cardinality
+    }
 }
 
 public extension EnrichedInfo {

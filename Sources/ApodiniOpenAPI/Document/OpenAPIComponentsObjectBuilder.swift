@@ -4,6 +4,7 @@
 
 import Foundation
 import Apodini
+import ApodiniTypeReflection
 @_implementationOnly import OpenAPIKit
 
 /// Constants for building specification compatible schema names.

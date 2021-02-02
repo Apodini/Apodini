@@ -3,6 +3,7 @@
 //
 
 import Apodini
+import ApodiniTypeReflection
 @_implementationOnly import Runtime
 
 extension ProtobufferMessage {

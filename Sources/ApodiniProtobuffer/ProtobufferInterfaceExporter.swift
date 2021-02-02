@@ -5,6 +5,7 @@
 import Apodini
 import ApodiniVaporSupport
 import ApodiniGRPC
+import ApodiniTypeReflection
 @_implementationOnly import class Vapor.Application
 
 class ProtobufferInterfaceExporter: StaticInterfaceExporter {

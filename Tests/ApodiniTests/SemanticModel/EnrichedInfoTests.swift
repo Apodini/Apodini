@@ -3,6 +3,7 @@
 //
 
 import XCTest
+import ApodiniTypeReflection
 @_implementationOnly import Runtime
 
 @testable import Apodini

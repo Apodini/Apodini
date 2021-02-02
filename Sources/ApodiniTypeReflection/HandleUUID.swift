@@ -3,6 +3,7 @@
 //
 
 import Foundation
+import Apodini
 
 public func handleUUID(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     node.value.typeInfo.type == UUID.self

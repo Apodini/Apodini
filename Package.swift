@@ -97,6 +97,7 @@ let package = Package(
         .target(name: "ApodiniOpenAPI",
                 dependencies: [
                     .target(name: "Apodini"),
+                    .target(name: "ApodiniTypeReflection"),
                     .target(name: "ApodiniVaporSupport"),
                     .product(name: "OpenAPIKit", package: "OpenAPIKit")
                 ],
@@ -116,6 +117,7 @@ let package = Package(
         .target(name: "ApodiniProtobuffer",
                 dependencies: [
                     .target(name: "Apodini"),
+                    .target(name: "ApodiniTypeReflection"),
                     .target(name: "ApodiniVaporSupport"),
                     .target(name: "ProtobufferCoding"),
                     .target(name: "ApodiniGRPC")
@@ -130,6 +132,14 @@ let package = Package(
                 .target(name: "ApodiniVaporSupport"),
                 .product(name: "APNS", package: "apns"),
                 .product(name: "FCM", package: "FCM")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniTypeReflection",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "Runtime", package: "Runtime")
             ]
         ),
 
