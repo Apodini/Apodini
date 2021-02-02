@@ -8,20 +8,14 @@
 import Foundation
 
 internal class InternalProtoEncoder: Encoder {
-    var integerWidthCodingStrategy: IntegerWidthCodingStrategy
+    var integerWidthCodingStrategy: IntegerWidthCodingStrategy = .default
     
     var codingPath: [CodingKey] = []
     var userInfo: [CodingUserInfoKey: Any] = [:]
     var data = Data()
     var hasContainer = false
 
-    init() {
-        if MemoryLayout<Int>.size == 4 {
-            self.integerWidthCodingStrategy = .thirtyTwo
-        } else {
-            self.integerWidthCodingStrategy = .sixtyFour
-        }
-    }
+    init() {}
 
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key: CodingKey {
         if hasContainer {
@@ -67,18 +61,12 @@ private struct EncodingWrapper<T: Encodable>: Encodable {
 /// Coforms to `TopLevelEncoder` from `Combine`, however this is currently ommitted due to compatibility issues.
 public class ProtobufferEncoder {
     /// The strategy that this encoder uses to encode `Int`s and `UInt`s.
-    public var integerWidthCodingStrategy: IntegerWidthCodingStrategy
+    public var integerWidthCodingStrategy: IntegerWidthCodingStrategy = .default
     
     private var encoder: InternalProtoEncoder?
 
     /// Initializes a new instance.
     public init() {
-        if MemoryLayout<Int>.size == 4 {
-            self.integerWidthCodingStrategy = .thirtyTwo
-        } else {
-            self.integerWidthCodingStrategy = .sixtyFour
-        }
-        
         encoder?.integerWidthCodingStrategy = integerWidthCodingStrategy
     }
 

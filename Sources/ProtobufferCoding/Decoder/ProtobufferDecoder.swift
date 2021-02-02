@@ -144,16 +144,10 @@ internal class InternalProtoDecoder: Decoder {
 /// Coforms to `TopLevelDecoder` from `Combine`, however this is currently ommitted due to compatibility issues.
 public class ProtobufferDecoder {
     /// The strategy that this encoder uses to encode `Int`s and `UInt`s.
-    public var integerWidthCodingStrategy: IntegerWidthCodingStrategy
+    public var integerWidthCodingStrategy: IntegerWidthCodingStrategy = .default
 
     /// Init new decoder instance
-    public init() {
-        if MemoryLayout<Int>.size == 4 {
-            self.integerWidthCodingStrategy = .thirtyTwo
-        } else {
-            self.integerWidthCodingStrategy = .sixtyFour
-        }
-    }
+    public init() {}
 
     /// Decodes a Data that was encoded using Protobuffers into
     /// a given struct of type T (T has to conform to Decodable).
