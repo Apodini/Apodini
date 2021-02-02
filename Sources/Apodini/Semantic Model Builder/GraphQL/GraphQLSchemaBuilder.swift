@@ -75,10 +75,9 @@ class GraphQLSchemaBuilder {
         var currentFields = [String: GraphQLField]()
         for child in responseTypeHead.children {
             if let propertyInfo = child.value.runtimePropertyInfo {
-                currentFields[propertyInfo.name] = GraphQLField(type: try responseTypeHandler(for: child),
-                    resolve: { source, _, _, _ in
-                        try propertyInfo.get(from: source)
-                    })
+                currentFields[propertyInfo.name] = GraphQLField(type: try responseTypeHandler(for: child)) { source, _, _, _ in
+                    try propertyInfo.get(from: source)
+                }
             }
         }
 
@@ -96,8 +95,7 @@ class GraphQLSchemaBuilder {
             guard let vaporRequest = gContext as? Vapor.Request else {
                 throw ApodiniError(type: .serverError, reason: "Casting Error - Vapor.Request")
             }
-            let response: EventLoopFuture<Response<AnyEncodable>> = mutableContext.handle(request: request,
-                eventLoop: vaporRequest.eventLoop.next())
+            let response: EventLoopFuture<Response<AnyEncodable>> = mutableContext.handle(request: request, eventLoop: vaporRequest.eventLoop.next())
 
             return response.flatMapThrowing { encodableAction -> Any? in
                 switch encodableAction {
@@ -108,18 +106,19 @@ class GraphQLSchemaBuilder {
                     return ".nothing, .end"
                 }
             }
-
         })
     }
 
     func append<H: Handler>(for endpoint: Endpoint<H>,
                             with context: AnyConnectionContext<GraphQLInterfaceExporter>) throws {
         // Remove parameters from the path by using `":" filter`
-        var currentPath = endpoint.absolutePath.map {
-            $0.description.lowercased()
-        }.filter {
-            $0.first != ":"
-        }
+        var currentPath = endpoint.absolutePath
+            .map {
+                $0.description.lowercased()
+            }
+            .filter {
+                $0.first != ":"
+            }
 
         // Remove `root`
         currentPath.removeFirst()
@@ -143,13 +142,10 @@ class GraphQLSchemaBuilder {
         for par in endpoint.parameters {
             let graphqlType = try graphqlTypeMap(with: par.propertyType)
             if par.necessity == .required {
-                self.args[leafName, default: [:]][par.name] = GraphQLArgument(type: GraphQLNonNull(graphqlType),
-                    description: par.description)
+                self.args[leafName, default: [:]][par.name] = GraphQLArgument(type: GraphQLNonNull(graphqlType), description: par.description)
             } else {
-                self.args[leafName, default: [:]][par.name] = GraphQLArgument(type: graphqlType,
-                    description: par.description)
+                self.args[leafName, default: [:]][par.name] = GraphQLArgument(type: graphqlType, description: par.description)
             }
-
         }
 
         // Response type and context info
@@ -159,9 +155,7 @@ class GraphQLSchemaBuilder {
 
         // Handle Single points
         if currentPath.count == 1 {
-            self.fields[leafName] = try self.graphQLFieldCreator(for: self.responseTypeTree[leafName] ?? treeTemp,
-                self.leafContext[leafName] ?? context,
-                self.args[leafName] ?? [:])
+            self.fields[leafName] = try self.graphQLFieldCreator(for: treeTemp, context, self.args[leafName] ?? [:])
             return
         }
 
@@ -177,11 +171,12 @@ class GraphQLSchemaBuilder {
             hasIncomingEdge.insert(child)
             indx -= 1
         }
-
     }
 
     private func nameExtractor(for node: String) throws -> String {
-        let filteredArray = node.components(separatedBy: "_").filter({ !$0.isEmpty })
+        let filteredArray = node.components(separatedBy: "_").filter {
+            !$0.isEmpty
+        }
         guard let lastValue = filteredArray.last else {
             throw ApodiniError(type: .serverError, reason: "Name Extracting Error - nameExtractor Function")
         }
@@ -204,9 +199,7 @@ class GraphQLSchemaBuilder {
             if let responseType = self.responseTypeTree[nodeName],
                let responseContext = self.leafContext[nodeName] { // It has handler
                 let fieldName = self.graphQLRegexCheck(for: responseType.value.typeInfo.name.lowercased())
-                currentFields[fieldName] = try self.graphQLFieldCreator(for: responseType,
-                    responseContext,
-                    self.args[nodeName] ?? [:])
+                currentFields[fieldName] = try self.graphQLFieldCreator(for: responseType, responseContext, self.args[nodeName] ?? [:])
             }
 
             for child in childrenList {
@@ -224,9 +217,7 @@ class GraphQLSchemaBuilder {
                   let responseContext = self.leafContext[node] else {
                 throw ApodiniError(type: .serverError, reason: "generateSchemaFromTreeHelper error!")
             }
-            return try self.graphQLFieldCreator(for: responseNode,
-                responseContext,
-                self.args[node] ?? [:])
+            return try self.graphQLFieldCreator(for: responseNode, responseContext, self.args[node] ?? [:])
         }
     }
 
@@ -251,5 +242,4 @@ class GraphQLSchemaBuilder {
             types: Array(self.types.values)
         )
     }
-
 }
