@@ -94,7 +94,9 @@ class GraphQLSchemaBuilder {
         let graphQLFieldType = try self.responseTypeHandler(for: responseTypeHead)
         return GraphQLField(type: graphQLFieldType, args: args, resolve: { gSource, gArgs, gContext, gEventLoop, gInfo in
             let request = GraphQLRequest(source: gSource, args: gArgs, context: gContext, info: gInfo)
-            let vaporRequest = gContext as! Vapor.Request
+            guard let vaporRequest = gContext as? Vapor.Request else {
+                throw ApodiniError(type: .serverError, reason: "Casting Error - Vapor.Request")
+            }
             let response: EventLoopFuture<Response<AnyEncodable>> = mutableContext.handle(request: request, eventLoop: vaporRequest.eventLoop.next())
 
             return response.flatMapThrowing { encodableAction -> Any? in
@@ -155,18 +157,18 @@ class GraphQLSchemaBuilder {
 
         // Handle Single points
         if currentPath.count == 1 {
-            self.fields[leafName] = try self.graphQLFieldCreator(for: self.responseTypeTree[leafName]!,
-                self.leafContext[leafName]!,
+            self.fields[leafName] = try self.graphQLFieldCreator(for: self.responseTypeTree[leafName] ?? treeTemp,
+                self.leafContext[leafName] ?? context,
                 self.args[leafName] ?? [:])
             return
         }
 
         // Create tree
         var indx = currentPath.count - 1
-        while (indx >= 1) {
+        while indx >= 1 {
             let child = currentPath[indx], parent = currentPath[indx - 1]
             if self.tree.keys.contains(parent) {
-                self.tree[parent]!.insert(child)
+                self.tree[parent]?.insert(child)
             } else {
                 self.tree[parent] = [child]
             }
@@ -177,8 +179,12 @@ class GraphQLSchemaBuilder {
 
     }
 
-    private func nameExtractor(for node: String) -> String {
-        node.components(separatedBy: "_").filter({ $0 != "" }).last ?? "None"
+    private func nameExtractor(for node: String) throws -> String {
+        let filteredArray = node.components(separatedBy: "_").filter({ $0 != "" })
+        guard let lastValue = filteredArray.last else {
+            throw ApodiniError(type: .serverError, reason: "Name Extracting Error - nameExtractor Function")
+        }
+        return lastValue
     }
 
     private func graphQLRegexCheck(for str: String) -> String {
@@ -191,7 +197,7 @@ class GraphQLSchemaBuilder {
     }
 
     private func generateSchemaFromTreeHelper(_ node: String) throws -> GraphQLField {
-        let nodeName = self.nameExtractor(for: node)
+        let nodeName = try self.nameExtractor(for: node)
         if let childrenList = self.tree[node] {
             var currentFields = [String: GraphQLField]()
             if let responseType = self.responseTypeTree[nodeName], let responseContext = self.leafContext[nodeName] { // It has handler
@@ -202,17 +208,22 @@ class GraphQLSchemaBuilder {
             }
 
             for child in childrenList {
-                let childName = self.graphQLRegexCheck(for: self.nameExtractor(for: child))
+                let childName = self.graphQLRegexCheck(for: try self.nameExtractor(for: child))
                 currentFields[childName] = try generateSchemaFromTreeHelper(child)
             }
 
             let checkedNodeName = self.graphQLRegexCheck(for: nodeName)
-            self.types[checkedNodeName] = try GraphQLObjectType(name: checkedNodeName, fields: currentFields)
-            return GraphQLField(type: self.types[checkedNodeName]!, resolve: { _, _, _, _ in "Emtpy" })
+            let gObject = try GraphQLObjectType(name: checkedNodeName, fields: currentFields)
+            self.types[checkedNodeName] = gObject
+            return GraphQLField(type: self.types[checkedNodeName] ?? gObject, resolve: { _, _, _, _ in "Emtpy" })
         } else {
             // Check for if we return USER type for example
-            return try self.graphQLFieldCreator(for: self.responseTypeTree[node]!,
-                self.leafContext[node]!,
+            guard let responseNode = self.responseTypeTree[node],
+                  let responseContext = self.leafContext[node] else {
+                throw ApodiniError(type: .serverError, reason: "generateSchemaFromTreeHelper error!")
+            }
+            return try self.graphQLFieldCreator(for: responseNode,
+                responseContext,
                 self.args[node] ?? [:])
         }
     }
@@ -221,7 +232,7 @@ class GraphQLSchemaBuilder {
         for (parent, _) in self.tree {
             // It is one of the roots
             if !self.hasIncomingEdge.contains(parent) {
-                let parentName = self.nameExtractor(for: parent)
+                let parentName = try self.nameExtractor(for: parent)
                 self.fields[parentName] = try generateSchemaFromTreeHelper(parent)
             }
         }
