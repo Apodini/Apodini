@@ -102,19 +102,8 @@ public protocol AnyEndpointPathParameter: CustomStringConvertible {
     /// The `id` will be prefixed with a ":" to signal a path parameter
     var description: String { get }
     /// Defines the property type of the `PathParameter` declaration in a statically accessible way.
-    /// Be aware that for optional `PathParameter` this property holds the wrapped type of the `Optional`.
     /// Use `PathBuilder` to access the `EndpointPathParameter` in a generic way.
-    ///
-    /// For the following declaration
-    /// ```
-    /// @PathParameter var name: String?
-    /// ```
-    /// this property holds `String.Type` and not `Optional<String>.self`.
-    ///
-    /// Use the `nilIsValidValue` property to check if the original parameter definition used an `Optional` type.
     var propertyType: Codable.Type { get }
-    /// Use this property to check if the original parameter definition used an `Optional` type.
-    var nilIsValidValue: Bool { get }
     /// Defines which data type the `EndpointPathParameter` is identifying,
     /// meaning the value of the path parameter uniquely identifies a instance of supplied data type.
     /// The property is an Optional as the user might not specify such a type with `@PathParameter`.
@@ -177,14 +166,6 @@ protocol _AnyEndpointPathParameter: AnyEndpointPathParameter {
 }
 
 /// Models a `Parameter` created from a `PathParameter`. See `AnyEndpointPathParameter` for detailed documentation.
-///
-/// Be aware that for optional `Parameter` the generic `Type` holds the wrapped type of the `Optional`.
-/// For the following declaration
-/// ```
-/// @Parameter var name: String?
-/// ```
-/// the generic holds `String.Type` and not `Optional<String>.self`.
-/// Use the `nilIsValidValue` property to check if the original parameter definition used an `Optional` type.
 public struct EndpointPathParameter<Type: Codable>: _AnyEndpointPathParameter {
     public let id: UUID
     public var pathId: String {
@@ -198,7 +179,6 @@ public struct EndpointPathParameter<Type: Codable>: _AnyEndpointPathParameter {
         Type.self
     }
     public var identifyingType: IdentifyingType?
-    public var nilIsValidValue: Bool
 
 
     public var scopedEndpointHasDefinedParameter: Bool {
@@ -222,9 +202,8 @@ public struct EndpointPathParameter<Type: Codable>: _AnyEndpointPathParameter {
         resolvedValue
     }
 
-    init(id: UUID, nilIsValidValue: Bool = false, identifyingType: IdentifyingType? = nil) {
+    init(id: UUID, identifyingType: IdentifyingType? = nil) {
         self.id = id
-        self.nilIsValidValue = nilIsValidValue
         self.identifyingType = identifyingType
     }
 

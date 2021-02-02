@@ -121,7 +121,7 @@ private protocol EncodeOptionalPathParameter {
 // MARK: PathParameter Model
 extension Parameter: EncodeOptionalPathParameter where Element: ApodiniOptional, Element.Member: Codable {
     func createPathParameterWithWrappedType(id: UUID, identifyingType: IdentifyingType?) -> AnyEndpointPathParameter {
-        EndpointPathParameter<Element.Member>(id: id, nilIsValidValue: true, identifyingType: identifyingType)
+        EndpointPathParameter<Element.Member>(id: id, identifyingType: identifyingType)
     }
 }
 
@@ -130,6 +130,6 @@ extension EndpointParameter {
     func derivePathParameterModel() -> EndpointPath {
         let identifyingType = options.option(for: PropertyOptionKey.identifying)
 
-        return .parameter(EndpointPathParameter<Type>(id: id, nilIsValidValue: nilIsValidValue, identifyingType: identifyingType))
+        return .parameter(EndpointPathParameter<Type>(id: id, identifyingType: identifyingType))
     }
 }
