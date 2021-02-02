@@ -13,15 +13,16 @@ func handleDictionary(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     let keyNode = try EnrichedInfo.node(key)
     let keyNodeType = keyNode.value.typeInfo.type
     let valueNode = try EnrichedInfo.node(value)
-    
+
     precondition(isSupportedScalarType(keyNodeType), "Dictionary keys of type \(keyNodeType) are currently not supported. Keys must be primitives.")
 
     var newEnrichedInfo = EnrichedInfo(
         typeInfo: valueNode.value.typeInfo,
-        propertyInfo: node.value.propertyInfo
+        propertyInfo: node.value.propertyInfo,
+        runtimePropertyInfo: node.value.runtimePropertyInfo
     )
-    
+
     newEnrichedInfo.cardinality = .zeroToMany(.dictionary(key: keyNode.value, value: valueNode.value))
-    
+
     return Node(value: newEnrichedInfo, children: valueNode.children)
 }

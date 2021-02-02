@@ -4,6 +4,7 @@
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
+
 import Apodini
 
 
@@ -13,7 +14,7 @@ struct TestWebService: Apodini.WebService {
     var content: some Component {
         // Hello World! 👋
         Text("Hello World! 👋")
-                .response(EmojiTransformer(emojis: "🎉"))
+            .response(EmojiTransformer(emojis: "🎉"))
 
         // Bigger Subsystems:
         AuctionComponent()
@@ -22,7 +23,7 @@ struct TestWebService: Apodini.WebService {
         SwiftComponent()
         UserComponent(userId: _userId)
     }
-    
+
     var configuration: Configuration {
         OpenAPIConfiguration(
             outputFormat: .json,

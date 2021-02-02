@@ -78,7 +78,7 @@ class GraphQLSchemaBuilder {
 
         var currentFields = [String: GraphQLField]()
         for c in responseTypeHead.children {
-            if let propertyInfo = c.value.propertyInfo {
+            if let propertyInfo = c.value.runtimePropertyInfo {
                 currentFields[propertyInfo.name] = GraphQLField(type: try responseTypeHandler(for: c), resolve: { source, args, context, info in
                     return try propertyInfo.get(from: source)
                 })
@@ -139,7 +139,7 @@ class GraphQLSchemaBuilder {
 
         // Handle arguments
         for p in endpoint.parameters {
-            let graphqlType = try  graphqlTypeMap(with: p.propertyType)
+            let graphqlType = try graphqlTypeMap(with: p.propertyType)
             if (p.necessity == .required) {
                 self.args[leafName, default: [:]][p.name] = GraphQLArgument(type: GraphQLNonNull(graphqlType), description: p.description)
             } else {
@@ -156,8 +156,8 @@ class GraphQLSchemaBuilder {
         // Handle Single points
         if (currentPath.count == 1) {
             self.fields[leafName] = try self.graphQLFieldCreator(for: self.responseTypeTree[leafName]!,
-                    self.leafContext[leafName]!,
-                    self.args[leafName] ?? [:])
+                self.leafContext[leafName]!,
+                self.args[leafName] ?? [:])
             return
         }
 
@@ -197,8 +197,8 @@ class GraphQLSchemaBuilder {
             if let responseType = self.responseTypeTree[nodeName], let responseContext = self.leafContext[nodeName] { // It has handler
                 let fieldName = self.graphQLRegexCheck(for: responseType.value.typeInfo.name.lowercased())
                 currentFields[fieldName] = try self.graphQLFieldCreator(for: responseType,
-                        responseContext,
-                        self.args[nodeName] ?? [:])
+                    responseContext,
+                    self.args[nodeName] ?? [:])
             }
 
             for child in childrenList {
@@ -212,8 +212,8 @@ class GraphQLSchemaBuilder {
         } else {
             // Check for if we return USER type for example
             return try self.graphQLFieldCreator(for: self.responseTypeTree[node]!,
-                    self.leafContext[node]!,
-                    self.args[node] ?? [:])
+                self.leafContext[node]!,
+                self.args[node] ?? [:])
         }
     }
 
@@ -230,12 +230,12 @@ class GraphQLSchemaBuilder {
     func generate() throws -> GraphQLSchema {
         try self.generateSchemaFromTree()
         let queryType = try GraphQLObjectType(
-                name: "Apodini",
-                fields: self.fields
+            name: "Apodini",
+            fields: self.fields
         )
         return try GraphQLSchema(
-                query: queryType,
-                types: Array(self.types.values)
+            query: queryType,
+            types: Array(self.types.values)
         )
     }
 

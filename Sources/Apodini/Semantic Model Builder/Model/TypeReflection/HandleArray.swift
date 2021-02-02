@@ -14,20 +14,21 @@ func handleArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     }
 
     let newTree = try EnrichedInfo.node(first)
-        .edited { node in
-            // Check if a type is repeated and if it comes true, inject a _trap_.
-            node.value.typeInfo.type == typeInfo.type
-                ? try EnrichedInfo.node(ArrayDidEncounterCircle.self)
-                : node
-        }
+            .edited { node in
+                // Check if a type is repeated and if it comes true, inject a _trap_.
+                node.value.typeInfo.type == typeInfo.type
+                        ? try EnrichedInfo.node(ArrayDidEncounterCircle.self)
+                        : node
+            }
 
     guard let newNode = newTree else {
         return nil
     }
 
     var newEnrichedInfo = EnrichedInfo(
-        typeInfo: newNode.value.typeInfo,
-        propertyInfo: node.value.propertyInfo
+            typeInfo: newNode.value.typeInfo,
+            propertyInfo: node.value.propertyInfo,
+            runtimePropertyInfo: node.value.runtimePropertyInfo
     )
     newEnrichedInfo.cardinality = .zeroToMany(.array)
 

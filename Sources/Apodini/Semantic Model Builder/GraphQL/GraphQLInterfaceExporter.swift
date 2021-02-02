@@ -49,12 +49,12 @@ class GraphQLInterfaceExporter: InterfaceExporter {
 
         if let genSchema = schema {
             return try graphql(schema: genSchema,
-                    request: query,
-                    context: req,
-                    eventLoopGroup: req.eventLoop)
-                    .map { result -> String in
-                        result.description
-                    }
+                request: query,
+                context: req,
+                eventLoopGroup: req.eventLoop)
+                .map { result -> String in
+                    result.description
+                }
         } else {
             throw ApodiniError(type: .serverError, reason: "GraphQL schema creation error!")
 

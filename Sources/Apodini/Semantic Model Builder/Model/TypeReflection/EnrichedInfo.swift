@@ -23,6 +23,7 @@ struct EnrichedInfo {
 
     let typeInfo: TypeInfo
     let propertyInfo: PropertyInfo?
+    var runtimePropertyInfo: Runtime.PropertyInfo? = nil
 
     var cardinality: Cardinality = .exactlyOne
 }
@@ -32,7 +33,8 @@ extension EnrichedInfo {
         let typeInfo = try Runtime.typeInfo(of: type)
         let root = EnrichedInfo(
             typeInfo: typeInfo,
-            propertyInfo: nil
+            propertyInfo: nil,
+            runtimePropertyInfo: nil
         )
 
         return Node(root: root) { info in
@@ -46,7 +48,8 @@ extension EnrichedInfo {
                             propertyInfo: .init(
                                 name: propertyInfo.name,
                                 offset: offset + 1
-                            )
+                            ),
+                            runtimePropertyInfo: propertyInfo
                         )
                     } catch {
                         let errorDescription = String(describing: error)
@@ -81,7 +84,7 @@ extension EnrichedInfo: Hashable {
 // MARK: - EnrichedInfo: Equatable
 
 extension EnrichedInfo: Equatable {
-    public static func == (lhs: EnrichedInfo, rhs: EnrichedInfo) -> Bool {
+    public static func ==(lhs: EnrichedInfo, rhs: EnrichedInfo) -> Bool {
         lhs.typeInfo.type == rhs.typeInfo.type
             && lhs.propertyInfo == rhs.propertyInfo
             && lhs.cardinality == rhs.cardinality
@@ -89,7 +92,7 @@ extension EnrichedInfo: Equatable {
 }
 
 extension EnrichedInfo.Cardinality: Equatable {
-    public static func == (lhs: Self, rhs: Self) -> Bool {
+    public static func ==(lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case (.zeroToOne, .zeroToOne), (.exactlyOne, .exactlyOne):
             return true
@@ -102,7 +105,7 @@ extension EnrichedInfo.Cardinality: Equatable {
 }
 
 extension EnrichedInfo.CollectionContext: Equatable {
-    public static func == (lhs: Self, rhs: Self) -> Bool {
+    public static func ==(lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case (.array, .array):
             return true
