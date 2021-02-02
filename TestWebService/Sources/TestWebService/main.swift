@@ -5,11 +5,12 @@
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 
+import Foundation
 import Apodini
 
 
 struct TestWebService: Apodini.WebService {
-    @PathParameter var userId: Int
+    @PathParameter var userId: UUID
     
     var content: some Component {
         // Hello World! 👋

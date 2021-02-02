@@ -5,11 +5,12 @@
 //  Created by Paul Schmiedmayer on 1/19/21.
 //
 
+import Foundation
 import Apodini
 
 
 struct UserComponent: Component {
-    @PathParameter var userId: Int
+    @PathParameter var userId: UUID
     
     
     var content: some Component {
