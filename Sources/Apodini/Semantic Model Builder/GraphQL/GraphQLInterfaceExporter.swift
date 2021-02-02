@@ -12,8 +12,6 @@ struct QueryInput: Codable {
 
 
 class GraphQLInterfaceExporter: InterfaceExporter {
-
-
     // GraphQL Schema
     private var schema: GraphQLSchema?
 
@@ -29,10 +27,8 @@ class GraphQLInterfaceExporter: InterfaceExporter {
     private func graphQLIDE(_ _: Vapor.Request) throws -> Vapor.Response {
         guard let htmlFile = Bundle.module.path(forResource: "graphql-ide", ofType: "html"),
               let html = try? String(contentsOfFile: htmlFile) else {
-
             throw Vapor.Abort(.internalServerError)
         }
-
         return Vapor.Response(status: .ok, headers: ["Content-Type": "text/html"], body: .init(string: html))
     }
 

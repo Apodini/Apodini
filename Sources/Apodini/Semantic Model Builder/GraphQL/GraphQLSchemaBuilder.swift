@@ -7,13 +7,13 @@
 
 
 func graphqlTypeMap(with type: Codable.Type) throws -> GraphQLScalarType {
-    if (type == String.self) {
+    if type == String.self {
         return GraphQLString
-    } else if (type == Int.self || type == UInt.self) {
+    } else if type == Int.self || type == UInt.self {
         return GraphQLInt
-    } else if (type == Float.self) {
+    } else if type == Float.self {
         return GraphQLFloat
-    } else if (type == Bool.self) {
+    } else if type == Bool.self {
         return GraphQLBoolean
     }
     throw ApodiniError(type: .serverError, reason: "graphqlTypeMap error!")
@@ -40,16 +40,16 @@ class GraphQLSchemaBuilder {
     private var responseTypeTree = [String: Node<EnrichedInfo>]()
 
     private func typeToGraphQL(type: Any.Type) -> GraphQLType? {
-        if (type == String.self) {
+        if type == String.self {
             return GraphQLString
         }
-        if (type == Int.self || type == UInt.self) {
+        if type == Int.self || type == UInt.self {
             return GraphQLInt
         }
-        if (type == Bool.self) {
+        if type == Bool.self {
             return GraphQLBoolean
         }
-        if (type == Float.self) {
+        if type == Float.self {
             return GraphQLFloat
         }
         return nil
