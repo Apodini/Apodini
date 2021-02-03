@@ -66,15 +66,15 @@ public class ProtobufferEncoder {
     private var encoder: InternalProtoEncoder?
 
     /// Initializes a new instance.
-    public init() {
-        encoder?.integerWidthCodingStrategy = integerWidthCodingStrategy
-    }
+    public init() {}
 
     /// Encodes the given value into data.
     /// The value that should be encoded has to comply with `Encodable`,
     /// since the `encode` function of the protocol is used.
     public func encode<T: Encodable>(_ value: T) throws -> Data {
         let encoder = InternalProtoEncoder()
+        encoder.integerWidthCodingStrategy = integerWidthCodingStrategy
+        
         if isPrimitiveSupported(T.self) ||
             isPrimitiveSupportedArray(T.self) ||
             isCollection(T.self) {
@@ -92,6 +92,8 @@ public class ProtobufferEncoder {
     /// into the encoder.
     public func unkeyedContainer() -> UnkeyedEncodingContainer {
         let encoder = InternalProtoEncoder()
+        encoder.integerWidthCodingStrategy = integerWidthCodingStrategy
+        
         self.encoder = encoder
         return encoder.unkeyedContainer()
     }
