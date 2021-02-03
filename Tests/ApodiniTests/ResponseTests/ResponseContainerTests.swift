@@ -19,7 +19,7 @@ final class ResponseContainerTests: ApodiniTests {
         
         
         var data: D?
-        var links: [String: String]?
+        var links: ResponseContainer.Links?
     }
     
     
@@ -28,7 +28,10 @@ final class ResponseContainerTests: ApodiniTests {
     }
     
     
-    private func getExpectedContent<Content>(_ container: ResponseContainer, contentType: Content.Type = Content.self) throws -> (HTTPResponseStatus, ExpectedContent<Content>) {
+    private func getExpectedContent<Content>(
+        _ container: ResponseContainer,
+        contentType: Content.Type = Content.self
+    ) throws -> (HTTPResponseStatus, ExpectedContent<Content>) {
         let response = try container.encodeResponse(for: vaporRequest).wait()
         
         guard let data = response.body.data else {
@@ -79,7 +82,10 @@ final class ResponseContainerTests: ApodiniTests {
     func testConflictingLinkResponseContainer() throws {
         let expectedLinks = ["first": "Paul"]
         
-        let (status, recievedContent) = try getExpectedContent(ResponseContainer(Empty.self, status: .noContent, links: expectedLinks), contentType: Int.self)
+        let (status, recievedContent) = try getExpectedContent(
+            ResponseContainer(Empty.self, status: .noContent, links: expectedLinks),
+            contentType: Int.self
+        )
         
         XCTAssertEqual(status, .ok)
         XCTAssertEqual(recievedContent.data, nil)
