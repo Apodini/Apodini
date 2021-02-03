@@ -14,12 +14,12 @@ public struct Empty: Encodable {
 
 
 public struct Response<Content: Encodable>: ResponseTransformable {
-    public static var nothing: Response<Empty> {
-        Response<Empty>(connectionEffect: .open)
+    public static var nothing: Response<Content> {
+        Response<Content>(connectionEffect: .open)
     }
     
-    public static var end: Response<Empty> {
-        Response<Empty>(connectionEffect: .close)
+    public static var end: Response<Content> {
+        Response<Content>(connectionEffect: .close)
     }
     
     
@@ -27,16 +27,16 @@ public struct Response<Content: Encodable>: ResponseTransformable {
         Response<Self.Content>(status: status, content: content, connectionEffect: .open)
     }
     
-    public static func send(_ status: Status? = nil) -> Response<Empty> {
-        Response<Empty>(status: status, connectionEffect: .open)
+    public static func send(_ status: Status? = nil) -> Response<Content> {
+        Response<Content>(status: status, connectionEffect: .open)
     }
     
     public static func final(_ content: Self.Content, status: Status? = nil) -> Response<Self.Content> {
         Response<Self.Content>(status: status, content: content, connectionEffect: .close)
     }
     
-    public static func final(_ status: Status? = nil) -> Response<Empty> {
-        Response<Empty>(status: status, connectionEffect: .close)
+    public static func final(_ status: Status? = nil) -> Response<Content> {
+        Response<Content>(status: status, connectionEffect: .close)
     }
     
     

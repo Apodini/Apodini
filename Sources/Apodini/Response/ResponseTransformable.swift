@@ -52,6 +52,14 @@ extension EventLoopFuture: ResponseTransformable where Value: ResponseTransforma
     }
 }
 
+extension EventLoopFuture where Value == Void {
+    public func transform(to status: Status = .noContent) -> EventLoopFuture<Response<Empty>> {
+        map { _ in
+            .final(status)
+        }
+    }
+}
+
 
 // MARK: - Primitive Types
 extension String: ResponseTransformable {}
