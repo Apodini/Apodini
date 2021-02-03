@@ -9,6 +9,8 @@
 public enum Status {
     /// The request was handled and the response contains the expected content
     case ok
+    /// The request was handled and a new resource has been created
+    case created
     /// The request was handled and the response does not contain any content
     case noContent
 }

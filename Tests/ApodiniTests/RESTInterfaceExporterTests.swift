@@ -119,7 +119,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         try XCTCheckResponse(
             context.handle(request: request),
-            expectedContent: Parameters(param0: "value0", param1: nil, pathA: "a", pathB: "b", bird: body),
+            content: Parameters(param0: "value0", param1: nil, pathA: "a", pathB: "b", bird: body),
             connectionEffect: .close
         )
     }

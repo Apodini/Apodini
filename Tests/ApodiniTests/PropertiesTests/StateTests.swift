@@ -127,7 +127,7 @@ class StateTests: ApodiniTests {
         
         try XCTCheckResponse(
             context.handle(request: "Example Request", eventLoop: eventLoop),
-            expectedContent: "",
+            content: "",
             connectionEffect: .close
         )
         
@@ -135,7 +135,7 @@ class StateTests: ApodiniTests {
         
         try XCTCheckResponse(
             context.handle(request: "Example Request", eventLoop: eventLoop),
-            expectedContent: "1",
+            content: "1",
             connectionEffect: .close
         )
         
@@ -143,7 +143,7 @@ class StateTests: ApodiniTests {
         
         try XCTCheckResponse(
             context.handle(request: "Example Request", eventLoop: eventLoop),
-            expectedContent: "22",
+            content: "22",
             connectionEffect: .close
         )
     }
@@ -175,7 +175,7 @@ class StateTests: ApodiniTests {
         // Call on this context should not be influenced by previous call. Thus do not increase `count`.
         try XCTCheckResponse(
             context2.handle(request: "Example Request", eventLoop: eventLoop),
-            expectedContent: "",
+            content: "",
             connectionEffect: .close
         )
     }
@@ -208,7 +208,7 @@ class StateTests: ApodiniTests {
         // Call on this context should not be influenced by previous call. Thus do not increase `count`.
         try XCTCheckResponse(
             context2.handle(request: "Example Request", eventLoop: eventLoop),
-            expectedContent: "",
+            content: "",
             connectionEffect: .close
         )
     }
@@ -240,7 +240,7 @@ class StateTests: ApodiniTests {
         // Call on this context should not be influenced by previous call. Thus do not increase `count`.
         try XCTCheckResponse(
             context2.handle(request: "Example Request", eventLoop: eventLoop),
-            expectedContent: "",
+            content: "",
             connectionEffect: .close
         )
     }
@@ -273,7 +273,7 @@ class StateTests: ApodiniTests {
         // Call on this context should not be influenced by previous call. Thus do not increase `count`.
         try XCTCheckResponse(
             context2.handle(request: "Example Request", eventLoop: eventLoop),
-            expectedContent: "",
+            content: "",
             connectionEffect: .close
         )
     }

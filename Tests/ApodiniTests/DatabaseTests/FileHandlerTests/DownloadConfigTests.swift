@@ -1,9 +1,9 @@
 import Foundation
-import XCTest
 import NIO
 import Vapor
 @testable import Apodini
 @testable import ApodiniDatabase
+import XCTApodini
 
 final class DownloadConfigTests: FileHandlerTests {
     func testDownloadConfigInfo() throws {
@@ -12,9 +12,12 @@ final class DownloadConfigTests: FileHandlerTests {
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
         let file = File(data: data, filename: "Testfile.jpeg")
         
-        let response = try XCTUnwrap(mockQuery(component: uploader, value: String.self, app: app, queued: file))
-        
-        XCTAssert(response == file.filename)
+        try XCTCheckResponse(
+            try mockQuery(component: uploader, value: String.self, app: app, queued: file),
+            status: .created,
+            content: file.filename,
+            connectionEffect: .close
+        )
         
         let directory = app.directory
         let config = DownloadConfiguration(.default)

@@ -32,6 +32,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         let creationHandler = Create<Bird>()
         
+        
         let response = try XCTUnwrap(mockQuery(component: creationHandler, value: Bird.self, app: app, queued: bird))
         XCTAssert(response == bird)
         
@@ -87,7 +88,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         try XCTCheckResponse(
             context.handle(request: request),
-            expectedContent: dbBird,
+            content: dbBird,
             connectionEffect: .close
         )
     }
@@ -225,7 +226,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         let responseValue = try XCTCheckResponse(
             context.handle(request: request),
-            expectedContent: updatedBird,
+            content: updatedBird,
             connectionEffect: .close
         )
         
@@ -270,7 +271,9 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         try XCTCheckResponse(
             context.handle(request: request),
-            expectedContent: HTTPStatus.ok.code,
+            Empty.self,
+            status: .noContent,
+            content: nil,
             connectionEffect: .close
         )
         

@@ -18,7 +18,7 @@ extension Empty: Equatable {
 /// Adds the possibility to easily check the of a `Handler` by investigating the `Response`
 /// - Parameters:
 ///   - response: The `Response` that should be investigated
-///   - expectedContent: The expected content
+///   - content: The expected content
 ///   - connectionEffect: The expected `ConnectionEffect`
 ///   - message: The message that should be posted in case of a failure
 ///   - file: The origin of the `XCTCheckResponse` call
@@ -28,7 +28,7 @@ extension Empty: Equatable {
 public func XCTCheckResponse<C, T: Encodable & Equatable>(
     _ response: @autoclosure () throws -> EventLoopFuture<Response<C>>,
     _ type: T.Type = T.self,
-    expectedContent: @autoclosure () -> T?,
+    content: @autoclosure () -> T?,
     connectionEffect: @autoclosure () -> ConnectionEffect? = nil,
     _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,
@@ -38,7 +38,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
         response: { try response().wait() },
         type: T.self,
         status: nil,
-        expectedContent: expectedContent,
+        content: content,
         connectionEffect: connectionEffect,
         message: message,
         file: file,
@@ -51,7 +51,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
 /// - Parameters:
 ///   - response: The `Response` that should be investigated
 ///   - status: The expected `Status`
-///   - expectedContent: The expected content
+///   - content: The expected content
 ///   - connectionEffect: The expected `ConnectionEffect`
 ///   - message: The message that should be posted in case of a failure
 ///   - file: The origin of the `XCTCheckResponse` call
@@ -62,7 +62,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
     _ response: @autoclosure () throws -> EventLoopFuture<Response<C>>,
     _ type: T.Type = T.self,
     status: @escaping @autoclosure () -> Status?,
-    expectedContent: @autoclosure () -> T?,
+    content: @autoclosure () -> T?,
     connectionEffect: @autoclosure () -> ConnectionEffect? = nil,
     _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,
@@ -72,7 +72,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
         response: { try response().wait() },
         type: T.self,
         status: status,
-        expectedContent: expectedContent,
+        content: content,
         connectionEffect: connectionEffect,
         message: message,
         file: file,
@@ -83,7 +83,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
 /// Adds the possibility to easily check the of a `Handler` by investigating the `Response`
 /// - Parameters:
 ///   - response: The `Response` that should be investigated
-///   - expectedContent: The expected content
+///   - content: The expected content
 ///   - connectionEffect: The expected `ConnectionEffect`
 ///   - message: The message that should be posted in case of a failure
 ///   - file: The origin of the `XCTCheckResponse` call
@@ -93,7 +93,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
 public func XCTCheckResponse<C, T: Encodable & Equatable>(
     _ response: @autoclosure () throws -> Response<C>,
     _ type: T.Type = T.self,
-    expectedContent: @autoclosure () -> T?,
+    content: @autoclosure () -> T?,
     connectionEffect: @autoclosure () -> ConnectionEffect? = nil,
     _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,
@@ -103,7 +103,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
         response: response,
         type: T.self,
         status: nil,
-        expectedContent: expectedContent,
+        content: content,
         connectionEffect: connectionEffect,
         message: message,
         file: file,
@@ -115,7 +115,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
 /// Adds the possibility to easily check the of a `Handler` by investigating the `Response`
 /// - Parameters:
 ///   - response: The `Response` that should be investigated
-///   - expectedContent: The expected content
+///   - content: The expected content
 ///   - connectionEffect: The expected `ConnectionEffect`
 ///   - message: The message that should be posted in case of a failure
 ///   - file: The origin of the `XCTCheckResponse` call
@@ -126,7 +126,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
     _ response: @autoclosure () throws -> Response<C>,
     _ type: T.Type = T.self,
     status: @escaping @autoclosure () -> Status?,
-    expectedContent:  @autoclosure () -> T?,
+    content:  @autoclosure () -> T?,
     connectionEffect: @autoclosure () -> ConnectionEffect? = nil,
     _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,
@@ -136,7 +136,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
         response: response,
         type: T.self,
         status: status,
-        expectedContent: expectedContent,
+        content: content,
         connectionEffect: connectionEffect,
         message: message,
         file: file,
@@ -149,7 +149,7 @@ private func _XCTCheckResponse<C, T: Encodable & Equatable>(
     response: () throws -> Response<C>,
     type: T.Type = T.self,
     status: (() -> Status?)?,
-    expectedContent: () -> T?,
+    content expectedContent: () -> T?,
     connectionEffect: () -> ConnectionEffect?,
     message: () -> String,
     file: StaticString,

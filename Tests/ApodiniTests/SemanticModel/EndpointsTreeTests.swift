@@ -125,7 +125,7 @@ final class EndpointsTreeTests: ApodiniTests {
         // handle a request (The actual request is unused in the MockExporter)
         try XCTCheckResponse(
             context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-            expectedContent: "✅ Hello \(name) ✅",
+            content: "✅ Hello \(name) ✅",
             connectionEffect: .close
         )
     }

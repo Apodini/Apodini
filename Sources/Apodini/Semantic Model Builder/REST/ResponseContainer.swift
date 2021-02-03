@@ -74,6 +74,8 @@ struct ResponseContainer: Encodable, ResponseEncodable {
         switch status {
         case .ok:
             return HTTPStatus.ok
+        case .created:
+            return HTTPStatus.created
         case .noContent:
             return HTTPStatus.noContent
         }

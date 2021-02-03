@@ -42,7 +42,7 @@ final class ConnectionTests: ApodiniTests {
         
         try XCTCheckResponse(
             context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-            expectedContent: endMessage,
+            content: endMessage,
             connectionEffect: .close
         )
     }
@@ -55,7 +55,7 @@ final class ConnectionTests: ApodiniTests {
         _ = try connection.enterConnectionContext(with: testHandler) { handler in
             try XCTCheckResponse(
                 handler.handle(),
-                expectedContent: openMessage,
+                content: openMessage,
                 connectionEffect: .open
             )
         }
@@ -64,7 +64,7 @@ final class ConnectionTests: ApodiniTests {
         _ = try connection.enterConnectionContext(with: testHandler) { handler in
             try XCTCheckResponse(
                 handler.handle(),
-                expectedContent: endMessage,
+                content: endMessage,
                 connectionEffect: .close
             )
         }

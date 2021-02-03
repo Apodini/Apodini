@@ -149,7 +149,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
 
         try XCTCheckResponse(
             context.handle(request: request),
-            expectedContent: expectedString,
+            content: expectedString,
             connectionEffect: .close
         )
     }
@@ -166,7 +166,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
 
         try XCTCheckResponse(
             context.handle(request: request, final: false),
-            expectedContent: "Send",
+            content: "Send",
             connectionEffect: .open
         )
     }
@@ -183,7 +183,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         
         try XCTCheckResponse(
             context.handle(request: request),
-            expectedContent: "Final",
+            content: "Final",
             connectionEffect: .close
         )
     }
@@ -201,7 +201,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         try XCTCheckResponse(
             context.handle(request: request, final: false),
             Empty.self,
-            expectedContent: nil,
+            content: nil,
             connectionEffect: .open
         )
     }
@@ -219,7 +219,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         try XCTCheckResponse(
             context.handle(request: request),
             Empty.self,
-            expectedContent: nil,
+            content: nil,
             connectionEffect: .close
         )
     }

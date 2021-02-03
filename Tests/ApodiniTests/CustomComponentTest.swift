@@ -41,7 +41,7 @@ final class CustomComponentTests: ApodiniTests {
 
         try XCTCheckResponse(
             context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-            expectedContent: [bird1, bird2, bird],
+            content: [bird1, bird2, bird],
             connectionEffect: .close
         )
     }

@@ -72,7 +72,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         
         try XCTCheckResponse(
             context.handle(request: input, eventLoop: app.eventLoopGroup.next()),
-            expectedContent: Parameters(param0: "value0", param1: nil, pathA: "a", pathB: "b", bird: bird),
+            content: Parameters(param0: "value0", param1: nil, pathA: "a", pathB: "b", bird: bird),
             connectionEffect: .close
         )
     }

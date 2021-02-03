@@ -10,8 +10,12 @@ public struct Create<Model: DatabaseModel>: Handler {
     @Parameter
     private var object: Model
 
-    public func handle() -> EventLoopFuture<Model> {
-        object.save(on: database).transform(to: object)
+    public func handle() -> EventLoopFuture<Apodini.Response<Model>> {
+        object
+            .save(on: database)
+            .map { _ in
+                .final(object, status: .created)
+            }
     }
     
     public init() {}

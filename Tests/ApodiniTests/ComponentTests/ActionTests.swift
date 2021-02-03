@@ -49,7 +49,7 @@ final class ResponseTests: ApodiniTests {
 
         try XCTCheckResponse(
             context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-            expectedContent: expectedContent,
+            content: expectedContent,
             connectionEffect: .close
         )
     }
@@ -65,7 +65,7 @@ final class ResponseTests: ApodiniTests {
         
         try XCTCheckResponse(
             context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-            expectedContent: expectedContent,
+            content: expectedContent,
             connectionEffect: .open
         )
     }

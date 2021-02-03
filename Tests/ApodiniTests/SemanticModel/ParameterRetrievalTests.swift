@@ -37,7 +37,7 @@ class ParameterRetrievalTests: ApodiniTests {
         
         try XCTCheckResponse(
             context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-            expectedContent: "Hello Rudi! Hello Rudi! Hello Rudi!",
+            content: "Hello Rudi! Hello Rudi! Hello Rudi!",
             connectionEffect: .close
         )
     }

@@ -79,7 +79,7 @@ class ObservedObjectTests: ApodiniTests {
                 do {
                     try XCTCheckResponse(
                         context.handle(eventLoop: eventLoop, observedObject: observedObject),
-                        expectedContent: "Hello Swift"
+                        content: "Hello Swift"
                     )
                 } catch {
                     XCTFail(error.localizedDescription)
@@ -201,7 +201,7 @@ class ObservedObjectTests: ApodiniTests {
                 do {
                     try XCTCheckResponse(
                         context.handle(eventLoop: eventLoop, observedObject: observedObject),
-                        expectedContent: "Hello Swift"
+                        content: "Hello Swift"
                     )
                 } catch {
                     XCTFail(error.localizedDescription)

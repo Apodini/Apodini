@@ -32,7 +32,7 @@ final class DownloaderTests: FileHandlerTests {
         
         try XCTCheckResponse(
             context.handle(request: downloadRequest),
-            expectedContent: file,
+            content: file,
             connectionEffect: .close
         )
     }

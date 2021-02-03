@@ -127,7 +127,7 @@ class ParameterMutabilityTests: ApodiniTests {
         
         try XCTCheckResponse(
             context2.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-            expectedContent: "Apodini/Apodini",
+            content: "Apodini/Apodini",
             connectionEffect: .close
         )
     }
@@ -148,7 +148,7 @@ class ParameterMutabilityTests: ApodiniTests {
         
         try XCTCheckResponse(
             context2.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-            expectedContent: "Apodini/Apodini",
+            content: "Apodini/Apodini",
             connectionEffect: .close
         )
     }
