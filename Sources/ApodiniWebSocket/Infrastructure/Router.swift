@@ -5,30 +5,30 @@
 //  Created by Max Obermeier on 03.12.20.
 //
 
-import Fluent
-import Vapor
+@_implementationOnly import Fluent
+@_implementationOnly import Vapor
 import NIOWebSocket
-import OpenCombine
-import Logging
+@_implementationOnly import OpenCombine
+@_implementationOnly import Logging
 
 /// An error type that receives special treatment by the router. The router sends the
 /// `reason` to the client if it receives a `WSError` on the `output`. Other error
 /// types will only be exposed in `DEBUG` mode, otherwise a generic error message
 /// is sent.
-public protocol WSError: Error {
+protocol WSError: Error {
     var reason: String { get }
 }
 
 /// An error type that receives special treatment by the router when sent as a
 /// `completion` on the `output`.  The contained `code` is used to close the
 /// connection.
-public protocol WSClosingError: WSError {
+protocol WSClosingError: WSError {
     var code: WebSocketErrorCode { get }
 }
 
 /// This type defines the `output` that can be sent over an `register`ed connection.
 /// A message can carry an object of fixed type `T` or an `error`.
-public enum Message<T> {
+enum Message<T> {
     /// Send a message of type `T`
     case message(T)
     /// Send an error message **without** closing the connection.
@@ -38,7 +38,7 @@ public enum Message<T> {
 /// A `Router` provides an endpoint-based, typed abstraction of a WebSocket connection. It uses
 /// a spcific `Input` for each `register`ed endpoint to maintain state and possibly also check
 /// validity of incoming messages. Each endpoint is identified by its `identifier`.
-public protocol Router {
+protocol Router {
     /// Register a new endpoint on the given `identifier` using the given `opener` when a
     /// new client connects. Closing the connection may be requested by the client (a completion is sent
     /// on the input publisher) and can be executed by the server (a completion is sent on the `output`).
@@ -100,7 +100,7 @@ public protocol Router {
 ///         "error": <Errors>
 ///     }
 ///
-public class VaporWSRouter: Router {
+final class VaporWSRouter: Router {
     private var registeredAtVapor: Bool = false
     
     private let app: Application
@@ -114,7 +114,7 @@ public class VaporWSRouter: Router {
     private var connections: [ConnectionResponsible.ID: ConnectionResponsible] = [:]
     private let connectionsMutex = NSLock()
 
-    public init(
+    init(
         _ app: Application,
         at path: [PathComponent] = ["apodini", "websocket"],
         logger: Logger = .init(label: "org.apodini.websocket.vapor_ws_router")
@@ -128,7 +128,7 @@ public class VaporWSRouter: Router {
     /// `failure` the whole connection is closed. By default the `WebSocketErrorCode` used to close
     /// the connection is `unexpectedServerError`. A `WSClosingError` can be used to specifiy a
     /// different code.
-    public func register<I: Input, O: Encodable>(
+    func register<I: Input, O: Encodable>(
         _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Database?) ->
             (default: I, output: AnyPublisher<Message<O>, Error>),
         on identifier: String) {

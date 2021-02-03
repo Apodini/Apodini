@@ -126,7 +126,13 @@ let package = Package(
                 dependencies: [
                     .target(name: "Apodini"),
                     .target(name: "ApodiniVaporSupport"),
-                    .target(name: "WebSocketInfrastructure")
+                    .product(name: "OpenCombine", package: "OpenCombine"),
+                    .product(name: "OpenCombineFoundation", package: "OpenCombine"),
+                    .product(name: "Vapor", package: "vapor"),
+                    .product(name: "Fluent", package: "fluent"),
+                    .product(name: "NIOWebSocket", package: "swift-nio"),
+                    .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
+                    .product(name: "Runtime", package: "Runtime")
                 ]
         ),
 
@@ -209,19 +215,7 @@ let package = Package(
                 .target(name: "ProtobufferCoding")
             ]
         ),
-        // WebSocket Infrastructure
-        .target(
-            name: "WebSocketInfrastructure",
-            dependencies: [
-                .product(name: "OpenCombine", package: "OpenCombine"),
-                .product(name: "OpenCombineFoundation", package: "OpenCombine"),
-                .product(name: "Vapor", package: "vapor"),
-                .product(name: "Fluent", package: "fluent"),
-                .product(name: "NIOWebSocket", package: "swift-nio"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
-                .product(name: "Runtime", package: "Runtime")
-            ]
-        ),
+
         // ApodiniJobs
         .target(
             name: "ApodiniJobs",

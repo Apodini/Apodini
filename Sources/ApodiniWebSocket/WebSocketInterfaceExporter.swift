@@ -7,9 +7,8 @@
 
 import Apodini
 import ApodiniVaporSupport
-import Fluent
-import WebSocketInfrastructure // @_implementationOnly is removed as SomeInput conforms to a public protocol
 @_implementationOnly import OpenCombine
+@_implementationOnly import Fluent
 import NIOWebSocket
 
 // MARK: Exporter
@@ -20,7 +19,7 @@ import NIOWebSocket
 public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private let app: Application
     
-    private let router: WebSocketInfrastructure.Router
+    private let router: Router
 
     /// Initalize a `WebSocketInterfaceExporter` from an `Application`
     public required init(_ app: Application) {
@@ -29,7 +28,9 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     }
 
     public func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self)
+        let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self).map { parameter in
+            (name: parameter.0, value: parameter.1.parameter)
+        }
         
         let emptyInput = SomeInput(parameters: inputParameters.reduce(into: [String: InputParameter](), { result, parameter in
             result[parameter.name] = parameter.value
@@ -77,7 +78,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
                 .syncMap { evaluation -> EventLoopFuture<Response<EnrichedContent>> in
                     switch evaluation {
                     case .input(let inputValue):
-                        return context.handle(request: inputValue, eventLoop: eventLoop, final: false)
+                        return context.handle(request: WebSocketInput(inputValue), eventLoop: eventLoop, final: false)
                     case .observation(let observedObject):
                         return context.handle(eventLoop: eventLoop, observedObject: observedObject)
                     }
@@ -105,17 +106,17 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
 
     public func retrieveParameter<Type>(
         _ parameter: EndpointParameter<Type>,
-        for request: SomeInput
+        for request: WebSocketInput
     ) throws -> Type?? where Type: Decodable, Type: Encodable {
-        if let inputParameter = request.parameters[parameter.name] as? WebSocketInfrastructure.BasicInputParameter<Type> {
+        if let inputParameter = request.input.parameters[parameter.name] as? BasicInputParameter<Type> {
             return inputParameter.value
         } else {
             return nil
         }
     }
 
-    public func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, InputParameter) where Type: Decodable, Type: Encodable {
-        (parameter.name, WebSocketInfrastructure.BasicInputParameter<Type>())
+    public func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable, Type: Encodable {
+        (parameter.name, WebSocketParameter(BasicInputParameter<Type>()))
     }
     
     #if DEBUG
@@ -154,7 +155,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             // `Handler` one more time before the connection is closed. We have to
             // manually await this future. We use an `emptyInput`, which is aggregated
             // to the latest input.
-            context.handle(request: emptyInput, eventLoop: eventLoop, final: true).whenComplete { result in
+            context.handle(request: WebSocketInput(emptyInput), eventLoop: eventLoop, final: true).whenComplete { result in
                 switch result {
                 case .success(let response):
                     Self.handleCompletionResponse(result: response, output: output)
@@ -229,6 +230,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     }
 }
 
+
 // MARK: Handling of ObservedObject
 
 private struct DelegatingObservedListener: ObservedListener {
@@ -251,19 +253,42 @@ private enum Evaluation {
     case observation(AnyObservedObject)
 }
 
+// MARK: Input Definition
+
+/// A struct that wrapps the `WebSocketInterfaceExporter`'s internal representation of
+/// an `@Parameter`.
+public struct WebSocketParameter {
+    internal var parameter: InputParameter
+    
+    internal init(_ parameter: InputParameter) {
+        self.parameter = parameter
+    }
+}
+
+/// A struct that wrapps the `WebSocketInterfaceExporter`'s internal representation of
+/// the complete input of an endpoint.
+public struct WebSocketInput {
+    internal var input: SomeInput
+    
+    internal init(_ input: SomeInput) {
+        self.input = input
+    }
+}
+
+
 // MARK: Input Accumulation
 
-extension SomeInput: ExporterRequest {
-    public func reduce(to new: SomeInput) -> SomeInput {
+extension WebSocketInput: ExporterRequest {
+    public func reduce(to new: WebSocketInput) -> WebSocketInput {
         var newParameters: [String: InputParameter] = [:]
-        for (name, value) in new.parameters {
-            if let reducible = self.parameters[name] as? ReducibleParameter {
+        for (name, value) in new.input.parameters {
+            if let reducible = self.input.parameters[name] as? ReducibleParameter {
                 newParameters[name] = reducible.reduce(to: value)
             } else {
                 newParameters[name] = value
             }
         }
-        return SomeInput(parameters: newParameters)
+        return WebSocketInput(SomeInput(parameters: newParameters))
     }
 }
 

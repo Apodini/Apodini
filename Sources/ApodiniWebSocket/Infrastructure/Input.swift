@@ -8,7 +8,7 @@
 import Foundation
 
 /// A `ParameterDecoder` allows for decoding an element of given type `T`.
-public protocol ParameterDecoder {
+protocol ParameterDecoder {
     /// Try do decode an element of type `T` from the internal data.
     /// - Returns:
     ///     - `nil` if the `ParameterDecoder` does not hold any relevant information
@@ -19,7 +19,7 @@ public protocol ParameterDecoder {
 }
 
 /// A stateful abstraction for representing validatable input.
-public protocol Input {
+protocol Input {
     /// Update the value for the given `parameter` using the given `decoder` and validate this new value.
     mutating func update(_ parameter: String, using decoder: ParameterDecoder) -> ParameterUpdateResult
     /// Check the complete `Input` for validity after all parameters have been updated.
@@ -29,7 +29,7 @@ public protocol Input {
 }
 
 /// A stateful abstraction for representing a single validatable parameter.
-public protocol InputParameter {
+protocol InputParameter {
     /// Update the internal value using the given `decoder` and validate this new value.
     mutating func update(using decoder: ParameterDecoder) -> ParameterUpdateResult
     /// Check the parameter` for validity.
@@ -41,10 +41,10 @@ public protocol InputParameter {
 
 /// A default error type that covers most cases relevant when validating
 /// input parameters.
-public enum ParameterUpdateError: WSError {
+enum ParameterUpdateError: WSError {
     case notMutable, badType, notExistant
     
-    public var reason: String {
+    var reason: String {
         switch self {
         case .notMutable:
             return "is a constant"
@@ -57,7 +57,7 @@ public enum ParameterUpdateError: WSError {
 }
 
 /// Possible return types for updating a parameter.
-public enum ParameterUpdateResult {
+enum ParameterUpdateResult {
     /// The parameter could be decoded from the given
     /// decoder and is valid.
     case ok
@@ -67,7 +67,7 @@ public enum ParameterUpdateResult {
 
 /// Possible return types for checking a parameters
 /// presence.
-public enum ParameterCheckResult {
+enum ParameterCheckResult {
     /// The parameter either is present or it doesn't have
     /// to be.
     case ok
@@ -77,7 +77,7 @@ public enum ParameterCheckResult {
 
 /// Possible return types for checking the presence of all
 /// parameters.
-public enum InputCheckResult {
+enum InputCheckResult {
     /// All required parameters are present.
     case ok
     /// The listed parameters are missing even though they shouldn't.
@@ -86,14 +86,14 @@ public enum InputCheckResult {
 
 
 /// An implementation of `Input` that accumulates results from given `InputParameter`s.
-public struct SomeInput: Input {
-    public private(set) var parameters: [String: InputParameter]
+struct SomeInput: Input {
+    private(set) var parameters: [String: InputParameter]
     
-    public init(parameters: [String: InputParameter]) {
+    init(parameters: [String: InputParameter]) {
         self.parameters = parameters
     }
     
-    public mutating func update(_ parameter: String, using decoder: ParameterDecoder) -> ParameterUpdateResult {
+    mutating func update(_ parameter: String, using decoder: ParameterDecoder) -> ParameterUpdateResult {
         guard var inputParameter = parameters[parameter] else {
             return .error(.notExistant)
         }
@@ -103,7 +103,7 @@ public struct SomeInput: Input {
         return result
     }
     
-    public func check() -> InputCheckResult {
+    func check() -> InputCheckResult {
         self.parameters.map { name, parameter -> InputCheckResult in
             switch parameter.check() {
             case .ok:
@@ -127,7 +127,7 @@ public struct SomeInput: Input {
         })
     }
     
-    public mutating func apply() {
+    mutating func apply() {
         for (id, _) in self.parameters {
             self.parameters[id]?.apply()
         }
@@ -136,17 +136,17 @@ public struct SomeInput: Input {
 
 /// An implementation of `InputParameter` that only asserts type, but not necessity,
 /// mutability or optionality and has no state.
-public struct BasicInputParameter<Type: Decodable>: InputParameter {
+struct BasicInputParameter<Type: Decodable>: InputParameter {
     private var _interim: Type??
     /// The current value set for this `Parameter`. It is:
     ///     - `nil` if no value was set
     ///     - `.some(nil)` if an explicit `null` value was set
     ///     - `.some(.some(T))` if an object of type `T` was set
-    public private(set) var value: Type??
+    private(set) var value: Type??
     
-    public init() { }
+    init() { }
     
-    public mutating func update(using decoder: ParameterDecoder) -> ParameterUpdateResult {
+    mutating func update(using decoder: ParameterDecoder) -> ParameterUpdateResult {
         do {
             self._interim = try decoder.decode(Type.self)
             return .ok
@@ -155,11 +155,11 @@ public struct BasicInputParameter<Type: Decodable>: InputParameter {
         }
     }
     
-    public nonmutating func check() -> ParameterCheckResult {
+    nonmutating func check() -> ParameterCheckResult {
         .ok
     }
     
-    public mutating func apply() {
+    mutating func apply() {
         self.value = _interim
         self._interim = nil
     }

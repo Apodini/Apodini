@@ -5,9 +5,9 @@
 //  Created by Max Obermeier on 04.12.20.
 //
 
-import Fluent
-import Vapor
-import OpenCombine
+@_implementationOnly import Fluent
+@_implementationOnly import Vapor
+@_implementationOnly import OpenCombine
 import NIOWebSocket
 
 
