@@ -101,17 +101,17 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     func testShouldAcceptMultipleEndpoints() throws {
         let context = endpoint.createConnectionContext(for: exporter)
 
-        try service.exposeUnaryEndpoint(name: "endpointName1", context: context)
-        XCTAssertNoThrow(try service.exposeUnaryEndpoint(name: "endpointName2", context: context))
-        XCTAssertNoThrow(try service.exposeStreamingEndpoint(name: "endpointName3", context: context))
+        try service.exposeEndpoint(name: "endpointName1", context: context)
+        XCTAssertNoThrow(try service.exposeEndpoint(name: "endpointName2", context: context))
+        XCTAssertNoThrow(try service.exposeEndpoint(name: "endpointName3", context: context))
     }
 
     func testShouldNotOverwriteExistingEndpoint() throws {
         let context = endpoint.createConnectionContext(for: exporter)
 
-        try service.exposeUnaryEndpoint(name: "endpointName", context: context)
-        XCTAssertThrowsError(try service.exposeUnaryEndpoint(name: "endpointName", context: context))
-        XCTAssertThrowsError(try service.exposeStreamingEndpoint(name: "endpointName", context: context))
+        try service.exposeEndpoint(name: "endpointName", context: context)
+        XCTAssertThrowsError(try service.exposeEndpoint(name: "endpointName", context: context))
+        XCTAssertThrowsError(try service.exposeEndpoint(name: "endpointName", context: context))
     }
 
     func testShouldRequireContentTypeHeader() throws {
@@ -128,10 +128,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        var handler = service.createUnaryHandler(context: context)
+        var handler = service.createStreamingHandler(context: context)
         XCTAssertThrowsError(try handler(vaporRequest).wait())
 
-        handler = service.createClientStreamingHandler(context: context)
+        handler = service.createStreamingHandler(context: context)
         XCTAssertThrowsError(try handler(vaporRequest).wait())
     }
 
@@ -153,9 +153,9 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        let response = try service.createUnaryHandler(context: context)(vaporRequest).wait()
-        let responseData = try XCTUnwrap(response.body.data)
-        XCTAssertEqual(responseData, Data(expectedResponseData))
+        let response = try service.createStreamingHandler(context: context)(vaporRequest).wait()
+        let responseData = try XCTUnwrap(try response.body.collect(on: vaporRequest.eventLoop).wait())
+        XCTAssertEqual(responseData, ByteBuffer(bytes: expectedResponseData))
     }
 
     func testUnaryRequestHandlerWithTwoParameters() throws {
@@ -183,7 +183,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        let response = try service.createUnaryHandler(context: context)(vaporRequest).wait()
+        let response = try service.createStreamingHandler(context: context)(vaporRequest).wait()
         let responseData = try XCTUnwrap(response.body.data)
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
@@ -207,7 +207,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        let handler = service.createUnaryHandler(context: context)
+        let handler = service.createStreamingHandler(context: context)
         XCTAssertThrowsError(try handler(vaporRequest).wait())
     }
 
@@ -238,7 +238,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        let response = try service.createUnaryHandler(context: context)(vaporRequest).wait()
+        let response = try service.createStreamingHandler(context: context)(vaporRequest).wait()
         let responseData = try XCTUnwrap(response.body.data)
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
@@ -261,7 +261,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
         vaporRequest.bodyStorage = .stream(stream)
 
-        service.createClientStreamingHandler(context: context)(vaporRequest)
+        service.createStreamingHandler(context: context)(vaporRequest)
             .whenSuccess { response in
                 guard let responseData = response.body.data else {
                     XCTFail("Received empty response but expected: \(expectedResponseData)")
@@ -299,7 +299,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
         vaporRequest.bodyStorage = .stream(stream)
 
-        service.createClientStreamingHandler(context: context)(vaporRequest)
+        service.createStreamingHandler(context: context)(vaporRequest)
             .whenSuccess { response in
                 guard let responseData = response.body.data else {
                     XCTFail("Received empty response but expected: \(expectedResponseData)")
@@ -335,7 +335,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         vaporRequest.bodyStorage = .stream(stream)
 
         // get first response
-        service.createClientStreamingHandler(context: context)(vaporRequest)
+        service.createStreamingHandler(context: context)(vaporRequest)
             .whenSuccess { response in
                 guard let responseData = response.body.data else {
                     XCTFail("Received empty response but expected: \(expectedResponseData)")
@@ -367,7 +367,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
         vaporRequest.bodyStorage = .stream(stream)
 
-        service.createClientStreamingHandler(context: context)(vaporRequest)
+        service.createStreamingHandler(context: context)(vaporRequest)
             .whenSuccess { response in
                 XCTAssertEqual(response.body.data,
                                Optional(Data()),

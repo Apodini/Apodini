@@ -8,6 +8,7 @@
 import Foundation
 @_implementationOnly import Vapor
 @_implementationOnly import ProtobufferCoding
+@_implementationOnly import OpenCombine
 
 /// Used by the `GRPCInterfaceExporter` to expose
 /// `handle` functions of `Handler`s.
@@ -15,6 +16,8 @@ class GRPCService {
     let app: Vapor.Application
     var serviceName: String
     var methodNames: [String] = []
+
+    internal var cancellables: Set<AnyCancellable> = []
 
     /// GRPC media type, with unspecified payload encoding
     static let grpc = HTTPMediaType(type: "application", subType: "grpc")
@@ -94,20 +97,25 @@ class GRPCService {
 extension GRPCService {
     /// Encodes the given encodable value
     /// to  `Data` using Protobuffer encoding
-    func encode(_ value: Encodable) throws -> Data {
-        let message = try ProtobufferEncoder().encode(AnyEncodable(value))
-        // https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md
-        // A response is prefixed by
-        // - 1 byte:    compressed (true / false)
-        // - 4 bytes:   length of the message
-        var response = Data()
-        var length = Int32(message.count).bigEndian
-        let lengthData = Data(bytes: &length,
-                              count: 4)
-        response.append(UInt8(0))
-        response.append(lengthData)
-        response.append(message)
-        return response
+    func encode(_ value: Encodable) -> Data? {
+        do {
+            let message = try ProtobufferEncoder().encode(AnyEncodable(value))
+            // https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md
+            // A response is prefixed by
+            // - 1 byte:    compressed (true / false)
+            // - 4 bytes:   length of the message
+            var response = Data()
+            var length = Int32(message.count).bigEndian
+            let lengthData = Data(bytes: &length,
+                                  count: 4)
+            response.append(UInt8(0))
+            response.append(lengthData)
+            response.append(message)
+            return response
+        } catch {
+            app.logger.error("Error while encoding response: \(error)")
+        }
+        return nil
     }
 
     /// Builds a `Vapor.Response` with an empty payload.
@@ -122,22 +130,15 @@ extension GRPCService {
 
     /// Builds a `Vapor.Response` from the given encodable value.
     func makeResponse(_ value: Response<AnyEncodable>) -> Vapor.Response {
-        do {
-            switch value {
-            case let .send(element),
-                 let .final(element):
-                let data = try encode(element)
-                var headers = HTTPHeaders()
-                headers.contentType = Self.grpcproto
-                return Vapor.Response(status: .ok,
-                                      version: HTTPVersion(major: 2, minor: 0),
-                                      headers: headers,
-                                      body: .init(data: data))
-            case .nothing, .end:
-                return self.makeResponse()
-            }
-        } catch {
-            app.logger.report(error: error)
+        if let element = value.element,
+           let data = encode(element) {
+            var headers = HTTPHeaders()
+            headers.contentType = Self.grpcproto
+            return Vapor.Response(status: .ok,
+                                  version: HTTPVersion(major: 2, minor: 0),
+                                  headers: headers,
+                                  body: .init(data: data))
+        } else {
             return makeResponse()
         }
     }

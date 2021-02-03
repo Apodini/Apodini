@@ -12,7 +12,7 @@ let package = Package(
         .executable(name: "TestWebService", targets: ["TestWebService"])
     ],
     dependencies: [
-        .package(name: "Apodini", path: "..")
+        .package(name: "Apodini", path: "../")
     ],
     targets: [
         .target(

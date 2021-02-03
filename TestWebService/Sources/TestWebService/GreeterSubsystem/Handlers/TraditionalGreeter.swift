@@ -10,11 +10,11 @@ import Logging
 
 
 struct TraditionalGreeter: Handler {
-    // one cannot change their surname, but it can be ommitted
-    @Parameter(.mutability(.constant)) var surname: String = ""
-    // one can change their age, happy birthday!! 🎉
-    @Parameter(.mutability(.constant)) var age: Int32
-    // one can switch between formal and informal greeting at any time
+
+    @Parameter var surname: String = ""
+
+    @Parameter var age: Int32
+    
     @Parameter var name: String?
     
     @Environment(\.connection) var connection: Connection

@@ -15,7 +15,7 @@ struct GreetComponent: Component {
                 .serviceName("GreetService")
                 .rpcName("greetMe")
                 .response(EmojiTransformer())
-                .serviceType(.bidirectional)
+                .serviceType(.unary)
         }
     }
 }
