@@ -8,7 +8,7 @@
 
 import XCTest
 #if canImport(CwlPreconditionTesting) && DEBUG
-import CwlPreconditionTesting
+@_implementationOnly import CwlPreconditionTesting
 
 /// Asserts that an expression leads to a runtime failure.
 public func XCTAssertRuntimeFailure<T>(

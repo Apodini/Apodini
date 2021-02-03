@@ -5,8 +5,9 @@
 //  Created by Max Obermeier on 04.01.21.
 //
 
-import XCTest
 @testable import Apodini
+import XCTApodini
+
 
 class ParameterMutabilityTests: ApodiniTests {
     struct TestHandler: Handler {
@@ -124,18 +125,11 @@ class ParameterMutabilityTests: ApodiniTests {
         _ = try context1.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
         
-        let response = try context2.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-                .wait()
-        
-        switch response.typed(String.self) {
-        case .some(.final("Apodini/Apodini")):
-            break
-        default:
-            XCTFail("""
-                Return value did not match expected value.
-                This is most likely caused by the default value of 'Parameter' being shared across 'Handler's.
-            """)
-        }
+        try XCTCheckResponse(
+            context2.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
+            expectedContent: "Apodini/Apodini",
+            connectionEffect: .close
+        )
     }
     
     func testMutationOnClassTypeDefaultParameterIsNotSharedMultipleExporters() throws {
@@ -152,17 +146,10 @@ class ParameterMutabilityTests: ApodiniTests {
         _ = try context1.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
         
-        let response = try context2.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-                .wait()
-        
-        switch response.typed(String.self) {
-        case .some(.final("Apodini/Apodini")):
-            break
-        default:
-            XCTFail("""
-                Return value did not match expected value.
-                This is most likely caused by the default value of 'Parameter' being shared across 'Handler's.
-            """)
-        }
+        try XCTCheckResponse(
+            context2.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
+            expectedContent: "Apodini/Apodini",
+            connectionEffect: .close
+        )
     }
 }

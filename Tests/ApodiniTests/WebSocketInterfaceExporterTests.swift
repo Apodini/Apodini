@@ -5,10 +5,10 @@
 //  Created by Max Obermeier on 03.01.21.
 //
 
-import XCTest
-import WebSocketInfrastructure
-import NIO
 @testable import Apodini
+import NIO
+import WebSocketInfrastructure
+import XCTApodini
 
 class WebSocketInterfaceExporterTests: ApodiniTests {
     static let blockTime: UInt32 = 10000
@@ -70,20 +70,11 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         _ = input.check()
         input.apply()
         
-        print(input.parameters)
-
-        let result = try context.handle(request: input, eventLoop: app.eventLoopGroup.next())
-                .wait()
-        guard case let .final(responseValue) = result.typed(Parameters.self) else {
-            XCTFail("Expected return value to be wrapped in Response.automatic by default")
-            return
-        }
-
-        XCTAssertEqual(responseValue.param0, "value0")
-        XCTAssertEqual(responseValue.param1, nil)
-        XCTAssertEqual(responseValue.pathA, "a")
-        XCTAssertEqual(responseValue.pathB, "b")
-        XCTAssertEqual(responseValue.bird, bird)
+        try XCTCheckResponse(
+            context.handle(request: input, eventLoop: app.eventLoopGroup.next()),
+            expectedContent: Parameters(param0: "value0", param1: nil, pathA: "a", pathB: "b", bird: bird),
+            connectionEffect: .close
+        )
     }
 
     func testWebSocketConnectionRequestResponseSchema() throws {
@@ -265,7 +256,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
 
 // MARK: Handlers
 
-struct Parameters: Apodini.Content {
+struct Parameters: Apodini.Content, Equatable {
     var param0: String
     var param1: String?
     var pathA: String

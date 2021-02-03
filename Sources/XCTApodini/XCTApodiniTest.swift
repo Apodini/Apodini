@@ -1,6 +1,6 @@
 import FluentSQLiteDriver
-import Apodini
-import XCTest
+@_exported import Apodini
+@_exported import XCTest
 
 open class XCTApodiniTest: XCTestCase {
     // Vapor Application

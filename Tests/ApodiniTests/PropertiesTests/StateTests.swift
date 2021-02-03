@@ -5,9 +5,10 @@
 //  Created by Max Obermeier on 14.01.21.
 //
 
-import XCTest
 @testable import Apodini
 import Vapor
+import XCTApodini
+
 
 class StateTests: ApodiniTests {
     struct CountGuard: SyncGuard {
@@ -124,44 +125,27 @@ class StateTests: ApodiniTests {
 
         let context = endpoint.createConnectionContext(for: exporter)
         
-        var response = try context.handle(request: "Example Request", eventLoop: eventLoop)
-                .wait()
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: eventLoop),
+            expectedContent: "",
+            connectionEffect: .close
+        )
         
-        switch response.typed(String.self) {
-        case .some(.final("")):
-            break
-        default:
-            XCTFail("""
-                Return value did not match expected value.
-                This is most likely caused by the default value of 'Parameter' being shared across 'Handler's.
-            """)
-        }
         count += 1
-        response = try context.handle(request: "Example Request", eventLoop: eventLoop)
-                .wait()
         
-        switch response.typed(String.self) {
-        case .some(.final("1")):
-            break
-        default:
-            XCTFail("""
-                Return value did not match expected value.
-                This is most likely caused by the default value of 'Parameter' being shared across 'Handler's.
-            """)
-        }
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: eventLoop),
+            expectedContent: "1",
+            connectionEffect: .close
+        )
+        
         count += 1
-        response = try context.handle(request: "Example Request", eventLoop: eventLoop)
-                .wait()
         
-        switch response.typed(String.self) {
-        case .some(.final("22")):
-            break
-        default:
-            XCTFail("""
-                Return value did not match expected value.
-                This is most likely caused by the default value of 'Parameter' being shared across 'Handler's.
-            """)
-        }
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: eventLoop),
+            expectedContent: "22",
+            connectionEffect: .close
+        )
     }
     
     func testStateIsNotSharedReferenceType() throws {
@@ -189,18 +173,11 @@ class StateTests: ApodiniTests {
                 .wait()
 
         // Call on this context should not be influenced by previous call. Thus do not increase `count`.
-        let response = try context2.handle(request: "Example Request", eventLoop: eventLoop)
-                .wait()
-
-        switch response.typed(String.self) {
-        case .some(.final("")):
-            break
-        default:
-            XCTFail("""
-                Return value did not match expected value.
-                This is most likely caused by the default value of 'Parameter' being shared across 'Handler's.
-            """)
-        }
+        try XCTCheckResponse(
+            context2.handle(request: "Example Request", eventLoop: eventLoop),
+            expectedContent: "",
+            connectionEffect: .close
+        )
     }
     
     func testStateIsNotSharedDifferentExportersReferenceType() throws {
@@ -227,20 +204,13 @@ class StateTests: ApodiniTests {
 
         _ = try context1.handle(request: "Example Request", eventLoop: eventLoop)
                 .wait()
-
+        
         // Call on this context should not be influenced by previous call. Thus do not increase `count`.
-        let response = try context2.handle(request: "Example Request", eventLoop: eventLoop)
-                .wait()
-
-        switch response.typed(String.self) {
-        case .some(.final("")):
-            break
-        default:
-            XCTFail("""
-                Return value did not match expected value.
-                This is most likely caused by the default value of 'Parameter' being shared across 'Handler's.
-            """)
-        }
+        try XCTCheckResponse(
+            context2.handle(request: "Example Request", eventLoop: eventLoop),
+            expectedContent: "",
+            connectionEffect: .close
+        )
     }
 
     func testStateIsNotSharedValueType() throws {
@@ -268,18 +238,11 @@ class StateTests: ApodiniTests {
                 .wait()
 
         // Call on this context should not be influenced by previous call. Thus do not increase `count`.
-        let response = try context2.handle(request: "Example Request", eventLoop: eventLoop)
-                .wait()
-
-        switch response.typed(String.self) {
-        case .some(.final("")):
-            break
-        default:
-            XCTFail("""
-                Return value did not match expected value.
-                This is most likely caused by the default value of 'Parameter' being shared across 'Handler's.
-            """)
-        }
+        try XCTCheckResponse(
+            context2.handle(request: "Example Request", eventLoop: eventLoop),
+            expectedContent: "",
+            connectionEffect: .close
+        )
     }
     
     func testStateIsNotSharedDifferentExportersValueType() throws {
@@ -308,17 +271,10 @@ class StateTests: ApodiniTests {
                 .wait()
 
         // Call on this context should not be influenced by previous call. Thus do not increase `count`.
-        let response = try context2.handle(request: "Example Request", eventLoop: eventLoop)
-                .wait()
-
-        switch response.typed(String.self) {
-        case .some(.final("")):
-            break
-        default:
-            XCTFail("""
-                Return value did not match expected value.
-                This is most likely caused by the default value of 'Parameter' being shared across 'Handler's.
-            """)
-        }
+        try XCTCheckResponse(
+            context2.handle(request: "Example Request", eventLoop: eventLoop),
+            expectedContent: "",
+            connectionEffect: .close
+        )
     }
 }

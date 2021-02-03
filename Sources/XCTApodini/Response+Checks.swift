@@ -9,6 +9,11 @@
 import NIO
 import XCTest
 
+extension Empty: Equatable {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        true
+    }
+}
 
 /// Adds the possibility to easily check the of a `Handler` by investigating the `Response`
 /// - Parameters:
@@ -19,16 +24,19 @@ import XCTest
 ///   - file: The origin of the `XCTCheckResponse` call
 ///   - line: The origin of the `XCTCheckResponse` call
 /// - Throws: Thows an error in case of failure
+@discardableResult
 public func XCTCheckResponse<C, T: Encodable & Equatable>(
     _ response: @autoclosure () throws -> EventLoopFuture<Response<C>>,
-    expectedContent: @autoclosure () -> T,
+    _ type: T.Type = T.self,
+    expectedContent: @autoclosure () -> T?,
     connectionEffect: @autoclosure () -> ConnectionEffect? = nil,
     _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,
     line: UInt = #line
-) throws {
+) throws -> T? {
     try _XCTCheckResponse(
         response: { try response().wait() },
+        type: T.self,
         status: nil,
         expectedContent: expectedContent,
         connectionEffect: connectionEffect,
@@ -49,17 +57,20 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
 ///   - file: The origin of the `XCTCheckResponse` call
 ///   - line: The origin of the `XCTCheckResponse` call
 /// - Throws: Thows an error in case of failure
+@discardableResult
 public func XCTCheckResponse<C, T: Encodable & Equatable>(
     _ response: @autoclosure () throws -> EventLoopFuture<Response<C>>,
+    _ type: T.Type = T.self,
     status: @escaping @autoclosure () -> Status?,
-    expectedContent: @autoclosure () -> T,
+    expectedContent: @autoclosure () -> T?,
     connectionEffect: @autoclosure () -> ConnectionEffect? = nil,
     _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,
     line: UInt = #line
-) throws {
+) throws -> T? {
     try _XCTCheckResponse(
         response: { try response().wait() },
+        type: T.self,
         status: status,
         expectedContent: expectedContent,
         connectionEffect: connectionEffect,
@@ -78,16 +89,19 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
 ///   - file: The origin of the `XCTCheckResponse` call
 ///   - line: The origin of the `XCTCheckResponse` call
 /// - Throws: Thows an error in case of failure
+@discardableResult
 public func XCTCheckResponse<C, T: Encodable & Equatable>(
     _ response: @autoclosure () throws -> Response<C>,
-    expectedContent: @autoclosure () -> T,
+    _ type: T.Type = T.self,
+    expectedContent: @autoclosure () -> T?,
     connectionEffect: @autoclosure () -> ConnectionEffect? = nil,
     _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,
     line: UInt = #line
-) throws {
+) throws -> T? {
     try _XCTCheckResponse(
         response: response,
+        type: T.self,
         status: nil,
         expectedContent: expectedContent,
         connectionEffect: connectionEffect,
@@ -107,17 +121,20 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
 ///   - file: The origin of the `XCTCheckResponse` call
 ///   - line: The origin of the `XCTCheckResponse` call
 /// - Throws: Thows an error in case of failure
+@discardableResult
 public func XCTCheckResponse<C, T: Encodable & Equatable>(
     _ response: @autoclosure () throws -> Response<C>,
+    _ type: T.Type = T.self,
     status: @escaping @autoclosure () -> Status?,
-    expectedContent:  @autoclosure () -> T,
+    expectedContent:  @autoclosure () -> T?,
     connectionEffect: @autoclosure () -> ConnectionEffect? = nil,
     _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,
     line: UInt = #line
-) throws {
+) throws -> T? {
     try _XCTCheckResponse(
         response: response,
+        type: T.self,
         status: status,
         expectedContent: expectedContent,
         connectionEffect: connectionEffect,
@@ -130,13 +147,14 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
 // swiftlint:disable:next function_parameter_count
 private func _XCTCheckResponse<C, T: Encodable & Equatable>(
     response: () throws -> Response<C>,
+    type: T.Type = T.self,
     status: (() -> Status?)?,
-    expectedContent: () -> T,
+    expectedContent: () -> T?,
     connectionEffect: () -> ConnectionEffect?,
     message: () -> String,
     file: StaticString,
     line: UInt
-) throws {
+) throws -> T? {
     let response = try XCTUnwrap(try response().typed(T.self), "Expected a `Response` with a content of type `\(T.self)`. \(message())")
     
     if let connectionEffect = connectionEffect() {
@@ -146,6 +164,9 @@ private func _XCTCheckResponse<C, T: Encodable & Equatable>(
         XCTAssertEqual(response.status, status(), message())
     }
     
-    let content = try XCTUnwrap(response.content, message(), file: file, line: line)
+    let content = response.content
+    
     XCTAssertEqual(content, expectedContent(), message())
+    
+    return content
 }

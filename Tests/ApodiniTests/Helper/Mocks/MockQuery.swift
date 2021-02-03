@@ -4,15 +4,13 @@ import XCTest
 func mockQuery<Value: Encodable, H: Handler>(component: H, value: Value.Type, app: Application, queued parameterValues: Any??...) throws -> Value? {
     let endpoint = component.mockEndpoint(app: app)
     let exporter = MockExporter<String>(queued: parameterValues)
-    var context = endpoint.createConnectionContext(for: exporter)
+    let context = endpoint.createConnectionContext(for: exporter)
 
-   let response = try context.handle(request: "Mock Request", eventLoop: app.eventLoopGroup.next())
+    let response = try context.handle(request: "Mock Request", eventLoop: app.eventLoopGroup.next())
         .wait()
     
-    guard case let .final(result) = response.typed(value) else {
-        XCTFail("Expected return value to be wrapped in Action.final by default")
-        return nil
-    }
+    let typedResponse = try XCTUnwrap(response.typed(value))
+    XCTAssertEqual(typedResponse.connectionEffect, .close, "Expected a response with a `ConnectionEffect` if `.close` by default")
     
-    return result
+    return typedResponse.content
 }

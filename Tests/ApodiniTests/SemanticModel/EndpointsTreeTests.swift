@@ -6,8 +6,9 @@
 //
 
 @testable import Apodini
-import XCTest
 import Foundation
+import XCTest
+import XCTApodini
 
 
 final class EndpointsTreeTests: ApodiniTests {
@@ -122,14 +123,11 @@ final class EndpointsTreeTests: ApodiniTests {
         let context = endpoint.createConnectionContext(for: exporter)
 
         // handle a request (The actual request is unused in the MockExporter)
-        let response = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-                .wait()
-        guard case let .final(responseValue) = response.typed(String.self) else {
-            XCTFail("Expected return value to be wrapped in Response.final by default")
-            return
-        }
-        
-        XCTAssertEqual(responseValue, "✅ Hello \(name) ✅")
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
+            expectedContent: "✅ Hello \(name) ✅",
+            connectionEffect: .close
+        )
     }
     
     func testEndpointPathEquatable() throws {

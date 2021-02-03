@@ -1,5 +1,5 @@
 //
-//  ActionTests.swift
+//  ResponseTests.swift
 //
 //
 //  Created by Paul Schmiedmayer on 1/5/21.
@@ -8,10 +8,11 @@
 @testable import Apodini
 import NIO
 import XCTest
+import XCTApodini
 
 
-final class ActionTests: ApodiniTests {
-    struct ActionHandler: Handler {
+final class ResponseTests: ApodiniTests {
+    struct ResponseHandler: Handler {
         var message: String
 
         func handle() -> Response<String> {
@@ -37,113 +38,99 @@ final class ActionTests: ApodiniTests {
     }
     
     
-    func testActionRequestHandling() throws {
-        let expectedValue = "ActionWithRequest"
+    func testResponseRequestHandling() throws {
+        let expectedContent = "ResponseWithRequest"
         
-        let handler = ActionHandler(message: expectedValue)
+        let handler = ResponseHandler(message: expectedContent)
         let endpoint = handler.mockEndpoint()
 
         let exporter = MockExporter<String>()
         let context = endpoint.createConnectionContext(for: exporter)
-        
-        let result = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-                .wait()
 
-        guard case let .final(responseValue) = result.typed(String.self) else {
-            XCTFail("Expected return value of ActionHandler to be wrapped in Response.final")
-            return
-        }
-        
-        XCTAssertEqual(responseValue, expectedValue)
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
+            expectedContent: expectedContent,
+            connectionEffect: .close
+        )
     }
 
     func testEventLoopFutureRequestHandling() throws {
-        let expectedValue = "ActionWithRequest"
+        let expectedContent = "ResponseWithRequest"
         
-        let handler = FutureBasedHandler(eventLoop: app.eventLoopGroup.next(), message: expectedValue)
+        let handler = FutureBasedHandler(eventLoop: app.eventLoopGroup.next(), message: expectedContent)
         let endpoint = handler.mockEndpoint()
 
         let exporter = MockExporter<String>()
-
         let context = endpoint.createConnectionContext(for: exporter)
         
-        let result = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-                .wait()
-
-        guard case let .send(responseValue) = result.typed(String.self) else {
-            XCTFail("Expected return value of ActionHandler to be wrapped in Response.send")
-            return
-        }
-       
-        XCTAssertEqual(responseValue, expectedValue)
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
+            expectedContent: expectedContent,
+            connectionEffect: .open
+        )
     }
     
-    func testActionMapFunctionality() {
-        let actions: [Response<String>] = [.nothing, .send("42"), .final("42"), .end]
+    func testResponseMapFunctionality() {
+        let responses: [Response<String>] = [.nothing, .send("42"), .final("42"), .end]
         
-        let intActions = actions.map { action in
-            action.map { Int($0) }
+        let intResponses = responses.map { response in
+            response.map { Int($0) }
         }
-        XCTAssertEqual(intActions[0].element, nil)
-        XCTAssertEqual(intActions[1].element, 42)
-        XCTAssertEqual(intActions[2].element, 42)
-        XCTAssertEqual(intActions[3].element, nil)
+        XCTAssertEqual(intResponses[0].content, nil)
+        XCTAssertEqual(intResponses[1].content, 42)
+        XCTAssertEqual(intResponses[2].content, 42)
+        XCTAssertEqual(intResponses[3].content, nil)
     }
     
-    func testActionGeneration() throws {
+    func testResponseGeneration() throws {
         try ["Paul": 42]
             .transformToResponse(on: app.eventLoopGroup.next())
-            .map { action in
-                let transformedAction = action.typeErasured.typed([String: Int].self)
-                XCTAssertEqual(transformedAction?.element, ["Paul": 42])
+            .map { response in
+                let transformedResponse = response.typeErasured.typed([String: Int].self)
+                XCTAssertEqual(transformedResponse?.content, ["Paul": 42])
             }
             .wait()
     }
     
-    func testActionTypeErasureFunctionality() {
-        let actions: [Response<[String: Int]>] = [
+    func testResponseTypeErasureFunctionality() {
+        let responses: [Response<[String: Int]>] = [
             .nothing,
             .send(["Paul": 42]),
             .final(["Paul": 42]),
             .end
         ]
         
-        let typeErasuredActions = actions.map { action in
-            action.typeErasured
+        let typeErasuredResponses = responses.map { response in
+            response.typeErasured
         }
-        typeErasuredActions.forEach { typeErasuredAction in
-            XCTAssert(type(of: typeErasuredAction).self == Response<AnyEncodable>.self)
+        typeErasuredResponses.forEach { typeErasuredResponse in
+            XCTAssert(type(of: typeErasuredResponse).self == Response<AnyEncodable>.self)
         }
         
         // Make sure that type erasing a already type erasured Response doesn't have any effect
-        let doubbleTypeErasuredActions = typeErasuredActions.map { action in
-            action.typeErasured
+        let doubbleTypeErasuredResponses = typeErasuredResponses.map { response in
+            response.typeErasured
         }
-        doubbleTypeErasuredActions.forEach { typeErasuredAction in
-            XCTAssert(type(of: typeErasuredAction).self == Response<AnyEncodable>.self)
-        }
-        
-        let typedActions = typeErasuredActions.map { typedAction in
-            typedAction.typed([String: Int].self)
-        }
-        zip(actions, typedActions).forEach { action, typedAction in
-            XCTAssertEqual(action.element, typedAction?.element)
+        doubbleTypeErasuredResponses.forEach { typeErasuredResponse in
+            XCTAssert(type(of: typeErasuredResponse).self == Response<AnyEncodable>.self)
         }
         
-        let typedActionsFailed = typeErasuredActions.map { typedAction in
-            typedAction.typed(Int.self)
+        let typedResponses = typeErasuredResponses.map { typedResponse in
+            typedResponse.typed([String: Int].self)
         }
-        XCTAssert(typedActionsFailed[0] != nil)
-        guard case .nothing = typedActionsFailed[0] else {
-            XCTFail("typedActionsFailed[0] must be .nothing as the type mapping shouldn't be affected by the mismatch in types")
-            return
+        zip(responses, typedResponses).forEach { response, typedResponse in
+            XCTAssertEqual(response.content, typedResponse?.content)
         }
-        XCTAssert(typedActionsFailed[1] == nil)
-        XCTAssert(typedActionsFailed[2] == nil)
-        guard case .end = typedActionsFailed[3] else {
-            XCTFail("typedActionsFailed[0] must be .end as the type mapping shouldn't be affected by the mismatch in types")
-            return
+        
+        let typedResponsesFailed = typeErasuredResponses.map { typedResponse in
+            typedResponse.typed(Int.self)
         }
+        XCTAssert(typedResponsesFailed[0] != nil)
+        XCTAssertEqual(typedResponsesFailed[0]?.connectionEffect, .open)
+        XCTAssert(typedResponsesFailed[1] == nil)
+        XCTAssert(typedResponsesFailed[2] == nil)
+        XCTAssert(typedResponsesFailed[3] != nil)
+        XCTAssertEqual(typedResponsesFailed[0]?.connectionEffect, .close)
     }
     
     func testAnyEncodable() {
