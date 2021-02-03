@@ -9,7 +9,7 @@ import Foundation
 import NIO
 
 /// A `Configuration` for the used `InterfaceExporter`.
-public class ExporterConfiguration: Configuration {
+public final class ExporterConfiguration: Configuration {
     var semanticModelBuilderBuilder: (SemanticModelBuilder) -> (SemanticModelBuilder) = id
 
     /// initalize ExporterConfiguration
