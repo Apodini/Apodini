@@ -5,6 +5,7 @@
 //  Created by Paul Schmiedmayer on 2/3/21.
 //
 
+#if DEBUG
 @testable import Apodini
 import NIO
 import XCTest
@@ -170,3 +171,4 @@ private func _XCTCheckResponse<C, T: Encodable & Equatable>(
     
     return content
 }
+#endif
