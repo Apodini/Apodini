@@ -9,6 +9,12 @@ import XCTest
 @testable import Apodini
 
 final class GRPCServiceTests: ApodiniTests {
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        
+        app.storage[IntegerWidthConfiguration.StorageKey] = .native
+    }
+    
     func testWebService<S: WebService>(_ type: S.Type, path: String) throws {
         let app = Application()
         S.main(app: app)

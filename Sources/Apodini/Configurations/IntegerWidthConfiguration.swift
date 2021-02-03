@@ -34,12 +34,7 @@ public enum IntegerWidthConfiguration: Int, Configuration {
     // MARK: Methods
     public func configure(_ app: Application) {
         guard rawValue <= Int.bitWidth else {
-            preconditionFailure(
-                """
-                \(self) requires architecture to have a wider integer bit width. \
-                Try using a smaller option.
-                """
-            )
+            preconditionFailure("\(self) requires architecture to have a wider integer bit width. Try using a smaller option.")
         }
         
         app.storage[StorageKey.self] = self
