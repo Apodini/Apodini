@@ -3,7 +3,7 @@
 //
 
 import XCTest
-import Apodini
+@testable import Apodini
 
 /// Overload for force unwrapping `Response` types.
 public func XCTUnwrap<T: Encodable>(
@@ -12,14 +12,5 @@ public func XCTUnwrap<T: Encodable>(
     file: StaticString = #filePath,
     line: UInt = #line
 ) throws -> T {
-    let result: T?
-    switch try expression() {
-    case let .final(element),
-        let .send(element):
-        result = element
-    default:
-        result = nil
-    }
-
-    return try XCTUnwrap(result, message(), file: file, line: line)
+    return try XCTUnwrap(try expression().content, message(), file: file, line: line)
 }

@@ -151,7 +151,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             context.handle(request: emptyInput, eventLoop: eventLoop, final: true).whenComplete { result in
                 switch result {
                 case .success(let response):
-                    Self.handleCompletionResponse(result: response, output: output)
+                    Self.handleCompletionResponse(response: response, output: output)
                 case .failure(let error):
                     Self.handleError(error: error, output: output, close: true)
                 }
@@ -161,44 +161,34 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     
     private static func handleValue(
         result: Result<Response<EnrichedContent>, Error>,
-        output: PassthroughSubject<Message<EnrichedContent>, Error>) {
+        output: PassthroughSubject<Message<EnrichedContent>, Error>
+    ) {
         switch result {
         case .success(let response):
-            Self.handleRegularResponse(result: response, output: output)
+            Self.handleRegularResponse(response: response, output: output)
         case .failure(let error):
             Self.handleError(error: error, output: output)
         }
     }
     
     private static func handleCompletionResponse(
-        result: Response<EnrichedContent>,
-        output: PassthroughSubject<Message<EnrichedContent>, Error>) {
-        switch result {
-        case .nothing:
-            output.send(completion: .finished)
-        case .send(let message):
-            output.send(.message(message))
-            output.send(completion: .finished)
-        case .final(let message):
-            output.send(.message(message))
-            output.send(completion: .finished)
-        case .end:
-            output.send(completion: .finished)
+        response: Response<EnrichedContent>,
+        output: PassthroughSubject<Message<EnrichedContent>, Error>
+    ) {
+        if let content = response.content {
+            output.send(.message(content))
         }
+        output.send(completion: .finished)
     }
     
     private static func handleRegularResponse(
-        result: Response<EnrichedContent>,
-        output: PassthroughSubject<Message<EnrichedContent>, Error>) {
-        switch result {
-        case .nothing:
-            break
-        case .send(let message):
-            output.send(.message(message))
-        case .final(let message):
-            output.send(.message(message))
-            output.send(completion: .finished)
-        case .end:
+        response: Response<EnrichedContent>,
+        output: PassthroughSubject<Message<EnrichedContent>, Error>
+    ) {
+        if let content = response.content {
+            output.send(.message(content))
+        }
+        if response.connectionEffect == .close {
             output.send(completion: .finished)
         }
     }
@@ -206,7 +196,8 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private static func handleError(
         error: Error,
         output: PassthroughSubject<Message<EnrichedContent>, Error>,
-        close: Bool = false) {
+        close: Bool = false
+    ) {
         let error = error.apodiniError
         switch error.option(for: .webSocketConnectionConsequence) {
         case .none:

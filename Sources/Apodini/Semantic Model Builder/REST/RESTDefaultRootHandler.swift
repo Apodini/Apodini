@@ -16,7 +16,9 @@ struct RESTDefaultRootHandler {
     }
 
     func handleRequest(_: Vapor.Request) -> ResponseContainer {
-        let links = relationships.formatRelationships(into: [:], with: LinksFormatter(configuration: configuration))
-        return ResponseContainer(links: links)
+        ResponseContainer(
+            Empty.self,
+            links: relationships.formatRelationships(into: [:], with: LinksFormatter(configuration: configuration))
+        )
     }
 }
