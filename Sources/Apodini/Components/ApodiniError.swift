@@ -73,13 +73,13 @@ public protocol ErrorMessagePrefixStrategy {}
 
 public struct StandardErrorMessagePrefix: ErrorMessagePrefixStrategy {}
 
-struct NoErrorMessagePrefix: ErrorMessagePrefixStrategy {}
+public struct NoErrorMessagePrefix: ErrorMessagePrefixStrategy {}
 
 public struct CustomErrorMessagePrefix: ErrorMessagePrefixStrategy {}
 
 public protocol StandardErrorCompliantExporter: InterfaceExporter {
     associatedtype ErrorMessagePrefixStrategy: Apodini.ErrorMessagePrefixStrategy = CustomErrorMessagePrefix
-    
+    /// Default prefixes for `ErrorType`
     static func messagePrefix(for context: StandardErrorContext) -> String?
 }
 
@@ -137,7 +137,7 @@ public extension Error {
 
 // MARK: Exporter Defaults
 
-extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == StandardErrorMessagePrefix {
+public extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == StandardErrorMessagePrefix {
     static func messagePrefix(for error: StandardErrorContext) -> String? {
         switch error.option(for: .errorType) {
         case .badInput:
@@ -158,7 +158,7 @@ extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == Sta
     }
 }
 
-extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == NoErrorMessagePrefix {
+public extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == NoErrorMessagePrefix {
     static func messagePrefix(for error: StandardErrorContext) -> String? {
         nil
     }
