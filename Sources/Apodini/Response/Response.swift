@@ -93,10 +93,14 @@ extension Response {
             return Response<T>(status: status, content: typedContent, connectionEffect: connectionEffect)
         } else if let enrichedContent = content as? EnrichedContent, let typedContent = enrichedContent.typed(type) {
             return Response<T>(status: status, content: typedContent, connectionEffect: connectionEffect)
-        } else if let typedContent = content as? T {
-            return Response<T>(status: status, content: typedContent, connectionEffect: connectionEffect)
+        } else if let content = content {
+            if let typedContent = content as? T {
+                return Response<T>(status: status, content: typedContent, connectionEffect: connectionEffect)
+            } else {
+                return nil
+            }
         } else {
-            return nil
+            return Response<T>(status: status, content: nil, connectionEffect: connectionEffect)
         }
     }
 }

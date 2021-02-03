@@ -95,7 +95,9 @@ final class ResponseTests: ApodiniTests {
     func testResponseTypeErasureFunctionality() {
         let responses: [Response<[String: Int]>] = [
             .nothing,
+            .send(["Paul": 42], status: .ok),
             .send(["Paul": 42]),
+            .final(["Paul": 42], status: .ok),
             .final(["Paul": 42]),
             .end
         ]
@@ -125,12 +127,16 @@ final class ResponseTests: ApodiniTests {
         let typedResponsesFailed = typeErasuredResponses.map { typedResponse in
             typedResponse.typed(Int.self)
         }
-        XCTAssert(typedResponsesFailed[0] != nil)
+        
+        XCTAssertTrue(typedResponsesFailed.allSatisfy { $0?.content == nil })
         XCTAssertEqual(typedResponsesFailed[0]?.connectionEffect, .open)
-        XCTAssert(typedResponsesFailed[1] == nil)
-        XCTAssert(typedResponsesFailed[2] == nil)
-        XCTAssert(typedResponsesFailed[3] != nil)
-        XCTAssertEqual(typedResponsesFailed[0]?.connectionEffect, .close)
+        XCTAssertEqual(typedResponsesFailed[0]?.status, nil)
+        XCTAssertNil(typedResponsesFailed[1])
+        XCTAssertNil(typedResponsesFailed[2])
+        XCTAssertNil(typedResponsesFailed[3])
+        XCTAssertNil(typedResponsesFailed[4])
+        XCTAssertEqual(typedResponsesFailed[5]?.connectionEffect, .close)
+        XCTAssertEqual(typedResponsesFailed[5]?.status, nil)
     }
     
     func testAnyEncodable() {

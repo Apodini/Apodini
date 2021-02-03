@@ -17,18 +17,26 @@ struct ResponseContainer: Encodable, ResponseEncodable {
     let data: AnyEncodable?
     let links: Links?
     
+    var containsNoContent: Bool {
+        data == nil && (links?.isEmpty ?? true)
+    }
     
     init<E: Encodable>(_ type: E.Type = E.self, status: Status? = nil, data: E? = nil, links: Links? = nil) {
         self.status = status
-        self.data = AnyEncodable(data)
         
-        guard let links = links, !links.isEmpty else {
-            // We do not want to add a response body in case there are no links.
-            // Therefore we set `links` to nil so it is ignored in the encoding process.
-            self.links = nil
-            return
+        if let data = data {
+            self.data = AnyEncodable(data)
+        } else {
+            self.data = nil
         }
-        self.links = links
+        
+        // We do not want to add a response body in case there are no links.
+        // Therefore we set `links` to nil so it is ignored in the encoding process.
+        if let links = links, !links.isEmpty {
+            self.links = links
+        } else {
+            self.links = nil
+        }
     }
     
     
@@ -39,17 +47,23 @@ struct ResponseContainer: Encodable, ResponseEncodable {
         let response = Vapor.Response()
         
         switch status {
-        case .noContent where data != nil || !links.isEmpty:
+        case .noContent where !containsNoContent:
             // If there is any content in the HTTP body (data or links) we must not return an status code .noContent
             response.status = .ok
         case let .some(status):
             response.status = httpStatusCode(fromStatus: status)
         default:
-            response.status = .ok
+            if containsNoContent {
+                response.status = .noContent
+            } else {
+                response.status = .ok
+            }
         }
         
         do {
-            try response.content.encode(self, using: jsonEncoder)
+            if !containsNoContent {
+                try response.content.encode(self, using: jsonEncoder)
+            }
         } catch {
             return request.eventLoop.makeFailedFuture(error)
         }
