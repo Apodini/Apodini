@@ -27,7 +27,8 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
         .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", from: "0.1.0"),
         .package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime", .upToNextMajor(from: "0.4.0")),
-        .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0")
+        .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0"),
+        .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2")
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -37,7 +38,8 @@ let package = Package(
             name: "ApodiniDeployBuildSupport",
             dependencies: [
                 .target(name: "CApodiniDeployBuildSupport"),
-                .product(name: "Logging", package: "swift-log")
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "Runtime", package: "Runtime")
             ]
         ),
         .target(
@@ -101,6 +103,13 @@ let package = Package(
                 .target(name: "ApodiniDeployRuntimeSupport"),
                 //.product(name: "AWSLambdaEvents", package: "swift-aws-lambda-runtime"),
                 .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
+            ]
+        ),
+        .target(
+            name: "TestExecTarget",
+            dependencies: [
+                .target(name: "ApodiniDeployBuildSupport"),
+                .product(name: "Runtime", package: "Runtime")
             ]
         )
     ]

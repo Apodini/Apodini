@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git",
         "state": {
           "branch": null,
-          "revision": "d861e6dd41ad0c1096a9a730611fa6a8cc307b0c",
-          "version": "0.3.1"
+          "revision": "2e4c49c21ffb2135f1c99fbfcf2119c9d24f5e8c",
+          "version": "0.3.2"
         }
       },
       {
@@ -83,6 +83,15 @@
         }
       },
       {
+        "package": "Runtime",
+        "repositoryURL": "https://github.com/wickwirew/Runtime.git",
+        "state": {
+          "branch": null,
+          "revision": "a848b81e1a0100801f572e5273ffe4352fd54088",
+          "version": "2.2.2"
+        }
+      },
+      {
         "package": "soto",
         "repositoryURL": "https://github.com/soto-project/soto.git",
         "state": {
@@ -96,8 +105,8 @@
         "repositoryURL": "https://github.com/soto-project/soto-core.git",
         "state": {
           "branch": null,
-          "revision": "6f96ce95599ca5d5ab8e8eb76af75aff7db75557",
-          "version": "5.1.0"
+          "revision": "4231c30f6cdfa1624249a9a44a7749b9d87c3530",
+          "version": "5.1.1"
         }
       },
       {

@@ -1,5 +1,5 @@
 //
-//  CApodiniDeployBuildSupport.cpp
+//  CApodiniDeployBuildSupport.h
 //  CApodiniDeployBuildSupport
 //
 //  Created by Lukas Kollmer on 2021-01-31.

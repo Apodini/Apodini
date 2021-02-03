@@ -7,6 +7,18 @@
 
 
 import Foundation
+import Runtime
+
+
+
+extension NSError {
+    public static func apodiniDeploy(code: Int = 0, localizedDescription: String) -> NSError {
+        return NSError(domain: "ApodiniDeploy", code: code, userInfo: [
+            NSLocalizedDescriptionKey: localizedDescription
+        ])
+    }
+}
+
 
 
 //public protocol DeploymentConfigInput: Codable {}
@@ -91,6 +103,11 @@ public struct DeploymentConfigV2: Codable {
         
     }
 }
+
+
+
+
+
 
 
 
