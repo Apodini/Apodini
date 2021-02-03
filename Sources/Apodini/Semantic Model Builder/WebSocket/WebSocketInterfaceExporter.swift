@@ -85,7 +85,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
                         cancellables.removeAll()
                     },
                     // The input was already handled and unwrapped by the `syncMap`. We just have to map the obtained
-                    // `Action` to our `output` or handle the error returned from `handle`.
+                    // `Response` to our `output` or handle the error returned from `handle`.
                     receiveValue: { result in
                         Self.handleValue(result: result, output: output)
                     }

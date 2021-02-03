@@ -87,18 +87,16 @@ extension Response {
 }
 
 
-extension Response where Self.Content == AnyEncodable {
+extension Response {
     func typed<T: Encodable>(_ type: T.Type = T.self) -> Response<T>? {
-        flatMap { anyEncodable in
-            anyEncodable.typed(type)
-        }
-    }
-}
-
-extension Response where Self.Content == EnrichedContent {
-    func typed<T: Encodable>(_ type: T.Type = T.self) -> Response<T>? {
-        flatMap { enrichedContent in
-            enrichedContent.typed(type)
+        if let anyEncodable = content as? AnyEncodable, let typedContent = anyEncodable.typed(type) {
+            return Response<T>(status: status, content: typedContent, connectionEffect: connectionEffect)
+        } else if let enrichedContent = content as? EnrichedContent, let typedContent = enrichedContent.typed(type) {
+            return Response<T>(status: status, content: typedContent, connectionEffect: connectionEffect)
+        } else if let typedContent = content as? T {
+            return Response<T>(status: status, content: typedContent, connectionEffect: connectionEffect)
+        } else {
+            return nil
         }
     }
 }
