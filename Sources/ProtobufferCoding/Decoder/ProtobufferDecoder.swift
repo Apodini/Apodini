@@ -144,7 +144,7 @@ internal class InternalProtoDecoder: Decoder {
 /// Coforms to `TopLevelDecoder` from `Combine`, however this is currently ommitted due to compatibility issues.
 public class ProtobufferDecoder {
     /// The strategy that this encoder uses to encode `Int`s and `UInt`s.
-    public var integerWidthCodingStrategy: IntegerWidthCodingStrategy = .default
+    public var integerWidthCodingStrategy: IntegerWidthCodingStrategy = .native
 
     /// Init new decoder instance
     public init() {}

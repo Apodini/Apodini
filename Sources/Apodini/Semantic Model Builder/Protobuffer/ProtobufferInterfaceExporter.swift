@@ -11,7 +11,7 @@ class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     }
 
     struct Builder {
-        var integerWidthConfiguration: IntegerWidthConfiguration = .default
+        var integerWidthConfiguration: IntegerWidthConfiguration = .native
     }
     
     // MARK: Properties

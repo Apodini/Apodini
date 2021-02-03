@@ -10,8 +10,8 @@ public enum IntegerWidthCodingStrategy {
     /// `Int`s and `UInt`s are encoded with a 64 bit wide field.
     case sixtyFour
     
-    /// `default` is derived from the target's underlying architecture.
-    static let `default`: Self = {
+    /// `.native` is derived from the target's underlying architecture.
+    static let native: Self = {
         if MemoryLayout<Int>.size == 4 {
             return .thirtyTwo
         } else {
