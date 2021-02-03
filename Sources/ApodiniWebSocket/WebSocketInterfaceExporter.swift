@@ -139,7 +139,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
     #else
-    typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
+    public typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
     #endif
     
     private static func handleCompletion(

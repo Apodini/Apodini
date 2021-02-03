@@ -16,7 +16,7 @@ extension Application {
     /// Used to wait for the application to stop
     public final class Exporters {
         final class Storage {
-            var semanticModelBuilderBuilder: (SemanticModelBuilder) -> (SemanticModelBuilder) = id
+            var semanticModelBuilderBuilder: (SemanticModelBuilder) -> (SemanticModelBuilder) = { $0 }
             init() { }
         }
 
