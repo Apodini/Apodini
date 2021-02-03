@@ -5,8 +5,8 @@
 //  Created by Max Obermeier on 04.12.20.
 //
 
-import Fluent
-import Vapor
+@_implementationOnly import Fluent
+@_implementationOnly import Vapor
 import NIOWebSocket
 
 typealias ContextOpener = (ConnectionResponsible, UUID) -> (ContextResponsible)
