@@ -18,7 +18,7 @@ struct ResponseContainer: Encodable, ResponseEncodable {
     let links: Links?
     
     
-    init<E: Encodable>(_ type: E.Type = E.self, status: Status? = nil, data: E? = nil, links: [String: String]? = nil) {
+    init<E: Encodable>(_ type: E.Type = E.self, status: Status? = nil, data: E? = nil, links: Links? = nil) {
         self.status = status
         self.data = AnyEncodable(data)
         

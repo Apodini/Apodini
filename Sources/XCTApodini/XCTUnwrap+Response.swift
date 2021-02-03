@@ -12,5 +12,5 @@ public func XCTUnwrap<T: Encodable>(
     file: StaticString = #filePath,
     line: UInt = #line
 ) throws -> T {
-    return try XCTUnwrap(try expression().content, message(), file: file, line: line)
+    try XCTUnwrap(try expression().content, message(), file: file, line: line)
 }

@@ -63,14 +63,14 @@ extension Response {
     /// - Parameter transform: The closure to transform the `Self.Content`
     /// - Returns: The transformed `Response`
     public func map<T: Encodable>(_ transform: (Self.Content) -> (T)) -> Response<T> {
-        Response<T>(status: status, content:  content.map(transform), connectionEffect: connectionEffect)
+        Response<T>(status: status, content: content.map(transform), connectionEffect: connectionEffect)
     }
     
     /// Flat maps an `Self.Content` to an `Response` with an other `Self.Content`
     /// - Parameter transform: The closure to transform the `Self.Content`
     /// - Returns: The transformed `Response`
     public func flatMap<T: Encodable>(_ transform: (Self.Content) -> (T?)) -> Response<T>? {
-        Response<T>(status: status, content:  content.flatMap(transform), connectionEffect: connectionEffect)
+        Response<T>(status: status, content: content.flatMap(transform), connectionEffect: connectionEffect)
     }
 }
 

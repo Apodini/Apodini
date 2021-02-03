@@ -317,11 +317,9 @@ only_rules:
     # The variable should be placed on the left, the constant on the right of a comparison operator.
 
 excluded: # paths to ignore during linting. Takes precedence over `included`.
-  - Carthage
-  - Pods
   - .build
+  - TestWebService/.build
   - .swiftpm
-  - R.generated.swift
 
 closure_body_length: # Closure bodies should not span too many lines.
   - 35 # warning - default: 20
