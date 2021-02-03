@@ -105,7 +105,8 @@ let package = Package(
         .target(name: "ApodiniGRPC",
                 dependencies: [
                     .target(name: "Apodini"),
-                    .target(name: "ApodiniVaporSupport")
+                    .target(name: "ApodiniVaporSupport"),
+                    .target(name: "ProtobufferCoding"),
                 ]
         ),
 
