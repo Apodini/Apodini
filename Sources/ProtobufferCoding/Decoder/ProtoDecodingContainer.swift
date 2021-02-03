@@ -212,12 +212,12 @@ internal extension Int {
         guard let value = value else {
             throw ProtoError.decodingError("No data to initialize from")
         }
-        if container.integerWidthCodingStrategy == .thirtyTwo {
+        
+        switch container.integerWidthCodingStrategy {
+        case .thirtyTwo:
             try self.init(container.decodeInt32(value))
-        } else if container.integerWidthCodingStrategy == .sixtyFour {
+        case .sixtyFour:
             try self.init(container.decodeInt64(value))
-        } else {
-            throw ProtoError.decodingError("Unknown width of Int type")
         }
     }
 }
@@ -227,12 +227,12 @@ internal extension UInt {
         guard let value = value else {
             throw ProtoError.decodingError("No data to initialize from")
         }
-        if container.integerWidthCodingStrategy == .thirtyTwo {
+        
+        switch container.integerWidthCodingStrategy {
+        case .thirtyTwo:
             try self.init(container.decodeUInt32(value))
-        } else if container.integerWidthCodingStrategy == .sixtyFour {
+        case .sixtyFour:
             try self.init(container.decodeUInt64(value))
-        } else {
-            throw ProtoError.decodingError("Unknown width of UInt type")
         }
     }
 }
@@ -242,10 +242,13 @@ internal extension Array where Element == Int {
         guard let value = value else {
             throw ProtoError.decodingError("No data to initialize from")
         }
+        
         self.init()
-        if container.integerWidthCodingStrategy == .thirtyTwo {
+        
+        switch container.integerWidthCodingStrategy {
+        case  .thirtyTwo:
             try container.decodeRepeatedInt32(value).forEach { self.append(Int($0)) }
-        } else if container.integerWidthCodingStrategy == .sixtyFour {
+        case .sixtyFour:
             try container.decodeRepeatedInt64(value).forEach { self.append(Int($0)) }
         }
     }
@@ -256,10 +259,13 @@ internal extension Array where Element == UInt {
         guard let value = value else {
             throw ProtoError.decodingError("No data to initialize from")
         }
+        
         self.init()
-        if container.integerWidthCodingStrategy == .thirtyTwo {
+        
+        switch container.integerWidthCodingStrategy {
+        case .thirtyTwo:
             try container.decodeRepeatedUInt32(value).forEach { self.append(UInt($0)) }
-        } else if container.integerWidthCodingStrategy == .sixtyFour {
+        case .sixtyFour:
             try container.decodeRepeatedUInt64(value).forEach { self.append(UInt($0)) }
         }
     }
