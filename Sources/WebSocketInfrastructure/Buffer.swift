@@ -186,7 +186,7 @@ private extension Buffer.Inner {
             self.onCancel = onCancel
         }
 
-        private let lock = NSLock()
+        private let lock = NSRecursiveLock()
 
         func request(_ demand: Subscribers.Demand) {
             self.lock.lock()
