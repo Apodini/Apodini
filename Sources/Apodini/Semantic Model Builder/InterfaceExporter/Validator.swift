@@ -201,10 +201,9 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
     }
     
     func checkNullability(of value: Type??) throws -> Any {
-        if let retrievedValue = value {
-            if retrievedValue == nil && !definition.nilIsValidValue {
-                throw ApodiniError(type: .badInput, reason: "Parameter retrieval returned explicit nil, though explicit nil is not valid for the '\(definition.description)'.")
-            }
+        if let retrievedValue = value,
+           retrievedValue == nil && !definition.nilIsValidValue {
+            throw ApodiniError(type: .badInput, reason: "Parameter retrieval returned explicit nil, though explicit nil is not valid for the '\(definition.description)'.")
         }
         
         if definition.nilIsValidValue {

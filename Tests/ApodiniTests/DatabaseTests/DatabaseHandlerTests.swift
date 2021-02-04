@@ -72,7 +72,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let endpoint = handler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         
         let uri = URI("http://example.de/test/id")
         let request = Vapor.Request(
@@ -112,7 +112,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let endpoint = readHandler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         
         var uri = URI("http://example.de/test/bird?name=Mockingbird")
         var request = Vapor.Request(
@@ -163,7 +163,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let endpoint = handler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         
         let bodyData = ByteBuffer(data: try JSONEncoder().encode(parameters))
         
@@ -214,7 +214,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let endpoint = handler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         
         let bodyData = ByteBuffer(data: try JSONEncoder().encode(updatedBird))
         
@@ -263,7 +263,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let endpoint = handler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         
         let uri = URI("http://example.de/test/id")
         let request = Vapor.Request(

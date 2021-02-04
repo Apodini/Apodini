@@ -9,12 +9,15 @@ import Apodini
 
 
 struct GreetComponent: Component {
+    let greeterRelationship: Relationship
+
     var content: some Component {
         Group("greet") {
             TraditionalGreeter()
                 .serviceName("GreetService")
                 .rpcName("greetMe")
                 .response(EmojiTransformer())
+                .destination(of: greeterRelationship)
                 .serviceType(.bidirectional)
         }
     }

@@ -22,7 +22,7 @@ private struct GRPCObservedListener: ObservedListener {
     var eventLoop: EventLoop
     var callback: (AnyObservedObject) -> Void
 
-    func onObservedDidChange<C>(_ observedObject: AnyObservedObject, in context: C) where C: ConnectionContext {
+    func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<GRPCInterfaceExporter>) {
         callback(observedObject)
     }
 
@@ -65,20 +65,19 @@ extension GRPCService {
     }
 
     /// Writes the `Response` to the given `BodyStreamWriter`, if the responses element is not nil.
-    private func write(_ response: Response<AnyEncodable>, to stream: BodyStreamWriter, promise: EventLoopPromise<Void>? = nil) {
-        if let element = response.element,
+    private func write(_ response: Response<EnrichedContent>, to stream: BodyStreamWriter, promise: EventLoopPromise<Void>? = nil) {
+        if let element = response.element?.response,
            let data = self.encode(element) {
             let buffer = ByteBuffer(data: data)
             stream.write(.buffer(buffer), promise: promise)
         }
     }
 
-    private func handleCompletion<C: ConnectionContext>(request: Vapor.Request,
-                                                        context: inout C,
-                                                        responseWriter: BodyStreamWriter,
-                                                        serviceStreaming: Bool,
-                                                        lastMessage: GRPCMessage)
-    where C.Exporter.ExporterRequest == GRPCMessage {
+    private func handleCompletion(request: Vapor.Request,
+                                  context: inout ConnectionContext<GRPCInterfaceExporter>,
+                                  responseWriter: BodyStreamWriter,
+                                  serviceStreaming: Bool,
+                                  lastMessage: GRPCMessage) {
         if serviceStreaming {
             responseWriter.write(.end, promise: nil)
         } else {
@@ -96,7 +95,7 @@ extension GRPCService {
         }
     }
 
-    private func handleValue(_ value: Result<Response<AnyEncodable>, Error>, responseWriter: BodyStreamWriter, serviceStreaming: Bool) {
+    private func handleValue(_ value: Result<Response<EnrichedContent>, Error>, responseWriter: BodyStreamWriter, serviceStreaming: Bool) {
         switch value {
         case let .success(response):
             // If service-streaming is enabled,
@@ -111,8 +110,8 @@ extension GRPCService {
         }
     }
 
-    func createStreamingHandler<C: ConnectionContext>(context: C, serviceStreaming: Bool = false)
-    -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> where C.Exporter == GRPCInterfaceExporter {
+    func createStreamingHandler(context: ConnectionContext<GRPCInterfaceExporter>, serviceStreaming: Bool = false)
+    -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         { (request: Vapor.Request) in
             if !self.contentTypeIsSupported(request: request) {
                 return request.eventLoop.makeFailedFuture(GRPCError.unsupportedContentType(
@@ -170,10 +169,9 @@ extension GRPCService {
     /// - Parameters:
     ///     - endpoint: The name of the endpoint that should be exposed.
     ///     - serviceStreaming: Whether this endpoint will respond using a stream.
-    func exposeEndpoint<C: ConnectionContext>(name endpoint: String,
-                                              context: C,
-                                              serviceStreaming: Bool = false)
-    throws where C.Exporter == GRPCInterfaceExporter {
+    func exposeEndpoint(name endpoint: String,
+                        context: ConnectionContext<GRPCInterfaceExporter>,
+                        serviceStreaming: Bool = false) throws {
         if methodNames.contains(endpoint) {
             throw GRPCServiceError.endpointAlreadyExists
         }

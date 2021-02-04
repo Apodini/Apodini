@@ -58,7 +58,8 @@ let package = Package(
                 .product(name: "ConsoleKit", package: "console-kit")
             ],
             exclude: [
-                "Components/ComponentBuilder.swift.gyb"
+                "Components/ComponentBuilder.swift.gyb",
+                "Relationships/RelationshipIdentificationBuilder.swift.gyb"
             ],
             resources: [
                 .process("Resources")

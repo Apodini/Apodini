@@ -7,18 +7,18 @@ import protocol FluentKit.Database
 
 struct ValidatedRequest<I: InterfaceExporter, H: Handler>: Request {
     var description: String {
-        var description = "Validated Request:\n"
+        var request = "Validated Request:\n"
         if let convertible = exporterRequest as? CustomStringConvertible {
-            description += convertible.description
+            request += convertible.description
         }
-        return description
+        return request
     }
     var debugDescription: String {
-        var debugDescription = "Validated Request:\n"
+        var request = "Validated Request:\n"
         if let convertible = exporterRequest as? CustomDebugStringConvertible {
-            debugDescription += convertible.debugDescription
+            request += convertible.debugDescription
         }
-        return debugDescription
+        return request
     }
 
     var exporter: I
