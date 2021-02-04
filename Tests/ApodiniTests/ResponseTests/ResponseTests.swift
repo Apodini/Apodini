@@ -20,6 +20,17 @@ final class ResponseTests: ApodiniTests {
         }
     }
     
+    struct EmptyResponseHandler: Handler {
+        @Environment(\.eventLoopGroup) var eventLoopGroup: EventLoopGroup
+        
+        func handle() -> EventLoopFuture<Status> {
+            eventLoopGroup
+                .next()
+                .makeSucceededFuture(Void())
+                .transform()
+        }
+    }
+    
     struct FutureBasedHandler: Handler {
         var eventLoop: EventLoop
         var message: String
@@ -67,6 +78,22 @@ final class ResponseTests: ApodiniTests {
             context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
             content: expectedContent,
             connectionEffect: .open
+        )
+    }
+    
+    func testEmptyResponseHandler() throws {
+        let handler = EmptyResponseHandler().inject(app: app)
+        let endpoint = handler.mockEndpoint()
+
+        let exporter = MockExporter<String>()
+        let context = endpoint.createConnectionContext(for: exporter)
+
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
+            Empty.self,
+            status: .noContent,
+            content: nil,
+            connectionEffect: .close
         )
     }
     

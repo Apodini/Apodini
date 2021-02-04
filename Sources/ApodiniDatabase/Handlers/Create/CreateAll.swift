@@ -12,14 +12,20 @@ public struct CreateAll<Model: DatabaseModel>: Handler {
     
     @Parameter
     private var objects: [Model]
-
-    public func handle() -> EventLoopFuture<[Model]> {
-        eventLoopGroup.next().flatten(
-            objects.map { object in
-                object.save(on: database).transform(to: object)
-            }
-        )
-    }
+    
     
     public init() {}
+    
+    
+    public func handle() -> EventLoopFuture<Response<[Model]>> {
+        eventLoopGroup.next()
+            .flatten(
+                objects.compactMap { object in
+                    object.save(on: database)
+                }
+            )
+            .map { _ in
+                .final(objects, status: .created)
+            }
+    }
 }

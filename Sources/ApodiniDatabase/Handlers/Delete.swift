@@ -11,7 +11,7 @@ public struct Delete<Model: DatabaseModel>: Handler {
     @Parameter(.http(.path))
     var id: Model.IDValue
     
-    public func handle() -> EventLoopFuture<Apodini.Response<Empty>> {
+    public func handle() -> EventLoopFuture<Status> {
         Model.find(id, on: database)
             .unwrap(orError: Abort(.notFound) )
             .flatMap { $0.delete(on: database ) }
