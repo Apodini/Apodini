@@ -94,7 +94,7 @@ extension GRPCService {
             Vapor.PathComponent(stringLiteral: endpoint)
         ]
 
-        app.on(.POST, path) { request in
+        vaporApp.on(.POST, path) { request in
             self.createClientStreamingHandler(context: context)(request)
         }
     }
