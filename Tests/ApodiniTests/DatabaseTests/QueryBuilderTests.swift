@@ -11,7 +11,7 @@ final class QueryBuilderTests: ApodiniTests {
         ]
         let queryBuilder = QueryBuilder(type: Bird.self, parameters: expectedParameters)
         
-        let birds = try queryBuilder.execute(on: app.db).wait()
+        let birds = try queryBuilder.execute(on: app.database).wait()
         XCTAssert(birds.count == 1)
         XCTAssert(birds[0].name == "Swift")
         XCTAssert(birds[0].age == 5)

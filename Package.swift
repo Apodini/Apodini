@@ -74,7 +74,8 @@ let package = Package(
                 .target(name: "ApodiniDeployRuntimeSupport")
             ],
             exclude: [
-                "Components/ComponentBuilder.swift.gyb"
+                "Components/ComponentBuilder.swift.gyb",
+                "Relationships/RelationshipIdentificationBuilder.swift.gyb"
             ],
             resources: [
                 .process("Resources")

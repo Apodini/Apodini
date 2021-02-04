@@ -20,7 +20,7 @@ open class XCTApodiniTest: XCTestCase {
     }
     
     open func database() throws -> Database {
-        try XCTUnwrap(self.app.db)
+        try XCTUnwrap(self.app.database)
     }
     
     open func addMigrations(_ migrations: Migration...) throws {

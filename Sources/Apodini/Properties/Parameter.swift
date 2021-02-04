@@ -68,6 +68,10 @@ public struct Parameter<Element: Codable>: Property {
         self.defaultValue = defaultValue
         self.name = name
         self.options = PropertyOptionSet(options)
+
+        if option(for: PropertyOptionKey.http) == .path {
+            precondition(!isOptional(Element.self), "A `PathParameter` cannot annotate a property with Optional type!")
+        }
     }
     
     
@@ -119,8 +123,13 @@ public struct Parameter<Element: Codable>: Property {
     /// Creates a new `@Parameter` that indicates input of a `Component's` `@PathParameter` based on an existing component.
     /// - Parameter id: The `UUID` that can be passed in from a parent `Component`'s `@PathParameter`.
     /// - Precondition: A `@Parameter` with a specific `http` type `.body` or `.query` can not be passed to a separate component. Please remove the specific `.http` property option or specify the `.http` property option to `.path`.
-    init(from id: UUID) {
-        self.init(id: id, options: [.http(.path)])
+    init(from id: UUID, identifying type: IdentifyingType?) {
+        var pathParameterOptions: [Option] = [.http(.path)]
+        if let type = type {
+            pathParameterOptions.append(.identifying(type))
+        }
+
+        self.init(id: id, options: pathParameterOptions)
     }
     
     

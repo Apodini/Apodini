@@ -25,7 +25,7 @@ public protocol Handler: Component {
 
 
 extension Handler {
-    /// By default, `Handler`s dont't provide any further content
+    /// By default, `Handler`s don't provide any further content
     public var content: some Component {
         EmptyComponent()
     }

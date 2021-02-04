@@ -5,7 +5,10 @@ import XCTest
 
 final class DirectoriesTests: FileHandlerTests {
     func testDirectories() {
-        let directory = Environment(\.directory).wrappedValue
+        var environment = Environment(\.directory)
+        environment.inject(app: app)
+        environment.activate()
+        let directory = environment.wrappedValue
         
         let publicDir: Directories = .public
         XCTAssert(publicDir.path(for: directory) == self.app.directory.publicDirectory)

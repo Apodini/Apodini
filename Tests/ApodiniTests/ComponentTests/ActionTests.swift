@@ -44,7 +44,7 @@ final class ActionTests: ApodiniTests {
         let endpoint = handler.mockEndpoint()
 
         let exporter = MockExporter<String>()
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         
         let result = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
@@ -65,7 +65,7 @@ final class ActionTests: ApodiniTests {
 
         let exporter = MockExporter<String>()
 
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         
         let result = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()

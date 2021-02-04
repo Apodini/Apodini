@@ -21,7 +21,7 @@ struct ConcreteUpdatableFieldPropertyVisitor: UpdatableFieldPropertyVisitor {
         if let value = updater.typed() as? V {
             property.value = value
         } else {
-            throw DecodingError.typeMismatch(V.self, DecodingError.Context(codingPath: [], debugDescription: "Failed to decode type \(updater.typed()) as \(V.self)"))
+            throw DecodingError.typeMismatch(V.self, DecodingError.Context(codingPath: [], debugDescription: "Failed to decode type \(String(describing: updater.typed())) as \(V.self)"))
         }
     }
 }
