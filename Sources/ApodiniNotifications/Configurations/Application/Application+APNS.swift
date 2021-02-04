@@ -1,6 +1,6 @@
 //
 //  Application+APNS.swift
-//  
+//
 //
 //  Created by Tim Gymnich on 23.12.20.
 //
@@ -105,7 +105,8 @@ extension Application.APNS: APNSwiftClient {
         priority: Int?,
         collapseIdentifier: String?,
         topic: String?,
-        logger: Logger?
+        logger: Logger?,
+        apnsID: UUID? = nil
     ) -> EventLoopFuture<Void> {
         self.application.apns.pool.withConnection(
             logger: logger,
@@ -119,7 +120,8 @@ extension Application.APNS: APNSwiftClient {
                 priority: priority,
                 collapseIdentifier: collapseIdentifier,
                 topic: topic,
-                logger: logger
+                logger: logger,
+                apnsID: apnsID
             )
         }
     }

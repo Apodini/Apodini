@@ -31,8 +31,8 @@ class RESTInterfaceExporterTests: ApodiniTests {
         }
 
         @Parameter(.http(.path))
-        var pathB: String?
-        var pathBParameter: Parameter<String?> {
+        var pathB: String
+        var pathBParameter: Parameter<String> {
             _pathB
         }
 
@@ -56,6 +56,14 @@ class RESTInterfaceExporterTests: ApodiniTests {
         
         enum CodingKeys: String, CodingKey {
             case data = "data"
+            case links = "_links"
+        }
+    }
+
+    struct DecodedLinksContainer: Decodable {
+        var links: [String: String]
+
+        enum CodingKeys: String, CodingKey {
             case links = "_links"
         }
     }
@@ -91,12 +99,12 @@ class RESTInterfaceExporterTests: ApodiniTests {
         let endpoint = handler.mockEndpoint()
 
         let exporter = RESTInterfaceExporter(app)
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
 
         let body = Bird(name: "Rudi", age: 12)
         let bodyData = ByteBuffer(data: try JSONEncoder().encode(body))
 
-        let uri = URI("http://example.de/test/a?param0=value0")
+        let uri = URI("http://example.de/test/a/b?param0=value0")
 
         let request = Vapor.Request(
                 application: application,
@@ -107,6 +115,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         )
         // we hardcode the pathId currently here
         request.parameters.set("\(handler.pathAParameter.id)", to: "a")
+        request.parameters.set("\(handler.pathBParameter.id)", to: "b")
 
         let result = try context.handle(request: request)
                 .wait()
@@ -118,7 +127,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         XCTAssertEqual(responseValue.param0, "value0")
         XCTAssertEqual(responseValue.param1, nil)
         XCTAssertEqual(responseValue.pathA, "a")
-        XCTAssertEqual(responseValue.pathB, nil)
+        XCTAssertEqual(responseValue.pathB, "b")
         XCTAssertEqual(responseValue.bird, body)
     }
 
@@ -169,6 +178,34 @@ class RESTInterfaceExporterTests: ApodiniTests {
             "/v1/api/user", "/v1/api/user", "/v1/api/post"
         ]
         XCTAssert(endpointPaths.compareIgnoringOrder(expectedEndpointPaths))
+    }
+
+    @ComponentBuilder
+    var webserviceWithoutRoot: some Component {
+        Group("test1") {
+            Text("Test1")
+        }
+        Group("test2") {
+            Text("Test2")
+        }
+        Group("test3") {
+            Text("Test3")
+        }
+    }
+
+    func testDefaultRootHandler() throws {
+        let builder = SemanticModelBuilder(app)
+            .with(exporter: RESTInterfaceExporter.self)
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        webserviceWithoutRoot.accept(visitor)
+        visitor.finishParsing()
+
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "/") { response in
+            XCTAssertEqual(response.status, .ok)
+            let container = try response.content.decode(DecodedLinksContainer.self)
+            let prefix = "http://127.0.0.1:8080"
+            XCTAssertEqual(container.links, ["test1": prefix + "/test1", "test2": prefix + "/test2", "test3": prefix + "/test3"])
+        }
     }
 }
 

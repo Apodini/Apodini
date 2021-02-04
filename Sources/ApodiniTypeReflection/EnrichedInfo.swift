@@ -3,7 +3,6 @@
 //
 
 import Runtime
-import Apodini
 
 public struct PropertyInfo: Equatable, Hashable {
     public let name: String
@@ -16,13 +15,13 @@ public struct PropertyInfo: Equatable, Hashable {
 }
 
 public struct EnrichedInfo {
-    public enum Cardinality {
+    public enum Cardinality: Equatable, Hashable {
         case zeroToOne
         case exactlyOne
         case zeroToMany(CollectionContext)
     }
 
-    public enum CollectionContext {
+    public enum CollectionContext: Equatable, Hashable {
         case array
         indirect case dictionary(key: EnrichedInfo, value: EnrichedInfo)
     }
@@ -90,7 +89,9 @@ public extension EnrichedInfo {
 
 extension EnrichedInfo: Hashable {
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(String(describing: "\(self.typeInfo.name)\(self.propertyInfo?.name)\(self.cardinality)"))
+        hasher.combine(typeInfo.name)
+        hasher.combine(propertyInfo)
+        hasher.combine(cardinality)
     }
 }
 
@@ -104,28 +105,3 @@ extension EnrichedInfo: Equatable {
     }
 }
 
-extension EnrichedInfo.Cardinality: Equatable {
-    public static func == (lhs: Self, rhs: Self) -> Bool {
-        switch (lhs, rhs) {
-        case (.zeroToOne, .zeroToOne), (.exactlyOne, .exactlyOne):
-            return true
-        case let (.zeroToMany(lhsCollection), .zeroToMany(rhsCollection)):
-            return (lhsCollection) == (rhsCollection)
-        default:
-            return false
-        }
-    }
-}
-
-extension EnrichedInfo.CollectionContext: Equatable {
-    public static func == (lhs: Self, rhs: Self) -> Bool {
-        switch (lhs, rhs) {
-        case (.array, .array):
-            return true
-        case let (.dictionary(lhsKey, lhsValue), .dictionary(rhsKey, rhsValue)):
-            return (lhsKey, lhsValue) == (rhsKey, rhsValue)
-        default:
-            return false
-        }
-    }
-}

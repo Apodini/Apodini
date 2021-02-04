@@ -6,24 +6,25 @@ import class NIO.EventLoopFuture
 import protocol NIO.EventLoop
 import struct NIO.EventLoopPromise
 
-class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
-    private var endpoint: EndpointInstance<H>
-    private var exporter: I
+struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
+    private let instance: EndpointInstance<H>
+    private let exporter: I
 
     init(endpoint: EndpointInstance<H>, exporter: I) {
-        self.endpoint = endpoint
+        self.instance = endpoint
         self.exporter = exporter
     }
 
     func callAsFunction(
+        with validatedRequest: ValidatedRequest<I, H>,
         on connection: Connection
-    ) -> EventLoopFuture<Response<AnyEncodable>> {
+    ) -> EventLoopFuture<Response<EnrichedContent>> {
         guard let request = connection.request else {
             fatalError("Tried to handle request without request.")
         }
         
         
-        let guardEventLoopFutures = endpoint.guards.map { requestGuard -> EventLoopFuture<Void> in
+        let guardEventLoopFutures = instance.guards.map { requestGuard -> EventLoopFuture<Void> in
             connection.enterConnectionContext(with: requestGuard) { requestGuard in
                 requestGuard.executeGuardCheck(on: request)
             }
@@ -32,14 +33,33 @@ class InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
         return EventLoopFuture<Void>
             .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
             .flatMapThrowing { _ in
-                try connection.enterConnectionContext(with: self.endpoint.handler) { handler in
+                try connection.enterConnectionContext(with: self.instance.handler) { handler in
                     try handler.handle()
                         .transformToResponse(on: request.eventLoop)
                 }
             }
-            .flatMap { typedAction -> EventLoopFuture<Response<AnyEncodable>> in
-                self.transformResponse(typedAction.typeErasured, using: connection, on: request.eventLoop, using: self.endpoint.responseTransformers)
+            .flatMap { typedAction -> EventLoopFuture<Response<EnrichedContent>> in
+                let transformed = self.transformResponse(
+                    typedAction.typeErasured,
+                    using: connection,
+                    on: request.eventLoop,
+                    using: self.instance.responseTransformers
+                )
+
+                return transformed.map { response -> Response<EnrichedContent> in
+                    mapToEnrichedContent(response, validatedRequest: validatedRequest)
+                }
             }
+    }
+
+    private func mapToEnrichedContent(_ response: Response<AnyEncodable>, validatedRequest: ValidatedRequest<I, H>) -> Response<EnrichedContent> {
+        response.map { anyEncodable in
+            EnrichedContent(
+                for: instance.endpoint,
+                response: anyEncodable,
+                parameters: validatedRequest.validatedParameterValues
+            )
+        }
     }
 
     private func transformResponse(_ response: Response<AnyEncodable>,

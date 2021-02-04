@@ -7,7 +7,7 @@ final class UpdaterTests: ApodiniTests {
     func testSingleParameterUpdater() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
         let dbBird = try bird
-            .save(on: self.app.db)
+            .save(on: self.app.database)
             .transform(to: bird)
             .wait()
         XCTAssertNotNil(dbBird.id)
@@ -30,7 +30,7 @@ final class UpdaterTests: ApodiniTests {
     func testModelUpdater() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
         let dbBird = try bird
-            .save(on: self.app.db)
+            .save(on: self.app.database)
             .transform(to: bird)
             .wait()
         XCTAssertNotNil(dbBird.id)

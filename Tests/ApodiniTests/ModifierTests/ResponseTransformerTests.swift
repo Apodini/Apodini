@@ -183,7 +183,7 @@ final class ResponseTransformerTests: ApodiniTests {
         TestWebService.main(app: app)
         
         try app.vapor.app.test(.GET, "/v1/nothing") { response in
-            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(response.status, .noContent)
             XCTAssertEqual(response.body.readableBytes, 0)
         }
         
@@ -198,7 +198,7 @@ final class ResponseTransformerTests: ApodiniTests {
         }
         
         try app.vapor.app.test(.GET, "/v1/end") { response in
-            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(response.status, .noContent)
             XCTAssertEqual(response.body.readableBytes, 0)
         }
     }

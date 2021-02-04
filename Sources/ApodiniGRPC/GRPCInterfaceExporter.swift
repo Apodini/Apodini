@@ -11,23 +11,22 @@ import Apodini
 @_implementationOnly import NIOHPACK
 @_implementationOnly import ProtobufferCoding
 
-class GRPCInterfaceExporter: InterfaceExporter {
+/// Apodini Interface Exporter for gRPC
+public final class GRPCInterfaceExporter: InterfaceExporter {
     let app: Apodini.Application
     var services: [String: GRPCService]
     var parameters: [UUID: Int]
 
-    required init(_ app: Apodini.Application) {
+    /// Initalize `GRPCInterfaceExporter` from `Application`
+    public required init(_ app: Apodini.Application) {
         self.app = app
         self.services = [:]
         self.parameters = [:]
     }
 
-    func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let serviceName = gRPCServiceName(from: endpoint)
         let methodName = gRPCMethodName(from: endpoint)
-
-        // kick off name collision check
-        _ = endpoint.exportParameters(on: self)
 
         // generate and store the field tags for all parameters
         // of this endpoint
@@ -79,8 +78,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
         }
     }
 
-    /// The GRPC exporter handles all parameters equally as body parameters
-    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: GRPCMessage) throws -> Type?? {
+    public func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: GRPCMessage) throws -> Type?? {
         guard let fieldTag = getFieldTag(for: parameter) else {
             // If this occurs, something went fundamentally wrong in usage
             // of the GRPC exporter.
@@ -166,7 +164,7 @@ private struct RequestWrapper<T>: Decodable where T: Decodable {
 /// be decoding multiple requests at the same time.
 private var fieldNumber = ThreadSpecificVariable<FieldNumber>()
 
-class FieldNumber {
+final class FieldNumber {
     private var tag = 1
 
     /// Returns the field-number for the current thread.

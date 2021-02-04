@@ -1,6 +1,6 @@
 //
 //  EnvironmentTests.swift
-//  
+//
 //
 //  Created by Alexander Collins on 08.12.20.
 //
@@ -13,86 +13,80 @@ import XCTApodini
 final class EnvironmentTests: ApodiniTests {
     struct BirdHandler: Handler {
         @Apodini.Environment(\.birdFacts) var birdFacts: BirdFacts
-        
+
         func handle() -> String {
             birdFacts.someFact
         }
     }
 
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        EnvironmentValues.shared = EnvironmentValues()
-    }
-
     func testEnvironmentInjection() throws {
-        let handler = BirdHandler()
-        let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
-
-        let response: String = request.enterRequestContext(with: handler) { handler in
-            handler.handle()
-        }
+        let response = try XCTUnwrap(mockQuery(component: BirdHandler(), value: String.self, app: app))
 
         let birdFacts = BirdFacts()
 
-        EnvironmentValues.shared.birdFacts = birdFacts
+        app.birdFacts = birdFacts
         XCTAssert(response == birdFacts.someFact)
     }
-    
+
     func testEnvironmentObjectInjection() throws {
         struct AnotherBirdHandler: Handler {
             @Apodini.Environment(\Keys.bird) var bird: BirdFacts
-            
+
             func handle() -> String {
                 bird.dodoFact = "Until humans, the Dodo had no predators"
                 return bird.dodoFact
             }
         }
-        
-        struct Keys: KeyChain {
+
+        struct Keys: EnvironmentAccessible {
             var bird: BirdFacts
         }
-        
+
         let birdFacts = BirdFacts()
         EnvironmentObject(birdFacts, \Keys.bird).configure(app)
-        
-        let handler = AnotherBirdHandler()
-        let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
 
-        let response: String = request.enterRequestContext(with: handler) { handler in
-            handler.handle()
-        }
+        let response = try XCTUnwrap(mockQuery(component: AnotherBirdHandler(), value: String.self, app: app))
 
         XCTAssertEqual(response, birdFacts.dodoFact)
     }
-    
+
     func testDuplicateEnvironmentObjectInjection() throws {
-        struct Keys: KeyChain {
+        struct Keys: EnvironmentAccessible {
             var bird: BirdFacts
         }
-        
+
         let birdFacts = BirdFacts()
         let birdFacts2 = BirdFacts()
         birdFacts2.someFact = ""
-        
+
         EnvironmentObject(birdFacts, \Keys.bird).configure(app)
         EnvironmentObject(birdFacts2, \Keys.bird).configure(app)
         
-        XCTAssertEqual(birdFacts2.someFact, Environment(\Keys.bird).wrappedValue.someFact)
+        var environment = Environment(\Keys.bird)
+        environment.inject(app: app)
+        environment.activate()
+
+        XCTAssertEqual(birdFacts2.someFact, environment.wrappedValue.someFact)
     }
-    
+
     func testUpdateEnvironmentValue() throws {
         let birdFacts = BirdFacts()
         let newFact = "Until humans, the Dodo had no predators"
         birdFacts.dodoFact = newFact
 
-        EnvironmentValues.shared.birdFacts = birdFacts
-        let injectedValue = EnvironmentValues.shared[keyPath: \EnvironmentValues.birdFacts]
+        app.birdFacts = birdFacts
+        
+        var environment = Environment(\Application.birdFacts)
+        environment.inject(app: app)
+        environment.activate()
+        let injectedValue = environment.wrappedValue
 
         XCTAssert(injectedValue.dodoFact == newFact)
     }
 
     func testShouldAccessDynamicEnvironmentValueFirst() throws {
-        let handler = BirdHandler()
+        var handler = BirdHandler()
+        activate(&handler)
         let staticBirdFacts = BirdFacts()
 
         let dynamicBirdFacts = BirdFacts()
@@ -102,11 +96,12 @@ final class EnvironmentTests: ApodiniTests {
         let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
 
         // inject the static value via the shared object
-        EnvironmentValues.shared.birdFacts = staticBirdFacts
+        app.birdFacts = staticBirdFacts
         // inject the dynamic value via the .withEnvironment
         let response: String = request.enterRequestContext(with: handler) { handler in
             handler
-                .environment(dynamicBirdFacts, for: \EnvironmentValues.birdFacts)
+                .inject(app: app)
+                .environment(dynamicBirdFacts, for: \Application.birdFacts)
                 .handle()
         }
 
@@ -114,70 +109,62 @@ final class EnvironmentTests: ApodiniTests {
     }
 
     func testShouldAccessStaticIfNoDynamicAvailable() throws {
-        let handler = BirdHandler()
         let staticBirdFacts = BirdFacts()
         let staticFact = "Until humans, the Dodo had no predators"
         staticBirdFacts.someFact = staticFact
 
-        let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
-
         // inject the static value via the shared object
-        EnvironmentValues.shared.birdFacts = staticBirdFacts
+        app.birdFacts = staticBirdFacts
 
-        let response: String = request.enterRequestContext(with: handler) { handler in
-            handler.handle()
-        }
+        let response = try XCTUnwrap(mockQuery(component: BirdHandler(), value: String.self, app: app))
 
         XCTAssertEqual(response, staticBirdFacts.someFact)
     }
 
     func testShouldReturnDefaultIfNoEnvironment() throws {
-        let handler = BirdHandler()
-        let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
-
-        let response: String = request.enterRequestContext(with: handler) { handler in
-            handler.handle()
-        }
+        app.birdFacts = BirdFacts() // Resets value
+     
+        let response = try XCTUnwrap(mockQuery(component: BirdHandler(), value: String.self, app: app))
 
         XCTAssertEqual(response, BirdFacts().someFact)
     }
-    
-    func testCustomEnvironment() throws {
-        XCTAssertRuntimeFailure(EnvironmentValues.shared[\KeyStore.test])
-        
-        EnvironmentValues.shared.values[ObjectIdentifier(\KeyStore.test)] = "Bird"
-        XCTAssert(EnvironmentValues.shared[\KeyStore.test] == "Bird")
-    }
-    
-    func testAccessApplicationEnvironment() {
-        EnvironmentValues.shared.values[ObjectIdentifier(Application.Type.self)] = app
 
-        XCTAssert(Environment(\.eventLoopGroup).wrappedValue === app.eventLoopGroup)
+    func testCustomEnvironment() throws {
+        XCTAssertNil(self.app.storage.get(\KeyStore.test))
+
+        app.storage.set(\KeyStore.test, to: "Bird")
+        XCTAssert(app.storage.get(\KeyStore.test) == "Bird")
     }
-    
+
     func testFaillingApplicationEnvironmentAccess() {
-        XCTAssertRuntimeFailure(Environment(\.apns).wrappedValue,
-                                "Key path not found. The web service wasn't setup correctly")
+        XCTAssertRuntimeFailure(Environment(\.threadPool).wrappedValue,
+                                "The Application instance wasn't injected correctly.")
+        
+        var environment = Environment(\.locks)
+        environment.activate()
+        XCTAssertRuntimeFailure(environment.wrappedValue,
+                                "The wrapped value was accessed before it was activated.")
     }
 }
 
 class BirdFacts {
     var someFact = "Did you know that Apodinae are a subfamily of swifts?"
-    
+
     var dodoFact = "The Dodo lived on the Island of Mauritius"
 }
 
-enum BirdFactsEnvironmentKey: EnvironmentKey {
+enum BirdFactsEnvironmentKey: StorageKey {
+    typealias Value = BirdFacts
     static var defaultValue = BirdFacts()
 }
 
-extension EnvironmentValues {
+extension Application {
     var birdFacts: BirdFacts {
-        get { self[BirdFactsEnvironmentKey.self] }
-        set { self[BirdFactsEnvironmentKey.self] = newValue }
+        get { BirdFactsEnvironmentKey.defaultValue }
+        set { BirdFactsEnvironmentKey.defaultValue = newValue }
     }
 }
 
-struct KeyStore: KeyChain {
+struct KeyStore: EnvironmentAccessible {
     var test: String
 }

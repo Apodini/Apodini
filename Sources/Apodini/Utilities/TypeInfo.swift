@@ -8,6 +8,7 @@
 import Foundation
 @_implementationOnly import Runtime
 
+// swiftlint:disable missing_docs
 
 // MARK: - Mangled Name
 public func mangledName(of type: Any.Type) -> String {

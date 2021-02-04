@@ -7,25 +7,30 @@
 
 import Apodini
 import ApodiniVaporSupport
-import Fluent
-import WebSocketInfrastructure // @_implementationOnly is removed as SomeInput conforms to a public protocol
 @_implementationOnly import OpenCombine
+@_implementationOnly import Fluent
 import NIOWebSocket
 
 // MARK: Exporter
 
-class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
+/// The WebSocket exporter uses a custom JSON based protocol on top of WebSocket's text messages.
+/// This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel.
+/// The Apodini service listens on /apodini/websocket for clients that want to communicate via the WebSocket Interface Exporter.
+public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private let app: Application
     
-    private let router: WebSocketInfrastructure.Router
-    
-    required init(_ app: Application) {
+    private let router: Router
+
+    /// Initalize a `WebSocketInterfaceExporter` from an `Application`
+    public required init(_ app: Application) {
         self.app = app
         self.router = VaporWSRouter(app.vapor.app, logger: app.logger)
     }
 
-    func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self)
+    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
+        let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self).map { parameter in
+            (name: parameter.0, value: parameter.1.parameter)
+        }
         
         let emptyInput = SomeInput(parameters: inputParameters.reduce(into: [String: InputParameter](), { result, parameter in
             result[parameter.name] = parameter.value
@@ -33,7 +38,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         
         self.router.register({(clientInput: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, _: Database?) -> (
                     defaultInput: SomeInput,
-                    output: AnyPublisher<Message<AnyEncodable>, Error>
+                    output: AnyPublisher<Message<EnrichedContent>, Error>
                 ) in
             var cancellables: Set<AnyCancellable> = []
             
@@ -58,22 +63,22 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
                 input.send(.observation(observedObject))
             })
             
-            var context = endpoint.createConnectionContext(for: self)
+            let context = endpoint.createConnectionContext(for: self)
             
             context.register(listener: listener)
             
             // We need a second gap in the publisher-chain here so we can map freely between
             // `value`s and `completion`s.
-            let output: PassthroughSubject<Message<AnyEncodable>, Error> = PassthroughSubject()
+            let output: PassthroughSubject<Message<EnrichedContent>, Error> = PassthroughSubject()
             // Handle all incoming client-messages and observations one after another.
             // The `syncMap` automatically awaits the future, while `buffer` makes sure
             // messages are never dropped.
             input
                 .buffer()
-                .syncMap { evaluation -> EventLoopFuture<Response<AnyEncodable>> in
+                .syncMap { evaluation -> EventLoopFuture<Response<EnrichedContent>> in
                     switch evaluation {
                     case .input(let inputValue):
-                        return context.handle(request: inputValue, eventLoop: eventLoop, final: false)
+                        return context.handle(request: WebSocketInput(inputValue), eventLoop: eventLoop, final: false)
                     case .observation(let observedObject):
                         return context.handle(eventLoop: eventLoop, observedObject: observedObject)
                     }
@@ -82,7 +87,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
                     // The completion is also synchronized by `syncMap` it waits for any future
                     // to complete before forwarding it.
                     receiveCompletion: { completion in
-                        Self.handleCompletion(completion: completion, context: &context, eventLoop: eventLoop, emptyInput: emptyInput, output: output)
+                        Self.handleCompletion(completion: completion, context: context, eventLoop: eventLoop, emptyInput: emptyInput, output: output)
                         // We have to reference the cancellable here so it stays in memory and isn't cancled early.
                         cancellables.removeAll()
                     },
@@ -98,24 +103,24 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             return (defaultInput: emptyInput, output: output.eraseToAnyPublisher())
         }, on: endpoint.absolutePath.build(with: WebSocketPathBuilder.self))
     }
-    
-    func retrieveParameter<Type>(
+
+    public func retrieveParameter<Type>(
         _ parameter: EndpointParameter<Type>,
-        for request: SomeInput
+        for request: WebSocketInput
     ) throws -> Type?? where Type: Decodable, Type: Encodable {
-        if let inputParameter = request.parameters[parameter.name] as? WebSocketInfrastructure.BasicInputParameter<Type> {
+        if let inputParameter = request.input.parameters[parameter.name] as? BasicInputParameter<Type> {
             return inputParameter.value
         } else {
             return nil
         }
     }
-    
-    func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, InputParameter) where Type: Decodable, Type: Encodable {
-        (parameter.name, WebSocketInfrastructure.BasicInputParameter<Type>())
+
+    public func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable, Type: Encodable {
+        (parameter.name, WebSocketParameter(BasicInputParameter<Type>()))
     }
     
     #if DEBUG
-    static func messagePrefix(for error: StandardErrorContext) -> String? {
+    public static func messagePrefix(for error: StandardErrorContext) -> String? {
         switch error.option(for: .errorType) {
         case .badInput:
             return "You messed up"
@@ -134,15 +139,15 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
     #else
-    typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
+    public typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
     #endif
     
     private static func handleCompletion(
         completion: Subscribers.Completion<Never>,
-        context: inout AnyConnectionContext<WebSocketInterfaceExporter>,
+        context: ConnectionContext<WebSocketInterfaceExporter>,
         eventLoop: EventLoop,
         emptyInput: SomeInput,
-        output: PassthroughSubject<Message<AnyEncodable>, Error>
+        output: PassthroughSubject<Message<EnrichedContent>, Error>
     ) {
         switch completion {
         case .finished:
@@ -150,7 +155,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             // `Handler` one more time before the connection is closed. We have to
             // manually await this future. We use an `emptyInput`, which is aggregated
             // to the latest input.
-            context.handle(request: emptyInput, eventLoop: eventLoop, final: true).whenComplete { result in
+            context.handle(request: WebSocketInput(emptyInput), eventLoop: eventLoop, final: true).whenComplete { result in
                 switch result {
                 case .success(let response):
                     Self.handleCompletionResponse(result: response, output: output)
@@ -162,8 +167,8 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     }
     
     private static func handleValue(
-        result: Result<Response<AnyEncodable>, Error>,
-        output: PassthroughSubject<Message<AnyEncodable>, Error>) {
+        result: Result<Response<EnrichedContent>, Error>,
+        output: PassthroughSubject<Message<EnrichedContent>, Error>) {
         switch result {
         case .success(let response):
             Self.handleRegularResponse(result: response, output: output)
@@ -173,8 +178,8 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     }
     
     private static func handleCompletionResponse(
-        result: Response<AnyEncodable>,
-        output: PassthroughSubject<Message<AnyEncodable>, Error>) {
+        result: Response<EnrichedContent>,
+        output: PassthroughSubject<Message<EnrichedContent>, Error>) {
         switch result {
         case .nothing:
             output.send(completion: .finished)
@@ -190,8 +195,8 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     }
     
     private static func handleRegularResponse(
-        result: Response<AnyEncodable>,
-        output: PassthroughSubject<Message<AnyEncodable>, Error>) {
+        result: Response<EnrichedContent>,
+        output: PassthroughSubject<Message<EnrichedContent>, Error>) {
         switch result {
         case .nothing:
             break
@@ -207,7 +212,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     
     private static func handleError(
         error: Error,
-        output: PassthroughSubject<Message<AnyEncodable>, Error>,
+        output: PassthroughSubject<Message<EnrichedContent>, Error>,
         close: Bool = false) {
         let error = error.apodiniError
         switch error.option(for: .webSocketConnectionConsequence) {
@@ -225,10 +230,11 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     }
 }
 
+
 // MARK: Handling of ObservedObject
 
 private struct DelegatingObservedListener: ObservedListener {
-    func onObservedDidChange<C>(_ observedObject: AnyObservedObject, in context: C) where C: ConnectionContext {
+    func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<WebSocketInterfaceExporter>) {
         callback(observedObject)
     }
     
@@ -247,19 +253,42 @@ private enum Evaluation {
     case observation(AnyObservedObject)
 }
 
+// MARK: Input Definition
+
+/// A struct that wrapps the `WebSocketInterfaceExporter`'s internal representation of
+/// an `@Parameter`.
+public struct WebSocketParameter {
+    internal var parameter: InputParameter
+    
+    internal init(_ parameter: InputParameter) {
+        self.parameter = parameter
+    }
+}
+
+/// A struct that wrapps the `WebSocketInterfaceExporter`'s internal representation of
+/// the complete input of an endpoint.
+public struct WebSocketInput {
+    internal var input: SomeInput
+    
+    internal init(_ input: SomeInput) {
+        self.input = input
+    }
+}
+
+
 // MARK: Input Accumulation
 
-extension SomeInput: ExporterRequest {
-    public func reduce(to new: SomeInput) -> SomeInput {
+extension WebSocketInput: ExporterRequest {
+    public func reduce(to new: WebSocketInput) -> WebSocketInput {
         var newParameters: [String: InputParameter] = [:]
-        for (name, value) in new.parameters {
-            if let reducible = self.parameters[name] as? ReducibleParameter {
+        for (name, value) in new.input.parameters {
+            if let reducible = self.input.parameters[name] as? ReducibleParameter {
                 newParameters[name] = reducible.reduce(to: value)
             } else {
                 newParameters[name] = value
             }
         }
-        return SomeInput(parameters: newParameters)
+        return WebSocketInput(SomeInput(parameters: newParameters))
     }
 }
 

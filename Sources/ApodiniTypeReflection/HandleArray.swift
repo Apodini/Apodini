@@ -3,6 +3,7 @@
 //
 
 import Apodini
+// swiftlint:disable missing_docs
 
 public enum ArrayDidEncounterCircle {}
 

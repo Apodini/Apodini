@@ -17,7 +17,8 @@ import Apodini
  }
 
  extension PropertyOptionKey where PropertyNameSpace == ParameterOptionNameSpace, Option == GRPCParameterOptions {
-     public static let gRPC = PropertyOptionKey<ParameterOptionNameSpace, GRPCParameterOptions>()
+    /// A gRPC specific `PropertyOptionKey`.
+    public static let gRPC = PropertyOptionKey<ParameterOptionNameSpace, GRPCParameterOptions>()
  }
 
  extension AnyPropertyOption where PropertyNameSpace == ParameterOptionNameSpace {

@@ -8,7 +8,6 @@
 import Apodini
 import Vapor
 
-
 extension Vapor.Application {
     struct LifecycleHandlery: Apodini.LifecycleHandler {
         var app: Vapor.Application
@@ -40,12 +39,17 @@ extension Vapor.Application {
             }
         })
         self.http.server.configuration.tlsConfiguration = app.http.tlsConfiguration
+        self.routes.defaultMaxBodySize = "1mb"
         self.logger = app.logger
     }
 }
 
 
 public extension Apodini.Application {
+<<<<<<< HEAD:Sources/ApodiniVaporSupport/Configurations/Application/Application+Vapor.swift
+=======
+    /// Configuration related to vapor.
+>>>>>>> modularization:Sources/Apodini/Configurations/Application/Application+Vapor.swift
     var vapor: VaporApp {
         .init(application: self)
     }
@@ -57,6 +61,10 @@ public extension Apodini.Application {
             typealias Value = Vapor.Application
         }
 
+<<<<<<< HEAD:Sources/ApodiniVaporSupport/Configurations/Application/Application+Vapor.swift
+=======
+        /// The shared vapor application instance.
+>>>>>>> modularization:Sources/Apodini/Configurations/Application/Application+Vapor.swift
         public var app: Vapor.Application {
             if self.application.storage[ConfigurationKey.self] == nil {
                 self.initialize()

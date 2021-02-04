@@ -7,9 +7,9 @@
 
 import XCTest
 import NIO
-import WebSocketInfrastructure
 import OpenCombine
 @testable import Apodini
+@testable import ApodiniWebSocket
 
 class CombineSyncMapTests: ApodiniTests {
     static let blockTime: UInt32 = 10000

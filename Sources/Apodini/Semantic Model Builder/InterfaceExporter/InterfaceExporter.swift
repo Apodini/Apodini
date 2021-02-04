@@ -4,17 +4,6 @@
 
 import protocol NIO.EventLoop
 
-/// The Protocol any Exporter Request type must conform to
-public protocol ExporterRequest: Reducible {}
-
-/// When your `ExporterRequest` conforms to this protocol, it indicates that it delivers
-/// its own `EventLoop` out of the box. Having that conformance you can use a shorthand
-/// `ConnectionContext.handle(...)` method on without specifying an `EventLoop`.
-public protocol WithEventLoop {
-    /// Defines the associated `EventLoop`.
-    var eventLoop: EventLoop { get }
-}
-
 /// This is the base protocol shared by any Exporter type supported by Apodini.
 /// Currently the following two types are supported:
 /// - `InterfaceExporter`: This type should be used for Exporters serving an accessible WebService

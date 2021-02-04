@@ -6,22 +6,26 @@
 //
 
 import Apodini
-
+import ApodiniREST
+import ApodiniGRPC
+import ApodiniProtobuffer
+import ApodiniOpenAPI
+import ApodiniWebSocket
 
 struct TestWebService: Apodini.WebService {
-    @PathParameter var userId: Int
-    
+    let greeterRelationship = Relationship(name: "greeter")
+
     var content: some Component {
         // Hello World! 👋
         Text("Hello World! 👋")
             .response(EmojiTransformer(emojis: "🎉"))
-        
+
         // Bigger Subsystems:
         AuctionComponent()
-        GreetComponent()
-        RamdomComponent()
+        GreetComponent(greeterRelationship: greeterRelationship)
+        RandomComponent(greeterRelationship: greeterRelationship)
         SwiftComponent()
-        UserComponent(userId: _userId)
+        UserComponent(greeterRelationship: greeterRelationship)
     }
     
     var configuration: Configuration {
@@ -31,6 +35,12 @@ struct TestWebService: Apodini.WebService {
             swaggerUiEndpoint: "oas-ui",
             title: "The great TestWebService - presented by Apodini"
         )
+        ExporterConfiguration()
+            .exporter(RESTInterfaceExporter.self)
+            .exporter(GRPCInterfaceExporter.self)
+            .exporter(ProtobufferInterfaceExporter.self)
+            .exporter(OpenAPIInterfaceExporter.self)
+            .exporter(WebSocketInterfaceExporter.self)
     }
 }
 

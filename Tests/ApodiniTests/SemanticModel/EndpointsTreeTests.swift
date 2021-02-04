@@ -119,7 +119,7 @@ final class EndpointsTreeTests: ApodiniTests {
         let endpoint = handler.mockEndpoint(guards: [ { printGuard } ], responseTransformers: [ { transformer } ])
 
         // creating a context for the exporter
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
 
         // handle a request (The actual request is unused in the MockExporter)
         let response = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())

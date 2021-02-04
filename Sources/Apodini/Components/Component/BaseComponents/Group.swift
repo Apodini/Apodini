@@ -31,7 +31,9 @@ public struct Group<Content: Component>: Component, SyntaxTreeVisitable {
     public func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.enterContent {
             visitor.enterComponentContext {
-                visitor.addContext(PathComponentContextKey.self, value: pathComponents, scope: .environment)
+                var component = pathComponents
+                component.markEnd()
+                visitor.addContext(PathComponentContextKey.self, value: component, scope: .environment)
                 content.accept(visitor)
             }
         }

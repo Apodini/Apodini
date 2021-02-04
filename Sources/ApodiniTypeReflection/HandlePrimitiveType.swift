@@ -3,6 +3,7 @@
 //
 
 import Apodini
+// swiftlint:disable missing_docs
 
 public func handlePrimitiveType(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     isSupportedScalarType(node.value.typeInfo.type)

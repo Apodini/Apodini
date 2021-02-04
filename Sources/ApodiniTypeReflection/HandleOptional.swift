@@ -3,6 +3,7 @@
 //
 
 import Apodini
+// swiftlint:disable missing_docs
 
 public func handleOptional(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     guard isOptional(node.value.typeInfo.type),

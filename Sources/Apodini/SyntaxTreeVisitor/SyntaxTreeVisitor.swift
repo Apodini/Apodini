@@ -5,6 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
+@_implementationOnly import AssociatedTypeRequirementsVisitor
 
 /// The scope of a value associated with a `ContextKey`
 public enum Scope {
@@ -19,6 +20,7 @@ public enum Scope {
 ///
 /// Each `Component` that needs to provide a custom `accept` implementation **must** conform to `SyntaxTreeVisitable` and **must** provide a custom `accept` implementation.
 public protocol SyntaxTreeVisitable {
+    /// Accept a visiting SyntaxTreeVisitor
     func accept(_ visitor: SyntaxTreeVisitor)
 }
 
@@ -91,6 +93,14 @@ public class SyntaxTreeVisitor {
         // We increase the component level specific `currentNodeIndexPath` by one for each `Handler` visited in the same component level to uniquely identify `Handlers`
         // across multiple runs of an Apodini web service.
         addContext(HandlerIndexPath.ContextKey.self, value: formHandlerIndexPathForCurrentNode(), scope: .current)
+
+        let responseTransformers = currentNode.getContextValue(for: ResponseTransformerContextKey.self)
+        let responseType = responseTransformers.responseType(for: H.self)
+
+        // Intermediate solution to parse `Content` types conforming to `WithRelationships`
+        // until the Metadata DSL creates a unified solution for such metadata.
+        let visitor = StandardRelationshipsVisitor(visitor: self)
+        visitor(responseType)
         
         // We capture the currentContextNode and make a copy that will be used when executing the request as
         // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the

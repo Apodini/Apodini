@@ -3,6 +3,7 @@
 //
 
 import Apodini
+// swiftlint:disable missing_docs
 
 public func handleDictionary(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     let typeInfo = node.value.typeInfo

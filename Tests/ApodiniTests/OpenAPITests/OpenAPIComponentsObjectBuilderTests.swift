@@ -6,6 +6,7 @@ import XCTest
 import ApodiniTypeReflection
 @_implementationOnly import OpenAPIKit
 @testable import Apodini
+@testable import ApodiniVaporSupport
 @testable import ApodiniOpenAPI
 
 final class OpenAPIComponentsObjectBuilderTests: XCTestCase {

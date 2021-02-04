@@ -2,6 +2,7 @@
 //  Created by Nityananda on 26.11.20.
 //
 
+// swiftlint:disable missing_docs
 // MARK: - Tree
 
 // swiftlint:disable syntactic_sugar
@@ -28,7 +29,7 @@ public struct Node<T> {
     }
 }
 
-extension Node {
+public extension Node {
     /// Initializes an instance of `Node`.
     ///
     /// Initialize a `Node` tree from a data structure that already resembles a tree.

@@ -11,11 +11,9 @@ import Apodini
 
 // MARK: Client streaming request handler
 extension GRPCService {
-    private func drainBody<C: ConnectionContext>(from request: Vapor.Request,
-                                                 using context: C,
-                                                 promise: EventLoopPromise<Vapor.Response>)
-    where C.Exporter == GRPCInterfaceExporter {
-        var context = context
+    private func drainBody(from request: Vapor.Request,
+                           using context: ConnectionContext<GRPCInterfaceExporter>,
+                           promise: EventLoopPromise<Vapor.Response>) {
         var lastMessage: GRPCMessage?
         request.body.drain { (bodyStream: BodyStreamResult) in
             switch bodyStream {
@@ -68,8 +66,7 @@ extension GRPCService {
         }
     }
 
-    func createClientStreamingHandler<C: ConnectionContext>(context: C)
-    -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> where C.Exporter == GRPCInterfaceExporter {
+    func createClientStreamingHandler(context: ConnectionContext<GRPCInterfaceExporter>) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         { (request: Vapor.Request) in
             if !self.contentTypeIsSupported(request: request) {
                 return request.eventLoop.makeFailedFuture(GRPCError.unsupportedContentType(
@@ -87,8 +84,7 @@ extension GRPCService {
     /// The endpoint will be accessible at [host]/[serviceName]/[endpoint].
     /// - Parameters:
     ///     - endpoint: The name of the endpoint that should be exposed.
-    func exposeClientStreamingEndpoint<C: ConnectionContext>(name endpoint: String,
-                                                             context: C) throws where C.Exporter == GRPCInterfaceExporter {
+    func exposeClientStreamingEndpoint(name endpoint: String, context: ConnectionContext<GRPCInterfaceExporter>) throws {
         if methodNames.contains(endpoint) {
             throw GRPCServiceError.endpointAlreadyExists
         }
