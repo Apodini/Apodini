@@ -184,11 +184,3 @@ extension GRPCService {
         }
     }
 }
-
-extension Array {
-    mutating func prepend(_ newElement: Self.Element?, at index: Int) {
-        if let element = newElement {
-            self.insert(element, at: index)
-        }
-    }
-}
