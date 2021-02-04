@@ -3,8 +3,14 @@
 //
 
 import Apodini
-// swiftlint:disable missing_docs
 
+/// Handle Apodini-supported primitive types.
+///
+/// The storage of primitve types is an implementation detail. Therefore, its properties are not
+/// considered.
+/// - Parameter node: <#node description#>
+/// - Throws: <#description#>
+/// - Returns: <#description#>
 public func handlePrimitiveType(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     isSupportedScalarType(node.value.typeInfo.type)
         ? Node(value: node.value, children: [])

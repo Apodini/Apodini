@@ -3,8 +3,14 @@
 //
 
 import Apodini
-// swiftlint:disable missing_docs
 
+/// Handle the `Optional` type.
+///
+/// `Optional`, or the absence of values, is mapped to a propertie's cardinality. The enumeration is
+/// not considered directly. Furthermore, the `Optional.WrappedValue` type is reflected.
+/// - Parameter node: <#node description#>
+/// - Throws: <#description#>
+/// - Returns: <#description#>
 public func handleOptional(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     guard isOptional(node.value.typeInfo.type),
           let first = node.value.typeInfo.genericTypes.first else {

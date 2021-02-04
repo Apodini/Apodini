@@ -3,10 +3,17 @@
 //
 
 import Apodini
-// swiftlint:disable missing_docs
 
+/// <#Description#>
 public enum ArrayDidEncounterCircle {}
 
+/// Handle the `Array` type.
+///
+/// The presence of an array is mapped to the appropriate cardinality of the property with
+/// `EnrichedInfo.CollectionContext`.
+/// - Parameter node: <#node description#>
+/// - Throws: <#description#>
+/// - Returns: <#description#>
 public func handleArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     let typeInfo = node.value.typeInfo
 
