@@ -396,4 +396,14 @@ class SimpleValueEncodingTests: XCTestCase {
         let encoded = try ProtobufferEncoder().encode(complexMessage)
         XCTAssertEqual(encoded, expectedComplexMessage)
     }
+    
+    func testUUID() throws {
+        let uuid = UUID()
+        let encoder = ProtobufferEncoder()
+        
+        let encodedUUID = try encoder.encode(uuid)
+        let encodedUUIDString = try encoder.encode(uuid.uuidString)
+        
+        XCTAssertEqual(encodedUUID, encodedUUIDString)
+    }
 }

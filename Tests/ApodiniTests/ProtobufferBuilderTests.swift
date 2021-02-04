@@ -210,6 +210,20 @@ extension ProtobufferBuilderTests {
         
         XCTAssertEqual(try buildMessage(First.self), expected)
     }
+    
+    func testUUID() throws {
+        struct User {
+            let id: UUID
+        }
+        
+        let expected = """
+            message UserMessage {
+              string id = 1;
+            }
+            """
+        
+        XCTAssertEqual(try buildMessage(User.self), expected)
+    }
 }
 
 // MARK: - Test Handlers
@@ -360,13 +374,5 @@ extension ProtobufferBuilderTests {
             """
         
         try testWebService(WebService.self, expectation: expected)
-    }
-}
-
-// MARK: - Test Misc
-
-extension ProtobufferBuilderTests {
-    func testGenericPolymorphism() {
-        XCTAssertFalse(Array<Any>.self == Array<Int>.self)
     }
 }

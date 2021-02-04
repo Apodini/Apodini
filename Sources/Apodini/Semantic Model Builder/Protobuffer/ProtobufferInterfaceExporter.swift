@@ -116,7 +116,11 @@ extension ProtobufferInterfaceExporter.Builder {
             .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handlePrimitiveType)?
+            .edited(Apodini.handleUUID)?
             .map(ProtobufferMessage.Property.init)
+            .map {
+                $0.map(handleUUID)
+            }
             .contextMap(ProtobufferMessage.init)
             .compactMap { $0 }?
             .filter(!\.isPrimitive)
@@ -143,6 +147,22 @@ extension ProtobufferInterfaceExporter.Builder {
                 ]
             ),
             children: []
+        )
+    }
+}
+
+private extension ProtobufferInterfaceExporter.Builder {
+    static func handleUUID(_ property: ProtobufferMessage.Property) -> ProtobufferMessage.Property {
+        guard property.typeName == "UUIDMessage" else {
+            return property
+        }
+        
+        
+        return .init(
+            fieldRule: property.fieldRule,
+            name: property.name,
+            typeName: "string",
+            uniqueNumber: property.uniqueNumber
         )
     }
 }
