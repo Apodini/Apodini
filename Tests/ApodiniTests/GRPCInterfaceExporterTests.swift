@@ -184,8 +184,8 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          on: group.next())
 
         let response = try service.createStreamingHandler(context: context)(vaporRequest).wait()
-        let responseData = try XCTUnwrap(response.body.data)
-        XCTAssertEqual(responseData, Data(expectedResponseData))
+        let responseData = try XCTUnwrap(try response.body.collect(on: vaporRequest.eventLoop).wait())
+        XCTAssertEqual(responseData, ByteBuffer(bytes: expectedResponseData))
     }
 
     /// Tests request validation for the GRPC exporter.
@@ -207,25 +207,37 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        let handler = service.createStreamingHandler(context: context)
-        XCTAssertThrowsError(try handler(vaporRequest).wait())
+        let expectation = XCTestExpectation()
+        let response = try service.createStreamingHandler(context: context)(vaporRequest).wait()
+        response.body.collect(on: vaporRequest.eventLoop)
+            .whenComplete { result in
+                switch result {
+                case .failure(_):
+                    XCTAssert(true)
+                    expectation.fulfill()
+                case .success(_):
+                    XCTFail("Expected request to fail, but it succeeded")
+                    expectation.fulfill()
+                }
+            }
+        wait(for: [expectation], timeout: 20)
     }
 
-    /// The unary handler should only consider the first message in case
+    /// The unary handler should only consider the last message in case
     /// it receives multiple messages in one HTTP frame.
     func testUnaryRequestHandler_2Messages_1Frame() throws {
         let context = endpoint.createConnectionContext(for: exporter)
 
         // First one is "Moritz", second one is "Bernd".
-        // Only the first should be considered.
+        // Only the last should be considered.
         let requestData: [UInt8] = [
             0, 0, 0, 0, 10, 10, 6, 77, 111, 114, 105, 116, 122, 16, 23,
             0, 0, 0, 0, 9, 10, 5, 66, 101, 114, 110, 100, 16, 23
         ]
 
-        // let expectedResponseString = "Hello Moritz"
+        // let expectedResponseString = "Hello Bernd"
         let expectedResponseData: [UInt8] =
-            [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
+            [0, 0, 0, 0, 13, 10, 11, 72, 101, 108, 108, 111, 32, 66, 101, 114, 110, 100]
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let vaporRequest = Vapor.Request(application: app.vapor.app,
@@ -239,8 +251,8 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          on: group.next())
 
         let response = try service.createStreamingHandler(context: context)(vaporRequest).wait()
-        let responseData = try XCTUnwrap(response.body.data)
-        XCTAssertEqual(responseData, Data(expectedResponseData))
+        let responseData = try XCTUnwrap(try response.body.collect(on: vaporRequest.eventLoop).wait())
+        XCTAssertEqual(responseData, ByteBuffer(bytes: expectedResponseData))
     }
 
     /// Tests the client-streaming handler for a request with
@@ -261,17 +273,12 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
         vaporRequest.bodyStorage = .stream(stream)
 
-        service.createStreamingHandler(context: context)(vaporRequest)
-            .whenSuccess { response in
-                guard let responseData = response.body.data else {
-                    XCTFail("Received empty response but expected: \(expectedResponseData)")
-                    return
-                }
-                XCTAssertEqual(responseData, Data(expectedResponseData))
-            }
+        _ = stream.write(.buffer(ByteBuffer(bytes: requestData1)))
+        _ = stream.write(.end)
 
-        _ = try stream.write(.buffer(ByteBuffer(bytes: requestData1))).wait()
-        _ = try stream.write(.end).wait()
+        let response = try service.createStreamingHandler(context: context)(vaporRequest).wait()
+        let responseData = try XCTUnwrap(try response.body.collect(on: vaporRequest.eventLoop).wait())
+        XCTAssertEqual(responseData, ByteBuffer(bytes: expectedResponseData))
     }
 
     /// Tests the client-streaming handler for a request with
@@ -299,17 +306,12 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
         vaporRequest.bodyStorage = .stream(stream)
 
-        service.createStreamingHandler(context: context)(vaporRequest)
-            .whenSuccess { response in
-                guard let responseData = response.body.data else {
-                    XCTFail("Received empty response but expected: \(expectedResponseData)")
-                    return
-                }
-                XCTAssertEqual(responseData, Data(expectedResponseData))
-            }
+        _ = stream.write(.buffer(ByteBuffer(bytes: requestData)))
+        _ = stream.write(.end)
 
-        _ = try stream.write(.buffer(ByteBuffer(bytes: requestData))).wait()
-        _ = try stream.write(.end).wait()
+        let response = try service.createStreamingHandler(context: context)(vaporRequest).wait()
+        let responseData = try XCTUnwrap(try response.body.collect(on: vaporRequest.eventLoop).wait())
+        XCTAssertEqual(responseData, ByteBuffer(bytes: expectedResponseData))
     }
 
     /// Tests the client-streaming handler for a request with
@@ -334,22 +336,14 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
         vaporRequest.bodyStorage = .stream(stream)
 
-        // get first response
-        service.createStreamingHandler(context: context)(vaporRequest)
-            .whenSuccess { response in
-                guard let responseData = response.body.data else {
-                    XCTFail("Received empty response but expected: \(expectedResponseData)")
-                    return
-                }
-                // Expect empty response data for first GRPC message,
-                // because it was not the end yet.
-                XCTAssertEqual(responseData, Data(expectedResponseData))
-            }
-
         // write messages individually
-        _ = try stream.write(.buffer(ByteBuffer(bytes: requestData1))).wait()
-        _ = try stream.write(.buffer(ByteBuffer(bytes: requestData2))).wait()
-        _ = try stream.write(.end).wait()
+        _ = stream.write(.buffer(ByteBuffer(bytes: requestData1)))
+        _ = stream.write(.buffer(ByteBuffer(bytes: requestData2)))
+        _ = stream.write(.end)
+
+        let response = try service.createStreamingHandler(context: context)(vaporRequest).wait()
+        let responseData = try XCTUnwrap(try response.body.collect(on: vaporRequest.eventLoop).wait())
+        XCTAssertEqual(responseData, ByteBuffer(bytes: expectedResponseData))
     }
 
     /// Checks whether the returned response for a `.nothing` is indeed empty.
@@ -367,15 +361,12 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
         vaporRequest.bodyStorage = .stream(stream)
 
-        service.createStreamingHandler(context: context)(vaporRequest)
-            .whenSuccess { response in
-                XCTAssertEqual(response.body.data,
-                               Optional(Data()),
-                               "Received non-empty response but expected empty response")
-            }
+        _ = stream.write(.buffer(ByteBuffer(bytes: requestData1)))
+        _ = stream.write(.end)
 
-        _ = try stream.write(.buffer(ByteBuffer(bytes: requestData1))).wait()
-        _ = try stream.write(.end).wait()
+        let response = try service.createStreamingHandler(context: context)(vaporRequest).wait()
+        let responseData = try XCTUnwrap(try response.body.collect(on: vaporRequest.eventLoop).wait())
+        XCTAssertEqual(responseData, ByteBuffer(bytes: []))
     }
 
     func testServiceNameUtility_DefaultName() {

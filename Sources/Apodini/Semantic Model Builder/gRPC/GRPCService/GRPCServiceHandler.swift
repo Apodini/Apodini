@@ -14,6 +14,7 @@ import Foundation
 private enum Evaluation {
     case input(_: GRPCMessage)
     case observation(_: AnyObservedObject)
+    case end
 }
 
 /// Taken from WebSocketExporter.
@@ -31,21 +32,13 @@ private struct GRPCObservedListener: ObservedListener {
     }
 }
 
-private struct GRPCResponseStreamWriter: BodyStreamWriter {
-    var eventLoop: EventLoop
-
-    func write(_ result: BodyStreamResult, promise: EventLoopPromise<Void>?) {
-
-    }
-}
-
 // MARK: Client request handler
 extension GRPCService {
     /// Drains a client-stream from the given `Vapor.Request`.
     /// This is also used for unary client-requests (i.e. for unary and service-streaming endpoints),
     /// since in that case the clients "stream" will just be a data frame directly followed by an .end frame.
     private func drainClientStream(from request: Vapor.Request,
-                                   into output: PassthroughSubject<Evaluation, Never>) {
+                                   _ callback: @escaping (Evaluation) -> Void) {
         request.body.drain { (bodyStream: BodyStreamResult) in
             switch bodyStream {
             case let .buffer(byteBuffer):
@@ -58,11 +51,11 @@ extension GRPCService {
                 // (may be none, one or multiple)
                 let messages = self.getMessages(from: data)
                 for message in messages where message.didCollectAllFragments {
-                    output.send(.input(message))
+                    callback(.input(message))
                 }
             case .end:
                 // This was the last frame on this client-stream.
-                output.send(completion: .finished)
+                callback(.end)
             case let .error(error):
                 return request.eventLoop.makeFailedFuture(error)
             }
@@ -127,48 +120,47 @@ extension GRPCService {
                 ))
             }
 
-            let input = PassthroughSubject<Evaluation, Never>()
-
             var context = context
-            context.register(listener: GRPCObservedListener(eventLoop: request.eventLoop) { observedObject in
-                input.send(.observation(observedObject))
-            })
+            var lastMessage = GRPCMessage.defaultMessage
+            let queue = DispatchQueue(label: "sync-queue")
+
+            let processEvaluation: (Evaluation, BodyStreamWriter) -> Void = { evaluation, writer in
+                switch evaluation {
+                case let .input(message):
+                    lastMessage = message
+                    context
+                        .handle(request: message, eventLoop: request.eventLoop, final: false)
+                        .whenComplete { self.handleValue($0, responseWriter: writer, serviceStreaming: serviceStreaming) }
+                case let .observation(observedObject):
+                    context
+                        .handle(eventLoop: request.eventLoop, observedObject: observedObject)
+                        .whenComplete { self.handleValue($0, responseWriter: writer, serviceStreaming: serviceStreaming) }
+                case .end:
+                    self.handleCompletion(request: request,
+                                     context: &context,
+                                     responseWriter: writer,
+                                     serviceStreaming: serviceStreaming,
+                                     lastMessage: lastMessage)
+                }
+            }
 
             let streamingResponse: (BodyStreamWriter) -> () = { writer in
-                var lastMessage = GRPCMessage.defaultMessage
-                input
-                    .buffer()
-                    .syncMap { evaluation -> EventLoopFuture<Response<AnyEncodable>> in
-                        switch evaluation {
-                        case let .input(message):
-                            lastMessage = message
-                            return context.handle(request: message, eventLoop: request.eventLoop, final: false)
-                        case let .observation(observedObject):
-                            return context.handle(eventLoop: request.eventLoop, observedObject: observedObject)
-                        }
+                self.drainClientStream(from: request) { evaluation in
+                    queue.sync {
+                        processEvaluation(evaluation, writer)
                     }
-                    .sink(
-                        receiveCompletion: { _ in
-                            self.handleCompletion(request: request,
-                                                  context: &context,
-                                                  responseWriter: writer,
-                                                  serviceStreaming: serviceStreaming,
-                                                  lastMessage: lastMessage)
-                        },
-                        receiveValue: { response in
-                            self.handleValue(response,
-                                             responseWriter: writer,
-                                             serviceStreaming: serviceStreaming)
-                        }
-                    ).store(in: &self.cancellables)
+                }
+                context.register(listener: GRPCObservedListener(eventLoop: request.eventLoop) { observedObject in
+                    queue.sync {
+                        processEvaluation(.observation(observedObject), writer)
+                    }
+                })
             }
 
             let response = self.makeResponse(streamingResponse)
             // Vapor sets the "transferEncoding": "chunked" header automatically for response-streaming.
             // gRPC does not like it, so we remove it.
             response.headers.remove(name: .transferEncoding)
-
-            self.drainClientStream(from: request, into: input)
             return request.eventLoop.makeSucceededFuture(response)
         }
     }
