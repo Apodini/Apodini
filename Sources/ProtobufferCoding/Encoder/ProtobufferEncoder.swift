@@ -8,12 +8,14 @@
 import Foundation
 
 internal class InternalProtoEncoder: Encoder {
+    var integerWidthCodingStrategy: IntegerWidthCodingStrategy = .native
+    
     var codingPath: [CodingKey] = []
     var userInfo: [CodingUserInfoKey: Any] = [:]
     var data = Data()
     var hasContainer = false
 
-    init() { }
+    init() {}
 
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key: CodingKey {
         if hasContainer {
@@ -58,16 +60,21 @@ private struct EncodingWrapper<T: Encodable>: Encodable {
 /// Encoder for Protobuffer data.
 /// Coforms to `TopLevelEncoder` from `Combine`, however this is currently ommitted due to compatibility issues.
 public class ProtobufferEncoder {
+    /// The strategy that this encoder uses to encode `Int`s and `UInt`s.
+    public var integerWidthCodingStrategy: IntegerWidthCodingStrategy = .native
+    
     private var encoder: InternalProtoEncoder?
 
     /// Initializes a new instance.
-    public init() { }
+    public init() {}
 
     /// Encodes the given value into data.
     /// The value that should be encoded has to comply with `Encodable`,
     /// since the `encode` function of the protocol is used.
     public func encode<T: Encodable>(_ value: T) throws -> Data {
         let encoder = InternalProtoEncoder()
+        encoder.integerWidthCodingStrategy = integerWidthCodingStrategy
+        
         if isPrimitiveSupported(T.self) ||
             isPrimitiveSupportedArray(T.self) ||
             isCollection(T.self) {
@@ -85,6 +92,8 @@ public class ProtobufferEncoder {
     /// into the encoder.
     public func unkeyedContainer() -> UnkeyedEncodingContainer {
         let encoder = InternalProtoEncoder()
+        encoder.integerWidthCodingStrategy = integerWidthCodingStrategy
+        
         self.encoder = encoder
         return encoder.unkeyedContainer()
     }

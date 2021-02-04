@@ -13,7 +13,11 @@ import Foundation
 /// Used by the `GRPCInterfaceExporter` to expose
 /// `handle` functions of `Handler`s.
 class GRPCService {
-    let app: Vapor.Application
+    private let app: Application
+    var vaporApp: Vapor.Application {
+        app.vapor.app
+    }
+    
     var serviceName: String
     var methodNames: [String] = []
 
@@ -25,10 +29,10 @@ class GRPCService {
     /// Initializes a new GRPC service.
     /// - Parameters:
     ///     - name: The name of the service. Will be part of the route at which the service is exposed.
-    ///     - handler: The handler method that executes the guards, component's handle method, and modifiers.
-    init(name: String, using app: Application) {
+    ///     - app: The current Apodini application.
+    init(name: String, app: Application) {
         self.serviceName = name
-        self.app = app.vapor.app
+        self.app = app
     }
 
     internal func contentTypeIsSupported(request: Vapor.Request) -> Bool {
@@ -97,6 +101,17 @@ extension GRPCService {
     /// to  `Data` using Protobuffer encoding
     func encode(_ value: Encodable) -> Data? {
         do {
+            let encoder = ProtobufferEncoder()
+
+            if let configuration = app.storage[IntegerWidthConfiguration.StorageKey.self] {
+                switch configuration {
+                case .thirtyTwo:
+                    encoder.integerWidthCodingStrategy = .thirtyTwo
+                case .sixtyFour:
+                    encoder.integerWidthCodingStrategy = .sixtyFour
+                }
+            }
+
             let message = try ProtobufferEncoder().encode(AnyEncodable(value))
             // https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md
             // A response is prefixed by

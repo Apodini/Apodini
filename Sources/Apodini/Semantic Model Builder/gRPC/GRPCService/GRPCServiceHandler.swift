@@ -179,7 +179,7 @@ extension GRPCService {
             Vapor.PathComponent(stringLiteral: endpoint)
         ]
 
-        app.on(.POST, path, body: .stream) { request -> EventLoopFuture<Vapor.Response> in
+        vaporApp.on(.POST, path, body: .stream) { request -> EventLoopFuture<Vapor.Response> in
             self.createStreamingHandler(context: context, serviceStreaming: serviceStreaming)(request)
         }
     }
