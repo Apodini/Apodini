@@ -3,9 +3,6 @@ import Foundation
 
 /// A type erasure for the `PropertyOptionKey`
 public class AnyPropertyOptionKey: Equatable, Hashable {
-
-    public init() {}
-
     /// Combines two `PropertyOptionKey`s.
     /// - Parameters:
     ///   - lhs: The left hand side `PropertyOptionKey` that should be combined
