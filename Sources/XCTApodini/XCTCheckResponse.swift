@@ -1,5 +1,5 @@
 //
-//  Response+Checks.swift
+//  XCTCheckResponse.swift
 //  
 //
 //  Created by Paul Schmiedmayer on 2/3/21.
@@ -16,7 +16,7 @@ extension Empty: Equatable {
     }
 }
 
-/// Adds the possibility to easily check the of a `Handler` by investigating the `Response`
+/// Adds the possibility to easily check the `Response<T>` of a `Handler` by investigating the `Response`
 /// - Parameters:
 ///   - response: The `Response` that should be investigated
 ///   - content: The expected content
@@ -48,7 +48,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
 }
 
 
-/// Adds the possibility to easily check the of a `Handler` by investigating the `Response`
+/// Adds the possibility to easily check the `Response<T>` of a `Handler` by investigating the `Response`
 /// - Parameters:
 ///   - response: The `Response` that should be investigated
 ///   - status: The expected `Status`
@@ -81,7 +81,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
     )
 }
 
-/// Adds the possibility to easily check the of a `Handler` by investigating the `Response`
+/// Adds the possibility to easily check the `Response<T>` of a `Handler` by investigating the `Response`
 /// - Parameters:
 ///   - response: The `Response` that should be investigated
 ///   - content: The expected content
@@ -113,7 +113,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
 }
 
 
-/// Adds the possibility to easily check the of a `Handler` by investigating the `Response`
+/// Adds the possibility to easily check the `Response<T>` of a `Handler` by investigating the `Response`
 /// - Parameters:
 ///   - response: The `Response` that should be investigated
 ///   - content: The expected content
