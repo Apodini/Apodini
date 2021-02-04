@@ -38,6 +38,7 @@ private struct GRPCNothingHandler: Handler {
     }
 }
 
+// MARK: - Unary tests
 final class GRPCInterfaceExporterTests: ApodiniTests {
     // swiftlint:disable implicitly_unwrapped_optional
     fileprivate var service: GRPCService!
@@ -254,7 +255,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let responseData = try XCTUnwrap(try response.body.collect(on: vaporRequest.eventLoop).wait())
         XCTAssertEqual(responseData, ByteBuffer(bytes: expectedResponseData))
     }
+}
 
+// MARK: - Streaming tests
+extension GRPCInterfaceExporterTests {
     /// Tests the client-streaming handler for a request with
     /// 1 HTTP frame that contains 1 GRPC messages.
     func testClientStreamingHandlerWith_1Message_1Frame() throws {
@@ -425,7 +429,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
         wait(for: [expectation], timeout: 20)
     }
+}
 
+// MARK: - Utility tests
+extension GRPCInterfaceExporterTests {
     func testServiceNameUtility_DefaultName() {
         let webService = WebServiceModel()
         webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
