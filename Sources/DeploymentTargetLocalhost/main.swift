@@ -28,24 +28,17 @@ enum DeployError: Error {
 
 
 
-private let logger = Logger(label: "DeploymentTargetLocalhost")
-
-
-
-private struct LocalhostDeploymentProvider: ParsableCommand, DeploymentProvider {
-    static let identifier: DeploymentProviderID = LocalhostDeploymentProviderId
-    static let version = 1
-    
+private struct LocalhostDeploymentProviderCLI: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Localhost Apodini deployment provider",
         discussion: """
             Deploys an Apodini web service to localhost, mapping the deployed system's nodes to independent processes
             """,
-        version: String(Self.version)
+        version: String(LocalhostDeploymentProvider.version)
     )
     
     @Argument(help: "Server package root directory")
-    var inputServiceRootDirPath: String
+    var inputServiceRootDirPath: String // TODO rename (same in the lambda one)
     
     @Option(help: "The port on which the API should listen")
     var port: Int = 8080
@@ -53,16 +46,41 @@ private struct LocalhostDeploymentProvider: ParsableCommand, DeploymentProvider 
     @Option(help: "The port number for the first child process. TODO explain more")
     var endpointProcessesBasePort: Int = 5000
     
-    
     @Option(help: "Name of the web service's SPM target/product")
     var productName: String // TODO make this optional?
     
-    var packageRootDir: URL {
-        URL(fileURLWithPath: inputServiceRootDirPath)
+    
+    mutating func run() throws {
+        var DP = LocalhostDeploymentProvider(
+            productName: productName,
+            packageRootDir: URL(fileURLWithPath: inputServiceRootDirPath).absoluteURL,
+            port: port,
+            endpointProcessesBasePort: endpointProcessesBasePort
+        )
+        try DP.run()
     }
+}
+
+
+
+
+
+
+
+
+struct LocalhostDeploymentProvider: DeploymentProvider {
+    static let identifier: DeploymentProviderID = LocalhostDeploymentProviderId
+    static let version: Version = 1
     
+    let productName: String
+    let packageRootDir: URL
     
+    // Port on which the proxy should listen
+    let port: Int
+    // Starting number for the started child processes
+    let endpointProcessesBasePort: Int
     
+    private let logger = Logger(label: "DeploymentTargetLocalhost")
     
     mutating func run() throws {
         let FM = FileManager.default
@@ -87,9 +105,9 @@ private struct LocalhostDeploymentProvider: ParsableCommand, DeploymentProvider 
 //            )
 //        }
         
-        let nodes = try computeDefaultDeployedSystemNodes(from: wsStructure).enumerated().map { idx, node in
+        let nodes = Set(try computeDefaultDeployedSystemNodes(from: wsStructure).enumerated().map { idx, node in
             try node.withUserInfo(LocalhostLaunchInfo(port: self.endpointProcessesBasePort + idx))
-        }
+        })
         
         let systemConfigs: [DeployedSystemConfiguration] = try nodes.map { node in
             return try DeployedSystemConfiguration(
@@ -133,5 +151,12 @@ private struct LocalhostDeploymentProvider: ParsableCommand, DeploymentProvider 
 }
 
 
+
+
+
+
+
 //LocalhostDeploymentProvider.main(["/Users/lukas/Developer/Apodini/", "--product-name=TestWebService"])
-LocalhostDeploymentProvider.main()
+LocalhostDeploymentProviderCLI.main()
+
+

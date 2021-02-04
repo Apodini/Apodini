@@ -294,8 +294,8 @@
         "repositoryURL": "https://github.com/soto-project/soto-core.git",
         "state": {
           "branch": null,
-          "revision": "4231c30f6cdfa1624249a9a44a7749b9d87c3530",
-          "version": "5.1.1"
+          "revision": "4b19caaf8645726949f299209ec0b4902d347c43",
+          "version": "5.1.2"
         }
       },
       {

@@ -56,7 +56,8 @@ public struct WebServiceStructure: Codable { // TODO this needs a better name. m
 
 
 
-public struct ExportedEndpoint: Codable, Equatable {
+public struct ExportedEndpoint: Codable, Hashable, Equatable {
+    public let handlerType: String
     /// The `rawValue` of the identifier of the  handler this endpoint was generated for
     public let handlerIdRawValue: String
     /// The endpoint's handler's deployment options
@@ -70,17 +71,24 @@ public struct ExportedEndpoint: Codable, Equatable {
     
     
     public init(
+        handlerType: String,
         handlerIdRawValue: String,
         deploymentOptions: HandlerDeploymentOptions,
         httpMethod: String,
         absolutePath: String,
         userInfo: [String: Data]
     ) {
+        self.handlerType = handlerType
         self.handlerIdRawValue = handlerIdRawValue
         self.deploymentOptions = deploymentOptions
         self.httpMethod = httpMethod
         self.absolutePath = absolutePath
         self.userInfo = userInfo
+    }
+    
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(self.handlerIdRawValue)
     }
     
     public static func == (lhs: ExportedEndpoint, rhs: ExportedEndpoint) -> Bool {

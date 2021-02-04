@@ -40,7 +40,7 @@ public typealias DeployedSystemConfiguration = DeployedSystemStructure
 /// Each node implements one or more of the deployed `WebService`'s endpoints.
 /// - Note: There may be more than one instances of a node running at a given time,
 ///   for example when deploying to a platform which supports scaling.
-public struct DeployedSystemStructure: Codable {
+public struct DeployedSystemStructure: Codable { // TODO or just `DeployedSystem`?
     /// Identifier of the deployment provider used to create the deployment
     public let deploymentProviderId: DeploymentProviderID
     
@@ -48,7 +48,7 @@ public struct DeployedSystemStructure: Codable {
     public private(set) var currentInstanceNodeId: Node.ID
     
     /// The nodes the system consists of
-    public let nodes: [Node]
+    public let nodes: Set<Node>
     
     /// Additional, deployment provider specific data
     public let userInfo: Data
@@ -57,7 +57,7 @@ public struct DeployedSystemStructure: Codable {
     public init<T: Encodable>(
         deploymentProviderId: DeploymentProviderID,
         currentInstanceNodeId: Node.ID,
-        nodes: [Node],
+        nodes: Set<Node>,
         userInfo: T?,
         userInfoType: T.Type = T.self
     ) throws {
@@ -110,8 +110,7 @@ extension DeployedSystemConfiguration {
     }
     
     public func nodesExportingEndpoint(withHandlerId handlerId: String) -> Set<Node> {
-        let nodes = self.nodes.filter { $0.exportedEndpoints.contains { $0.handlerIdRawValue == handlerId } }
-        return Set(nodes)
+        nodes.filter { $0.exportedEndpoints.contains { $0.handlerIdRawValue == handlerId } }
     }
     
     /// Returns a random node exporting an endpoint with the specified handler identifier.
@@ -131,12 +130,12 @@ extension DeployedSystemConfiguration {
         public let id: String
         
         /// exported handler ids
-        public let exportedEndpoints: [ExportedEndpoint]
+        public let exportedEndpoints: Set<ExportedEndpoint>
         
         /// Additional deployment provider specific data
         public private(set) var userInfo: Data?
         
-        public init<T: Encodable>(id: String, exportedEndpoints: [ExportedEndpoint], userInfo: T?, userInfoType: T.Type = T.self) throws {
+        public init<T: Encodable>(id: String, exportedEndpoints: Set<ExportedEndpoint>, userInfo: T?, userInfoType: T.Type = T.self) throws {
             self.id = id
             self.exportedEndpoints = exportedEndpoints
             //self.userInfo = try userInfo.map { try JSONEncoder().encode($0) }

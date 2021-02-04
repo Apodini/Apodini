@@ -154,3 +154,19 @@ private extension WebService {
         }
     }
 }
+
+
+
+// TODO move all this somewhere else
+
+extension DeploymentGroup {
+    /// Creates a single deployment group containing all handlers of type `H`.
+    public static func allHandlers<H: Handler>(ofType _: H.Type, groupId: String? = nil) -> DeploymentGroup {
+        DeploymentGroup(id: groupId, inputKind: .handlerType, input: ["\(H.self)"])
+    }
+    
+    /// Creates a deployment group containing the handlers with the specifiec identifiers
+    public static func handlers(withIds handlerIds: [AnyHandlerIdentifier], groupId: String? = nil) -> DeploymentGroup {
+        DeploymentGroup(id: groupId, inputKind: .handlerId, input: handlerIds.map(\.rawValue))
+    }
+}

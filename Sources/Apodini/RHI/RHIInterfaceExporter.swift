@@ -32,7 +32,7 @@ extension AnyEndpointParameter {
 /// a) compiles a list of all handlers (via their `Endpoint` objects). These are used to determine the target endpoint when manually invoking a handler.
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
-class RHIInterfaceExporter: InterfaceExporter {
+class RHIInterfaceExporter: InterfaceExporter { // TODO rename to something different, since this class is doing a lot of things, not just the RHI handling
     struct ExporterRequest: Apodini.ExporterRequest {
         enum Param {
             case value(Any)    // the value, as is
@@ -62,6 +62,7 @@ class RHIInterfaceExporter: InterfaceExporter {
     
     
     private struct CollectedEndpointInfo {
+        let handlerType: String
         let endpoint: AnyEndpoint
         let deploymentOptions: HandlerDeploymentOptions
     }
@@ -84,12 +85,12 @@ class RHIInterfaceExporter: InterfaceExporter {
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         collectedEndpoints.append(CollectedEndpointInfo(
+            handlerType: "\(H.self)",
             endpoint: endpoint,
             deploymentOptions: H.deploymentOptions
                 .merging(with: endpoint.handler.deploymentOptions, newOptionsPrecedence: .higher)
                 .merging(with: endpoint.context.get(valueFor: HandlerDeploymentOptionsSyntaxNodeContextKey.self), newOptionsPrecedence: .higher)
         ))
-        
         
         app.vapor.app.add(Vapor.Route(
             method: .POST,
@@ -99,6 +100,7 @@ class RHIInterfaceExporter: InterfaceExporter {
             responseType: InternalInvocationResponder<H>.Response.self
         ))
     }
+    
     
     
     //func finishedExporting(_ webService: WebServiceModel) {}
@@ -167,6 +169,7 @@ extension RHIInterfaceExporter {
             endpoints: collectedEndpoints.map { endpointInfo -> ExportedEndpoint in
                 let endpoint = endpointInfo.endpoint
                 return ExportedEndpoint(
+                    handlerType: endpointInfo.handlerType,
                     handlerIdRawValue: endpoint.identifier.rawValue,
                     deploymentOptions: endpointInfo.deploymentOptions,
                     httpMethod: endpoint.operation.httpMethod.string, // TODO remove this and load it from the OpenAPI def instead?. same for the path...

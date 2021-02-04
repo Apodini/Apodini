@@ -41,7 +41,6 @@ private func _findExecutable(_ name: String) throws -> URL {
 let dockerBin = try _findExecutable("docker")
 let awsCliBin = try _findExecutable("aws")
 let zipBin = try _findExecutable("zip")
-let FM = FileManager.default
 
 let logger = Logger(label: "de.lukaskollmer.ApodiniLambda")
 
@@ -60,9 +59,7 @@ let logger = Logger(label: "de.lukaskollmer.ApodiniLambda")
 //_ = A.init("123")
 
 
-struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
-    static let identifier: DeploymentProviderID = LambdaDeploymentProviderId
-    static let version: Version = 1
+struct LambdaDeploymentProviderCLI: ParsableCommand {
     
     @Argument
     var inputPackageRootDir: String
@@ -86,29 +83,106 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
     var awsDeployOnly: Bool = false
     
     
-    var packageRootDir: URL {
-        URL(fileURLWithPath: inputPackageRootDir)
+    
+    
+    private(set) lazy var packageRootDir: URL = URL(fileURLWithPath: inputPackageRootDir).absoluteURL
+    
+    
+    func run() throws {
+        var DP = LambdaDeploymentProvider(
+            productName: productName,
+            packageRootDir: URL(fileURLWithPath: inputPackageRootDir).absoluteURL,
+            awsProfileName: awsProfileName,
+            awsRegion: awsRegion,
+            awsS3BucketName: awsS3BucketName,
+            awsApiGatewayApiId: awsApiGatewayApiId,
+            awsDeployOnly: awsDeployOnly
+        )
+        try DP.run()
     }
+}
+
+
+
+private let dockerfileContents: String = """
+FROM swift:5.3-amazonlinux2
+
+ARG USER_ID
+ARG GROUP_ID
+ARG USERNAME
+
+RUN yum -y install zip sqlite-devel
+
+RUN groupadd --gid $GROUP_ID $USERNAME \
+    && useradd -s /bin/bash --uid $USER_ID --gid $GROUP_ID -m $USERNAME
+
+USER $USERNAME
+"""
+
+
+private let dockerignoreContents: String = """
+.build/
+"""
+
+
+
+private let collectSharedObjectFilesScriptContents: String = """
+#!/bin/bash
+
+set -eux
+
+# executable=$1
+executable_path=$1 # path to the built executable
+output_dir=$2      # path of the directory we should copy the object files to
+
+# target=".build/lambda/$executable"
+rm -rf "$output_dir"
+mkdir -p "$output_dir"
+# cp ".build/debug/$executable" "$target/"
+# add the target deps based on ldd
+ldd "$executable_path" | grep swift | awk '{print $3}' | xargs cp -Lv -t "$output_dir"
+# zip lambda.zip *
+"""
+
+
+
+
+
+
+
+
+struct LambdaDeploymentProvider: DeploymentProvider {
+    static let identifier: DeploymentProviderID = LambdaDeploymentProviderId
+    static let version: Version = 1
+    
+    let productName: String
+    let packageRootDir: URL
+    let awsProfileName: String
+    let awsRegion: String
+    let awsS3BucketName: String
+    private(set) var awsApiGatewayApiId: String
+    let awsDeployOnly: Bool
+    
+    private let FM = FileManager.default
     
     
-    var buildFolderUrl: URL {
+    private var buildFolderUrl: URL {
         packageRootDir.appendingPathComponent(".build", isDirectory: true)
     }
     
     
-    var tmpDirName: String { "lk_tmp" }
+    private var tmpDirName: String { "lk_tmp" }
     
-    var tmpDirUrl: URL {
+    private var tmpDirUrl: URL {
         buildFolderUrl.appendingPathComponent(tmpDirName, isDirectory: true)
     }
     
     
-    var lambdaOutputDir: URL {
+    private var lambdaOutputDir: URL {
         return buildFolderUrl
             .appendingPathComponent("lambda", isDirectory: true)
             .appendingPathComponent(productName, isDirectory: true)
     }
-    
     
     
     mutating func run() throws {
@@ -145,7 +219,7 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
             from: webServiceStructure,
             nodeIdProvider: { endpoints in
                 assert(endpoints.count == 1)
-                return endpoints[0].handlerIdRawValue.replacingOccurrences(of: ".", with: "-")
+                return endpoints.first!.handlerIdRawValue.replacingOccurrences(of: ".", with: "-")
             }
         )
         
@@ -158,7 +232,7 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
         
         let deploymentStructure = try DeployedSystemStructure(
             deploymentProviderId: Self.identifier,
-            currentInstanceNodeId: nodes[0].id,
+            currentInstanceNodeId: "", //nodes[0].id,
             nodes: nodes,
             userInfo: LambdaDeployedSystemContext(awsRegion: awsRegion, apiGatewayApiId: awsApiGatewayApiId)
         )
@@ -278,45 +352,5 @@ struct LambdaDeploymentProvider: DeploymentProvider, ParsableCommand {
 
 
 
-private let dockerfileContents: String = """
-FROM swift:5.3-amazonlinux2
 
-ARG USER_ID
-ARG GROUP_ID
-ARG USERNAME
-
-RUN yum -y install zip sqlite-devel
-
-RUN groupadd --gid $GROUP_ID $USERNAME \
-    && useradd -s /bin/bash --uid $USER_ID --gid $GROUP_ID -m $USERNAME
-
-USER $USERNAME
-"""
-
-
-private let dockerignoreContents: String = """
-.build/
-"""
-
-
-
-private let collectSharedObjectFilesScriptContents: String = """
-#!/bin/bash
-
-set -eux
-
-# executable=$1
-executable_path=$1 # path to the built executable
-output_dir=$2      # path of the directory we should copy the object files to
-
-# target=".build/lambda/$executable"
-rm -rf "$output_dir"
-mkdir -p "$output_dir"
-# cp ".build/debug/$executable" "$target/"
-# add the target deps based on ldd
-ldd "$executable_path" | grep swift | awk '{print $3}' | xargs cp -Lv -t "$output_dir"
-# zip lambda.zip *
-"""
-
-
-LambdaDeploymentProvider.main()
+LambdaDeploymentProviderCLI.main() // TODO replace w/ @main

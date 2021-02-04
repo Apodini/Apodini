@@ -26,8 +26,9 @@ public extension FileManager {
     
     
     func lk_setWorkingDirectory(to newDir: URL) throws {
+        print("\(#function) oldCWD: \(self.currentDirectoryPath) newCWD: \(newDir.path) OR \(newDir.absoluteURL.path)")
         guard changeCurrentDirectoryPath(newDir.path) else {
-            throw InternalDeployError.other("Unable to change working directory")
+            throw InternalDeployError.other("Unable to change working directory from \(self.currentDirectoryPath) to \(newDir.path)")
         }
     }
     

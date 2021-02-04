@@ -31,14 +31,14 @@ extension NSError {
 
 
 
-public protocol DeploymentConfigProvider {
+public protocol old_DeploymentConfigProvider {
     var deploymentConfig: DeploymentConfig { get }
 }
 
 
-public extension DeploymentConfigProvider {
-    var deploymentConfig: DeploymentConfig {
-        DeploymentConfig()
+public extension old_DeploymentConfigProvider {
+    var deploymentConfig: old_DeploymentConfig {
+        old_DeploymentConfig()
     }
 }
 
@@ -48,7 +48,7 @@ public extension DeploymentConfigProvider {
 
 
 
-public struct DeploymentGroupsConfig: Codable {
+public struct old_DeploymentGroupsConfig: Codable {
     public enum DefaultGrouping: Int, Codable { // the cases here need better names
         /// Every handler which is not explicitly put in a group will get its own group
         case separateNodes
@@ -82,11 +82,11 @@ public struct DeploymentGroupsConfig: Codable {
 // we're not there yet. maybe in the future.
 // there are, in fact, advantages to _not_ using a function builder here. eg when using a function builder, it'd be more difficult to define the broad structure of the config object being created here. (what can contain what, what can appear how many times, etc etc)
 
-public struct DeploymentConfig: Codable {
-    public let deploymentGroups: DeploymentGroupsConfig
+public struct old_DeploymentConfig: Codable {
+    public let deploymentGroups: old_DeploymentGroupsConfig
     
     public init( // the important thing here is that the object must (should) be default-initializable, ie all params should have a default value
-        deploymentGroups: DeploymentGroupsConfig = .init(defaultGrouping: .separateNodes)
+        deploymentGroups: old_DeploymentGroupsConfig = .init(defaultGrouping: .separateNodes)
     ) {
         self.deploymentGroups = deploymentGroups
     }
@@ -95,18 +95,64 @@ public struct DeploymentConfig: Codable {
 
 
 
-// TODO?
-public struct DeploymentConfigV2: Codable {
-    public init(
-        
-    ) {
-        
+
+// TODO rename to smth like DeploymentGroupInput? this isn't the actual deployment group, just the input collected from the user, which will later be used to create the proper deployment group
+public struct DeploymentGroup: Codable, Hashable, Equatable {
+    public enum InputKind: String, Codable {
+        case handlerId, handlerType
+    }
+    public let id: String
+    public let inputKind: InputKind
+    public let input: [String]
+    
+    public init(id: String? = nil, inputKind: InputKind, input: [String]) {
+        self.id = id ?? UUID().uuidString
+        self.inputKind = inputKind
+        self.input = input
+    }
+}
+
+
+public struct DeploymentGroupsConfig: Codable {
+    public enum DefaultGrouping: Int, Codable { // the cases here need better names
+        /// Every handler which is not explicitly put in a group will get its own group
+        case separateNodes
+        /// All handlers which are not explicitly put into a group will be put into a single group
+        case singleNode
+    }
+    public let defaultGrouping: DefaultGrouping
+    public let groups: [DeploymentGroup]
+    
+    public init(defaultGrouping: DefaultGrouping = .singleNode, groups: [DeploymentGroup] = []) { // TODO what would be a reasonanle default?
+        self.defaultGrouping = defaultGrouping
+        self.groups = groups
+    }
+}
+
+
+
+public struct DeploymentConfig: Codable {
+    public let deploymentGroups: DeploymentGroupsConfig
+    
+    public init(deploymentGroups: DeploymentGroupsConfig = .init()) {
+        self.deploymentGroups = deploymentGroups
     }
 }
 
 
 
 
+
+public protocol DeploymentConfigProvider {
+    var deploymentConfig: DeploymentConfig { get }
+}
+
+
+public extension DeploymentConfigProvider {
+    var deploymentConfig: DeploymentConfig {
+        DeploymentConfig()
+    }
+}
 
 
 
