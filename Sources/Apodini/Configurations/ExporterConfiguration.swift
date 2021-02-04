@@ -10,7 +10,7 @@ import NIO
 
 /// A `Configuration` for the used `InterfaceExporter`.
 public final class ExporterConfiguration: Configuration {
-    var semanticModelBuilderBuilder: (SemanticModelBuilder) -> (SemanticModelBuilder) = id
+    var semanticModelBuilderBuilder: (SemanticModelBuilder) -> (SemanticModelBuilder) = { $0 }
 
     /// initalize ExporterConfiguration
     public init() {}
@@ -38,5 +38,3 @@ public final class ExporterConfiguration: Configuration {
         return self
     }
 }
-
-func id<T>(_ arg: T) -> T { arg }
