@@ -144,7 +144,7 @@ extension GRPCService {
                 }
             }
 
-            let streamingResponse: (BodyStreamWriter) -> () = { writer in
+            let streamingResponse: (BodyStreamWriter) -> Void = { writer in
                 self.drainClientStream(from: request) { evaluation in
                     queue.sync {
                         processEvaluation(evaluation, writer)
@@ -191,9 +191,9 @@ extension GRPCService {
 }
 
 extension Array {
-    mutating func prepend(_ newElement: Self.Element?, at i: Int) {
+    mutating func prepend(_ newElement: Self.Element?, at index: Int) {
         if let element = newElement {
-            self.insert(element, at: i)
+            self.insert(element, at: index)
         }
     }
 }

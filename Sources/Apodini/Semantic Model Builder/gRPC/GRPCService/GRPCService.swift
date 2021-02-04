@@ -118,32 +118,8 @@ extension GRPCService {
         return nil
     }
 
-    /// Builds a `Vapor.Response` with an empty payload.
-    func makeResponse() -> Vapor.Response {
-        var headers = HTTPHeaders()
-        headers.contentType = Self.grpcproto
-        return Vapor.Response(status: .internalServerError,
-                              version: HTTPVersion(major: 2, minor: 0),
-                              headers: headers,
-                              body: .init(data: Data()))
-    }
-
-    /// Builds a `Vapor.Response` from the given encodable value.
-    func makeResponse(_ value: Response<AnyEncodable>) -> Vapor.Response {
-        if let element = value.element,
-           let data = encode(element) {
-            var headers = HTTPHeaders()
-            headers.contentType = Self.grpcproto
-            return Vapor.Response(status: .ok,
-                                  version: HTTPVersion(major: 2, minor: 0),
-                                  headers: headers,
-                                  body: .init(data: data))
-        } else {
-            return makeResponse()
-        }
-    }
-
-    func makeResponse(_ stream: @escaping (BodyStreamWriter) -> ()) -> Vapor.Response {
+    /// Builds a `Vapor.Response` from the given body stream writer.
+    func makeResponse(_ stream: @escaping (BodyStreamWriter) -> Void) -> Vapor.Response {
         var headers = HTTPHeaders()
         headers.contentType = Self.grpcproto
         return Vapor.Response(status: .ok,

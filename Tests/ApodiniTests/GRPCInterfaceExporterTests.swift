@@ -212,10 +212,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         response.body.collect(on: vaporRequest.eventLoop)
             .whenComplete { result in
                 switch result {
-                case .failure(_):
+                case .failure:
                     XCTAssert(true)
                     expectation.fulfill()
-                case .success(_):
+                case .success:
                     XCTFail("Expected request to fail, but it succeeded")
                     expectation.fulfill()
                 }
