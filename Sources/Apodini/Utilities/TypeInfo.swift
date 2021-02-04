@@ -62,14 +62,3 @@ func isSupportedScalarType(_ type: Any.Type) -> Bool {
     supportedScalarTypes
         .contains(ObjectIdentifier(type))
 }
-
-func isSupportedVariableWidthInteger(_ type: Any.Type) -> Bool {
-    let types = [
-        ObjectIdentifier(Int.self),
-        ObjectIdentifier(UInt.self)
-    ]
-    
-    precondition(supportedScalarTypes.isSuperset(of: types))
-    
-    return types.contains(ObjectIdentifier(type))
-}

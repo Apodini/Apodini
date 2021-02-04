@@ -10,10 +10,13 @@ class ProtobufferInterfaceExporter: StaticInterfaceExporter {
         let message: String
     }
 
-    internal enum Builder {}
+    struct Builder {
+        var integerWidthConfiguration: IntegerWidthConfiguration = .native
+    }
     
     // MARK: Properties
     private let app: Application
+    private let builder: Builder
     
     private var messages: Set<ProtobufferMessage> = .init()
     private var services: Set<ProtobufferService> = .init()
@@ -21,6 +24,12 @@ class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     // MARK: Initialization
     required init(_ app: Application) {
         self.app = app
+        
+        var builder = Builder()
+        app.storage[IntegerWidthConfiguration.StorageKey.self].map {
+            builder.integerWidthConfiguration = $0
+        }
+        self.builder = builder
     }
     
     // MARK: Methods
@@ -44,12 +53,12 @@ class ProtobufferInterfaceExporter: StaticInterfaceExporter {
 private extension ProtobufferInterfaceExporter {
     func exportThrows<H: Handler>(_ endpoint: Endpoint<H>) throws {
         // Output
-        let outputNode = try Builder.buildMessage(endpoint.responseType)
+        let outputNode = try builder.buildMessage(endpoint.responseType)
         messages.formUnion(outputNode.collectValues())
         
         // Input
         let parameterNodes = try endpoint.parameters.map { parameter in
-            try Builder.buildMessage(parameter.propertyType)
+            try builder.buildMessage(parameter.propertyType)
         }
         for parameterNode in parameterNodes where !parameterNode.value.isPrimitive {
             messages.formUnion(parameterNode.collectValues())
@@ -103,42 +112,62 @@ private extension ProtobufferInterfaceExporter {
 // MARK: - ProtobufferInterfaceExporter.Builder Implementation
 
 extension ProtobufferInterfaceExporter.Builder {
-    static func buildMessage(_ type: Any.Type) throws -> Node<ProtobufferMessage> {
+    func buildMessage(_ type: Any.Type) throws -> Node<ProtobufferMessage> {
         try buildCompositeMessage(type) ?? buildScalarMessage(type)
     }
     
-    static func buildCompositeMessage(_ type: Any.Type) throws -> Tree<ProtobufferMessage> {
+    func buildCompositeMessage(_ type: Any.Type) throws -> Tree<ProtobufferMessage> {
         try EnrichedInfo.node(type)
             .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handlePrimitiveType)?
             .map(ProtobufferMessage.Property.init)
+            .map {
+                $0.map(handleVariableWidthInteger)
+            }
             .contextMap(ProtobufferMessage.init)
             .compactMap { $0 }?
             .filter(!\.isPrimitive)
     }
     
-    static func buildScalarMessage(_ type: Any.Type) -> Node<ProtobufferMessage> {
-        var suffix = ""
-        if isSupportedVariableWidthInteger(type) {
-            suffix = String(describing: Int.bitWidth)
-        }
-        
-        let typeName = "\(type)" + suffix
+    func buildScalarMessage(_ type: Any.Type) -> Node<ProtobufferMessage> {
+        let typeName = String(describing: type)
         
         return Node(
             value: ProtobufferMessage(
                 name: "\(typeName)Message",
                 properties: [
-                    .init(
-                        fieldRule: .required,
-                        name: "value",
-                        typeName: typeName.lowercased(),
-                        uniqueNumber: 1
+                    handleVariableWidthInteger(
+                        .init(
+                            fieldRule: .required,
+                            name: "value",
+                            typeName: typeName.lowercased(),
+                            uniqueNumber: 1
+                        )
                     )
                 ]
             ),
             children: []
+        )
+    }
+}
+
+private extension ProtobufferInterfaceExporter.Builder {
+    func handleVariableWidthInteger(
+        _ property: ProtobufferMessage.Property
+    ) -> ProtobufferMessage.Property {
+        guard ["int", "uint"].contains(property.typeName) else {
+            return property
+        }
+        
+        let suffix = String(integerWidthConfiguration.rawValue)
+        let typeName = property.typeName + suffix
+        
+        return .init(
+            fieldRule: property.fieldRule,
+            name: property.name,
+            typeName: typeName,
+            uniqueNumber: property.uniqueNumber
         )
     }
 }
