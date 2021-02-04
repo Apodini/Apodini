@@ -369,6 +369,63 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         XCTAssertEqual(responseData, ByteBuffer(bytes: []))
     }
 
+    private func assertServiceStream(from serviceStream: EventLoopFuture<Vapor.Response>,
+                                     equals expectedFrameData: [UInt8],
+                                     on eventLoop: EventLoop,
+                                     fulfilling expectation: XCTestExpectation) {
+        serviceStream.whenSuccess { result in
+            let body = result.body.collect(on: eventLoop)
+            body.whenSuccess { buffer in
+                XCTAssertEqual(buffer, ByteBuffer(bytes: expectedFrameData))
+                expectation.fulfill()
+            }
+            body.whenFailure { error in
+                XCTFail("\(error)")
+                expectation.fulfill()
+            }
+        }
+        serviceStream.whenFailure { error in
+            XCTFail("\(error)")
+            expectation.fulfill()
+        }
+    }
+
+    func testBidirectionalStreamingHandler() throws {
+        let context = endpoint.createConnectionContext(for: self.exporter)
+
+        // let expectedResponseString = "Hello Moritz"
+        var expectedResponseFrame1: [UInt8] =
+            [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
+        // let expectedResponseString = "Hello Bernd"
+        let expectedResponseFrame2: [UInt8] =
+            [0, 0, 0, 0, 13, 10, 11, 72, 101, 108, 108, 111, 32, 66, 101, 114, 110, 100]
+
+        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        let vaporRequest = Vapor.Request(application: app.vapor.app,
+                                         method: .POST,
+                                         url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
+                                         on: group.next())
+        vaporRequest.headers = headers
+        let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
+        vaporRequest.bodyStorage = .stream(stream)
+
+        _ = stream.write(.buffer(ByteBuffer(bytes: requestData1)))
+        _ = stream.write(.buffer(ByteBuffer(bytes: requestData2)))
+        _ = stream.write(.end)
+
+        let expectation = XCTestExpectation()
+        expectedResponseFrame1.append(contentsOf: expectedResponseFrame2)
+        let serviceStream = service.createStreamingHandler(context: context, serviceStreaming: true)(vaporRequest)
+        // Currently, I am not aware of any way to read the response frame by frame on the client side.
+        // Thus, this approach just collects all frames from the stream into one buffer.
+        assertServiceStream(from: serviceStream,
+                            equals: expectedResponseFrame1,
+                            on: group.next(),
+                            fulfilling: expectation)
+
+        wait(for: [expectation], timeout: 20)
+    }
+
     func testServiceNameUtility_DefaultName() {
         let webService = WebServiceModel()
         webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
