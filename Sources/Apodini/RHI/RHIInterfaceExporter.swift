@@ -175,7 +175,7 @@ extension RHIInterfaceExporter {
                     handlerType: endpointInfo.handlerType,
                     handlerIdRawValue: endpoint.identifier.rawValue,
                     deploymentOptions: endpointInfo.deploymentOptions,
-                    httpMethod: endpoint.operation.httpMethod.string, // TODO remove this and load it from the OpenAPI def instead?. same for the path...
+                    httpMethod: Vapor.HTTPMethod(endpoint.operation).string, // TODO remove this and load it from the OpenAPI def instead?. same for the path...
                     absolutePath: endpoint.absolutePath.asPathString(parameterEncoding: .id),
                     userInfo: [:]
                 )

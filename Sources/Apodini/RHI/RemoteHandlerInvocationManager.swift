@@ -282,9 +282,9 @@ extension Endpoint {
         RHIIE: RHIInterfaceExporter,
         on eventLoop: EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
-        var context = self.createConnectionContext(for: RHIIE)
-        let responseFuture: EventLoopFuture<Response<AnyEncodable>> = context.handle(request: request, eventLoop: eventLoop)
-        return responseFuture.flatMapThrowing { (response: Response<AnyEncodable>) -> H.Response.Content in
+        let context = self.createConnectionContext(for: RHIIE)
+        let responseFuture: EventLoopFuture<Response<EnrichedContent>> = context.handle(request: request, eventLoop: eventLoop)
+        return responseFuture.flatMapThrowing { (response: Response<EnrichedContent>) -> H.Response.Content in
             switch response {
             case .final(let anyEncodable):
                 if let value = anyEncodable.typed(H.Response.Content.self) {
