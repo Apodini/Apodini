@@ -397,7 +397,7 @@ class SimpleValueEncodingTests: XCTestCase {
         XCTAssertEqual(encoded, expectedComplexMessage)
     }
     
-    func testUUID() throws {
+    func testUUIDEncodingIsString() throws {
         let uuid = UUID()
         let encoder = ProtobufferEncoder()
         
