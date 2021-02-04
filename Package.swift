@@ -87,62 +87,68 @@ let package = Package(
             ]
         ),
 
-        .target(name: "ApodiniVaporSupport",
-                dependencies: [
-                    .target(name: "Apodini"),
-                    .product(name: "Vapor", package: "vapor")
-                ]
+        .target(
+            name: "ApodiniVaporSupport",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "Vapor", package: "vapor")
+            ]
         ),
 
-        .target(name: "ApodiniREST",
-                dependencies: [
-                    .target(name: "Apodini"),
-                    .target(name: "ApodiniVaporSupport"),
-                    .product(name: "FluentKit", package: "fluent-kit")
-                ]
+        .target(
+            name: "ApodiniREST",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "FluentKit", package: "fluent-kit")
+            ]
         ),
 
-        .target(name: "ApodiniGRPC",
-                dependencies: [
-                    .target(name: "Apodini"),
-                    .target(name: "ApodiniVaporSupport"),
-                    .target(name: "ProtobufferCoding")
-                ]
+        .target(
+            name: "ApodiniGRPC",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniVaporSupport"),
+                .target(name: "ProtobufferCoding")
+            ]
         ),
 
-        .target(name: "ApodiniOpenAPI",
-                dependencies: [
-                    .target(name: "Apodini"),
-                    .target(name: "ApodiniVaporSupport"),
-                    .product(name: "OpenAPIKit", package: "OpenAPIKit"),
-                    .product(name: "Yams", package: "Yams")
-                ],
-                resources: [
-                    .process("Resources")
-                ]
+        .target(
+            name: "ApodiniOpenAPI",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "OpenAPIKit", package: "OpenAPIKit"),
+                .product(name: "Yams", package: "Yams")
+            ],
+            resources: [
+                .process("Resources")
+            ]
         ),
 
-        .target(name: "ApodiniWebSocket",
-                dependencies: [
-                    .target(name: "Apodini"),
-                    .target(name: "ApodiniVaporSupport"),
-                    .product(name: "OpenCombine", package: "OpenCombine"),
-                    .product(name: "OpenCombineFoundation", package: "OpenCombine"),
-                    .product(name: "Vapor", package: "vapor"),
-                    .product(name: "Fluent", package: "fluent"),
-                    .product(name: "NIOWebSocket", package: "swift-nio"),
-                    .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
-                    .product(name: "Runtime", package: "Runtime")
-                ]
+        .target(
+            name: "ApodiniWebSocket",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "OpenCombine", package: "OpenCombine"),
+                .product(name: "OpenCombineFoundation", package: "OpenCombine"),
+                .product(name: "Vapor", package: "vapor"),
+                .product(name: "Fluent", package: "fluent"),
+                .product(name: "NIOWebSocket", package: "swift-nio"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
+                .product(name: "Runtime", package: "Runtime")
+            ]
         ),
 
-        .target(name: "ApodiniProtobuffer",
-                dependencies: [
-                    .target(name: "Apodini"),
-                    .target(name: "ApodiniVaporSupport"),
-                    .target(name: "ProtobufferCoding"),
-                    .target(name: "ApodiniGRPC")
-                ]
+        .target(
+            name: "ApodiniProtobuffer",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniVaporSupport"),
+                .target(name: "ProtobufferCoding"),
+                .target(name: "ApodiniGRPC")
+            ]
         ),
 
         .target(

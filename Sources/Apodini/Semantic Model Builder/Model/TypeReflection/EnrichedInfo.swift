@@ -76,7 +76,9 @@ public extension EnrichedInfo {
 
 extension EnrichedInfo: Hashable {
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(String(describing: "\(self.typeInfo.name)\(self.propertyInfo?.name)\(self.cardinality)"))
+        hasher.combine(typeInfo.name)
+        hasher.combine(propertyInfo)
+        hasher.combine(cardinality)
     }
 }
 
@@ -89,4 +91,3 @@ extension EnrichedInfo: Equatable {
             && lhs.cardinality == rhs.cardinality
     }
 }
-
