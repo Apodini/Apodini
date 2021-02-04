@@ -6,8 +6,12 @@
 
 class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     // MARK: Nested Types
-    struct Error: Swift.Error {
+    struct Error: Swift.Error, CustomDebugStringConvertible {
         let message: String
+    
+        var debugDescription: String {
+            "ProtobufferInterfaceExporterError: \(message)"
+        }
     }
 
     internal enum Builder {}
