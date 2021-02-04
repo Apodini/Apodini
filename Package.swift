@@ -126,6 +126,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniTypeReflection"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                 .product(name: "Yams", package: "Yams")
             ],
@@ -153,6 +154,7 @@ let package = Package(
             name: "ApodiniProtobuffer",
             dependencies: [
                 .target(name: "Apodini"),
+                .target(name: "ApodiniTypeReflection"),
                 .target(name: "ApodiniVaporSupport"),
                 .target(name: "ProtobufferCoding"),
                 .target(name: "ApodiniGRPC")

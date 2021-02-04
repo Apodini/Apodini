@@ -2,6 +2,7 @@
 //  Created by Nityananda on 11.12.20.
 //
 
+import Apodini
 import Runtime
 
 public struct PropertyInfo: Equatable, Hashable {
