@@ -32,7 +32,7 @@ class ParameterRetrievalTests: ApodiniTests {
 
         let exporter = MockExporter<String>(queued: "Rudi", 3, nil, .null)
 
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         let result = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
                 .wait()
         guard case let .final(responseValue) = result.typed(String.self) else {

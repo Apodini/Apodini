@@ -31,7 +31,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         
         self.router.register({(clientInput: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, _: Database?) -> (
                     defaultInput: SomeInput,
-                    output: AnyPublisher<Message<AnyEncodable>, Error>
+                    output: AnyPublisher<Message<EnrichedContent>, Error>
                 ) in
             var cancellables: Set<AnyCancellable> = []
             
@@ -56,19 +56,19 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
                 input.send(.observation(observedObject))
             })
             
-            var context = endpoint.createConnectionContext(for: self)
+            let context = endpoint.createConnectionContext(for: self)
             
             context.register(listener: listener)
             
             // We need a second gap in the publisher-chain here so we can map freely between
             // `value`s and `completion`s.
-            let output: PassthroughSubject<Message<AnyEncodable>, Error> = PassthroughSubject()
+            let output: PassthroughSubject<Message<EnrichedContent>, Error> = PassthroughSubject()
             // Handle all incoming client-messages and observations one after another.
             // The `syncMap` automatically awaits the future, while `buffer` makes sure
             // messages are never dropped.
             input
                 .buffer()
-                .syncMap { evaluation -> EventLoopFuture<Response<AnyEncodable>> in
+                .syncMap { evaluation -> EventLoopFuture<Response<EnrichedContent>> in
                     switch evaluation {
                     case .input(let inputValue):
                         return context.handle(request: inputValue, eventLoop: eventLoop, final: false)
@@ -80,7 +80,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
                     // The completion is also synchronized by `syncMap` it waits for any future
                     // to complete before forwarding it.
                     receiveCompletion: { completion in
-                        Self.handleCompletion(completion: completion, context: &context, eventLoop: eventLoop, emptyInput: emptyInput, output: output)
+                        Self.handleCompletion(completion: completion, context: context, eventLoop: eventLoop, emptyInput: emptyInput, output: output)
                         // We have to reference the cancellable here so it stays in memory and isn't cancled early.
                         cancellables.removeAll()
                     },
@@ -137,10 +137,10 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     
     private static func handleCompletion(
         completion: Subscribers.Completion<Never>,
-        context: inout AnyConnectionContext<WebSocketInterfaceExporter>,
+        context: ConnectionContext<WebSocketInterfaceExporter>,
         eventLoop: EventLoop,
         emptyInput: SomeInput,
-        output: PassthroughSubject<Message<AnyEncodable>, Error>
+        output: PassthroughSubject<Message<EnrichedContent>, Error>
     ) {
         switch completion {
         case .finished:
@@ -160,8 +160,8 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     }
     
     private static func handleValue(
-        result: Result<Response<AnyEncodable>, Error>,
-        output: PassthroughSubject<Message<AnyEncodable>, Error>) {
+        result: Result<Response<EnrichedContent>, Error>,
+        output: PassthroughSubject<Message<EnrichedContent>, Error>) {
         switch result {
         case .success(let response):
             Self.handleRegularResponse(result: response, output: output)
@@ -171,8 +171,8 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     }
     
     private static func handleCompletionResponse(
-        result: Response<AnyEncodable>,
-        output: PassthroughSubject<Message<AnyEncodable>, Error>) {
+        result: Response<EnrichedContent>,
+        output: PassthroughSubject<Message<EnrichedContent>, Error>) {
         switch result {
         case .nothing:
             output.send(completion: .finished)
@@ -188,8 +188,8 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     }
     
     private static func handleRegularResponse(
-        result: Response<AnyEncodable>,
-        output: PassthroughSubject<Message<AnyEncodable>, Error>) {
+        result: Response<EnrichedContent>,
+        output: PassthroughSubject<Message<EnrichedContent>, Error>) {
         switch result {
         case .nothing:
             break
@@ -205,7 +205,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     
     private static func handleError(
         error: Error,
-        output: PassthroughSubject<Message<AnyEncodable>, Error>,
+        output: PassthroughSubject<Message<EnrichedContent>, Error>,
         close: Bool = false) {
         let error = error.apodiniError
         switch error.option(for: .webSocketConnectionConsequence) {
@@ -226,7 +226,7 @@ class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
 // MARK: Handling of ObservedObject
 
 private struct DelegatingObservedListener: ObservedListener {
-    func onObservedDidChange<C>(_ observedObject: AnyObservedObject, in context: C) where C: ConnectionContext {
+    func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<WebSocketInterfaceExporter>) {
         callback(observedObject)
     }
     

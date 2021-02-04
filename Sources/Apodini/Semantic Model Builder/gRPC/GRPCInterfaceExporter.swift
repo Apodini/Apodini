@@ -25,9 +25,6 @@ class GRPCInterfaceExporter: InterfaceExporter {
         let serviceName = gRPCServiceName(from: endpoint)
         let methodName = gRPCMethodName(from: endpoint)
 
-        // kick off name collision check
-        _ = endpoint.exportParameters(on: self)
-
         // generate and store the field tags for all parameters
         // of this endpoint
         endpoint.parameters
@@ -42,7 +39,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
         if let existingService = services[serviceName] {
             service = existingService
         } else {
-            service = GRPCService(name: serviceName, using: app)
+            service = GRPCService(name: serviceName, app: app)
             services[serviceName] = service
         }
 
@@ -103,7 +100,19 @@ class GRPCInterfaceExporter: InterfaceExporter {
             // parameter, or use default interference if none is
             // annotated at the parameter.
             FieldNumber.setFieldNumber(fieldTag)
-            let wrappedDecoded = try ProtobufferDecoder().decode(wrappedType, from: request.data)
+
+            let decoder = ProtobufferDecoder()
+            
+            if let configuration = app.storage[IntegerWidthConfiguration.StorageKey.self] {
+                switch configuration {
+                case .thirtyTwo:
+                    decoder.integerWidthCodingStrategy = .thirtyTwo
+                case .sixtyFour:
+                    decoder.integerWidthCodingStrategy = .sixtyFour
+                }
+            }
+
+            let wrappedDecoded = try decoder.decode(wrappedType, from: request.data)
             return wrappedDecoded.request
         } catch {
             // Decoding fails if the parameter is not present

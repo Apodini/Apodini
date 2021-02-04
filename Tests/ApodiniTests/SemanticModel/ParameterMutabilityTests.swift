@@ -67,7 +67,7 @@ class ParameterMutabilityTests: ApodiniTests {
 
         let exporter = MockExporter<String>(queued: "Rudi", 3, ", ", "Peter", 3, ", ")
 
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         
         // both calls should succeed
         _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
@@ -82,7 +82,7 @@ class ParameterMutabilityTests: ApodiniTests {
 
         let exporter = MockExporter<String>(queued: "Rudi", 3, ", ", "Rudi", 4, ", ")
 
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         
         // second call should fail
         _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
@@ -100,7 +100,7 @@ class ParameterMutabilityTests: ApodiniTests {
 
         let exporter = MockExporter<String>(queued: "Rudi", 3, nil, "Rudi", 4, ", ")
 
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         
         // second call should fail
         _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
@@ -117,8 +117,8 @@ class ParameterMutabilityTests: ApodiniTests {
         let endpoint = handler.mockEndpoint()
 
         let exporter = MockExporter<String>(queued: nil, nil, true, nil, nil)
-        var context1 = endpoint.createConnectionContext(for: exporter)
-        var context2 = endpoint.createConnectionContext(for: exporter)
+        let context1 = endpoint.createConnectionContext(for: exporter)
+        let context2 = endpoint.createConnectionContext(for: exporter)
         
         // second call should still return "Apodini"
         _ = try context1.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
@@ -145,8 +145,8 @@ class ParameterMutabilityTests: ApodiniTests {
         let exporter1 = MockExporter<String>(queued: nil, nil, true)
         let exporter2 = MockExporter<String>(queued: nil, nil)
 
-        var context1 = endpoint.createConnectionContext(for: exporter1)
-        var context2 = endpoint.createConnectionContext(for: exporter2)
+        let context1 = endpoint.createConnectionContext(for: exporter1)
+        let context2 = endpoint.createConnectionContext(for: exporter2)
         
         // second call should still return "Apodini"
         _ = try context1.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())

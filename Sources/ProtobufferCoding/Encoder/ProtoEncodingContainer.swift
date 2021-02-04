@@ -108,9 +108,10 @@ internal class InternalProtoEncodingContainer {
     }
 
     internal func encodeInt(_ value: Int, tag: Int) throws {
-        if MemoryLayout<Int>.size == 4 {
+        switch encoder.integerWidthCodingStrategy {
+        case .thirtyTwo:
             try encodeInt32(Int32(value), tag: tag)
-        } else if MemoryLayout<Int>.size == 8 {
+        case .sixtyFour:
             try encodeInt64(Int64(value), tag: tag)
         }
     }
@@ -128,9 +129,10 @@ internal class InternalProtoEncodingContainer {
     }
 
     internal func encodeUInt(_ value: UInt, tag: Int) throws {
-        if MemoryLayout<UInt>.size == 4 {
+        switch encoder.integerWidthCodingStrategy {
+        case .thirtyTwo:
             try encodeUInt32(UInt32(value), tag: tag)
-        } else if MemoryLayout<UInt>.size == 8 {
+        case .sixtyFour:
             try encodeUInt64(UInt64(value), tag: tag)
         }
     }
@@ -179,9 +181,10 @@ internal class InternalProtoEncodingContainer {
     }
 
     internal func encodeRepeatedInt(_ values: [Int], tag: Int) throws {
-        if MemoryLayout<Int>.size == 4 {
+        switch encoder.integerWidthCodingStrategy {
+        case .thirtyTwo:
             try encodeRepeatedInt32(values.compactMap { Int32($0) }, tag: tag)
-        } else if MemoryLayout<Int>.size == 8 {
+        case .sixtyFour:
             try encodeRepeatedInt64(values.compactMap { Int64($0) }, tag: tag)
         }
     }
@@ -207,9 +210,10 @@ internal class InternalProtoEncodingContainer {
     }
 
     internal func encodeRepeatedUInt(_ values: [UInt], tag: Int) throws {
-        if MemoryLayout<UInt>.size == 4 {
+        switch encoder.integerWidthCodingStrategy {
+        case .thirtyTwo:
             try encodeRepeatedUInt32(values.compactMap { UInt32($0) }, tag: tag)
-        } else if MemoryLayout<UInt>.size == 8 {
+        case .sixtyFour:
             try encodeRepeatedUInt64(values.compactMap { UInt64($0) }, tag: tag)
         }
     }

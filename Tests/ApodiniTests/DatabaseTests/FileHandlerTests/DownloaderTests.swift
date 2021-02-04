@@ -18,7 +18,7 @@ final class DownloaderTests: FileHandlerTests {
         let endpoint = downloader.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         
         let uri = URI("http://example.de/test/fileName")
         let downloadRequest = Vapor.Request(
@@ -61,7 +61,7 @@ final class DownloaderTests: FileHandlerTests {
         let endpoint = downloader.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
-        var context = endpoint.createConnectionContext(for: exporter)
+        let context = endpoint.createConnectionContext(for: exporter)
         
         let uri = URI("http://example.de/test/fileName")
         let downloadRequest = Vapor.Request(

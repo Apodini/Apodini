@@ -19,10 +19,10 @@ extension Application {
 
 /// Represents the state of a connection to the client.
 /// For non-client-streaming requests,
-/// the defautl state should be `.end`.
+/// the default state should be `.end`.
 public enum ConnectionState {
     /// The request is part of a client stream,
-    /// and there are more requestst to follow.
+    /// and there are more requests to follow.
     case open
     /// The request is the last in the current client stream.
     case end
