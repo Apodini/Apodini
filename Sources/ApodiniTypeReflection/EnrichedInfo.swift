@@ -15,6 +15,7 @@ public struct PropertyInfo: Equatable, Hashable {
     }
 }
 
+/// <#Description#>
 public struct EnrichedInfo {
     public enum Cardinality: Equatable, Hashable {
         case zeroToOne
@@ -26,12 +27,19 @@ public struct EnrichedInfo {
         case array
         indirect case dictionary(key: EnrichedInfo, value: EnrichedInfo)
     }
-
+    
+    /// <#Description#>
     public let typeInfo: TypeInfo
+    /// <#Description#>
     public let propertyInfo: PropertyInfo?
-
+    /// <#Description#>
     public var cardinality: Cardinality
     
+    /// <#Description#>
+    /// - Parameters:
+    ///   - typeInfo: <#typeInfo description#>
+    ///   - propertyInfo: <#propertyInfo description#>
+    ///   - cardinality: <#cardinality description#>
     public init(
         typeInfo: TypeInfo,
         propertyInfo: PropertyInfo?,
@@ -44,6 +52,10 @@ public struct EnrichedInfo {
 }
 
 public extension EnrichedInfo {
+    /// <#Description#>
+    /// - Parameter type: <#type description#>
+    /// - Throws: <#description#>
+    /// - Returns: <#description#>
     static func node(_ type: Any.Type) throws -> Node<EnrichedInfo> {
         let typeInfo = try Runtime.typeInfo(of: type)
         let root = EnrichedInfo(
@@ -105,4 +117,3 @@ extension EnrichedInfo: Equatable {
             && lhs.cardinality == rhs.cardinality
     }
 }
-
