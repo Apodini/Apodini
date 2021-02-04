@@ -16,10 +16,6 @@ public class Schedule<K: EnvironmentAccessible, T: Job>: Configuration {
     ///     - on: Crontab as a String.
     ///     - keyPath: Associates a `Job` for later retrieval.
     public init(_ job: T, on cronTrigger: String, _ keyPath: KeyPath<K, T>) {
-        // Activate any `ObservedObject`s on the job.
-        var job = job
-        activate(&job)
-        
         self.job = job
         self.cronTrigger = cronTrigger
         self.runs = nil
@@ -34,10 +30,6 @@ public class Schedule<K: EnvironmentAccessible, T: Job>: Configuration {
     ///     - runs: Number of times a `Job` should run.
     ///     - keyPath: Associates a `Job` for later retrieval.
     public init(_ job: T, on cronTrigger: String, runs: Int, _ keyPath: KeyPath<K, T>) {
-        // Activate any `ObservedObject`s on the job.
-        var job = job
-        activate(&job)
-        
         self.job = job
         self.cronTrigger = cronTrigger
         self.runs = runs

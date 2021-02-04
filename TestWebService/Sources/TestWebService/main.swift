@@ -31,9 +31,6 @@ struct TestWebService: Apodini.WebService {
             swaggerUiEndpoint: "oas-ui",
             title: "The great TestWebService - presented by Apodini"
         )
-        HTTP2Configuration()
-            .certificate("/Users/moritzschull/Desktop/cert/cert.pem")
-            .key("/Users/moritzschull/Desktop/cert/key.pem")
     }
 }
 

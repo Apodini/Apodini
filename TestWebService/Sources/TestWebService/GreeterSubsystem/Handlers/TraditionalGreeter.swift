@@ -25,7 +25,7 @@ struct TraditionalGreeter: Handler {
         logger.info("\(connection.state)")
         
         if connection.state == .end {
-            return .final("Hello, \(surname)! You are now \(age) years old!")
+            return .end
         }
 
         if let firstName = name {

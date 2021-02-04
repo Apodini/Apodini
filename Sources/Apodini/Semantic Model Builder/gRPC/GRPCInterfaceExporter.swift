@@ -46,8 +46,8 @@ class GRPCInterfaceExporter: InterfaceExporter {
         let context = endpoint.createConnectionContext(for: self)
 
         do {
-            let bidirectional = (endpoint.serviceType == .serviceStreaming || endpoint.serviceType == .bidirectional)
-            try service.exposeEndpoint(name: methodName, context: context, serviceStreaming: bidirectional)
+            let serviceStreaming = (endpoint.serviceType == .serviceStreaming || endpoint.serviceType == .bidirectional)
+            try service.exposeEndpoint(name: methodName, context: context, serviceStreaming: serviceStreaming)
             app.logger.info("Exported gRPC endpoint \(serviceName)/\(methodName)")
 
             app.logger.info("\tParameters:")

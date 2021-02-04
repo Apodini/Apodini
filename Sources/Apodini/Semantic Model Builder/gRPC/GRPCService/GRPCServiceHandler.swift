@@ -157,9 +157,6 @@ extension GRPCService {
             }
 
             let response = self.makeResponse(streamingResponse)
-            // Vapor sets the "transferEncoding": "chunked" header automatically for response-streaming.
-            // gRPC does not like it, so we remove it.
-            response.headers.remove(name: .transferEncoding)
             return request.eventLoop.makeSucceededFuture(response)
         }
     }

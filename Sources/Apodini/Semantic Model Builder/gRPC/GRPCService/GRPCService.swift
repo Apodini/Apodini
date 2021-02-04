@@ -17,8 +17,6 @@ class GRPCService {
     var serviceName: String
     var methodNames: [String] = []
 
-    internal var cancellables: Set<AnyCancellable> = []
-
     /// GRPC media type, with unspecified payload encoding
     static let grpc = HTTPMediaType(type: "application", subType: "grpc")
     /// GRPC media type, with Protobuffer payload encoding
@@ -122,9 +120,13 @@ extension GRPCService {
     func makeResponse(_ stream: @escaping (BodyStreamWriter) -> Void) -> Vapor.Response {
         var headers = HTTPHeaders()
         headers.contentType = Self.grpcproto
-        return Vapor.Response(status: .ok,
-                              version: HTTPVersion(major: 2, minor: 0),
-                              headers: headers,
-                              body: .init(stream: stream))
+        let response = Vapor.Response(status: .ok,
+                                      version: HTTPVersion(major: 2, minor: 0),
+                                      headers: headers,
+                                      body: .init(stream: stream))
+        // Vapor sets the "transferEncoding": "chunked" header automatically for response-streaming.
+        // gRPC does not like it, so we remove it.
+        response.headers.remove(name: .transferEncoding)
+        return response
     }
 }
