@@ -9,6 +9,11 @@ import Foundation
 import Apodini
 
 
-struct User: Codable, ResponseTransformable {
-    var id: UUID
+struct User: Content, Identifiable, WithRelationships {
+    var id: Int
+    var writtenId = UUID()
+
+    static var relationships: Relationships {
+        References<Post>(as: "written", identifiedBy: \.writtenId)
+    }
 }

@@ -19,11 +19,11 @@ extension EndpointsTreeNode: CustomDebugStringConvertible {
                 .joined()
             
             return """
-                \(value.path.description)/
+                \(value.storedPath.description)/
                 \(operations)
                 """
         }
         
-        return node.description
+        return "\n" + node.description
     }
 }

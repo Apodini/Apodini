@@ -39,11 +39,11 @@ extension ResponseTransformer {
     /// - Parameter eventLoop: The `EventLoop` that should be used to retrieve the `Response` of the `ResponseTransformable`
     /// - Returns: The output as a type erasured `EventLoopFuture<Response<AnyEncodable>>`
     public func transform(response: Response<AnyEncodable>, on eventLoop: EventLoop) -> EventLoopFuture<Response<AnyEncodable>> {
-        guard let typedInputReponse = response.typed(Self.InputContent.self) else {
+        guard let typedInputResponse = response.typed(Self.InputContent.self) else {
             fatalError("Could not cast the `Response<AnyEncodable>` passed to the `ResponseTransformer` to the expected \(Response<Self.Content>.self) type")
         }
         
-        return typedInputReponse
+        return typedInputResponse
             .map(transform(content:))
             .transformToResponse(on: eventLoop)
             .map { typedResponse in

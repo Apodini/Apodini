@@ -10,19 +10,19 @@ import Apodini
 
 
 struct TestWebService: Apodini.WebService {
-    @PathParameter var userId: UUID
-    
+    let greeterRelationship = Relationship(name: "greeter")
+
     var content: some Component {
         // Hello World! 👋
         Text("Hello World! 👋")
             .response(EmojiTransformer(emojis: "🎉"))
-        
+
         // Bigger Subsystems:
         AuctionComponent()
-        GreetComponent()
-        RamdomComponent()
+        GreetComponent(greeterRelationship: greeterRelationship)
+        RandomComponent(greeterRelationship: greeterRelationship)
         SwiftComponent()
-        UserComponent(userId: _userId)
+        UserComponent(greeterRelationship: greeterRelationship)
     }
     
     var configuration: Configuration {
