@@ -6,8 +6,12 @@
 
 class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     // MARK: Nested Types
-    struct Error: Swift.Error {
+    struct Error: Swift.Error, CustomDebugStringConvertible {
         let message: String
+    
+        var debugDescription: String {
+            "ProtobufferInterfaceExporterError: \(message)"
+        }
     }
 
     struct Builder {
@@ -121,7 +125,11 @@ extension ProtobufferInterfaceExporter.Builder {
             .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handlePrimitiveType)?
+            .edited(Apodini.handleUUID)?
             .map(ProtobufferMessage.Property.init)
+            .map {
+                $0.map(handleUUID)
+            }
             .map {
                 $0.map(handleVariableWidthInteger)
             }
@@ -153,6 +161,19 @@ extension ProtobufferInterfaceExporter.Builder {
 }
 
 private extension ProtobufferInterfaceExporter.Builder {
+    func handleUUID(_ property: ProtobufferMessage.Property) -> ProtobufferMessage.Property {
+        guard property.typeName == "UUIDMessage" else {
+            return property
+        }
+        
+        return .init(
+            fieldRule: property.fieldRule,
+            name: property.name,
+            typeName: "string",
+            uniqueNumber: property.uniqueNumber
+        )
+    }
+    
     func handleVariableWidthInteger(
         _ property: ProtobufferMessage.Property
     ) -> ProtobufferMessage.Property {
