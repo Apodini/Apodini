@@ -217,7 +217,7 @@ public struct POSIXPermissions: RawRepresentable, ExpressibleByIntegerLiteral, E
             return nil
         }
         
-        print("OWOOOOO BITFIELD \(rawValue.lk_binaryString)", string, self.stringRepresentation)
+        print("OWOOOOO BITFIELD \(rawValue.lk_binaryString)", string, self.stringRepresentation, Self(rawValue).stringRepresentation)
     }
     
     public var stringRepresentation: String {

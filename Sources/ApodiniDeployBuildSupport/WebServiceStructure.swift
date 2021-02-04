@@ -20,6 +20,11 @@ public enum WellKnownCLIArguments {
 }
 
 
+// Note: environment variables which are used in a lambda context must satisfy the regex `[a-zA-Z]([a-zA-Z0-9_])+`
+public enum WellKnownEnvironmentVariables {
+    public static let currentNodeId = "ApodiniDeployCurrentNodeId"
+}
+
 
 
 public struct ExporterIdentifier: RawRepresentable, Codable, Hashable, Equatable {
@@ -36,12 +41,12 @@ public struct ExporterIdentifier: RawRepresentable, Codable, Hashable, Equatable
 
 
 public struct WebServiceStructure: Codable { // TODO this needs a better name. maybe Context or Summary?
-    public let endpoints: [ExportedEndpoint]
+    public let endpoints: Set<ExportedEndpoint>
     public let deploymentConfig: DeploymentConfig
     public let openApiDefinition: Data
     
     public init(
-        endpoints: [ExportedEndpoint],
+        endpoints: Set<ExportedEndpoint>,
         deploymentConfig: DeploymentConfig,
         openApiDefinition: Data
     ) {

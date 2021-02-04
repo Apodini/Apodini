@@ -105,44 +105,69 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
 //            )
 //        }
         
+        
         let nodes = Set(try computeDefaultDeployedSystemNodes(from: wsStructure).enumerated().map { idx, node in
             try node.withUserInfo(LocalhostLaunchInfo(port: self.endpointProcessesBasePort + idx))
         })
         
-        let systemConfigs: [DeployedSystemConfiguration] = try nodes.map { node in
-            return try DeployedSystemConfiguration(
-                deploymentProviderId: self.identifier,
-                currentInstanceNodeId: node.id,
-                nodes: nodes,
-                userInfo: Null() // TODO we have a new thing here?
-            )
-        }
+        
+//        let systemConfigs: [DeployedSystemStructure] = try nodes.map { node in
+//            return try DeployedSystemStructure(
+//                deploymentProviderId: self.identifier,
+//                currentInstanceNodeId: node.id,
+//                nodes: nodes,
+//                userInfo: Null() // TODO we have a new thing here?
+//            )
+//        }
         
         
-        let systemConfigUrls: [URL] = try systemConfigs.map { systemConfig in // alles oder nichts
-            let url = FM.lk_getTemporaryFileUrl(fileExtension: "json")
-            try systemConfig.writeTo(url: url)
-            return url
-        }
+        let deployedSystem = try DeployedSystemStructure(
+            deploymentProviderId: Self.identifier,
+            nodes: nodes,
+            userInfo: nil,
+            userInfoType: Null.self
+        )
         
-        for (systemConfig, systemConfigUrl) in zip(systemConfigs, systemConfigUrls) {
-            //logger.notice("launching an instance for \(launchInfo)")
+        let deployedSystemStructureFileUrl = FM.lk_getTemporaryFileUrl(fileExtension: "json")
+        try deployedSystem.writeTo(url: deployedSystemStructureFileUrl)
+        
+        for node in deployedSystem.nodes {
             let task = Task(
                 executableUrl: executableUrl,
-                arguments: [WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig, systemConfigUrl.path],
-                captureOutput: false,
-                launchInCurrentProcessGroup: true
+                arguments: [WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig, deployedSystemStructureFileUrl.path, node.id],
+                launchInCurrentProcessGroup: true,
+                environment: [WellKnownEnvironmentVariables.currentNodeId: node.id]
             )
             try task.launchAsync()
-            let LLI = systemConfig.currentInstanceNode.readUserInfo(as: LocalhostLaunchInfo.self)!
-            //logger.notice("endpoint '\(systemConfig.currentInstanceNode.exportedEndpoints[0])' -> :\(LLI.port) @ \(task.pid)")
-            logger.notice("instance w pid \(task.pid) listening at :\(LLI.port). exported endpoints: \(systemConfig.currentInstanceNode.exportedEndpoints.map(\.handlerIdRawValue))")
+            let LLI = node.readUserInfo(as: LocalhostLaunchInfo.self)!
+            logger.notice("node \(node.id) w/ pid \(task.pid) listening at :\(LLI.port). exported endpoints: \(node.exportedEndpoints.map(\.handlerIdRawValue))")
         }
+        
+        
+//        let systemConfigUrls: [URL] = try systemConfigs.map { systemConfig in // alles oder nichts
+//            let url = FM.lk_getTemporaryFileUrl(fileExtension: "json")
+//            try systemConfig.writeTo(url: url)
+//            return url
+//        }
+//
+//        for (systemConfig, systemConfigUrl) in zip(systemConfigs, systemConfigUrls) {
+//            //logger.notice("launching an instance for \(launchInfo)")
+//            let task = Task(
+//                executableUrl: executableUrl,
+//                arguments: [WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig, systemConfigUrl.path],
+//                captureOutput: false,
+//                launchInCurrentProcessGroup: true
+//            )
+//            try task.launchAsync()
+//            let LLI = systemConfig.currentInstanceNode.readUserInfo(as: LocalhostLaunchInfo.self)!
+//            //logger.notice("endpoint '\(systemConfig.currentInstanceNode.exportedEndpoints[0])' -> :\(LLI.port) @ \(task.pid)")
+//            logger.notice("instance w pid \(task.pid) listening at :\(LLI.port). exported endpoints: \(systemConfig.currentInstanceNode.exportedEndpoints.map(\.handlerIdRawValue))")
+//        }
         
         logger.notice("Starting proxy server")
         let proxyServer = try ProxyServer(
             webServiceStructure: wsStructure,
-            systemConfig: systemConfigs[0] // it doesnt matter which one we use
+            deployedSystem: deployedSystem
         )
         try proxyServer.run(port: self.port)
         logger.notice("exit.")

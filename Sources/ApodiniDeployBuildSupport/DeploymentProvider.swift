@@ -16,6 +16,8 @@ import Darwin
 
 
 
+
+
 public struct DeploymentProviderID: RawRepresentable, Hashable, Equatable, Codable {
     public let rawValue: String
     
@@ -149,17 +151,7 @@ extension DeploymentProvider {
     public func computeDefaultDeployedSystemNodes(
         from wsStructure: WebServiceStructure,
         nodeIdProvider: (Set<ExportedEndpoint>) -> String = { _ in UUID().uuidString }
-    ) throws -> Set<DeployedSystemConfiguration.Node> {
-        // TODO how should this handle the same endpoint id being in multiple groups
-        // also needs validation to make sure all handler ids specified in groups actually exist in the WS
-        
-        //var nodes: [DeployedSystemConfiguration.Node] = []
-        
-        let getEndpointById: (String) -> ExportedEndpoint? = { id in
-            wsStructure.endpoints.first { $0.handlerIdRawValue == id }
-        }
-        
-        
+    ) throws -> Set<DeployedSystemStructure.Node> {
         // a mapping from all user-defined deployment groups, to the set of
         var endpointsByDeploymentGroup = Dictionary<DeploymentGroup, Set<ExportedEndpoint>>(
             uniqueKeysWithValues: wsStructure.deploymentConfig.deploymentGroups.groups.map { ($0, []) }
@@ -210,64 +202,8 @@ extension DeploymentProvider {
             ))
         }
         
-//        // one node per deployment group
-//        try nodes += wsStructure.deploymentConfig.deploymentGroups.groups.map { deploymentGroup in
-//            try DeployedSystemConfiguration.Node(
-//                id: deploymentGroup.id,
-//                exportedEndpoints: deploymentGroup.handlerIds.map { getEndpointById($0)! },
-//                userInfo: nil, // TODO experiment w/ Null() what does the json look like? why does it (?sometimes?) seem to use an empty object instead of the null literal?
-//                userInfoType: Null.self
-//            )
-//        }
-//
-//        // Create nodes for the remaining endpoints
-//        let remainingEndpoints: [ExportedEndpoint] = wsStructure.endpoints
-//            .filter { endpoint in !nodes.contains { $0.exportedEndpoints.contains(endpoint) } }
-//
-//        switch wsStructure.deploymentConfig.deploymentGroups.defaultGrouping {
-//        case .singleNode:
-//            let node = try DeployedSystemConfiguration.Node(
-//                id: nodeIdProvider(remainingEndpoints),
-//                exportedEndpoints: remainingEndpoints,
-//                userInfo: Null()
-//            )
-//            nodes.append(node)
-//        case .separateNodes:
-//            try nodes += remainingEndpoints.map { endpoint in
-//                try DeployedSystemConfiguration.Node(
-//                    id: nodeIdProvider([endpoint]),
-//                    exportedEndpoints: [endpoint],
-//                    userInfo: Null()
-//                )
-//            }
-//        }
-        
-        do {
-            var exportedHandlerIds = Set<String>()
-            // make sure a handler isn't listed in multiple nodes
-            for node in nodes {
-                for endpoint in node.exportedEndpoints {
-                    guard exportedHandlerIds.insert(endpoint.handlerIdRawValue).inserted else {
-                        throw NSError.apodiniDeploy(
-                            localizedDescription: "Handler with id '\(endpoint.handlerIdRawValue)' appears in multiple deployment groups, which is illegal."
-                        )
-                    }
-                }
-            }
-            // make sure every handler appears in one node
-            let allHandlerIds = Set(wsStructure.endpoints.map(\.handlerIdRawValue))
-            guard allHandlerIds == exportedHandlerIds else {
-                assert(exportedHandlerIds.isSubset(of: allHandlerIds))
-                // All handler ids which appear in one of the two sets, but not in both.
-                // Since the set of exported handler ids is a subset of the set of all handler ids,
-                // this difference is the set of all handlers which aren't exported by a node
-                let diff = allHandlerIds.symmetricDifference(exportedHandlerIds)
-                throw NSError.apodiniDeploy(
-                    localizedDescription: "Handler ids\(diff.map({ "'\($0)'" }).joined(separator: ", "))"
-                )
-            }
-        }
-        
+        try nodes.assertHandlersLimitedToSingleNode()
+        try nodes.assertContainsAllEndpointsIn(wsStructure.endpoints)
         return nodes
     }
 }
@@ -297,5 +233,41 @@ extension Set {
     /// insert a sequence of elements into the set
     public static func += <S> (lhs: inout Self, rhs: S) where S: Sequence, S.Element == Element {
         lhs.formUnion(rhs)
+    }
+}
+
+
+
+extension Sequence where Element == DeployedSystemStructure.Node {
+    // check that, in the sequence of nodes, every handler appears in only one node
+    func assertHandlersLimitedToSingleNode() throws {
+        var exportedHandlerIds = Set<String>()
+        // make sure a handler isn't listed in multiple nodes
+        for node in self {
+            for endpoint in node.exportedEndpoints {
+                guard exportedHandlerIds.insert(endpoint.handlerIdRawValue).inserted else {
+                    throw ApodiniDeploySupportError(
+                        message: "Handler with id '\(endpoint.handlerIdRawValue)' appears in multiple deployment groups, which is illegal."
+                    )
+                }
+            }
+        }
+    }
+    
+    // check that the sequence of nodes contains all endpoints from the other set
+    func assertContainsAllEndpointsIn(_ allEndpoints: Set<ExportedEndpoint>) throws {
+        // make sure every handler appears in one node
+        let exportedHandlerIds = Set(self.flatMap(\.exportedEndpoints).map(\.handlerIdRawValue))
+        let expectedHandlerIds = Set(allEndpoints.map(\.handlerIdRawValue))
+        guard expectedHandlerIds == exportedHandlerIds else {
+            assert(exportedHandlerIds.isSubset(of: expectedHandlerIds))
+            // All handler ids which appear in one of the two sets, but not in both.
+            // Since the set of exported handler ids is a subset of the set of all handler ids,
+            // this difference is the set of all handlers which aren't exported by a node
+            let diff = expectedHandlerIds.symmetricDifference(exportedHandlerIds)
+            throw ApodiniDeploySupportError(
+                message: "Handler ids\(diff.map({ "'\($0)'" }).joined(separator: ", "))"
+            )
+        }
     }
 }

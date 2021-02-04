@@ -134,15 +134,17 @@ private extension WebService {
 
         case WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig:
             let configUrl = URL(fileURLWithPath: args[2])
+            guard let currentNodeId = ProcessInfo.processInfo.environment[WellKnownEnvironmentVariables.currentNodeId] else {
+                throw ApodiniStartupError(message: "Unable to find '\(WellKnownEnvironmentVariables.currentNodeId)' environment variable")
+            }
             do {
-                let deployedSystemConfiguration = try DeployedSystemConfiguration(contentsOf: configUrl)
-                RHIIE.deployedSystemStructure = deployedSystemConfiguration
+                let deployedSystem = try DeployedSystemStructure(contentsOf: configUrl)
                 guard
-                    let DPRSType = deploymentProviderRuntimes.first(where: { $0.deploymentProviderId == deployedSystemConfiguration.deploymentProviderId })
+                    let DPRSType = deploymentProviderRuntimes.first(where: { $0.deploymentProviderId == deployedSystem.deploymentProviderId })
                 else {
-                    throw ApodiniStartupError(message: "Unable to find deployment runtime with id '\(deployedSystemConfiguration.deploymentProviderId.rawValue)'")
+                    throw ApodiniStartupError(message: "Unable to find deployment runtime with id '\(deployedSystem.deploymentProviderId.rawValue)'")
                 }
-                let runtimeSupport = try DPRSType.init(deployedSystemStructure: deployedSystemConfiguration)
+                let runtimeSupport = try DPRSType.init(deployedSystem: deployedSystem, currentNodeId: currentNodeId)
                 RHIIE.deploymentProviderRuntime = runtimeSupport
                 try runtimeSupport.configure(app.vapor.app)
             } catch {

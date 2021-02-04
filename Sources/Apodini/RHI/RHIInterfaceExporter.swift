@@ -71,8 +71,11 @@ class RHIInterfaceExporter: InterfaceExporter { // TODO rename to something diff
     
     let app: Apodini.Application
     private var collectedEndpoints: [CollectedEndpointInfo] = []
-    var deployedSystemStructure: DeployedSystemConfiguration?
     var deploymentProviderRuntime: DeploymentProviderRuntimeSupport?
+    
+    var deployedSystemStructure: DeployedSystemStructure? { // TODO remove this
+        deploymentProviderRuntime?.deployedSystem
+    }
     
     
     required init(_ app: Apodini.Application) {
@@ -166,7 +169,7 @@ extension RHIInterfaceExporter {
         }
         let openApiDefinitionData = try JSONEncoder().encode(openApiDocument)
         let webServiceStructure = WebServiceStructure(
-            endpoints: collectedEndpoints.map { endpointInfo -> ExportedEndpoint in
+            endpoints: Set(collectedEndpoints.map { endpointInfo -> ExportedEndpoint in
                 let endpoint = endpointInfo.endpoint
                 return ExportedEndpoint(
                     handlerType: endpointInfo.handlerType,
@@ -176,7 +179,7 @@ extension RHIInterfaceExporter {
                     absolutePath: endpoint.absolutePath.asPathString(parameterEncoding: .id),
                     userInfo: [:]
                 )
-            },
+            }),
             deploymentConfig: deploymentConfig,
             openApiDefinition: openApiDefinitionData
         )

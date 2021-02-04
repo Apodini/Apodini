@@ -17,37 +17,6 @@ import Darwin
 
 
 
-// Note: I have no idea if this is a good implementation, works property, or even makes sense.
-// There was an issue where accessing the `Task.taskPool` static variable from w/in the atexit
-// handler would fail but only sometimes (for some reason the atexit handler was being invoked
-// off the main thread). Adding this fixed the issue.
-class ThreadSafeVariable<T> {
-    private var value: T
-    private let queue: DispatchQueue
-    
-    init(_ value: T) {
-        self.value = value
-        self.queue = DispatchQueue(label: "Apodini.ThreadSafeVariable", attributes: .concurrent)
-    }
-    
-    
-    func read(_ block: (T) throws -> Void) rethrows {
-        try queue.sync {
-            try block(value)
-        }
-    }
-    
-    
-    func write(_ block: (inout T) throws -> Void) rethrows {
-        try queue.sync(flags: .barrier) {
-            try block(&value)
-        }
-    }
-}
-
-
-
-
 /// A wrapper around `Foundation.Process` (née`NSTask`)
 public class Task {
     private static let taskPool = ThreadSafeVariable<Set<Task>>([])
@@ -96,7 +65,9 @@ public class Task {
     }
     
     
-    public var pid: Int32 { process.processIdentifier }
+    public var pid: Int32 {
+        process.processIdentifier
+    }
     public var isRunning: Bool { process.isRunning }
     
     
@@ -112,7 +83,7 @@ public class Task {
         captureOutput: Bool = false, // setting this to false will cause the output to show up in stdout
         launchInCurrentProcessGroup: Bool,
         environment: [String: String] = [:],
-        inheritsParentEnvironment: Bool = true
+        inheritsParentEnvironment: Bool = true // ?inheritsEnvironmentFromParent?
     ) {
         self.executableUrl = executableUrl
         self.arguments = arguments

@@ -124,13 +124,20 @@ public enum RemoteHandlerInvocationRequestResponse<Response: Decodable> {
 }
 
 
+
+
+
+
 public protocol DeploymentProviderRuntimeSupport: class {
     static var deploymentProviderId: DeploymentProviderID { get }
     
-    init(deployedSystemStructure: DeployedSystemStructure) throws
+    init(deployedSystem: DeployedSystemStructure, currentNodeId: DeployedSystemStructure.Node.ID) throws
+    
+    var deployedSystem: DeployedSystemStructure { get }
+    var currentNodeId: DeployedSystemStructure.Node.ID { get }
+    
     
     func configure(_ app: Vapor.Application) throws
-    
     
     /// This function is called when a handler uses the remote handler invocation API to invoke another
     /// handler and the remote handler invocation manager has determined that the invocation's target handler is not in the current node.
@@ -138,7 +145,7 @@ public protocol DeploymentProviderRuntimeSupport: class {
     /// It can also re-delegate this responsibility back to the caller.
     func handleRemoteHandlerInvocation<Response: Decodable>( // TODO rename requestRemoteHandlerInvocation?
         withId handlerId: String,
-        inTargetNode targetNode: DeployedSystemConfiguration.Node,
+        inTargetNode targetNode: DeployedSystemStructure.Node,
         responseType: Response.Type,
         parameters: [HandlerInvocationParameter]
     ) throws -> RemoteHandlerInvocationRequestResponse<Response>

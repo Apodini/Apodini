@@ -129,3 +129,51 @@ func LKGetCurrentExecutableUrl() -> URL {
 
 
 
+
+
+// was intended as a Codable-conformant NSNull implemnentation. can we get rid of this?
+public struct Null: Codable {
+    public init() {}
+    
+    public init(from decoder: Decoder) throws {
+        let wasNil = try decoder.singleValueContainer().decodeNil()
+        if !wasNil {
+            throw NSError(domain: "Apodini", code: 0, userInfo: [NSLocalizedDescriptionKey: "wasnt nil"])
+        }
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encodeNil()
+    }
+}
+
+
+
+// Note: I have no idea if this is a good implementation, works property, or even makes sense.
+// There was an issue where accessing the `Task.taskPool` static variable from w/in the atexit
+// handler would fail but only sometimes (for some reason the atexit handler was being invoked
+// off the main thread). Adding this fixed the issue.
+class ThreadSafeVariable<T> {
+    private var value: T
+    private let queue: DispatchQueue
+    
+    init(_ value: T) {
+        self.value = value
+        self.queue = DispatchQueue(label: "Apodini.ThreadSafeVariable", attributes: .concurrent)
+    }
+    
+    
+    func read(_ block: (T) throws -> Void) rethrows {
+        try queue.sync {
+            try block(value)
+        }
+    }
+    
+    
+    func write(_ block: (inout T) throws -> Void) rethrows {
+        try queue.sync(flags: .barrier) {
+            try block(&value)
+        }
+    }
+}

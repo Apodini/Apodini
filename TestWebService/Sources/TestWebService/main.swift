@@ -91,8 +91,8 @@ struct TestWebService: Apodini.WebService {
     
     var content: some Component {
         // Hello World! 👋
-        Text("Hello World! 👋")
-            .response(EmojiTransformer(emojis: "🎉"))
+//        Text("Hello World! 👋")
+//            .response(EmojiTransformer(emojis: "🎉"))
         
         // Bigger Subsystems:
         //AuctionComponent()
@@ -112,9 +112,9 @@ struct TestWebService: Apodini.WebService {
                 )
         }
         
-        Group("xxx") {
-            TestHandler()
-        }
+//        Group("xxx") {
+//            TestHandler()
+//        }
     }
     
     var configuration: Configuration {

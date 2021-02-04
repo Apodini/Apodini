@@ -17,13 +17,13 @@ private let proxyServerLogger = Logger(label: "DeploymentTargetLocalhost.ProxySe
 
 class ProxyServer {
     let webServiceStructure: WebServiceStructure
-    let systemConfig: DeployedSystemConfiguration
+    let deployedSystem: DeployedSystemStructure
     
     fileprivate let app: Application
     
-    init(webServiceStructure: WebServiceStructure, systemConfig: DeployedSystemConfiguration) throws {
+    init(webServiceStructure: WebServiceStructure, deployedSystem: DeployedSystemStructure) throws {
         self.webServiceStructure = webServiceStructure
-        self.systemConfig = systemConfig
+        self.deployedSystem = deployedSystem
         
         let environmentName = try Vapor.Environment.detect().name
         var env = Vapor.Environment(name: environmentName, arguments: ["vapor"])
@@ -62,7 +62,7 @@ private struct ProxyRequestResponder: Vapor.Responder {
     let endpoint: ExportedEndpoint
     
     func respond(to request: Request) -> EventLoopFuture<Response> {
-        guard let targetNode = proxyServer.systemConfig.randomNodeExportingEndpoint(withHandlerId: endpoint.handlerIdRawValue) else {
+        guard let targetNode = proxyServer.deployedSystem.nodeExportingEndpoint(withHandlerId: endpoint.handlerIdRawValue) else {
             return request.eventLoop.makeFailedFuture(NSError(domain: "sorry", code: 0, userInfo: [:]))
         }
         let targetNodeLocalhostData = targetNode.readUserInfo(as: LocalhostLaunchInfo.self)!

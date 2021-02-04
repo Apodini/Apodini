@@ -267,8 +267,8 @@
         "repositoryURL": "https://github.com/soto-project/soto.git",
         "state": {
           "branch": null,
-          "revision": "a0d7bdd4c39d31ed505cd60acd2cd6a9a7f19331",
-          "version": "5.1.0"
+          "revision": "f5b1610fe320d81160bc2079317a4e89e7fb6d51",
+          "version": "5.2.0"
         }
       },
       {
@@ -285,8 +285,8 @@
         "repositoryURL": "https://github.com/vapor/sql-kit.git",
         "state": {
           "branch": null,
-          "revision": "ea9928b7f4a801b175a00b982034d9c54ecb6167",
-          "version": "3.7.0"
+          "revision": "3453fd7573b3c1c666d5db38788163308a696193",
+          "version": "3.7.1"
         }
       },
       {

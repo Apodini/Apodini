@@ -123,7 +123,7 @@ public struct DeploymentGroupsConfig: Codable {
     public let defaultGrouping: DefaultGrouping
     public let groups: [DeploymentGroup]
     
-    public init(defaultGrouping: DefaultGrouping = .singleNode, groups: [DeploymentGroup] = []) { // TODO what would be a reasonanle default?
+    public init(defaultGrouping: DefaultGrouping = .separateNodes, groups: [DeploymentGroup] = []) { // TODO what would be a reasonanle default?
         self.defaultGrouping = defaultGrouping
         self.groups = groups
     }

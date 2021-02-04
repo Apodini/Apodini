@@ -10,6 +10,7 @@ import Logging
 import NIO
 import SotoLambda
 import SotoApiGatewayV2
+import SotoS3
 import SotoIAM
 import SotoSTS
 import ApodiniDeployBuildSupport
@@ -35,6 +36,7 @@ class AWSDeploymentStuff { // needs a better name
     private let awsClient: AWSClient
     private let sts: STS
     private let iam: IAM
+    private let s3: S3
     private let lambda: Lambda
     private let apiGateway: ApiGatewayV2
     
@@ -58,6 +60,7 @@ class AWSDeploymentStuff { // needs a better name
         )
         sts = STS(client: awsClient, region: awsRegion)
         iam = IAM(client: awsClient)
+        s3 = S3.init(client: awsClient, region: awsRegion, timeout: .minutes(4))
         lambda = Lambda(client: awsClient, region: awsRegion)
         apiGateway = ApiGatewayV2(client: awsClient, region: awsRegion)
     }
@@ -98,7 +101,8 @@ class AWSDeploymentStuff { // needs a better name
         lambdaSharedObjectFilesUrl: URL,
         s3BucketName: String,
         s3ObjectFolderKey: String,
-        apiGatewayApiId: String
+        apiGatewayApiId: String,
+        tmp_useSotoS3: Bool
     ) throws {
         logger.trace("-[\(Self.self) \(#function)]")
         
@@ -131,20 +135,12 @@ class AWSDeploymentStuff { // needs a better name
         
         
         //
-        // Create new functions
+        // Upload function code to S3
         //
         
+        let s3ObjectKey = "\(s3ObjectFolderKey.trimmingCharacters(in: CharacterSet(charactersIn: "/")))/\(lambdaExecutableUrl.lastPathComponent).zip"
         
-        var nodeToLambdaFunctionMapping: [DeployedSystemStructure.Node.ID: Lambda.FunctionConfiguration] = [:]
-        
-        
-        logger.notice("Creating lambda functions for nodes in the web service deployment structure (#nodes: \(deploymentStructure.nodes.count))")
-        for node in deploymentStructure.nodes {
-            guard let exportedEndpoint = node.exportedEndpoints.first, node.exportedEndpoints.count == 1 else {
-                fatalError("In a Lambda deployment, each node must export exactly one endpoint")
-            }
-            logger.notice("Creating lambda function for node w/ id \(node.id) (handlers: \(node.exportedEndpoints.map { ($0.httpMethod, $0.absolutePath) })")
-            
+        do {
             logger.notice("Creating lambda package")
             let lambdaPackageTmpDir = tmpDirUrl.appendingPathComponent("lambda-package", isDirectory: true)
             if FM.lk_directoryExists(atUrl: lambdaPackageTmpDir) {
@@ -168,7 +164,7 @@ class AWSDeploymentStuff { // needs a better name
             
             let launchInfoFileUrl = lambdaPackageTmpDir.appendingPathComponent("launchInfo.json", isDirectory: false)
             logger.notice("- adding launchInfo.json")
-            try deploymentStructure.withCurrentInstanceNodeId(node.id).writeTo(url: launchInfoFileUrl)
+            try deploymentStructure.writeTo(url: launchInfoFileUrl)
             try FM.lk_setPosixPermissions("rw-r--r--", forItemAt: launchInfoFileUrl)
             
             do {
@@ -195,19 +191,63 @@ class AWSDeploymentStuff { // needs a better name
             
             logger.notice("uploading lambda package to S3")
             
-            let s3ObjectKey = "\(s3ObjectFolderKey.trimmingCharacters(in: CharacterSet(charactersIn: "/")))/\(lambdaExecutableUrl.lastPathComponent).zip"
+            if tmp_useSotoS3 {
+                fatalError("TODO")
+//                let zipPath = lambdaPackageTmpDir.appendingPathComponent(zipFilename).path
+//                let fileHandle = try NIOFileHandle(path: zipPath)
+//                guard let size = try FM.attributesOfItem(atPath: zipPath)[.size] as? Int else {
+//                    fatalError("Unable to get file size")
+//                }
+//                print("will upload to s3")
+//                let res = try s3.putObject(S3.PutObjectRequest(
+//                    body: .fileHandle(fileHandle, size: size, fileIO: .init(threadPool: threadPool)),
+//                    bucket: s3BucketName,
+//                    //contentEncoding: <#T##String?#>,
+//                    //contentLength: Int64(size),
+//                    //contentMD5: <#T##String?#>,
+//                    //contentType: <#T##String?#>,
+//                    key: s3ObjectKey
+//                    //metadata: <#T##[String : String]?#>,
+//                    //storageClass: <#T##S3.StorageClass?#>,
+//                    //tagging: <#T##String?#>
+//                )).wait()
+//                print("did upload to s3")
+//                try fileHandle.close()
+            } else {
+                try Task(
+                    executableUrl: awsCliBin,
+                    arguments: [
+                        "--profile", awsProfileName,
+                        "s3", "cp",
+                        "\(lambdaPackageTmpDir.path)/\(zipFilename)",
+                        "s3://\(s3BucketName)/\(s3ObjectKey)"
+                    ],
+                    captureOutput: false,
+                    launchInCurrentProcessGroup: true
+                ).launchSyncAndAssertSuccess()
+            }
+        }
+        
+        
+        //
+        // Create new functions
+        //
+        
+        
+        var nodeToLambdaFunctionMapping: [DeployedSystemStructure.Node.ID: Lambda.FunctionConfiguration] = [:]
+        
+        
+        logger.notice("Creating lambda functions for nodes in the web service deployment structure (#nodes: \(deploymentStructure.nodes.count))")
+        for node in deploymentStructure.nodes {
+            guard let exportedEndpoint = node.exportedEndpoints.first, node.exportedEndpoints.count == 1 else {
+                fatalError("In a Lambda deployment, each node must export exactly one endpoint")
+            }
+            logger.notice("Creating lambda function for node w/ id \(node.id) (handlers: \(node.exportedEndpoints.map { ($0.httpMethod, $0.absolutePath) })")
             
-            try Task(
-                executableUrl: awsCliBin,
-                arguments: [
-                    "--profile", awsProfileName,
-                    "s3", "cp",
-                    "\(lambdaPackageTmpDir.path)/\(zipFilename)",
-                    "s3://\(s3BucketName)/\(s3ObjectKey)"
-                ],
-                captureOutput: false,
-                launchInCurrentProcessGroup: true
-            ).launchSyncAndAssertSuccess()
+            
+//            ///
+//            fatalError()
+//            ///
             
             
             let functionConfig = try configureLambdaFunction(
@@ -254,10 +294,8 @@ class AWSDeploymentStuff { // needs a better name
         
         
         func lambdaFunctionConfigForHandlerId(_ handlerId: String) -> Lambda.FunctionConfiguration {
-            let nodes = deploymentStructure.nodesExportingEndpoint(withHandlerId: handlerId)
-            precondition(nodes.count == 1)
-            let nodeId = nodes.first!.id
-            return nodeToLambdaFunctionMapping[nodeId]!
+            let node = deploymentStructure.nodeExportingEndpoint(withHandlerId: handlerId)!
+            return nodeToLambdaFunctionMapping[node.id]!
         }
         
         
@@ -425,11 +463,15 @@ class AWSDeploymentStuff { // needs a better name
         let memorySize: Int = try exportedEndpoint.deploymentOptions.getValue(forOptionKey: LambdaHandlerOption.memorySize)
         let timeout: Int = try exportedEndpoint.deploymentOptions.getValue(forOptionKey: LambdaHandlerOption.timeout)
         
+        let lambdaEnv: Lambda.Environment = .init(variables: [
+            WellKnownEnvironmentVariables.currentNodeId: node.id
+        ])
+        
         if let function = allFunctions.first(where: { $0.functionName == lambdaName }) {
             logger.notice("Found existing lambda function w/ matching name. Updating code")
             _ = try lambda.updateFunctionConfiguration(Lambda.UpdateFunctionConfigurationRequest(
                 //description: <#T##String?#>,
-                //environment: <#T##Lambda.Environment?#>,
+                environment: lambdaEnv,
                 functionName: function.functionArn!,
                 //handler: <#T##String?#>,
                 memorySize: memorySize,
@@ -447,7 +489,7 @@ class AWSDeploymentStuff { // needs a better name
             let createFunctionRequest = Lambda.CreateFunctionRequest(
                 code: .init(s3Bucket: s3BucketName, s3Key: s3ObjectKey),
                 description: "Apodini-created lambda function",
-                environment: nil, //.init(variables: [String : String]?.none), // TODO?
+                environment: lambdaEnv,
                 functionName: lambdaName,
                 handler: "apodini.main", // doesn;t actually matter
                 memorySize: memorySize,

@@ -14,13 +14,15 @@ import DeploymentTargetLocalhostCommon
 public class LocalhostRuntimeSupport: DeploymentProviderRuntimeSupport {
     public static let deploymentProviderId = LocalhostDeploymentProviderId
     
-    private let deployedSystemStructure: DeployedSystemConfiguration
+    public let deployedSystem: DeployedSystemStructure
+    public let currentNodeId: DeployedSystemStructure.Node.ID
     private let currentNodeCustomLaunchInfo: LocalhostLaunchInfo
     
     
-    public required init(deployedSystemStructure: DeployedSystemConfiguration) {
-        self.deployedSystemStructure = deployedSystemStructure
-        self.currentNodeCustomLaunchInfo = deployedSystemStructure.currentInstanceNode.readUserInfo(as: LocalhostLaunchInfo.self)!
+    public required init(deployedSystem: DeployedSystemStructure, currentNodeId: DeployedSystemStructure.Node.ID) {
+        self.deployedSystem = deployedSystem
+        self.currentNodeId = currentNodeId
+        self.currentNodeCustomLaunchInfo = deployedSystem.node(withId: currentNodeId)!.readUserInfo(as: LocalhostLaunchInfo.self)!
     }
     
     
@@ -31,7 +33,7 @@ public class LocalhostRuntimeSupport: DeploymentProviderRuntimeSupport {
     
     public func handleRemoteHandlerInvocation<Response: Decodable>(
         withId handlerId: String,
-        inTargetNode targetNode: DeployedSystemConfiguration.Node,
+        inTargetNode targetNode: DeployedSystemStructure.Node,
         responseType: Response.Type,
         parameters: [HandlerInvocationParameter]
     ) throws -> RemoteHandlerInvocationRequestResponse<Response> {

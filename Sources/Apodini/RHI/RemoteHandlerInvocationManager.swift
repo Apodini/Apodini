@@ -243,19 +243,22 @@ extension RemoteHandlerInvocationManager {
     
     private enum DispatchStrategy {
         case locally
-        case remotely(DeployedSystemConfiguration.Node)
+        case remotely(DeployedSystemStructure.Node)
     }
     
     
     private func dispatchStrategy<IH: InvocableHandler>(forInvocationOf endpoint: Endpoint<IH>, RHIIE: RHIInterfaceExporter) -> DispatchStrategy {
-//        return .locally
-        guard let deployedSystemStructure = RHIIE.deployedSystemStructure else {
+        guard let runtime = RHIIE.deploymentProviderRuntime else {
+            // If there's no runtime registered, we wouldn't be able to dispatch the invocation anyway
             return .locally
         }
-        if let targetNode = deployedSystemStructure.randomNodeExportingEndpoint(withHandlerId: endpoint.identifier.rawValue) {
-            return targetNode == deployedSystemStructure.currentInstanceNode ? .locally : .remotely(targetNode)
+        let handlerId = endpoint.identifier.rawValue
+        if let targetNode = runtime.deployedSystem.nodeExportingEndpoint(withHandlerId: handlerId) {
+            let currentNode = runtime.deployedSystem.node(withId: runtime.currentNodeId)!
+            return targetNode == currentNode ? .locally : .remotely(targetNode)
         }
-        return .locally // use local dispatching as fallback in case the other stuff fails for some reason
+        print("[Error] Falling back to local dispatch because we were unable to find a node for the endpoint with handler id '\(handlerId)'. This should not be happening.")
+        return .locally  // use local dispatching as fallback in case the other stuff fails for some reason
     }
 }
 

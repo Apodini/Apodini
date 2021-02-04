@@ -15,15 +15,16 @@ import VaporAWSLambdaRuntime
 public class LambdaRuntime: DeploymentProviderRuntimeSupport {
     public static let deploymentProviderId = LambdaDeploymentProviderId
     
-    private let deploymentStructure: DeployedSystemStructure
+    public let deployedSystem: DeployedSystemStructure
+    public let currentNodeId: DeployedSystemStructure.Node.ID
     private let lambdaDeploymentContext: LambdaDeployedSystemContext
     
-    
-    public required init(deployedSystemStructure: DeployedSystemStructure) throws {
-        self.deploymentStructure = deployedSystemStructure
-        guard let lambdaDeploymentContext = deploymentStructure.readUserInfo(as: LambdaDeployedSystemContext.self) else {
-            throw NSError(domain: Self.deploymentProviderId.rawValue, code: 0, userInfo: [
-                NSLocalizedDescriptionKey: "Unable to read userInfo object"
+    public required init(deployedSystem: DeployedSystemStructure, currentNodeId: DeployedSystemStructure.Node.ID) throws {
+        self.deployedSystem = deployedSystem
+        self.currentNodeId = currentNodeId
+        guard let lambdaDeploymentContext = deployedSystem.readUserInfo(as: LambdaDeployedSystemContext.self) else {
+            throw NSError(domain: Self.deploymentProviderId.rawValue, code: 6667, userInfo: [
+                NSLocalizedDescriptionKey: "Unable to read userInfo object" as NSString
             ])
         }
         self.lambdaDeploymentContext = lambdaDeploymentContext
@@ -39,7 +40,7 @@ public class LambdaRuntime: DeploymentProviderRuntimeSupport {
     
     public func handleRemoteHandlerInvocation<Response: Decodable>(
         withId handlerId: String,
-        inTargetNode targetNode: DeployedSystemConfiguration.Node,
+        inTargetNode targetNode: DeployedSystemStructure.Node,
         responseType: Response.Type,
         parameters: [HandlerInvocationParameter]
     ) throws -> RemoteHandlerInvocationRequestResponse<Response> {

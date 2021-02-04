@@ -12,27 +12,6 @@ import Foundation
 
 
 
-// was intended as a Codable-conformant NSNull implemnentation. can we get rid of this?
-public struct Null: Codable {
-    public init() {}
-    
-    public init(from decoder: Decoder) throws {
-        let wasNil = try decoder.singleValueContainer().decodeNil()
-        if !wasNil {
-            throw NSError(domain: "Apodini", code: 0, userInfo: [NSLocalizedDescriptionKey: "wasnt nil"])
-        }
-    }
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try container.encodeNil()
-    }
-}
-
-
-
-
-public typealias DeployedSystemConfiguration = DeployedSystemStructure
 
 
 /// The structure of a deployed system.
@@ -44,9 +23,6 @@ public struct DeployedSystemStructure: Codable { // TODO or just `DeployedSystem
     /// Identifier of the deployment provider used to create the deployment
     public let deploymentProviderId: DeploymentProviderID
     
-    /// Identifier of the node the instance being launched represents
-    public private(set) var currentInstanceNodeId: Node.ID
-    
     /// The nodes the system consists of
     public let nodes: Set<Node>
     
@@ -56,23 +32,21 @@ public struct DeployedSystemStructure: Codable { // TODO or just `DeployedSystem
     
     public init<T: Encodable>(
         deploymentProviderId: DeploymentProviderID,
-        currentInstanceNodeId: Node.ID,
         nodes: Set<Node>,
         userInfo: T?,
         userInfoType: T.Type = T.self
     ) throws {
         self.deploymentProviderId = deploymentProviderId
-        self.currentInstanceNodeId = currentInstanceNodeId
         self.nodes = nodes
         self.userInfo = try JSONEncoder().encode(userInfo)
-        
-        precondition(nodes.contains(where: { $0.id == currentInstanceNodeId }))
+        try nodes.assertHandlersLimitedToSingleNode()
     }
     
     
     public init(contentsOf url: URL, options: Data.ReadingOptions = []) throws {
         let data = try Data(contentsOf: url, options: options)
         self = try JSONDecoder().decode(Self.self, from: data)
+        try nodes.assertHandlersLimitedToSingleNode()
     }
     
     
@@ -89,33 +63,16 @@ public struct DeployedSystemStructure: Codable { // TODO or just `DeployedSystem
     public func readUserInfo<T: Decodable>(as _: T.Type) -> T? {
         return try? JSONDecoder().decode(T.self, from: userInfo)
     }
-    
-    public func withCurrentInstanceNodeId(_ newId: Node.ID) -> Self {
-        var copy = self
-        copy.currentInstanceNodeId = newId
-        return copy
-        
-    }
 }
 
 
-extension DeployedSystemConfiguration {
-    /// The current instance's node within the system
-    public var currentInstanceNode: Node {
-        node(withId: currentInstanceNodeId)!
-    }
-    
+extension DeployedSystemStructure {
     public func node(withId nodeId: Node.ID) -> Node? {
         nodes.first { $0.id == nodeId }
     }
     
-    public func nodesExportingEndpoint(withHandlerId handlerId: String) -> Set<Node> {
-        nodes.filter { $0.exportedEndpoints.contains { $0.handlerIdRawValue == handlerId } }
-    }
-    
-    /// Returns a random node exporting an endpoint with the specified handler identifier.
-    public func randomNodeExportingEndpoint(withHandlerId handlerId: String) -> Node? { // TODO rename from random once we enforce non-duplicate endpoint-node mappings
-        return nodesExportingEndpoint(withHandlerId: handlerId).randomElement()
+    public func nodeExportingEndpoint(withHandlerId handlerId: String) -> Node? {
+        nodes.first { $0.exportedEndpoints.contains { $0.handlerIdRawValue == handlerId } }
     }
 }
 
@@ -123,7 +80,7 @@ extension DeployedSystemConfiguration {
 
 
 
-extension DeployedSystemConfiguration {
+extension DeployedSystemStructure {
     /// A node within the deployed system
     public struct Node: Codable, Identifiable, Hashable, Equatable {
         /// ID of this node
@@ -138,7 +95,6 @@ extension DeployedSystemConfiguration {
         public init<T: Encodable>(id: String, exportedEndpoints: Set<ExportedEndpoint>, userInfo: T?, userInfoType: T.Type = T.self) throws {
             self.id = id
             self.exportedEndpoints = exportedEndpoints
-            //self.userInfo = try userInfo.map { try JSONEncoder().encode($0) }
             try setUserInfo(userInfo, type: T.self)
         }
         
