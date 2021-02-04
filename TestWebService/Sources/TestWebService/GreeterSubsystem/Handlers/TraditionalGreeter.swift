@@ -10,7 +10,6 @@ import Logging
 
 
 struct TraditionalGreeter: Handler {
-
     @Parameter var surname: String = ""
 
     @Parameter var age: Int32

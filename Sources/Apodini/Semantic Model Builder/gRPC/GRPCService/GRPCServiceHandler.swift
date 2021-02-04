@@ -136,10 +136,10 @@ extension GRPCService {
                         .whenComplete { self.handleValue($0, responseWriter: writer, serviceStreaming: serviceStreaming) }
                 case .end:
                     self.handleCompletion(request: request,
-                                     context: &context,
-                                     responseWriter: writer,
-                                     serviceStreaming: serviceStreaming,
-                                     lastMessage: lastMessage)
+                                          context: &context,
+                                          responseWriter: writer,
+                                          serviceStreaming: serviceStreaming,
+                                          lastMessage: lastMessage)
                 }
             }
 
@@ -180,7 +180,7 @@ extension GRPCService {
         ]
 
         app.on(.POST, path, body: .stream) { request -> EventLoopFuture<Vapor.Response> in
-            return self.createStreamingHandler(context: context, serviceStreaming: serviceStreaming)(request)
+            self.createStreamingHandler(context: context, serviceStreaming: serviceStreaming)(request)
         }
     }
 }
