@@ -51,17 +51,18 @@ struct OpenAPIPathsObjectBuilder {
 
 private extension OpenAPIPathsObjectBuilder {
     /// https://swagger.io/specification/#operation-object
-    mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>) ->
-        OpenAPI.Operation {
-        // swiftlint:disable discouraged_optional_collection
-        // Get tags if some have been set explicitly passed via modifier.
-        let tags: [String]? = endpoint.context.get(valueFor: DescriptionContextKey.self)?.1
+    mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>) -> OpenAPI.Operation {
+        // Get the string component appended last to the path as default tag, if no string component present, use "default" instead.
+        let defaultTag: String = endpoint.absolutePath.last { $0.isString() }?.description ?? "default"
+        
+        // Get tags if some have been set explicitly passed via TagModifier.
+        let tags: [String] = endpoint.context.get(valueFor: TagContextKey.self) ?? [defaultTag]
 
         // Set endpointIdentifier to `Handler`s type name, stored in `endpoint.description`.
         let endpointIdentifier = "\(endpoint.description)"
 
-        // Get customDescription if it has been set explicitly passed via modifier.
-        let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)?.0
+        // Get customDescription if it has been set explicitly passed via DescriptionModifier.
+        let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)
 
         // Set endpointDescription to customDescription or `endpoint.description` holding the `Handler`s type name.
         let endpointDescription = customDescription ?? endpoint.description

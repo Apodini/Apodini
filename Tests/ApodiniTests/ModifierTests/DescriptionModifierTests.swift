@@ -24,7 +24,7 @@ final class DescriptionModifierTests: ApodiniTests {
         var content: some Component {
             Group("a", $name) {
                 TestHandler(name: $name)
-                    .description("Returns greeting with name parameter.", ["a"])
+                    .description("Returns greeting with name parameter.")
             }
         }
     }
@@ -51,11 +51,9 @@ final class DescriptionModifierTests: ApodiniTests {
 
         let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
         let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
-        let tag = endpoint.context.get(valueFor: DescriptionContextKey.self)?.1
-        let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)?.0
+        let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)
     
         XCTAssertEqual(customDescription, "Returns greeting with name parameter.")
-        XCTAssertEqual(tag, ["a"])
     }
     
     func testEndpointDefaultDescription() throws {
@@ -70,11 +68,8 @@ final class DescriptionModifierTests: ApodiniTests {
     
         let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
         let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
-        let tag = endpoint.context.get(valueFor: DescriptionContextKey.self)?.1
-        let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)?.0
+        let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)
         
-        XCTAssertEqual(customDescription, nil)
         XCTAssertEqual(endpoint.description, "TestHandler")
-        XCTAssertEqual(tag, nil)
     }
 }
