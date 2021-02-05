@@ -24,7 +24,7 @@ final class TagModifierTests: ApodiniTests {
         var content: some Component {
             Group("register", $name) {
                 TestHandler(name: $name)
-                    .tag(["People_Register"])
+                    .tags("People_Register")
             }
         }
     }
@@ -40,8 +40,8 @@ final class TagModifierTests: ApodiniTests {
 
         let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
         let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
-        let tag = endpoint.context.get(valueFor: TagContextKey.self)
+        let tags = endpoint.context.get(valueFor: TagContextKey.self)
     
-        XCTAssertEqual(tag, ["People_Register"])
+        XCTAssertEqual(tags, ["People_Register"])
     }
 }

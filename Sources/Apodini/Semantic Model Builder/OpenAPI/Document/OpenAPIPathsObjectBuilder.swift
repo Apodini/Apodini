@@ -54,7 +54,7 @@ private extension OpenAPIPathsObjectBuilder {
     mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>) -> OpenAPI.Operation {
         var defaultTag: String
         // If parameter in path, get string component directly before first parameter component in path.
-        if let index = endpoint.absolutePath.firstIndex(where: { $0.isParameter() }) {
+        if let index = endpoint.absolutePath.firstIndex(where: { $0.isParameter() }), index > 0 {
             defaultTag = endpoint.absolutePath[index - 1].description
         // If not, get string component that was appended last to the path.
         } else {

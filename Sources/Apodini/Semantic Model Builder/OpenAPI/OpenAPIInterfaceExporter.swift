@@ -84,7 +84,7 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
                     throw Vapor.Abort(.internalServerError)
                 }
                 // replace placeholder with actual URL of OpenAPI endpoint
-                html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: self.configuration.outputEndpoint)
+                html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: self.configuration.outputEndpoint.pathComponents.string)
                 return Vapor.Response(status: .ok, headers: headers, body: .init(string: html))
             }
         }
