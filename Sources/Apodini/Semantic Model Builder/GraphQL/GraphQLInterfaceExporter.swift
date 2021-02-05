@@ -12,7 +12,7 @@ struct QueryInput: Codable {
 
 class GraphQLInterfaceExporter: InterfaceExporter {
     // GraphQL Schema
-    private var schema: GraphQLSchema?
+    var schema: GraphQLSchema?
 
     let app: Application
     let graphQLPath: GraphQLSchemaBuilder
@@ -22,6 +22,7 @@ class GraphQLInterfaceExporter: InterfaceExporter {
         self.app = app
     }
 
+
     private func graphQLIDE(_ _: Vapor.Request) throws -> Vapor.Response {
         guard let htmlFile = Bundle.module.path(forResource: "graphql-ide", ofType: "html"),
               let html = try? String(contentsOfFile: htmlFile) else {
@@ -30,7 +31,7 @@ class GraphQLInterfaceExporter: InterfaceExporter {
         return Vapor.Response(status: .ok, headers: ["Content-Type": "text/html"], body: .init(string: html))
     }
 
-    private func graphqlServer(_ req: Vapor.Request) throws -> EventLoopFuture<String> {
+    private func graphqlServer(_ req: Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
         guard let body = req.body.string,
               let data = body.data(using: .utf8) else {
             throw ApodiniError(type: .badInput, reason: "No body is given!")
@@ -41,15 +42,22 @@ class GraphQLInterfaceExporter: InterfaceExporter {
         let query = input.query
 
         if let genSchema = schema {
-            return try graphql(schema: genSchema, request: query, context: req, eventLoopGroup: req.eventLoop).map { result -> String in
-                result.description
-            }
+            return try graphql(schema: genSchema, request: query, context: req, eventLoopGroup: req.eventLoop)
+                .flatMap { result -> EventLoopFuture<Vapor.Response> in
+                    let response = Vapor.Response()
+                    do {
+                        try response.content.encode(result, using: JSONEncoder())
+                    } catch {
+                        return req.eventLoop.makeFailedFuture(error)
+                    }
+                    return req.eventLoop.makeSucceededFuture(response)
+                }
         } else {
             throw ApodiniError(type: .serverError, reason: "GraphQL schema creation error!")
         }
     }
 
-    // We should have parameter for the result struct values and paramters
+    // We should have parameter for the result struct values and parameters
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         do {
             try graphQLPath.append(for: endpoint, with: endpoint.createConnectionContext(for: self))
@@ -66,7 +74,7 @@ class GraphQLInterfaceExporter: InterfaceExporter {
         do {
             schema = try graphQLPath.generate()
         } catch {
-            app.logger.log(level: .error, "Schema Creation Error!")
+            app.logger.log(level: .error, "Schema Creation Error! \(error)")
         }
 
         app.vapor.app.post("graphql", use: graphqlServer)
@@ -81,6 +89,8 @@ class GraphQLInterfaceExporter: InterfaceExporter {
                 return val.int as? Type
             } else if val.isString {
                 return val.string as? Type
+            } else if case .bool(let boolVal) = val {
+                return boolVal as? Type
             }
             return nil
         }

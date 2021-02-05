@@ -123,7 +123,7 @@ class GraphQLSchemaBuilder {
         // Remove `root`
         currentPath.removeFirst()
         // Remove `v1`
-        currentPath.removeFirst()
+        // currentPath.removeFirst()
 
         // Create node names
         var currentSum = String()
@@ -152,12 +152,6 @@ class GraphQLSchemaBuilder {
         let treeTemp = try EnrichedInfo.node(endpoint.handleReturnType)
         self.responseTypeTree[leafName] = treeTemp
         self.leafContext[leafName] = context
-
-        // Handle Single points
-        if currentPath.count == 1 {
-            self.fields[leafName] = try self.graphQLFieldCreator(for: treeTemp, context, self.args[leafName] ?? [:])
-            return
-        }
 
         // Create tree
         var indx = currentPath.count - 1
@@ -196,10 +190,11 @@ class GraphQLSchemaBuilder {
         let nodeName = try self.nameExtractor(for: node)
         if let childrenList = self.tree[node] {
             var currentFields = [String: GraphQLField]()
-            if let responseType = self.responseTypeTree[nodeName],
-               let responseContext = self.leafContext[nodeName] { // It has handler
+            if let responseType = self.responseTypeTree[node],
+               let responseContext = self.leafContext[node] {
+                let args = self.args[node] ?? [:]
                 let fieldName = self.graphQLRegexCheck(for: responseType.value.typeInfo.name.lowercased())
-                currentFields[fieldName] = try self.graphQLFieldCreator(for: responseType, responseContext, self.args[nodeName] ?? [:])
+                currentFields[fieldName] = try self.graphQLFieldCreator(for: responseType, responseContext, args)
             }
 
             for child in childrenList {
@@ -207,10 +202,11 @@ class GraphQLSchemaBuilder {
                 currentFields[childName] = try generateSchemaFromTreeHelper(child)
             }
 
+
             let checkedNodeName = self.graphQLRegexCheck(for: nodeName)
             let gObject = try GraphQLObjectType(name: checkedNodeName, fields: currentFields)
             self.types[checkedNodeName] = gObject
-            return GraphQLField(type: self.types[checkedNodeName] ?? gObject, resolve: { _, _, _, _ in "Emtpy" })
+            return GraphQLField(type: gObject, resolve: { _, _, _, _ in "Emtpy" })
         } else {
             // Check for if we return USER type for example
             guard let responseNode = self.responseTypeTree[node],
