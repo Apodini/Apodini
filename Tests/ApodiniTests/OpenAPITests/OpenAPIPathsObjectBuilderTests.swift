@@ -53,6 +53,20 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
         XCTAssertEqual(pathsObjectBuilder.pathsObject.first?.value.get?.tags, ["second"])
     }
+    
+    func testDefaultTagWithSinglePathParameter() {
+        let handler = HandlerParam(pathParam: $param)
+        var endpoint = handler.mockEndpoint()
+        let webService = WebServiceModel()
+        webService.addEndpoint(&endpoint, at: [$param, "first"])
+        
+        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
+        pathsObjectBuilder.addPathItem(from: endpoint)
+        
+        XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
+        XCTAssertEqual(pathsObjectBuilder.pathsObject.first?.value.get?.tags, ["default"])
+    }
 
     func testAddPathItemOperationParams() {
         struct SomeComp: Handler {

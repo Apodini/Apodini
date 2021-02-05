@@ -55,7 +55,8 @@ private extension OpenAPIPathsObjectBuilder {
         var defaultTag: String
         // If parameter in path, get string component directly before first parameter component in path.
         if let index = endpoint.absolutePath.firstIndex(where: { $0.isParameter() }), index > 0 {
-            defaultTag = endpoint.absolutePath[index - 1].description
+            let stringComponent = endpoint.absolutePath[index - 1].description
+            defaultTag = stringComponent.isEmpty ? "default" : stringComponent
         // If not, get string component that was appended last to the path.
         } else {
             defaultTag = endpoint.absolutePath.last { ($0.isString()) }?.description ?? "default"
