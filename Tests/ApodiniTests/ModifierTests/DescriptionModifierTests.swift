@@ -52,7 +52,7 @@ final class DescriptionModifierTests: ApodiniTests {
         let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
         let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
         let tag = endpoint.context.get(valueFor: DescriptionContextKey.self)?.1
-        let customDescription = endpoint.context.get(valueFor:DescriptionContextKey.self)?.0
+        let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)?.0
     
         XCTAssertEqual(customDescription, "Returns greeting with name parameter.")
         XCTAssertEqual(tag, "a")
@@ -71,7 +71,7 @@ final class DescriptionModifierTests: ApodiniTests {
         let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
         let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
         let tag = endpoint.context.get(valueFor: DescriptionContextKey.self)?.1
-        let customDescription = endpoint.context.get(valueFor:DescriptionContextKey.self)?.0
+        let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)?.0
         
         XCTAssertEqual(customDescription, nil)
         XCTAssertEqual(endpoint.description, "TestHandler")
