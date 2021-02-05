@@ -8,7 +8,6 @@
 import Foundation
 @_implementationOnly import Vapor
 @_implementationOnly import ProtobufferCoding
-@_implementationOnly import OpenCombine
 
 /// Used by the `GRPCInterfaceExporter` to expose
 /// `handle` functions of `Handler`s.

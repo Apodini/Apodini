@@ -98,11 +98,15 @@ extension GRPCService {
     private func handleValue(_ value: Result<Response<EnrichedContent>, Error>, responseWriter: BodyStreamWriter, serviceStreaming: Bool) {
         switch value {
         case let .success(response):
-            // If service-streaming is enabled,
-            // we response immediately.
-            // If service-streaming is not enabled,
-            // we only respond once after the .end frame was received.
-            if serviceStreaming {
+            if response.isFinal() {
+                // If it's a .final response, we send the element and an .end frame.
+                self.write(response, to: responseWriter)
+                responseWriter.write(.end, promise: nil)
+            } else if serviceStreaming {
+                // If service-streaming is enabled,
+                // we respond immediately.
+                // If service-streaming is not enabled,
+                // we only respond once after the .end frame was received.
                 self.write(response, to: responseWriter)
             }
         case let .failure(error):
@@ -181,6 +185,17 @@ extension GRPCService {
 
         vaporApp.on(.POST, path, body: .stream) { request -> EventLoopFuture<Vapor.Response> in
             self.createStreamingHandler(context: context, serviceStreaming: serviceStreaming)(request)
+        }
+    }
+}
+
+extension Apodini.Response {
+    func isFinal() -> Bool {
+        switch self {
+        case .final:
+            return true
+        default:
+            return false
         }
     }
 }
