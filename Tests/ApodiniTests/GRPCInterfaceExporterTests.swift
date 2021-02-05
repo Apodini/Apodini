@@ -38,6 +38,16 @@ private struct GRPCNothingHandler: Handler {
     }
 }
 
+private struct GRPCStreamTestHandler: Handler {
+    @Parameter("name",
+               .gRPC(.fieldTag(1)))
+    var name: String
+
+    func handle() -> Apodini.Response<String> {
+        .send("Hello \(name)")
+    }
+}
+
 // MARK: - Unary tests
 final class GRPCInterfaceExporterTests: ApodiniTests {
     // swiftlint:disable implicitly_unwrapped_optional
@@ -224,21 +234,21 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         wait(for: [expectation], timeout: 20)
     }
 
-    /// The unary handler should only consider the last message in case
+    /// The unary handler should only consider the first message in case
     /// it receives multiple messages in one HTTP frame.
     func testUnaryRequestHandler_2Messages_1Frame() throws {
         let context = endpoint.createConnectionContext(for: exporter)
 
         // First one is "Moritz", second one is "Bernd".
-        // Only the last should be considered.
+        // Only the first should be considered.
         let requestData: [UInt8] = [
             0, 0, 0, 0, 10, 10, 6, 77, 111, 114, 105, 116, 122, 16, 23,
             0, 0, 0, 0, 9, 10, 5, 66, 101, 114, 110, 100, 16, 23
         ]
 
-        // let expectedResponseString = "Hello Bernd"
+        // let expectedResponseString = "Hello Moritz"
         let expectedResponseData: [UInt8] =
-            [0, 0, 0, 0, 13, 10, 11, 72, 101, 108, 108, 111, 32, 66, 101, 114, 110, 100]
+            [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let vaporRequest = Vapor.Request(application: app.vapor.app,
@@ -291,6 +301,9 @@ extension GRPCInterfaceExporterTests {
     /// The handler should only return the response for the last (second)
     /// message contained in the frame.
     func testClientStreamingHandlerWith_2Messages_1Frame() throws {
+        let service = GRPCService(name: serviceName, app: app)
+        let handler = GRPCStreamTestHandler()
+        let endpoint = handler.mockEndpoint()
         let context = endpoint.createConnectionContext(for: self.exporter)
 
         let requestData: [UInt8] = [
@@ -325,6 +338,9 @@ extension GRPCInterfaceExporterTests {
     /// The handler should only return the response for the last (second)
     /// message contained in the frame.
     func testClientStreamingHandlerWith_2Messages_2Frames() throws {
+        let service = GRPCService(name: serviceName, app: app)
+        let handler = GRPCStreamTestHandler()
+        let endpoint = handler.mockEndpoint()
         let context = endpoint.createConnectionContext(for: self.exporter)
 
         // let expectedResponseString = "Hello Bernd"
@@ -395,6 +411,9 @@ extension GRPCInterfaceExporterTests {
     }
 
     func testBidirectionalStreamingHandler() throws {
+        let service = GRPCService(name: serviceName, app: app)
+        let handler = GRPCStreamTestHandler()
+        let endpoint = handler.mockEndpoint()
         let context = endpoint.createConnectionContext(for: self.exporter)
 
         // let expectedResponseString = "Hello Moritz"
