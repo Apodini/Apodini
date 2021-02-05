@@ -64,11 +64,9 @@ final class DescriptionModifierTests: ApodiniTests {
             testComponent.content
         }.accept(visitor)
         visitor.finishParsing()
-
     
         let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
         let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
-        let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)
         
         XCTAssertEqual(endpoint.description, "TestHandler")
     }

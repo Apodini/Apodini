@@ -18,26 +18,40 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
     }
 
     @PathParameter var param: String
+    
+    struct HandlerParam: Handler {
+        @Parameter
+        var pathParam: String
+
+        func handle() -> String {
+            "test"
+        }
+    }
 
     func testPathBuilder() {
-        struct HandlerParam: Handler {
-            @Parameter
-            var pathParam: String
-
-            func handle() -> String {
-                "test"
-            }
-        }
-
         let handler = HandlerParam(pathParam: $param)
         let endpoint = handler.mockEndpoint()
         var pathParameter = EndpointPathParameter<String>(id: _param.id)
         pathParameter.scoped(on: endpoint)
 
         let path: [EndpointPath] = [.string("test"), .parameter(pathParameter)]
-
         let pathString = path.build(with: OpenAPIPathBuilder.self)
+        
         XCTAssertEqual(pathString, OpenAPI.Path(stringLiteral: "test/{pathParam}"))
+    }
+    
+    func testDefaultTagWithPathParameter() {
+        let handler = HandlerParam(pathParam: $param)
+        var endpoint = handler.mockEndpoint()
+        let webService = WebServiceModel()
+        webService.addEndpoint(&endpoint, at: ["first", "second", $param, "third"])
+        
+        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
+        pathsObjectBuilder.addPathItem(from: endpoint)
+        
+        XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
+        XCTAssertEqual(pathsObjectBuilder.pathsObject.first?.value.get?.tags, ["second"])
     }
 
     func testAddPathItemOperationParams() {
@@ -64,7 +78,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         let path = OpenAPI.Path(stringLiteral: "test/{pathParam}/{id}")
         let queryParam = Either.parameter(name: "name", context: .query, schema: .string, description: "@Parameter var name: String")
         let pathParam = Either.parameter(name: "id", context: .path, schema: .string, description: "@Parameter var id: String")
-
+        
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains(key: path))
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in
@@ -137,8 +151,9 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         let path = OpenAPI.Path(stringLiteral: "test")
 
         let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
-            // as there is no custom description in this case, `description` and `operationId` are the same, `tags` is set to default, i.e., the string component appended last to the path.
+            // As there is no custom tag in this case, `tags` is derived by rules (i.e., last appended string path compontent).
             tags: ["test"],
+            // As there is no custom description in this case, `description` and `operationId` are the same.
             description: endpoint.description,
             operationId: endpoint.description,
             parameters: [],
@@ -197,8 +212,9 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
 
         let path = OpenAPI.Path(stringLiteral: "/test")
         let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
-            // as there is no custom description in this case, `description` and `operationId` are the same, `tags` is set to default, i.e., the string component appended last to the path.
+            // As there is no custom tag in this case, `tags` is derived by rules (i.e., last appended string path compontent).
             tags: ["test"],
+            // As there is no custom description in this case, `description` and `operationId` are the same.
             description: endpoint.description,
             operationId: endpoint.description,
             parameters: [],
