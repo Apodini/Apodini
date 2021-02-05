@@ -9,6 +9,7 @@ struct DescriptionContextKey: OptionalContextKey {
 public struct DescriptionModifier<H: Handler>: HandlerModifier {
     public let component: H
     let description: String
+    // swiftlint:disable discouraged_optional_collection
     let tags: [String]?
 
     init(_ component: H, description: String, tags: [String]? = nil) {

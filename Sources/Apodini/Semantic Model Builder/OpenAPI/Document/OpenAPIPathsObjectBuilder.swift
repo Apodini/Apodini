@@ -53,6 +53,7 @@ private extension OpenAPIPathsObjectBuilder {
     /// https://swagger.io/specification/#operation-object
     mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>) ->
         OpenAPI.Operation {
+        // swiftlint:disable discouraged_optional_collection
         // Get tags if some have been set explicitly passed via modifier.
         let tags: [String]? = endpoint.context.get(valueFor: DescriptionContextKey.self)?.1
 
