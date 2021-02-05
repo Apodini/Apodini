@@ -53,8 +53,8 @@ private extension OpenAPIPathsObjectBuilder {
     /// https://swagger.io/specification/#operation-object
     mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>) ->
         OpenAPI.Operation {
-        // Get tag if it has been set explicitly passed via modifier.
-        let tag = endpoint.context.get(valueFor: DescriptionContextKey.self)?.1
+        // Get tags if some have been set explicitly passed via modifier.
+        let tags: [String]? = endpoint.context.get(valueFor: DescriptionContextKey.self)?.1
 
         // Set endpointIdentifier to `Handler`s type name, stored in `endpoint.description`.
         let endpointIdentifier = "\(endpoint.description)"
@@ -78,7 +78,7 @@ private extension OpenAPIPathsObjectBuilder {
         let vendorExtensions: [String: AnyCodable] = ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
 
         return OpenAPI.Operation(
-            tags: "test",
+            tags: tags,
             description: endpointDescription,
             operationId: endpointIdentifier,
             parameters: parameters,

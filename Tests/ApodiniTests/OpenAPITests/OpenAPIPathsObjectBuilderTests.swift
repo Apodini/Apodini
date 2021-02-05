@@ -137,7 +137,8 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         let path = OpenAPI.Path(stringLiteral: "test")
 
         let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
-            // as there is no custom description in this case, `description` and `operationId` are the same.
+            // as there is no custom description in this case, `description` and `operationId` are the same, `tags` is nil.
+            tags: nil,
             description: endpoint.description,
             operationId: endpoint.description,
             parameters: [],
@@ -196,7 +197,8 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
 
         let path = OpenAPI.Path(stringLiteral: "/test")
         let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
-            // as there is no custom description in this case, `description` and `operationId` are the same.
+            // as there is no custom description in this case, `description` and `operationId` are the same, `tags` is nil.
+            tags: nil,
             description: endpoint.description,
             operationId: endpoint.description,
             parameters: [],

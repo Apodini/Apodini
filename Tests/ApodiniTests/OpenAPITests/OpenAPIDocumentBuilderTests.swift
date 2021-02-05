@@ -37,7 +37,8 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
             paths: [
                 "test": .init(
                     get: .init(
-                        // as there is no custom description in this case, `description` and `operationId` are the same.
+                        // as there is no custom description in this case, `description` and `operationId` are the same, `tags` is nil.
+                        tags: nil,
                         description: endpoint.description,
                         operationId: endpoint.description,
                         parameters: [

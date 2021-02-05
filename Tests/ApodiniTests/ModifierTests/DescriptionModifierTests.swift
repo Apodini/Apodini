@@ -24,7 +24,7 @@ final class DescriptionModifierTests: ApodiniTests {
         var content: some Component {
             Group("a", $name) {
                 TestHandler(name: $name)
-                    .description("Returns greeting with name parameter.", "a")
+                    .description("Returns greeting with name parameter.", ["a"])
             }
         }
     }
@@ -55,7 +55,7 @@ final class DescriptionModifierTests: ApodiniTests {
         let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)?.0
     
         XCTAssertEqual(customDescription, "Returns greeting with name parameter.")
-        XCTAssertEqual(tag, "a")
+        XCTAssertEqual(tag, ["a"])
     }
     
     func testEndpointDefaultDescription() throws {
