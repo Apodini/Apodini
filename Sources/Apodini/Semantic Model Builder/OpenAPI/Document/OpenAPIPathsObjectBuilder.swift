@@ -52,8 +52,8 @@ struct OpenAPIPathsObjectBuilder {
 private extension OpenAPIPathsObjectBuilder {
     /// https://swagger.io/specification/#operation-object
     mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>) -> OpenAPI.Operation {
-        // Get the string component appended last to the path as default tag, if no string component present, use "default" instead.
-        let defaultTag: String = endpoint.absolutePath.last { $0.isString() }?.description ?? "default"
+        // Get the string component appended first to the path as default tag, if no string component present, use "default" instead.
+        let defaultTag: String = endpoint.absolutePath.first { $0.isString() }?.description ?? "default"
         
         // Get tags if some have been set explicitly passed via TagModifier.
         let tags: [String] = endpoint.context.get(valueFor: TagContextKey.self) ?? [defaultTag]
