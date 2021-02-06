@@ -77,7 +77,7 @@ jobs:
       run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
   
   createPR:
-    name: Publish Package
+    name: Create Pull Request
     runs-on: ubuntu-latest
     container:
       image: swift:bionic
