@@ -7,11 +7,11 @@ import Foundation
 
 /// Default values used for OpenAPI configuration if not explicitly specified by developer.
 public enum OpenAPIConfigurationDefaults {
-    /// Default specification output format.
+    /// Default OpenAPI specification output format.
     public static let outputFormat: OpenAPIOutputFormat = .json
-    /// Default specification output endpoint.
+    /// Default OpenAPI specification output endpoint.
     public static let outputEndpoint: String = "openapi"
-    /// Default swagger-ui endpoint.
+    /// Default swagger-UI endpoint.
     public static let swaggerUiEndpoint: String = "openapi-ui"
 }
 
