@@ -29,7 +29,7 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         documentBuilder.addEndpoint(endpoint)
         
-        // set version information from APIContextKey, if version was not defined by developer
+        // Set version information from APIContextKey, if version was not defined by developer.
         if self.configuration.version == nil {
             self.configuration.version = endpoint.context.get(valueFor: APIVersionContextKey.self)?.description
             updateStorage()
@@ -69,13 +69,13 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
 
     private func serveSpecification() {
         if let output = try? self.documentBuilder.document.output(self.configuration.outputFormat) {
-            // register OpenAPI endpoint
+            // Register OpenAPI Specification endpoint.
             app.vapor.app.get(configuration.outputEndpoint.pathComponents) { _ -> String in
                 output
             }
             
-            // register swagger UI endpoint
-            app.vapor.app.get(configuration.swaggerUiEndpoint.pathComponents) { _ -> Vapor.Response in
+            // Register swagger-UI endpoint.
+            app.vapor.app.get(configuration.swaggerUiEndpoint.pathComponents) { [self] _ -> Vapor.Response in
                 var headers = HTTPHeaders()
                 headers.add(name: .contentType, value: HTTPMediaType.html.serialize())
                 guard let htmlFile = Bundle.module.path(forResource: "swagger-ui", ofType: "html"),
@@ -83,10 +83,15 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
                 else {
                     throw Vapor.Abort(.internalServerError)
                 }
-                // replace placeholder with actual URL of OpenAPI endpoint
-                html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: self.configuration.outputEndpoint.pathComponents.string)
+                // Replace placeholder with actual URL of OpenAPI Specification endpoint.
+                html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: self.configuration.outputEndpoint)
+            
                 return Vapor.Response(status: .ok, headers: headers, body: .init(string: html))
             }
+            
+            // Inform developer about serving on configured endpoints.
+            self.app.logger.info("OpenAPI Specification served in \(configuration.outputFormat) format on: \(configuration.outputEndpoint)")
+            self.app.logger.info("swagger-UI on: \(configuration.swaggerUiEndpoint)")
         }
     }
 }

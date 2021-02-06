@@ -11,6 +11,7 @@ final class WebserviceTests: XCTestCase {
             var configuration: Configuration {
                 HTTPConfiguration()
                     .address(.hostname("0.0.0.0", port: 8080))
+                OpenAPIConfiguration(outputFormat: .json, outputEndpoint: "hallo", swaggerUiEndpoint: "halloUI")
             }
         }
 
