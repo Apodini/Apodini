@@ -1,8 +1,7 @@
 import Foundation
-import XCTest
-import NIO
 @testable import Apodini
 @testable import ApodiniDatabase
+import XCTApodini
 
 final class UploaderTests: FileHandlerTests {
     func testUploader() throws {
@@ -10,8 +9,12 @@ final class UploaderTests: FileHandlerTests {
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
         let file = File(data: data, filename: "Testfile.jpeg")
         
-        let response = try XCTUnwrap(mockQuery(component: uploader, value: String.self, app: app, queued: file))
-        XCTAssert(response == file.filename)
+        try XCTCheckResponse(
+            try mockQuery(component: uploader, value: String.self, app: app, queued: file),
+            status: .created,
+            content: file.filename,
+            connectionEffect: .close
+        )
     }
     
     func testUploadConfig() throws {

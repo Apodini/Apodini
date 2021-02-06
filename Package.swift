@@ -113,6 +113,15 @@ let package = Package(
         ),
 
         .target(
+            name: "ApodiniREST",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "FluentKit", package: "fluent-kit")
+            ]
+        ),
+
+        .target(
             name: "ApodiniGRPC",
             dependencies: [
                 .target(name: "Apodini"),
@@ -143,7 +152,6 @@ let package = Package(
                 .product(name: "OpenCombine", package: "OpenCombine"),
                 .product(name: "OpenCombineFoundation", package: "OpenCombine"),
                 .product(name: "Vapor", package: "vapor"),
-                .product(name: "Fluent", package: "fluent"),
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")

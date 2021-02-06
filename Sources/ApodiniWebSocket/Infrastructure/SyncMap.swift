@@ -159,7 +159,7 @@ private extension SyncMap.Inner {
             self.onDemand = onDemand
         }
         
-        private let lock = NSLock()
+        private let lock = NSRecursiveLock()
         private var demand: Subscribers.Demand = .none
         
         func request(_ demand: Subscribers.Demand) {

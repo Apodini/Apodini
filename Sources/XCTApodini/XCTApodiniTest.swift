@@ -1,7 +1,6 @@
+#if DEBUG
 import FluentSQLiteDriver
-import Apodini
 import ApodiniDatabase
-import XCTest
 
 open class XCTApodiniTest: XCTestCase {
     // Vapor Application
@@ -36,3 +35,4 @@ open class XCTApodiniTest: XCTestCase {
         try app.autoMigrate().wait()
     }
 }
+#endif

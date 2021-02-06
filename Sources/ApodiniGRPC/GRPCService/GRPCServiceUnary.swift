@@ -32,12 +32,11 @@ extension GRPCService {
                 let message = self.getMessages(from: data).first ?? GRPCMessage.defaultMessage
 
                 let response = context.handle(request: message, eventLoop: request.eventLoop, final: true)
-                let result = response.map { encodableAction -> Vapor.Response in
-                    switch encodableAction {
-                    case let .send(element),
-                         let .final(element):
-                        return self.makeResponse(element)
-                    case .nothing, .end:
+                let result = response.map { response -> Vapor.Response in
+                    switch response.content {
+                    case let .some(content):
+                        return self.makeResponse(content)
+                    case .none:
                         return self.makeResponse()
                     }
                 }
@@ -63,7 +62,7 @@ extension GRPCService {
             Vapor.PathComponent(stringLiteral: endpoint)
         ]
 
-        app.on(.POST, path) { request in
+        vaporApp.on(.POST, path) { request in
             self.createUnaryHandler(context: context)(request)
         }
     }

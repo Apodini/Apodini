@@ -10,14 +10,21 @@ import ApodiniTypeReflection
 
 public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     // MARK: Nested Types
-    struct Error: Swift.Error {
+    struct Error: Swift.Error, CustomDebugStringConvertible {
         let message: String
+    
+        var debugDescription: String {
+            "ProtobufferInterfaceExporterError: \(message)"
+        }
     }
 
-    internal enum Builder {}
+    struct Builder {
+        var integerWidthConfiguration: IntegerWidthConfiguration = .native
+    }
     
     // MARK: Properties
     private let app: Apodini.Application
+    private let builder: Builder
     
     private var messages: Set<ProtobufferMessage> = .init()
     private var services: Set<ProtobufferService> = .init()
@@ -25,6 +32,12 @@ public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     // MARK: Initialization
     public required init(_ app: Apodini.Application) {
         self.app = app
+        
+        var builder = Builder()
+        app.storage[IntegerWidthConfiguration.StorageKey.self].map {
+            builder.integerWidthConfiguration = $0
+        }
+        self.builder = builder
     }
     
     // MARK: Methods
@@ -48,12 +61,12 @@ public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
 private extension ProtobufferInterfaceExporter {
     func exportThrows<H: Handler>(_ endpoint: Endpoint<H>) throws {
         // Output
-        let outputNode = try Builder.buildMessage(endpoint.responseType)
+        let outputNode = try builder.buildMessage(endpoint.responseType)
         messages.formUnion(outputNode.collectValues())
         
         // Input
         let parameterNodes = try endpoint.parameters.map { parameter in
-            try Builder.buildMessage(parameter.propertyType)
+            try builder.buildMessage(parameter.propertyType)
         }
         for parameterNode in parameterNodes where !parameterNode.value.isPrimitive {
             messages.formUnion(parameterNode.collectValues())
@@ -107,42 +120,79 @@ private extension ProtobufferInterfaceExporter {
 // MARK: - ProtobufferInterfaceExporter.Builder Implementation
 
 extension ProtobufferInterfaceExporter.Builder {
-    static func buildMessage(_ type: Any.Type) throws -> Node<ProtobufferMessage> {
+    func buildMessage(_ type: Any.Type) throws -> Node<ProtobufferMessage> {
         try buildCompositeMessage(type) ?? buildScalarMessage(type)
     }
     
-    static func buildCompositeMessage(_ type: Any.Type) throws -> Tree<ProtobufferMessage> {
+    func buildCompositeMessage(_ type: Any.Type) throws -> Tree<ProtobufferMessage> {
         try EnrichedInfo.node(type)
             .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handlePrimitiveType)?
+            .edited(Apodini.handleUUID)?
             .map(ProtobufferMessage.Property.init)
+            .map {
+                $0.map(handleUUID)
+            }
+            .map {
+                $0.map(handleVariableWidthInteger)
+            }
             .contextMap(ProtobufferMessage.init)
             .compactMap { $0 }?
             .filter(!\.isPrimitive)
     }
     
-    static func buildScalarMessage(_ type: Any.Type) -> Node<ProtobufferMessage> {
-        var suffix = ""
-        if isSupportedVariableWidthInteger(type) {
-            suffix = String(describing: Int.bitWidth)
-        }
-        
-        let typeName = "\(type)" + suffix
+    func buildScalarMessage(_ type: Any.Type) -> Node<ProtobufferMessage> {
+        let typeName = String(describing: type)
         
         return Node(
             value: ProtobufferMessage(
                 name: "\(typeName)Message",
                 properties: [
-                    .init(
-                        fieldRule: .required,
-                        name: "value",
-                        typeName: typeName.lowercased(),
-                        uniqueNumber: 1
+                    handleVariableWidthInteger(
+                        .init(
+                            fieldRule: .required,
+                            name: "value",
+                            typeName: typeName.lowercased(),
+                            uniqueNumber: 1
+                        )
                     )
                 ]
             ),
             children: []
+        )
+    }
+}
+
+private extension ProtobufferInterfaceExporter.Builder {
+    func handleUUID(_ property: ProtobufferMessage.Property) -> ProtobufferMessage.Property {
+        guard property.typeName == "UUIDMessage" else {
+            return property
+        }
+        
+        return .init(
+            fieldRule: property.fieldRule,
+            name: property.name,
+            typeName: "string",
+            uniqueNumber: property.uniqueNumber
+        )
+    }
+    
+    func handleVariableWidthInteger(
+        _ property: ProtobufferMessage.Property
+    ) -> ProtobufferMessage.Property {
+        guard ["int", "uint"].contains(property.typeName) else {
+            return property
+        }
+        
+        let suffix = String(integerWidthConfiguration.rawValue)
+        let typeName = property.typeName + suffix
+        
+        return .init(
+            fieldRule: property.fieldRule,
+            name: property.name,
+            typeName: typeName,
+            uniqueNumber: property.uniqueNumber
         )
     }
 }

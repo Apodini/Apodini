@@ -6,7 +6,6 @@
 //
 
 import XCTest
-import NIO
 import OpenCombine
 @testable import Apodini
 @testable import ApodiniWebSocket
