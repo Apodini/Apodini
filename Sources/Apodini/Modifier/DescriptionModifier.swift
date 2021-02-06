@@ -2,8 +2,8 @@
 // Created by Lorena Schlesinger on 10.01.21.
 //
 
-struct DescriptionContextKey: OptionalContextKey {
-    typealias Value = String
+public struct DescriptionContextKey: OptionalContextKey {
+    public typealias Value = String
 }
 
 public struct DescriptionModifier<H: Handler>: HandlerModifier {
@@ -18,7 +18,7 @@ public struct DescriptionModifier<H: Handler>: HandlerModifier {
 }
 
 extension DescriptionModifier: SyntaxTreeVisitable {
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(DescriptionContextKey.self, value: description, scope: .current)
         component.accept(visitor)
     }

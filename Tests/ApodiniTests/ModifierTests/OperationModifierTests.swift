@@ -7,6 +7,8 @@
 
 import XCTVapor
 @testable import Apodini
+@testable import ApodiniVaporSupport
+@testable import ApodiniREST
 
 
 final class OperationModifierTests: ApodiniTests {
@@ -30,6 +32,11 @@ final class OperationModifierTests: ApodiniTests {
                     .operation(.create)
                     .operation(.read)
             }
+        }
+
+        var configuration: Configuration {
+            ExporterConfiguration()
+                .exporter(RESTInterfaceExporter.self)
         }
     }
     

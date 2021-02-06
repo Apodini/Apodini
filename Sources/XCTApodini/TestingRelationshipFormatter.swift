@@ -2,6 +2,7 @@
 // Created by Andreas Bauer on 23.01.21.
 //
 
+#if DEBUG
 import Apodini
 
 public struct TestingRelationshipFormatter: RelationshipFormatter {
@@ -23,3 +24,4 @@ public struct TestingRelationshipFormatter: RelationshipFormatter {
         into[of.name + ":\(of.operation)"] = representation
     }
 }
+#endif

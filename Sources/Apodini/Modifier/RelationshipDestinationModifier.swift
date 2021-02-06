@@ -21,7 +21,7 @@ public struct RelationshipDestinationModifier<H: Handler>: HandlerModifier {
 }
 
 extension RelationshipDestinationModifier: SyntaxTreeVisitable {
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(RelationshipDestinationContextKey.self, value: [relationship], scope: .current)
         component.accept(visitor)
     }
