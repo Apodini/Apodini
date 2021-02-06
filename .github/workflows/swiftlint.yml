@@ -6,7 +6,17 @@ jobs:
   swiftlint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+      - name: SwiftLint Autocorrect
+        uses: norio-nomura/action-swiftlint@3.2.1
+        with:
+          args: autocorrect
+      - name: Commit Autocorrect
+        run: |
+          git config --global user.name 'SwiftLint Bot'
+          git config --global user.email 'bot@users.noreply.github.com'
+          git commit -am "swiftlint autocorrect"
+          git push
       - name: GitHub Action for SwiftLint
         uses: norio-nomura/action-swiftlint@3.2.1
         with:
