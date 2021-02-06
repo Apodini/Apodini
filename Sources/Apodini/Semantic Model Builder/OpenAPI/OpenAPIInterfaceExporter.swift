@@ -75,7 +75,7 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
             }
             
             // Register swagger-UI endpoint.
-            app.vapor.app.get(configuration.swaggerUiEndpoint.pathComponents) { [self] _ -> Vapor.Response in
+            app.vapor.app.get(configuration.swaggerUiEndpoint.pathComponents) { _ -> Vapor.Response in
                 var headers = HTTPHeaders()
                 headers.add(name: .contentType, value: HTTPMediaType.html.serialize())
                 guard let htmlFile = Bundle.module.path(forResource: "swagger-ui", ofType: "html"),
@@ -91,7 +91,7 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
             
             // Inform developer about serving on configured endpoints.
             self.app.logger.info("OpenAPI Specification served in \(configuration.outputFormat) format on: \(configuration.outputEndpoint)")
-            self.app.logger.info("swagger-UI on: \(configuration.swaggerUiEndpoint)")
+            self.app.logger.info("Swagger-UI on: \(configuration.swaggerUiEndpoint)")
         }
     }
 }
