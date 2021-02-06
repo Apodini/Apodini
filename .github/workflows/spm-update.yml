@@ -30,7 +30,7 @@ jobs:
     - name: Check Swift version
       run: swift --version
     - name: Update Swift Packages
-      run: swift update
+      run: swift package update
     - name: Build
       if: matrix.configuration == 'release'
       run: swift build --configuration ${{ matrix.configuration }}
@@ -68,7 +68,7 @@ jobs:
     - name: Check Swift version
       run: swift --version
     - name: Update Swift Packages
-      run: swift update
+      run: swift package update
     - name: Build
       if: matrix.configuration == 'release'
       run: swift build --configuration ${{ matrix.configuration }}
@@ -95,9 +95,9 @@ jobs:
     - name: Check Swift version
       run: swift --version
     - name: Update Swift Packages (Dry Run)
-      run: swift update --dry-run
+      run: swift package update --dry-run
     - name: Update Swift Packages
-      run: swift update
+      run: swift package update
     - uses: peter-evans/create-pull-request@v3
       
     
