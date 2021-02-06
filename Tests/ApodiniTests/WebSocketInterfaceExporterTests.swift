@@ -6,9 +6,9 @@
 //
 
 import XCTest
-import WebSocketInfrastructure
 import NIO
 @testable import Apodini
+@testable import ApodiniWebSocket
 
 class WebSocketInterfaceExporterTests: ApodiniTests {
     static let blockTime: UInt32 = 10000
@@ -72,7 +72,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         
         print(input.parameters)
 
-        let result = try context.handle(request: input, eventLoop: app.eventLoopGroup.next())
+        let result = try context.handle(request: WebSocketInput(input), eventLoop: app.eventLoopGroup.next())
                 .wait()
         guard case let .final(responseValue) = result.typed(Parameters.self) else {
             XCTFail("Expected return value to be wrapped in Response.automatic by default")

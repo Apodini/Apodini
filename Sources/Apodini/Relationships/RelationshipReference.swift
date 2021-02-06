@@ -84,7 +84,7 @@ public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinit
 }
 
 extension RelationshipReference: SyntaxTreeVisitable {
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         let candidate = PartialRelationshipSourceCandidate(reference: name, destinationType: destinationType, resolvers: resolvers)
         visitor.addContext(RelationshipSourceCandidateContextKey.self, value: [candidate], scope: .current)
     }

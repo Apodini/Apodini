@@ -7,7 +7,7 @@
 
 import XCTest
 import NIO
-import WebSocketInfrastructure
+@testable import ApodiniWebSocket
 import OpenCombine
 @testable import Apodini
 

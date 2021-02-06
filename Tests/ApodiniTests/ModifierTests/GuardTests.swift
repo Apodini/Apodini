@@ -9,6 +9,8 @@ import XCTest
 import XCTVapor
 import protocol Fluent.Database
 @testable import Apodini
+@testable import ApodiniREST
+@testable import ApodiniVaporSupport
 
 
 final class GuardTests: ApodiniTests {
@@ -33,6 +35,11 @@ final class GuardTests: ApodiniTests {
             var content: some Component {
                 Text("Hello")
                     .guard(TestSyncGuard())
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
             }
         }
         
@@ -76,6 +83,11 @@ final class GuardTests: ApodiniTests {
                 Text("Hello")
                     .guard(TestGuard())
             }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
+            }
         }
         
         TestWebService.main(app: app)
@@ -107,6 +119,11 @@ final class GuardTests: ApodiniTests {
                     Text("Hello")
                         .resetGuards()
                 }.guard(TestSyncGuard())
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
             }
         }
         
@@ -147,6 +164,11 @@ final class GuardTests: ApodiniTests {
                 }.guard(TestSyncGuard())
                     .resetGuards()
             }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
+            }
         }
         
         TestWebService.main(app: app)
@@ -170,6 +192,11 @@ final class GuardTests: ApodiniTests {
             var content: some Component {
                 Text("Hello")
                     .resetGuards()
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
             }
         }
         
@@ -199,6 +226,11 @@ final class GuardTests: ApodiniTests {
                 Text("Hello")
                     .guard(TestSyncGuard())
                     .resetGuards()
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
             }
         }
         
@@ -233,6 +265,11 @@ final class GuardTests: ApodiniTests {
                 Text("Hello")
                     .resetGuards()
                     .guard(TestSyncGuard())
+            }
+            
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
             }
         }
         

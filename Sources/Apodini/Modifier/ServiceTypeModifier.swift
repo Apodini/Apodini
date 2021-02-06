@@ -39,7 +39,7 @@ public struct ServiceTypeModifier<H: Handler>: HandlerModifier {
 }
 
 extension ServiceTypeModifier: SyntaxTreeVisitable {
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(ServiceTypeContextKey.self, value: serviceType, scope: .current)
         component.accept(visitor)
     }

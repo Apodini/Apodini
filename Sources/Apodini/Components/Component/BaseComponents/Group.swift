@@ -28,7 +28,7 @@ public struct Group<Content: Component>: Component, SyntaxTreeVisitable {
         self.content = content()
     }
     
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.enterContent {
             visitor.enterComponentContext {
                 var component = pathComponents
