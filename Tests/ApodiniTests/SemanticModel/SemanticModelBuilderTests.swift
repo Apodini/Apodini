@@ -173,8 +173,9 @@ final class SemanticModelBuilderTests: ApodiniTests {
     }
 
     func testResponsePassthrough_final() throws {
+        let mockRequest = MockRequest.createRequest(running: app.eventLoopGroup.next(), queuedParameters: .none)
         let exporter = RESTInterfaceExporter(app)
-        let handler = ResponseHandler1().environment(Connection(state: .end), for: \Apodini.Application.connection)
+        let handler = ResponseHandler1().environment(Connection(state: .end, request: mockRequest), for: \Apodini.Application.connection)
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app.vapor.app,
@@ -207,9 +208,10 @@ final class SemanticModelBuilderTests: ApodiniTests {
         )
     }
 
-    func testResponsePassthrough_end() throws {
+    func testResponsePassthrough_end() throws {        
+        let mockRequest = MockRequest.createRequest(running: app.eventLoopGroup.next(), queuedParameters: .none)
         let exporter = RESTInterfaceExporter(app)
-        let handler = ResponseHandler2().environment(Connection(state: .end), for: \Apodini.Application.connection)
+        let handler = ResponseHandler2().environment(Connection(state: .end, request: mockRequest), for: \Apodini.Application.connection)
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app.vapor.app,
