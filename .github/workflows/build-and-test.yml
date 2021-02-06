@@ -38,7 +38,7 @@ jobs:
       run: swift build --configuration ${{ matrix.configuration }}
     - name: Build & Test
       if: matrix.configuration == 'debug'
-      run: swift test --configuration ${{ matrix.configuration }} --enable-code-coverage
+      run: swift test --configuration ${{ matrix.configuration }} --parallel --enable-code-coverage
     - name: Convert coverage report
       if: matrix.configuration == 'debug'
       run: xcrun llvm-cov export -format="lcov" .build/debug/ApodiniPackageTests.xctest/Contents/MacOS/ApodiniPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage.lcov
@@ -74,4 +74,4 @@ jobs:
       run: swift build --configuration ${{ matrix.configuration }}
     - name: Build & Test
       if: matrix.configuration == 'debug'
-      run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
+      run: swift test --configuration ${{ matrix.configuration }} --parallel --enable-test-discovery
