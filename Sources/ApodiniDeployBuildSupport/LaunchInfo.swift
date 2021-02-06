@@ -132,8 +132,8 @@ extension DeployedSystemStructure {
         
         
         /// The deployment options for all endpoints exported by this node
-        public func combinedEndpointDeploymentOptions() -> CollectedOptions {
-            CollectedOptions(exportedEndpoints.map(\.deploymentOptions).flatMap(\.options))
+        public func combinedEndpointDeploymentOptions() -> DeploymentOptions {
+            DeploymentOptions(exportedEndpoints.map(\.deploymentOptions).flatMap(\.options))
         }
         
         

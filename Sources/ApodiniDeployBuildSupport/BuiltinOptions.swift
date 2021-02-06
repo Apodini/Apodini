@@ -8,17 +8,33 @@
 import Foundation
 
 
-public struct MemorySize: DeploymentOption, RawRepresentable {
-    public typealias RawValue = UInt
-    // memory size, in MB
-    public let rawValue: RawValue
+
+public final class DeploymentOptionsNamespace: OuterNamespace {
+    public static let id: String = "DeploymentOptions"
+}
+
+
+public typealias DeploymentOptions = CollectedOptions<DeploymentOptionsNamespace>
+public typealias AnyDeploymentOption = AnyOption<DeploymentOptionsNamespace>
+
+
+public final class BuiltinDeploymentOptionsNamespace: InnerNamespace {
+    public typealias OuterNS = DeploymentOptionsNamespace
+    public static let id: String = "org.apodini"
+}
+
+
+
+
+public struct MemorySize: OptionValue, RawRepresentable {
+    /// memory size, in MB
+    public let rawValue: UInt
     
-    public init(rawValue: RawValue) {
+    public init(rawValue: UInt) {
         self.rawValue = rawValue
     }
     
-    
-    public static func mb(_ value: RawValue) -> Self {
+    public static func mb(_ value: UInt) -> Self {
         .init(rawValue: value)
     }
     
@@ -29,7 +45,7 @@ public struct MemorySize: DeploymentOption, RawRepresentable {
 
 
 
-public struct Timeout: DeploymentOption, RawRepresentable {
+public struct Timeout: OptionValue, RawRepresentable {
     /// timeout in seconds
     public let rawValue: UInt
     
@@ -54,34 +70,30 @@ public struct Timeout: DeploymentOption, RawRepresentable {
 
 
 
-public final class XBuiltinOptionsNamespace: OptionNamespace {
-    public static let id: String = "org.apodini"
-}
 
-
-public extension OptionKey where NS == XBuiltinOptionsNamespace, Value == MemorySize {
-    static let memorySize = OptionKeyWithDefaultValue<XBuiltinOptionsNamespace, MemorySize>(
+public extension OptionKey where InnerNS == BuiltinDeploymentOptionsNamespace, Value == MemorySize {
+    static let memorySize = OptionKeyWithDefaultValue<DeploymentOptionsNamespace, BuiltinDeploymentOptionsNamespace, MemorySize>(
         key: "memorySize",
         defaultValue: .mb(128)
     )
 }
 
 
-public extension OptionKey where NS == XBuiltinOptionsNamespace, Value == Timeout {
-    static let timeout = OptionKeyWithDefaultValue<XBuiltinOptionsNamespace, Timeout>(
+public extension OptionKey where InnerNS == BuiltinDeploymentOptionsNamespace, Value == Timeout {
+    static let timeout = OptionKeyWithDefaultValue<DeploymentOptionsNamespace, BuiltinDeploymentOptionsNamespace, Timeout>(
         key: "timeout",
         defaultValue: .seconds(4)
     )
 }
 
 
-public extension AnyDeploymentOption {
-    static func memory(_ memorySize: MemorySize) -> AnyDeploymentOption {
-        ResolvedDeploymentOption(key: .memorySize, value: memorySize)
+public extension AnyOption where OuterNS == DeploymentOptionsNamespace {
+    static func memory(_ memorySize: MemorySize) -> AnyOption {
+        ResolvedOption(key: .memorySize, value: memorySize)
     }
     
-    static func timeout(_ value: Timeout) -> AnyDeploymentOption {
-        ResolvedDeploymentOption(key: .timeout, value: value)
+    static func timeout(_ value: Timeout) -> AnyOption {
+        ResolvedOption(key: .timeout, value: value)
     }
 }
 

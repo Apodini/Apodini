@@ -8,7 +8,8 @@
 import Foundation
 
 
-public protocol DeploymentOption: Codable {
+/// A type which can be used as an option's value
+public protocol OptionValue: Codable {
     /// - Note: this operation should (must?) be commutative
     func reduce(with other: Self) -> Self
 }
@@ -16,10 +17,10 @@ public protocol DeploymentOption: Codable {
 
 
 
-open class AnyDeploymentOption: Codable, Hashable, Equatable, CustomStringConvertible {
-    public let key: AnyOptionKey
+open class AnyOption<OuterNS: OuterNamespace>: Codable, Hashable, Equatable, CustomStringConvertible {
+    public let key: AnyOptionKey<OuterNS>
     
-    public init(key: AnyOptionKey) {
+    public init(key: AnyOptionKey<OuterNS>) {
         self.key = key
     }
     
@@ -32,14 +33,14 @@ open class AnyDeploymentOption: Codable, Hashable, Equatable, CustomStringConver
         hasher.combine(key)
     }
     
-    public static func == (lhs: AnyDeploymentOption, rhs: AnyDeploymentOption) -> Bool {
+    public static func == (lhs: AnyOption<OuterNS>, rhs: AnyOption<OuterNS>) -> Bool {
         lhs.key == rhs.key
     }
 }
 
 
 
-public final class ResolvedDeploymentOption: AnyDeploymentOption {
+public final class ResolvedOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
     private enum ValueStorage {
         case encoded(Data)
         case unencoded(value: Any, encodingFn: () throws -> Data)
@@ -52,10 +53,10 @@ public final class ResolvedDeploymentOption: AnyDeploymentOption {
     
     
     private var valueStorage: ValueStorage
-    private let reduceOptionsImp: (_ other: ResolvedDeploymentOption) -> ResolvedDeploymentOption
+    private let reduceOptionsImp: (_ other: ResolvedOption<OuterNS>) -> ResolvedOption<OuterNS>
     
     
-    public init<NS, Value>(key: OptionKey<NS, Value>, value: Value) {
+    public init<InnerNS, Value>(key: OptionKey<OuterNS, InnerNS, Value>, value: Value) {
         self.valueStorage = .unencoded(value: value, encodingFn: { try JSONEncoder().encode(value) })
         self.reduceOptionsImp = { otherOption in
             precondition(key == otherOption.key)
@@ -66,7 +67,7 @@ public final class ResolvedDeploymentOption: AnyDeploymentOption {
             guard let otherValue = otherValueUntyped as? Value else {
                 fatalError("Cannot reduce options with non-matching types ('\(Value.self)' vs '\(type(of: otherValueUntyped))').")
             }
-            return ResolvedDeploymentOption(key: key, value: value.reduce(with: otherValue))
+            return ResolvedOption(key: key, value: value.reduce(with: otherValue))
         }
         super.init(key: key)
     }
@@ -74,7 +75,7 @@ public final class ResolvedDeploymentOption: AnyDeploymentOption {
     
     required public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let key = try container.decode(AnyOptionKey.self, forKey: .key)
+        let key = try container.decode(AnyOptionKey<OuterNS>.self, forKey: .key)
         self.valueStorage = .encoded(try container.decode(Data.self, forKey: .encodedValue))
         self.reduceOptionsImp = { otherOption in
             fatalError("Cannot reduce this option because it was created using the 'init(Decoder)' initializer. Only \(Self.self) objects created using the 'init(key:, value:)' initializer can be reduced. (self.key: \(key), other.key: \(otherOption.key))")
@@ -137,7 +138,7 @@ public final class ResolvedDeploymentOption: AnyDeploymentOption {
     }
     
     
-    public func reduceOption(with other: ResolvedDeploymentOption) -> ResolvedDeploymentOption {
+    public func reduceOption(with other: ResolvedOption) -> ResolvedOption {
         reduceOptionsImp(other)
     }
     

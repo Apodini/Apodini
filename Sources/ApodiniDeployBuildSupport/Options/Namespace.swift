@@ -8,6 +8,21 @@
 import Foundation
 
 
-public protocol OptionNamespace: class { // TODO -> OptionSubNamespace, add outer NS for better reuse
+
+public protocol OuterNamespace: class {
     static var id: String { get }
 }
+
+//extension OuterNamespace {
+//    static var id: String { "\(Self.self)" }
+//}
+
+
+public protocol InnerNamespace: class {
+    associatedtype OuterNS: OuterNamespace
+    static var id: String { get }
+}
+
+//extension InnerNamespace {
+//    static var id: String { "\(Self.self)" }
+//}

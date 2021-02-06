@@ -17,7 +17,7 @@ public protocol Handler: Component {
     func handle() throws -> Response
     
     /// Type-level deployment options (ie options which apply to all instances of this type)
-    static var deploymentOptions: [AnyDeploymentOption] { get }
+    static var deploymentOptions: [AnyDeploymentOption] { get } // TODO replace these arrays w/ `DeploymentOptions`?
     
     /// Instance-level deployment options (ie options which apply to just one instance of this type)
     var deploymentOptions: [AnyDeploymentOption] { get }

@@ -64,7 +64,7 @@ class RHIInterfaceExporter: InterfaceExporter { // TODO rename to something diff
     private struct CollectedEndpointInfo {
         let handlerType: String
         let endpoint: AnyEndpoint
-        let deploymentOptions: CollectedOptions
+        let deploymentOptions: DeploymentOptions
     }
     
     internal private(set) static var shared: RHIInterfaceExporter?

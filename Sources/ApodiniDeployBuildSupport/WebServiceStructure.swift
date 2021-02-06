@@ -65,7 +65,7 @@ public struct ExportedEndpoint: Codable, Hashable, Equatable {
     /// The `rawValue` of the identifier of the  handler this endpoint was generated for
     public let handlerIdRawValue: String
     /// The endpoint's handler's deployment options
-    public let deploymentOptions: CollectedOptions
+    public let deploymentOptions: DeploymentOptions
     
     public let httpMethod: String
     public let absolutePath: String
@@ -77,7 +77,7 @@ public struct ExportedEndpoint: Codable, Hashable, Equatable {
     public init(
         handlerType: String,
         handlerIdRawValue: String,
-        deploymentOptions: CollectedOptions,
+        deploymentOptions: DeploymentOptions,
         httpMethod: String,
         absolutePath: String,
         userInfo: [String: Data]

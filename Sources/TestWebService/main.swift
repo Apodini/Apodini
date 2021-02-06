@@ -12,8 +12,9 @@ import DeploymentTargetAWSLambdaRuntime
 struct RandomNumberGenerator: InvocableHandler {
     class HandlerIdentifier: ScopedHandlerIdentifier<RandomNumberGenerator> {
         static let main = HandlerIdentifier("main")
+        static let other = HandlerIdentifier("other")
     }
-    let handlerId = HandlerIdentifier.main
+    let handlerId: HandlerIdentifier
     
     @Parameter var lowerBound: Int = 0
     @Parameter var upperBound: Int = .max
@@ -28,7 +29,8 @@ struct RandomNumberGenerator: InvocableHandler {
     
     static var deploymentOptions: [AnyDeploymentOption] {
         return [
-            ResolvedDeploymentOption.ugh_memory(.mb(12), where: \Self.handlerId == HandlerIdentifier.main)
+            // NOTE: starting with swift 5.4 (i believe) we'll be able to drop the leading `AnyOption` here and use the implicit member thing w/ chaining
+            AnyOption.memory(.mb(150)).when(\Self.handlerId == .main)
         ]
     }
 }
@@ -64,23 +66,15 @@ struct Greeter: Handler {
 struct WebService: Apodini.WebService {
     var content: some Component {
         Group("rand") {
-            RandomNumberGenerator()
-                .deploymentOptions(
-                    .timeout(.seconds(12)),
-                    .memory(.mb(1))
-                )
-            Group("x") {
-                Text("textt").identified(by: "nestedText")
-                    .deploymentOptions(.memory(.mb(3)))
-            }//.formDeploymentGroup(withId: "inner.id")
-        }.formDeploymentGroup(withId: "outer.id", options: [
-            .timeout(.seconds(1)),
-            .memory(.mb(5))
-        ])
+            RandomNumberGenerator(handlerId: .other)
+        }.formDeploymentGroup(withId: "rand.2")
         Group("greet") {
             Greeter()
-                .deploymentOptions(.memory(.mb(7)))
-        }
+                .deploymentOptions(
+                    .memory(.mb(169)),
+                    .timeout(.seconds(12))
+                )
+        }.formDeploymentGroup(withId: "greeter")
     }
 }
 

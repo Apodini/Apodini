@@ -8,11 +8,11 @@
 import Foundation
 
 
-public class AnyOptionKey: Codable, Hashable, Equatable, CustomStringConvertible {
+public class AnyOptionKey<OuterNS: OuterNamespace>: Codable, Hashable, Equatable, CustomStringConvertible {
     public let rawValue: String
     
     public init(key rawValue: String) {
-        self.rawValue = rawValue
+        self.rawValue = "\(OuterNS.id):\(rawValue)"
     }
     
     public var description: String {
@@ -30,9 +30,9 @@ public class AnyOptionKey: Codable, Hashable, Equatable, CustomStringConvertible
 
 
 
-public class OptionKey<NS: OptionNamespace, Value: DeploymentOption>: AnyOptionKey {
+public class OptionKey<OuterNS, InnerNS: InnerNamespace, Value: OptionValue>: AnyOptionKey<OuterNS> where InnerNS.OuterNS == OuterNS {
     public override init(key rawValue: String) {
-        super.init(key: "\(NS.id).\(rawValue)")
+        super.init(key: "\(InnerNS.id).\(rawValue)")
     }
     
     public required init(from decoder: Decoder) throws {
@@ -45,7 +45,7 @@ public class OptionKey<NS: OptionNamespace, Value: DeploymentOption>: AnyOptionK
 }
 
 
-public final class OptionKeyWithDefaultValue<NS: OptionNamespace, Value: DeploymentOption>: OptionKey<NS, Value> {
+public final class OptionKeyWithDefaultValue<OuterNS, InnerNS: InnerNamespace, Value: OptionValue>: OptionKey<OuterNS, InnerNS, Value> where InnerNS.OuterNS == OuterNS {
     public let defaultValue: Value
     
     public init(key rawValue: String, defaultValue: Value) {

@@ -45,12 +45,13 @@ extension LambdaDeployedSystemContext {
 
 
 
-public final class LambdaDeploymentOptionsNamespace: OptionNamespace {
+public final class LambdaDeploymentOptionsNamespace: InnerNamespace {
+    public typealias OuterNS = DeploymentOptionsNamespace
     public static let id = LambdaDeploymentProviderId.rawValue
 }
 
 
-public struct LambdaDescriptionOption: DeploymentOption, RawRepresentable, ExpressibleByStringLiteral {
+public struct LambdaDescriptionOption: OptionValue, RawRepresentable, ExpressibleByStringLiteral {
     public let rawValue: String
     
     public init(rawValue: String) {
@@ -68,14 +69,15 @@ public struct LambdaDescriptionOption: DeploymentOption, RawRepresentable, Expre
 
 
 
-public extension OptionKey where NS == LambdaDeploymentOptionsNamespace, Value == LambdaDescriptionOption {
-    static let lambdaDescription = OptionKey<LambdaDeploymentOptionsNamespace, LambdaDescriptionOption>(key: "description")
+public extension OptionKey where InnerNS == LambdaDeploymentOptionsNamespace, Value == LambdaDescriptionOption {
+    static let lambdaDescription = OptionKey<DeploymentOptionsNamespace, LambdaDeploymentOptionsNamespace, LambdaDescriptionOption>(key: "description")
 }
 
 
-public extension ResolvedDeploymentOption {
-    static func lambdaDescription(_ value: LambdaDescriptionOption) -> ResolvedDeploymentOption {
-        return ResolvedDeploymentOption(key: .lambdaDescription, value: value)
+
+public extension AnyOption where OuterNS == DeploymentOptionsNamespace {
+    static func lambdaDescription(_ value: LambdaDescriptionOption) -> AnyOption {
+        return ResolvedOption(key: .lambdaDescription, value: value)
     }
 }
 
