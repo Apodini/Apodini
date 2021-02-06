@@ -8,9 +8,9 @@ import Apodini
 
 /// Default values used for OpenAPI configuration if not explicitly specified by developer.
 public enum OpenAPIConfigurationDefaults {
-    /// Default specification output format.
+    /// Default OpenAPI specification output format.
     public static let outputFormat: OpenAPIOutputFormat = .json
-    /// Default specification output endpoint.
+    /// Default OpenAPI specification output endpoint.
     public static let outputEndpoint: String = "openapi"
     /// Default swagger-ui endpoint.
     public static let swaggerUiEndpoint: String = "openapi-ui"
@@ -63,8 +63,9 @@ public class OpenAPIConfiguration: Configuration {
         serverUrls: URL...
         ) {
         self.outputFormat = outputFormat
-        self.outputEndpoint = outputEndpoint
-        self.swaggerUiEndpoint = swaggerUiEndpoint
+        // Prefix configured endpoints with `/` to avoid relative paths.
+        self.outputEndpoint = outputEndpoint.hasPrefix("/") ? outputEndpoint : "/\(outputEndpoint)"
+        self.swaggerUiEndpoint = swaggerUiEndpoint.hasPrefix("/") ? swaggerUiEndpoint : "/\(swaggerUiEndpoint)"
         self.serverUrls.formUnion(serverUrls)
         self.title = title
         self.version = version
