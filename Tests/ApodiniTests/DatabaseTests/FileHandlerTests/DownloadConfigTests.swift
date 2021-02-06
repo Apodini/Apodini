@@ -1,5 +1,4 @@
 import Foundation
-import NIO
 import Vapor
 @testable import Apodini
 @testable import ApodiniDatabase

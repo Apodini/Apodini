@@ -8,7 +8,6 @@
 import Apodini
 import ApodiniVaporSupport
 @_implementationOnly import OpenCombine
-@_implementationOnly import Fluent
 import NIOWebSocket
 
 // MARK: Exporter
@@ -36,7 +35,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             result[parameter.name] = parameter.value
         }))
         
-        self.router.register({(clientInput: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, _: Database?) -> (
+        self.router.register({(clientInput: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop) -> (
                     defaultInput: SomeInput,
                     output: AnyPublisher<Message<EnrichedContent>, Error>
                 ) in

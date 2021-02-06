@@ -7,7 +7,6 @@
 
 @testable import Apodini
 @testable import ApodiniWebSocket
-import NIO
 import XCTApodini
 
 
@@ -72,7 +71,9 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         input.apply()
         
         try XCTCheckResponse(
-        context.handle(request: WebSocketInput(input), eventLoop: app.eventLoopGroup.next()),
+        context.handle(
+            request: WebSocketInput(input),
+            eventLoop: app.eventLoopGroup.next()),
             content: Parameters(param0: "value0", param1: nil, pathA: "a", pathB: "b", bird: bird),
             connectionEffect: .close
         )

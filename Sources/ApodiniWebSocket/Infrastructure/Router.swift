@@ -5,7 +5,6 @@
 //  Created by Max Obermeier on 03.12.20.
 //
 
-@_implementationOnly import Fluent
 @_implementationOnly import Vapor
 import NIOWebSocket
 @_implementationOnly import OpenCombine
@@ -43,7 +42,7 @@ protocol Router {
     /// new client connects. Closing the connection may be requested by the client (a completion is sent
     /// on the input publisher) and can be executed by the server (a completion is sent on the `output`).
     func register<I: Input, O: Encodable>(
-        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Database?) ->
+        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop) ->
             (default: I, output: AnyPublisher<Message<O>, Error>),
         on identifier: String)
 }
@@ -129,7 +128,7 @@ final class VaporWSRouter: Router {
     /// the connection is `unexpectedServerError`. A `WSClosingError` can be used to specifiy a
     /// different code.
     func register<I: Input, O: Encodable>(
-        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Database?) ->
+        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop) ->
             (default: I, output: AnyPublisher<Message<O>, Error>),
         on identifier: String) {
         if self.endpoints[identifier] != nil {
@@ -152,7 +151,6 @@ final class VaporWSRouter: Router {
             self.connectionsMutex.lock()
             let responsible = ConnectionResponsible(
                 websocket,
-                database: nil,
                 onClose: { id in
                     self.connectionsMutex.lock()
                     self.connections[id] = nil

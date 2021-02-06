@@ -1,8 +1,6 @@
 #if DEBUG
 import FluentSQLiteDriver
-@_exported import Apodini
 import ApodiniDatabase
-@_exported import XCTest
 
 open class XCTApodiniTest: XCTestCase {
     // Vapor Application

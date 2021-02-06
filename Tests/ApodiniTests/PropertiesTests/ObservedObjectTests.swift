@@ -1,6 +1,5 @@
 @testable import Apodini
 @testable import ApodiniREST
-import NIO
 import Vapor
 import Foundation
 import XCTApodini

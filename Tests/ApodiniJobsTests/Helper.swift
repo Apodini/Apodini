@@ -1,7 +1,7 @@
-import XCTest
-import NIO
 import Apodini
 import ApodiniJobs
+import XCTest
+
 
 // Helper method to test if a Job was correctly executed
 func XCTAssertScheduling<T>(_ scheduled: Scheduled<T>) {

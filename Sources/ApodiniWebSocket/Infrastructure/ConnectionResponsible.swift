@@ -5,7 +5,6 @@
 //  Created by Max Obermeier on 04.12.20.
 //
 
-@_implementationOnly import Fluent
 @_implementationOnly import Vapor
 import NIOWebSocket
 
@@ -13,8 +12,6 @@ typealias ContextOpener = (ConnectionResponsible, UUID) -> (ContextResponsible)
 
 class ConnectionResponsible: Identifiable {
     unowned var websocket: WebSocket
-    
-    let database: Database?
     
     let logger: Logger
     
@@ -24,9 +21,8 @@ class ConnectionResponsible: Identifiable {
     
     private var contexts: [UUID: ContextResponsible] = [:]
     
-    init(_ websocket: WebSocket, database: Database?, onClose: @escaping (ID) -> Void, endpoints: [String: ContextOpener], logger: Logger) {
+    init(_ websocket: WebSocket, onClose: @escaping (ID) -> Void, endpoints: [String: ContextOpener], logger: Logger) {
         self.websocket = websocket
-        self.database = database
         self.onClose = onClose
         self.endpoints = endpoints
         self.logger = logger

@@ -7,8 +7,8 @@
 
 @testable import Apodini
 @testable import ApodiniVaporSupport
+@testable import ApodiniDatabase
 @testable import ApodiniREST
-import Fluent
 import XCTVapor
 import XCTApodini
 
@@ -16,7 +16,7 @@ import XCTApodini
 final class CustomComponentTests: ApodiniTests {
     struct AddBirdsHandler: Handler {
         @Apodini.Environment(\.database)
-        var database: Fluent.Database
+        var database: Database
 
         @Parameter
         var bird: Bird

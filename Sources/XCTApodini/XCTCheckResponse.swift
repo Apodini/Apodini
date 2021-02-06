@@ -7,7 +7,6 @@
 
 #if DEBUG
 @testable import Apodini
-import NIO
 import XCTest
 
 extension Empty: Equatable {

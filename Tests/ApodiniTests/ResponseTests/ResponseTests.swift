@@ -6,7 +6,6 @@
 //
 
 @testable import Apodini
-import NIO
 import XCTest
 import XCTApodini
 
