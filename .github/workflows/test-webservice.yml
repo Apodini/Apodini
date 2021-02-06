@@ -36,7 +36,7 @@ jobs:
     - name: Check Swift version
       run: swift --version
     - name: Build & Test
-      run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
+      run: swift test --configuration ${{ matrix.configuration }} --parallel --enable-test-discovery
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} test TestWebService
     container:
@@ -62,4 +62,4 @@ jobs:
     - name: Check Swift version
       run: swift --version
     - name: Build & Test
-      run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
+      run: swift test --configuration ${{ matrix.configuration }} --parallel --enable-test-discovery
