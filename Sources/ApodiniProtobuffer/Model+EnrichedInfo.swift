@@ -26,7 +26,7 @@ extension ProtobufferMessage {
 
 extension ProtobufferMessage.Property {
     init?(_ info: ReflectionInfo) throws {
-        guard info.typeInfo.type != ArrayDidEncounterCircle.self else {
+        guard info.typeInfo.type != HandleArrayDidEncounterCircle.self else {
             return nil
         }
         

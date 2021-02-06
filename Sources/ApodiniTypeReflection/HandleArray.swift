@@ -4,8 +4,8 @@
 
 import Apodini
 
-/// `ArrayDidEncounterCircle` is a type to mark the repition of a type in a type hierarchy, creating
-/// a circle in a structure that should remain a tree.
+/// `HandleArrayDidEncounterCircle` is a type to mark the repition of a type in a type hierarchy,
+/// creating a circle in a structure that should remain a tree.
 
 /// - **Example:**
 ///     Let's assume the following type:
@@ -20,8 +20,8 @@ import Apodini
 ///     However, this implementation of type reflection will (1) reflect `Node`, (2) reflect its
 ///     properties and their types, e.g., `children: [Node]`, (3) the `Array` is checked for its
 ///     `Element` type, which is again a `Node`. (4) We encounter a circle, which is marked with
-///     `ArrayDidEncounterCircle`. We can later check for this exact type and handle that case.
-public enum ArrayDidEncounterCircle {}
+///     `HandleArrayDidEncounterCircle`. We can later check for this exact type and handle that case.
+public enum HandleArrayDidEncounterCircle {}
 
 /// Handle the `Array` type.
 ///
@@ -42,7 +42,7 @@ public func handleArray(_ node: Node<ReflectionInfo>) throws -> Tree<ReflectionI
         .edited { node in
             // Check if a type is repeated and if it comes true, inject a _trap_.
             node.value.typeInfo.type == typeInfo.type
-                ? try ReflectionInfo.node(ArrayDidEncounterCircle.self)
+                ? try ReflectionInfo.node(HandleArrayDidEncounterCircle.self)
                 : node
         }
 
