@@ -48,10 +48,11 @@ final class ConnectionTests: ApodiniTests {
     }
     
     func testConnectionInjection() throws {
+        let mockRequest = MockRequest.createRequest(running: app.eventLoopGroup.next(), queuedParameters: .none)
         var testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage).inject(app: app)
         activate(&testHandler)
         
-        var connection = Connection(state: .open)
+        var connection = Connection(state: .open, request: mockRequest)
         _ = try connection.enterConnectionContext(with: testHandler) { handler in
             try XCTCheckResponse(
                 handler.handle(),
