@@ -8,7 +8,6 @@
 import Apodini
 import ApodiniVaporSupport
 @_implementationOnly import OpenCombine
-@_implementationOnly import Fluent
 import NIOWebSocket
 
 // MARK: Exporter

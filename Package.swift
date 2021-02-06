@@ -113,15 +113,6 @@ let package = Package(
         ),
 
         .target(
-            name: "ApodiniREST",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniVaporSupport"),
-                .product(name: "FluentKit", package: "fluent-kit")
-            ]
-        ),
-
-        .target(
             name: "ApodiniGRPC",
             dependencies: [
                 .target(name: "Apodini"),

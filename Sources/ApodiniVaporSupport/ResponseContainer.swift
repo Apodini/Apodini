@@ -5,10 +5,7 @@
 //  Created by Tim Gymnich on 1.2.21.
 //
 
-<<<<<<< HEAD:Sources/ApodiniREST/ResponseContainer.swift
-=======
 import Foundation
->>>>>>> develop:Sources/ApodiniVaporSupport/ResponseContainer.swift
 import Apodini
 import Vapor
 
