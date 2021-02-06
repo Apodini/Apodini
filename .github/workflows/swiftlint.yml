@@ -13,6 +13,7 @@ jobs:
           args: autocorrect
       - name: Commit Autocorrect
         run: |
+          git add .
           git config --global user.name 'SwiftLint Bot'
           git config --global user.email 'bot@users.noreply.github.com'
           git commit -am "swiftlint autocorrect"
