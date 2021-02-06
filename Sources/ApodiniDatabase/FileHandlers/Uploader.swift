@@ -27,7 +27,7 @@ public struct Uploader: Handler {
         self.config = config
     }
     
-    public func handle() throws -> EventLoopFuture<String> {
+    public func handle() throws -> EventLoopFuture<Response<String>> {
         let path = config.validatedPath(directory, fileName: file.filename)
         return fileio
             .openFile(path: path, mode: .write, flags: .allowFileCreation(), eventLoop: eventLoopGroup.next())
@@ -38,6 +38,9 @@ public struct Uploader: Handler {
                         try handler.close()
                         return file.filename
                     }
+            }
+            .map { filename in
+                .final(filename, status: .created)
             }
     }
 }

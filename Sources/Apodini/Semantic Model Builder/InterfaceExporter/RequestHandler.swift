@@ -38,9 +38,9 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
                         .transformToResponse(on: request.eventLoop)
                 }
             }
-            .flatMap { typedAction -> EventLoopFuture<Response<EnrichedContent>> in
+            .flatMap { typedResponse -> EventLoopFuture<Response<EnrichedContent>> in
                 let transformed = self.transformResponse(
-                    typedAction.typeErasured,
+                    typedResponse.typeErasured,
                     using: connection,
                     on: request.eventLoop,
                     using: self.instance.responseTransformers

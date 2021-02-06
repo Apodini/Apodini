@@ -36,7 +36,7 @@ public struct ResponseModifier<H: Handler, T: ResponseTransformer>: HandlerModif
 
 
 extension ResponseModifier: SyntaxTreeVisitable {
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(ResponseTransformerContextKey.self, value: [responseTransformer], scope: .current)
         component.accept(visitor)
     }

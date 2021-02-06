@@ -21,7 +21,7 @@ public struct RelationshipSourceModifier<H: Handler>: HandlerModifier {
 }
 
 extension RelationshipSourceModifier: SyntaxTreeVisitable {
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(RelationshipSourceContextKey.self, value: [relationship], scope: .current)
         component.accept(visitor)
     }
