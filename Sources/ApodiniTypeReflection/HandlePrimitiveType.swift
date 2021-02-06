@@ -8,9 +8,9 @@ import Apodini
 ///
 /// The storage of primitve types is an implementation detail. Therefore, its properties are not
 /// considered.
-/// - Parameter node: <#node description#>
-/// - Returns: <#description#>
-public func handlePrimitiveType(_ node: Node<EnrichedInfo>) -> Tree<EnrichedInfo> {
+/// - Parameter node: An `EnrichedInfo` node.
+/// - Returns: An `EnrichedInfo` node.
+public func handlePrimitiveType(_ node: Node<EnrichedInfo>) -> Node<EnrichedInfo> {
     isSupportedScalarType(node.value.typeInfo.type)
         ? Node(value: node.value, children: [])
         : node

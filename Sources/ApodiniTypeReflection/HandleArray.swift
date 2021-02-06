@@ -27,9 +27,9 @@ public enum ArrayDidEncounterCircle {}
 ///
 /// The presence of an array is mapped to the appropriate cardinality of the property with
 /// `EnrichedInfo.CollectionContext`.
-/// - Parameter node: <#node description#>
+/// - Parameter node: An `EnrichedInfo` node.
 /// - Throws: A `RuntimeError`, if `Runtime` encounters an error during reflection.
-/// - Returns: <#description#>
+/// - Returns: An `EnrichedInfo` tree.
 public func handleArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     let typeInfo = node.value.typeInfo
 

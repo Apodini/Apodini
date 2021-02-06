@@ -8,10 +8,10 @@ import Apodini
 ///
 /// The presence of a dictionary is mapped to the appropriate cardinality of the property with
 /// `EnrichedInfo.CollectionContext`.
-/// - Parameter node: <#node description#>
+/// - Parameter node: An `EnrichedInfo` node.
 /// - Throws: A `RuntimeError`, if `Runtime` encounters an error during reflection.
-/// - Returns: <#description#>
-public func handleDictionary(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
+/// - Returns: An `EnrichedInfo` node.
+public func handleDictionary(_ node: Node<EnrichedInfo>) throws -> Node<EnrichedInfo> {
     let typeInfo = node.value.typeInfo
 
     guard mangledName(of: typeInfo.type) == "Dictionary",
