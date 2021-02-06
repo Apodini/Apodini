@@ -134,7 +134,7 @@ public final class Application {
             try self.start()
             try self.running?.onStop.wait()
         } catch {
-            self.logger.report(error: error)
+            self.logger.warning("\(error.localizedDescription)")
             throw error
         }
     }

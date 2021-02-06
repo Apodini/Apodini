@@ -1,6 +1,5 @@
 import Foundation
 import XCTest
-import NIO
 @testable import Apodini
 
 class FileHandlerTests: ApodiniTests {

@@ -21,9 +21,16 @@ let package = Package(
             dependencies: [
                 .product(name: "Apodini", package: "Apodini"),
                 .product(name: "DeploymentTargetLocalhostRuntimeSupport", package: "Apodini"),
-                .product(name: "DeploymentTargetAWSLambdaRuntime", package: "Apodini")
+                .product(name: "DeploymentTargetAWSLambdaRuntime", package: "Apodini"),
                 //.product(name: "DeploymentTargetLocalhostRuntimeSupport", package: "ApodiniDeploy"),
                 //.product(name: "DeploymentTargetAWSLambdaRuntime", package: "ApodiniDeploy"),
+                .product(name: "ApodiniVaporSupport", package: "Apodini"),
+                .product(name: "ApodiniREST", package: "Apodini"),
+                .product(name: "ApodiniGRPC", package: "Apodini"),
+                .product(name: "ApodiniProtobuffer", package: "Apodini"),
+                .product(name: "ApodiniOpenAPI", package: "Apodini"),
+                .product(name: "ApodiniWebSocket", package: "Apodini"),
+                .product(name: "ApodiniNotifications", package: "Apodini")
             ]
         ),
         .testTarget(

@@ -104,7 +104,6 @@ class RHIInterfaceExporter: InterfaceExporter { // TODO rename to something diff
                 endpoint.context.get(valueFor: HandlerDeploymentOptionsSyntaxNodeContextKey.self)
             ].flatMap { $0.compactMap { $0.resolve(against: endpoint.handler) } })
         ))
-        
         app.vapor.app.add(Vapor.Route(
             method: .POST,
             path: ["__apodini", "invoke", .constant(endpoint.identifier.rawValue)],

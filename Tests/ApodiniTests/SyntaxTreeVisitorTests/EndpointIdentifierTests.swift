@@ -8,6 +8,8 @@
 import Foundation
 import XCTest
 @testable import Apodini
+@testable import ApodiniREST
+@testable import ApodiniVaporSupport
 
 
 final class HandlerIdentifierTests: ApodiniTests {
@@ -141,6 +143,11 @@ final class HandlerIdentifierTests: ApodiniTests {
         struct TestWebService: WebService {
             var content: some Component {
                 TestHandler()
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
             }
         }
         

@@ -88,7 +88,7 @@ extension RelationshipSource where To: Identifiable, To.ID: LosslessStringConver
 }
 
 extension RelationshipSource: SyntaxTreeVisitable {
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         let candidate = PartialRelationshipSourceCandidate(link: name, destinationType: destinationType, resolvers: resolvers)
         visitor.addContext(RelationshipSourceCandidateContextKey.self, value: [candidate], scope: .current)
     }

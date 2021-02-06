@@ -65,16 +65,18 @@ extension WebService {
         webService.configuration.configure(app)
 
         webService.register(
-            SemanticModelBuilder(app)
-                .with(exporter: RESTInterfaceExporter.self)
-                .with(exporter: WebSocketInterfaceExporter.self)
-                .with(exporter: OpenAPIInterfaceExporter.self)
-                .with(exporter: GRPCInterfaceExporter.self)
-                .with(exporter: ProtobufferInterfaceExporter.self)
-                .with(exporter: RHIInterfaceExporter.self) // Note that this one should always be last
+//<<<<<<< HEAD
+//            SemanticModelBuilder(app)
+//                .with(exporter: RESTInterfaceExporter.self)
+//                .with(exporter: WebSocketInterfaceExporter.self)
+//                .with(exporter: OpenAPIInterfaceExporter.self)
+//                .with(exporter: GRPCInterfaceExporter.self)
+//                .with(exporter: ProtobufferInterfaceExporter.self)
+//                .with(exporter: RHIInterfaceExporter.self) // Note that this one should always be last
+//=======
+            app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app))
+//>>>>>>> beaa14c600ce1f92cf64cb9ab07b82c7a25ec0ba
         )
-        
-        app.vapor.app.routes.defaultMaxBodySize = "1mb"
     }
     
     

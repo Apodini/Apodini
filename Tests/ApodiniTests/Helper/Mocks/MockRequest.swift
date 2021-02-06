@@ -4,8 +4,6 @@
 
 import XCTest
 import Foundation
-import protocol NIO.EventLoop
-import protocol FluentKit.Database
 @testable import Apodini
 
 

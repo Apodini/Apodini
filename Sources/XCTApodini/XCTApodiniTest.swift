@@ -1,6 +1,8 @@
+#if DEBUG
 import FluentSQLiteDriver
 @testable import Apodini
 import XCTest
+import ApodiniDatabase
 
 open class XCTApodiniTest: XCTestCase {
     // Vapor Application
@@ -9,7 +11,6 @@ open class XCTApodiniTest: XCTestCase {
     
     override open func setUpWithError() throws {
         try super.setUpWithError()
-        
         app = Application()
     }
     
@@ -35,3 +36,4 @@ open class XCTApodiniTest: XCTestCase {
         try app.autoMigrate().wait()
     }
 }
+#endif

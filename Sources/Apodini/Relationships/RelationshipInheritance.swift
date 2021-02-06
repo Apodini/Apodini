@@ -96,7 +96,7 @@ extension RelationshipInheritance where From: Identifiable, To: Identifiable, Fr
 }
 
 extension RelationshipInheritance: SyntaxTreeVisitable {
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         let candidate = PartialRelationshipSourceCandidate(destinationType: destinationType, resolvers: resolvers)
         visitor.addContext(RelationshipSourceCandidateContextKey.self, value: [candidate], scope: .current)
     }
