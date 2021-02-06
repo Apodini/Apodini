@@ -18,7 +18,7 @@ public enum IntegerWidthConfiguration: Int, Configuration {
     case sixtyFour = 64
     
     /// `.native` is derived from the target's underlying architecture.
-    static let native: Self = {
+    public static let native: Self = {
         if MemoryLayout<Int>.size == 4 {
             return .thirtyTwo
         } else {
@@ -27,8 +27,8 @@ public enum IntegerWidthConfiguration: Int, Configuration {
     }()
     
     // MARK: Nested Types
-    enum StorageKey: Apodini.StorageKey {
-        typealias Value = IntegerWidthConfiguration
+    public enum StorageKey: Apodini.StorageKey {
+        public typealias Value = IntegerWidthConfiguration
     }
     
     // MARK: Methods

@@ -409,6 +409,8 @@ extension ProtobufferBuilderTests {
             }
             
             var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(ProtobufferInterfaceExporter.self)
                 IntegerWidthConfiguration.thirtyTwo
             }
         }

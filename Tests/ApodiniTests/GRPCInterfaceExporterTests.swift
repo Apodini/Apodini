@@ -55,7 +55,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        service = GRPCService(name: serviceName, app: app)
+        service = GRPCService(name: serviceName, using: app)
         handler = GRPCTestHandler()
         endpoint = handler.mockEndpoint()
         exporter = GRPCInterfaceExporter(app)

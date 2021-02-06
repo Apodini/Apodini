@@ -14,7 +14,7 @@ import ApodiniVaporSupport
 /// Used by the `GRPCInterfaceExporter` to expose
 /// `handle` functions of `Handler`s.
 class GRPCService {
-    private let app: Application
+    private let app: Apodini.Application
     var vaporApp: Vapor.Application {
         app.vapor.app
     }

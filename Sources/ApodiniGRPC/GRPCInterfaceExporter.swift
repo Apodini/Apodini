@@ -42,7 +42,7 @@ public final class GRPCInterfaceExporter: InterfaceExporter {
         if let existingService = services[serviceName] {
             service = existingService
         } else {
-            service = GRPCService(name: serviceName, app: app)
+            service = GRPCService(name: serviceName, using: app)
             services[serviceName] = service
         }
 
