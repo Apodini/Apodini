@@ -75,13 +75,15 @@ jobs:
     - name: Build & Test
       if: matrix.configuration == 'debug'
       run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
-   
-   createPR:
+  
+  createPR:
     name: Publish Package
     runs-on: ubuntu-latest
     container:
       image: swift:bionic
-    needs: macos, linux
+    needs:
+     - macos
+     - linux
     steps:
     - uses: actions/checkout@v2
     - name: Install libsqlite3
