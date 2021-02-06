@@ -129,10 +129,10 @@ extension ProtobufferInterfaceExporter.Builder {
             .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handlePrimitiveType)?
-            .edited(Apodini.handleUUID)?
+            .edited(handleUUID)?
             .map(ProtobufferMessage.Property.init)
             .map {
-                $0.map(handleUUID)
+                $0.map(handleUUIDProperty)
             }
             .map {
                 $0.map(handleVariableWidthInteger)
@@ -165,7 +165,9 @@ extension ProtobufferInterfaceExporter.Builder {
 }
 
 private extension ProtobufferInterfaceExporter.Builder {
-    func handleUUID(_ property: ProtobufferMessage.Property) -> ProtobufferMessage.Property {
+    func handleUUIDProperty(
+        _ property: ProtobufferMessage.Property
+    ) -> ProtobufferMessage.Property {
         guard property.typeName == "UUIDMessage" else {
             return property
         }
