@@ -35,7 +35,9 @@ public enum ConnectionState {
 public struct Connection {
     /// Holds the state of the current client-side stream.
     public var state: ConnectionState = .end
+    /// The remote address of the client that created the request.
     public var remoteAddress: SocketAddress? { request.remoteAddress }
+    /// The `EventLoop` the request is running on.
     public var eventLoop: EventLoop { request.eventLoop }
     
     /// Holds the latest `Request`
