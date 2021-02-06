@@ -74,8 +74,11 @@ extension FileManager {
     
     /// Write file permissions
     public func lk_setPosixPermissions(_ permissions: POSIXPermissions, forItemAt url: URL) throws {
-        try url.absoluteURL.path.withCString {
-            try throwIfPosixError(chmod($0, permissions.rawValue))
+        try url.withUnsafeFileSystemRepresentation { ptr in
+            guard let ptr = ptr else {
+                throw ApodiniDeploySupportError(message: "Unable to set file permissins: can't get file path")
+            }
+            try throwIfPosixError(chmod(ptr, permissions.rawValue))
         }
     }
 }
