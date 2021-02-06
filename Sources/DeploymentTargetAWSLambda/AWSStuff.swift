@@ -239,9 +239,9 @@ class AWSDeploymentStuff { // needs a better name
         
         logger.notice("Creating lambda functions for nodes in the web service deployment structure (#nodes: \(deploymentStructure.nodes.count))")
         for node in deploymentStructure.nodes {
-            guard let exportedEndpoint = node.exportedEndpoints.first, node.exportedEndpoints.count == 1 else {
-                fatalError("In a Lambda deployment, each node must export exactly one endpoint")
-            }
+//            guard let exportedEndpoint = node.exportedEndpoints.first, node.exportedEndpoints.count == 1 else {
+//                fatalError("In a Lambda deployment, each node must export exactly one endpoint")
+//            }
             logger.notice("Creating lambda function for node w/ id \(node.id) (handlers: \(node.exportedEndpoints.map { ($0.httpMethod, $0.absolutePath) })")
             
             
@@ -252,7 +252,7 @@ class AWSDeploymentStuff { // needs a better name
             
             let functionConfig = try configureLambdaFunction(
                 forNode: node,
-                exportedEndpoint: exportedEndpoint,
+                //exportedEndpoint: exportedEndpoint,
                 allFunctions: allFunctions,
                 s3BucketName: s3BucketName,
                 s3ObjectKey: s3ObjectKey
@@ -446,7 +446,7 @@ class AWSDeploymentStuff { // needs a better name
     /// - returns: the deployed-to function
     private func configureLambdaFunction(
         forNode node: DeployedSystemStructure.Node,
-        exportedEndpoint: ExportedEndpoint,
+        //exportedEndpoint: ExportedEndpoint,
         allFunctions: [Lambda.FunctionConfiguration],
         s3BucketName: String,
         s3ObjectKey: String
@@ -460,8 +460,12 @@ class AWSDeploymentStuff { // needs a better name
         let lambdaName = "\(Self.lambdaFunctionNamePrefix)-\(String(node.id.map { allowedCharacters.contains($0) ? $0 : "-" }))"
         // TODO make sure we dont acidentally update the same function twice (eg once bc the unmodified name matches and once bc we replace something, which makes it match the other function's name)
         
-        let memorySize: Int = try exportedEndpoint.deploymentOptions.getValue(forOptionKey: LambdaHandlerOption.memorySize)
-        let timeout: Int = try exportedEndpoint.deploymentOptions.getValue(forOptionKey: LambdaHandlerOption.timeout)
+        let deploymentOptions = node.combinedEndpointDeploymentOptions()
+        let memorySize: UInt = try deploymentOptions.getValue(forKey: .memorySize).rawValue
+        let timeout: Timeout = try deploymentOptions.getValue(forKey: .timeout)
+        
+        //let memorySize: Int = try exportedEndpoint.deploymentOptions.getValue(forOptionKey: LambdaHandlerOption.memorySize)
+        //let timeout: Int = try exportedEndpoint.deploymentOptions.getValue(forOptionKey: LambdaHandlerOption.timeout)
         
         let lambdaEnv: Lambda.Environment = .init(variables: [
             WellKnownEnvironmentVariables.currentNodeId: node.id
@@ -474,9 +478,9 @@ class AWSDeploymentStuff { // needs a better name
                 environment: lambdaEnv,
                 functionName: function.functionArn!,
                 //handler: <#T##String?#>,
-                memorySize: memorySize,
+                memorySize: Int(memorySize),
                 //role: <#T##String?#>,
-                timeout: timeout
+                timeout: Int(timeout.rawValue)
             )).wait()
             return try lambda.updateFunctionCode(Lambda.UpdateFunctionCodeRequest(
                 functionName: function.functionName!,
@@ -492,13 +496,13 @@ class AWSDeploymentStuff { // needs a better name
                 environment: lambdaEnv,
                 functionName: lambdaName,
                 handler: "apodini.main", // doesn;t actually matter
-                memorySize: memorySize,
+                memorySize: Int(memorySize),
                 packageType: .zip,
                 publish: true,
                 role: executionRoleArn,
                 runtime: .providedAl2,
                 tags: nil, // [String : String]?.none,
-                timeout: timeout
+                timeout: Int(timeout.rawValue)
             )
             
             // The issue here is that, if the IAM role assigned to the new lambda is a newly created role,

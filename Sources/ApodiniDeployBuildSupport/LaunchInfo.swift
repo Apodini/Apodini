@@ -89,6 +89,9 @@ extension DeployedSystemStructure {
         /// exported handler ids
         public let exportedEndpoints: Set<ExportedEndpoint>
         
+//        /// the merged deployment options of all endpoints in the node
+//        public let deploymentOptions: XCollectedHandlerOptions
+        
         /// Additional deployment provider specific data
         public private(set) var userInfo: Data?
         
@@ -128,9 +131,33 @@ extension DeployedSystemStructure {
         }
         
         
+        /// The deployment options for all endpoints exported by this node
+        public func combinedEndpointDeploymentOptions() -> CollectedOptions {
+            CollectedOptions(exportedEndpoints.map(\.deploymentOptions).flatMap(\.options))
+        }
+        
+        
         //public func withUserInfo(_ userInfo: _OptionalNilComparisonType) -> Self {
             // ?? We can afford the try! here because we're passing nil, meaning that it'll never encode anything, meaning it won't crash ??
             //return try! Node(id: self.id, exportedEndpoints: self.exportedEndpoints, userInfo: nil, userInfoType: Null.self)
         //}
+    }
+}
+
+
+
+extension Collection {
+    public func lk_reduceIntoFirst(_ transform: (inout Element, Element) throws -> Void) rethrows -> Element? {
+        guard let first = self.first else {
+            return nil
+        }
+        return try dropFirst().reduce(into: first, transform)
+    }
+    
+    public func lk_reduceIntoFirst(_ transform: (Element, Element) throws -> Element) rethrows -> Element? {
+        guard let first = self.first else {
+            return nil
+        }
+        return try dropFirst().reduce(first, transform)
     }
 }

@@ -50,7 +50,6 @@ public struct WebServiceStructure: Codable { // TODO this needs a better name. m
         deploymentConfig: DeploymentConfig,
         openApiDefinition: Data
     ) {
-        print("!!!!~!!!CREATING A WEBSERVICESTRUCTURE~~~~~")
         self.endpoints = endpoints
         self.deploymentConfig = deploymentConfig
         self.openApiDefinition = openApiDefinition
@@ -66,7 +65,7 @@ public struct ExportedEndpoint: Codable, Hashable, Equatable {
     /// The `rawValue` of the identifier of the  handler this endpoint was generated for
     public let handlerIdRawValue: String
     /// The endpoint's handler's deployment options
-    public let deploymentOptions: HandlerDeploymentOptions
+    public let deploymentOptions: CollectedOptions
     
     public let httpMethod: String
     public let absolutePath: String
@@ -78,7 +77,7 @@ public struct ExportedEndpoint: Codable, Hashable, Equatable {
     public init(
         handlerType: String,
         handlerIdRawValue: String,
-        deploymentOptions: HandlerDeploymentOptions,
+        deploymentOptions: CollectedOptions,
         httpMethod: String,
         absolutePath: String,
         userInfo: [String: Data]

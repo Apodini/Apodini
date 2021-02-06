@@ -162,6 +162,7 @@ extension DeploymentProvider {
         
         for endpoint in wsStructure.endpoints {
             // for each exported endpoint (ie, handler in the DSL), find a matching node, based on the deployment group
+            // TODO should this also check all other groups, to make sure the endpoint only matches this one group?!!
             if let DG = endpointsByDeploymentGroup.keys.first(where: { $0.matches(exportedEndpoint: endpoint) }) {
                 endpointsByDeploymentGroup[DG]!.insert(endpoint)
             } else {

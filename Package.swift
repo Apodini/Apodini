@@ -253,6 +253,15 @@ let package = Package(
                 //.product(name: "AWSLambdaEvents", package: "swift-aws-lambda-runtime"),
                 .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
             ]
+        ),
+        .target(
+            name: "TestWebService",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "DeploymentTargetLocalhostRuntimeSupport"),
+                .target(name: "DeploymentTargetAWSLambdaRuntime")
+            ]
         )
     ]
 )

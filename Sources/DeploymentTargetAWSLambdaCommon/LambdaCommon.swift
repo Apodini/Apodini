@@ -29,16 +29,55 @@ extension LambdaDeployedSystemContext {
         "\(apiGatewayApiId).execute-api.\(awsRegion).amazonaws.com"
     }
 }
+//
+//
+//// The class used to identify lambda-specific deployment options
+//public final class LambdaHandlerOptionKey<Value: Codable>: DeploymentOptionKey<Value> {}
+//
+//
+//// All lambda-specific deployment options
+//public enum LambdaHandlerOption {
+//    /// The lambda function's memory size, in MB
+//    public static let memorySize = LambdaHandlerOptionKey<Int>(defaultValue: 128, key: "memory-size")
+//    /// The lambda function's timeout, in seconds
+//    public static let timeout = LambdaHandlerOptionKey<Int>(defaultValue: 3, key: "timeout")
+//}
 
 
-// The class used to identify lambda-specific deployment options
-public final class LambdaHandlerOptionKey<Value: Codable>: DeploymentOptionKey<Value> {}
 
-
-// All lambda-specific deployment options
-public enum LambdaHandlerOption {
-    /// The lambda function's memory size, in MB
-    public static let memorySize = LambdaHandlerOptionKey<Int>(defaultValue: 128, key: "memory-size")
-    /// The lambda function's timeout, in seconds
-    public static let timeout = LambdaHandlerOptionKey<Int>(defaultValue: 3, key: "timeout")
+public final class LambdaDeploymentOptionsNamespace: OptionNamespace {
+    public static let id = LambdaDeploymentProviderId.rawValue
 }
+
+
+public struct LambdaDescriptionOption: DeploymentOption, RawRepresentable, ExpressibleByStringLiteral {
+    public let rawValue: String
+    
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+    
+    public init(stringLiteral value: String) {
+        self.rawValue = value
+    }
+    
+    public func reduce(with other: LambdaDescriptionOption) -> LambdaDescriptionOption {
+        fatalError("self: \(self), other: \(other)")
+    }
+}
+
+
+
+public extension OptionKey where NS == LambdaDeploymentOptionsNamespace, Value == LambdaDescriptionOption {
+    static let lambdaDescription = OptionKey<LambdaDeploymentOptionsNamespace, LambdaDescriptionOption>(key: "description")
+}
+
+
+public extension ResolvedDeploymentOption {
+    static func lambdaDescription(_ value: LambdaDescriptionOption) -> ResolvedDeploymentOption {
+        return ResolvedDeploymentOption(key: .lambdaDescription, value: value)
+    }
+}
+
+
+

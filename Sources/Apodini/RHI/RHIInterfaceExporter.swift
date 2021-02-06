@@ -64,15 +64,17 @@ class RHIInterfaceExporter: InterfaceExporter { // TODO rename to something diff
     private struct CollectedEndpointInfo {
         let handlerType: String
         let endpoint: AnyEndpoint
-        let deploymentOptions: HandlerDeploymentOptions
+        let deploymentOptions: CollectedOptions
     }
     
     internal private(set) static var shared: RHIInterfaceExporter?
     
     let app: Apodini.Application
-    private var collectedEndpoints: [CollectedEndpointInfo] = []
-    var deploymentProviderRuntime: DeploymentProviderRuntimeSupport?
     
+    private var collectedEndpoints: [CollectedEndpointInfo] = []
+    private var explicitlyCreatedDeploymentGroups: [DeploymentGroup.ID: Set<AnyHandlerIdentifier>] = [:]
+    
+    var deploymentProviderRuntime: DeploymentProviderRuntimeSupport?
     var deployedSystemStructure: DeployedSystemStructure? { // TODO remove this
         deploymentProviderRuntime?.deployedSystem
     }
@@ -87,12 +89,20 @@ class RHIInterfaceExporter: InterfaceExporter { // TODO rename to something diff
     
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
+        if let groupId = endpoint.context.get(valueFor: DSLSpecifiedDeploymentGroupIdContextKey.self) {
+            if explicitlyCreatedDeploymentGroups[groupId] == nil {
+                explicitlyCreatedDeploymentGroups[groupId] = []
+            }
+            explicitlyCreatedDeploymentGroups[groupId]!.insert(endpoint.identifier)
+        }
         collectedEndpoints.append(CollectedEndpointInfo(
             handlerType: "\(H.self)",
             endpoint: endpoint,
-            deploymentOptions: H.deploymentOptions
-                .merging(with: endpoint.handler.deploymentOptions, newOptionsPrecedence: .higher)
-                .merging(with: endpoint.context.get(valueFor: HandlerDeploymentOptionsSyntaxNodeContextKey.self), newOptionsPrecedence: .higher)
+            deploymentOptions: CollectedOptions(reducing: [
+                H.deploymentOptions,
+                endpoint.handler.deploymentOptions,
+                endpoint.context.get(valueFor: HandlerDeploymentOptionsSyntaxNodeContextKey.self)
+            ].flatMap { $0.compactMap { $0.resolve(against: endpoint.handler) } })
         ))
         
         app.vapor.app.add(Vapor.Route(
@@ -104,9 +114,6 @@ class RHIInterfaceExporter: InterfaceExporter { // TODO rename to something diff
         ))
     }
     
-    
-    
-    //func finishedExporting(_ webService: WebServiceModel) {}
     
     
     func getEndpoint<H: IdentifiableHandler>(withIdentifier identifier: H.HandlerIdentifier, ofType _: H.Type) -> Endpoint<H>? {
@@ -180,12 +187,37 @@ extension RHIInterfaceExporter {
                     userInfo: [:]
                 )
             }),
-            deploymentConfig: deploymentConfig,
+            deploymentConfig: DeploymentConfig(
+                //deploymentGroups: deploymentConfig.deploymentGroups + explicitlyCreatedDeploymentGroups.map({ key, value -> DeploymentGroup in
+                //    return DeploymentGroup()
+                //})
+                deploymentGroups: DeploymentGroupsConfig(
+                    defaultGrouping: deploymentConfig.deploymentGroups.defaultGrouping,
+                    groups: deploymentConfig.deploymentGroups.groups + explicitlyCreatedDeploymentGroups.map { groupId, handlerIds -> DeploymentGroup in
+                        return DeploymentGroup(id: groupId, inputKind: .handlerId, input: Set(handlerIds.map(\.rawValue)))
+                    }
+                )
+            ),
             openApiDefinition: openApiDefinitionData
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
         let data = try encoder.encode(webServiceStructure)
         try data.write(to: outputUrl)
+    }
+}
+
+
+extension Set {
+    static func + (lhs: Self, rhs: Self) -> Self {
+        lhs.union(rhs)
+    }
+    
+    static func + <S> (lhs: Self, rhs: S) -> Self where S: Sequence, S.Element == Self.Element {
+        lhs.union(rhs)
+    }
+    
+    static func + <S> (lhs: S, rhs: Self) -> Self where S: Sequence, S.Element == Self.Element {
+        rhs.union(lhs)
     }
 }

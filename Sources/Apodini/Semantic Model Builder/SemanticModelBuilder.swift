@@ -62,9 +62,28 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
 
         var endpoint = Endpoint(
             identifier: {
-                if let identifier = handler.getExplicitlySpecifiedIdentifier() {
+                // the identifier specified via the `.identified(by:)` modifier, if any
+                let dslSpecifiedIdentifier = context.get(valueFor: ExplicitlyIdentifiedHandlerIdentifierValueContextKey.self)
+                // the identifier specified via the `IdentifiableHandler.handlerId` property, if any
+                let handlerSpecifiedIdentifier = handler.getExplicitlySpecifiedIdentifier()
+                
+                switch (dslSpecifiedIdentifier, handlerSpecifiedIdentifier) {
+                case (.some(let identifier), .none):
                     return identifier
-                } else {
+                case (.none, .some(let identifier)):
+                    return identifier
+                case (.some(let ident1), .some(let ident2)):
+                    if ident1 == ident2 {
+                        return ident1
+                    } else {
+                        fatalError("""
+                            Handler '\(handler)' has multiple explicitly specified identifiers ('\(ident1)' and '\(ident2)').
+                            A handler may only have one explicitly specified identifier.
+                            This is caused by using both the 'IdentifiableHandler.handlerId' property as well as the '.identified(by:)' modifier.
+                            """
+                        )
+                    }
+                case (.none, .none):
                     let handlerIndexPath = context.get(valueFor: HandlerIndexPath.ContextKey.self)
                     return AnyHandlerIdentifier(handlerIndexPath.rawValue)
                 }

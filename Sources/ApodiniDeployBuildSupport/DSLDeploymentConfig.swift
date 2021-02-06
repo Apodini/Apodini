@@ -98,17 +98,22 @@ public struct old_DeploymentConfig: Codable {
 
 // TODO rename to smth like DeploymentGroupInput? this isn't the actual deployment group, just the input collected from the user, which will later be used to create the proper deployment group
 public struct DeploymentGroup: Codable, Hashable, Equatable {
+    public typealias ID = String
     public enum InputKind: String, Codable {
         case handlerId, handlerType
     }
-    public let id: String
+    public let id: ID
     public let inputKind: InputKind
-    public let input: [String]
+    public let input: Set<String>
     
-    public init(id: String? = nil, inputKind: InputKind, input: [String]) {
-        self.id = id ?? UUID().uuidString
+    public init(id: ID? = nil, inputKind: InputKind, input: Set<String>) {
+        self.id = id ?? Self.generateGroupId()
         self.inputKind = inputKind
         self.input = input
+    }
+    
+    public static func generateGroupId() -> ID {
+        UUID().uuidString
     }
 }
 
@@ -121,9 +126,9 @@ public struct DeploymentGroupsConfig: Codable {
         case singleNode
     }
     public let defaultGrouping: DefaultGrouping
-    public let groups: [DeploymentGroup]
+    public let groups: Set<DeploymentGroup>
     
-    public init(defaultGrouping: DefaultGrouping = .separateNodes, groups: [DeploymentGroup] = []) { // TODO what would be a reasonanle default?
+    public init(defaultGrouping: DefaultGrouping = .separateNodes, groups: Set<DeploymentGroup> = []) { // TODO what would be a reasonanle default?
         self.defaultGrouping = defaultGrouping
         self.groups = groups
     }
