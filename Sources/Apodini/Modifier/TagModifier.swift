@@ -2,8 +2,8 @@
 // Created by Lorena Schlesinger on 10.01.21.
 //
 
-struct TagContextKey: OptionalContextKey {
-    typealias Value = [String]
+public struct TagContextKey: OptionalContextKey {
+    public typealias Value = [String]
 }
 
 public struct TagModifier<H: Handler>: HandlerModifier {
@@ -17,7 +17,7 @@ public struct TagModifier<H: Handler>: HandlerModifier {
 }
 
 extension TagModifier: SyntaxTreeVisitable {
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(TagContextKey.self, value: tags, scope: .current)
         component.accept(visitor)
     }
