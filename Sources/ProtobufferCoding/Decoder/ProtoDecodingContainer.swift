@@ -15,9 +15,12 @@ import Foundation
 /// Offers basic functionality shared by several decoding containers for Protobuffers.
 internal class InternalProtoDecodingContainer {
     var codingPath: [CodingKey]
+    /// The strategy that this container uses to decode `Int`s and `UInt`s.
+    var integerWidthCodingStrategy: IntegerWidthCodingStrategy
 
-    internal init(codingPath: [CodingKey] = []) {
+    internal init(codingPath: [CodingKey] = [], integerWidthCodingStrategy: IntegerWidthCodingStrategy) {
         self.codingPath = codingPath
+        self.integerWidthCodingStrategy = integerWidthCodingStrategy
     }
 
     /// Taken from SwiftProtobuf:
@@ -209,12 +212,12 @@ internal extension Int {
         guard let value = value else {
             throw ProtoError.decodingError("No data to initialize from")
         }
-        if MemoryLayout<Int>.size == 4 {
+        
+        switch container.integerWidthCodingStrategy {
+        case .thirtyTwo:
             try self.init(container.decodeInt32(value))
-        } else if MemoryLayout<Int>.size == 8 {
+        case .sixtyFour:
             try self.init(container.decodeInt64(value))
-        } else {
-            throw ProtoError.decodingError("Unknown width of Int type")
         }
     }
 }
@@ -224,12 +227,12 @@ internal extension UInt {
         guard let value = value else {
             throw ProtoError.decodingError("No data to initialize from")
         }
-        if MemoryLayout<UInt>.size == 4 {
+        
+        switch container.integerWidthCodingStrategy {
+        case .thirtyTwo:
             try self.init(container.decodeUInt32(value))
-        } else if MemoryLayout<UInt>.size == 8 {
+        case .sixtyFour:
             try self.init(container.decodeUInt64(value))
-        } else {
-            throw ProtoError.decodingError("Unknown width of UInt type")
         }
     }
 }
@@ -239,10 +242,13 @@ internal extension Array where Element == Int {
         guard let value = value else {
             throw ProtoError.decodingError("No data to initialize from")
         }
+        
         self.init()
-        if MemoryLayout<Int>.size == 4 {
+        
+        switch container.integerWidthCodingStrategy {
+        case  .thirtyTwo:
             try container.decodeRepeatedInt32(value).forEach { self.append(Int($0)) }
-        } else if MemoryLayout<Int>.size == 8 {
+        case .sixtyFour:
             try container.decodeRepeatedInt64(value).forEach { self.append(Int($0)) }
         }
     }
@@ -253,10 +259,13 @@ internal extension Array where Element == UInt {
         guard let value = value else {
             throw ProtoError.decodingError("No data to initialize from")
         }
+        
         self.init()
-        if MemoryLayout<UInt>.size == 4 {
+        
+        switch container.integerWidthCodingStrategy {
+        case .thirtyTwo:
             try container.decodeRepeatedUInt32(value).forEach { self.append(UInt($0)) }
-        } else if MemoryLayout<UInt>.size == 8 {
+        case .sixtyFour:
             try container.decodeRepeatedUInt64(value).forEach { self.append(UInt($0)) }
         }
     }

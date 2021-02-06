@@ -1,5 +1,7 @@
 import XCTVapor
 @testable import Apodini
+@testable import ApodiniProtobuffer
+@testable import ApodiniGRPC
 
 final class ProtobufferBuilderTests: XCTestCase {
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
@@ -13,7 +15,7 @@ final class ProtobufferBuilderTests: XCTestCase {
     }
     
     func buildMessage(_ type: Any.Type) throws -> String {
-        try ProtobufferInterfaceExporter.Builder
+        try ProtobufferInterfaceExporter.Builder()
             .buildMessage(type)
             .collectValues()
             .description
@@ -89,7 +91,7 @@ extension ProtobufferBuilderTests {
         let bitWidth = Int.bitWidth
         
         let expected = """
-            message Int\(bitWidth)Message {
+            message IntMessage {
               int\(bitWidth) value = 1;
             }
             """
@@ -210,6 +212,20 @@ extension ProtobufferBuilderTests {
         
         XCTAssertEqual(try buildMessage(First.self), expected)
     }
+    
+    func testUUID() throws {
+        struct User {
+            let id: UUID
+        }
+        
+        let expected = """
+            message UserMessage {
+              string id = 1;
+            }
+            """
+        
+        XCTAssertEqual(try buildMessage(User.self), expected)
+    }
 }
 
 // MARK: - Test Handlers
@@ -219,6 +235,12 @@ extension ProtobufferBuilderTests {
         struct WebService: Apodini.WebService {
             var content: some Component {
                 HelloWorld()
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(GRPCInterfaceExporter.self)
+                    .exporter(ProtobufferInterfaceExporter.self)
             }
         }
         
@@ -249,6 +271,12 @@ extension ProtobufferBuilderTests {
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Greeter()
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(GRPCInterfaceExporter.self)
+                    .exporter(ProtobufferInterfaceExporter.self)
             }
         }
         
@@ -284,6 +312,12 @@ extension ProtobufferBuilderTests {
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Multiplier()
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(GRPCInterfaceExporter.self)
+                    .exporter(ProtobufferInterfaceExporter.self)
             }
         }
         
@@ -324,6 +358,12 @@ extension ProtobufferBuilderTests {
             var content: some Component {
                 LogarithmTester()
             }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(GRPCInterfaceExporter.self)
+                    .exporter(ProtobufferInterfaceExporter.self)
+            }
         }
         
         struct LogarithmTester: Handler {
@@ -361,12 +401,46 @@ extension ProtobufferBuilderTests {
         
         try testWebService(WebService.self, expectation: expected)
     }
-}
+    
+    func testIntegerWidthConfiguration() throws {
+        struct WebService: Apodini.WebService {
+            var content: some Component {
+                Locator()
+            }
+            
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(ProtobufferInterfaceExporter.self)
+                IntegerWidthConfiguration.thirtyTwo
+            }
+        }
+        
+        struct Locator: Handler {
+            func handle() -> Coordinate {
+                .init(langitude: 0, longitude: 0)
+            }
+        }
+        
+        struct Coordinate: Apodini.Content {
+            let langitude: UInt
+            let longitude: UInt
+        }
+        
+        let expected = """
+            syntax = "proto3";
 
-// MARK: - Test Misc
+            service V1Service {
+              rpc locator (LocatorMessage) returns (CoordinateMessage);
+            }
 
-extension ProtobufferBuilderTests {
-    func testGenericPolymorphism() {
-        XCTAssertFalse(Array<Any>.self == Array<Int>.self)
+            message CoordinateMessage {
+              uint32 langitude = 1;
+              uint32 longitude = 2;
+            }
+
+            message LocatorMessage {}
+            """
+        
+        try testWebService(WebService.self, expectation: expected)
     }
 }

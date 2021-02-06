@@ -8,7 +8,7 @@
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 /// The scope of a value associated with a `ContextKey`
-enum Scope {
+public enum Scope {
     /// The value is only applied to the current `ContextNode` and discarded afterwards
     case current
     /// The value is applied to all following `ContextNodes`s located in the subtree of the current `ContextNode`
@@ -19,13 +19,14 @@ enum Scope {
 /// The `SyntaxTreeVisitable` makes a type discoverable by a `SyntaxTreeVisitor`.
 ///
 /// Each `Component` that needs to provide a custom `accept` implementation **must** conform to `SyntaxTreeVisitable` and **must** provide a custom `accept` implementation.
-protocol SyntaxTreeVisitable {
+public protocol SyntaxTreeVisitable {
+    /// Accept a visiting SyntaxTreeVisitor
     func accept(_ visitor: SyntaxTreeVisitor)
 }
 
 
 /// The `SyntaxTreeVisitor` is used to parse the Apodini DSL and forward the parsed result to the `SemanticModelBuilder`s.
-class SyntaxTreeVisitor {
+public class SyntaxTreeVisitor {
     /// The `semanticModelBuilders` that can interpret the Apodini DSL syntax tree collected by the `SyntaxTreeVisitor`
     private let modelBuilder: SemanticModelBuilder?
     /// Contains the current `ContextNode` that is used when creating a context for each registered `Handler`
@@ -81,7 +82,7 @@ class SyntaxTreeVisitor {
     ///   - contextKey: The key of the context value
     ///   - value: The value that is associated to the `ContextKey`
     ///   - scope: The scope of the context value as defined by the `Scope` enum
-    func addContext<C: OptionalContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
+    public func addContext<C: OptionalContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
         currentNode.addContext(contextKey, value: value, scope: scope)
     }
     

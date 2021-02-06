@@ -18,7 +18,7 @@ public struct TypedRelationshipDestinationModifier<H: Handler, To>: HandlerModif
 }
 
 extension TypedRelationshipDestinationModifier: SyntaxTreeVisitable {
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         let candidate = PartialRelationshipSourceCandidate(link: name, destinationType: destinationType)
         visitor.addContext(RelationshipSourceCandidateContextKey.self, value: [candidate], scope: .current)
         component.accept(visitor)

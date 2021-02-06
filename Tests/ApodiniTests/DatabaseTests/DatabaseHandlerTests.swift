@@ -1,11 +1,10 @@
-import Foundation
-import XCTest
-import NIO
-import Vapor
-import Fluent
-@_implementationOnly import Runtime
 @testable import Apodini
 @testable import ApodiniDatabase
+@testable import ApodiniREST
+@_implementationOnly import Runtime
+import Vapor
+import XCTApodini
+
 
 final class DatabaseHandlerTests: ApodiniTests {
     var vaporApp: Vapor.Application {
@@ -31,6 +30,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         XCTAssertNotNil(dbBird.id)
         
         let creationHandler = Create<Bird>()
+        
         
         let response = try XCTUnwrap(mockQuery(component: creationHandler, value: Bird.self, app: app, queued: bird))
         XCTAssert(response == bird)
@@ -85,12 +85,11 @@ final class DatabaseHandlerTests: ApodiniTests {
         let idParameter = try pathParameter(for: handler)
         request.parameters.set("\(idParameter.id)", to: "\(birdId)")
         
-        let result = try context.handle(request: request).wait()
-        guard case let .final(response) = result.typed(Bird.self) else {
-            XCTFail("Expected return value to be wrapped in Action.final by default")
-            return
-        }
-        XCTAssert(response == dbBird)
+        try XCTCheckResponse(
+            context.handle(request: request),
+            content: dbBird,
+            connectionEffect: .close
+        )
     }
     
     func testReadHandler() throws {
@@ -122,11 +121,8 @@ final class DatabaseHandlerTests: ApodiniTests {
             on: app.eventLoopGroup.next()
         )
         
-        var result = try context.handle(request: request).wait()
-        guard case let .final(responseValue) = result.typed([Bird].self) else {
-            XCTFail("Expected return value to be wrapped in Action.final by default")
-            return
-        }
+        let responseValue = try XCTUnwrap(try context.handle(request: request).wait().typed([Bird].self)?.content)
+        
         XCTAssert(responseValue.count == 2)
         XCTAssert(responseValue[0].name == "Mockingbird", responseValue.debugDescription)
         XCTAssert(responseValue[1].name == "Mockingbird", responseValue.debugDescription)
@@ -138,11 +134,9 @@ final class DatabaseHandlerTests: ApodiniTests {
             url: uri,
             on: app.eventLoopGroup.next()
         )
-        result = try context.handle(request: request).wait()
-        guard case let .final(value) = result.typed([Bird].self) else {
-            XCTFail("Expected return value to be wrapped in Action.final by default")
-            return
-        }
+        
+        let value = try XCTUnwrap(try context.handle(request: request).wait().typed([Bird].self)?.content)
+        
         XCTAssert(value.count == 1)
         XCTAssert(value[0].age == 21, value.debugDescription)
     }
@@ -182,12 +176,8 @@ final class DatabaseHandlerTests: ApodiniTests {
         let idParameter = try pathParameter(for: handler)
         request.parameters.set("\(idParameter.id)", to: "\(birdId)")
         
-        let result = try context.handle(request: request).wait()
+        let responseValue = try XCTUnwrap(try context.handle(request: request).wait().typed(Bird.self)?.content)
         
-        guard case let .final(responseValue) = result.typed(Bird.self) else {
-            XCTFail("Expected return value to be wrapped in Action.final by default")
-            return
-        }
         XCTAssert(responseValue.id == dbBird.id, responseValue.description)
         XCTAssert(responseValue.name == "FooBird", responseValue.description)
         
@@ -233,14 +223,11 @@ final class DatabaseHandlerTests: ApodiniTests {
         let idParameter = try pathParameter(for: handler)
         request.parameters.set("\(idParameter.id)", to: "\(birdId)")
         
-        let result = try context.handle(request: request).wait()
-        
-        guard case let .final(responseValue) = result.typed(Bird.self) else {
-            XCTFail("Expected return value to be wrapped in Action.final by default")
-            return
-        }
-        XCTAssert(responseValue.name == updatedBird.name, responseValue.description)
-        XCTAssert(responseValue.age == updatedBird.age, responseValue.description)
+        let responseValue = try XCTCheckResponse(
+            context.handle(request: request),
+            content: updatedBird,
+            connectionEffect: .close
+        )
         
         guard let newBird = try Bird.find(dbBird.id, on: self.app.database).wait() else {
             XCTFail("Failed to find updated object")
@@ -281,13 +268,14 @@ final class DatabaseHandlerTests: ApodiniTests {
         let idParameter = try pathParameter(for: handler)
         request.parameters.set("\(idParameter.id)", to: "\(birdId)")
         
-        let result = try context.handle(request: request).wait()
-        guard case let .final(response) = result.typed(UInt.self) else {
-            XCTFail("Expected return value to be wrapped in Action.final by default")
-            return
-        }
+        try XCTCheckResponse(
+            context.handle(request: request),
+            Empty.self,
+            status: .noContent,
+            content: nil,
+            connectionEffect: .close
+        )
         
-        XCTAssertEqual(response, HTTPStatus.ok.code)
         expectation(description: "database access").isInverted = true
         waitForExpectations(timeout: 10, handler: nil)
         

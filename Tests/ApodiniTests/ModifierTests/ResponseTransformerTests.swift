@@ -9,6 +9,8 @@ import XCTest
 import XCTVapor
 import XCTApodini
 @testable import Apodini
+@testable import ApodiniREST
+@testable import ApodiniVaporSupport
 
 
 final class ResponseTransformerTests: ApodiniTests {
@@ -34,11 +36,11 @@ final class ResponseTransformerTests: ApodiniTests {
         }
     }
     
-    private struct ActionHandler: Handler {
-        let action: Apodini.Response<String>
+    private struct ResponseHandler: Handler {
+        let response: Apodini.Response<String>
         
         func handle() -> Apodini.Response<String> {
-            action
+            response
         }
     }
     
@@ -96,6 +98,11 @@ final class ResponseTransformerTests: ApodiniTests {
                         .operation(.create)
                 }
             }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
+            }
         }
         
         TestWebService.main(app: app)
@@ -126,6 +133,11 @@ final class ResponseTransformerTests: ApodiniTests {
                         .response(OptionalEmojiResponseTransformer(emojis: "🚀"))
                 }
             }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
+            }
         }
 
         TestWebService.main(app: app)
@@ -145,21 +157,26 @@ final class ResponseTransformerTests: ApodiniTests {
         struct TestWebService: WebService {
             var content: some Component {
                 Group("nothing") {
-                    ActionHandler(action: .nothing)
+                    ResponseHandler(response: .nothing)
                         .response(EmojiResponseTransformer())
                 }
                 Group("send") {
-                    ActionHandler(action: .send("Paul"))
+                    ResponseHandler(response: .send("Paul"))
                         .response(EmojiResponseTransformer())
                 }
                 Group("final") {
-                    ActionHandler(action: .final("Paul"))
+                    ResponseHandler(response: .final("Paul"))
                         .response(EmojiResponseTransformer())
                 }
                 Group("end") {
-                    ActionHandler(action: .end)
+                    ResponseHandler(response: .end)
                         .response(EmojiResponseTransformer())
                 }
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
             }
         }
         
@@ -187,25 +204,25 @@ final class ResponseTransformerTests: ApodiniTests {
     }
     
     func testFailingResponseTransformer() throws {
-        let action: Apodini.Response<Int> = .final(42)
+        let response: Apodini.Response<Int> = .final(42)
         XCTAssertRuntimeFailure(
             EmojiResponseTransformer()
-                .transform(response: action.typeErasured, on: self.app.eventLoopGroup.next())
+                .transform(response: response.typeErasured, on: self.app.eventLoopGroup.next())
         )
         
         XCTAssertRuntimeFailure(
             EmojiResponseTransformer()
-                .transform(response: action.typeErasured, on: self.app.eventLoopGroup.next())
+                .transform(response: response.typeErasured, on: self.app.eventLoopGroup.next())
         )
         
         XCTAssertRuntimeFailure(
             OptionalEmojiResponseTransformer()
-                .transform(response: action.typeErasured, on: self.app.eventLoopGroup.next())
+                .transform(response: response.typeErasured, on: self.app.eventLoopGroup.next())
         )
         
         XCTAssertRuntimeFailure(
             OptionalEmojiResponseTransformer()
-                .transform(response: action.typeErasured, on: self.app.eventLoopGroup.next())
+                .transform(response: response.typeErasured, on: self.app.eventLoopGroup.next())
         )
     }
 }

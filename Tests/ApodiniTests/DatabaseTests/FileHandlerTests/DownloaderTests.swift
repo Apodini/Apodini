@@ -1,9 +1,8 @@
-import Foundation
-import XCTest
-import NIO
-import Vapor
 @testable import Apodini
 @testable import ApodiniDatabase
+@testable import ApodiniREST
+import Vapor
+import XCTApodini
 
 final class DownloaderTests: FileHandlerTests {
     func testSingleDownloader() throws {
@@ -32,13 +31,11 @@ final class DownloaderTests: FileHandlerTests {
         
         downloadRequest.parameters.set("\(parameter.id)", to: "Testfile.jpeg")
         
-        let result = try context.handle(request: downloadRequest).wait()
-        guard case let .final(responseValue) = result.typed(ApodiniDatabase.File.self) else {
-            XCTFail("Expected return value to be wrapped in Action.final by default")
-            return
-        }
-        XCTAssert(file.filename == responseValue.filename)
-        XCTAssert(file.data == responseValue.data)
+        try XCTCheckResponse(
+            context.handle(request: downloadRequest),
+            content: file,
+            connectionEffect: .close
+        )
     }
     
     func testMultipleDownloader() throws {
@@ -75,11 +72,13 @@ final class DownloaderTests: FileHandlerTests {
         
         downloadRequest.parameters.set("\(parameter.id)", to: ".jpeg")
         
-        let result = try context.handle(request: downloadRequest).wait()
-        guard case let .final(responseValue) = result.typed([ApodiniDatabase.File].self) else {
-            XCTFail("Expected return value to be wrapped in Action.final by default")
-            return
-        }
+        let responseValue = try XCTUnwrap(
+            try context.handle(request: downloadRequest)
+                .wait()
+                .typed([ApodiniDatabase.File].self)?
+                .content
+        )
+
         XCTAssert(responseValue.count == 2)
         XCTAssert(responseValue[0] == file || responseValue[0] == file2)
         XCTAssert(responseValue[1] == file || responseValue[1] == file2)

@@ -8,7 +8,7 @@ import Foundation
 public struct EnrichedContent: Encodable {
     private let endpoint: AnyEndpoint
 
-    let response: AnyEncodable
+    public let response: AnyEncodable
     private let parameters: [UUID: Any]
 
     init(for endpoint: AnyEndpoint, response: AnyEncodable, parameters: [UUID: Any]) {
@@ -85,7 +85,7 @@ public struct EnrichedContent: Encodable {
     /// - Parameters:
     ///   - initialValue: The initial value the `RelationshipFormatter` should reduce into.
     ///   - formatter: The actual instance of the `RelationshipFormatter`.
-    func formatSelfRelationship<Formatter: RelationshipFormatter>(
+    public func formatSelfRelationship<Formatter: RelationshipFormatter>(
         into initialValue: inout Formatter.Result,
         with formatter: Formatter
     ) {

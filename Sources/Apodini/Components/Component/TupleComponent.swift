@@ -21,7 +21,7 @@ public struct TupleComponent<T>: Component, SyntaxTreeVisitable {
     }
     #endif
     
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.enterContent {
             let mirror = Mirror(reflecting: storage)
             for (_, value) in mirror.children {

@@ -17,11 +17,11 @@ public struct EmptyComponent: Component, SyntaxTreeVisitable {
         return imp()
     }
     
-    func accept(_ visitor: SyntaxTreeVisitor) {}
+    public func accept(_ visitor: SyntaxTreeVisitor) {}
 }
 
 
 public struct EmptyHandler: Handler, SyntaxTreeVisitable {
     public typealias Response = Never
-    func accept(_ visitor: SyntaxTreeVisitor) {}
+    public func accept(_ visitor: SyntaxTreeVisitor) {}
 }
