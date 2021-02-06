@@ -28,7 +28,7 @@ public final class HTTP2Configuration: Configuration {
     private var certData: Data?
     private var keyData: Data?
 
-    public convenience init() {
+    convenience public init() {
         self.init(arguments: CommandLine.arguments)
     }
 
