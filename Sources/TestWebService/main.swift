@@ -66,7 +66,7 @@ struct Greeter: Handler {
 struct WebService: Apodini.WebService {
     var content: some Component {
         Group("rand") {
-            RandomNumberGenerator(handlerId: .other)
+            RandomNumberGenerator(handlerId: .main)
         }.formDeploymentGroup(withId: "rand.2")
         Group("greet") {
             Greeter()
