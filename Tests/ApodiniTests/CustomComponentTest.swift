@@ -7,15 +7,16 @@
 
 @testable import Apodini
 @testable import ApodiniVaporSupport
+@testable import ApodiniDatabase
 @testable import ApodiniREST
-import Fluent
 import XCTVapor
+import XCTApodini
 
 
 final class CustomComponentTests: ApodiniTests {
     struct AddBirdsHandler: Handler {
         @Apodini.Environment(\.database)
-        var database: Fluent.Database
+        var database: Database
 
         @Parameter
         var bird: Bird
@@ -39,19 +40,12 @@ final class CustomComponentTests: ApodiniTests {
         let exporter = MockExporter<String>(queued: bird)
 
         let context = endpoint.createConnectionContext(for: exporter)
-        
-        let result = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-                .wait()
-        
-        guard case let .final(responseValue) = result.typed([Bird].self) else {
-            XCTFail("Expected return value to be wrapped in Response.final by default")
-            return
-        }
-        
-        XCTAssertEqual(responseValue.count, 3)
-        XCTAssertEqual(responseValue[0], bird1)
-        XCTAssertEqual(responseValue[1], bird2)
-        XCTAssertEqual(responseValue[2], bird)
+
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
+            content: [bird1, bird2, bird],
+            connectionEffect: .close
+        )
     }
     
     func testComponentRegistration() throws {

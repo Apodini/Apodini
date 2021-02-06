@@ -6,9 +6,10 @@
 //
 
 
+#if DEBUG
 import XCTest
-#if canImport(CwlPreconditionTesting) && DEBUG
-import CwlPreconditionTesting
+#if canImport(CwlPreconditionTesting)
+@_implementationOnly import CwlPreconditionTesting
 
 /// Asserts that an expression leads to a runtime failure.
 public func XCTAssertRuntimeFailure<T>(
@@ -30,4 +31,5 @@ public func XCTAssertRuntimeFailure<T>(
     line: UInt = #line) {
     // Empty implementation for Linux Tests
 }
+#endif
 #endif

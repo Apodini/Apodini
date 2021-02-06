@@ -1,8 +1,6 @@
-import XCTApodini
-import XCTest
 import Apodini
-import NIO
 @testable import ApodiniJobs
+import XCTApodini
 
 final class ObservedObjectTests: XCTApodiniTest {
     struct TestJob: Job {

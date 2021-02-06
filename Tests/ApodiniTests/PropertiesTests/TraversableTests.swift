@@ -5,10 +5,8 @@
 //  Created by Max Obermeier on 15.12.20.
 //
 
-import XCTest
-import NIO
-import Fluent
 @testable import Apodini
+import XCTest
 
 
 final class TraversableTests: ApodiniTests {

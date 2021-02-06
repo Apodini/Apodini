@@ -8,7 +8,6 @@
 @testable import Apodini
 @testable import ApodiniREST
 @testable import ApodiniVaporSupport
-import NIO
 import XCTest
 import Fluent
 import Vapor

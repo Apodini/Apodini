@@ -1,10 +1,9 @@
-import Foundation
-import XCTest
-import XCTApodini
-import NIO
-import Vapor
 @testable import Apodini
 @testable import ApodiniREST
+import Vapor
+import Foundation
+import XCTApodini
+
 
 class ObservedObjectTests: ApodiniTests {
     // check setting changed
@@ -79,17 +78,10 @@ class ObservedObjectTests: ApodiniTests {
 
             func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<RESTInterfaceExporter>) {
                 do {
-                    try context
-                        .handle(eventLoop: eventLoop, observedObject: observedObject)
-                        .map { result in
-                            do {
-                                let element = try XCTUnwrap(result.element?.typed(String.self))
-                                XCTAssertEqual(element, "Hello Swift")
-                            } catch {
-                                XCTFail("testRegisterObservedListener failed: \(error)")
-                            }
-                        }
-                        .wait()
+                    try XCTCheckResponse(
+                        context.handle(eventLoop: eventLoop, observedObject: observedObject),
+                        content: "Hello Swift"
+                    )
                 } catch {
                     XCTFail(error.localizedDescription)
                 }
@@ -208,17 +200,10 @@ class ObservedObjectTests: ApodiniTests {
             
             func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<RESTInterfaceExporter>) {
                 do {
-                    try context
-                        .handle(eventLoop: eventLoop, observedObject: observedObject)
-                        .map { result in
-                            do {
-                                let element = try XCTUnwrap(result.element?.typed(String.self))
-                                XCTAssertEqual(element, "Hello Swift")
-                            } catch {
-                                XCTFail("testRegisterObservedListener failed: \(error)")
-                            }
-                        }
-                        .wait()
+                    try XCTCheckResponse(
+                        context.handle(eventLoop: eventLoop, observedObject: observedObject),
+                        content: "Hello Swift"
+                    )
                 } catch {
                     XCTFail(error.localizedDescription)
                 }

@@ -8,7 +8,6 @@
 import Apodini
 import ApodiniVaporSupport
 @_implementationOnly import OpenCombine
-@_implementationOnly import Fluent
 import NIOWebSocket
 
 // MARK: Exporter
@@ -36,7 +35,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             result[parameter.name] = parameter.value
         }))
         
-        self.router.register({(clientInput: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, _: Database?) -> (
+        self.router.register({(clientInput: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop) -> (
                     defaultInput: SomeInput,
                     output: AnyPublisher<Message<EnrichedContent>, Error>
                 ) in
@@ -92,7 +91,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
                         cancellables.removeAll()
                     },
                     // The input was already handled and unwrapped by the `syncMap`. We just have to map the obtained
-                    // `Action` to our `output` or handle the error returned from `handle`.
+                    // `Response` to our `output` or handle the error returned from `handle`.
                     receiveValue: { result in
                         Self.handleValue(result: result, output: output)
                     }
@@ -158,7 +157,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             context.handle(request: WebSocketInput(emptyInput), eventLoop: eventLoop, final: true).whenComplete { result in
                 switch result {
                 case .success(let response):
-                    Self.handleCompletionResponse(result: response, output: output)
+                    Self.handleCompletionResponse(response: response, output: output)
                 case .failure(let error):
                     Self.handleError(error: error, output: output, close: true)
                 }
@@ -168,44 +167,34 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     
     private static func handleValue(
         result: Result<Response<EnrichedContent>, Error>,
-        output: PassthroughSubject<Message<EnrichedContent>, Error>) {
+        output: PassthroughSubject<Message<EnrichedContent>, Error>
+    ) {
         switch result {
         case .success(let response):
-            Self.handleRegularResponse(result: response, output: output)
+            Self.handleRegularResponse(response: response, output: output)
         case .failure(let error):
             Self.handleError(error: error, output: output)
         }
     }
     
     private static func handleCompletionResponse(
-        result: Response<EnrichedContent>,
-        output: PassthroughSubject<Message<EnrichedContent>, Error>) {
-        switch result {
-        case .nothing:
-            output.send(completion: .finished)
-        case .send(let message):
-            output.send(.message(message))
-            output.send(completion: .finished)
-        case .final(let message):
-            output.send(.message(message))
-            output.send(completion: .finished)
-        case .end:
-            output.send(completion: .finished)
+        response: Response<EnrichedContent>,
+        output: PassthroughSubject<Message<EnrichedContent>, Error>
+    ) {
+        if let content = response.content {
+            output.send(.message(content))
         }
+        output.send(completion: .finished)
     }
     
     private static func handleRegularResponse(
-        result: Response<EnrichedContent>,
-        output: PassthroughSubject<Message<EnrichedContent>, Error>) {
-        switch result {
-        case .nothing:
-            break
-        case .send(let message):
-            output.send(.message(message))
-        case .final(let message):
-            output.send(.message(message))
-            output.send(completion: .finished)
-        case .end:
+        response: Response<EnrichedContent>,
+        output: PassthroughSubject<Message<EnrichedContent>, Error>
+    ) {
+        if let content = response.content {
+            output.send(.message(content))
+        }
+        if response.connectionEffect == .close {
             output.send(completion: .finished)
         }
     }
@@ -213,7 +202,8 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private static func handleError(
         error: Error,
         output: PassthroughSubject<Message<EnrichedContent>, Error>,
-        close: Bool = false) {
+        close: Bool = false
+    ) {
         let error = error.apodiniError
         switch error.option(for: .webSocketConnectionConsequence) {
         case .none:

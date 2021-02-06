@@ -5,7 +5,6 @@
 //  Created by Max Obermeier on 04.12.20.
 //
 
-@_implementationOnly import Fluent
 @_implementationOnly import Vapor
 @_implementationOnly import OpenCombine
 import NIOWebSocket
@@ -29,14 +28,13 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     let close: (WebSocketErrorCode) -> Void
     
     convenience init(
-        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Database?) ->
+        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop) ->
             (default: I, output: AnyPublisher<Message<O>, Error>),
         con: ConnectionResponsible,
         context: UUID) {
         self.init(
             opener,
             eventLoop: con.websocket.eventLoop,
-            database: con.database,
             send: { message in
                 con.send(message, in: context)
             },
@@ -48,9 +46,8 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     }
     
     init(
-        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Database?) -> (default: I, output: AnyPublisher<Message<O>, Error>),
+        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop) -> (default: I, output: AnyPublisher<Message<O>, Error>),
         eventLoop: EventLoop,
-        database: Database?,
         send: @escaping (O) -> Void,
         sendError: @escaping (Error) -> Void,
         destruct: @escaping () -> Void,
@@ -58,7 +55,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     ) {
         let receiver = PassthroughSubject<I, Never>()
         
-        let (defaultInput, output) = opener(receiver.eraseToAnyPublisher(), eventLoop, database)
+        let (defaultInput, output) = opener(receiver.eraseToAnyPublisher(), eventLoop)
         
         self.input = defaultInput
         

@@ -52,6 +52,19 @@ extension EventLoopFuture: ResponseTransformable where Value: ResponseTransforma
     }
 }
 
+extension EventLoopFuture where Value == Void {
+    /// Transforms an `EventLoopFuture<Void>` into an Apodini `Status` that can be used to refine the response by the different exporters.
+    ///
+    /// If you want to return a more elaborate message to the client you should `map` the `EventLoopFuture` to a custom type conforming to `Encodable`.
+    /// - Parameter status: The status that should be passed to the client
+    /// - Returns: Returns an `EventLoopFuture` containing an Apodini `Response` type. The `Content`type is `Empty` and the response does not contain any instance that will be encoded in the response to the client.
+    public func transform(to status: Status = .noContent) -> EventLoopFuture<Status> {
+        map { _ in
+            status
+        }
+    }
+}
+
 
 // MARK: - Primitive Types
 extension String: ResponseTransformable {}

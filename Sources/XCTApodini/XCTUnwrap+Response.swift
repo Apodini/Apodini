@@ -2,8 +2,9 @@
 // Created by Andreas Bauer on 02.02.21.
 //
 
+#if DEBUG
 import XCTest
-import Apodini
+@testable import Apodini
 
 /// Overload for force unwrapping `Response` types.
 public func XCTUnwrap<T: Encodable>(
@@ -12,14 +13,6 @@ public func XCTUnwrap<T: Encodable>(
     file: StaticString = #filePath,
     line: UInt = #line
 ) throws -> T {
-    let result: T?
-    switch try expression() {
-    case let .final(element),
-        let .send(element):
-        result = element
-    default:
-        result = nil
-    }
-
-    return try XCTUnwrap(result, message(), file: file, line: line)
+    try XCTUnwrap(try expression().content, message(), file: file, line: line)
 }
+#endif
