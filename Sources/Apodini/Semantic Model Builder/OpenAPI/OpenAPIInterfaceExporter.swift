@@ -29,7 +29,7 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         documentBuilder.addEndpoint(endpoint)
         
-        // Set version information from APIContextKey, if version was not defined by developer.
+        // Set version information from APIContextKey, if the version was not defined by developer.
         if self.configuration.version == nil {
             self.configuration.version = endpoint.context.get(valueFor: APIVersionContextKey.self)?.description
             updateStorage()
@@ -69,7 +69,7 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
 
     private func serveSpecification() {
         if let output = try? self.documentBuilder.document.output(self.configuration.outputFormat) {
-            // Register OpenAPI Specification endpoint.
+            // Register OpenAPI specification endpoint.
             app.vapor.app.get(configuration.outputEndpoint.pathComponents) { _ -> String in
                 output
             }
@@ -83,14 +83,14 @@ class OpenAPIInterfaceExporter: StaticInterfaceExporter {
                 else {
                     throw Vapor.Abort(.internalServerError)
                 }
-                // Replace placeholder with actual URL of OpenAPI Specification endpoint.
+                // Replace placeholder with actual URL of OpenAPI specification endpoint.
                 html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: self.configuration.outputEndpoint)
             
                 return Vapor.Response(status: .ok, headers: headers, body: .init(string: html))
             }
             
             // Inform developer about serving on configured endpoints.
-            self.app.logger.info("OpenAPI Specification served in \(configuration.outputFormat) format on: \(configuration.outputEndpoint)")
+            self.app.logger.info("OpenAPI specification served in \(configuration.outputFormat) format on: \(configuration.outputEndpoint)")
             self.app.logger.info("Swagger-UI on: \(configuration.swaggerUiEndpoint)")
         }
     }
