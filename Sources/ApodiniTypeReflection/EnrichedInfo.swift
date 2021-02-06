@@ -15,31 +15,33 @@ public struct PropertyInfo: Equatable, Hashable {
     }
 }
 
-/// <#Description#>
+/// `EnrichedInfo` is the composite of a type's type info and property info, if it is embedded in a
+/// composite type.
 public struct EnrichedInfo {
+    /// `Cardinality`, i.e., the number of elements in a grouping, as a property of that grouping,
+    /// models how many times a value appears for a property.
     public enum Cardinality: Equatable, Hashable {
         case zeroToOne
         case exactlyOne
         case zeroToMany(CollectionContext)
     }
-
+    
+    /// `CollectionContext` further models the grouping of values for a property.
     public enum CollectionContext: Equatable, Hashable {
         case array
         indirect case dictionary(key: EnrichedInfo, value: EnrichedInfo)
     }
     
-    /// <#Description#>
+    /// The type info reflecting a type.
     public let typeInfo: TypeInfo
-    /// <#Description#>
+    /// The property info, if the type was embedded in a composite type.
     public let propertyInfo: PropertyInfo?
-    /// <#Description#>
+    /// The cardinality of a property.
+    ///
+    /// `.exactlyOne` by default.
     public var cardinality: Cardinality
     
-    /// <#Description#>
-    /// - Parameters:
-    ///   - typeInfo: <#typeInfo description#>
-    ///   - propertyInfo: <#propertyInfo description#>
-    ///   - cardinality: <#cardinality description#>
+    /// Initialize an `EnrichedInfo` instance.
     public init(
         typeInfo: TypeInfo,
         propertyInfo: PropertyInfo?,
@@ -52,10 +54,10 @@ public struct EnrichedInfo {
 }
 
 public extension EnrichedInfo {
-    /// <#Description#>
-    /// - Parameter type: <#type description#>
-    /// - Throws: <#description#>
-    /// - Returns: <#description#>
+    /// Initialize an `EnrichedInfo` node from a root type, recursively.
+    /// - Parameter type: The type that should be reflected.
+    /// - Throws: A `RuntimeError`, if `Runtime` encounters an error during reflection.
+    /// - Returns: A node of values reflecting every type composing the root type.
     static func node(_ type: Any.Type) throws -> Node<EnrichedInfo> {
         let typeInfo = try Runtime.typeInfo(of: type)
         let root = EnrichedInfo(

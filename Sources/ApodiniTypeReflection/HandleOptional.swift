@@ -9,7 +9,7 @@ import Apodini
 /// `Optional`, or the absence of values, is mapped to a propertie's cardinality. The enumeration is
 /// not considered directly. Furthermore, the `Optional.WrappedValue` type is reflected.
 /// - Parameter node: <#node description#>
-/// - Throws: <#description#>
+/// - Throws: A `RuntimeError`, if `Runtime` encounters an error during reflection.
 /// - Returns: <#description#>
 public func handleOptional(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     guard isOptional(node.value.typeInfo.type),

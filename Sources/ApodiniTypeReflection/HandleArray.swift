@@ -4,7 +4,23 @@
 
 import Apodini
 
-/// <#Description#>
+/// `ArrayDidEncounterCircle` is a type to mark the repition of a type in a type hierarchy, creating
+/// a circle in a structure that should remain a tree.
+
+/// - **Example:**
+///     Let's assume the following type:
+///     ```
+///     struct Node {
+///         let children: [Node]
+///     }
+///     ```
+///     First of all, it is valid, because it's size is not infinite: we can initialize
+///     `Node(children: [])`.
+///
+///     However, this implementation of type reflection will (1) reflect `Node`, (2) reflect its
+///     properties and their types, e.g., `children: [Node]`, (3) the `Array` is checked for its
+///     `Element` type, which is again a `Node`. (4) We encounter a circle, which is marked with
+///     `ArrayDidEncounterCircle`. We can later check for this exact type and handle that case.
 public enum ArrayDidEncounterCircle {}
 
 /// Handle the `Array` type.
@@ -12,7 +28,7 @@ public enum ArrayDidEncounterCircle {}
 /// The presence of an array is mapped to the appropriate cardinality of the property with
 /// `EnrichedInfo.CollectionContext`.
 /// - Parameter node: <#node description#>
-/// - Throws: <#description#>
+/// - Throws: A `RuntimeError`, if `Runtime` encounters an error during reflection.
 /// - Returns: <#description#>
 public func handleArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     let typeInfo = node.value.typeInfo
