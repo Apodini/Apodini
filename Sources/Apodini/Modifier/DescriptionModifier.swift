@@ -10,7 +10,6 @@ public struct DescriptionModifier<H: Handler>: HandlerModifier {
     public let component: H
     let description: String
 
-
     init(_ component: H, description: String) {
         self.component = component
         self.description = description

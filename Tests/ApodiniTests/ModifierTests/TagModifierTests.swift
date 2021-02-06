@@ -2,10 +2,8 @@
 // Created by Lorena Schlesinger on 10.01.21.
 //
 
-import Foundation
 import XCTest
 @testable import Apodini
-
 
 final class TagModifierTests: ApodiniTests {
     struct TestHandler: Handler {
