@@ -12,6 +12,7 @@ jobs:
         with:
           args: autocorrect
       - name: Commit Autocorrect
+        continue-on-error: true
         run: |
           git config --global user.name 'SwiftLint Bot'
           git config --global user.email 'bot@users.noreply.github.com'
