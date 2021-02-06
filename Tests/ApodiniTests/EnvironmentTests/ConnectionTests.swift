@@ -6,7 +6,9 @@
 //
 
 @testable import Apodini
+import ApodiniREST
 import XCTApodini
+import XCTVapor
 import XCTest
 
 
@@ -68,6 +70,64 @@ final class ConnectionTests: ApodiniTests {
                 content: endMessage,
                 connectionEffect: .close
             )
+        }
+    }
+
+    func testConnectionRemoteAddress() throws {
+        struct TestWebService: WebService {
+            struct TestHandler: Handler {
+                @Apodini.Environment(\.connection)
+                var connection: Connection
+
+                func handle() -> String {
+                    connection.remoteAddress?.description ?? "no remote"
+                }
+            }
+
+            var content: some Component {
+                TestHandler()
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
+            }
+        }
+
+        TestWebService.main(app: app)
+
+        try app.vapor.app.test(.GET, "/v1/") { res in
+            XCTAssertEqual(res.status, .ok)
+            XCTAssert(res.body.string.contains("127.0.0.1:8080"))
+        }
+    }
+
+    func testConnectionEventLoop() throws {
+        struct TestWebService: WebService {
+            struct TestHandler: Handler {
+                @Apodini.Environment(\.connection)
+                var connection: Connection
+
+                func handle() -> String {
+                    connection.eventLoop.assertInEventLoop()
+                    return "success"
+                }
+            }
+
+            var content: some Component {
+                TestHandler()
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
+            }
+        }
+
+        TestWebService.main(app: app)
+
+        try app.vapor.app.test(.GET, "/v1/") { res in
+            XCTAssertEqual(res.status, .ok)
         }
     }
 }
