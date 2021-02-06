@@ -5,6 +5,8 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
+// swiftlint:disable missing_docs
+
 /// A `OptionalContextKey` serves as a key definition for a `ContextNode`.
 /// Optionally it can serve a reduction logic when inserting a new value into the `ContextNode`,
 /// see `OptionalContextKey.reduce(...)`.
@@ -26,7 +28,7 @@ public protocol OptionalContextKey {
     static func reduce(value: inout Self.Value, nextValue: () -> Self.Value)
 }
 
-extension OptionalContextKey {
+public extension OptionalContextKey {
     static func reduce(value: inout Self.Value, nextValue: () -> Self.Value) {
         value = nextValue()
     }

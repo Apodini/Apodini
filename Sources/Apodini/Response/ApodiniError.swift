@@ -7,6 +7,7 @@
 
 import Foundation
 
+// swiftlint:disable missing_docs
 // MARK: ApodiniError
 
 /// Generic Type that can be used to mark that the options are meant for `ApodiniError`s.
@@ -50,7 +51,7 @@ public struct ApodiniError: Error {
     /// - Parameter `reason`: The **public** reason explaining what led to the this error.
     /// - Parameter `description`: The **internal** description of this error. This will only be exposed in `DEBUG` mode.
     /// - Parameter `options`: Possible exporter-specific options that provide guidance for how to handle this error.
-    internal init(type: ErrorType, reason: String? = nil, description: String? = nil, _ options: Option...) {
+    public init(type: ErrorType, reason: String? = nil, description: String? = nil, _ options: Option...) {
         self.init(type: type, reason: reason, description: description, PropertyOptionSet(options))
     }
     
@@ -64,38 +65,38 @@ public struct ApodiniError: Error {
 
 // MARK: StandardError
 
-protocol StandardErrorCompliantOption: PropertyOption {
+public protocol StandardErrorCompliantOption: PropertyOption {
     static func `default`(for type: ErrorType) -> Self
 }
 
-protocol ErrorMessagePrefixStrategy {}
+public protocol ErrorMessagePrefixStrategy {}
 
-struct StandardErrorMessagePrefix: ErrorMessagePrefixStrategy {}
+public struct StandardErrorMessagePrefix: ErrorMessagePrefixStrategy {}
 
-struct NoErrorMessagePrefix: ErrorMessagePrefixStrategy {}
+public struct NoErrorMessagePrefix: ErrorMessagePrefixStrategy {}
 
-struct CustomErrorMessagePrefix: ErrorMessagePrefixStrategy {}
+public struct CustomErrorMessagePrefix: ErrorMessagePrefixStrategy {}
 
-protocol StandardErrorCompliantExporter: InterfaceExporter {
+public protocol StandardErrorCompliantExporter: InterfaceExporter {
     associatedtype ErrorMessagePrefixStrategy: Apodini.ErrorMessagePrefixStrategy = CustomErrorMessagePrefix
-    
+    /// Default prefixes for `ErrorType`
     static func messagePrefix(for context: StandardErrorContext) -> String?
 }
 
-protocol StandardErrorContext {
+public protocol StandardErrorContext {
     func option<Option: StandardErrorCompliantOption>(for key: PropertyOptionKey<ErrorOptionNameSpace, Option>) -> Option
 }
 
-protocol StandardError: Error, StandardErrorContext {
+public protocol StandardError: Error, StandardErrorContext {
     func message<E: StandardErrorCompliantExporter>(for exporter: E.Type) -> String
 }
 
 extension ApodiniError: StandardError {
-    func option<T: StandardErrorCompliantOption>(for key: OptionKey<T>) -> T {
+    public func option<T: StandardErrorCompliantOption>(for key: OptionKey<T>) -> T {
         self.options.option(for: key) ?? T.default(for: self.type)
     }
     
-    func message<E: StandardErrorCompliantExporter>(for exporter: E.Type) -> String {
+    public func message<E: StandardErrorCompliantExporter>(for exporter: E.Type) -> String {
         let prefix: String? = E.messagePrefix(for: self)?.appending(reason == nil && description == nil ? "" : ": ")
         
         #if DEBUG
@@ -124,7 +125,7 @@ extension ApodiniError: StandardError {
 
 // MARK: Error Extension
 
-internal extension Error {
+public extension Error {
     var apodiniError: ApodiniError {
         if let apodiniError = self as? ApodiniError {
             return apodiniError
@@ -136,7 +137,7 @@ internal extension Error {
 
 // MARK: Exporter Defaults
 
-extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == StandardErrorMessagePrefix {
+public extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == StandardErrorMessagePrefix {
     static func messagePrefix(for error: StandardErrorContext) -> String? {
         switch error.option(for: .errorType) {
         case .badInput:
@@ -157,7 +158,7 @@ extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == Sta
     }
 }
 
-extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == NoErrorMessagePrefix {
+public extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == NoErrorMessagePrefix {
     static func messagePrefix(for error: StandardErrorContext) -> String? {
         nil
     }
@@ -166,11 +167,11 @@ extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == NoE
 // MARK: Exporter Agnostic Options
 
 extension ErrorType: StandardErrorCompliantOption {
-    static func `default`(for type: ErrorType) -> Self {
+    public static func `default`(for type: ErrorType) -> Self {
         type
     }
 }
 
-extension PropertyOptionKey where PropertyNameSpace == ErrorOptionNameSpace, Option == ErrorType {
+public extension PropertyOptionKey where PropertyNameSpace == ErrorOptionNameSpace, Option == ErrorType {
     static let errorType = PropertyOptionKey<ErrorOptionNameSpace, ErrorType>()
 }

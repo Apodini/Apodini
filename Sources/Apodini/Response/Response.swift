@@ -40,9 +40,9 @@ public struct Response<Content: Encodable>: ResponseTransformable {
     }
     
     
-    let status: Status?
-    let content: Self.Content?
-    let connectionEffect: ConnectionEffect
+    public let status: Status?
+    public let content: Self.Content?
+    public let connectionEffect: ConnectionEffect
     
     
     private init(status: Status? = nil, content: Self.Content? = nil, connectionEffect: ConnectionEffect) {

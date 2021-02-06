@@ -2,10 +2,11 @@
 //  Created by Nityananda on 11.12.20.
 //
 
-enum ArrayDidEncounterCircle {
-}
+// swiftlint:disable missing_docs
 
-func handleArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
+public enum ArrayDidEncounterCircle {}
+
+public func handleArray(_ node: Node<EnrichedInfo>) throws -> Tree<EnrichedInfo> {
     let typeInfo = node.value.typeInfo
 
     guard mangledName(of: typeInfo.type) == "Array",

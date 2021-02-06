@@ -5,8 +5,9 @@
 //  Created by Lorena Schlesinger on 06.12.20.
 //
 
-import Vapor
 @testable import Apodini
+@testable import ApodiniREST
+import Vapor
 import XCTApodini
 
 

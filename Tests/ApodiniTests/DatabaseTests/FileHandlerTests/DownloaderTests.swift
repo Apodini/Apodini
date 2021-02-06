@@ -1,5 +1,6 @@
 @testable import Apodini
 @testable import ApodiniDatabase
+@testable import ApodiniREST
 import Vapor
 import XCTApodini
 

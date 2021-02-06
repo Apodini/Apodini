@@ -43,7 +43,7 @@ public struct Throws {
 }
 
 extension Throws: StandardErrorContext {
-    func option<Option>(for key: PropertyOptionKey<ErrorOptionNameSpace, Option>) -> Option where Option: StandardErrorCompliantOption {
+    public func option<Option>(for key: PropertyOptionKey<ErrorOptionNameSpace, Option>) -> Option where Option: StandardErrorCompliantOption {
         self.options.option(for: key) ?? Option.default(for: self.type)
     }
 }

@@ -6,6 +6,8 @@
 //
 
 @testable import Apodini
+@testable import ApodiniVaporSupport
+@testable import ApodiniREST
 import Fluent
 import XCTVapor
 import XCTApodini
@@ -50,6 +52,11 @@ final class CustomComponentTests: ApodiniTests {
         struct TestWebService: WebService {
             var content: some Component {
                 AddBirdsHandler()
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
             }
         }
         

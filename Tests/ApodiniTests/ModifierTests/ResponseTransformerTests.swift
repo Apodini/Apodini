@@ -9,6 +9,8 @@ import XCTest
 import XCTVapor
 import XCTApodini
 @testable import Apodini
+@testable import ApodiniREST
+@testable import ApodiniVaporSupport
 
 
 final class ResponseTransformerTests: ApodiniTests {
@@ -96,6 +98,11 @@ final class ResponseTransformerTests: ApodiniTests {
                         .operation(.create)
                 }
             }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
+            }
         }
         
         TestWebService.main(app: app)
@@ -125,6 +132,11 @@ final class ResponseTransformerTests: ApodiniTests {
                     OptionalText("Hello Paul")
                         .response(OptionalEmojiResponseTransformer(emojis: "🚀"))
                 }
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
             }
         }
 
@@ -160,6 +172,11 @@ final class ResponseTransformerTests: ApodiniTests {
                     ResponseHandler(response: .end)
                         .response(EmojiResponseTransformer())
                 }
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
             }
         }
         

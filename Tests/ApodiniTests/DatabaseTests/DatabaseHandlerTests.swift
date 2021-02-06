@@ -1,11 +1,12 @@
-import Foundation
-import NIO
-import Vapor
-import Fluent
-@_implementationOnly import Runtime
 @testable import Apodini
 @testable import ApodiniDatabase
+@testable import ApodiniREST
+import Fluent
+import NIO
+@_implementationOnly import Runtime
+import Vapor
 import XCTApodini
+
 
 final class DatabaseHandlerTests: ApodiniTests {
     var vaporApp: Vapor.Application {
