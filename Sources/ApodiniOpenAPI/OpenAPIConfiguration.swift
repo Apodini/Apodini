@@ -63,8 +63,9 @@ public class OpenAPIConfiguration: Configuration {
         serverUrls: URL...
         ) {
         self.outputFormat = outputFormat
-        self.outputEndpoint = outputEndpoint
-        self.swaggerUiEndpoint = swaggerUiEndpoint
+        // Prefix configured endpoints with `/` to avoid relative paths.
+        self.outputEndpoint = outputEndpoint.hasPrefix("/") ? outputEndpoint : "/\(outputEndpoint)"
+        self.swaggerUiEndpoint = swaggerUiEndpoint.hasPrefix("/") ? swaggerUiEndpoint : "/\(swaggerUiEndpoint)"
         self.serverUrls.formUnion(serverUrls)
         self.title = title
         self.version = version
