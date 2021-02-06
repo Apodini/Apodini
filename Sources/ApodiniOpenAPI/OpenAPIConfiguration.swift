@@ -11,9 +11,9 @@ public enum OpenAPIConfigurationDefaults {
     /// Default OpenAPI specification output format.
     public static let outputFormat: OpenAPIOutputFormat = .json
     /// Default OpenAPI specification output endpoint.
-    public static let outputEndpoint: String = "/openapi"
+    public static let outputEndpoint: String = "openapi"
     /// Default swagger-ui endpoint.
-    public static let swaggerUiEndpoint: String = "/openapi-ui"
+    public static let swaggerUiEndpoint: String = "openapi-ui"
 }
 
 /// The enclosing storage entity for OpenAPI-related information.

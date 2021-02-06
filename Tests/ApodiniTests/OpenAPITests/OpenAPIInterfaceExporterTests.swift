@@ -39,7 +39,7 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
 
         let headers: HTTPHeaders = ["Content-Type": HTTPMediaType.html.serialize()]
 
-        try app.vapor.app.test(.GET, "\(OpenAPIConfigurationDefaults.swaggerUiEndpoint)", headers: headers) { res in
+        try app.vapor.app.test(.GET, "/\(OpenAPIConfigurationDefaults.swaggerUiEndpoint)", headers: headers) { res in
             XCTAssertEqual(res.status, .ok)
 
             guard let htmlFile = Bundle.module.path(forResource: "swagger-ui", ofType: "html"),
@@ -48,7 +48,7 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
                 throw Vapor.Abort(.internalServerError)
             }
 
-            html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: OpenAPIConfigurationDefaults.outputEndpoint)
+            html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: "/\(OpenAPIConfigurationDefaults.outputEndpoint)")
 
             XCTAssertEqual(res.body, .init(string: html))
         }

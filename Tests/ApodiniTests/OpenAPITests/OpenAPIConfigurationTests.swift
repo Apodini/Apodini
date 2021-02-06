@@ -40,8 +40,8 @@ final class OpenAPIConfigurationTests: ApodiniTests {
         let storage = try XCTUnwrap(app.storage.get(OpenAPIStorageKey.self))
 
         XCTAssertEqual(storage.configuration.outputFormat, OpenAPIConfigurationDefaults.outputFormat)
-        XCTAssertEqual(storage.configuration.outputEndpoint, OpenAPIConfigurationDefaults.outputEndpoint)
-        XCTAssertEqual(storage.configuration.swaggerUiEndpoint, OpenAPIConfigurationDefaults.swaggerUiEndpoint)
+        XCTAssertEqual(storage.configuration.outputEndpoint, "/\(OpenAPIConfigurationDefaults.outputEndpoint)")
+        XCTAssertEqual(storage.configuration.swaggerUiEndpoint, "/\(OpenAPIConfigurationDefaults.swaggerUiEndpoint)")
         XCTAssertNil(storage.configuration.title)
     }
 }
