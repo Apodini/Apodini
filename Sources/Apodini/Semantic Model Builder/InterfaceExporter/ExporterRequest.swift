@@ -15,7 +15,9 @@ public protocol WithEventLoop {
     var eventLoop: EventLoop { get }
 }
 
+/// Implmented by `ExporterRequest`that provide a remote address.
 public protocol WithRemote {
+    /// The remote address of the client that created the request.
     var remoteAddress: SocketAddress? { get }
 }
 

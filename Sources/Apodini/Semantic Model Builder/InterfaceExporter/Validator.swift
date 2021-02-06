@@ -111,8 +111,12 @@ private class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
         }
 
         if let requestWithRemote = request as? WithRemote {
-            return ValidatedRequest(for: exporter, with: request, using: output, on: endpoint,
-                                    running: eventLoop, remoteAddress: requestWithRemote.remoteAddress)
+            return ValidatedRequest(for: exporter,
+                                    with: request,
+                                    using: output,
+                                    on: endpoint,
+                                    running: eventLoop,
+                                    remoteAddress: requestWithRemote.remoteAddress)
         } else {
             return ValidatedRequest(for: exporter, with: request, using: output, on: endpoint, running: eventLoop, remoteAddress: nil)
         }
