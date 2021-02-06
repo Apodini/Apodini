@@ -125,7 +125,7 @@ extension ProtobufferInterfaceExporter.Builder {
     }
     
     func buildCompositeMessage(_ type: Any.Type) throws -> Tree<ProtobufferMessage> {
-        try EnrichedInfo.node(type)
+        try ReflectionInfo.node(type)
             .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handlePrimitiveType)?

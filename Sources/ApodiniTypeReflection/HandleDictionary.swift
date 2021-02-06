@@ -7,11 +7,11 @@ import Apodini
 /// Handle the `Dictionary` type.
 ///
 /// The presence of a dictionary is mapped to the appropriate cardinality of the property with
-/// `EnrichedInfo.CollectionContext`.
-/// - Parameter node: An `EnrichedInfo` node.
+/// `ReflectionInfo.CollectionContext`.
+/// - Parameter node: An `ReflectionInfo` node.
 /// - Throws: A `RuntimeError`, if `Runtime` encounters an error during reflection.
-/// - Returns: An `EnrichedInfo` node.
-public func handleDictionary(_ node: Node<EnrichedInfo>) throws -> Node<EnrichedInfo> {
+/// - Returns: An `ReflectionInfo` node.
+public func handleDictionary(_ node: Node<ReflectionInfo>) throws -> Node<ReflectionInfo> {
     let typeInfo = node.value.typeInfo
 
     guard mangledName(of: typeInfo.type) == "Dictionary",
@@ -19,18 +19,18 @@ public func handleDictionary(_ node: Node<EnrichedInfo>) throws -> Node<Enriched
         return node
     }
 
-    let keyNode = try EnrichedInfo.node(key)
+    let keyNode = try ReflectionInfo.node(key)
     let keyNodeType = keyNode.value.typeInfo.type
-    let valueNode = try EnrichedInfo.node(value)
+    let valueNode = try ReflectionInfo.node(value)
     
     precondition(isSupportedScalarType(keyNodeType), "Dictionary keys of type \(keyNodeType) are currently not supported. Keys must be primitives.")
 
-    var newEnrichedInfo = EnrichedInfo(
+    var newReflectionInfo = ReflectionInfo(
         typeInfo: valueNode.value.typeInfo,
         propertyInfo: node.value.propertyInfo
     )
     
-    newEnrichedInfo.cardinality = .zeroToMany(.dictionary(key: keyNode.value, value: valueNode.value))
+    newReflectionInfo.cardinality = .zeroToMany(.dictionary(key: keyNode.value, value: valueNode.value))
     
-    return Node(value: newEnrichedInfo, children: valueNode.children)
+    return Node(value: newReflectionInfo, children: valueNode.children)
 }

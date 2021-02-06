@@ -8,22 +8,22 @@ import Apodini
 ///
 /// `Optional`, or the absence of values, is mapped to a propertie's cardinality. The enumeration is
 /// not considered directly. Furthermore, the `Optional.WrappedValue` type is reflected.
-/// - Parameter node: An `EnrichedInfo` node.
+/// - Parameter node: An `ReflectionInfo` node.
 /// - Throws: A `RuntimeError`, if `Runtime` encounters an error during reflection.
-/// - Returns: An `EnrichedInfo` node.
-public func handleOptional(_ node: Node<EnrichedInfo>) throws -> Node<EnrichedInfo> {
+/// - Returns: An `ReflectionInfo` node.
+public func handleOptional(_ node: Node<ReflectionInfo>) throws -> Node<ReflectionInfo> {
     guard isOptional(node.value.typeInfo.type),
           let first = node.value.typeInfo.genericTypes.first else {
         return node
     }
 
-    let newNode = try EnrichedInfo.node(first)
+    let newNode = try ReflectionInfo.node(first)
 
-    var newEnrichedInfo = EnrichedInfo(
+    var newReflectionInfo = ReflectionInfo(
         typeInfo: newNode.value.typeInfo,
         propertyInfo: node.value.propertyInfo
     )
-    newEnrichedInfo.cardinality = .zeroToOne
+    newReflectionInfo.cardinality = .zeroToOne
 
-    return Node(value: newEnrichedInfo, children: newNode.children)
+    return Node(value: newReflectionInfo, children: newNode.children)
 }

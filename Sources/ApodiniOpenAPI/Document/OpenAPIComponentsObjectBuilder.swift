@@ -91,9 +91,9 @@ class OpenAPIComponentsObjectBuilder {
 extension OpenAPIComponentsObjectBuilder {
     /// Builds the schema for a type and returns it together with a suitable title.
     private func buildSchemaWithTitle(for type: Any.Type) throws -> (JSONSchema, String) {
-        let node: Node<EnrichedInfo> = try Self.node(type)
-        let schemaNode = node.contextMap { (node: Node<EnrichedInfo>) -> JSONSchema in
-            let schema = deriveSchemaFromEnrichedInfo(node)
+        let node: Node<ReflectionInfo> = try Self.node(type)
+        let schemaNode = node.contextMap { (node: Node<ReflectionInfo>) -> JSONSchema in
+            let schema = deriveSchemaFromReflectionInfo(node)
             let schemaName = createSchemaName(for: node)
 
             // If there is a reference type that is not yet saved into the
@@ -102,7 +102,7 @@ extension OpenAPIComponentsObjectBuilder {
                 var properties: [String: JSONSchema] = [:]
                 for child in node.children {
                     if let propertyInfo = child.value.propertyInfo {
-                        properties[propertyInfo.name] = deriveSchemaFromEnrichedInfo(child)
+                        properties[propertyInfo.name] = deriveSchemaFromReflectionInfo(child)
                     }
                 }
                 let schemaObject: JSONSchema = .object(title: schema.title, properties: properties)
@@ -120,7 +120,7 @@ extension OpenAPIComponentsObjectBuilder {
     }
 
     /// Creates specification compliant schema names.
-    private func createSchemaName(for node: Node<EnrichedInfo>, root: Bool = false) -> String {
+    private func createSchemaName(for node: Node<ReflectionInfo>, root: Bool = false) -> String {
         var schemaName: String
         if !node.value.typeInfo.genericTypes.isEmpty {
             let openAPICompliantName = node.value.typeInfo.name
@@ -153,7 +153,7 @@ extension OpenAPIComponentsObjectBuilder {
     }
 
     /// Constructs a schema with type specific attributes, e.g. optional.
-    private func deriveSchemaFromEnrichedInfo(_ node: Node<EnrichedInfo>) -> JSONSchema {
+    private func deriveSchemaFromReflectionInfo(_ node: Node<ReflectionInfo>) -> JSONSchema {
         let isPrimitive = node.children.isEmpty
         let isOptional = node.value.cardinality == .zeroToOne
         let isArray = node.value.cardinality == .zeroToMany(.array)
@@ -207,14 +207,14 @@ extension OpenAPIComponentsObjectBuilder {
 // MARK: - Type reflection
 extension OpenAPIComponentsObjectBuilder {
     /// Creates a type tree for a certain type using reflection.
-    static func node(_ type: Any.Type) throws -> Node<EnrichedInfo> {
-        let node = try EnrichedInfo.node(type)
+    static func node(_ type: Any.Type) throws -> Node<ReflectionInfo> {
+        let node = try ReflectionInfo.node(type)
         var counter = 0
         return try recursiveEdit(node: node, counter: &counter)
     }
 
     /// Recursively reflects types in a type tree and adjusts them.
-    private static func recursiveEdit(node: Node<EnrichedInfo>, counter: inout Int) throws -> Node<EnrichedInfo> {
+    private static func recursiveEdit(node: Node<ReflectionInfo>, counter: inout Int) throws -> Node<ReflectionInfo> {
         if counter > OpenAPISchemaConstants.allowedRecursionDepth {
             fatalError("Error occurred during transfering tree of nodes with type \(node.value.typeInfo.name). The recursion depth has exceeded the critical value of \(OpenAPISchemaConstants.allowedRecursionDepth).")
         }
