@@ -70,7 +70,6 @@ jobs:
   createPR:
     name: Create Pull Request
     runs-on: macos-latest
-    needs: [macos, linux]
     steps:
     - uses: actions/checkout@v2
       with:
@@ -91,15 +90,14 @@ jobs:
       run: |
         swift package update --dry-run >> ${{ runner.temp }}/spm-out.txt
         body=$(cat ${{ runner.temp }}/spm-out.txt)
-        body="${body//'%'/'%25'}"
-        body="${body//$'\n'/'%0A'}"
-        body="${body//$'\r'/'%0D'}" 
+        body=${body//$'\n'/'%0A'}
+        body=${body//$'\r'/'%0D'} 
         echo ::set-output name=body::$body
     - name: Update Swift Packages
       run: swift package update
     - uses: peter-evans/create-pull-request@v3
       with:
-        token: ${{ secrets.PAT }}
+        token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: Update dependencies
         title: Update dependencies
         body: |
