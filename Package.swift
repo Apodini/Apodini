@@ -265,7 +265,8 @@ let package = Package(
                 .target(name: "ApodiniProtobuffer"),
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
-                .target(name: "ApodiniNotifications")
+                .target(name: "ApodiniNotifications"),
+                .target(name: "ApodiniDeploy")
             ]
         ),
         
@@ -321,6 +322,13 @@ let package = Package(
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+            ]
+        ),
+        .testTarget(
+            name: "ApodiniDeployTests",
+            dependencies: [
+                .target(name: "XCTApodini"),
+                .product(name: "XCTVapor", package: "vapor")
             ]
         ),
         .target(

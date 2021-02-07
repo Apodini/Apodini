@@ -7,7 +7,11 @@
 
 import Foundation
 @testable import Apodini
+import ApodiniREST
+import XCTApodini
 import Vapor
+@testable import ApodiniVaporSupport
+import XCTVapor
 import XCTest
 import ApodiniDeploy
 
@@ -186,10 +190,16 @@ private struct TestWebService: Apodini.WebService {
             }
         }
     }
+    
+    var configuration: Configuration {
+        ExporterConfiguration()
+            .exporter(RESTInterfaceExporter.self)
+            .exporter(RHIInterfaceExporter.self)
+    }
 }
 
 
-class InvocableHandlerTests: ApodiniTests {
+class InvocableHandlerTests: XCTApodiniTest {
     func testSimpleRemoteHandlerInvocation() throws {
         TestWebService.main(app: app)
         try app.vapor.app.test(.GET, "/v1/f") { res in
