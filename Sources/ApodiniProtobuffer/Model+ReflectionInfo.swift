@@ -3,6 +3,7 @@
 //
 
 import Apodini
+import ApodiniTypeReflection
 @_implementationOnly import Runtime
 
 extension ProtobufferMessage {
@@ -24,8 +25,8 @@ extension ProtobufferMessage {
 }
 
 extension ProtobufferMessage.Property {
-    init?(_ info: EnrichedInfo) throws {
-        guard info.typeInfo.type != ArrayDidEncounterCircle.self else {
+    init?(_ info: ReflectionInfo) throws {
+        guard info.typeInfo.type != HandleArrayDidEncounterCircle.self else {
             return nil
         }
         
