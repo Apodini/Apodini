@@ -6,8 +6,8 @@
 //
 
 import Foundation
+import Apodini
 import ApodiniDeployRuntimeSupport
-import Vapor
 import DeploymentTargetLocalhostCommon
 
 
@@ -26,18 +26,17 @@ public class LocalhostRuntimeSupport: DeploymentProviderRuntimeSupport {
     }
     
     
-    public func configure(_ app: Vapor.Application) throws {
-        app.http.server.configuration.port = currentNodeCustomLaunchInfo.port
+    public func configure(_ app: Apodini.Application) throws {
+        app.http.address = .hostname(nil, port: currentNodeCustomLaunchInfo.port)
+        //app.vapor.app.http.server.configuration.port = currentNodeCustomLaunchInfo.port
     }
     
     
-    public func handleRemoteHandlerInvocation<Response: Decodable>(
-        withId handlerId: String,
-        inTargetNode targetNode: DeployedSystemStructure.Node,
-        responseType: Response.Type,
-        parameters: [HandlerInvocationParameter]
-    ) throws -> RemoteHandlerInvocationRequestResponse<Response> {
-        let LLI = targetNode.readUserInfo(as: LocalhostLaunchInfo.self)!
+    public func handleRemoteHandlerInvocation<Handler: InvocableHandler>(
+        _ invocation: HandlerInvocation<Handler>
+    ) throws -> RemoteHandlerInvocationRequestResponse<Handler.Response.Content> {
+        let LLI = invocation.targetNode.readUserInfo(as: LocalhostLaunchInfo.self)!
+        // TODO read hostname from app?
         return .invokeDefault(url: URL(string: "http://127.0.0.1:\(LLI.port)")!)
     }
 }

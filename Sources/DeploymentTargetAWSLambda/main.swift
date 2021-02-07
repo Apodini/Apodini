@@ -225,10 +225,10 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             nodeIdProvider: { endpoints in
                 print("nodeIdProvider")
                 for endpoint in endpoints {
-                    print("- \(endpoint.handlerIdRawValue) \(endpoint.absolutePath)")
+                    print("- \(endpoint.handlerId) \(endpoint.absolutePath)")
                 }
                 assert(endpoints.count == 1)
-                return endpoints.first!.handlerIdRawValue.replacingOccurrences(of: ".", with: "-")
+                return endpoints.first!.handlerId.rawValue.replacingOccurrences(of: ".", with: "-")
             }
         )
         

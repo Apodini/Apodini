@@ -12,7 +12,7 @@ import ApodiniOpenAPI
 
 
 
-struct RandomNumberGenerator: InvocableHandler {
+struct RandomNumberGenerator: InvocableHandler, HandlerWithDeploymentOptions {
     class HandlerIdentifier: ScopedHandlerIdentifier<RandomNumberGenerator> {
         static let main = HandlerIdentifier("main")
         static let other = HandlerIdentifier("other")
@@ -63,6 +63,7 @@ struct Greeter: Handler {
             "Hello, \(name). Your random number in range \(age)...\(2 * age) is \(randomNumber)!"
         }
     }
+    
 }
 
 
@@ -89,12 +90,9 @@ struct WebService: Apodini.WebService {
             runtimes: [LocalhostRuntimeSupport.self, LambdaRuntime.self],
             config: DeploymentConfig()
         )
-        
     }
 }
 
 
-try WebService.main(deploymentProviders: [
-    LocalhostRuntimeSupport.self, LambdaRuntime.self
-])
+try WebService.main()
 

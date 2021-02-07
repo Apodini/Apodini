@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Apodini
 
 
 
@@ -61,9 +62,9 @@ public struct WebServiceStructure: Codable { // TODO this needs a better name. m
 
 
 public struct ExportedEndpoint: Codable, Hashable, Equatable {
-    public let handlerType: String
-    /// The `rawValue` of the identifier of the  handler this endpoint was generated for
-    public let handlerIdRawValue: String
+    public let handlerType: HandlerTypeIdentifier
+    /// Identifier of the  handler this endpoint was generated for
+    public let handlerId: AnyHandlerIdentifier
     /// The endpoint's handler's deployment options
     public let deploymentOptions: DeploymentOptions
     
@@ -75,15 +76,15 @@ public struct ExportedEndpoint: Codable, Hashable, Equatable {
     
     
     public init(
-        handlerType: String,
-        handlerIdRawValue: String,
+        handlerType: HandlerTypeIdentifier,
+        handlerId: AnyHandlerIdentifier,
         deploymentOptions: DeploymentOptions,
         httpMethod: String,
         absolutePath: String,
         userInfo: [String: Data]
     ) {
         self.handlerType = handlerType
-        self.handlerIdRawValue = handlerIdRawValue
+        self.handlerId = handlerId
         self.deploymentOptions = deploymentOptions
         self.httpMethod = httpMethod
         self.absolutePath = absolutePath
@@ -92,11 +93,11 @@ public struct ExportedEndpoint: Codable, Hashable, Equatable {
     
     
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(self.handlerIdRawValue)
+        hasher.combine(self.handlerId)
     }
     
     public static func == (lhs: ExportedEndpoint, rhs: ExportedEndpoint) -> Bool {
-        lhs.handlerIdRawValue == rhs.handlerIdRawValue
+        lhs.handlerId == rhs.handlerId
     }
 }
 

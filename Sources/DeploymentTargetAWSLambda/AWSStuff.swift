@@ -16,6 +16,7 @@ import SotoSTS
 import ApodiniDeployBuildSupport
 import OpenAPIKit
 import DeploymentTargetAWSLambdaCommon
+import Apodini
 
 
 
@@ -294,7 +295,7 @@ class AWSDeploymentStuff { // needs a better name
         
         
         func lambdaFunctionConfigForHandlerId(_ handlerId: String) -> Lambda.FunctionConfiguration {
-            let node = deploymentStructure.nodeExportingEndpoint(withHandlerId: handlerId)!
+            let node = deploymentStructure.nodeExportingEndpoint(withHandlerId: AnyHandlerIdentifier(handlerId))!
             return nodeToLambdaFunctionMapping[node.id]!
         }
         

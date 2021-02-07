@@ -62,7 +62,7 @@ private struct ProxyRequestResponder: Vapor.Responder {
     let endpoint: ExportedEndpoint
     
     func respond(to request: Request) -> EventLoopFuture<Response> {
-        guard let targetNode = proxyServer.deployedSystem.nodeExportingEndpoint(withHandlerId: endpoint.handlerIdRawValue) else {
+        guard let targetNode = proxyServer.deployedSystem.nodeExportingEndpoint(withHandlerId: endpoint.handlerId) else {
             return request.eventLoop.makeFailedFuture(NSError(domain: "sorry", code: 0, userInfo: [:]))
         }
         let targetNodeLocalhostData = targetNode.readUserInfo(as: LocalhostLaunchInfo.self)!

@@ -8,6 +8,7 @@
 
 import Foundation
 import Runtime
+import Apodini
 
 
 
@@ -95,21 +96,49 @@ public struct old_DeploymentConfig: Codable {
 
 
 
+public struct HandlerTypeIdentifier: Codable, Hashable, Equatable {
+    private let rawValue: String
+    
+    public init<H: Handler>(_: H.Type) {
+        self.rawValue = "\(H.self)"
+    }
+    
+    public init(from decoder: Decoder) throws {
+        rawValue = try decoder.singleValueContainer().decode(String.self)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+    
+    
+    public static func == <H: Handler> (lhs: HandlerTypeIdentifier, rhs: H.Type) -> Bool {
+        lhs == HandlerTypeIdentifier(rhs)
+    }
+    
+    public static func == <H: Handler> (lhs: H.Type, rhs: HandlerTypeIdentifier) -> Bool {
+        HandlerTypeIdentifier(lhs) == rhs
+    }
+}
+
+
+
+
+
 
 // TODO rename to smth like DeploymentGroupInput? this isn't the actual deployment group, just the input collected from the user, which will later be used to create the proper deployment group
 public struct DeploymentGroup: Codable, Hashable, Equatable {
     public typealias ID = String
-    public enum InputKind: String, Codable {
-        case handlerId, handlerType
-    }
-    public let id: ID
-    public let inputKind: InputKind
-    public let input: Set<String>
     
-    public init(id: ID? = nil, inputKind: InputKind, input: Set<String>) {
+    public let id: ID
+    public let handlerTypes: Set<HandlerTypeIdentifier>
+    public let handlerIds: Set<AnyHandlerIdentifier>
+    
+    public init(id: ID? = nil, handlerTypes: Set<HandlerTypeIdentifier>, handlerIds: Set<AnyHandlerIdentifier>) {
         self.id = id ?? Self.generateGroupId()
-        self.inputKind = inputKind
-        self.input = input
+        self.handlerTypes = handlerTypes
+        self.handlerIds = handlerIds
     }
     
     public static func generateGroupId() -> ID {

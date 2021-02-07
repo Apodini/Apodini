@@ -13,6 +13,7 @@ import ApodiniVaporSupport
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
 import OpenAPIKit
+@_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
 
@@ -49,6 +50,10 @@ extension Vapor.HTTPMethod {
 
 
 
+struct TmpErrorType: Swift.Error {
+    let message: String
+}
+
 
 /// A custom internal interface exporter, which:
 /// a) compiles a list of all handlers (via their `Endpoint` objects). These are used to determine the target endpoint when manually invoking a handler.
@@ -84,7 +89,7 @@ public class RHIInterfaceExporter: InterfaceExporter { // TODO rename to somethi
     
     
     private struct CollectedEndpointInfo {
-        let handlerType: String
+        let handlerType: HandlerTypeIdentifier
         let endpoint: AnyEndpoint
         let deploymentOptions: DeploymentOptions
     }
@@ -118,11 +123,10 @@ public class RHIInterfaceExporter: InterfaceExporter { // TODO rename to somethi
             explicitlyCreatedDeploymentGroups[groupId]!.insert(endpoint.identifier)
         }
         collectedEndpoints.append(CollectedEndpointInfo(
-            handlerType: "\(H.self)",
+            handlerType: HandlerTypeIdentifier(H.self),
             endpoint: endpoint,
             deploymentOptions: CollectedOptions(reducing: [
-                H.deploymentOptions,
-                endpoint.handler.deploymentOptions,
+                endpoint.handler.getDeploymentOptions(),
                 endpoint.context.get(valueFor: HandlerDeploymentOptionsSyntaxNodeContextKey.self)
             ].flatMap { $0.compactMap { $0.resolve(against: endpoint.handler) } })
         ))
@@ -167,7 +171,7 @@ public class RHIInterfaceExporter: InterfaceExporter { // TODO rename to somethi
         case WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig:
             let configUrl = URL(fileURLWithPath: args[2])
             guard let currentNodeId = ProcessInfo.processInfo.environment[WellKnownEnvironmentVariables.currentNodeId] else {
-                throw ApodiniStartupError(message: "Unable to find '\(WellKnownEnvironmentVariables.currentNodeId)' environment variable")
+                throw TmpErrorType(message: "Unable to find '\(WellKnownEnvironmentVariables.currentNodeId)' environment variable")
             }
             do {
                 let deployedSystem = try DeployedSystemStructure(contentsOf: configUrl)
@@ -175,13 +179,13 @@ public class RHIInterfaceExporter: InterfaceExporter { // TODO rename to somethi
                     let runtimes = self.app.storage.get(ApodiniDeployConfiguration.StorageKey.self)?.runtimes,
                     let DPRSType = runtimes.first(where: { $0.deploymentProviderId == deployedSystem.deploymentProviderId })
                 else {
-                    throw ApodiniStartupError(message: "Unable to find deployment runtime with id '\(deployedSystem.deploymentProviderId.rawValue)'")
+                    throw TmpErrorType(message: "Unable to find deployment runtime with id '\(deployedSystem.deploymentProviderId.rawValue)'")
                 }
                 let runtimeSupport = try DPRSType.init(deployedSystem: deployedSystem, currentNodeId: currentNodeId)
                 self.deploymentProviderRuntime = runtimeSupport
-                try runtimeSupport.configure(app.vapor.app)
+                try runtimeSupport.configure(app)
             } catch {
-                throw ApodiniStartupError(message: "Unable to launch with custom config: \(error)")
+                throw TmpErrorType(message: "Unable to launch with custom config: \(error)")
             }
             
         default:
@@ -254,7 +258,7 @@ extension RHIInterfaceExporter {
                 let endpoint = endpointInfo.endpoint
                 return ExportedEndpoint(
                     handlerType: endpointInfo.handlerType,
-                    handlerIdRawValue: endpoint.identifier.rawValue,
+                    handlerId: endpoint.identifier,
                     deploymentOptions: endpointInfo.deploymentOptions,
                     httpMethod: Vapor.HTTPMethod(endpoint.operation).string, // TODO remove this and load it from the OpenAPI def instead?. same for the path...
                     absolutePath: endpoint.absolutePath.asPathString(parameterEncoding: .id),
@@ -262,13 +266,10 @@ extension RHIInterfaceExporter {
                 )
             }),
             deploymentConfig: DeploymentConfig(
-                //deploymentGroups: deploymentConfig.deploymentGroups + explicitlyCreatedDeploymentGroups.map({ key, value -> DeploymentGroup in
-                //    return DeploymentGroup()
-                //})
                 deploymentGroups: DeploymentGroupsConfig(
                     defaultGrouping: deploymentConfig.deploymentGroups.defaultGrouping,
                     groups: deploymentConfig.deploymentGroups.groups + explicitlyCreatedDeploymentGroups.map { groupId, handlerIds -> DeploymentGroup in
-                        return DeploymentGroup(id: groupId, inputKind: .handlerId, input: Set(handlerIds.map(\.rawValue)))
+                        DeploymentGroup(id: groupId, handlerTypes: [], handlerIds: handlerIds)
                     }
                 )
             ),
@@ -282,6 +283,9 @@ extension RHIInterfaceExporter {
 }
 
 
+
+// MARK: Extensions
+
 extension Set {
     static func + (lhs: Self, rhs: Self) -> Self {
         lhs.union(rhs)
@@ -293,5 +297,43 @@ extension Set {
     
     static func + <S> (lhs: S, rhs: Self) -> Self where S: Sequence, S.Element == Self.Element {
         rhs.union(lhs)
+    }
+}
+
+
+
+
+// MARK: Utils
+
+
+private protocol HandlerWithDeploymentOptionsATRVisitorHelper: AssociatedTypeRequirementsVisitor {
+    associatedtype Visitor = HandlerWithDeploymentOptionsATRVisitorHelper
+    associatedtype Input = HandlerWithDeploymentOptions
+    associatedtype Output
+    func callAsFunction<T: HandlerWithDeploymentOptions>(_ value: T) -> Output
+}
+
+
+private struct HandlerWithDeploymentOptionsATRVisitor: HandlerWithDeploymentOptionsATRVisitorHelper {
+    func callAsFunction<H: HandlerWithDeploymentOptions>(_: H) -> [AnyDeploymentOption] {
+        return H.deploymentOptions
+    }
+    
+    @inline(never) @_optimize(none)
+    fileprivate func _test() {
+        // TODO is this actually necessary?
+        struct TestHandler: HandlerWithDeploymentOptions {
+            typealias Response = Never
+            static var deploymentOptions: [AnyDeploymentOption] { return [] }
+        }
+        _ = self(TestHandler())
+    }
+}
+
+
+extension Handler {
+    /// If `self` is an `IdentifiableHandler`, returns the handler's `handlerId`. Otherwise nil
+    internal func getDeploymentOptions() -> [AnyDeploymentOption] {
+        HandlerWithDeploymentOptionsATRVisitor()(self) ?? []
     }
 }

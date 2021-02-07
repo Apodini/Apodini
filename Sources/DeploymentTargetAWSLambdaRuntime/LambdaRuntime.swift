@@ -7,6 +7,7 @@
 
 import Foundation
 import Vapor
+import Apodini
 import ApodiniDeployRuntimeSupport
 import DeploymentTargetAWSLambdaCommon
 import VaporAWSLambdaRuntime
@@ -31,19 +32,16 @@ public class LambdaRuntime: DeploymentProviderRuntimeSupport {
     }
     
     
-    public func configure(_ app: Vapor.Application) throws {
+    public func configure(_ app: Apodini.Application) throws {
         print("-[\(Self.self) \(#function)] env", ProcessInfo.processInfo.environment)
-        app.servers.use(.lambda)
-        app.http.server.configuration.address = .hostname(lambdaDeploymentContext.apiGatewayHostname, port: 443)
+        app.vapor.app.servers.use(.lambda)
+        //app.vapor.app.http.server.configuration.address = .hostname(lambdaDeploymentContext.apiGatewayHostname, port: 443)
     }
     
     
-    public func handleRemoteHandlerInvocation<Response: Decodable>(
-        withId handlerId: String,
-        inTargetNode targetNode: DeployedSystemStructure.Node,
-        responseType: Response.Type,
-        parameters: [HandlerInvocationParameter]
-    ) throws -> RemoteHandlerInvocationRequestResponse<Response> {
-        return .invokeDefault(url: URL(string: "https://\(lambdaDeploymentContext.apiGatewayHostname)")!)
+    public func handleRemoteHandlerInvocation<Handler: InvocableHandler>(
+        _ invocation: HandlerInvocation<Handler>
+    ) throws -> RemoteHandlerInvocationRequestResponse<Handler.Response.Content> {
+        .invokeDefault(url: URL(string: "https://\(lambdaDeploymentContext.apiGatewayHostname)")!)
     }
 }

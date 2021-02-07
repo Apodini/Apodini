@@ -189,13 +189,18 @@ extension RemoteHandlerInvocationManager {
                 fatalError("Missing parameters in remote handler invocation: \(missingParamNames)")
             }
             
+            assert(handlerId == targetEndpoint.identifier)
+            
             do {
-                let runtimeHandlingResult = try runtime.handleRemoteHandlerInvocation(
-                    withId: targetEndpoint.identifier.rawValue,
-                    inTargetNode: targetNode,
-                    responseType: H.Response.Content.self,
-                    parameters: invocationParams
-                )
+                let handlerInvocation = HandlerInvocation<H>(handlerId: handlerId, targetNode: targetNode, parameters: invocationParams)
+                let runtimeHandlingResult = try runtime.handleRemoteHandlerInvocation(handlerInvocation)
+                
+//                let runtimeHandlingResult = try runtime.handleRemoteHandlerInvocation(
+//                    withId: targetEndpoint.identifier.rawValue,
+//                    inTargetNode: targetNode,
+//                    responseType: H.Response.Content.self,
+//                    parameters: invocationParams
+//                )
                 switch runtimeHandlingResult {
                 case .result(let future):
                     return future
@@ -254,7 +259,7 @@ extension RemoteHandlerInvocationManager {
             // If there's no runtime registered, we wouldn't be able to dispatch the invocation anyway
             return .locally
         }
-        let handlerId = endpoint.identifier.rawValue
+        let handlerId = endpoint.identifier
         if let targetNode = runtime.deployedSystem.nodeExportingEndpoint(withHandlerId: handlerId) {
             let currentNode = runtime.deployedSystem.node(withId: runtime.currentNodeId)!
             return targetNode == currentNode ? .locally : .remotely(targetNode)

@@ -15,6 +15,7 @@ import Darwin
 #endif
 
 
+import Apodini
 
 
 
@@ -214,12 +215,7 @@ extension DeploymentProvider {
 extension DeploymentGroup {
     // whether this group should contain the exported endpoint
     func matches(exportedEndpoint: ExportedEndpoint) -> Bool {
-        switch self.inputKind {
-        case .handlerId:
-            return self.input.contains(exportedEndpoint.handlerIdRawValue)
-        case .handlerType:
-            return self.input.contains(exportedEndpoint.handlerType)
-        }
+        handlerTypes.contains(exportedEndpoint.handlerType) || handlerIds.contains(exportedEndpoint.handlerId)
     }
 }
 
@@ -242,13 +238,13 @@ extension Set {
 extension Sequence where Element == DeployedSystemStructure.Node {
     // check that, in the sequence of nodes, every handler appears in only one node
     func assertHandlersLimitedToSingleNode() throws {
-        var exportedHandlerIds = Set<String>()
+        var exportedHandlerIds = Set<AnyHandlerIdentifier>()
         // make sure a handler isn't listed in multiple nodes
         for node in self {
             for endpoint in node.exportedEndpoints {
-                guard exportedHandlerIds.insert(endpoint.handlerIdRawValue).inserted else {
+                guard exportedHandlerIds.insert(endpoint.handlerId).inserted else {
                     throw ApodiniDeploySupportError(
-                        message: "Handler with id '\(endpoint.handlerIdRawValue)' appears in multiple deployment groups, which is illegal."
+                        message: "Handler with id '\(endpoint.handlerId)' appears in multiple deployment groups, which is illegal."
                     )
                 }
             }
@@ -258,8 +254,8 @@ extension Sequence where Element == DeployedSystemStructure.Node {
     // check that the sequence of nodes contains all endpoints from the other set
     func assertContainsAllEndpointsIn(_ allEndpoints: Set<ExportedEndpoint>) throws {
         // make sure every handler appears in one node
-        let exportedHandlerIds = Set(self.flatMap(\.exportedEndpoints).map(\.handlerIdRawValue))
-        let expectedHandlerIds = Set(allEndpoints.map(\.handlerIdRawValue))
+        let exportedHandlerIds = Set(self.flatMap(\.exportedEndpoints).map(\.handlerId))
+        let expectedHandlerIds = Set(allEndpoints.map(\.handlerId))
         guard expectedHandlerIds == exportedHandlerIds else {
             assert(exportedHandlerIds.isSubset(of: expectedHandlerIds))
             // All handler ids which appear in one of the two sets, but not in both.
@@ -267,7 +263,7 @@ extension Sequence where Element == DeployedSystemStructure.Node {
             // this difference is the set of all handlers which aren't exported by a node
             let diff = expectedHandlerIds.symmetricDifference(exportedHandlerIds)
             throw ApodiniDeploySupportError(
-                message: "Handler ids\(diff.map({ "'\($0)'" }).joined(separator: ", "))"
+                message: "Handler ids\(diff.map({ "'\($0.rawValue)'" }).joined(separator: ", "))"
             )
         }
     }

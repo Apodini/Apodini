@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Apodini
 
 
 // TODO rename file
@@ -71,8 +72,8 @@ extension DeployedSystemStructure {
         nodes.first { $0.id == nodeId }
     }
     
-    public func nodeExportingEndpoint(withHandlerId handlerId: String) -> Node? {
-        nodes.first { $0.exportedEndpoints.contains { $0.handlerIdRawValue == handlerId } }
+    public func nodeExportingEndpoint(withHandlerId handlerId: AnyHandlerIdentifier) -> Node? {
+        nodes.first { $0.exportedEndpoints.contains { $0.handlerId == handlerId } }
     }
 }
 

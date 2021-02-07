@@ -132,7 +132,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
             // - relaunch the exited child (would be useful if a child exits due to a fatal error)
             try task.launchAsync()
             let LLI = node.readUserInfo(as: LocalhostLaunchInfo.self)!
-            logger.notice("node \(node.id) w/ pid \(task.pid) listening at :\(LLI.port). exported endpoints: \(node.exportedEndpoints.map(\.handlerIdRawValue))")
+            logger.notice("node \(node.id) w/ pid \(task.pid) listening at :\(LLI.port). exported endpoints: \(node.exportedEndpoints.map(\.handlerId))")
         }
                 
         logger.notice("Starting proxy server")

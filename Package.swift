@@ -80,9 +80,7 @@ let package = Package(
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Runtime", package: "Runtime"),
-                .product(name: "ConsoleKit", package: "console-kit"),
-                .target(name: "ApodiniDeployBuildSupport"),
-                .target(name: "ApodiniDeployRuntimeSupport")
+                .product(name: "ConsoleKit", package: "console-kit")
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb",
@@ -282,7 +280,8 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniVaporSupport"),
                 .target(name: "ApodiniOpenAPI"),
-                .product(name: "OpenAPIKit", package: "OpenAPIKit")
+                .product(name: "OpenAPIKit", package: "OpenAPIKit"),
+                .target(name: "ApodiniDeployRuntimeSupport")
             ]
         ),
         
@@ -291,6 +290,7 @@ let package = Package(
             name: "ApodiniDeployBuildSupport",
             dependencies: [
                 .target(name: "CApodiniDeployBuildSupport"),
+                .target(name: "Apodini"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Runtime", package: "Runtime")
             ]
@@ -299,6 +299,8 @@ let package = Package(
             name: "ApodiniDeployRuntimeSupport",
             dependencies: [
                 .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "Apodini"),
+                .target(name: "ApodiniVaporSupport"),
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
