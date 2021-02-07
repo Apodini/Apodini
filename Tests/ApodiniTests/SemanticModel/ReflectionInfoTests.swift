@@ -3,41 +3,42 @@
 //
 
 import XCTest
+import ApodiniTypeReflection
 @_implementationOnly import Runtime
 
 @testable import Apodini
 
-class EnrichedInfoTests: ApodiniTests {
+class ReflectionInfoTests: ApodiniTests {
     func testCardinalityIsEquatable() throws {
-        let keyType = EnrichedInfo(
+        let keyType = ReflectionInfo(
             typeInfo: try typeInfo(of: String.self),
             propertyInfo: nil
         )
-        let valueType = EnrichedInfo(
+        let valueType = ReflectionInfo(
             typeInfo: try typeInfo(of: Int.self),
             propertyInfo: nil
         )
         
         XCTAssertEqual(
-            EnrichedInfo.Cardinality.zeroToOne,
-            EnrichedInfo.Cardinality.zeroToOne
+            ReflectionInfo.Cardinality.zeroToOne,
+            ReflectionInfo.Cardinality.zeroToOne
         )
         XCTAssertEqual(
-            EnrichedInfo.Cardinality.exactlyOne,
-            EnrichedInfo.Cardinality.exactlyOne
+            ReflectionInfo.Cardinality.exactlyOne,
+            ReflectionInfo.Cardinality.exactlyOne
         )
         XCTAssertEqual(
-            EnrichedInfo.Cardinality.zeroToMany(.array),
-            EnrichedInfo.Cardinality.zeroToMany(.array)
+            ReflectionInfo.Cardinality.zeroToMany(.array),
+            ReflectionInfo.Cardinality.zeroToMany(.array)
         )
         XCTAssertEqual(
-            EnrichedInfo.Cardinality.zeroToMany(
+            ReflectionInfo.Cardinality.zeroToMany(
                 .dictionary(
                     key: keyType,
                     value: valueType
                 )
             ),
-            EnrichedInfo.Cardinality.zeroToMany(
+            ReflectionInfo.Cardinality.zeroToMany(
                 .dictionary(
                     key: keyType,
                     value: valueType
@@ -45,10 +46,10 @@ class EnrichedInfoTests: ApodiniTests {
             )
         )
         XCTAssertNotEqual(
-            EnrichedInfo.Cardinality.zeroToMany(
+            ReflectionInfo.Cardinality.zeroToMany(
                 .array
             ),
-            EnrichedInfo.Cardinality.zeroToMany(
+            ReflectionInfo.Cardinality.zeroToMany(
                 .dictionary(
                     key: keyType,
                     value: valueType
@@ -56,67 +57,67 @@ class EnrichedInfoTests: ApodiniTests {
             )
         )
         XCTAssertNotEqual(
-            EnrichedInfo.Cardinality.zeroToOne,
-            EnrichedInfo.Cardinality.exactlyOne
+            ReflectionInfo.Cardinality.zeroToOne,
+            ReflectionInfo.Cardinality.exactlyOne
         )
         XCTAssertNotEqual(
-            EnrichedInfo.Cardinality.zeroToOne,
-            EnrichedInfo.Cardinality.zeroToMany(.array)
+            ReflectionInfo.Cardinality.zeroToOne,
+            ReflectionInfo.Cardinality.zeroToMany(.array)
         )
         XCTAssertNotEqual(
-            EnrichedInfo.Cardinality.exactlyOne,
-            EnrichedInfo.Cardinality.zeroToMany(.array)
+            ReflectionInfo.Cardinality.exactlyOne,
+            ReflectionInfo.Cardinality.zeroToMany(.array)
         )
     }
 
     func testCollectionContextIsEquatable() throws {
-        let keyType = EnrichedInfo(
+        let keyType = ReflectionInfo(
             typeInfo: try typeInfo(of: String.self),
             propertyInfo: nil
         )
-        let valueType = EnrichedInfo(
+        let valueType = ReflectionInfo(
             typeInfo: try typeInfo(of: Int.self),
             propertyInfo: nil
         )
-        let valueType1 = EnrichedInfo(
+        let valueType1 = ReflectionInfo(
             typeInfo: try typeInfo(of: String.self),
             propertyInfo: nil
         )
         
         XCTAssertEqual(
-            EnrichedInfo.CollectionContext.array,
-            EnrichedInfo.CollectionContext.array
+            ReflectionInfo.CollectionContext.array,
+            ReflectionInfo.CollectionContext.array
         )
         XCTAssertEqual(
-            EnrichedInfo.CollectionContext.dictionary(key: keyType, value: valueType),
-            EnrichedInfo.CollectionContext.dictionary(key: keyType, value: valueType)
+            ReflectionInfo.CollectionContext.dictionary(key: keyType, value: valueType),
+            ReflectionInfo.CollectionContext.dictionary(key: keyType, value: valueType)
         )
         XCTAssertNotEqual(
-            EnrichedInfo.CollectionContext.dictionary(key: keyType, value: valueType),
-            EnrichedInfo.CollectionContext.array
+            ReflectionInfo.CollectionContext.dictionary(key: keyType, value: valueType),
+            ReflectionInfo.CollectionContext.array
         )
         XCTAssertNotEqual(
-            EnrichedInfo.CollectionContext.dictionary(key: keyType, value: valueType),
-            EnrichedInfo.CollectionContext.dictionary(key: keyType, value: valueType1)
+            ReflectionInfo.CollectionContext.dictionary(key: keyType, value: valueType),
+            ReflectionInfo.CollectionContext.dictionary(key: keyType, value: valueType1)
         )
     }
 
-    func testEnrichedInfoIsEquatable() throws {
-        let stringType = EnrichedInfo(
+    func testReflectionInfoIsEquatable() throws {
+        let stringType = ReflectionInfo(
             typeInfo: try typeInfo(of: String.self),
             propertyInfo: nil
         )
-        let stringType1 = EnrichedInfo(
+        let stringType1 = ReflectionInfo(
             typeInfo: try typeInfo(of: String.self),
             propertyInfo: nil
         )
-        let intType = EnrichedInfo(
+        let intType = ReflectionInfo(
             typeInfo: try typeInfo(of: Int.self),
             propertyInfo: nil
         )
         let complexReflectedType = try typeInfo(of: Array<Int>.self)
         let complexReflectedTypeProperty = try typeInfo(of: complexReflectedType.properties[0].type)
-        let complexTypePropertyInfo = EnrichedInfo(
+        let complexTypePropertyInfo = ReflectionInfo(
             typeInfo: complexReflectedTypeProperty,
             propertyInfo: .init(
                 name: complexReflectedType.properties[0].name,
@@ -124,7 +125,7 @@ class EnrichedInfoTests: ApodiniTests {
             ),
             cardinality: .exactlyOne
         )
-        let complexTypePropertyInfo1 = EnrichedInfo(
+        let complexTypePropertyInfo1 = ReflectionInfo(
             typeInfo: complexReflectedTypeProperty,
             propertyInfo: .init(
                 name: "",
@@ -132,7 +133,7 @@ class EnrichedInfoTests: ApodiniTests {
             ),
             cardinality: .exactlyOne
         )
-        let complexTypePropertyInfo2 = EnrichedInfo(
+        let complexTypePropertyInfo2 = ReflectionInfo(
             typeInfo: complexReflectedTypeProperty,
             propertyInfo: .init(
                 name: complexReflectedType.properties[0].name,
@@ -140,7 +141,7 @@ class EnrichedInfoTests: ApodiniTests {
             ),
             cardinality: .exactlyOne
         )
-        let complexTypePropertyInfo3 = EnrichedInfo(
+        let complexTypePropertyInfo3 = ReflectionInfo(
             typeInfo: complexReflectedTypeProperty,
             propertyInfo: .init(
                 name: complexReflectedType.properties[0].name,

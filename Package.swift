@@ -10,15 +10,16 @@ let package = Package(
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
-        .library(name: "ApodiniVaporSupport", targets: ["ApodiniVaporSupport"]),
-        .library(name: "ApodiniREST", targets: ["ApodiniREST"]),
-        .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
-        .library(name: "ApodiniOpenAPI", targets: ["ApodiniOpenAPI"]),
-        .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
-        .library(name: "ApodiniProtobuffer", targets: ["ApodiniProtobuffer"]),
         .library(name: "ApodiniDatabase", targets: ["ApodiniDatabase"]),
+        .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
+        .library(name: "ApodiniJobs", targets: ["ApodiniJobs"]),
         .library(name: "ApodiniNotifications", targets: ["ApodiniNotifications"]),
-        .library(name: "ApodiniJobs", targets: ["ApodiniJobs"])
+        .library(name: "ApodiniOpenAPI", targets: ["ApodiniOpenAPI"]),
+        .library(name: "ApodiniProtobuffer", targets: ["ApodiniProtobuffer"]),
+        .library(name: "ApodiniREST", targets: ["ApodiniREST"]),
+        .library(name: "ApodiniTypeReflection", targets: ["ApodiniTypeReflection"]),
+        .library(name: "ApodiniVaporSupport", targets: ["ApodiniVaporSupport"]),
+        .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.39.1"),
@@ -73,6 +74,23 @@ let package = Package(
                 "Relationships/RelationshipIdentificationBuilder.swift.gyb"
             ]
         ),
+
+        .testTarget(
+            name: "ApodiniTests",
+            dependencies: [
+                .target(name: "XCTApodini"),
+                .target(name: "ApodiniDatabase"),
+                .product(name: "XCTVapor", package: "vapor"),
+                .product(name: "OpenCombine", package: "OpenCombine"),
+                .product(name: "OpenCombineFoundation", package: "OpenCombine")
+            ],
+            exclude: [
+                "ConfigurationTests/Certificates/cert.pem",
+                "ConfigurationTests/Certificates/key.pem",
+                "ConfigurationTests/Certificates/key2.pem"
+            ]
+        ),
+
         .target(
             name: "ApodiniDatabase",
             dependencies: [
@@ -88,23 +106,6 @@ let package = Package(
         ),
 
         .target(
-            name: "ApodiniVaporSupport",
-            dependencies: [
-                .target(name: "Apodini"),
-                .product(name: "Vapor", package: "vapor")
-            ]
-        ),
-
-        .target(
-            name: "ApodiniREST",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniVaporSupport"),
-                .product(name: "FluentKit", package: "fluent-kit")
-            ]
-        ),
-
-        .target(
             name: "ApodiniGRPC",
             dependencies: [
                 .target(name: "Apodini"),
@@ -114,39 +115,18 @@ let package = Package(
         ),
 
         .target(
-            name: "ApodiniOpenAPI",
+            name: "ApodiniJobs",
             dependencies: [
                 .target(name: "Apodini"),
-                .target(name: "ApodiniVaporSupport"),
-                .product(name: "OpenAPIKit", package: "OpenAPIKit"),
-                .product(name: "Yams", package: "Yams")
-            ],
-            resources: [
-                .process("Resources")
+                .product(name: "SwifCron", package: "SwifCron")
             ]
         ),
 
-        .target(
-            name: "ApodiniWebSocket",
+        .testTarget(
+            name: "ApodiniJobsTests",
             dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniVaporSupport"),
-                .product(name: "OpenCombine", package: "OpenCombine"),
-                .product(name: "OpenCombineFoundation", package: "OpenCombine"),
-                .product(name: "Vapor", package: "vapor"),
-                .product(name: "NIOWebSocket", package: "swift-nio"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
-                .product(name: "Runtime", package: "Runtime")
-            ]
-        ),
-
-        .target(
-            name: "ApodiniProtobuffer",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniVaporSupport"),
-                .target(name: "ProtobufferCoding"),
-                .target(name: "ApodiniGRPC")
+                .target(name: "ApodiniJobs"),
+                .target(name: "XCTApodini")
             ]
         ),
 
@@ -177,6 +157,89 @@ let package = Package(
         ),
 
         .target(
+            name: "ApodiniOpenAPI",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniTypeReflection"),
+                .product(name: "OpenAPIKit", package: "OpenAPIKit"),
+                .product(name: "Yams", package: "Yams")
+            ],
+            resources: [
+                .process("Resources")
+            ]
+        ),
+
+        .target(
+            name: "ApodiniProtobuffer",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniTypeReflection"),
+                .target(name: "ApodiniVaporSupport"),
+                .target(name: "ProtobufferCoding"),
+                .target(name: "ApodiniGRPC")
+            ]
+        ),
+
+        .target(
+            name: "ApodiniREST",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "FluentKit", package: "fluent-kit")
+            ]
+        ),
+
+        .target(
+            name: "ApodiniTypeReflection",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "Runtime", package: "Runtime")
+            ]
+        ),
+
+        .target(
+            name: "ApodiniVaporSupport",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "Vapor", package: "vapor")
+            ]
+        ),
+
+        .target(
+            name: "ApodiniWebSocket",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "OpenCombine", package: "OpenCombine"),
+                .product(name: "OpenCombineFoundation", package: "OpenCombine"),
+                .product(name: "Vapor", package: "vapor"),
+                .product(name: "NIOWebSocket", package: "swift-nio"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
+                .product(name: "Runtime", package: "Runtime")
+            ]
+        ),
+
+        // ProtobufferCoding
+
+        .target(
+            name: "ProtobufferCoding",
+            dependencies: [
+                .product(name: "Runtime", package: "Runtime")
+            ],
+            exclude:["README.md"]
+        ),
+
+        .testTarget(
+            name: "ProtobufferCodingTests",
+            dependencies: [
+                .target(name: "ProtobufferCoding")
+            ]
+        ),
+
+        // XCTApodini
+
+        .target(
             name: "XCTApodini",
             dependencies: [
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
@@ -189,51 +252,6 @@ let package = Package(
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniNotifications")
-            ]
-        ),
-        .testTarget(
-            name: "ApodiniTests",
-            dependencies: [
-                .target(name: "XCTApodini"),
-                .target(name: "ApodiniDatabase"),
-                .product(name: "XCTVapor", package: "vapor"),
-                .product(name: "OpenCombine", package: "OpenCombine"),
-                .product(name: "OpenCombineFoundation", package: "OpenCombine")
-            ],
-            exclude: [
-                "ConfigurationTests/Certificates/cert.pem",
-                "ConfigurationTests/Certificates/key.pem",
-                "ConfigurationTests/Certificates/key2.pem"
-            ]
-        ),
-        // ProtobufferCoding
-        .target(
-            name: "ProtobufferCoding",
-            dependencies: [
-                .product(name: "Runtime", package: "Runtime")
-            ],
-            exclude:["README.md"]
-        ),
-        .testTarget(
-            name: "ProtobufferCodingTests",
-            dependencies: [
-                .target(name: "ProtobufferCoding")
-            ]
-        ),
-
-        // ApodiniJobs
-        .target(
-            name: "ApodiniJobs",
-            dependencies: [
-                .target(name: "Apodini"),
-                .product(name: "SwifCron", package: "SwifCron")
-            ]
-        ),
-        .testTarget(
-            name: "ApodiniJobsTests",
-            dependencies: [
-                .target(name: "ApodiniJobs"),
-                .target(name: "XCTApodini")
             ]
         )
     ]
