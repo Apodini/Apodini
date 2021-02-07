@@ -9,6 +9,7 @@ import Foundation
 @testable import Apodini
 import Vapor
 import XCTest
+import RHIInterfaceExporter
 
 
 struct WrappedRESTResponse<T: Codable>: Vapor.Content {

@@ -30,7 +30,7 @@ public struct ExplicitlyIdentifiedHandlerModifier<Content: Handler>: HandlerModi
     public let component: Content
     let identifier: AnyHandlerIdentifier
     
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(ExplicitlyIdentifiedHandlerIdentifierValueContextKey.self, value: identifier, scope: .current)
         component.accept(visitor)
     }

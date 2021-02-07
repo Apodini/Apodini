@@ -16,7 +16,7 @@ open class XCTApodiniTest: XCTestCase {
     
     override open func tearDownWithError() throws {
         try super.tearDownWithError()
-        RHIInterfaceExporter.resetSingleton()
+//        RHIInterfaceExporter.resetSingleton() // TODO
         app.shutdown()
     }
     

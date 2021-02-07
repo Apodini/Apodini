@@ -57,7 +57,7 @@ public struct HandlerDeploymentOptionsModifier<H: Handler>: HandlerModifier, Syn
     public let component: H
     public let deploymentOptions: [AnyDeploymentOption]
     
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(HandlerDeploymentOptionsSyntaxNodeContextKey.self, value: deploymentOptions, scope: .environment)
         component.accept(visitor)
     }

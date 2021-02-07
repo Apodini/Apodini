@@ -148,16 +148,16 @@ public struct DeploymentConfig: Codable {
 
 
 
-public protocol DeploymentConfigProvider {
-    var deploymentConfig: DeploymentConfig { get }
-}
-
-
-public extension DeploymentConfigProvider {
-    var deploymentConfig: DeploymentConfig {
-        DeploymentConfig()
-    }
-}
+//public protocol DeploymentConfigProvider {
+//    var deploymentConfig: DeploymentConfig { get }
+//}
+//
+//
+//public extension DeploymentConfigProvider {
+//    var deploymentConfig: DeploymentConfig {
+//        DeploymentConfig()
+//    }
+//}
 
 
 

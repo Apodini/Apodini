@@ -204,7 +204,8 @@ let package = Package(
                 .target(name: "ApodiniProtobuffer"),
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
-                .target(name: "ApodiniNotifications")
+                .target(name: "ApodiniNotifications"),
+                .target(name: "RHIInterfaceExporter")
             ]
         ),
         .testTarget(
@@ -260,13 +261,31 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniDeployBuildSupport"),
                 .target(name: "DeploymentTargetLocalhostRuntimeSupport"),
-                .target(name: "DeploymentTargetAWSLambdaRuntime")
+                .target(name: "DeploymentTargetAWSLambdaRuntime"),
+                .target(name: "ApodiniREST"),
+                .target(name: "ApodiniGRPC"),
+                .target(name: "ApodiniProtobuffer"),
+                .target(name: "ApodiniOpenAPI"),
+                .target(name: "ApodiniWebSocket"),
+                .target(name: "ApodiniNotifications"),
+                .target(name: "RHIInterfaceExporter")
             ]
         ),
         
         //
         // MARK: Deploy
         //
+        
+        .target(
+            name: "RHIInterfaceExporter",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniOpenAPI"),
+                .product(name: "OpenAPIKit", package: "OpenAPIKit")
+            ]
+        ),
+        
         .target(name: "CApodiniDeployBuildSupport"),
         .target(
             name: "ApodiniDeployBuildSupport",

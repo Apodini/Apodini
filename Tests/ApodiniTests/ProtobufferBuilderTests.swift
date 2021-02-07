@@ -2,6 +2,7 @@ import XCTVapor
 @testable import Apodini
 @testable import ApodiniProtobuffer
 @testable import ApodiniGRPC
+@testable import RHIInterfaceExporter
 
 final class ProtobufferBuilderTests: XCTestCase {
     override func tearDown() {

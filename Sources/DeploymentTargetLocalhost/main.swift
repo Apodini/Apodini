@@ -118,7 +118,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
             print("- \(node.id) timeout: \(try? deploymentOptions.getValue(forKey: .timeout))")
             print("- \(node.id) mb: \(try? deploymentOptions.getValue(forKey: .memorySize))")
         }
-        return;
+        //return;
         
         for node in deployedSystem.nodes {
             let task = Task(

@@ -12,7 +12,7 @@ import ApodiniDeployRuntimeSupport
 
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
-public protocol WebService: Component, ConfigurationCollection, DeploymentConfigProvider {
+public protocol WebService: Component, ConfigurationCollection {
     /// The current version of the `WebService`
     var version: Version { get }
     
@@ -111,49 +111,49 @@ public struct ApodiniStartupError: Swift.Error {
 
 private extension WebService {
     static func lk_handleDeploymentStuff(app: Application, deploymentProviderRuntimes: [DeploymentProviderRuntimeSupport.Type]) throws {
-        let args = CommandLine.arguments
-        guard args.count >= 3 else {
-            return
-        }
-        guard let RHIIE = RHIInterfaceExporter.shared else {
-            return
-        }
-
-        switch args[1] {
-        case WellKnownCLIArguments.exportWebServiceModelStructure:
-            let outputUrl = URL(fileURLWithPath: args[2])
-            do {
-                try RHIIE.exportWebServiceStructure(
-                    to: outputUrl,
-                    deploymentConfig: Self().deploymentConfig  // TODO ideally we'd get this from the already-initialised object
-                )
-            } catch {
-                fatalError("Error exporting web service structure: \(error)")
-            }
-            exit(EXIT_SUCCESS)
-
-        case WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig:
-            let configUrl = URL(fileURLWithPath: args[2])
-            guard let currentNodeId = ProcessInfo.processInfo.environment[WellKnownEnvironmentVariables.currentNodeId] else {
-                throw ApodiniStartupError(message: "Unable to find '\(WellKnownEnvironmentVariables.currentNodeId)' environment variable")
-            }
-            do {
-                let deployedSystem = try DeployedSystemStructure(contentsOf: configUrl)
-                guard
-                    let DPRSType = deploymentProviderRuntimes.first(where: { $0.deploymentProviderId == deployedSystem.deploymentProviderId })
-                else {
-                    throw ApodiniStartupError(message: "Unable to find deployment runtime with id '\(deployedSystem.deploymentProviderId.rawValue)'")
-                }
-                let runtimeSupport = try DPRSType.init(deployedSystem: deployedSystem, currentNodeId: currentNodeId)
-                RHIIE.deploymentProviderRuntime = runtimeSupport
-                try runtimeSupport.configure(app.vapor.app)
-            } catch {
-                throw ApodiniStartupError(message: "Unable to launch with custom config: \(error)")
-            }
-
-        default:
-            break
-        }
+//        let args = CommandLine.arguments
+//        guard args.count >= 3 else {
+//            return
+//        }
+//        guard let RHIIE = RHIInterfaceExporter.shared else {
+//            return
+//        }
+//
+//        switch args[1] {
+//        case WellKnownCLIArguments.exportWebServiceModelStructure:
+//            let outputUrl = URL(fileURLWithPath: args[2])
+//            do {
+//                try RHIIE.exportWebServiceStructure(
+//                    to: outputUrl,
+//                    deploymentConfig: Self().deploymentConfig  // TODO ideally we'd get this from the already-initialised object
+//                )
+//            } catch {
+//                fatalError("Error exporting web service structure: \(error)")
+//            }
+//            exit(EXIT_SUCCESS)
+//
+//        case WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig:
+//            let configUrl = URL(fileURLWithPath: args[2])
+//            guard let currentNodeId = ProcessInfo.processInfo.environment[WellKnownEnvironmentVariables.currentNodeId] else {
+//                throw ApodiniStartupError(message: "Unable to find '\(WellKnownEnvironmentVariables.currentNodeId)' environment variable")
+//            }
+//            do {
+//                let deployedSystem = try DeployedSystemStructure(contentsOf: configUrl)
+//                guard
+//                    let DPRSType = deploymentProviderRuntimes.first(where: { $0.deploymentProviderId == deployedSystem.deploymentProviderId })
+//                else {
+//                    throw ApodiniStartupError(message: "Unable to find deployment runtime with id '\(deployedSystem.deploymentProviderId.rawValue)'")
+//                }
+//                let runtimeSupport = try DPRSType.init(deployedSystem: deployedSystem, currentNodeId: currentNodeId)
+//                RHIIE.deploymentProviderRuntime = runtimeSupport
+//                try runtimeSupport.configure(app.vapor.app)
+//            } catch {
+//                throw ApodiniStartupError(message: "Unable to launch with custom config: \(error)")
+//            }
+//
+//        default:
+//            break
+//        }
     }
 }
 
@@ -189,7 +189,7 @@ public struct DeploymentGroupModifier<Content: Component>: Modifier, SyntaxTreeV
     let groupId: DeploymentGroup.ID
     let options: [AnyDeploymentOption]
     
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(DSLSpecifiedDeploymentGroupIdContextKey.self, value: groupId, scope: .environment)
         visitor.addContext(HandlerDeploymentOptionsSyntaxNodeContextKey.self, value: options, scope: .environment)
         component.accept(visitor)

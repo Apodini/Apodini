@@ -7,8 +7,12 @@
 
 import Foundation
 @_implementationOnly import Vapor
+@testable import Apodini
+import ApodiniVaporSupport
+@testable import ApodiniOpenAPI
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
+import OpenAPIKit
 
 
 
@@ -27,13 +31,31 @@ extension AnyEndpointParameter {
 
 
 
+// TODO: this is copied from the RESTExporter. remove once we dont propagate this to the WSS anymore!
+extension Vapor.HTTPMethod {
+    init(_ operation: Apodini.Operation) {
+        switch operation {
+        case .create:
+            self =  .POST
+        case .read:
+            self =  .GET
+        case .update:
+            self =  .PUT
+        case .delete:
+            self =  .DELETE
+        }
+    }
+}
+
+
+
 
 /// A custom internal interface exporter, which:
 /// a) compiles a list of all handlers (via their `Endpoint` objects). These are used to determine the target endpoint when manually invoking a handler.
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
-class RHIInterfaceExporter: InterfaceExporter { // TODO rename to something different, since this class is doing a lot of things, not just the RHI handling
-    struct ExporterRequest: Apodini.ExporterRequest {
+public class RHIInterfaceExporter: InterfaceExporter { // TODO rename to something different, since this class is doing a lot of things, not just the RHI handling
+    public struct ExporterRequest: Apodini.ExporterRequest {
         enum Param {
             case value(Any)    // the value, as is
             case encoded(Data) // the value, encoded
@@ -80,7 +102,7 @@ class RHIInterfaceExporter: InterfaceExporter { // TODO rename to something diff
     }
     
     
-    required init(_ app: Apodini.Application) {
+    public required init(_ app: Apodini.Application) {
         self.app = app
         // NOTE: if this precondition fails while running tests, chances are you have to call `RHIInterfaceExporter.resetSingleton` in your -tearDown method
         precondition(Self.shared == nil, "-[\(Self.self) \(#function)] cannot be called multiple times")
@@ -88,7 +110,7 @@ class RHIInterfaceExporter: InterfaceExporter { // TODO rename to something diff
     }
     
     
-    func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
         if let groupId = endpoint.context.get(valueFor: DSLSpecifiedDeploymentGroupIdContextKey.self) {
             if explicitlyCreatedDeploymentGroups[groupId] == nil {
                 explicitlyCreatedDeploymentGroups[groupId] = []
@@ -114,13 +136,66 @@ class RHIInterfaceExporter: InterfaceExporter { // TODO rename to something diff
     }
     
     
+    public func finishedExporting(_ webService: WebServiceModel) {
+        do {
+            try performDeploymentStuff()
+        } catch {
+            fatalError("ugh \(error)")
+        }
+    }
+    
+    
+    private func performDeploymentStuff() throws {
+        let args = CommandLine.arguments
+        guard args.count >= 3 else {
+            return
+        }
+        
+        switch args[1] {
+        case WellKnownCLIArguments.exportWebServiceModelStructure:
+            let outputUrl = URL(fileURLWithPath: args[2])
+            do {
+                try self.exportWebServiceStructure(
+                    to: outputUrl,
+                    deploymentConfig: self.app.storage.get(ApodiniDeployConfiguration.StorageKey.self)?.config ?? .init()
+                )
+            } catch {
+                fatalError("Error exporting web service structure: \(error)")
+            }
+            exit(EXIT_SUCCESS)
+            
+        case WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig:
+            let configUrl = URL(fileURLWithPath: args[2])
+            guard let currentNodeId = ProcessInfo.processInfo.environment[WellKnownEnvironmentVariables.currentNodeId] else {
+                throw ApodiniStartupError(message: "Unable to find '\(WellKnownEnvironmentVariables.currentNodeId)' environment variable")
+            }
+            do {
+                let deployedSystem = try DeployedSystemStructure(contentsOf: configUrl)
+                guard
+                    let runtimes = self.app.storage.get(ApodiniDeployConfiguration.StorageKey.self)?.runtimes,
+                    let DPRSType = runtimes.first(where: { $0.deploymentProviderId == deployedSystem.deploymentProviderId })
+                else {
+                    throw ApodiniStartupError(message: "Unable to find deployment runtime with id '\(deployedSystem.deploymentProviderId.rawValue)'")
+                }
+                let runtimeSupport = try DPRSType.init(deployedSystem: deployedSystem, currentNodeId: currentNodeId)
+                self.deploymentProviderRuntime = runtimeSupport
+                try runtimeSupport.configure(app.vapor.app)
+            } catch {
+                throw ApodiniStartupError(message: "Unable to launch with custom config: \(error)")
+            }
+            
+        default:
+            break
+        }
+    }
+    
     
     func getEndpoint<H: IdentifiableHandler>(withIdentifier identifier: H.HandlerIdentifier, ofType _: H.Type) -> Endpoint<H>? {
         collectedEndpoints.first { $0.endpoint.identifier == identifier }?.endpoint as? Endpoint<H>
     }
     
     
-    func retrieveParameter<Type: Codable>(_ endpointParameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type?? {
+    public func retrieveParameter<Type: Codable>(_ endpointParameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type?? {
         guard let paramValueContainer = request.getValueOfCollectedParameter(for: endpointParameter) else {
             return Optional<Type?>.none // this should be a "top-level" nil value (ie `.none` instead of `.some(.none)`)
         }

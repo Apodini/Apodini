@@ -7,8 +7,10 @@
 
 import Foundation
 import NIO
+@testable import Apodini // aaaaargh
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
+import ApodiniVaporSupport
 @_implementationOnly import Vapor
 
 
@@ -67,7 +69,7 @@ public struct RemoteHandlerInvocationManager: RequestInjectable {
     /// This is the initializer
     public init() {}
     
-    mutating func inject(using request: Request) {
+    mutating public func inject(using request: Apodini.Request) {
         requestEventLoop = request.eventLoop
     }
 }
@@ -283,17 +285,18 @@ extension Endpoint {
         on eventLoop: EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
         let context = self.createConnectionContext(for: RHIIE)
-        let responseFuture: EventLoopFuture<Response<EnrichedContent>> = context.handle(request: request, eventLoop: eventLoop)
-        return responseFuture.flatMapThrowing { (response: Response<EnrichedContent>) -> H.Response.Content in
-            switch response {
-            case .final(let anyEncodable):
-                if let value = anyEncodable.typed(H.Response.Content.self) {
-                    return value
-                } else {
-                    throw makeApodiniError("Unable to convert response to expected type '\(H.Response.Content.self)'")
-                }
-            default:
+        let responseFuture: EventLoopFuture<Apodini.Response<EnrichedContent>> = context.handle(request: request, eventLoop: eventLoop)
+        return responseFuture.flatMapThrowing { (response: Apodini.Response<EnrichedContent>) -> H.Response.Content in
+            guard response.connectionEffect == .close else {
                 throw makeApodiniError("Unexpected response value: \(response). Expected '.final'.")
+            }
+            guard let content = response.content else {
+                throw makeApodiniError("Unable to get response content")
+            }
+            if let value = content.typed(H.Response.Content.self) {
+                return value
+            } else {
+                throw makeApodiniError("Unable to convert response to expected type '\(H.Response.Content.self)'")
             }
         }
     }

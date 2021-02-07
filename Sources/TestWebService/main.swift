@@ -5,6 +5,9 @@ import Apodini
 import ApodiniDeployBuildSupport
 import DeploymentTargetLocalhostRuntimeSupport
 import DeploymentTargetAWSLambdaRuntime
+import RHIInterfaceExporter
+import ApodiniREST
+import ApodiniOpenAPI
 
 
 
@@ -75,6 +78,18 @@ struct WebService: Apodini.WebService {
                     .timeout(.seconds(12))
                 )
         }.formDeploymentGroup(withId: "greeter")
+    }
+    
+    var configuration: Configuration {
+        ExporterConfiguration()
+            .exporter(RESTInterfaceExporter.self)
+            .exporter(OpenAPIInterfaceExporter.self)
+            .exporter(RHIInterfaceExporter.self)
+        ApodiniDeployConfiguration(
+            runtimes: [LocalhostRuntimeSupport.self, LambdaRuntime.self],
+            config: DeploymentConfig()
+        )
+        
     }
 }
 
