@@ -142,14 +142,17 @@ class RelationshipDSLTests: ApodiniTests {
         XCTAssertEqual(
             authenticatedResult.formatTestRelationships(),
             [
-                "self:read": "/user/5", "tagged:read": "/user/5/post/{postId}",
+                "self:read": "/user/5", "tagged:read": "/user/5/post/{postId}", "post:read": "/user/5/post/{postId}",
                 "TestA:read": "/xTestA", "TestB:read": "/xTestB/{param}", "TestC:read": "/xTestC/{cId}"
             ])
 
         let userResult = context.request(on: 2, parameters: 3)
         XCTAssertEqual(
             userResult.formatTestRelationships(),
-            ["self:read": "/user/3", "tagged:read": "/user/3/post/9", "TestA:read": "/xTestA", "TestC:read": "/xTestC/28"])
+            [
+                "self:read": "/user/3", "tagged:read": "/user/3/post/9", "post:read": "/user/3/post/{postId}",
+                "TestA:read": "/xTestA", "TestC:read": "/xTestC/28"
+            ])
 
         let postResult = context.request(on: 3, parameters: 3, 10)
         XCTAssertEqual(
@@ -160,7 +163,10 @@ class RelationshipDSLTests: ApodiniTests {
         let meResult = context.request(on: 1)
         XCTAssertEqual(
             meResult.formatTestRelationships(),
-            ["self:read": "/user/123", "tagged:read": "/user/123/post/1234", "TestA:read": "/xTestA", "TestC:read": "/xTestC/12345"])
+            [
+                "self:read": "/user/123", "tagged:read": "/user/123/post/1234", "post:read": "/user/123/post/{postId}",
+                "TestA:read": "/xTestA", "TestC:read": "/xTestC/12345"
+            ])
     }
 
     struct Referencing: Content, WithRelationships {
