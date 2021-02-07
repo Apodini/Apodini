@@ -4,6 +4,7 @@
 
 import XCTest
 @testable import Apodini
+@testable import ApodiniOpenAPI
 
 final class TagModifierTests: ApodiniTests {
     struct TestHandler: Handler {
