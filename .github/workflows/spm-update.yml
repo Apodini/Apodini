@@ -14,8 +14,6 @@ jobs:
         configuration: [debug, release]
     steps:
     - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
     - uses: maxim-lobanov/setup-xcode@v1.1
       with:
         xcode-version: latest
@@ -73,8 +71,6 @@ jobs:
     needs: [macos, linux]
     steps:
     - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
     - uses: maxim-lobanov/setup-xcode@v1.1
       with:
         xcode-version: latest
