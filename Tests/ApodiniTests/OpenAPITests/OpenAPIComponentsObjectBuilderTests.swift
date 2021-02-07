@@ -3,6 +3,7 @@
 //
 
 import XCTest
+import ApodiniTypeReflection
 @_implementationOnly import OpenAPIKit
 @testable import Apodini
 @testable import ApodiniVaporSupport
@@ -218,7 +219,7 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         )
     }
 
-    func testCreateEnrichedInfoTree() throws {
+    func testCreateReflectionInfoTree() throws {
         struct Card {
             let number: Int
         }
@@ -249,8 +250,8 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         XCTAssertTrue(tablesNode?.value.cardinality == .zeroToMany(.array))
 
         // check for correct children of tablesNode
-        let stringNode = try EnrichedInfo.node(String.self)
-        let playerNode = try EnrichedInfo.node(Player.self)
+        let stringNode = try ReflectionInfo.node(String.self)
+        let playerNode = try ReflectionInfo.node(Player.self)
         let newPlayersNode = tablesNode?.children.first {
             $0.value.propertyInfo?.name == "newPlayers"
         }

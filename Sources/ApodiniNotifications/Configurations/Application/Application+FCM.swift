@@ -1,6 +1,6 @@
 //
 //  Application+FCM.swift
-//  
+//
 //
 //  Created by Tim Gymnich on 30.12.20.
 //

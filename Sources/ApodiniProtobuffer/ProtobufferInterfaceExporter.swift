@@ -5,6 +5,7 @@
 import Apodini
 import ApodiniVaporSupport
 import ApodiniGRPC
+import ApodiniTypeReflection
 @_implementationOnly import class Vapor.Application
 
 public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
@@ -124,14 +125,14 @@ extension ProtobufferInterfaceExporter.Builder {
     }
     
     func buildCompositeMessage(_ type: Any.Type) throws -> Tree<ProtobufferMessage> {
-        try EnrichedInfo.node(type)
+        try ReflectionInfo.node(type)
             .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handlePrimitiveType)?
-            .edited(Apodini.handleUUID)?
+            .edited(handleUUID)?
             .map(ProtobufferMessage.Property.init)
             .map {
-                $0.map(handleUUID)
+                $0.map(handleUUIDProperty)
             }
             .map {
                 $0.map(handleVariableWidthInteger)
@@ -164,7 +165,9 @@ extension ProtobufferInterfaceExporter.Builder {
 }
 
 private extension ProtobufferInterfaceExporter.Builder {
-    func handleUUID(_ property: ProtobufferMessage.Property) -> ProtobufferMessage.Property {
+    func handleUUIDProperty(
+        _ property: ProtobufferMessage.Property
+    ) -> ProtobufferMessage.Property {
         guard property.typeName == "UUIDMessage" else {
             return property
         }
