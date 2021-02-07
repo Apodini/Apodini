@@ -14,6 +14,8 @@ class ConnectionResponsible: Identifiable {
     unowned var websocket: WebSocket
     
     let logger: Logger
+
+    let request: Vapor.Request
     
     private let onClose: (ID) -> Void
     
@@ -21,11 +23,12 @@ class ConnectionResponsible: Identifiable {
     
     private var contexts: [UUID: ContextResponsible] = [:]
     
-    init(_ websocket: WebSocket, onClose: @escaping (ID) -> Void, endpoints: [String: ContextOpener], logger: Logger) {
+    init(_ websocket: WebSocket, request: Vapor.Request, onClose: @escaping (ID) -> Void, endpoints: [String: ContextOpener], logger: Logger) {
         self.websocket = websocket
         self.onClose = onClose
         self.endpoints = endpoints
         self.logger = logger
+        self.request = request
         
         websocket.onText { websocket, message in
             var context: UUID?

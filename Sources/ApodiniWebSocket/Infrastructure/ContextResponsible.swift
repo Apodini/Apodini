@@ -28,7 +28,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     let close: (WebSocketErrorCode) -> Void
     
     convenience init(
-        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop) ->
+        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Vapor.Request) ->
             (default: I, output: AnyPublisher<Message<O>, Error>),
         con: ConnectionResponsible,
         context: UUID) {
@@ -42,20 +42,22 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
             destruct: {
                 con.destruct(context)
             },
-            close: con.close)
+            close: con.close,
+            request: con.request)
     }
     
     init(
-        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop) -> (default: I, output: AnyPublisher<Message<O>, Error>),
+        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Vapor.Request) -> (default: I, output: AnyPublisher<Message<O>, Error>),
         eventLoop: EventLoop,
         send: @escaping (O) -> Void,
         sendError: @escaping (Error) -> Void,
         destruct: @escaping () -> Void,
-        close: @escaping (WebSocketErrorCode) -> Void
+        close: @escaping (WebSocketErrorCode) -> Void,
+        request: Vapor.Request
     ) {
         let receiver = PassthroughSubject<I, Never>()
         
-        let (defaultInput, output) = opener(receiver.eraseToAnyPublisher(), eventLoop)
+        let (defaultInput, output) = opener(receiver.eraseToAnyPublisher(), eventLoop, request)
         
         self.input = defaultInput
         
