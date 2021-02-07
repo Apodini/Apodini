@@ -85,32 +85,20 @@ public struct EnrichedContent: Encodable {
         return result
     }
 
-    /// Used to apply a `RelationshipFormatter` to the self relationships of the `Endpoint`
+    /// Used to apply a `RelationshipFormatter` to the all self relationships of the `Endpoint`
     /// with the context of this `EnrichedContent` (path parameter values and property values of the response).
-    /// If nil is supplied for the `Operation`, the formatter is called for any `Operation`.
-    /// If there is no self relationship for a specified `Operation`, this call simply returns the initial value.
     ///
     /// - Parameters:
     ///   - initialValue: The initial value the `RelationshipFormatter` should reduce into.
     ///   - formatter: The actual instance of the `RelationshipFormatter`.
-    ///   - operation: The `Operation` for which to retrieve all self `RelationshipDestination` from the given `Endpoint`.
-    /// - Returns: The formatted result
-    func formatSelfRelationships<Formatter: RelationshipFormatter>(
+    /// - Returns: The formatted result.
+    public func formatSelfRelationships<Formatter: RelationshipFormatter>(
         into initialValue: Formatter.Result,
-        with formatter: Formatter,
-        for operation: Operation? = nil
+        with formatter: Formatter
     ) -> Formatter.Result {
         let context = ResolveContext(content: response.wrappedValue, parameters: parameters)
 
-        var result = initialValue
-
-        if let specifiedOperation = operation {
-            endpoint.selfRelationship(for: specifiedOperation)?.formatRelationship(with: formatter, result: &result, context: context)
-        } else {
-            result = endpoint.selfRelationships().formatRelationships(into: result, with: formatter, context: context)
-        }
-
-        return result
+        return endpoint.selfRelationships().formatRelationships(into: initialValue, with: formatter, context: context)
     }
 
     /// Used to apply a `RelationshipFormatter` to THE self relationships of the `Endpoint`
@@ -129,6 +117,28 @@ public struct EnrichedContent: Encodable {
     ) {
         let context = ResolveContext(content: response.wrappedValue, parameters: parameters)
         endpoint.selfRelationship.formatRelationship(with: formatter, result: &initialValue, context: context)
+    }
+
+    /// Used to apply a `RelationshipFormatter` to the self relationships of the `Endpoint` of a given `Operation`
+    /// with the context of this `EnrichedContent` (path parameter values and property values of the response).
+    ///
+    /// - Parameters:
+    ///   - initialValue: The initial value the `RelationshipFormatter` should reduce into.
+    ///   - formatter: The actual instance of the `RelationshipFormatter`.
+    ///   - operation: The `Operation` for which to retrieve the self `RelationshipDestination` from the given `Endpoint`.
+    /// Returns: Returns whether a `RelationshipDestination` for the given `Operation` existed.
+    public func formatSelfRelationship<Formatter: RelationshipFormatter>(
+        into initialValue: inout Formatter.Result,
+        with formatter: Formatter,
+        for operation: Operation
+    ) -> Bool {
+        guard let relationship = endpoint.selfRelationship(for: operation) else {
+            return false
+        }
+        let context = ResolveContext(content: response.wrappedValue, parameters: parameters)
+
+        relationship.formatRelationship(with: formatter, result: &initialValue, context: context)
+        return true
     }
 }
 

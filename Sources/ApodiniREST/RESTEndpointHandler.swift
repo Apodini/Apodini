@@ -42,11 +42,11 @@ struct RESTEndpointHandler<H: Handler> {
             let formatter = LinksFormatter(configuration: self.configuration)
             var links = enrichedContent.formatRelationships(into: [:], with: formatter, sortedBy: \.linksOperationPriority)
 
-            if endpoint.selfRelationship(for: .read) != nil {
-                // by default (if it exists) we point self to .read (which is the most probably of being inherited)
-                links = enrichedContent.formatSelfRelationships(into: links, with: formatter, for: .read)
-            } else {
-                // otherwise we guarantee a "self" relationship. by adding the self relationship
+
+            let readExisted = enrichedContent.formatSelfRelationship(into: &links, with: formatter, for: .read)
+            if !readExisted {
+                // by default (if it exists) we point self to .read (which is the most probably of being inherited).
+                // Otherwise we guarantee a "self" relationship, by adding the self relationship
                 // for the operation of the endpoint which is guaranteed to exist.
                 enrichedContent.formatSelfRelationship(into: &links, with: formatter)
             }
