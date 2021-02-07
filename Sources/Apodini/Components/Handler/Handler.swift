@@ -13,12 +13,6 @@ public protocol Handler: Component {
     
     /// A function that is called when a request reaches the `Handler`
     func handle() throws -> Response
-    
-//    /// Type-level deployment options (ie options which apply to all instances of this type)
-//    static var deploymentOptions: [AnyDeploymentOption] { get } // TODO replace these arrays w/ `DeploymentOptions`?
-    
-//    /// Instance-level deployment options (ie options which apply to just one instance of this type)
-//    var deploymentOptions: [AnyDeploymentOption] { get }
 }
 
 
@@ -27,14 +21,4 @@ extension Handler {
     public var content: some Component {
         EmptyComponent()
     }
-    
-//    /// By default, `Handler`s dont't specify any type-level deployment options
-//    public static var deploymentOptions: [AnyDeploymentOption] {
-//        []
-//    }
-    
-//    /// By default, `Handler`s dont't specify any instance-level deployment options
-//    public var deploymentOptions: [AnyDeploymentOption] {
-//        []
-//    }
 }

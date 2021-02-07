@@ -26,7 +26,7 @@ extension AnyOption {
 
 
 final class ConditionalOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
-    let condition: AnyCondition
+    let condition: AnyHandlerCondition
     // we internally store this option's value as a resolved option object,
     // this means we don't have to re-create the whole en/decoding logic in here
     private let underlyingOption: AnyOption<OuterNS>
@@ -34,7 +34,7 @@ final class ConditionalOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
     init<InnerNS, Value>(
         key: OptionKey<OuterNS, InnerNS, Value>,
         value: Value,
-        condition: AnyCondition
+        condition: AnyHandlerCondition
     ) {
         self.condition = condition
         self.underlyingOption = ResolvedOption(key: key, value: value)
@@ -42,7 +42,7 @@ final class ConditionalOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
     }
     
     
-    init(underlyingOption: AnyOption<OuterNS>, condition: AnyCondition) {
+    init(underlyingOption: AnyOption<OuterNS>, condition: AnyHandlerCondition) {
         self.underlyingOption = underlyingOption
         self.condition = condition
         super.init(key: underlyingOption.key)

@@ -8,11 +8,15 @@
 import Foundation
 import Apodini
 
-@_exported import ApodiniDeployBuildSupport
-@_exported import ApodiniDeployRuntimeSupport
+import ApodiniDeployBuildSupport
+import ApodiniDeployRuntimeSupport
 
 
 public struct ApodiniDeployConfiguration: Apodini.Configuration {
+    struct StorageKey: Apodini.StorageKey {
+        typealias Value = ApodiniDeployConfiguration
+    }
+    
     let runtimes: [DeploymentProviderRuntimeSupport.Type]
     let config: DeploymentConfig // TODO rename to options!?
     
@@ -21,20 +25,9 @@ public struct ApodiniDeployConfiguration: Apodini.Configuration {
         self.config = config
     }
     
-    
-    
     public func configure(_ app: Application) {
         app.storage.set(StorageKey.self, to: self)
     }
-}
-
-
-
-extension ApodiniDeployConfiguration {
-    struct StorageKey: Apodini.StorageKey {
-        typealias Value = ApodiniDeployConfiguration
-    }
-
 }
 
 
@@ -128,10 +121,12 @@ extension Handler {
 
 
 public protocol HandlerWithDeploymentOptions: Handler {
-    static var deploymentOptions: [AnyDeploymentOption] { get }
+    /// Type-level deployment options (ie options which apply to all instances of this type)
+    static var deploymentOptions: [AnyDeploymentOption] { get } // TODO replace these arrays w/ `DeploymentOptions`?
 }
 
 extension HandlerWithDeploymentOptions {
+    /// By default, `Handler`s dont't specify any type-level deployment options
     public static var deploymentOptions: [AnyDeploymentOption] {
         return []
     }

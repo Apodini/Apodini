@@ -10,7 +10,7 @@ import Apodini
 import ApodiniDeployBuildSupport
 
 
-public struct AnyCondition {
+public struct AnyHandlerCondition {
     let predicate: (Any) -> Bool
     
     init<H: Handler>(_: H.Type = H.self, _ predicate: @escaping (H) -> Bool) {
@@ -25,33 +25,33 @@ public struct AnyCondition {
 
 extension AnyOption {
     /// Limit the option to only take effect if the specified condition is satisfied
-    public func when(_ condition: AnyCondition) -> AnyOption {
+    public func when(_ condition: AnyHandlerCondition) -> AnyOption {
         ConditionalOption(underlyingOption: self, condition: condition)
     }
 }
 
 
-public func == <H: Handler, P: Equatable> (lhs: KeyPath<H, P>, rhs: P) -> AnyCondition {
-    AnyCondition(H.self) { $0[keyPath: lhs] == rhs }
+public func == <H: Handler, P: Equatable> (lhs: KeyPath<H, P>, rhs: P) -> AnyHandlerCondition {
+    AnyHandlerCondition(H.self) { $0[keyPath: lhs] == rhs }
 }
 
-public func != <H: Handler, P: Equatable> (lhs: KeyPath<H, P>, rhs: P) -> AnyCondition {
-    AnyCondition(H.self) { $0[keyPath: lhs] != rhs }
+public func != <H: Handler, P: Equatable> (lhs: KeyPath<H, P>, rhs: P) -> AnyHandlerCondition {
+    AnyHandlerCondition(H.self) { $0[keyPath: lhs] != rhs }
 }
 
 
-public func < <H: Handler, P: Comparable> (lhs: KeyPath<H, P>, rhs: P) -> AnyCondition {
-    AnyCondition(H.self) { $0[keyPath: lhs] < rhs }
+public func < <H: Handler, P: Comparable> (lhs: KeyPath<H, P>, rhs: P) -> AnyHandlerCondition {
+    AnyHandlerCondition(H.self) { $0[keyPath: lhs] < rhs }
 }
 
-public func > <H: Handler, P: Comparable> (lhs: KeyPath<H, P>, rhs: P) -> AnyCondition {
-    AnyCondition(H.self) { $0[keyPath: lhs] > rhs }
+public func > <H: Handler, P: Comparable> (lhs: KeyPath<H, P>, rhs: P) -> AnyHandlerCondition {
+    AnyHandlerCondition(H.self) { $0[keyPath: lhs] > rhs }
 }
 
-public func <= <H: Handler, P: Comparable> (lhs: KeyPath<H, P>, rhs: P) -> AnyCondition {
-    AnyCondition(H.self) { $0[keyPath: lhs] <= rhs }
+public func <= <H: Handler, P: Comparable> (lhs: KeyPath<H, P>, rhs: P) -> AnyHandlerCondition {
+    AnyHandlerCondition(H.self) { $0[keyPath: lhs] <= rhs }
 }
 
-public func >= <H: Handler, P: Comparable> (lhs: KeyPath<H, P>, rhs: P) -> AnyCondition {
-    AnyCondition(H.self) { $0[keyPath: lhs] <= rhs }
+public func >= <H: Handler, P: Comparable> (lhs: KeyPath<H, P>, rhs: P) -> AnyHandlerCondition {
+    AnyHandlerCondition(H.self) { $0[keyPath: lhs] <= rhs }
 }
