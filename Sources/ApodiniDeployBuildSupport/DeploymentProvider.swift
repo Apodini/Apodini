@@ -160,14 +160,22 @@ extension DeploymentProvider {
         // all endpoints which didn't match any of the user-defined deployment groups
         var remainingEndpoints: Set<ExportedEndpoint> = []
         
-        
         for endpoint in wsStructure.endpoints {
             // for each exported endpoint (ie, handler in the DSL), find a matching node, based on the deployment group
-            // TODO should this also check all other groups, to make sure the endpoint only matches this one group?!!
-            if let DG = endpointsByDeploymentGroup.keys.first(where: { $0.matches(exportedEndpoint: endpoint) }) {
-                endpointsByDeploymentGroup[DG]!.insert(endpoint)
-            } else {
+            // all groups in which the endpoint would be allowed to be, based on the deployment options
+            let matchingGroups = endpointsByDeploymentGroup.keys.filter { $0.matches(exportedEndpoint: endpoint) }
+            switch matchingGroups.count {
+            case 0:
+                // the endpoint didn't match any deployment groups
                 remainingEndpoints.insert(endpoint)
+            case 1:
+                // the endpoint matched exactly one group, so we'll put it in there
+                endpointsByDeploymentGroup[matchingGroups[0]]!.insert(endpoint)
+            default:
+                // the endpoint matched multiple deployment groups, which results in ambiguity, and therefore is forbidden
+                throw ApodiniDeploySupportError(
+                    message: "Endpoint with handlerId '\(endpoint.handlerId)' matches multiple deployment groups: \(matchingGroups.map({ "'\($0.id)'" }).joined(separator: ", "))"
+                )
             }
         }
         
