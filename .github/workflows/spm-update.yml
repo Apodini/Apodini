@@ -70,6 +70,7 @@ jobs:
   createPR:
     name: Create Pull Request
     runs-on: macos-latest
+    needs: [macos, linux]
     steps:
     - uses: actions/checkout@v2
       with:
