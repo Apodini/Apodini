@@ -14,7 +14,7 @@ import Apodini
 ///         let children: [Node]
 ///     }
 ///     ```
-///     First of all, it is valid, because it's size is not infinite: we can initialize
+///     First of all, it is valid, because its size is not infinite: we can initialize
 ///     `Node(children: [])`.
 ///
 ///     However, this implementation of type reflection will (1) reflect `Node`, (2) reflect its
