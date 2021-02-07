@@ -1,6 +1,6 @@
 // swiftlint:disable first_where
 import Fluent
-import APNS
+import APNSwift
 import FCM
 import NIO
 import Apodini

@@ -3,7 +3,7 @@ import XCTest
 import XCTApodini
 import Fluent
 import FCM
-import APNS
+import APNSwift
 import XCTVapor
 import Apodini
 @testable import ApodiniNotifications

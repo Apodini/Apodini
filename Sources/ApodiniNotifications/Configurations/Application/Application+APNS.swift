@@ -5,12 +5,34 @@
 //  Created by Tim Gymnich on 23.12.20.
 //
 
+// The MIT License (MIT)
+//
+// Copyright (c) 2020 Qutheory, LLC
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import Apodini
-import APNS
+import APNSwift
 import Logging
 import NIO
 import Foundation
-@_implementationOnly import AsyncKit
+import AsyncKit
 
 
 extension Application {
@@ -18,64 +40,64 @@ extension Application {
     public var apns: APNS {
         .init(application: self)
     }
-
-    /// Holds the APNS Configuration
-    public struct APNS {
-        struct ConfigurationKey: StorageKey {
-            // swiftlint:disable nesting
-            typealias Value = APNSwiftConfiguration
-        }
-
-        /// APNS Configuration
-        public var configuration: APNSwiftConfiguration? {
-            get {
-                self.application.storage[ConfigurationKey.self]
-            }
-            nonmutating set {
-                self.application.storage[ConfigurationKey.self] = newValue
-            }
-        }
-
-        struct PoolKey: StorageKey, LockKey {
-            typealias Value = EventLoopGroupConnectionPool<APNSConnectionSource>
-        }
-
-        internal var pool: EventLoopGroupConnectionPool<APNSConnectionSource> {
-            if let existing = self.application.storage[PoolKey.self] {
-                return existing
-            } else {
-                let lock = self.application.locks.lock(for: PoolKey.self)
-                lock.lock()
-                defer { lock.unlock() }
-                guard let configuration = self.configuration else {
-                    fatalError("APNS not configured. Use app.apns.configuration = ...")
-                }
-                let new = EventLoopGroupConnectionPool(
-                    source: APNSConnectionSource(configuration: configuration),
-                    maxConnectionsPerEventLoop: 1,
-                    logger: self.application.logger,
-                    on: self.application.eventLoopGroup
-                )
-                self.application.storage.set(PoolKey.self, to: new) {
-                    $0.shutdown()
-                }
-                return new
-            }
-        }
-
-        let application: Application
-    }
 }
 
-extension Application.APNS: APNSwiftClient {
+/// Holds the APNS Configuration
+public struct APNS {
+    struct ConfigurationKey: StorageKey {
+        // swiftlint:disable nesting
+        typealias Value = APNSwiftConfiguration
+    }
+    
+    /// APNS Configuration
+    public var configuration: APNSwiftConfiguration? {
+        get {
+            self.application.storage[ConfigurationKey.self]
+        }
+        nonmutating set {
+            self.application.storage[ConfigurationKey.self] = newValue
+        }
+    }
+    
+    struct PoolKey: StorageKey, LockKey {
+        typealias Value = EventLoopGroupConnectionPool<APNSConnectionSource>
+    }
+    
+    internal var pool: EventLoopGroupConnectionPool<APNSConnectionSource> {
+        if let existing = self.application.storage[PoolKey.self] {
+            return existing
+        } else {
+            let lock = self.application.locks.lock(for: PoolKey.self)
+            lock.lock()
+            defer { lock.unlock() }
+            guard let configuration = self.configuration else {
+                fatalError("APNS not configured. Use app.apns.configuration = ...")
+            }
+            let new = EventLoopGroupConnectionPool(
+                source: APNSConnectionSource(configuration: configuration),
+                maxConnectionsPerEventLoop: 1,
+                logger: self.application.logger,
+                on: self.application.eventLoopGroup
+            )
+            self.application.storage.set(PoolKey.self, to: new) {
+                $0.shutdown()
+            }
+            return new
+        }
+    }
+    
+    let application: Application
+}
+
+extension APNS: APNSwiftClient {
     public var logger: Logger? {
         self.application.logger
     }
-
+    
     public var eventLoop: EventLoop {
         self.application.eventLoopGroup.next()
     }
-
+    
     // swiftlint:disable function_parameter_count
     /**
      APNSwiftConnection send method. Sends a notification to the desired deviceToken.
@@ -87,7 +109,7 @@ extension Application.APNS: APNSwiftClient {
      - Parameter priority: priority to send the notification with.
      - Parameter collapseIdentifier: a collapse identifier to use for grouping notifications
      - Parameter topic: the bundle identifier that this notification belongs to.
-
+     
      For more information see:
      [Retrieve Your App's Device Token](https://developer.apple.com/documentation/usernotifications/registering_your_app_with_apns#2942135)
      ### Usage Example: ###
@@ -129,15 +151,25 @@ extension Application.APNS: APNSwiftClient {
 
 internal final class APNSConnectionSource: ConnectionPoolSource {
     private let configuration: APNSwiftConfiguration
-
+    
     init(configuration: APNSwiftConfiguration) {
         self.configuration = configuration
     }
-
+    
     func makeConnection(
         logger: Logger,
         on eventLoop: EventLoop
     ) -> EventLoopFuture<APNSwiftConnection> {
         APNSwiftConnection.connect(configuration: self.configuration, on: eventLoop)
+    }
+}
+
+extension APNSwiftConnection: ConnectionPoolItem {
+    public var eventLoop: EventLoop {
+        self.channel.eventLoop
+    }
+    
+    public var isClosed: Bool {
+        !self.channel.isActive
     }
 }
