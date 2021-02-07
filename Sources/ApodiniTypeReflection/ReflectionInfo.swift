@@ -5,6 +5,8 @@
 import Apodini
 import Runtime
 
+enum TypeReflectionDidEncounterRecursion {}
+
 /// `PropertyInfo` models the property/field/member layout in a composite type.
 public struct PropertyInfo: Equatable, Hashable {
     public let name: String
@@ -60,24 +62,57 @@ public extension ReflectionInfo {
     /// - Throws: A `RuntimeError`, if `Runtime` encounters an error during reflection.
     /// - Returns: A node of values reflecting every type composing the root type.
     static func node(_ type: Any.Type) throws -> Node<ReflectionInfo> {
-        let typeInfo = try Runtime.typeInfo(of: type)
+        let traveler = try travelThroughWrappers(type)
+        let typeInfo = try Runtime.typeInfo(of: traveler.type)
+        let cardinality = traveler.wrappers.first ?? .exactlyOne
+        
         let root = ReflectionInfo(
             typeInfo: typeInfo,
-            propertyInfo: nil
+            propertyInfo: nil,
+            cardinality: cardinality
         )
 
+        var didEncounterArray = false
+        var visitedCompositeTypes: Set = [ObjectIdentifier(typeInfo.type)]
+        
         return Node(root: root) { info in
             info.typeInfo.properties
                 .enumerated()
                 .compactMap { offset, propertyInfo in
                     do {
-                        let typeInfo = try Runtime.typeInfo(of: propertyInfo.type)
+                        let traveler = try travelThroughWrappers(propertyInfo.type)
+                        if traveler.wrappers.contains(.zeroToMany(.array)) {
+                            didEncounterArray = true
+                        }
+                        var typeInfo = try Runtime.typeInfo(of: traveler.type)
+                        
+                        if didEncounterArray {
+                            if visitedCompositeTypes.contains(.init(
+                                TypeReflectionDidEncounterRecursion.self
+                            )) {
+                                typeInfo = try Runtime.typeInfo(of: TypeReflectionDidEncounterRecursion.self)
+                            } else {
+                                let identifier = ObjectIdentifier(typeInfo.type)
+                                if visitedCompositeTypes.contains(identifier) {
+                                    visitedCompositeTypes.insert(.init(
+                                        TypeReflectionDidEncounterRecursion.self
+                                    ))
+                                } else {
+                                    if !isSupportedScalarType(typeInfo.type) {
+                                        visitedCompositeTypes.insert(identifier)
+                                    }
+                                }
+                            }
+                        }
+                        let cardinality = traveler.wrappers.first ?? .exactlyOne
+                        
                         return ReflectionInfo(
                             typeInfo: typeInfo,
                             propertyInfo: .init(
                                 name: propertyInfo.name,
                                 offset: offset + 1
-                            )
+                            ),
+                            cardinality: cardinality
                         )
                     } catch {
                         let errorDescription = String(describing: error)
@@ -118,5 +153,25 @@ extension ReflectionInfo: Equatable {
         lhs.typeInfo.type == rhs.typeInfo.type
             && lhs.propertyInfo == rhs.propertyInfo
             && lhs.cardinality == rhs.cardinality
+    }
+}
+
+// MARK: - Traveler
+
+private typealias Traveler = (type: Any.Type, wrappers: [ReflectionInfo.Cardinality])
+
+private func travelThroughWrappers(_ type: Any.Type) throws -> Traveler {
+    if isOptional(type) {
+        let wrappedType = try Runtime.typeInfo(of: type).genericTypes[0]
+        let next = try travelThroughWrappers(wrappedType)
+        return (next.type, [.zeroToOne] + next.wrappers)
+        
+    } else if mangledName(of: type) == "Array" {
+        let elementType = try Runtime.typeInfo(of: type).genericTypes[0]
+        let next = try travelThroughWrappers(elementType)
+        return (next.type, [.zeroToMany(.array)] + next.wrappers)
+        
+    } else {
+        return (type, [])
     }
 }
