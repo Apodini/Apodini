@@ -12,7 +12,7 @@ public enum OpenAPIConfigurationDefaults {
     public static let outputFormat: OpenAPIOutputFormat = .json
     /// Default OpenAPI specification output endpoint.
     public static let outputEndpoint: String = "openapi"
-    /// Default swagger-ui endpoint.
+    /// Default swagger-UI endpoint.
     public static let swaggerUiEndpoint: String = "openapi-ui"
 }
 
