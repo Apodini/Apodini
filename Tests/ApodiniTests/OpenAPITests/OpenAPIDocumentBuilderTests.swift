@@ -39,7 +39,9 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
             paths: [
                 "test": .init(
                     get: .init(
-                        // as there is no custom description in this case, `description` and `operationId` are the same.
+                        // As there is no custom tag in this case, `tags` is derived by rules (i.e., last appended string path compontent).
+                        tags: ["test"],
+                        // As there is no custom description in this case, `description` and `operationId` are the same.
                         description: endpoint.description,
                         operationId: endpoint.description,
                         parameters: [
