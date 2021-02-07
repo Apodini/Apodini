@@ -223,7 +223,7 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
         combineSelfRelationships().unique()
     }
 
-    public func selfRelationship(for: Operation) -> RelationshipDestination? {
+    public func selfRelationship(for operation: Operation) -> RelationshipDestination? {
         // the unique set will only have one entry (maybe even none)
         combineSelfRelationships().unique(for: operation).first
     }
