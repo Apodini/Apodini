@@ -5,10 +5,10 @@
 //  Created by Paul Schmiedmayer on 7/7/20.
 //
 
-import Fluent
-import Foundation
-@testable import ApodiniDatabase
+
 @testable import Apodini
+@testable import ApodiniDatabase
+import Foundation
 
 final class Bird: DatabaseModel {
     static var schema: String = "Birds"
@@ -40,7 +40,7 @@ final class Bird: DatabaseModel {
 
 
 struct CreateBird: Migration {
-    func prepare(on database: Fluent.Database) -> EventLoopFuture<Void> {
+    func prepare(on database: Database) -> EventLoopFuture<Void> {
         database.schema(Bird.schema)
             .id()
             .field("name", .string, .required)
@@ -48,7 +48,7 @@ struct CreateBird: Migration {
             .create()
     }
 
-    func revert(on database: Fluent.Database) -> EventLoopFuture<Void> {
+    func revert(on database: Database) -> EventLoopFuture<Void> {
         database.schema(Bird.schema).delete()
     }
 }

@@ -6,7 +6,8 @@
 //
 
 @testable import Apodini
-import NIO
+@testable import ApodiniREST
+@testable import ApodiniVaporSupport
 import XCTest
 import Fluent
 import Vapor
@@ -38,6 +39,11 @@ class ThrowingErrorTests: ApodiniTests {
             var content: some Component {
                 ThrowingHandler()
             }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
+            }
         }
         
         TestWebService.main(app: app)
@@ -51,6 +57,11 @@ class ThrowingErrorTests: ApodiniTests {
         struct TestWebService: WebService {
             var content: some Component {
                 ThrowingEventLoopFutureHandler()
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
             }
         }
         

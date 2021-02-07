@@ -147,7 +147,7 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     }
     private var structuralSelfRelationship: EndpointRelationship! // swiftlint:disable:this implicitly_unwrapped_optional
     private var inheritedSelfRelationship: EndpointRelationship?
-    var inheritsRelationship: Bool {
+    public var inheritsRelationship: Bool {
         inheritedSelfRelationship != nil
     }
 

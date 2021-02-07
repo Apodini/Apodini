@@ -5,9 +5,10 @@
 //  Created by Lorena Schlesinger on 06.12.20.
 //
 
-import XCTest
-import Vapor
 @testable import Apodini
+@testable import ApodiniREST
+import Vapor
+import XCTApodini
 
 
 final class SemanticModelBuilderTests: ApodiniTests {
@@ -53,7 +54,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         }
     }
 
-    struct ActionHandler1: Handler {
+    struct ResponseHandler1: Handler {
         @Apodini.Environment(\.connection)
         var connection: Connection
 
@@ -67,7 +68,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         }
     }
 
-    struct ActionHandler2: Handler {
+    struct ResponseHandler2: Handler {
         @Apodini.Environment(\.connection)
         var connection: Connection
 
@@ -147,18 +148,16 @@ final class SemanticModelBuilderTests: ApodiniTests {
                                     on: app.eventLoopGroup.next())
         let expectedString = "Hello Test Handler 4"
 
-        let result = try context.handle(request: request).wait()
-        guard case let .final(resultValue) = result.typed(String.self) else {
-            XCTFail("Expected default to be wrapped in Response.final, but was \(result)")
-            return
-        }
-
-        XCTAssertEqual(resultValue, expectedString)
+        try XCTCheckResponse(
+            context.handle(request: request),
+            content: expectedString,
+            connectionEffect: .close
+        )
     }
 
-    func testActionPassthrough_send() throws {
+    func testResponsePassthrough_send() throws {
         let exporter = RESTInterfaceExporter(app)
-        let handler = ActionHandler1()
+        let handler = ResponseHandler1()
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app.vapor.app,
@@ -166,17 +165,16 @@ final class SemanticModelBuilderTests: ApodiniTests {
                                     url: "",
                                     on: app.eventLoopGroup.next())
 
-        let result = try context.handle(request: request, final: false).wait()
-        if case let .send(element) = result.typed(String.self) {
-            XCTAssertEqual(element, "Send")
-        } else {
-            XCTFail("Expected .send(\"Send\"), but got \(result)")
-        }
+        try XCTCheckResponse(
+            context.handle(request: request, final: false),
+            content: "Send",
+            connectionEffect: .open
+        )
     }
 
-    func testActionPassthrough_final() throws {
+    func testResponsePassthrough_final() throws {
         let exporter = RESTInterfaceExporter(app)
-        let handler = ActionHandler1().environment(Connection(state: .end), for: \Apodini.Application.connection)
+        let handler = ResponseHandler1().environment(Connection(state: .end), for: \Apodini.Application.connection)
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app.vapor.app,
@@ -184,17 +182,16 @@ final class SemanticModelBuilderTests: ApodiniTests {
                                     url: "",
                                     on: app.eventLoopGroup.next())
         
-        let result = try context.handle(request: request).wait()
-        if case let .final(element) = result.typed(String.self) {
-            XCTAssertEqual(element, "Final")
-        } else {
-            XCTFail("Expected .final(\"Final\"), but got \(result)")
-        }
+        try XCTCheckResponse(
+            context.handle(request: request),
+            content: "Final",
+            connectionEffect: .close
+        )
     }
 
-    func testActionPassthrough_nothing() throws {
+    func testResponsePassthrough_nothing() throws {
         let exporter = RESTInterfaceExporter(app)
-        let handler = ActionHandler2()
+        let handler = ResponseHandler2()
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app.vapor.app,
@@ -202,17 +199,17 @@ final class SemanticModelBuilderTests: ApodiniTests {
                                     url: "",
                                     on: app.eventLoopGroup.next())
 
-        let result = try context.handle(request: request, final: false).wait()
-        if case .nothing = result {
-            XCTAssertTrue(true)
-        } else {
-            XCTFail("Expected .nothing but got \(result)")
-        }
+        try XCTCheckResponse(
+            context.handle(request: request, final: false),
+            Empty.self,
+            content: nil,
+            connectionEffect: .open
+        )
     }
 
-    func testActionPassthrough_end() throws {
+    func testResponsePassthrough_end() throws {
         let exporter = RESTInterfaceExporter(app)
-        let handler = ActionHandler2().environment(Connection(state: .end), for: \Apodini.Application.connection)
+        let handler = ResponseHandler2().environment(Connection(state: .end), for: \Apodini.Application.connection)
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)
         let request = Vapor.Request(application: app.vapor.app,
@@ -220,11 +217,11 @@ final class SemanticModelBuilderTests: ApodiniTests {
                                     url: "",
                                     on: app.eventLoopGroup.next())
 
-        let result = try context.handle(request: request).wait()
-        if case .end = result {
-            XCTAssertTrue(true)
-        } else {
-            XCTFail("Expected .end but got \(result)")
-        }
+        try XCTCheckResponse(
+            context.handle(request: request),
+            Empty.self,
+            content: nil,
+            connectionEffect: .close
+        )
     }
 }
