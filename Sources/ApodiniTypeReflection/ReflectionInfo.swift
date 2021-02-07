@@ -55,7 +55,7 @@ public struct ReflectionInfo {
 }
 
 public extension ReflectionInfo {
-    /// Initialize an `ReflectionInfo` node from a root type, recursively.
+    /// Recursively initialize a `ReflectionInfo` node from a root type.
     /// - Parameter type: The type that should be reflected.
     /// - Throws: A `RuntimeError`, if `Runtime` encounters an error during reflection.
     /// - Returns: A node of values reflecting every type composing the root type.
