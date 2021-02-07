@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import NIO
 import Apodini
 import ApodiniVaporSupport
 @_implementationOnly import Vapor
@@ -53,7 +54,7 @@ class GRPCService {
     /// or if a gRPC message is quite large it might span multiple data frames."
     ///
     /// - Parameter data: The data to read the GRPC  messages from
-    internal func getMessages(from data: Data) -> [GRPCMessage] {
+    internal func getMessages(from data: Data, remoteAddress: SocketAddress?) -> [GRPCMessage] {
         var data = data
         var messages: [GRPCMessage] = []
 
@@ -78,7 +79,7 @@ class GRPCService {
                 // or there is all the data available that belongs to this message,
                 // and no other message follows in the given data.
                 let messageData = data.subdata(in: 0..<length)
-                messages.append(GRPCMessage(from: messageData, length: length, compressed: compressed == 1))
+                messages.append(GRPCMessage(from: messageData, length: length, compressed: compressed == 1, remoteAddress: remoteAddress))
                 // remove the bytes of this message
                 data = data.dropFirst(length)
             } else {

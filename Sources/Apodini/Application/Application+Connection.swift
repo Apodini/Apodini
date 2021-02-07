@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import NIO
 
 extension Application {
     /// A Property identifying the `Connection` which provides an abstract view on the underlying protocol's state.
@@ -30,11 +31,15 @@ public enum ConnectionState {
 
 /// All info related to client-connections
 /// should be handled with the `Connection`.
-/// Currently, this is only the state of the connection.
+/// Currently, this is only the state of the connection and the request.
 public struct Connection {
     /// Holds the state of the current client-side stream.
     public var state: ConnectionState = .end
+    /// The remote address of the client that created the request.
+    public var remoteAddress: SocketAddress? { request.remoteAddress }
+    /// The `EventLoop` the request is running on.
+    public var eventLoop: EventLoop { request.eventLoop }
     
     /// Holds the latest `Request`
-    var request: Request?
+    var request: Request
 }

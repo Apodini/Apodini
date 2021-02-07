@@ -19,10 +19,7 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
         with validatedRequest: ValidatedRequest<I, H>,
         on connection: Connection
     ) -> EventLoopFuture<Response<EnrichedContent>> {
-        guard let request = connection.request else {
-            fatalError("Tried to handle request without request.")
-        }
-        
+        let request = connection.request
         
         let guardEventLoopFutures = instance.guards.map { requestGuard -> EventLoopFuture<Void> in
             connection.enterConnectionContext(with: requestGuard) { requestGuard in

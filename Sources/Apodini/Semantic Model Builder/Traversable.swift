@@ -74,9 +74,7 @@ extension Connection {
     func enterConnectionContext<E, R>(with element: E, executing method: (E) throws -> R) rethrows -> R {
         var element = element
         
-        if let request = self.request {
-            request.inject(in: &element)
-        }
+        request.inject(in: &element)
         
         self.update(&element)
         return try method(element)
