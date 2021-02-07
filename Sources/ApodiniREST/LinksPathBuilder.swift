@@ -20,3 +20,21 @@ struct LinksFormatter: RelationshipFormatter {
         return configuration.uriPrefix + destination.destinationPath.asPathString(parameterEncoding: .valueOrName)
     }
 }
+
+extension Apodini.Operation {
+    /// Defines the order of formatting for the `LinksFormatter`.
+    /// Bigger number means bigger priority.
+    /// Higher priority will shadow lower priority.
+    var linksOperationPriority: Int {
+        switch self {
+        case .delete:
+            return 0
+        case .update:
+            return 1
+        case .create:
+            return 2
+        case .read:
+            return 3
+        }
+    }
+}

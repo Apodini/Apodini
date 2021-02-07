@@ -40,11 +40,7 @@ struct RESTEndpointHandler<H: Handler> {
             }
             
             let formatter = LinksFormatter(configuration: self.configuration)
-            var links = enrichedContent.formatRelationships(
-                into: [:],
-                with: formatter,
-                for: .read
-            )
+            var links = enrichedContent.formatRelationships(into: [:], with: formatter, sortedBy: \.linksOperationPriority)
 
             if endpoint.selfRelationship(for: .read) != nil {
                 // by default (if it exists) we point self to .read (which is the most probably of being inherited)

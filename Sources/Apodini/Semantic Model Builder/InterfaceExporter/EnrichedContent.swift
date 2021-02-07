@@ -23,7 +23,6 @@ public struct EnrichedContent: Encodable {
 
     /// Used to apply a `RelationshipFormatter` to Relationships for a given `Operation`
     /// with the context of this `EnrichedContent` (path parameter values and property values of the response).
-    /// If nil is supplied for the `Operation`, the formatter is called for any `Operation`.
     ///
     /// - Parameters:
     ///   - initialValue: The initial value the `RelationshipFormatter` should reduce into.
@@ -33,18 +32,57 @@ public struct EnrichedContent: Encodable {
     public func formatRelationships<Formatter: RelationshipFormatter>(
         into initialValue: Formatter.Result,
         with formatter: Formatter,
-        for operation: Operation? = nil
+        for operation: Operation
     ) -> Formatter.Result {
         let context = ResolveContext(content: response.wrappedValue, parameters: parameters)
 
-        let destinations: Set<RelationshipDestination>
-        if let operation = operation {
-            destinations = endpoint.relationships(for: operation)
-        } else {
-            destinations = endpoint.relationships()
+        return endpoint
+            .relationships(for: operation)
+            .formatRelationships(into: initialValue, with: formatter, context: context)
+    }
+
+    /// Used to apply a `RelationshipFormatter` to all Relationships of the `Endpoint`
+    /// with the context of this `EnrichedContent` (path parameter values and property values of the response).
+    ///
+    /// - Parameters:
+    ///   - initialValue: The initial value the `RelationshipFormatter` should reduce into.
+    ///   - formatter: The actual instance of the `RelationshipFormatter`.
+    /// - Returns: The formatted result.
+    public func formatRelationships<Formatter: RelationshipFormatter>(
+        into initialValue: Formatter.Result,
+        with formatter: Formatter
+    ) -> Formatter.Result {
+        let context = ResolveContext(content: response.wrappedValue, parameters: parameters)
+
+        return endpoint
+            .relationships()
+            .formatRelationships(into: initialValue, with: formatter, context: context)
+    }
+
+    /// Used to apply a `RelationshipFormatter` to all Relationships of the `Endpoint`
+    /// with the context of this `EnrichedContent` (path parameter values and property values of the response).
+    ///
+    /// - Parameters:
+    ///   - initialValue: The initial value the `RelationshipFormatter` should reduce into.
+    ///   - formatter: The actual instance of the `RelationshipFormatter`.
+    ///   - sortKeyPath: The relationships will be applied to the formatter in the given order.
+    /// - Returns: The formatted result.
+    public func formatRelationships<Formatter: RelationshipFormatter, T: Comparable>(
+        into initialValue: Formatter.Result,
+        with formatter: Formatter,
+        sortedBy sortKeyPath: KeyPath<Operation, T>
+    ) -> Formatter.Result {
+        let context = ResolveContext(content: response.wrappedValue, parameters: parameters)
+
+        var result = initialValue
+
+        for operation in Operation.allCases.sorted(by: sortKeyPath) {
+            result = endpoint
+                .relationships(for: operation)
+                .formatRelationships(into: result, with: formatter, context: context)
         }
 
-        return destinations.formatRelationships(into: initialValue, with: formatter, context: context)
+        return result
     }
 
     /// Used to apply a `RelationshipFormatter` to the self relationships of the `Endpoint`
