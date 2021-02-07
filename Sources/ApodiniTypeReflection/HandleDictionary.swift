@@ -6,11 +6,11 @@ import Apodini
 
 /// Handle the `Dictionary` type.
 ///
-/// The presence of a dictionary is mapped to the appropriate cardinality of the property with
+/// The presence of a dictionary is mapped to the `ReflectionInfo`'s cardinality with
 /// `ReflectionInfo.CollectionContext`.
-/// - Parameter node: An `ReflectionInfo` node.
+/// - Parameter node: A `ReflectionInfo` node.
 /// - Throws: A `RuntimeError`, if `Runtime` encounters an error during reflection.
-/// - Returns: An `ReflectionInfo` node.
+/// - Returns: A `ReflectionInfo` node.
 public func handleDictionary(_ node: Node<ReflectionInfo>) throws -> Node<ReflectionInfo> {
     let typeInfo = node.value.typeInfo
 

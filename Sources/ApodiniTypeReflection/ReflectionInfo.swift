@@ -5,6 +5,7 @@
 import Apodini
 import Runtime
 
+/// `PropertyInfo` models the property/field/member layout in a composite type.
 public struct PropertyInfo: Equatable, Hashable {
     public let name: String
     public let offset: Int
@@ -15,8 +16,8 @@ public struct PropertyInfo: Equatable, Hashable {
     }
 }
 
-/// `ReflectionInfo` is the composite of a type's type info and property info, if it is embedded in a
-/// composite type.
+/// `ReflectionInfo` is the composite of a type's type info and property info, if it is embedded in
+/// a composite type.
 public struct ReflectionInfo {
     /// `Cardinality`, i.e., the number of elements in a grouping, as a property of that grouping,
     /// models how many times a value appears for a property.

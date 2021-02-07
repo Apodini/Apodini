@@ -4,8 +4,9 @@
 
 import Apodini
 
-/// `HandleArrayDidEncounterCircle` is a type to mark the repition of a type in a type hierarchy,
+/// `HandleArrayDidEncounterCircle` is a type to mark the repitition of a type in a type hierarchy,
 /// creating a circle in a structure that should remain a tree.
+///
 /// - **Example:**
 ///     Let's assume the following type:
 ///     ```
@@ -24,11 +25,11 @@ public enum HandleArrayDidEncounterCircle {}
 
 /// Handle the `Array` type.
 ///
-/// The presence of an array is mapped to the appropriate cardinality of the property with
+/// The presence of an array is mapped to the `ReflectionInfo`'s cardinality with
 /// `ReflectionInfo.CollectionContext`.
-/// - Parameter node: An `ReflectionInfo` node.
+/// - Parameter node: A `ReflectionInfo` node.
 /// - Throws: A `RuntimeError`, if `Runtime` encounters an error during reflection.
-/// - Returns: An `ReflectionInfo` tree.
+/// - Returns: A `ReflectionInfo` tree.
 public func handleArray(_ node: Node<ReflectionInfo>) throws -> Tree<ReflectionInfo> {
     let typeInfo = node.value.typeInfo
 

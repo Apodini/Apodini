@@ -5,7 +5,7 @@
 extension Collection {
     /// Returns the elements of the sequence, sorted using the given key path to a comparable value
     /// as the comparison between elements.
-    /// - Parameter keyPath: A key path to a value of the elements, that is comparable.
+    /// - Parameter keyPath: A key path to a value of an element, that is comparable.
     /// - Returns: A sorted array.
     func sorted<T>(by keyPath: KeyPath<Element, T>) -> [Element] where T: Comparable {
         sorted { lhs, rhs in
