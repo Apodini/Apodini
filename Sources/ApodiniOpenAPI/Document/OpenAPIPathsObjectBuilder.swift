@@ -53,13 +53,26 @@ struct OpenAPIPathsObjectBuilder {
 private extension OpenAPIPathsObjectBuilder {
     /// https://swagger.io/specification/#operation-object
     mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>) -> OpenAPI.Operation {
-        // Set endpointIdentifier to `Handler`s type name, stored in `endpoint.description`
+        var defaultTag: String
+        // If parameter in path, get string component directly before first parameter component in path.
+        if let index = endpoint.absolutePath.firstIndex(where: { $0.isParameter() }), index > 0 {
+            let stringComponent = endpoint.absolutePath[index - 1].description
+            defaultTag = stringComponent.isEmpty ? "default" : stringComponent
+        // If not, get string component that was appended last to the path.
+        } else {
+            defaultTag = endpoint.absolutePath.last { ($0.isString()) }?.description ?? "default"
+        }
+        
+        // Get tags if some have been set explicitly passed via TagModifier.
+        let tags: [String] = endpoint.context.get(valueFor: TagContextKey.self) ?? [defaultTag]
+
+        // Set endpointIdentifier to `Handler`s type name, stored in `endpoint.description`.
         let endpointIdentifier = "\(endpoint.description)"
 
-        // Get customDescription if it has been set explicitly passed via modifier
+        // Get customDescription if it has been set explicitly passed via DescriptionModifier.
         let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)
 
-        // Set endpoint Description to customDescription or `endpoint.description` holding the `Handler`s type name
+        // Set endpointDescription to customDescription or `endpoint.description` holding the `Handler`s type name.
         let endpointDescription = customDescription ?? endpoint.description
 
         // Get `Parameter.Array` from existing `query` or `path` parameters.
@@ -75,6 +88,7 @@ private extension OpenAPIPathsObjectBuilder {
         let vendorExtensions: [String: AnyCodable] = ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
 
         return OpenAPI.Operation(
+            tags: tags,
             description: endpointDescription,
             operationId: endpointIdentifier,
             parameters: parameters,
