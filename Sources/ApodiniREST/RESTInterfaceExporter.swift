@@ -30,7 +30,11 @@ public final class RESTInterfaceExporter: InterfaceExporter {
 
         let exportedParameterNames = endpoint.exportParameters(on: self)
 
-        let endpointHandler = RESTEndpointHandler(configuration: configuration, using: { endpoint.createConnectionContext(for: self) })
+        let endpointHandler = RESTEndpointHandler(
+            configuration: configuration,
+            for: endpoint,
+            using: { endpoint.createConnectionContext(for: self) }
+        )
         endpointHandler.register(at: routesBuilder, with: operation)
 
         app.logger.info("Exported '\(Vapor.HTTPMethod(operation).rawValue) \(pathBuilder.pathDescription)' with parameters: \(exportedParameterNames)")
