@@ -39,9 +39,9 @@ public class LambdaRuntime: DeploymentProviderRuntimeSupport {
     }
     
     
-    public func handleRemoteHandlerInvocation<Handler: InvocableHandler>(
-        _ invocation: HandlerInvocation<Handler>
-    ) throws -> RemoteHandlerInvocationRequestResponse<Handler.Response.Content> {
+    public func handleRemoteHandlerInvocation<H: IdentifiableHandler>(
+        _ invocation: HandlerInvocation<H>
+    ) throws -> RemoteHandlerInvocationRequestResponse<H.Response.Content> {
         .invokeDefault(url: URL(string: "https://\(lambdaDeploymentContext.apiGatewayHostname)")!)
     }
 }

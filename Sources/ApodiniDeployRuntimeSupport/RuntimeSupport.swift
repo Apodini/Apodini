@@ -35,9 +35,13 @@ public protocol DeploymentProviderRuntimeSupport: class {
     /// handler and the remote handler invocation manager has determined that the invocation's target handler is not in the current node.
     /// The deployment provider is given the option to manually implement and realise the remote invocation.
     /// It can also re-delegate this responsibility back to the caller.
-    func handleRemoteHandlerInvocation<Handler: InvocableHandler>( // TODO rename requestRemoteHandlerInvocation?
-        _ invocation: HandlerInvocation<Handler>
-    ) throws -> RemoteHandlerInvocationRequestResponse<Handler.Response.Content>
+    /// - Note: ideally we'd constrain this to `H: InvocableHandler`,
+    ///     but that doesn't work since the `InvocableHandler` protocol is defined in the ApodiniDeploy target,
+    ///     which has a depencency on the current target, meaning that we can't access the type here.
+    ///     Not that this should matter much, since the function which calls this function _does_ have a `: InvocableHandler` constraint.
+    func handleRemoteHandlerInvocation<H: IdentifiableHandler>( // TODO rename requestRemoteHandlerInvocation?
+        _ invocation: HandlerInvocation<H>
+    ) throws -> RemoteHandlerInvocationRequestResponse<H.Response.Content>
 }
 
 

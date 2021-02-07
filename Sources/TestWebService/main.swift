@@ -5,7 +5,7 @@ import Apodini
 import ApodiniDeployBuildSupport
 import DeploymentTargetLocalhostRuntimeSupport
 import DeploymentTargetAWSLambdaRuntime
-import RHIInterfaceExporter
+import ApodiniDeploy
 import ApodiniREST
 import ApodiniOpenAPI
 

@@ -5,6 +5,7 @@
 //  Created by Lukas Kollmer on 2021-01-14.
 //
 
+import Apodini
 
 // MARK: InvocableHandler
 
@@ -43,7 +44,7 @@ public struct InvocableHandlerEmptyParametersStorage<HandlerType: InvocableHandl
 
 
 /// Helper type which is used for mapping a parameter value in an `InvocableHandler`'s parameter storage type to the handler's `@Parameter` object this parameter belongs to.
-public struct HandlerParametersStorageMappingEntry<ParamsStruct: InvocableHandler.ParametersStorageProtocol, Handler: Apodini.InvocableHandler> {
+public struct HandlerParametersStorageMappingEntry<ParamsStruct: InvocableHandler.ParametersStorageProtocol, Handler: InvocableHandler> {
     /// key path into the `Handler.Prameters` struct, to this parameter's value
     public let paramsStructKeyPath: PartialKeyPath<ParamsStruct>
     /// key path into the `Handler` struct, to this parameter's `Parameter<>.ID`

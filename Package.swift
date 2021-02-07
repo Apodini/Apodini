@@ -203,7 +203,7 @@ let package = Package(
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniNotifications"),
-                .target(name: "RHIInterfaceExporter")
+                .target(name: "ApodiniDeploy")
             ]
         ),
         .testTarget(
@@ -266,7 +266,7 @@ let package = Package(
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniNotifications"),
-                .target(name: "RHIInterfaceExporter")
+                .target(name: "ApodiniDeploy")
             ]
         ),
         
@@ -275,7 +275,7 @@ let package = Package(
         //
         
         .target(
-            name: "RHIInterfaceExporter",
+            name: "ApodiniDeploy",
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniVaporSupport"),

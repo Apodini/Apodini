@@ -32,9 +32,9 @@ public class LocalhostRuntimeSupport: DeploymentProviderRuntimeSupport {
     }
     
     
-    public func handleRemoteHandlerInvocation<Handler: InvocableHandler>(
-        _ invocation: HandlerInvocation<Handler>
-    ) throws -> RemoteHandlerInvocationRequestResponse<Handler.Response.Content> {
+    public func handleRemoteHandlerInvocation<H: IdentifiableHandler>(
+        _ invocation: HandlerInvocation<H>
+    ) throws -> RemoteHandlerInvocationRequestResponse<H.Response.Content> {
         let LLI = invocation.targetNode.readUserInfo(as: LocalhostLaunchInfo.self)!
         // TODO read hostname from app?
         return .invokeDefault(url: URL(string: "http://127.0.0.1:\(LLI.port)")!)

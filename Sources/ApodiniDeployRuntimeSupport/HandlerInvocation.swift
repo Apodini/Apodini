@@ -12,7 +12,7 @@ import Vapor
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
-public struct HandlerInvocation<Handler: InvocableHandler> {
+public struct HandlerInvocation<Handler: IdentifiableHandler> {
     public let handlerId: Handler.HandlerIdentifier
     public let targetNode: DeployedSystemStructure.Node
     public let parameters: [HandlerInvocationParameter]

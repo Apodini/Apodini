@@ -9,7 +9,7 @@ import Foundation
 @testable import Apodini
 import Vapor
 import XCTest
-import RHIInterfaceExporter
+import ApodiniDeploy
 
 
 struct WrappedRESTResponse<T: Codable>: Vapor.Content {
