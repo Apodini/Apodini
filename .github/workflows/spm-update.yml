@@ -102,6 +102,6 @@ jobs:
         commit-message: Update dependencies
         title: Update dependencies
         body: |
-          - Dependency updates
+          - Dependency updates:
           ${{ steps.spm_update.outputs.body }}
         branch: update-dependencies
