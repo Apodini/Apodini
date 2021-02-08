@@ -226,7 +226,9 @@ extension ProtobufferBuilderTests {
         
         XCTAssertEqual(try buildMessage(First.self), expected)
     }
-    
+}
+
+extension ProtobufferBuilderTests {
     func testArraySecondOrder() throws {
         let expected = """
             message Array<Array<Double>>Message {
@@ -250,7 +252,38 @@ extension ProtobufferBuilderTests {
         
         XCTAssertNotEqual(try buildMessage(Matrix.self), expected)
     }
+    
+    func testOptionalArray() throws {
+        struct Message {
+            let value: [Bool]?
+        }
+        
+        let expected = """
+            message MessageMessage {
+              optional bool value = 1;
+            }
+            """
+        
+        XCTAssertNotEqual(try buildMessage(Message.self), expected)
+    }
+    
+    func testArrayOfOptional() throws {
+        struct Message {
+            let value: [Bool?]
+        }
+        
+        let expected = """
+            message MessageMessage {
+              repeated bool value = 1;
+            }
+            """
+        
+        XCTAssertNotEqual(try buildMessage(Message.self), expected)
+    }
+    
+}
 
+extension ProtobufferBuilderTests {
     func testUUID() throws {
         struct User {
             let id: UUID
