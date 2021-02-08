@@ -142,14 +142,17 @@ class RelationshipDSLTests: ApodiniTests {
         XCTAssertEqual(
             authenticatedResult.formatTestRelationships(),
             [
-                "self:read": "/user/5", "tagged:read": "/user/5/post/{postId}",
+                "self:read": "/user/5", "tagged:read": "/user/5/post/{postId}", "post:read": "/user/5/post/{postId}",
                 "TestA:read": "/xTestA", "TestB:read": "/xTestB/{param}", "TestC:read": "/xTestC/{cId}"
             ])
 
         let userResult = context.request(on: 2, parameters: 3)
         XCTAssertEqual(
             userResult.formatTestRelationships(),
-            ["self:read": "/user/3", "tagged:read": "/user/3/post/9", "TestA:read": "/xTestA", "TestC:read": "/xTestC/28"])
+            [
+                "self:read": "/user/3", "tagged:read": "/user/3/post/9", "post:read": "/user/3/post/{postId}",
+                "TestA:read": "/xTestA", "TestC:read": "/xTestC/28"
+            ])
 
         let postResult = context.request(on: 3, parameters: 3, 10)
         XCTAssertEqual(
@@ -160,7 +163,10 @@ class RelationshipDSLTests: ApodiniTests {
         let meResult = context.request(on: 1)
         XCTAssertEqual(
             meResult.formatTestRelationships(),
-            ["self:read": "/user/123", "tagged:read": "/user/123/post/1234", "TestA:read": "/xTestA", "TestC:read": "/xTestC/12345"])
+            [
+                "self:read": "/user/123", "tagged:read": "/user/123/post/1234", "post:read": "/user/123/post/{postId}",
+                "TestA:read": "/xTestA", "TestC:read": "/xTestC/12345"
+            ])
     }
 
     struct Referencing: Content, WithRelationships {
@@ -291,5 +297,70 @@ class RelationshipDSLTests: ApodiniTests {
     func testMissingResolverWebService() {
         XCTAssertRuntimeFailure(RelationshipTestContext(app: self.app, service: self.missingResolverWebService),
                                 "Inherits with missing resolver for destination must fail.")
+    }
+
+
+    struct User2: Content, WithRelationships, Identifiable {
+        var id: Int
+        var taggedPost: Post2.ID
+
+        static var relationships: Relationships {
+            References<Post2>(as: "taggedPost", identifiedBy: \.taggedPost)
+        }
+    }
+
+    struct Post2: Content, WithRelationships, Identifiable {
+        var id: Int
+        var writtenBy: User2.ID
+
+        static var relationships: Relationships {
+            References<User2>(as: "author", identifiedBy: \.writtenBy)
+        }
+    }
+
+    struct User2Handler: Handler {
+        @Parameter
+        var userId: User2.ID
+        func handle() -> User2 {
+            User2(id: userId, taggedPost: 4)
+        }
+    }
+    struct Post2Handler: Handler {
+        @Parameter
+        var userId: User2.ID
+        @Parameter
+        var postId: Post2.ID
+        func handle() -> Post2 {
+            Post2(id: postId, writtenBy: 7)
+        }
+    }
+
+    @PathParameter(identifying: User2.self)
+    var user2Id: User2.ID
+    @PathParameter(identifying: Post2.self)
+    var post2Id: Post2.ID
+
+    @ComponentBuilder
+    var conflictingResolversWebService: some Component {
+        Group("user", $user2Id) {
+            User2Handler(userId: $user2Id) // 0
+            Group("post", $post2Id) {
+                Post2Handler(userId: $user2Id, postId: $post2Id) // 1
+            }
+        }
+    }
+
+    func testCyclicReferencesDefinition() {
+        let context = RelationshipTestContext(app: app, service: conflictingResolversWebService)
+
+        let resultNil = context.request(on: 0, parameters: 76)
+        XCTAssertEqual(
+            resultNil.formatTestRelationships(),
+            ["self:read": "/user/76", "post:read": "/user/76/post/{postId}", "taggedPost:read": "/user/76/post/4"])
+
+        let resultRef = context.request(on: 1, parameters: 56, 89)
+        XCTAssertEqual(
+            resultRef.formatTestRelationships(),
+            ["self:read": "/user/56/post/89", "author:read": "/user/7"])
     }
 }

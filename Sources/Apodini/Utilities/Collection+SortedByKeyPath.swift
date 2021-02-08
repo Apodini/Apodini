@@ -2,7 +2,7 @@
 //  Created by Nityananda on 03.12.20.
 //
 
-extension Collection {
+public extension Collection {
     /// Returns the elements of the sequence, sorted using the given key path to a comparable value
     /// as the comparison between elements.
     /// - Parameter keyPath: A key path to a value of an element, that is comparable.

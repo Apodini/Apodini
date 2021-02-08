@@ -15,7 +15,7 @@ public final class RESTInterfaceExporter: InterfaceExporter {
     let app: Vapor.Application
     let configuration: RESTConfiguration
 
-    /// Initalize `RESTInterfaceExporter` from `Application`
+    /// Initialize `RESTInterfaceExporter` from `Application`
     public required init(_ app: Apodini.Application) {
         self.app = app.vapor.app
         self.configuration = RESTConfiguration(app.vapor.app.http.server.configuration)
@@ -31,7 +31,11 @@ public final class RESTInterfaceExporter: InterfaceExporter {
 
         let exportedParameterNames = endpoint.exportParameters(on: self)
 
-        let endpointHandler = RESTEndpointHandler(configuration: configuration, using: { endpoint.createConnectionContext(for: self) })
+        let endpointHandler = RESTEndpointHandler(
+            configuration: configuration,
+            for: endpoint,
+            using: { endpoint.createConnectionContext(for: self) }
+        )
         endpointHandler.register(at: routesBuilder, with: operation)
 
         app.logger.info("Exported '\(Vapor.HTTPMethod(operation).rawValue) \(pathBuilder.pathDescription)' with parameters: \(exportedParameterNames)")
@@ -54,7 +58,7 @@ public final class RESTInterfaceExporter: InterfaceExporter {
 
     public func finishedExporting(_ webService: WebServiceModel) {
         if webService.getEndpoint(for: .read) == nil {
-            // if the root path doesn't have a read endpoint we need to create a custom one to deliver linking entry points.
+            // if the root path doesn't have a read endpoint we create a custom one, to deliver linking entry points.
 
             let relationships = webService.rootRelationships(for: .read)
 
