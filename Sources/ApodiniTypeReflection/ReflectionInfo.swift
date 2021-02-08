@@ -5,7 +5,8 @@
 import Apodini
 import Runtime
 
-enum TypeReflectionDidEncounterRecursion {}
+/// .
+public enum TypeReflectionDidEncounterRecursion {}
 
 /// `PropertyInfo` models the property/field/member layout in a composite type.
 public struct PropertyInfo: Equatable, Hashable {
