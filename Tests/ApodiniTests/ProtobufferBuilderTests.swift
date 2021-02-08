@@ -227,6 +227,30 @@ extension ProtobufferBuilderTests {
         XCTAssertEqual(try buildMessage(First.self), expected)
     }
     
+    func testArraySecondOrder() throws {
+        let expected = """
+            message Array<Array<Double>>Message {
+              array<array<double>> value = 1;
+            }
+            """
+        
+        XCTAssertNotEqual(try buildMessage([[Double]].self), expected)
+    }
+    
+    func testArraySecondOrderNested() throws {
+        struct Matrix {
+            let backing: [[Double]]
+        }
+        
+        let expected = """
+            message MatrixMessage {
+              repeated double backing = 1;
+            }
+            """
+        
+        XCTAssertNotEqual(try buildMessage(Matrix.self), expected)
+    }
+
     func testUUID() throws {
         struct User {
             let id: UUID
