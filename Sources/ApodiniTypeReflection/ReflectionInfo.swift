@@ -164,13 +164,13 @@ private func travelThroughWrappers(_ type: Any.Type) throws -> Traveler {
     if isOptional(type) {
         let wrappedType = try Runtime.typeInfo(of: type).genericTypes[0]
         let next = try travelThroughWrappers(wrappedType)
-        return (next.type, [.zeroToOne] + next.wrappers)
         
+        return (next.type, [.zeroToOne] + next.wrappers)
     } else if mangledName(of: type) == "Array" {
         let elementType = try Runtime.typeInfo(of: type).genericTypes[0]
         let next = try travelThroughWrappers(elementType)
-        return (next.type, [.zeroToMany(.array)] + next.wrappers)
         
+        return (next.type, [.zeroToMany(.array)] + next.wrappers)
     } else {
         return (type, [])
     }
