@@ -4,8 +4,9 @@
 
 import Apodini
 import Vapor
+import NIO
 
-extension Vapor.Request: ExporterRequest, WithEventLoop {}
+extension Vapor.Request: ExporterRequest, WithEventLoop, WithRemote {}
 
 /// Apodini Interface Exporter for REST.
 public final class RESTInterfaceExporter: InterfaceExporter {
