@@ -105,7 +105,7 @@ struct GameComponent: Component {
 
 Restart your Apodini `WebService` after these modifications and you will see the results in the plain OAS document, the Swagger-UI, as well as in generated client SDKs.
 
-## Accessing OpenAPI Specification Inside Apodini `WebService` 
+## Accessing OpenAPI Specification inside Apodini `WebService` 
 
 In case you want to use the OAS document inside your `WebService`, you may access it as follows:
 
