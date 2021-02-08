@@ -77,7 +77,7 @@ extension ProtobufferBuilderTests {
         let bitWidth = Int.bitWidth
         
         let expected = """
-            message Int\(bitWidth)Message {
+            message IntMessage {
               int\(bitWidth) value = 1;
             }
             """
@@ -105,8 +105,6 @@ extension ProtobufferBuilderTests {
         }
         
         let expected = """
-            syntax = "proto3";
-
             message MessageMessage {
               optional string value = 1;
             }
