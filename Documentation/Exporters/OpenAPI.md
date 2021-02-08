@@ -2,7 +2,7 @@
 
 # OpenAPI Interface Exporter
 
-This document provides a short introduction to using the `OpenAPIInterfaceExporter`, a static exporter for Apodini.
+This document provides a short introduction to using the [`OpenAPIInterfaceExporter`](https://github.com/Apodini/Apodini/blob/develop/Sources/ApodiniOpenAPI/OpenAPIInterfaceExporter.swift), a static exporter for Apodini.
 It can be used to expose an OpenAPI specification (version 3.0.3) for an exported RESTful API, as done by the `RESTInterfaceExporter`.
 
 The following explanatory code snippets are taken from a [sample project](https://github.com/lschlesinger/the-game) created to demonstrate the use of the `OpenAPIInterfaceExporter` within the Apodini framework.
@@ -12,7 +12,7 @@ The following explanatory code snippets are taken from a [sample project](https:
 The OpenAPI Specification (OAS) defines a standard, language-agnostic interface to RESTful APIs which allows both humans and computers to discover and understand the capabilities of the service without access to source code, documentation, or through network traffic inspection.
 An OpenAPI definition can then be used by documentation generation tools to display the API, code generation tools to generate servers and clients in various programming languages, testing tools, and many other use cases.
 
-## Usage in `Apodini.WebService`
+## Usage in Apodini `WebService`
 
 Add the `OpenAPIInterfaceExporter` in combination with the `RESTInterfaceExporter` for a working RESTful API with associated OAS.
 
@@ -39,14 +39,14 @@ try TheGameWebService.main()
 
 If you run the `TestGameWebService.main()`, the startup log will give you the following output:
 
-```shell
+```plaintext
 2021-02-08T21:10:24+0100 info org.apodini.application : OpenAPI specification served in json format on: /openapi
 2021-02-08T21:10:24+0100 info org.apodini.application : Swagger-UI on: /openapi-ui
 ```
 
 This means that per default a `JSON` representation of the OAS is served at `/openapi`, whereas the [Swagger-UI](https://swagger.io/tools/swagger-ui/) can be viewed at `/openapi-ui`.
 
-## OAS-specific Configuration
+## OpenAPI-specific Configuration
 
 Additionally, you can use the `OpenAPIConfiguration` class to further specify details on the created OAS document and configure the exporter's behavior.
 
@@ -64,7 +64,7 @@ Additionally, you can use the `OpenAPIConfiguration` class to further specify de
 
 This overwrites the default endpoints, changes the output format to `YAML`, and provides a custom title to the OAS document.
 
-## Generating client SDKs from OAS
+## Generating Client SDKs from OpenAPI Specification
 
 The easiest way for creating client SDKs from an OAS document is to use [`swagger-codegen`](https://github.com/swagger-api/swagger-codegen).
 There are several possibilities to install `swagger-codegen`. 
@@ -74,13 +74,13 @@ On macOS you can simply install it using `brew`:
 brew install swagger-codegen
 ```
 
-After installing `swagger-codegen`, invoke it as follows, for instance to generate an API client library (i.e., client SDK) for a Angular Typescript client:
+After installing `swagger-codegen`, invoke it as follows, for instance to generate an API client library (i.e., client SDK) for an Angular Typescript client:
 
 ```shell
 swagger-codegen generate -i OPEN_API_INPUT -l typescript-angular -o OUTPUT_DIR
 ```
 
-## Providing more meaningful API descriptions
+## Providing Customized API Descriptions
 
 If you do not further specify descriptions, the `OpenAPIInterfaceExporter` will create a basic OAS document with predefined defaults.
 You may overwrite these by making use of the [`DescriptionModifier`](https://github.com/Apodini/Apodini/blob/develop/Sources/Apodini/Modifier/DescriptionModifier.swift) as well as the [`TagModifier`](https://github.com/Apodini/Apodini/blob/develop/Sources/ApodiniOpenAPI/Modifier/TagModifier.swift) on `Handler` level.
@@ -103,7 +103,7 @@ struct GameComponent: Component {
 
 Restart your Apodini `WebService` after these modifications and you will see the results in the plain OAS document, the Swagger-UI, as well as in generated client SDKs.
 
-## Accessing OAS inside Apodini `WebService` 
+## Accessing OpenAPI Specification Inside Apodini `WebService` 
 
 In case you want to use the OAS document inside your `WebService`, you may access it as follows:
 
