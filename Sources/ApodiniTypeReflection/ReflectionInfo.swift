@@ -76,49 +76,57 @@ public extension ReflectionInfo {
         var visitedCompositeTypes: Set = [ObjectIdentifier(typeInfo.type)]
         
         return Node(root: root) { info in
-            info.typeInfo.properties
-                .enumerated()
-                .compactMap { offset, propertyInfo in
-                    do {
-                        let traveler = try travelThroughWrappers(propertyInfo.type)
-                        if traveler.wrappers.contains(.zeroToMany(.array)) {
-                            didEncounterArray = true
-                        }
-                        var typeInfo = try Runtime.typeInfo(of: traveler.type)
-                        
-                        if didEncounterArray {
-                            if visitedCompositeTypes.contains(.init(
-                                TypeReflectionDidEncounterRecursion.self
-                            )) {
-                                typeInfo = try Runtime.typeInfo(of: TypeReflectionDidEncounterRecursion.self)
+            getChildren(info, &didEncounterArray, &visitedCompositeTypes)
+        }
+    }
+    
+    private static func getChildren(
+        _ info: ReflectionInfo,
+        _ didEncounterArray: inout Bool,
+        _ visitedCompositeTypes: inout Set<ObjectIdentifier>
+    ) -> [ReflectionInfo] {
+        info.typeInfo.properties
+            .enumerated()
+            .compactMap { offset, propertyInfo in
+                do {
+                    let traveler = try travelThroughWrappers(propertyInfo.type)
+                    if traveler.wrappers.contains(.zeroToMany(.array)) {
+                        didEncounterArray = true
+                    }
+                    var typeInfo = try Runtime.typeInfo(of: traveler.type)
+                    
+                    if didEncounterArray {
+                        if visitedCompositeTypes.contains(.init(
+                            TypeReflectionDidEncounterRecursion.self
+                        )) {
+                            typeInfo = try Runtime.typeInfo(of: TypeReflectionDidEncounterRecursion.self)
+                        } else {
+                            let identifier = ObjectIdentifier(typeInfo.type)
+                            if visitedCompositeTypes.contains(identifier) {
+                                visitedCompositeTypes.insert(.init(
+                                    TypeReflectionDidEncounterRecursion.self
+                                ))
                             } else {
-                                let identifier = ObjectIdentifier(typeInfo.type)
-                                if visitedCompositeTypes.contains(identifier) {
-                                    visitedCompositeTypes.insert(.init(
-                                        TypeReflectionDidEncounterRecursion.self
-                                    ))
-                                } else {
-                                    if !isSupportedScalarType(typeInfo.type) {
-                                        visitedCompositeTypes.insert(identifier)
-                                    }
+                                if !isSupportedScalarType(typeInfo.type) {
+                                    visitedCompositeTypes.insert(identifier)
                                 }
                             }
                         }
-                        let cardinality = traveler.wrappers.first ?? .exactlyOne
-                        
-                        return ReflectionInfo(
-                            typeInfo: typeInfo,
-                            propertyInfo: .init(
-                                name: propertyInfo.name,
-                                offset: offset + 1
-                            ),
-                            cardinality: cardinality
-                        )
-                    } catch {
-                        return check(error: error)
                     }
+                    let cardinality = traveler.wrappers.first ?? .exactlyOne
+                    
+                    return ReflectionInfo(
+                        typeInfo: typeInfo,
+                        propertyInfo: .init(
+                            name: propertyInfo.name,
+                            offset: offset + 1
+                        ),
+                        cardinality: cardinality
+                    )
+                } catch {
+                    return check(error: error)
                 }
-        }
+            }
     }
     
     private static func check(error: Error) -> ReflectionInfo? {
