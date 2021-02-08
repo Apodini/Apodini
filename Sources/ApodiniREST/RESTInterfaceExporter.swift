@@ -97,6 +97,9 @@ public final class RESTInterfaceExporter: InterfaceExporter {
                 return nil
             }
             return try? request.content.decode(Type.self, using: JSONDecoder())
+
+        case .header:
+            return request.headers.first(name: parameter.name) as? Type
         }
     }
 }

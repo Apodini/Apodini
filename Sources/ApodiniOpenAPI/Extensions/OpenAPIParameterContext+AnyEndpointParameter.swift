@@ -14,7 +14,7 @@ extension OpenAPI.Parameter.Context {
             self = .query
         case .path:
             self = .path
-        case .content:
+        case .content, .header:
             return nil
         }
     }

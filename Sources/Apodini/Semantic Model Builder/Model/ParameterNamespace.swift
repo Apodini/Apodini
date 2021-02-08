@@ -14,8 +14,9 @@ public struct ParameterNamespace: OptionSet {
     public static let lightweight = ParameterNamespace(rawValue: 1 << 0)
     public static let content = ParameterNamespace(rawValue: 1 << 1)
     public static let path = ParameterNamespace(rawValue: 1 << 2)
+    public static let header = ParameterNamespace(rawValue: 1 << 3)
 
-    fileprivate static let all: ParameterNamespace = [.lightweight, .content, .path]
+    fileprivate static let all: ParameterNamespace = [.lightweight, .content, .path, .header]
 }
 
 extension ParameterNamespace: CustomStringConvertible {
@@ -30,6 +31,10 @@ extension ParameterNamespace: CustomStringConvertible {
         }
         if (rawValue & 4) > 0 {
             types.append(.path)
+        }
+
+        if (rawValue & 8) > 0 {
+            types.append(.header)
         }
 
         return types.description
@@ -56,6 +61,8 @@ extension ParameterNamespace {
             return contains(.path)
         case .content:
             return contains(.content)
+        case .header:
+            return contains(.header)
         }
     }
 }
