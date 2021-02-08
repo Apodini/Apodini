@@ -115,24 +115,28 @@ public extension ReflectionInfo {
                             cardinality: cardinality
                         )
                     } catch {
-                        let errorDescription = String(describing: error)
-                        let keywords = [
-                            "\(Runtime.Kind.opaque)",
-                            "\(Runtime.Kind.function)"
-                        ]
-
-                        let errorIsKnown = keywords.contains(where: { keyword in
-                            errorDescription.contains(keyword)
-                        })
-                        
-                        if errorIsKnown {
-                            return nil
-                        }
-                        
-                        preconditionFailure(errorDescription)
+                        return check(error: error)
                     }
                 }
         }
+    }
+    
+    private static func check(error: Error) -> ReflectionInfo? {
+        let errorDescription = String(describing: error)
+        let keywords = [
+            "\(Runtime.Kind.opaque)",
+            "\(Runtime.Kind.function)"
+        ]
+
+        let errorIsKnown = keywords.contains(where: { keyword in
+            errorDescription.contains(keyword)
+        })
+        
+        if errorIsKnown {
+            return nil
+        }
+        
+        preconditionFailure(errorDescription)
     }
 }
 
