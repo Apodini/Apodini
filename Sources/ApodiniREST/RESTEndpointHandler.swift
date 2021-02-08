@@ -1,5 +1,5 @@
 //
-// Created by Andi on 30.12.20.
+// Created by Andreas Bauer on 30.12.20.
 //
 
 import Foundation
@@ -9,27 +9,26 @@ import Vapor
 
 struct RESTEndpointHandler<H: Handler> {
     let configuration: RESTConfiguration
-    var endpoint: Endpoint<H>
-    var contextCreator: () -> ConnectionContext<RESTInterfaceExporter>
-
+    let endpoint: Endpoint<H>
+    let exporter: RESTInterfaceExporter
     
     init(
-        configuration: RESTConfiguration,
+        with configuration: RESTConfiguration,
         for endpoint: Endpoint<H>,
-        using contextCreator: @escaping () -> ConnectionContext<RESTInterfaceExporter>
+        on exporter: RESTInterfaceExporter
     ) {
         self.configuration = configuration
         self.endpoint = endpoint
-        self.contextCreator = contextCreator
+        self.exporter = exporter
     }
     
     
-    func register(at routesBuilder: Vapor.RoutesBuilder, with operation: Apodini.Operation) {
+    func register(at routesBuilder: Vapor.RoutesBuilder, using operation: Apodini.Operation) {
         routesBuilder.on(Vapor.HTTPMethod(operation), [], use: self.handleRequest)
     }
 
     func handleRequest(request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        let context = contextCreator()
+        let context = endpoint.createConnectionContext(for: exporter)
 
         let responseFuture = context.handle(request: request)
 
@@ -41,7 +40,6 @@ struct RESTEndpointHandler<H: Handler> {
             
             let formatter = LinksFormatter(configuration: self.configuration)
             var links = enrichedContent.formatRelationships(into: [:], with: formatter, sortedBy: \.linksOperationPriority)
-
 
             let readExisted = enrichedContent.formatSelfRelationship(into: &links, with: formatter, for: .read)
             if !readExisted {
