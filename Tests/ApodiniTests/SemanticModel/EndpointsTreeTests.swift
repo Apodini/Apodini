@@ -142,4 +142,30 @@ final class EndpointsTreeTests: ApodiniTests {
         XCTAssertNotEqual(path2, path3)
         XCTAssertNotEqual(path1, path3)
     }
+
+
+    struct HandlerMissingPathParameter: Handler {
+        func handle() -> String {
+            "Hello World"
+        }
+    }
+
+    @PathParameter
+    var testParameter: String
+
+    @ComponentBuilder
+    var missingPathParameterWebService: some Component {
+        Group("test", $testParameter) {
+            HandlerMissingPathParameter()
+        }
+    }
+
+    func testRuntimeErrorOnMissingPathParameterDeclaration() {
+        let builder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        XCTAssertRuntimeFailure(
+            self.missingPathParameterWebService.accept(visitor),
+            "Parsing a Handler with missing PathParameter declaration should fail!"
+        )
+    }
 }

@@ -7,13 +7,19 @@ import Apodini
 import ApodiniVaporSupport
 import Vapor
 
-struct RESTEndpointHandler {
-    var contextCreator: () -> ConnectionContext<RESTInterfaceExporter>
+struct RESTEndpointHandler<H: Handler> {
     let configuration: RESTConfiguration
+    var endpoint: Endpoint<H>
+    var contextCreator: () -> ConnectionContext<RESTInterfaceExporter>
+
     
-    
-    init(configuration: RESTConfiguration, using contextCreator: @escaping () -> ConnectionContext<RESTInterfaceExporter>) {
+    init(
+        configuration: RESTConfiguration,
+        for endpoint: Endpoint<H>,
+        using contextCreator: @escaping () -> ConnectionContext<RESTInterfaceExporter>
+    ) {
         self.configuration = configuration
+        self.endpoint = endpoint
         self.contextCreator = contextCreator
     }
     
@@ -34,12 +40,16 @@ struct RESTEndpointHandler {
             }
             
             let formatter = LinksFormatter(configuration: self.configuration)
-            var links = enrichedContent.formatRelationships(
-                into: [:],
-                with: formatter,
-                for: .read
-            )
-            enrichedContent.formatSelfRelationship(into: &links, with: formatter)
+            var links = enrichedContent.formatRelationships(into: [:], with: formatter, sortedBy: \.linksOperationPriority)
+
+
+            let readExisted = enrichedContent.formatSelfRelationship(into: &links, with: formatter, for: .read)
+            if !readExisted {
+                // by default (if it exists) we point self to .read (which is the most probably of being inherited).
+                // Otherwise we guarantee a "self" relationship, by adding the self relationship
+                // for the operation of the endpoint which is guaranteed to exist.
+                enrichedContent.formatSelfRelationship(into: &links, with: formatter)
+            }
 
             let container = ResponseContainer(status: response.status, data: enrichedContent, links: links)
             return container.encodeResponse(for: request)

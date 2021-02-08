@@ -233,14 +233,6 @@ private class BuildingEndpoint {
             fatalError("Tried accessing inherited of \(reference) although they weren't resolved yet!")
         }
 
-        for explicit in explicitRelationships.values {
-            removeIdentities(explicit, on: &explicitTypedRelationships)
-            removeIdentities(explicit, on: &structuralRelationships)
-        }
-        for explicitTyped in explicitTypedRelationships.values {
-            removeIdentities(explicitTyped, on: &structuralRelationships)
-        }
-
         // The order of combination strongly reflects our name shadowing logic as described above.
         return [
             inheritedRelationships,
@@ -311,24 +303,6 @@ private class BuildingEndpoint {
     func setResolvedInheritedRelationships(_ inherited: [EndpointRelationship]) {
         precondition(!built, "Tried altering relationships for \(reference) after they were built!")
         inheritedRelationships = inherited
-    }
-
-    /// If two relationships point to the same destination but have different naming
-    /// (e.g the second one is created using a non generated name), we want to replace
-    /// that relationship with the updated name.
-    /// This is not done for inherited relationships.
-    /// - Parameters:
-    ///   - relationship: The relationship (its destinations) to remove from the given index
-    ///   - index: The index where the relationship is gonna be removed.
-    private func removeIdentities(_ relationship: EndpointRelationship, on index: inout [[EndpointPath]: EndpointRelationship]) {
-        if var existing = index[relationship.path] {
-            for destination in relationship.destinations {
-                // a destination pointing to the same path and operation is essentially the same.
-                // Only difference is naming and potential resolvers.
-                existing.remove(for: destination.operation)
-            }
-            index[relationship.path] = existing
-        }
     }
 
     func selfRelationshipResolvers() -> [AnyPathParameterResolver] {

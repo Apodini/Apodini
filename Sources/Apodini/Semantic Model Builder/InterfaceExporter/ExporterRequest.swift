@@ -2,7 +2,7 @@
 // Created by Andreas Bauer on 09.01.21.
 //
 
-import protocol NIO.EventLoop
+import NIO
 
 /// The Protocol any Exporter Request type must conform to
 public protocol ExporterRequest: Reducible {}
@@ -13,6 +13,12 @@ public protocol ExporterRequest: Reducible {}
 public protocol WithEventLoop {
     /// Defines the associated `EventLoop`.
     var eventLoop: EventLoop { get }
+}
+
+/// Implmented by `ExporterRequest`that provide a remote address.
+public protocol WithRemote {
+    /// The remote address of the client that created the request.
+    var remoteAddress: SocketAddress? { get }
 }
 
 /// An object that can merge itself and a `new` element

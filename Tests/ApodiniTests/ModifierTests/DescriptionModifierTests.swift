@@ -2,10 +2,8 @@
 // Created by Lorena Schlesinger on 10.01.21.
 //
 
-import Foundation
 import XCTest
 @testable import Apodini
-
 
 final class DescriptionModifierTests: ApodiniTests {
     struct TestHandler: Handler {
@@ -52,7 +50,7 @@ final class DescriptionModifierTests: ApodiniTests {
         let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
         let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
         let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)
-        
+    
         XCTAssertEqual(customDescription, "Returns greeting with name parameter.")
     }
     
@@ -64,7 +62,6 @@ final class DescriptionModifierTests: ApodiniTests {
             testComponent.content
         }.accept(visitor)
         visitor.finishParsing()
-
     
         let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
         let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
