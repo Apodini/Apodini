@@ -138,7 +138,7 @@ struct TypeIndex {
 
             switch candidate.type {
             case .inheritance:
-                logger.debug("[TypeIndex] Adding inheritance Relationship to \(source.debugDescription) from \(destination.debugDescription)")
+                logger.debug("[TypeIndex] Adding inheritance Relationship from \(source.debugDescription) to \(destination.debugDescription)")
 
                 relationshipBuilder.addRelationshipInheritance(
                     at: source,
@@ -146,7 +146,7 @@ struct TypeIndex {
                     resolvers: candidate.resolvers
                 )
             case let .reference(name), let .link(name):
-                logger.debug("[TypeIndex] Adding relationship \(candidate.type) to \(source.debugDescription) from \(destination.debugDescription)")
+                logger.debug("[TypeIndex] Adding relationship \(candidate.type) from \(source.debugDescription) to \(destination.debugDescription)")
 
                 relationshipBuilder.addDestinationFromExplicitTyping(
                     at: source,
