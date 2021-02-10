@@ -80,6 +80,12 @@ class RESTInterfaceExporterTests: ApodiniTests {
         }
     }
 
+    struct AuthenticatedHandler: Handler {
+        func handle() -> User {
+            User(id: 2, name: "Name")
+        }
+    }
+
     @PathParameter
     var userId: User.ID
 
@@ -92,6 +98,9 @@ class RESTInterfaceExporterTests: ApodiniTests {
             $userId
         } content: {
             UserHandler(userId: $userId)
+        }
+        Group("authenticated") {
+            AuthenticatedHandler()
         }
     }
 
