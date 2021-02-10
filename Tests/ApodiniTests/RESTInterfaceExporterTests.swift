@@ -86,7 +86,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         }
     }
 
-    @PathParameter
+    @PathParameter(identifying: User.self)
     var userId: User.ID
 
     @ComponentBuilder
