@@ -14,7 +14,6 @@ import Foundation
 private enum Evaluation {
     case input(_: GRPCMessage)
     case observation(_: AnyObservedObject)
-    case end
 }
 
 /// Taken from WebSocketExporter.
@@ -38,7 +37,7 @@ extension GRPCService {
     /// This is also used for unary client-requests (i.e. for unary and service-streaming endpoints),
     /// since in that case the clients "stream" will just be a data frame directly followed by an .end frame.
     private func drainClientStream(from request: Vapor.Request,
-                                   _ callback: @escaping (Evaluation) -> Void) {
+                                   into input: PassthroughSubject<Evaluation, Never>) {
         request.body.drain { (bodyStream: BodyStreamResult) in
             switch bodyStream {
             case let .buffer(byteBuffer):
@@ -51,11 +50,11 @@ extension GRPCService {
                 // (may be none, one or multiple)
                 let messages = self.getMessages(from: data)
                 for message in messages where message.didCollectAllFragments {
-                    callback(.input(message))
+                    input.send(.input(message))
                 }
             case .end:
                 // This was the last frame on this client-stream.
-                callback(.end)
+                input.send(completion: .finished)
             case let .error(error):
                 return request.eventLoop.makeFailedFuture(error)
             }
@@ -125,38 +124,46 @@ extension GRPCService {
 
             var context = context
             var lastMessage = GRPCMessage.defaultMessage
-            let queue = DispatchQueue(label: "sync-queue")
-
-            let processEvaluation: (Evaluation, BodyStreamWriter) -> Void = { evaluation, writer in
-                switch evaluation {
-                case let .input(message):
-                    lastMessage = message
-                    context
-                        .handle(request: message, eventLoop: request.eventLoop, final: false)
-                        .whenComplete { self.handleValue($0, responseWriter: writer, serviceStreaming: serviceStreaming) }
-                case let .observation(observedObject):
-                    context
-                        .handle(eventLoop: request.eventLoop, observedObject: observedObject)
-                        .whenComplete { self.handleValue($0, responseWriter: writer, serviceStreaming: serviceStreaming) }
-                case .end:
-                    self.handleCompletion(request: request,
-                                          context: &context,
-                                          responseWriter: writer,
-                                          serviceStreaming: serviceStreaming,
-                                          lastMessage: lastMessage)
-                }
-            }
 
             let streamingResponse: (BodyStreamWriter) -> Void = { writer in
-                self.drainClientStream(from: request) { evaluation in
-                    queue.sync {
-                        processEvaluation(evaluation, writer)
+                // store the writer to safe it from garbage collection
+                let refId = UUID()
+                self.writers[refId] = writer
+
+                let input = PassthroughSubject<Evaluation, Never>()
+
+                let cancellable = input
+                    .buffer()
+                    .syncMap { evaluation -> EventLoopFuture<Response<EnrichedContent>> in
+                        switch evaluation {
+                        case let .input(message):
+                            lastMessage = message
+                            return context.handle(request: message, eventLoop: request.eventLoop, final: false)
+                        case let .observation(observedObject):
+                            return context.handle(eventLoop: request.eventLoop, observedObject: observedObject)
+                        }
                     }
-                }
+                    .sink(
+                        receiveCompletion: { _ in
+                            self.handleCompletion(request: request,
+                                                  context: &context,
+                                                  responseWriter: writer,
+                                                  serviceStreaming: serviceStreaming,
+                                                  lastMessage: lastMessage)
+                            // we can get rid of the reference to the writer that we stored,
+                            // since the writer will not be needed any more.
+                            self.writers.removeValue(forKey: refId)
+                            self.cancellables.removeValue(forKey: refId)
+                        },
+                        receiveValue: { result in
+                            self.handleValue(result, responseWriter: writer, serviceStreaming: serviceStreaming)
+                        }
+                    )
+                self.cancellables[refId] = cancellable
+
+                self.drainClientStream(from: request, into: input)
                 context.register(listener: GRPCObservedListener(eventLoop: request.eventLoop) { observedObject in
-                    queue.sync {
-                        processEvaluation(.observation(observedObject), writer)
-                    }
+                    input.send(.observation(observedObject))
                 })
             }
 

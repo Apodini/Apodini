@@ -6,6 +6,7 @@
 //
 
 import Foundation
+@_implementationOnly import OpenCombine
 @_implementationOnly import Vapor
 @_implementationOnly import ProtobufferCoding
 
@@ -13,9 +14,13 @@ import Foundation
 /// `handle` functions of `Handler`s.
 class GRPCService {
     private let app: Application
+
     var vaporApp: Vapor.Application {
         app.vapor.app
     }
+
+    internal var cancellables: [UUID: AnyCancellable] = [:]
+    internal var writers: [UUID: BodyStreamWriter] = [:]
     
     var serviceName: String
     var methodNames: [String] = []
