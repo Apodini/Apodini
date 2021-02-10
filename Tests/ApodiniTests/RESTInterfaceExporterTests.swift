@@ -82,7 +82,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
     struct AuthenticatedHandler: Handler {
         func handle() -> User {
-            User(id: 2, name: "Name")
+            User(id: "2", name: "Name")
         }
     }
 
