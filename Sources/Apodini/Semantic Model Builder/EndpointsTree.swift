@@ -66,6 +66,18 @@ class EndpointsTreeNode {
             let next = context.nextStoredPath()
             var child = nodeChildren[next.path]
 
+            if case let .parameter(parameter) = next.path {
+                // Handle inconsistency where a PathParameter contained in the path is not declared as a @Parameter.
+                // This e.g. has an effect of resolvability of relationships, as the value for such a PathParameter
+                // will never be retrieved and thus can't be resolved.
+                precondition(endpoint.findParameter(for: parameter.id) != nil,
+                             """
+                             When inserting endpoint \(endpoint.description) encountered the @PathParameter \(parameter) \
+                             which was not declared as a @Parameter in the Handler \(H.self).
+                             Every @PathParameter of a Endpoint MUST be declared as a @Parameter in the given Handler.
+                             """)
+            }
+
             if child == nil {
                 // as we create a new child node we need to check if there are colliding path parameters
                 if case .parameter = next.path {

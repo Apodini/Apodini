@@ -24,7 +24,7 @@ extension GRPCService {
 
                 // retrieve all GRPC messages that were delivered in this request
                 // (may be none, one or multiple)
-                var messages = self.getMessages(from: data)
+                var messages = self.getMessages(from: data, remoteAddress: request.remoteAddress)
                 // retain the last message, to run it through the handler
                 // once the .end message was received.
                 lastMessage = messages.popLast()

@@ -40,6 +40,9 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         Group("bidirectional") {
             BidirectionalHandler(observed: self.testObservable, eventLoop: self.app.eventLoopGroup.next(), app: self.app)
         }
+        Group("address") {
+            RemoteAddressChecker()
+        }
     }
 
     func testParameterRetrieval() throws {
@@ -70,10 +73,12 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         _ = input.check()
         input.apply()
         
+        let eventLoop = app.eventLoopGroup.next()
+        
         try XCTCheckResponse(
         context.handle(
-            request: WebSocketInput(input),
-            eventLoop: app.eventLoopGroup.next()),
+            request: WebSocketInput(input, eventLoop: eventLoop),
+            eventLoop: eventLoop),
             content: Parameters(param0: "value0", param1: nil, pathA: "a", pathB: "b", bird: bird),
             connectionEffect: .close
         )
@@ -254,9 +259,38 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
             XCTFail("Expected WebSocket to close early and thus client to throw an error.")
         } catch { }
     }
+    
+    func testRemoteAddress() throws {
+        let builder = SemanticModelBuilder(app)
+            .with(exporter: WebSocketInterfaceExporter.self)
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        testService.accept(visitor)
+        visitor.finishParsing()
+
+        try app.start()
+        
+        let client = StatelessClient(on: app.eventLoopGroup.next(), ignoreErrors: false)
+        
+        let output: Bool = try client.resolve(
+            one: Empty(),
+            on: "address")
+            .wait()
+        _ = output
+    }
 }
 
 // MARK: Handlers
+
+struct Empty: Codable, Equatable {}
+
+struct RemoteAddressChecker: Handler {
+    @Environment(\.connection) var connection: Connection
+    
+    func handle() -> Bool {
+        XCTAssertNotNil(connection.remoteAddress)
+        return true
+    }
+}
 
 struct Parameters: Apodini.Content, Equatable {
     var param0: String

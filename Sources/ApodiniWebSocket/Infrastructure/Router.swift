@@ -38,11 +38,14 @@ enum Message<T> {
 /// a spcific `Input` for each `register`ed endpoint to maintain state and possibly also check
 /// validity of incoming messages. Each endpoint is identified by its `identifier`.
 protocol Router {
+    /// A `Router`-specific type that carries information about an incoming connection.
+    associatedtype ConnectionInformation
+    
     /// Register a new endpoint on the given `identifier` using the given `opener` when a
     /// new client connects. Closing the connection may be requested by the client (a completion is sent
     /// on the input publisher) and can be executed by the server (a completion is sent on the `output`).
     func register<I: Input, O: Encodable>(
-        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop) ->
+        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, ConnectionInformation) ->
             (default: I, output: AnyPublisher<Message<O>, Error>),
         on identifier: String)
 }
@@ -100,6 +103,8 @@ protocol Router {
 ///     }
 ///
 final class VaporWSRouter: Router {
+    typealias ConnectionInformation = Vapor.Request
+    
     private var registeredAtVapor: Bool = false
     
     private let app: Application
@@ -128,7 +133,7 @@ final class VaporWSRouter: Router {
     /// the connection is `unexpectedServerError`. A `WSClosingError` can be used to specifiy a
     /// different code.
     func register<I: Input, O: Encodable>(
-        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop) ->
+        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, ConnectionInformation) ->
             (default: I, output: AnyPublisher<Message<O>, Error>),
         on identifier: String) {
         if self.endpoints[identifier] != nil {
@@ -147,10 +152,11 @@ final class VaporWSRouter: Router {
     
     
     private func registerRouteToVapor() {
-        app.routes.grouped(self.path).webSocket(onUpgrade: { _, websocket in
+        app.routes.grouped(self.path).webSocket(onUpgrade: { req, websocket in
             self.connectionsMutex.lock()
             let responsible = ConnectionResponsible(
                 websocket,
+                request: req,
                 onClose: { id in
                     self.connectionsMutex.lock()
                     self.connections[id] = nil

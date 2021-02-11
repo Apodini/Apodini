@@ -7,8 +7,9 @@
 
 import Apodini
 import ApodiniVaporSupport
-@_implementationOnly import OpenCombine
 import NIOWebSocket
+@_implementationOnly import OpenCombine
+@_implementationOnly import Vapor
 
 // MARK: Exporter
 
@@ -16,12 +17,12 @@ import NIOWebSocket
 /// This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel.
 /// The Apodini service listens on /apodini/websocket for clients that want to communicate via the WebSocket Interface Exporter.
 public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
-    private let app: Application
+    private let app: Apodini.Application
     
-    private let router: Router
+    private let router: VaporWSRouter
 
     /// Initalize a `WebSocketInterfaceExporter` from an `Application`
-    public required init(_ app: Application) {
+    public required init(_ app: Apodini.Application) {
         self.app = app
         self.router = VaporWSRouter(app.vapor.app, logger: app.logger)
     }
@@ -35,7 +36,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             result[parameter.name] = parameter.value
         }))
         
-        self.router.register({(clientInput: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop) -> (
+        self.router.register({(clientInput: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, request: Vapor.Request) -> (
                     defaultInput: SomeInput,
                     output: AnyPublisher<Message<EnrichedContent>, Error>
                 ) in
@@ -74,10 +75,11 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             // messages are never dropped.
             input
                 .buffer()
-                .syncMap { evaluation -> EventLoopFuture<Response<EnrichedContent>> in
+                .syncMap { evaluation -> EventLoopFuture<Apodini.Response<EnrichedContent>> in
                     switch evaluation {
                     case .input(let inputValue):
-                        return context.handle(request: WebSocketInput(inputValue), eventLoop: eventLoop, final: false)
+                        let request = WebSocketInput(inputValue, eventLoop: eventLoop, remoteAddress: request.remoteAddress)
+                        return context.handle(request: request, eventLoop: eventLoop, final: false)
                     case .observation(let observedObject):
                         return context.handle(eventLoop: eventLoop, observedObject: observedObject)
                     }
@@ -86,7 +88,8 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
                     // The completion is also synchronized by `syncMap` it waits for any future
                     // to complete before forwarding it.
                     receiveCompletion: { completion in
-                        Self.handleCompletion(completion: completion, context: context, eventLoop: eventLoop, emptyInput: emptyInput, output: output)
+                        let request = WebSocketInput(emptyInput, eventLoop: eventLoop, remoteAddress: request.remoteAddress)
+                        Self.handleCompletion(completion: completion, context: context, request: request, output: output)
                         // We have to reference the cancellable here so it stays in memory and isn't cancled early.
                         cancellables.removeAll()
                     },
@@ -144,8 +147,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private static func handleCompletion(
         completion: Subscribers.Completion<Never>,
         context: ConnectionContext<WebSocketInterfaceExporter>,
-        eventLoop: EventLoop,
-        emptyInput: SomeInput,
+        request: WebSocketInput,
         output: PassthroughSubject<Message<EnrichedContent>, Error>
     ) {
         switch completion {
@@ -154,7 +156,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             // `Handler` one more time before the connection is closed. We have to
             // manually await this future. We use an `emptyInput`, which is aggregated
             // to the latest input.
-            context.handle(request: WebSocketInput(emptyInput), eventLoop: eventLoop, final: true).whenComplete { result in
+            context.handle(request: request, eventLoop: request.eventLoop, final: true).whenComplete { result in
                 switch result {
                 case .success(let response):
                     Self.handleCompletionResponse(response: response, output: output)
@@ -166,7 +168,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     }
     
     private static func handleValue(
-        result: Result<Response<EnrichedContent>, Error>,
+        result: Result<Apodini.Response<EnrichedContent>, Error>,
         output: PassthroughSubject<Message<EnrichedContent>, Error>
     ) {
         switch result {
@@ -178,7 +180,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     }
     
     private static func handleCompletionResponse(
-        response: Response<EnrichedContent>,
+        response: Apodini.Response<EnrichedContent>,
         output: PassthroughSubject<Message<EnrichedContent>, Error>
     ) {
         if let content = response.content {
@@ -188,7 +190,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     }
     
     private static func handleRegularResponse(
-        response: Response<EnrichedContent>,
+        response: Apodini.Response<EnrichedContent>,
         output: PassthroughSubject<Message<EnrichedContent>, Error>
     ) {
         if let content = response.content {
@@ -257,18 +259,22 @@ public struct WebSocketParameter {
 
 /// A struct that wrapps the `WebSocketInterfaceExporter`'s internal representation of
 /// the complete input of an endpoint.
-public struct WebSocketInput {
+public struct WebSocketInput: ExporterRequest, WithEventLoop, WithRemote {
     internal var input: SomeInput
+    public let eventLoop: EventLoop
+    public let remoteAddress: SocketAddress?
     
-    internal init(_ input: SomeInput) {
+    internal init(_ input: SomeInput, eventLoop: EventLoop, remoteAddress: SocketAddress? = nil) {
         self.input = input
+        self.eventLoop = eventLoop
+        self.remoteAddress = remoteAddress
     }
 }
 
 
 // MARK: Input Accumulation
 
-extension WebSocketInput: ExporterRequest {
+extension WebSocketInput: Reducible {
     public func reduce(to new: WebSocketInput) -> WebSocketInput {
         var newParameters: [String: InputParameter] = [:]
         for (name, value) in new.input.parameters {
@@ -278,7 +284,7 @@ extension WebSocketInput: ExporterRequest {
                 newParameters[name] = value
             }
         }
-        return WebSocketInput(SomeInput(parameters: newParameters))
+        return WebSocketInput(SomeInput(parameters: newParameters), eventLoop: new.eventLoop, remoteAddress: new.remoteAddress)
     }
 }
 
