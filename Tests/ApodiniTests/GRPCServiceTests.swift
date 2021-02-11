@@ -7,6 +7,7 @@
 
 import XCTest
 @testable import Apodini
+@testable import ApodiniGRPC
 
 final class GRPCServiceTests: ApodiniTests {
     override func setUpWithError() throws {
@@ -37,6 +38,8 @@ extension GRPCServiceTests {
             }
             
             var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(GRPCInterfaceExporter.self)
                 IntegerWidthConfiguration.sixtyFour
             }
         }

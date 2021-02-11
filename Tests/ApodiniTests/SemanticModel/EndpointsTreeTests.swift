@@ -6,8 +6,9 @@
 //
 
 @testable import Apodini
-import XCTest
 import Foundation
+import XCTest
+import XCTApodini
 
 
 final class EndpointsTreeTests: ApodiniTests {
@@ -122,14 +123,11 @@ final class EndpointsTreeTests: ApodiniTests {
         let context = endpoint.createConnectionContext(for: exporter)
 
         // handle a request (The actual request is unused in the MockExporter)
-        let response = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-                .wait()
-        guard case let .final(responseValue) = response.typed(String.self) else {
-            XCTFail("Expected return value to be wrapped in Response.final by default")
-            return
-        }
-        
-        XCTAssertEqual(responseValue, "✅ Hello \(name) ✅")
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
+            content: "✅ Hello \(name) ✅",
+            connectionEffect: .close
+        )
     }
     
     func testEndpointPathEquatable() throws {
@@ -143,5 +141,31 @@ final class EndpointsTreeTests: ApodiniTests {
         XCTAssertNotEqual(path1, path2)
         XCTAssertNotEqual(path2, path3)
         XCTAssertNotEqual(path1, path3)
+    }
+
+
+    struct HandlerMissingPathParameter: Handler {
+        func handle() -> String {
+            "Hello World"
+        }
+    }
+
+    @PathParameter
+    var testParameter: String
+
+    @ComponentBuilder
+    var missingPathParameterWebService: some Component {
+        Group("test", $testParameter) {
+            HandlerMissingPathParameter()
+        }
+    }
+
+    func testRuntimeErrorOnMissingPathParameterDeclaration() {
+        let builder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        XCTAssertRuntimeFailure(
+            self.missingPathParameterWebService.accept(visitor),
+            "Parsing a Handler with missing PathParameter declaration should fail!"
+        )
     }
 }

@@ -1,9 +1,8 @@
 //
-// Created by Andi on 29.12.20.
+// Created by Andreas Bauer on 29.12.20.
 //
 import NIO
 import Foundation
-import protocol FluentKit.Database
 
 struct ValidatedRequest<I: InterfaceExporter, H: Handler>: Request {
     var description: String {
@@ -21,19 +20,16 @@ struct ValidatedRequest<I: InterfaceExporter, H: Handler>: Request {
         return request
     }
 
-    var exporter: I
-    var exporterRequest: I.ExporterRequest
-    
-    let validatedParameterValues: [UUID: Any]
-
-    let storedEndpoint: Endpoint<H>
     var endpoint: AnyEndpoint {
         storedEndpoint
     }
 
-    var eventLoop: EventLoop
-
-    var database: (() -> Database)?
+    let exporter: I
+    let exporterRequest: I.ExporterRequest
+    let validatedParameterValues: [UUID: Any]
+    let storedEndpoint: Endpoint<H>
+    let eventLoop: EventLoop
+    let remoteAddress: SocketAddress?
 
     init(
         for exporter: I,
@@ -41,14 +37,14 @@ struct ValidatedRequest<I: InterfaceExporter, H: Handler>: Request {
         using validatedParameterValues: [UUID: Any],
         on endpoint: Endpoint<H>,
         running eventLoop: EventLoop,
-        database: (() -> Database)? = nil
+        remoteAddress: SocketAddress?
     ) {
         self.exporter = exporter
         self.exporterRequest = request
         self.validatedParameterValues = validatedParameterValues
         self.storedEndpoint = endpoint
         self.eventLoop = eventLoop
-        self.database = database
+        self.remoteAddress = remoteAddress
     }
 
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element {

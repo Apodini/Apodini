@@ -1,15 +1,17 @@
 //
-// Created by Andi on 25.12.20.
+// Created by Andreas Bauer on 25.12.20.
 //
 
-import XCTest
-import Vapor
 @testable import Apodini
+@testable import ApodiniREST
+import Vapor
+import XCTApodini
+
 
 class RESTInterfaceExporterTests: ApodiniTests {
     lazy var application = Vapor.Application(.testing)
 
-    struct Parameters: Apodini.Content, Decodable {
+    struct Parameters: Apodini.Content, Decodable, Equatable {
         var param0: String
         var param1: String?
         var pathA: String
@@ -78,7 +80,13 @@ class RESTInterfaceExporterTests: ApodiniTests {
         }
     }
 
-    @PathParameter
+    struct AuthenticatedHandler: Handler {
+        func handle() -> User {
+            User(id: "2", name: "Name")
+        }
+    }
+
+    @PathParameter(identifying: User.self)
     var userId: User.ID
 
     @ComponentBuilder
@@ -90,6 +98,9 @@ class RESTInterfaceExporterTests: ApodiniTests {
             $userId
         } content: {
             UserHandler(userId: $userId)
+        }
+        Group("authenticated") {
+            AuthenticatedHandler()
         }
     }
 
@@ -116,18 +127,11 @@ class RESTInterfaceExporterTests: ApodiniTests {
         request.parameters.set("\(handler.pathAParameter.id)", to: "a")
         request.parameters.set("\(handler.pathBParameter.id)", to: "b")
 
-        let result = try context.handle(request: request)
-                .wait()
-        guard case let .final(responseValue) = result.typed(Parameters.self) else {
-            XCTFail("Expected return value to be wrapped in Response.final by default")
-            return
-        }
-        
-        XCTAssertEqual(responseValue.param0, "value0")
-        XCTAssertEqual(responseValue.param1, nil)
-        XCTAssertEqual(responseValue.pathA, "a")
-        XCTAssertEqual(responseValue.pathB, "b")
-        XCTAssertEqual(responseValue.bird, body)
+        try XCTCheckResponse(
+            context.handle(request: request),
+            content: Parameters(param0: "value0", param1: nil, pathA: "a", pathB: "b", bird: body),
+            connectionEffect: .close
+        )
     }
 
     func testRESTRequest() throws {

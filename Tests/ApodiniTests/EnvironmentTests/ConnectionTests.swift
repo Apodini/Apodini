@@ -5,8 +5,12 @@
 //  Created by Moritz Schüll on 21.12.20.
 //
 
-import XCTest
 @testable import Apodini
+import ApodiniREST
+import XCTApodini
+import XCTVapor
+import XCTest
+
 
 final class ConnectionTests: ApodiniTests {
     let endMessage = "End"
@@ -34,44 +38,96 @@ final class ConnectionTests: ApodiniTests {
         activate(&testHandler)
         
         let endpoint = testHandler.mockEndpoint(app: app)
+        
         let exporter = MockExporter<String>()
-        var context = endpoint.createConnectionContext(for: exporter)
-        let result = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-            .wait()
+        let context = endpoint.createConnectionContext(for: exporter)
         
-        // default connection state should be .end
-        // thus, we expect a .final(endMessage) here from
-        // the TestComponent
-        guard case let .final(returnedMessage) = result.typed(String.self) else {
-            XCTFail("Expected Response final(\(endMessage)), but was \(result)")
-            return
-        }
-        
-        XCTAssertEqual(returnedMessage, endMessage)
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
+            content: endMessage,
+            connectionEffect: .close
+        )
     }
     
-    func testConnectionInjection() {
+    func testConnectionInjection() throws {
+        let mockRequest = MockRequest.createRequest(running: app.eventLoopGroup.next(), queuedParameters: .none)
         var testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage).inject(app: app)
         activate(&testHandler)
         
-        var connection = Connection(state: .open)
-        connection.enterConnectionContext(with: testHandler) { handler in
-            let returnedActionWithOpen = handler.handle()
-            if case let .send(returnedMessageWithOpen) = returnedActionWithOpen {
-                XCTAssertEqual(returnedMessageWithOpen, openMessage)
-            } else {
-                XCTFail("Expected Response send(\(openMessage)), but was \(returnedActionWithOpen)")
-            }
+        var connection = Connection(state: .open, request: mockRequest)
+        _ = try connection.enterConnectionContext(with: testHandler) { handler in
+            try XCTCheckResponse(
+                handler.handle(),
+                content: openMessage,
+                connectionEffect: .open
+            )
         }
         
         connection.state = .end
-        connection.enterConnectionContext(with: testHandler) { handler in
-            let returnedActionWithEnd = handler.handle()
-            if case let .final(returnedMessageWithEnd) = returnedActionWithEnd {
-                XCTAssertEqual(returnedMessageWithEnd, endMessage)
-            } else {
-                XCTFail("Expected Response final(\(endMessage)), but was \(returnedActionWithEnd)")
+        _ = try connection.enterConnectionContext(with: testHandler) { handler in
+            try XCTCheckResponse(
+                handler.handle(),
+                content: endMessage,
+                connectionEffect: .close
+            )
+        }
+    }
+
+    func testConnectionRemoteAddress() throws {
+        struct TestWebService: WebService {
+            struct TestHandler: Handler {
+                @Apodini.Environment(\.connection)
+                var connection: Connection
+
+                func handle() -> String {
+                    connection.remoteAddress?.description ?? "no remote"
+                }
             }
+
+            var content: some Component {
+                TestHandler()
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
+            }
+        }
+
+        TestWebService.main(app: app)
+
+        try app.vapor.app.test(.GET, "/v1/") { res in
+            XCTAssertEqual(res.status, .ok)
+            XCTAssert(res.body.string.contains("127.0.0.1:8080"))
+        }
+    }
+
+    func testConnectionEventLoop() throws {
+        struct TestWebService: WebService {
+            struct TestHandler: Handler {
+                @Apodini.Environment(\.connection)
+                var connection: Connection
+
+                func handle() -> String {
+                    connection.eventLoop.assertInEventLoop()
+                    return "success"
+                }
+            }
+
+            var content: some Component {
+                TestHandler()
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
+            }
+        }
+
+        TestWebService.main(app: app)
+
+        try app.vapor.app.test(.GET, "/v1/") { res in
+            XCTAssertEqual(res.status, .ok)
         }
     }
 }

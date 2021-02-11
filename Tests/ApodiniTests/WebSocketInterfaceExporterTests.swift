@@ -5,10 +5,10 @@
 //  Created by Max Obermeier on 03.01.21.
 //
 
-import XCTest
-import WebSocketInfrastructure
-import NIO
 @testable import Apodini
+@testable import ApodiniWebSocket
+import XCTApodini
+
 
 class WebSocketInterfaceExporterTests: ApodiniTests {
     static let blockTime: UInt32 = 10000
@@ -40,6 +40,9 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         Group("bidirectional") {
             BidirectionalHandler(observed: self.testObservable, eventLoop: self.app.eventLoopGroup.next(), app: self.app)
         }
+        Group("address") {
+            RemoteAddressChecker()
+        }
     }
 
     func testParameterRetrieval() throws {
@@ -70,20 +73,15 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         _ = input.check()
         input.apply()
         
-        print(input.parameters)
-
-        let result = try context.handle(request: input, eventLoop: app.eventLoopGroup.next())
-                .wait()
-        guard case let .final(responseValue) = result.typed(Parameters.self) else {
-            XCTFail("Expected return value to be wrapped in Response.automatic by default")
-            return
-        }
-
-        XCTAssertEqual(responseValue.param0, "value0")
-        XCTAssertEqual(responseValue.param1, nil)
-        XCTAssertEqual(responseValue.pathA, "a")
-        XCTAssertEqual(responseValue.pathB, "b")
-        XCTAssertEqual(responseValue.bird, bird)
+        let eventLoop = app.eventLoopGroup.next()
+        
+        try XCTCheckResponse(
+        context.handle(
+            request: WebSocketInput(input, eventLoop: eventLoop),
+            eventLoop: eventLoop),
+            content: Parameters(param0: "value0", param1: nil, pathA: "a", pathB: "b", bird: bird),
+            connectionEffect: .close
+        )
     }
 
     func testWebSocketConnectionRequestResponseSchema() throws {
@@ -261,11 +259,40 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
             XCTFail("Expected WebSocket to close early and thus client to throw an error.")
         } catch { }
     }
+    
+    func testRemoteAddress() throws {
+        let builder = SemanticModelBuilder(app)
+            .with(exporter: WebSocketInterfaceExporter.self)
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        testService.accept(visitor)
+        visitor.finishParsing()
+
+        try app.start()
+        
+        let client = StatelessClient(on: app.eventLoopGroup.next(), ignoreErrors: false)
+        
+        let output: Bool = try client.resolve(
+            one: Empty(),
+            on: "address")
+            .wait()
+        _ = output
+    }
 }
 
 // MARK: Handlers
 
-struct Parameters: Apodini.Content {
+struct Empty: Codable, Equatable {}
+
+struct RemoteAddressChecker: Handler {
+    @Environment(\.connection) var connection: Connection
+    
+    func handle() -> Bool {
+        XCTAssertNotNil(connection.remoteAddress)
+        return true
+    }
+}
+
+struct Parameters: Apodini.Content, Equatable {
     var param0: String
     var param1: String?
     var pathA: String

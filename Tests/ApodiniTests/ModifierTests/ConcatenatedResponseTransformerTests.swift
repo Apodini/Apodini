@@ -7,6 +7,8 @@
 
 import XCTVapor
 @testable import Apodini
+@testable import ApodiniREST
+@testable import ApodiniVaporSupport
 
 
 final class ConcatenatedResponseTransformerTests: ApodiniTests {
@@ -53,6 +55,11 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
                     .response(FirstTestResponseMediator())
                     .response(SecondTestResponseMediator())
             }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
+            }
         }
         
         TestWebService.main(app: app)
@@ -92,6 +99,11 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
                     .response(SecondTestResponseMediator())
                     .response(ThirdTestResponseMediator())
             }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
+            }
         }
         
         TestWebService.main(app: app)
@@ -120,6 +132,11 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
                     .response(FirstTestResponseMediator())
                     .response(SecondTestResponseMediator())
                     .response(ThirdTestResponseMediator())
+            }
+
+            var configuration: Configuration {
+                ExporterConfiguration()
+                    .exporter(RESTInterfaceExporter.self)
             }
         }
         

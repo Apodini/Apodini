@@ -6,8 +6,9 @@
 //
 
 import XCTest
-@testable import Vapor
 @testable import Apodini
+@testable import Vapor
+@testable import ApodiniGRPC
 
 private struct GRPCTestHandler: Handler {
     @Parameter("name",
@@ -65,7 +66,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        service = GRPCService(name: serviceName, app: app)
+        service = GRPCService(name: serviceName, using: app)
         handler = GRPCTestHandler()
         endpoint = handler.mockEndpoint()
         exporter = GRPCInterfaceExporter(app)

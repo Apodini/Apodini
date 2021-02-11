@@ -1,8 +1,7 @@
 //
-// Created by Andi on 22.11.20.
+// Created by Andreas Bauer on 22.11.20.
 //
 
-@_implementationOnly import class Vapor.Application
 import protocol NIO.EventLoop
 
 /// This is the base protocol shared by any Exporter type supported by Apodini.

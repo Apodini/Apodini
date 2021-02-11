@@ -2,14 +2,15 @@
 //  Created by Nityananda on 26.11.20.
 //
 
+// swiftlint:disable missing_docs
 // MARK: - Tree
 
 // swiftlint:disable syntactic_sugar
 /// `Tree.none` is to `Node`, what `[]` is to `Array` or `Set`.
-typealias Tree<T> = Optional<Node<T>>
+public typealias Tree<T> = Optional<Node<T>>
 // swiftlint:enable syntactic_sugar
 
-extension Tree {
+public extension Tree {
     var isEmpty: Bool {
         self == nil
     }
@@ -18,12 +19,17 @@ extension Tree {
 // MARK: - Node
 
 /// `Node` is a wrapper that enables values to be structured in a tree.
-struct Node<T> {
-    let value: T
-    let children: [Node<T>]
+public struct Node<T> {
+    public let value: T
+    public let children: [Node<T>]
+
+    public init(value: T, children: [Node<T>]) {
+        self.value = value
+        self.children = children
+    }
 }
 
-extension Node {
+public extension Node {
     /// Initializes an instance of `Node`.
     ///
     /// Initialize a `Node` tree from a data structure that already resembles a tree.
@@ -31,7 +37,7 @@ extension Node {
     ///   - root: The value of the root node.
     ///   - getChildren: Get node values for a parent's children, recursively.
     /// - Throws: Rethrows any error of `getChildren`
-    init(root: T, _ getChildren: (T) throws -> [T]) rethrows {
+    public init(root: T, _ getChildren: (T) throws -> [T]) rethrows {
         let children = try getChildren(root)
             .map {
                 try Node(root: $0, getChildren)
@@ -48,7 +54,7 @@ extension Node {
     /// - Parameter transform: A mapping closure. `transform` accepts a value of this node as its
     /// parameter and returns a transformed value of the same or of a different type.
     /// - Returns: A node containing the transformed values of this node.
-    func map<U>(_ transform: (T) throws -> U) rethrows -> Node<U> {
+    public func map<U>(_ transform: (T) throws -> U) rethrows -> Node<U> {
         let value = try transform(self.value)
         let children = try self.children.compactMap { child in
             try child.map(transform)
@@ -64,7 +70,7 @@ extension Node {
     /// - Parameter transform: A closure that accepts a value of this node as its argument and
     /// returns an optional value.
     /// - Returns: A node of the non-nil results of calling transform with each value of the node.
-    func compactMap<U>(_ transform: (T) throws -> U?) rethrows -> Tree<U> {
+    public func compactMap<U>(_ transform: (T) throws -> U?) rethrows -> Tree<U> {
         guard let value = try transform(self.value) else {
             return nil
         }
@@ -82,7 +88,7 @@ extension Node {
     /// - Parameter isIncluded: A closure that takes a value of the node as its argument and returns
     /// a Boolean value that indicates wether the passed value is included.
     /// - Returns: A tree of values that
-    func filter(_ isIncluded: (T) throws -> Bool) rethrows -> Tree<T> {
+    public func filter(_ isIncluded: (T) throws -> Bool) rethrows -> Tree<T> {
         guard try isIncluded(self.value) else {
             return nil
         }
@@ -100,7 +106,7 @@ extension Node {
     /// a Boolean value that indicates whether the passed value represents a match.
     /// - Returns: `true` if the node contains a value that satisfies `predicate`; otherwise,
     /// `false`.
-    func contains(where predicate: (T) throws -> Bool) rethrows -> Bool {
+    public func contains(where predicate: (T) throws -> Bool) rethrows -> Bool {
         if try predicate(value) {
             return true
         }
@@ -116,7 +122,7 @@ extension Node {
     ///   the node into a new accumulating value, to be used in the next call of the
     ///   `nextPartialResult` closure or returned to the caller.
     /// - Returns: The final accumulated value.
-    func reduce<Result>(_ nextPartialResult: ([Result], T) throws -> Result) rethrows -> Result {
+    public func reduce<Result>(_ nextPartialResult: ([Result], T) throws -> Result) rethrows -> Result {
         let partialResults = try children.map { child in
             try child.reduce(nextPartialResult)
         }
@@ -126,12 +132,12 @@ extension Node {
 
     /// Calls the given closure on each value in the node.
     /// - Parameter body: A closure that takes a value of the node as a parameter.
-    func forEach(_ body: (T) throws -> Void) rethrows {
+    public func forEach(_ body: (T) throws -> Void) rethrows {
         _ = try map(body)
     }
 }
 
-extension Node {
+public extension Node {
     /// Returns a tree edited by `transform`. Allows to modify the node freely with the information
     /// of a node and its children, but not the parent.
     ///
@@ -210,7 +216,7 @@ extension Node: CustomStringConvertible where T: CustomStringConvertible {
         return value.description.split(separator: "\n") + children
     }
     
-    var description: String {
+    public var description: String {
         lines.joined(separator: "\n")
     }
 }

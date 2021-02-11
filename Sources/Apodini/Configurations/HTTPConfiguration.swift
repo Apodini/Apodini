@@ -13,7 +13,7 @@ import NIO
 /// The configuration can be done in two ways, either via the
 /// command line arguments --hostname, --port and --bind or via the
 /// function `address`
-public class HTTPConfiguration: Configuration {
+public final class HTTPConfiguration: Configuration {
     private var address: BindAddress?
 
     enum HTTPConfigurationError: LocalizedError {

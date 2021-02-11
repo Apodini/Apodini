@@ -1,11 +1,9 @@
 //
-// Created by Andi on 25.12.20.
+// Created by Andreas Bauer on 25.12.20.
 //
 
 import XCTest
 import Foundation
-import protocol NIO.EventLoop
-import protocol FluentKit.Database
 @testable import Apodini
 
 

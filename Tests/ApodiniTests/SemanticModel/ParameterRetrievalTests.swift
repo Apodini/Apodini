@@ -1,9 +1,10 @@
 //
-// Created by Andi on 25.12.20.
+// Created by Andreas Bauer on 25.12.20.
 //
 
-import XCTest
 @testable import Apodini
+import XCTApodini
+
 
 class ParameterRetrievalTests: ApodiniTests {
     struct TestHandler: Handler {
@@ -33,13 +34,11 @@ class ParameterRetrievalTests: ApodiniTests {
         let exporter = MockExporter<String>(queued: "Rudi", 3, nil, .null)
 
         let context = endpoint.createConnectionContext(for: exporter)
-        let result = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-                .wait()
-        guard case let .final(responseValue) = result.typed(String.self) else {
-            XCTFail("Expected return value to be wrapped in Response.final by default")
-            return
-        }
         
-        XCTAssertEqual(responseValue, "Hello Rudi! Hello Rudi! Hello Rudi!")
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
+            content: "Hello Rudi! Hello Rudi! Hello Rudi!",
+            connectionEffect: .close
+        )
     }
 }

@@ -6,8 +6,6 @@
 //
 import Foundation
 import NIO
-import protocol FluentKit.Database
-
 
 protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
     /// Returns a description of the Request.
@@ -22,6 +20,8 @@ protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
     var endpoint: AnyEndpoint { get }
 
     var eventLoop: EventLoop { get }
+
+    var remoteAddress: SocketAddress? { get }
 
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element
 }
