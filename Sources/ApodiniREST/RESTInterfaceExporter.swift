@@ -1,11 +1,12 @@
 //
-// Created by Andi on 22.11.20.
+// Created by Andreas Bauer on 22.11.20.
 //
 
 import Apodini
 import Vapor
+import NIO
 
-extension Vapor.Request: ExporterRequest, WithEventLoop {}
+extension Vapor.Request: ExporterRequest, WithEventLoop, WithRemote {}
 
 /// Apodini Interface Exporter for REST.
 public final class RESTInterfaceExporter: InterfaceExporter {
@@ -14,7 +15,7 @@ public final class RESTInterfaceExporter: InterfaceExporter {
     let app: Vapor.Application
     let configuration: RESTConfiguration
 
-    /// Initalize `RESTInterfaceExporter` from `Application`
+    /// Initialize `RESTInterfaceExporter` from `Application`
     public required init(_ app: Apodini.Application) {
         self.app = app.vapor.app
         self.configuration = RESTConfiguration(app.vapor.app.http.server.configuration)
@@ -28,32 +29,30 @@ public final class RESTInterfaceExporter: InterfaceExporter {
 
         let operation = endpoint.operation
 
-        let exportedParameterNames = endpoint.exportParameters(on: self)
+        let endpointHandler = RESTEndpointHandler(with: configuration, for: endpoint, on: self)
+        endpointHandler.register(at: routesBuilder, using: operation)
 
-        let endpointHandler = RESTEndpointHandler(configuration: configuration, using: { endpoint.createConnectionContext(for: self) })
-        endpointHandler.register(at: routesBuilder, with: operation)
-
-        app.logger.info("Exported '\(Vapor.HTTPMethod(operation).rawValue) \(pathBuilder.pathDescription)' with parameters: \(exportedParameterNames)")
+        app.logger.info("Exported '\(Vapor.HTTPMethod(operation).rawValue) \(pathBuilder.pathDescription)' with parameters: \(endpoint.parameters.map { $0.name })")
 
         if endpoint.inheritsRelationship {
-            app.logger.info("  - inherits from: \(endpoint.selfRelationship.destinationPath.asPathString())")
+            for selfRelationship in endpoint.selfRelationships() where selfRelationship.destinationPath != endpoint.absolutePath {
+                app.logger.info("""
+                                  - inherits from: \(Vapor.HTTPMethod(selfRelationship.operation).rawValue) \
+                                \(selfRelationship.destinationPath.asPathString())
+                                """)
+            }
         }
 
-        for destination in endpoint.relationships(for: .read) {
-            let path = destination.destinationPath
-            app.logger.info("  - links to: \(path.asPathString())")
+        for operation in Operation.allCases.sorted(by: \.linksOperationPriority) {
+            for destination in endpoint.relationships(for: operation) {
+                app.logger.info("  - links to: \(destination.destinationPath.asPathString())")
+            }
         }
-    }
-
-    public func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) -> String {
-        // This is currently just a example on how one can use the exportParameter method
-        // The return type can be whatever you want
-        parameter.name
     }
 
     public func finishedExporting(_ webService: WebServiceModel) {
         if webService.getEndpoint(for: .read) == nil {
-            // if the root path doesn't have a read endpoint we need to create a custom one to deliver linking entry points.
+            // if the root path doesn't have a read endpoint we create a custom one, to deliver linking entry points.
 
             let relationships = webService.rootRelationships(for: .read)
 

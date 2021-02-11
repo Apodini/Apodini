@@ -2,6 +2,7 @@
 // Created by Andreas Bauer on 30.01.21.
 //
 
+import NIO
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 protocol InterfaceExporterVisitor {
@@ -73,7 +74,11 @@ private struct StandardStaticExporterVisitableVisitor: StaticExporterVisitableVi
 
 // MARK: AssociatedKit workaround
 
-private struct TestRequest: ExporterRequest {}
+private struct TestRequest: ExporterRequest {
+    var remoteAddress: SocketAddress? {
+        nil
+    }
+}
 
 private struct TestExporter: InterfaceExporter {
     init() {}

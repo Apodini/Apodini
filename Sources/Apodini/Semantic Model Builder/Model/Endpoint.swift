@@ -1,5 +1,5 @@
 //
-// Created by Andi on 22.11.20.
+// Created by Andreas Bauer on 22.11.20.
 //
 import Foundation
 
@@ -223,7 +223,7 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
         combineSelfRelationships().unique()
     }
 
-    public func selfRelationship(for: Operation) -> RelationshipDestination? {
+    public func selfRelationship(for operation: Operation) -> RelationshipDestination? {
         // the unique set will only have one entry (maybe even none)
         combineSelfRelationships().unique(for: operation).first
     }

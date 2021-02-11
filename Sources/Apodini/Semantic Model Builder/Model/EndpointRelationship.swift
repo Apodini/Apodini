@@ -44,12 +44,6 @@ public struct EndpointRelationship: Equatable {
         relationshipDestinations[operation]
     }
 
-    /// Internal method to remove a `RelationshipDestination` for a given `Operation`.
-    /// - Parameter operation: The `Operation` to remove the destination for.
-    mutating func remove(for operation: Operation) {
-        relationshipDestinations.removeValue(forKey: operation)
-    }
-
     /// Adds a new `RelationshipDestination` to the given `EndpointRelationship` for a given destination `Endpoint`.
     /// The relationship added through this is considered a "structural" Relationship (derived from the PathComponent structure)
     ///

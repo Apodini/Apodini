@@ -21,5 +21,7 @@ protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
 
     var eventLoop: EventLoop { get }
 
+    var remoteAddress: SocketAddress? { get }
+
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element
 }
