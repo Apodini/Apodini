@@ -5,11 +5,11 @@
 //  Created by Max Obermeier on 27.01.21.
 //
 
-@_implementationOnly import OpenCombine
+import OpenCombine
 import NIO
 import Foundation
 
-extension Publisher {
+public extension Publisher {
     /// A buffer that subscribes with unlimited demand to its upstream while keeping a given
     /// amount of _events_ in memory until the downstream publisher is ready to receive them.
     /// - Parameter amount: The number of events that are buffered. If `nil`, the buffer is
@@ -28,10 +28,10 @@ extension Publisher {
 }
 
 /// The `Publisher` behind `Publisher.buffer`.
-struct Buffer<Upstream: Publisher>: Publisher {
-    typealias Failure = Upstream.Failure
+public struct Buffer<Upstream: Publisher>: Publisher {
+    public typealias Failure = Upstream.Failure
     
-    typealias Output = Upstream.Output
+    public typealias Output = Upstream.Output
 
     /// The publisher from which this publisher receives elements.
     private let upstream: Upstream
@@ -45,7 +45,7 @@ struct Buffer<Upstream: Publisher>: Publisher {
         self.size = size
     }
 
-    func receive<Downstream: Subscriber>(subscriber: Downstream)
+    public func receive<Downstream: Subscriber>(subscriber: Downstream)
     where Output == Downstream.Input, Downstream.Failure == Failure {
         upstream.subscribe(Inner(downstream: subscriber, bufferSize: size))
     }

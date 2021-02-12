@@ -5,11 +5,11 @@
 //  Created by Max Obermeier on 06.01.21.
 //
 
-@_implementationOnly import OpenCombine
+import OpenCombine
 import NIO
 import Foundation
 
-extension Publisher {
+public extension Publisher {
     /// This function is similar to the normal `map`, but it only takes `transform`ers which
     /// return an `EventLoopFuture`. The mapper unwraps the `EventLoopFuture`'s
     /// contained value by awaiting the future in a synchronous, but non-blocking way. I.e. the
@@ -23,10 +23,10 @@ extension Publisher {
 }
 
 /// The `Publisher` behind `Publisher.syncMap`.
-struct SyncMap<Upstream: Publisher, O>: Publisher {
-    typealias Failure = Upstream.Failure
+public struct SyncMap<Upstream: Publisher, O>: Publisher {
+    public typealias Failure = Upstream.Failure
     
-    typealias Output = Result<O, Error>
+    public typealias Output = Result<O, Error>
 
     /// The publisher from which this publisher receives elements.
     private let upstream: Upstream
@@ -40,7 +40,7 @@ struct SyncMap<Upstream: Publisher, O>: Publisher {
         self.transform = transform
     }
 
-    func receive<Downstream: Subscriber>(subscriber: Downstream)
+    public func receive<Downstream: Subscriber>(subscriber: Downstream)
     where Result<O, Error> == Downstream.Input, Downstream.Failure == Failure {
         upstream.subscribe(Inner(downstream: subscriber, map: transform))
     }

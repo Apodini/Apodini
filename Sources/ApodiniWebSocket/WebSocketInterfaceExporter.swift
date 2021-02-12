@@ -8,6 +8,7 @@
 import Apodini
 import ApodiniVaporSupport
 import NIOWebSocket
+@_implementationOnly import ApodiniStreamingSupport
 @_implementationOnly import OpenCombine
 @_implementationOnly import Vapor
 

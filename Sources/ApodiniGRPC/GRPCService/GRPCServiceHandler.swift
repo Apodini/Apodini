@@ -7,7 +7,8 @@
 
 import Foundation
 import Apodini
-import ApodiniVaporSupport
+@_implementationOnly import ApodiniVaporSupport
+@_implementationOnly import ApodiniStreamingSupport
 @_implementationOnly import Vapor
 @_implementationOnly import OpenCombine
 
@@ -79,21 +80,17 @@ extension GRPCService {
                                   responseWriter: BodyStreamWriter,
                                   serviceStreaming: Bool,
                                   lastMessage: GRPCMessage) {
-        if serviceStreaming {
-            responseWriter.write(.end, promise: nil)
-        } else {
-            context
-                .handle(request: lastMessage, eventLoop: request.eventLoop, final: true)
-                .whenComplete { result in
-                    switch result {
-                    case let .success(response):
-                        self.write(response, to: responseWriter)
-                        responseWriter.write(.end, promise: nil)
-                    case let .failure(error):
-                        responseWriter.write(.error(error), promise: nil)
-                    }
+        context
+            .handle(request: lastMessage, eventLoop: request.eventLoop, final: true)
+            .whenComplete { result in
+                switch result {
+                case let .success(response):
+                    self.write(response, to: responseWriter)
+                    responseWriter.write(.end, promise: nil)
+                case let .failure(error):
+                    responseWriter.write(.error(error), promise: nil)
                 }
-        }
+            }
     }
 
     private func handleValue(_ value: Result<Apodini.Response<EnrichedContent>, Error>, responseWriter: BodyStreamWriter, serviceStreaming: Bool) {

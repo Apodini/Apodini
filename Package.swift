@@ -111,6 +111,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniVaporSupport"),
                 .target(name: "ProtobufferCoding"),
+                .target(name: "ApodiniStreamingSupport"),
                 .product(name: "OpenCombine", package: "OpenCombine"),
                 .product(name: "OpenCombineFoundation", package: "OpenCombine")
             ]
@@ -209,10 +210,20 @@ let package = Package(
         ),
 
         .target(
+            name: "ApodiniStreamingSupport",
+            dependencies: [
+                .product(name: "OpenCombine", package: "OpenCombine"),
+                .product(name: "OpenCombineFoundation", package: "OpenCombine"),
+                .product(name: "NIO", package: "swift-nio")
+            ]
+        ),
+
+        .target(
             name: "ApodiniWebSocket",
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniStreamingSupport"),
                 .product(name: "OpenCombine", package: "OpenCombine"),
                 .product(name: "OpenCombineFoundation", package: "OpenCombine"),
                 .product(name: "Vapor", package: "vapor"),

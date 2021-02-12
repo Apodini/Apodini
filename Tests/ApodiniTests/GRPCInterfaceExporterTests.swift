@@ -43,9 +43,10 @@ private struct GRPCStreamTestHandler: Handler {
     @Parameter("name",
                .gRPC(.fieldTag(1)))
     var name: String
+    @Apodini.Environment(\.connection) var connection: Connection
 
     func handle() -> Apodini.Response<String> {
-        .send("Hello \(name)")
+        return .send("Hello \(name)")
     }
 }
 
@@ -302,8 +303,9 @@ extension GRPCInterfaceExporterTests {
     /// The handler should only return the response for the last (second)
     /// message contained in the frame.
     func testClientStreamingHandlerWith_2Messages_1Frame() throws {
-        let service = GRPCService(name: serviceName, app: app)
-        let handler = GRPCStreamTestHandler()
+        let service = GRPCService(name: serviceName, using: app)
+        var handler = GRPCStreamTestHandler().inject(app: app)
+        activate(&handler)
         let endpoint = handler.mockEndpoint()
         let context = endpoint.createConnectionContext(for: self.exporter)
 
@@ -339,7 +341,7 @@ extension GRPCInterfaceExporterTests {
     /// The handler should only return the response for the last (second)
     /// message contained in the frame.
     func testClientStreamingHandlerWith_2Messages_2Frames() throws {
-        let service = GRPCService(name: serviceName, app: app)
+        let service = GRPCService(name: serviceName, using: app)
         let handler = GRPCStreamTestHandler()
         let endpoint = handler.mockEndpoint()
         let context = endpoint.createConnectionContext(for: self.exporter)
@@ -412,8 +414,9 @@ extension GRPCInterfaceExporterTests {
     }
 
     func testBidirectionalStreamingHandler() throws {
-        let service = GRPCService(name: serviceName, app: app)
-        let handler = GRPCStreamTestHandler()
+        let service = GRPCService(name: serviceName, using: app)
+        var handler = GRPCStreamTestHandler().inject(app: app)
+        activate(&handler)
         let endpoint = handler.mockEndpoint()
         let context = endpoint.createConnectionContext(for: self.exporter)
 
@@ -438,6 +441,9 @@ extension GRPCInterfaceExporterTests {
         _ = stream.write(.end)
 
         let expectation = XCTestExpectation()
+        expectedResponseFrame1.append(contentsOf: expectedResponseFrame2)
+        // Does not skip the end evaluation anymore, so we'll receive the
+        // second response twice from GRPCStreamTestHandler (second time as response for .end frame)
         expectedResponseFrame1.append(contentsOf: expectedResponseFrame2)
         let serviceStream = service.createStreamingHandler(context: context, serviceStreaming: true)(vaporRequest)
         // Currently, I am not aware of any way to read the response frame by frame on the client side.

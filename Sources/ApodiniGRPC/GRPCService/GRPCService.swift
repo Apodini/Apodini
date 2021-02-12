@@ -8,7 +8,7 @@
 import Foundation
 import NIO
 import Apodini
-import ApodiniVaporSupport
+@_implementationOnly import ApodiniVaporSupport
 @_implementationOnly import OpenCombine
 @_implementationOnly import Vapor
 @_implementationOnly import ProtobufferCoding
