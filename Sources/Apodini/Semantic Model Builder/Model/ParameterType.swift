@@ -1,5 +1,5 @@
 //
-// Created by Andi on 12.01.21.
+// Created by Andreas Bauer on 12.01.21.
 //
 
 /// `Parameter` categorization needed for certain interface exporters (e.g., HTTP-based).

@@ -1,5 +1,5 @@
 //
-// Created by Andi on 20.12.20.
+// Created by Andreas Bauer on 20.12.20.
 //
 
 /// The `WithRelationships` protocol can be used on `Content` definitions
