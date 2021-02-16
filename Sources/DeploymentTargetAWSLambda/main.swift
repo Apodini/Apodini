@@ -40,7 +40,6 @@ private func _findExecutable(_ name: String) throws -> URL {
 }
 
 let dockerBin = try _findExecutable("docker")
-let awsCliBin = try _findExecutable("aws")
 let zipBin = try _findExecutable("zip")
 
 let logger = Logger(label: "de.lukaskollmer.ApodiniLambda")
@@ -83,11 +82,6 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
     @Flag(help: "whether to skip the compilation steps and assume that build artifacts from a previous run are still located at the expected places")
     var awsDeployOnly: Bool = false
     
-    @Flag
-    var useBuiltinS3: Bool = false
-    
-    
-    
     
     private(set) lazy var packageRootDir: URL = URL(fileURLWithPath: inputPackageRootDir).absoluteURL
     
@@ -100,8 +94,7 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
             awsRegion: awsRegion,
             awsS3BucketName: awsS3BucketName,
             awsApiGatewayApiId: awsApiGatewayApiId,
-            awsDeployOnly: awsDeployOnly,
-            useBuiltinS3: useBuiltinS3
+            awsDeployOnly: awsDeployOnly
         )
         try DP.run()
     }
@@ -167,7 +160,6 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     let awsS3BucketName: String
     private(set) var awsApiGatewayApiId: String
     let awsDeployOnly: Bool
-    let useBuiltinS3: Bool
     
     private let FM = FileManager.default
     
@@ -261,8 +253,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             lambdaSharedObjectFilesUrl: lambdaOutputDir,
             s3BucketName: awsS3BucketName,
             s3ObjectFolderKey: "/lambda-code/", // TODO read this from the CLI args? or make it dynamic based on the name of the web service?
-            apiGatewayApiId: awsApiGatewayApiId,
-            tmp_useSotoS3: useBuiltinS3
+            apiGatewayApiId: awsApiGatewayApiId
         )
         logger.notice("Done! Successfully applied the deployment.")
     }

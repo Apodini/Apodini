@@ -299,6 +299,15 @@
         }
       },
       {
+        "package": "soto-s3-file-transfer",
+        "repositoryURL": "https://github.com/soto-project/soto-s3-file-transfer",
+        "state": {
+          "branch": null,
+          "revision": "513a63050519d6d386e619de131eb2f691139f3d",
+          "version": "0.3.0"
+        }
+      },
+      {
         "package": "sql-kit",
         "repositoryURL": "https://github.com/vapor/sql-kit.git",
         "state": {

@@ -12,6 +12,7 @@ import NIO
 import SotoLambda
 import SotoApiGatewayV2
 import SotoS3
+import SotoS3FileTransfer
 import SotoIAM
 import SotoSTS
 import ApodiniDeployBuildSupport
@@ -103,8 +104,7 @@ class AWSDeploymentStuff { // needs a better name
         lambdaSharedObjectFilesUrl: URL,
         s3BucketName: String,
         s3ObjectFolderKey: String,
-        apiGatewayApiId: String,
-        tmp_useSotoS3: Bool
+        apiGatewayApiId: String
     ) throws {
         logger.trace("-[\(Self.self) \(#function)]")
         
@@ -191,42 +191,29 @@ class AWSDeploymentStuff { // needs a better name
                 launchInCurrentProcessGroup: true
             ).launchSyncAndAssertSuccess()
             
-            logger.notice("uploading lambda package to S3")
-            
-            if tmp_useSotoS3 {
-                fatalError("TODO")
-//                let zipPath = lambdaPackageTmpDir.appendingPathComponent(zipFilename).path
-//                let fileHandle = try NIOFileHandle(path: zipPath)
-//                guard let size = try FM.attributesOfItem(atPath: zipPath)[.size] as? Int else {
-//                    fatalError("Unable to get file size")
-//                }
-//                print("will upload to s3")
-//                let res = try s3.putObject(S3.PutObjectRequest(
-//                    body: .fileHandle(fileHandle, size: size, fileIO: .init(threadPool: threadPool)),
-//                    bucket: s3BucketName,
-//                    //contentEncoding: <#T##String?#>,
-//                    //contentLength: Int64(size),
-//                    //contentMD5: <#T##String?#>,
-//                    //contentType: <#T##String?#>,
-//                    key: s3ObjectKey
-//                    //metadata: <#T##[String : String]?#>,
-//                    //storageClass: <#T##S3.StorageClass?#>,
-//                    //tagging: <#T##String?#>
-//                )).wait()
-//                print("did upload to s3")
-//                try fileHandle.close()
-            } else {
-                try Task(
-                    executableUrl: awsCliBin,
-                    arguments: [
-                        "--profile", awsProfileName,
-                        "s3", "cp",
-                        "\(lambdaPackageTmpDir.path)/\(zipFilename)",
-                        "s3://\(s3BucketName)/\(s3ObjectKey)"
-                    ],
-                    captureOutput: false,
-                    launchInCurrentProcessGroup: true
-                ).launchSyncAndAssertSuccess()
+            do {
+                logger.notice("uploading lambda package to S3")
+                let s3TransferManager = S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
+                let fmt = NumberFormatter()
+                fmt.numberStyle = .percent
+                fmt.maximumFractionDigits = 0
+                do {
+                    try s3TransferManager.copy(
+                        from: "\(lambdaPackageTmpDir.path)/\(zipFilename)",
+                        to: S3File(url: "s3://\(s3BucketName)/\(s3ObjectKey)")!,
+                        progress: { progress in
+                            print(
+                                "\u{1b}[2KS3 upload progress: \(fmt.string(from: NSNumber(value: progress)) ?? String(progress))",
+                                terminator: "\r"
+                            )
+                            fflush(stdout)
+                        }
+                    ).wait()
+                    print("\u{1b}[2KS3 upload done.")
+                } catch {
+                    print("") // print a newline after the last progress line (which did not terminate w/ a newline)
+                    throw error
+                }
             }
         }
         
@@ -235,9 +222,7 @@ class AWSDeploymentStuff { // needs a better name
         // Create new functions
         //
         
-        
         var nodeToLambdaFunctionMapping: [DeployedSystemStructure.Node.ID: Lambda.FunctionConfiguration] = [:]
-        
         
         logger.notice("Creating lambda functions for nodes in the web service deployment structure (#nodes: \(deploymentStructure.nodes.count))")
         for node in deploymentStructure.nodes {
