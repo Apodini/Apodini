@@ -3,9 +3,6 @@ import FluentSQLiteDriver
 @testable import Apodini
 import XCTest
 import ApodiniDatabase
-#if canImport(ApodiniDeploy)
-@testable import ApodiniDeploy
-#endif
 
 open class XCTApodiniTest: XCTestCase {
     // Vapor Application
@@ -19,9 +16,6 @@ open class XCTApodiniTest: XCTestCase {
     
     override open func tearDownWithError() throws {
         try super.tearDownWithError()
-        #if canImport(ApodiniDeploy)
-        ApodiniDeployInterfaceExporter.resetSingleton()
-        #endif
         app.shutdown()
     }
     

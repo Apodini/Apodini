@@ -48,6 +48,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter { // TODO rename 
         let deploymentOptions: DeploymentOptions
     }
     
+    // TODO if we put this into the app storage we can get rid of the singleton!
     internal private(set) static var shared: ApodiniDeployInterfaceExporter?
     
     let app: Apodini.Application

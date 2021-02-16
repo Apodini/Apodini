@@ -2,13 +2,8 @@ import XCTVapor
 @testable import Apodini
 @testable import ApodiniProtobuffer
 @testable import ApodiniGRPC
-@testable import ApodiniDeploy
 
 final class ProtobufferBuilderTests: XCTestCase {
-    override func tearDown() {
-        super.tearDown()
-        ApodiniDeployInterfaceExporter.resetSingleton()
-    }
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
         let app = Application()
         S.main(app: app)

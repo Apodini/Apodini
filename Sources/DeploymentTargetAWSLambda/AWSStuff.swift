@@ -18,7 +18,7 @@ import SotoSTS
 import ApodiniDeployBuildSupport
 import OpenAPIKit
 import DeploymentTargetAWSLambdaCommon
-import Apodini
+import class Apodini.AnyHandlerIdentifier
 
 
 
