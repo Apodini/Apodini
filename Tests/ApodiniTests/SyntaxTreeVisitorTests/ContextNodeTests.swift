@@ -1,5 +1,5 @@
 //
-// Created by Andi on 20.11.20.
+// Created by Andreas Bauer on 20.11.20.
 //
 
 import XCTest

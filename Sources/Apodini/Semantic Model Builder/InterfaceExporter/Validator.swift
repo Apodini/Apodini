@@ -109,8 +109,15 @@ private class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
                 throw error
             }
         }
-        
-        return ValidatedRequest(for: exporter, with: request, using: output, on: endpoint, running: eventLoop)
+
+        let requestRemote = (request as? WithRemote)?.remoteAddress
+
+        return ValidatedRequest(for: exporter,
+                                with: request,
+                                using: output,
+                                on: endpoint,
+                                running: eventLoop,
+                                remoteAddress: requestRemote)
     }
     
     func reset() {

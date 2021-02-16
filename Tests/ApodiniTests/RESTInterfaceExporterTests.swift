@@ -1,5 +1,5 @@
 //
-// Created by Andi on 25.12.20.
+// Created by Andreas Bauer on 25.12.20.
 //
 
 @testable import Apodini
@@ -80,7 +80,13 @@ class RESTInterfaceExporterTests: ApodiniTests {
         }
     }
 
-    @PathParameter
+    struct AuthenticatedHandler: Handler {
+        func handle() -> User {
+            User(id: "2", name: "Name")
+        }
+    }
+
+    @PathParameter(identifying: User.self)
     var userId: User.ID
 
     @ComponentBuilder
@@ -92,6 +98,9 @@ class RESTInterfaceExporterTests: ApodiniTests {
             $userId
         } content: {
             UserHandler(userId: $userId)
+        }
+        Group("authenticated") {
+            AuthenticatedHandler()
         }
     }
 

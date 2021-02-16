@@ -114,7 +114,9 @@ struct RelationshipSourceCandidate: SomeRelationshipSourceCandidate {
             parameterResolvers = builder.selfRelationshipResolvers(for: reference)
         }
 
-        parameterResolvers.append(contentsOf: partialCandidate.resolvers)
+        // inserting manually defined resolvers BEFORE the "automatically" derived path parameter resolvers
+        // to avoid conflicting resolvers (e.g. path parameter resolving the same parameter as property resolver)
+        parameterResolvers.insert(contentsOf: partialCandidate.resolvers, at: 0)
         self.resolvers = parameterResolvers
     }
 

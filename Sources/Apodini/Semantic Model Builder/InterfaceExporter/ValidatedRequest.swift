@@ -1,5 +1,5 @@
 //
-// Created by Andi on 29.12.20.
+// Created by Andreas Bauer on 29.12.20.
 //
 import NIO
 import Foundation
@@ -20,30 +20,31 @@ struct ValidatedRequest<I: InterfaceExporter, H: Handler>: Request {
         return request
     }
 
-    var exporter: I
-    var exporterRequest: I.ExporterRequest
-    
-    let validatedParameterValues: [UUID: Any]
-
-    let storedEndpoint: Endpoint<H>
     var endpoint: AnyEndpoint {
         storedEndpoint
     }
 
-    var eventLoop: EventLoop
+    let exporter: I
+    let exporterRequest: I.ExporterRequest
+    let validatedParameterValues: [UUID: Any]
+    let storedEndpoint: Endpoint<H>
+    let eventLoop: EventLoop
+    let remoteAddress: SocketAddress?
 
     init(
         for exporter: I,
         with request: I.ExporterRequest,
         using validatedParameterValues: [UUID: Any],
         on endpoint: Endpoint<H>,
-        running eventLoop: EventLoop
+        running eventLoop: EventLoop,
+        remoteAddress: SocketAddress?
     ) {
         self.exporter = exporter
         self.exporterRequest = request
         self.validatedParameterValues = validatedParameterValues
         self.storedEndpoint = endpoint
         self.eventLoop = eventLoop
+        self.remoteAddress = remoteAddress
     }
 
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element {
