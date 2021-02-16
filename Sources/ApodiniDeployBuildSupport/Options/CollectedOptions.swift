@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+import ApodiniUtils
 
 
 /// A collection of deployment options
@@ -23,7 +23,7 @@ public struct CollectedOptions<OuterNS: OuterNamespace>: Codable, ExpressibleByA
     
     public init<S>(reducing options: S) where S: Sequence, S.Element == ResolvedOption<OuterNS> {
         self.options = Array(options.reduce(into: Set<ResolvedOption<OuterNS>>(), { (options, option) in
-            options.lk_insert(option) { $0.reduceOption(with: $1) }
+            options.insert(option) { $0.reduceOption(with: $1) }
         }))
     }
     
@@ -70,6 +70,6 @@ public struct CollectedOptions<OuterNS: OuterNamespace>: Codable, ExpressibleByA
         try options
             .filter { $0.key == optionKey }
             .map { try $0.readValue(as: Value.self) }
-            .lk_reduceIntoFirst { $0.reduce(with: $1) }
+            .reduceIntoFirst { $0.reduce(with: $1) }
     }
 }

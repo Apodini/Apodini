@@ -1,6 +1,6 @@
 //
-//  CApodiniDeployBuildSupport.h
-//  CApodiniDeployBuildSupport
+//  CApodiniUtils.h
+//  CApodiniUtils
 //
 //  Created by Lukas Kollmer on 2021-01-31.
 //  Copyright © 2021 Lukas Kollmer. All rights reserved.

@@ -7,6 +7,7 @@
 
 import Foundation
 import Apodini
+import ApodiniUtils
 @testable import ApodiniOpenAPI
 import ApodiniDeployBuildSupport
 @_implementationOnly import Vapor

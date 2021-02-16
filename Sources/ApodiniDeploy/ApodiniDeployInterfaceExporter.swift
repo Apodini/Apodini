@@ -7,6 +7,7 @@
 
 import Foundation
 import Apodini
+import ApodiniUtils
 import ApodiniVaporSupport
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
@@ -221,40 +222,6 @@ extension ApodiniDeployInterfaceExporter {
         }
     }
 }
-
-
-
-
-
-/// Perform a dynamic cast from one type to another.
-/// - returns: the casted value, or `nil` if the cast failed
-/// - note: This is semantically equivalent to the `as?` operator.
-///         The reason this function exists is to enable casting from `Any` to an optional type,
-///         which is otherwise rejected by the type checker.
-internal func dynamicCast<U>(_ value: Any, to _: U.Type) -> U? {
-    value as? U
-}
-
-
-
-
-// MARK: Extensions
-
-extension Set {
-    static func + (lhs: Self, rhs: Self) -> Self {
-        lhs.union(rhs)
-    }
-    
-    static func + <S> (lhs: Self, rhs: S) -> Self where S: Sequence, S.Element == Self.Element {
-        lhs.union(rhs)
-    }
-    
-    static func + <S> (lhs: S, rhs: Self) -> Self where S: Sequence, S.Element == Self.Element {
-        rhs.union(lhs)
-    }
-}
-
-
 
 
 // MARK: Utils

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ApodiniUtils
 import Logging
 import NIO
 import SotoLambda

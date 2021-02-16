@@ -96,16 +96,3 @@ public extension AnyOption where OuterNS == DeploymentOptionsNamespace {
         ResolvedOption(key: .timeout, value: value)
     }
 }
-
-
-
-
-extension Set {
-    mutating func lk_insert(_ newElement: Element, merging mergingFn: (_ oldElem: Element, _ newElem: Element) -> Element) {
-        if let idx = firstIndex(of: newElement) {
-            insert(mergingFn(self[idx], newElement))
-        } else {
-            insert(newElement)
-        }
-    }
-}

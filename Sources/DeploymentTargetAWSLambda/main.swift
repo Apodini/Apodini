@@ -7,6 +7,7 @@
 
 import Foundation
 import ApodiniDeployBuildSupport
+import ApodiniUtils
 import ArgumentParser
 import DeploymentTargetAWSLambdaCommon
 import SotoS3

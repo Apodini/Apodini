@@ -144,21 +144,3 @@ extension DeployedSystemStructure {
         //}
     }
 }
-
-
-
-extension Collection {
-    public func lk_reduceIntoFirst(_ transform: (inout Element, Element) throws -> Void) rethrows -> Element? {
-        guard let first = self.first else {
-            return nil
-        }
-        return try dropFirst().reduce(into: first, transform)
-    }
-    
-    public func lk_reduceIntoFirst(_ transform: (Element, Element) throws -> Element) rethrows -> Element? {
-        guard let first = self.first else {
-            return nil
-        }
-        return try dropFirst().reduce(first, transform)
-    }
-}

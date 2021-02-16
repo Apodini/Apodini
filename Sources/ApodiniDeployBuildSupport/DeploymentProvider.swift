@@ -16,6 +16,7 @@ import Darwin
 
 
 import Apodini
+import ApodiniUtils
 
 
 
@@ -227,19 +228,6 @@ extension DeploymentGroup {
     }
 }
 
-
-
-extension Set {
-    /// insert an element into the set
-    public static func += (lhs: inout Set<Element>, rhs: Element) {
-        lhs.insert(rhs)
-    }
-    
-    /// insert a sequence of elements into the set
-    public static func += <S> (lhs: inout Self, rhs: S) where S: Sequence, S.Element == Element {
-        lhs.formUnion(rhs)
-    }
-}
 
 
 

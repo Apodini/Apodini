@@ -88,6 +88,9 @@ let package = Package(
                 "Relationships/RelationshipIdentificationBuilder.swift.gyb"
             ]
         ),
+        
+        .target(name: "CApodiniUtils"),
+        .target(name: "ApodiniUtils", dependencies: [.target(name: "CApodiniUtils")]),
 
         .testTarget(
             name: "ApodiniTests",
@@ -296,6 +299,7 @@ let package = Package(
             name: "ApodiniDeploy",
             dependencies: [
                 .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniVaporSupport"),
                 .target(name: "ApodiniOpenAPI"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
@@ -303,12 +307,11 @@ let package = Package(
             ]
         ),
         
-        .target(name: "CApodiniDeployBuildSupport"),
         .target(
             name: "ApodiniDeployBuildSupport",
             dependencies: [
-                .target(name: "CApodiniDeployBuildSupport"),
                 .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Runtime", package: "Runtime")
             ]
@@ -318,6 +321,7 @@ let package = Package(
             dependencies: [
                 .target(name: "ApodiniDeployBuildSupport"),
                 .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniVaporSupport"),
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Logging", package: "swift-log"),
@@ -336,6 +340,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
                 .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "ApodiniUtils"),
                 .target(name: "DeploymentTargetLocalhostCommon"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Logging", package: "swift-log")
@@ -360,6 +365,7 @@ let package = Package(
             dependencies: [
                 .target(name: "DeploymentTargetAWSLambdaCommon"),
                 .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "ApodiniUtils"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "SotoS3", package: "soto"),
