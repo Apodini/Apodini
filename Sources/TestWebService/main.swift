@@ -40,7 +40,7 @@ struct RandomNumberGenerator: InvocableHandler, HandlerWithDeploymentOptions {
 
 
 struct Greeter: Handler {
-    private let RHI = RemoteHandlerInvocationManager()
+    @Apodini.Environment(\.RHI) private var RHI
     
     @Parameter var age: Int
     @Parameter(.http(.path)) var name: String

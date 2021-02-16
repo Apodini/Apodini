@@ -39,7 +39,7 @@ private struct TestWebService: Apodini.WebService {
     }
     
     struct FInvoker: Handler {
-        private var RHI = RemoteHandlerInvocationManager()
+        @Apodini.Environment(\.RHI) private var RHI
         
         func handle() -> EventLoopFuture<String> {
             RHI.invoke(F.self, identifiedBy: .main)
@@ -94,7 +94,7 @@ private struct TestWebService: Apodini.WebService {
 
 
     struct Greeter: Handler {
-        private var RHI = RemoteHandlerInvocationManager()
+        @Apodini.Environment(\.RHI) private var RHI
         
         @Parameter var name: String
         @Parameter var transformation: TextTransformer.Transformation?
@@ -155,7 +155,7 @@ private struct TestWebService: Apodini.WebService {
     
     
     struct Calculator: Handler {
-        private var RHI = RemoteHandlerInvocationManager()
+        @Apodini.Environment(\.RHI) private var RHI
         
         @Parameter var operation: String
         @Parameter var lhs: Int

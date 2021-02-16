@@ -7,7 +7,7 @@
 
 import Foundation
 @_implementationOnly import Vapor
-@testable import Apodini
+import Apodini
 import ApodiniVaporSupport
 @testable import ApodiniOpenAPI
 import ApodiniDeployBuildSupport
@@ -60,34 +60,6 @@ struct TmpErrorType: Swift.Error {
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
 public class RHIInterfaceExporter: InterfaceExporter { // TODO rename to something different, since this class is doing a lot of things, not just the RHI handling
-    public struct ExporterRequest: Apodini.ExporterRequest {
-        enum Param {
-            case value(Any)    // the value, as is
-            case encoded(Data) // the value, encoded
-        }
-        
-        private let parameterValues: [String: Param] // key: stable endpoint param identity
-        
-        init<H: Handler>(endpoint: Endpoint<H>, collectedParameters: [CollectedParameter<H>]) {
-            parameterValues = .init(uniqueKeysWithValues: collectedParameters.map { param -> (String, Param) in
-                let paramId = (endpoint.handler[keyPath: param.handlerKeyPath] as! AnyParameterID).value
-                let endpointParam = endpoint.parameters.first { $0.id == paramId }!
-                return (endpointParam.lk_stableIdentity, .value(param.value))
-            })
-        }
-        
-        init(encodedParameters: [(String, Data)]) {
-            parameterValues = Dictionary(
-                uniqueKeysWithValues: encodedParameters.map { ($0.0, .encoded($0.1)) }
-            )
-        }
-        
-        func getValueOfCollectedParameter(for endpointParameter: AnyEndpointParameter) -> Param? {
-            parameterValues[endpointParameter.lk_stableIdentity]
-        }
-    }
-    
-    
     private struct CollectedEndpointInfo {
         let handlerType: HandlerTypeIdentifier
         let endpoint: AnyEndpoint
@@ -237,6 +209,42 @@ extension RHIInterfaceExporter {
 }
 
 
+
+// MARK: ApodiniDeployInterfaceExporter.ExporterRequest
+
+extension RHIInterfaceExporter {
+    public struct ExporterRequest: Apodini.ExporterRequest {
+        enum Param {
+            case value(Any)    // the value, as is
+            case encoded(Data) // the value, encoded
+        }
+        
+        private let parameterValues: [String: Param] // key: stable endpoint param identity
+        
+        init<H: Handler>(endpoint: Endpoint<H>, collectedParameters: [CollectedParameter<H>]) {
+            parameterValues = .init(uniqueKeysWithValues: collectedParameters.map { param -> (String, Param) in
+                let paramId = (endpoint.handler[keyPath: param.handlerKeyPath] as! AnyParameterID).value
+                let endpointParam = endpoint.parameters.first { $0.id == paramId }!
+                return (endpointParam.lk_stableIdentity, .value(param.value))
+            })
+        }
+        
+        init(encodedParameters: [(String, Data)]) {
+            parameterValues = Dictionary(
+                uniqueKeysWithValues: encodedParameters.map { ($0.0, .encoded($0.1)) }
+            )
+        }
+        
+        func getValueOfCollectedParameter(for endpointParameter: AnyEndpointParameter) -> Param? {
+            parameterValues[endpointParameter.lk_stableIdentity]
+        }
+    }
+}
+
+
+
+
+
 /// Perform a dynamic cast from one type to another.
 /// - returns: the casted value, or `nil` if the cast failed
 /// - note: This is semantically equivalent to the `as?` operator.
@@ -281,6 +289,13 @@ extension RHIInterfaceExporter {
         try data.write(to: outputUrl)
     }
 }
+
+
+
+
+
+
+
 
 
 

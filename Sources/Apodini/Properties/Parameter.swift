@@ -11,7 +11,7 @@ import Foundation
 /// Generic Parameter that can be used to mark that the options are meant for `@Parameter`s
 public enum ParameterOptionNameSpace { }
 
-protocol AnyParameterID {
+public protocol AnyParameterID {
     var value: UUID { get }
 }
 
@@ -49,7 +49,7 @@ public struct Parameter<Element: Codable>: Property {
     // We could alwo make the projectedValue return self, although it seems like a better idea to limit ourselves
     // to having to use the identifier to retrieve (and use) the endpoint parameter.
     public struct ID: AnyParameterID {
-        internal let value: UUID
+        public let value: UUID
     }
     public var projectedValue: ID { ID(value: self.id) }
 

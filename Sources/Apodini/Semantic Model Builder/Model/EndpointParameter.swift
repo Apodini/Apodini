@@ -88,7 +88,8 @@ protocol _AnyEndpointParameter: AnyEndpointParameter {
 }
 
 extension AnyEndpointParameter {
-    var hasDefaultValue: Bool {
+    /// Whether the parameter defines/has a default value
+    public var hasDefaultValue: Bool {
         typeErasuredDefaultValue != nil
     }
 

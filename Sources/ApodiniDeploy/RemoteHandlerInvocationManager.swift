@@ -7,7 +7,7 @@
 
 import Foundation
 import NIO
-@testable import Apodini // aaaaargh
+import Apodini
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
 import ApodiniVaporSupport
@@ -50,29 +50,19 @@ public struct CollectedParameter<HandlerType: Handler> {
 /// The `RemoteHandlerInvocationManager` implements the user-facing API for invoking handlers from within a handler.
 /// A handler which wishes to access other (invocable) handler's functionality defines a private property of this type.
 /// See [the documentation](https://github.com/Apodini/Apodini/blob/develop/Documentation/Components/Inter-Component%20Communication.md) for more info.
-public struct RemoteHandlerInvocationManager: RequestInjectable {
-    private var requestEventLoop: EventLoop?
-    /// Find an event loop somewhere in the current environment.
-    /// Realistically getting an event loop shouln't be an issue,
-    /// since the remote handler invocation APIs can only be accessed from within a `handle()` function,
-    /// and in that situation we can access the request's event loop.
+public struct RemoteHandlerInvocationManager {
+    private let app: Apodini.Application
+    
     private var eventLoop: EventLoop {
-        if let eventLoop = requestEventLoop {
-            return eventLoop
-        } else if let eventLoop = RHIInterfaceExporter.shared?.app.eventLoopGroup.next() {
-            return eventLoop
-        } else {
-            fatalError("Unable to find an event loop")
-        }
+        app.eventLoopGroup.next()
     }
     
     /// This is the initializer
-    public init() {}
-    
-    mutating public func inject(using request: Apodini.Request) {
-        requestEventLoop = request.eventLoop
+    internal init(app: Apodini.Application) {
+        self.app = app
     }
 }
+
 
 extension RemoteHandlerInvocationManager {
     /// Invoke an invocable handler from within your handler.
@@ -313,3 +303,26 @@ extension Vapor.URI {
         self = Vapor.URI(scheme: url.scheme, host: url.host, port: url.port, path: url.path, query: url.query, fragment: url.fragment)
     }
 }
+
+
+
+
+
+// MARK: Environment
+
+extension Apodini.Application {
+    public var RHI: RemoteHandlerInvocationManager {
+        RemoteHandlerInvocationManager(app: self)
+    }
+}
+
+
+
+
+extension Handler where Self: WithEventLoop {
+    // TODO what about moving the `invoke` functions from the RemoteHandlerInvocationManager?
+    // There's really no point in having this type, since, essentially, all it does it store the app/eventLoop object
+//    public func invoke
+}
+
+
