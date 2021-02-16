@@ -226,16 +226,7 @@ class AWSDeploymentStuff { // needs a better name
         
         logger.notice("Creating lambda functions for nodes in the web service deployment structure (#nodes: \(deploymentStructure.nodes.count))")
         for node in deploymentStructure.nodes {
-//            guard let exportedEndpoint = node.exportedEndpoints.first, node.exportedEndpoints.count == 1 else {
-//                fatalError("In a Lambda deployment, each node must export exactly one endpoint")
-//            }
             logger.notice("Creating lambda function for node w/ id \(node.id) (handlers: \(node.exportedEndpoints.map { ($0.httpMethod, $0.absolutePath) })")
-            
-            
-//            ///
-//            fatalError()
-//            ///
-            
             
             let functionConfig = try configureLambdaFunction(
                 forNode: node,
@@ -311,7 +302,7 @@ class AWSDeploymentStuff { // needs a better name
         
         
         // Add the endpoints of the internal invocation API
-        for (path, pathItem) in apiGatewayImportDef.paths {
+        for (_, pathItem) in apiGatewayImportDef.paths {
             for endpoint in pathItem.endpoints {
                 let handlerId: String = endpoint.operation.vendorExtensions["x-handlerId"]?.value as! String
                 let lambdaFunctionConfig = lambdaFunctionConfigForHandlerId(handlerId)
@@ -394,16 +385,15 @@ class AWSDeploymentStuff { // needs a better name
         // TODO look for existing roles and re-use is possible!
         logger.notice("Creating IAM execution role for new functions")
         let request = IAM.CreateRoleRequest(
-            //assumeRolePolicyDocument: "", // TODO
+            //assumeRolePolicyDocument: "", // TODO?
             assumeRolePolicyDocument:
                 #"{"Version": "2012-10-17","Statement": [{ "Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"}, "Action": "sts:AssumeRole"}]}"#,
             description: nil,
             path: "/apodini-service-role/",
             permissionsBoundary: nil,
             //roleName: "apodini.lambda.executionRole_\(Date().lk_iso8601(includeTime: true))"
-            roleName: "apodini.lambda.executionRole_\(Date().lk_format("yyyy-MM-dd_HHmmss"))"
+            roleName: "apodini.lambda.executionRole_\(Date().format("yyyy-MM-dd_HHmmss"))"
         )
-        print(request.roleName)
         let role = try iam.createRole(request).wait().role
         logger.notice("New role: name=\(role.roleName) arn=\(role.arn)")
         
@@ -433,7 +423,6 @@ class AWSDeploymentStuff { // needs a better name
     /// - returns: the deployed-to function
     private func configureLambdaFunction(
         forNode node: DeployedSystemStructure.Node,
-        //exportedEndpoint: ExportedEndpoint,
         allFunctions: [Lambda.FunctionConfiguration],
         s3BucketName: String,
         s3ObjectKey: String
@@ -450,9 +439,6 @@ class AWSDeploymentStuff { // needs a better name
         let deploymentOptions = node.combinedEndpointDeploymentOptions()
         let memorySize: UInt = try deploymentOptions.getValue(forKey: .memorySize).rawValue
         let timeout: Timeout = try deploymentOptions.getValue(forKey: .timeout)
-        
-        //let memorySize: Int = try exportedEndpoint.deploymentOptions.getValue(forOptionKey: LambdaHandlerOption.memorySize)
-        //let timeout: Int = try exportedEndpoint.deploymentOptions.getValue(forOptionKey: LambdaHandlerOption.timeout)
         
         let lambdaEnv: Lambda.Environment = .init(variables: [
             WellKnownEnvironmentVariables.currentNodeId: node.id
@@ -502,17 +488,13 @@ class AWSDeploymentStuff { // needs a better name
             // see also: https://stackoverflow.com/q/36419442
             func createLambdaImp(iteration: Int = 1) throws -> Lambda.FunctionConfiguration {
                 do {
-                    print("ughhh")
-                    let retval = try lambda.createFunction(createFunctionRequest).wait()
-                    print("done!")
-                    return retval
+                    return try lambda.createFunction(createFunctionRequest).wait()
                 } catch let error as LambdaErrorType {
                     guard
                         error.errorCode == LambdaErrorType.invalidParameterValueException.errorCode,
                         error.context?.message == "The role defined for the function cannot be assumed by Lambda.",
                         iteration < 7
                     else {
-                        print("fuuuck", error)
                         throw error
                     }
                     sleep(UInt32(2 * iteration)) // linear wait time. not perfect but whatever
@@ -543,21 +525,3 @@ class AWSDeploymentStuff { // needs a better name
 }
 
 
-
-
-extension Date {
-    func lk_iso8601(includeTime: Bool = false) -> String {
-        let fmt = ISO8601DateFormatter()
-        fmt.formatOptions = [.withFullDate, .withDashSeparatorInDate]
-        if includeTime {
-            fmt.formatOptions.formUnion([.withTime])
-        }
-        return fmt.string(from: self)
-    }
-    
-    func lk_format(_ formatString: String) -> String {
-        let fmt = DateFormatter()
-        fmt.dateFormat = formatString
-        return fmt.string(from: self)
-    }
-}

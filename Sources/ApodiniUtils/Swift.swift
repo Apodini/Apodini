@@ -90,3 +90,25 @@ extension RandomAccessCollection {
         indices.contains(idx) ? self[idx] : nil
     }
 }
+
+
+
+// MARK: Date
+
+extension Date {
+    public func formatAsIso8601(includeTime: Bool = false) -> String {
+        let fmt = ISO8601DateFormatter()
+        fmt.formatOptions = [.withFullDate, .withDashSeparatorInDate]
+        if includeTime {
+            fmt.formatOptions.formUnion([.withTime])
+        }
+        return fmt.string(from: self)
+    }
+    
+    public func format(_ formatString: String) -> String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = formatString
+        return fmt.string(from: self)
+    }
+}
+

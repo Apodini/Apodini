@@ -295,12 +295,10 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             executableUrl: dockerBin,
             arguments: [
                 "run", "--rm",
-                //"--volume", "\(packageRootDir.path):/src/",
-                //"--workdir", "/src/", imageName,
                 "--volume", "\(packageRootDir.path)/..:/src/",
                 "--workdir", "/src/\(packageRootDir.lastPathComponent)",
                 imageName,
-                "bash", "-cl", "pwd && ls -la .. && echo pre && \(bashCommand) && echo post"
+                "bash", "-cl", bashCommand
             ],
             workingDirectory: workingDirectory,
             captureOutput: false,
@@ -312,10 +310,6 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     
     private func readWebServiceStructure(usingDockerImage dockerImageName: String) throws -> WebServiceStructure {
         let filename = "WebServiceStructure.json"
-//        try runInDocker(
-//            imageName: dockerImageName,
-//            bashCommand: "swift build --product \(productName)"
-//        )
         try runInDocker(
             imageName: dockerImageName,
             bashCommand: [
@@ -333,10 +327,8 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     private func compileForLambda(usingDockerImage dockerImageName: String) throws -> URL {
         logger.notice("Compiling SPM target '\(productName)' for lambda")
         // path of the shared object files script, relative to the docker container's root.
-        //let sharedObjectFilesScriptPath = ".build/lk_tmp/collect-shared-object-files.sh"
         let collectSharedObjectFilesScriptUrl = tmpDirUrl.appendingPathComponent("collect-shared-object-files.sh", isDirectory: false)
         try collectSharedObjectFilesScriptContents.write(to: collectSharedObjectFilesScriptUrl, atomically: true, encoding: .utf8)
-        //try FM.lk_setPosixPermissions(0o744, forItemAt: collectSharedObjectFilesScriptUrl) // rwxr--r--
         try FM.lk_setPosixPermissions("rwxr--r--", forItemAt: collectSharedObjectFilesScriptUrl)
         try runInDocker(
             imageName: dockerImageName,
@@ -353,6 +345,4 @@ struct LambdaDeploymentProvider: DeploymentProvider {
 }
 
 
-
-
-LambdaDeploymentProviderCLI.main() // TODO replace w/ @main
+LambdaDeploymentProviderCLI.main()
