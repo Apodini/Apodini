@@ -108,8 +108,8 @@ extension RemoteHandlerInvocationManager {
         handlerId: H.HandlerIdentifier,
         collectedInputParams: [CollectedParameter<H>]
     ) -> EventLoopFuture<H.Response.Content> {
-        guard let RHIIE = RHIInterfaceExporter.shared else {
-            return eventLoop.makeFailedFuture(makeApodiniError("unable to get \(RHIInterfaceExporter.self) object"))
+        guard let RHIIE = ApodiniDeployInterfaceExporter.shared else {
+            return eventLoop.makeFailedFuture(makeApodiniError("unable to get \(ApodiniDeployInterfaceExporter.self) object"))
         }
         
         guard let targetEndpoint: Endpoint<H> = RHIIE.getEndpoint(withIdentifier: handlerId, ofType: H.self) else {
@@ -119,7 +119,7 @@ extension RemoteHandlerInvocationManager {
         switch dispatchStrategy(forInvocationOf: targetEndpoint, RHIIE: RHIIE) {
         case .locally:
             return targetEndpoint._invoke(withCollectedParameters: collectedInputParams, RHIIE: RHIIE, on: eventLoop)
-//            let request = RHIInterfaceExporter.ExporterRequest(endpoint: targetEndpoint, collectedParameters: collectedInputParams)
+//            let request = ApodiniDeployInterfaceExporter.ExporterRequest(endpoint: targetEndpoint, collectedParameters: collectedInputParams)
 //            var context = targetEndpoint.createConnectionContext(for: RHIIE)
 //            let responseFuture: EventLoopFuture<Response<AnyEncodable>> = context.handle(request: request, eventLoop: self.eventLoop)
 //            return responseFuture.flatMapThrowing { (response: Response<AnyEncodable>) -> H.Response.Content in
@@ -244,7 +244,7 @@ extension RemoteHandlerInvocationManager {
     }
     
     
-    private func dispatchStrategy<IH: InvocableHandler>(forInvocationOf endpoint: Endpoint<IH>, RHIIE: RHIInterfaceExporter) -> DispatchStrategy {
+    private func dispatchStrategy<IH: InvocableHandler>(forInvocationOf endpoint: Endpoint<IH>, RHIIE: ApodiniDeployInterfaceExporter) -> DispatchStrategy {
         guard let runtime = RHIIE.deploymentProviderRuntime else {
             // If there's no runtime registered, we wouldn't be able to dispatch the invocation anyway
             return .locally
@@ -263,11 +263,11 @@ extension RemoteHandlerInvocationManager {
 extension Endpoint {
     func _invoke(
         withCollectedParameters parameters: [CollectedParameter<H>],
-        RHIIE: RHIInterfaceExporter,
+        RHIIE: ApodiniDeployInterfaceExporter,
         on eventLoop: EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
         _invoke(
-            withRequest: RHIInterfaceExporter.ExporterRequest(endpoint: self, collectedParameters: parameters),
+            withRequest: ApodiniDeployInterfaceExporter.ExporterRequest(endpoint: self, collectedParameters: parameters),
             RHIIE: RHIIE,
             on: eventLoop
         )
@@ -275,8 +275,8 @@ extension Endpoint {
     
     
     func _invoke(
-        withRequest request: RHIInterfaceExporter.ExporterRequest,
-        RHIIE: RHIInterfaceExporter,
+        withRequest request: ApodiniDeployInterfaceExporter.ExporterRequest,
+        RHIIE: ApodiniDeployInterfaceExporter,
         on eventLoop: EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
         let context = self.createConnectionContext(for: RHIIE)

@@ -20,7 +20,7 @@ open class XCTApodiniTest: XCTestCase {
     override open func tearDownWithError() throws {
         try super.tearDownWithError()
         #if canImport(ApodiniDeploy)
-        RHIInterfaceExporter.resetSingleton()
+        ApodiniDeployInterfaceExporter.resetSingleton()
         #endif
         app.shutdown()
     }

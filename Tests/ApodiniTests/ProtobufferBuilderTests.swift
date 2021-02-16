@@ -7,7 +7,7 @@ import XCTVapor
 final class ProtobufferBuilderTests: XCTestCase {
     override func tearDown() {
         super.tearDown()
-        RHIInterfaceExporter.resetSingleton()
+        ApodiniDeployInterfaceExporter.resetSingleton()
     }
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
         let app = Application()

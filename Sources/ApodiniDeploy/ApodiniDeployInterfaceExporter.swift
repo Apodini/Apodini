@@ -1,18 +1,16 @@
 //
-//  RHIInterfaceExporter.swift
+//  ApodiniDeployInterfaceExporter.swift
 //  
 //
 //  Created by Lukas Kollmer on 2021-01-14.
 //
 
 import Foundation
-@_implementationOnly import Vapor
 import Apodini
 import ApodiniVaporSupport
-@testable import ApodiniOpenAPI
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
-import OpenAPIKit
+@_implementationOnly import Vapor
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
@@ -32,23 +30,6 @@ extension AnyEndpointParameter {
 
 
 
-// TODO: this is copied from the RESTExporter. remove once we dont propagate this to the WSS anymore!
-extension Vapor.HTTPMethod {
-    init(_ operation: Apodini.Operation) {
-        switch operation {
-        case .create:
-            self =  .POST
-        case .read:
-            self =  .GET
-        case .update:
-            self =  .PUT
-        case .delete:
-            self =  .DELETE
-        }
-    }
-}
-
-
 
 struct TmpErrorType: Swift.Error {
     let message: String
@@ -59,19 +40,19 @@ struct TmpErrorType: Swift.Error {
 /// a) compiles a list of all handlers (via their `Endpoint` objects). These are used to determine the target endpoint when manually invoking a handler.
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
-public class RHIInterfaceExporter: InterfaceExporter { // TODO rename to something different, since this class is doing a lot of things, not just the RHI handling
-    private struct CollectedEndpointInfo {
+public class ApodiniDeployInterfaceExporter: InterfaceExporter { // TODO rename to something different, since this class is doing a lot of things, not just the RHI handling
+    struct CollectedEndpointInfo {
         let handlerType: HandlerTypeIdentifier
         let endpoint: AnyEndpoint
         let deploymentOptions: DeploymentOptions
     }
     
-    internal private(set) static var shared: RHIInterfaceExporter?
+    internal private(set) static var shared: ApodiniDeployInterfaceExporter?
     
     let app: Apodini.Application
     
-    private var collectedEndpoints: [CollectedEndpointInfo] = []
-    private var explicitlyCreatedDeploymentGroups: [DeploymentGroup.ID: Set<AnyHandlerIdentifier>] = [:]
+    var collectedEndpoints: [CollectedEndpointInfo] = []
+    var explicitlyCreatedDeploymentGroups: [DeploymentGroup.ID: Set<AnyHandlerIdentifier>] = [:]
     
     var deploymentProviderRuntime: DeploymentProviderRuntimeSupport?
     var deployedSystemStructure: DeployedSystemStructure? { // TODO remove this
@@ -81,7 +62,7 @@ public class RHIInterfaceExporter: InterfaceExporter { // TODO rename to somethi
     
     public required init(_ app: Apodini.Application) {
         self.app = app
-        // NOTE: if this precondition fails while running tests, chances are you have to call `RHIInterfaceExporter.resetSingleton` in your -tearDown method
+        // NOTE: if this precondition fails while running tests, chances are you have to call `ApodiniDeployInterfaceExporter.resetSingleton` in your -tearDown method
         precondition(Self.shared == nil, "-[\(Self.self) \(#function)] cannot be called multiple times")
         Self.shared = self
     }
@@ -200,7 +181,7 @@ public class RHIInterfaceExporter: InterfaceExporter { // TODO rename to somethi
 }
 
 
-extension RHIInterfaceExporter {
+extension ApodiniDeployInterfaceExporter {
     // Used by the tests to get a new object for every test case.
     // Ideally this function would be wrapped in some `#if TEST` condition, but that doesn't seem to be a thing
     internal static func resetSingleton() {
@@ -212,7 +193,7 @@ extension RHIInterfaceExporter {
 
 // MARK: ApodiniDeployInterfaceExporter.ExporterRequest
 
-extension RHIInterfaceExporter {
+extension ApodiniDeployInterfaceExporter {
     public struct ExporterRequest: Apodini.ExporterRequest {
         enum Param {
             case value(Any)    // the value, as is
@@ -253,48 +234,6 @@ extension RHIInterfaceExporter {
 internal func dynamicCast<U>(_ value: Any, to _: U.Type) -> U? {
     value as? U
 }
-
-
-extension RHIInterfaceExporter {
-    func exportWebServiceStructure(to outputUrl: URL, deploymentConfig: DeploymentConfig) throws {
-        guard let openApiDocument = app.storage.get(OpenAPIStorageKey.self)?.document else {
-            throw makeApodiniError("Unable to get OpenAPI document")
-        }
-        let openApiDefinitionData = try JSONEncoder().encode(openApiDocument)
-        let webServiceStructure = WebServiceStructure(
-            endpoints: Set(collectedEndpoints.map { endpointInfo -> ExportedEndpoint in
-                let endpoint = endpointInfo.endpoint
-                return ExportedEndpoint(
-                    handlerType: endpointInfo.handlerType,
-                    handlerId: endpoint.identifier,
-                    deploymentOptions: endpointInfo.deploymentOptions,
-                    httpMethod: Vapor.HTTPMethod(endpoint.operation).string, // TODO remove this and load it from the OpenAPI def instead?. same for the path...
-                    absolutePath: endpoint.absolutePath.asPathString(parameterEncoding: .id),
-                    userInfo: [:]
-                )
-            }),
-            deploymentConfig: DeploymentConfig(
-                deploymentGroups: DeploymentGroupsConfig(
-                    defaultGrouping: deploymentConfig.deploymentGroups.defaultGrouping,
-                    groups: deploymentConfig.deploymentGroups.groups + explicitlyCreatedDeploymentGroups.map { groupId, handlerIds -> DeploymentGroup in
-                        DeploymentGroup(id: groupId, handlerTypes: [], handlerIds: handlerIds)
-                    }
-                )
-            ),
-            openApiDefinition: openApiDefinitionData
-        )
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
-        let data = try encoder.encode(webServiceStructure)
-        try data.write(to: outputUrl)
-    }
-}
-
-
-
-
-
-
 
 
 

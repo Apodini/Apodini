@@ -85,7 +85,7 @@ struct WebService: Apodini.WebService {
         ExporterConfiguration()
             .exporter(RESTInterfaceExporter.self)
             .exporter(OpenAPIInterfaceExporter.self)
-            .exporter(RHIInterfaceExporter.self)
+            .exporter(ApodiniDeployInterfaceExporter.self)
         ApodiniDeployConfiguration(
             runtimes: [LocalhostRuntimeSupport.self, LambdaRuntime.self],
             config: DeploymentConfig()
