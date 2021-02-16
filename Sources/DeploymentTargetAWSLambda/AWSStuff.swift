@@ -24,15 +24,12 @@ import Apodini
 
 
 /// A type which interacts with AWS to create and configure ressources.
-/// - note: s
 class AWSDeploymentStuff { // needs a better name
     private static let lambdaFunctionNamePrefix = "apodini-lambda"
     
-    
     private let tmpDirUrl: URL
-    
     private let FM = FileManager.default
-    private let threadPool = NIOThreadPool(numberOfThreads: 1) // TODO make this 2 or more?
+    private let logger = Logger(label: "de.lukaskollmer.ApodiniLambda.AWSIntegration")
     
     private let awsProfileName: String
     private let awsRegion: SotoCore.Region
@@ -42,8 +39,6 @@ class AWSDeploymentStuff { // needs a better name
     private let s3: S3
     private let lambda: Lambda
     private let apiGateway: ApiGatewayV2
-    
-    private let logger = Logger(label: "de.lukaskollmer.ApodiniLambda.AWSIntegration")
     
     private var lambdaExecutionRole: IAM.Role?
     

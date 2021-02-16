@@ -44,7 +44,7 @@ public struct ExporterIdentifier: RawRepresentable, Codable, Hashable, Equatable
 public struct WebServiceStructure: Codable { // TODO this needs a better name. maybe Context or Summary?
     public let endpoints: Set<ExportedEndpoint>
     public let deploymentConfig: DeploymentConfig
-    public let openApiDefinition: Data
+    public let openApiDefinition: Data // TODO have this typed as `OpenAPI.Document` instead
     
     public init(
         endpoints: Set<ExportedEndpoint>,
