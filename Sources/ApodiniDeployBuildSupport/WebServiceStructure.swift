@@ -67,10 +67,6 @@ public struct ExportedEndpoint: Codable, Hashable, Equatable {
     public let handlerId: AnyHandlerIdentifier
     /// The endpoint's handler's deployment options
     public let deploymentOptions: DeploymentOptions
-    
-    public let httpMethod: String
-    public let absolutePath: String
-    
     /// Additional information about this endpoint
     public let userInfo: [String: Data]
     
@@ -79,15 +75,11 @@ public struct ExportedEndpoint: Codable, Hashable, Equatable {
         handlerType: HandlerTypeIdentifier,
         handlerId: AnyHandlerIdentifier,
         deploymentOptions: DeploymentOptions,
-        httpMethod: String,
-        absolutePath: String,
         userInfo: [String: Data]
     ) {
         self.handlerType = handlerType
         self.handlerId = handlerId
         self.deploymentOptions = deploymentOptions
-        self.httpMethod = httpMethod
-        self.absolutePath = absolutePath
         self.userInfo = userInfo
     }
     

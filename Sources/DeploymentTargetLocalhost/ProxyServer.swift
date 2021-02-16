@@ -10,36 +10,38 @@ import Vapor
 import ApodiniDeployBuildSupport
 import DeploymentTargetLocalhostCommon
 import Logging
+import OpenAPIKit
+import class Apodini.AnyHandlerIdentifier
 
-
-private let proxyServerLogger = Logger(label: "DeploymentTargetLocalhost.ProxyServer")
 
 
 class ProxyServer {
-    let webServiceStructure: WebServiceStructure
-    let deployedSystem: DeployedSystemStructure
-    
     fileprivate let app: Application
+    fileprivate let logger = Logger(label: "DeploymentTargetLocalhost.ProxyServer")
     
-    init(webServiceStructure: WebServiceStructure, deployedSystem: DeployedSystemStructure) throws {
-        self.webServiceStructure = webServiceStructure
-        self.deployedSystem = deployedSystem
-        
+    init(openApiDocument: OpenAPI.Document, deployedSystem: DeployedSystemStructure) throws {
         let environmentName = try Vapor.Environment.detect().name
         var env = Vapor.Environment(name: environmentName, arguments: ["vapor"])
         try LoggingSystem.bootstrap(from: &env)
         self.app = Application(env)
         
-        for endpoint in webServiceStructure.endpoints {
-            let route = Route(
-                method: HTTPMethod(rawValue: endpoint.httpMethod),
-                path: endpoint.absolutePath.pathComponents, //[.catchall],
-                responder: ProxyRequestResponder(proxyServer: self, endpoint: endpoint),
-                requestType: Vapor.Request.self,
-                responseType: EventLoopFuture<ClientResponse>.self
-            )
-            app.add(route)
-            print("ROUTE", route)
+        for (path, pathItem) in openApiDocument.paths {
+            for endpoint in pathItem.endpoints {
+                guard let handlerIdRawValue = endpoint.operation.vendorExtensions["x-handlerId"]?.value as? String else {
+                    throw DeployError(message: "Unable to read handlerId from OpenAPI document")
+                }
+                guard let targetNode = deployedSystem.nodeExportingEndpoint(withHandlerId: AnyHandlerIdentifier(handlerIdRawValue)) else {
+                    throw DeployError(message: "Unable to find node for handler id '\(handlerIdRawValue)'")
+                }
+                let route = Vapor.Route(
+                    method: Vapor.HTTPMethod(rawValue: endpoint.method.rawValue),
+                    path: path.toVaporPath(),
+                    responder: ProxyRequestResponder(proxyServer: self, targetNode: targetNode),
+                    requestType: Vapor.Request.self,
+                    responseType: EventLoopFuture<Vapor.ClientResponse>.self
+                )
+                app.add(route)
+            }
         }
     }
     
@@ -47,7 +49,7 @@ class ProxyServer {
     /// Start the proxy
     func run(port: Int) throws {
         defer {
-            proxyServerLogger.notice("shutdown")
+            logger.notice("shutdown")
             app.shutdown()
         }
         app.http.server.configuration.port = port
@@ -56,15 +58,28 @@ class ProxyServer {
 }
 
 
+extension OpenAPI.Path {
+    func toVaporPath() -> [Vapor.PathComponent] {
+        return self.components.map { component -> Vapor.PathComponent in
+            if component.hasPrefix("{") && component.hasSuffix("}") {
+                return .anything
+                //return Vapor.PathComponent.parameter(component)
+            } else {
+                return .constant(component)
+            }
+        }
+    }
+}
+
+
+
+
 
 private struct ProxyRequestResponder: Vapor.Responder {
     let proxyServer: ProxyServer
-    let endpoint: ExportedEndpoint
+    let targetNode: DeployedSystemStructure.Node
     
-    func respond(to request: Request) -> EventLoopFuture<Response> {
-        guard let targetNode = proxyServer.deployedSystem.nodeExportingEndpoint(withHandlerId: endpoint.handlerId) else {
-            return request.eventLoop.makeFailedFuture(NSError(domain: "sorry", code: 0, userInfo: [:]))
-        }
+    func respond(to request: Request) -> EventLoopFuture<Vapor.Response> {
         let targetNodeLocalhostData = targetNode.readUserInfo(as: LocalhostLaunchInfo.self)!
         let url = Vapor.URI(
             scheme: "http",
@@ -74,7 +89,7 @@ private struct ProxyRequestResponder: Vapor.Responder {
             query: request.url.query,
             fragment: request.url.fragment
         )
-        proxyServerLogger.notice("forwarding request to '\(url)'")
+        proxyServer.logger.notice("forwarding request to '\(url)'")
         // TODO can we reuse the headers just like that?
         let clientResponseFuture = request.client.send(request.method, headers: request.headers, to: url) { (clientReq: inout ClientRequest) in
             //clientReq.body = request.body.data

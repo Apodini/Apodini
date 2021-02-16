@@ -343,6 +343,7 @@ let package = Package(
                 .target(name: "ApodiniDeployBuildSupport"),
                 .target(name: "ApodiniUtils"),
                 .target(name: "DeploymentTargetLocalhostCommon"),
+                .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Logging", package: "swift-log")
             ]

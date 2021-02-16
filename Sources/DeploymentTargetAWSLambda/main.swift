@@ -216,10 +216,6 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         let nodes = try computeDefaultDeployedSystemNodes(
             from: webServiceStructure,
             nodeIdProvider: { endpoints in
-                print("nodeIdProvider")
-                for endpoint in endpoints {
-                    print("- \(endpoint.handlerId) \(endpoint.absolutePath)")
-                }
                 assert(endpoints.count == 1)
                 return endpoints.first!.handlerId.rawValue.replacingOccurrences(of: ".", with: "-")
             }

@@ -226,7 +226,7 @@ class AWSDeploymentStuff { // needs a better name
         
         logger.notice("Creating lambda functions for nodes in the web service deployment structure (#nodes: \(deploymentStructure.nodes.count))")
         for node in deploymentStructure.nodes {
-            logger.notice("Creating lambda function for node w/ id \(node.id) (handlers: \(node.exportedEndpoints.map { ($0.httpMethod, $0.absolutePath) })")
+            logger.notice("Creating lambda function for node w/ id \(node.id) (handlers: \(node.exportedEndpoints.map { ($0.handlerType, $0.handlerId) })")
             
             let functionConfig = try configureLambdaFunction(
                 forNode: node,

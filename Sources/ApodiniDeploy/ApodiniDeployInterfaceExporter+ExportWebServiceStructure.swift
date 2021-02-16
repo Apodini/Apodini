@@ -8,27 +8,10 @@
 import Foundation
 import Apodini
 import ApodiniUtils
-@testable import ApodiniOpenAPI
+@testable import ApodiniOpenAPI // TODO get rid of the @testable
 import ApodiniDeployBuildSupport
 @_implementationOnly import Vapor
 import OpenAPIKit
-
-
-// TODO: this is copied from the RESTExporter. remove once we dont propagate this to the WSS anymore!
-extension Vapor.HTTPMethod {
-    fileprivate init(_ operation: Apodini.Operation) {
-        switch operation {
-        case .create:
-            self =  .POST
-        case .read:
-            self =  .GET
-        case .update:
-            self =  .PUT
-        case .delete:
-            self =  .DELETE
-        }
-    }
-}
 
 
 extension ApodiniDeployInterfaceExporter {
@@ -44,8 +27,6 @@ extension ApodiniDeployInterfaceExporter {
                     handlerType: endpointInfo.handlerType,
                     handlerId: endpoint.identifier,
                     deploymentOptions: endpointInfo.deploymentOptions,
-                    httpMethod: Vapor.HTTPMethod(endpoint.operation).string, // TODO remove this and load it from the OpenAPI def instead?. same for the path...
-                    absolutePath: endpoint.absolutePath.asPathString(parameterEncoding: .id),
                     userInfo: [:]
                 )
             }),

@@ -11,20 +11,12 @@ import ApodiniUtils
 import ArgumentParser
 import Logging
 import DeploymentTargetLocalhostCommon
-#if os(Linux)
-import Glibc
-#else
-import Darwin
-#endif
-
-
-// TODO rename ExportedEndpoint to ExportedEndpointInfo or smth like that!
+import OpenAPIKit
 
 
 
-enum DeployError: Error {
-    //case unableToFindInputDirectory
-    case other(String)
+struct DeployError: Swift.Error {
+    let message: String
 }
 
 
@@ -86,8 +78,6 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
     
     mutating func run() throws {
         try FM.lk_initialize()
-        
-        logger.notice("setting working directory to package root dir: \(packageRootDir)")
         try FM.lk_setWorkingDirectory(to: packageRootDir)
         
         logger.notice("Compiling target '\(productName)'")
@@ -96,8 +86,6 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         
         logger.notice("Invoking target to generate web service structure")
         let wsStructure = try generateWebServiceStructure()
-        logger.notice("wsStructure: \(wsStructure)")
-        
         
         let nodes = Set(try computeDefaultDeployedSystemNodes(from: wsStructure).enumerated().map { idx, node in
             try node.withUserInfo(LocalhostLaunchInfo(port: self.endpointProcessesBasePort + idx))
@@ -112,14 +100,6 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         
         let deployedSystemStructureFileUrl = FM.lk_getTemporaryFileUrl(fileExtension: "json")
         try deployedSystem.writeTo(url: deployedSystemStructureFileUrl)
-        
-        print("\n\n\n\n\n\nNODES:")
-        for node in deployedSystem.nodes {
-            let deploymentOptions = node.combinedEndpointDeploymentOptions()
-            print("- \(node.id) timeout: \(try? deploymentOptions.getValue(forKey: .timeout))")
-            print("- \(node.id) mb: \(try? deploymentOptions.getValue(forKey: .memorySize))")
-        }
-        //return;
         
         for node in deployedSystem.nodes {
             let task = Task(
@@ -138,7 +118,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                 
         logger.notice("Starting proxy server")
         let proxyServer = try ProxyServer(
-            webServiceStructure: wsStructure,
+            openApiDocument: try JSONDecoder().decode(OpenAPI.Document.self, from: wsStructure.openApiDefinition),
             deployedSystem: deployedSystem
         )
         try proxyServer.run(port: self.port)
