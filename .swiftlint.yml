@@ -348,6 +348,7 @@ identifier_name:
     - or
     - p8
     - of
+    - FM
 
 large_tuple: # Tuples shouldn't have too many members. Create a custom type instead.
   - 2 # warning - default: 2
