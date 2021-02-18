@@ -58,7 +58,7 @@ static void LKHandleTaskChildProcessLaunchIfNecessary(int argc, const char * arg
         // not that it would be necessary, given we're about to nuke the current process.
         childArgv[idx] = strdup(argv[idx + 2]);
     }
-#if DEBUG
+#if 0 && DEBUG
     printf("[%s] Replacing current process (%i) w/ child process. argv:", __PRETTY_FUNCTION__, getpid());
     for (size_t idx = 0; idx < childArgc; idx++) {
         printf(" %s", childArgv[idx]);

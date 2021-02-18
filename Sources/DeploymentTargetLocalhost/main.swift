@@ -14,13 +14,6 @@ import DeploymentTargetLocalhostCommon
 import OpenAPIKit
 
 
-
-struct DeployError: Swift.Error {
-    let message: String
-}
-
-
-
 private struct LocalhostDeploymentProviderCLI: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Localhost Apodini deployment provider",
@@ -30,8 +23,8 @@ private struct LocalhostDeploymentProviderCLI: ParsableCommand {
         version: String(LocalhostDeploymentProvider.version)
     )
     
-    @Argument(help: "Server package root directory")
-    var inputServiceRootDirPath: String // TODO rename (same in the lambda one)
+    @Argument(help: "Directory containing the Package.swift with the to-be-deployed web service's target")
+    var inputPackageDir: String
     
     @Option(help: "The port on which the API should listen")
     var port: Int = 8080
@@ -44,21 +37,15 @@ private struct LocalhostDeploymentProviderCLI: ParsableCommand {
     
     
     mutating func run() throws {
-        var DP = LocalhostDeploymentProvider(
+        var deploymentProvider = LocalhostDeploymentProvider(
             productName: productName,
-            packageRootDir: URL(fileURLWithPath: inputServiceRootDirPath).absoluteURL,
+            packageRootDir: URL(fileURLWithPath: inputPackageDir).absoluteURL,
             port: port,
             endpointProcessesBasePort: endpointProcessesBasePort
         )
-        try DP.run()
+        try deploymentProvider.run()
     }
 }
-
-
-
-
-
-
 
 
 struct LocalhostDeploymentProvider: DeploymentProvider {
@@ -111,11 +98,14 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
             // TODO detect the children exiting, and either:
             // - kill all others once one of them dies (would be useful if they're all crashing on launch)
             // - relaunch the exited child (would be useful if a child exits due to a fatal error)
-            try task.launchAsync()
-            let LLI = node.readUserInfo(as: LocalhostLaunchInfo.self)!
-            logger.notice("node \(node.id) w/ pid \(task.pid) listening at :\(LLI.port). exported endpoints: \(node.exportedEndpoints.map(\.handlerId))")
+            try task.launchAsync { print("ugh", $0) }
+            guard let launchInfo = node.readUserInfo(as: LocalhostLaunchInfo.self) else {
+                // unreachable because we write the exact same type above
+                fatalError("Unable to read launch info")
+            }
+            logger.notice("node \(node.id) w/ pid \(task.pid) listening at :\(launchInfo.port). exported endpoints: \(node.exportedEndpoints.map(\.handlerId))")
         }
-                
+        
         logger.notice("Starting proxy server")
         let proxyServer = try ProxyServer(
             openApiDocument: wsStructure.openApiDocument,

@@ -16,6 +16,11 @@ import class Apodini.AnyHandlerIdentifier
 
 
 class ProxyServer {
+    struct Error: Swift.Error {
+        let message: String
+    }
+    
+    
     fileprivate let app: Application
     fileprivate let logger = Logger(label: "DeploymentTargetLocalhost.ProxyServer")
     
@@ -28,10 +33,10 @@ class ProxyServer {
         for (path, pathItem) in openApiDocument.paths {
             for endpoint in pathItem.endpoints {
                 guard let handlerIdRawValue = endpoint.operation.vendorExtensions["x-handlerId"]?.value as? String else {
-                    throw DeployError(message: "Unable to read handlerId from OpenAPI document")
+                    throw Error(message: "Unable to read handlerId from OpenAPI document")
                 }
                 guard let targetNode = deployedSystem.nodeExportingEndpoint(withHandlerId: AnyHandlerIdentifier(handlerIdRawValue)) else {
-                    throw DeployError(message: "Unable to find node for handler id '\(handlerIdRawValue)'")
+                    throw Error(message: "Unable to find node for handler id '\(handlerIdRawValue)'")
                 }
                 let route = Vapor.Route(
                     method: Vapor.HTTPMethod(rawValue: endpoint.method.rawValue),

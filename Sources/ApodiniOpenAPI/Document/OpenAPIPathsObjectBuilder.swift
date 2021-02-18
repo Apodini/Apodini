@@ -66,9 +66,6 @@ private extension OpenAPIPathsObjectBuilder {
         // Get tags if some have been set explicitly passed via TagModifier.
         let tags: [String] = endpoint.context.get(valueFor: TagContextKey.self) ?? [defaultTag]
 
-        // Set endpointIdentifier to `Handler`s type name, stored in `endpoint.description`.
-        let endpointIdentifier = "\(endpoint.description)"
-
         // Get customDescription if it has been set explicitly passed via DescriptionModifier.
         let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)
 
@@ -90,7 +87,7 @@ private extension OpenAPIPathsObjectBuilder {
         return OpenAPI.Operation(
             tags: tags,
             description: endpointDescription,
-            operationId: endpointIdentifier,
+            operationId: endpoint.identifier.rawValue,
             parameters: parameters,
             requestBody: requestBody,
             responses: responses,

@@ -63,7 +63,19 @@ struct Greeter: Handler {
             "Hello, \(name). Your random number in range \(age)...\(2 * age) is \(randomNumber)!"
         }
     }
+}
+
+
+struct BlockHandler<T: Apodini.ResponseTransformable>: Handler {
+    private let block: () throws -> T
     
+    init(_ block: @escaping () throws -> T) {
+        self.block = block
+    }
+    
+    func handle() throws -> T {
+        try block()
+    }
 }
 
 
@@ -79,6 +91,11 @@ struct WebService: Apodini.WebService {
                     .timeout(.seconds(12))
                 )
         }.formDeploymentGroup(withId: "greeter")
+//        Text("").operation(.create)
+//        Text("").operation(.read)
+//        Text("").operation(.delete)
+//        Text("").operation(.update)
+        BlockHandler { fatalError() }
     }
     
     var configuration: Configuration {
@@ -88,7 +105,7 @@ struct WebService: Apodini.WebService {
             .exporter(ApodiniDeployInterfaceExporter.self)
         ApodiniDeployConfiguration(
             runtimes: [LocalhostRuntimeSupport.self, LambdaRuntime.self],
-            config: DeploymentConfig()
+            config: DeploymentConfig(deploymentGroups: DeploymentGroupsConfig(defaultGrouping: .singleNode, groups: []))
         )
     }
 }

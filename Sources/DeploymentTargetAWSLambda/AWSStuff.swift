@@ -24,6 +24,7 @@ import OpenAPIKit
 
 
 /// A type which interacts with AWS to create and configure ressources.
+/// - Note: Instances of this class should not be re-used to apply multiple deployments.
 class AWSDeploymentStuff { // needs a better name
     private static let lambdaFunctionNamePrefix = "apodini-lambda"
     private static let xAmazonApigatewayIntegrationKey = "x-amazon-apigateway-integration"
@@ -41,7 +42,9 @@ class AWSDeploymentStuff { // needs a better name
     private let lambda: Lambda
     private let apiGateway: ApiGatewayV2
     
+    private var didRunDeployment = false
     private var lambdaExecutionRole: IAM.Role?
+    private var deployedLambdaFunctions: Set<String> = [] // Set of lambda function names
     
     
     init(
@@ -102,6 +105,11 @@ class AWSDeploymentStuff { // needs a better name
         s3ObjectFolderKey: String,
         apiGatewayApiId: String
     ) throws {
+        guard !didRunDeployment else {
+            fatalError("Cannot call '\(#function)' multiple times.")
+        }
+        didRunDeployment = true
+        
         let accountId = try sts.getCallerIdentity(STS.GetCallerIdentityRequest()).wait().account!
         
         logger.notice("Fetching list of all lambda functions in AWS account")
@@ -227,7 +235,8 @@ class AWSDeploymentStuff { // needs a better name
                 //exportedEndpoint: exportedEndpoint,
                 allFunctions: allFunctions,
                 s3BucketName: s3BucketName,
-                s3ObjectKey: s3ObjectKey
+                s3ObjectKey: s3ObjectKey,
+                apiGatewayApiId: apiGatewayApiId
             )
             nodeToLambdaFunctionMapping[node.id] = functionConfig
             
@@ -344,13 +353,11 @@ class AWSDeploymentStuff { // needs a better name
         // TODO look for existing roles and re-use is possible!
         logger.notice("Creating IAM execution role for new functions")
         let request = IAM.CreateRoleRequest(
-            //assumeRolePolicyDocument: "", // TODO?
             assumeRolePolicyDocument:
                 #"{"Version": "2012-10-17","Statement": [{ "Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"}, "Action": "sts:AssumeRole"}]}"#,
             description: nil,
             path: "/apodini-service-role/",
             permissionsBoundary: nil,
-            //roleName: "apodini.lambda.executionRole_\(Date().lk_iso8601(includeTime: true))"
             roleName: "apodini.lambda.executionRole_\(Date().format("yyyy-MM-dd_HHmmss"))"
         )
         let role = try iam.createRole(request).wait().role
@@ -384,16 +391,17 @@ class AWSDeploymentStuff { // needs a better name
         forNode node: DeployedSystemStructure.Node,
         allFunctions: [Lambda.FunctionConfiguration],
         s3BucketName: String,
-        s3ObjectKey: String
+        s3ObjectKey: String,
+        apiGatewayApiId: String
     ) throws -> Lambda.FunctionConfiguration {
-        // TODO?
-//        let lambdaNameRegex = try NSRegularExpression(
-//            pattern: #"(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:)?(\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\$LATEST|[a-zA-Z0-9-_]+))?"#,
-//            options: []
-//        )
+        // lambda allowed function names regex:
+        // #"(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:)?(\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\$LATEST|[a-zA-Z0-9-_]+))?"#
         let allowedCharacters = "abcdefghijklmnopqsrtuvwxyzABCDEFGHIJKLMNOPQSRTUVWXYZ0123456789-_"
-        let lambdaName = "\(Self.lambdaFunctionNamePrefix)-\(String(node.id.map { allowedCharacters.contains($0) ? $0 : "-" }))"
-        // TODO make sure we dont acidentally update the same function twice (eg once bc the unmodified name matches and once bc we replace something, which makes it match the other function's name)
+        let lambdaName = "\(Self.lambdaFunctionNamePrefix)-\(apiGatewayApiId)-\(String(node.id.map { allowedCharacters.contains($0) ? $0 : "-" }))"
+        
+        guard !deployedLambdaFunctions.insert(lambdaName).inserted else {
+            fatalError("Encountered multiple lambda functions with same name '\(lambdaName)'. This can happen if two handler or deployment group identifiers are very similar and one of them contains invalid caracters, causing the sanitised name to match the other one. ")
+        }
         
         let deploymentOptions = node.combinedEndpointDeploymentOptions()
         let memorySize: UInt = try deploymentOptions.getValue(forKey: .memorySize).rawValue
@@ -406,12 +414,9 @@ class AWSDeploymentStuff { // needs a better name
         if let function = allFunctions.first(where: { $0.functionName == lambdaName }) {
             logger.notice("Found existing lambda function w/ matching name. Updating code")
             _ = try lambda.updateFunctionConfiguration(Lambda.UpdateFunctionConfigurationRequest(
-                //description: <#T##String?#>,
                 environment: lambdaEnv,
                 functionName: function.functionArn!,
-                //handler: <#T##String?#>,
                 memorySize: Int(memorySize),
-                //role: <#T##String?#>,
                 timeout: Int(timeout.rawValue)
             )).wait()
             return try lambda.updateFunctionCode(Lambda.UpdateFunctionCodeRequest(

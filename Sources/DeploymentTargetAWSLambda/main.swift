@@ -18,8 +18,6 @@ import OpenAPIKit
 
 
 // TODO
-// - need to encode the api gateway id into the lambda name, otherwise, if you want to deploy the same web service to multiple api gateways,
-// it'd overwrite the existing lambdas (which are still being referenced by the other api geteway
 // - aws ressource mgmt
 
 
@@ -46,25 +44,22 @@ let logger = Logger(label: "de.lukaskollmer.ApodiniLambda")
 
 
 
-//struct A: ExpressibleByStringLiteral {
-//    init?(_ value: String) {
-//        print(#function)
-//    }
-//    init(stringLiteral value: String) {
-//        print(#function)
-//    }
-//}
-//
-//_ = A("123")
-//_ = A.init("123")
 
 
 struct LambdaDeploymentProviderCLI: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "AWS Lambda Apodini deployment provider",
+        discussion: """
+            Deploys an Apodini REST web service to AWS Lambda, mapping the deployed system's nodes to Lambda functions.
+            Also configures an API Gateway to make the Lambda functions accessible over HTTP.
+            """,
+        version: String(LambdaDeploymentProvider.version)
+    )
     
-    @Argument
-    var inputPackageRootDir: String
+    @Argument(help: "Directory containing the Package.swift with the to-be-deployed web service's target")
+    var inputPackageDir: String
     
-    @Option
+    @Option(help: "Name of the web service's SPM target/product")
     var productName: String
     
     @Option
@@ -73,8 +68,17 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
     @Option
     var awsRegion: String = "eu-central-1"
     
-    @Option
-    var awsS3BucketName: String
+    @Option(help: "Name of the S3 bucket to upload the lambda package to")
+    var s3BucketName: String
+    
+    @Option(help: """
+        Path of where in the bucket the lambda package should be stored.
+        If a file already exists at the specified location (e.g. from a previous deployment) it will be overwritten.
+        Note that this is only the folder path, and should not contain the actual filename.
+        The lambda package will be stored at 's3://{bucket_name}/{bucket_path}/{product_name}.zip', where {product_name} is the name of the web service's target (as specified via the 'product-name' option).
+        """
+    )
+    var s3BucketPath: String = "/apodini-lambda/"
     
     @Option
     var awsApiGatewayApiId: String
@@ -83,20 +87,21 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
     var awsDeployOnly: Bool = false
     
     
-    private(set) lazy var packageRootDir: URL = URL(fileURLWithPath: inputPackageRootDir).absoluteURL
+    private(set) lazy var packageRootDir: URL = URL(fileURLWithPath: inputPackageDir).absoluteURL
     
     
     func run() throws {
-        var DP = LambdaDeploymentProvider(
+        var deploymentProvider = LambdaDeploymentProvider(
             productName: productName,
-            packageRootDir: URL(fileURLWithPath: inputPackageRootDir).absoluteURL,
+            packageRootDir: URL(fileURLWithPath: inputPackageDir).absoluteURL,
             awsProfileName: awsProfileName,
             awsRegion: awsRegion,
-            awsS3BucketName: awsS3BucketName,
+            s3BucketName: s3BucketName,
+            s3BucketPath: s3BucketPath,
             awsApiGatewayApiId: awsApiGatewayApiId,
             awsDeployOnly: awsDeployOnly
         )
-        try DP.run()
+        try deploymentProvider.run()
     }
 }
 
@@ -126,20 +131,15 @@ private let dockerignoreContents: String = """
 
 private let collectSharedObjectFilesScriptContents: String = """
 #!/bin/bash
+set -eu
 
-set -eux
-
-# executable=$1
 executable_path=$1 # path to the built executable
 output_dir=$2      # path of the directory we should copy the object files to
 
-# target=".build/lambda/$executable"
 rm -rf "$output_dir"
 mkdir -p "$output_dir"
-# cp ".build/debug/$executable" "$target/"
 # add the target deps based on ldd
-ldd "$executable_path" | grep swift | awk '{print $3}' | xargs cp -Lv -t "$output_dir"
-# zip lambda.zip *
+ldd "$executable_path" | grep swift | awk '{print $3}' | xargs cp -L -t "$output_dir"
 """
 
 
@@ -157,7 +157,8 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     let packageRootDir: URL
     let awsProfileName: String
     let awsRegion: String
-    let awsS3BucketName: String
+    let s3BucketName: String
+    let s3BucketPath: String
     private(set) var awsApiGatewayApiId: String
     let awsDeployOnly: Bool
     
@@ -177,7 +178,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     
     
     private var lambdaOutputDir: URL {
-        return buildFolderUrl
+        buildFolderUrl
             .appendingPathComponent("lambda", isDirectory: true)
             .appendingPathComponent(productName, isDirectory: true)
     }
@@ -216,8 +217,10 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         let nodes = try computeDefaultDeployedSystemNodes(
             from: webServiceStructure,
             nodeIdProvider: { endpoints in
-                assert(endpoints.count == 1)
-                return endpoints.first!.handlerId.rawValue.replacingOccurrences(of: ".", with: "-")
+                guard let endpoint = endpoints.first, endpoints.count == 1 else {
+                    return UUID().uuidString
+                }
+                return endpoint.handlerId.rawValue.replacingOccurrences(of: ".", with: "-")
             }
         )
         
@@ -247,8 +250,8 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             openApiDocument: webServiceStructure.openApiDocument,
             lambdaExecutableUrl: lambdaExecutableUrl,
             lambdaSharedObjectFilesUrl: lambdaOutputDir,
-            s3BucketName: awsS3BucketName,
-            s3ObjectFolderKey: "/lambda-code/", // TODO read this from the CLI args? or make it dynamic based on the name of the web service?
+            s3BucketName: s3BucketName,
+            s3ObjectFolderKey: s3BucketPath,
             apiGatewayApiId: awsApiGatewayApiId
         )
         logger.notice("Done! Successfully applied the deployment.")
