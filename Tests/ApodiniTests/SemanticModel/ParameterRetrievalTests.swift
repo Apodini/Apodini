@@ -31,7 +31,7 @@ class ParameterRetrievalTests: ApodiniTests {
         let handler = TestHandler()
         let endpoint = handler.mockEndpoint()
 
-        let exporter = MockExporter<String>(queued: "Rudi", 3, nil, .null)
+        let exporter = MockExporter<String>(queued: "Rudi", 3, nil, .some(.none))
 
         let context = endpoint.createConnectionContext(for: exporter)
         

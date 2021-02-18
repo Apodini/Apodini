@@ -5,6 +5,7 @@
 import class NIO.EventLoopFuture
 import protocol NIO.EventLoop
 import struct NIO.EventLoopPromise
+import ApodiniUtils
 
 struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
     private let instance: EndpointInstance<H>

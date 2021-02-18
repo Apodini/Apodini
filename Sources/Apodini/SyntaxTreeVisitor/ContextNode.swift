@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ApodiniUtils
 
 class ContextNode {
     private var nodeOnlyContext: [ObjectIdentifier: Any] = [:]

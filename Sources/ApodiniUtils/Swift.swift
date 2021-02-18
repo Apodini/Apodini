@@ -62,6 +62,21 @@ extension Set {
 }
 
 
+
+// MARK: Sequence
+
+extension Sequence {
+    /// Returns the elements of the sequence, sorted using the given key path to a comparable value
+    /// as the comparison between elements.
+    /// - Parameter keyPath: A key path to a value of an element, that is comparable.
+    /// - Returns: A sorted array.
+    public func sorted<T: Comparable>(by keyPath: KeyPath<Element, T>, ascending: Bool = true) -> [Element] {
+        let sorted = self.sorted { $0[keyPath: keyPath] < $1[keyPath: keyPath] }
+        return ascending ? sorted : sorted.reversed()
+    }
+}
+
+
 // MARK: Collection
 
 extension Collection {
@@ -90,6 +105,7 @@ extension RandomAccessCollection {
         indices.contains(idx) ? self[idx] : nil
     }
 }
+
 
 
 

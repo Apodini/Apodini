@@ -7,17 +7,20 @@
 
 import NIOSSL
 
+
 /// The http najor version
 public enum HTTPVersionMajor: Equatable, Hashable {
     case one
     case two
 }
 
+
 /// BindAddress
 public enum BindAddress: Equatable {
     case hostname(_ hostname: String?, port: Int?)
     case unixDomainSocket(path: String)
 }
+
 
 extension Application {
     /// Used to keep track of http related configuration

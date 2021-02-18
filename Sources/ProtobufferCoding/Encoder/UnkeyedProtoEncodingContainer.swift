@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ApodiniUtils
 
 class UnkeyedProtoEncodingContainer: InternalProtoEncodingContainer, UnkeyedEncodingContainer {
     var currentFieldTag: Int

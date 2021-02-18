@@ -1,4 +1,5 @@
 import Foundation
+import ApodiniUtils
 
 // Be aware that "toplevel" `PathParameter`s can also be defined by just
 // defining a `@Parameter(.http(.path))` in the `Handler`.

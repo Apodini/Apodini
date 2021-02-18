@@ -2,6 +2,9 @@
 // Created by Andreas Bauer on 05.01.21.
 //
 
+import ApodiniUtils
+
+
 extension Handler {
     func buildParametersModel() -> [_AnyEndpointParameter] {
         let builder = ParameterModelBuilder(from: self)
@@ -85,13 +88,13 @@ private protocol EncodeOptionalEndpointParameter {
 }
 
 // MARK: Parameter Model
-extension Parameter: EncodeOptionalEndpointParameter where Element: ApodiniOptional, Element.Member: Codable {
+extension Parameter: EncodeOptionalEndpointParameter where Element: OptionalProtocol, Element.Wrapped: Codable {
     func createParameterWithWrappedType(
         name: String,
         label: String,
         necessity: Necessity
     ) -> _AnyEndpointParameter {
-        var `default`: (() -> Element.Member)?
+        var `default`: (() -> Element.Wrapped)?
         if let defaultValue = self.defaultValue, let originalDefaultValue = defaultValue().optionalInstance {
             `default` = {
                 guard let member = defaultValue().optionalInstance else {
@@ -107,14 +110,14 @@ extension Parameter: EncodeOptionalEndpointParameter where Element: ApodiniOptio
             }
         }
         
-        return EndpointParameter<Element.Member>(
-                id: self.id,
-                name: name,
-                label: label,
-                nilIsValidValue: true,
-                necessity: necessity,
-                options: self.options,
-                defaultValue: `default`
+        return EndpointParameter<Element.Wrapped>(
+            id: self.id,
+            name: name,
+            label: label,
+            nilIsValidValue: true,
+            necessity: necessity,
+            options: self.options,
+            defaultValue: `default`
         )
     }
 }

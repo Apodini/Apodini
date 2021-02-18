@@ -16,11 +16,6 @@ public protocol IdentifiableHandler: Handler {
 }
 
 
-
-
-
-
-
 struct ExplicitlyIdentifiedHandlerIdentifierValueContextKey: Apodini.OptionalContextKey {
     typealias Value = AnyHandlerIdentifier
 }

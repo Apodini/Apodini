@@ -4,6 +4,7 @@
 
 import Foundation
 import Apodini
+import ApodiniUtils
 import ApodiniTypeReflection
 import ApodiniVaporSupport
 @_implementationOnly import OpenAPIKit

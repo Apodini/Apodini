@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ApodiniUtils
 
 
 /// Generic Parameter that can be used to mark that the options are meant for `@Parameter`s

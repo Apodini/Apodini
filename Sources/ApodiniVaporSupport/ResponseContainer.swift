@@ -7,6 +7,7 @@
 
 import Foundation
 import Apodini
+import ApodiniUtils
 import Vapor
 
 public struct ResponseContainer: Encodable, ResponseEncodable {

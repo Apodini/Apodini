@@ -17,7 +17,6 @@ public enum Status: ResponseTransformable {
     /// The request was handled and the response does not contain any content
     case noContent
     
-    
     public func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<Empty>> {
         eventLoop.makeSucceededFuture(Response.final(self))
     }

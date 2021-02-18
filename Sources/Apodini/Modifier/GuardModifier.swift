@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 6/27/20.
 //
 
-@_implementationOnly import Runtime
+import ApodiniUtils
 
 
 private struct ResetGuard: SyncGuard {

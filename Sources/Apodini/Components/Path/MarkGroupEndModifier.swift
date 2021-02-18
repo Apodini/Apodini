@@ -27,11 +27,8 @@ extension PathComponent {
 
 extension Array where Element == PathComponent {
     mutating func markEnd() {
-        if isEmpty {
-            return
+        if let last = self.last {
+            self[endIndex - 1] = last.markGroupEnd()
         }
-
-        let last = removeLast()
-        append(last.markGroupEnd())
     }
 }

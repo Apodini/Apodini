@@ -10,6 +10,7 @@ let package = Package(
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
+        .library(name: "ApodiniUtils", targets: ["ApodiniUtils"]),
         .library(name: "ApodiniDatabase", targets: ["ApodiniDatabase"]),
         .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
         .library(name: "ApodiniJobs", targets: ["ApodiniJobs"]),
@@ -73,9 +74,20 @@ let package = Package(
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0")
     ],
     targets: [
+        .target(name: "CApodiniUtils"),
+        .target(
+            name: "ApodiniUtils",
+            dependencies: [
+                .target(name: "CApodiniUtils"),
+                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+            ]
+        ),
+        
         .target(
             name: "Apodini",
             dependencies: [
+                .target(name: "ApodiniUtils"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOHTTP2", package: "swift-nio-http2"),
@@ -89,9 +101,6 @@ let package = Package(
                 "Relationships/RelationshipIdentificationBuilder.swift.gyb"
             ]
         ),
-        
-        .target(name: "CApodiniUtils"),
-        .target(name: "ApodiniUtils", dependencies: [.target(name: "CApodiniUtils")]),
 
         .testTarget(
             name: "ApodiniTests",
@@ -228,6 +237,7 @@ let package = Package(
             name: "ApodiniWebSocket",
             dependencies: [
                 .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniVaporSupport"),
                 .product(name: "OpenCombine", package: "OpenCombine"),
                 .product(name: "OpenCombineFoundation", package: "OpenCombine"),
@@ -243,6 +253,7 @@ let package = Package(
         .target(
             name: "ProtobufferCoding",
             dependencies: [
+                .target(name: "ApodiniUtils"),
                 .product(name: "Runtime", package: "Runtime")
             ],
             exclude:["README.md"]
