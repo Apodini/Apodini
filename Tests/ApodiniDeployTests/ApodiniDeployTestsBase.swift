@@ -13,6 +13,5 @@ import XCTApodini
 class ApodiniDeployTestsBase: XCTApodiniTest {
     override func tearDown() {
         super.tearDown()
-        ApodiniDeployInterfaceExporter.resetSingleton()
     }
 }

@@ -26,7 +26,7 @@ struct InternalInvocationResponder<H: Handler>: Vapor.Responder {
             return endpoint._invoke(
                 withRequest: ApodiniDeployInterfaceExporter.ExporterRequest(
                     encodedParameters: request.parameters.map { param -> (String, Data) in
-                        return (param.stableIdentity, param.value)
+                        return (param.stableIdentity, param.encodedValue)
                     }
                 ),
                 RHIIE: RHIIE,
@@ -48,7 +48,13 @@ struct InternalInvocationResponder<H: Handler>: Vapor.Responder {
             try! vaporResponse.content.encode(
                 Response(
                     statusCode: .internalServerError,
-                    responseData: try! JSONEncoder().encode(error.localizedDescription) // TODO or just do str.data???
+                    responseData: {
+                        if let data = error.localizedDescription.data(using: .utf8) {
+                            return data
+                        } else {
+                            throw error
+                        }
+                    }()
                 ),
                 using: JSONEncoder()
             )
@@ -62,7 +68,7 @@ extension InternalInvocationResponder {
     struct Request: Codable {
         struct EncodedParameter: Codable {
             let stableIdentity: String
-            let value: Data // TODO
+            let encodedValue: Data
         }
         let parameters: [EncodedParameter]
     }

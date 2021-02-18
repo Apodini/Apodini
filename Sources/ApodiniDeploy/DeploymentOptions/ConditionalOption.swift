@@ -50,8 +50,7 @@ final class ConditionalOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
     
     
     required init(from decoder: Decoder) throws {
-        // TODO explain that these cant be decoded (which isnt much of an issue since they cant be encoded either)
-        fatalError("init(from:) has not been implemented")
+        fatalError("The '\(Self.self)' type can only be encoded can only encoded")
     }
     
     public override func encode(to encoder: Encoder) throws {

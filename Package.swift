@@ -314,8 +314,9 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniVaporSupport"),
                 .target(name: "ApodiniOpenAPI"),
-                .product(name: "OpenAPIKit", package: "OpenAPIKit"),
-                .target(name: "ApodiniDeployRuntimeSupport")
+                .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "ApodiniDeployRuntimeSupport"),
+                .product(name: "OpenAPIKit", package: "OpenAPIKit")
             ]
         ),
         
@@ -325,7 +326,8 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "Logging", package: "swift-log"),
-                .product(name: "Runtime", package: "Runtime")
+                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "OpenAPIKit", package: "OpenAPIKit")
             ]
         ),
         .target(

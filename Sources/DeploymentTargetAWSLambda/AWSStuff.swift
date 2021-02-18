@@ -26,6 +26,7 @@ import class Apodini.AnyHandlerIdentifier
 /// A type which interacts with AWS to create and configure ressources.
 class AWSDeploymentStuff { // needs a better name
     private static let lambdaFunctionNamePrefix = "apodini-lambda"
+    private static let xAmazonApigatewayIntegrationKey = "x-amazon-apigateway-integration"
     
     private let tmpDirUrl: URL
     private let FM = FileManager.default
@@ -101,34 +102,35 @@ class AWSDeploymentStuff { // needs a better name
         s3ObjectFolderKey: String,
         apiGatewayApiId: String
     ) throws {
-        logger.trace("-[\(Self.self) \(#function)]")
-        
         let accountId = try sts.getCallerIdentity(STS.GetCallerIdentityRequest()).wait().account!
         
         logger.notice("Fetching list of all lambda functions in AWS account")
-        let allFunctionsResponse = try lambda.listFunctions(Lambda.ListFunctionsRequest()).wait()
-        
-        if allFunctionsResponse.nextMarker != nil {
-            logger.warning("nextMarker not nil!!!")
-        }
-        
-        let allFunctions = allFunctionsResponse.functions ?? []
+        let allFunctions = try { [unowned self] () -> [Lambda.FunctionConfiguration] in
+            var retval: [Lambda.FunctionConfiguration] = []
+            var nextMarker: String?
+            repeat {
+                let response = try lambda.listFunctions(Lambda.ListFunctionsRequest(marker: nextMarker)).wait()
+                retval.append(contentsOf: response.functions ?? [])
+                nextMarker = response.nextMarker
+            } while nextMarker != nil
+            return retval
+        }()
         logger.notice("#functions: \(allFunctions.count) \(allFunctions.map(\.functionArn!))")
 
         
         // Delete old functions
-        do {
-            let functionsToBeDeleted = allFunctions.filter { $0.functionName!.hasPrefix(Self.lambdaFunctionNamePrefix) }
-            if !functionsToBeDeleted.isEmpty {
-                logger.notice("Deleting old apodini lambda functions")
-                for function in functionsToBeDeleted {
-                    logger.notice("[SKIPPED] - deleting \(function.functionArn!)")
-                    //try lambda
-                    //    .deleteFunction(Lambda.DeleteFunctionRequest(functionName: function.functionName!))
-                    //    .wait()
-                }
-            }
-        }
+//        do {
+//            let functionsToBeDeleted = allFunctions.filter { $0.functionName!.hasPrefix(Self.lambdaFunctionNamePrefix) }
+//            if !functionsToBeDeleted.isEmpty {
+//                logger.notice("Deleting old apodini lambda functions")
+//                for function in functionsToBeDeleted {
+//                    logger.notice("[SKIPPED] - deleting \(function.functionArn!)")
+//                    //try lambda
+//                    //    .deleteFunction(Lambda.DeleteFunctionRequest(functionName: function.functionName!))
+//                    //    .wait()
+//                }
+//            }
+//        }
         
         
         //
@@ -146,7 +148,6 @@ class AWSDeploymentStuff { // needs a better name
             try FM.createDirectory(at: lambdaPackageTmpDir, withIntermediateDirectories: true, attributes: nil)
             
             let addToLambdaPackage = { [unowned self] (url: URL) throws -> Void in
-                logger.notice("- adding \(url.lastPathComponent)")
                 try FM.copyItem(
                     at: url,
                     to: lambdaPackageTmpDir.appendingPathComponent(url.lastPathComponent, isDirectory: false)
@@ -160,13 +161,11 @@ class AWSDeploymentStuff { // needs a better name
             try addToLambdaPackage(lambdaExecutableUrl)
             
             let launchInfoFileUrl = lambdaPackageTmpDir.appendingPathComponent("launchInfo.json", isDirectory: false)
-            logger.notice("- adding launchInfo.json")
-            try deploymentStructure.writeTo(url: launchInfoFileUrl)
+            try deploymentStructure.writeJSON(to: launchInfoFileUrl)
             try FM.lk_setPosixPermissions("rw-r--r--", forItemAt: launchInfoFileUrl)
             
             do {
                 // create & add bootstrap file
-                logger.notice("- adding bootstrap")
                 let bootstrapFileContents = """
                 #!/bin/bash
                 ./\(lambdaExecutableUrl.lastPathComponent) \(WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig) ./\(launchInfoFileUrl.lastPathComponent)
@@ -182,7 +181,7 @@ class AWSDeploymentStuff { // needs a better name
                 executableUrl: zipBin,
                 arguments: try [zipFilename] + FM.contentsOfDirectory(atPath: lambdaPackageTmpDir.path),
                 workingDirectory: lambdaPackageTmpDir,
-                captureOutput: false,
+                captureOutput: true, // suppress output
                 launchInCurrentProcessGroup: true
             ).launchSyncAndAssertSuccess()
             
@@ -286,10 +285,6 @@ class AWSDeploymentStuff { // needs a better name
                     "uri": "arn:aws:apigateway:\(awsRegion.rawValue):lambda:path/2015-03-31/functions/\(lambdaFunctionConfig.functionArn!)/invocations",
                     "payloadFormatVersion": "2.0"
                 ]
-                //operation.vendorExtensions[Self.xAmazonApigatewayIntegrationKey] = AnyCodable(Self.makeApiGatewayOpenApiExtensionDict(awsRegion: awsRegion.rawValue, lambdaArn: lambdaFunctionConfig.functionArn!))
-                
-                // arn:aws:lambda:eu-central-1:873474603240:function:apodini-lambda-0
-                //arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:012345678901:function:HelloWorld/invocations
                 pathItem.set(operation: operation, for: endpoint.method)
             }
             return pathItem
@@ -321,44 +316,18 @@ class AWSDeploymentStuff { // needs a better name
             }
         }
         
-        
-//        apiGatewayImportDef.paths[OpenAPI.Path(rawValue: "/$default")] = OpenAPI.PathItem(
-//            vendorExtensions: [
-//                "x-amazon-apigateway-any-method": [
-//                    "isDefaultRoute": true,
-//                    Self.xAmazonApigatewayIntegrationKey: [
-//                        "type": "aws_proxy",
-//                        "httpMethod": "POST",
-//                        "connectionType": "INTERNET",
-//                        "uri": "arn:aws:apigateway:\(awsRegion.rawValue):lambda:path/2015-03-31/functions/\(nodeToLambdaFunctionMapping.first!.value.functionArn!)/invocations",
-//                        "payloadFormatVersion": "2.0"
-//                    ]
-////                    Self.xAmazonApigatewayIntegrationKey: AnyCodable(Self.makeApiGatewayOpenApiExtensionDict(
-////                        awsRegion: awsRegion.rawValue,
-////                        lambdaArn: nodeToLambdaFunctionMapping.first!.value.functionArn! // TODO we can do better than this
-////                    ))
-////                    "x-amazon-apigateway-integration": [
-////                        "type": "aws_proxy",
-////                        "httpMethod": "POST",
-////                        "connectionType": "INTERNET",
-////                        "uri": "arn:aws:apigateway:\(awsRegion.rawValue):lambda:path/2015-03-31/functions/\(nodeToLambdaFunctionMapping.first!.value.functionArn!)/invocations",
-////                        //"uri": lambdaFunctionConfig.functionArn!,
-////                        //"credentials": lambdaFunctionConfig.role!,
-////                        "payloadFormatVersion": "2.0"
-////                    ]
-//                ]
-//            ]
-//        )
-        
-        let openApiDefPath = self.tmpDirUrl.appendingPathComponent("openapi.json", isDirectory: false)
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
-        try encoder.encode(apiGatewayImportDef).write(to: openApiDefPath)
+        //let openApiDefPath = self.tmpDirUrl.appendingPathComponent("openapi.json", isDirectory: false)
+        //try apiGatewayImportDef.writeJSON(to: openApiDefPath, encoderOutputFormatting: [.prettyPrinted, .withoutEscapingSlashes])
+        //let openApiDefDa
         
         let reimportRequest = ApiGatewayV2.ReimportApiRequest(
             apiId: apiGatewayApiId,
-            basepath: nil, // TODO?
-            body: String(data: try Data(contentsOf: openApiDefPath), encoding: .utf8)!,
+            basepath: nil,
+            //body: String(data: try Data(contentsOf: openApiDefPath), encoding: .utf8)!,
+            body: String(
+                data: try apiGatewayImportDef.encodeToJSON(outputFormatting: [.prettyPrinted, .withoutEscapingSlashes]),
+                encoding: .utf8
+            )!,
             failOnWarnings: true // Too strict?
         )
         
@@ -499,24 +468,6 @@ class AWSDeploymentStuff { // needs a better name
             return try createLambdaImp()
         }
     }
-    
-    
-    
-    
-    static let xAmazonApigatewayIntegrationKey = "x-amazon-apigateway-integration"
-    
-    // This doesnt work because it'd result in doubly-wrapped `AnyCodable`s, which isn't supported
-//    static func makeApiGatewayOpenApiExtensionDict(awsRegion: String, lambdaArn: String) -> [String: String] {
-//        return [
-//            "type": "aws_proxy",
-//            "httpMethod": "POST",
-//            "connectionType": "INTERNET",
-//            "uri": "arn:aws:apigateway:\(awsRegion):lambda:path/2015-03-31/functions/\(lambdaArn)/invocations",
-//            //"uri": lambdaFunctionConfig.functionArn!,
-//            //"credentials": lambdaFunctionConfig.role!,
-//            "payloadFormatVersion": "2.0"
-//        ]
-//    }
 }
 
 

@@ -36,11 +36,11 @@ private struct LocalhostDeploymentProviderCLI: ParsableCommand {
     @Option(help: "The port on which the API should listen")
     var port: Int = 8080
     
-    @Option(help: "The port number for the first child process. TODO explain more")
+    @Option(help: "The port number for the first-launched child process")
     var endpointProcessesBasePort: Int = 5000
     
     @Option(help: "Name of the web service's SPM target/product")
-    var productName: String // TODO make this optional?
+    var productName: String
     
     
     mutating func run() throws {
@@ -85,7 +85,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         logger.notice("Target executable url: \(executableUrl.path)")
         
         logger.notice("Invoking target to generate web service structure")
-        let wsStructure = try generateWebServiceStructure()
+        let wsStructure = try generateDefaultWebServiceStructure()
         
         let nodes = Set(try computeDefaultDeployedSystemNodes(from: wsStructure).enumerated().map { idx, node in
             try node.withUserInfo(LocalhostLaunchInfo(port: self.endpointProcessesBasePort + idx))
@@ -99,7 +99,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         )
         
         let deployedSystemStructureFileUrl = FM.lk_getTemporaryFileUrl(fileExtension: "json")
-        try deployedSystem.writeTo(url: deployedSystemStructureFileUrl)
+        try deployedSystem.writeJSON(to: deployedSystemStructureFileUrl)
         
         for node in deployedSystem.nodes {
             let task = Task(
@@ -118,7 +118,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                 
         logger.notice("Starting proxy server")
         let proxyServer = try ProxyServer(
-            openApiDocument: try JSONDecoder().decode(OpenAPI.Document.self, from: wsStructure.openApiDefinition),
+            openApiDocument: wsStructure.openApiDocument,
             deployedSystem: deployedSystem
         )
         try proxyServer.run(port: self.port)

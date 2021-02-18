@@ -108,7 +108,7 @@ extension RemoteHandlerInvocationManager {
         handlerId: H.HandlerIdentifier,
         collectedInputParams: [CollectedParameter<H>]
     ) -> EventLoopFuture<H.Response.Content> {
-        guard let RHIIE = ApodiniDeployInterfaceExporter.shared else {
+        guard let RHIIE = self.app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self) else {
             return eventLoop.makeFailedFuture(makeApodiniError("unable to get \(ApodiniDeployInterfaceExporter.self) object"))
         }
         
@@ -119,24 +119,8 @@ extension RemoteHandlerInvocationManager {
         switch dispatchStrategy(forInvocationOf: targetEndpoint, RHIIE: RHIIE) {
         case .locally:
             return targetEndpoint._invoke(withCollectedParameters: collectedInputParams, RHIIE: RHIIE, on: eventLoop)
-//            let request = ApodiniDeployInterfaceExporter.ExporterRequest(endpoint: targetEndpoint, collectedParameters: collectedInputParams)
-//            var context = targetEndpoint.createConnectionContext(for: RHIIE)
-//            let responseFuture: EventLoopFuture<Response<AnyEncodable>> = context.handle(request: request, eventLoop: self.eventLoop)
-//            return responseFuture.flatMapThrowing { (response: Response<AnyEncodable>) -> H.Response.Content in
-//                switch response {
-//                case .final(let anyEncodable):
-//                    if let value = anyEncodable.typed(H.Response.Content.self) {
-//                        return value
-//                    } else {
-//                        throw makeApodiniError("Unable to convert response to expected type '\(H.Response.Content.self)'")
-//                    }
-//                default:
-//                    throw makeApodiniError("Unexpected response value: \(response). Expected '.final'.")
-//                }
-//            }
         case .remotely(let targetNode):
             guard let runtime = RHIIE.deploymentProviderRuntime else {
-                // TODO maybe just dispatch locally if we cant find a runtime?
                 return eventLoop.makeFailedFuture(makeApodiniError("Unable to find runtime"))
             }
             // The targetEndpoint is on a different node, dispatch the invocation there
@@ -146,7 +130,7 @@ extension RemoteHandlerInvocationManager {
             var alreadyProcessedParamKeyPaths: Set<AnyKeyPath> = []
             var alreadyProcessedEndpointParamIds: Set<UUID> = []
 
-            let invocationParams: [HandlerInvocationParameter] = collectedInputParams.map { collectedParam in
+            let invocationParams: [HandlerInvocation<H>.Parameter] = collectedInputParams.map { collectedParam in
                 // The @Parameter property wrapper declaration in the handler
                 let handlerParamId = (targetEndpoint.handler[keyPath: collectedParam.handlerKeyPath] as! AnyParameterID).value
                 let endpointParam = targetEndpoint.findParameter(for: handlerParamId)!
@@ -156,20 +140,10 @@ extension RemoteHandlerInvocationManager {
                 if !alreadyProcessedEndpointParamIds.insert(endpointParam.id).inserted {
                     print("Endpoint parameter with id '\(endpointParam.id)' matched multiple times in remote handler invocation")
                 }
-                return HandlerInvocationParameter(
+                return HandlerInvocation<H>.Parameter(
                     stableIdentity: endpointParam.lk_stableIdentity,
                     name: endpointParam.name,
-                    value: collectedParam.value as! Codable, // TODO this needs to match the constraint used by AnyEndpointParameter!
-                    restParameterType: {
-                        switch endpointParam.parameterType {
-                        case .lightweight:
-                            return .query
-                        case .content:
-                            return .body
-                        case .path:
-                            return .path
-                        }
-                    }()
+                    value: collectedParam.value as! HandlerInvocation<H>.Parameter.Value
                 )
             }
             let missingParamNames: [String] = targetEndpoint.parameters
@@ -185,12 +159,6 @@ extension RemoteHandlerInvocationManager {
                 let handlerInvocation = HandlerInvocation<H>(handlerId: handlerId, targetNode: targetNode, parameters: invocationParams)
                 let runtimeHandlingResult = try runtime.handleRemoteHandlerInvocation(handlerInvocation)
                 
-//                let runtimeHandlingResult = try runtime.handleRemoteHandlerInvocation(
-//                    withId: targetEndpoint.identifier.rawValue,
-//                    inTargetNode: targetNode,
-//                    responseType: H.Response.Content.self,
-//                    parameters: invocationParams
-//                )
                 switch runtimeHandlingResult {
                 case .result(let future):
                     return future
@@ -200,7 +168,6 @@ extension RemoteHandlerInvocationManager {
                         .appendingPathComponent("invoke")
                         .appendingPathComponent(targetEndpoint.identifier.rawValue)
                     return RHIIE.app.vapor.app.client.post(
-                        //"http://127.0.0.1:5000/__apodini/invoke/\(targetEndpoint.identifier.rawValue)",
                         Vapor.URI(url: requestUrl),
                         headers: [:],
                         beforeSend: { (clientReq: inout Vapor.ClientRequest) in
@@ -208,12 +175,11 @@ extension RemoteHandlerInvocationManager {
                                 parameters: try invocationParams.map { param -> InternalInvocationResponder<H>.Request.EncodedParameter in
                                     return try .init(
                                         stableIdentity: param.stableIdentity,
-                                        value: param.encodeValue(using: JSONEncoder())
+                                        encodedValue: param.encodeValue(using: JSONEncoder())
                                     )
                                 }
                             )
                             try clientReq.content.encode(input, using: JSONEncoder())
-                            print("clientReq", clientReq)
                         }
                     )
                     .flatMapThrowing { (response: ClientResponse) -> H.Response.Content in
@@ -224,16 +190,6 @@ extension RemoteHandlerInvocationManager {
             } catch {
                 return eventLoop.makeFailedFuture(error)
             }
-            
-            
-//            return eventLoop.tryFuture {
-//                return try runtime.invokeRemoteHandler(
-//                    withId: targetEndpoint.identifier.rawValue,
-//                    inTargetNode: targetNode,
-//                    responseType: H.Response.Content.self,
-//                    parameters: invocationParams
-//                )
-//            }.flatMap { $0 }
         }
     }
     

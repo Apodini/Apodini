@@ -7,6 +7,8 @@
 
 import Foundation
 import Apodini
+import ApodiniUtils
+import OpenAPIKit
 
 
 
@@ -44,16 +46,16 @@ public struct ExporterIdentifier: RawRepresentable, Codable, Hashable, Equatable
 public struct WebServiceStructure: Codable { // TODO this needs a better name. maybe Context or Summary?
     public let endpoints: Set<ExportedEndpoint>
     public let deploymentConfig: DeploymentConfig
-    public let openApiDefinition: Data // TODO have this typed as `OpenAPI.Document` instead
+    public let openApiDocument: OpenAPI.Document
     
     public init(
         endpoints: Set<ExportedEndpoint>,
         deploymentConfig: DeploymentConfig,
-        openApiDefinition: Data
+        openApiDocument: OpenAPI.Document
     ) {
         self.endpoints = endpoints
         self.deploymentConfig = deploymentConfig
-        self.openApiDefinition = openApiDefinition
+        self.openApiDocument = openApiDocument
     }
 }
 

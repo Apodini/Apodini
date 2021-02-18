@@ -95,6 +95,35 @@ extension Collection {
         }
         return try dropFirst().reduce(first, transform)
     }
+    
+    
+    /// Count the number of elements matching `predicate`
+    public func count(where predicate: (Element) throws -> Bool) rethrows -> Int {
+        try reduce(into: 0) { $0 += try predicate($1) ? 1 : 0 }
+    }
+    
+    
+    /// Returns the first element after the specified index, which matches the predicate
+    public func first(after idx: Index, where predicate: (Element) throws -> Bool) rethrows -> Element? {
+        return try firstIndex(from: index(after: idx), where: predicate).map { self[$0] }
+    }
+    
+    
+    public func firstIndex(after idx: Index, where predicate: (Element) throws -> Bool) rethrows -> Index? {
+        return try firstIndex(from: index(after: idx), where: predicate)
+    }
+    
+    /// Returns the first index within the collection which matches a predicate, starting at `from`.
+    public func firstIndex(from idx: Index, where predicate: (Element) throws -> Bool) rethrows -> Index? {
+        guard indices.contains(idx) else {
+            return nil
+        }
+        if try predicate(self[idx]) {
+            return idx
+        } else {
+            return try firstIndex(from: index(after: idx), where: predicate)
+        }
+    }
 }
 
 

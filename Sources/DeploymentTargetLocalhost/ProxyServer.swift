@@ -90,9 +90,7 @@ private struct ProxyRequestResponder: Vapor.Responder {
             fragment: request.url.fragment
         )
         proxyServer.logger.notice("forwarding request to '\(url)'")
-        // TODO can we reuse the headers just like that?
         let clientResponseFuture = request.client.send(request.method, headers: request.headers, to: url) { (clientReq: inout ClientRequest) in
-            //clientReq.body = request.body.data
             clientReq.body = request.body.data
         }
         return clientResponseFuture.flatMap { clientResponse in

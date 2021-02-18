@@ -44,25 +44,25 @@ public struct DeployedSystemStructure: Codable { // TODO or just `DeployedSystem
     }
     
     
-    public init(contentsOf url: URL, options: Data.ReadingOptions = []) throws {
-        let data = try Data(contentsOf: url, options: options)
-        self = try JSONDecoder().decode(Self.self, from: data)
-        try nodes.assertHandlersLimitedToSingleNode()
-    }
-    
-    
-    public func writeTo(url: URL, options: Data.WritingOptions = []) throws {
-        let encoder = JSONEncoder()
-        #if DEBUG
-        encoder.outputFormatting.insert(.prettyPrinted)
-        #endif
-        let data = try encoder.encode(self)
-        try data.write(to: url, options: options)
-    }
+//    public init(contentsOf url: URL, options: Data.ReadingOptions = []) throws {
+//        let data = try Data(contentsOf: url, options: options)
+//        self = try JSONDecoder().decode(Self.self, from: data)
+//        try nodes.assertHandlersLimitedToSingleNode()
+//    }
+//
+//
+//    public func writeTo(url: URL, options: Data.WritingOptions = []) throws {
+//        let encoder = JSONEncoder()
+//        #if DEBUG
+//        encoder.outputFormatting.insert(.prettyPrinted)
+//        #endif
+//        let data = try encoder.encode(self)
+//        try data.write(to: url, options: options)
+//    }
     
     
     public func readUserInfo<T: Decodable>(as _: T.Type) -> T? {
-        return try? JSONDecoder().decode(T.self, from: userInfo)
+        try? T(decodingJSON: userInfo)
     }
 }
 
@@ -86,13 +86,8 @@ extension DeployedSystemStructure {
     public struct Node: Codable, Identifiable, Hashable, Equatable {
         /// ID of this node
         public let id: String
-        
         /// exported handler ids
         public let exportedEndpoints: Set<ExportedEndpoint>
-        
-//        /// the merged deployment options of all endpoints in the node
-//        public let deploymentOptions: XCollectedHandlerOptions
-        
         /// Additional deployment provider specific data
         public private(set) var userInfo: Data?
         
@@ -104,15 +99,12 @@ extension DeployedSystemStructure {
         
         
         private mutating func setUserInfo<T: Encodable>(_ value: T?, type _: T.Type = T.self) throws {
-            self.userInfo = try value.map { try JSONEncoder().encode($0) }
+            self.userInfo = try value.map { try $0.encodeToJSON() }
         }
         
         
         public func readUserInfo<T: Decodable>(as _: T.Type) -> T? {
-            guard let data = userInfo else {
-                return nil
-            }
-            return try? JSONDecoder().decode(T.self, from: data)
+            userInfo.flatMap { try? T(decodingJSON: $0) }
         }
         
         

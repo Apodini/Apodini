@@ -122,7 +122,7 @@ extension Handler {
 
 public protocol HandlerWithDeploymentOptions: Handler {
     /// Type-level deployment options (ie options which apply to all instances of this type)
-    static var deploymentOptions: [AnyDeploymentOption] { get } // TODO replace these arrays w/ `DeploymentOptions`?
+    static var deploymentOptions: [AnyDeploymentOption] { get }
 }
 
 extension HandlerWithDeploymentOptions {

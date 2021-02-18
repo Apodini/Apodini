@@ -84,7 +84,7 @@ public struct DeploymentGroupsConfig: Codable {
     public let defaultGrouping: DefaultGrouping
     public let groups: Set<DeploymentGroup>
     
-    public init(defaultGrouping: DefaultGrouping = .separateNodes, groups: Set<DeploymentGroup> = []) { // TODO what would be a reasonanle default?
+    public init(defaultGrouping: DefaultGrouping = .separateNodes, groups: Set<DeploymentGroup> = []) {
         self.defaultGrouping = defaultGrouping
         self.groups = groups
     }

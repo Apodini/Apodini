@@ -244,7 +244,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         logger.notice("Starting the AWS stuff")
         try awsIntegration.deployToLambda(
             deploymentStructure: deploymentStructure,
-            openApiDocument: try JSONDecoder().decode(OpenAPI.Document.self, from: webServiceStructure.openApiDefinition),
+            openApiDocument: webServiceStructure.openApiDocument,
             lambdaExecutableUrl: lambdaExecutableUrl,
             lambdaSharedObjectFilesUrl: lambdaOutputDir,
             s3BucketName: awsS3BucketName,
@@ -314,8 +314,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             ].joined(separator: " ")
         )
         let url = tmpDirUrl.appendingPathComponent(filename, isDirectory: false)
-        let data = try Data(contentsOf: url)
-        return try JSONDecoder().decode(WebServiceStructure.self, from: data) // TODO make this a WebServiceStructure initializer and remove all manual json decoding. same for the encoding. combine this w/ the launchInfo stuff, maybe into a nice protocol or smth like that
+        return try WebServiceStructure(decodingJSONAt: url)
     }
     
     

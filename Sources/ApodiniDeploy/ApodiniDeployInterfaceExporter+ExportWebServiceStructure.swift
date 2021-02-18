@@ -19,7 +19,6 @@ extension ApodiniDeployInterfaceExporter {
         guard let openApiDocument = app.storage.get(OpenAPIStorageKey.self)?.document else {
             throw makeApodiniError("Unable to get OpenAPI document")
         }
-        let openApiDefinitionData = try JSONEncoder().encode(openApiDocument)
         let webServiceStructure = WebServiceStructure(
             endpoints: Set(collectedEndpoints.map { endpointInfo -> ExportedEndpoint in
                 let endpoint = endpointInfo.endpoint
@@ -38,11 +37,11 @@ extension ApodiniDeployInterfaceExporter {
                     }
                 )
             ),
-            openApiDefinition: openApiDefinitionData
+            openApiDocument: openApiDocument
         )
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
-        let data = try encoder.encode(webServiceStructure)
-        try data.write(to: outputUrl)
+        try webServiceStructure.writeJSON(
+            to: outputUrl,
+            encoderOutputFormatting: [.prettyPrinted, .withoutEscapingSlashes]
+        )
     }
 }

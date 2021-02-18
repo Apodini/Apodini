@@ -8,6 +8,7 @@
 import Foundation
 import Vapor
 import Apodini
+import ApodiniVaporSupport
 import ApodiniDeployRuntimeSupport
 import DeploymentTargetAWSLambdaCommon
 import VaporAWSLambdaRuntime

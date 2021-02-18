@@ -31,11 +31,9 @@ public struct DeploymentProviderID: RawRepresentable, Hashable, Equatable, Codab
 
 
 
-public typealias Version = Int // TODO this could use the Version type from apodini!
-
-
-
 public protocol DeploymentProvider {
+    typealias Version = UInt
+    
     /// This deployment provider's identifier. Must be unique. Use reverse DNS or something like that
     static var identifier: DeploymentProviderID { get }
     
@@ -46,13 +44,12 @@ public protocol DeploymentProvider {
     
     /// Name of the executable target in the web service's swift package we should deploy
     var productName: String { get }
-    
-//    init()
 }
 
 
 extension DeploymentProvider {
     public var identifier: DeploymentProviderID { Self.identifier }
+    public var version: Version { Self.version }
 }
 
 
@@ -99,9 +96,7 @@ extension DeploymentProvider {
     }
     
     
-    // TODO rename to generateDefaultWebServiceStructure or smth like that to indicate that this is the default implementation
-    // like, onCurrentMachine, inCurrentProcessContext, forCurrentArch, etc
-    public func generateWebServiceStructure() throws -> WebServiceStructure {
+    public func generateDefaultWebServiceStructure() throws -> WebServiceStructure {
         let FM = FileManager.default
         let logger = Logger(label: "ApodiniDeployCLI.Localhost")
         
