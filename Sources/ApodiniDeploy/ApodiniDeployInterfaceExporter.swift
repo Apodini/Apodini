@@ -185,7 +185,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
 extension ApodiniDeployInterfaceExporter {
     public struct ExporterRequest: Apodini.ExporterRequest {
         enum Param {
-            case value(Any)    // the value, as is
+            case value(Any)    // the value, as-is
             case encoded(Data) // the value, encoded
         }
         

@@ -7,6 +7,9 @@
 
 import Foundation
 import ApodiniUtils
+import class Apodini.AnyHandlerIdentifier
+import ApodiniDeployBuildSupport
+import DeploymentTargetAWSLambdaCommon
 import Logging
 import NIO
 import SotoLambda
@@ -15,10 +18,7 @@ import SotoS3
 import SotoS3FileTransfer
 import SotoIAM
 import SotoSTS
-import ApodiniDeployBuildSupport
 import OpenAPIKit
-import DeploymentTargetAWSLambdaCommon
-import class Apodini.AnyHandlerIdentifier
 
 
 
@@ -316,14 +316,9 @@ class AWSDeploymentStuff { // needs a better name
             }
         }
         
-        //let openApiDefPath = self.tmpDirUrl.appendingPathComponent("openapi.json", isDirectory: false)
-        //try apiGatewayImportDef.writeJSON(to: openApiDefPath, encoderOutputFormatting: [.prettyPrinted, .withoutEscapingSlashes])
-        //let openApiDefDa
-        
         let reimportRequest = ApiGatewayV2.ReimportApiRequest(
             apiId: apiGatewayApiId,
             basepath: nil,
-            //body: String(data: try Data(contentsOf: openApiDefPath), encoding: .utf8)!,
             body: String(
                 data: try apiGatewayImportDef.encodeToJSON(outputFormatting: [.prettyPrinted, .withoutEscapingSlashes]),
                 encoding: .utf8
