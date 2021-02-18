@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ApodiniUtils
 
 internal class InternalProtoEncoder: Encoder {
     var integerWidthCodingStrategy: IntegerWidthCodingStrategy = .native
