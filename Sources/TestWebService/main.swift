@@ -83,18 +83,9 @@ struct WebService: Apodini.WebService {
     
     var configuration: Configuration {
         ExporterConfiguration()
-            .exporter(OpenAPIInterfaceExporter.self)
             .exporter(RESTInterfaceExporter.self)
-            .exporter(RESTInterfaceExporter.self)
-            .exporter(OpenAPIInterfaceExporter.self)
-            .exporter(RESTInterfaceExporter.self)
-            .exporter(OpenAPIInterfaceExporter.self)
-            .exporter(RESTInterfaceExporter.self)
-            .exporter(OpenAPIInterfaceExporter.self)
             .exporter(OpenAPIInterfaceExporter.self)
             .exporter(ApodiniDeployInterfaceExporter.self)
-            .exporter(RESTInterfaceExporter.self)
-            .exporter(RESTInterfaceExporter.self)
         ApodiniDeployConfiguration(
             runtimes: [LocalhostRuntimeSupport.self, LambdaRuntime.self],
             config: DeploymentConfig()
