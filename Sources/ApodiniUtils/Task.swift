@@ -42,7 +42,7 @@ public class Task {
     private let process: Process
     
     public let executableUrl: URL
-    private var didRun = false
+    private(set) var isRunning = false
     private var terminationHandler: TerminationHandler?
     
     private let stdoutPipe = Pipe()
@@ -69,7 +69,6 @@ public class Task {
     public var pid: Int32 {
         process.processIdentifier
     }
-    public var isRunning: Bool { process.isRunning }
     
     
     private func assertCanMutate() {
@@ -107,7 +106,7 @@ public class Task {
     
     
     private func launchImpl() throws {
-        precondition(!didRun)
+        precondition(!isRunning)
         print("-[\(Self.self) \(#function)] \(taskStringRepresentation)")
         if launchInCurrentProcessGroup {
             process.executableURL = LKGetCurrentExecutableUrl()
@@ -125,8 +124,8 @@ public class Task {
         } else {
             process.environment = self.environment
         }
-        didRun = true
         try process.run()
+        isRunning = true
     }
     
     

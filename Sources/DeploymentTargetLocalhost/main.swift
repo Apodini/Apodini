@@ -95,10 +95,20 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                 launchInCurrentProcessGroup: true,
                 environment: [WellKnownEnvironmentVariables.currentNodeId: node.id]
             )
-            // TODO detect the children exiting, and either:
-            // - kill all others once one of them dies (would be useful if they're all crashing on launch)
-            // - relaunch the exited child (would be useful if a child exits due to a fatal error)
-            try task.launchAsync { print("ugh", $0) }
+            func taskTerminationHandler(_ terminationInfo: Task.TerminationInfo) {
+                if terminationInfo.exitCode == 4 && terminationInfo.reason == .uncaughtSignal {
+                    // This seems to be the combination with which a fatalError terminates a program.
+                    // If one of the children was terminated with a fatalError, we re-spawn it to keep the server running
+                    // TODO implement! (this is what triggers the compiler bug)
+                    logger.warning("Restarting child for node '\(node.id)'")
+                    // try! task.launchAsync(taskTerminationHandler)
+                } else {
+                    // If one of the children terminated, and it was not caused by a fatalError, we shut down the entire thing
+                    logger.warning("Child for node '\(node.id)' terminated unexpectedly. killing everything just to be safe.")
+                    exit(EXIT_FAILURE)
+                }
+            }
+            // try task.launchAsync(taskTerminationHandler)
             guard let launchInfo = node.readUserInfo(as: LocalhostLaunchInfo.self) else {
                 // unreachable because we write the exact same type above
                 fatalError("Unable to read launch info")
