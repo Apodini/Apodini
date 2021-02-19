@@ -37,7 +37,7 @@ private struct LocalhostDeploymentProviderCLI: ParsableCommand {
     
     
     mutating func run() throws {
-        var deploymentProvider = LocalhostDeploymentProvider(
+        let deploymentProvider = LocalhostDeploymentProvider(
             productName: productName,
             packageRootDir: URL(fileURLWithPath: inputPackageDir).absoluteURL,
             port: port,
@@ -63,7 +63,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
     private let FM = FileManager.default
     private let logger = Logger(label: "DeploymentTargetLocalhost")
     
-    mutating func run() throws {
+    func run() throws {
         try FM.lk_initialize()
         try FM.lk_setWorkingDirectory(to: packageRootDir)
         
@@ -108,7 +108,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                     exit(EXIT_FAILURE)
                 }
             }
-            // try task.launchAsync(taskTerminationHandler)
+            try task.launchAsync(taskTerminationHandler)
             guard let launchInfo = node.readUserInfo(as: LocalhostLaunchInfo.self) else {
                 // unreachable because we write the exact same type above
                 fatalError("Unable to read launch info")

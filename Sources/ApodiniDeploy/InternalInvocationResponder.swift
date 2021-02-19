@@ -17,48 +17,71 @@ struct InternalInvocationResponder<H: Handler>: Vapor.Responder {
     let endpoint: Endpoint<H>
     
     func respond(to vaporRequest: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        // Note: this function _must always_ return non-failed futures!!! (?)
+        // Note: this function _must always_ return non-failed futures!!!
+        // Otherwise the caller would not be able to differentiate between errors
+        // caused by e.g. a bad connection, and errors caused by e.g. the invoked handler
+        let request: Request
         do {
-            let request = try vaporRequest.content.decode(Request.self)
-            for param in request.parameters {
-                print("param: \(param)")
-            }
-            return endpoint._invoke(
-                withRequest: ApodiniDeployInterfaceExporter.ExporterRequest(
-                    encodedParameters: request.parameters.map { param -> (String, Data) in
-                        return (param.stableIdentity, param.encodedValue)
-                    }
-                ),
-                RHIIE: RHIIE,
-                on: vaporRequest.eventLoop
-            ).map { (handlerResponse: H.Response.Content) -> Vapor.Response in
-                // TODO how should this handle an error here?
-                let vaporResponse = Vapor.Response(status: .ok)
-                try! vaporResponse.content.encode(
+            request = try vaporRequest.content.decode(Request.self)
+        } catch {
+            let vaporResponse = Vapor.Response(status: .internalServerError)
+            do {
+                try vaporResponse.content.encode(
                     Response(
-                        statusCode: .ok,
-                        responseData: try! JSONEncoder().encode(handlerResponse)
+                        status: .internalError,
+                        encodedData: try JSONEncoder().encode(error.localizedDescription)
                     ),
                     using: JSONEncoder()
                 )
-                return vaporResponse
+            } catch {
+                vaporResponse.status = .internalServerError
             }
-        } catch {
+            return vaporRequest.eventLoop.next().makeSucceededFuture(vaporResponse)
+        }
+        return endpoint._invoke(
+            withRequest: ApodiniDeployInterfaceExporter.ExporterRequest(
+                encodedParameters: request.parameters.map { param -> (String, Data) in
+                    return (param.stableIdentity, param.encodedValue)
+                }
+            ),
+            RHIIE: RHIIE,
+            on: vaporRequest.eventLoop
+        )
+        .map { (handlerResponse: H.Response.Content) -> Vapor.Response in
             let vaporResponse = Vapor.Response(status: .ok)
-            try! vaporResponse.content.encode(
-                Response(
-                    statusCode: .internalServerError,
-                    responseData: {
-                        if let data = error.localizedDescription.data(using: .utf8) {
-                            return data
-                        } else {
-                            throw error
-                        }
-                    }()
-                ),
-                using: JSONEncoder()
-            )
-            return vaporRequest.eventLoop.makeSucceededFuture(vaporResponse)
+            let encodedHandlerResponse: Data
+            do {
+                do {
+                    encodedHandlerResponse = try JSONEncoder().encode(handlerResponse)
+                } catch {
+                    // We end up here if there was an error encoding the handler's response
+                    try vaporResponse.content.encode(
+                        Response(status: .internalError, encodedData: try error.localizedDescription.encodeToJSON()),
+                        using: JSONEncoder()
+                    )
+                    return vaporResponse
+                }
+                try vaporResponse.content.encode(
+                    Response(status: .success, encodedData: encodedHandlerResponse),
+                    using: JSONEncoder()
+                )
+            } catch {
+                vaporResponse.status = .internalServerError
+            }
+            return vaporResponse
+        }
+        .flatMapErrorThrowing { (handlerError: Error) -> Vapor.Response in
+            // We end up here if the handler threw an error
+            let vaporResponse = Vapor.Response(status: .ok)
+            do {
+                try vaporResponse.content.encode(
+                    Response(status: .handlerError, encodedData: try JSONEncoder().encode(handlerError.localizedDescription)),
+                    using: JSONEncoder()
+                )
+            } catch {
+                vaporResponse.status = .internalServerError
+            }
+            return vaporResponse
         }
     }
 }
@@ -74,8 +97,18 @@ extension InternalInvocationResponder {
     }
     
     
+    enum ResponseStatus: String, Codable {
+        // The handler returned without throwing an error
+        case success
+        // The handler threw an error
+        case handlerError
+        // The handler returned w/out an error, but there was an
+        // internal error when handling the handler's response
+        case internalError
+    }
+    
     struct Response: Codable {
-        let statusCode: NIOHTTP1.HTTPResponseStatus
-        let responseData: Data //H.Response.Content
+        let status: ResponseStatus
+        let encodedData: Data
     }
 }

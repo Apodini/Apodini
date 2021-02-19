@@ -103,6 +103,20 @@ extension RemoteHandlerInvocationManager {
     }
     
     
+    
+    struct RemoteInvocationResponseError: Swift.Error {
+        enum Context {
+            // The error was caused by the invoked handler
+            case handlerError
+            // The invoked handler ran without errors,
+            // but there was an error encoding the handler's response
+            case internalError
+        }
+        let context: Context
+        let recordedErrorMessage: String
+    }
+    
+    
     private func _invoke<H: InvocableHandler>(
         handlerType: H.Type,
         handlerId: H.HandlerIdentifier,
@@ -182,9 +196,19 @@ extension RemoteHandlerInvocationManager {
                             try clientReq.content.encode(input, using: JSONEncoder())
                         }
                     )
-                    .flatMapThrowing { (response: ClientResponse) -> H.Response.Content in
-                        let responseData: Data = try response.content.decode(InternalInvocationResponder<H>.Response.self).responseData
-                        return try JSONDecoder().decode(H.Response.Content.self, from: responseData)
+                    .flatMapThrowing { (clientResponse: ClientResponse) -> H.Response.Content in
+                        let handlerResponse = try clientResponse.content.decode(InternalInvocationResponder<H>.Response.self)
+                        switch handlerResponse.status {
+                        case .success:
+                            return try JSONDecoder().decode(H.Response.Content.self, from: handlerResponse.encodedData)
+                        case .handlerError, .internalError:
+                            throw RemoteInvocationResponseError(
+                                context: handlerResponse.status == .handlerError ? .handlerError : .internalError,
+                                recordedErrorMessage: try JSONDecoder().decode(String.self, from: handlerResponse.encodedData)
+                            )
+                        }
+                        //let responseData: Data = try response.content.decode(InternalInvocationResponder<H>.Response.self).responseData
+                        //return try JSONDecoder().decode(H.Response.Content.self, from: responseData)
                     }
                 }
             } catch {

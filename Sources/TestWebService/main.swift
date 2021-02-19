@@ -22,10 +22,11 @@ struct RandomNumberGenerator: InvocableHandler, HandlerWithDeploymentOptions {
     @Parameter var lowerBound: Int = 0
     @Parameter var upperBound: Int = .max
     
-    func handle() -> Int {
+    func handle() throws -> Int {
         print("\(Self.self) invoked at pid \(getpid())")
         guard lowerBound <= upperBound else {
-            return 0 // TODO have this throw an error, and test how the RHI API would deal w/ that
+            //return 0 // TODO have this throw an error, and test how the RHI API would deal w/ that
+            throw NSError(domain: "xxx", code: 123, userInfo: [NSLocalizedDescriptionKey: "localdesc"])
         }
         return Int.random(in: lowerBound...upperBound)
     }
@@ -56,7 +57,7 @@ struct Greeter: Handler {
             identifiedBy: .main,
             parameters: [
                 .init(\.$lowerBound, age),
-                .init(\.$upperBound, age * 2)
+                .init(\.$upperBound, -age * 2)
             ]
         )
         .map { randomNumber -> String in
