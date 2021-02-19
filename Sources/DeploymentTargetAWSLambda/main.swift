@@ -17,17 +17,11 @@ import OpenAPIKit
 
 
 
-// TODO
-// - aws ressource mgmt
-
-
-
 internal func makeError(code: Int = 0, _ message: String) -> Swift.Error {
     NSError(domain: "LambdaDeploy", code: code, userInfo: [
         NSLocalizedDescriptionKey: message
     ])
 }
-
 
 
 private func _findExecutable(_ name: String) throws -> URL {
@@ -41,9 +35,6 @@ let dockerBin = try _findExecutable("docker")
 let zipBin = try _findExecutable("zip")
 
 let logger = Logger(label: "de.lukaskollmer.ApodiniLambda")
-
-
-
 
 
 struct LambdaDeploymentProviderCLI: ParsableCommand {

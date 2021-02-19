@@ -58,7 +58,7 @@ extension FileManager {
     /// Read file permissions
     public func lk_posixPermissions(ofItemAt url: URL) throws -> POSIXPermissions {
         if let value = try self.attributesOfItem(atPath: url.absoluteURL.path)[.posixPermissions] as? NSNumber {
-            return POSIXPermissions(numericCast(value.uintValue))
+            return POSIXPermissions(rawValue: numericCast(value.uintValue))
         } else {
             throw NSError(domain: "ApodiniDeploy", code: 0, userInfo: [
                 NSLocalizedDescriptionKey: "Unable to read permissions for file at '\(url.absoluteURL.path)'"

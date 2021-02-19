@@ -13,6 +13,13 @@ import Vapor
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
+struct ApodiniDeployRuntimeSupportError: Swift.Error {
+    let message: String
+}
+
+
+
+
 public struct HandlerInvocation<Handler: InvocableHandler> {
     public let handlerId: Handler.HandlerIdentifier
     public let targetNode: DeployedSystemStructure.Node
@@ -46,7 +53,7 @@ extension HandlerInvocation {
         public func encodeValue(using encoder: AnyEncoder) throws -> Data {
             switch AnyEncodableEncodeUsingEncoderATRVisitor(encoder: encoder)(value) {
             case nil:
-                throw NSError(domain: "wtf", code: 0, userInfo: nil) // TODO?
+                throw ApodiniDeployRuntimeSupportError(message: "Value is not encodable")
             case .success(let data):
                 return data
             case .failure(let error):
@@ -59,7 +66,7 @@ extension HandlerInvocation {
             let box = Box(content)
             switch AnyEncodableEncodeIntoVaporContentATRVisitor(boxedContentContainer: box, encoder: encoder)(value) {
             case .none:
-                throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Unable to ART-visit value"])
+                throw ApodiniDeployRuntimeSupportError(message: "Value is not encodable")
             case .some(.none):
                 // success
                 content = box.value

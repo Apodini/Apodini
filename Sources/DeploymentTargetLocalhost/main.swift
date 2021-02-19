@@ -99,8 +99,8 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                 if terminationInfo.exitCode == 4 && terminationInfo.reason == .uncaughtSignal {
                     // This seems to be the combination with which a fatalError terminates a program.
                     // If one of the children was terminated with a fatalError, we re-spawn it to keep the server running
-                    // TODO implement! (this is what triggers the compiler bug)
                     logger.warning("Restarting child for node '\(node.id)'")
+                    // TODO implement! (this is what triggers the compiler bug)
                     // try! task.launchAsync(taskTerminationHandler)
                 } else {
                     // If one of the children terminated, and it was not caused by a fatalError, we shut down the entire thing

@@ -54,7 +54,7 @@ extension DeploymentProvider {
 
 
 
-struct ApodiniDeploySupportError: Swift.Error { // TODO make this error type public? or even remove and/or replace it?
+struct ApodiniDeployBuildSupportError: Swift.Error {
     let message: String
 }
 
@@ -64,7 +64,7 @@ extension DeploymentProvider {
         if let swiftBin = Task.findExecutable(named: "swift") {
             return swiftBin
         } else {
-            throw ApodiniDeploySupportError(message: "unable to find swift compiler executable in search paths")
+            throw ApodiniDeployBuildSupportError(message: "unable to find swift compiler executable in search paths")
         }
     }
     
@@ -83,14 +83,16 @@ extension DeploymentProvider {
             launchInCurrentProcessGroup: true
         )
         guard try task.launchSync().exitCode == EXIT_SUCCESS else {
-            throw ApodiniDeploySupportError(message: "Unable to build web service")
+            throw ApodiniDeployBuildSupportError(message: "Unable to build web service")
         }
         let executableUrl = packageRootDir
             .appendingPathComponent(".build", isDirectory: true)
             .appendingPathComponent("debug", isDirectory: true)
             .appendingPathComponent(productName, isDirectory: false)
         guard FileManager.default.fileExists(atPath: executableUrl.path) else {
-            throw ApodiniDeploySupportError(message: "Unable to locate compiled executable at expected location '\(executableUrl.path)'")
+            throw ApodiniDeployBuildSupportError(
+                message: "Unable to locate compiled executable at expected location '\(executableUrl.path)'"
+            )
         }
         return executableUrl
     }
@@ -106,17 +108,17 @@ extension DeploymentProvider {
         logger.trace("\(packageRootDir)")
         
         guard FM.lk_directoryExists(atUrl: packageRootDir) else {
-            throw ApodiniDeploySupportError(message: "unable to find input directory")
+            throw ApodiniDeployBuildSupportError(message: "unable to find input directory")
         }
         
         let packageSwiftFileUrl = packageRootDir.appendingPathComponent("Package.swift")
         guard FM.fileExists(atPath: packageSwiftFileUrl.path) else {
-            throw ApodiniDeploySupportError(message: "unable to find Package.swift")
+            throw ApodiniDeployBuildSupportError(message: "unable to find Package.swift")
         }
         
         let modelFileUrl = FM.temporaryDirectory.appendingPathComponent("AM_\(UUID().uuidString).json")
         guard FM.createFile(atPath: modelFileUrl.path, contents: nil, attributes: nil) else {
-            throw ApodiniDeploySupportError(message: "Unable to create file")
+            throw ApodiniDeployBuildSupportError(message: "Unable to create file")
         }
         
         let exportWebServiceModelTask = Task(
@@ -133,7 +135,7 @@ extension DeploymentProvider {
         logger.notice("Invoking child process `\(exportWebServiceModelTask.taskStringRepresentation)`")
         let terminationInfo = try exportWebServiceModelTask.launchSync()
         guard terminationInfo.exitCode == EXIT_SUCCESS else {
-            throw ApodiniDeploySupportError(message: "Unable to generate model structure")
+            throw ApodiniDeployBuildSupportError(message: "Unable to generate model structure")
         }
         
         logger.notice("model written to '\(modelFileUrl)'")
@@ -169,7 +171,7 @@ extension DeploymentProvider {
                 endpointsByDeploymentGroup[matchingGroups[0]]!.insert(endpoint)
             default:
                 // the endpoint matched multiple deployment groups, which results in ambiguity, and therefore is forbidden
-                throw ApodiniDeploySupportError(
+                throw ApodiniDeployBuildSupportError(
                     message: "Endpoint with handlerId '\(endpoint.handlerId)' matches multiple deployment groups: \(matchingGroups.map({ "'\($0.id)'" }).joined(separator: ", "))"
                 )
             }
@@ -234,7 +236,7 @@ extension Sequence where Element == DeployedSystemStructure.Node {
         for node in self {
             for endpoint in node.exportedEndpoints {
                 guard exportedHandlerIds.insert(endpoint.handlerId).inserted else {
-                    throw ApodiniDeploySupportError(
+                    throw ApodiniDeployBuildSupportError(
                         message: "Handler with id '\(endpoint.handlerId)' appears in multiple deployment groups, which is illegal."
                     )
                 }
@@ -253,7 +255,7 @@ extension Sequence where Element == DeployedSystemStructure.Node {
             // Since the set of exported handler ids is a subset of the set of all handler ids,
             // this difference is the set of all handlers which aren't exported by a node
             let diff = expectedHandlerIds.symmetricDifference(exportedHandlerIds)
-            throw ApodiniDeploySupportError(
+            throw ApodiniDeployBuildSupportError(
                 message: "Handler ids\(diff.map({ "'\($0.rawValue)'" }).joined(separator: ", "))"
             )
         }

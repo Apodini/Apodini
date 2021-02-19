@@ -8,7 +8,9 @@
 import Foundation
 import Apodini
 import ApodiniUtils
-@testable import ApodiniOpenAPI // TODO get rid of the @testable
+// getting rid of the @testable here would require making the StorageKey (as well as its Value) public,
+// which would imply making most of the OpenAPIExporter public (which we'd ideally prefer to avoid)
+@testable import ApodiniOpenAPI
 import ApodiniDeployBuildSupport
 @_implementationOnly import Vapor
 import OpenAPIKit
@@ -17,7 +19,7 @@ import OpenAPIKit
 extension ApodiniDeployInterfaceExporter {
     func exportWebServiceStructure(to outputUrl: URL, deploymentConfig: DeploymentConfig) throws {
         guard let openApiDocument = app.storage.get(OpenAPIStorageKey.self)?.document else {
-            throw makeApodiniError("Unable to get OpenAPI document")
+            throw ApodiniDeployError(message: "Unable to get OpenAPI document")
         }
         let webServiceStructure = WebServiceStructure(
             endpoints: Set(collectedEndpoints.map { endpointInfo -> ExportedEndpoint in

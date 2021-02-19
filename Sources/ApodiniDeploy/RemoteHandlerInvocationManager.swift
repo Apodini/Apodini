@@ -14,12 +14,12 @@ import ApodiniVaporSupport
 @_implementationOnly import Vapor
 
 
-/// A stand-in helper function to create `Swift.Error`-conforming objects without having to define a custom error type
-internal func makeApodiniError(code: Int = 0, _ message: String) -> Swift.Error {
-    NSError(domain: "Apodini", code: code, userInfo: [
-        NSLocalizedDescriptionKey: message
-    ])
-}
+///// A stand-in helper function to create `Swift.Error`-conforming objects without having to define a custom error type
+//internal func makeApodiniError(code: Int = 0, _ message: String) -> Swift.Error {
+//    NSError(domain: "Apodini", code: code, userInfo: [
+//        NSLocalizedDescriptionKey: message
+//    ])
+//}
 
 
 
@@ -109,11 +109,11 @@ extension RemoteHandlerInvocationManager {
         collectedInputParams: [CollectedParameter<H>]
     ) -> EventLoopFuture<H.Response.Content> {
         guard let RHIIE = self.app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self) else {
-            return eventLoop.makeFailedFuture(makeApodiniError("unable to get \(ApodiniDeployInterfaceExporter.self) object"))
+            return eventLoop.makeFailedFuture(ApodiniDeployError(message: "unable to get \(ApodiniDeployInterfaceExporter.self) object"))
         }
         
         guard let targetEndpoint: Endpoint<H> = RHIIE.getEndpoint(withIdentifier: handlerId, ofType: H.self) else {
-            return eventLoop.makeFailedFuture(makeApodiniError("Unable to find target endpoint. (handlerId: '\(handlerId)', handlerType: '\(H.self)')"))
+            return eventLoop.makeFailedFuture(ApodiniDeployError(message: "Unable to find target endpoint. (handlerId: '\(handlerId)', handlerType: '\(H.self)')"))
         }
         
         switch dispatchStrategy(forInvocationOf: targetEndpoint, RHIIE: RHIIE) {
@@ -121,7 +121,7 @@ extension RemoteHandlerInvocationManager {
             return targetEndpoint._invoke(withCollectedParameters: collectedInputParams, RHIIE: RHIIE, on: eventLoop)
         case .remotely(let targetNode):
             guard let runtime = RHIIE.deploymentProviderRuntime else {
-                return eventLoop.makeFailedFuture(makeApodiniError("Unable to find runtime"))
+                return eventLoop.makeFailedFuture(ApodiniDeployError(message: "Unable to find runtime"))
             }
             // The targetEndpoint is on a different node, dispatch the invocation there
             
@@ -239,15 +239,15 @@ extension Endpoint {
         let responseFuture: EventLoopFuture<Apodini.Response<EnrichedContent>> = context.handle(request: request, eventLoop: eventLoop)
         return responseFuture.flatMapThrowing { (response: Apodini.Response<EnrichedContent>) -> H.Response.Content in
             guard response.connectionEffect == .close else {
-                throw makeApodiniError("Unexpected response value: \(response). Expected '.final'.")
+                throw ApodiniDeployError(message: "Unexpected response value: \(response). Expected '.final'.")
             }
             guard let content = response.content else {
-                throw makeApodiniError("Unable to get response content")
+                throw ApodiniDeployError(message: "Unable to get response content")
             }
             if let value = content.typed(H.Response.Content.self) {
                 return value
             } else {
-                throw makeApodiniError("Unable to convert response to expected type '\(H.Response.Content.self)'")
+                throw ApodiniDeployError(message: "Unable to convert response to expected type '\(H.Response.Content.self)'")
             }
         }
     }

@@ -36,20 +36,16 @@ public struct POSIXPermissions: RawRepresentable, ExpressibleByIntegerLiteral, E
     }
     
     
-    public init(_ value: mode_t) { // TODO make this optional and return nil if its not a valid permission value?
-        self.rawValue = value
+    public init(rawValue: mode_t) {
+        self.rawValue = rawValue
     }
     
-    public init(rawValue: mode_t) {
-        self = Self(rawValue)
+    public init(integerLiteral value: mode_t) {
+        self = Self(rawValue: value)
     }
     
     public init(stringLiteral value: StaticString) {
         self = Self("\(value)")!
-    }
-    
-    public init(integerLiteral value: mode_t) {
-        self = Self(value)
     }
     
     

@@ -32,7 +32,7 @@ extension AnyEndpointParameter {
 
 
 
-struct TmpErrorType: Swift.Error {
+struct ApodiniDeployError: Swift.Error {
     let message: String
 }
 
@@ -123,7 +123,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
         case WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig:
             let configUrl = URL(fileURLWithPath: args[2])
             guard let currentNodeId = ProcessInfo.processInfo.environment[WellKnownEnvironmentVariables.currentNodeId] else {
-                throw TmpErrorType(message: "Unable to find '\(WellKnownEnvironmentVariables.currentNodeId)' environment variable")
+                throw ApodiniDeployError(message: "Unable to find '\(WellKnownEnvironmentVariables.currentNodeId)' environment variable")
             }
             do {
                 let deployedSystem = try DeployedSystemStructure(decodingJSONAt: configUrl)
@@ -131,13 +131,15 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
                     let runtimes = self.app.storage.get(ApodiniDeployConfiguration.StorageKey.self)?.runtimes,
                     let DPRSType = runtimes.first(where: { $0.deploymentProviderId == deployedSystem.deploymentProviderId })
                 else {
-                    throw TmpErrorType(message: "Unable to find deployment runtime with id '\(deployedSystem.deploymentProviderId.rawValue)'")
+                    throw ApodiniDeployError(
+                        message: "Unable to find deployment runtime with id '\(deployedSystem.deploymentProviderId.rawValue)'"
+                    )
                 }
                 let runtimeSupport = try DPRSType.init(deployedSystem: deployedSystem, currentNodeId: currentNodeId)
                 self.deploymentProviderRuntime = runtimeSupport
                 try runtimeSupport.configure(app)
             } catch {
-                throw TmpErrorType(message: "Unable to launch with custom config: \(error)")
+                throw ApodiniDeployError(message: "Unable to launch with custom config: \(error)")
             }
             
         default:
@@ -175,7 +177,9 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
                 return try .some(.some(JSONDecoder().decode(Type.self, from: data)))
             }
         }
-        throw makeApodiniError("Unable to cast parameter value (\(paramValueContainer)) to expected type '\(Type.self)'")
+        throw ApodiniDeployError(
+            message: "Unable to cast parameter value (\(paramValueContainer)) to expected type '\(Type.self)'"
+        )
     }
 }
 

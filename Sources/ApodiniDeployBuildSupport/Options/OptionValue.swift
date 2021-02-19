@@ -126,7 +126,9 @@ public final class ResolvedOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
             if let typedValue = value as? Value {
                 return typedValue
             } else {
-                throw ApodiniDeploySupportError(message: "Unable to read value as '\(Value.self)'. (Actual type: '\(type(of: value))'.)")
+                throw ApodiniDeployBuildSupportError(
+                    message: "Unable to read value as '\(Value.self)'. (Actual type: '\(type(of: value))'.)"
+                )
             }
         case .encoded(let data):
             // The idea here is to "cache" the result of the decode operation,
