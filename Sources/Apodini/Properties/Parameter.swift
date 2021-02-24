@@ -38,6 +38,7 @@ public struct Parameter<Element: Codable>: Property {
         return element
     }
     
+    /// A `Binding` that reflects this `Parameter`.
     public var projectedValue: Binding<Element> {
         Binding.parameter(self)
     }
