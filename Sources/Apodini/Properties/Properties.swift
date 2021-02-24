@@ -16,19 +16,23 @@ import Foundation
 public struct Properties: Property {
     internal var elements: [String: Property]
     
+    internal var namingStrategy: ([String]) -> String? = Self.defaultNamingStrategy
+    
     /// Create a new `Properties` from the given `elements`
     /// - Complexity: O(1)
-    public init(wrappedValue elements: [String: Property]) {
+    public init(wrappedValue elements: [String: Property], namingStrategy: @escaping ([String]) -> String? = Self.defaultNamingStrategy) {
         self.elements = elements
+        self.namingStrategy = namingStrategy
     }
     
     /// Create a new `Properties` from the given `elements`
     /// - Complexity: O(n)
-    public init(_ elements: [(String, Property)]) {
+    public init(_ elements: [(String, Property)], namingStrategy: @escaping ([String]) -> String? = Self.defaultNamingStrategy) {
         self.elements = [:]
         for element in elements {
             self.elements[element.0] = element.1
         }
+        self.namingStrategy = namingStrategy
     }
     
     subscript<T>(dynamicMember name: String) -> T? {
@@ -38,6 +42,10 @@ public struct Properties: Property {
     /// The named elements managed by this object.
     public var wrappedValue: [String: Property] {
         self.elements
+    }
+    
+    public static var defaultNamingStrategy: ([String]) -> String? = { names in
+        names.last
     }
 }
 

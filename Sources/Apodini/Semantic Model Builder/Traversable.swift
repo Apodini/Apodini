@@ -169,14 +169,17 @@ public func subscribe<Target>(on target: Target, using callback: @escaping ((Any
 
 
 private protocol Traversable {
-    func execute<Target>(_ operation: (Target, _ name: String) throws -> Void) rethrows
+    func execute<Target>(_ operation: (Target, _ name: String) throws -> Void, using names: [String]) rethrows
     
-    mutating func apply<Target>(_ mutation: (inout Target, _ name: String) throws -> Void) rethrows
+    mutating func apply<Target>(_ mutation: (inout Target, _ name: String) throws -> Void, using names: [String]) rethrows
 }
 
-private func execute<Element, Target>(_ operation: (Target, _ name: String) throws -> Void, on element: Element) rethrows {
+private func execute<Element, Target>(
+    _ operation: (Target, _ name: String) throws -> Void,
+    on element: Element,
+    using names: [String] = []) rethrows {
     if let traversable = element as? Traversable {
-        try traversable.execute(operation)
+        try traversable.execute(operation, using: names)
         return
     }
     
@@ -197,11 +200,11 @@ private func execute<Element, Target>(_ operation: (Target, _ name: String) thro
         case let dynamicProperty as DynamicProperty:
             assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
 
-            try dynamicProperty.execute(operation)
+            try dynamicProperty.execute(operation, using: names + [property.name])
         case let traversables as Traversable:
             assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "Traversable \(property.name) on element \(info.name) must be a struct")
         
-            try traversables.execute(operation)
+            try traversables.execute(operation, using: names + [property.name])
         default:
             break
         }
@@ -212,12 +215,17 @@ private func execute<Element, Target>(_ operation: (Target, _ name: String) thro
 private func execute<Element, Target>(_ operation: (Target) throws -> Void, on element: Element) rethrows {
     try execute({(target: Target, _: String) in
         try operation(target)
-    }, on: element)
+    },
+    on: element,
+    using: [])
 }
 
-private func apply<Element, Target>(_ mutation: (inout Target, _ name: String) throws -> Void, to element: inout Element) rethrows {
+private func apply<Element, Target>(
+    _ mutation: (inout Target, _ name: String) throws -> Void,
+    to element: inout Element,
+    using names: [String] = []) rethrows {
     if var traversable = element as? Traversable {
-        try traversable.apply(mutation)
+        try traversable.apply(mutation, using: [])
         // swiftlint:disable:next force_cast
         element = traversable as! Element
         return
@@ -245,7 +253,7 @@ private func apply<Element, Target>(_ mutation: (inout Target, _ name: String) t
         case var dynamicProperty as DynamicProperty:
             assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
             
-            try dynamicProperty.apply(mutation)
+            try dynamicProperty.apply(mutation, using: names + [property.name])
             let elem = element
             property.unsafeSet(
                 value: dynamicProperty,
@@ -254,7 +262,7 @@ private func apply<Element, Target>(_ mutation: (inout Target, _ name: String) t
         case var traversable as Traversable:
             assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "Traversable \(property.name) on element \(info.name) must be a struct")
 
-            try traversable.apply(mutation)
+            try traversable.apply(mutation, using: names + [property.name])
             let elem = element
             property.unsafeSet(
                 value: traversable,
@@ -270,58 +278,60 @@ private func apply<Element, Target>(_ mutation: (inout Target, _ name: String) t
 private func apply<Element, Target>(_ mutation: (inout Target) throws -> Void, to element: inout Element) rethrows {
     try apply({(target: inout Target, _: String) in
         try mutation(&target)
-    }, to: &element)
+    },
+    to: &element,
+    using: [])
 }
 
 private extension DynamicProperty {
-    func execute<Target>(_ operation: (Target, _ name: String) throws -> Void) rethrows {
-        try Apodini.execute(operation, on: self)
+    func execute<Target>(_ operation: (Target, _ name: String) throws -> Void, using names: [String]) rethrows {
+        try Apodini.execute(operation, on: self, using: names)
     }
     
-    mutating func apply<Target>(_ mutation: (inout Target, _ name: String) throws -> Void) rethrows {
-        try Apodini.apply(mutation, to: &self)
+    mutating func apply<Target>(_ mutation: (inout Target, _ name: String) throws -> Void, using names: [String]) rethrows {
+        try Apodini.apply(mutation, to: &self, using: names)
     }
 }
 
 extension Properties: Traversable {
-    func execute<Target>(_ operation: (Target, _ name: String) throws -> Void) rethrows {
+    func execute<Target>(_ operation: (Target, _ name: String) throws -> Void, using names: [String]) rethrows {
         for (name, element) in self {
             switch element {
             case let target as Target:
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Properties must be a struct")
                 
-                try operation(target, name)
+                try operation(target, self.namingStrategy(names + [name]) ?? name)
             case let dynamicProperty as DynamicProperty:
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Properties must be a struct")
                 
-                try dynamicProperty.execute(operation)
+                try dynamicProperty.execute(operation, using: names + [name])
             case let traversable as Traversable:
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "Traversable \(name) on Properties must be a struct")
             
-                try traversable.execute(operation)
+                try traversable.execute(operation, using: names + [name])
             default:
                 break
             }
         }
     }
     
-    mutating func apply<Target>(_ mutation: (inout Target, _ name: String) throws -> Void) rethrows {
+    mutating func apply<Target>(_ mutation: (inout Target, _ name: String) throws -> Void, using names: [String]) rethrows {
         for (name, element) in self {
             switch element {
             case var target as Target:
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Properties must be a struct")
     
-                try mutation(&target, name)
+                try mutation(&target, self.namingStrategy(names + [name]) ?? name)
                 self.elements[name] = target as? Property
             case var dynamicProperty as DynamicProperty:
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Properties must be a struct")
                 
-                try dynamicProperty.apply(mutation)
+                try dynamicProperty.apply(mutation, using: names + [name])
                 self.elements[name] = dynamicProperty
             case var traversable as Traversable:
                 assert((Mirror(reflecting: element).displayStyle) == .struct, "Traversable \(name) on Properties must be a struct")
             
-                try traversable.apply(mutation)
+                try traversable.apply(mutation, using: names + [name])
                 self.elements[name] = traversable as? Property
             default:
                 break

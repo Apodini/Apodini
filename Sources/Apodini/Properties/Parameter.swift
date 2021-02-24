@@ -37,13 +37,17 @@ public struct Parameter<Element: Codable>: Property {
         
         return element
     }
-
+    
+    public var projectedValue: Binding<Element> {
+        Binding.parameter(self)
+    }
 
     private init(
         id: UUID = UUID(),
         name: String? = nil,
         defaultValue: (() -> Element)? = nil,
-        options: [Option] = []
+        options: [Option] = [],
+        checkOptionality: Bool = true
     ) {
         if let name = name {
             precondition(!name.isEmpty, "The name for Parameter cannot be empty!")
@@ -54,7 +58,7 @@ public struct Parameter<Element: Codable>: Property {
         self.name = name
         self.options = PropertyOptionSet(options)
 
-        if option(for: PropertyOptionKey.http) == .path {
+        if checkOptionality && option(for: PropertyOptionKey.http) == .path {
             precondition(!isOptional(Element.self), "A `PathParameter` cannot annotate a property with Optional type!")
         }
     }
@@ -114,7 +118,7 @@ public struct Parameter<Element: Codable>: Property {
             pathParameterOptions.append(.identifying(type))
         }
 
-        self.init(id: id, options: pathParameterOptions)
+        self.init(id: id, options: pathParameterOptions, checkOptionality: false)
     }
     
     

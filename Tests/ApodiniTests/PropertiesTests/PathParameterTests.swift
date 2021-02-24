@@ -39,6 +39,31 @@ final class PathParameterTests: ApodiniTests {
         }
     }
     
+    struct HelloWorld: Component {
+        @PathParameter
+        var country: String
+        
+        var content: some Component {
+            Greeter()
+            Group("country", $country) {
+                Greeter(country: _country.asOptional)
+            }
+        }
+    }
+    
+    struct Greeter: Handler {
+        @Parameter
+        var country: String?
+        
+        func handle() -> String {
+            "Hello, \(country ?? "World")!"
+        }
+    }
+    
+    func testOptionalParameter() throws {
+        _ = TestComponent()
+    }
+    
     
     func testPrintComponent() throws {
         let testComponent = TestComponent()
