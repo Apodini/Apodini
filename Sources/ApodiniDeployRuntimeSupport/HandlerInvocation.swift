@@ -22,10 +22,10 @@ struct ApodiniDeployRuntimeSupportError: Swift.Error {
 
 public struct HandlerInvocation<Handler: InvocableHandler> {
     public let handlerId: Handler.HandlerIdentifier
-    public let targetNode: DeployedSystemStructure.Node
+    public let targetNode: DeployedSystem.Node
     public let parameters: [Parameter]
     
-    public init(handlerId: Handler.HandlerIdentifier, targetNode: DeployedSystemStructure.Node, parameters: [Parameter]) {
+    public init(handlerId: Handler.HandlerIdentifier, targetNode: DeployedSystem.Node, parameters: [Parameter]) {
         self.handlerId = handlerId
         self.targetNode = targetNode
         self.parameters = parameters

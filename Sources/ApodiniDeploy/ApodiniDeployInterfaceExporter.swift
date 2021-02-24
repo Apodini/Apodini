@@ -17,15 +17,15 @@ import ApodiniDeployRuntimeSupport
 
 
 extension AnyEndpointParameter {
-    var lk_stableIdentity: String {
-        switch self.parameterType {
-        case .content:
-            return "c:\(self.name)"
-        case .lightweight:
-            return "l:\(self.name)"
-        case .path:
-            return "p:\(self.name)"
-        }
+    var stableIdentity: String {
+        let prefix: String = {
+            switch parameterType {
+            case .content: return "c"
+            case .lightweight: return "l"
+            case .path: return "p"
+            }
+        }()
+        return "\(prefix):\(name)"
     }
 }
 
@@ -54,6 +54,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     
     let app: Apodini.Application
+    var vaporApp: Vapor.Application { app.vapor.app }
     
     var collectedEndpoints: [CollectedEndpointInfo] = []
     var explicitlyCreatedDeploymentGroups: [DeploymentGroup.ID: Set<AnyHandlerIdentifier>] = [:]
@@ -82,10 +83,10 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
                 endpoint.context.get(valueFor: HandlerDeploymentOptionsSyntaxNodeContextKey.self)
             ].flatMap { $0.compactMap { $0.resolve(against: endpoint.handler) } })
         ))
-        app.vapor.app.add(Vapor.Route(
+        vaporApp.add(Vapor.Route(
             method: .POST,
             path: ["__apodini", "invoke", .constant(endpoint.identifier.rawValue)],
-            responder: InternalInvocationResponder(RHIIE: self, endpoint: endpoint),
+            responder: InternalInvocationResponder(internalInterfaceExporter: self, endpoint: endpoint),
             requestType: InternalInvocationResponder<H>.Request.self,
             responseType: InternalInvocationResponder<H>.Response.self
         ))
@@ -126,7 +127,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
                 throw ApodiniDeployError(message: "Unable to find '\(WellKnownEnvironmentVariables.currentNodeId)' environment variable")
             }
             do {
-                let deployedSystem = try DeployedSystemStructure(decodingJSONAt: configUrl)
+                let deployedSystem = try DeployedSystem(decodingJSONAt: configUrl)
                 guard
                     let runtimes = self.app.storage.get(ApodiniDeployConfiguration.StorageKey.self)?.runtimes,
                     let DPRSType = runtimes.first(where: { $0.deploymentProviderId == deployedSystem.deploymentProviderId })
@@ -199,7 +200,7 @@ extension ApodiniDeployInterfaceExporter {
             parameterValues = .init(uniqueKeysWithValues: collectedParameters.map { param -> (String, Param) in
                 let paramId = (endpoint.handler[keyPath: param.handlerKeyPath] as! AnyParameterID).value
                 let endpointParam = endpoint.parameters.first { $0.id == paramId }!
-                return (endpointParam.lk_stableIdentity, .value(param.value))
+                return (endpointParam.stableIdentity, .value(param.value))
             })
         }
         
@@ -210,7 +211,7 @@ extension ApodiniDeployInterfaceExporter {
         }
         
         func getValueOfCollectedParameter(for endpointParameter: AnyEndpointParameter) -> Param? {
-            parameterValues[endpointParameter.lk_stableIdentity]
+            parameterValues[endpointParameter.stableIdentity]
         }
     }
 }

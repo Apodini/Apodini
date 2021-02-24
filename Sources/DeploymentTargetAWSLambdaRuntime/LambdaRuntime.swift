@@ -17,11 +17,11 @@ import VaporAWSLambdaRuntime
 public class LambdaRuntime: DeploymentProviderRuntimeSupport {
     public static let deploymentProviderId = LambdaDeploymentProviderId
     
-    public let deployedSystem: DeployedSystemStructure
-    public let currentNodeId: DeployedSystemStructure.Node.ID
+    public let deployedSystem: DeployedSystem
+    public let currentNodeId: DeployedSystem.Node.ID
     private let lambdaDeploymentContext: LambdaDeployedSystemContext
     
-    public required init(deployedSystem: DeployedSystemStructure, currentNodeId: DeployedSystemStructure.Node.ID) throws {
+    public required init(deployedSystem: DeployedSystem, currentNodeId: DeployedSystem.Node.ID) throws {
         self.deployedSystem = deployedSystem
         self.currentNodeId = currentNodeId
         guard let lambdaDeploymentContext = deployedSystem.readUserInfo(as: LambdaDeployedSystemContext.self) else {

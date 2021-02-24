@@ -12,7 +12,7 @@ import ApodiniDeployBuildSupport
 public let LambdaDeploymentProviderId = DeploymentProviderID(rawValue: "de.lukaskollmer.ApodiniDeploymentProvider.AWSLambda")
 
 
-// the DeployedSystemStructure user info for lambda deployments
+// the DeployedSystem user info for lambda deployments
 public struct LambdaDeployedSystemContext: Codable {
     public let awsRegion: String
     public let apiGatewayApiId: String
@@ -29,20 +29,6 @@ extension LambdaDeployedSystemContext {
         "\(apiGatewayApiId).execute-api.\(awsRegion).amazonaws.com"
     }
 }
-//
-//
-//// The class used to identify lambda-specific deployment options
-//public final class LambdaHandlerOptionKey<Value: Codable>: DeploymentOptionKey<Value> {}
-//
-//
-//// All lambda-specific deployment options
-//public enum LambdaHandlerOption {
-//    /// The lambda function's memory size, in MB
-//    public static let memorySize = LambdaHandlerOptionKey<Int>(defaultValue: 128, key: "memory-size")
-//    /// The lambda function's timeout, in seconds
-//    public static let timeout = LambdaHandlerOptionKey<Int>(defaultValue: 3, key: "timeout")
-//}
-
 
 
 public final class LambdaDeploymentOptionsNamespace: InnerNamespace {

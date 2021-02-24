@@ -2,7 +2,7 @@
 import Foundation
 import NIO
 import Apodini
-import ApodiniDeployBuildSupport
+//import ApodiniDeployBuildSupport
 import DeploymentTargetLocalhostRuntimeSupport
 import DeploymentTargetAWSLambdaRuntime
 import ApodiniDeploy
@@ -92,10 +92,6 @@ struct WebService: Apodini.WebService {
                     .timeout(.seconds(12))
                 )
         }.formDeploymentGroup(withId: "greeter")
-//        Text("").operation(.create)
-//        Text("").operation(.read)
-//        Text("").operation(.delete)
-//        Text("").operation(.update)
         BlockHandler { fatalError() }
     }
     

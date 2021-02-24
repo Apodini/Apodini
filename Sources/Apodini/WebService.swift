@@ -34,8 +34,6 @@ extension WebService {
 
         main(app: app)
         
-        //return app;
-
         guard waitForCompletion else {
             try app.boot()
             return app

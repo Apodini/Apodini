@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  DeployedSystem.swift
 //  
 //
 //  Created by Lukas Kollmer on 2021-01-01.
@@ -9,18 +9,12 @@ import Foundation
 import Apodini
 
 
-// TODO rename file
-
-
-
-
-
 /// The structure of a deployed system.
 /// A deployed system is a distributed system consisting of one or more nodes.
 /// Each node implements one or more of the deployed `WebService`'s endpoints.
 /// - Note: There may be more than one instances of a node running at a given time,
 ///   for example when deploying to a platform which supports scaling.
-public struct DeployedSystemStructure: Codable { // TODO or just `DeployedSystem`?
+public struct DeployedSystem: Codable {
     /// Identifier of the deployment provider used to create the deployment
     public let deploymentProviderId: DeploymentProviderID
     
@@ -44,30 +38,13 @@ public struct DeployedSystemStructure: Codable { // TODO or just `DeployedSystem
     }
     
     
-//    public init(contentsOf url: URL, options: Data.ReadingOptions = []) throws {
-//        let data = try Data(contentsOf: url, options: options)
-//        self = try JSONDecoder().decode(Self.self, from: data)
-//        try nodes.assertHandlersLimitedToSingleNode()
-//    }
-//
-//
-//    public func writeTo(url: URL, options: Data.WritingOptions = []) throws {
-//        let encoder = JSONEncoder()
-//        #if DEBUG
-//        encoder.outputFormatting.insert(.prettyPrinted)
-//        #endif
-//        let data = try encoder.encode(self)
-//        try data.write(to: url, options: options)
-//    }
-    
-    
     public func readUserInfo<T: Decodable>(as _: T.Type) -> T? {
         try? T(decodingJSON: userInfo)
     }
 }
 
 
-extension DeployedSystemStructure {
+extension DeployedSystem {
     public func node(withId nodeId: Node.ID) -> Node? {
         nodes.first { $0.id == nodeId }
     }
@@ -78,10 +55,7 @@ extension DeployedSystemStructure {
 }
 
 
-
-
-
-extension DeployedSystemStructure {
+extension DeployedSystem {
     /// A node within the deployed system
     public struct Node: Codable, Identifiable, Hashable, Equatable {
         /// ID of this node
@@ -128,11 +102,5 @@ extension DeployedSystemStructure {
         public func combinedEndpointDeploymentOptions() -> DeploymentOptions {
             DeploymentOptions(exportedEndpoints.map(\.deploymentOptions).flatMap(\.options))
         }
-        
-        
-        //public func withUserInfo(_ userInfo: _OptionalNilComparisonType) -> Self {
-            // ?? We can afford the try! here because we're passing nil, meaning that it'll never encode anything, meaning it won't crash ??
-            //return try! Node(id: self.id, exportedEndpoints: self.exportedEndpoints, userInfo: nil, userInfoType: Null.self)
-        //}
     }
 }

@@ -161,7 +161,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     }
     
     
-    private var tmpDirName: String { "lk_tmp" }
+    private var tmpDirName: String { "ApodiniDeployTmp" }
     
     private var tmpDirUrl: URL {
         buildFolderUrl.appendingPathComponent(tmpDirName, isDirectory: true)
@@ -180,10 +180,10 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             logger.notice("Running with the --aws-deploy-only flag. Will skip compilation and try to re-use previous files")
         }
         logger.notice("initialising FileManager")
-        try FM.lk_initialize()
+        try FM.initialize()
         
         logger.notice("setting working directory to package root dir: \(packageRootDir)")
-        try FM.lk_setWorkingDirectory(to: packageRootDir)
+        try FM.setWorkingDirectory(to: packageRootDir)
         
         logger.notice("creating directory at \(tmpDirUrl)")
         try FM.createDirectory(at: tmpDirUrl, withIntermediateDirectories: true, attributes: nil)
@@ -222,7 +222,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             awsApiGatewayApiId = try awsIntegration.createApiGateway(protocolType: .http)
         }
         
-        let deploymentStructure = try DeployedSystemStructure(
+        let deploymentStructure = try DeployedSystem(
             deploymentProviderId: Self.identifier,
             //currentInstanceNodeId: "", // we can safely set an invalid id here, because the
             nodes: nodes,
@@ -318,17 +318,17 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         // path of the shared object files script, relative to the docker container's root.
         let collectSharedObjectFilesScriptUrl = tmpDirUrl.appendingPathComponent("collect-shared-object-files.sh", isDirectory: false)
         try collectSharedObjectFilesScriptContents.write(to: collectSharedObjectFilesScriptUrl, atomically: true, encoding: .utf8)
-        try FM.lk_setPosixPermissions("rwxr--r--", forItemAt: collectSharedObjectFilesScriptUrl)
+        try FM.setPosixPermissions("rwxr--r--", forItemAt: collectSharedObjectFilesScriptUrl)
         try runInDocker(
             imageName: dockerImageName,
             bashCommand:
-                "swift build --product \(productName) && .build/lk_tmp/collect-shared-object-files.sh .build/debug/\(productName) .build/lambda/\(productName)/"
+                "swift build --product \(productName) && .build/\(tmpDirName)/collect-shared-object-files.sh .build/debug/\(productName) .build/lambda/\(productName)/"
         )
         let outputUrl = buildFolderUrl
             .appendingPathComponent("debug", isDirectory: true)
             .appendingPathComponent(productName, isDirectory: false)
         let dstExecutableUrl = tmpDirUrl.appendingPathComponent("lambda.out", isDirectory: false)
-        try FM.lk_copyItem(at: outputUrl, to: dstExecutableUrl)
+        try FM.copyItem(at: outputUrl, to: dstExecutableUrl, overwriteExisting: true)
         return dstExecutableUrl
     }
 }

@@ -67,7 +67,7 @@ public protocol InterfaceExporter: BaseInterfaceExporter {
     /// must return `nil`. Checking for required parameters is done automatically.
     ///
     /// If the content type of the `ExporterRequest` supports "explicit nil", like JSON does with `null`,
-    /// you can signal that using `Type?(nil)` (or using `Optional.null` as abbreviation).
+    /// you can signal that using `Type?(nil)`..
     ///
     /// - Parameters:
     ///   - parameter: The `EndpointParameter` describing the parameter for which the value should be retrieved.

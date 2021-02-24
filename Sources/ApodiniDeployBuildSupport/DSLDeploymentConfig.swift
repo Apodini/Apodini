@@ -11,18 +11,6 @@ import Runtime
 import Apodini
 
 
-
-extension NSError {
-    public static func apodiniDeploy(code: Int = 0, localizedDescription: String) -> NSError {
-        return NSError(domain: "ApodiniDeploy", code: code, userInfo: [
-            NSLocalizedDescriptionKey: localizedDescription
-        ])
-    }
-}
-
-
-
-
 public struct HandlerTypeIdentifier: Codable, Hashable, Equatable {
     private let rawValue: String
     
@@ -48,8 +36,6 @@ public struct HandlerTypeIdentifier: Codable, Hashable, Equatable {
         HandlerTypeIdentifier(lhs) == rhs
     }
 }
-
-
 
 
 

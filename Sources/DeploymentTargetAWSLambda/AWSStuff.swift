@@ -97,7 +97,7 @@ class AWSDeploymentStuff { // needs a better name
     /// - parameter s3BucketName: name of the S3 bucket the function should be uploaded to
     /// - parameter s3ObjectFolderKey: key (ie path) of the folder into which the function should be uploaded
     func deployToLambda(
-        deploymentStructure: DeployedSystemStructure,
+        deploymentStructure: DeployedSystem,
         openApiDocument: OpenAPI.Document,
         lambdaExecutableUrl: URL,
         lambdaSharedObjectFilesUrl: URL,
@@ -150,7 +150,7 @@ class AWSDeploymentStuff { // needs a better name
         do {
             logger.notice("Creating lambda package")
             let lambdaPackageTmpDir = tmpDirUrl.appendingPathComponent("lambda-package", isDirectory: true)
-            if FM.lk_directoryExists(atUrl: lambdaPackageTmpDir) {
+            if FM.directoryExists(atUrl: lambdaPackageTmpDir) {
                 try FM.removeItem(at: lambdaPackageTmpDir)
             }
             try FM.createDirectory(at: lambdaPackageTmpDir, withIntermediateDirectories: true, attributes: nil)
@@ -158,7 +158,8 @@ class AWSDeploymentStuff { // needs a better name
             let addToLambdaPackage = { [unowned self] (url: URL) throws -> Void in
                 try FM.copyItem(
                     at: url,
-                    to: lambdaPackageTmpDir.appendingPathComponent(url.lastPathComponent, isDirectory: false)
+                    to: lambdaPackageTmpDir.appendingPathComponent(url.lastPathComponent, isDirectory: false),
+                    overwriteExisting: true
                 )
             }
             
@@ -170,7 +171,7 @@ class AWSDeploymentStuff { // needs a better name
             
             let launchInfoFileUrl = lambdaPackageTmpDir.appendingPathComponent("launchInfo.json", isDirectory: false)
             try deploymentStructure.writeJSON(to: launchInfoFileUrl)
-            try FM.lk_setPosixPermissions("rw-r--r--", forItemAt: launchInfoFileUrl)
+            try FM.setPosixPermissions("rw-r--r--", forItemAt: launchInfoFileUrl)
             
             do {
                 // create & add bootstrap file
@@ -180,7 +181,7 @@ class AWSDeploymentStuff { // needs a better name
                 """
                 let bootstrapFileUrl = lambdaPackageTmpDir.appendingPathComponent("bootstrap", isDirectory: false)
                 try bootstrapFileContents.write(to: bootstrapFileUrl, atomically: true, encoding: .utf8)
-                try FM.lk_setPosixPermissions("rwxrwxr-x", forItemAt: bootstrapFileUrl)
+                try FM.setPosixPermissions("rwxrwxr-x", forItemAt: bootstrapFileUrl)
             }
             
             logger.notice("zipping lambda package")
@@ -224,7 +225,7 @@ class AWSDeploymentStuff { // needs a better name
         // Create new functions
         //
         
-        var nodeToLambdaFunctionMapping: [DeployedSystemStructure.Node.ID: Lambda.FunctionConfiguration] = [:]
+        var nodeToLambdaFunctionMapping: [DeployedSystem.Node.ID: Lambda.FunctionConfiguration] = [:]
         
         logger.notice("Creating lambda functions for nodes in the web service deployment structure (#nodes: \(deploymentStructure.nodes.count))")
         for node in deploymentStructure.nodes {
@@ -388,7 +389,7 @@ class AWSDeploymentStuff { // needs a better name
     /// Otherwise a new function will be created.
     /// - returns: the deployed-to function
     private func configureLambdaFunction(
-        forNode node: DeployedSystemStructure.Node,
+        forNode node: DeployedSystem.Node,
         allFunctions: [Lambda.FunctionConfiguration],
         s3BucketName: String,
         s3ObjectKey: String,
@@ -399,7 +400,7 @@ class AWSDeploymentStuff { // needs a better name
         let allowedCharacters = "abcdefghijklmnopqsrtuvwxyzABCDEFGHIJKLMNOPQSRTUVWXYZ0123456789-_"
         let lambdaName = "\(Self.lambdaFunctionNamePrefix)-\(apiGatewayApiId)-\(String(node.id.map { allowedCharacters.contains($0) ? $0 : "-" }))"
         
-        guard !deployedLambdaFunctions.insert(lambdaName).inserted else {
+        guard deployedLambdaFunctions.insert(lambdaName).inserted else {
             fatalError("Encountered multiple lambda functions with same name '\(lambdaName)'. This can happen if two handler or deployment group identifiers are very similar and one of them contains invalid caracters, causing the sanitised name to match the other one. ")
         }
         

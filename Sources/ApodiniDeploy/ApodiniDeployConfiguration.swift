@@ -31,11 +31,6 @@ public struct ApodiniDeployConfiguration: Apodini.Configuration {
 }
 
 
-
-
-// MARK: Pt 2
-
-
 extension DeploymentGroup {
     /// Creates a single deployment group containing all handlers of type `H`.
     public static func allHandlers<H: Handler>(ofType _: H.Type, groupId: DeploymentGroup.ID? = nil) -> DeploymentGroup {
@@ -58,7 +53,6 @@ struct DSLSpecifiedDeploymentGroupIdContextKey: OptionalContextKey {
 }
 
 
-
 public struct DeploymentGroupModifier<Content: Component>: Modifier, SyntaxTreeVisitable {
     public let component: Content
     let groupId: DeploymentGroup.ID
@@ -70,7 +64,6 @@ public struct DeploymentGroupModifier<Content: Component>: Modifier, SyntaxTreeV
         component.accept(visitor)
     }
 }
-
 
 
 extension Group {

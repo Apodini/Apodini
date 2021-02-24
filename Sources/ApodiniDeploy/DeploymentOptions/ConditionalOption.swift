@@ -10,7 +10,6 @@ import Apodini
 import ApodiniDeployBuildSupport
 
 
-
 extension AnyOption {
     func resolve<H: Handler>(against handler: H) -> ResolvedOption<OuterNS>? {
         if let resolvedOption = self as? ResolvedOption {
@@ -22,7 +21,6 @@ extension AnyOption {
         }
     }
 }
-
 
 
 final class ConditionalOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
@@ -63,4 +61,3 @@ final class ConditionalOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
         condition.test(on: handler) ? underlyingOption : nil
     }
 }
-

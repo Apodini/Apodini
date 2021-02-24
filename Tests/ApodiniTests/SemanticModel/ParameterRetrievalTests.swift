@@ -15,7 +15,7 @@ class ParameterRetrievalTests: ApodiniTests {
         @Parameter
         var separator: String = " " // no value (nil) is supplied => defaultValue is used
         @Parameter
-        var prefix: String? = "Standard Prefix" // "explicit nil" (.null) is supplied => defaultValue is overwritten
+        var prefix: String? = "Standard Prefix" // "explicit nil" is supplied => defaultValue is overwritten
 
 
         func handle() -> String {

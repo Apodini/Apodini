@@ -79,16 +79,6 @@ public final class ResolvedOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
         self.valueStorage = .encoded(try container.decode(Data.self, forKey: .encodedValue))
         self.reduceOptionsImp = { otherOption in
             fatalError("Cannot reduce this option because it was created using the 'init(Decoder)' initializer. Only \(Self.self) objects created using the 'init(key:, value:)' initializer can be reduced. (self.key: \(key), other.key: \(otherOption.key))")
-//            precondition(optionA.key == key)
-//            precondition(optionB.key == optionB.key)
-//            print("fuck")
-//            //ßreturn type(of: optionA.key).reduceOption(optionA, with: optionB)
-//            //print("keys", AnyOptionKey.allKeys)
-//            //guard let matchingKey = AnyOptionKey.allKeys.first(where: { $0 == optionA.key }) else {
-//                Thread.callStackSymbols.forEach { print($0) }
-//                fatalError("Cannot reduce this option because it was created using the 'init(Decoder)' initializer. Only \(Self.self) objects created using the 'init(key:, value:)' initializer can be reduced. (self.key: \(optionA.key), other.key: \(optionB.key))")
-//            }
-//            return type(of: matchingKey).reduceOption(optionA, with: optionB)
         }
         super.init(key: key)
     }

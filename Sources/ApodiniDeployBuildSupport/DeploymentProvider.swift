@@ -73,7 +73,7 @@ extension DeploymentProvider {
     /// - Returns: the url of the built executable
     public func buildWebService() throws -> URL {
         let FM = FileManager.default
-        try FM.lk_setWorkingDirectory(to: packageRootDir)
+        try FM.setWorkingDirectory(to: packageRootDir)
         
         let swiftBin = try getSwiftBinUrl()
         let task = Task(
@@ -103,11 +103,11 @@ extension DeploymentProvider {
         let logger = Logger(label: "ApodiniDeployCLI.Localhost")
         
         let swiftBin = try getSwiftBinUrl()
-        try FM.lk_setWorkingDirectory(to: packageRootDir)
+        try FM.setWorkingDirectory(to: packageRootDir)
         
         logger.trace("\(packageRootDir)")
         
-        guard FM.lk_directoryExists(atUrl: packageRootDir) else {
+        guard FM.directoryExists(atUrl: packageRootDir) else {
             throw ApodiniDeployBuildSupportError(message: "unable to find input directory")
         }
         
@@ -150,7 +150,7 @@ extension DeploymentProvider {
     public func computeDefaultDeployedSystemNodes(
         from wsStructure: WebServiceStructure,
         nodeIdProvider: (Set<ExportedEndpoint>) -> String = { _ in UUID().uuidString }
-    ) throws -> Set<DeployedSystemStructure.Node> {
+    ) throws -> Set<DeployedSystem.Node> {
         // a mapping from all user-defined deployment groups, to the set of
         var endpointsByDeploymentGroup = Dictionary<DeploymentGroup, Set<ExportedEndpoint>>(
             uniqueKeysWithValues: wsStructure.deploymentConfig.deploymentGroups.groups.map { ($0, []) }
@@ -179,11 +179,11 @@ extension DeploymentProvider {
         
         
         // The nodes w/in the deployed system
-        var nodes: Set<DeployedSystemStructure.Node> = []
+        var nodes: Set<DeployedSystem.Node> = []
         
         // one node per deployment group
         nodes += try endpointsByDeploymentGroup.map { deploymentGroup, endpoints in
-            try DeployedSystemStructure.Node(
+            try DeployedSystem.Node(
                 id: deploymentGroup.id,
                 exportedEndpoints: endpoints,
                 userInfo: nil, // TODO experiment w/ Null() what does the json look like? why does it (?sometimes?) seem to use an empty object instead of the null literal?
@@ -194,7 +194,7 @@ extension DeploymentProvider {
         switch wsStructure.deploymentConfig.deploymentGroups.defaultGrouping {
         case .separateNodes:
             nodes += try remainingEndpoints.map { endpoint in
-                try DeployedSystemStructure.Node(
+                try DeployedSystem.Node(
                     id: nodeIdProvider([endpoint]),
                     exportedEndpoints: [endpoint],
                     userInfo: nil,
@@ -202,7 +202,7 @@ extension DeploymentProvider {
                 )
             }
         case .singleNode:
-            nodes.insert(try DeployedSystemStructure.Node(
+            nodes.insert(try DeployedSystem.Node(
                 id: nodeIdProvider(remainingEndpoints),
                 exportedEndpoints: remainingEndpoints,
                 userInfo: nil,
@@ -228,7 +228,7 @@ extension DeploymentGroup {
 
 
 
-extension Sequence where Element == DeployedSystemStructure.Node {
+extension Sequence where Element == DeployedSystem.Node {
     // check that, in the sequence of nodes, every handler appears in only one node
     func assertHandlersLimitedToSingleNode() throws {
         var exportedHandlerIds = Set<AnyHandlerIdentifier>()

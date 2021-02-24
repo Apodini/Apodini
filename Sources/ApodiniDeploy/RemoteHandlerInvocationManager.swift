@@ -14,16 +14,6 @@ import ApodiniVaporSupport
 @_implementationOnly import Vapor
 
 
-///// A stand-in helper function to create `Swift.Error`-conforming objects without having to define a custom error type
-//internal func makeApodiniError(code: Int = 0, _ message: String) -> Swift.Error {
-//    NSError(domain: "Apodini", code: code, userInfo: [
-//        NSLocalizedDescriptionKey: message
-//    ])
-//}
-
-
-
-
 /// Helper type which stores a parameter for a remote handler invocation.
 public struct CollectedParameter<HandlerType: Handler> {
     /// The (partially type-erased) key path into the handler, to the `Parameter<>.ID` object of the parameter this value references
@@ -43,8 +33,6 @@ public struct CollectedParameter<HandlerType: Handler> {
         self.value = value
     }
 }
-
-
 
 
 /// The `RemoteHandlerInvocationManager` implements the user-facing API for invoking handlers from within a handler.
@@ -122,19 +110,19 @@ extension RemoteHandlerInvocationManager {
         handlerId: H.HandlerIdentifier,
         collectedInputParams: [CollectedParameter<H>]
     ) -> EventLoopFuture<H.Response.Content> {
-        guard let RHIIE = self.app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self) else {
+        guard let internalInterfaceExporter = self.app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self) else {
             return eventLoop.makeFailedFuture(ApodiniDeployError(message: "unable to get \(ApodiniDeployInterfaceExporter.self) object"))
         }
         
-        guard let targetEndpoint: Endpoint<H> = RHIIE.getEndpoint(withIdentifier: handlerId, ofType: H.self) else {
+        guard let targetEndpoint: Endpoint<H> = internalInterfaceExporter.getEndpoint(withIdentifier: handlerId, ofType: H.self) else {
             return eventLoop.makeFailedFuture(ApodiniDeployError(message: "Unable to find target endpoint. (handlerId: '\(handlerId)', handlerType: '\(H.self)')"))
         }
         
-        switch dispatchStrategy(forInvocationOf: targetEndpoint, RHIIE: RHIIE) {
+        switch dispatchStrategy(forInvocationOf: targetEndpoint, internalInterfaceExporter: internalInterfaceExporter) {
         case .locally:
-            return targetEndpoint._invoke(withCollectedParameters: collectedInputParams, RHIIE: RHIIE, on: eventLoop)
+            return targetEndpoint._invoke(withCollectedParameters: collectedInputParams, internalInterfaceExporter: internalInterfaceExporter, on: eventLoop)
         case .remotely(let targetNode):
-            guard let runtime = RHIIE.deploymentProviderRuntime else {
+            guard let runtime = internalInterfaceExporter.deploymentProviderRuntime else {
                 return eventLoop.makeFailedFuture(ApodiniDeployError(message: "Unable to find runtime"))
             }
             // The targetEndpoint is on a different node, dispatch the invocation there
@@ -155,7 +143,7 @@ extension RemoteHandlerInvocationManager {
                     print("Endpoint parameter with id '\(endpointParam.id)' matched multiple times in remote handler invocation")
                 }
                 return HandlerInvocation<H>.Parameter(
-                    stableIdentity: endpointParam.lk_stableIdentity,
+                    stableIdentity: endpointParam.stableIdentity,
                     name: endpointParam.name,
                     value: collectedParam.value as! HandlerInvocation<H>.Parameter.Value
                 )
@@ -181,7 +169,7 @@ extension RemoteHandlerInvocationManager {
                         .appendingPathComponent("__apodini")
                         .appendingPathComponent("invoke")
                         .appendingPathComponent(targetEndpoint.identifier.rawValue)
-                    return RHIIE.app.vapor.app.client.post(
+                    return internalInterfaceExporter.vaporApp.client.post(
                         Vapor.URI(url: requestUrl),
                         headers: [:],
                         beforeSend: { (clientReq: inout Vapor.ClientRequest) in
@@ -220,12 +208,15 @@ extension RemoteHandlerInvocationManager {
     
     private enum DispatchStrategy {
         case locally
-        case remotely(DeployedSystemStructure.Node)
+        case remotely(DeployedSystem.Node)
     }
     
     
-    private func dispatchStrategy<IH: InvocableHandler>(forInvocationOf endpoint: Endpoint<IH>, RHIIE: ApodiniDeployInterfaceExporter) -> DispatchStrategy {
-        guard let runtime = RHIIE.deploymentProviderRuntime else {
+    private func dispatchStrategy<IH: InvocableHandler>(
+        forInvocationOf endpoint: Endpoint<IH>,
+        internalInterfaceExporter: ApodiniDeployInterfaceExporter
+    ) -> DispatchStrategy {
+        guard let runtime = internalInterfaceExporter.deploymentProviderRuntime else {
             // If there's no runtime registered, we wouldn't be able to dispatch the invocation anyway
             return .locally
         }
@@ -243,12 +234,12 @@ extension RemoteHandlerInvocationManager {
 extension Endpoint {
     func _invoke(
         withCollectedParameters parameters: [CollectedParameter<H>],
-        RHIIE: ApodiniDeployInterfaceExporter,
+        internalInterfaceExporter: ApodiniDeployInterfaceExporter,
         on eventLoop: EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
         _invoke(
             withRequest: ApodiniDeployInterfaceExporter.ExporterRequest(endpoint: self, collectedParameters: parameters),
-            RHIIE: RHIIE,
+            internalInterfaceExporter: internalInterfaceExporter,
             on: eventLoop
         )
     }
@@ -256,10 +247,10 @@ extension Endpoint {
     
     func _invoke(
         withRequest request: ApodiniDeployInterfaceExporter.ExporterRequest,
-        RHIIE: ApodiniDeployInterfaceExporter,
+        internalInterfaceExporter: ApodiniDeployInterfaceExporter,
         on eventLoop: EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
-        let context = self.createConnectionContext(for: RHIIE)
+        let context = self.createConnectionContext(for: internalInterfaceExporter)
         let responseFuture: EventLoopFuture<Apodini.Response<EnrichedContent>> = context.handle(request: request, eventLoop: eventLoop)
         return responseFuture.flatMapThrowing { (response: Apodini.Response<EnrichedContent>) -> H.Response.Content in
             guard response.connectionEffect == .close else {
@@ -295,14 +286,3 @@ extension Apodini.Application {
         RemoteHandlerInvocationManager(app: self)
     }
 }
-
-
-
-
-extension Handler where Self: WithEventLoop {
-    // TODO what about moving the `invoke` functions from the RemoteHandlerInvocationManager?
-    // There's really no point in having this type, since, essentially, all it does it store the app/eventLoop object
-//    public func invoke
-}
-
-

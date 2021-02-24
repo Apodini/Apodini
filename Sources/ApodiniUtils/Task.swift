@@ -109,7 +109,7 @@ public class Task {
         precondition(!isRunning)
         print("-[\(Self.self) \(#function)] \(taskStringRepresentation)")
         if launchInCurrentProcessGroup {
-            process.executableURL = LKGetCurrentExecutableUrl()
+            process.executableURL = ProcessInfo.processInfo.executableUrl
             process.arguments = [Self.processIsChildProcessInvocationWrapper, self.executableUrl.path] + self.arguments
             Self.taskPool.write { $0.insert(self) }
         } else {

@@ -64,8 +64,8 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
     private let logger = Logger(label: "DeploymentTargetLocalhost")
     
     func run() throws {
-        try FM.lk_initialize()
-        try FM.lk_setWorkingDirectory(to: packageRootDir)
+        try FM.initialize()
+        try FM.setWorkingDirectory(to: packageRootDir)
         
         logger.notice("Compiling target '\(productName)'")
         let executableUrl = try buildWebService()
@@ -78,20 +78,20 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
             try node.withUserInfo(LocalhostLaunchInfo(port: self.endpointProcessesBasePort + idx))
         })
         
-        let deployedSystem = try DeployedSystemStructure(
+        let deployedSystem = try DeployedSystem(
             deploymentProviderId: Self.identifier,
             nodes: nodes,
             userInfo: nil,
             userInfoType: Null.self
         )
         
-        let deployedSystemStructureFileUrl = FM.lk_getTemporaryFileUrl(fileExtension: "json")
-        try deployedSystem.writeJSON(to: deployedSystemStructureFileUrl)
+        let deployedSystemFileUrl = FM.getTemporaryFileUrl(fileExtension: "json")
+        try deployedSystem.writeJSON(to: deployedSystemFileUrl)
         
         for node in deployedSystem.nodes {
             let task = Task(
                 executableUrl: executableUrl,
-                arguments: [WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig, deployedSystemStructureFileUrl.path, node.id],
+                arguments: [WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig, deployedSystemFileUrl.path, node.id],
                 launchInCurrentProcessGroup: true,
                 environment: [WellKnownEnvironmentVariables.currentNodeId: node.id]
             )

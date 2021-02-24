@@ -24,7 +24,7 @@ class ProxyServer {
     fileprivate let app: Application
     fileprivate let logger = Logger(label: "DeploymentTargetLocalhost.ProxyServer")
     
-    init(openApiDocument: OpenAPI.Document, deployedSystem: DeployedSystemStructure) throws {
+    init(openApiDocument: OpenAPI.Document, deployedSystem: DeployedSystem) throws {
         let environmentName = try Vapor.Environment.detect().name
         var env = Vapor.Environment(name: environmentName, arguments: ["vapor"])
         try LoggingSystem.bootstrap(from: &env)
@@ -82,7 +82,7 @@ extension OpenAPI.Path {
 
 private struct ProxyRequestResponder: Vapor.Responder {
     let proxyServer: ProxyServer
-    let targetNode: DeployedSystemStructure.Node
+    let targetNode: DeployedSystem.Node
     
     func respond(to request: Request) -> EventLoopFuture<Vapor.Response> {
         let targetNodeLocalhostData = targetNode.readUserInfo(as: LocalhostLaunchInfo.self)!

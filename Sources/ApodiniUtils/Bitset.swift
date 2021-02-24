@@ -5,8 +5,8 @@
 //  Created by Lukas Kollmer on 16.02.21.
 //
 
-// TODO turn this into a proper bitset type?
 
+// Extensions on `FixedWidthInteger` to make it act like a bitset
 extension FixedWidthInteger {
     private func assertIsValidIndex(_ idx: Int) {
         precondition(
@@ -21,7 +21,7 @@ extension FixedWidthInteger {
     }
     
     
-    public subscript(lk_bitAt idx: Int) -> Bool {
+    public subscript(bitAt idx: Int) -> Bool {
         get {
             assertIsValidIndex(idx)
             return (self & (1 << idx)) != 0
@@ -35,24 +35,23 @@ extension FixedWidthInteger {
         }
     }
 
-    mutating public func lk_toggleBit(at idx: Int) {
+    mutating public func toggleBit(at idx: Int) {
         assertIsValidIndex(idx)
-        self[lk_bitAt: idx].toggle()
+        self[bitAt: idx].toggle()
     }
 
     
-    mutating func lk_replaceBits(in range: Range<Int>, withEquivalentRangeIn otherBitfield: Self) {
+    mutating func replaceBits(in range: Range<Int>, withEquivalentRangeIn otherBitfield: Self) {
         assertIsValidRange(range)
         for idx in range {
-            self[lk_bitAt: idx] = otherBitfield[lk_bitAt: idx]
+            self[bitAt: idx] = otherBitfield[bitAt: idx]
         }
-//        self = (self & )
     }
     
     
-    public var lk_binaryString: String {
+    public var binaryString: String {
         return (0..<Self.bitWidth).reduce(into: "") { string, idx in
-            string += self[lk_bitAt: idx] ? "1" : "0"
+            string += self[bitAt: idx] ? "1" : "0"
         }
     }
 }

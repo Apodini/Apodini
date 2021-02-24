@@ -14,12 +14,12 @@ import DeploymentTargetLocalhostCommon
 public class LocalhostRuntimeSupport: DeploymentProviderRuntimeSupport {
     public static let deploymentProviderId = LocalhostDeploymentProviderId
     
-    public let deployedSystem: DeployedSystemStructure
-    public let currentNodeId: DeployedSystemStructure.Node.ID
+    public let deployedSystem: DeployedSystem
+    public let currentNodeId: DeployedSystem.Node.ID
     private let currentNodeCustomLaunchInfo: LocalhostLaunchInfo
     
     
-    public required init(deployedSystem: DeployedSystemStructure, currentNodeId: DeployedSystemStructure.Node.ID) {
+    public required init(deployedSystem: DeployedSystem, currentNodeId: DeployedSystem.Node.ID) {
         self.deployedSystem = deployedSystem
         self.currentNodeId = currentNodeId
         self.currentNodeCustomLaunchInfo = deployedSystem.node(withId: currentNodeId)!.readUserInfo(as: LocalhostLaunchInfo.self)!

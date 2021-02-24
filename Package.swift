@@ -68,7 +68,6 @@ let package = Package(
         
         // Deploy
         .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
-        .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", from: "0.1.0"),
         .package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime", from: "0.4.0"),
         .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0"),
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0")

@@ -130,7 +130,7 @@ extension Collection {
 extension RandomAccessCollection {
     /// Safely access the element at the specified index.
     /// - returns: the element at `idx`, if `idx` is a valid index for subscripting into the collection, otherwise `nil`.
-    public subscript(lk_safe idx: Index) -> Element? {
+    public subscript(safe idx: Index) -> Element? {
         indices.contains(idx) ? self[idx] : nil
     }
 }

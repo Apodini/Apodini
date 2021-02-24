@@ -22,10 +22,10 @@ public enum RemoteHandlerInvocationRequestResponse<Response: Decodable> {
 public protocol DeploymentProviderRuntimeSupport: class {
     static var deploymentProviderId: DeploymentProviderID { get }
     
-    init(deployedSystem: DeployedSystemStructure, currentNodeId: DeployedSystemStructure.Node.ID) throws
+    init(deployedSystem: DeployedSystem, currentNodeId: DeployedSystem.Node.ID) throws
     
-    var deployedSystem: DeployedSystemStructure { get }
-    var currentNodeId: DeployedSystemStructure.Node.ID { get }
+    var deployedSystem: DeployedSystem { get }
+    var currentNodeId: DeployedSystem.Node.ID { get }
     
     func configure(_ app: Apodini.Application) throws
     

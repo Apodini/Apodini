@@ -21,7 +21,7 @@ const char *const ApodiniProcessIsChildInvocationWrapperCLIArgument = "__Apodini
 // This is part of the child process management API (see Task.swift), and used to move child processes into the parent's
 // process group. We want all processes to be in the same group so that signals like SIGINT are sent to all processes.
 __attribute__((constructor))
-static void LKHandleTaskChildProcessLaunchIfNecessary(int argc, const char * argv[], const char *const envp[]) {
+static void HandleTaskChildProcessLaunchIfNecessary(int argc, const char * argv[], const char *const envp[]) {
 #if 0 && DEBUG
     // print cwd
     char cwd[PATH_MAX];
@@ -75,4 +75,4 @@ static void LKHandleTaskChildProcessLaunchIfNecessary(int argc, const char * arg
 // This will cause it to get called with the same arguments as `main` (ie argv, argv, envp).
 // Note: If this fails to compile or does not work (eg because the linker doesn't recognise the section name), try `section(".init_array")` instead.
 __attribute__((used, section("__DATA,__mod_init_func")))
-static void* ctorFnPtr = &LKHandleTaskChildProcessLaunchIfNecessary;
+static void* ctorFnPtr = &HandleTaskChildProcessLaunchIfNecessary;

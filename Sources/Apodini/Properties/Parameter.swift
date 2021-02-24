@@ -47,7 +47,7 @@ public struct Parameter<Element: Codable>: Property {
     
     // This is here because, other than a `@Parameter` property itself (ie the storage), the projected value
     // isn't private, meaning that we can use this to specify a parameter when remote-invoking a handler.
-    // We could alwo make the projectedValue return self, although it seems like a better idea to limit ourselves
+    // We could also make the projectedValue return self, although it seems like a better idea to limit ourselves
     // to having to use the identifier to retrieve (and use) the endpoint parameter.
     public struct ID: AnyParameterID {
         public let value: UUID
