@@ -109,7 +109,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     public func retrieveParameter<Type>(
         _ parameter: EndpointParameter<Type>,
         for request: WebSocketInput
-    ) throws -> Type?? where Type: Decodable, Type: Encodable {
+    ) throws -> Type?? where Type: Decodable {
         if let inputParameter = request.input.parameters[parameter.name] as? BasicInputParameter<Type> {
             return inputParameter.value
         } else {
@@ -117,7 +117,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
 
-    public func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable, Type: Encodable {
+    public func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable {
         (parameter.name, WebSocketParameter(BasicInputParameter<Type>()))
     }
     

@@ -103,7 +103,7 @@ public protocol AnyEndpointPathParameter: CustomStringConvertible {
     var description: String { get }
     /// Defines the property type of the `PathParameter` declaration in a statically accessible way.
     /// Use `PathBuilder` to access the `EndpointPathParameter` in a generic way.
-    var propertyType: Codable.Type { get }
+    var propertyType: Decodable.Type { get }
     /// Defines which data type the `EndpointPathParameter` is identifying,
     /// meaning the value of the path parameter uniquely identifies a instance of supplied data type.
     /// The property is an Optional as the user might not specify such a type with `@PathParameter`.
@@ -166,7 +166,7 @@ protocol _AnyEndpointPathParameter: AnyEndpointPathParameter {
 }
 
 /// Models a `Parameter` created from a `PathParameter`. See `AnyEndpointPathParameter` for detailed documentation.
-public struct EndpointPathParameter<Type: Codable>: _AnyEndpointPathParameter {
+public struct EndpointPathParameter<Type: Decodable>: _AnyEndpointPathParameter {
     public let id: UUID
     public var pathId: String {
         id.uuidString
@@ -175,7 +175,7 @@ public struct EndpointPathParameter<Type: Codable>: _AnyEndpointPathParameter {
         ":\(id)"
     }
 
-    public var propertyType: Codable.Type {
+    public var propertyType: Decodable.Type {
         Type.self
     }
     public var identifyingType: IdentifyingType?

@@ -36,7 +36,7 @@ public protocol BaseInterfaceExporter {
     ///
     /// - Parameter parameter:
     /// - Returns: `ParameterExportOutput` which is defined by the `InterfaceExporter`
-    func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) -> ParameterExportOutput
+    func exportParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>) -> ParameterExportOutput
 
     /// This method is called once all `Endpoint`s are exported, meaning after `export` was called
     /// for every `Endpoint` on the `WebService`.
@@ -49,7 +49,7 @@ public protocol BaseInterfaceExporter {
 // Providing empty default implementations for optional methods
 public extension BaseInterfaceExporter {
     /// Default empty implementation as method is optionally to implement
-    func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) {}
+    func exportParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>) {}
     /// Default empty implementation as method is optionally to implement
     func finishedExporting(_ webService: WebServiceModel) {}
 }

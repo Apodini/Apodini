@@ -2,150 +2,6 @@ import Foundation
 import XCTest
 @testable import ApodiniDatabase
 
-final class TypeContainerTests: ApodiniTests {
-    func testTypeContainer() throws {
-        var typeContainer = TypeContainer(with: Int(-2))
-        XCTAssert(typeContainer.debugDescription == String(-2))
-        XCTAssert(typeContainer.typed() is Int)
-        
-        typeContainer = TypeContainer(with: Int8(-2))
-        XCTAssert(typeContainer.debugDescription == String(-2))
-        XCTAssert(typeContainer.typed() is Int8)
-        
-        typeContainer = TypeContainer(with: Int16(-2))
-        XCTAssert(typeContainer.debugDescription == String(-2))
-        XCTAssert(typeContainer.typed() is Int16)
-        
-        typeContainer = TypeContainer(with: Int32(-2))
-        XCTAssert(typeContainer.debugDescription == String(-2))
-        XCTAssert(typeContainer.typed() is Int32)
-        
-        typeContainer = TypeContainer(with: Int64(-2))
-        XCTAssert(typeContainer.debugDescription == String(-2))
-        XCTAssert(typeContainer.typed() is Int64)
-        
-        typeContainer = TypeContainer(with: UInt(2))
-        XCTAssert(typeContainer.debugDescription == String(2))
-        XCTAssert(typeContainer.typed() is UInt)
-        
-        typeContainer = TypeContainer(with: UInt8(2))
-        XCTAssert(typeContainer.debugDescription == String(2))
-        XCTAssert(typeContainer.typed() is UInt8)
-        
-        typeContainer = TypeContainer(with: UInt16(2))
-        XCTAssert(typeContainer.debugDescription == String(2))
-        XCTAssert(typeContainer.typed() is UInt16)
-        
-        typeContainer = TypeContainer(with: UInt32(2))
-        XCTAssert(typeContainer.debugDescription == String(2))
-        XCTAssert(typeContainer.typed() is UInt32)
-        
-        typeContainer = TypeContainer(with: UInt64(2))
-        XCTAssert(typeContainer.debugDescription == String(2))
-        XCTAssert(typeContainer.typed() is UInt64)
-        
-        typeContainer = TypeContainer(with: 2.2)
-        XCTAssert(typeContainer.debugDescription == String(2.2))
-        XCTAssert(typeContainer.typed() is Double)
-        
-        typeContainer = TypeContainer(with: Float(2.2))
-        XCTAssert(typeContainer.debugDescription == String(2.2))
-        XCTAssert(typeContainer.typed() is Float)
-        
-        let uuid = UUID()
-        typeContainer = TypeContainer(with: uuid)
-        XCTAssert(typeContainer.debugDescription == uuid.uuidString)
-        XCTAssert(typeContainer.typed() is UUID)
-        
-        typeContainer = TypeContainer(with: true)
-        XCTAssert(typeContainer.debugDescription == "true")
-        XCTAssert(typeContainer.typed() is Bool)
-        
-        typeContainer = TypeContainer(with: "HelloWorld")
-        XCTAssert(typeContainer.debugDescription == "HelloWorld", typeContainer.debugDescription)
-        XCTAssert(typeContainer.typed() is String)
-    }
-    
-    func testTypeContainerIntegerCoding() throws {
-        let encoder = JSONEncoder()
-        let decoder = JSONDecoder()
-        
-        var typeContainer = TypeContainer(with: Int(-2))
-        var encodedContainer = try encoder.encode(typeContainer)
-        var decodedContainer = try decoder.decode(TypeContainer.self, from: encodedContainer)
-        XCTAssert(typeContainer.typed() is Int)
-        
-        typeContainer = TypeContainer(with: Int8(-2))
-        encodedContainer = try encoder.encode(typeContainer)
-        decodedContainer = try decoder.decode(TypeContainer.self, from: encodedContainer)
-        XCTAssert(typeContainer.typed() is Int8)
-        
-        typeContainer = TypeContainer(with: Int16(-2))
-        encodedContainer = try encoder.encode(typeContainer)
-        decodedContainer = try decoder.decode(TypeContainer.self, from: encodedContainer)
-        XCTAssert(typeContainer.typed() is Int16)
-        
-        typeContainer = TypeContainer(with: Int32(-2))
-        encodedContainer = try encoder.encode(typeContainer)
-        decodedContainer = try decoder.decode(TypeContainer.self, from: encodedContainer)
-        XCTAssert(typeContainer.typed() is Int32)
-        
-        typeContainer = TypeContainer(with: Int64(-2))
-        encodedContainer = try encoder.encode(typeContainer)
-        decodedContainer = try decoder.decode(TypeContainer.self, from: encodedContainer)
-        XCTAssert(typeContainer.typed() is Int64)
-        
-        typeContainer = TypeContainer(with: UInt(2))
-        encodedContainer = try encoder.encode(typeContainer)
-        decodedContainer = try decoder.decode(TypeContainer.self, from: encodedContainer)
-        XCTAssert(typeContainer.typed() is UInt)
-        
-        typeContainer = TypeContainer(with: UInt8(2))
-        encodedContainer = try encoder.encode(typeContainer)
-        decodedContainer = try decoder.decode(TypeContainer.self, from: encodedContainer)
-        XCTAssert(typeContainer.typed() is UInt8)
-        
-        typeContainer = TypeContainer(with: UInt16(2))
-        encodedContainer = try encoder.encode(typeContainer)
-        decodedContainer = try decoder.decode(TypeContainer.self, from: encodedContainer)
-        XCTAssert(typeContainer.typed() is UInt16)
-        
-        typeContainer = TypeContainer(with: UInt32(2))
-        encodedContainer = try encoder.encode(typeContainer)
-        decodedContainer = try decoder.decode(TypeContainer.self, from: encodedContainer)
-        XCTAssert(typeContainer.typed() is UInt32)
-        
-        typeContainer = TypeContainer(with: UInt64(2))
-        encodedContainer = try encoder.encode(typeContainer)
-        decodedContainer = try decoder.decode(TypeContainer.self, from: encodedContainer)
-        XCTAssert(typeContainer.typed() is UInt64)
-    }
-    
-    func testTypeContainerOtherTypesCoding() throws {
-        let encoder = JSONEncoder()
-        let decoder = JSONDecoder()
-
-        let uuid = UUID()
-        var typeContainer = TypeContainer(with: uuid)
-        var encodedContainer = try encoder.encode(typeContainer)
-        var decodedContainer = try decoder.decode(TypeContainer.self, from: encodedContainer)
-        XCTAssert(decodedContainer.typed() is UUID)
-        
-        typeContainer = TypeContainer(with: true)
-        encodedContainer = try encoder.encode(typeContainer)
-        decodedContainer = try decoder.decode(TypeContainer.self, from: encodedContainer)
-        XCTAssert(decodedContainer.typed() is Bool)
-        
-        typeContainer = TypeContainer(with: "HelloWorld")
-        encodedContainer = try encoder.encode(typeContainer)
-        decodedContainer = try decoder.decode(TypeContainer.self, from: encodedContainer)
-        XCTAssert(decodedContainer.typed() is String)
-    }
-}
-
-func unwrap(_ value: TypeContainer) throws -> Codable {
-    try XCTUnwrap(value.typed())
-}
 
 fileprivate extension TypeContainer {
     var debugDescription: String {
@@ -154,5 +10,64 @@ fileprivate extension TypeContainer {
             .replacingOccurrences(of: "Optional(", with: "")
             .replacingOccurrences(of: ")", with: "")
             .replacingOccurrences(of: "\"", with: "")
+    }
+}
+
+
+final class TypeContainerTests: ApodiniTests {
+    func testTypeContainer() throws {
+        func testDebugDescription<T: Codable>(_ element: T, expectedDescription: String) throws {
+            let typeContainer = TypeContainer(with: element)
+            XCTAssert(typeContainer.typed() is T)
+            XCTAssertEqual(typeContainer.debugDescription, expectedDescription)
+        }
+        
+        try testDebugDescription(Int(-2), expectedDescription: String(-2))
+        try testDebugDescription(Int8(-2), expectedDescription: String(-2))
+        try testDebugDescription(Int16(-2), expectedDescription: String(-2))
+        try testDebugDescription(Int32(-2), expectedDescription: String(-2))
+        try testDebugDescription(Int64(-2), expectedDescription: String(-2))
+        try testDebugDescription(UInt(2), expectedDescription: String(2))
+        try testDebugDescription(UInt8(2), expectedDescription: String(2))
+        try testDebugDescription(UInt16(2), expectedDescription: String(2))
+        try testDebugDescription(UInt32(2), expectedDescription: String(2))
+        try testDebugDescription(UInt64(2), expectedDescription: String(2))
+        try testDebugDescription(Double(2.2), expectedDescription: String(2.2))
+        try testDebugDescription(Float(2.2), expectedDescription: String(2.2))
+        
+        let uuid = UUID()
+        try testDebugDescription(uuid, expectedDescription: uuid.uuidString)
+        
+        try testDebugDescription(true, expectedDescription: "true")
+        
+        try testDebugDescription("HelloWorld", expectedDescription: "HelloWorld")
+    }
+    
+    func testTypeContainerIntegerCoding() throws {
+        let encoder = JSONEncoder()
+        let decoder = JSONDecoder()
+        
+        func endcodeAndDecode<T: Codable & Equatable>(_ element: T) throws {
+            let typeContainer = TypeContainer(with: element)
+            // let encodedContainer = try encoder.encode(typeContainer)
+            // let decodedContainer = try decoder.decode(TypeContainer.self, from: encodedContainer)
+            //XCTAssert(typeContainer.typed() is T)
+            //XCTAssertEqual(typeContainer.typed().wrapped as? T, element)
+            XCTFail()
+        }
+        
+        try endcodeAndDecode(Int(-2))
+        try endcodeAndDecode(Int8(-2))
+        try endcodeAndDecode(Int16(-2))
+        try endcodeAndDecode(Int32(-2))
+        try endcodeAndDecode(Int64(-2))
+        try endcodeAndDecode(UInt(2))
+        try endcodeAndDecode(UInt8(2))
+        try endcodeAndDecode(UInt16(2))
+        try endcodeAndDecode(UInt32(2))
+        try endcodeAndDecode(UInt64(2))
+        try endcodeAndDecode(UUID())
+        try endcodeAndDecode(true)
+        try endcodeAndDecode("HelloWorld")
     }
 }

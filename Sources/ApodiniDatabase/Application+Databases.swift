@@ -8,6 +8,7 @@
 import Apodini
 import FluentKit
 
+
 extension Application {
     /// Used to store the applications databases
     public var databases: Databases {

@@ -95,7 +95,6 @@ let package = Package(
             name: "ApodiniDatabase",
             dependencies: [
                 .target(name: "Apodini"),
-                .target(name: "ApodiniVaporSupport"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentKit", package: "fluent-kit"),
                 .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),

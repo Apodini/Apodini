@@ -30,7 +30,7 @@ extension Optional where Wrapped: ExpressibleByNilLiteral {
 
 
 // MARK: - Optional
-func isNil(_ value: Any) -> Bool {
+public func isNil(_ value: Any) -> Bool {
     let visitor = ApodiniOptionalIsNilVisitor()
     return visitor(value) ?? false
 }

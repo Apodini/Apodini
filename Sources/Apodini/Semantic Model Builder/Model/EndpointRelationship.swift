@@ -238,7 +238,7 @@ private struct RelationshipNameBuilder: PathBuilderWithResult {
         name.append(string)
     }
 
-    mutating func append<Type: Codable>(_ parameter: EndpointPathParameter<Type>) {
+    mutating func append<Type: Decodable>(_ parameter: EndpointPathParameter<Type>) {
         // typical relative paths are `user/:userId`. A sensible name for such a relationship
         // would be "user", thus we not include the parameter name if it isn't need to prevent
         // and empty name e.g.

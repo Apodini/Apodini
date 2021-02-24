@@ -13,7 +13,7 @@ struct OpenAPIPathBuilder: PathBuilderWithResult {
         components.append(string)
     }
 
-    mutating func append<Type: Codable>(_ parameter: EndpointPathParameter<Type>) {
+    mutating func append<Type: Decodable>(_ parameter: EndpointPathParameter<Type>) {
         components.append("{\(parameter.name)}")
     }
 

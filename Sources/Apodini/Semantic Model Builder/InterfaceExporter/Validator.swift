@@ -141,7 +141,7 @@ private class RepresentativeBuilder<I: InterfaceExporter>: EndpointParameterVisi
         self.exporter = exporter
     }
     
-    func visit<Element: Codable>(parameter: EndpointParameter<Element>) -> AnyValidator<I, Void, Any> {
+    func visit<Element: Decodable>(parameter: EndpointParameter<Element>) -> AnyValidator<I, Void, Any> {
         AnyValidator<I, Void, Any>(ParameterRepresentative<Element, I>(definition: parameter, exporter: self.exporter))
     }
 }
@@ -176,7 +176,7 @@ extension ParameterRepresentative: Validator {
 /// ```@Parameter var value: String?``` optional, no default value, "explicit nil" is valid, nilIsValidValue=true
 /// ```@Parameter var value: String = "ASdf"``` optional, with default value, "explicit nil" not valid
 /// ```@Parameter var value: String? = "ASdf"``` optional, with default value, "explicit nil" is valid, nilIsValidValue=true
-private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
+private struct ParameterRepresentative<Type: Decodable, E: InterfaceExporter> {
     let definition: EndpointParameter<Type>
     
     let defaultValue: Type?

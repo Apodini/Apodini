@@ -27,30 +27,30 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         case system
     }
 
-    struct SomeStruct: Encodable {
+    struct SomeStruct: Codable {
         var id: UUID?
         var someProp = 4
     }
 
-    struct SomeStructWithEnum: Encodable {
+    struct SomeStructWithEnum: Codable {
         var someProp = 4
         var test: Test
     }
 
-    struct GenericStruct<T>: Encodable where T: Encodable {
+    struct GenericStruct<T>: Codable where T: Codable {
         var list: [T]
         var listLength: Int
     }
 
-    struct SomeComplexStruct: Encodable {
+    struct SomeComplexStruct: Codable {
         var someStruct: SomeStruct
         var someNestedStruct: SomeNestedStruct
         var someNestedStruct2: SomeNestedStruct
         var someItems: GenericStruct<SomeStruct>
     }
 
-    struct SomeNestedStruct: Encodable {
-        let someInt = 123
+    struct SomeNestedStruct: Codable {
+        var someInt = 123
         let someString: String?
     }
 

@@ -47,7 +47,7 @@ struct PathModelBuilder: PathComponentParser {
         results.append(StoredEndpointPath(path: .string(string), context: parseCurrentContext()))
     }
 
-    mutating func visit<Type: Codable>(_ parameter: Parameter<Type>) {
+    mutating func visit<Type: Decodable>(_ parameter: Parameter<Type>) {
         let identifyingType = parameter.option(for: PropertyOptionKey.identifying)
 
         let pathParameter: AnyEndpointPathParameter
@@ -119,7 +119,7 @@ private protocol EncodeOptionalPathParameter {
 }
 
 // MARK: PathParameter Model
-extension Parameter: EncodeOptionalPathParameter where Element: ApodiniOptional, Element.Member: Codable {
+extension Parameter: EncodeOptionalPathParameter where Element: ApodiniOptional, Element.Member: Decodable {
     func createPathParameterWithWrappedType(id: UUID, identifyingType: IdentifyingType?) -> AnyEndpointPathParameter {
         EndpointPathParameter<Element.Member>(id: id, identifyingType: identifyingType)
     }

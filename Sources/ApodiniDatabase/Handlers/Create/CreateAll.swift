@@ -1,9 +1,17 @@
+//
+//  CreateAll.swift
+//
+//
+//  Created by Paul Schmiedmayer on 2/24/21.
+//
+
 import Fluent
 import Apodini
 
+
 /// Creates, if possible, an array of object in the database that conform to `DatabaseModel`
 /// See also `Create`.
-public struct CreateAll<Model: DatabaseModel>: Handler {
+public struct CreateAll<Model: Fluent.Model & Apodini.Content>: Handler {
     @Apodini.Environment(\.database)
     private var database: Fluent.Database
     

@@ -47,7 +47,7 @@ struct ValidatedRequest<I: InterfaceExporter, H: Handler>: Request {
         self.remoteAddress = remoteAddress
     }
 
-    func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element {
+    func retrieveParameter<Element: Decodable>(_ parameter: Parameter<Element>) throws -> Element {
         guard let value = validatedParameterValues[parameter.id] as? Element else {
             fatalError("ValidatedRequest could not retrieve parameter '\(parameter.id)' after validation.")
         }

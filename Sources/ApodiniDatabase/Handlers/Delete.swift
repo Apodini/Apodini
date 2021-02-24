@@ -1,22 +1,33 @@
+//
+//  Delete.swift
+//
+//
+//  Created by Paul Schmiedmayer on 2/24/21.
+//
+
 import Fluent
 import Apodini
-@_implementationOnly import Vapor
+
 
 /// A `Handler` that deletes the object with the given `IDValue` in the database, if it exists. If not an error is thrown.
 /// It uses the database that has been specified in the `DatabaseConfiguration`.
-public struct Delete<Model: DatabaseModel>: Handler {
+public struct Delete<Model: Fluent.Model>: Handler {
     @Apodini.Environment(\.database)
     private var database: Fluent.Database
 
     @Parameter(.http(.path))
     var id: Model.IDValue
     
+    @Throws(.notFound, reason: "No object was found in the database under the given id")
+    var modelNotFoundError: ApodiniError
+    
+    
+    public init() {}
+    
     public func handle() -> EventLoopFuture<Status> {
         Model.find(id, on: database)
-            .unwrap(orError: Abort(.notFound) )
+            .unwrap(orError: modelNotFoundError)
             .flatMap { $0.delete(on: database ) }
             .transform(to: .noContent)
     }
-    
-    public init() {}
 }

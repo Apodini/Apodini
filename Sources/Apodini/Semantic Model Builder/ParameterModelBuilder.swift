@@ -85,7 +85,7 @@ private protocol EncodeOptionalEndpointParameter {
 }
 
 // MARK: Parameter Model
-extension Parameter: EncodeOptionalEndpointParameter where Element: ApodiniOptional, Element.Member: Codable {
+extension Parameter: EncodeOptionalEndpointParameter where Element: ApodiniOptional, Element.Member: Decodable {
     func createParameterWithWrappedType(
         name: String,
         label: String,
