@@ -99,8 +99,6 @@ struct HelloWorld: WebService {
             .exporter(RESTInterfaceExporter.self)
             .exporter(OpenAPIInterfaceExporter.self)
     }
-    
-    @PathParameter var country: String
 
     var content: some Component {
         Greeter(country: .constant(nil))
