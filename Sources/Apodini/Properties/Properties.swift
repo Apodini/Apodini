@@ -19,6 +19,13 @@ public struct Properties: Property {
     internal var namingStrategy: ([String]) -> String? = Self.defaultNamingStrategy
     
     /// Create a new `Properties` from the given `elements`
+    /// - Parameters:
+    ///     - namingStrategy: The `namingStrategy` is called when the framework decides to interact with one of
+    ///         the `Properties`'s elements. By default it assumes the key of this element to be the
+    ///         desired name of the element.
+    ///         This behavior can be changed by providing a different `namingStrategy`. E.g. to expose an internal
+    ///         `@Parameter` using the name that was given to the wrapping `Properties` the
+    ///         `namingStrategy` would be to return `names[names.count-2]`.
     /// - Complexity: O(1)
     public init(wrappedValue elements: [String: Property], namingStrategy: @escaping ([String]) -> String? = Self.defaultNamingStrategy) {
         self.elements = elements
@@ -26,6 +33,13 @@ public struct Properties: Property {
     }
     
     /// Create a new `Properties` from the given `elements`
+    /// - Parameters:
+    ///     - namingStrategy: The `namingStrategy` is called when the framework decides to interact with one of
+    ///         the `Properties`'s elements. By default it assumes the key of this element to be the
+    ///         desired name of the element.
+    ///         This behavior can be changed by providing a different `namingStrategy`. E.g. to expose an internal
+    ///         `@Parameter` using the name that was given to the wrapping `Properties` the
+    ///         `namingStrategy` would be to return `names[names.count-2]`.
     /// - Complexity: O(n)
     public init(_ elements: [(String, Property)], namingStrategy: @escaping ([String]) -> String? = Self.defaultNamingStrategy) {
         self.elements = [:]

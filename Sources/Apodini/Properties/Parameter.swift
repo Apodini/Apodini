@@ -46,8 +46,7 @@ public struct Parameter<Element: Codable>: Property {
         id: UUID = UUID(),
         name: String? = nil,
         defaultValue: (() -> Element)? = nil,
-        options: [Option] = [],
-        checkOptionality: Bool = true
+        options: [Option] = []
     ) {
         if let name = name {
             precondition(!name.isEmpty, "The name for Parameter cannot be empty!")
@@ -58,7 +57,7 @@ public struct Parameter<Element: Codable>: Property {
         self.name = name
         self.options = PropertyOptionSet(options)
 
-        if checkOptionality && option(for: PropertyOptionKey.http) == .path {
+        if option(for: PropertyOptionKey.http) == .path {
             precondition(!isOptional(Element.self), "A `PathParameter` cannot annotate a property with Optional type!")
         }
     }
@@ -118,7 +117,7 @@ public struct Parameter<Element: Codable>: Property {
             pathParameterOptions.append(.identifying(type))
         }
 
-        self.init(id: id, options: pathParameterOptions, checkOptionality: false)
+        self.init(id: id, options: pathParameterOptions)
     }
     
     

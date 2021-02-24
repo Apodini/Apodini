@@ -196,7 +196,7 @@ private func execute<Element, Target>(
         case let target as Target:
             assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "\(Target.self) \(property.name) on element \(info.name) must be a struct")
             
-            try operation(target, property.name)
+            try operation(target, (element as? DynamicProperty)?.namingStrategy(names + [property.name]) ?? property.name)
         case let dynamicProperty as DynamicProperty:
             assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
 
@@ -244,7 +244,7 @@ private func apply<Element, Target>(
         case var target as Target:
             assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "\(Target.self) \(property.name) on element \(info.name) must be a struct")
             
-            try mutation(&target, property.name)
+            try mutation(&target, (element as? DynamicProperty)?.namingStrategy(names + [property.name]) ?? property.name)
             let elem = element
             property.unsafeSet(
                 value: target,
