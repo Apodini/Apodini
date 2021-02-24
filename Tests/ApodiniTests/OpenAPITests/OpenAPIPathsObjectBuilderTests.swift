@@ -170,7 +170,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
             tags: ["test"],
             // As there is no custom description in this case, `description` and `operationId` are the same.
             description: endpoint.description,
-            operationId: endpoint.description,
+            operationId: endpoint.identifier.rawValue,
             parameters: [],
             requestBody: OpenAPI.Request(
                 description: "@Parameter var someStructArray: Array<SomeStruct>",
@@ -231,7 +231,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
             tags: ["test"],
             // As there is no custom description in this case, `description` and `operationId` are the same.
             description: endpoint.description,
-            operationId: endpoint.description,
+            operationId: endpoint.identifier.rawValue,
             parameters: [],
             requestBody: OpenAPI.Request(
                 description: "@Parameter var someStruct: SomeStruct",

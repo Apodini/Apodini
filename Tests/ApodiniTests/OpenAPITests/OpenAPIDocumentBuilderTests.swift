@@ -43,7 +43,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                         tags: ["test"],
                         // As there is no custom description in this case, `description` and `operationId` are the same.
                         description: endpoint.description,
-                        operationId: endpoint.description,
+                        operationId: endpoint.identifier.rawValue,
                         parameters: [
                             Either.parameter(name: "name", context: .query, schema: .string, description: "@Parameter var name: String")
                         ],
