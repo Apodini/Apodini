@@ -20,6 +20,7 @@ extension Handler {
         var handler = self
         var guards = guards
         var responseTransformers = responseTransformers
+        
         if let application = app {
             handler = handler.inject(app: application)
             guards = guards.inject(app: application)

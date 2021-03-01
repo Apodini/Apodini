@@ -142,52 +142,54 @@ final class DatabaseHandlerTests: ApodiniTests {
     }
     
     func testUpdateHandleWithSingleParameter() throws {
-        let bird = Bird(name: "Mockingbird", age: 20)
-        let dbBird = try bird
-            .save(on: self.app.database)
-            .transform(to: bird)
-            .wait()
-        XCTAssertNotNil(dbBird.id)
-    
-        let parameters: [String: TypeContainer] = [
-            "name": TypeContainer(with: "FooBird")
-        ]
+        XCTFail()
         
-        let handler = Update<Bird>()
-        let endpoint = handler.mockEndpoint(app: app)
-        
-        let exporter = RESTInterfaceExporter(app)
-        let context = endpoint.createConnectionContext(for: exporter)
-        
-        let bodyData = ByteBuffer(data: try JSONEncoder().encode(parameters))
-        
-        let uri = URI("http://example.de/test/id")
-        let request = Vapor.Request(
-            application: vaporApp,
-            method: .PUT,
-            url: uri,
-            collectedBody: bodyData,
-            on: app.eventLoopGroup.next()
-        )
-        guard let birdId = dbBird.id else {
-            XCTFail("Object found in database has no id")
-            return
-        }
-        let idParameter = try pathParameter(for: handler)
-        request.parameters.set("\(idParameter.id)", to: "\(birdId)")
-        
-        let responseValue = try XCTUnwrap(try context.handle(request: request).wait().typed(Bird.self)?.content)
-        
-        XCTAssert(responseValue.id == dbBird.id, responseValue.description)
-        XCTAssert(responseValue.name == "FooBird", responseValue.description)
-        
-        guard let newBird = try Bird.find(dbBird.id, on: self.app.database).wait() else {
-            XCTFail("Failed to find updated object")
-            return
-        }
-        
-        XCTAssertNotNil(newBird)
-        XCTAssert(newBird == responseValue, newBird.description)
+//        let bird = Bird(name: "Mockingbird", age: 20)
+//        let dbBird = try bird
+//            .save(on: self.app.database)
+//            .transform(to: bird)
+//            .wait()
+//        XCTAssertNotNil(dbBird.id)
+//
+//        let parameters: [String: TypeContainer] = [
+//            "name": TypeContainer(with: "FooBird")
+//        ]
+//
+//        let handler = Update<Bird>()
+//        let endpoint = handler.mockEndpoint(app: app)
+//
+//        let exporter = RESTInterfaceExporter(app)
+//        let context = endpoint.createConnectionContext(for: exporter)
+//
+//        let bodyData = ByteBuffer(data: try JSONEncoder().encode(parameters))
+//
+//        let uri = URI("http://example.de/test/id")
+//        let request = Vapor.Request(
+//            application: vaporApp,
+//            method: .PUT,
+//            url: uri,
+//            collectedBody: bodyData,
+//            on: app.eventLoopGroup.next()
+//        )
+//        guard let birdId = dbBird.id else {
+//            XCTFail("Object found in database has no id")
+//            return
+//        }
+//        let idParameter = try pathParameter(for: handler)
+//        request.parameters.set("\(idParameter.id)", to: "\(birdId)")
+//
+//        let responseValue = try XCTUnwrap(try context.handle(request: request).wait().typed(Bird.self)?.content)
+//
+//        XCTAssert(responseValue.id == dbBird.id, responseValue.description)
+//        XCTAssert(responseValue.name == "FooBird", responseValue.description)
+//
+//        guard let newBird = try Bird.find(dbBird.id, on: self.app.database).wait() else {
+//            XCTFail("Failed to find updated object")
+//            return
+//        }
+//
+//        XCTAssertNotNil(newBird)
+//        XCTAssert(newBird == responseValue, newBird.description)
     }
     
     func testUpdateHandlerWithModel() throws {
