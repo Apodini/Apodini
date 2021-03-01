@@ -95,14 +95,14 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     public func finishedExporting(_ webService: WebServiceModel) {
         do {
-            try performDeploymentStuff()
+            try performDeploymentRelatedActions()
         } catch {
-            fatalError("ugh \(error)")
+            fatalError("Error performing deployment-related actions: \(error)")
         }
     }
     
     
-    private func performDeploymentStuff() throws {
+    private func performDeploymentRelatedActions() throws {
         let args = CommandLine.arguments
         guard args.count >= 3 else {
             return

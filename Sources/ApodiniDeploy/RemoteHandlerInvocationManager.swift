@@ -162,10 +162,10 @@ extension RemoteHandlerInvocationManager {
                 fatalError("Unable to fetch endpoint parameter for handlerParamId '\(handlerParamId)'")
             }
             if !alreadyProcessedParamKeyPaths.insert(collectedParam.handlerKeyPath).inserted {
-                print("Parameter '\(endpointParam.name)' specified multiple times in remote handler invocation")
+                app.logger.warning("Parameter '\(endpointParam.name)' specified multiple times in remote handler invocation")
             }
             if !alreadyProcessedEndpointParamIds.insert(endpointParam.id).inserted {
-                print("Endpoint parameter with id '\(endpointParam.id)' matched multiple times in remote handler invocation")
+                app.logger.warning("Endpoint parameter with id '\(endpointParam.id)' matched multiple times in remote handler invocation")
             }
             return HandlerInvocation<H>.Parameter(
                 stableIdentity: endpointParam.stableIdentity,
@@ -250,7 +250,7 @@ extension RemoteHandlerInvocationManager {
             }
             return targetNode == currentNode ? .locally : .remotely(targetNode)
         }
-        print("[Error] Falling back to local dispatch because we were unable to find a node for the endpoint with handler id '\(handlerId)'. This should not be happening.")
+        app.logger.error("Falling back to local dispatch because we were unable to find a node for the endpoint with handler id '\(handlerId)'. This should not be happening.")
         return .locally  // use local dispatching as fallback in case the other stuff fails for some reason
     }
 }
