@@ -18,9 +18,12 @@ public struct ApodiniDeployConfiguration: Apodini.Configuration {
     }
     
     let runtimes: [DeploymentProviderRuntimeSupport.Type]
-    let config: DeploymentConfig // TODO rename to options!?
+    let config: DeploymentConfig
     
-    public init(runtimes: [DeploymentProviderRuntimeSupport.Type] = [], config: DeploymentConfig = .init()) {
+    public init(
+        runtimes: [DeploymentProviderRuntimeSupport.Type] = [],
+        config: DeploymentConfig = .init()
+    ) {
         self.runtimes = runtimes
         self.config = config
     }

@@ -18,6 +18,7 @@ struct RandomNumberGenerator: InvocableHandler, HandlerWithDeploymentOptions {
         static let other = HandlerIdentifier("other")
     }
     let handlerId: HandlerIdentifier
+    let ugh: Int = 12
     
     @Parameter var lowerBound: Int = 0
     @Parameter var upperBound: Int = .max
@@ -34,7 +35,8 @@ struct RandomNumberGenerator: InvocableHandler, HandlerWithDeploymentOptions {
     static var deploymentOptions: [AnyDeploymentOption] {
         return [
             // NOTE: starting with swift 5.4 (i believe) we'll be able to drop the leading `AnyOption` here and use the implicit member thing w/ chaining
-            AnyOption.memory(.mb(150)).when(\Self.handlerId == .main)
+            AnyOption.memory(.mb(150))
+                .when(!(\Self.handlerId == .main || \Self.ugh == 12))
         ]
     }
 }
@@ -84,7 +86,10 @@ struct WebService: Apodini.WebService {
     var content: some Component {
         Group("rand") {
             RandomNumberGenerator(handlerId: .main)
-        }.formDeploymentGroup(withId: "rand.2")
+        }.formDeploymentGroup(withId: "rand")
+        Group("rand2") {
+            RandomNumberGenerator(handlerId: .other)
+        }.formDeploymentGroup(withId: "rand2")
         Group("greet") {
             Greeter()
                 .deploymentOptions(

@@ -27,6 +27,17 @@ public class HandlerCondition<H: Handler>: AnyHandlerCondition {
     init(_: H.Type = H.self, _ predicate: @escaping (H) -> Bool) {
         super.init(H.self, predicate)
     }
+    
+    // Overriding the superclass initializer and marking it as unavailable to make sure
+    // calls to `HandlerCondition.init` don't get dispatched to the superclass initializer.
+    // Q: Why is this important?
+    // A: The difference between this (overwritten) initializer and the other one in HandlerCondition
+    //    is that this one would work for any arbitrary Handler type,
+    //    whereas the one above requires the Handler type used in the closure to be the same as the class' generic parameter.
+    @available(*, unavailable)
+    override init<H>(_: H.Type = H.self, _ predicate: @escaping (H) -> Bool) where H : Handler {
+        fatalError("init(_:_:) is not implemented")
+    }
 }
 
 public func && <H> (lhs: HandlerCondition<H>, rhs: HandlerCondition<H>) -> HandlerCondition<H> {
