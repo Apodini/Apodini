@@ -33,7 +33,6 @@ class AWSDeploymentStuff { // needs a better name
     private let FM = FileManager.default
     private let logger = Logger(label: "de.lukaskollmer.ApodiniLambda.AWSIntegration")
     
-    private let awsProfileName: String
     private let awsRegion: SotoCore.Region
     private let awsClient: AWSClient
     private let sts: STS
@@ -48,15 +47,14 @@ class AWSDeploymentStuff { // needs a better name
     
     
     init(
-        awsProfileName: String,
         awsRegionName: String,
+        awsCredentials: SotoCore.CredentialProviderFactory,
         tmpDirUrl: URL
     ) {
-        self.awsProfileName = awsProfileName
-        self.awsRegion = .init(rawValue: awsRegionName)
         self.tmpDirUrl = tmpDirUrl
+        awsRegion = .init(rawValue: awsRegionName)
         awsClient = AWSClient(
-            credentialProvider: .configFile(profile: awsProfileName),
+            credentialProvider: awsCredentials,
             retryPolicy: .exponential(),
             httpClientProvider: .createNew
         )

@@ -54,7 +54,7 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
     var productName: String
     
     @Option
-    var awsProfileName: String = "default"
+    var awsProfileName: String?
     
     @Option
     var awsRegion: String = "eu-central-1"
@@ -106,7 +106,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     
     let productName: String
     let packageRootDir: URL
-    let awsProfileName: String
+    let awsProfileName: String?
     let awsRegion: String
     let s3BucketName: String
     let s3BucketPath: String
@@ -175,8 +175,21 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             }
         )
         
-        
-        let awsIntegration = AWSDeploymentStuff(awsProfileName: awsProfileName, awsRegionName: awsRegion, tmpDirUrl: self.tmpDirUrl)
+        let awsIntegration = AWSDeploymentStuff(
+            awsRegionName: awsRegion,
+            awsCredentials: {
+                if let profileName = awsProfileName {
+                    return .configFile(profile: profileName)
+                } else if let credentials = readAwsCredentialsFromEnvironment() {
+                    return .static(accessKeyId: credentials.accessKeyId, secretAccessKey: credentials.secretAccessKey)
+                } else {
+                    // if no profile name was explicitly specified, and we also were unable
+                    // to find credentials in the environment variables, we fall back to the "default" profile
+                    return .configFile(profile: "default")
+                }
+            }(),
+            tmpDirUrl: self.tmpDirUrl
+        )
         
         if awsApiGatewayApiId == "_createNew" {
             awsApiGatewayApiId = try awsIntegration.createApiGateway(protocolType: .http)
@@ -307,6 +320,16 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         let dstExecutableUrl = tmpDirUrl.appendingPathComponent("lambda.out", isDirectory: false)
         try FM.copyItem(at: outputUrl, to: dstExecutableUrl, overwriteExisting: true)
         return dstExecutableUrl
+    }
+    
+    
+    private func readAwsCredentialsFromEnvironment() -> (accessKeyId: String, secretAccessKey: String)? {
+        let env = ProcessInfo.processInfo.environment
+        if let accessKey = env["AWS_ACCESS_KEY_ID"], let secretAccessKey = env["AWS_SECRET_ACCESS_KEY"] {
+            return (accessKey, secretAccessKey)
+        } else {
+            return nil
+        }
     }
 }
 
