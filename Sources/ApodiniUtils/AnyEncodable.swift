@@ -37,18 +37,15 @@ public protocol AnyEncoder {
 extension JSONEncoder: AnyEncoder {}
 
 
-
-
 // MARK: Null
 
-// was intended as a Codable-conformant NSNull implemnentation. can we get rid of this?
+/// A `Codable`-conformant equivalent of `NSNull`
 public struct Null: Codable {
     public init() {}
     
     public init(from decoder: Decoder) throws {
-        let wasNil = try decoder.singleValueContainer().decodeNil()
-        if !wasNil {
-            throw NSError(domain: "Apodini", code: 0, userInfo: [NSLocalizedDescriptionKey: "wasnt nil"])
+        guard try decoder.singleValueContainer().decodeNil() else {
+            throw ApodiniUtilsError(message: "Expected nil value")
         }
     }
     
@@ -59,10 +56,7 @@ public struct Null: Codable {
 }
 
 
-
-
 // MARK: Other
-
 
 extension Encodable {
     public func encodeToJSON(outputFormatting: JSONEncoder.OutputFormatting = []) throws -> Data {

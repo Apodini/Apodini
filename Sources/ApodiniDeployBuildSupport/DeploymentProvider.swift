@@ -186,8 +186,7 @@ extension DeploymentProvider {
             try DeployedSystem.Node(
                 id: deploymentGroup.id,
                 exportedEndpoints: endpoints,
-                userInfo: nil, // TODO experiment w/ Null() what does the json look like? why does it (?sometimes?) seem to use an empty object instead of the null literal?
-                userInfoType: Null.self
+                userInfo: Null()
             )
         }
         
@@ -197,16 +196,14 @@ extension DeploymentProvider {
                 try DeployedSystem.Node(
                     id: nodeIdProvider([endpoint]),
                     exportedEndpoints: [endpoint],
-                    userInfo: nil,
-                    userInfoType: Null.self
+                    userInfo: Null()
                 )
             }
         case .singleNode:
             nodes.insert(try DeployedSystem.Node(
                 id: nodeIdProvider(remainingEndpoints),
                 exportedEndpoints: remainingEndpoints,
-                userInfo: nil,
-                userInfoType: Null.self
+                userInfo: Null()
             ))
         }
         

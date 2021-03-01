@@ -74,6 +74,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         logger.notice("Invoking target to generate web service structure")
         let wsStructure = try generateDefaultWebServiceStructure()
         
+        
         let nodes = Set(try computeDefaultDeployedSystemNodes(from: wsStructure).enumerated().map { idx, node in
             try node.withUserInfo(LocalhostLaunchInfo(port: self.endpointProcessesBasePort + idx))
         })
@@ -81,8 +82,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         let deployedSystem = try DeployedSystem(
             deploymentProviderId: Self.identifier,
             nodes: nodes,
-            userInfo: nil,
-            userInfoType: Null.self
+            userInfo: Null()
         )
         
         let deployedSystemFileUrl = FM.getTemporaryFileUrl(fileExtension: "json")
