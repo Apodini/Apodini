@@ -405,7 +405,6 @@ let package = Package(
             dependencies: [
                 .target(name: "DeploymentTargetAWSLambdaCommon"),
                 .target(name: "ApodiniDeployRuntimeSupport"),
-                //.product(name: "AWSLambdaEvents", package: "swift-aws-lambda-runtime"),
                 .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
             ]
         )
