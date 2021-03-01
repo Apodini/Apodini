@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  AWSIntegration.swift
 //  
 //
 //  Created by Lukas Kollmer on 2021-01-19.
@@ -25,7 +25,7 @@ import OpenAPIKit
 
 /// A type which interacts with AWS to create and configure ressources.
 /// - Note: Instances of this class should not be re-used to apply multiple deployments.
-class AWSDeploymentStuff { // needs a better name
+class AWSIntegration {
     private static let lambdaFunctionNamePrefix = "apodini-lambda"
     private static let xAmazonApigatewayIntegrationKey = "x-amazon-apigateway-integration"
     

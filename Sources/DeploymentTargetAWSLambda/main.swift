@@ -175,7 +175,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             }
         )
         
-        let awsIntegration = AWSDeploymentStuff(
+        let awsIntegration = AWSIntegration(
             awsRegionName: awsRegion,
             awsCredentials: {
                 if let profileName = awsProfileName {
