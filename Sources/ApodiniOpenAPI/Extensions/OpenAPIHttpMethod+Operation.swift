@@ -4,7 +4,7 @@
 
 import Foundation
 import Apodini
-@_implementationOnly import OpenAPIKit
+import OpenAPIKit
 
 extension OpenAPI.HttpMethod {
     init(_ operation: Apodini.Operation) {

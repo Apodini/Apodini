@@ -3,7 +3,7 @@
 //
 
 import Apodini
-@_implementationOnly import OpenAPIKit
+import OpenAPIKit
 
 /// Utility to convert `_PathComponent`s to `OpenAPI.Path` format.
 struct OpenAPIPathBuilder: PathBuilderWithResult {

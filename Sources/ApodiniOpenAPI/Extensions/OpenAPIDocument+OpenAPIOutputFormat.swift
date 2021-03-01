@@ -3,7 +3,7 @@
 //
 
 import Foundation
-@_implementationOnly import OpenAPIKit
+import OpenAPIKit
 @_implementationOnly import Yams
 
 extension OpenAPI.Document {

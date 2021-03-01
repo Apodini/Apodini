@@ -5,7 +5,7 @@
 import Apodini
 import ApodiniVaporSupport
 @_implementationOnly import Vapor
-@_implementationOnly import OpenAPIKit
+import OpenAPIKit
 
 
 

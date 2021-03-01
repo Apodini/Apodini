@@ -7,7 +7,7 @@ import Apodini
 import ApodiniUtils
 import ApodiniTypeReflection
 import ApodiniVaporSupport
-@_implementationOnly import OpenAPIKit
+import OpenAPIKit
 
 /// Constants for building specification compatible schema names.
 enum OpenAPISchemaConstants {

@@ -8,9 +8,7 @@
 import Foundation
 import Apodini
 import ApodiniUtils
-// getting rid of the @testable here would require making the StorageKey (as well as its Value) public,
-// which would imply making most of the OpenAPIExporter public (which we'd ideally prefer to avoid)
-@testable import ApodiniOpenAPI
+import ApodiniOpenAPI
 import ApodiniDeployBuildSupport
 @_implementationOnly import Vapor
 import OpenAPIKit
