@@ -7,6 +7,7 @@ class APNSConfigurationTests: XCTApodiniTest {
     
     func testFailingConfiguration() throws {
         XCTAssertRuntimeFailure(APNSConfiguration(.pem(pemPath: ""), topic: "", environment: .sandbox).configure(self.app))
+        XCTAssertFalse(app.notificationCenter.isAPNSConfigured)
     }
 
     func testPEMConfiguration() throws {
@@ -17,6 +18,7 @@ class APNSConfigurationTests: XCTApodiniTest {
         XCTAssertNotNil(app.apns.configuration)
         XCTAssertEqual(app.apns.configuration?.environment, .sandbox)
         XCTAssertEqual(app.apns.configuration?.topic, "")
+        XCTAssertTrue(app.notificationCenter.isAPNSConfigured)
     }
     
     func testP8Configuration() throws {
@@ -27,5 +29,6 @@ class APNSConfigurationTests: XCTApodiniTest {
         XCTAssertNotNil(app.apns.configuration)
         XCTAssertEqual(app.apns.configuration?.environment, .sandbox)
         XCTAssertEqual(app.apns.configuration?.topic, "")
+        XCTAssertTrue(app.notificationCenter.isAPNSConfigured)
     }
 }
