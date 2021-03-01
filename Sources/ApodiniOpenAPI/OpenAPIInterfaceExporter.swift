@@ -8,7 +8,6 @@ import ApodiniVaporSupport
 import OpenAPIKit
 
 
-
 /// Apodini Interface Exporter for OpenAPI.
 public final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
     public static var parameterNamespace: [ParameterNamespace] = .individual

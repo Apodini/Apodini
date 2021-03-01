@@ -5,6 +5,8 @@
 //  Created by Lukas Kollmer on 2021-01-17.
 //
 
+// swiftlint:disable identifier_name type_name nesting
+
 import Foundation
 @testable import Apodini
 import ApodiniREST
@@ -22,7 +24,7 @@ struct WrappedRESTResponse<T: Codable>: Vapor.Content {
 
 extension Vapor.ContentContainer {
     func decodeRESTResponseData<T: Codable>(_ type: T.Type) throws -> T {
-        return try self.decode(WrappedRESTResponse<T>.self).data
+        try self.decode(WrappedRESTResponse<T>.self).data
     }
 }
 
@@ -56,7 +58,7 @@ private struct TestWebService: Apodini.WebService {
             case makeSpongebobcase
             
             init?(_ description: String) {
-                if let value = Self.init(rawValue: description) {
+                if let value = Self(rawValue: description) {
                     self = value
                 } else {
                     return nil
@@ -199,7 +201,6 @@ private struct TestWebService: Apodini.WebService {
 }
 
 
-
 class InvocableHandlerTests: ApodiniDeployTestsBase {
     func testSimpleRemoteHandlerInvocation() throws {
         TestWebService.main(app: app)
@@ -208,7 +209,6 @@ class InvocableHandlerTests: ApodiniDeployTestsBase {
             try XCTAssertEqual(res.content.decodeRESTResponseData(String.self), "F")
         }
     }
-    
     
     func testArrayBasedParameterPassing() throws {
         TestWebService.main(app: app)
@@ -221,7 +221,6 @@ class InvocableHandlerTests: ApodiniDeployTestsBase {
         }
     }
     
-    
     func testArrayBasedParameterPassingDefaultParameterValueHandling() throws {
         TestWebService.main(app: app)
         try app.vapor.app.test(.GET, "/v1/greet?name=LuKAs") { res in // default value for the TextTransformer.transformation parameter is .identity
@@ -229,7 +228,6 @@ class InvocableHandlerTests: ApodiniDeployTestsBase {
             try XCTAssertEqual(res.content.decodeRESTResponseData(String.self), "Hello LuKAs!")
         }
     }
-    
     
     func testParametersStorageObjectBasedParameterPassing() throws {
         TestWebService.main(app: app)

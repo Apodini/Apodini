@@ -7,13 +7,12 @@
 
 import Foundation
 
-
 extension String {
     /// Returns the string, with the specified suffix appended if necessary
     public func withSuffix(_ suffix: String) -> String {
         guard !hasSuffix(suffix) else {
             return self
         }
-        return self + suffix // TODO what if the suffix is already partially there?
+        return self + suffix
     }
 }

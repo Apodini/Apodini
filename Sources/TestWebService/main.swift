@@ -59,7 +59,7 @@ struct Greeter: Handler {
             identifiedBy: .main,
             parameters: [
                 .init(\.$lowerBound, age),
-                .init(\.$upperBound, -age * 2)
+                .init(\.$upperBound, age * 2)
             ]
         )
         .map { randomNumber -> String in

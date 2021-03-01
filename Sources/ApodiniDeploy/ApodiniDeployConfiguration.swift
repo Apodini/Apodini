@@ -63,13 +63,14 @@ public struct DeploymentGroupModifier<Content: Component>: Modifier, SyntaxTreeV
     
     public func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(DSLSpecifiedDeploymentGroupIdContextKey.self, value: groupId, scope: .environment)
-        visitor.addContext(HandlerDeploymentOptionsSyntaxNodeContextKey.self, value: options, scope: .environment)
+        visitor.addContext(HandlerDeploymentOptionsContextKey.self, value: options, scope: .environment)
         component.accept(visitor)
     }
 }
 
 
 extension Group {
+    /// Form a deployment group based on the handlers contained in this `Group`
     public func formDeploymentGroup(
         withId groupId: DeploymentGroup.ID? = nil,
         options: [AnyDeploymentOption] = []
@@ -83,8 +84,7 @@ extension Group {
 }
 
 
-
-struct HandlerDeploymentOptionsSyntaxNodeContextKey: Apodini.ContextKey {
+struct HandlerDeploymentOptionsContextKey: Apodini.ContextKey {
     typealias Value = [AnyDeploymentOption]
     
     static let defaultValue: Value = []
@@ -100,22 +100,21 @@ public struct HandlerDeploymentOptionsModifier<H: Handler>: HandlerModifier, Syn
     public let deploymentOptions: [AnyDeploymentOption]
     
     public func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(HandlerDeploymentOptionsSyntaxNodeContextKey.self, value: deploymentOptions, scope: .environment)
+        visitor.addContext(HandlerDeploymentOptionsContextKey.self, value: deploymentOptions, scope: .environment)
         component.accept(visitor)
     }
 }
 
 
 extension Handler {
+    /// Attach a set of deployment options to the handler
     public func deploymentOptions(_ options: AnyDeploymentOption...) -> HandlerDeploymentOptionsModifier<Self> {
         HandlerDeploymentOptionsModifier(component: self, deploymentOptions: options)
     }
 }
 
 
-
-
-
+/// A `Handler` which specifies deployment options
 public protocol HandlerWithDeploymentOptions: Handler {
     /// Type-level deployment options (ie options which apply to all instances of this type)
     static var deploymentOptions: [AnyDeploymentOption] { get }
@@ -124,6 +123,6 @@ public protocol HandlerWithDeploymentOptions: Handler {
 extension HandlerWithDeploymentOptions {
     /// By default, `Handler`s dont't specify any type-level deployment options
     public static var deploymentOptions: [AnyDeploymentOption] {
-        return []
+        []
     }
 }

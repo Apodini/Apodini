@@ -12,31 +12,42 @@ import DeploymentTargetLocalhostCommon
 
 
 public class LocalhostRuntimeSupport: DeploymentProviderRuntimeSupport {
-    public static let deploymentProviderId = LocalhostDeploymentProviderId
-    
+    public static let deploymentProviderId = localhostDeploymentProviderId
     public let deployedSystem: DeployedSystem
     public let currentNodeId: DeployedSystem.Node.ID
     private let currentNodeCustomLaunchInfo: LocalhostLaunchInfo
     
-    
-    public required init(deployedSystem: DeployedSystem, currentNodeId: DeployedSystem.Node.ID) {
+    public required init(deployedSystem: DeployedSystem, currentNodeId: DeployedSystem.Node.ID) throws {
         self.deployedSystem = deployedSystem
         self.currentNodeId = currentNodeId
-        self.currentNodeCustomLaunchInfo = deployedSystem.node(withId: currentNodeId)!.readUserInfo(as: LocalhostLaunchInfo.self)!
+        guard
+            let node = deployedSystem.node(withId: currentNodeId),
+            let launchInfo = node.readUserInfo(as: LocalhostLaunchInfo.self)
+        else {
+            throw ApodiniDeployRuntimeSupportError(
+                deploymentProviderId: Self.deploymentProviderId,
+                message: "Unable to read userInfo"
+            )
+        }
+        self.currentNodeCustomLaunchInfo = launchInfo
     }
-    
     
     public func configure(_ app: Apodini.Application) throws {
         app.http.address = .hostname(nil, port: currentNodeCustomLaunchInfo.port)
-        //app.vapor.app.http.server.configuration.port = currentNodeCustomLaunchInfo.port
     }
-    
     
     public func handleRemoteHandlerInvocation<H: IdentifiableHandler>(
         _ invocation: HandlerInvocation<H>
     ) throws -> RemoteHandlerInvocationRequestResponse<H.Response.Content> {
-        let LLI = invocation.targetNode.readUserInfo(as: LocalhostLaunchInfo.self)!
-        // TODO read hostname from app?
-        return .invokeDefault(url: URL(string: "http://127.0.0.1:\(LLI.port)")!)
+        guard
+            let LLI = invocation.targetNode.readUserInfo(as: LocalhostLaunchInfo.self),
+            let url = URL(string: "http://127.0.0.1:\(LLI.port)")
+        else {
+            throw ApodiniDeployRuntimeSupportError(
+                deploymentProviderId: deploymentProviderId,
+                message: "Unable to read port and construct url"
+            )
+        }
+        return .invokeDefault(url: url)
     }
 }

@@ -70,7 +70,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                                 OpenAPI.Response(description: "Internal Server Error")
                             )
                         ],
-                        vendorExtensions: ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
+                        vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint.identifier.rawValue)]
                     )
                 )
             ],

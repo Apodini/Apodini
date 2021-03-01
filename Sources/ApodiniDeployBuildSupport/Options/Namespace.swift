@@ -5,15 +5,12 @@
 //  Created by Lukas Kollmer on 2021-02-06.
 //
 
-import Foundation
 
-
-
-public protocol OuterNamespace: class {
+public protocol OuterNamespace: AnyObject {
     static var id: String { get }
 }
 
-public protocol InnerNamespace: class {
+public protocol InnerNamespace: AnyObject {
     associatedtype OuterNS: OuterNamespace
     static var id: String { get }
 }

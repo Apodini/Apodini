@@ -21,16 +21,23 @@ import SotoSTS
 import OpenAPIKit
 
 
+extension OpenAPIVendorExtensionKey where Value == String {
+    static let apodiniHandlerId = OpenAPIVendorExtensionKey("x-apodiniHandlerId")
+    static let amazonApiGatewayImportExportVersion = OpenAPIVendorExtensionKey("x-amazon-apigateway-importexport-version")
+}
+
+extension OpenAPIVendorExtensionKey where Value == [String: String] {
+    static let amazonApiGatewayIntegration = OpenAPIVendorExtensionKey("x-amazon-apigateway-integration")
+}
 
 
 /// A type which interacts with AWS to create and configure ressources.
 /// - Note: Instances of this class should not be re-used to apply multiple deployments.
-class AWSIntegration {
+class AWSIntegration { // swiftlint:disable:this type_body_length
     private static let lambdaFunctionNamePrefix = "apodini-lambda"
-    private static let xAmazonApigatewayIntegrationKey = "x-amazon-apigateway-integration"
     
     private let tmpDirUrl: URL
-    private let FM = FileManager.default
+    private let fm = FileManager.default
     private let logger = Logger(label: "de.lukaskollmer.ApodiniLambda.AWSIntegration")
     
     private let awsRegion: SotoCore.Region
@@ -60,18 +67,15 @@ class AWSIntegration {
         )
         sts = STS(client: awsClient, region: awsRegion)
         iam = IAM(client: awsClient)
-        s3 = S3.init(client: awsClient, region: awsRegion, timeout: .minutes(4))
+        s3 = S3(client: awsClient, region: awsRegion, timeout: .minutes(4))
         lambda = Lambda(client: awsClient, region: awsRegion)
         apiGateway = ApiGatewayV2(client: awsClient, region: awsRegion)
     }
     
     
     deinit {
-        logger.trace("-[\(Self.self) \(#function)]")
-        try! awsClient.syncShutdown()
+        try? awsClient.syncShutdown()
     }
-    
-    
     
     
     /// Creates a new HTTP API Gateway in the specified AWS region.
@@ -90,11 +94,9 @@ class AWSIntegration {
     }
     
     
-    
-    
     /// - parameter s3BucketName: name of the S3 bucket the function should be uploaded to
     /// - parameter s3ObjectFolderKey: key (ie path) of the folder into which the function should be uploaded
-    func deployToLambda(
+    func deployToLambda( // swiftlint:disable:this function_parameter_count function_body_length cyclomatic_complexity
         deploymentStructure: DeployedSystem,
         openApiDocument: OpenAPI.Document,
         lambdaExecutableUrl: URL,
@@ -148,20 +150,20 @@ class AWSIntegration {
         do {
             logger.notice("Creating lambda package")
             let lambdaPackageTmpDir = tmpDirUrl.appendingPathComponent("lambda-package", isDirectory: true)
-            if FM.directoryExists(atUrl: lambdaPackageTmpDir) {
-                try FM.removeItem(at: lambdaPackageTmpDir)
+            if fm.directoryExists(atUrl: lambdaPackageTmpDir) {
+                try fm.removeItem(at: lambdaPackageTmpDir)
             }
-            try FM.createDirectory(at: lambdaPackageTmpDir, withIntermediateDirectories: true, attributes: nil)
+            try fm.createDirectory(at: lambdaPackageTmpDir, withIntermediateDirectories: true, attributes: nil)
             
             let addToLambdaPackage = { [unowned self] (url: URL) throws -> Void in
-                try FM.copyItem(
+                try fm.copyItem(
                     at: url,
                     to: lambdaPackageTmpDir.appendingPathComponent(url.lastPathComponent, isDirectory: false),
                     overwriteExisting: true
                 )
             }
             
-            for sharedObjectFileUrl in try FM.contentsOfDirectory(at: lambdaSharedObjectFilesUrl, includingPropertiesForKeys: nil, options: []) {
+            for sharedObjectFileUrl in try fm.contentsOfDirectory(at: lambdaSharedObjectFilesUrl, includingPropertiesForKeys: nil, options: []) {
                 try addToLambdaPackage(sharedObjectFileUrl)
             }
             
@@ -169,7 +171,7 @@ class AWSIntegration {
             
             let launchInfoFileUrl = lambdaPackageTmpDir.appendingPathComponent("launchInfo.json", isDirectory: false)
             try deploymentStructure.writeJSON(to: launchInfoFileUrl)
-            try FM.setPosixPermissions("rw-r--r--", forItemAt: launchInfoFileUrl)
+            try fm.setPosixPermissions("rw-r--r--", forItemAt: launchInfoFileUrl)
             
             do {
                 // create & add bootstrap file
@@ -179,14 +181,14 @@ class AWSIntegration {
                 """
                 let bootstrapFileUrl = lambdaPackageTmpDir.appendingPathComponent("bootstrap", isDirectory: false)
                 try bootstrapFileContents.write(to: bootstrapFileUrl, atomically: true, encoding: .utf8)
-                try FM.setPosixPermissions("rwxrwxr-x", forItemAt: bootstrapFileUrl)
+                try fm.setPosixPermissions("rwxrwxr-x", forItemAt: bootstrapFileUrl)
             }
             
             logger.notice("zipping lambda package")
             let zipFilename = "lambda.zip"
             try Task(
                 executableUrl: zipBin,
-                arguments: try [zipFilename] + FM.contentsOfDirectory(atPath: lambdaPackageTmpDir.path),
+                arguments: try [zipFilename] + fm.contentsOfDirectory(atPath: lambdaPackageTmpDir.path),
                 workingDirectory: lambdaPackageTmpDir,
                 captureOutput: true, // suppress output
                 launchInCurrentProcessGroup: true
@@ -209,7 +211,7 @@ class AWSIntegration {
                             )
                             fflush(stdout)
                         }
-                    ).wait()
+                    ).wait() // swiftlint:disable:this multiline_function_chains
                     print("\u{1b}[2KS3 upload done.")
                 } catch {
                     print("") // print a newline after the last progress line (which did not terminate w/ a newline)
@@ -261,17 +263,8 @@ class AWSIntegration {
         let apiGatewayExecuteUrl = URL(string: "https://\(apiGatewayApiId).execute-api.\(awsRegion.rawValue).amazonaws.com/")!
         
         var apiGatewayImportDef = openApiDocument
-        apiGatewayImportDef.vendorExtensions["x-amazon-apigateway-importexport-version"] = "1.0"
-        
-        apiGatewayImportDef.servers = [
-            OpenAPI.Server(
-                url: apiGatewayExecuteUrl,
-                description: nil,
-                variables: OrderedDictionary<String, OpenAPI.Server.Variable>(),
-                vendorExtensions: Dictionary<String, AnyCodable>()
-            )
-        ]
-        
+        apiGatewayImportDef.vendorExtensions[.amazonApiGatewayImportExportVersion] = "1.0"
+        apiGatewayImportDef.servers = [OpenAPI.Server(url: apiGatewayExecuteUrl)]
         
         func lambdaFunctionConfigForHandlerId(_ handlerId: String) -> Lambda.FunctionConfiguration {
             let node = deploymentStructure.nodeExportingEndpoint(withHandlerId: AnyHandlerIdentifier(handlerId))!
@@ -280,13 +273,15 @@ class AWSIntegration {
         
         
         // Add lambda integration metadata for each endpoint
-        apiGatewayImportDef.paths = apiGatewayImportDef.paths.mapValues { (pathItem: OpenAPI.PathItem) -> OpenAPI.PathItem in
+        apiGatewayImportDef.paths = try apiGatewayImportDef.paths.mapValues { (pathItem: OpenAPI.PathItem) -> OpenAPI.PathItem in
             var pathItem = pathItem
             for endpoint in pathItem.endpoints {
                 var operation = endpoint.operation
-                let handlerId = operation.vendorExtensions["x-handlerId"]!.value as! String
+                guard let handlerId = operation.vendorExtensions[.apodiniHandlerId] else {
+                    throw makeError("Unable to read handler id from OpenAPI operation object")
+                }
                 let lambdaFunctionConfig = lambdaFunctionConfigForHandlerId(handlerId)
-                operation.vendorExtensions["x-amazon-apigateway-integration"] = [
+                operation.vendorExtensions[.amazonApiGatewayIntegration] = [
                     "type": "aws_proxy",
                     "httpMethod": "POST",
                     "connectionType": "INTERNET",
@@ -302,22 +297,24 @@ class AWSIntegration {
         // Add the endpoints of the internal invocation API
         for (_, pathItem) in apiGatewayImportDef.paths {
             for endpoint in pathItem.endpoints {
-                let handlerId: String = endpoint.operation.vendorExtensions["x-handlerId"]?.value as! String
+                guard let handlerId: String = endpoint.operation.vendorExtensions[.apodiniHandlerId] else {
+                    throw makeError("Unable to read handler id from OpenAPI operation object")
+                }
                 let lambdaFunctionConfig = lambdaFunctionConfigForHandlerId(handlerId)
                 let path = OpenAPI.Path(["__apodini", "invoke", handlerId])
                 apiGatewayImportDef.paths[path] = OpenAPI.PathItem(
                     post: OpenAPI.Operation(
                         responses: [
-                            OpenAPI.Response.StatusCode.default: Either(OpenAPI.Response.init(description: "desc"))
+                            OpenAPI.Response.StatusCode.default: Either(OpenAPI.Response(description: "desc"))
                         ],
                         vendorExtensions: [
-                            Self.xAmazonApigatewayIntegrationKey: [
+                            .init(.amazonApiGatewayIntegration, [
                                 "type": "aws_proxy",
                                 "httpMethod": "POST",
                                 "connectionType": "INTERNET",
                                 "uri": "arn:aws:apigateway:\(awsRegion.rawValue):lambda:path/2015-03-31/functions/\(lambdaFunctionConfig.functionArn!)/invocations",
                                 "payloadFormatVersion": "2.0"
-                            ]
+                            ])
                         ]
                     )
                 )
@@ -340,8 +337,6 @@ class AWSIntegration {
         logger.notice("Deployed \(numLambdas) lambda\(numLambdas == 1 ? "" : "s") to api gateway w/ id '\(apiGatewayApiId)'")
         logger.notice("Invoke URL: \(apiGatewayExecuteUrl)")
     }
-    
-    
     
     
     private func createLambdaExecutionRole() throws -> IAM.Role {
@@ -380,13 +375,11 @@ class AWSIntegration {
     }
     
     
-    
-    
     /// Configures a lambda function for a node within our deployed system.
     /// If a suitable function already exists (determined based on the node's id) this existing function will be re-used.
     /// Otherwise a new function will be created.
     /// - returns: the deployed-to function
-    private func configureLambdaFunction(
+    private func configureLambdaFunction( // swiftlint:disable:this function_body_length
         forNode node: DeployedSystem.Node,
         allFunctions: [Lambda.FunctionConfiguration],
         s3BucketName: String,
@@ -397,15 +390,13 @@ class AWSIntegration {
         // #"(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:)?(\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\$LATEST|[a-zA-Z0-9-_]+))?"#
         let allowedCharacters = "abcdefghijklmnopqsrtuvwxyzABCDEFGHIJKLMNOPQSRTUVWXYZ0123456789-_"
         let lambdaName = "\(Self.lambdaFunctionNamePrefix)-\(apiGatewayApiId)-\(String(node.id.map { allowedCharacters.contains($0) ? $0 : "-" }))"
-        
         guard deployedLambdaFunctions.insert(lambdaName).inserted else {
-            fatalError("Encountered multiple lambda functions with same name '\(lambdaName)'. This can happen if two handler or deployment group identifiers are very similar and one of them contains invalid caracters, causing the sanitised name to match the other one. ")
+            fatalError("Encountered multiple lambda functions with same name '\(lambdaName)'. This can happen if two handler or deployment group identifiers are very similar and one of them contains invalid caracters, causing the sanitised name to match the other one.")
         }
         
         let deploymentOptions = node.combinedEndpointDeploymentOptions()
         let memorySize: UInt = try deploymentOptions.getValue(forKey: .memorySize).rawValue
-        let timeout: Timeout = try deploymentOptions.getValue(forKey: .timeout)
-        
+        let timeoutInSec = Int((try deploymentOptions.getValue(forKey: .timeout) as ApodiniDeployBuildSupport.TimeInterval).rawValue)
         let lambdaEnv: Lambda.Environment = .init(variables: [
             WellKnownEnvironmentVariables.currentNodeId: node.id
         ])
@@ -416,7 +407,7 @@ class AWSIntegration {
                 environment: lambdaEnv,
                 functionName: function.functionArn!,
                 memorySize: Int(memorySize),
-                timeout: Int(timeout.rawValue)
+                timeout: timeoutInSec
             )).wait()
             return try lambda.updateFunctionCode(Lambda.UpdateFunctionCodeRequest(
                 functionName: function.functionName!,
@@ -438,7 +429,7 @@ class AWSIntegration {
                 role: executionRoleArn,
                 runtime: .providedAl2,
                 tags: nil, // [String : String]?.none,
-                timeout: Int(timeout.rawValue)
+                timeout: timeoutInSec
             )
             
             // The issue here is that, if the IAM role assigned to the new lambda is a newly created role,
@@ -468,5 +459,3 @@ class AWSIntegration {
         }
     }
 }
-
-

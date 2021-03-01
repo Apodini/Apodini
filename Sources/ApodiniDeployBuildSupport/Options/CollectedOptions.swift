@@ -22,7 +22,7 @@ public struct CollectedOptions<OuterNS: OuterNamespace>: Codable, ExpressibleByA
     }
     
     public init<S>(reducing options: S) where S: Sequence, S.Element == ResolvedOption<OuterNS> {
-        self.options = Array(options.reduce(into: Set<ResolvedOption<OuterNS>>(), { (options, option) in
+        self.options = Array(options.reduce(into: Set<ResolvedOption<OuterNS>>(), { options, option in
             options.insert(option) { $0.reduceOption(with: $1) }
         }))
     }
@@ -51,7 +51,7 @@ public struct CollectedOptions<OuterNS: OuterNamespace>: Codable, ExpressibleByA
     /// - throws: if an entry does exist but there was an erorr reading (ie decoding) it/
     public func getValue<InnerNS, Value>(forKey optionKey: OptionKeyWithDefaultValue<OuterNS, InnerNS, Value>) throws -> Value {
         switch try getValue_imp(forKey: optionKey) {
-        case Optional<Value>.some(let value):
+        case Optional<Value>.some(let value): // swiftlint:disable:this syntactic_sugar
             return value
         case .none:
             return optionKey.defaultValue

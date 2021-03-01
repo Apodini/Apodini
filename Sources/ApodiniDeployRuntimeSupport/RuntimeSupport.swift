@@ -11,15 +11,30 @@ import NIO
 @_exported import ApodiniDeployBuildSupport
 
 
-
+/// How a remote handler invocation should be processed.
 public enum RemoteHandlerInvocationRequestResponse<Response: Decodable> {
-    // url should be just scheme+hostname+port (but no path)
+    /// The remote handler invocation should be realised using the internal direct invocation API,
+    /// by sending a message to the specified url
+    /// - Note: The url should be just scheme+hostname+port (but no path)
     case invokeDefault(url: URL)
+    /// The remote handler invocation was handled by the deployment provider..
+    /// The associated value here is a future which will resolve to the invoked handler's response.
     case result(EventLoopFuture<Response>)
 }
 
 
-public protocol DeploymentProviderRuntimeSupport: class {
+/// The protocol used to define a deployment provider's runtime support type.
+///
+/// The runtime support type's responsibility is to integrate the deployment provider into the running web service.
+/// This is done by allowing the runtime support type to hook into the lifecycle of the web service, at the following events:
+/// 1. When the system is initialised. This is when the runtime is also being initialised.
+/// 2. When the system is being configured.
+///   This is when the runtime's `configure(_ app:)` function will be called, giving it an opportunity
+///   to perform custom configuration on the `Apodini.Application` object
+/// 3. When the remote handler invocation API was used to invoke a handler, and the dispatcher determined that the handler
+///   should be invoked remotely (i.e. not in the current process).
+///   In this case the runtime is given the option to simply forward the invocation to some url, or implement and perform the invocation manually.
+public protocol DeploymentProviderRuntimeSupport: AnyObject {
     static var deploymentProviderId: DeploymentProviderID { get }
     
     init(deployedSystem: DeployedSystem, currentNodeId: DeployedSystem.Node.ID) throws
@@ -40,6 +55,7 @@ public protocol DeploymentProviderRuntimeSupport: class {
 
 
 extension DeploymentProviderRuntimeSupport {
+    /// The identifier of the deployment provider
     public var deploymentProviderId: DeploymentProviderID {
         Self.deploymentProviderId
     }

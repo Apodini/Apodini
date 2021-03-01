@@ -196,7 +196,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
                 .status(code: 500): .init(
                     OpenAPI.Response(description: "Internal Server Error"))
             ],
-            vendorExtensions: ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
+            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint.identifier.rawValue)]
         ))
 
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in
@@ -257,7 +257,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
                 .status(code: 500): .init(
                     OpenAPI.Response(description: "Internal Server Error"))
             ],
-            vendorExtensions: ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
+            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint.identifier.rawValue)]
         ))
 
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)

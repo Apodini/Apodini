@@ -11,15 +11,18 @@ import MachO
 #endif
 
 
-
+/// Checks if the parameter is a POSIX error code indiating a failire, and, if yes, throws an appropriate error
 public func throwIfPosixError(_ posixErrno: Int32) throws {
-    guard posixErrno != 0 else { return }
+    guard posixErrno != 0 else {
+        return
+    }
     throw NSError(domain: NSPOSIXErrorDomain, code: Int(posixErrno), userInfo: [
         NSLocalizedDescriptionKey: getErrnoString() ?? ""
     ])
 }
 
 
+/// Returns a string representation of the current `errno` value.
 public func getErrnoString() -> String? {
     if let cString = strerror(errno) {
         return String(cString: cString)
@@ -50,9 +53,7 @@ extension ProcessInfo {
         }
         return URL(fileURLWithPath: imp(bufsize: 512))
         #else
-        return Bundle.main.executableURL!
+        return Bundle.main.executableURL! // swiftlint:disable:this force_unwrapping
         #endif
-
     }
 }
-

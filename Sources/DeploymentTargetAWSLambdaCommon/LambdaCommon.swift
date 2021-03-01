@@ -9,7 +9,8 @@ import Foundation
 import ApodiniDeployBuildSupport
 
 
-public let LambdaDeploymentProviderId = DeploymentProviderID(rawValue: "de.lukaskollmer.ApodiniDeploymentProvider.AWSLambda")
+/// Identifier of the lambda deployment provider.
+public let lambdaDeploymentProviderId = DeploymentProviderID("de.lukaskollmer.ApodiniDeploymentProvider.AWSLambda")
 
 
 // the DeployedSystem user info for lambda deployments
@@ -25,6 +26,7 @@ public struct LambdaDeployedSystemContext: Codable {
 
 
 extension LambdaDeployedSystemContext {
+    /// The hostname of this Lambda's API Gateway
     public var apiGatewayHostname: String {
         "\(apiGatewayApiId).execute-api.\(awsRegion).amazonaws.com"
     }
@@ -33,7 +35,7 @@ extension LambdaDeployedSystemContext {
 
 public final class LambdaDeploymentOptionsNamespace: InnerNamespace {
     public typealias OuterNS = DeploymentOptionsNamespace
-    public static let id = LambdaDeploymentProviderId.rawValue
+    public static let id = lambdaDeploymentProviderId.rawValue
 }
 
 
@@ -49,23 +51,21 @@ public struct LambdaDescriptionOption: OptionValue, RawRepresentable, Expressibl
     }
     
     public func reduce(with other: LambdaDescriptionOption) -> LambdaDescriptionOption {
-        fatalError("self: \(self), other: \(other)")
+        fatalError("Conflicting lambda descriptions specified ('\(self.rawValue)' vs '\(other.rawValue)').")
     }
 }
-
 
 
 public extension OptionKey where InnerNS == LambdaDeploymentOptionsNamespace, Value == LambdaDescriptionOption {
-    static let lambdaDescription = OptionKey<DeploymentOptionsNamespace, LambdaDeploymentOptionsNamespace, LambdaDescriptionOption>(key: "description")
+    /// Lambda description option key.
+    static let lambdaDescription =
+        OptionKey<DeploymentOptionsNamespace, LambdaDeploymentOptionsNamespace, LambdaDescriptionOption>(key: "description")
 }
-
 
 
 public extension AnyOption where OuterNS == DeploymentOptionsNamespace {
+    /// Option for specifying the description of the lambda generated for this deployment group.
     static func lambdaDescription(_ value: LambdaDescriptionOption) -> AnyOption {
-        return ResolvedOption(key: .lambdaDescription, value: value)
+        ResolvedOption(key: .lambdaDescription, value: value)
     }
 }
-
-
-

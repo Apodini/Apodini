@@ -8,6 +8,7 @@
 import Foundation
 import NIO
 import Apodini
+import ApodiniUtils
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
 import ApodiniVaporSupport
@@ -62,7 +63,7 @@ extension RemoteHandlerInvocationManager {
         identifiedBy handlerId: H.HandlerIdentifier,
         parameters: H.ParametersStorage
     ) -> EventLoopFuture<H.Response.Content> {
-        _invoke(
+        invokeImp(
             handlerType: H.self,
             handlerId: handlerId,
             collectedInputParams: H.ParametersStorage.mapping.map { mappingEntry in
@@ -87,9 +88,8 @@ extension RemoteHandlerInvocationManager {
         identifiedBy handlerId: H.HandlerIdentifier,
         parameters: [CollectedParameter<H>] = []
     ) -> EventLoopFuture<H.Response.Content> where H.ParametersStorage == InvocableHandlerEmptyParametersStorage<H> {
-        _invoke(handlerType: handlerType, handlerId: handlerId, collectedInputParams: parameters)
+        invokeImp(handlerType: handlerType, handlerId: handlerId, collectedInputParams: parameters)
     }
-    
     
     
     struct RemoteInvocationResponseError: Swift.Error {
@@ -105,7 +105,7 @@ extension RemoteHandlerInvocationManager {
     }
     
     
-    private func _invoke<H: InvocableHandler>(
+    private func invokeImp<H: InvocableHandler>(
         handlerType: H.Type,
         handlerId: H.HandlerIdentifier,
         collectedInputParams: [CollectedParameter<H>]
@@ -120,88 +120,111 @@ extension RemoteHandlerInvocationManager {
         
         switch dispatchStrategy(forInvocationOf: targetEndpoint, internalInterfaceExporter: internalInterfaceExporter) {
         case .locally:
-            return targetEndpoint._invoke(withCollectedParameters: collectedInputParams, internalInterfaceExporter: internalInterfaceExporter, on: eventLoop)
+            return targetEndpoint.invokeImp(
+                withCollectedParameters: collectedInputParams,
+                internalInterfaceExporter: internalInterfaceExporter,
+                on: eventLoop
+            )
         case .remotely(let targetNode):
-            guard let runtime = internalInterfaceExporter.deploymentProviderRuntime else {
-                return eventLoop.makeFailedFuture(ApodiniDeployError(message: "Unable to find runtime"))
-            }
-            // The targetEndpoint is on a different node, dispatch the invocation there
-            
-            // TODO if theres a guarantee that an EndpointParameter's id is the same as the id of the @Parameter it was generated from,
-            // we can combine these two sets into one
-            var alreadyProcessedParamKeyPaths: Set<AnyKeyPath> = []
-            var alreadyProcessedEndpointParamIds: Set<UUID> = []
+            return invokeRemotely(
+                handlerId: handlerId,
+                internalInterfaceExporter: internalInterfaceExporter,
+                targetNode: targetNode,
+                targetEndpoint: targetEndpoint,
+                collectedInputParams: collectedInputParams
+            )
+        }
+    }
+    
+    
+    /// Remotely invoke a specific endpoint, in a specific node of the deployed system
+    private func invokeRemotely<H: InvocableHandler>( // swiftlint:disable:this function_body_length
+        handlerId: H.HandlerIdentifier,
+        internalInterfaceExporter: ApodiniDeployInterfaceExporter,
+        targetNode: DeployedSystem.Node,
+        targetEndpoint: Endpoint<H>,
+        collectedInputParams: [CollectedParameter<H>]
+    ) -> EventLoopFuture<H.Response.Content> {
+        guard let runtime = internalInterfaceExporter.deploymentProviderRuntime else {
+            return eventLoop.makeFailedFuture(ApodiniDeployError(message: "Unable to find runtime"))
+        }
+        // The targetEndpoint is on a different node, dispatch the invocation there
+        
+        // Note that if theres a guarantee that an EndpointParameter's id is the same as the id of the @Parameter it was generated from,
+        // we can combine these two sets into one
+        var alreadyProcessedParamKeyPaths: Set<AnyKeyPath> = []
+        var alreadyProcessedEndpointParamIds: Set<UUID> = []
 
-            let invocationParams: [HandlerInvocation<H>.Parameter] = collectedInputParams.map { collectedParam in
-                // The @Parameter property wrapper declaration in the handler
-                let handlerParamId = (targetEndpoint.handler[keyPath: collectedParam.handlerKeyPath] as! AnyParameterID).value
-                let endpointParam = targetEndpoint.findParameter(for: handlerParamId)!
-                if !alreadyProcessedParamKeyPaths.insert(collectedParam.handlerKeyPath).inserted {
-                    print("Parameter '\(endpointParam.name)' specified multiple times in remote handler invocation")
-                }
-                if !alreadyProcessedEndpointParamIds.insert(endpointParam.id).inserted {
-                    print("Endpoint parameter with id '\(endpointParam.id)' matched multiple times in remote handler invocation")
-                }
-                return HandlerInvocation<H>.Parameter(
-                    stableIdentity: endpointParam.stableIdentity,
-                    name: endpointParam.name,
-                    value: collectedParam.value as! HandlerInvocation<H>.Parameter.Value
+        let invocationParams: [HandlerInvocation<H>.Parameter] = collectedInputParams.map { collectedParam in
+            // The @Parameter property wrapper declaration in the handler
+            let handlerParamId = unsafelyCast(targetEndpoint.handler[keyPath: collectedParam.handlerKeyPath], to: AnyParameterID.self).value
+            guard let endpointParam = targetEndpoint.findParameter(for: handlerParamId) else {
+                fatalError("Unable to fetch endpoint parameter for handlerParamId '\(handlerParamId)'")
+            }
+            if !alreadyProcessedParamKeyPaths.insert(collectedParam.handlerKeyPath).inserted {
+                print("Parameter '\(endpointParam.name)' specified multiple times in remote handler invocation")
+            }
+            if !alreadyProcessedEndpointParamIds.insert(endpointParam.id).inserted {
+                print("Endpoint parameter with id '\(endpointParam.id)' matched multiple times in remote handler invocation")
+            }
+            return HandlerInvocation<H>.Parameter(
+                stableIdentity: endpointParam.stableIdentity,
+                name: endpointParam.name,
+                value: unsafelyCast(collectedParam.value, to: HandlerInvocation<H>.Parameter.Value.self)
+            )
+        }
+        let missingParamNames: [String] = targetEndpoint.parameters
+            .filter { !$0.hasDefaultValue && !alreadyProcessedEndpointParamIds.contains($0.id) }
+            .map(\.name)
+        guard missingParamNames.isEmpty else {
+            fatalError("Missing parameters in remote handler invocation: \(missingParamNames)")
+        }
+        
+        assert(handlerId == targetEndpoint.identifier)
+        
+        do {
+            let handlerInvocation = HandlerInvocation<H>(handlerId: handlerId, targetNode: targetNode, parameters: invocationParams)
+            let runtimeHandlingResult = try runtime.handleRemoteHandlerInvocation(handlerInvocation)
+            
+            switch runtimeHandlingResult {
+            case .result(let future):
+                return future
+            
+            case .invokeDefault(let url):
+                let requestUrl = url
+                    .appendingPathComponent("__apodini")
+                    .appendingPathComponent("invoke")
+                    .appendingPathComponent(targetEndpoint.identifier.rawValue)
+                return internalInterfaceExporter.vaporApp.client.post(
+                    Vapor.URI(url: requestUrl),
+                    headers: [:],
+                    beforeSend: { (clientReq: inout Vapor.ClientRequest) in
+                        let input = InternalInvocationResponder<H>.Request(
+                            parameters: try invocationParams.map { param -> InternalInvocationResponder<H>.Request.EncodedParameter in
+                                try .init(
+                                    stableIdentity: param.stableIdentity,
+                                    encodedValue: param.encodeValue(using: JSONEncoder())
+                                )
+                            }
+                        )
+                        try clientReq.content.encode(input, using: JSONEncoder())
+                    }
                 )
-            }
-            let missingParamNames: [String] = targetEndpoint.parameters
-                .filter { !$0.hasDefaultValue && !alreadyProcessedEndpointParamIds.contains($0.id) }
-                .map(\.name)
-            guard missingParamNames.isEmpty else {
-                fatalError("Missing parameters in remote handler invocation: \(missingParamNames)")
-            }
-            
-            assert(handlerId == targetEndpoint.identifier)
-            
-            do {
-                let handlerInvocation = HandlerInvocation<H>(handlerId: handlerId, targetNode: targetNode, parameters: invocationParams)
-                let runtimeHandlingResult = try runtime.handleRemoteHandlerInvocation(handlerInvocation)
-                
-                switch runtimeHandlingResult {
-                case .result(let future):
-                    return future
-                case .invokeDefault(let url):
-                    let requestUrl = url
-                        .appendingPathComponent("__apodini")
-                        .appendingPathComponent("invoke")
-                        .appendingPathComponent(targetEndpoint.identifier.rawValue)
-                    return internalInterfaceExporter.vaporApp.client.post(
-                        Vapor.URI(url: requestUrl),
-                        headers: [:],
-                        beforeSend: { (clientReq: inout Vapor.ClientRequest) in
-                            let input = InternalInvocationResponder<H>.Request(
-                                parameters: try invocationParams.map { param -> InternalInvocationResponder<H>.Request.EncodedParameter in
-                                    return try .init(
-                                        stableIdentity: param.stableIdentity,
-                                        encodedValue: param.encodeValue(using: JSONEncoder())
-                                    )
-                                }
-                            )
-                            try clientReq.content.encode(input, using: JSONEncoder())
-                        }
-                    )
-                    .flatMapThrowing { (clientResponse: ClientResponse) -> H.Response.Content in
-                        let handlerResponse = try clientResponse.content.decode(InternalInvocationResponder<H>.Response.self)
-                        switch handlerResponse.status {
-                        case .success:
-                            return try JSONDecoder().decode(H.Response.Content.self, from: handlerResponse.encodedData)
-                        case .handlerError, .internalError:
-                            throw RemoteInvocationResponseError(
-                                context: handlerResponse.status == .handlerError ? .handlerError : .internalError,
-                                recordedErrorMessage: try JSONDecoder().decode(String.self, from: handlerResponse.encodedData)
-                            )
-                        }
-                        //let responseData: Data = try response.content.decode(InternalInvocationResponder<H>.Response.self).responseData
-                        //return try JSONDecoder().decode(H.Response.Content.self, from: responseData)
+                .flatMapThrowing { (clientResponse: ClientResponse) -> H.Response.Content in
+                    let handlerResponse = try clientResponse.content.decode(InternalInvocationResponder<H>.Response.self)
+                    switch handlerResponse.status {
+                    case .success:
+                        return try JSONDecoder().decode(H.Response.Content.self, from: handlerResponse.encodedData)
+                    case .handlerError, .internalError:
+                        throw RemoteInvocationResponseError(
+                            context: handlerResponse.status == .handlerError ? .handlerError : .internalError,
+                            recordedErrorMessage: try JSONDecoder().decode(String.self, from: handlerResponse.encodedData)
+                        )
                     }
                 }
-            } catch {
-                return eventLoop.makeFailedFuture(error)
             }
+        } catch {
+            return eventLoop.makeFailedFuture(error)
         }
     }
     
@@ -222,7 +245,9 @@ extension RemoteHandlerInvocationManager {
         }
         let handlerId = endpoint.identifier
         if let targetNode = runtime.deployedSystem.nodeExportingEndpoint(withHandlerId: handlerId) {
-            let currentNode = runtime.deployedSystem.node(withId: runtime.currentNodeId)!
+            guard let currentNode = runtime.deployedSystem.node(withId: runtime.currentNodeId) else {
+                fatalError("Unable to find current node")
+            }
             return targetNode == currentNode ? .locally : .remotely(targetNode)
         }
         print("[Error] Falling back to local dispatch because we were unable to find a node for the endpoint with handler id '\(handlerId)'. This should not be happening.")
@@ -232,12 +257,12 @@ extension RemoteHandlerInvocationManager {
 
 
 extension Endpoint {
-    func _invoke(
+    func invokeImp(
         withCollectedParameters parameters: [CollectedParameter<H>],
         internalInterfaceExporter: ApodiniDeployInterfaceExporter,
         on eventLoop: EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
-        _invoke(
+        invokeImp(
             withRequest: ApodiniDeployInterfaceExporter.ExporterRequest(endpoint: self, collectedParameters: parameters),
             internalInterfaceExporter: internalInterfaceExporter,
             on: eventLoop
@@ -245,7 +270,7 @@ extension Endpoint {
     }
     
     
-    func _invoke(
+    func invokeImp(
         withRequest request: ApodiniDeployInterfaceExporter.ExporterRequest,
         internalInterfaceExporter: ApodiniDeployInterfaceExporter,
         on eventLoop: EventLoop
@@ -276,12 +301,10 @@ extension Vapor.URI {
 }
 
 
-
-
-
 // MARK: Environment
 
 extension Apodini.Application {
+    /// A remote handler invocation manager object, which can be used to invoke other handlers from within a handler's `handle` function.
     public var RHI: RemoteHandlerInvocationManager {
         RemoteHandlerInvocationManager(app: self)
     }

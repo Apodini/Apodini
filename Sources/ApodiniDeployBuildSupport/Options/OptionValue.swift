@@ -15,8 +15,6 @@ public protocol OptionValue: Codable {
 }
 
 
-
-
 open class AnyOption<OuterNS: OuterNamespace>: Codable, Hashable, Equatable, CustomStringConvertible {
     public let key: AnyOptionKey<OuterNS>
     
@@ -37,7 +35,6 @@ open class AnyOption<OuterNS: OuterNamespace>: Codable, Hashable, Equatable, Cus
         lhs.key == rhs.key
     }
 }
-
 
 
 public final class ResolvedOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
@@ -73,7 +70,7 @@ public final class ResolvedOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
     }
     
     
-    required public init(from decoder: Decoder) throws {
+    public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let key = try container.decode(AnyOptionKey<OuterNS>.self, forKey: .key)
         self.valueStorage = .encoded(try container.decode(Data.self, forKey: .encodedValue))
@@ -84,7 +81,7 @@ public final class ResolvedOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
     }
     
     
-    public override func encode(to encoder: Encoder) throws {
+    override public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(key, forKey: .key)
         switch valueStorage {
@@ -96,7 +93,7 @@ public final class ResolvedOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
     }
     
     
-    public override var description: String {
+    override public var description: String {
         var desc = ""
         desc += "\(Self.self)(key: \(key)"
         switch valueStorage {
@@ -137,7 +134,7 @@ public final class ResolvedOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
     
     var untypedValue: Any? {
         switch valueStorage {
-        case .encoded(_):
+        case .encoded:
             return nil
         case .unencoded(let value, encodingFn: _):
             return value

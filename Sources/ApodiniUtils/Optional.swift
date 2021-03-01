@@ -21,6 +21,7 @@ extension Optional: OptionalProtocol {
 }
 
 
+/// Check whether `value` is some optional and is `nil`
 public func isNil(_ value: Any) -> Bool {
     switch value {
     case Optional<Any>.none:

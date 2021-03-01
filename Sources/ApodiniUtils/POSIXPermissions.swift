@@ -45,7 +45,10 @@ public struct POSIXPermissions: RawRepresentable, ExpressibleByIntegerLiteral, E
     }
     
     public init(stringLiteral value: StaticString) {
-        self = Self("\(value)")!
+        guard let parsed = Self("\(value)") else {
+            fatalError("Unable to parse input '\(value)' as a POSIX file permissions string")
+        }
+        self = parsed
     }
     
     

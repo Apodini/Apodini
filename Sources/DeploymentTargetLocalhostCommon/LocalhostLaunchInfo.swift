@@ -8,7 +8,9 @@
 import Foundation
 import ApodiniDeployBuildSupport
 
-public let LocalhostDeploymentProviderId = DeploymentProviderID(rawValue: "de.lukaskollmer.ApodiniDeploymentProvider.Localhost")
+
+/// Identifier of the localhost deployment provider.
+public let localhostDeploymentProviderId = DeploymentProviderID("de.lukaskollmer.ApodiniDeploymentProvider.Localhost")
 
 
 public struct LocalhostLaunchInfo: Codable {
@@ -18,4 +20,3 @@ public struct LocalhostLaunchInfo: Codable {
         self.port = port
     }
 }
-

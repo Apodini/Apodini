@@ -17,7 +17,7 @@ extension AnyOption {
         } else if let conditionalOption = self as? ConditionalOption {
             return conditionalOption.resolve_imp(against: handler)?.resolve(against: handler)
         } else {
-            fatalError()
+            fatalError("Unable to resolve option \(self) against handler \(handler)")
         }
     }
 }
@@ -51,7 +51,7 @@ final class ConditionalOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
         fatalError("The '\(Self.self)' type can only be encoded can only encoded")
     }
     
-    public override func encode(to encoder: Encoder) throws {
+    override func encode(to encoder: Encoder) throws {
         fatalError("Cannot encode unresolved conditional deployment option")
     }
     

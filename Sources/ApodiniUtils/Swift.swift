@@ -8,20 +8,6 @@
 import Foundation
 
 
-
-// MARK: Type-casting
-
-
-/// Perform a dynamic cast from one type to another.
-/// - returns: the casted value, or `nil` if the cast failed
-/// - note: This is semantically equivalent to the `as?` operator.
-///         The reason this function exists is to enable casting from `Any` to an optional type,
-///         which is otherwise rejected by the type checker.
-public func dynamicCast<U>(_ value: Any, to _: U.Type) -> U? {
-    value as? U
-}
-
-
 // MARK: Set
 
 extension Set {
@@ -30,10 +16,12 @@ extension Set {
         lhs.union(rhs)
     }
     
+    /// Forms the union of a set and a sequence
     public static func + <S> (lhs: Self, rhs: S) -> Self where S: Sequence, S.Element == Self.Element {
         lhs.union(rhs)
     }
     
+    /// Forms the union of a sequence and a set
     public static func + <S> (lhs: S, rhs: Self) -> Self where S: Sequence, S.Element == Self.Element {
         rhs.union(lhs)
     }
@@ -60,7 +48,6 @@ extension Set {
         }
     }
 }
-
 
 
 // MARK: Sequence
@@ -105,12 +92,13 @@ extension Collection {
     
     /// Returns the first element after the specified index, which matches the predicate
     public func first(after idx: Index, where predicate: (Element) throws -> Bool) rethrows -> Element? {
-        return try firstIndex(from: index(after: idx), where: predicate).map { self[$0] }
+        try firstIndex(from: index(after: idx), where: predicate).map { self[$0] }
     }
     
     
+    /// Returns the first index within the collection which matches a predicate, starting one after the specified index.
     public func firstIndex(after idx: Index, where predicate: (Element) throws -> Bool) rethrows -> Index? {
-        return try firstIndex(from: index(after: idx), where: predicate)
+        try firstIndex(from: index(after: idx), where: predicate)
     }
     
     /// Returns the first index within the collection which matches a predicate, starting at `from`.
@@ -136,11 +124,10 @@ extension RandomAccessCollection {
 }
 
 
-
-
 // MARK: Date
 
 extension Date {
+    /// Formats the date using the ISO8601 date format, optionally including the current time.
     public func formatAsIso8601(includeTime: Bool = false) -> String {
         let fmt = ISO8601DateFormatter()
         fmt.formatOptions = [.withFullDate, .withDashSeparatorInDate]
@@ -150,10 +137,10 @@ extension Date {
         return fmt.string(from: self)
     }
     
+    /// Formats the date using the supplied format string.
     public func format(_ formatString: String) -> String {
         let fmt = DateFormatter()
         fmt.dateFormat = formatString
         return fmt.string(from: self)
     }
 }
-

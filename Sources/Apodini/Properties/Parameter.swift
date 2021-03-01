@@ -12,7 +12,9 @@ import ApodiniUtils
 /// Generic Parameter that can be used to mark that the options are meant for `@Parameter`s
 public enum ParameterOptionNameSpace { }
 
+/// A type storing some parameter's id
 public protocol AnyParameterID {
+    /// The parameter's value
     var value: UUID { get }
 }
 

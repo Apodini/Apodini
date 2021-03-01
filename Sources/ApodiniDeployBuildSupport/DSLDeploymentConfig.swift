@@ -38,9 +38,6 @@ public struct HandlerTypeIdentifier: Codable, Hashable, Equatable {
 }
 
 
-
-
-// TODO rename to smth like DeploymentGroupInput? this isn't the actual deployment group, just the input collected from the user, which will later be used to create the proper deployment group
 public struct DeploymentGroup: Codable, Hashable, Equatable {
     public typealias ID = String
     
@@ -54,6 +51,7 @@ public struct DeploymentGroup: Codable, Hashable, Equatable {
         self.handlerIds = handlerIds
     }
     
+    /// Utility function for generating default group ids
     public static func generateGroupId() -> ID {
         UUID().uuidString
     }
@@ -61,7 +59,7 @@ public struct DeploymentGroup: Codable, Hashable, Equatable {
 
 
 public struct DeploymentGroupsConfig: Codable {
-    public enum DefaultGrouping: Int, Codable { // the cases here need better names
+    public enum DefaultGrouping: Int, Codable {
         /// Every handler which is not explicitly put in a group will get its own group
         case separateNodes
         /// All handlers which are not explicitly put into a group will be put into a single group
@@ -75,7 +73,6 @@ public struct DeploymentGroupsConfig: Codable {
         self.groups = groups
     }
 }
-
 
 
 public struct DeploymentConfig: Codable {

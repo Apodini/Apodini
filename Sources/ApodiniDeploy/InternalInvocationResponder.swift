@@ -38,10 +38,10 @@ struct InternalInvocationResponder<H: Handler>: Vapor.Responder {
             }
             return vaporRequest.eventLoop.next().makeSucceededFuture(vaporResponse)
         }
-        return endpoint._invoke(
+        return endpoint.invokeImp(
             withRequest: ApodiniDeployInterfaceExporter.ExporterRequest(
                 encodedParameters: request.parameters.map { param -> (String, Data) in
-                    return (param.stableIdentity, param.encodedValue)
+                    (param.stableIdentity, param.encodedValue)
                 }
             ),
             internalInterfaceExporter: internalInterfaceExporter,

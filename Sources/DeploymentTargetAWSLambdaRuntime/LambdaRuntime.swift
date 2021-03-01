@@ -15,7 +15,7 @@ import VaporAWSLambdaRuntime
 
 
 public class LambdaRuntime: DeploymentProviderRuntimeSupport {
-    public static let deploymentProviderId = LambdaDeploymentProviderId
+    public static let deploymentProviderId = lambdaDeploymentProviderId
     
     public let deployedSystem: DeployedSystem
     public let currentNodeId: DeployedSystem.Node.ID
@@ -25,9 +25,10 @@ public class LambdaRuntime: DeploymentProviderRuntimeSupport {
         self.deployedSystem = deployedSystem
         self.currentNodeId = currentNodeId
         guard let lambdaDeploymentContext = deployedSystem.readUserInfo(as: LambdaDeployedSystemContext.self) else {
-            throw NSError(domain: Self.deploymentProviderId.rawValue, code: 6667, userInfo: [
-                NSLocalizedDescriptionKey: "Unable to read userInfo object" as NSString
-            ])
+            throw ApodiniDeployRuntimeSupportError(
+                deploymentProviderId: Self.deploymentProviderId,
+                message: "Unable to read userInfo"
+            )
         }
         self.lambdaDeploymentContext = lambdaDeploymentContext
     }
@@ -36,13 +37,18 @@ public class LambdaRuntime: DeploymentProviderRuntimeSupport {
     public func configure(_ app: Apodini.Application) throws {
         print("-[\(Self.self) \(#function)] env", ProcessInfo.processInfo.environment)
         app.vapor.app.servers.use(.lambda)
-        //app.vapor.app.http.server.configuration.address = .hostname(lambdaDeploymentContext.apiGatewayHostname, port: 443)
     }
     
     
     public func handleRemoteHandlerInvocation<H: IdentifiableHandler>(
         _ invocation: HandlerInvocation<H>
     ) throws -> RemoteHandlerInvocationRequestResponse<H.Response.Content> {
-        .invokeDefault(url: URL(string: "https://\(lambdaDeploymentContext.apiGatewayHostname)")!)
+        guard let url = URL(string: "https://\(lambdaDeploymentContext.apiGatewayHostname)") else {
+            throw ApodiniDeployRuntimeSupportError(
+                deploymentProviderId: Self.deploymentProviderId,
+                message: "Unable to construct target url"
+            )
+        }
+        return .invokeDefault(url: url)
     }
 }

@@ -16,7 +16,8 @@ public protocol IdentifiableHandler: Handler {
 }
 
 
-struct ExplicitlyIdentifiedHandlerIdentifierValueContextKey: Apodini.OptionalContextKey {
+/// The `ContextKey` storing an DSL-specified explicit handler identifier
+struct ExplicitHandlerIdentifierContextKey: Apodini.OptionalContextKey {
     typealias Value = AnyHandlerIdentifier
 }
 
@@ -26,19 +27,20 @@ public struct ExplicitlyIdentifiedHandlerModifier<Content: Handler>: HandlerModi
     let identifier: AnyHandlerIdentifier
     
     public func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(ExplicitlyIdentifiedHandlerIdentifierValueContextKey.self, value: identifier, scope: .current)
+        visitor.addContext(ExplicitHandlerIdentifierContextKey.self, value: identifier, scope: .current)
         component.accept(visitor)
     }
 }
 
 
 extension Handler {
+    /// Attach an identifier to this handler
     public func identified(by identifier: String) -> ExplicitlyIdentifiedHandlerModifier<Self> {
         ExplicitlyIdentifiedHandlerModifier(component: self, identifier: AnyHandlerIdentifier(identifier))
     }
     
+    /// Attach an identifier to this handler
     public func identified(by identifier: AnyHandlerIdentifier) -> ExplicitlyIdentifiedHandlerModifier<Self> {
         ExplicitlyIdentifiedHandlerModifier(component: self, identifier: identifier)
     }
 }
-

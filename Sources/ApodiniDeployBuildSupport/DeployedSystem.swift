@@ -45,10 +45,13 @@ public struct DeployedSystem: Codable {
 
 
 extension DeployedSystem {
+    /// Fetch one of the system's nodes, by id.
     public func node(withId nodeId: Node.ID) -> Node? {
         nodes.first { $0.id == nodeId }
     }
     
+    /// Returns the node which exports an endpoint with the specified handler identifier.
+    /// - Note: A system should never contain multiple nodes exporting the same endpoint,
     public func nodeExportingEndpoint(withHandlerId handlerId: AnyHandlerIdentifier) -> Node? {
         nodes.first { $0.exportedEndpoints.contains { $0.handlerId == handlerId } }
     }
@@ -87,7 +90,7 @@ extension DeployedSystem {
         }
         
         public static func == (lhs: Node, rhs: Node) -> Bool {
-            return lhs.id == rhs.id
+            lhs.id == rhs.id
         }
         
         

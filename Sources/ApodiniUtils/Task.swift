@@ -16,8 +16,6 @@ import Darwin
 #endif
 
 
-
-
 /// A wrapper around `Foundation.Process` (née`NSTask`)
 public class Task {
     private static let taskPool = ThreadSafeVariable<Set<Task>>([])
@@ -32,16 +30,27 @@ public class Task {
         case other(String)
     }
     
+    /// Info about why and how a task was terminated
     public struct TerminationInfo {
-        public let exitCode: Int32
-        public let reason: Process.TerminationReason
+        /// Exit code type
+        public typealias ExitCode = Int32
+        /// Termination reason type
+        public typealias TerminationReason = Process.TerminationReason
+        
+        /// The task's exit code
+        public let exitCode: ExitCode
+        /// The task's termination reason
+        public let reason: TerminationReason
     }
     
+    /// Termination handler type alias
     public typealias TerminationHandler = (TerminationInfo) -> Void
     
     private let process: Process
     
+    /// The url of the task's executable
     public let executableUrl: URL
+    /// Whether the task currently is running
     private(set) var isRunning = false
     private var terminationHandler: TerminationHandler?
     
@@ -53,37 +62,56 @@ public class Task {
     /// Any still-running tasks put in the same group as the current process will be terminated when when the current process exits.
     private let launchInCurrentProcessGroup: Bool
     
+    /// The argv with which the task will be launched.
+    /// - Note: this property can only be mutated while as the task is not running
     public var arguments: [String] {
         willSet { assertCanMutate() }
     }
     
+    /// The task's environment variables
+    /// - Note: this property can only be mutated while as the task is not running
     public var environment: [String: String] {
         willSet { assertCanMutate() }
     }
+    
     /// Whether the process should inherit its parent's (ie, the current process') environment variables
+    /// - Note: this property can only be mutated while as the task is not running
     public var inheritsParentEnvironment: Bool {
         willSet { assertCanMutate() }
     }
     
     
+    /// The task's process identifier.
+    /// - Note: If the task is not running, the value of this property is undefined
     public var pid: Int32 {
         process.processIdentifier
     }
-    
     
     private func assertCanMutate() {
         precondition(!isRunning, "Cannot mutate running task")
     }
     
     
+    /// Creates a new `Task` object and configures it using the specified options
+    /// - parameter captureOutput: A boolean value indicating whether the task should capture its child process' output.
+    ///         If this value is `true`, the child's output (both stdout and stderr) will be available via the respective APIs.
+    ///         Capturing output also means that the child's stdout and stderr will not show up in the parent's stdout and stderr.
+    ///         If this value is `false`, the APIs will not work, and the child's output will be printed to the current process' stdout and stderr.
+    /// - parameter launchInCurrentProcessGroup: Whether the child should be launched in the same process group as the parent.
+    ///         Launching the child into the parent's process group means that the child will receive all signals sent to the parent (eg `SIGINT`, etc),
+    ///         which is probably the desired behaviour if the child's lifetime is to be tied to the parent's lifetime.
+    /// - parameter inheritsParentEnvironment: A boolean value indicating whether the child should, when launched, inherit the parent's environment variables.
+    ///         If this value is `false`, the child will be launched with only the environment variables specified in its own environment (see the `enviromment` parameter, and the property with the same name).
+    ///         If this value is `true`, the chlid's enviromnent will be constructed by merging the current process' enviromment with the values specified for the child,
+    ///         with the child's values taking precedence if a key exists in both environments
     public init(
         executableUrl: URL,
         arguments: [String] = [],
         workingDirectory: URL? = nil,
-        captureOutput: Bool = false, // setting this to false will cause the output to show up in stdout
+        captureOutput: Bool = false,
         launchInCurrentProcessGroup: Bool,
         environment: [String: String] = [:],
-        inheritsParentEnvironment: Bool = true // ?inheritsEnvironmentFromParent?
+        inheritsParentEnvironment: Bool = true
     ) {
         self.executableUrl = executableUrl
         self.arguments = arguments
@@ -107,7 +135,7 @@ public class Task {
     
     private func launchImpl() throws {
         precondition(!isRunning)
-        print("-[\(Self.self) \(#function)] \(taskStringRepresentation)")
+        print("-[\(Self.self) \(#function)] \(self)")
         if launchInCurrentProcessGroup {
             process.executableURL = ProcessInfo.processInfo.executableUrl
             process.arguments = [Self.processIsChildProcessInvocationWrapper, self.executableUrl.path] + self.arguments
@@ -119,7 +147,7 @@ public class Task {
         if inheritsParentEnvironment {
             process.environment = ProcessInfo.processInfo.environment
             for (key, value) in self.environment {
-                process.environment![key] = value
+                process.environment![key] = value // swiftlint:disable:this force_unwrapping
             }
         } else {
             process.environment = self.environment
@@ -129,6 +157,7 @@ public class Task {
     }
     
     
+    /// Launch the task synchronously
     public func launchSync() throws -> TerminationInfo {
         try launchImpl()
         process.waitUntilExit()
@@ -136,22 +165,29 @@ public class Task {
     }
     
     
+    /// Launch the task asynchronously
     public func launchAsync(_ terminationHandler: TerminationHandler? = nil) throws {
         self.terminationHandler = terminationHandler
         try launchImpl()
     }
     
     
+    /// Launch the task synchronously and throw an error if the task did not exit successfullly
     public func launchSyncAndAssertSuccess() throws {
         let terminationInfo = try launchSync()
         guard terminationInfo.exitCode == EXIT_SUCCESS else {
-            fatalError("Task '\(taskStringRepresentation)' terminated with non-zero exit code \(terminationInfo.exitCode)")
+            fatalError("Task '\(self)' terminated with non-zero exit code \(terminationInfo.exitCode)")
         }
     }
     
-    
+    /// Terminate the task
     public func terminate() {
-        process.terminate()
+        sendSignal(SIGTERM)
+    }
+    
+    /// Send a signal to the task
+    public func sendSignal(_ signal: Int32) {
+        kill(pid, signal)
     }
     
     
@@ -163,24 +199,18 @@ public class Task {
     }
     
     
+    /// Read the task's stdout.
+    /// - Note: This only works if the task was created with the `captureOutput` option set to `true`
     public func readStdout(usingStringEncoding encoding: String.Encoding = .utf8) throws -> String {
         try stdoutPipe.readUntilEndAsString(encoding: encoding)
     }
     
+    /// Read the task's stderr.
+    /// - Note: This only works if the task was created with the `captureOutput` option set to `true`
     public func readStderr(usingStringEncoding encoding: String.Encoding = .utf8) throws -> String {
         try stderrPipe.readUntilEndAsString(encoding: encoding)
     }
-    
-    
-    public var taskStringRepresentation: String {
-        var str = "\(executableUrl.path)"
-        if !arguments.isEmpty {
-            str += " " + arguments.joined(separator: " ")
-        }
-        return str
-    }
 }
-
 
 
 extension Task: Hashable, Equatable {
@@ -194,45 +224,67 @@ extension Task: Hashable, Equatable {
 }
 
 
-
-
+extension Task: CustomStringConvertible {
+    public var description: String {
+        var properties: [(String, Any)] = [
+            ("executableUrl", executableUrl.path),
+            ("arguments", arguments),
+            ("launchInCurrentProcessGroup", launchInCurrentProcessGroup),
+            ("inheritsParentEnvironment", inheritsParentEnvironment),
+            ("environment", environment),
+            ("isRunning", isRunning)
+        ]
+        if isRunning {
+            properties .append(("pid", pid))
+        }
+        return "<\(Self.self) \(properties.map { "\($0.0): \($0.1)" }.joined(separator: ", "))>"
+    }
+}
 
 
 extension Task {
-    static func registerAtexitHandlerIfNecessary() {
+    /// Kill all child processes which were launched in the current process group and are currently running, by sending them the `SIGTERM` signal.
+    public static func killAllInChildrenInProcessGroup() {
+        sendSignalToAllChildrenInProcessGroup(signal: SIGTERM)
+    }
+    
+    /// Send a signal to all child processes which were launched into the current process' process group and are currently running.
+    public static func sendSignalToAllChildrenInProcessGroup(signal: Int32) {
+        Self.taskPool.read { tasks in
+            for task in tasks where task.isRunning {
+                task.sendSignal(signal)
+            }
+        }
+    }
+    
+    private static func registerAtexitHandlerIfNecessary() {
         guard !didRegisterAtexitHandler else {
             return
         }
         didRegisterAtexitHandler = true
         atexit {
-            Task.taskPool.read { tasks in
-                for task in tasks where task.isRunning {
-                    task.terminate()
-                }
-            }
+            Task.killAllInChildrenInProcessGroup()
         }
     }
 }
 
 
-
 extension Task {
+    /// Attempts to find the location of the execitable with the specified name, by looking through the current environment's search paths.
     public static func findExecutable(named binaryName: String) -> URL? {
         guard let searchPaths = ProcessInfo.processInfo.environment["PATH"]?.components(separatedBy: ":") else {
             return nil
         }
-        let FM = FileManager.default
         for searchPath in searchPaths {
             let executableUrl = URL(fileURLWithPath: searchPath, isDirectory: true)
                 .appendingPathComponent(binaryName, isDirectory: false)
-            if FM.fileExists(atPath: executableUrl.path) {
+            if FileManager.default.fileExists(atPath: executableUrl.path) {
                 return executableUrl
             }
         }
         return nil
     }
 }
-
 
 
 extension Pipe {
@@ -247,6 +299,19 @@ extension Pipe {
     }
 }
 
+
+extension Process.TerminationReason: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .exit:
+            return "\(Self.self).exit"
+        case .uncaughtSignal:
+            return "\(Self.self).uncaughtSignal"
+        @unknown default:
+            return "\(Self.self).\(self.rawValue)"
+        }
+    }
+}
 
 
 // Note: I have no idea if this is a good implementation, works property, or even makes sense.

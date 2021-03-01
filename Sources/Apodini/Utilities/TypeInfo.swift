@@ -21,6 +21,7 @@ private let supportedScalarTypes: Set<ObjectIdentifier> = [
 ]
 
 
+/// Whether the type is a supported scalar type
 public func isSupportedScalarType(_ type: Any.Type) -> Bool {
     supportedScalarTypes.contains(ObjectIdentifier(type))
 }

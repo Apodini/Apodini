@@ -11,7 +11,8 @@ import ApodiniUtils
 import OpenAPIKit
 
 
-
+/// This type defines well-known command line arguments.
+/// These are CLI args which will cause Apodini to perform some specific action
 public enum WellKnownCLIArguments {
     /// The CLI argument used to tell Apodini to write the web service's structure to disk.
     /// In the support framework so that we can share this constant between Apodini (which needs to check for it)
@@ -23,11 +24,13 @@ public enum WellKnownCLIArguments {
 }
 
 
-// Note: environment variables which are used in a lambda context must satisfy the regex `[a-zA-Z]([a-zA-Z0-9_])+`
+/// Well-known environment variables, i.e. environment variables which are read by Apodini and used when performing certain tasks.
+/// Note: environment variables which are used in a lambda context must satisfy the regex `[a-zA-Z]([a-zA-Z0-9_])+`
 public enum WellKnownEnvironmentVariables {
+    /// Key for an environment variable specifying the current instance's node id (relative to the whole deployed system).
+    /// This environment variable is only set of the web service is running as part of a managed deployment.
     public static let currentNodeId = "ApodiniDeployCurrentNodeId"
 }
-
 
 
 public struct ExporterIdentifier: RawRepresentable, Codable, Hashable, Equatable {
@@ -60,9 +63,6 @@ public struct WebServiceStructure: Codable { // TODO this needs a better name. m
 }
 
 
-
-
-
 public struct ExportedEndpoint: Codable, Hashable, Equatable {
     public let handlerType: HandlerTypeIdentifier
     /// Identifier of the  handler this endpoint was generated for
@@ -85,7 +85,6 @@ public struct ExportedEndpoint: Codable, Hashable, Equatable {
         self.userInfo = userInfo
     }
     
-    
     public func hash(into hasher: inout Hasher) {
         hasher.combine(self.handlerId)
     }
@@ -94,5 +93,3 @@ public struct ExportedEndpoint: Codable, Hashable, Equatable {
         lhs.handlerId == rhs.handlerId
     }
 }
-
-

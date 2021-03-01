@@ -5,6 +5,7 @@
 import Apodini
 import OpenAPIKit
 
+
 /// Utility to convert `_PathComponent`s to `OpenAPI.Path` format.
 struct OpenAPIPathBuilder: PathBuilderWithResult {
     var components: [String] = []
@@ -81,9 +82,6 @@ private extension OpenAPIPathsObjectBuilder {
         // Get `OpenAPI.Response.Map` containing all possible HTTP responses mapped to their status code.
         let responses: OpenAPI.Response.Map = buildResponsesObject(from: endpoint.responseType)
 
-        // Set custom extensions on operation.
-        let vendorExtensions: [String: AnyCodable] = ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
-
         return OpenAPI.Operation(
             tags: tags,
             description: endpointDescription,
@@ -91,7 +89,9 @@ private extension OpenAPIPathsObjectBuilder {
             parameters: parameters,
             requestBody: requestBody,
             responses: responses,
-            vendorExtensions: vendorExtensions
+            vendorExtensions: [
+                "x-apodiniHandlerId": AnyCodable(endpoint.identifier.rawValue)
+            ]
         )
     }
 

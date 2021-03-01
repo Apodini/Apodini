@@ -21,6 +21,7 @@ extension FixedWidthInteger {
     }
     
     
+    /// Access the state of the bit at the specified index
     public subscript(bitAt idx: Int) -> Bool {
         get {
             assertIsValidIndex(idx)
@@ -34,25 +35,25 @@ extension FixedWidthInteger {
             }
         }
     }
-
-    mutating public func toggleBit(at idx: Int) {
+    
+    /// Toggles the bit at `idx`
+    public mutating func toggleBit(at idx: Int) {
         assertIsValidIndex(idx)
         self[bitAt: idx].toggle()
     }
 
-    
-    mutating func replaceBits(in range: Range<Int>, withEquivalentRangeIn otherBitfield: Self) {
+    /// Replace the bits in the specified range with the equivalent bits (in terms of range) in the other bitset
+    mutating func replaceBits(in range: Range<Int>, withEquivalentRangeIn otherBitset: Self) {
         assertIsValidRange(range)
         for idx in range {
-            self[bitAt: idx] = otherBitfield[bitAt: idx]
+            self[bitAt: idx] = otherBitset[bitAt: idx]
         }
     }
     
-    
+    /// Returns a string representation of the base-2 encoded integer value
     public var binaryString: String {
-        return (0..<Self.bitWidth).reduce(into: "") { string, idx in
+        (0..<Self.bitWidth).reduce(into: "") { string, idx in
             string += self[bitAt: idx] ? "1" : "0"
         }
     }
 }
-

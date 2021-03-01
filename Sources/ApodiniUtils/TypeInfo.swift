@@ -10,6 +10,7 @@ import Foundation
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
+/// Returns the mangled name of a type
 public func mangledName(of type: Any.Type) -> String {
     do {
         let typeInfo = try Runtime.typeInfo(of: type)
@@ -56,17 +57,19 @@ public func preconditionTypeIsStruct<T>(_: T.Type, messagePrefix: String? = nil)
 }
 
 
-
+/// Test whether a value is a `Sequence`
 public func isSequence(_ value: Any) -> Bool {
-    return AnySequenceVisitor()(value) != nil
+    AnySequenceVisitor()(value) != nil
 }
 
 
+/// Test whether a value is a `Collection`
 public func isCollection(_ value: Any) -> Bool {
-    return AnyCollectionVisitor()(value) != nil
+    AnyCollectionVisitor()(value) != nil
 }
 
 
+// MARK: Utils
 
 private protocol AnySequenceVisitorBase: AssociatedTypeRequirementsVisitor {
     associatedtype Visitor = AnySequenceVisitorBase
@@ -77,18 +80,18 @@ private protocol AnySequenceVisitorBase: AssociatedTypeRequirementsVisitor {
 }
 
 private extension AnySequenceVisitorBase {
-    @inline(never) @_optimize(none)
+    @inline(never)
+    @_optimize(none)
     func _test() {
         _ = self([1, 2, 3])
     }
 }
 
 private struct AnySequenceVisitor: AnySequenceVisitorBase {
-    func callAsFunction<T: Sequence>(_ value: T) -> Void {
-        return ()
+    func callAsFunction<T: Sequence>(_ value: T) -> Void { // swiftlint:disable:this redundant_void_return
+        ()
     }
 }
-
 
 
 private protocol AnyCollectionVisitorBase: AssociatedTypeRequirementsVisitor {
@@ -100,14 +103,15 @@ private protocol AnyCollectionVisitorBase: AssociatedTypeRequirementsVisitor {
 }
 
 private extension AnyCollectionVisitorBase {
-    @inline(never) @_optimize(none)
+    @inline(never)
+    @_optimize(none)
     func _test() {
         _ = self([1, 2, 3])
     }
 }
 
 private struct AnyCollectionVisitor: AnyCollectionVisitorBase {
-    func callAsFunction<T: Collection>(_ value: T) -> Void {
-        return ()
+    func callAsFunction<T: Collection>(_ value: T) -> Void { // swiftlint:disable:this redundant_void_return
+        ()
     }
 }

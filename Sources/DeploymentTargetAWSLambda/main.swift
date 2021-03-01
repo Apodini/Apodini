@@ -16,7 +16,6 @@ import SotoApiGatewayV2
 import OpenAPIKit
 
 
-
 internal func makeError(code: Int = 0, _ message: String) -> Swift.Error {
     NSError(domain: "LambdaDeploy", code: code, userInfo: [
         NSLocalizedDescriptionKey: message
@@ -64,9 +63,10 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
     
     @Option(help: """
         Path of where in the bucket the lambda package should be stored.
-        If a file already exists at the specified location (e.g. from a previous deployment) it will be overwritten.
+        If a file already exists at the specified location (e.g. from a previous deployment), it will be overwritten.
         Note that this is only the folder path, and should not contain the actual filename.
-        The lambda package will be stored at 's3://{bucket_name}/{bucket_path}/{product_name}.zip', where {product_name} is the name of the web service's target (as specified via the 'product-name' option).
+        The lambda package will be stored at 's3://{bucket_name}/{bucket_path}/{product_name}.zip',
+        where {product_name} is the name of the web service's target (as specified via the 'product-name' option).
         """
     )
     var s3BucketPath: String = "/apodini-lambda/"
@@ -77,8 +77,7 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
     @Flag(help: "whether to skip the compilation steps and assume that build artifacts from a previous run are still located at the expected places")
     var awsDeployOnly: Bool = false
     
-    
-    private(set) lazy var packageRootDir: URL = URL(fileURLWithPath: inputPackageDir).absoluteURL
+    lazy var packageRootDir: URL = URL(fileURLWithPath: inputPackageDir).absoluteURL
     
     
     func run() throws {
@@ -97,11 +96,8 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
 }
 
 
-
-
-
 struct LambdaDeploymentProvider: DeploymentProvider {
-    static let identifier: DeploymentProviderID = LambdaDeploymentProviderId
+    static let identifier: DeploymentProviderID = lambdaDeploymentProviderId
     static let version: Version = 1
     
     let productName: String
@@ -113,13 +109,11 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     private(set) var awsApiGatewayApiId: String
     let awsDeployOnly: Bool
     
-    private let FM = FileManager.default
-    
+    private let fm = FileManager.default
     
     private var buildFolderUrl: URL {
         packageRootDir.appendingPathComponent(".build", isDirectory: true)
     }
-    
     
     private var tmpDirName: String { "ApodiniDeployTmp" }
     
@@ -127,32 +121,22 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         buildFolderUrl.appendingPathComponent(tmpDirName, isDirectory: true)
     }
     
-    
     private var lambdaOutputDir: URL {
         buildFolderUrl
             .appendingPathComponent("lambda", isDirectory: true)
             .appendingPathComponent(productName, isDirectory: true)
     }
     
-    
     mutating func run() throws {
         if awsDeployOnly {
             logger.notice("Running with the --aws-deploy-only flag. Will skip compilation and try to re-use previous files")
         }
-        logger.notice("initialising FileManager")
-        try FM.initialize()
+        try fm.initialize()
+        try fm.setWorkingDirectory(to: packageRootDir)
+        try fm.createDirectory(at: tmpDirUrl, withIntermediateDirectories: true, attributes: nil)
         
-        logger.notice("setting working directory to package root dir: \(packageRootDir)")
-        try FM.setWorkingDirectory(to: packageRootDir)
-        
-        logger.notice("creating directory at \(tmpDirUrl)")
-        try FM.createDirectory(at: tmpDirUrl, withIntermediateDirectories: true, attributes: nil)
-        
-        
-        logger.notice("preparing docker image")
         let dockerImageName = try prepareDockerImage()
         logger.notice("successfully built docker image. image name: \(dockerImageName)")
-        
         
         logger.notice("generating web service structure")
         let webServiceStructure = try { () -> WebServiceStructure in
@@ -163,7 +147,6 @@ struct LambdaDeploymentProvider: DeploymentProvider {
                 return try readWebServiceStructure(usingDockerImage: dockerImageName)
             }
         }()
-        
         
         let nodes = try computeDefaultDeployedSystemNodes(
             from: webServiceStructure,
@@ -207,8 +190,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             ? tmpDirUrl.appendingPathComponent("lambda.out", isDirectory: false)
             : try compileForLambda(usingDockerImage: dockerImageName)
         
-        
-        logger.notice("Starting the AWS stuff")
+        logger.notice("Deploying to AWS")
         try awsIntegration.deployToLambda(
             deploymentStructure: deploymentStructure,
             openApiDocument: webServiceStructure.openApiDocument,
@@ -222,9 +204,9 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     }
     
     
-    
     /// - returns: the name of the docker image
     private func prepareDockerImage() throws -> String {
+        logger.notice("preparing docker image")
         let imageName = "apodini-lambda-builder"
         let dockerfileUrl = tmpDirUrl.appendingPathComponent("Dockerfile", isDirectory: false)
         guard
@@ -234,8 +216,8 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             throw makeError("Unable to locate docker resources in bundle")
         }
         
-        try FM.copyItem(at: dockerfileBundleUrl, to: dockerfileUrl, overwriteExisting: true)
-        try FM.copyItem(
+        try fm.copyItem(at: dockerfileBundleUrl, to: dockerfileUrl, overwriteExisting: true)
+        try fm.copyItem(
             at: dockerignoreBundleUrl,
             to: dockerfileUrl.appendingPathExtension("dockerignore"),
             overwriteExisting: true
@@ -261,8 +243,6 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         try task.launchSyncAndAssertSuccess()
         return imageName
     }
-    
-    
     
     
     private func runInDocker(imageName: String, bashCommand: String, workingDirectory: URL? = nil) throws {
@@ -306,8 +286,8 @@ struct LambdaDeploymentProvider: DeploymentProvider {
                 throw makeError("Unable to find '\(scriptFilename)' resource in bundle")
             }
             let localUrl = tmpDirUrl.appendingPathComponent(scriptFilename, isDirectory: false)
-            try FM.copyItem(at: urlInBundle, to: localUrl, overwriteExisting: true)
-            try FM.setPosixPermissions("rwxr--r--", forItemAt: localUrl)
+            try fm.copyItem(at: urlInBundle, to: localUrl, overwriteExisting: true)
+            try fm.setPosixPermissions("rwxr--r--", forItemAt: localUrl)
         }
         try runInDocker(
             imageName: dockerImageName,
@@ -318,7 +298,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             .appendingPathComponent("debug", isDirectory: true)
             .appendingPathComponent(productName, isDirectory: false)
         let dstExecutableUrl = tmpDirUrl.appendingPathComponent("lambda.out", isDirectory: false)
-        try FM.copyItem(at: outputUrl, to: dstExecutableUrl, overwriteExisting: true)
+        try fm.copyItem(at: outputUrl, to: dstExecutableUrl, overwriteExisting: true)
         return dstExecutableUrl
     }
     

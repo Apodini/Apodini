@@ -29,9 +29,8 @@ public class AnyOptionKey<OuterNS: OuterNamespace>: Codable, Hashable, Equatable
 }
 
 
-
 public class OptionKey<OuterNS, InnerNS: InnerNamespace, Value: OptionValue>: AnyOptionKey<OuterNS> where InnerNS.OuterNS == OuterNS {
-    public override init(key rawValue: String) {
+    override public init(key rawValue: String) {
         super.init(key: "\(InnerNS.id).\(rawValue)")
     }
     
@@ -39,13 +38,14 @@ public class OptionKey<OuterNS, InnerNS: InnerNamespace, Value: OptionValue>: An
         try super.init(from: decoder)
     }
     
-    public override func encode(to encoder: Encoder) throws {
+    override public func encode(to encoder: Encoder) throws {
         try super.encode(to: encoder)
     }
 }
 
 
-public final class OptionKeyWithDefaultValue<OuterNS, InnerNS: InnerNamespace, Value: OptionValue>: OptionKey<OuterNS, InnerNS, Value> where InnerNS.OuterNS == OuterNS {
+public final class OptionKeyWithDefaultValue<OuterNS, InnerNS: InnerNamespace, Value: OptionValue>: OptionKey<OuterNS, InnerNS, Value>
+where InnerNS.OuterNS == OuterNS {
     public let defaultValue: Value
     
     public init(key rawValue: String, defaultValue: Value) {
@@ -57,7 +57,7 @@ public final class OptionKeyWithDefaultValue<OuterNS, InnerNS: InnerNamespace, V
         fatalError("Cannot decode as type '\(Self.self)'. Use of of the base types instead.")
     }
     
-    public override func encode(to encoder: Encoder) throws {
+    override public func encode(to encoder: Encoder) throws {
         try super.encode(to: encoder)
     }
 }

@@ -15,23 +15,23 @@ import ApodiniDeployRuntimeSupport
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
-
 extension AnyEndpointParameter {
     var stableIdentity: String {
-        let prefix: String = {
-            switch parameterType {
-            case .content: return "c"
-            case .lightweight: return "l"
-            case .path: return "p"
-            }
-        }()
+        let prefix: String
+        switch parameterType {
+        case .content:
+            prefix = "c"
+        case .lightweight:
+            prefix = "l"
+        case .path:
+            prefix = "p"
+        }
         return "\(prefix):\(name)"
     }
 }
 
 
-
-
+/// An error which occurred while handling something related to the deployment
 struct ApodiniDeployError: Swift.Error {
     let message: String
 }
@@ -73,14 +73,14 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
             if explicitlyCreatedDeploymentGroups[groupId] == nil {
                 explicitlyCreatedDeploymentGroups[groupId] = []
             }
-            explicitlyCreatedDeploymentGroups[groupId]!.insert(endpoint.identifier)
+            explicitlyCreatedDeploymentGroups[groupId]!.insert(endpoint.identifier) // swiftlint:disable:this force_unwrapping
         }
         collectedEndpoints.append(CollectedEndpointInfo(
             handlerType: HandlerTypeIdentifier(H.self),
             endpoint: endpoint,
             deploymentOptions: CollectedOptions(reducing: [
                 endpoint.handler.getDeploymentOptions(),
-                endpoint.context.get(valueFor: HandlerDeploymentOptionsSyntaxNodeContextKey.self)
+                endpoint.context.get(valueFor: HandlerDeploymentOptionsContextKey.self)
             ].flatMap { $0.compactMap { $0.resolve(against: endpoint.handler) } })
         ))
         vaporApp.add(Vapor.Route(
@@ -136,7 +136,12 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
                         message: "Unable to find deployment runtime with id '\(deployedSystem.deploymentProviderId.rawValue)'"
                     )
                 }
-                let runtimeSupport = try DPRSType.init(deployedSystem: deployedSystem, currentNodeId: currentNodeId)
+                // initializing from a metatype, which requires the '.init'
+                // swiftlint:disable:next explicit_init
+                let runtimeSupport = try DPRSType.init(
+                    deployedSystem: deployedSystem,
+                    currentNodeId: currentNodeId
+                )
                 self.deploymentProviderRuntime = runtimeSupport
                 try runtimeSupport.configure(app)
             } catch {
@@ -198,7 +203,7 @@ extension ApodiniDeployInterfaceExporter {
         
         init<H: Handler>(endpoint: Endpoint<H>, collectedParameters: [CollectedParameter<H>]) {
             parameterValues = .init(uniqueKeysWithValues: collectedParameters.map { param -> (String, Param) in
-                let paramId = (endpoint.handler[keyPath: param.handlerKeyPath] as! AnyParameterID).value
+                let paramId = unsafelyCast(endpoint.handler[keyPath: param.handlerKeyPath], to: AnyParameterID.self).value
                 let endpointParam = endpoint.parameters.first { $0.id == paramId }!
                 return (endpointParam.stableIdentity, .value(param.value))
             })
@@ -229,14 +234,15 @@ private protocol HandlerWithDeploymentOptionsATRVisitorHelper: AssociatedTypeReq
 
 private struct HandlerWithDeploymentOptionsATRVisitor: HandlerWithDeploymentOptionsATRVisitorHelper {
     func callAsFunction<H: HandlerWithDeploymentOptions>(_: H) -> [AnyDeploymentOption] {
-        return H.deploymentOptions
+        H.deploymentOptions
     }
     
-    @inline(never) @_optimize(none)
+    @inline(never)
+    @_optimize(none)
     fileprivate func _test() {
         struct TestHandler: HandlerWithDeploymentOptions {
             typealias Response = Never
-            static var deploymentOptions: [AnyDeploymentOption] { return [] }
+            static var deploymentOptions: [AnyDeploymentOption] { [] }
         }
         _ = self(TestHandler())
     }

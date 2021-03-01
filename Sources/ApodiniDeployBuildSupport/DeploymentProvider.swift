@@ -8,16 +8,8 @@
 
 import Foundation
 import Logging
-#if os(Linux)
-import Glibc
-#else
-import Darwin
-#endif
-
-
 import Apodini
 import ApodiniUtils
-
 
 
 public struct DeploymentProviderID: RawRepresentable, Hashable, Equatable, Codable {
@@ -26,17 +18,22 @@ public struct DeploymentProviderID: RawRepresentable, Hashable, Equatable, Codab
     public init(rawValue: String) {
         self.rawValue = rawValue
     }
+    
+    public init(_ rawValue: String) {
+        self.rawValue = rawValue
+    }
 }
 
 
-
-
+/// A deployment provider, i.e. a type which can manage and facilitate the process of deploying a web service to some target platform
 public protocol DeploymentProvider {
+    /// The type used to define a deployment provider's version
     typealias Version = UInt
     
     /// This deployment provider's identifier. Must be unique. Use reverse DNS or something like that
     static var identifier: DeploymentProviderID { get }
     
+    /// The deployment provider's version
     static var version: Version { get }
     
     /// Path of the web service package's root directory
@@ -48,10 +45,15 @@ public protocol DeploymentProvider {
 
 
 extension DeploymentProvider {
-    public var identifier: DeploymentProviderID { Self.identifier }
-    public var version: Version { Self.version }
+    /// The deployment provider's identifier
+    public var identifier: DeploymentProviderID {
+        Self.identifier
+    }
+    /// The deployment provider's version
+    public var version: Version {
+        Self.version
+    }
 }
-
 
 
 struct ApodiniDeployBuildSupportError: Swift.Error {
@@ -72,8 +74,8 @@ extension DeploymentProvider {
     /// Builds the web service.
     /// - Returns: the url of the built executable
     public func buildWebService() throws -> URL {
-        let FM = FileManager.default
-        try FM.setWorkingDirectory(to: packageRootDir)
+        let fm = FileManager.default
+        try fm.setWorkingDirectory(to: packageRootDir)
         
         let swiftBin = try getSwiftBinUrl()
         let task = Task(
@@ -98,26 +100,27 @@ extension DeploymentProvider {
     }
     
     
+    /// Generate a `WebServiceStructure` for this web service
     public func generateDefaultWebServiceStructure() throws -> WebServiceStructure {
-        let FM = FileManager.default
+        let fm = FileManager.default
         let logger = Logger(label: "ApodiniDeployCLI.Localhost")
         
         let swiftBin = try getSwiftBinUrl()
-        try FM.setWorkingDirectory(to: packageRootDir)
+        try fm.setWorkingDirectory(to: packageRootDir)
         
         logger.trace("\(packageRootDir)")
         
-        guard FM.directoryExists(atUrl: packageRootDir) else {
+        guard fm.directoryExists(atUrl: packageRootDir) else {
             throw ApodiniDeployBuildSupportError(message: "Unable to find input directory")
         }
         
         let packageSwiftFileUrl = packageRootDir.appendingPathComponent("Package.swift")
-        guard FM.fileExists(atPath: packageSwiftFileUrl.path) else {
+        guard fm.fileExists(atPath: packageSwiftFileUrl.path) else {
             throw ApodiniDeployBuildSupportError(message: "Unable to find Package.swift")
         }
         
-        let modelFileUrl = FM.temporaryDirectory.appendingPathComponent("AM_\(UUID().uuidString).json")
-        guard FM.createFile(atPath: modelFileUrl.path, contents: nil, attributes: nil) else {
+        let modelFileUrl = fm.temporaryDirectory.appendingPathComponent("AM_\(UUID().uuidString).json")
+        guard fm.createFile(atPath: modelFileUrl.path, contents: nil, attributes: nil) else {
             throw ApodiniDeployBuildSupportError(message: "Unable to create file")
         }
         
@@ -132,7 +135,7 @@ extension DeploymentProvider {
             captureOutput: false,
             launchInCurrentProcessGroup: true
         )
-        logger.notice("Invoking child process `\(exportWebServiceModelTask.taskStringRepresentation)`")
+        logger.notice("Invoking child process `\(exportWebServiceModelTask)`")
         let terminationInfo = try exportWebServiceModelTask.launchSync()
         guard terminationInfo.exitCode == EXIT_SUCCESS else {
             throw ApodiniDeployBuildSupportError(message: "Unable to generate model structure")
@@ -145,14 +148,14 @@ extension DeploymentProvider {
     }
     
     
-    
-    
+    /// Based on a `WebServiceStructure` as input (i.e. a representation of an entire web service),
+    /// computes the default set of nodes within the deployed system.
     public func computeDefaultDeployedSystemNodes(
         from wsStructure: WebServiceStructure,
         nodeIdProvider: (Set<ExportedEndpoint>) -> String = { _ in UUID().uuidString }
     ) throws -> Set<DeployedSystem.Node> {
         // a mapping from all user-defined deployment groups, to the set of
-        var endpointsByDeploymentGroup = Dictionary<DeploymentGroup, Set<ExportedEndpoint>>(
+        var endpointsByDeploymentGroup = [DeploymentGroup: Set<ExportedEndpoint>](
             uniqueKeysWithValues: wsStructure.deploymentConfig.deploymentGroups.groups.map { ($0, []) }
         )
         // all endpoints which didn't match any of the user-defined deployment groups
@@ -168,7 +171,7 @@ extension DeploymentProvider {
                 remainingEndpoints.insert(endpoint)
             case 1:
                 // the endpoint matched exactly one group, so we'll put it in there
-                endpointsByDeploymentGroup[matchingGroups[0]]!.insert(endpoint)
+                endpointsByDeploymentGroup[matchingGroups[0]]!.insert(endpoint) // swiftlint:disable:this force_unwrapping
             default:
                 // the endpoint matched multiple deployment groups, which results in ambiguity, and therefore is forbidden
                 throw ApodiniDeployBuildSupportError(
@@ -176,7 +179,6 @@ extension DeploymentProvider {
                 )
             }
         }
-        
         
         // The nodes w/in the deployed system
         var nodes: Set<DeployedSystem.Node> = []
@@ -214,15 +216,12 @@ extension DeploymentProvider {
 }
 
 
-
 extension DeploymentGroup {
     // whether this group should contain the exported endpoint
     func matches(exportedEndpoint: ExportedEndpoint) -> Bool {
         handlerTypes.contains(exportedEndpoint.handlerType) || handlerIds.contains(exportedEndpoint.handlerId)
     }
 }
-
-
 
 
 extension Sequence where Element == DeployedSystem.Node {
@@ -253,7 +252,7 @@ extension Sequence where Element == DeployedSystem.Node {
             // this difference is the set of all handlers which aren't exported by a node
             let diff = expectedHandlerIds.symmetricDifference(exportedHandlerIds)
             throw ApodiniDeployBuildSupportError(
-                message: "Handler ids\(diff.map({ "'\($0.rawValue)'" }).joined(separator: ", "))"
+                message: "Handler ids\(diff.map { "'\($0.rawValue)'" }.joined(separator: ", "))"
             )
         }
     }

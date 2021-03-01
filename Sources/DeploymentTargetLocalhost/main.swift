@@ -49,7 +49,7 @@ private struct LocalhostDeploymentProviderCLI: ParsableCommand {
 
 
 struct LocalhostDeploymentProvider: DeploymentProvider {
-    static let identifier: DeploymentProviderID = LocalhostDeploymentProviderId
+    static let identifier: DeploymentProviderID = localhostDeploymentProviderId
     static let version: Version = 1
     
     let productName: String
@@ -60,12 +60,12 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
     // Starting number for the started child processes
     let endpointProcessesBasePort: Int
     
-    private let FM = FileManager.default
+    private let fm = FileManager.default
     private let logger = Logger(label: "DeploymentTargetLocalhost")
     
     func run() throws {
-        try FM.initialize()
-        try FM.setWorkingDirectory(to: packageRootDir)
+        try fm.initialize()
+        try fm.setWorkingDirectory(to: packageRootDir)
         
         logger.notice("Compiling target '\(productName)'")
         let executableUrl = try buildWebService()
@@ -85,7 +85,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
             userInfo: Null()
         )
         
-        let deployedSystemFileUrl = FM.getTemporaryFileUrl(fileExtension: "json")
+        let deployedSystemFileUrl = fm.getTemporaryFileUrl(fileExtension: "json")
         try deployedSystem.writeJSON(to: deployedSystemFileUrl)
         
         for node in deployedSystem.nodes {
@@ -96,16 +96,22 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                 environment: [WellKnownEnvironmentVariables.currentNodeId: node.id]
             )
             func taskTerminationHandler(_ terminationInfo: Task.TerminationInfo) {
-                if terminationInfo.exitCode == 4 && terminationInfo.reason == .uncaughtSignal {
+                switch (terminationInfo.reason, terminationInfo.exitCode) {
+                case (.uncaughtSignal, SIGILL):
                     // This seems to be the combination with which a fatalError terminates a program.
                     // If one of the children was terminated with a fatalError, we re-spawn it to keep the server running
                     logger.warning("Restarting child for node '\(node.id)'")
                     // TODO implement! (this is what triggers the compiler bug)
                     // try! task.launchAsync(taskTerminationHandler)
-                } else {
+                    break
+//                case (.uncaughtSignal, SIGTERM):
+//                    // The task was terminated
+//                    break
+                default:
                     // If one of the children terminated, and it was not caused by a fatalError, we shut down the entire thing
                     logger.warning("Child for node '\(node.id)' terminated unexpectedly. killing everything just to be safe.")
-                    exit(EXIT_FAILURE)
+                    Task.killAllInChildrenInProcessGroup()
+                    break
                 }
             }
             try task.launchAsync(taskTerminationHandler)
@@ -117,11 +123,16 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         }
         
         logger.notice("Starting proxy server")
-        let proxyServer = try ProxyServer(
-            openApiDocument: wsStructure.openApiDocument,
-            deployedSystem: deployedSystem
-        )
-        try proxyServer.run(port: self.port)
+        do {
+            let proxyServer = try ProxyServer(
+                openApiDocument: wsStructure.openApiDocument,
+                deployedSystem: deployedSystem
+            )
+            try proxyServer.run(port: self.port)
+        } catch {
+            Task.killAllInChildrenInProcessGroup()
+            throw error
+        }
         logger.notice("exit.")
         return
     }
