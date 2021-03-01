@@ -389,6 +389,9 @@ let package = Package(
                 .product(name: "SotoSTS", package: "soto"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                 .product(name: "SotoS3FileTransfer", package: "soto-s3-file-transfer")
+            ],
+            resources: [
+                .process("Resources")
             ]
         ),
         .target(

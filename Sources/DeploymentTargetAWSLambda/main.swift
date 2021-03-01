@@ -98,46 +98,6 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
 
 
 
-private let dockerfileContents: String = """
-FROM swift:5.3-amazonlinux2
-
-ARG USER_ID
-ARG GROUP_ID
-ARG USERNAME
-
-RUN yum -y install zip sqlite-devel
-
-RUN groupadd --gid $GROUP_ID $USERNAME \
-    && useradd -s /bin/bash --uid $USER_ID --gid $GROUP_ID -m $USERNAME
-
-USER $USERNAME
-"""
-
-
-private let dockerignoreContents: String = """
-.build/
-"""
-
-
-
-private let collectSharedObjectFilesScriptContents: String = """
-#!/bin/bash
-set -eu
-
-executable_path=$1 # path to the built executable
-output_dir=$2      # path of the directory we should copy the object files to
-
-rm -rf "$output_dir"
-mkdir -p "$output_dir"
-# add the target deps based on ldd
-ldd "$executable_path" | grep swift | awk '{print $3}' | xargs cp -L -t "$output_dir"
-"""
-
-
-
-
-
-
 
 
 struct LambdaDeploymentProvider: DeploymentProvider {
@@ -254,8 +214,20 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     private func prepareDockerImage() throws -> String {
         let imageName = "apodini-lambda-builder"
         let dockerfileUrl = tmpDirUrl.appendingPathComponent("Dockerfile", isDirectory: false)
-        try dockerfileContents.write(to: dockerfileUrl, atomically: true, encoding: .utf8)
-        try dockerignoreContents.write(to: dockerfileUrl.appendingPathExtension("dockerignore"), atomically: true, encoding: .utf8)
+        guard
+            let dockerfileBundleUrl = Bundle.module.url(forResource: "Dockerfile", withExtension: nil),
+            let dockerignoreBundleUrl = Bundle.module.url(forResource: "dockerignore", withExtension: nil)
+        else {
+            throw makeError("Unable to locate docker resources in bundle")
+        }
+        
+        try FM.copyItem(at: dockerfileBundleUrl, to: dockerfileUrl, overwriteExisting: true)
+        try FM.copyItem(
+            at: dockerignoreBundleUrl,
+            to: dockerfileUrl.appendingPathExtension("dockerignore"),
+            overwriteExisting: true
+        )
+        
         let task = Task(
             executableUrl: dockerBin,
             arguments: [
@@ -315,14 +287,19 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     /// - returns: the directory containing all build artifacts (ie, the built executable and collected shared object files)
     private func compileForLambda(usingDockerImage dockerImageName: String) throws -> URL {
         logger.notice("Compiling SPM target '\(productName)' for lambda")
-        // path of the shared object files script, relative to the docker container's root.
-        let collectSharedObjectFilesScriptUrl = tmpDirUrl.appendingPathComponent("collect-shared-object-files.sh", isDirectory: false)
-        try collectSharedObjectFilesScriptContents.write(to: collectSharedObjectFilesScriptUrl, atomically: true, encoding: .utf8)
-        try FM.setPosixPermissions("rwxr--r--", forItemAt: collectSharedObjectFilesScriptUrl)
+        let scriptFilename = "collect-shared-object-files.sh"
+        do { // Copy the script into the temp dir, so that it can be run by the docker container
+            guard let urlInBundle = Bundle.module.url(forResource: scriptFilename, withExtension: nil) else {
+                throw makeError("Unable to find '\(scriptFilename)' resource in bundle")
+            }
+            let localUrl = tmpDirUrl.appendingPathComponent(scriptFilename, isDirectory: false)
+            try FM.copyItem(at: urlInBundle, to: localUrl, overwriteExisting: true)
+            try FM.setPosixPermissions("rwxr--r--", forItemAt: localUrl)
+        }
         try runInDocker(
             imageName: dockerImageName,
             bashCommand:
-                "swift build --product \(productName) && .build/\(tmpDirName)/collect-shared-object-files.sh .build/debug/\(productName) .build/lambda/\(productName)/"
+                "swift build --product \(productName) && .build/\(tmpDirName)/\(scriptFilename) .build/debug/\(productName) .build/lambda/\(productName)/"
         )
         let outputUrl = buildFolderUrl
             .appendingPathComponent("debug", isDirectory: true)
