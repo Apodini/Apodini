@@ -64,7 +64,7 @@ extension DeploymentProvider {
         if let swiftBin = Task.findExecutable(named: "swift") {
             return swiftBin
         } else {
-            throw ApodiniDeployBuildSupportError(message: "unable to find swift compiler executable in search paths")
+            throw ApodiniDeployBuildSupportError(message: "Unable to find swift compiler executable in search paths")
         }
     }
     
@@ -108,12 +108,12 @@ extension DeploymentProvider {
         logger.trace("\(packageRootDir)")
         
         guard FM.directoryExists(atUrl: packageRootDir) else {
-            throw ApodiniDeployBuildSupportError(message: "unable to find input directory")
+            throw ApodiniDeployBuildSupportError(message: "Unable to find input directory")
         }
         
         let packageSwiftFileUrl = packageRootDir.appendingPathComponent("Package.swift")
         guard FM.fileExists(atPath: packageSwiftFileUrl.path) else {
-            throw ApodiniDeployBuildSupportError(message: "unable to find Package.swift")
+            throw ApodiniDeployBuildSupportError(message: "Unable to find Package.swift")
         }
         
         let modelFileUrl = FM.temporaryDirectory.appendingPathComponent("AM_\(UUID().uuidString).json")

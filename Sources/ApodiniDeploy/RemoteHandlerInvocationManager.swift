@@ -111,7 +111,7 @@ extension RemoteHandlerInvocationManager {
         collectedInputParams: [CollectedParameter<H>]
     ) -> EventLoopFuture<H.Response.Content> {
         guard let internalInterfaceExporter = self.app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self) else {
-            return eventLoop.makeFailedFuture(ApodiniDeployError(message: "unable to get \(ApodiniDeployInterfaceExporter.self) object"))
+            return eventLoop.makeFailedFuture(ApodiniDeployError(message: "Unable to get \(ApodiniDeployInterfaceExporter.self) object"))
         }
         
         guard let targetEndpoint: Endpoint<H> = internalInterfaceExporter.getEndpoint(withIdentifier: handlerId, ofType: H.self) else {
