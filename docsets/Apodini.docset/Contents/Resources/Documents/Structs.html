@@ -1,0 +1,2454 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Structures  Reference</title>
+    <link rel="stylesheet" type="text/css" href="css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="css/highlight.css" />
+    <meta charset="utf-8">
+    <script src="js/jquery.min.js" defer></script>
+    <script src="js/jazzy.js" defer></script>
+    
+    <script src="js/lunr.min.js" defer></script>
+    <script src="js/typeahead.jquery.js" defer></script>
+    <script src="js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+
+    <a name="//apple_ref/swift/Section/Structures" class="dashAnchor"></a>
+
+    <a title="Structures  Reference"></a>
+
+    <header class="header">
+      <p class="header-col header-col--primary">
+        <a class="header-link" href="index.html">
+          Apodini Docs
+        </a>
+         (73% documented)
+      </p>
+    
+      <p class="header-col--secondary">
+        <form role="search" action="search.json">
+          <input type="text" placeholder="Search documentation" data-typeahead>
+        </form>
+      </p>
+    
+        <p class="header-col header-col--secondary">
+          <a class="header-link" href="https://github.com/Apodini/Apodini">
+            <img class="header-icon" src="img/gh.png"/>
+            View on GitHub
+          </a>
+        </p>
+    
+    </header>
+
+    <p class="breadcrumbs">
+      <a class="breadcrumb" href="index.html">Apodini Reference</a>
+      <img class="carat" src="img/carat.png" />
+      Structures  Reference
+    </p>
+
+    <div class="content-wrapper">
+      <nav class="navigation">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Guides.html">Guides</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="readme.html">README</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/AnyHandlerIdentifier.html">AnyHandlerIdentifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/AnyPropertyOptionKey.html">AnyPropertyOptionKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/Application.html">Application</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/Application/Lifecycle.html">– Lifecycle</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/Application/Locks.html">– Locks</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/Application/EventLoopGroupProvider.html">– EventLoopGroupProvider</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/Application.html#/s:7Apodini11ApplicationC4CoreV">– Core</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/Application.html#/s:7Apodini11ApplicationC9ExportersC">– Exporters</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/Application/HTTP.html">– HTTP</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/Application/Running.html">– Running</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/ConnectionContext.html">ConnectionContext</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/Context.html">Context</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/ExporterConfiguration.html">ExporterConfiguration</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/HTTP2Configuration.html">HTTP2Configuration</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/HTTPConfiguration.html">HTTPConfiguration</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes.html#/s:7Apodini11ObservationC">Observation</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/PropertyOptionKey.html">PropertyOptionKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/Published.html">Published</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/ScopedHandlerIdentifier.html">ScopedHandlerIdentifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/SyntaxTreeVisitor.html">SyntaxTreeVisitor</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Classes/WebServiceModel.html">WebServiceModel</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/BindAddress.html">BindAddress</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/ConfigurationBuilder.html">ConfigurationBuilder</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/ConnectionEffect.html">ConnectionEffect</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/ConnectionState.html">ConnectionState</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/EndpointPath.html">EndpointPath</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums.html#/s:7Apodini20ErrorOptionNameSpaceO">ErrorOptionNameSpace</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/ErrorType.html">ErrorType</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/HTTPParameterMode.html">HTTPParameterMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/HTTPVersionMajor.html">HTTPVersionMajor</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/IntegerWidthConfiguration.html">IntegerWidthConfiguration</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/IntegerWidthConfiguration/StorageKey.html">– StorageKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/Mutability.html">Mutability</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/Necessity.html">Necessity</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/Operation.html">Operation</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/ParameterEncodingStyle.html">ParameterEncodingStyle</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums.html#/s:7Apodini24ParameterOptionNameSpaceO">ParameterOptionNameSpace</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/ParameterType.html">ParameterType</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/PathComponentFunctionBuilder.html">PathComponentFunctionBuilder</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/RelationshipDefinitionBuilder.html">RelationshipDefinitionBuilder</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/Scope.html">Scope</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/ServiceType.html">ServiceType</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/Status.html">Status</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Enums/_EmptyComponentCustomNeverImpl.html">_EmptyComponentCustomNeverImpl</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions/Array.html">Array</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:Sb">Bool</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions/Collection.html">Collection</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:SD">Dictionary</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:Sd">Double</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions/Encodable.html">Encodable</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions/Error.html">Error</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions/EventLoopFuture.html">EventLoopFuture</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:Sf">Float</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:Si">Int</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:s5Int16V">Int16</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:s5Int32V">Int32</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:s5Int64V">Int64</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:s4Int8V">Int8</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions/KeyPath.html">KeyPath</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions/Never.html">Never</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:Sq">Optional</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions/Set.html">Set</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:SS">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions/Tree.html">Tree</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:Su">UInt</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:s6UInt16V">UInt16</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:s6UInt32V">UInt32</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:s6UInt64V">UInt64</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:s5UInt8V">UInt8</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Extensions.html#/s:10Foundation4UUIDV">UUID</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Functions.html">Functions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Functions.html#/s:7Apodini8activateyyxzlF">activate(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Functions.html#/s:7Apodini5check2on3for5throwyx_q_mq0_tKs5ErrorR0_r1_lF">check(on:for:throw:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Functions.html#/s:7Apodini6inject3app2toyAA11ApplicationC_xztlF">inject(app:to:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Functions.html#/s:7Apodini6isEnumySbypXpF">isEnum(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Functions.html#/s:7Apodini10isOptionalySbypXpF">isOptional(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Functions.html#/s:7Apodini21isSupportedScalarTypeySbypXpF">isSupportedScalarType(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Functions.html#/s:7Apodini11mangledName2ofSSypXp_tF">mangledName(of:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Functions.html#/s:7Apodini9subscribe2on5usingAA11ObservationCSgx_yAA17AnyObservedObject_pctlF">subscribe(on:using:)</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/AnyEndpoint.html">AnyEndpoint</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/AnyEndpointParameter.html">AnyEndpointParameter</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/AnyEndpointPathParameter.html">AnyEndpointPathParameter</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/AnyObservedObject.html">AnyObservedObject</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/AnyResponseTransformer.html">AnyResponseTransformer</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/BaseInterfaceExporter.html">BaseInterfaceExporter</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/Component.html">Component</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/Configuration.html">Configuration</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/ConfigurationCollection.html">ConfigurationCollection</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols.html#/s:7Apodini7ContentP">Content</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/ContextKey.html">ContextKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols.html#/s:7Apodini15DynamicPropertyP">DynamicProperty</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols.html#/s:7Apodini21EnvironmentAccessibleP">EnvironmentAccessible</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols.html#/s:7Apodini26ErrorMessagePrefixStrategyP">ErrorMessagePrefixStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols.html#/s:7Apodini15ExporterRequestP">ExporterRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/Guard.html">Guard</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/Handler.html">Handler</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/HandlerModifier.html">HandlerModifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/HasDefaultValue.html">HasDefaultValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/IdentifiableHandler.html">IdentifiableHandler</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/InterfaceExporter.html">InterfaceExporter</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/LifecycleHandler.html">LifecycleHandler</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols.html#/s:7Apodini7LockKeyP">LockKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/Modifier.html">Modifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols.html#/s:7Apodini16ObservableObjectP">ObservableObject</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/ObservedListener.html">ObservedListener</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/OptionalContextKey.html">OptionalContextKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/PathBuilder.html">PathBuilder</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/PathBuilderWithResult.html">PathBuilderWithResult</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/PathComponent.html">PathComponent</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols.html#/s:7Apodini8PropertyP">Property</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/PropertyOption.html">PropertyOption</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/Reducible.html">Reducible</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols.html#/s:7Apodini22RelationshipDefinitionP">RelationshipDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/RelationshipFormatter.html">RelationshipFormatter</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/ResponseTransformable.html">ResponseTransformable</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/ResponseTransformer.html">ResponseTransformer</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/StandardError.html">StandardError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/StandardErrorCompliantExporter.html">StandardErrorCompliantExporter</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/StandardErrorCompliantOption.html">StandardErrorCompliantOption</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/StandardErrorContext.html">StandardErrorContext</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols.html#/s:7Apodini23StaticInterfaceExporterP">StaticInterfaceExporter</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/StorageKey.html">StorageKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/SyncGuard.html">SyncGuard</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/WebService.html">WebService</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/WithEventLoop.html">WithEventLoop</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/WithRelationships.html">WithRelationships</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Protocols/WithRemote.html">WithRemote</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/APIVersionContextKey.html">APIVersionContextKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/AnyComponent.html">AnyComponent</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/AnyEncodable.html">AnyEncodable</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/AnyHandler.html">AnyHandler</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/AnyPropertyOption.html">AnyPropertyOption</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs.html#/s:7Apodini29AnyRelationshipIdentificationV">AnyRelationshipIdentification</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/ApodiniError.html">ApodiniError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/ComponentBuilder.html">ComponentBuilder</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/Connection.html">Connection</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs.html#/s:7Apodini24CustomErrorMessagePrefixV">CustomErrorMessagePrefix</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/DefaultRelationshipModifier.html">DefaultRelationshipModifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/DescriptionContextKey.html">DescriptionContextKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/DescriptionModifier.html">DescriptionModifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/Directory.html">Directory</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs.html#/s:7Apodini5EmptyV">Empty</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/EmptyComponent.html">EmptyComponent</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/EmptyConfiguration.html">EmptyConfiguration</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/EmptyHandler.html">EmptyHandler</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/Endpoint.html">Endpoint</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/EndpointParameter.html">EndpointParameter</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/EndpointPathParameter.html">EndpointPathParameter</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/EndpointRelationship.html">EndpointRelationship</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/EnrichedContent.html">EnrichedContent</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/Environment.html">Environment</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/EnvironmentObject.html">EnvironmentObject</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/Group.html">Group</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/GuardModifier.html">GuardModifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs.html#/s:7Apodini16HideLinkModifierV">HideLinkModifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/IdentifyingType.html">IdentifyingType</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs.html#/s:7Apodini20NoErrorMessagePrefixV">NoErrorMessagePrefix</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/Node.html">Node</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/ObservedObject.html">ObservedObject</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/OperationModifier.html">OperationModifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/Parameter.html">Parameter</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/ParameterNamespace.html">ParameterNamespace</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/PathParameter.html">PathParameter</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/Properties.html">Properties</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/Relationship.html">Relationship</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/RelationshipDestination.html">RelationshipDestination</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/RelationshipDestinationModifier.html">RelationshipDestinationModifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/RelationshipIdentification.html">RelationshipIdentification</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/RelationshipIdentificationBuilder.html">RelationshipIdentificationBuilder</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/RelationshipInheritance.html">RelationshipInheritance</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs.html#/s:7Apodini24RelationshipNameModifierV">RelationshipNameModifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/RelationshipReference.html">RelationshipReference</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/RelationshipSource.html">RelationshipSource</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/RelationshipSourceModifier.html">RelationshipSourceModifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/Response.html">Response</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/ResponseModifier.html">ResponseModifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/ServiceTypeModifier.html">ServiceTypeModifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs.html#/s:7Apodini26StandardErrorMessagePrefixV">StandardErrorMessagePrefix</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/State.html">State</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/Storage.html">Storage</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/Text.html">Text</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/Throws.html">Throws</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/TupleComponent.html">TupleComponent</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/TypedProperties.html">TypedProperties</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/TypedRelationshipDestinationModifier.html">TypedRelationshipDestinationModifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/Version.html">Version</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Structs/Version/Defaults.html">– Defaults</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="Typealiases.html">Type Aliases</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="Typealiases.html#/s:7Apodini4Treea">Tree</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+
+        <section class="section">
+          <div class="section-content top-matter">
+            <h1>Structures</h1>
+            <p>The following structures are available globally.</p>
+
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-content">
+            <div class="task-group">
+              <ul class="item-container">
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini10ConnectionV"></a>
+                    <a name="//apple_ref/swift/Struct/Connection" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini10ConnectionV">Connection</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>All info related to client-connections
+should be handled with the <code>Connection</code>.
+Currently, this is only the state of the connection and the request.</p>
+
+                        <a href="Structs/Connection.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Connection</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini9DirectoryV"></a>
+                    <a name="//apple_ref/swift/Struct/Directory" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini9DirectoryV">Directory</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p><code>Directory</code> represents a specified directory.
+It can also be used to derive a working directory automatically.</p>
+
+                        <a href="Structs/Directory.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Directory</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini7StorageV"></a>
+                    <a name="//apple_ref/swift/Struct/Storage" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini7StorageV">Storage</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Enables swift extensions to declare &ldquo;stored&rdquo; properties for use in application configuration</p>
+
+                        <a href="Structs/Storage.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Storage</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini12AnyComponentV"></a>
+                    <a name="//apple_ref/swift/Struct/AnyComponent" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini12AnyComponentV">AnyComponent</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/AnyComponent.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">AnyComponent</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Component.html">Component</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini10AnyHandlerV"></a>
+                    <a name="//apple_ref/swift/Struct/AnyHandler" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini10AnyHandlerV">AnyHandler</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/AnyHandler.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">AnyHandler</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Handler.html">Handler</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini14EmptyComponentV"></a>
+                    <a name="//apple_ref/swift/Struct/EmptyComponent" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini14EmptyComponentV">EmptyComponent</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A <code><a href="Protocols/Component.html">Component</a></code> which does not contain any content</p>
+
+                        <a href="Structs/EmptyComponent.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">EmptyComponent</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Component.html">Component</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini12EmptyHandlerV"></a>
+                    <a name="//apple_ref/swift/Struct/EmptyHandler" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini12EmptyHandlerV">EmptyHandler</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/EmptyHandler.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">EmptyHandler</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Handler.html">Handler</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini5GroupV"></a>
+                    <a name="//apple_ref/swift/Struct/Group" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini5GroupV">Group</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/Group.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Group</span><span class="o">&lt;</span><span class="kt"><a href="Protocols.html#/s:7Apodini7ContentP">Content</a></span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Component.html">Component</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span> <span class="k">where</span> <span class="kt"><a href="Protocols.html#/s:7Apodini7ContentP">Content</a></span> <span class="p">:</span> <span class="kt"><a href="Protocols/Component.html">Component</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini14TupleComponentV"></a>
+                    <a name="//apple_ref/swift/Struct/TupleComponent" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini14TupleComponentV">TupleComponent</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/TupleComponent.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">TupleComponent</span><span class="o">&lt;</span><span class="kt">T</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Component.html">Component</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini16ComponentBuilderV"></a>
+                    <a name="//apple_ref/swift/Struct/ComponentBuilder" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini16ComponentBuilderV">ComponentBuilder</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/ComponentBuilder.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@_functionBuilder</span>
+<span class="kd">public</span> <span class="kd">struct</span> <span class="kt">ComponentBuilder</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini4TextV"></a>
+                    <a name="//apple_ref/swift/Struct/Text" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini4TextV">Text</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/Text.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Text</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Handler.html">Handler</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini16HideLinkModifierV"></a>
+                    <a name="//apple_ref/swift/Struct/HideLinkModifier" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini16HideLinkModifierV">HideLinkModifier</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">HideLinkModifier</span> <span class="p">:</span> <span class="kt">PathComponentModifier</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini24RelationshipNameModifierV"></a>
+                    <a name="//apple_ref/swift/Struct/RelationshipNameModifier" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini24RelationshipNameModifierV">RelationshipNameModifier</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">RelationshipNameModifier</span> <span class="p">:</span> <span class="kt">PathComponentModifier</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini18EmptyConfigurationV"></a>
+                    <a name="//apple_ref/swift/Struct/EmptyConfiguration" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini18EmptyConfigurationV">EmptyConfiguration</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/EmptyConfiguration.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">EmptyConfiguration</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Configuration.html">Configuration</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini17EnvironmentObjectV"></a>
+                    <a name="//apple_ref/swift/Struct/EnvironmentObject" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini17EnvironmentObjectV">EnvironmentObject</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A <code><a href="Protocols/Configuration.html">Configuration</a></code> which helps to store and retrieve objects using <code><a href="Structs/Environment.html">@Environment</a></code> and the correspond key path.</p>
+
+<p>A warning will be displayed if this action will overwrite a stored property.</p>
+
+                        <a href="Structs/EnvironmentObject.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">EnvironmentObject</span><span class="o">&lt;</span><span class="kt">Key</span><span class="p">,</span> <span class="kt">Value</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Configuration.html">Configuration</a></span> <span class="k">where</span> <span class="kt">Key</span> <span class="p">:</span> <span class="kt"><a href="Protocols.html#/s:7Apodini21EnvironmentAccessibleP">EnvironmentAccessible</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini27DefaultRelationshipModifierV"></a>
+                    <a name="//apple_ref/swift/Struct/DefaultRelationshipModifier" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini27DefaultRelationshipModifierV">DefaultRelationshipModifier</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/DefaultRelationshipModifier.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">DefaultRelationshipModifier</span><span class="o">&lt;</span><span class="kt">H</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols/HandlerModifier.html">HandlerModifier</a></span> <span class="k">where</span> <span class="kt">H</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Handler.html">Handler</a></span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">DefaultRelationshipModifier</span><span class="p">:</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini21DescriptionContextKeyV"></a>
+                    <a name="//apple_ref/swift/Struct/DescriptionContextKey" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini21DescriptionContextKeyV">DescriptionContextKey</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/DescriptionContextKey.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">DescriptionContextKey</span> <span class="p">:</span> <span class="kt"><a href="Protocols/OptionalContextKey.html">OptionalContextKey</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini19DescriptionModifierV"></a>
+                    <a name="//apple_ref/swift/Struct/DescriptionModifier" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini19DescriptionModifierV">DescriptionModifier</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/DescriptionModifier.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">DescriptionModifier</span><span class="o">&lt;</span><span class="kt">H</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols/HandlerModifier.html">HandlerModifier</a></span> <span class="k">where</span> <span class="kt">H</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Handler.html">Handler</a></span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">DescriptionModifier</span><span class="p">:</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini13GuardModifierV"></a>
+                    <a name="//apple_ref/swift/Struct/GuardModifier" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini13GuardModifierV">GuardModifier</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/GuardModifier.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">GuardModifier</span><span class="o">&lt;</span><span class="kt">C</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Modifier.html">Modifier</a></span> <span class="k">where</span> <span class="kt">C</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Component.html">Component</a></span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">GuardModifier</span><span class="p">:</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">GuardModifier</span><span class="p">:</span> <span class="kt"><a href="Protocols/Handler.html">Handler</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/HandlerModifier.html">HandlerModifier</a></span> <span class="k">where</span> <span class="k">Self</span><span class="o">.</span><span class="kt">ModifiedComponent</span><span class="p">:</span> <span class="kt"><a href="Protocols/Handler.html">Handler</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini17OperationModifierV"></a>
+                    <a name="//apple_ref/swift/Struct/OperationModifier" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini17OperationModifierV">OperationModifier</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/OperationModifier.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">OperationModifier</span><span class="o">&lt;</span><span class="kt">H</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols/HandlerModifier.html">HandlerModifier</a></span> <span class="k">where</span> <span class="kt">H</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Handler.html">Handler</a></span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">OperationModifier</span><span class="p">:</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini31RelationshipDestinationModifierV"></a>
+                    <a name="//apple_ref/swift/Struct/RelationshipDestinationModifier" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini31RelationshipDestinationModifierV">RelationshipDestinationModifier</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/RelationshipDestinationModifier.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">RelationshipDestinationModifier</span><span class="o">&lt;</span><span class="kt">H</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols/HandlerModifier.html">HandlerModifier</a></span> <span class="k">where</span> <span class="kt">H</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Handler.html">Handler</a></span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">RelationshipDestinationModifier</span><span class="p">:</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini26RelationshipSourceModifierV"></a>
+                    <a name="//apple_ref/swift/Struct/RelationshipSourceModifier" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini26RelationshipSourceModifierV">RelationshipSourceModifier</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/RelationshipSourceModifier.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">RelationshipSourceModifier</span><span class="o">&lt;</span><span class="kt">H</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols/HandlerModifier.html">HandlerModifier</a></span> <span class="k">where</span> <span class="kt">H</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Handler.html">Handler</a></span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">RelationshipSourceModifier</span><span class="p">:</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini16ResponseModifierV"></a>
+                    <a name="//apple_ref/swift/Struct/ResponseModifier" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini16ResponseModifierV">ResponseModifier</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A <code>ResponseModifier</code> can be used to transform the output of <code><a href="Protocols/Handler.html">Handler</a></code>&lsquo;s response to a different type using a <code><a href="Protocols/ResponseTransformer.html">ResponseTransformer</a></code></p>
+
+                        <a href="Structs/ResponseModifier.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">ResponseModifier</span><span class="o">&lt;</span><span class="kt">H</span><span class="p">,</span> <span class="kt">T</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols/HandlerModifier.html">HandlerModifier</a></span> <span class="k">where</span> <span class="kt">H</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Handler.html">Handler</a></span><span class="p">,</span> <span class="kt">T</span> <span class="p">:</span> <span class="kt"><a href="Protocols/ResponseTransformer.html">ResponseTransformer</a></span><span class="p">,</span> <span class="kt">T</span><span class="o">.</span><span class="kt">InputContent</span> <span class="o">==</span> <span class="kt">H</span><span class="o">.</span><span class="kt"><a href="Structs/Response.html">Response</a></span><span class="o">.</span><span class="kt"><a href="Protocols.html#/s:7Apodini7ContentP">Content</a></span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">ResponseModifier</span><span class="p">:</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini19ServiceTypeModifierV"></a>
+                    <a name="//apple_ref/swift/Struct/ServiceTypeModifier" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini19ServiceTypeModifierV">ServiceTypeModifier</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/ServiceTypeModifier.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">ServiceTypeModifier</span><span class="o">&lt;</span><span class="kt">H</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols/HandlerModifier.html">HandlerModifier</a></span> <span class="k">where</span> <span class="kt">H</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Handler.html">Handler</a></span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">ServiceTypeModifier</span><span class="p">:</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini36TypedRelationshipDestinationModifierV"></a>
+                    <a name="//apple_ref/swift/Struct/TypedRelationshipDestinationModifier" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini36TypedRelationshipDestinationModifierV">TypedRelationshipDestinationModifier</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/TypedRelationshipDestinationModifier.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">TypedRelationshipDestinationModifier</span><span class="o">&lt;</span><span class="kt">H</span><span class="p">,</span> <span class="kt">To</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols/HandlerModifier.html">HandlerModifier</a></span> <span class="k">where</span> <span class="kt">H</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Handler.html">Handler</a></span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">TypedRelationshipDestinationModifier</span><span class="p">:</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini11EnvironmentV"></a>
+                    <a name="//apple_ref/swift/Struct/Environment" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini11EnvironmentV">Environment</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A property wrapper to inject pre-defined values  to a <code><a href="Protocols/Component.html">Component</a></code>.</p>
+
+                        <a href="Structs/Environment.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@propertyWrapper</span>
+<span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Environment</span><span class="o">&lt;</span><span class="kt">K</span><span class="p">,</span> <span class="kt">Value</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols.html#/s:7Apodini8PropertyP">Property</a></span> <span class="k">where</span> <span class="kt">K</span> <span class="p">:</span> <span class="kt"><a href="Protocols.html#/s:7Apodini21EnvironmentAccessibleP">EnvironmentAccessible</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini14ObservedObjectV"></a>
+                    <a name="//apple_ref/swift/Struct/ObservedObject" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini14ObservedObjectV">ObservedObject</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Property wrapper used inside of a <code><a href="Protocols/Handler.html">Handler</a></code> or <code>Job</code> that subscribes to an <code><a href="Protocols.html#/s:7Apodini16ObservableObjectP">ObservableObject</a></code>.
+Changes of <code><a href="Classes/Published.html">@Published</a></code> properties of the <code><a href="Protocols.html#/s:7Apodini16ObservableObjectP">ObservableObject</a></code> will cause re-evaluations of the <code><a href="Protocols/Handler.html">Handler</a></code> or <code>Job</code>.
+<code><a href="Protocols.html#/s:7Apodini16ObservableObjectP">ObservableObject</a></code>s can either be passed to the property wrapper as instances or in form of key paths from the environment.</p>
+
+<p>This is helpful for service-side streams or bidirectional communication.</p>
+
+                        <a href="Structs/ObservedObject.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@propertyWrapper</span>
+<span class="kd">public</span> <span class="kd">struct</span> <span class="kt">ObservedObject</span><span class="o">&lt;</span><span class="kt">Element</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols.html#/s:7Apodini8PropertyP">Property</a></span> <span class="k">where</span> <span class="kt">Element</span> <span class="p">:</span> <span class="kt"><a href="Protocols.html#/s:7Apodini16ObservableObjectP">ObservableObject</a></span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">ObservedObject</span><span class="p">:</span> <span class="kt"><a href="Protocols/AnyObservedObject.html">AnyObservedObject</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini17AnyPropertyOptionV"></a>
+                    <a name="//apple_ref/swift/Struct/AnyPropertyOption" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini17AnyPropertyOptionV">AnyPropertyOption</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A type erasure of a <code><a href="Protocols/PropertyOption.html">PropertyOption</a></code></p>
+
+                        <a href="Structs/AnyPropertyOption.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">AnyPropertyOption</span><span class="o">&lt;</span><span class="kt">PropertyNameSpace</span><span class="o">&gt;</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini15IdentifyingTypeV"></a>
+                    <a name="//apple_ref/swift/Struct/IdentifyingType" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini15IdentifyingTypeV">IdentifyingType</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Defines the identifying type passed to a <code><a href="Structs/PathParameter.html">PathParameter</a></code>.
+The identifying type is required to conform to <code>Identifiable</code>,
+thus we save the <code>type</code> itself and its <code>Identifiable.ID</code> type.
+Such definitions are e.g. used to match property resolvers of Relationship
+definitions to their path parameter they actually resolve.</p>
+
+                        <a href="Structs/IdentifyingType.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">IdentifyingType</span> <span class="p">:</span> <span class="kt"><a href="Protocols/PropertyOption.html">PropertyOption</a></span><span class="p">,</span> <span class="kt">Equatable</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini9ParameterV"></a>
+                    <a name="//apple_ref/swift/Struct/Parameter" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini9ParameterV">Parameter</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The <code>@Parameter</code> property wrapper can be used to express input in <code>Components</code></p>
+
+                        <a href="Structs/Parameter.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@propertyWrapper</span>
+<span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Parameter</span><span class="o">&lt;</span><span class="kt">Element</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols.html#/s:7Apodini8PropertyP">Property</a></span> <span class="k">where</span> <span class="kt">Element</span> <span class="p">:</span> <span class="kt">Decodable</span><span class="p">,</span> <span class="kt">Element</span> <span class="p">:</span> <span class="kt">Encodable</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini13PathParameterV"></a>
+                    <a name="//apple_ref/swift/Struct/PathParameter" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini13PathParameterV">PathParameter</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A <code><a href="Protocols/PathComponent.html">@PathComponent</a></code> can be used in <code><a href="Protocols/Component.html">Component</a></code>s to indicate that a part of a path is a parameter and can be read out in a <code><a href="Protocols/Handler.html">Handler</a></code></p>
+
+                        <a href="Structs/PathParameter.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@propertyWrapper</span>
+<span class="kd">public</span> <span class="kd">struct</span> <span class="kt">PathParameter</span><span class="o">&lt;</span><span class="kt">Element</span><span class="o">&gt;</span> <span class="k">where</span> <span class="kt">Element</span> <span class="p">:</span> <span class="kt">Decodable</span><span class="p">,</span> <span class="kt">Element</span> <span class="p">:</span> <span class="kt">Encodable</span><span class="p">,</span> <span class="kt">Element</span> <span class="p">:</span> <span class="kt">LosslessStringConvertible</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini10PropertiesV"></a>
+                    <a name="//apple_ref/swift/Struct/Properties" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini10PropertiesV">Properties</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Properties provides same functionality as <code><a href="Protocols.html#/s:7Apodini15DynamicPropertyP">DynamicProperty</a></code>, but for elements that are only known
+at statup and not compile-time. That is, <code>Properties</code> stores named elements and makes the ones
+conforming to <code><a href="Protocols.html#/s:7Apodini8PropertyP">Property</a></code> discoverable to the Apodini runtime framework.
+<code>Properties</code> can be used to e.g. delay the decision, which <code><a href="Structs/Parameter.html">Parameter</a></code>s are exported to startup-time.</p>
+
+                        <a href="Structs/Properties.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@dynamicMemberLookup</span>
+<span class="kd">@propertyWrapper</span>
+<span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Properties</span> <span class="p">:</span> <span class="kt"><a href="Protocols.html#/s:7Apodini8PropertyP">Property</a></span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">Properties</span><span class="p">:</span> <span class="kt">ExpressibleByDictionaryLiteral</span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">Properties</span><span class="p">:</span> <span class="kt">Collection</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini5StateV"></a>
+                    <a name="//apple_ref/swift/Struct/State" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini5StateV">State</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>State can be used to maintain state across multiple evaluations of the same <code><a href="Protocols/Handler.html">Handler</a></code>..
+This is especially helpful for <code><a href="Protocols/Handler.html">Handler</a></code>s which use <code><a href="Structs/Connection.html">Connection</a></code> and do not instantly return
+<code>Response.final(_)</code>.</p>
+<div class="aside aside-note">
+    <p class="aside-title">Note</p>
+    Note <code>State</code> has the same scope as the <code><a href="Structs/Connection.html">Connection</a></code> available via <code>@Environment(\.connection)</code>
+
+</div>
+
+                        <a href="Structs/State.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@propertyWrapper</span>
+<span class="kd">public</span> <span class="kd">struct</span> <span class="kt">State</span><span class="o">&lt;</span><span class="kt">Element</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols.html#/s:7Apodini8PropertyP">Property</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini6ThrowsV"></a>
+                    <a name="//apple_ref/swift/Struct/Throws" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini6ThrowsV">Throws</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A property wrapper that can be used on <code><a href="Protocols/Handler.html">Handler</a></code>s to obtain <code><a href="Structs/ApodiniError.html">ApodiniError</a></code>s.</p>
+
+                        <a href="Structs/Throws.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@propertyWrapper</span>
+<span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Throws</span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">Throws</span><span class="p">:</span> <span class="kt"><a href="Protocols/StandardErrorContext.html">StandardErrorContext</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini15TypedPropertiesV"></a>
+                    <a name="//apple_ref/swift/Struct/TypedProperties" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini15TypedPropertiesV">TypedProperties</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A typed version of an <code><a href="Structs/Properties.html">@Properties</a></code> instance.</p>
+
+                        <a href="Structs/TypedProperties.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">TypedProperties</span><span class="o">&lt;</span><span class="kt">P</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols.html#/s:7Apodini8PropertyP">Property</a></span> <span class="k">where</span> <span class="kt">P</span> <span class="p">:</span> <span class="kt"><a href="Protocols.html#/s:7Apodini8PropertyP">Property</a></span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">TypedProperties</span><span class="p">:</span> <span class="kt">Collection</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini12RelationshipV"></a>
+                    <a name="//apple_ref/swift/Struct/Relationship" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini12RelationshipV">Relationship</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A instance of <code>Relationship</code> can be used to manually create
+relationships between different <code><a href="Protocols/Handler.html">Handler</a></code>s.</p>
+
+<p>Use the <code><a href="Protocols/Handler.html#/s:7Apodini7HandlerPAAE12relationship2toAA26RelationshipSourceModifierVyxGAA0E0V_tF">Handler.relationship(to:)</a></code> modifier to specify the sources for the Relationship.</p>
+
+<p>Use the <code><a href="Protocols/Handler.html#/s:7Apodini7HandlerPAAE11destination2ofAA31RelationshipDestinationModifierVyxGAA0E0V_tF">Handler.destination(of:)</a></code> modifier to specify the destination for the Relationship.
+You can only define multiple destinations if the <code><a href="Protocols/Handler.html">Handler</a></code>s are located under the same path.</p>
+
+                        <a href="Structs/Relationship.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Relationship</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini29AnyRelationshipIdentificationV"></a>
+                    <a name="//apple_ref/swift/Struct/AnyRelationshipIdentification" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini29AnyRelationshipIdentificationV">AnyRelationshipIdentification</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A type erasured version of an <code><a href="Structs/RelationshipIdentification.html">RelationshipIdentification</a></code>.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">AnyRelationshipIdentification</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini26RelationshipIdentificationV"></a>
+                    <a name="//apple_ref/swift/Struct/RelationshipIdentification" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini26RelationshipIdentificationV">RelationshipIdentification</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A <code>RelationshipIdentification</code> provides additional information to resolve path parameter
+values to the destination of a relationship, e.g. defined by <code><a href="Structs/RelationshipInheritance.html">RelationshipInheritance</a></code>, <code><a href="Structs/RelationshipReference.html">RelationshipReference</a></code>
+or <code><a href="Structs/RelationshipSource.html">RelationshipSource</a></code>.
+The path parameter which should be resolved must be annotated
+with a identifying type using <code><a href="Structs/PathParameter.html#/s:7Apodini13PathParameterV11identifyingACyxGqd__m_tc2IDs12IdentifiablePQyd__RszSERd__sAGRd__lufc">PathParameter.init(identifying:)</a></code>.</p>
+
+                        <a href="Structs/RelationshipIdentification.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">RelationshipIdentification</span><span class="o">&lt;</span><span class="kt">From</span><span class="p">,</span> <span class="kt">To</span><span class="o">&gt;</span> <span class="k">where</span> <span class="kt">To</span> <span class="p">:</span> <span class="kt">Identifiable</span><span class="p">,</span> <span class="kt">To</span><span class="o">.</span><span class="kt">ID</span> <span class="p">:</span> <span class="kt">LosslessStringConvertible</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini33RelationshipIdentificationBuilderV"></a>
+                    <a name="//apple_ref/swift/Struct/RelationshipIdentificationBuilder" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini33RelationshipIdentificationBuilderV">RelationshipIdentificationBuilder</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/RelationshipIdentificationBuilder.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@_functionBuilder</span>
+<span class="kd">public</span> <span class="kd">struct</span> <span class="kt">RelationshipIdentificationBuilder</span><span class="o">&lt;</span><span class="kt">From</span><span class="o">&gt;</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini23RelationshipInheritanceV"></a>
+                    <a name="//apple_ref/swift/Struct/RelationshipInheritance" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini23RelationshipInheritanceV">RelationshipInheritance</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A <code>RelationshipInheritance</code> can be used to indicate that the annotated <code><a href="Protocols.html#/s:7Apodini7ContentP">Content</a></code> type
+inherits Relationships from the specified target type.</p>
+
+                        <a href="Structs/RelationshipInheritance.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">RelationshipInheritance</span><span class="o">&lt;</span><span class="kt">From</span><span class="p">,</span> <span class="kt">To</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols.html#/s:7Apodini22RelationshipDefinitionP">RelationshipDefinition</a></span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">RelationshipInheritance</span><span class="p">:</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini21RelationshipReferenceV"></a>
+                    <a name="//apple_ref/swift/Struct/RelationshipReference" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini21RelationshipReferenceV">RelationshipReference</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A <code>RelationshipReference</code> can be used to create a referencing relationship for the annotated <code><a href="Protocols.html#/s:7Apodini7ContentP">Content</a></code> type.
+A relationship reference uses the value of properties holding the identifier of the target type
+to resolve a relationship with the given values.</p>
+
+                        <a href="Structs/RelationshipReference.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">RelationshipReference</span><span class="o">&lt;</span><span class="kt">From</span><span class="p">,</span> <span class="kt">To</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols.html#/s:7Apodini22RelationshipDefinitionP">RelationshipDefinition</a></span> <span class="k">where</span> <span class="kt">To</span> <span class="p">:</span> <span class="kt">Identifiable</span><span class="p">,</span> <span class="kt">To</span><span class="o">.</span><span class="kt">ID</span> <span class="p">:</span> <span class="kt">LosslessStringConvertible</span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">RelationshipReference</span><span class="p">:</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini18RelationshipSourceV"></a>
+                    <a name="//apple_ref/swift/Struct/RelationshipSource" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini18RelationshipSourceV">RelationshipSource</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A <code>RelationshipSource</code> can be used to indicate that the annotated <code><a href="Protocols.html#/s:7Apodini7ContentP">Content</a></code> type
+has a relationship with the specified name to a <code><a href="Protocols/Handler.html">Handler</a></code> which returns the specified type.
+This is the DSL equivalent of the modifier <code>Handler.relationship(name:to:).
+In addition to the modifier, the</code>RelationshipSource<code>allows to define</code>RelationshipIdentification`s
+to add resolvers for path parameters of the destination.</p>
+
+                        <a href="Structs/RelationshipSource.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">RelationshipSource</span><span class="o">&lt;</span><span class="kt">From</span><span class="p">,</span> <span class="kt">To</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols.html#/s:7Apodini22RelationshipDefinitionP">RelationshipDefinition</a></span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">RelationshipSource</span><span class="p">:</span> <span class="kt"><a href="Protocols/SyntaxTreeVisitable.html">SyntaxTreeVisitable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/ApodiniError"></a>
+                <a name="//apple_ref/swift/Section/ApodiniError" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/ApodiniError"></a>
+                  <h3 class="section-name"><p>ApodiniError</p>
+</h3>
+                </div>
+              </div>
+              <ul class="item-container">
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini0A5ErrorV"></a>
+                    <a name="//apple_ref/swift/Struct/ApodiniError" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini0A5ErrorV">ApodiniError</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>An error that can be thrown from <code><a href="Protocols/Handler.html">Handler</a></code>s and receives special treatment from compliant interface exporters.</p>
+
+                        <a href="Structs/ApodiniError.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">ApodiniError</span> <span class="p">:</span> <span class="kt">Error</span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">ApodiniError</span><span class="p">:</span> <span class="kt"><a href="Protocols/StandardError.html">StandardError</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/StandardError"></a>
+                <a name="//apple_ref/swift/Section/StandardError" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/StandardError"></a>
+                  <h3 class="section-name"><p>StandardError</p>
+</h3>
+                </div>
+              </div>
+              <ul class="item-container">
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini26StandardErrorMessagePrefixV"></a>
+                    <a name="//apple_ref/swift/Struct/StandardErrorMessagePrefix" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini26StandardErrorMessagePrefixV">StandardErrorMessagePrefix</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">StandardErrorMessagePrefix</span> <span class="p">:</span> <span class="kt"><a href="Protocols.html#/s:7Apodini26ErrorMessagePrefixStrategyP">ErrorMessagePrefixStrategy</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini20NoErrorMessagePrefixV"></a>
+                    <a name="//apple_ref/swift/Struct/NoErrorMessagePrefix" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini20NoErrorMessagePrefixV">NoErrorMessagePrefix</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">NoErrorMessagePrefix</span> <span class="p">:</span> <span class="kt"><a href="Protocols.html#/s:7Apodini26ErrorMessagePrefixStrategyP">ErrorMessagePrefixStrategy</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini24CustomErrorMessagePrefixV"></a>
+                    <a name="//apple_ref/swift/Struct/CustomErrorMessagePrefix" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini24CustomErrorMessagePrefixV">CustomErrorMessagePrefix</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">CustomErrorMessagePrefix</span> <span class="p">:</span> <span class="kt"><a href="Protocols.html#/s:7Apodini26ErrorMessagePrefixStrategyP">ErrorMessagePrefixStrategy</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini5EmptyV"></a>
+                    <a name="//apple_ref/swift/Struct/Empty" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini5EmptyV">Empty</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Empty</span> <span class="p">:</span> <span class="kt">Encodable</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini8ResponseV"></a>
+                    <a name="//apple_ref/swift/Struct/Response" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini8ResponseV">Response</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/Response.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Response</span><span class="o">&lt;</span><span class="kt"><a href="Protocols.html#/s:7Apodini7ContentP">Content</a></span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt"><a href="Protocols/ResponseTransformable.html">ResponseTransformable</a></span> <span class="k">where</span> <span class="kt"><a href="Protocols.html#/s:7Apodini7ContentP">Content</a></span> <span class="p">:</span> <span class="kt">Encodable</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini15EnrichedContentV"></a>
+                    <a name="//apple_ref/swift/Struct/EnrichedContent" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini15EnrichedContentV">EnrichedContent</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A <code>EnrichedContent</code> describes the outcome of a <code><a href="Classes/ConnectionContext.html#/s:7Apodini17ConnectionContextC6handle7request9eventLoop5final3NIO05EventG6FutureCyAA8ResponseVyAA15EnrichedContentVGG15ExporterRequestQz_AH0jG0_pSbtF">ConnectionContext.handle(...)</a></code>.</p>
+
+                        <a href="Structs/EnrichedContent.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">EnrichedContent</span> <span class="p">:</span> <span class="kt">Encodable</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini8EndpointV"></a>
+                    <a name="//apple_ref/swift/Struct/Endpoint" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini8EndpointV">Endpoint</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Models a single Endpoint which is identified by its PathComponents and its operation</p>
+
+                        <a href="Structs/Endpoint.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Endpoint</span><span class="o">&lt;</span><span class="kt">H</span><span class="o">&gt;</span> <span class="p">:</span> <span class="n">_AnyEndpoint</span> <span class="k">where</span> <span class="kt">H</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Handler.html">Handler</a></span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">Endpoint</span><span class="p">:</span> <span class="kt">CustomDebugStringConvertible</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini17EndpointParameterV"></a>
+                    <a name="//apple_ref/swift/Struct/EndpointParameter" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini17EndpointParameterV">EndpointParameter</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Models a <code><a href="Structs/Parameter.html">Parameter</a></code>. See <code><a href="Protocols/AnyEndpointParameter.html">AnyEndpointParameter</a></code> for detailed documentation.</p>
+
+<p>Be aware that for optional <code><a href="Structs/Parameter.html">Parameter</a></code> the generic <code>Type</code> holds the wrapped type of the <code>Optional</code>.
+For the following declaration</p>
+<pre class="highlight swift"><code><span class="kd">@Parameter</span> <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span>
+</code></pre>
+
+<p>the generic holds <code>String.Type</code> and not <code>Optional&lt;String&gt;.self</code>.
+Use the <code>nilIsValidValue</code> property to check if the original parameter definition used an <code>Optional</code> type.</p>
+
+                        <a href="Structs/EndpointParameter.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">EndpointParameter</span><span class="o">&lt;</span><span class="k">Type</span><span class="o">&gt;</span> <span class="p">:</span> <span class="n">_AnyEndpointParameter</span> <span class="k">where</span> <span class="k">Type</span> <span class="p">:</span> <span class="kt">Decodable</span><span class="p">,</span> <span class="k">Type</span> <span class="p">:</span> <span class="kt">Encodable</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini21EndpointPathParameterV"></a>
+                    <a name="//apple_ref/swift/Struct/EndpointPathParameter" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini21EndpointPathParameterV">EndpointPathParameter</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Models a <code><a href="Structs/Parameter.html">Parameter</a></code> created from a <code><a href="Structs/PathParameter.html">PathParameter</a></code>. See <code><a href="Protocols/AnyEndpointPathParameter.html">AnyEndpointPathParameter</a></code> for detailed documentation.</p>
+
+                        <a href="Structs/EndpointPathParameter.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">EndpointPathParameter</span><span class="o">&lt;</span><span class="k">Type</span><span class="o">&gt;</span> <span class="p">:</span> <span class="n">_AnyEndpointPathParameter</span> <span class="k">where</span> <span class="k">Type</span> <span class="p">:</span> <span class="kt">Decodable</span><span class="p">,</span> <span class="k">Type</span> <span class="p">:</span> <span class="kt">Encodable</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini20EndpointRelationshipV"></a>
+                    <a name="//apple_ref/swift/Struct/EndpointRelationship" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini20EndpointRelationshipV">EndpointRelationship</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Models relationships of a <code><a href="Structs/Endpoint.html">Endpoint</a></code> to (multiple) destination <code><a href="Structs/Endpoint.html">Endpoint</a></code>s,
+which all are located under the same path.</p>
+
+                        <a href="Structs/EndpointRelationship.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">EndpointRelationship</span> <span class="p">:</span> <span class="kt">Equatable</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini23RelationshipDestinationV"></a>
+                    <a name="//apple_ref/swift/Struct/RelationshipDestination" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini23RelationshipDestinationV">RelationshipDestination</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Models one of multiple destinations for a given <code><a href="Structs/EndpointRelationship.html">EndpointRelationship</a></code>.</p>
+
+                        <a href="Structs/RelationshipDestination.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">RelationshipDestination</span> <span class="p">:</span> <span class="kt">CustomStringConvertible</span><span class="p">,</span> <span class="kt">Hashable</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini18ParameterNamespaceV"></a>
+                    <a name="//apple_ref/swift/Struct/ParameterNamespace" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini18ParameterNamespaceV">ParameterNamespace</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/ParameterNamespace.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">ParameterNamespace</span> <span class="p">:</span> <span class="kt">OptionSet</span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">ParameterNamespace</span><span class="p">:</span> <span class="kt">CustomStringConvertible</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini12AnyEncodableV"></a>
+                    <a name="//apple_ref/swift/Struct/AnyEncodable" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini12AnyEncodableV">AnyEncodable</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/AnyEncodable.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">AnyEncodable</span> <span class="p">:</span> <span class="kt">Encodable</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Node"></a>
+                <a name="//apple_ref/swift/Section/Node" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Node"></a>
+                  <h3 class="section-name"><p>Node</p>
+</h3>
+                </div>
+              </div>
+              <ul class="item-container">
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini4NodeV"></a>
+                    <a name="//apple_ref/swift/Struct/Node" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini4NodeV">Node</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p><code>Node</code> is a wrapper that enables values to be structured in a tree.</p>
+
+                        <a href="Structs/Node.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Node</span><span class="o">&lt;</span><span class="kt">T</span><span class="o">&gt;</span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">Node</span><span class="p">:</span> <span class="kt">CustomStringConvertible</span> <span class="k">where</span> <span class="kt">T</span><span class="p">:</span> <span class="kt">CustomStringConvertible</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini7VersionV"></a>
+                    <a name="//apple_ref/swift/Struct/Version" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini7VersionV">Version</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A <code>Version</code> can be  used to specify the version of a Web API using semantic versioning</p>
+
+                        <a href="Structs/Version.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Version</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:7Apodini20APIVersionContextKeyV"></a>
+                    <a name="//apple_ref/swift/Struct/APIVersionContextKey" class="dashAnchor"></a>
+                    <a class="token" href="#/s:7Apodini20APIVersionContextKeyV">APIVersionContextKey</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Structs/APIVersionContextKey.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">APIVersionContextKey</span> <span class="p">:</span> <span class="kt"><a href="Protocols/OptionalContextKey.html">OptionalContextKey</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+      </article>
+    </div>
+    <section class="footer">
+      <p>&copy; 2021 <a class="link" href="https://github.com/Apodini" target="_blank" rel="external">Paul Schmiedmayer</a>. All rights reserved. (Last updated: 2021-03-02)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+    </section>
+  </body>
+</div>
+</html>
