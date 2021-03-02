@@ -87,7 +87,7 @@ extension Binding where Value: Codable {
 
 extension Binding {
     /// Creates a binding by projecting the base value to an optional value.
-    public init<V: Codable>(_ base: Binding<V>) where Value == V? {
+    public init<V>(_ base: Binding<V>) where Value == V? {
         self.store = base.store
         switch base.retrieval {
         case .constant(let value):
@@ -95,5 +95,113 @@ extension Binding {
         case .storage(let retriever):
             self.retrieval = .storage(retriever)
         }
+    }
+    
+    /// Creates a binding by projecting this binding's value to an optional value.
+    public var asOptional: Binding<Value?> {
+        Binding<Value?>(self)
+    }
+    
+    /// Create an optional, always present `Binding` that always returns the given `value`.
+    /// - Note: In most cases you will be able to also use `Binding.constant(value)`, this
+    ///         just puts more emphasis on the semantics of optional-wrapping.
+    public static func some<V>(_ value: V) -> Binding<V?> {
+        Binding<V?>(constant: value)
+    }
+}
+
+
+// MARK: Convenience Literal-Initializers
+
+extension Binding: ExpressibleByNilLiteral where Value: ExpressibleByNilLiteral {
+    public init(nilLiteral: ()) {
+        self.init(constant: nil)
+    }
+}
+
+extension Binding: ExpressibleByStringLiteral,
+                   ExpressibleByUnicodeScalarLiteral,
+                   ExpressibleByExtendedGraphemeClusterLiteral
+where Value: ExpressibleByStringLiteral,
+      Value.StringLiteralType == Value.UnicodeScalarLiteralType,
+      Value.StringLiteralType == Value.ExtendedGraphemeClusterLiteralType {
+    public typealias UnicodeScalarLiteralType = Value.StringLiteralType
+    
+    public typealias ExtendedGraphemeClusterLiteralType = Value.StringLiteralType
+    
+    public init(stringLiteral value: Value.StringLiteralType) {
+        self.init(constant: Value(stringLiteral: value))
+    }
+}
+
+extension Binding: ExpressibleByStringInterpolation
+where Value: ExpressibleByStringInterpolation,
+      Value.StringLiteralType == DefaultStringInterpolation.StringLiteralType,
+      Value.StringLiteralType == Value.UnicodeScalarLiteralType,
+      Value.StringLiteralType == Value.ExtendedGraphemeClusterLiteralType { }
+
+extension Binding: ExpressibleByBooleanLiteral where Value: ExpressibleByBooleanLiteral {
+    public init(booleanLiteral value: Value.BooleanLiteralType) {
+        self.init(constant: Value(booleanLiteral: value))
+    }
+}
+
+extension Binding: ExpressibleByFloatLiteral where Value: ExpressibleByFloatLiteral {
+    public init(floatLiteral value: Value.FloatLiteralType) {
+        self.init(constant: Value(floatLiteral: value))
+    }
+}
+
+extension Binding: ExpressibleByIntegerLiteral where Value: ExpressibleByIntegerLiteral {
+    public init(integerLiteral value: Value.IntegerLiteralType) {
+        self.init(constant: Value(integerLiteral: value))
+    }
+}
+
+/// `ExpressibleByCollection` is an quivalent to `ExpressibleByArrayLiteral` except its
+/// initializer doesn't take the element-sequence, but a collection. This allows for implementing
+/// `ExpressibleByArrayLiteral` for types that expose the resulting collection type without
+/// constraining the conformance to a single implementation, e.g. using `Array` instead of `Set`.
+public protocol ExpressibleByCollection {
+    /// The type can be instantiated from `Collection`s of member-type `Element`.
+    associatedtype Element
+    
+    /// Create a new instance from the given collection.
+    init<C: Collection>(collection: C) where C.Element == Element
+}
+
+extension Array: ExpressibleByCollection {
+    public typealias Element = Element
+    
+    public init<C: Collection>(collection: C) where C.Element == Element {
+        if let array = collection as? Self {
+            self = array
+        } else {
+            self.init()
+            for elem in collection {
+                self.append(elem)
+            }
+        }
+    }
+}
+
+extension Set: ExpressibleByCollection {
+    public typealias Element = Element
+    
+    public init<C: Collection>(collection: C) where C.Element == Element {
+        if let set = collection as? Self {
+            self = set
+        } else {
+            self.init()
+            for elem in collection {
+                self.insert(elem)
+            }
+        }
+    }
+}
+
+extension Binding: ExpressibleByArrayLiteral where Value: ExpressibleByCollection {
+    public init(arrayLiteral elements: Value.Element...) {
+        self.init(constant: Value(collection: elements))
     }
 }

@@ -38,22 +38,24 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
     @PathParameter var selectedCountry: String
     @Environment(\BindingTests.featured) var featuredCountry
     
+    @Parameter var optionallySelectedCountry: String?
+    
     @ComponentBuilder
     var testService: some Component {
-        Greeter(country: .constant(nil))
+        Greeter(country: nil)
         Group("default") {
-            Greeter(country: Binding<String?>(.constant("USA")))
+            Greeter(country: .some("USA"))
         }
         Group("optional") {
-            Greeter(country: Parameter<String?>().projectedValue)
+            Greeter(country: $optionallySelectedCountry)
         }
         Group("featured") {
             Greeter(country: $featuredCountry)
         }
         Group("country", $selectedCountry) {
-            Greeter(country: Binding<String?>($selectedCountry.projectedValue))
+            Greeter(country: _selectedCountry.binding.asOptional)
             Group("optional") {
-                ReallyOptionalGreeter(country: Binding<String??>(Binding<String?>($selectedCountry.projectedValue)))
+                ReallyOptionalGreeter(country: _selectedCountry.binding.asOptional.asOptional)
             }
         }
     }
