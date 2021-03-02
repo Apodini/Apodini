@@ -101,7 +101,7 @@ struct HelloWorld: WebService {
     }
 
     var content: some Component {
-        Greeter(country: .constant(nil))
+        Greeter(country: nil)
             .description("Say 'Hello' to the World.")
         Group("country") {
             CountrySubsystem()
@@ -114,7 +114,7 @@ struct CountrySubsystem: Component {
     
     var content: some Component {
         Group($country) {
-            Greeter(country: Binding<String?>($country.projectedValue))
+            Greeter(country: Binding<String?>(_country.binding))
                 .description("Say 'Hello' to a country.")
         }
     }
