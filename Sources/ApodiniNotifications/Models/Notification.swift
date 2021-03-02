@@ -1,4 +1,4 @@
-import APNS
+import APNSwift
 import FCM
 import Foundation
 

@@ -1,10 +1,3 @@
-//
-//  NotificationCenter+Sending.swift
-//  
-//
-//  Created by Alexander Collins on 22.12.20.
-//
-
 import NIO
 import FCM
 
@@ -48,17 +41,12 @@ extension NotificationCenter {
     /// - Parameters:
     ///     - notification: The `Notification` to send
     ///     - to: The receveing `Device`s of the push notification
-    public func send(notification: Notification, to devices: [Device]) {
+    @discardableResult
+    public func send(notification: Notification, to devices: [Device]) -> EventLoopFuture<Void> {
         let fcmNotification = notification.transformToFCM()
         let apnsNotification = notification.transformToAPNS()
         
-        for device in devices {
-            if device.type == .apns {
-                sendAPNS(apnsNotification, to: device.id)
-            } else {
-                sendFCM(fcmNotification, to: device.id)
-            }
-        }
+        return send(apnsNotification, fcmNotification, to: devices)
     }
     
     /// Batch sending a push notification with data encoded as JSON to multiple `Device`s.
@@ -69,22 +57,19 @@ extension NotificationCenter {
     ///     - to: The receveing `Device`s of the push notification
     ///
     /// - Returns: An `EventLoopFuture` to indicate the completion of the operation.
-    public func send<T: Encodable>(notification: Notification, with data: T, to devices: [Device]) {
+    @discardableResult
+    public func send<T: Encodable>(notification: Notification, with data: T, to devices: [Device]) -> EventLoopFuture<Void> {
         let fcmNotification = notification.transformToFCM(with: data)
         let apnsNotification = notification.transformToAPNS(with: data)
         
-        for device in devices {
-            if device.type == .apns {
-                sendAPNS(apnsNotification, to: device.id)
-            } else {
-                sendFCM(fcmNotification, to: device.id)
-            }
-        }
+        return send(apnsNotification, fcmNotification, to: devices)
     }
     
     /// Sends a push notification to all devices which are subscribed to a topic.
     /// APNS `Device`s are directly addressed with the id.
     /// The broadcasting to FCM `Devices` is handled by Firebase.
+    ///
+    /// - Note: FCM `Device`s need to be first be subscribed to the topic over Firebase.
     ///
     /// - Parameters:
     ///     - notification: The `Notification` to send
@@ -96,18 +81,14 @@ extension NotificationCenter {
         let fcmNotification = notification.transformToFCM()
         let apnsNotification = notification.transformToAPNS()
         
-        return getDevices(of: topic)
-            .flatMap { devices -> EventLoopFuture<Void> in
-                for device in devices {
-                    self.sendAPNS(apnsNotification, to: device.id)
-                }
-                return self.sendFCM(fcmNotification, topic: topic)
-            }
+        return send(apnsNotification, fcmNotification, to: topic)
     }
     
     /// Sends a push notification with data as JSON to all devices which are subscribed to a topic.
     /// APNS `Device`s are directly addressed with the id.
     /// The broadcasting to FCM `Devices` is handled by Firebase.
+    ///
+    /// - Note: FCM `Device`s need to be first be subscribed to the topic over Firebase.
     ///
     /// - Parameters:
     ///     - notification: The `Notification` to send
@@ -120,13 +101,7 @@ extension NotificationCenter {
         let fcmNotification = notification.transformToFCM(with: data)
         let apnsNotification = notification.transformToAPNS(with: data)
         
-        return getDevices(of: topic)
-            .flatMap { devices -> EventLoopFuture<Void> in
-                for device in devices {
-                    self.sendAPNS(apnsNotification, to: device.id)
-                }
-                return self.sendFCM(fcmNotification, topic: topic)
-            }
+        return send(apnsNotification, fcmNotification, to: topic)
     }
     
     /// Sends a silent push notification with only data as JSON and no alert to a specific `Device`.
@@ -152,21 +127,55 @@ extension NotificationCenter {
     public func send<T: Encodable>(data: T, to topic: String) -> EventLoopFuture<Void> {
         send(notification: Notification(), with: data, to: topic)
     }
+}
+
+// MARK: - Private Extension
+
+private extension NotificationCenter {
+    func send(_ apnsNotification: AcmeNotification, _ fcmNotification: FCMMessageDefault, to devices: [Device]) -> EventLoopFuture<Void> {
+        devices
+            .map { device in
+                device.type == .apns ?
+                    sendAPNS(apnsNotification, to: device.id) :
+                    sendFCM(fcmNotification, to: device.id)
+            }
+            .flatten(on: app.eventLoopGroup.next()) // Transforms EventLoopFuture<[Void]> to EventLoopFuture<Void>
+    }
     
+    func send(_ apnsNotification: AcmeNotification, _ fcmNotification: FCMMessageDefault, to topic: String) -> EventLoopFuture<Void> {
+        getAPNSDevices(of: topic)
+            .sequencedFlatMapEach { apnsDevice in // Iterates over every APNS Device
+                sendAPNS(apnsNotification, to: apnsDevice.id)
+            }
+            .flatMap {
+                sendFCM(fcmNotification, topic: topic)
+            }
+    }
+    
+    // MARK: Send to push notification providers
     @discardableResult
-    private func sendAPNS(_ notification: AcmeNotification, to deviceToken: String) -> EventLoopFuture<Void> {
-        app.apns.send(notification, to: deviceToken)
+    func sendAPNS(_ notification: AcmeNotification, to deviceToken: String) -> EventLoopFuture<Void> {
+        if isAPNSConfigured {
+            return app.apns.send(notification, to: deviceToken)
+        }
+        return app.eventLoopGroup.future(())
     }
     
     @discardableResult
-    private func sendFCM(_ message: FCMMessageDefault, to deviceToken: String) -> EventLoopFuture<Void> {
-        message.token = deviceToken
-        return app.fcm.send(message).transform(to: ())
+    func sendFCM(_ message: FCMMessageDefault, to deviceToken: String) -> EventLoopFuture<Void> {
+        if isFCMConfigured {
+            message.token = deviceToken
+            return app.fcm.send(message).transform(to: ())
+        }
+        return app.eventLoopGroup.future(())
     }
     
     @discardableResult
-    private func sendFCM(_ message: FCMMessageDefault, topic: String) -> EventLoopFuture<Void> {
-        message.topic = topic
-        return app.fcm.send(message).transform(to: ())
+    func sendFCM(_ message: FCMMessageDefault, topic: String) -> EventLoopFuture<Void> {
+        if isFCMConfigured {
+            message.topic = topic
+            return app.fcm.send(message).transform(to: ())
+        }
+        return app.eventLoopGroup.future(())
     }
 }

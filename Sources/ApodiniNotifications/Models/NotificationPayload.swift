@@ -1,4 +1,4 @@
-import APNS
+import APNSwift
 import FCM
 
 /// The `Payload` is used to configure plattform specific settings of a `Notification`.
