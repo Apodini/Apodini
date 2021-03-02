@@ -135,13 +135,14 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter {
 
     let options: PropertyOptionSet<ParameterOptionNameSpace>
 
-    init(id: UUID,
-         name: String,
-         label: String,
-         nilIsValidValue: Bool,
-         necessity: Necessity,
-         options: PropertyOptionSet<ParameterOptionNameSpace>,
-         defaultValue: (() -> Type)? = nil
+    init(
+        id: UUID,
+        name: String,
+        label: String,
+        nilIsValidValue: Bool,
+        necessity: Necessity,
+        options: PropertyOptionSet<ParameterOptionNameSpace>,
+        defaultValue: (() -> Type)? = nil
     ) {
         self.id = id
         self.name = name
