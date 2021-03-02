@@ -6,6 +6,7 @@
 //
 
 import Apodini
+import XCTApodini
 
 // This file doesn't test functionality, but only that certain expressions, which
 // are considered important use-cases of `Binding`'s public API do compile.
@@ -78,5 +79,12 @@ struct None: Component {
             intOpt: nil,
             uint: 5,
             uintOpt: nil)
+    }
+}
+
+class BindingConvenienceTests: ApodiniTests {
+    func testInitialization() {
+        _ = Some().content
+        _ = None().content
     }
 }
