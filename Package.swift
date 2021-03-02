@@ -29,7 +29,7 @@ let package = Package(
         // Used to parse command line arguments
         .package(url: "https://github.com/vapor/console-kit.git", from: "4.2.4"),
         // Used by the `NotificationCenter` to send push notifications to `APNS`.
-        .package(url: "https://github.com/vapor/apns.git", from: "1.0.1"),
+        .package(name: "apnswift", url: "https://github.com/kylebrowning/APNSwift.git", from: "3.0.0"),
         // Used by the `NotificationCenter` to send push notifications to `FCM`.
         .package(url: "https://github.com/MihaelIsaev/FCM.git", from: "2.8.0"),
         .package(url: "https://github.com/vapor/fluent-mongo-driver.git", from: "1.0.2"),
@@ -136,7 +136,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniVaporSupport"),
                 .target(name: "ApodiniDatabase"),
-                .product(name: "APNS", package: "apns"),
+                .product(name: "APNSwift", package: "apnswift"),
                 .product(name: "FCM", package: "FCM")
             ]
         ),
