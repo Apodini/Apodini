@@ -74,8 +74,8 @@ extension DeploymentProvider {
     /// Builds the web service.
     /// - Returns: the url of the built executable
     public func buildWebService() throws -> URL {
-        let fm = FileManager.default
-        try fm.setWorkingDirectory(to: packageRootDir)
+        let fileManager = FileManager.default
+        try fileManager.setWorkingDirectory(to: packageRootDir)
         
         let swiftBin = try getSwiftBinUrl()
         let task = Task(
@@ -102,25 +102,25 @@ extension DeploymentProvider {
     
     /// Generate a `WebServiceStructure` for this web service
     public func generateDefaultWebServiceStructure() throws -> WebServiceStructure {
-        let fm = FileManager.default
+        let fileManager = FileManager.default
         let logger = Logger(label: "ApodiniDeployCLI.Localhost")
         
         let swiftBin = try getSwiftBinUrl()
-        try fm.setWorkingDirectory(to: packageRootDir)
+        try fileManager.setWorkingDirectory(to: packageRootDir)
         
         logger.trace("\(packageRootDir)")
         
-        guard fm.directoryExists(atUrl: packageRootDir) else {
+        guard fileManager.directoryExists(atUrl: packageRootDir) else {
             throw ApodiniDeployBuildSupportError(message: "Unable to find input directory")
         }
         
         let packageSwiftFileUrl = packageRootDir.appendingPathComponent("Package.swift")
-        guard fm.fileExists(atPath: packageSwiftFileUrl.path) else {
+        guard fileManager.fileExists(atPath: packageSwiftFileUrl.path) else {
             throw ApodiniDeployBuildSupportError(message: "Unable to find Package.swift")
         }
         
-        let modelFileUrl = fm.temporaryDirectory.appendingPathComponent("AM_\(UUID().uuidString).json")
-        guard fm.createFile(atPath: modelFileUrl.path, contents: nil, attributes: nil) else {
+        let modelFileUrl = fileManager.temporaryDirectory.appendingPathComponent("AM_\(UUID().uuidString).json")
+        guard fileManager.createFile(atPath: modelFileUrl.path, contents: nil, attributes: nil) else {
             throw ApodiniDeployBuildSupportError(message: "Unable to create file")
         }
         

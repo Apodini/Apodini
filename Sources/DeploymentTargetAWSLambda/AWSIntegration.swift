@@ -37,7 +37,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
     private static let lambdaFunctionNamePrefix = "apodini-lambda"
     
     private let tmpDirUrl: URL
-    private let fm = FileManager.default
+    private let fileManager = FileManager.default
     private let logger = Logger(label: "de.lukaskollmer.ApodiniLambda.AWSIntegration")
     
     private let awsRegion: SotoCore.Region
@@ -150,20 +150,20 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         do {
             logger.notice("Creating lambda package")
             let lambdaPackageTmpDir = tmpDirUrl.appendingPathComponent("lambda-package", isDirectory: true)
-            if fm.directoryExists(atUrl: lambdaPackageTmpDir) {
-                try fm.removeItem(at: lambdaPackageTmpDir)
+            if fileManager.directoryExists(atUrl: lambdaPackageTmpDir) {
+                try fileManager.removeItem(at: lambdaPackageTmpDir)
             }
-            try fm.createDirectory(at: lambdaPackageTmpDir, withIntermediateDirectories: true, attributes: nil)
+            try fileManager.createDirectory(at: lambdaPackageTmpDir, withIntermediateDirectories: true, attributes: nil)
             
             let addToLambdaPackage = { [unowned self] (url: URL) throws -> Void in
-                try fm.copyItem(
+                try fileManager.copyItem(
                     at: url,
                     to: lambdaPackageTmpDir.appendingPathComponent(url.lastPathComponent, isDirectory: false),
                     overwriteExisting: true
                 )
             }
             
-            for sharedObjectFileUrl in try fm.contentsOfDirectory(at: lambdaSharedObjectFilesUrl, includingPropertiesForKeys: nil, options: []) {
+            for sharedObjectFileUrl in try fileManager.contentsOfDirectory(at: lambdaSharedObjectFilesUrl, includingPropertiesForKeys: nil, options: []) {
                 try addToLambdaPackage(sharedObjectFileUrl)
             }
             
@@ -171,7 +171,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             
             let launchInfoFileUrl = lambdaPackageTmpDir.appendingPathComponent("launchInfo.json", isDirectory: false)
             try deploymentStructure.writeJSON(to: launchInfoFileUrl)
-            try fm.setPosixPermissions("rw-r--r--", forItemAt: launchInfoFileUrl)
+            try fileManager.setPosixPermissions("rw-r--r--", forItemAt: launchInfoFileUrl)
             
             do {
                 // create & add bootstrap file
@@ -181,14 +181,14 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 """
                 let bootstrapFileUrl = lambdaPackageTmpDir.appendingPathComponent("bootstrap", isDirectory: false)
                 try bootstrapFileContents.write(to: bootstrapFileUrl, atomically: true, encoding: .utf8)
-                try fm.setPosixPermissions("rwxrwxr-x", forItemAt: bootstrapFileUrl)
+                try fileManager.setPosixPermissions("rwxrwxr-x", forItemAt: bootstrapFileUrl)
             }
             
             logger.notice("zipping lambda package")
             let zipFilename = "lambda.zip"
             try Task(
                 executableUrl: zipBin,
-                arguments: try [zipFilename] + fm.contentsOfDirectory(atPath: lambdaPackageTmpDir.path),
+                arguments: try [zipFilename] + fileManager.contentsOfDirectory(atPath: lambdaPackageTmpDir.path),
                 workingDirectory: lambdaPackageTmpDir,
                 captureOutput: true, // suppress output
                 launchInCurrentProcessGroup: true

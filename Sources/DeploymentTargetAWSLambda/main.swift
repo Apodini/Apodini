@@ -109,7 +109,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     private(set) var awsApiGatewayApiId: String
     let awsDeployOnly: Bool
     
-    private let fm = FileManager.default
+    private let fileManager = FileManager.default
     
     private var buildFolderUrl: URL {
         packageRootDir.appendingPathComponent(".build", isDirectory: true)
@@ -131,9 +131,9 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         if awsDeployOnly {
             logger.notice("Running with the --aws-deploy-only flag. Will skip compilation and try to re-use previous files")
         }
-        try fm.initialize()
-        try fm.setWorkingDirectory(to: packageRootDir)
-        try fm.createDirectory(at: tmpDirUrl, withIntermediateDirectories: true, attributes: nil)
+        try fileManager.initialize()
+        try fileManager.setWorkingDirectory(to: packageRootDir)
+        try fileManager.createDirectory(at: tmpDirUrl, withIntermediateDirectories: true, attributes: nil)
         
         let dockerImageName = try prepareDockerImage()
         logger.notice("successfully built docker image. image name: \(dockerImageName)")
@@ -216,8 +216,8 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             throw makeError("Unable to locate docker resources in bundle")
         }
         
-        try fm.copyItem(at: dockerfileBundleUrl, to: dockerfileUrl, overwriteExisting: true)
-        try fm.copyItem(
+        try fileManager.copyItem(at: dockerfileBundleUrl, to: dockerfileUrl, overwriteExisting: true)
+        try fileManager.copyItem(
             at: dockerignoreBundleUrl,
             to: dockerfileUrl.appendingPathExtension("dockerignore"),
             overwriteExisting: true
@@ -286,8 +286,8 @@ struct LambdaDeploymentProvider: DeploymentProvider {
                 throw makeError("Unable to find '\(scriptFilename)' resource in bundle")
             }
             let localUrl = tmpDirUrl.appendingPathComponent(scriptFilename, isDirectory: false)
-            try fm.copyItem(at: urlInBundle, to: localUrl, overwriteExisting: true)
-            try fm.setPosixPermissions("rwxr--r--", forItemAt: localUrl)
+            try fileManager.copyItem(at: urlInBundle, to: localUrl, overwriteExisting: true)
+            try fileManager.setPosixPermissions("rwxr--r--", forItemAt: localUrl)
         }
         try runInDocker(
             imageName: dockerImageName,
@@ -298,7 +298,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             .appendingPathComponent("debug", isDirectory: true)
             .appendingPathComponent(productName, isDirectory: false)
         let dstExecutableUrl = tmpDirUrl.appendingPathComponent("lambda.out", isDirectory: false)
-        try fm.copyItem(at: outputUrl, to: dstExecutableUrl, overwriteExisting: true)
+        try fileManager.copyItem(at: outputUrl, to: dstExecutableUrl, overwriteExisting: true)
         return dstExecutableUrl
     }
     

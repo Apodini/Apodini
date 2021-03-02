@@ -60,12 +60,12 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
     // Starting number for the started child processes
     let endpointProcessesBasePort: Int
     
-    private let fm = FileManager.default
+    private let fileManager = FileManager.default
     private let logger = Logger(label: "DeploymentTargetLocalhost")
     
     func run() throws {
-        try fm.initialize()
-        try fm.setWorkingDirectory(to: packageRootDir)
+        try fileManager.initialize()
+        try fileManager.setWorkingDirectory(to: packageRootDir)
         
         logger.notice("Compiling target '\(productName)'")
         let executableUrl = try buildWebService()
@@ -85,7 +85,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
             userInfo: Null()
         )
         
-        let deployedSystemFileUrl = fm.getTemporaryFileUrl(fileExtension: "json")
+        let deployedSystemFileUrl = fileManager.getTemporaryFileUrl(fileExtension: "json")
         try deployedSystem.writeJSON(to: deployedSystemFileUrl)
         
         for node in deployedSystem.nodes {
