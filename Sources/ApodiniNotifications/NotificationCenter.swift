@@ -1,6 +1,6 @@
 // swiftlint:disable first_where
 import Fluent
-import APNS
+import APNSwift
 import FCM
 import NIO
 import Apodini
@@ -24,12 +24,22 @@ public struct NotificationCenter {
     
     @Throws(.notFound, reason: "Could not find topic in database.")
     private var notFoundTopic: ApodiniError
-
+    
     internal var app: Application
     
     /// Initializes the `NotificationCenter` with an `Application` instance.
     public init(app: Application) {
         self.app = app
+    }
+    
+    // Checks the APNS Configuration.
+    internal var isAPNSConfigured: Bool {
+        app.apns.configuration != nil
+    }
+    
+    // Checks the FCM Configuration.
+    internal var isFCMConfigured: Bool {
+        app.fcm.configuration != nil
     }
     
     /// Saves a `Device` to a database.
@@ -89,6 +99,36 @@ public struct NotificationCenter {
             .mapEach { $0.transform() }
     }
     
+    /// Retrieves all `APNS` `Device`s subscribed to a topic
+    ///
+    /// - Returns: An array of all stored `Device`s of type `apns`.
+    public func getAPNSDevices(of topic: String) -> EventLoopFuture<[Device]> {
+        query(for: topic)
+            .map { topic in
+                topic.devices.compactMap {
+                    if $0.type == .apns {
+                        return $0.transform()
+                    }
+                    return nil
+                }
+            }
+    }
+    
+    /// Retrieves all `FCM` `Device`s subscribed to a topic
+    ///
+    /// - Returns: An array of all stored `Device`s of type `fcm`.
+    public func getFCMDevices(of topic: String) -> EventLoopFuture<[Device]> {
+        query(for: topic)
+            .map { topic in
+                topic.devices.compactMap {
+                    if $0.type == .fcm {
+                        return $0.transform()
+                    }
+                    return nil
+                }
+            }
+    }
+    
     /// Retrieves all `Device`s for `FCM` in the database.
     ///
     /// - Returns: An array of all stored `Device`s with type `fcm`.
@@ -107,14 +147,7 @@ public struct NotificationCenter {
     ///
     /// - Returns: An array of all stored `Device`s
     public func getDevices(of topic: String) -> EventLoopFuture<[Device]> {
-        Topic
-            .query(on: app.database)
-            .filter(\.$name == topic)
-            .with(\.$devices) { devices in
-                devices.with(\.$topics)
-            }
-            .first()
-            .unwrap(or: self.notFoundDevice)
+        query(for: topic)
             .map { topic in
                 topic.devices.map {
                     $0.transform()
@@ -175,29 +208,44 @@ public struct NotificationCenter {
             .unwrap(or: self.notFoundDevice)
             .flatMap { $0.delete(on: self.app.database) }
     }
+}
+
+// MARK: - Private Extension
+
+private extension NotificationCenter {
+    func query(for topic: String) -> EventLoopFuture<Topic> {
+        Topic
+            .query(on: app.database)
+            .filter(\.$name == topic)
+            .with(\.$devices) { devices in // Pre-loads sibling relations
+                devices.with(\.$topics)
+            }
+            .first()
+            .unwrap(or: notFoundTopic)
+    }
     
-    private func attach(topics: [String], to device: DeviceDatabaseModel) -> EventLoopFuture<Void> {
+    func attach(topics: [String], to device: DeviceDatabaseModel) -> EventLoopFuture<Void> {
         topics.map {
             attach(topic: $0, to: device)
         }
         .flatten(on: app.database.eventLoop)
     }
     
-    private func attach(topic topicString: String, to device: DeviceDatabaseModel) -> EventLoopFuture<Void> {
+    func attach(topic topicString: String, to device: DeviceDatabaseModel) -> EventLoopFuture<Void> {
         let topic = Topic(name: topicString)
         return Topic
-                .query(on: self.app.database)
-                .filter(\.$name == topic.name)
-                .first()
-                .flatMap { result in
-                    if let topic = result {
-                        return device.$topics.attach(topic, method: .ifNotExists, on: self.app.database)
-                    } else {
-                        return topic.save(on: self.app.database).flatMap {
-                            device.$topics.attach(topic, method: .ifNotExists, on: self.app.database)
-                        }
+            .query(on: self.app.database)
+            .filter(\.$name == topic.name)
+            .first()
+            .flatMap { result in
+                if let topic = result {
+                    return device.$topics.attach(topic, method: .ifNotExists, on: self.app.database)
+                } else {
+                    return topic.save(on: self.app.database).flatMap {
+                        device.$topics.attach(topic, method: .ifNotExists, on: self.app.database)
                     }
                 }
-        }
+            }
+    }
 }
 // swiftlint:enable first_where
