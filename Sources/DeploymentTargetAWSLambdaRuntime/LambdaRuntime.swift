@@ -15,7 +15,7 @@ import VaporAWSLambdaRuntime
 
 
 public class LambdaRuntime: DeploymentProviderRuntimeSupport {
-    public static let deploymentProviderId = lambdaDeploymentProviderId
+    public static let identifier = lambdaDeploymentProviderId
     
     public let deployedSystem: DeployedSystem
     public let currentNodeId: DeployedSystem.Node.ID
@@ -26,7 +26,7 @@ public class LambdaRuntime: DeploymentProviderRuntimeSupport {
         self.currentNodeId = currentNodeId
         guard let lambdaDeploymentContext = deployedSystem.readUserInfo(as: LambdaDeployedSystemContext.self) else {
             throw ApodiniDeployRuntimeSupportError(
-                deploymentProviderId: Self.deploymentProviderId,
+                deploymentProviderId: Self.identifier,
                 message: "Unable to read userInfo"
             )
         }
@@ -45,7 +45,7 @@ public class LambdaRuntime: DeploymentProviderRuntimeSupport {
     ) throws -> RemoteHandlerInvocationRequestResponse<H.Response.Content> {
         guard let url = URL(string: "https://\(lambdaDeploymentContext.apiGatewayHostname)") else {
             throw ApodiniDeployRuntimeSupportError(
-                deploymentProviderId: Self.deploymentProviderId,
+                deploymentProviderId: Self.identifier,
                 message: "Unable to construct target url"
             )
         }

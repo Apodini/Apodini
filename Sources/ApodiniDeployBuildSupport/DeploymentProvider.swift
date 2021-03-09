@@ -27,14 +27,8 @@ public struct DeploymentProviderID: RawRepresentable, Hashable, Equatable, Codab
 
 /// A deployment provider, i.e. a type which can manage and facilitate the process of deploying a web service to some target platform
 public protocol DeploymentProvider {
-    /// The type used to define a deployment provider's version
-    typealias Version = UInt
-    
     /// This deployment provider's identifier. Must be unique. Use reverse DNS or something like that
     static var identifier: DeploymentProviderID { get }
-    
-    /// The deployment provider's version
-    static var version: Version { get }
     
     /// Path of the web service package's root directory
     var packageRootDir: URL { get }
@@ -48,10 +42,6 @@ extension DeploymentProvider {
     /// The deployment provider's identifier
     public var identifier: DeploymentProviderID {
         Self.identifier
-    }
-    /// The deployment provider's version
-    public var version: Version {
-        Self.version
     }
 }
 

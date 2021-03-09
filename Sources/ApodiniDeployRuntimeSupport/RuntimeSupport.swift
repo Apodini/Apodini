@@ -35,7 +35,10 @@ public enum RemoteHandlerInvocationRequestResponse<Response: Decodable> {
 ///   should be invoked remotely (i.e. not in the current process).
 ///   In this case the runtime is given the option to simply forward the invocation to some url, or implement and perform the invocation manually.
 public protocol DeploymentProviderRuntimeSupport: AnyObject {
-    static var deploymentProviderId: DeploymentProviderID { get }
+    /// The unique identifier of the deployment provider this runtime belongs to.
+    /// - Note: This property is used to locate the correct runtime based on the deployment provider
+    ///         used to create the deployment, so it has to match the corresponding CLI's `identifier` exactly.
+    static var identifier: DeploymentProviderID { get }
     
     init(deployedSystem: DeployedSystem, currentNodeId: DeployedSystem.Node.ID) throws
     
@@ -56,7 +59,7 @@ public protocol DeploymentProviderRuntimeSupport: AnyObject {
 
 extension DeploymentProviderRuntimeSupport {
     /// The identifier of the deployment provider
-    public var deploymentProviderId: DeploymentProviderID {
-        Self.deploymentProviderId
+    public var identifier: DeploymentProviderID {
+        Self.identifier
     }
 }

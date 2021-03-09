@@ -12,7 +12,8 @@ import DeploymentTargetLocalhostCommon
 
 
 public class LocalhostRuntimeSupport: DeploymentProviderRuntimeSupport {
-    public static let deploymentProviderId = localhostDeploymentProviderId
+    public static let identifier = localhostDeploymentProviderId
+    
     public let deployedSystem: DeployedSystem
     public let currentNodeId: DeployedSystem.Node.ID
     private let currentNodeCustomLaunchInfo: LocalhostLaunchInfo
@@ -25,7 +26,7 @@ public class LocalhostRuntimeSupport: DeploymentProviderRuntimeSupport {
             let launchInfo = node.readUserInfo(as: LocalhostLaunchInfo.self)
         else {
             throw ApodiniDeployRuntimeSupportError(
-                deploymentProviderId: Self.deploymentProviderId,
+                deploymentProviderId: Self.identifier,
                 message: "Unable to read userInfo"
             )
         }
@@ -44,7 +45,7 @@ public class LocalhostRuntimeSupport: DeploymentProviderRuntimeSupport {
             let url = URL(string: "http://127.0.0.1:\(LLI.port)")
         else {
             throw ApodiniDeployRuntimeSupportError(
-                deploymentProviderId: deploymentProviderId,
+                deploymentProviderId: identifier,
                 message: "Unable to read port and construct url"
             )
         }

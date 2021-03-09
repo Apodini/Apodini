@@ -130,7 +130,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
                 let deployedSystem = try DeployedSystem(decodingJSONAt: configUrl)
                 guard
                     let runtimes = self.app.storage.get(ApodiniDeployConfiguration.StorageKey.self)?.runtimes,
-                    let DPRSType = runtimes.first(where: { $0.deploymentProviderId == deployedSystem.deploymentProviderId })
+                    let DPRSType = runtimes.first(where: { $0.identifier == deployedSystem.deploymentProviderId })
                 else {
                     throw ApodiniDeployError(
                         message: "Unable to find deployment runtime with id '\(deployedSystem.deploymentProviderId.rawValue)'"

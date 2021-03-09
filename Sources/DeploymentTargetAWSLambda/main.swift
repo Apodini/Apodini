@@ -43,7 +43,7 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
             Deploys an Apodini REST web service to AWS Lambda, mapping the deployed system's nodes to Lambda functions.
             Also configures an API Gateway to make the Lambda functions accessible over HTTP.
             """,
-        version: String(LambdaDeploymentProvider.version)
+        version: "0.0.1"
     )
     
     @Argument(help: "Directory containing the Package.swift with the to-be-deployed web service's target")
@@ -98,7 +98,6 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
 
 struct LambdaDeploymentProvider: DeploymentProvider {
     static let identifier: DeploymentProviderID = lambdaDeploymentProviderId
-    static let version: Version = 1
     
     let productName: String
     let packageRootDir: URL

@@ -18,9 +18,9 @@ private struct LocalhostDeploymentProviderCLI: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Localhost Apodini deployment provider",
         discussion: """
-            Deploys an Apodini web service to localhost, mapping the deployed system's nodes to independent processes
+            Deploys an Apodini web service to localhost, mapping the deployed system's nodes to independent processes.
             """,
-        version: String(LocalhostDeploymentProvider.version)
+        version: "0.0.1"
     )
     
     @Argument(help: "Directory containing the Package.swift with the to-be-deployed web service's target")
@@ -50,7 +50,6 @@ private struct LocalhostDeploymentProviderCLI: ParsableCommand {
 
 struct LocalhostDeploymentProvider: DeploymentProvider {
     static let identifier: DeploymentProviderID = localhostDeploymentProviderId
-    static let version: Version = 1
     
     let productName: String
     let packageRootDir: URL
