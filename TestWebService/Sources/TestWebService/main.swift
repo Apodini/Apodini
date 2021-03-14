@@ -6,6 +6,7 @@
 //
 
 import Apodini
+import ApodiniStatic
 import ApodiniREST
 import ApodiniGRPC
 import ApodiniProtobuffer
@@ -41,6 +42,8 @@ struct TestWebService: Apodini.WebService {
             .exporter(ProtobufferInterfaceExporter.self)
             .exporter(OpenAPIInterfaceExporter.self)
             .exporter(WebSocketInterfaceExporter.self)
+
+        StaticFiles(publicDirectory: "Public", at: "files", "public")
     }
 }
 
