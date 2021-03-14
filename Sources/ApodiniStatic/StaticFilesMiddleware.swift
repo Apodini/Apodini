@@ -1,3 +1,7 @@
+//
+// Created by Mathias Quintro on 14.03.21.
+//
+
 import Vapor
 
 /// Modified version of FileMiddleWare from Vapor with the intention of allowing us to set multiple files

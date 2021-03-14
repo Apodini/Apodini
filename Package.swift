@@ -195,7 +195,7 @@ let package = Package(
             name: "ApodiniStatic",
             dependencies: [
                 .target(name: "Apodini"),
-                .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniVaporSupport")
             ]
         ),
 

@@ -1,10 +1,13 @@
+//
+// Created by Mathias Quintro on 14.03.21.
+//
 
 import Foundation
 import Vapor
 import Apodini
 import ApodiniVaporSupport
 
-public struct StaticFiles : Configuration {
+public struct StaticFiles: Configuration {
     private let fileMiddleware: Middleware
 
     public init(publicDirectory: String, at path: String..., ownerFile: StaticString = #file) {
