@@ -17,6 +17,7 @@ let package = Package(
         .library(name: "ApodiniOpenAPI", targets: ["ApodiniOpenAPI"]),
         .library(name: "ApodiniProtobuffer", targets: ["ApodiniProtobuffer"]),
         .library(name: "ApodiniREST", targets: ["ApodiniREST"]),
+        .library(name: "ApodiniStatic", targets: ["ApodiniStatic"]),
         .library(name: "ApodiniTypeReflection", targets: ["ApodiniTypeReflection"]),
         .library(name: "ApodiniVaporSupport", targets: ["ApodiniVaporSupport"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"])
@@ -187,6 +188,14 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniVaporSupport"),
                 .product(name: "FluentKit", package: "fluent-kit")
+            ]
+        ),
+
+        .target(
+            name: "ApodiniStatic",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniVaporSupport"),
             ]
         ),
 
