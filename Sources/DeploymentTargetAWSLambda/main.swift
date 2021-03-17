@@ -77,7 +77,7 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
     @Flag(help: "whether to skip the compilation steps and assume that build artifacts from a previous run are still located at the expected places")
     var awsDeployOnly: Bool = false
     
-    lazy var packageRootDir: URL = URL(fileURLWithPath: inputPackageDir).absoluteURL
+    lazy var packageRootDir = URL(fileURLWithPath: inputPackageDir).absoluteURL
     
     
     func run() throws {

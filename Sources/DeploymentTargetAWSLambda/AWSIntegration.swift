@@ -20,6 +20,8 @@ import SotoIAM
 import SotoSTS
 import OpenAPIKit
 
+// swiftlint:disable force_unwrapping
+
 
 extension OpenAPIVendorExtensionKey where Value == String {
     static let apodiniHandlerId = OpenAPIVendorExtensionKey("x-apodiniHandlerId")
@@ -163,7 +165,11 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 )
             }
             
-            for sharedObjectFileUrl in try fileManager.contentsOfDirectory(at: lambdaSharedObjectFilesUrl, includingPropertiesForKeys: nil, options: []) {
+            for sharedObjectFileUrl in try fileManager.contentsOfDirectory(
+                at: lambdaSharedObjectFilesUrl,
+                includingPropertiesForKeys: nil,
+                options: []
+            ) {
                 try addToLambdaPackage(sharedObjectFileUrl)
             }
             
@@ -396,7 +402,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         
         let deploymentOptions = node.combinedEndpointDeploymentOptions()
         let memorySize: UInt = try deploymentOptions.getValue(forKey: .memorySize).rawValue
-        let timeoutInSec = Int((try deploymentOptions.getValue(forKey: .timeout) as ApodiniDeployBuildSupport.TimeInterval).rawValue)
+        let timeoutInSec = Int((try deploymentOptions.getValue(forKey: .timeout) as ApodiniDeployBuildSupport.TimeoutValue).rawValue)
         let lambdaEnv: Lambda.Environment = .init(variables: [
             WellKnownEnvironmentVariables.currentNodeId: node.id
         ])

@@ -100,9 +100,8 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                     // This seems to be the combination with which a fatalError terminates a program.
                     // If one of the children was terminated with a fatalError, we re-spawn it to keep the server running
                     logger.warning("Restarting child for node '\(node.id)'")
-                    // TODO implement! (this is what triggers the compiler bug)
+                    // Temporarily disabled because this (sometimes?) triggers a compiler bug where swiftc will just hang forever.
                     // try! task.launchAsync(taskTerminationHandler)
-                    break
 //                case (.uncaughtSignal, SIGTERM):
 //                    // The task was terminated
 //                    break
@@ -110,7 +109,6 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                     // If one of the children terminated, and it was not caused by a fatalError, we shut down the entire thing
                     logger.warning("Child for node '\(node.id)' terminated unexpectedly. killing everything just to be safe.")
                     Task.killAllInChildrenInProcessGroup()
-                    break
                 }
             }
             try task.launchAsync(taskTerminationHandler)

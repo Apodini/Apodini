@@ -12,9 +12,6 @@ import XCTest
 import XCTApodini
 
 
-
-
-
 class TestOptionsNamespace: InnerNamespace {
     typealias OuterNS = DeploymentOptionsNamespace
     static let id: String = "testOptionsNS"
@@ -24,7 +21,7 @@ class TestOptionsNamespace: InnerNamespace {
 struct TestOption1: OptionValue, RawRepresentable {
     let rawValue: Int
     
-    public func reduce(with other: TestOption1) -> TestOption1 {
+    func reduce(with other: TestOption1) -> TestOption1 {
         TestOption1(rawValue: max(rawValue, other.rawValue))
     }
 }
@@ -46,8 +43,6 @@ extension AnyOption where OuterNS == DeploymentOptionsNamespace {
 }
 
 
-
-
 protocol ComposableOptionImpl {
     associatedtype Value: Codable
     static func reduce(lhs: Value, rhs: Value) -> Value
@@ -65,10 +60,6 @@ struct ComposableOption<Impl: ComposableOptionImpl>: OptionValue, RawRepresentab
         .init(rawValue: Impl.reduce(lhs: self.rawValue, rhs: other.rawValue))
     }
 }
-
-
-
-
 
 
 private struct TestWebService: Apodini.WebService {
@@ -111,17 +102,13 @@ private struct TestWebService: Apodini.WebService {
 }
 
 
-
-
-
 class DeploymentOptionsTests: XCTApodiniTest {
-    
     func testOptionMerging() throws {
         struct CapturedImplArgs: Hashable {
             let lhs, rhs: Int
         }
         struct MinOptionImpl: ComposableOptionImpl {
-            static private(set) var invocationsArgs: [CapturedImplArgs] = []
+            private(set) static var invocationsArgs: [CapturedImplArgs] = []
             
             static func reduce(lhs: Int, rhs: Int) -> Int {
                 invocationsArgs.append(.init(lhs: lhs, rhs: rhs))
@@ -130,7 +117,7 @@ class DeploymentOptionsTests: XCTApodiniTest {
         }
         
         struct MaxOptionImpl: ComposableOptionImpl {
-            static private(set) var invocationsArgs: [CapturedImplArgs] = []
+            private(set) static var invocationsArgs: [CapturedImplArgs] = []
             
             static func reduce(lhs: Int, rhs: Int) -> Int {
                 invocationsArgs.append(.init(lhs: lhs, rhs: rhs))
@@ -139,7 +126,7 @@ class DeploymentOptionsTests: XCTApodiniTest {
         }
         
         struct SumOptionImpl: ComposableOptionImpl {
-            static private(set) var invocationsArgs: [CapturedImplArgs] = []
+            private(set) static var invocationsArgs: [CapturedImplArgs] = []
             
             static func reduce(lhs: Int, rhs: Int) -> Int {
                 invocationsArgs.append(.init(lhs: lhs, rhs: rhs))
@@ -184,7 +171,6 @@ class DeploymentOptionsTests: XCTApodiniTest {
             .init(lhs: 6, rhs: 7), .init(lhs: 13, rhs: 8)
         ])
         
-        
         let minValue = try XCTUnwrap(reducedOptions.getValue(forKey: minOptionKey))
         XCTAssertEqual(0, minValue.rawValue)
         
@@ -194,7 +180,7 @@ class DeploymentOptionsTests: XCTApodiniTest {
         let sumValue = try XCTUnwrap(reducedOptions.getValue(forKey: sumOptionKey))
         XCTAssertEqual(21, sumValue.rawValue)
     }
-    
+
     
     func testHandlerDeploymentOptions() throws {
         TestWebService.main(app: app)

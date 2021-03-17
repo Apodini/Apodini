@@ -43,8 +43,8 @@ public struct MemorySize: OptionValue, RawRepresentable {
 }
 
 
-/// The `TimeInterval` struct can be used as an option's value, and represents a time interval in seconds
-public struct TimeInterval: OptionValue, RawRepresentable {
+/// The `TimeoutValue` struct can be used as an option's value, and represents a time interval in seconds
+public struct TimeoutValue: OptionValue, RawRepresentable {
     /// timeout in seconds
     public let rawValue: UInt
     
@@ -52,18 +52,17 @@ public struct TimeInterval: OptionValue, RawRepresentable {
         self.rawValue = rawValue
     }
     
-    public func reduce(with other: TimeInterval) -> TimeInterval {
-        // TODO max? or min? or what?
-        TimeInterval(rawValue: max(self.rawValue, other.rawValue))
+    public func reduce(with other: TimeoutValue) -> TimeoutValue {
+        TimeoutValue(rawValue: max(self.rawValue, other.rawValue))
     }
     
     
-    public static func seconds(_ value: UInt) -> TimeInterval {
-        TimeInterval(rawValue: value)
+    public static func seconds(_ value: UInt) -> TimeoutValue {
+        TimeoutValue(rawValue: value)
     }
     
-    public static func minutes(_ value: UInt) -> TimeInterval {
-        TimeInterval(rawValue: value * 60)
+    public static func minutes(_ value: UInt) -> TimeoutValue {
+        TimeoutValue(rawValue: value * 60)
     }
 }
 
@@ -77,9 +76,9 @@ public extension OptionKey where InnerNS == BuiltinDeploymentOptionsNamespace, V
 }
 
 
-public extension OptionKey where InnerNS == BuiltinDeploymentOptionsNamespace, Value == TimeInterval {
+public extension OptionKey where InnerNS == BuiltinDeploymentOptionsNamespace, Value == TimeoutValue {
     /// The option key used to specify a timeout option
-    static let timeout = OptionKeyWithDefaultValue<DeploymentOptionsNamespace, BuiltinDeploymentOptionsNamespace, TimeInterval>(
+    static let timeout = OptionKeyWithDefaultValue<DeploymentOptionsNamespace, BuiltinDeploymentOptionsNamespace, TimeoutValue>(
         key: "timeout",
         defaultValue: .seconds(4)
     )
@@ -93,7 +92,7 @@ extension AnyOption where OuterNS == DeploymentOptionsNamespace {
     }
     
     /// An option for specifying a timeout requirement
-    public static func timeout(_ value: TimeInterval) -> AnyDeploymentOption {
+    public static func timeout(_ value: TimeoutValue) -> AnyDeploymentOption {
         ResolvedOption(key: .timeout, value: value)
     }
 }

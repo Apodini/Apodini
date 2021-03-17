@@ -136,43 +136,62 @@ extension Collection where Element: Hashable {
 }
 
 
-extension Collection where Element: Hashable {
+extension Collection {
+    /// Checks whether the collectionn consists of the same elements as the other collection, ignoring the actual order of the elements.
+    /// The purpose of this function is that it can be used with non-hashable and non-equatable collections
+    /// (also hashable and equatable collections, but in a way that ignores the default hashable/equatable implementation).
+    /// - parameter other: The other collection to compare with.
+    /// - parameter computeHash: A function used to hash an element.
+    /// - parameter areEqual: A function used to determine whether two elements are equal.
+    /// - Note: There is also an `compareIgnoringOrder<C>(_:)` function which uses the element's
+    ///         default `Hashable` and `Equatable` conformances instead of requiring the two closure parameters.
+    ///         In most cases that's probably what you're looking for.
     public func compareIgnoringOrder<C>(
         _ other: C,
-        computeHash: @escaping (Element, inout Hasher) -> Void,
+        computeHash: (Element, inout Hasher) -> Void,
         areEqual: (Element, Element) -> Bool
     ) -> Bool where C: Collection, C.Element == Element {
         guard self.count == other.count else {
             return false
         }
         
-        return compareEqualsIgnoringOrder(
-            lhs: self.distinctElementCounts(computeHash: computeHash, areEqual: areEqual),
-            rhs: other.distinctElementCounts(computeHash: computeHash, areEqual: areEqual),
+        func computeDistinctCounts<C: Collection>(_ value: C) -> [(C.Element, Int)] where C.Element == Element {
+            value
+                .distinctElementCounts(computeHash: computeHash, areEqual: areEqual)
+                .map { ($0.element, $0.count) }
+        }
+        
+        return computeDistinctCounts(self).compareEqualsIgnoringOrder(
+            computeDistinctCounts(other),
             areEqual: { areEqual($0.0, $1.0) && $0.1 == $1.1 }
         )
     }
     
     
-    // yeah this probably has awful performance...
-    // main issue (and this is the reason why all of this exists in the first place)
-    // is that we versions of the `compareIgnoringOrder` and `distinctElementCounts` functions
-    // which work witout having to rely on `Element`'s `hash` and `==` implementations.
-    // another issue: this function can't return a dictionary (or use one anywhere in its implementation),
-    // the reason being that that would call Element's hash/== implementations, which is the very thing we're trying to avoid here...
-    // also, the `computeHash` argument's @escaping is not actually needed (the closure never leaves the function's scope) but local closures are implicitly @escaping (which can't be overwritten) and `withoutActuallyEscaping` doesn't work :/
+    /// Determine how many distinct elements the collection contains, and how often each of these distinct elements is in the collection.
+    /// This function serves as an alternative to `distinctElementCounts() -> [Element: Int]`.
+    /// The main difference is that this function does not require `Element` be `Hashable` or `Equatable`. In fact, if they are, these conformances are ignored entirely.
+    /// Instead, these two operations can be customised by passing closures.
+    /// - returns:  An array of `(element, count)` key-value pairs.
+    ///             This function has to return an `Array`, since construcing a `Dictionary<Element, Int>` from the array
+    ///             would require `Element` conform to `Hashable`, which is the very thing this function is here to avoid.
+    /// - parameter computeHash: A function used to hash an element.
+    /// - parameter areEqual: A function used to determine whether two elements are equal.
+    /// - Note: There is alao another version of this function (`distinctElementCounts()`) which uses the element's `Hashable` and `Equatable` conformances,
+    ///         instead of requiring the two closure parameters.
     private func distinctElementCounts(
-        computeHash: @escaping (Element, inout Hasher) -> Void,
+        computeHash: (Element, inout Hasher) -> Void,
         areEqual: (Element, Element) -> Bool
     ) -> [(element: Element, count: Int)] {
-        let hash: (Element) -> Int = { element in
+        func hash(_ element: Element) -> Int {
             var hasher = Hasher()
             computeHash(element, &hasher)
             return hasher.finalize()
         }
         var retval: [(element: Element, count: Int)] = []
         for element in self {
-            if let idx = retval.firstIndex(where: { hash($0.element) == hash(element) && areEqual($0.element, element) }) {
+            let elementHash = hash(element)
+            if let idx = retval.firstIndex(where: { hash($0.element) == elementHash && areEqual($0.element, element) }) {
                 retval[idx].count += 1
             } else {
                 retval.append((element, 1))
@@ -183,45 +202,48 @@ extension Collection where Element: Hashable {
 }
 
 
-/// "Equals" implementation for two collections of 2-element tuples where both tuple element types are Equatable.
-public func == <C0: Collection, C1: Collection, Key: Equatable, Value: Equatable> (
-    lhs: C0,
-    rhs: C1
-) -> Bool where C0.Element == (Key, Value), C1.Element == (Key, Value) {
-    guard lhs.count == rhs.count else {
-        return false
-    }
-    for (lhsVal, rhsVal) in zip(lhs, rhs) {
-        guard lhsVal == rhsVal else {
+extension Collection {
+    /// Compares two collections of 2-element tuples where both tuple element types are Equatable.
+    public static func == <Other: Collection, Key: Equatable, Value: Equatable> (
+        lhs: Self,
+        rhs: Other
+    ) -> Bool where Self.Element == (Key, Value), Other.Element == (Key, Value) {
+        guard lhs.count == rhs.count else {
             return false
         }
+        for (lhsVal, rhsVal) in zip(lhs, rhs) {
+            guard lhsVal == rhsVal else {
+                return false
+            }
+        }
+        return true
     }
-    return true
 }
 
 
-/// "Unordered equals" implementation for two collections of 2-element tuples using a custom equality predicate.
-/// - Note: this assumes that `areEqual` is symmetric.
-public func compareEqualsIgnoringOrder<C0: Collection, C1: Collection, Key, Value> (
-    lhs: C0,
-    rhs: C1,
-    areEqual: ((Key, Value), (Key, Value)) -> Bool
-) -> Bool where C0.Element == (Key, Value), C1.Element == (Key, Value) {
-    guard lhs.count == rhs.count else {
-        return false
-    }
-    
-    var rhs = Array(rhs)
-    
-    for entry in lhs {
-        guard let idx = rhs.firstIndex(where: { areEqual(entry, $0) }) else {
-            // we're unable to find a matching key-value pair in rhs,
-            // meaning this entry exists only in lhs, meaning the two collections are not equal
+extension Collection {
+    /// "Unordered equals" implementation for two collections of 2-element tuples using a custom equality predicate.
+    /// - Note: this assumes that `areEqual` is symmetric.
+    public func compareEqualsIgnoringOrder<Other: Collection, Key, Value> (
+        _ other: Other,
+        areEqual: ((Key, Value), (Key, Value)) -> Bool
+    ) -> Bool where Self.Element == (Key, Value), Other.Element == (Key, Value) {
+        guard self.count == other.count else {
             return false
         }
-        rhs.remove(at: idx)
+        
+        var other = Array(other)
+        
+        for entry in self {
+            guard let idx = other.firstIndex(where: { areEqual(entry, $0) }) else {
+                // we're unable to find a matching key-value pair in rhs,
+                // meaning this entry exists only in lhs, meaning the two collections are not equal
+                return false
+            }
+            other.remove(at: idx)
+        }
+        return true
     }
-    return true
 }
 
 

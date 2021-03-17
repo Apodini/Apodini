@@ -60,7 +60,6 @@ private struct TestWebService: Apodini.WebService {
 
 
 class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
-    
     func testHandlerCollection() throws {
         TestWebService.main(app: app)
         

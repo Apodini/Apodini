@@ -5,6 +5,8 @@
 //  Created by Lukas Kollmer on 2021-03-17.
 //
 
+// swiftlint:disable discouraged_optional_boolean
+
 import Foundation
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
@@ -13,8 +15,10 @@ import Foundation
 /// which can then be compared to another `AnyEquatable` object using the `equals` function.
 /// - Note: This will only work if the underlying value does in fact conform to the `Equatable` protocol.
 public struct AnyEquatable {
+    /// The underlying type-erased value
     public let value: Any
     
+    /// Constructs a new `AnyEquatable` from some type-erased value.
     public init(_ value: Any) {
         self.value = value
     }
@@ -45,4 +49,3 @@ public struct AnyEquatable {
         }
     }
 }
-

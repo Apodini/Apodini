@@ -160,7 +160,6 @@ public final class ResolvedOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
     }
     
     
-    
     var untypedValue: Any? {
         switch valueStorage {
         case .encoded:

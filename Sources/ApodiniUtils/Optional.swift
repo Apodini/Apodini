@@ -6,10 +6,12 @@
 //
 
 
+/// A protocol for identifying `Optional`s.
 public protocol OptionalProtocol {
+    /// The underlying type of the Optional.
     associatedtype Wrapped
     // Disabling syntactic_sugar, improves readability and showcases what really happens here.
-    // swiftlint:disable:next syntactic_sugar
+    // swiftlint:disable:next syntactic_sugar missing_docs
     var optionalInstance: Optional<Wrapped> { get }
 }
 
@@ -30,5 +32,3 @@ public func isNil(_ value: Any) -> Bool {
         return false
     }
 }
-
-
