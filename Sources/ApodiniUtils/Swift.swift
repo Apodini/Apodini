@@ -133,22 +133,6 @@ extension Collection where Element: Hashable {
             result[element] = (result[element] ?? 0) + 1
         }
     }
-    
-    
-    public func __compareIgnoringOrder<C>(_ other: C, idx: Int) -> Bool where C: Collection, C.Element == Element {
-        guard self.count == other.count else {
-            fatalError()
-            return false
-        }
-        let countsA = self.distinctElementCounts()
-        let countsB = other.distinctElementCounts()
-        if countsA == countsB {
-            return true
-        } else {
-            return false
-//            fatalError()
-        }
-    }
 }
 
 
@@ -223,9 +207,7 @@ public func compareEqualsIgnoringOrder<C0: Collection, C1: Collection, Key, Valu
     rhs: C1,
     areEqual: ((Key, Value), (Key, Value)) -> Bool
 ) -> Bool where C0.Element == (Key, Value), C1.Element == (Key, Value) {
-//    print("compareEqualsIgnoringOrder", lhs, rhs)
     guard lhs.count == rhs.count else {
-//        print("!count")
         return false
     }
     
@@ -235,19 +217,10 @@ public func compareEqualsIgnoringOrder<C0: Collection, C1: Collection, Key, Valu
         guard let idx = rhs.firstIndex(where: { areEqual(entry, $0) }) else {
             // we're unable to find a matching key-value pair in rhs,
             // meaning this entry exists only in lhs, meaning the two collections are not equal
-//            print("!eq")
             return false
         }
         rhs.remove(at: idx)
     }
-    
-//    for (lhsVal, rhsVal) in zip(lhs, rhs) {
-//        guard areEqual(lhsVal, rhsVal) else {
-//            print("!eq", lhsVal, rhsVal)
-//            return false
-//        }
-//    }
-//    print("eq")
     return true
 }
 

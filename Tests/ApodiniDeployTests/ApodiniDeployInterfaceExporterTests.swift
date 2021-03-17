@@ -59,74 +59,9 @@ private struct TestWebService: Apodini.WebService {
 }
 
 
-
 class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
     
     func testHandlerCollection() throws {
-        
-        do {
-            let optA1 = ResolvedOption<DeploymentOptionsNamespace>(key: .memorySize, value: .mb(125))
-            let optA2 = ResolvedOption<DeploymentOptionsNamespace>(key: .memorySize, value: .mb(125))
-//            do {
-//                let tests: [Bool] = (0..<1000).map { _ in optA1.testEqual(optA2) }
-//                XCTAssertEqual(1, Set(tests).count)
-//                XCTAssertEqual(true, tests[0])
-//            }
-            
-            let optB1 = ResolvedOption<DeploymentOptionsNamespace>(key: .timeout, value: .seconds(12))
-            let optB2 = ResolvedOption<DeploymentOptionsNamespace>(key: .timeout, value: .seconds(12))
-            
-            let opts1 = DeploymentOptions([optA1, optB1])
-            let opts2 = DeploymentOptions([optA2, optB2])
-            
-            let tests: [Bool] = (0...10_000).map { _ in
-                opts1.reduced().options.compareIgnoringOrder(
-                    opts2.reduced().options,
-                    computeHash: { option, hasher in hasher.combine(option) },
-                    areEqual: { lhs, rhs in lhs.testEqual(rhs) }
-                )
-            }
-            
-            if Set(tests).count != 1 || !tests[0] {
-                fatalError()
-            }
-            
-            XCTAssertEqual(1, Set(tests).count)
-            XCTAssertTrue(tests[0])
-            
-        }
-        
-//        return;
-        
-        
-        /*
-         
-         lhs = [(
-            ResolvedOption<DeploymentOptionsNamespace>(
-                key: OptionKeyWithDefaultValue<DeploymentOptionsNamespace, BuiltinDeploymentOptionsNamespace, TimeInterval>('DeploymentOptions:org.apodini.timeout'),
-                value: TimeInterval(rawValue: 12)),
-            1
-         ), (
-            ResolvedOption<DeploymentOptionsNamespace>(
-                key: OptionKeyWithDefaultValue<DeploymentOptionsNamespace, BuiltinDeploymentOptionsNamespace, MemorySize>('DeploymentOptions:org.apodini.memorySize'),
-                value: MemorySize(rawValue: 125)),
-            1
-         )]
-         
-         rhs = [(
-            ResolvedOption<DeploymentOptionsNamespace>(
-                key: OptionKeyWithDefaultValue<DeploymentOptionsNamespace, BuiltinDeploymentOptionsNamespace, MemorySize>('DeploymentOptions:org.apodini.memorySize'),
-                value: MemorySize(rawValue: 125)),
-            1
-         ), (
-            ResolvedOption<DeploymentOptionsNamespace>(
-                key: OptionKeyWithDefaultValue<DeploymentOptionsNamespace, BuiltinDeploymentOptionsNamespace, TimeInterval>('DeploymentOptions:org.apodini.timeout'),
-                value: TimeInterval(rawValue: 12)),
-            1
-         )]
-         
-         */
-        
         TestWebService.main(app: app)
         
         let apodiniDeployIE = try XCTUnwrap(app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self))
@@ -163,10 +98,6 @@ class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
             )
         ]
         
-        let tests: [Bool] = (0..<25_000).map { actual.__compareIgnoringOrder(expected, idx: $0) }
-        XCTAssertTrue(Set(tests).count == 1)
-        
-        
         if !actual.compareIgnoringOrder(expected) {
             let missingEndpoints = Set(expected).subtracting(actual)
             let unexpectedEndpoints = Set(actual).subtracting(expected)
@@ -187,8 +118,3 @@ class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
         }
     }
 }
-
-
-
-
-//func ApodiniXCTAssertEqualIgnoringOrder TODO?

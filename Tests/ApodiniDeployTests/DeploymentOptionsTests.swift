@@ -212,6 +212,33 @@ class DeploymentOptionsTests: XCTApodiniTest {
             let option = try XCTUnwrap(handler2.deploymentOptions.getValue(forKey: .testOption1))
             XCTAssertEqual(14, option.rawValue)
         }
+    }
+    
+    
+    func testHandlerDeploymentOptionComparison() {
+        // There used to be a bug where the comparison between CollectedEndpointInfo objects would randomly fail,
+        // because somehwere in the `.reduced().options.compareIgnoringOrder`
+        // it compared two arrays (which are ordered collections) which were constructed from
+        // dictionaries (unordered), and therefore would sometimes result in the wrong result.
+        // This test attempts to make sure this problem is fixed,
+        // by simply running the comparison many times and checking that they all returned the same result
         
+        let opts1 = DeploymentOptions([
+            ResolvedOption<DeploymentOptionsNamespace>(key: .memorySize, value: .mb(125)),
+            ResolvedOption<DeploymentOptionsNamespace>(key: .timeout, value: .seconds(12))
+        ])
+        let opts2 = DeploymentOptions([
+            ResolvedOption<DeploymentOptionsNamespace>(key: .memorySize, value: .mb(125)),
+            ResolvedOption<DeploymentOptionsNamespace>(key: .timeout, value: .seconds(12))
+        ])
+        
+        for _ in 0..<10_000 {
+            let equal = opts1.reduced().options.compareIgnoringOrder(
+                opts2.reduced().options,
+                computeHash: { option, hasher in hasher.combine(option) },
+                areEqual: { lhs, rhs in lhs.testEqual(rhs) }
+            )
+            XCTAssertTrue(equal)
+        }
     }
 }
