@@ -21,6 +21,7 @@ public struct CollectedOptions<OuterNS: OuterNamespace>: Codable, ExpressibleByA
         self.options = Array(options)
     }
     
+    /// - Note: this will only work if all options are in fact reducible.
     public init<S>(reducing options: S) where S: Sequence, S.Element == ResolvedOption<OuterNS> {
         self.options = Array(options.reduce(into: Set<ResolvedOption<OuterNS>>(), { options, option in
             options.insert(option) { $0.reduceOption(with: $1) }
@@ -38,6 +39,19 @@ public struct CollectedOptions<OuterNS: OuterNamespace>: Codable, ExpressibleByA
     
     public func containsEntry<InnerNS, Value>(forKey optionKey: OptionKey<OuterNS, InnerNS, Value>) -> Bool {
         options.contains { $0.key == optionKey }
+    }
+    
+    
+    /// The number of options in the data structure.
+    public var count: Int {
+        options.count
+    }
+    
+    
+    /// Returns a copy of `self`, with all options reduced.
+    /// - Note: this will only work if all options are in fact reducible.
+    public func reduced() -> CollectedOptions {
+        CollectedOptions(reducing: self.options)
     }
     
     

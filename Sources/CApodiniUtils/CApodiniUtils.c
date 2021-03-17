@@ -17,31 +17,15 @@
 const char *const ApodiniProcessIsChildInvocationWrapperCLIArgument = "__ApodiniDeployCLI.ProcessIsChildProcessInvocationWrapper";
 
 
-// A constructor function which will get called when the shared library is loaded (ie before execution enters `main`, see below).
-// This is part of the child process management API (see Task.swift), and used to move child processes into the parent's
+// A ctor function which will get called when the shared library is loaded (ie before execution enters `main`, see below).
+// This is part of the child process management API (see Task.swift), and is used to move child processes into the parent's
 // process group. We want all processes to be in the same group so that signals like SIGINT are sent to all processes.
 __attribute__((constructor))
 static void HandleTaskChildProcessLaunchIfNecessary(int argc, const char * argv[], const char *const envp[]) {
-#if 0 && DEBUG
-    // print cwd
-    char cwd[PATH_MAX];
-    if (getcwd(cwd, sizeof(cwd)) != NULL) {
-        printf("LAUNCH>CWD: %s\n", cwd);
-    }
-    // print invocation info
-    for (size_t idx = 0; idx < argc; idx++) {
-        printf("argv[%zu]: %s\n", idx, argv[idx]);
-    }
-    printf("ENV:\n");
-    for (__auto_type *env = envp; *env != 0; env++) {
-        printf("%s\n", *env);
-    }
-#endif
     if (!(argc >= 2 && strcmp(argv[1], ApodiniProcessIsChildInvocationWrapperCLIArgument) == 0)) {
         // Nothing to do if the program isn't being launched with the special parameter
         return;
     }
-    
     if (-1 == setpgid(getpid(), getpgid(getppid()))) {
         perror("Error moving process into parent group");
         exit(EXIT_FAILURE);
@@ -58,13 +42,6 @@ static void HandleTaskChildProcessLaunchIfNecessary(int argc, const char * argv[
         // not that it would be necessary, given we're about to nuke the current process.
         childArgv[idx] = strdup(argv[idx + 2]);
     }
-#if 0 && DEBUG
-    printf("[%s] Replacing current process (%i) w/ child process. argv:", __PRETTY_FUNCTION__, getpid());
-    for (size_t idx = 0; idx < childArgc; idx++) {
-        printf(" %s", childArgv[idx]);
-    }
-    printf("\n");
-#endif
     execve(childArgv[0], childArgv, (char *const *) envp);
     perror("execve failed");
     exit(EXIT_FAILURE);

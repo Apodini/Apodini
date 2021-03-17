@@ -88,12 +88,12 @@ public extension OptionKey where InnerNS == BuiltinDeploymentOptionsNamespace, V
 
 extension AnyOption where OuterNS == DeploymentOptionsNamespace {
     /// An option for specifying a memory requirement
-    public static func memory(_ memorySize: MemorySize) -> AnyOption {
+    public static func memory(_ memorySize: MemorySize) -> AnyDeploymentOption {
         ResolvedOption(key: .memorySize, value: memorySize)
     }
     
     /// An option for specifying a timeout requirement
-    public static func timeout(_ value: TimeInterval) -> AnyOption {
+    public static func timeout(_ value: TimeInterval) -> AnyDeploymentOption {
         ResolvedOption(key: .timeout, value: value)
     }
 }

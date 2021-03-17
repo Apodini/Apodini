@@ -211,24 +211,3 @@ class RESTInterfaceExporterTests: ApodiniTests {
         }
     }
 }
-
-
-extension Collection where Element: Hashable {
-    /// Returns `true` if the two collections contain the same elements, regardless of their order.
-    /// - Note: this is different from `Set(self) == Set(other)`, insofar as this also
-    ///         takes into account how often an element occurs, which the Set version would ignore
-    func compareIgnoringOrder<S>(_ other: S) -> Bool where S: Collection, S.Element == Element {
-        guard self.count == other.count else {
-            return false
-        }
-        return self.countOccurrences() == other.countOccurrences()
-    }
-    
-    
-    /// Returns a dictionary containing the dictinct elements of the collection (ie, without duplicates) as the keys, and each element's occurrence count as value
-    func countOccurrences() -> [Element: Int] {
-        reduce(into: [:]) { result, element in
-            result[element] = (result[element] ?? 0) + 1
-        }
-    }
-}

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ApodiniUtils
 
 
 /// A type which can be used as an option's value
@@ -57,7 +58,6 @@ public final class ResolvedOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
         self.valueStorage = .unencoded(value: value, encodingFn: { try JSONEncoder().encode(value) })
         self.reduceOptionsImp = { otherOption in
             precondition(key == otherOption.key)
-            print("oqoo")
             guard let otherValueUntyped = otherOption.untypedValue else {
                 fatalError("Cannot reduce: Other option does not store an un-encoded value")
             }
@@ -128,8 +128,37 @@ public final class ResolvedOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
     
     
     public func reduceOption(with other: ResolvedOption) -> ResolvedOption {
-        reduceOptionsImp(other)
+        precondition(
+            key == other.key,
+            "Cannot reduce options with non-matching keys ('\(key.rawValue)' vs '\(other.key.rawValue)')"
+        )
+        return reduceOptionsImp(other)
     }
+    
+    
+    /// Check whether the two resolved options (`self` and `other`) are equal.
+    /// - Returns: `true` if we know for a fact that the two options are equal. `false` otherwise.
+    /// - Note: This function returning `false` does not mean that the two options are not equal, it just means that we were unable to determine if they are equal.
+    /// - Note: If the option value's type is `Equatable`, this function may or may not make use of that conformance.
+    public func testEqual(_ other: ResolvedOption) -> Bool {
+        guard key == other.key else {
+            return false
+        }
+        if let value = self.untypedValue, let otherValue = other.untypedValue {
+            if let result = AnyEquatable(value).equals(AnyEquatable(otherValue)) {
+                return result
+            } else {
+                // was unable to compare the two, give the codable-based approach below a shot
+            }
+        }
+        // If we end up here, we either were unable to get both `untypedValue`s, or they were not Equatable.
+        if let selfEncoded = try? self.encodeToJSON(), let otherEncoded = try? other.encodeToJSON() {
+            return selfEncoded == otherEncoded
+        } else {
+            return false
+        }
+    }
+    
     
     
     var untypedValue: Any? {

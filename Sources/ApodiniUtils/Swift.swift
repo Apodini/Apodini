@@ -42,7 +42,7 @@ extension Set {
     /// - parameter mergingFn: The closure to be called if the set already contains an element matching `newElement`
     public mutating func insert(_ newElement: Element, merging mergingFn: (_ oldElem: Element, _ newElem: Element) -> Element) {
         if let idx = firstIndex(of: newElement) {
-            insert(mergingFn(self[idx], newElement))
+            update(with: mergingFn(self[idx], newElement))
         } else {
             insert(newElement)
         }
@@ -112,6 +112,143 @@ extension Collection {
             return try firstIndex(from: index(after: idx), where: predicate)
         }
     }
+}
+
+
+extension Collection where Element: Hashable {
+    /// Returns `true` if the two collections contain the same elements, regardless of their order.
+    /// - Note: this is different from `Set(self) == Set(other)`, insofar as this also
+    ///         takes into account how often an element occurs, which the Set version would ignore
+    public func compareIgnoringOrder<C>(_ other: C) -> Bool where C: Collection, C.Element == Element {
+        guard self.count == other.count else {
+            return false
+        }
+        // important here is that this must be an unordered compare (e.g. by comparing dictionaries)
+        return self.distinctElementCounts() == other.distinctElementCounts()
+    }
+    
+    /// Returns a dictionary containing the dictinct elements of the collection (ie, without duplicates) as the keys, and each element's occurrence count as value
+    public func distinctElementCounts() -> [Element: Int] {
+        reduce(into: [:]) { result, element in
+            result[element] = (result[element] ?? 0) + 1
+        }
+    }
+    
+    
+    public func __compareIgnoringOrder<C>(_ other: C, idx: Int) -> Bool where C: Collection, C.Element == Element {
+        guard self.count == other.count else {
+            fatalError()
+            return false
+        }
+        let countsA = self.distinctElementCounts()
+        let countsB = other.distinctElementCounts()
+        if countsA == countsB {
+            return true
+        } else {
+            return false
+//            fatalError()
+        }
+    }
+}
+
+
+extension Collection where Element: Hashable {
+    public func compareIgnoringOrder<C>(
+        _ other: C,
+        computeHash: @escaping (Element, inout Hasher) -> Void,
+        areEqual: (Element, Element) -> Bool
+    ) -> Bool where C: Collection, C.Element == Element {
+        guard self.count == other.count else {
+            return false
+        }
+        
+        return compareEqualsIgnoringOrder(
+            lhs: self.distinctElementCounts(computeHash: computeHash, areEqual: areEqual),
+            rhs: other.distinctElementCounts(computeHash: computeHash, areEqual: areEqual),
+            areEqual: { areEqual($0.0, $1.0) && $0.1 == $1.1 }
+        )
+    }
+    
+    
+    // yeah this probably has awful performance...
+    // main issue (and this is the reason why all of this exists in the first place)
+    // is that we versions of the `compareIgnoringOrder` and `distinctElementCounts` functions
+    // which work witout having to rely on `Element`'s `hash` and `==` implementations.
+    // another issue: this function can't return a dictionary (or use one anywhere in its implementation),
+    // the reason being that that would call Element's hash/== implementations, which is the very thing we're trying to avoid here...
+    // also, the `computeHash` argument's @escaping is not actually needed (the closure never leaves the function's scope) but local closures are implicitly @escaping (which can't be overwritten) and `withoutActuallyEscaping` doesn't work :/
+    private func distinctElementCounts(
+        computeHash: @escaping (Element, inout Hasher) -> Void,
+        areEqual: (Element, Element) -> Bool
+    ) -> [(element: Element, count: Int)] {
+        let hash: (Element) -> Int = { element in
+            var hasher = Hasher()
+            computeHash(element, &hasher)
+            return hasher.finalize()
+        }
+        var retval: [(element: Element, count: Int)] = []
+        for element in self {
+            if let idx = retval.firstIndex(where: { hash($0.element) == hash(element) && areEqual($0.element, element) }) {
+                retval[idx].count += 1
+            } else {
+                retval.append((element, 1))
+            }
+        }
+        return retval
+    }
+}
+
+
+/// "Equals" implementation for two collections of 2-element tuples where both tuple element types are Equatable.
+public func == <C0: Collection, C1: Collection, Key: Equatable, Value: Equatable> (
+    lhs: C0,
+    rhs: C1
+) -> Bool where C0.Element == (Key, Value), C1.Element == (Key, Value) {
+    guard lhs.count == rhs.count else {
+        return false
+    }
+    for (lhsVal, rhsVal) in zip(lhs, rhs) {
+        guard lhsVal == rhsVal else {
+            return false
+        }
+    }
+    return true
+}
+
+
+/// "Unordered equals" implementation for two collections of 2-element tuples using a custom equality predicate.
+/// - Note: this assumes that `areEqual` is symmetric.
+public func compareEqualsIgnoringOrder<C0: Collection, C1: Collection, Key, Value> (
+    lhs: C0,
+    rhs: C1,
+    areEqual: ((Key, Value), (Key, Value)) -> Bool
+) -> Bool where C0.Element == (Key, Value), C1.Element == (Key, Value) {
+//    print("compareEqualsIgnoringOrder", lhs, rhs)
+    guard lhs.count == rhs.count else {
+//        print("!count")
+        return false
+    }
+    
+    var rhs = Array(rhs)
+    
+    for entry in lhs {
+        guard let idx = rhs.firstIndex(where: { areEqual(entry, $0) }) else {
+            // we're unable to find a matching key-value pair in rhs,
+            // meaning this entry exists only in lhs, meaning the two collections are not equal
+//            print("!eq")
+            return false
+        }
+        rhs.remove(at: idx)
+    }
+    
+//    for (lhsVal, rhsVal) in zip(lhs, rhs) {
+//        guard areEqual(lhsVal, rhsVal) else {
+//            print("!eq", lhsVal, rhsVal)
+//            return false
+//        }
+//    }
+//    print("eq")
+    return true
 }
 
 

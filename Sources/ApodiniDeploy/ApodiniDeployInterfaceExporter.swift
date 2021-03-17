@@ -46,20 +46,38 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
         typealias Value = ApodiniDeployInterfaceExporter
     }
     
-    struct CollectedEndpointInfo {
+    /// The information collected about an `Endpoint`.
+    /// - Note: This type's `Hashable`  implementation ignores deployment options.
+    /// - Note: This type's `Equatable` implementation ignores all context of the endpoint other than its identifier,
+    ///         and will only work if all deployment options of both objects being compared are reducible.
+    struct CollectedEndpointInfo: Hashable, Equatable {
         let handlerType: HandlerTypeIdentifier
         let endpoint: AnyEndpoint
         let deploymentOptions: DeploymentOptions
+        
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(endpoint.identifier)
+        }
+        
+        static func == (lhs: CollectedEndpointInfo, rhs: CollectedEndpointInfo) -> Bool {
+            lhs.handlerType == rhs.handlerType
+                && lhs.endpoint.identifier == rhs.endpoint.identifier
+                && lhs.deploymentOptions.reduced().options.compareIgnoringOrder(
+                    rhs.deploymentOptions.reduced().options,
+                    computeHash: { option, hasher in hasher.combine(option) },
+                    areEqual: { lhs, rhs in lhs.testEqual(rhs) }
+                )
+        }
     }
     
     
     let app: Apodini.Application
     var vaporApp: Vapor.Application { app.vapor.app }
     
-    var collectedEndpoints: [CollectedEndpointInfo] = []
-    var explicitlyCreatedDeploymentGroups: [DeploymentGroup.ID: Set<AnyHandlerIdentifier>] = [:]
+    private(set) var collectedEndpoints: [CollectedEndpointInfo] = []
+    private(set) var explicitlyCreatedDeploymentGroups: [DeploymentGroup.ID: Set<AnyHandlerIdentifier>] = [:]
     
-    var deploymentProviderRuntime: DeploymentProviderRuntimeSupport?
+    private(set) var deploymentProviderRuntime: DeploymentProviderRuntimeSupport?
     
     
     public required init(_ app: Apodini.Application) {
@@ -156,6 +174,11 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     func getEndpoint<H: IdentifiableHandler>(withIdentifier identifier: H.HandlerIdentifier, ofType _: H.Type) -> Endpoint<H>? {
         collectedEndpoints.first { $0.endpoint.identifier == identifier }?.endpoint as? Endpoint<H>
+    }
+    
+    
+    func getCollectedEndpointInfo(forHandlerWithIdentifier identifier: AnyHandlerIdentifier) -> CollectedEndpointInfo? {
+        collectedEndpoints.first { $0.endpoint.identifier == identifier }
     }
     
     

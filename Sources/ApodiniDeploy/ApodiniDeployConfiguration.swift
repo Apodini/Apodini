@@ -95,8 +95,8 @@ struct HandlerDeploymentOptionsContextKey: Apodini.ContextKey {
 }
 
 
-public struct HandlerDeploymentOptionsModifier<H: Handler>: HandlerModifier, SyntaxTreeVisitable {
-    public let component: H
+public struct DeploymentOptionsModifier<C: Component>: Modifier, SyntaxTreeVisitable {
+    public let component: C
     public let deploymentOptions: [AnyDeploymentOption]
     
     public func accept(_ visitor: SyntaxTreeVisitor) {
@@ -105,11 +105,15 @@ public struct HandlerDeploymentOptionsModifier<H: Handler>: HandlerModifier, Syn
     }
 }
 
+extension DeploymentOptionsModifier: Handler, HandlerModifier where Self.ModifiedComponent: Handler {
+    public typealias Response = ModifiedComponent.Response
+}
 
-extension Handler {
+
+extension Component {
     /// Attach a set of deployment options to the handler
-    public func deploymentOptions(_ options: AnyDeploymentOption...) -> HandlerDeploymentOptionsModifier<Self> {
-        HandlerDeploymentOptionsModifier(component: self, deploymentOptions: options)
+    public func deploymentOptions(_ options: AnyDeploymentOption...) -> DeploymentOptionsModifier<Self> {
+        DeploymentOptionsModifier(component: self, deploymentOptions: options)
     }
 }
 
