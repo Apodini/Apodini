@@ -13,7 +13,7 @@ import Glibc
 #else
 import Darwin
 #endif
-import CwlCatchException
+import ApodiniUtilsSupport
 
 
 /// A wrapper around `Foundation.Process` (née`NSTask`)
@@ -310,7 +310,7 @@ extension FileHandle {
             return try self.readToEnd()
         } else {
             var retval: Data?
-            let exc = NSException.catchException {
+            let exc = NSException.tryCatch {
                 retval = self.readDataToEndOfFile()
             }
             if let exc = exc {
