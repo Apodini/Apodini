@@ -13,7 +13,6 @@ import Glibc
 #else
 import Darwin
 #endif
-import ApodiniUtilsSupport
 
 
 /// A wrapper around `Foundation.Process` (née`NSTask`)
@@ -290,7 +289,7 @@ extension Task {
 extension Pipe {
     func readUntilEndAsString(encoding: String.Encoding) throws -> String {
         guard
-            let data = try self.fileHandleForReading.readDataToEndOfFileCatchingExceptions(),
+            let data = try fileHandleForReading.tryReadDataToEnd(),
             let string = String(data: data, encoding: encoding)
         else {
             throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unable to read string from pipe"])
@@ -301,47 +300,18 @@ extension Pipe {
 
 
 extension FileHandle {
-    /// A wrapper around `-[FileHandle readDataToEndOfFile]` which properly catches and re-throws exceptions.
-    /// This workaround is required because `-[FileHandle readToEnd]` is only available starting from
-    /// macOS 10.15.4, and SPM does not support specifying minor OS versions as the package's platform target.
-    /// (We'd have to increase the package target to 11.0 to get the `readToEnd` API, which we can't because we want to preserve compatability with macOS 10.15.)
-    func readDataToEndOfFileCatchingExceptions() throws -> Data? {
+    /// A platform-specific wrapper around `-[FileHandle readToEnd]` (if running on an OS >= 10.15.4),
+    /// or `-[FileHandle readDataToEndOfFile]` (if running on earlier OS versions).
+    /// The two functions implement the same functionality, the difference being that the latter one
+    /// might throw NSExceptions (which we can't really catch from Swift) and is marked for eventual deprecation.
+    /// However, since we eant to retain the 10.15 deployment target, and SPM does not support specifying minor versions,
+    /// we need this workaround.
+    func tryReadDataToEnd() throws -> Data? {
         if #available(macOS 10.15.4, *) {
-            return try self.readToEnd()
+            return try readToEnd()
         } else {
-            var retval: Data?
-            let exc = NSException.tryCatch {
-                retval = self.readDataToEndOfFile()
-            }
-            if let exc = exc {
-                throw exc.toError()
-            } else {
-                return retval
-            }
+            return readDataToEndOfFile()
         }
-    }
-}
-
-
-extension NSException {
-    /// An `Swift.Error` object which wraps an `NSException`
-    struct NSExceptionError: Swift.Error, CustomStringConvertible {
-        /// The wrapped exception
-        let exception: NSException
-        
-        var description: String {
-            var desc = ""
-            desc += "\(Self.self)("
-            desc += "name: '\(exception.name.rawValue)', "
-            desc += "reason: \(exception.reason.map { "'\($0)'" } ?? "(null)")"
-            desc += ")"
-            return desc
-        }
-    }
-    
-    /// Wraps the exception in a `Swift.Error`-conforming wrapper type.
-    public func toError() -> Swift.Error {
-        NSExceptionError(exception: self)
     }
 }
 

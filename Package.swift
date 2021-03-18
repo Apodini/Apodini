@@ -74,12 +74,10 @@ let package = Package(
     ],
     targets: [
         .target(name: "CApodiniUtils"),
-        .target(name: "ApodiniUtilsSupport"),
         .target(
             name: "ApodiniUtils",
             dependencies: [
                 .target(name: "CApodiniUtils"),
-                .target(name: "ApodiniUtilsSupport"),
                 .product(name: "Runtime", package: "Runtime"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
             ]
