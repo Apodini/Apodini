@@ -286,7 +286,7 @@ let package = Package(
         
         
         .target(
-            name: "TestWebService",
+            name: "ApodiniDeployTestWebService",
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniDeployBuildSupport"),

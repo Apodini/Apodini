@@ -350,7 +350,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             return role
         }
         
-        // TODO look for existing roles and re-use is possible!
+        // Note ideally this would look for existing roles and re-use them if possible
         logger.notice("Creating IAM execution role for new functions")
         let request = IAM.CreateRoleRequest(
             assumeRolePolicyDocument:
