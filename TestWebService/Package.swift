@@ -6,24 +6,19 @@ import PackageDescription
 let package = Package(
     name: "TestWebService",
     platforms: [
-        .macOS(.v11)
+        .macOS(.v10_15)
     ],
     products: [
         .executable(name: "TestWebService", targets: ["TestWebService"])
     ],
     dependencies: [
         .package(name: "Apodini", path: "..")
-        //.package(name: "ApodiniDeploy", path: "../ApodiniDeploy")
     ],
     targets: [
         .target(
             name: "TestWebService",
             dependencies: [
                 .product(name: "Apodini", package: "Apodini"),
-                .product(name: "DeploymentTargetLocalhostRuntimeSupport", package: "Apodini"),
-                .product(name: "DeploymentTargetAWSLambdaRuntime", package: "Apodini"),
-                //.product(name: "DeploymentTargetLocalhostRuntimeSupport", package: "ApodiniDeploy"),
-                //.product(name: "DeploymentTargetAWSLambdaRuntime", package: "ApodiniDeploy"),
                 .product(name: "ApodiniVaporSupport", package: "Apodini"),
                 .product(name: "ApodiniREST", package: "Apodini"),
                 .product(name: "ApodiniGRPC", package: "Apodini"),
