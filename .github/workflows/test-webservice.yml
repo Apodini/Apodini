@@ -17,7 +17,7 @@ defaults:
 jobs:
   macos:
     name: macOS ${{ matrix.configuration }} test TestWebService
-    runs-on: macos-latest
+    runs-on: macos-11.0
     strategy:
       fail-fast: false
       matrix:
