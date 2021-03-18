@@ -1,3 +1,12 @@
+//
+//  File.swift
+//
+//
+//  Created by Lukas Kollmer on 2021-03-18.
+//
+
+// This file still is work in progress...
+// swiftlint:disable all
 
 import Foundation
 import NIO
