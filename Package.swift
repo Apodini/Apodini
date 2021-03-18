@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "Apodini",
     platforms: [
-        .macOS(.v11)
+        .macOS(.v10_15)
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
@@ -70,7 +70,8 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
         .package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime", from: "0.4.0"),
         .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0"),
-        .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0")
+        .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0"),
+        .package(url: "https://github.com/mattgallagher/CwlCatchException.git", from: "2.0.0")
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -79,6 +80,7 @@ let package = Package(
             dependencies: [
                 .target(name: "CApodiniUtils"),
                 .product(name: "Runtime", package: "Runtime"),
+                .product(name: "CwlCatchException", package: "CwlCatchException"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
             ]
         ),

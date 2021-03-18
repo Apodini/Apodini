@@ -8,12 +8,12 @@
 import Foundation
 import Dispatch
 import CApodiniUtils
-
 #if os(Linux)
 import Glibc
 #else
 import Darwin
 #endif
+import CwlCatchException
 
 
 /// A wrapper around `Foundation.Process` (née`NSTask`)
@@ -290,12 +290,58 @@ extension Task {
 extension Pipe {
     func readUntilEndAsString(encoding: String.Encoding) throws -> String {
         guard
-            let data = try self.fileHandleForReading.readToEnd(),
+            let data = try self.fileHandleForReading.readDataToEndOfFileCatchingExceptions(),
             let string = String(data: data, encoding: encoding)
         else {
             throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unable to read string from pipe"])
         }
         return string
+    }
+}
+
+
+extension FileHandle {
+    /// A wrapper around `-[FileHandle readDataToEndOfFile]` which properly catches and re-throws exceptions.
+    /// This workaround is required because `-[FileHandle readToEnd]` is only available starting from
+    /// macOS 10.15.4, and SPM does not support specifying minor OS versions as the package's platform target.
+    /// (We'd have to increase the package target to 11.0 to get the `readToEnd` API, which we can't because we want to preserve compatability with macOS 10.15.)
+    func readDataToEndOfFileCatchingExceptions() throws -> Data? {
+        if #available(macOS 10.15.4, *) {
+            return try self.readToEnd()
+        } else {
+            var retval: Data?
+            let exc = NSException.catchException {
+                retval = self.readDataToEndOfFile()
+            }
+            if let exc = exc {
+                throw exc.toError()
+            } else {
+                return retval
+            }
+        }
+    }
+}
+
+
+extension NSException {
+    /// An `Swift.Error` object which wraps an `NSException`
+    struct NSExceptionError: Swift.Error, CustomStringConvertible {
+        /// The wrapped exception
+        let exception: NSException
+        
+        var description: String {
+            var desc = ""
+            desc += "\(Self.self)("
+            desc += "name: '\(exception.name.rawValue)', "
+            desc += "reason: \(exception.reason.map { "'\($0)'" } ?? "(null)")"
+            desc += ")"
+            return desc
+        }
+    }
+    
+    /// Wraps the exception in a `Swift.Error`-conforming wrapper type.
+    public func toError() -> Swift.Error {
+        NSExceptionError(exception: self)
     }
 }
 
