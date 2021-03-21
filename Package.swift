@@ -19,7 +19,9 @@ let package = Package(
         .library(name: "ApodiniREST", targets: ["ApodiniREST"]),
         .library(name: "ApodiniTypeReflection", targets: ["ApodiniTypeReflection"]),
         .library(name: "ApodiniVaporSupport", targets: ["ApodiniVaporSupport"]),
-        .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"])
+        .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
+        .library(name: "ApodiniDelta", targets: ["ApodiniDelta"])
+        
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.39.1"),
@@ -236,7 +238,17 @@ let package = Package(
                 .target(name: "ProtobufferCoding")
             ]
         ),
-
+        
+        // Migration Guide
+        
+        .target(
+            name: "ApodiniDelta",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniTypeReflection"),
+            ]
+        ),
+        
         // XCTApodini
 
         .target(
@@ -251,7 +263,8 @@ let package = Package(
                 .target(name: "ApodiniProtobuffer"),
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
-                .target(name: "ApodiniNotifications")
+                .target(name: "ApodiniNotifications"),
+                .target(name: "ApodiniDelta")
             ]
         )
     ]
