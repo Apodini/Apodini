@@ -8,7 +8,7 @@
 import Foundation
 
 /// Defines the necessity of a `EndpointParameter`
-public enum Necessity {
+public enum Necessity: String, Codable {
     /// `.required` necessity describes parameters which require a valuer in any case.
     case required
     /// `.optional` necessity describes parameters which does not necessarily require a value.

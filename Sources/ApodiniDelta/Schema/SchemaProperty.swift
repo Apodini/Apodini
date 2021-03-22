@@ -7,15 +7,7 @@
 
 import Foundation
 
-struct SchemaProperty {
-
-    // MARK: - Inner type
-    enum PropertyType: Equatable, Hashable {
-        case optional
-        case exactlyOne
-        case array
-        case dictionary(key: PrimitiveType)
-    }
+struct SchemaProperty: Codable {
 
     let name: String
     let offset: Int

@@ -17,7 +17,7 @@ extension ReflectionInfo.Cardinality {
         case .zeroToMany(let context):
             switch context {
             case .dictionary: return "_dictionary"
-            case .array:return "_array"
+            case .array: return "_array"
             }
         default: return ""
         }

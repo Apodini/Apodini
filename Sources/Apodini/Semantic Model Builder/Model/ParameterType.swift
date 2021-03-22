@@ -3,7 +3,7 @@
 //
 
 /// `Parameter` categorization needed for certain interface exporters (e.g., HTTP-based).
-public enum ParameterType {
+public enum ParameterType: String, Codable {
     /// Lightweight parameters are any parameters which are
     /// considered to be lightweight in some sort of way.
     /// This is the default parameter type for any primitive type properties.
@@ -19,13 +19,6 @@ public enum ParameterType {
 
 extension ParameterType: CustomStringConvertible {
     public var description: String {
-        switch self {
-        case .lightweight:
-            return "lightweight"
-        case .content:
-            return "content"
-        case .path:
-            return "path"
-        }
+        rawValue
     }
 }

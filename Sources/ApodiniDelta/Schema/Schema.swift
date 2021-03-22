@@ -7,9 +7,9 @@
 
 import Foundation
 
-struct Schema {
-    var typeName: String
-    var properties: Set<SchemaProperty>
+struct Schema: Codable {
+    let typeName: String
+    let properties: Set<SchemaProperty>
     let isEnumeration: Bool
 
     var reference: SchemaReference {

@@ -10,7 +10,7 @@ import Foundation
 struct SchemaBuilder {
 
     // MARK: - Properties
-    private(set) var schemas: Set<Schema> = []
+    private(set) var schemas: Set<Schema> = .empty
 
     // MARK: - Private functions
     private mutating func schema(from node: Node<ReflectionInfo>) -> Schema {
@@ -47,7 +47,7 @@ struct SchemaBuilder {
             return updateName(of: existing, to: node.rootName)
         }
 
-        return .init(name: schemaName)
+        return .init(schemaName: schemaName)
     }
 
     mutating func addSchema(_ schema: Schema) {
@@ -66,6 +66,6 @@ struct SchemaBuilder {
     }
 
     func schema(named: String) -> Schema? {
-        schemas.first { $0.reference.name == named }
+        schemas.first { $0.reference.schemaName == named }
     }
 }

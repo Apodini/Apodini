@@ -6,7 +6,7 @@
 //
 
 /// Defines the Operation of a given endpoint
-public enum Operation: String, CaseIterable, Hashable, CustomStringConvertible {
+public enum Operation: String, Codable, CaseIterable, Hashable, CustomStringConvertible {
     /// The associated endpoint is used for a `create` operation
     case create
     /// The associated endpoint is used for a `read` operation

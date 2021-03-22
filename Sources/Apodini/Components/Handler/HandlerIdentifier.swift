@@ -10,7 +10,7 @@ import Foundation
 
 
 /// An `AnyHandlerIdentifier` object identifies a `Handler` regardless of its concrete type.
-open class AnyHandlerIdentifier: RawRepresentable, Hashable, Equatable, CustomStringConvertible {
+open class AnyHandlerIdentifier: RawRepresentable, Codable, Hashable, Equatable, CustomStringConvertible {
     public let rawValue: String
     
     public required init(rawValue: String) {
