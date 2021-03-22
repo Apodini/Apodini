@@ -246,6 +246,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniTypeReflection"),
+                .target(name: "ApodiniVaporSupport")
             ]
         ),
         

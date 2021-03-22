@@ -22,9 +22,8 @@ struct Schema {
         self.isEnumeration = isEnumeration
     }
 
-    mutating func update(typeName: String) -> Schema {
-        self.typeName = typeName
-        return self
+    func updated(typeName: String) -> Schema {
+        .init(typeName: typeName, properties: properties, isEnumeration: isEnumeration)
     }
 
 }
@@ -40,11 +39,11 @@ extension Schema {
     }
 
     static func enumeration(typeName: String, cases: String...) -> Schema {
-        .init(typeName: typeName, properties: Set(cases.map { .enumCase(named: $0) }), isEnumeration: true)
+        .init(typeName: typeName, properties: Set(cases.enumerated().map { .enumCase(named: $1, offset: $0 + 1) }), isEnumeration: true)
     }
 
     static func enumeration(typeName: String, cases: [String]) -> Schema {
-        .init(typeName: typeName, properties: Set(cases.map { .enumCase(named: $0) }), isEnumeration: true)
+        .init(typeName: typeName, properties: Set(cases.enumerated().map { .enumCase(named: $1, offset: $0 + 1) }), isEnumeration: true)
     }
 }
 

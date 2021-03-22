@@ -54,11 +54,11 @@ final class SchemaBuilderTests: XCTestCase {
         let accountSchema = try XCTUnwrap(builderSchemas.first { $0.reference == accountReference })
         let expectedAccountResult: Schema = .complex(typeName: "Account",
                                               properties: [
-                                                .property(named: "car", type: .exactlyOne, reference: .reference("Car")),
-                                                .property(named: "amount", type: .optional, reference: .reference("Int")),
-                                                .property(named: "names", type: .array, reference: .reference("String")),
-                                                .property(named: "dict", type: .dictionary(key: .float), reference: .reference("User")),
-                                                .property(named: "direction", type: .array, reference: .reference("Direction"))
+                                                .property(named: "car", offset: 1, type: .exactlyOne, reference: .reference("Car")),
+                                                .property(named: "amount", offset: 2, type: .optional, reference: .reference("Int")),
+                                                .property(named: "names", offset: 3, type: .array, reference: .reference("String")),
+                                                .property(named: "dict", offset: 4, type: .dictionary(key: .float), reference: .reference("User")),
+                                                .property(named: "direction", offset: 5, type: .array, reference: .reference("Direction"))
                                               ])
 
         XCTAssertEqual(accountSchema, expectedAccountResult)

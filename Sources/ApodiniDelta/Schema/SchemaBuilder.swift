@@ -43,8 +43,8 @@ struct SchemaBuilder {
             .save(in: &self)
 
         let schemaName = node.value.typeInfo.name
-        if root, node.rootName != schemaName, var existing = schema(named: schemaName) {
-            return updateName(of: &existing, to: node.rootName)
+        if root, node.rootName != schemaName, let existing = schema(named: schemaName) {
+            return updateName(of: existing, to: node.rootName)
         }
 
         return .init(name: schemaName)
@@ -58,8 +58,8 @@ struct SchemaBuilder {
         self.schemas.formUnion(schemas)
     }
 
-    mutating func updateName(of schema: inout Schema, to newName: String) -> SchemaReference {
-        let updatedSchema = schema.update(typeName: newName)
+    mutating func updateName(of schema: Schema, to newName: String) -> SchemaReference {
+        let updatedSchema = schema.updated(typeName: newName)
         schemas.remove(schema)
         addSchema(updatedSchema)
         return updatedSchema.reference

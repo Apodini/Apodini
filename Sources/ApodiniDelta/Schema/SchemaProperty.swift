@@ -18,11 +18,13 @@ struct SchemaProperty {
     }
 
     let name: String
+    let offset: Int
     let type: PropertyType
     let reference: SchemaReference
 
-    private init(named: String, type: PropertyType, reference: SchemaReference) {
-        self.name = named
+    private init(name: String, offset: Int, type: PropertyType, reference: SchemaReference) {
+        self.name = name
+        self.offset = offset
         self.type = type
         self.reference = reference
     }
@@ -30,6 +32,7 @@ struct SchemaProperty {
     static func initialize(from reflectionInfo: ReflectionInfo, in builder: inout SchemaBuilder) -> SchemaProperty? {
         guard
             let name = reflectionInfo.propertyInfo?.name,
+            let offset = reflectionInfo.propertyInfo?.offset,
             let schemaReference = builder.build(for: reflectionInfo.typeInfo.type, root: false)
         else { return nil }
 
@@ -51,18 +54,18 @@ struct SchemaProperty {
             }
 
         }
-        return .init(named: name, type: propertyType, reference: schemaReference)
+        return .init(name: name, offset: offset, type: propertyType, reference: schemaReference)
     }
 }
 
 extension SchemaProperty {
 
-    static func property(named: String, type: PropertyType, reference: SchemaReference) -> SchemaProperty {
-        .init(named: named, type: type, reference: reference)
+    static func property(named: String, offset: Int, type: PropertyType, reference: SchemaReference) -> SchemaProperty {
+        .init(name: named, offset: offset, type: type, reference: reference)
     }
 
-    static func enumCase(named: String) -> SchemaProperty {
-        .init(named: named, type: .exactlyOne, reference: .reference(.string))
+    static func enumCase(named: String, offset: Int) -> SchemaProperty {
+        .init(name: named, offset: offset, type: .exactlyOne, reference: .reference(.string))
     }
 }
 
@@ -70,6 +73,7 @@ extension SchemaProperty: Hashable {
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(name)
+        hasher.combine(offset)
         hasher.combine(type)
         hasher.combine(reference)
     }
@@ -79,6 +83,7 @@ extension SchemaProperty: Equatable {
 
     static func == (lhs: SchemaProperty, rhs: SchemaProperty) -> Bool {
         lhs.name == rhs.name
+            && lhs.offset == rhs.offset
             && lhs.type == rhs.type
             && lhs.reference == rhs.reference
     }
