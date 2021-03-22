@@ -8,14 +8,14 @@
 import Foundation
 
 struct Service: Codable {
-    
+
     let handlerName: String
     let handlerIdentifier: AnyHandlerIdentifier
     let operation: Apodini.Operation
     let absolutePath: String
     let parameters: [ServiceParameter]
     let response: SchemaReference
-    
+
     init(
         handlerName: String,
         handlerIdentifier: AnyHandlerIdentifier,

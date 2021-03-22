@@ -19,7 +19,7 @@ extension SchemaReference {
     static func reference(_ primitiveType: PrimitiveType) -> SchemaReference {
         .reference(primitiveType.description)
     }
-    
+
     static var empty: SchemaReference {
         .reference("")
     }

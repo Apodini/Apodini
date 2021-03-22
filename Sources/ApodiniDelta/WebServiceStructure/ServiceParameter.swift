@@ -8,7 +8,7 @@
 import Foundation
 
 struct ServiceParameter: Codable {
-    
+
     let name: String
     let necessity: Necessity
     let type: ParameterType
@@ -17,7 +17,7 @@ struct ServiceParameter: Codable {
 }
 
 extension Array where Element == AnyEndpointParameter {
-    
+
     func serviceParameters(with builder: inout SchemaBuilder) -> [ServiceParameter] {
         map {
             let reference = builder.build(for: $0.propertyType, root: false) ?? .empty

@@ -25,7 +25,7 @@ enum PrimitiveType: String, RawRepresentable, Codable {
 
     init(_ type: Any.Type) {
         self = PrimitiveType(rawValue: "\(type)") ?? .unknown
-        
+
         precondition(self != .unknown, "'isSupportedScalarType' method has been updated with \(type), but the update is not reflected in 'PrimitiveType' enum yet.")
     }
 }

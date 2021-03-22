@@ -26,16 +26,26 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
 
     public func finishedExporting(_ webService: WebServiceModel) {
         serveWebServiceStructure()
+
+        guard
+            let webServiceStructuresPath = app.storage.get(DeltaStorageKey.self)?.configuration.webServiceStructurePath
+        else {
+            fatalError("""
+                No path specified for saving the web service structure. Use 'DeltaConfiguration' to specify where
+                the web service structures should be saved.
+                """)
+             }
+        webServiceStructure.export(at: webServiceStructuresPath)
     }
-    
+
     func serveWebServiceStructure() {
         let jsonEncoder = JSONEncoder()
         jsonEncoder.outputFormatting = .prettyPrinted
-        
+
         if
             let data = try? jsonEncoder.encode(webServiceStructure),
             let jsonString = String(data: data, encoding: .utf8)?.replacingOccurrences(of: "\\/", with: "/") {
-            
+
             app.vapor.app.get("delta") { _ -> String in
                 jsonString
             }

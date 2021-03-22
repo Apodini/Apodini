@@ -15,11 +15,11 @@ enum PropertyType: Equatable, Hashable {
 }
 
 extension PropertyType: Codable {
-    
+
     private enum CodingKeys: String, CodingKey {
         case optional, exactlyOne, array, dictionary
     }
-    
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
@@ -33,7 +33,7 @@ extension PropertyType: Codable {
             try container.encode(key, forKey: .dictionary)
         }
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let key = container.allKeys.first
@@ -45,5 +45,5 @@ extension PropertyType: Codable {
         default: fatalError("Unabled to decode enum PropertyType")
         }
     }
-    
+
 }
