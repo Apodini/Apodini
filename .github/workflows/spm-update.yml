@@ -28,9 +28,9 @@ jobs:
         commit-message: Update dependencies
         title: Update dependencies
         body: Update the Swift Package dependencies.
-#        delete-branch: true
-#        base: develop
+        delete-branch: true
+        base: develop
         branch: bots/update-dependencies
-#        assignees: PSchmiedmayer
-#        committer: PSchmiedmayer <PSchmiedmayer@users.noreply.github.com>
-#        author: PSchmiedmayer <PSchmiedmayer@users.noreply.github.com>
+        assignees: PSchmiedmayer
+        committer: PSchmiedmayer <PSchmiedmayer@users.noreply.github.com>
+        author: PSchmiedmayer <PSchmiedmayer@users.noreply.github.com>
