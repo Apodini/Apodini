@@ -8,9 +8,7 @@ on:
 jobs:
   createPR:
     name: Create Pull Request
-    container:
-      image: swift
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions/cache@v2
