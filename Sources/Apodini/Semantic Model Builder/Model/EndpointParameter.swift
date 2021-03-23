@@ -173,6 +173,8 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter {
             parameterType = .lightweight
         case .body:
             parameterType = .content
+        case .header:
+            parameterType = .header
         default:
             parameterType = Type.self is LosslessStringConvertible.Type ? .lightweight : .content
         }
