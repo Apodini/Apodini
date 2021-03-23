@@ -224,10 +224,10 @@ extension Collection {
 extension Collection {
     /// "Unordered equals" implementation for two collections of 2-element tuples using a custom equality predicate.
     /// - Note: this assumes that `areEqual` is symmetric.
-    public func compareEqualsIgnoringOrder<Other: Collection, Key, Value> (
+    public func compareEqualsIgnoringOrder<Other: Collection, T0, T1> (
         _ other: Other,
-        areEqual: ((Key, Value), (Key, Value)) -> Bool
-    ) -> Bool where Self.Element == (Key, Value), Other.Element == (Key, Value) {
+        areEqual: ((T0, T1), (T0, T1)) -> Bool
+    ) -> Bool where Self.Element == (T0, T1), Other.Element == (T0, T1) {
         guard self.count == other.count else {
             return false
         }
@@ -236,7 +236,7 @@ extension Collection {
         
         for entry in self {
             guard let idx = other.firstIndex(where: { areEqual(entry, $0) }) else {
-                // we're unable to find a matching key-value pair in rhs,
+                // we're unable to find a matching tuple in rhs,
                 // meaning this entry exists only in lhs, meaning the two collections are not equal
                 return false
             }

@@ -102,7 +102,7 @@ private struct TestWebService: Apodini.WebService {
 }
 
 
-class DeploymentOptionsTests: XCTApodiniTest {
+class DeploymentOptionsTests: ApodiniDeployTestCase {
     func testOptionMerging() throws {
         struct CapturedImplArgs: Hashable {
             let lhs, rhs: Int
@@ -202,6 +202,9 @@ class DeploymentOptionsTests: XCTApodiniTest {
     
     
     func testHandlerDeploymentOptionComparison() {
+        guard !Self.isRunningOnLinuxDebug() else {
+            return
+        }
         // There used to be a bug where the comparison between CollectedEndpointInfo objects would randomly fail,
         // because somehwere in the `.reduced().options.compareIgnoringOrder`
         // it compared two arrays (which are ordered collections) which were constructed from

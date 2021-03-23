@@ -11,40 +11,57 @@ import Foundation
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
-/// The `AnyEquatable` type acts as a wrapper around an `Any ` value,
-/// which can then be compared to another `AnyEquatable` object using the `equals` function.
-/// - Note: This will only work if the underlying value does in fact conform to the `Equatable` protocol.
-public struct AnyEquatable {
-    /// The underlying type-erased value
-    public let value: Any
-    
-    /// Constructs a new `AnyEquatable` from some type-erased value.
-    public init(_ value: Any) {
-        self.value = value
+/// Utility functions for testing arbitrary objects for equality.
+public enum AnyEquatable {
+    /// The result of an equality comparison of two objects of unknown types.
+    public enum ComparisonResult {
+        /// Both objects are of the same type, which conforms to `Equatable`, and the comparison returned `true`.
+        case equal
+        /// Both objects are of the same type, which conforms to `Equatable`, and the comparison returned `false`.
+        case notEqual
+        /// Both objects are of the same type, but that type does not conform to `Equatable`, meaning we cannot compare the objects.
+        case notEquatable
+        /// The objects are of different types, meaning they cannot be compared.
+        case nonMatchingTypes
+        
+        /// Whether the objects were equal.
+        /// - Note: This property being `true` implies that the objects were of the same type, and that that type conforms to `Equatable`.
+        public var isEqual: Bool { self == .equal }
+        
+        /// Whether two objects were not equal.
+        /// - Note: This property being `true` implies that the objects were of the same type, and that that type conforms to `Equatable`.
+        public var isNotEqual: Bool { self == .notEqual }
     }
     
-    /// Checks whether the two wrapped objects are equal.
-    /// - Returns: `true` if both objects are `Equatable`, of the same type, and `self.value == other.value`,
+    
+    /// Checks whether the two objects of unknown types are equal.
+    /// - Returns: `true` if both objects are `Equatable`, of the same type, and `lhs == rhs`,
     ///            `false` if both objects are `Equatable`, of the same type, and `self.value != other.value`,
     ///             `nil` if the two objects are not `Equatable`, or not of the same type.
-    public func equals(_ other: AnyEquatable) -> Bool? {
-        if case let .some(.some(result)) = TestEqualsImpl(other: other.value)(self.value) {
+    public static func compare(_ lhs: Any, _ rhs: Any) -> ComparisonResult {
+        switch TestEqualsImpl(lhs)(rhs) {
+        case .some(let result):
             return result
-        } else {
-            return nil
+        case .none:
+            // If the visitor returns nil, it was unable to visit the type, meaning `lhs` is not Equatable.
+            return .notEquatable
         }
     }
     
     
     private struct TestEqualsImpl: EquatableVisitor {
-        let other: Any
+        let value1: Any
         
-        func callAsFunction<T: Equatable>(_ value: T) -> Bool? {
-            if let other = other as? T {
-                precondition(type(of: value) == type(of: other))
-                return value == other
+        init(_ value1: Any) {
+            self.value1 = value1
+        }
+        
+        func callAsFunction<T: Equatable>(_ value2: T) -> ComparisonResult {
+            if let value1 = value1 as? T {
+                precondition(type(of: value1) == type(of: value2))
+                return value1 == value2 ? .equal : .notEqual
             } else {
-                return false
+                return .nonMatchingTypes
             }
         }
     }

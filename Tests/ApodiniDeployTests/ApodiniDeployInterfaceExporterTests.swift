@@ -59,61 +59,72 @@ private struct TestWebService: Apodini.WebService {
 }
 
 
-class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
+class ApodiniDeployInterfaceExporterTests: ApodiniDeployTestCase {
     func testHandlerCollection() throws {
-        TestWebService.main(app: app)
+        guard !Self.isRunningOnLinuxDebug() else {
+            return
+        }
         
-        let apodiniDeployIE = try XCTUnwrap(app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self))
-        let actual = apodiniDeployIE.collectedEndpoints
-        
-        let expected: [ApodiniDeployInterfaceExporter.CollectedEndpointInfo] = [
-            ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
-                handlerType: HandlerTypeIdentifier(Text.self),
-                endpoint: Endpoint(identifier: TestWebService.handler1Id, handler: Text("")),
-                deploymentOptions: DeploymentOptions([
-                    ResolvedOption(key: .memorySize, value: .mb(128)),
-                    ResolvedOption(key: .timeout, value: .seconds(12))
-                ])
-            ),
-            ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
-                handlerType: HandlerTypeIdentifier(Text.self),
-                endpoint: Endpoint(identifier: TestWebService.handler2Id, handler: Text("")),
-                deploymentOptions: DeploymentOptions([])
-            ),
-            ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
-                handlerType: HandlerTypeIdentifier(Text.self),
-                endpoint: Endpoint(identifier: TestWebService.handler3Id, handler: Text("")),
-                deploymentOptions: DeploymentOptions(ResolvedOption(key: .memorySize, value: .mb(70)))
-            ),
-            ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
-                handlerType: HandlerTypeIdentifier(Text.self),
-                endpoint: Endpoint(identifier: TestWebService.handler4Id, handler: Text("")),
-                deploymentOptions: DeploymentOptions(ResolvedOption(key: .memorySize, value: .mb(150)))
-            ),
-            ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
-                handlerType: HandlerTypeIdentifier(Text.self),
-                endpoint: Endpoint(identifier: TestWebService.handler5Id, handler: Text("")),
-                deploymentOptions: DeploymentOptions(ResolvedOption(key: .memorySize, value: .mb(180)))
-            )
-        ]
-        
-        if !actual.compareIgnoringOrder(expected) {
-            let missingEndpoints = Set(expected).subtracting(actual)
-            let unexpectedEndpoints = Set(actual).subtracting(expected)
-            let fmtEndpointInfoSet: (Set<ApodiniDeployInterfaceExporter.CollectedEndpointInfo>) -> String = { set in
-                set
-                    .map { "  - HT: \($0.handlerType), id: \($0.endpoint.identifier), #opts: \($0.deploymentOptions.count)" }
-                    .joined(separator: "\n")
+        for idx in 0..<100 {
+            if idx > 0 {
+                try tearDownWithError()
+                try setUpWithError()
             }
-            XCTFail(
-                """
-                collectedEndpoints property did not match expected value:
-                - missing endpoints:
-                \(fmtEndpointInfoSet(missingEndpoints))
-                - unexpected endpoints:
-                \(fmtEndpointInfoSet(unexpectedEndpoints))
-                """
-            )
+            
+            TestWebService.main(app: app)
+            
+            let apodiniDeployIE = try XCTUnwrap(app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self))
+            let actual = apodiniDeployIE.collectedEndpoints
+            
+            let expected: [ApodiniDeployInterfaceExporter.CollectedEndpointInfo] = [
+                ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
+                    handlerType: HandlerTypeIdentifier(Text.self),
+                    endpoint: Endpoint(identifier: TestWebService.handler1Id, handler: Text("")),
+                    deploymentOptions: DeploymentOptions([
+                        ResolvedOption(key: .memorySize, value: .mb(128)),
+                        ResolvedOption(key: .timeout, value: .seconds(12))
+                    ])
+                ),
+                ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
+                    handlerType: HandlerTypeIdentifier(Text.self),
+                    endpoint: Endpoint(identifier: TestWebService.handler2Id, handler: Text("")),
+                    deploymentOptions: DeploymentOptions([])
+                ),
+                ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
+                    handlerType: HandlerTypeIdentifier(Text.self),
+                    endpoint: Endpoint(identifier: TestWebService.handler3Id, handler: Text("")),
+                    deploymentOptions: DeploymentOptions(ResolvedOption(key: .memorySize, value: .mb(70)))
+                ),
+                ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
+                    handlerType: HandlerTypeIdentifier(Text.self),
+                    endpoint: Endpoint(identifier: TestWebService.handler4Id, handler: Text("")),
+                    deploymentOptions: DeploymentOptions(ResolvedOption(key: .memorySize, value: .mb(150)))
+                ),
+                ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
+                    handlerType: HandlerTypeIdentifier(Text.self),
+                    endpoint: Endpoint(identifier: TestWebService.handler5Id, handler: Text("")),
+                    deploymentOptions: DeploymentOptions(ResolvedOption(key: .memorySize, value: .mb(180)))
+                )
+            ]
+            
+            if !actual.compareIgnoringOrder(expected) {
+                let missingEndpoints = Set(expected).subtracting(actual)
+                let unexpectedEndpoints = Set(actual).subtracting(expected)
+                let fmtEndpointInfoSet: (Set<ApodiniDeployInterfaceExporter.CollectedEndpointInfo>) -> String = { set in
+                    set
+                        .map { "  - HT: \($0.handlerType), id: \($0.endpoint.identifier), #opts: \($0.deploymentOptions.count)" }
+                        .joined(separator: "\n")
+                }
+                XCTFail(
+                    """
+                    collectedEndpoints property did not match expected value:
+                    - missing endpoints:
+                    \(fmtEndpointInfoSet(missingEndpoints))
+                    - unexpected endpoints:
+                    \(fmtEndpointInfoSet(unexpectedEndpoints))
+                    """
+                )
+            }
         }
     }
 }

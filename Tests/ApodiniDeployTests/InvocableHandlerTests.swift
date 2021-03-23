@@ -201,7 +201,7 @@ private struct TestWebService: Apodini.WebService {
 }
 
 
-class InvocableHandlerTests: ApodiniDeployTestsBase {
+class InvocableHandlerTests: ApodiniDeployTestCase {
     func testSimpleRemoteHandlerInvocation() throws {
         TestWebService.main(app: app)
         try app.vapor.app.test(.GET, "/v1/f") { res in

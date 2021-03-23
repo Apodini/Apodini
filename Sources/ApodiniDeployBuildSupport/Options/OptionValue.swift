@@ -141,14 +141,18 @@ public final class ResolvedOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
     /// - Note: This function returning `false` does not mean that the two options are not equal, it just means that we were unable to determine if they are equal.
     /// - Note: If the option value's type is `Equatable`, this function may or may not make use of that conformance.
     public func testEqual(_ other: ResolvedOption) -> Bool {
-        guard key == other.key else {
+        guard self.key == other.key else {
             return false
         }
         if let value = self.untypedValue, let otherValue = other.untypedValue {
-            if let result = AnyEquatable(value).equals(AnyEquatable(otherValue)) {
-                return result
-            } else {
+            switch AnyEquatable.compare(value, otherValue) {
+            case .equal:
+                return true
+            case .notEqual:
+                return false
+            case .notEquatable, .nonMatchingTypes:
                 // was unable to compare the two, give the codable-based approach below a shot
+                break
             }
         }
         // If we end up here, we either were unable to get both `untypedValue`s, or they were not Equatable.
