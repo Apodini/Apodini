@@ -39,7 +39,6 @@ final class PathParameterTests: ApodiniTests {
         }
     }
     
-    
     func testPrintComponent() throws {
         let testComponent = TestComponent()
         let testHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
