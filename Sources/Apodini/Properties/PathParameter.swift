@@ -42,3 +42,10 @@ public struct PathParameter<Element: Codable & LosslessStringConvertible> {
         self.identifyingType = IdentifyingType(identifying: type)
     }
 }
+
+extension PathParameter {
+    /// A `Binding` that reflects this `PathParameter`.
+    public var binding: Binding<Element> {
+        self.projectedValue.projectedValue
+    }
+}

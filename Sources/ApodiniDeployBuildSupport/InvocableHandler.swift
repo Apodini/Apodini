@@ -53,7 +53,7 @@ public struct HandlerParametersStorageMappingEntry<ParamsStruct: InvocableHandle
     /// Create a mapping entry from a property in an `InvocableHandler`'s parameter storage type to the handler's corresponding `@Parameter` property
     public init<Value>(
         from paramsStructKeyPath: KeyPath<ParamsStruct, Value>,
-        to handlerKeyPath: KeyPath<Handler, Parameter<Value>.ID>
+        to handlerKeyPath: KeyPath<Handler, Binding<Value>>
     ) {
         self.paramsStructKeyPath = paramsStructKeyPath
         self.handlerKeyPath = handlerKeyPath

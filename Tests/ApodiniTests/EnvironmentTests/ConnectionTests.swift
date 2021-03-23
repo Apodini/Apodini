@@ -74,16 +74,16 @@ final class ConnectionTests: ApodiniTests {
     }
 
     func testConnectionRemoteAddress() throws {
-        struct TestWebService: WebService {
-            struct TestHandler: Handler {
-                @Apodini.Environment(\.connection)
-                var connection: Connection
+        struct TestHandler: Handler {
+            @Apodini.Environment(\.connection)
+            var connection: Connection
 
-                func handle() -> String {
-                    connection.remoteAddress?.description ?? "no remote"
-                }
+            func handle() -> String {
+                connection.remoteAddress?.description ?? "no remote"
             }
-
+        }
+        
+        struct TestWebService: WebService {
             var content: some Component {
                 TestHandler()
             }
@@ -103,17 +103,17 @@ final class ConnectionTests: ApodiniTests {
     }
 
     func testConnectionEventLoop() throws {
-        struct TestWebService: WebService {
-            struct TestHandler: Handler {
-                @Apodini.Environment(\.connection)
-                var connection: Connection
+        struct TestHandler: Handler {
+            @Apodini.Environment(\.connection)
+            var connection: Connection
 
-                func handle() -> String {
-                    connection.eventLoop.assertInEventLoop()
-                    return "success"
-                }
+            func handle() -> String {
+                connection.eventLoop.assertInEventLoop()
+                return "success"
             }
-
+        }
+        
+        struct TestWebService: WebService {
             var content: some Component {
                 TestHandler()
             }

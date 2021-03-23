@@ -28,7 +28,7 @@ public struct Environment<K: EnvironmentAccessible, Value>: Property {
             fatalError("The wrapped value was accessed before it was activated.")
         }
         
-        if let value = dynamicValues[keyPath] as? Value {
+        if let value = dynamicValues[keyPath] as? Value, dynamicValues[keyPath] != nil {
             return value
         }
         if let key = keyPath as? KeyPath<Application, Value> {
@@ -38,6 +38,11 @@ public struct Environment<K: EnvironmentAccessible, Value>: Property {
             return value
         }
         fatalError("Key path not found")
+    }
+    
+    /// A `Binding` that reflects this `Environment`.
+    public var projectedValue: Binding<Value> {
+        Binding.environment(self)
     }
 
     /// Sets the value for the given KeyPath.

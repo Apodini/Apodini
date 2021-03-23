@@ -16,4 +16,19 @@ public protocol Property { }
 /// you make this `struct`'s properties discoverable to the Apodini runtime framework. This can be used to e.g. combine
 /// two property wrappers provided by the Apodini framework into one that merges their functionality
 /// - Warning: Only structs can be a `DynamicProperty`
-public protocol DynamicProperty: Property { }
+public protocol DynamicProperty: Property {
+    /// The `namingStrategy` is called when the framework decides to interact with one of
+    /// the `DynamicProperty`'s properties. By default it assumes the label of this property to be the
+    /// desired name of the property.
+    /// This behavior can be changed by overriding the `namingStrategy`. E.g. to expose an internal
+    /// `@Parameter` using the name that was given to the wrapping `DynamicProperty` the
+    /// `namingStrategy` would be to return `names[names.count-2]`.
+    func namingStrategy(_ names: [String]) -> String?
+}
+
+public extension DynamicProperty {
+    /// The default `namingStrategy` is to use the target element's label.
+    func namingStrategy(_ names: [String]) -> String? {
+        names.last
+    }
+}

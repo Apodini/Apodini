@@ -23,7 +23,7 @@ public struct CollectedParameter<HandlerType: Handler> {
     let value: Any
     
     /// Type-safe way to define a parameter passed to a remote invocation
-    public init<Value>(_ keyPathIntoHandler: KeyPath<HandlerType, Parameter<Value>.ID>, _ value: Value) where HandlerType: InvocableHandler {
+    public init<Value>(_ keyPathIntoHandler: KeyPath<HandlerType, Binding<Value>>, _ value: Value) where HandlerType: InvocableHandler {
         self.handlerKeyPath = keyPathIntoHandler
         self.value = value
     }
@@ -157,7 +157,12 @@ extension RemoteHandlerInvocationManager {
 
         let invocationParams: [HandlerInvocation<H>.Parameter] = collectedInputParams.map { collectedParam in
             // The @Parameter property wrapper declaration in the handler
-            let handlerParamId = unsafelyCast(targetEndpoint.handler[keyPath: collectedParam.handlerKeyPath], to: AnyParameterID.self).value
+            guard let handlerParamId = unsafelyCast(
+                targetEndpoint.handler[keyPath: collectedParam.handlerKeyPath],
+                to: _PotentiallyParameterIdentifyingBinding.self
+            ).parameterId else {
+                fatalError("Unable to get @Parameter id for collected parameter with key path \(collectedParam.handlerKeyPath)")
+            }
             guard let endpointParam = targetEndpoint.findParameter(for: handlerParamId) else {
                 fatalError("Unable to fetch endpoint parameter for handlerParamId '\(handlerParamId)'")
             }

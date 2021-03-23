@@ -51,10 +51,12 @@ struct RandomNumberGenerator: InvocableHandler, HandlerWithDeploymentOptions {
 }
 
 
+
+
 struct Greeter: Handler {
     @Apodini.Environment(\.RHI) private var RHI
     
-    @Parameter var age: Int
+    @Parameter private var age: Int
     @Parameter(.http(.path)) var name: String
     
 //    init(name: Parameter<String>) {
@@ -76,6 +78,8 @@ struct Greeter: Handler {
         }
     }
 }
+
+
 
 
 struct BlockHandler<T: Apodini.ResponseTransformable>: Handler {
