@@ -110,7 +110,8 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 2)
         XCTAssertEqual(
             componentsBuilder.componentsObject[ref],
-            .object(title: responseSchemaName,
+            .object(
+                title: responseSchemaName,
                 properties: [
                     ResponseContainer.CodingKeys.data.rawValue: try componentsBuilder.buildSchema(for: SomeStruct.self),
                     ResponseContainer.CodingKeys.links.rawValue: try componentsBuilder.buildSchema(for: ResponseContainer.Links.self)
