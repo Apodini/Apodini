@@ -5,8 +5,6 @@
 //  Created by Lukas Kollmer on 2021-03-17.
 //
 
-// swiftlint:disable discouraged_optional_boolean
-
 import Foundation
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 

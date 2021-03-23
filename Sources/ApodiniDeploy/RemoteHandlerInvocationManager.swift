@@ -138,7 +138,7 @@ extension RemoteHandlerInvocationManager {
     
     
     /// Remotely invoke a specific endpoint, in a specific node of the deployed system
-    private func invokeRemotely<H: InvocableHandler>( // swiftlint:disable:this function_body_length
+    private func invokeRemotely<H: InvocableHandler>( // swiftlint:disable:this function_body_length cyclomatic_complexity
         handlerId: H.HandlerIdentifier,
         internalInterfaceExporter: ApodiniDeployInterfaceExporter,
         targetNode: DeployedSystem.Node,
