@@ -228,10 +228,7 @@ extension ApodiniDeployInterfaceExporter {
         
         init<H: Handler>(endpoint: Endpoint<H>, collectedParameters: [CollectedParameter<H>]) {
             parameterValues = .init(uniqueKeysWithValues: collectedParameters.map { param -> (String, Param) in
-                guard let paramId = unsafelyCast(
-                    endpoint.handler[keyPath: param.handlerKeyPath],
-                    to: _PotentiallyParameterIdentifyingBinding.self
-                ).parameterId else {
+                guard let paramId = Apodini.Internal.getParameterId(ofBinding: endpoint.handler[keyPath: param.handlerKeyPath]) else {
                     fatalError("Unable to get @Parameter id from collected parameter with key path \(param.handlerKeyPath)")
                 }
                 let endpointParam = endpoint.parameters.first { $0.id == paramId }!

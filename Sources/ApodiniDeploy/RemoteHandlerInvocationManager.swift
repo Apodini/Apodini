@@ -157,10 +157,9 @@ extension RemoteHandlerInvocationManager {
 
         let invocationParams: [HandlerInvocation<H>.Parameter] = collectedInputParams.map { collectedParam in
             // The @Parameter property wrapper declaration in the handler
-            guard let handlerParamId = unsafelyCast(
-                targetEndpoint.handler[keyPath: collectedParam.handlerKeyPath],
-                to: _PotentiallyParameterIdentifyingBinding.self
-            ).parameterId else {
+            guard
+                let handlerParamId = Apodini.Internal.getParameterId(ofBinding: targetEndpoint.handler[keyPath: collectedParam.handlerKeyPath])
+            else {
                 fatalError("Unable to get @Parameter id for collected parameter with key path \(collectedParam.handlerKeyPath)")
             }
             guard let endpointParam = targetEndpoint.findParameter(for: handlerParamId) else {

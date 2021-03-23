@@ -7,11 +7,18 @@
 
 import Foundation
 
-
 /// A `Binding` which may identify an `@Parameter`.
-public protocol _PotentiallyParameterIdentifyingBinding {
+private protocol PotentiallyParameterIdentifyingBinding {
     /// The parameter's value
     var parameterId: UUID? { get }
+}
+
+
+extension Internal {
+    /// :nodoc:
+    public static func getParameterId(ofBinding value: Any) -> UUID? {
+        (value as? PotentiallyParameterIdentifyingBinding)?.parameterId
+    }
 }
 
 
@@ -25,10 +32,10 @@ private enum Retrieval<Value> {
 /// or an `@Environment`. The latter `Binding`s for the latter two are contained in their
 /// `projectedValue`s.
 @propertyWrapper
-public struct Binding<Value>: DynamicProperty, _PotentiallyParameterIdentifyingBinding {
+public struct Binding<Value>: DynamicProperty, PotentiallyParameterIdentifyingBinding {
     private let store: Properties
     private var retrieval: Retrieval<Value>
-    public let parameterId: UUID?
+    fileprivate let parameterId: UUID?
     
     public var wrappedValue: Value {
         switch self.retrieval {
