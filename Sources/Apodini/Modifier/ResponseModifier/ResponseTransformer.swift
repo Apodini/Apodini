@@ -6,6 +6,7 @@
 //
 
 import NIO
+import ApodiniUtils
 
 
 /// A `ResponseTransformer` transforms a `response` of the type `InputContent` to a instance conforming to `Content`.

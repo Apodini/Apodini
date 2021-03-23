@@ -10,7 +10,7 @@ import Foundation
 
 
 /// An `AnyHandlerIdentifier` object identifies a `Handler` regardless of its concrete type.
-open class AnyHandlerIdentifier: RawRepresentable, Hashable, Equatable, CustomStringConvertible {
+open class AnyHandlerIdentifier: Codable, RawRepresentable, Hashable, Equatable, CustomStringConvertible {
     public let rawValue: String
     
     public required init(rawValue: String) {
@@ -25,6 +25,16 @@ open class AnyHandlerIdentifier: RawRepresentable, Hashable, Equatable, CustomSt
         self.rawValue = String(describing: H.self)
     }
     
+    
+    public required init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        self.rawValue = try container.decode(String.self)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(self.rawValue)
+    }
     
     public var description: String {
         "\(Self.self)(\"\(rawValue)\")"
@@ -50,5 +60,9 @@ open class ScopedHandlerIdentifier<H: IdentifiableHandler>: AnyHandlerIdentifier
     @available(*, unavailable, message: "'init(IdentifiableHandler.Type)' cannot be used with type-scoped handler identifiers")
     override public init<H: IdentifiableHandler>(_: H.Type) {
         fatalError("Not supported. Use one of the rawValue initializers.")
+    }
+    
+    public required init(from decoder: Decoder) throws {
+        try super.init(from: decoder)
     }
 }

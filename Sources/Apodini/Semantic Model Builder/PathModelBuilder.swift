@@ -3,6 +3,7 @@
 //
 
 import Foundation
+import ApodiniUtils
 
 extension Array where Element == PathComponent {
     func pathModelBuilder() -> PathModelBuilder {
@@ -119,9 +120,9 @@ private protocol EncodeOptionalPathParameter {
 }
 
 // MARK: PathParameter Model
-extension Parameter: EncodeOptionalPathParameter where Element: ApodiniOptional, Element.Member: Codable {
+extension Parameter: EncodeOptionalPathParameter where Element: OptionalProtocol, Element.Wrapped: Codable {
     func createPathParameterWithWrappedType(id: UUID, identifyingType: IdentifyingType?) -> AnyEndpointPathParameter {
-        EndpointPathParameter<Element.Member>(id: id, identifyingType: identifyingType)
+        EndpointPathParameter<Element.Wrapped>(id: id, identifyingType: identifyingType)
     }
 }
 

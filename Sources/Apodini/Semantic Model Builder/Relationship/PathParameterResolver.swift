@@ -3,6 +3,7 @@
 //
 
 import Foundation
+import ApodiniUtils
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 typealias MatchedResolvers = [UUID: AnyPathParameterResolver]
@@ -67,7 +68,7 @@ struct PathParameterPropertyResolver<Element, Destination: Identifiable>: AnyPat
             precondition(valueType == Destination.ID.self,
                          "The retrieved value \(value) of type \(valueType) didn't match expected type \(Destination.ID.self)")
         }
-
+        
         if isNil(value) {
             // if the property is of type Optional and the value is Optional.none
             // we return nil to signify the non existence for this value.

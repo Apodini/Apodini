@@ -32,6 +32,7 @@
 
 import Logging
 
+
 /// Enables swift extensions to declare "stored" properties for use in application configuration
 public struct Storage {
     var storage: [ObjectIdentifier: AnyStorageValue]
@@ -150,6 +151,7 @@ public struct Storage {
 protocol AnyStorageValue {
     func shutdown(logger: Logger)
 }
+
 
 /// Key used to identify stored elements in application storage.
 public protocol StorageKey {

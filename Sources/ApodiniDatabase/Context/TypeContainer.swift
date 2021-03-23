@@ -1,7 +1,6 @@
 import Foundation
-import Fluent
 
-enum TypeContainer: Codable, Equatable {
+enum TypeContainer: Codable, Hashable, Equatable {
     case string(String)
     case bool(Bool)
     case int(Int)

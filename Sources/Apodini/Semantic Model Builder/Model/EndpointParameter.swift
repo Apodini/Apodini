@@ -88,6 +88,11 @@ protocol _AnyEndpointParameter: AnyEndpointParameter {
 }
 
 extension AnyEndpointParameter {
+    /// Whether the parameter defines/has a default value
+    public var hasDefaultValue: Bool {
+        typeErasuredDefaultValue != nil
+    }
+
     func toInternal() -> _AnyEndpointParameter {
         guard let parameter = self as? _AnyEndpointParameter else {
             fatalError("Encountered `AnyEndpointParameter` which doesn't conform to `_AnyEndpointParameter`: \(self)!")
@@ -95,6 +100,7 @@ extension AnyEndpointParameter {
         return parameter
     }
 }
+
 
 /// Models a `Parameter`. See `AnyEndpointParameter` for detailed documentation.
 ///
@@ -129,13 +135,14 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter {
 
     let options: PropertyOptionSet<ParameterOptionNameSpace>
 
-    init(id: UUID,
-         name: String,
-         label: String,
-         nilIsValidValue: Bool,
-         necessity: Necessity,
-         options: PropertyOptionSet<ParameterOptionNameSpace>,
-         defaultValue: (() -> Type)? = nil
+    init(
+        id: UUID,
+        name: String,
+        label: String,
+        nilIsValidValue: Bool,
+        necessity: Necessity,
+        options: PropertyOptionSet<ParameterOptionNameSpace>,
+        defaultValue: (() -> Type)? = nil
     ) {
         self.id = id
         self.name = name

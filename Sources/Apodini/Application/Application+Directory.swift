@@ -36,6 +36,8 @@ import Darwin.C
 #endif
 import Foundation
 import Logging
+import ApodiniUtils
+
 
 /// `Directory` represents a specified directory.
 /// It can also be used to derive a working directory automatically.
@@ -52,7 +54,7 @@ public struct Directory {
     /// - parameters:
     ///     - workingDirectory: Custom working directory path.
     public init(workingDirectory: String) {
-        self.workingDirectory = workingDirectory.finished(with: "/")
+        self.workingDirectory = workingDirectory.withSuffix("/")
         self.resourcesDirectory = self.workingDirectory + "Resources/"
         self.publicDirectory = self.workingDirectory + "Public/"
     }
@@ -83,9 +85,11 @@ public struct Directory {
             logger.warning("Setting dummy directory for debug purposes")
             do {
                 if !FileManager.default.fileExists(atPath: workingDirectory + "/Public/") {
-                    try FileManager.default.createDirectory(atPath: workingDirectory + "/Public/",
-                                                            withIntermediateDirectories: false,
-                                                            attributes: nil)
+                    try FileManager.default.createDirectory(
+                        atPath: workingDirectory + "/Public/",
+                        withIntermediateDirectories: false,
+                        attributes: nil
+                    )
                 }
             } catch {
                 logger.error("Failed to create dummy directory at \(workingDirectory).\n \(error.localizedDescription)")
@@ -96,15 +100,6 @@ public struct Directory {
     }
 }
 
-fileprivate extension String {
-    func finished(with string: String) -> String {
-        if !self.hasSuffix(string) {
-            return self + string
-        } else {
-            return self
-        }
-    }
-}
 
 public extension Application {
     /// A property specifying a `Directory`

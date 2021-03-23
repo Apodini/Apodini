@@ -272,6 +272,33 @@
         }
       },
       {
+        "package": "soto",
+        "repositoryURL": "https://github.com/soto-project/soto.git",
+        "state": {
+          "branch": null,
+          "revision": "d4bdc1cdd2422ab6058bb2cec04b3fbc7ded14e2",
+          "version": "5.3.0"
+        }
+      },
+      {
+        "package": "soto-core",
+        "repositoryURL": "https://github.com/soto-project/soto-core.git",
+        "state": {
+          "branch": null,
+          "revision": "69d9bf8c4e9418ced238b4c41a2c805c7f3c4b2d",
+          "version": "5.2.0"
+        }
+      },
+      {
+        "package": "soto-s3-file-transfer",
+        "repositoryURL": "https://github.com/soto-project/soto-s3-file-transfer",
+        "state": {
+          "branch": null,
+          "revision": "513a63050519d6d386e619de131eb2f691139f3d",
+          "version": "0.3.0"
+        }
+      },
+      {
         "package": "sql-kit",
         "repositoryURL": "https://github.com/vapor/sql-kit.git",
         "state": {
@@ -308,6 +335,24 @@
         }
       },
       {
+        "package": "swift-argument-parser",
+        "repositoryURL": "https://github.com/apple/swift-argument-parser",
+        "state": {
+          "branch": null,
+          "revision": "831ed5e860a70e745bc1337830af4786b2576881",
+          "version": "0.4.1"
+        }
+      },
+      {
+        "package": "swift-aws-lambda-runtime",
+        "repositoryURL": "https://github.com/swift-server/swift-aws-lambda-runtime.git",
+        "state": {
+          "branch": null,
+          "revision": "e33e4afbf0e290029c9887f271ae2ad6a4a65269",
+          "version": "0.4.0"
+        }
+      },
+      {
         "package": "swift-backtrace",
         "repositoryURL": "https://github.com/swift-server/swift-backtrace.git",
         "state": {
@@ -323,6 +368,15 @@
           "branch": null,
           "revision": "3bea268b223651c4ab7b7b9ad62ef9b2d4143eb6",
           "version": "1.1.6"
+        }
+      },
+      {
+        "package": "swift-extras-base64",
+        "repositoryURL": "https://github.com/swift-extras/swift-extras-base64",
+        "state": {
+          "branch": null,
+          "revision": "9c7648cd380d55462b6b9bae1f0a69a9a574a13e",
+          "version": "0.6.0"
         }
       },
       {
@@ -375,8 +429,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-ssl.git",
         "state": {
           "branch": null,
-          "revision": "07c160b8724ee53a4b776328122be6338ff12bf2",
-          "version": "2.11.0"
+          "revision": "6b6c0582d626f1999c52217458cb99dc03fa2721",
+          "version": "2.10.5"
         }
       },
       {
@@ -393,8 +447,17 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "984852e6ef87c653c83df90b365b8adba736f109",
-          "version": "4.41.9"
+          "revision": "062a4088a26ff9e41daacb8aa311f0289232d814",
+          "version": "4.41.4"
+        }
+      },
+      {
+        "package": "vapor-aws-lambda-runtime",
+        "repositoryURL": "https://github.com/vapor-community/vapor-aws-lambda-runtime",
+        "state": {
+          "branch": null,
+          "revision": "93cec68c18613f6da47cd040e2e37727a3200cf4",
+          "version": "0.6.0"
         }
       },
       {
@@ -411,8 +474,8 @@
         "repositoryURL": "https://github.com/jpsim/Yams.git",
         "state": {
           "branch": null,
-          "revision": "4ec0a3c5d6a2446667a2b22c8c7d0fc82dd1d3de",
-          "version": "4.0.5"
+          "revision": "9003d51672e516cc59297b7e96bff1dfdedcb4ea",
+          "version": "4.0.4"
         }
       }
     ]

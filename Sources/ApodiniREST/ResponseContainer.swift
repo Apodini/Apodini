@@ -3,6 +3,7 @@
 //
 
 import Apodini
+import ApodiniUtils
 import Vapor
 
 struct ResponseContainer: Encodable, ResponseEncodable {

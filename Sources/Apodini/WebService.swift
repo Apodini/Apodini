@@ -4,7 +4,10 @@
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
+
+import Foundation
 import Logging
+
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
 public protocol WebService: Component, ConfigurationCollection {
@@ -22,6 +25,7 @@ extension WebService {
         try main(waitForCompletion: true)
     }
 
+    
     /// This function is executed to start up an Apodini `WebService`
     @discardableResult
     static func main(waitForCompletion: Bool) throws -> Application {
@@ -29,7 +33,7 @@ extension WebService {
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
 
         main(app: app)
-
+        
         guard waitForCompletion else {
             try app.boot()
             return app
@@ -42,14 +46,13 @@ extension WebService {
         try app.run()
         return app
     }
+    
 
     /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.main()` to startup an Apodini `WebService`.
     /// - Parameter app: The app instance that should be injected in the Apodini `WebService`
     static func main(app: Application) {
         let webService = Self()
-
         webService.configuration.configure(app)
-
         webService.register(
             app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app))
         )

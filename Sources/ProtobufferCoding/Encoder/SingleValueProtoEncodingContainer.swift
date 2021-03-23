@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ApodiniUtils
 
 private struct Wrapper<T: Encodable>: Encodable {
     var value: T

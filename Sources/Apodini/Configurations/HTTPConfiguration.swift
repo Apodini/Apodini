@@ -68,8 +68,9 @@ public final class HTTPConfiguration: Configuration {
             case (.none, .none, .none, .some(let socketPath)):
                 return .unixDomainSocket(path: socketPath)
             case (.none, .none, .some(let address), .none):
-                let hostname = address.split(separator: ":").first.flatMap(String.init)
-                let port = address.split(separator: ":").last.flatMap(String.init).flatMap(Int.init)
+                let components = address.split(separator: ":")
+                let hostname = components.first.map { String($0) }
+                let port = components.last.flatMap { Int($0) }
                 return .hostname(hostname, port: port)
             case let (hostname, port, .none, .none):
                 return .hostname(hostname, port: port)

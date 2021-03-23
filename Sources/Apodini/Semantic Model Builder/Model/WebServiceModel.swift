@@ -57,20 +57,17 @@ public class WebServiceModel: CustomDebugStringConvertible {
         if let endpoint = rootEndpoints[endpoint] {
             return endpoint.relationships(for: operation)
         }
-
         return structuralRootRelationships.unique(for: operation)
     }
 
     func finish() {
         finishedParsing = true
         root.finish()
-
         rootEndpoints = root.endpoints
     }
 
     func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, at paths: [PathComponent]) {
         var context = EndpointInsertionContext(for: endpoint, with: paths)
-
         context.assertRootPath()
         root.addEndpoint(&endpoint, context: &context)
     }

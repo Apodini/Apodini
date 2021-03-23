@@ -7,6 +7,21 @@
 
 import Foundation
 
+/// A `Binding` which may identify an `@Parameter`.
+private protocol PotentiallyParameterIdentifyingBinding {
+    /// The parameter's value
+    var parameterId: UUID? { get }
+}
+
+
+extension Internal {
+    /// :nodoc:
+    public static func getParameterId(ofBinding value: Any) -> UUID? {
+        (value as? PotentiallyParameterIdentifyingBinding)?.parameterId
+    }
+}
+
+
 private enum Retrieval<Value> {
     case constant(Value)
     case storage((Properties) -> Value)
@@ -17,9 +32,10 @@ private enum Retrieval<Value> {
 /// or an `@Environment`. The latter `Binding`s for the latter two are contained in their
 /// `projectedValue`s.
 @propertyWrapper
-public struct Binding<Value>: DynamicProperty {
+public struct Binding<Value>: DynamicProperty, PotentiallyParameterIdentifyingBinding {
     private let store: Properties
     private var retrieval: Retrieval<Value>
+    fileprivate let parameterId: UUID?
     
     public var wrappedValue: Value {
         switch self.retrieval {
@@ -31,12 +47,14 @@ public struct Binding<Value>: DynamicProperty {
     }
 }
 
+
 // MARK: Constant
 
 extension Binding {
     private init(constant: Value) {
-        self.store = Properties()
-        self.retrieval = .constant(constant)
+        store = Properties()
+        retrieval = .constant(constant)
+        parameterId = nil
     }
     
     /// Create a `Binding` that always returns the given `value`.
@@ -49,13 +67,14 @@ extension Binding {
 
 extension Binding {
     private init<K: EnvironmentAccessible>(environment: Environment<K, Value>) {
-        self.store = Properties(wrappedValue: ["environment": environment])
-        self.retrieval = .storage { store in
+        store = Properties(wrappedValue: ["environment": environment])
+        retrieval = .storage { store in
             guard let parameter = store.wrappedValue["environment"] as? Environment<K, Value> else {
                 fatalError("Could not find Environment object in store. The internal logic of Binding is broken!")
             }
             return parameter.wrappedValue
         }
+        parameterId = nil
     }
     
     internal static func environment<K: EnvironmentAccessible>(_ environment: Environment<K, Value>) -> Binding<Value> {
@@ -67,15 +86,16 @@ extension Binding {
 
 extension Binding where Value: Codable {
     private init(parameter: Parameter<Value>) {
-        self.store = Properties(wrappedValue: ["parameter": parameter], namingStrategy: { names in
+        store = Properties(wrappedValue: ["parameter": parameter], namingStrategy: { names in
             names[names.count - 3]
         })
-        self.retrieval = .storage { store in
+        retrieval = .storage { store in
             guard let parameter = store.wrappedValue["parameter"] as? Parameter<Value> else {
                 fatalError("Could not find Parameter object in store. The internal logic of Binding is broken!")
             }
             return parameter.wrappedValue
         }
+        parameterId = parameter.id
     }
     
     internal static func parameter(_ parameter: Parameter<Value>) -> Binding<Value> {
@@ -88,13 +108,14 @@ extension Binding where Value: Codable {
 extension Binding {
     /// Creates a binding by projecting the base value to an optional value.
     public init<V>(_ base: Binding<V>) where Value == V? {
-        self.store = base.store
+        store = base.store
         switch base.retrieval {
         case .constant(let value):
-            self.retrieval = .constant(value)
+            retrieval = .constant(value)
         case .storage(let retriever):
-            self.retrieval = .storage(retriever)
+            retrieval = .storage(retriever)
         }
+        parameterId = nil
     }
     
     /// Creates a binding by projecting this binding's value to an optional value.
