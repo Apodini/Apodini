@@ -21,9 +21,6 @@ jobs:
       run: swift --version
     - name: Update Swift Packages
       run: swift package update
-    - name: Update Swift Packages for Test WebService
-      run: swift package update
-      working-directory: ./TestWebService
     - uses: peter-evans/create-pull-request@v3
       with:
         token: ${{ secrets.ACCESS_TOKEN }}
