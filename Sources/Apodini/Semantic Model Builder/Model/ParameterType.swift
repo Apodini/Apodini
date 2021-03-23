@@ -15,10 +15,21 @@ public enum ParameterType: String, Codable {
     /// Such parameters have a matching parameter in the `[EndpointPath]`.
     /// Such parameters are required to conform to `LosslessStringConvertible`.
     case path
+    /// Parameters contained in the HTTP headers of a request.
+    case header
 }
 
 extension ParameterType: CustomStringConvertible {
     public var description: String {
-        rawValue
+        switch self {
+        case .lightweight:
+            return "lightweight"
+        case .content:
+            return "content"
+        case .path:
+            return "path"
+        case .header:
+            return "header"
+        }
     }
 }

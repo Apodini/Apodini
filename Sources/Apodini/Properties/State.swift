@@ -5,7 +5,7 @@
 //  Created by Max Obermeier on 13.01.21.
 //
 
-import Foundation
+import ApodiniUtils
 
 /// State can be used to maintain state across multiple evaluations of the same `Handler`..
 /// This is especially helpful for `Handler`s which use `Connection` and do not instantly return
@@ -15,7 +15,7 @@ import Foundation
 public struct State<Element>: Property {
     internal var initializer: () -> Element
     
-    private var wrapper: Wrapper<Element>?
+    private var storage: Box<Element>?
     
     /// Uses the given `Element` as the default value.
     public init(wrappedValue value: @escaping @autoclosure () -> Element) {
@@ -24,24 +24,24 @@ public struct State<Element>: Property {
     
     public var wrappedValue: Element {
         get {
-            guard let wrapper = wrapper else {
+            guard let storage = storage else {
                 fatalError("""
                     A State's wrappedValue was accessed before the State was activated.
                     Do not use the wrappedValue internally. Use the initializer instead.
                     """)
             }
             
-            return wrapper.value
+            return storage.value
         }
         nonmutating set {
-            guard let wrapper = wrapper else {
+            guard let storage = storage else {
                 fatalError("""
                     A State's wrappedValue was accessed before the State was activated.
                     Do not use the wrappedValue internally. Use the initializer instead.
                     """)
             }
             
-            wrapper.value = newValue
+            storage.value = newValue
         }
     }
 }
@@ -63,14 +63,6 @@ protocol Activatable {
 
 extension State: Activatable {
     mutating func activate() {
-        self.wrapper = Wrapper(value: self.initializer())
-    }
-}
-
-class Wrapper<Value> {
-    var value: Value
-    
-    init(value: Value) {
-        self.value = value
+        self.storage = Box(self.initializer())
     }
 }

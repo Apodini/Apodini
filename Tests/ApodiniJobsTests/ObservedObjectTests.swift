@@ -76,7 +76,7 @@ final class ObservedObjectTests: XCTApodiniTest {
             }
         }
         
-        var wasRun: Bool = false
+        var wasRun = false
         
         struct SubscribingJob: Job {
             @ObservedObject(\Keys2.emittingJob) var observedObject: EmittingJob

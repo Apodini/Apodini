@@ -45,21 +45,22 @@ final class SchemaBuilderTests: XCTestCase {
 
         XCTAssertEqual(primitives, [.primitive(type: .int), .primitive(type: .string), .primitive(type: .float), .primitive(type: .uuid)])
 
-        XCTAssertTrue(builderSchemas.filter { $0.isEnumeration }.count > 0)
+        XCTAssertEqual(builderSchemas.filter { $0.isEnumeration }.count, 1)
 
         let enumSchema = try XCTUnwrap(builderSchemas.first { $0.reference == .reference("Direction") })
         let expectedEnumSchema: Schema = .enumeration(typeName: "Direction", cases: "right", "left")
         XCTAssertEqual(enumSchema, expectedEnumSchema)
 
         let accountSchema = try XCTUnwrap(builderSchemas.first { $0.reference == accountReference })
-        let expectedAccountResult: Schema = .complex(typeName: "Account",
-                                              properties: [
-                                                .property(named: "car", offset: 1, type: .exactlyOne, reference: .reference("Car")),
-                                                .property(named: "amount", offset: 2, type: .optional, reference: .reference("Int")),
-                                                .property(named: "names", offset: 3, type: .array, reference: .reference("String")),
-                                                .property(named: "dict", offset: 4, type: .dictionary(key: .float), reference: .reference("User")),
-                                                .property(named: "direction", offset: 5, type: .array, reference: .reference("Direction"))
-                                              ])
+        let expectedAccountResult: Schema = .complex(
+            typeName: "Account",
+            properties: [
+                .property(named: "car", offset: 1, type: .exactlyOne, reference: .reference("Car")),
+                .property(named: "amount", offset: 2, type: .optional, reference: .reference("Int")),
+                .property(named: "names", offset: 3, type: .array, reference: .reference("String")),
+                .property(named: "dict", offset: 4, type: .dictionary(key: .float), reference: .reference("User")),
+                .property(named: "direction", offset: 5, type: .array, reference: .reference("Direction"))
+            ])
 
         XCTAssertEqual(accountSchema, expectedAccountResult)
     }

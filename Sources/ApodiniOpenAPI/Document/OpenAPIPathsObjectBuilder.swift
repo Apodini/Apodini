@@ -3,7 +3,8 @@
 //
 
 import Apodini
-@_implementationOnly import OpenAPIKit
+import OpenAPIKit
+
 
 /// Utility to convert `_PathComponent`s to `OpenAPI.Path` format.
 struct OpenAPIPathBuilder: PathBuilderWithResult {
@@ -66,9 +67,6 @@ private extension OpenAPIPathsObjectBuilder {
         // Get tags if some have been set explicitly passed via TagModifier.
         let tags: [String] = endpoint.context.get(valueFor: TagContextKey.self) ?? [defaultTag]
 
-        // Set endpointIdentifier to `Handler`s type name, stored in `endpoint.description`.
-        let endpointIdentifier = "\(endpoint.description)"
-
         // Get customDescription if it has been set explicitly passed via DescriptionModifier.
         let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)
 
@@ -84,17 +82,16 @@ private extension OpenAPIPathsObjectBuilder {
         // Get `OpenAPI.Response.Map` containing all possible HTTP responses mapped to their status code.
         let responses: OpenAPI.Response.Map = buildResponsesObject(from: endpoint.responseType)
 
-        // Set custom extensions on operation.
-        let vendorExtensions: [String: AnyCodable] = ["x-handlerId": AnyCodable(endpoint.identifier.rawValue)]
-
         return OpenAPI.Operation(
             tags: tags,
             description: endpointDescription,
-            operationId: endpointIdentifier,
+            operationId: endpoint.identifier.rawValue,
             parameters: parameters,
             requestBody: requestBody,
             responses: responses,
-            vendorExtensions: vendorExtensions
+            vendorExtensions: [
+                "x-apodiniHandlerId": AnyCodable(endpoint.identifier.rawValue)
+            ]
         )
     }
 

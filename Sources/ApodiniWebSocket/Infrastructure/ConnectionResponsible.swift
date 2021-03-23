@@ -7,6 +7,7 @@
 
 @_implementationOnly import Vapor
 import NIOWebSocket
+import ApodiniUtils
 
 typealias ContextOpener = (ConnectionResponsible, UUID) -> (ContextResponsible)
 
@@ -37,7 +38,7 @@ class ConnectionResponsible: Identifiable {
                 try self.processMessage(message: message, retrieving: &context)
             } catch {
                 do {
-                    guard let data = String(data: try error.message(on: context).toJSONData(), encoding: .utf8) else {
+                    guard let data = String(data: try error.message(on: context).encodeToJSON(), encoding: .utf8) else {
                         throw SerializationError.expectedUTF8
                     }
                     
@@ -321,9 +322,4 @@ private extension Error {
             #endif
         }
     }
-}
-
-private extension Encodable {
-    func toJSONData() -> Data? { try? JSONEncoder().encode(self) }
-    func toJSONData() throws -> Data { try JSONEncoder().encode(self) }
 }

@@ -9,6 +9,7 @@ import XCTApodini
 @testable import Apodini
 @testable import ApodiniDatabase
 
+
 class ApodiniTests: XCTApodiniTest {
     // Model Objects
     var bird1 = Bird(name: "Swift", age: 5)
@@ -16,7 +17,6 @@ class ApodiniTests: XCTApodiniTest {
     
     override func setUpWithError() throws {
         try super.setUpWithError()
-        
         try super.addMigrations(CreateBird())
         
         try bird1.create(on: database()).wait()

@@ -1,4 +1,5 @@
-import Foundation
+import ApodiniUtils
+
 
 /// Property wrapper used inside of a `Handler` or `Job` that subscribes to an `ObservableObject`.
 /// Changes of `@Published` properties of the `ObservableObject` will cause re-evaluations of the `Handler` or `Job`.
@@ -31,12 +32,12 @@ public struct ObservedObject<Element: ObservableObject>: Property {
         }
     }
     
-    private var changedWrapper: Wrapper<Bool>?
+    private var changedStorage: Box<Bool>?
     
     /// Property to check if the evaluation of the `Handler` or `Job` was triggered by this `ObservableObject`.
     public var changed: Bool {
         get {
-            guard let value = changedWrapper?.value else {
+            guard let value = changedStorage?.value else {
                 fatalError("""
                     A ObservedObjects's 'changed' property was accessed before the
                     ObservedObject was activated.
@@ -45,7 +46,7 @@ public struct ObservedObject<Element: ObservableObject>: Property {
             return value
         }
         nonmutating set {
-            guard let wrapper = changedWrapper else {
+            guard let wrapper = changedStorage else {
                 fatalError("""
                     A ObservedObjects's 'changed' property was accessed before the
                     ObservedObject was activated.
@@ -100,7 +101,7 @@ extension ObservedObject: AnyObservedObject {
 
 extension ObservedObject: Activatable {
     mutating func activate() {
-        self.changedWrapper = Wrapper(value: false)
+        self.changedStorage = Box(false)
         if let initializer = self._initializer {
             self.element = initializer()
         }

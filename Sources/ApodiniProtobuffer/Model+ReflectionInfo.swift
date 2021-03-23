@@ -3,6 +3,7 @@
 //
 
 import Apodini
+import ApodiniUtils
 import ApodiniTypeReflection
 @_implementationOnly import Runtime
 
@@ -56,7 +57,7 @@ extension ProtobufferMessage.Property {
 fileprivate extension TypeInfo {
     func compatibleName() throws -> String {
         if isSupportedScalarType(type) {
-            return Apodini.mangledName(of: type).lowercased()
+            return ApodiniUtils.mangledName(of: type).lowercased()
         } else {
             switch kind {
             case .struct, .class:

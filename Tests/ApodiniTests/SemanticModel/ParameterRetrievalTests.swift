@@ -15,7 +15,7 @@ class ParameterRetrievalTests: ApodiniTests {
         @Parameter
         var separator: String = " " // no value (nil) is supplied => defaultValue is used
         @Parameter
-        var prefix: String? = "Standard Prefix" // "explicit nil" (.null) is supplied => defaultValue is overwritten
+        var prefix: String? = "Standard Prefix" // "explicit nil" is supplied => defaultValue is overwritten
 
 
         func handle() -> String {
@@ -31,7 +31,7 @@ class ParameterRetrievalTests: ApodiniTests {
         let handler = TestHandler()
         let endpoint = handler.mockEndpoint()
 
-        let exporter = MockExporter<String>(queued: "Rudi", 3, nil, .null)
+        let exporter = MockExporter<String>(queued: "Rudi", 3, nil, .some(.none))
 
         let context = endpoint.createConnectionContext(for: exporter)
         

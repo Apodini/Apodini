@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ApodiniUtils
 
 internal class InternalProtoEncoder: Encoder {
     var integerWidthCodingStrategy: IntegerWidthCodingStrategy = .native
@@ -75,9 +76,7 @@ public class ProtobufferEncoder {
         let encoder = InternalProtoEncoder()
         encoder.integerWidthCodingStrategy = integerWidthCodingStrategy
         
-        if isPrimitiveSupported(T.self) ||
-            isPrimitiveSupportedArray(T.self) ||
-            isCollection(T.self) {
+        if isPrimitiveSupported(T.self) || isPrimitiveSupportedArray(T.self) || isCollection(T.self) {
             let wrapped = EncodingWrapper(element: value)
             try wrapped.encode(to: encoder)
             return try encoder.getEncoded()

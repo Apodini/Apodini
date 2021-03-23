@@ -51,7 +51,7 @@ class MockExporter<Request: ExporterRequest>: InterfaceExporter {
             return nil // non existence
         }
         guard let unwrapped = value else {
-            return .null // explicit nil
+            return .some(.none) // explicit nil
         }
 
         guard let casted = unwrapped as? Type else {

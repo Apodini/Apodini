@@ -6,7 +6,7 @@
 //
 
 import NIO
-@_implementationOnly import Runtime
+import ApodiniUtils
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 

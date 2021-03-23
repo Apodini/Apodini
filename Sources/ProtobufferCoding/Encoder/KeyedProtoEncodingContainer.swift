@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ApodiniUtils
 
 class KeyedProtoEncodingContainer<Key: CodingKey>: InternalProtoEncodingContainer, KeyedEncodingContainerProtocol {
     override init(using encoder: InternalProtoEncoder, codingPath: [CodingKey]) {

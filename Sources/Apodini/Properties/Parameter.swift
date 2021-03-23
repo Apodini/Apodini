@@ -6,10 +6,12 @@
 //
 
 import Foundation
+import ApodiniUtils
 
 
 /// Generic Parameter that can be used to mark that the options are meant for `@Parameter`s
 public enum ParameterOptionNameSpace { }
+
 
 /// The `@Parameter` property wrapper can be used to express input in `Components`
 @propertyWrapper
@@ -38,11 +40,13 @@ public struct Parameter<Element: Codable>: Property {
         return element
     }
     
+    
     /// A `Binding` that reflects this `Parameter`.
     public var projectedValue: Binding<Element> {
         Binding.parameter(self)
     }
-
+    
+    
     private init(
         id: UUID = UUID(),
         name: String? = nil,

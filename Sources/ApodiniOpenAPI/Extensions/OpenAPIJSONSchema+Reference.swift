@@ -2,7 +2,7 @@
 //  Created by Lorena Schlesinger on 15.01.21.
 //
 
-@_implementationOnly import OpenAPIKit
+import OpenAPIKit
 
 extension JSONSchema {
     var isReference: Bool {

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ApodiniUtils
 
 
 typealias LazyAnyResponseTransformer = () -> (AnyResponseTransformer)

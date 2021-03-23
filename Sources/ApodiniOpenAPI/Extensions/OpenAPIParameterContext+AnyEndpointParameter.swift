@@ -4,7 +4,7 @@
 
 import Foundation
 import Apodini
-@_implementationOnly import OpenAPIKit
+import OpenAPIKit
 
 extension OpenAPI.Parameter.Context {
     /// Currently, only `query` and `path` are supported.
@@ -14,7 +14,7 @@ extension OpenAPI.Parameter.Context {
             self = .query
         case .path:
             self = .path
-        case .content:
+        case .content, .header:
             return nil
         }
     }

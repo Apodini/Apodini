@@ -7,6 +7,7 @@
 
 import XCTest
 @testable import Apodini
+import ApodiniUtils
 
 
 class OptionalTests: ApodiniTests {

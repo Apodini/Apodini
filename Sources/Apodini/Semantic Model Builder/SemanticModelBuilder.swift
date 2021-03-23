@@ -59,16 +59,36 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         let partialCandidates = context.get(valueFor: RelationshipSourceCandidateContextKey.self)
         let relationshipSources = context.get(valueFor: RelationshipSourceContextKey.self)
         let relationshipDestinations = context.get(valueFor: RelationshipDestinationContextKey.self)
+        
+        let endpointIdentifier: AnyHandlerIdentifier = {
+            // the identifier specified via the `.identified(by:)` modifier, if any
+            let dslSpecifiedIdentifier = context.get(valueFor: ExplicitHandlerIdentifierContextKey.self)
+            // the identifier specified via the `IdentifiableHandler.handlerId` property, if any
+            let handlerSpecifiedIdentifier = handler.getExplicitlySpecifiedIdentifier()
+            switch (dslSpecifiedIdentifier, handlerSpecifiedIdentifier) {
+            case (.some(let identifier), .none):
+                return identifier
+            case (.none, .some(let identifier)):
+                return identifier
+            case let (.some(ident1), .some(ident2)):
+                if ident1 == ident2 {
+                    return ident1
+                } else {
+                    fatalError("""
+                        Handler '\(handler)' has multiple explicitly specified identifiers ('\(ident1)' and '\(ident2)').
+                        A handler may only have one explicitly specified identifier.
+                        This is caused by using both the 'IdentifiableHandler.handlerId' property as well as the '.identified(by:)' modifier.
+                        """
+                    )
+                }
+            case (.none, .none):
+                let handlerIndexPath = context.get(valueFor: HandlerIndexPath.ContextKey.self)
+                return AnyHandlerIdentifier(handlerIndexPath.rawValue)
+            }
+        }()
 
         var endpoint = Endpoint(
-            identifier: {
-                if let identifier = handler.getExplicitlySpecifiedIdentifier() {
-                    return identifier
-                } else {
-                    let handlerIndexPath = context.get(valueFor: HandlerIndexPath.ContextKey.self)
-                    return AnyHandlerIdentifier(handlerIndexPath.rawValue)
-                }
-            }(),
+            identifier: endpointIdentifier,
             handler: handler.inject(app: app),
             context: context,
             operation: operation,
@@ -84,11 +104,12 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         // Additionally, addEndpoint may cause a insertion of a additional path parameter,
         // which makes it necessary to be called before any operation relying on the path of the Endpoint.
 
-        relationshipBuilder.collect(endpoint: endpoint,
-                                    candidates: partialCandidates,
-                                    sources: relationshipSources,
-                                    destinations: relationshipDestinations)
-
+        relationshipBuilder.collect(
+            endpoint: endpoint,
+            candidates: partialCandidates,
+            sources: relationshipSources,
+            destinations: relationshipDestinations
+        )
         typeIndexBuilder.indexContentType(of: endpoint)
     }
 
