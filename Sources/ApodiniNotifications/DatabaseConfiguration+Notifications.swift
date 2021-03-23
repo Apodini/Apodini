@@ -1,4 +1,3 @@
-import Apodini
 import ApodiniDatabase
 
 extension DatabaseConfiguration {

@@ -1,14 +1,8 @@
-//
-//  DeviceDatabaseModel.swift
-//  
-//
-//  Created by Alexander Collins on 14.11.20.
-//
-
 import Foundation
 import Fluent
+import Apodini
 
-public final class DeviceDatabaseModel: Model {
+public final class DeviceDatabaseModel: Model, Content {
     public static let schema = "notification_device"
     
     @ID(custom: "id", generatedBy: .user)
@@ -39,7 +33,7 @@ public final class DeviceDatabaseModel: Model {
     }
 }
 
-public final class DeviceTopic: Model {
+public final class DeviceTopic: Model, Content {
     public static let schema = "device_topic"
     
     @ID(key: .id)
@@ -62,7 +56,7 @@ public final class DeviceTopic: Model {
     }
 }
 
-public final class Topic: Model {
+public final class Topic: Model, Content {
     public static let schema = "topic"
     
     @ID(key: .id)
@@ -85,7 +79,7 @@ public final class Topic: Model {
 
 // swiftlint:disable discouraged_optional_collection
 /// A struct used by the `NotificationCenter` to send push notifications.
-public struct Device: Codable {
+public struct Device: Codable, Content {
     /// The id used by a push notification service.
     public var id: String
     /// The push notification service to use when sending a message.

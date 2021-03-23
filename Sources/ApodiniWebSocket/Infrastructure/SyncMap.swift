@@ -66,7 +66,7 @@ private extension SyncMap {
         
         private var completion: Subscribers.Completion<Failure>?
         
-        private var awaiting: Bool = false
+        private var awaiting = false
 
         let combineIdentifier = CombineIdentifier()
 

@@ -46,7 +46,7 @@ class ParameterMutabilityTests: ApodiniTests {
         var organizationName: StringClass? = StringClass(string: "Apodini")
         
         @Parameter
-        var override: Bool = false
+        var override = false
         
         func handle() -> String {
             if override {

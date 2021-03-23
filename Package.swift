@@ -29,7 +29,7 @@ let package = Package(
         // Used to parse command line arguments
         .package(url: "https://github.com/vapor/console-kit.git", from: "4.2.4"),
         // Used by the `NotificationCenter` to send push notifications to `APNS`.
-        .package(url: "https://github.com/vapor/apns.git", from: "1.0.1"),
+        .package(name: "apnswift", url: "https://github.com/kylebrowning/APNSwift.git", from: "3.0.0"),
         // Used by the `NotificationCenter` to send push notifications to `FCM`.
         .package(url: "https://github.com/MihaelIsaev/FCM.git", from: "2.8.0"),
         .package(url: "https://github.com/vapor/fluent-mongo-driver.git", from: "1.0.2"),
@@ -39,7 +39,7 @@ let package = Package(
         // As AssociatedTypeRequirementsKit does not follow semantic versioning we constraint it to the current minor version
         .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", .upToNextMinor(from: "0.3.2")),
         // Used to parse crontabs in the `Scheduler` class
-        .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from:"1.3.0"),
+        .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.0"),
         // OpenCombine seems to be only available as a pre release and is not feature complete.
         // We constrain it to the next minor version as it doen't follow semantic versioning.
         .package(url: "https://github.com/OpenCombine/OpenCombine.git", .upToNextMinor(from: "0.11.0")),
@@ -136,7 +136,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniVaporSupport"),
                 .target(name: "ApodiniDatabase"),
-                .product(name: "APNS", package: "apns"),
+                .product(name: "APNSwift", package: "apnswift"),
                 .product(name: "FCM", package: "FCM")
             ]
         ),
@@ -227,7 +227,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Runtime", package: "Runtime")
             ],
-            exclude:["README.md"]
+            exclude: ["README.md"]
         ),
 
         .testTarget(

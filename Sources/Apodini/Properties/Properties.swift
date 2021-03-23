@@ -16,19 +16,37 @@ import Foundation
 public struct Properties: Property {
     internal var elements: [String: Property]
     
+    internal var namingStrategy: ([String]) -> String? = Self.defaultNamingStrategy
+    
     /// Create a new `Properties` from the given `elements`
+    /// - Parameters:
+    ///     - namingStrategy: The `namingStrategy` is called when the framework decides to interact with one of
+    ///         the `Properties`'s elements. By default it assumes the key of this element to be the
+    ///         desired name of the element.
+    ///         This behavior can be changed by providing a different `namingStrategy`. E.g. to expose an internal
+    ///         `@Parameter` using the name that was given to the wrapping `Properties` the
+    ///         `namingStrategy` would be to return `names[names.count-2]`.
     /// - Complexity: O(1)
-    public init(wrappedValue elements: [String: Property]) {
+    public init(wrappedValue elements: [String: Property], namingStrategy: @escaping ([String]) -> String? = Self.defaultNamingStrategy) {
         self.elements = elements
+        self.namingStrategy = namingStrategy
     }
     
     /// Create a new `Properties` from the given `elements`
+    /// - Parameters:
+    ///     - namingStrategy: The `namingStrategy` is called when the framework decides to interact with one of
+    ///         the `Properties`'s elements. By default it assumes the key of this element to be the
+    ///         desired name of the element.
+    ///         This behavior can be changed by providing a different `namingStrategy`. E.g. to expose an internal
+    ///         `@Parameter` using the name that was given to the wrapping `Properties` the
+    ///         `namingStrategy` would be to return `names[names.count-2]`.
     /// - Complexity: O(n)
-    public init(_ elements: [(String, Property)]) {
+    public init(_ elements: [(String, Property)], namingStrategy: @escaping ([String]) -> String? = Self.defaultNamingStrategy) {
         self.elements = [:]
         for element in elements {
             self.elements[element.0] = element.1
         }
+        self.namingStrategy = namingStrategy
     }
     
     subscript<T>(dynamicMember name: String) -> T? {
@@ -38,6 +56,10 @@ public struct Properties: Property {
     /// The named elements managed by this object.
     public var wrappedValue: [String: Property] {
         self.elements
+    }
+    
+    public static var defaultNamingStrategy: ([String]) -> String? = { names in
+        names.last
     }
 }
 

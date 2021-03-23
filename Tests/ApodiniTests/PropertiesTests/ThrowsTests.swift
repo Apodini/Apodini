@@ -26,7 +26,7 @@ class ThrowsTests: ApodiniTests {
 
         var errorCode: Int = 0
         
-        var applyChanges: Bool = false
+        var applyChanges = false
         
         var reason: String?
         
