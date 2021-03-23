@@ -254,6 +254,33 @@
         }
       },
       {
+        "package": "soto",
+        "repositoryURL": "https://github.com/soto-project/soto.git",
+        "state": {
+          "branch": null,
+          "revision": "d4bdc1cdd2422ab6058bb2cec04b3fbc7ded14e2",
+          "version": "5.3.0"
+        }
+      },
+      {
+        "package": "soto-core",
+        "repositoryURL": "https://github.com/soto-project/soto-core.git",
+        "state": {
+          "branch": null,
+          "revision": "95209cef77f7b1f3aa1df9879971f122d92bb411",
+          "version": "5.2.1"
+        }
+      },
+      {
+        "package": "soto-s3-file-transfer",
+        "repositoryURL": "https://github.com/soto-project/soto-s3-file-transfer",
+        "state": {
+          "branch": null,
+          "revision": "513a63050519d6d386e619de131eb2f691139f3d",
+          "version": "0.3.0"
+        }
+      },
+      {
         "package": "sql-kit",
         "repositoryURL": "https://github.com/vapor/sql-kit.git",
         "state": {
@@ -290,6 +317,24 @@
         }
       },
       {
+        "package": "swift-argument-parser",
+        "repositoryURL": "https://github.com/apple/swift-argument-parser",
+        "state": {
+          "branch": null,
+          "revision": "831ed5e860a70e745bc1337830af4786b2576881",
+          "version": "0.4.1"
+        }
+      },
+      {
+        "package": "swift-aws-lambda-runtime",
+        "repositoryURL": "https://github.com/swift-server/swift-aws-lambda-runtime.git",
+        "state": {
+          "branch": null,
+          "revision": "e33e4afbf0e290029c9887f271ae2ad6a4a65269",
+          "version": "0.4.0"
+        }
+      },
+      {
         "package": "swift-backtrace",
         "repositoryURL": "https://github.com/swift-server/swift-backtrace.git",
         "state": {
@@ -305,6 +350,15 @@
           "branch": null,
           "revision": "3bea268b223651c4ab7b7b9ad62ef9b2d4143eb6",
           "version": "1.1.6"
+        }
+      },
+      {
+        "package": "swift-extras-base64",
+        "repositoryURL": "https://github.com/swift-extras/swift-extras-base64",
+        "state": {
+          "branch": null,
+          "revision": "97237cf1bc1feebaeb0febec91c1e1b9e4d839b3",
+          "version": "0.7.0"
         }
       },
       {
@@ -377,6 +431,15 @@
           "branch": null,
           "revision": "984852e6ef87c653c83df90b365b8adba736f109",
           "version": "4.41.9"
+        }
+      },
+      {
+        "package": "vapor-aws-lambda-runtime",
+        "repositoryURL": "https://github.com/vapor-community/vapor-aws-lambda-runtime",
+        "state": {
+          "branch": null,
+          "revision": "eef25d71854e87ba7e6f0388b8bc38b6ca865cc5",
+          "version": "0.6.1"
         }
       },
       {

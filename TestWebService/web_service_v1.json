@@ -7,61 +7,9 @@
   },
   "schemas" : [
     {
-      "isEnumeration" : false,
-      "properties" : [
-        {
-          "reference" : {
-            "schemaName" : "UUID"
-          },
-          "offset" : 1,
-          "name" : "id",
-          "type" : {
-            "exactlyOne" : true
-          }
-        },
-        {
-          "reference" : {
-            "schemaName" : "String"
-          },
-          "offset" : 2,
-          "name" : "title",
-          "type" : {
-            "exactlyOne" : true
-          }
-        }
-      ],
-      "typeName" : "Post"
-    },
-    {
-      "isEnumeration" : false,
-      "properties" : [
-
-      ],
-      "typeName" : "Int"
-    },
-    {
-      "isEnumeration" : false,
-      "properties" : [
-
-      ],
       "typeName" : "UInt"
     },
     {
-      "isEnumeration" : false,
-      "properties" : [
-
-      ],
-      "typeName" : "String"
-    },
-    {
-      "isEnumeration" : false,
-      "properties" : [
-
-      ],
-      "typeName" : "UUID"
-    },
-    {
-      "isEnumeration" : false,
       "properties" : [
         {
           "reference" : {
@@ -85,6 +33,40 @@
         }
       ],
       "typeName" : "User"
+    },
+    {
+      "typeName" : "UUID"
+    },
+    {
+      "typeName" : "Int"
+    },
+    {
+      "typeName" : "String"
+    },
+    {
+      "properties" : [
+        {
+          "reference" : {
+            "schemaName" : "String"
+          },
+          "offset" : 2,
+          "name" : "title",
+          "type" : {
+            "exactlyOne" : true
+          }
+        },
+        {
+          "reference" : {
+            "schemaName" : "UUID"
+          },
+          "offset" : 1,
+          "name" : "id",
+          "type" : {
+            "exactlyOne" : true
+          }
+        }
+      ],
+      "typeName" : "Post"
     }
   ],
   "services" : [
@@ -94,7 +76,7 @@
       "parameters" : [
 
       ],
-      "handlerIdentifier" : "0:0",
+      "handlerIdentifier" : "0.0",
       "response" : {
         "schemaName" : "String"
       },
@@ -102,23 +84,11 @@
     },
     {
       "operation" : "read",
-      "absolutePath" : "/v1/authenticated",
-      "parameters" : [
-
-      ],
-      "handlerIdentifier" : "0:5:0:1:0",
-      "response" : {
-        "schemaName" : "User"
-      },
-      "handlerName" : "AuthenticatedUserHandler"
-    },
-    {
-      "operation" : "read",
       "absolutePath" : "/v1/swift",
       "parameters" : [
 
       ],
-      "handlerIdentifier" : "0:4:0:0:0",
+      "handlerIdentifier" : "0.4.0.0.0",
       "response" : {
         "schemaName" : "String"
       },
@@ -130,7 +100,7 @@
       "parameters" : [
 
       ],
-      "handlerIdentifier" : "0:4:0:0:1:0",
+      "handlerIdentifier" : "0.4.0.0.1.0",
       "response" : {
         "schemaName" : "String"
       },
@@ -138,72 +108,35 @@
     },
     {
       "operation" : "read",
-      "absolutePath" : "/v1/user/{userId}",
+      "absolutePath" : "/v1/rand",
       "parameters" : [
         {
           "nilIsValidValue" : false,
           "schemaReference" : {
             "schemaName" : "Int"
           },
-          "name" : "userId",
-          "necessity" : "required",
-          "type" : "path"
-        }
-      ],
-      "handlerIdentifier" : "0:5:0:0:0:0",
-      "response" : {
-        "schemaName" : "User"
-      },
-      "handlerName" : "UserHandler"
-    },
-    {
-      "operation" : "read",
-      "absolutePath" : "/v1/user/{userId}/post/{postId}",
-      "parameters" : [
-        {
-          "nilIsValidValue" : false,
-          "schemaReference" : {
-            "schemaName" : "Int"
-          },
-          "name" : "userId",
-          "necessity" : "required",
-          "type" : "path"
-        },
-        {
-          "nilIsValidValue" : false,
-          "schemaReference" : {
-            "schemaName" : "UUID"
-          },
-          "name" : "postId",
-          "necessity" : "required",
-          "type" : "path"
-        }
-      ],
-      "handlerIdentifier" : "0:5:0:0:0:1:0",
-      "response" : {
-        "schemaName" : "Post"
-      },
-      "handlerName" : "PostHandler"
-    },
-    {
-      "operation" : "read",
-      "absolutePath" : "/v1/auction",
-      "parameters" : [
-        {
-          "nilIsValidValue" : false,
-          "schemaReference" : {
-            "schemaName" : "UInt"
-          },
-          "name" : "bid",
-          "necessity" : "required",
+          "name" : "number",
+          "necessity" : "optional",
           "type" : "lightweight"
         }
       ],
-      "handlerIdentifier" : "0:1:0:0",
+      "handlerIdentifier" : "0.3.0.0",
       "response" : {
-        "schemaName" : "String"
+        "schemaName" : "Int"
       },
-      "handlerName" : "Auction"
+      "handlerName" : "Random"
+    },
+    {
+      "operation" : "read",
+      "absolutePath" : "/v1/authenticated",
+      "parameters" : [
+
+      ],
+      "handlerIdentifier" : "0.5.0.1.0",
+      "response" : {
+        "schemaName" : "User"
+      },
+      "handlerName" : "AuthenticatedUserHandler"
     },
     {
       "operation" : "read",
@@ -237,7 +170,7 @@
           "type" : "lightweight"
         }
       ],
-      "handlerIdentifier" : "0:2:0:0",
+      "handlerIdentifier" : "0.2.0.0",
       "response" : {
         "schemaName" : "String"
       },
@@ -245,23 +178,72 @@
     },
     {
       "operation" : "read",
-      "absolutePath" : "/v1/rand",
+      "absolutePath" : "/v1/user/{userId}",
       "parameters" : [
         {
           "nilIsValidValue" : false,
           "schemaReference" : {
             "schemaName" : "Int"
           },
-          "name" : "number",
-          "necessity" : "optional",
+          "name" : "userId",
+          "necessity" : "required",
+          "type" : "path"
+        }
+      ],
+      "handlerIdentifier" : "0.5.0.0.0.0",
+      "response" : {
+        "schemaName" : "User"
+      },
+      "handlerName" : "UserHandler"
+    },
+    {
+      "operation" : "read",
+      "absolutePath" : "/v1/user/{userId}/post/{postId}",
+      "parameters" : [
+        {
+          "nilIsValidValue" : false,
+          "schemaReference" : {
+            "schemaName" : "Int"
+          },
+          "name" : "userId",
+          "necessity" : "required",
+          "type" : "path"
+        },
+        {
+          "nilIsValidValue" : false,
+          "schemaReference" : {
+            "schemaName" : "UUID"
+          },
+          "name" : "postId",
+          "necessity" : "required",
+          "type" : "path"
+        }
+      ],
+      "handlerIdentifier" : "0.5.0.0.0.1.0",
+      "response" : {
+        "schemaName" : "Post"
+      },
+      "handlerName" : "PostHandler"
+    },
+    {
+      "operation" : "read",
+      "absolutePath" : "/v1/auction",
+      "parameters" : [
+        {
+          "nilIsValidValue" : false,
+          "schemaReference" : {
+            "schemaName" : "UInt"
+          },
+          "name" : "bid",
+          "necessity" : "required",
           "type" : "lightweight"
         }
       ],
-      "handlerIdentifier" : "0:3:0:0",
+      "handlerIdentifier" : "0.1.0.0",
       "response" : {
-        "schemaName" : "Int"
+        "schemaName" : "String"
       },
-      "handlerName" : "Random"
+      "handlerName" : "Auction"
     }
   ]
 }

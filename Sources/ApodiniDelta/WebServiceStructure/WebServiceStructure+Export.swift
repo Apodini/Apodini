@@ -21,9 +21,9 @@ extension WebServiceStructure {
 
         do {
             let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
+            encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
             let data = try encoder.encode(self)
-            let output = String(decoding: data, as: UTF8.self).replacingOccurrences(of: "\\/", with: "/")
+            let output = String(decoding: data, as: UTF8.self)
             try output.write(to: jsonFileURL, atomically: true, encoding: .utf8)
         } catch {
             print("Could not save \(error)")
