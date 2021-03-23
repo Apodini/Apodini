@@ -50,12 +50,12 @@ extension Binding {
 extension Binding {
     private init<K: EnvironmentAccessible>(environment: Environment<K, Value>) {
         self.store = Properties(wrappedValue: ["environment": environment])
-        self.retrieval = .storage({ store in
+        self.retrieval = .storage { store in
             guard let parameter = store.wrappedValue["environment"] as? Environment<K, Value> else {
                 fatalError("Could not find Environment object in store. The internal logic of Binding is broken!")
             }
             return parameter.wrappedValue
-        })
+        }
     }
     
     internal static func environment<K: EnvironmentAccessible>(_ environment: Environment<K, Value>) -> Binding<Value> {
@@ -70,12 +70,12 @@ extension Binding where Value: Codable {
         self.store = Properties(wrappedValue: ["parameter": parameter], namingStrategy: { names in
             names[names.count - 3]
         })
-        self.retrieval = .storage({ store in
+        self.retrieval = .storage { store in
             guard let parameter = store.wrappedValue["parameter"] as? Parameter<Value> else {
                 fatalError("Could not find Parameter object in store. The internal logic of Binding is broken!")
             }
             return parameter.wrappedValue
-        })
+        }
     }
     
     internal static func parameter(_ parameter: Parameter<Value>) -> Binding<Value> {
