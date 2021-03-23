@@ -5,7 +5,128 @@
 
 A declarative, composable framework to build web services using Swift.
 
-The framework is in a very early alpha phase. You can inspect the current development manifestos describing the framework in the [documentation folder](Documentation/)
+## Getting Started
+
+### Installation
+
+Apodini uses the Swift Package Manager:
+
+Add it as a project-dependency:
+```swift
+dependencies: [
+    .package(url: "https://github.com/Apodini/Apodini.git", .branch("develop"))
+]
+```
+
+Add the base package and all exporters you want to use to your target:
+```swift
+targets: [
+    .target(
+        name: "Your Target",
+        dependencies: [
+            .product(name: "Apodini", package: "Apodini"),
+            .product(name: "ApodiniREST", package: "Apodini"),
+            .product(name: "ApodiniOpenAPI", package: "Apodini")
+        ])
+]‚
+
+```
+
+### Hello World
+
+Getting started is really easy:
+
+```swift
+import Apodini
+import ApodiniREST
+
+struct Greeter: Handler {
+    @Parameter var country: String?
+
+    func handle() -> String {
+        "Hello, \(country ?? "World")!"
+    }
+}
+
+struct HelloWorld: WebService {
+    var configuration: Configuration {
+        ExporterConfiguration()
+            .exporter(RESTInterfaceExporter.self)
+    }
+
+    var content: some Component {
+        Greeter()
+    }
+}
+
+try HelloWorld.main()
+
+// http://localhost:8080/v1 -> Hello, World!
+// http://localhost:8080/v1?country=Italy -> Hello, Italy!
+```
+
+Apodini knows enough about your service to automatically generate OpenAPI docs. Just add the respective exporter:
+
+```swift
+import ApodiniOpenAPI
+...
+struct HelloWorld: WebService {
+    var configuration: Configuration {
+        ExporterConfiguration()
+            .exporter(RESTInterfaceExporter.self)
+            .exporter(OpenAPIInterfaceExporter.self)
+    }
+    ...
+}
+
+// JSON definition: http://localhost:8080/openapi
+// Swagger UI: http://localhost:8080/openapi-ui
+```
+
+With `Binding`s we can re-use `Handler`s in different contexts:
+```swift
+struct Greeter: Handler {
+    @Binding var country: String?
+
+    func handle() -> String {
+        "Hello, \(country ?? "World")!"
+    }
+}
+
+struct HelloWorld: WebService {
+    var configuration: Configuration {
+        ExporterConfiguration()
+            .exporter(RESTInterfaceExporter.self)
+            .exporter(OpenAPIInterfaceExporter.self)
+    }
+
+    var content: some Component {
+        Greeter(country: nil)
+            .description("Say 'Hello' to the World.")
+        Group("country") {
+            CountrySubsystem()
+        }
+    }
+}
+
+struct CountrySubsystem: Component {
+    @PathParameter var country: String
+    
+    var content: some Component {
+        Group($country) {
+            Greeter(country: Binding<String?>(_country.binding))
+                .description("Say 'Hello' to a country.")
+        }
+    }
+}
+
+// http://localhost:8080/v1 -> Hello, World!
+// http://localhost:8080/v1/country/Italy -> Hello, Italy!
+```
+
+## Documentation
+
+The framework is in early alpha phase. You can inspect the current development manifestos describing the framework in the [documentation folder](Documentation/)
 
 You can find a generated technical documentation for the different Swift types at [https://apodini.github.io/Apodini](https://apodini.github.io/Apodini)
 
