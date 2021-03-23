@@ -49,7 +49,7 @@ public extension Array where Element == ParameterNamespace {
     static let global: [ParameterNamespace] = [.all]
     /// With the `.individual` level, a parameter name must be
     /// unique across all parameters with the same `ParameterTyp` on the given `Endpoint`.
-    static let individual: [ParameterNamespace] = [.lightweight, .content, .path]
+    static let individual: [ParameterNamespace] = [.lightweight, .content, .path, .header]
 }
 
 extension ParameterNamespace {
