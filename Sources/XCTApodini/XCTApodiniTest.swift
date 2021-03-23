@@ -1,5 +1,7 @@
 #if DEBUG
 import FluentSQLiteDriver
+@testable import Apodini
+import XCTest
 import ApodiniDatabase
 
 open class XCTApodiniTest: XCTestCase {
@@ -9,13 +11,11 @@ open class XCTApodiniTest: XCTestCase {
     
     override open func setUpWithError() throws {
         try super.setUpWithError()
-        
         app = Application()
     }
     
     override open func tearDownWithError() throws {
         try super.tearDownWithError()
-        
         app.shutdown()
     }
     

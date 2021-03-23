@@ -7,6 +7,7 @@
 
 import XCTest
 @testable import Apodini
+import ApodiniUtils
 
 class TypeInfoTests: ApodiniTests {
     func testIsOptional() {
@@ -46,16 +47,16 @@ class TypeInfoTests: ApodiniTests {
     
     func testDescription() {
         let parameter = Parameter<String>()
-        XCTAssertEqual(Apodini.mangledName(of: type(of: parameter)), "Parameter")
+        XCTAssertEqual(ApodiniUtils.mangledName(of: type(of: parameter)), "Parameter")
         
         let array = ["Paul"]
-        XCTAssertEqual(Apodini.mangledName(of: type(of: array)), "Array")
+        XCTAssertEqual(ApodiniUtils.mangledName(of: type(of: array)), "Array")
         
         let string = "Paul"
-        XCTAssertEqual(Apodini.mangledName(of: type(of: string)), "String")
+        XCTAssertEqual(ApodiniUtils.mangledName(of: type(of: string)), "String")
         
-        XCTAssertEqual(Apodini.mangledName(of: (() -> Void).self), "() -> ()")
-        XCTAssertEqual(Apodini.mangledName(of: ((String) -> (Int)).self), "(String) -> Int")
+        XCTAssertEqual(ApodiniUtils.mangledName(of: (() -> Void).self), "() -> ()")
+        XCTAssertEqual(ApodiniUtils.mangledName(of: ((String) -> (Int)).self), "(String) -> Int")
     }
     
     func testIsSupportedScalarType() {

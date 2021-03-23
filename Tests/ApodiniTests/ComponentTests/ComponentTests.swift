@@ -5,6 +5,7 @@
 //  Created by Paul Schmiedmayer on 1/2/21.
 //
 
+import ApodiniUtils
 @testable import Apodini
 @testable import ApodiniVaporSupport
 @testable import ApodiniREST

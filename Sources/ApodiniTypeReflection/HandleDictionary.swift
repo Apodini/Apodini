@@ -3,6 +3,7 @@
 //
 
 import Apodini
+import ApodiniUtils
 
 /// Handle the `Dictionary` type.
 ///

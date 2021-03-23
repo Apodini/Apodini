@@ -6,6 +6,7 @@
 //
 
 import NIO
+import ApodiniUtils
 
 
 public struct Empty: Encodable {

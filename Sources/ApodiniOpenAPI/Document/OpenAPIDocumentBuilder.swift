@@ -4,7 +4,7 @@
 
 import Foundation
 import Apodini
-@_implementationOnly import OpenAPIKit
+import OpenAPIKit
 
 /// Creates the OpenAPI specification document
 /// https://swagger.io/specification/#openapi-object

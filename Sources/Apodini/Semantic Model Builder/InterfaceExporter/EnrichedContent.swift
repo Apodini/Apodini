@@ -3,6 +3,8 @@
 //
 
 import Foundation
+import ApodiniUtils
+
 
 /// A `EnrichedContent` describes the outcome of a `ConnectionContext.handle(...)`.
 public struct EnrichedContent: Encodable {

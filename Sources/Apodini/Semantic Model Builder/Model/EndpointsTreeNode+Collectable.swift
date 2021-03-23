@@ -20,15 +20,8 @@ extension EndpointsTreeNode {
         if let parent = parent {
             return parent.collectEndpoints()
         }
-        
-        let node = Node(root: self) { root in
-            Array(root.children)
-        }
-        .map { node in
-            node.endpoints.values.map(AnyHashableEndpoint.init)
-        }
-        
-        return node
+        return Node(root: self) { Array($0.children) }
+            .map { $0.endpoints.values.map(AnyHashableEndpoint.init) }
             .collectValues()
             .map(\.endpoint)
     }

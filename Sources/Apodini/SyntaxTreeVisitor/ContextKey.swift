@@ -49,7 +49,7 @@ public protocol ContextKey: OptionalContextKey, HasDefaultValue {
 }
 
 extension ContextKey {
-    static var defaultValue: Any {
+    public static var defaultValue: Any {
         defaultValue as Self.Value
     }
 }

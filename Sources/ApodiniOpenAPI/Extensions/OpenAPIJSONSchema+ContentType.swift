@@ -2,7 +2,7 @@
 //  Created by Lorena Schlesinger on 12.12.20.
 //
 
-@_implementationOnly import OpenAPIKit
+import OpenAPIKit
 
 extension JSONSchema {
     /// Currently only `.json` and `.txt` are supported.

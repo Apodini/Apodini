@@ -4,7 +4,7 @@
 
 import Foundation
 import Apodini
-@_implementationOnly import OpenAPIKit
+import OpenAPIKit
 
 /// Default values used for OpenAPI configuration if not explicitly specified by developer.
 public enum OpenAPIConfigurationDefaults {
@@ -17,14 +17,21 @@ public enum OpenAPIConfigurationDefaults {
 }
 
 /// The enclosing storage entity for OpenAPI-related information.
-struct OpenAPIStorageValue {
-    var document: OpenAPI.Document?
-    var configuration: OpenAPIConfiguration
+public struct OpenAPIStorageValue {
+    /// The OpenAPI document
+    public let document: OpenAPI.Document?
+    /// The configuration used by the OpenAPIInterfaceExporter
+    public let configuration: OpenAPIConfiguration
+    
+    internal init(document: OpenAPI.Document? = nil, configuration: OpenAPIConfiguration) {
+        self.document = document
+        self.configuration = configuration
+    }
 }
 
 /// The storage key for OpenAPI-related information.
-struct OpenAPIStorageKey: StorageKey {
-    typealias Value = OpenAPIStorageValue
+public struct OpenAPIStorageKey: StorageKey {
+    public typealias Value = OpenAPIStorageValue
 }
 
 /// An enum specifying the output format of the OpenAPI specification document.

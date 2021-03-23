@@ -10,6 +10,7 @@ let package = Package(
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
+        .library(name: "ApodiniUtils", targets: ["ApodiniUtils"]),
         .library(name: "ApodiniDatabase", targets: ["ApodiniDatabase"]),
         .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
         .library(name: "ApodiniJobs", targets: ["ApodiniJobs"]),
@@ -19,9 +20,17 @@ let package = Package(
         .library(name: "ApodiniREST", targets: ["ApodiniREST"]),
         .library(name: "ApodiniTypeReflection", targets: ["ApodiniTypeReflection"]),
         .library(name: "ApodiniVaporSupport", targets: ["ApodiniVaporSupport"]),
-        .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"])
+        .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
+        // Deploy
+        .library(name: "ApodiniDeployBuildSupport", targets: ["ApodiniDeployBuildSupport"]),
+        .library(name: "ApodiniDeployRuntimeSupport", targets: ["ApodiniDeployRuntimeSupport"]),
+        .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
+        .executable(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"]),
+        .library(name: "DeploymentTargetLocalhostRuntimeSupport", targets: ["DeploymentTargetLocalhostRuntimeSupport"]),
+        .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"])
     ],
     dependencies: [
+        //.package(name: "ApodiniDeploy", path: "./ApodiniDeploy"),
         .package(url: "https://github.com/vapor/vapor.git", from: "4.39.1"),
         .package(url: "https://github.com/vapor/fluent.git", from: "4.1.0"),
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.0.0"),
@@ -40,6 +49,7 @@ let package = Package(
         .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", .upToNextMinor(from: "0.3.2")),
         // Used to parse crontabs in the `Scheduler` class
         .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.0"),
+        .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.4.0"),
         // OpenCombine seems to be only available as a pre release and is not feature complete.
         // We constrain it to the next minor version as it doen't follow semantic versioning.
         .package(url: "https://github.com/OpenCombine/OpenCombine.git", .upToNextMinor(from: "0.11.0")),
@@ -54,13 +64,29 @@ let package = Package(
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
         // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
         .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
-        .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.4.0"),
-        .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0")
+        .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
+        
+        // Deploy
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
+        .package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime", from: "0.4.0"),
+        .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0"),
+        .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0")
     ],
     targets: [
+        .target(name: "CApodiniUtils"),
+        .target(
+            name: "ApodiniUtils",
+            dependencies: [
+                .target(name: "CApodiniUtils"),
+                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+            ]
+        ),
+        
         .target(
             name: "Apodini",
             dependencies: [
+                .target(name: "ApodiniUtils"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOHTTP2", package: "swift-nio-http2"),
@@ -205,11 +231,12 @@ let package = Package(
                 .product(name: "Vapor", package: "vapor")
             ]
         ),
-
+        
         .target(
             name: "ApodiniWebSocket",
             dependencies: [
                 .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniVaporSupport"),
                 .product(name: "OpenCombine", package: "OpenCombine"),
                 .product(name: "OpenCombineFoundation", package: "OpenCombine"),
@@ -225,6 +252,7 @@ let package = Package(
         .target(
             name: "ProtobufferCoding",
             dependencies: [
+                .target(name: "ApodiniUtils"),
                 .product(name: "Runtime", package: "Runtime")
             ],
             exclude: ["README.md"]
@@ -251,7 +279,133 @@ let package = Package(
                 .target(name: "ApodiniProtobuffer"),
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
-                .target(name: "ApodiniNotifications")
+                .target(name: "ApodiniNotifications"),
+                .target(name: "ApodiniDeploy")
+            ]
+        ),
+        
+        
+        .target(
+            name: "ApodiniDeployTestWebService",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "DeploymentTargetLocalhostRuntimeSupport"),
+                .target(name: "DeploymentTargetAWSLambdaRuntime"),
+                .target(name: "ApodiniREST"),
+                .target(name: "ApodiniGRPC"),
+                .target(name: "ApodiniProtobuffer"),
+                .target(name: "ApodiniOpenAPI"),
+                .target(name: "ApodiniWebSocket"),
+                .target(name: "ApodiniNotifications"),
+                .target(name: "ApodiniDeploy")
+            ]
+        ),
+        
+        //
+        // MARK: Deploy
+        //
+        
+        .target(
+            name: "ApodiniDeploy",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniOpenAPI"),
+                .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "ApodiniDeployRuntimeSupport"),
+                .product(name: "OpenAPIKit", package: "OpenAPIKit")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniDeployBuildSupport",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "OpenAPIKit", package: "OpenAPIKit")
+            ]
+        ),
+        .target(
+            name: "ApodiniDeployRuntimeSupport",
+            dependencies: [
+                .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "Vapor", package: "vapor"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+            ]
+        ),
+        .testTarget(
+            name: "ApodiniDeployTests",
+            dependencies: [
+                .target(name: "XCTApodini"),
+                .product(name: "XCTVapor", package: "vapor")
+            ]
+        ),
+        .target(
+            name: "DeploymentTargetLocalhost",
+            dependencies: [
+                .product(name: "Vapor", package: "vapor"),
+                .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "ApodiniUtils"),
+                .target(name: "DeploymentTargetLocalhostCommon"),
+                .product(name: "OpenAPIKit", package: "OpenAPIKit"),
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        .target(
+            name: "DeploymentTargetLocalhostCommon",
+            dependencies: [
+                .target(name: "ApodiniDeployBuildSupport")
+            ]
+        ),
+        .target(
+            name: "DeploymentTargetLocalhostRuntimeSupport",
+            dependencies: [
+                .target(name: "DeploymentTargetLocalhostCommon"),
+                .target(name: "ApodiniDeployRuntimeSupport")
+            ]
+        ),
+
+        .target(
+            name: "DeploymentTargetAWSLambda",
+            dependencies: [
+                .target(name: "DeploymentTargetAWSLambdaCommon"),
+                .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "SotoS3", package: "soto"),
+                .product(name: "SotoLambda", package: "soto"),
+                .product(name: "SotoApiGatewayV2", package: "soto"),
+                .product(name: "SotoIAM", package: "soto"),
+                .product(name: "SotoSTS", package: "soto"),
+                .product(name: "OpenAPIKit", package: "OpenAPIKit"),
+                .product(name: "SotoS3FileTransfer", package: "soto-s3-file-transfer")
+            ],
+            resources: [
+                .process("Resources")
+            ]
+        ),
+        .target(
+            name: "DeploymentTargetAWSLambdaCommon",
+            dependencies: [
+                .target(name: "ApodiniDeployBuildSupport")
+            ]
+        ),
+        .target(
+            name: "DeploymentTargetAWSLambdaRuntime",
+            dependencies: [
+                .target(name: "DeploymentTargetAWSLambdaCommon"),
+                .target(name: "ApodiniDeployRuntimeSupport"),
+                .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
             ]
         )
     ]

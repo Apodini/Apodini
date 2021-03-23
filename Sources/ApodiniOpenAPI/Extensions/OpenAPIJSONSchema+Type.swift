@@ -2,8 +2,8 @@
 // Created by Lorena Schlesinger on 03.01.21.
 //
 
-@_implementationOnly import OpenAPIKit
 import Foundation
+import OpenAPIKit
 
 extension JSONSchema {
     static func from<T>(_ type: T, defaultType: JSONSchema = .string) -> JSONSchema {

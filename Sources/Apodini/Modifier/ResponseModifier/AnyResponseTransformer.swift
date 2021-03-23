@@ -6,6 +6,7 @@
 //
 
 import NIO
+import ApodiniUtils
 
 
 /// A type erasure for a  `ResponseTransformer`
