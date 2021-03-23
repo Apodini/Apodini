@@ -145,4 +145,62 @@ final class TraversableTests: ApodiniTests {
         
         XCTAssertEqual(names.sorted().joined(), "a")
     }
+    
+    struct Container {
+        let wrapperProperties: Properties = [
+            "theName": Param<String>()
+        ]
+        
+        let theNameProperties = Properties(wrappedValue: [
+            "notTheName": Param<String?>()
+        ], namingStrategy: { names in names[names.count - 2] })
+        
+        struct Wrapper: DynamicProperty {
+            let theName = Param<String??>()
+        }
+        
+        struct TransparentWrapper: DynamicProperty {
+            let notTheName = Param<String???>()
+            
+            func namingStrategy(_ names: [String]) -> String? {
+                names[names.count - 2]
+            }
+        }
+        
+        let wrapperDynamicProperty = Wrapper()
+        
+        let theNameDynamicProperty = TransparentWrapper()
+    }
+    
+    func testNamingStragety() throws {
+        var container = Container()
+        
+        exposedExecute({(_: Param<String>, name: String) in
+            XCTAssertEqual("theName", name)
+        }, on: container)
+        exposedApply({(_: inout Param<String>, name: String) in
+            XCTAssertEqual("theName", name)
+        }, to: &container)
+        
+        exposedExecute({(_: Param<String?>, name: String) in
+            XCTAssertEqual("theNameProperties", name)
+        }, on: container)
+        exposedApply({(_: inout Param<String?>, name: String) in
+            XCTAssertEqual("theNameProperties", name)
+        }, to: &container)
+        
+        exposedExecute({(_: Param<String??>, name: String) in
+            XCTAssertEqual("theName", name)
+        }, on: container)
+        exposedApply({(_: inout Param<String??>, name: String) in
+            XCTAssertEqual("theName", name)
+        }, to: &container)
+        
+        exposedExecute({(_: Param<String???>, name: String) in
+            XCTAssertEqual("theNameDynamicProperty", name)
+        }, on: container)
+        exposedApply({(_: inout Param<String???>, name: String) in
+            XCTAssertEqual("theNameDynamicProperty", name)
+        }, to: &container)
+    }
 }
