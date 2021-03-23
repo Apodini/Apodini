@@ -105,7 +105,7 @@ protocol Router {
 final class VaporWSRouter: Router {
     typealias ConnectionInformation = Vapor.Request
     
-    private var registeredAtVapor: Bool = false
+    private var registeredAtVapor = false
     
     private let app: Application
     

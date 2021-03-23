@@ -2,21 +2,12 @@
   "object": {
     "pins": [
       {
-        "package": "apns",
-        "repositoryURL": "https://github.com/vapor/apns.git",
-        "state": {
-          "branch": null,
-          "revision": "a8bc863a718eb23e05b2ae3bfc7de66407b6b85d",
-          "version": "1.0.1"
-        }
-      },
-      {
         "package": "apnswift",
         "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
         "state": {
           "branch": null,
-          "revision": "ce8213a3e0ec0581c4c39a155e7778401ec5e24a",
-          "version": "2.2.0"
+          "revision": "03e83e2332d13a3c06d5cd70948166e5724c43c7",
+          "version": "3.0.0"
         }
       },
       {
@@ -33,8 +24,8 @@
         "repositoryURL": "https://github.com/swift-server/async-http-client.git",
         "state": {
           "branch": null,
-          "revision": "ba845ee93d6ea10671e829ebf273b6f7a0c92ef0",
-          "version": "1.2.4"
+          "revision": "0dda95cffcdf3d96ca551e5701efd1661cf31374",
+          "version": "1.2.5"
         }
       },
       {
@@ -69,8 +60,8 @@
         "repositoryURL": "https://github.com/MihaelIsaev/FCM.git",
         "state": {
           "branch": null,
-          "revision": "937c4f3967181cdcf5dceaf2d9d49491eaf667ee",
-          "version": "2.10.0"
+          "revision": "3e0645f7897a570568e66029a1bb97dde965bdeb",
+          "version": "2.10.1"
         }
       },
       {
@@ -96,8 +87,8 @@
         "repositoryURL": "https://github.com/vapor/fluent-kit.git",
         "state": {
           "branch": null,
-          "revision": "7f1a5fe1effeee258ef0012def798e4bad43303d",
-          "version": "1.10.3"
+          "revision": "9d47c328bf83999968c12a3bc94ead1d706ad4a9",
+          "version": "1.11.0"
         }
       },
       {
@@ -267,8 +258,8 @@
         "repositoryURL": "https://github.com/vapor/sql-kit.git",
         "state": {
           "branch": null,
-          "revision": "6401540d12f5637b5b59707cf86f72504c34010f",
-          "version": "3.8.0"
+          "revision": "2e1ffbfa5ec6c87f6c932ecebbc11c7a5bc0115d",
+          "version": "3.8.1"
         }
       },
       {
@@ -312,8 +303,8 @@
         "repositoryURL": "https://github.com/apple/swift-crypto.git",
         "state": {
           "branch": null,
-          "revision": "296d3308b4b2fa355cfe0de4ca411bf7a1cd8cf8",
-          "version": "1.1.4"
+          "revision": "3bea268b223651c4ab7b7b9ad62ef9b2d4143eb6",
+          "version": "1.1.6"
         }
       },
       {
@@ -321,8 +312,8 @@
         "repositoryURL": "https://github.com/apple/swift-log.git",
         "state": {
           "branch": null,
-          "revision": "12d3a8651d32295794a850307f77407f95b8c881",
-          "version": "1.4.1"
+          "revision": "5d66f7ba25daf4f94100e7022febf3c75e37a6c7",
+          "version": "1.4.2"
         }
       },
       {
@@ -339,8 +330,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "6d3ca7e54e06a69d0f2612c2ce8bb8b7319085a4",
-          "version": "2.26.0"
+          "revision": "3be4e0980075de10a4bc8dee07491d49175cfd7a",
+          "version": "2.27.0"
         }
       },
       {
@@ -366,8 +357,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-ssl.git",
         "state": {
           "branch": null,
-          "revision": "bbb38fbcbbe9dc4665b2c638dfa5681b01079bfb",
-          "version": "2.10.4"
+          "revision": "07c160b8724ee53a4b776328122be6338ff12bf2",
+          "version": "2.11.0"
         }
       },
       {
@@ -384,8 +375,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "07478e1edb9376f96c1fd5d797c5f401165d4ec2",
-          "version": "4.41.1"
+          "revision": "984852e6ef87c653c83df90b365b8adba736f109",
+          "version": "4.41.9"
         }
       },
       {
@@ -402,8 +393,8 @@
         "repositoryURL": "https://github.com/jpsim/Yams.git",
         "state": {
           "branch": null,
-          "revision": "9003d51672e516cc59297b7e96bff1dfdedcb4ea",
-          "version": "4.0.4"
+          "revision": "4ec0a3c5d6a2446667a2b22c8c7d0fc82dd1d3de",
+          "version": "4.0.5"
         }
       }
     ]

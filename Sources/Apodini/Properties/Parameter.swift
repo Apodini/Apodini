@@ -12,12 +12,6 @@ import ApodiniUtils
 /// Generic Parameter that can be used to mark that the options are meant for `@Parameter`s
 public enum ParameterOptionNameSpace { }
 
-/// A type storing some parameter's id
-public protocol AnyParameterID {
-    /// The parameter's value
-    var value: UUID { get }
-}
-
 
 /// The `@Parameter` property wrapper can be used to express input in `Components`
 @propertyWrapper
@@ -47,16 +41,12 @@ public struct Parameter<Element: Codable>: Property {
     }
     
     
-    // This is here because, other than a `@Parameter` property itself (ie the storage), the projected value
-    // isn't private, meaning that we can use this to specify a parameter when remote-invoking a handler.
-    // We could also make the projectedValue return self, although it seems like a better idea to limit ourselves
-    // to having to use the identifier to retrieve (and use) the endpoint parameter.
-    public struct ID: AnyParameterID {
-        public let value: UUID
+    /// A `Binding` that reflects this `Parameter`.
+    public var projectedValue: Binding<Element> {
+        Binding.parameter(self)
     }
-    public var projectedValue: ID { ID(value: self.id) }
-
-
+    
+    
     private init(
         id: UUID = UUID(),
         name: String? = nil,
