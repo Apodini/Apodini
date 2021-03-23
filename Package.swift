@@ -39,7 +39,7 @@ let package = Package(
         // As AssociatedTypeRequirementsKit does not follow semantic versioning we constraint it to the current minor version
         .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", .upToNextMinor(from: "0.3.2")),
         // Used to parse crontabs in the `Scheduler` class
-        .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from:"1.3.0"),
+        .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.0"),
         // OpenCombine seems to be only available as a pre release and is not feature complete.
         // We constrain it to the next minor version as it doen't follow semantic versioning.
         .package(url: "https://github.com/OpenCombine/OpenCombine.git", .upToNextMinor(from: "0.11.0")),
@@ -227,7 +227,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Runtime", package: "Runtime")
             ],
-            exclude:["README.md"]
+            exclude: ["README.md"]
         ),
 
         .testTarget(

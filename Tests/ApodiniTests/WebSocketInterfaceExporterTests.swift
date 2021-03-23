@@ -368,7 +368,7 @@ struct StatefulUserHandler: Handler {
 
 struct ThrowingHandlerNoImpact: Handler {
     @Throws(.other, .webSocketConnectionConsequence(.none)) var error: ApodiniError
-    @Parameter var doThrow: Bool = true
+    @Parameter var doThrow = true
     
     func handle() throws -> some ResponseTransformable {
         if doThrow {
@@ -381,7 +381,7 @@ struct ThrowingHandlerNoImpact: Handler {
 
 struct ThrowingHandlerCloseContext: Handler {
     @Throws(.other, .webSocketConnectionConsequence(.closeContext)) var error: ApodiniError
-    @Parameter var doThrow: Bool = true
+    @Parameter var doThrow = true
     
     func handle() throws -> some ResponseTransformable {
         if doThrow {
@@ -394,7 +394,7 @@ struct ThrowingHandlerCloseContext: Handler {
 
 struct ThrowingHandlerCloseChannel: Handler {
     @Throws(.other, .webSocketConnectionConsequence(.closeChannel)) var error: ApodiniError
-    @Parameter var doThrow: Bool = true
+    @Parameter var doThrow = true
     
     func handle() throws -> some ResponseTransformable {
         if doThrow {
