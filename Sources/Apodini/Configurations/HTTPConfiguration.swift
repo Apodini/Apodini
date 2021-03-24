@@ -14,8 +14,11 @@ import NIO
 /// command line arguments --hostname, --port and --bind or via the
 /// function `address`
 public final class HTTPConfiguration: Configuration {
-    private var address: BindAddress?
-
+    enum Defaults {
+        static let hostname = "0.0.0.0"
+        static let port = 8080
+    }
+    
     enum HTTPConfigurationError: LocalizedError {
         case incompatibleFlags
 
@@ -33,6 +36,10 @@ public final class HTTPConfiguration: Configuration {
             }
         }
     }
+    
+    
+    private var address: BindAddress?
+    
 
     /// initalize HTTPConfiguration
     public convenience init() {
@@ -73,7 +80,7 @@ public final class HTTPConfiguration: Configuration {
                 let port = components.last.flatMap { Int($0) }
                 return .hostname(hostname, port: port)
             case let (hostname, port, .none, .none):
-                return .hostname(hostname, port: port)
+                return .hostname(hostname ?? Defaults.hostname, port: port ?? Defaults.port)
             default:
                 throw HTTPConfigurationError.incompatibleFlags
             }
