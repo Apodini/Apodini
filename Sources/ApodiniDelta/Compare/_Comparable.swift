@@ -11,7 +11,9 @@ protocol ChangeContainable {
     var containsChange: Bool { get }
 }
 
-protocol _Comparable: Equatable {
+typealias Value = Codable & Equatable & CustomStringConvertible
+
+protocol _Comparable: Value {
     associatedtype Result: ChangeContainable
 
     var specifiedName: String? { get }

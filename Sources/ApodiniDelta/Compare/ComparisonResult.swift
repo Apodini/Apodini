@@ -7,11 +7,14 @@
 
 import Foundation
 
-enum ComparisonResult<C: Equatable> {
-    typealias Element = C
+enum ComparisonResult<V: Value> {
+    typealias Element = V
 
     case equal
-    case changed(from: Element, to: Element) // TODO add other change types, (added, removed)
+
+    case added(Element)
+    case changed(from: Element, to: Element)
+    case removed(Element)
 }
 
 extension ComparisonResult: ChangeContainable {
@@ -24,12 +27,15 @@ extension ComparisonResult: ChangeContainable {
     }
 }
 
-extension ComparisonResult where Element: ComparableProperty & CustomStringConvertible {
+extension ComparisonResult {
 
-    var valueChange: ValueChange? {
-        if case let .changed(from, to) = self {
-            return .init(location: from.identifierName, from: from.description, to: to.description)
+    var change: Change? {
+        let changeLocation = String(describing: Element.self)
+        switch self {
+        case .equal: return nil
+        case .added(let addedValue): return AddChange(location: changeLocation, addedValue: addedValue.description)
+        case .changed(from: let from, to: let to): return ValueChange(location: changeLocation, from: from.description, to: to.description)
+        case .removed(let removedValue): return RemoveChange(location: changeLocation, removedValue: removedValue.description)
         }
-        return nil
     }
 }

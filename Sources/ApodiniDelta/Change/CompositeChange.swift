@@ -12,7 +12,7 @@ class CompositeChange: Change {
 
     init(location: String, changes: [Change]) {
         self.changes = changes
-        super.init(location: location)
+        super.init(location: location, changeType: .composite)
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -40,3 +40,17 @@ class CompositeChange: Change {
         return false
     }
 }
+
+extension Array where Element: Change {
+
+    func equalsIgnoringOrder(to other: Self) -> Bool {
+        guard count == other.count else { return false }
+
+        for change in self where other.filter({ $0.isEqual(to: change) }).isEmpty {
+            return false
+        }
+
+        return true
+    }
+}
+

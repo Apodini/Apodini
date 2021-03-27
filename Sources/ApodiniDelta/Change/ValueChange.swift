@@ -7,23 +7,32 @@
 
 import Foundation
 
-class ValueChange: Change {
+struct ChangedValue<V: Value>: Value {
+    let from: V
+    let to: V
 
-    struct ChangedValue: Codable, Equatable { // TODO make values generic
-        var from: String
-        var to: String
+    var description: String {
+        "from: \(from) to: \(to)"
     }
+
+    init(from: V, to: V) {
+        self.from = from
+        self.to = to
+    }
+}
+
+class ValueChange<V: Value>: Change {
 
     private enum CodingKeys: String, CodingKey {
         case changedValue
     }
 
-    let changedValue: ChangedValue
+    let changedValue: ChangedValue<V>
 
-    init(location: String, from: String, to: String) {
-        self.changedValue = ChangedValue(from: from, to: to)
+    init(location: String, from: V, to: V) {
+        changedValue = .init(from: from, to: to)
 
-        super.init(location: location)
+        super.init(location: location, changeType: .update)
     }
 
     override func encode(to encoder: Encoder) throws {

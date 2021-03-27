@@ -11,7 +11,7 @@ import XCTest
 
 final class ComparableTests: XCTestCase {
     
-    struct EndpointName: ComparableProperty, CustomStringConvertible {
+    struct EndpointName: ComparableProperty {
         let name: String
         
         var description: String {
@@ -19,7 +19,7 @@ final class ComparableTests: XCTestCase {
         }
     }
     
-    struct Path: ComparableProperty, CustomStringConvertible {
+    struct Path: ComparableProperty {
         let path: String
         
         var description: String {
@@ -31,6 +31,8 @@ final class ComparableTests: XCTestCase {
         let path: Path
         let name: EndpointName
         let moreComplexProperty: MoreComplexProperty
+        
+        var description: String { "" }
         
         func compare(to other: CustomEndpoint) -> ChangeContextNode {
             let context = ChangeContextNode()
@@ -44,8 +46,8 @@ final class ComparableTests: XCTestCase {
         
         func evaluate(result: ChangeContextNode) -> Change? {
             let childrenChanges = [
-                path.change(in: result)?.valueChange,
-                name.change(in: result)?.valueChange,
+                path.change(in: result)?.change,
+                name.change(in: result)?.change,
                 moreComplexProperty.evaluate(result: result)
             ].compactMap { $0 }
             
@@ -67,7 +69,7 @@ final class ComparableTests: XCTestCase {
             guard let ownContext = change(in: result) else { return nil }
             
             let changes = [
-                name.change(in: ownContext)?.valueChange
+                name.change(in: ownContext)?.change
             ].compactMap { $0 }
             
             guard !changes.isEmpty else { return nil }
@@ -75,7 +77,9 @@ final class ComparableTests: XCTestCase {
             return CompositeChange(location: identifierName, changes: changes)
         }
         
-        struct MoreComplexPropertyName: ComparableProperty, CustomStringConvertible {
+        var description: String { "" }
+        
+        struct MoreComplexPropertyName: ComparableProperty {
             let name: String
             
             var description: String {
