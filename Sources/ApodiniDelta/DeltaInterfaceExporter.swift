@@ -33,7 +33,7 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
                 the web service structures should be saved.
                 """)
         }
-        
+
         webServiceStructure.export(at: webServiceStructuresPath)
         serveWebServiceStructure()
     }
@@ -44,7 +44,7 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
 
         if let data = try? jsonEncoder.encode(webServiceStructure),
            let jsonString = String(data: data, encoding: .utf8) {
-            
+
             app.vapor.app.get("delta") { _ -> String in
                 jsonString
             }

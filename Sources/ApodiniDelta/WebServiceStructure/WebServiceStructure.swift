@@ -33,7 +33,7 @@ struct WebServiceStructure {
 
         services.append(service)
     }
-    
+
 }
 
 extension WebServiceStructure: Codable {
