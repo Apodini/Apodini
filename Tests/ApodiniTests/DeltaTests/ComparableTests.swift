@@ -18,7 +18,7 @@ final class ComparableTests: XCTestCase {
             name
         }
     }
-
+    
     struct Path: ComparableProperty, CustomStringConvertible {
         let path: String
         
@@ -26,7 +26,7 @@ final class ComparableTests: XCTestCase {
             path
         }
     }
-
+    
     struct CustomEndpoint: ComparableObject {
         let path: Path
         let name: EndpointName
@@ -35,8 +35,8 @@ final class ComparableTests: XCTestCase {
         func compare(to other: CustomEndpoint) -> ChangeContextNode {
             let context = ChangeContextNode()
             
-            context.register(compare(\.path, with: other))
-            context.register(compare(\.name, with: other))
+            context.register(compare(\.path, with: other), for: Path.self)
+            context.register(compare(\.name, with: other), for: EndpointName.self)
             context.register(compare(\.moreComplexProperty, with: other), for: MoreComplexProperty.self)
             
             return context
@@ -51,15 +51,15 @@ final class ComparableTests: XCTestCase {
             
             guard !childrenChanges.isEmpty else { return nil }
             
-            return CompositeChange(location: .init(describing: Self.self), changes: childrenChanges)
+            return CompositeChange(location: identifierName, changes: childrenChanges)
         }
     }
-
+    
     struct MoreComplexProperty: ComparableObject {
         
         func compare(to other: MoreComplexProperty) -> ChangeContextNode {
             let context = ChangeContextNode()
-            context.register(compare(\.name, with: other))
+            context.register(compare(\.name, with: other), for: MoreComplexPropertyName.self)
             return context
         }
         
@@ -72,7 +72,7 @@ final class ComparableTests: XCTestCase {
             
             guard !changes.isEmpty else { return nil }
             
-            return CompositeChange(location: String(describing: Self.self), changes: changes)
+            return CompositeChange(location: identifierName, changes: changes)
         }
         
         struct MoreComplexPropertyName: ComparableProperty, CustomStringConvertible {

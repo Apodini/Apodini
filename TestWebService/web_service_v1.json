@@ -7,32 +7,29 @@
   },
   "schemas" : [
     {
-      "typeName" : "UInt"
-    },
-    {
       "properties" : [
         {
           "reference" : {
             "schemaName" : "UUID"
-          },
-          "offset" : 2,
-          "name" : "writtenId",
-          "type" : {
-            "exactlyOne" : true
-          }
-        },
-        {
-          "reference" : {
-            "schemaName" : "Int"
           },
           "offset" : 1,
           "name" : "id",
           "type" : {
             "exactlyOne" : true
           }
+        },
+        {
+          "reference" : {
+            "schemaName" : "String"
+          },
+          "offset" : 2,
+          "name" : "title",
+          "type" : {
+            "exactlyOne" : true
+          }
         }
       ],
-      "typeName" : "User"
+      "typeName" : "Post"
     },
     {
       "typeName" : "UUID"
@@ -47,10 +44,10 @@
       "properties" : [
         {
           "reference" : {
-            "schemaName" : "String"
+            "schemaName" : "Int"
           },
-          "offset" : 2,
-          "name" : "title",
+          "offset" : 1,
+          "name" : "id",
           "type" : {
             "exactlyOne" : true
           }
@@ -59,14 +56,17 @@
           "reference" : {
             "schemaName" : "UUID"
           },
-          "offset" : 1,
-          "name" : "id",
+          "offset" : 2,
+          "name" : "writtenId",
           "type" : {
             "exactlyOne" : true
           }
         }
       ],
-      "typeName" : "Post"
+      "typeName" : "User"
+    },
+    {
+      "typeName" : "UInt"
     }
   ],
   "services" : [
@@ -77,30 +77,6 @@
 
       ],
       "handlerIdentifier" : "0.0",
-      "response" : {
-        "schemaName" : "String"
-      },
-      "handlerName" : "Text"
-    },
-    {
-      "operation" : "read",
-      "absolutePath" : "/v1/swift",
-      "parameters" : [
-
-      ],
-      "handlerIdentifier" : "0.4.0.0.0",
-      "response" : {
-        "schemaName" : "String"
-      },
-      "handlerName" : "Text"
-    },
-    {
-      "operation" : "read",
-      "absolutePath" : "/v1/swift/5/3",
-      "parameters" : [
-
-      ],
-      "handlerIdentifier" : "0.4.0.0.1.0",
       "response" : {
         "schemaName" : "String"
       },
@@ -125,6 +101,30 @@
         "schemaName" : "Int"
       },
       "handlerName" : "Random"
+    },
+    {
+      "operation" : "read",
+      "absolutePath" : "/v1/swift",
+      "parameters" : [
+
+      ],
+      "handlerIdentifier" : "0.4.0.0.0",
+      "response" : {
+        "schemaName" : "String"
+      },
+      "handlerName" : "Text"
+    },
+    {
+      "operation" : "read",
+      "absolutePath" : "/v1/swift/5/3",
+      "parameters" : [
+
+      ],
+      "handlerIdentifier" : "0.4.0.0.1.0",
+      "response" : {
+        "schemaName" : "String"
+      },
+      "handlerName" : "Text"
     },
     {
       "operation" : "read",
@@ -178,6 +178,26 @@
     },
     {
       "operation" : "read",
+      "absolutePath" : "/v1/auction",
+      "parameters" : [
+        {
+          "nilIsValidValue" : false,
+          "schemaReference" : {
+            "schemaName" : "UInt"
+          },
+          "name" : "bid",
+          "necessity" : "required",
+          "type" : "lightweight"
+        }
+      ],
+      "handlerIdentifier" : "0.1.0.0",
+      "response" : {
+        "schemaName" : "String"
+      },
+      "handlerName" : "Auction"
+    },
+    {
+      "operation" : "read",
       "absolutePath" : "/v1/user/{userId}",
       "parameters" : [
         {
@@ -224,26 +244,6 @@
         "schemaName" : "Post"
       },
       "handlerName" : "PostHandler"
-    },
-    {
-      "operation" : "read",
-      "absolutePath" : "/v1/auction",
-      "parameters" : [
-        {
-          "nilIsValidValue" : false,
-          "schemaReference" : {
-            "schemaName" : "UInt"
-          },
-          "name" : "bid",
-          "necessity" : "required",
-          "type" : "lightweight"
-        }
-      ],
-      "handlerIdentifier" : "0.1.0.0",
-      "response" : {
-        "schemaName" : "String"
-      },
-      "handlerName" : "Auction"
     }
   ]
 }

@@ -12,8 +12,11 @@ enum ComparisonResult<C: Equatable> {
 
     case equal
     case changed(from: Element, to: Element) // TODO add other change types, (added, removed)
+}
 
-    var isChange: Bool {
+extension ComparisonResult: ChangeContainable {
+
+    var containsChange: Bool {
         if case .equal = self {
             return false
         }
@@ -21,11 +24,11 @@ enum ComparisonResult<C: Equatable> {
     }
 }
 
-extension ComparisonResult where Element: CustomStringConvertible {
+extension ComparisonResult where Element: ComparableProperty & CustomStringConvertible {
 
     var valueChange: ValueChange? {
         if case let .changed(from, to) = self {
-            return .init(location: String(describing: Element.self), from: from.description, to: to.description)
+            return .init(location: from.identifierName, from: from.description, to: to.description)
         }
         return nil
     }

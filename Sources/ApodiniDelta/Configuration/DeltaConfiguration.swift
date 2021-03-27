@@ -17,14 +17,19 @@ struct DeltaStorageKey: StorageKey {
 
 public class DeltaConfiguration: Configuration {
 
-    let webServiceStructurePath: String
+    var webServiceStructurePath: String?
 
-    public init(absolutePath: String) {
-        self.webServiceStructurePath = absolutePath.hasSuffix("/") ? absolutePath : absolutePath + "/"
+    public init() {
+        self.webServiceStructurePath = nil
     }
 
     public func configure(_ app: Application) {
         app.storage.set(DeltaStorageKey.self, to: DeltaStorageValue(configuration: self))
+    }
+
+    public func absolutePath(_ absolutePath: String) -> Self {
+        self.webServiceStructurePath = absolutePath.hasSuffix("/") ? absolutePath : absolutePath + "/"
+        return self
     }
 
 }

@@ -7,29 +7,13 @@
 
 import Foundation
 
-protocol ComparableProperty: Equatable {
+protocol ComparableProperty: _Comparable {
     typealias Result = ComparisonResult<Self>
-
-    func compare(to other: Self) -> Result
 }
 
 extension ComparableProperty {
 
     func compare(to other: Self) -> Result {
         self == other ? .equal : .changed(from: self, to: other)
-    }
-}
-
-extension ComparableProperty {
-
-    func change(in node: ChangeContextNode) -> Result? {
-        node.change(for: Self.self)
-    }
-}
-
-extension ComparableProperty {
-
-    static var identifier: ObjectIdentifier {
-        .init(Self.self)
     }
 }

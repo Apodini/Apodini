@@ -7,39 +7,18 @@
 
 import Foundation
 
-protocol ComparableObject {
+protocol ComparableObject: _Comparable {
     typealias Result = ChangeContextNode
 
-    func compare(to other: Self) -> Result
     func evaluate(result: Result) -> Change?
 }
 
 extension ComparableObject {
 
-    func compare<P: ComparableProperty>(_ keyPath: KeyPath<Self, P>, with other: Self) -> P.Result {
+    func compare<C: _Comparable>(_ keyPath: KeyPath<Self, C>, with other: Self) -> C.Result {
         let ownProperty = self[keyPath: keyPath]
         let othersProperty = other[keyPath: keyPath]
 
         return ownProperty.compare(to: othersProperty)
-    }
-
-    func compare<O: ComparableObject>(_ keyPath: KeyPath<Self, O>, with other: Self) -> Self.Result {
-        let ownProperty = self[keyPath: keyPath]
-        let othersProperty = other[keyPath: keyPath]
-
-        return ownProperty.compare(to: othersProperty)
-    }
-}
-
-extension ComparableObject {
-
-    func change(in node: Result) -> Result? {
-        node.change(for: Self.self)
-    }
-}
-
-extension ComparableObject {
-    static var identifier: ObjectIdentifier {
-        .init(Self.self)
     }
 }
