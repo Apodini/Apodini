@@ -98,11 +98,11 @@ final class ComparableTests: XCTestCase {
         let context = customEndpoint.compare(to: customEndpoint2)
 
         let change = try XCTUnwrap(customEndpoint.evaluate(result: context))
-        let expectedResult = CompositeChange(
+        let expectedResult: Change = .compositeChange(
             location: "CustomEndpoint",
             changes: [
-                ValueChange(location: "Path", from: Path(path: "path1"), to: .init(path: "path2")),
-                CompositeChange(
+                .valueChange(location: "Path", from: Path(path: "path1"), to: .init(path: "path2")),
+                .compositeChange(
                     location: "[SomeParameter]",
                     changes: [
                         AddChange(location: "SomeParameter", addedValue: someParameter2)

@@ -28,3 +28,23 @@ extension Change: Equatable {
         lhs.isEqual(to: rhs)
     }
 }
+
+extension Change {
+
+    static func valueChange<V: Value>(location: String, from: V, to: V) -> Change {
+        ValueChange(location: location, from: from, to: to)
+    }
+
+    static func addChange<V: Value>(location: String, addedValue: V) -> Change {
+        AddChange(location: location, addedValue: addedValue)
+    }
+
+    static func removeChange<V: Value>(location: String, removedValue: V) -> Change {
+        RemoveChange(location: location, removedValue: removedValue)
+    }
+
+    static func compositeChange(location: String, changes: [Change]) -> Change {
+        CompositeChange(location: location, changes: changes)
+    }
+
+}

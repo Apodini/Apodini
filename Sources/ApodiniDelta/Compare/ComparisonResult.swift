@@ -33,9 +33,9 @@ extension ComparisonResult {
         let changeLocation = String(describing: Element.self)
         switch self {
         case .equal: return nil
-        case .added(let addedValue): return AddChange(location: changeLocation, addedValue: addedValue)
-        case .changed(from: let from, to: let to): return ValueChange(location: changeLocation, from: from, to: to)
-        case .removed(let removedValue): return RemoveChange(location: changeLocation, removedValue: removedValue)
+        case .added(let addedValue): return .addChange(location: changeLocation, addedValue: addedValue)
+        case .changed(from: let from, to: let to): return .valueChange(location: changeLocation, from: from, to: to)
+        case .removed(let removedValue): return .removeChange(location: changeLocation, removedValue: removedValue)
         }
     }
 }
