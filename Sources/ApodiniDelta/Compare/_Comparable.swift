@@ -27,6 +27,8 @@ extension _Comparable {
 
     var identifierName: String { specifiedName ?? String(describing: Self.self) }
 
+    var description: String { identifierName }
+
     static var identifier: ObjectIdentifier { .init(Self.self) }
 
     func change(in node: ChangeContextNode) -> Result? {

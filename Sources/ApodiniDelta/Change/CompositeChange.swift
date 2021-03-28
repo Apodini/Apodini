@@ -53,4 +53,3 @@ extension Array where Element: Change {
         return true
     }
 }
-
