@@ -35,7 +35,7 @@ final class ComparableTests: XCTestCase {
             
             context.register(compare(\.path, with: other), for: Path.self)
             context.register(compare(\.name, with: other), for: EndpointName.self)
-            context.register(compare(collection: \.parameters, with: other))
+            context.register(compare(\.parameters, with: other), for: [SomeParameter].self)
             
             return context
         }

@@ -7,6 +7,9 @@
 
 import Foundation
 
+extension Array: _Comparable where Element: ComparableObject {}
+extension Array: ComparableCollection where Element: ComparableObject {}
+
 protocol ComparableCollection: Collection, _Comparable where Element: ComparableObject {
     typealias Result = CollectionChangeContextNode<Element>
 }
@@ -17,7 +20,7 @@ extension ComparableCollection {
         let result = Result()
         var processed: [DeltaIdentifier] = []
 
-        for comparableObject in self {
+        forEach { comparableObject in
             let currentIdentifier = comparableObject.deltaIdentifier
 
             if let matched = other.first(where: { $0.deltaIdentifier == currentIdentifier }) {

@@ -23,11 +23,4 @@ extension ComparableObject {
 
         return ownProperty.compare(to: othersProperty)
     }
-
-    func compare<C: Collection, O: ComparableObject>(collection keyPath: KeyPath<Self, C>, with other: Self) -> CollectionChangeContextNode<O> where C.Element == O {
-        let ownProperty = self[keyPath: keyPath]
-        let othersProperty = other[keyPath: keyPath]
-
-        return ownProperty.compare(to: othersProperty)
-    }
 }
