@@ -20,11 +20,7 @@ extension WebServiceStructure {
         let jsonFileURL = URL(fileURLWithPath: path).appendingPathComponent(filename)
 
         do {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
-            let data = try encoder.encode(self)
-            let output = String(decoding: data, as: UTF8.self)
-            try output.write(to: jsonFileURL, atomically: true, encoding: .utf8)
+            try jsonString().write(to: jsonFileURL, atomically: true, encoding: .utf8)
         } catch {
             print("Could not save \(error)")
         }

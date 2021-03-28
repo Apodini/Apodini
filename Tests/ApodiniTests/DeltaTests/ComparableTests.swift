@@ -49,7 +49,7 @@ final class ComparableTests: XCTestCase {
             
             guard !childrenChanges.isEmpty else { return nil }
             
-            return CompositeChange(location: identifierName, changes: childrenChanges)
+            return .compositeChange(location: identifierName, changes: childrenChanges)
         }
     }
     
@@ -74,7 +74,7 @@ final class ComparableTests: XCTestCase {
             
             guard !changes.isEmpty else { return nil }
             
-            return CompositeChange(location: identifierName, changes: changes)
+            return .compositeChange(location: identifierName, changes: changes)
         }
     }
 
@@ -105,7 +105,7 @@ final class ComparableTests: XCTestCase {
                 .compositeChange(
                     location: "[SomeParameter]",
                     changes: [
-                        AddChange(location: "SomeParameter", addedValue: someParameter2)
+                        .addChange(location: "SomeParameter", addedValue: someParameter2)
                     ]
                 )
             ]

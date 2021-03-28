@@ -39,14 +39,9 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
     }
 
     func serveWebServiceStructure() {
-        let jsonEncoder = JSONEncoder()
-        jsonEncoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
-
-        if let data = try? jsonEncoder.encode(webServiceStructure),
-           let jsonString = String(data: data, encoding: .utf8) {
-
+        if let json = try? webServiceStructure.jsonString() {
             app.vapor.app.get("delta") { _ -> String in
-                jsonString
+                json
             }
         }
     }

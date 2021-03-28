@@ -8,10 +8,10 @@
 import Foundation
 
 extension Encodable {
-
-    func jsonString() throws -> String {
+    
+    func jsonString(with outputFormatting: JSONEncoder.OutputFormatting = [.prettyPrinted, .withoutEscapingSlashes, .sortedKeys]) throws -> String {
         let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+        encoder.outputFormatting = outputFormatting
         let data = try encoder.encode(self)
         return String(decoding: data, as: UTF8.self)
     }

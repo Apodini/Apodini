@@ -62,7 +62,7 @@ extension ComparableCollection {
 
         guard !changes.isEmpty else { return nil }
 
-        return CompositeChange(location: "[\(String(describing: Element.self))]", changes: changes)
+        return .compositeChange(location: "[\(String(describing: Element.self))]", changes: changes)
     }
 
 }
