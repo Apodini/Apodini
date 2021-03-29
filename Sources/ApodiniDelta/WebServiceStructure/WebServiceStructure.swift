@@ -9,9 +9,11 @@ import Apodini
 
 struct WebServiceStructure {
 
-    var version: Version?
+    var version: Version!
     var services: [Service] = []
     var schemaBuilder = SchemaBuilder()
+
+    var schemas: [Schema] {  Array(schemaBuilder.schemas) }
 
     mutating func addEndpoint<H: Handler>(_ endpoint: Endpoint<H>) {
         if version == nil {
@@ -54,11 +56,42 @@ extension WebServiceStructure: Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
-        version = try container.decode(Version?.self, forKey: .version)
+        version = try container.decode(Version.self, forKey: .version)
         services = try container.decode([Service].self, forKey: .services)
         let schemas = try container.decode(Set<Schema>.self, forKey: .schemas)
         schemaBuilder = SchemaBuilder()
         schemaBuilder.addSchemas(schemas)
     }
 
+}
+
+extension WebServiceStructure: ComparableObject {
+
+    var deltaIdentifier: DeltaIdentifier {
+        .init(version.description)
+    }
+
+    func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
+        let changes = [
+            services.evaluate(node: result),
+            schemas.evaluate(node: result)
+        ].compactMap { $0 }
+
+        guard !changes.isEmpty else { return nil }
+
+        return .compositeChange(location: Self.changeLocation, changes: changes)
+    }
+
+    func compare(to other: WebServiceStructure) -> ChangeContextNode {
+        let context = ChangeContextNode()
+
+        context.register(result: compare(\.services, with: other), for: Service.self)
+        context.register(result: compare(\.schemas, with: other), for: Schema.self)
+
+        return context
+    }
+
+    // Required from ComparableObject protocol, however not used for WebServiceStructure
+    static func == (lhs: WebServiceStructure, rhs: WebServiceStructure) -> Bool { false }
+    func hash(into hasher: inout Hasher) {}
 }

@@ -7,23 +7,26 @@
 
 import Foundation
 
+class SchemaName: PrimitiveValueWrapper<String>, ComparableProperty {}
+class IsEnum: PrimitiveValueWrapper<Bool>, ComparableProperty {}
+
 struct Schema {
-    let typeName: String
+    let typeName: SchemaName
     let properties: Set<SchemaProperty>
-    let isEnumeration: Bool
+    let isEnumeration: IsEnum
 
     var reference: SchemaReference {
-        .reference(typeName)
+        .reference(typeName.value)
     }
 
     private init(typeName: String, properties: Set<SchemaProperty>, isEnumeration: Bool = false) {
-        self.typeName = typeName
+        self.typeName = .init(typeName)
         self.properties = properties
-        self.isEnumeration = isEnumeration
+        self.isEnumeration = .init(isEnumeration)
     }
 
     func updated(typeName: String) -> Schema {
-        .init(typeName: typeName, properties: properties, isEnumeration: isEnumeration)
+        .init(typeName: typeName, properties: properties, isEnumeration: isEnumeration.value)
     }
 
 }
@@ -57,9 +60,9 @@ extension Schema: Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
-        typeName = try container.decode(String.self, forKey: .typeName)
+        typeName = try container.decode(SchemaName.self, forKey: .typeName)
         properties = try container.decodeIfPresent(Set<SchemaProperty>.self, forKey: .properties) ?? .empty
-        isEnumeration = try container.decodeIfPresent(Bool.self, forKey: .isEnumeration) ?? false
+        isEnumeration = try container.decodeIfPresent(IsEnum.self, forKey: .isEnumeration) ?? .init(false)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -68,7 +71,7 @@ extension Schema: Codable {
         try container.encode(typeName, forKey: .typeName)
 
         if !properties.isEmpty { try container.encode(properties, forKey: .properties) }
-        if isEnumeration { try container.encode(isEnumeration, forKey: .isEnumeration) }
+        if isEnumeration.value { try container.encode(isEnumeration, forKey: .isEnumeration) }
     }
 }
 
@@ -87,6 +90,41 @@ extension Schema: Equatable {
         lhs.typeName == rhs.typeName
             && lhs.properties == rhs.properties
             && lhs.isEnumeration == rhs.isEnumeration
+    }
+
+}
+
+extension Schema: ComparableObject {
+    var deltaIdentifier: DeltaIdentifier { .init(typeName.value) }
+
+    func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
+        let context: ChangeContextNode
+        if !embeddedInCollection {
+            guard let ownContext = result.change(for: Self.self) else { return nil }
+            context = ownContext
+        } else {
+            context = result
+        }
+
+        let changes = [
+            typeName.change(in: context),
+            properties.evaluate(node: context),
+            isEnumeration.change(in: context)
+        ].compactMap { $0 }
+
+        guard !changes.isEmpty else { return nil }
+
+        return .compositeChange(location: Self.changeLocation, changes: changes)
+    }
+
+    func compare(to other: Schema) -> ChangeContextNode {
+        let context = ChangeContextNode()
+
+        context.register(compare(\.typeName, with: other), for: SchemaName.self)
+        context.register(result: compare(\.properties, with: other), for: SchemaProperty.self)
+        context.register(compare(\.isEnumeration, with: other), for: IsEnum.self)
+
+        return context
     }
 
 }

@@ -7,16 +7,19 @@
 
 import Foundation
 
+class PropertyName: PrimitiveValueWrapper<String>, ComparableProperty {}
+class PropertyOffset: PrimitiveValueWrapper<Int>, ComparableProperty {}
+
 struct SchemaProperty: Codable {
 
-    let name: String
-    let offset: Int
+    let name: PropertyName
+    let offset: PropertyOffset
     let type: PropertyType
     let reference: SchemaReference
 
     private init(name: String, offset: Int, type: PropertyType, reference: SchemaReference) {
-        self.name = name
-        self.offset = offset
+        self.name = .init(name)
+        self.offset = .init(offset)
         self.type = type
         self.reference = reference
     }
@@ -79,4 +82,41 @@ extension SchemaProperty: Equatable {
             && lhs.type == rhs.type
             && lhs.reference == rhs.reference
     }
+}
+
+extension SchemaProperty: ComparableObject {
+    var deltaIdentifier: DeltaIdentifier { .init(name.value) }
+
+    func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
+        let context: ChangeContextNode
+        if !embeddedInCollection {
+            guard let ownContext = result.change(for: Self.self) else { return nil }
+            context = ownContext
+        } else {
+            context = result
+        }
+
+        let changes = [
+            name.change(in: context),
+            offset.change(in: context),
+            type.change(in: context),
+            reference.change(in: context)
+        ].compactMap { $0 }
+
+        guard !changes.isEmpty else { return nil }
+
+        return .compositeChange(location: Self.changeLocation, changes: changes)
+    }
+
+    func compare(to other: SchemaProperty) -> ChangeContextNode {
+        let context = ChangeContextNode()
+
+        context.register(compare(\.name, with: other), for: PropertyName.self)
+        context.register(compare(\.offset, with: other), for: PropertyOffset.self)
+        context.register(compare(\.type, with: other), for: PropertyType.self)
+        context.register(compare(\.reference, with: other), for: SchemaReference.self)
+
+        return context
+    }
+
 }

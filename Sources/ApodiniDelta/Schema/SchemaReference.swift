@@ -24,3 +24,5 @@ extension SchemaReference {
         .reference("")
     }
 }
+
+extension SchemaReference: ComparableProperty {}

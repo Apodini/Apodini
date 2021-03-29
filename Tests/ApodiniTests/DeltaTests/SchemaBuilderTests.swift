@@ -45,7 +45,7 @@ final class SchemaBuilderTests: XCTestCase {
 
         XCTAssertEqual(primitives, [.primitive(type: .int), .primitive(type: .string), .primitive(type: .float), .primitive(type: .uuid)])
 
-        XCTAssertEqual(builderSchemas.filter { $0.isEnumeration }.count, 1)
+        XCTAssertEqual(builderSchemas.filter { $0.isEnumeration.value }.count, 1)
 
         let enumSchema = try XCTUnwrap(builderSchemas.first { $0.reference == .reference("Direction") })
         let expectedEnumSchema: Schema = .enumeration(typeName: "Direction", cases: "right", "left")

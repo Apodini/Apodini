@@ -7,12 +7,17 @@
 
 import Foundation
 
+class ParameterName: PrimitiveValueWrapper<String>, ComparableProperty {}
+class NilIsValidValue: PrimitiveValueWrapper<Bool>, ComparableProperty {}
+extension ParameterType: ComparableProperty {}
+extension Necessity: ComparableProperty {}
+
 struct ServiceParameter: Codable {
 
-    let name: String
+    let parameterName: ParameterName
     let necessity: Necessity
     let type: ParameterType
-    let nilIsValidValue: Bool
+    let nilIsValidValue: NilIsValidValue
     let schemaReference: SchemaReference
 }
 
@@ -22,12 +27,53 @@ extension Array where Element == AnyEndpointParameter {
         map {
             let reference = builder.build(for: $0.propertyType, root: false) ?? .empty
             return ServiceParameter(
-                name: $0.name,
+                parameterName: .init($0.name),
                 necessity: $0.necessity,
                 type: $0.parameterType,
-                nilIsValidValue: $0.nilIsValidValue,
+                nilIsValidValue: .init($0.nilIsValidValue),
                 schemaReference: reference
             )
         }
+    }
+}
+
+extension ServiceParameter: ComparableObject {
+
+    var deltaIdentifier: DeltaIdentifier {
+        .init(parameterName.value)
+    }
+
+    func compare(to other: ServiceParameter) -> ChangeContextNode {
+        let context = ChangeContextNode()
+
+        context.register(compare(\.parameterName, with: other), for: ParameterName.self)
+        context.register(compare(\.necessity, with: other), for: Necessity.self)
+        context.register(compare(\.type, with: other), for: ParameterType.self)
+        context.register(compare(\.nilIsValidValue, with: other), for: NilIsValidValue.self)
+        context.register(compare(\.schemaReference, with: other), for: SchemaReference.self)
+
+        return context
+    }
+
+    func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
+        let context: ChangeContextNode
+        if !embeddedInCollection {
+            guard let ownContext = result.change(for: Self.self) else { return nil }
+            context = ownContext
+        } else {
+            context = result
+        }
+
+        let changes = [
+            parameterName.change(in: context),
+            necessity.change(in: context),
+            type.change(in: context),
+            nilIsValidValue.change(in: context),
+            schemaReference.change(in: context)
+        ].compactMap { $0 }
+
+        guard !changes.isEmpty else { return nil }
+
+        return .compositeChange(location: Self.changeLocation, changes: changes)
     }
 }

@@ -7,6 +7,8 @@
 
 import Foundation
 
+extension PropertyType: ComparableProperty {}
+
 enum PropertyType: Equatable, Hashable {
     case optional
     case exactlyOne

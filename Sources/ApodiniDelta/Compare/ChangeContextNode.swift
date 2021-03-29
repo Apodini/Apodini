@@ -21,6 +21,17 @@ class ChangeContextNode {
     func change<C: _Comparable>(for comparable: C.Type) -> C.Result? {
         changes[C.identifier] as? C.Result
     }
+
+    func register<O: ComparableObject>(result: CollectionChangeContextNode<O>, for type: O.Type = O.self) {
+        if result.containsChange {
+            precondition(changes[O.identifier] == nil, "Attempting to override changes of \(type).")
+            changes[O.identifier] = result
+        }
+    }
+
+    func change<O: ComparableObject>(comparable: O.Type) -> CollectionChangeContextNode<O>? {
+        changes[O.identifier] as? CollectionChangeContextNode<O>
+    }
 }
 
 extension ChangeContextNode: ChangeContainable {

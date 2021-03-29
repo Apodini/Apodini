@@ -7,8 +7,8 @@
 
 import Foundation
 
-enum ComparisonResult<V: Value> {
-    typealias Element = V
+enum ComparisonResult<C: _Comparable> {
+    typealias Element = C
 
     case equal
 
@@ -30,7 +30,7 @@ extension ComparisonResult: ChangeContainable {
 extension ComparisonResult {
 
     var change: Change? {
-        let changeLocation = String(describing: Element.self)
+        let changeLocation = Element.changeLocation
         switch self {
         case .equal: return nil
         case .added(let addedValue): return .addChange(location: changeLocation, addedValue: addedValue)

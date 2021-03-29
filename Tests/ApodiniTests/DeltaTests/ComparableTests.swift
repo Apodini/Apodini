@@ -35,21 +35,21 @@ final class ComparableTests: XCTestCase {
             
             context.register(compare(\.path, with: other), for: Path.self)
             context.register(compare(\.name, with: other), for: EndpointName.self)
-            context.register(compare(\.parameters, with: other), for: [SomeParameter].self)
+            context.register(result: compare(\.parameters, with: other), for: SomeParameter.self)
             
             return context
         }
         
         func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
             let childrenChanges = [
-                path.change(in: result)?.change,
-                name.change(in: result)?.change,
+                path.change(in: result),
+                name.change(in: result),
                 parameters.evaluate(node: result)
             ].compactMap { $0 }
             
             guard !childrenChanges.isEmpty else { return nil }
             
-            return .compositeChange(location: identifierName, changes: childrenChanges)
+            return .compositeChange(location: Self.changeLocation, changes: childrenChanges)
         }
     }
     
@@ -68,7 +68,7 @@ final class ComparableTests: XCTestCase {
         func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
             let context: ChangeContextNode
             if !embeddedInCollection {
-                guard let ownContext = change(in: result) else { return nil }
+                guard let ownContext = result.change(for: Self.self) else { return nil }
                 context = ownContext
             } else {
                 context = result
@@ -76,12 +76,12 @@ final class ComparableTests: XCTestCase {
             
             
             let changes = [
-                name.change(in: context)?.change
+                name.change(in: context)
             ].compactMap { $0 }
             
             guard !changes.isEmpty else { return nil }
             
-            return .compositeChange(location: identifierName, changes: changes)
+            return .compositeChange(location: Self.changeLocation, changes: changes)
         }
 }
 

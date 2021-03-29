@@ -7,6 +7,8 @@
 
 import Foundation
 
+extension PrimitiveType: ComparableProperty {}
+
 enum PrimitiveType: String, RawRepresentable, Codable {
     case int = "Int"
     case int32 = "Int32"

@@ -17,3 +17,10 @@ extension ComparableProperty {
         self == other ? .equal : .changed(from: self, to: other)
     }
 }
+
+extension ComparableProperty {
+
+    func change(in node: ChangeContextNode) -> Change? {
+        node.change(for: Self.self)?.change
+    }
+}
