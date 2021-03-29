@@ -7,12 +7,15 @@
 
 import Foundation
 
+/// Represent a change where a value gets added at a certain `location`
 class AddChange<V: Value>: Change {
 
+    // MARK: - CodingKeys
     private enum CodingKeys: String, CodingKey {
         case addedValue
     }
 
+    /// The `value` that has been added
     let addedValue: V
 
     init(location: String, addedValue: V) {
@@ -21,6 +24,7 @@ class AddChange<V: Value>: Change {
         super.init(location: location, changeType: .addition)
     }
 
+    // MARK: - Codable
     override func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(addedValue, forKey: .addedValue)
@@ -33,6 +37,7 @@ class AddChange<V: Value>: Change {
         try super.init(from: decoder)
     }
 
+    // MARK: - Overrides
     override func isEqual(to other: Change) -> Bool {
         if let other = other as? AddChange {
             return super.isEqual(to: other) && addedValue == other.addedValue

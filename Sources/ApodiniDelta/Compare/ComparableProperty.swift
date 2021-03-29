@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Base protocol that all comparable properties (such as strings, integers etc.) conform to
 protocol ComparableProperty: _Comparable {
     typealias Result = ComparisonResult<Self>
 }

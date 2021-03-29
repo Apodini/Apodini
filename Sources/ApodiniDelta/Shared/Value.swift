@@ -7,4 +7,5 @@
 
 import Foundation
 
+/// A typealias of `Codable` & `Equatable` & `Hashable` that most of the objects in ApodiniDelta should conform to
 typealias Value = Codable & Equatable & Hashable

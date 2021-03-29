@@ -7,14 +7,22 @@
 
 import Foundation
 
-class PropertyName: PrimitiveValueWrapper<String>, ComparableProperty {}
-class PropertyOffset: PrimitiveValueWrapper<Int>, ComparableProperty {}
+class PropertyName: PrimitiveValueWrapper<String> {}
+class PropertyOffset: PrimitiveValueWrapper<Int> {}
 
+/// A property of a schema
 struct SchemaProperty: Codable {
 
+    /// Property name
     let name: PropertyName
+
+    /// Offset of the property
     let offset: PropertyOffset
+
+    /// Property type
     let type: PropertyType
+
+    /// The reference to the schema of property type
     let reference: SchemaReference
 
     private init(name: String, offset: Int, type: PropertyType, reference: SchemaReference) {
@@ -53,6 +61,7 @@ struct SchemaProperty: Codable {
     }
 }
 
+// MARK: - Convenience
 extension SchemaProperty {
 
     static func property(named: String, offset: Int, type: PropertyType, reference: SchemaReference) -> SchemaProperty {
@@ -64,6 +73,7 @@ extension SchemaProperty {
     }
 }
 
+// MARK: - Hashable
 extension SchemaProperty: Hashable {
 
     func hash(into hasher: inout Hasher) {
@@ -74,6 +84,7 @@ extension SchemaProperty: Hashable {
     }
 }
 
+// MARK: - Equatable
 extension SchemaProperty: Equatable {
 
     static func == (lhs: SchemaProperty, rhs: SchemaProperty) -> Bool {
@@ -84,7 +95,9 @@ extension SchemaProperty: Equatable {
     }
 }
 
+// MARK: - ComparableObject
 extension SchemaProperty: ComparableObject {
+
     var deltaIdentifier: DeltaIdentifier { .init(name.value) }
 
     func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {

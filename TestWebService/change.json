@@ -1,0 +1,59 @@
+{
+  "changes" : [
+    {
+      "changes" : [
+        {
+          "changes" : [
+            {
+              "changes" : [
+                {
+                  "addedValue" : {
+                    "necessity" : "required",
+                    "nilIsValidValue" : {
+                      "value" : false
+                    },
+                    "parameterName" : {
+                      "value" : "title"
+                    },
+                    "schemaReference" : {
+                      "schemaName" : "String"
+                    },
+                    "type" : "lightweight"
+                  },
+                  "changeType" : "addition",
+                  "location" : "ServiceParameter"
+                }
+              ],
+              "changeType" : "composite",
+              "location" : "[ServiceParameter]"
+            }
+          ],
+          "changeType" : "composite",
+          "location" : "Service"
+        },
+        {
+          "changes" : [
+            {
+              "changedValue" : {
+                "from" : {
+                  "value" : "/v1/swift/5/3"
+                },
+                "to" : {
+                  "value" : "/v1/swift/5/3/2"
+                }
+              },
+              "changeType" : "update",
+              "location" : "ServicePath"
+            }
+          ],
+          "changeType" : "composite",
+          "location" : "Service"
+        }
+      ],
+      "changeType" : "composite",
+      "location" : "[Service]"
+    }
+  ],
+  "changeType" : "composite",
+  "location" : "WebServiceStructure"
+}

@@ -7,13 +7,14 @@
 
 import Foundation
 
+/// Container for an updated value
 struct ChangedValue<V: Value>: Value {
-    let from: V
-    let to: V
 
-    var description: String {
-        "from: \(from) to: \(to)"
-    }
+    /// Old value
+    let from: V
+
+    /// New value
+    let to: V
 
     init(from: V, to: V) {
         self.from = from
@@ -21,12 +22,15 @@ struct ChangedValue<V: Value>: Value {
     }
 }
 
+/// Represents a change where a value gets updated at a certain `location`
 class ValueChange<V: Value>: Change {
 
+    // MARK: - CodingKeys
     private enum CodingKeys: String, CodingKey {
         case changedValue
     }
 
+    /// Value that has been updated
     let changedValue: ChangedValue<V>
 
     init(location: String, from: V, to: V) {
@@ -35,6 +39,7 @@ class ValueChange<V: Value>: Change {
         super.init(location: location, changeType: .update)
     }
 
+    // MARK: - Codable
     override func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(changedValue, forKey: .changedValue)
@@ -47,6 +52,7 @@ class ValueChange<V: Value>: Change {
         try super.init(from: decoder)
     }
 
+    // MARK: - Override
     override func isEqual(to other: Change) -> Bool {
         if let other = other as? ValueChange {
             return super.isEqual(to: other) && changedValue == other.changedValue

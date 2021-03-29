@@ -7,20 +7,31 @@
 
 import Foundation
 
-class ParameterName: PrimitiveValueWrapper<String>, ComparableProperty {}
-class NilIsValidValue: PrimitiveValueWrapper<Bool>, ComparableProperty {}
+class ParameterName: PrimitiveValueWrapper<String> {}
+class NilIsValidValue: PrimitiveValueWrapper<Bool> {}
 extension ParameterType: ComparableProperty {}
 extension Necessity: ComparableProperty {}
 
+/// Represents a parameter of an enpoint
 struct ServiceParameter: Codable {
 
+    /// Name of the parameter
     let parameterName: ParameterName
+
+    /// The necessity of the parameter
     let necessity: Necessity
+
+    /// Parameter type
     let type: ParameterType
+
+    /// Indicates whether `nil` is a valid value
     let nilIsValidValue: NilIsValidValue
+
+    /// The reference to the schema of the type of the parameter
     let schemaReference: SchemaReference
 }
 
+// MARK: - Array extension
 extension Array where Element == AnyEndpointParameter {
 
     func serviceParameters(with builder: inout SchemaBuilder) -> [ServiceParameter] {
@@ -37,6 +48,7 @@ extension Array where Element == AnyEndpointParameter {
     }
 }
 
+// MARK: - ComparableObject
 extension ServiceParameter: ComparableObject {
 
     var deltaIdentifier: DeltaIdentifier {

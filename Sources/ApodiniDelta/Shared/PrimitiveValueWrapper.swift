@@ -7,7 +7,8 @@
 
 import Foundation
 
-class PrimitiveValueWrapper<P: Primitive>: Value {
+/// An abstract class that already conforms to ComparableProperty that wrapps values of a certain primitive type
+class PrimitiveValueWrapper<P: Primitive>: ComparableProperty {
     let value: P
 
     init(_ value: P) {

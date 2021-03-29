@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Distinct change types that might occur
 enum ChangeType: String, Value {
     case addition
     case removal

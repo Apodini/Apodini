@@ -7,7 +7,8 @@
 
 import Foundation
 
-struct DeltaIdentifier: Codable, RawRepresentable {
+/// A `DeltaIdentifier` uniquely identifies an object in ApodiniDelta
+struct DeltaIdentifier: Value, RawRepresentable {
 
     let rawValue: String
 
@@ -36,14 +37,14 @@ extension DeltaIdentifier: CustomStringConvertible {
 
 }
 
-extension DeltaIdentifier: Hashable {
+extension DeltaIdentifier {
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(rawValue)
     }
 }
 
-extension DeltaIdentifier: Equatable {
+extension DeltaIdentifier {
 
     static func == (lhs: DeltaIdentifier, rhs: DeltaIdentifier) -> Bool {
         lhs.rawValue == rhs.rawValue

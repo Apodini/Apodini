@@ -8,16 +8,28 @@
 import Foundation
 
 extension Apodini.Operation: ComparableProperty {}
-class ServicePath: PrimitiveValueWrapper<String>, ComparableProperty {}
-class HandlerName: PrimitiveValueWrapper<String>, ComparableProperty {}
+class ServicePath: PrimitiveValueWrapper<String> {}
+class HandlerName: PrimitiveValueWrapper<String> {}
 
+/// Represents an endpoint
 struct Service: Codable {
 
+    /// Name of the handler
     let handlerName: HandlerName
+
+    /// Identifier of the handler
     let handlerIdentifier: AnyHandlerIdentifier
+
+    /// The operation of the endpoint
     let operation: Apodini.Operation
+
+    /// The absolute path string of the endpoint
     let absolutePath: ServicePath
+
+    /// Parameters of the endpoint
     let parameters: [ServiceParameter]
+
+    /// The reference to the schema of the response type of the endpoint
     let response: SchemaReference
 
     init(
@@ -37,6 +49,7 @@ struct Service: Codable {
     }
 }
 
+// MARK: - ComparableObject
 extension Service: ComparableObject {
 
     var deltaIdentifier: DeltaIdentifier { .init(handlerIdentifier.rawValue) }

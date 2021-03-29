@@ -7,11 +7,14 @@
 
 import Foundation
 
+/// A reference to a schema holding the schema name
 struct SchemaReference: Equatable, Hashable, Codable {
     let schemaName: String
 }
 
+// MARK: - Convenience
 extension SchemaReference {
+
     static func reference(_ named: String) -> SchemaReference {
         SchemaReference(schemaName: named)
     }
@@ -25,4 +28,5 @@ extension SchemaReference {
     }
 }
 
+// MARK: - ComparableProperty
 extension SchemaReference: ComparableProperty {}

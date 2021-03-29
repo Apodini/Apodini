@@ -7,7 +7,15 @@
 
 import Foundation
 
+/// Represents a composite change that contains additional changes that occured starting from a certain `location`
 class CompositeChange: Change {
+
+    // MARK: - CodingKeys
+    private enum CodingKeys: String, CodingKey {
+        case changes
+    }
+
+    /// Array of changes
     var changes: [Change]
 
     init(location: String, changes: [Change]) {
@@ -15,10 +23,7 @@ class CompositeChange: Change {
         super.init(location: location, changeType: .composite)
     }
 
-    private enum CodingKeys: String, CodingKey {
-        case changes
-    }
-
+    // MARK: - Codable
     override func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         if !changes.isEmpty { try container.encode(changes, forKey: .changes) }
@@ -32,6 +37,7 @@ class CompositeChange: Change {
         try super.init(from: decoder)
     }
 
+    // MARK: - Overrides
     override func isEqual(to other: Change) -> Bool {
         if let other = other as? CompositeChange {
             return super.isEqual(to: other) && changes.equalsIgnoringOrder(to: other.changes)
@@ -41,6 +47,7 @@ class CompositeChange: Change {
     }
 }
 
+// MARK: - Array extension
 extension Array where Element: Change {
 
     func equalsIgnoringOrder(to other: Self) -> Bool {

@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Base protocol that all comparable objects conform to
 protocol ComparableObject: _Comparable {
     typealias Result = ChangeContextNode
 
@@ -17,6 +18,7 @@ protocol ComparableObject: _Comparable {
 
 extension ComparableObject {
 
+    /// Convenience default implementations by comparing properties with keypaths
     func compare<C: _Comparable>(_ keyPath: KeyPath<Self, C>, with other: Self) -> C.Result {
         let ownProperty = self[keyPath: keyPath]
         let othersProperty = other[keyPath: keyPath]
@@ -24,6 +26,11 @@ extension ComparableObject {
         return ownProperty.compare(to: othersProperty)
     }
 
+    /**
+     This functions can be removed if the type checking for ComparableCollection would work as expected
+     */
+
+    /// Convenience default implementations by comparing collection properties with keypaths
     func compare<C: Collection, O: ComparableObject>(_ keyPath: KeyPath<Self, C>, with other: Self) -> C.Result where C.Element == O {
         let ownProperty = self[keyPath: keyPath]
         let othersProperty = other[keyPath: keyPath]

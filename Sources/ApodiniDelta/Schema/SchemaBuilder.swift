@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Builds and holds the schemas of all types that it builds
 struct SchemaBuilder {
 
     // MARK: - Properties

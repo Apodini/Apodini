@@ -11,17 +11,9 @@ import XCTest
 
 final class ComparableTests: XCTestCase {
     
-    struct EndpointName: ComparableProperty {
-        let name: String
-    }
-    
-    struct Path: ComparableProperty {
-        let path: String
-    }
-    
-    struct SomeParameterName: ComparableProperty {
-        let name: String
-    }
+    class EndpointName: PrimitiveValueWrapper<String> {}
+    class Path: PrimitiveValueWrapper<String> {}
+    class SomeParameterName: PrimitiveValueWrapper<String> {}
     
     struct CustomEndpoint: ComparableObject {
         let path: Path
@@ -87,19 +79,19 @@ final class ComparableTests: XCTestCase {
 
     func testComparision() throws {
 
-        let sameIDParameter1 = SomeParameter(id: "someID", name: .init(name: "user"))
-        let sameIDParameter2 = SomeParameter(id: "someID", name: .init(name: "user2"))
-        let someParameter3 = SomeParameter(id: "someOtherID", name: .init(name: "user"))
+        let sameIDParameter1 = SomeParameter(id: "someID", name: .init("user"))
+        let sameIDParameter2 = SomeParameter(id: "someID", name: .init("user2"))
+        let someParameter3 = SomeParameter(id: "someOtherID", name: .init("user"))
         
         let customEndpoint = CustomEndpoint(
-            path: .init(path: "path1"),
-            name: .init(name: "endpoint"),
+            path: .init("path1"),
+            name: .init("endpoint"),
             parameters: [sameIDParameter1]
         )
 
         let customEndpoint2 = CustomEndpoint(
-            path: .init(path: "path2"),
-            name: .init(name: "endpoint"),
+            path: .init("path2"),
+            name: .init("endpoint"),
             parameters: [sameIDParameter2, someParameter3]
         )
 
@@ -109,12 +101,12 @@ final class ComparableTests: XCTestCase {
         let expectedResult: Change = .compositeChange(
             location: "CustomEndpoint",
             changes: [
-                .valueChange(location: "Path", from: Path(path: "path1"), to: .init(path: "path2")),
+                .valueChange(location: "Path", from: Path("path1"), to: .init("path2")),
                 .compositeChange(
                     location: "[SomeParameter]",
                     changes: [
                         .compositeChange(location: "SomeParameter", changes: [
-                            .valueChange(location: "SomeParameterName", from: SomeParameterName(name: "user"), to: .init(name: "user2")),
+                            .valueChange(location: "SomeParameterName", from: SomeParameterName("user"), to: .init("user2")),
                         ]),
                         .addChange(location: "SomeParameter", addedValue: someParameter3)
                     ]

@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// A helper protocol that all primitive types (as considered in Apodini) conform to
 protocol Primitive: Value {}
 
 extension Int: Primitive {}

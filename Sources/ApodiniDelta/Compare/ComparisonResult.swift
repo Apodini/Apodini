@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// The result of comparing two comparables
 enum ComparisonResult<C: _Comparable> {
     typealias Element = C
 
@@ -29,6 +30,7 @@ extension ComparisonResult: ChangeContainable {
 
 extension ComparisonResult {
 
+    /// The corresponding change object of the comparison result
     var change: Change? {
         let changeLocation = Element.changeLocation
         switch self {

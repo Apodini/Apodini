@@ -7,14 +7,22 @@
 
 import Apodini
 
+/// Holds the list of all registered handlers and all schemas
 struct WebServiceStructure {
 
-    var version: Version!
+    /// Version of the web service
+    var version: Version! // swiftlint:disable:this implicitly_unwrapped_optional
+
+    /// Services
     var services: [Service] = []
+
+    /// Schema builder object
     var schemaBuilder = SchemaBuilder()
 
+    /// Schemas built by the schema builder
     var schemas: [Schema] {  Array(schemaBuilder.schemas) }
 
+    /// Adds an endpoint, builds the parameters and the response type, and saves the schemas in the schema builder
     mutating func addEndpoint<H: Handler>(_ endpoint: Endpoint<H>) {
         if version == nil {
             version = endpoint.context.get(valueFor: APIVersionContextKey.self)
@@ -38,6 +46,7 @@ struct WebServiceStructure {
 
 }
 
+// MARK: - Codable
 extension WebServiceStructure: Codable {
 
     private enum CodingKeys: String, CodingKey {
@@ -65,6 +74,7 @@ extension WebServiceStructure: Codable {
 
 }
 
+// MARK: - ComparableObject
 extension WebServiceStructure: ComparableObject {
 
     var deltaIdentifier: DeltaIdentifier {

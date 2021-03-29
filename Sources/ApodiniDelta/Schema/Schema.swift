@@ -7,14 +7,23 @@
 
 import Foundation
 
-class SchemaName: PrimitiveValueWrapper<String>, ComparableProperty {}
-class IsEnum: PrimitiveValueWrapper<Bool>, ComparableProperty {}
+class SchemaName: PrimitiveValueWrapper<String> {}
+class IsEnum: PrimitiveValueWrapper<Bool> {}
 
+/// Schema of a specific type
 struct Schema {
+
+    /// The name of the type
     let typeName: SchemaName
+
+    /// Properties of the schema
     let properties: Set<SchemaProperty>
+
+    /// Indicates whether the schema is an enumeration
+    /// If that is the case, the properties represent the cases as strings
     let isEnumeration: IsEnum
 
+    /// The reference to the own schema
     var reference: SchemaReference {
         .reference(typeName.value)
     }
@@ -31,6 +40,7 @@ struct Schema {
 
 }
 
+// MARK: - Convenience
 extension Schema {
 
     static func primitive(type: PrimitiveType) -> Schema {
@@ -50,6 +60,7 @@ extension Schema {
     }
 }
 
+// MARK: - Codable
 extension Schema: Codable {
 
     // MARK: Private Inner Types
@@ -75,6 +86,7 @@ extension Schema: Codable {
     }
 }
 
+// MARK: - Hashable
 extension Schema: Hashable {
 
     func hash(into hasher: inout Hasher) {
@@ -84,6 +96,7 @@ extension Schema: Hashable {
     }
 }
 
+// MARK: - Equatable
 extension Schema: Equatable {
 
     static func == (lhs: Schema, rhs: Schema) -> Bool {
@@ -94,7 +107,9 @@ extension Schema: Equatable {
 
 }
 
+// MARK: - ComparableObject
 extension Schema: ComparableObject {
+
     var deltaIdentifier: DeltaIdentifier { .init(typeName.value) }
 
     func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {

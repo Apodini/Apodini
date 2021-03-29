@@ -64,34 +64,4 @@ final class SchemaBuilderTests: XCTestCase {
 
         XCTAssertEqual(accountSchema, expectedAccountResult)
     }
-    
-    func testPropertyTypeCodable() throws {
-        let jsonEncoder = JSONEncoder()
-        let jsonDecoder = JSONDecoder()
-        
-        let optional: PropertyType = .optional
-        let optionalData = try jsonEncoder.encode(optional)
-        let optionalDecoded = try jsonDecoder.decode(PropertyType.self, from: optionalData)
-        XCTAssertEqual(optionalDecoded, optional)
-        
-        let exactlyOne: PropertyType = .exactlyOne
-        let exactlyOneData = try jsonEncoder.encode(exactlyOne)
-        let exactlyOneDecoded = try jsonDecoder.decode(PropertyType.self, from: exactlyOneData)
-        XCTAssertEqual(exactlyOneDecoded, exactlyOne)
-        
-        let array: PropertyType = .array
-        let arrayData = try jsonEncoder.encode(array)
-        let arrayDecoded = try jsonDecoder.decode(PropertyType.self, from: arrayData)
-        XCTAssertEqual(arrayDecoded, array)
-        
-        let bool: PropertyType = .dictionary(key: .bool)
-        let data = try jsonEncoder.encode(bool)
-        let dictionaryDecoded = try jsonDecoder.decode(PropertyType.self, from: data)
-        XCTAssertEqual(bool, dictionaryDecoded)
-        
-        let uint: PropertyType = .dictionary(key: .uint)
-        let uintData = try jsonEncoder.encode(uint)
-        let uintDecoded = try jsonDecoder.decode(PropertyType.self, from: uintData)
-        XCTAssertEqual(uint, uintDecoded)
-    }
 }

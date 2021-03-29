@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// An abstract change
 class Change: Codable {
     let location: String
     let changeType: ChangeType
@@ -23,12 +24,14 @@ class Change: Codable {
     }
 }
 
+// MARK: - Equatable
 extension Change: Equatable {
     static func == (lhs: Change, rhs: Change) -> Bool {
         lhs.isEqual(to: rhs)
     }
 }
 
+// MARK: - Convenience
 extension Change {
 
     static func valueChange<V: Value>(location: String, from: V, to: V) -> Change {

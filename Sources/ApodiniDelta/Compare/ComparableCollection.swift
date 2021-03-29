@@ -8,6 +8,7 @@
 import Foundation
 
 // Type checking failed multiple times when using this protocol, therefore went for an extension of Collection (see. Collection+ComparableObject)
+// 
 
 //extension Array: _Comparable where Element: ComparableObject {}
 //extension Array: ComparableCollection where Element: ComparableObject {}
