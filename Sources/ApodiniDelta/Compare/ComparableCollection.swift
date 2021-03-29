@@ -53,7 +53,7 @@ extension ComparableCollection {
                     changes.append(change)
                 }
             case let changeContextNode as ChangeContextNode:
-                if let changedElement = first(where: { $0.deltaIdentifier == deltaIdentifier }), let change = changedElement.evaluate(result: changeContextNode) {
+                if let changedElement = first(where: { $0.deltaIdentifier == deltaIdentifier }), let change = changedElement.evaluate(result: changeContextNode, embeddedInCollection: true) {
                     changes.append(change)
                 }
             default: fatalError("Encountered an unknown result type \(type(of: changeForIdentifier))")

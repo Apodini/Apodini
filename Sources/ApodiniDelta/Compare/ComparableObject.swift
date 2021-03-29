@@ -12,7 +12,7 @@ protocol ComparableObject: _Comparable {
 
     var deltaIdentifier: DeltaIdentifier { get }
 
-    func evaluate(result: Result) -> Change?
+    func evaluate(result: Result, embeddedInCollection: Bool) -> Change?
 }
 
 extension ComparableObject {

@@ -40,7 +40,7 @@ final class ComparableTests: XCTestCase {
             return context
         }
         
-        func evaluate(result: ChangeContextNode) -> Change? {
+        func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
             let childrenChanges = [
                 path.change(in: result)?.change,
                 name.change(in: result)?.change,
@@ -65,39 +65,47 @@ final class ComparableTests: XCTestCase {
             return context
         }
         
-        func evaluate(result: ChangeContextNode) -> Change? {
-            guard let ownContext = change(in: result) else { return nil }
+        func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
+            let context: ChangeContextNode
+            if !embeddedInCollection {
+                guard let ownContext = change(in: result) else { return nil }
+                context = ownContext
+            } else {
+                context = result
+            }
+            
             
             let changes = [
-                name.change(in: ownContext)?.change
+                name.change(in: context)?.change
             ].compactMap { $0 }
             
             guard !changes.isEmpty else { return nil }
             
             return .compositeChange(location: identifierName, changes: changes)
         }
-    }
+}
 
     func testComparision() throws {
 
-        let someParameter1 = SomeParameter(id: "someID", name: .init(name: "user"))
-        let someParameter2 = SomeParameter(id: "someOtherID", name: .init(name: "user"))
+        let sameIDParameter1 = SomeParameter(id: "someID", name: .init(name: "user"))
+        let sameIDParameter2 = SomeParameter(id: "someID", name: .init(name: "user2"))
+        let someParameter3 = SomeParameter(id: "someOtherID", name: .init(name: "user"))
         
         let customEndpoint = CustomEndpoint(
             path: .init(path: "path1"),
             name: .init(name: "endpoint"),
-            parameters: [someParameter1]
+            parameters: [sameIDParameter1]
         )
 
         let customEndpoint2 = CustomEndpoint(
             path: .init(path: "path2"),
             name: .init(name: "endpoint"),
-            parameters: [someParameter1, someParameter2]
+            parameters: [sameIDParameter2, someParameter3]
         )
 
         let context = customEndpoint.compare(to: customEndpoint2)
 
-        let change = try XCTUnwrap(customEndpoint.evaluate(result: context))
+        let change = try XCTUnwrap(customEndpoint.evaluate(result: context, embeddedInCollection: false))
         let expectedResult: Change = .compositeChange(
             location: "CustomEndpoint",
             changes: [
@@ -105,7 +113,10 @@ final class ComparableTests: XCTestCase {
                 .compositeChange(
                     location: "[SomeParameter]",
                     changes: [
-                        .addChange(location: "SomeParameter", addedValue: someParameter2)
+                        .compositeChange(location: "SomeParameter", changes: [
+                            .valueChange(location: "SomeParameterName", from: SomeParameterName(name: "user"), to: .init(name: "user2")),
+                        ]),
+                        .addChange(location: "SomeParameter", addedValue: someParameter3)
                     ]
                 )
             ]
