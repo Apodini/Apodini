@@ -285,8 +285,8 @@
         "repositoryURL": "https://github.com/soto-project/soto-core.git",
         "state": {
           "branch": null,
-          "revision": "69d9bf8c4e9418ced238b4c41a2c805c7f3c4b2d",
-          "version": "5.2.0"
+          "revision": "95209cef77f7b1f3aa1df9879971f122d92bb411",
+          "version": "5.2.1"
         }
       },
       {
@@ -294,8 +294,8 @@
         "repositoryURL": "https://github.com/soto-project/soto-s3-file-transfer",
         "state": {
           "branch": null,
-          "revision": "513a63050519d6d386e619de131eb2f691139f3d",
-          "version": "0.3.0"
+          "revision": "14814e5894991705b2cc122c694bf0b3931f2c02",
+          "version": "0.3.1"
         }
       },
       {
@@ -375,8 +375,8 @@
         "repositoryURL": "https://github.com/swift-extras/swift-extras-base64",
         "state": {
           "branch": null,
-          "revision": "9c7648cd380d55462b6b9bae1f0a69a9a574a13e",
-          "version": "0.6.0"
+          "revision": "97237cf1bc1feebaeb0febec91c1e1b9e4d839b3",
+          "version": "0.7.0"
         }
       },
       {
@@ -429,8 +429,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-ssl.git",
         "state": {
           "branch": null,
-          "revision": "6b6c0582d626f1999c52217458cb99dc03fa2721",
-          "version": "2.10.5"
+          "revision": "07c160b8724ee53a4b776328122be6338ff12bf2",
+          "version": "2.11.0"
         }
       },
       {
@@ -447,8 +447,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "062a4088a26ff9e41daacb8aa311f0289232d814",
-          "version": "4.41.4"
+          "revision": "984852e6ef87c653c83df90b365b8adba736f109",
+          "version": "4.41.9"
         }
       },
       {
@@ -456,8 +456,8 @@
         "repositoryURL": "https://github.com/vapor-community/vapor-aws-lambda-runtime",
         "state": {
           "branch": null,
-          "revision": "93cec68c18613f6da47cd040e2e37727a3200cf4",
-          "version": "0.6.0"
+          "revision": "eef25d71854e87ba7e6f0388b8bc38b6ca865cc5",
+          "version": "0.6.1"
         }
       },
       {
@@ -474,8 +474,8 @@
         "repositoryURL": "https://github.com/jpsim/Yams.git",
         "state": {
           "branch": null,
-          "revision": "9003d51672e516cc59297b7e96bff1dfdedcb4ea",
-          "version": "4.0.4"
+          "revision": "4ec0a3c5d6a2446667a2b22c8c7d0fc82dd1d3de",
+          "version": "4.0.5"
         }
       }
     ]
