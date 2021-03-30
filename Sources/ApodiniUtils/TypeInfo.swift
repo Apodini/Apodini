@@ -9,7 +9,6 @@ import Foundation
 @_implementationOnly import Runtime
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
-
 /// Returns the mangled name of a type
 public func mangledName(of type: Any.Type) -> String {
     do {
@@ -19,7 +18,6 @@ public func mangledName(of type: Any.Type) -> String {
         return "\(type)"
     }
 }
-
 
 /// Test whether a type is an `Optional`
 public func isOptional(_ type: Any.Type) -> Bool {
@@ -34,7 +32,6 @@ public func isOptional(_ type: Any.Type) -> Bool {
     }
 }
 
-
 /// Test whether a type is an enum
 public func isEnum(_ type: Any.Type) -> Bool {
     do {
@@ -44,7 +41,6 @@ public func isEnum(_ type: Any.Type) -> Bool {
         return false
     }
 }
-
 
 /// Run a precondition check to make sure that a type is a struct
 /// - parameter T: The type for which to assert that it is a struct
@@ -56,18 +52,15 @@ public func preconditionTypeIsStruct<T>(_: T.Type, messagePrefix: String? = nil)
     precondition(typeInfo.kind == .struct, "\(messagePrefix.map { $0 + " " } ?? "")'\(typeInfo.name)' must be a struct")
 }
 
-
 /// Test whether a value is a `Sequence`
 public func isSequence(_ value: Any) -> Bool {
     AnySequenceVisitor()(value) != nil
 }
 
-
 /// Test whether a value is a `Collection`
 public func isCollection(_ value: Any) -> Bool {
     AnyCollectionVisitor()(value) != nil
 }
-
 
 // MARK: Utils
 
@@ -92,7 +85,6 @@ private struct AnySequenceVisitor: AnySequenceVisitorBase {
         ()
     }
 }
-
 
 private protocol AnyCollectionVisitorBase: AssociatedTypeRequirementsVisitor {
     associatedtype Visitor = AnyCollectionVisitorBase

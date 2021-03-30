@@ -275,7 +275,8 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniTypeReflection"),
-                .target(name: "ApodiniVaporSupport")
+                .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniUtils")
             ]
         ),
         

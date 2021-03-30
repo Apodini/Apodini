@@ -5,14 +5,12 @@
 //  Created by Lukas Kollmer on 16.02.21.
 //
 
-
 import Foundation // Darwin.posix
-
 
 /// POSIX File System Permissions
 public struct POSIXPermissions: RawRepresentable, ExpressibleByIntegerLiteral, ExpressibleByStringLiteral {
     public var rawValue: mode_t = 0
-    
+
     public var owner: PermissionValues {
         get { PermissionValues(rawValue: (self.rawValue & S_IRWXU) >> 6) }
         set {
@@ -34,31 +32,28 @@ public struct POSIXPermissions: RawRepresentable, ExpressibleByIntegerLiteral, E
             rawValue = (rawValue & ~S_IRWXO) | (newValue.rawValue << 0)
         }
     }
-    
-    
+
     public init(rawValue: mode_t) {
         self.rawValue = rawValue
     }
-    
+
     public init(integerLiteral value: mode_t) {
         self = Self(rawValue: value)
     }
-    
+
     public init(stringLiteral value: StaticString) {
         guard let parsed = Self("\(value)") else {
             fatalError("Unable to parse input '\(value)' as a POSIX file permissions string")
         }
         self = parsed
     }
-    
-    
+
     public init(owner: PermissionValues, group: PermissionValues, world: PermissionValues) {
         self.owner = owner
         self.group = group
         self.world = world
     }
-    
-    
+
     public init?(_ string: String) {
         guard string.unicodeScalars.allSatisfy(\.isASCII) && string.count == 9 else {
             return nil
@@ -87,8 +82,7 @@ public struct POSIXPermissions: RawRepresentable, ExpressibleByIntegerLiteral, E
             return nil
         }
     }
-    
-    
+
     public var stringRepresentation: String {
         var str = ""
         str.reserveCapacity(9)
@@ -101,11 +95,10 @@ public struct POSIXPermissions: RawRepresentable, ExpressibleByIntegerLiteral, E
     }
 }
 
-
 extension POSIXPermissions {
     public struct PermissionValues: OptionSet {
         public let rawValue: mode_t
-        
+
         public init(rawValue: mode_t) {
             self.rawValue = rawValue
         }

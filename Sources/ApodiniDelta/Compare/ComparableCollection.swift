@@ -10,14 +10,14 @@ import Foundation
 // Type checking failed multiple times when using this protocol, therefore went for an extension of Collection (see. Collection+ComparableObject)
 // 
 
-//extension Array: _Comparable where Element: ComparableObject {}
-//extension Array: ComparableCollection where Element: ComparableObject {}
+// extension Array: _Comparable where Element: ComparableObject {}
+// extension Array: ComparableCollection where Element: ComparableObject {}
 //
-//protocol ComparableCollection: Collection, _Comparable where Element: ComparableObject {
+// protocol ComparableCollection: Collection, _Comparable where Element: ComparableObject {
 //    typealias Result = CollectionChangeContextNode<Element>
-//}
+// }
 //
-//extension ComparableCollection {
+// extension ComparableCollection {
 //
 //    func compare(to other: Self) -> Result {
 //        let result = Result()
@@ -68,4 +68,4 @@ import Foundation
 //        return .compositeChange(location: "[\(String(describing: Element.self))]", changes: changes)
 //    }
 //
-//}
+// }

@@ -1,21 +1,6 @@
 {
   "schemas" : [
     {
-      "typeName" : {
-        "value" : "Int"
-      }
-    },
-    {
-      "typeName" : {
-        "value" : "UInt"
-      }
-    },
-    {
-      "typeName" : {
-        "value" : "UUID"
-      }
-    },
-    {
       "properties" : [
         {
           "name" : {
@@ -52,25 +37,11 @@
     },
     {
       "typeName" : {
-        "value" : "String"
+        "value" : "UInt"
       }
     },
     {
       "properties" : [
-        {
-          "name" : {
-            "value" : "id"
-          },
-          "offset" : {
-            "value" : 1
-          },
-          "reference" : {
-            "schemaName" : "UUID"
-          },
-          "type" : {
-            "exactlyOne" : true
-          }
-        },
         {
           "name" : {
             "value" : "title"
@@ -84,10 +55,39 @@
           "type" : {
             "exactlyOne" : true
           }
+        },
+        {
+          "name" : {
+            "value" : "id"
+          },
+          "offset" : {
+            "value" : 1
+          },
+          "reference" : {
+            "schemaName" : "UUID"
+          },
+          "type" : {
+            "exactlyOne" : true
+          }
         }
       ],
       "typeName" : {
         "value" : "Post"
+      }
+    },
+    {
+      "typeName" : {
+        "value" : "UUID"
+      }
+    },
+    {
+      "typeName" : {
+        "value" : "String"
+      }
+    },
+    {
+      "typeName" : {
+        "value" : "Int"
       }
     }
   ],
@@ -138,30 +138,34 @@
     },
     {
       "absolutePath" : {
-        "value" : "/v1/rand"
+        "value" : "/v1/swift"
       },
-      "handlerIdentifier" : "0.3.0.0",
+      "handlerIdentifier" : "0.4.0.0.0",
       "handlerName" : {
-        "value" : "Random"
+        "value" : "Text"
       },
       "operation" : "read",
       "parameters" : [
-        {
-          "necessity" : "optional",
-          "nilIsValidValue" : {
-            "value" : false
-          },
-          "parameterName" : {
-            "value" : "number"
-          },
-          "schemaReference" : {
-            "schemaName" : "Int"
-          },
-          "type" : "lightweight"
-        }
+
       ],
       "response" : {
-        "schemaName" : "Int"
+        "schemaName" : "String"
+      }
+    },
+    {
+      "absolutePath" : {
+        "value" : "/v1/swift/5/3"
+      },
+      "handlerIdentifier" : "0.4.0.0.1.0",
+      "handlerName" : {
+        "value" : "Text"
+      },
+      "operation" : "read",
+      "parameters" : [
+
+      ],
+      "response" : {
+        "schemaName" : "String"
       }
     },
     {
@@ -220,50 +224,30 @@
     },
     {
       "absolutePath" : {
-        "value" : "/v1/authenticated"
+        "value" : "/v1/rand"
       },
-      "handlerIdentifier" : "0.5.0.1.0",
+      "handlerIdentifier" : "0.3.0.0",
       "handlerName" : {
-        "value" : "AuthenticatedUserHandler"
+        "value" : "Random"
       },
       "operation" : "read",
       "parameters" : [
-
+        {
+          "necessity" : "optional",
+          "nilIsValidValue" : {
+            "value" : false
+          },
+          "parameterName" : {
+            "value" : "number"
+          },
+          "schemaReference" : {
+            "schemaName" : "Int"
+          },
+          "type" : "lightweight"
+        }
       ],
       "response" : {
-        "schemaName" : "User"
-      }
-    },
-    {
-      "absolutePath" : {
-        "value" : "/v1/swift"
-      },
-      "handlerIdentifier" : "0.4.0.0.0",
-      "handlerName" : {
-        "value" : "Text"
-      },
-      "operation" : "read",
-      "parameters" : [
-
-      ],
-      "response" : {
-        "schemaName" : "String"
-      }
-    },
-    {
-      "absolutePath" : {
-        "value" : "/v1/swift/5/3"
-      },
-      "handlerIdentifier" : "0.4.0.0.1.0",
-      "handlerName" : {
-        "value" : "Text"
-      },
-      "operation" : "read",
-      "parameters" : [
-
-      ],
-      "response" : {
-        "schemaName" : "String"
+        "schemaName" : "Int"
       }
     },
     {
@@ -333,6 +317,22 @@
       ],
       "response" : {
         "schemaName" : "Post"
+      }
+    },
+    {
+      "absolutePath" : {
+        "value" : "/v1/authenticated"
+      },
+      "handlerIdentifier" : "0.5.0.1.0",
+      "handlerName" : {
+        "value" : "AuthenticatedUserHandler"
+      },
+      "operation" : "read",
+      "parameters" : [
+
+      ],
+      "response" : {
+        "schemaName" : "User"
       }
     }
   ],

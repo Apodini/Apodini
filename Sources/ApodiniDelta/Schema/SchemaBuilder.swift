@@ -23,7 +23,7 @@ struct SchemaBuilder {
 
         if node.isEnum {
             addSchema(.primitive(type: .string))
-            return .enumeration(typeName: name, cases: typeInfo.cases.map { $0.name})
+            return .enumeration(typeName: name, cases: typeInfo.cases.map { $0.name })
         }
 
         let properties: Set<SchemaProperty> = node.children

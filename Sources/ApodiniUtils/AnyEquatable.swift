@@ -8,7 +8,6 @@
 import Foundation
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
-
 /// Utility functions for testing arbitrary objects for equality.
 public enum AnyEquatable {
     /// The result of an equality comparison of two objects of unknown types.
@@ -21,17 +20,16 @@ public enum AnyEquatable {
         case notEquatable
         /// The objects are of different types, meaning they cannot be compared.
         case nonMatchingTypes
-        
+
         /// Whether the objects were equal.
         /// - Note: This property being `true` implies that the objects were of the same type, and that that type conforms to `Equatable`.
         public var isEqual: Bool { self == .equal }
-        
+
         /// Whether two objects were not equal.
         /// - Note: This property being `true` implies that the objects were of the same type, and that that type conforms to `Equatable`.
         public var isNotEqual: Bool { self == .notEqual }
     }
-    
-    
+
     /// Checks whether the two objects of unknown types are equal.
     /// - Returns: `true` if both objects are `Equatable`, of the same type, and `lhs == rhs`,
     ///            `false` if both objects are `Equatable`, of the same type, and `self.value != other.value`,
@@ -45,15 +43,14 @@ public enum AnyEquatable {
             return .notEquatable
         }
     }
-    
-    
+
     private struct TestEqualsImpl: EquatableVisitor {
         let value1: Any
-        
+
         init(_ value1: Any) {
             self.value1 = value1
         }
-        
+
         func callAsFunction<T: Equatable>(_ value2: T) -> ComparisonResult {
             if let value1 = value1 as? T {
                 precondition(type(of: value1) == type(of: value2))

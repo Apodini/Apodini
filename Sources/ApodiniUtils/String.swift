@@ -15,8 +15,7 @@ extension String {
         }
         return self + suffix
     }
-    
-    
+
     /// Creates a string by interpreting a tuple of `UInt8` values as a C string.
     /// This is useful when working with C libraries, where the swift importer sometimes represents C-style arrays as tuples.
     /// - Note: This intentionally is a static function rather than an initializer, the reason being that,

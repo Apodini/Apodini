@@ -10,7 +10,6 @@ import Foundation
 import MachO
 #endif
 
-
 /// Checks if the parameter is a POSIX error code indiating a failire, and, if yes, throws an appropriate error
 public func throwIfPosixError(_ posixErrno: Int32) throws {
     guard posixErrno != 0 else {
@@ -21,7 +20,6 @@ public func throwIfPosixError(_ posixErrno: Int32) throws {
     ])
 }
 
-
 /// Returns a string representation of the current `errno` value.
 public func getErrnoString() -> String? {
     if let cString = strerror(errno) {
@@ -30,7 +28,6 @@ public func getErrnoString() -> String? {
         return nil
     }
 }
-
 
 extension ProcessInfo {
     /// URL of the executable of the process
@@ -41,7 +38,7 @@ extension ProcessInfo {
             let buffer = UnsafeMutablePointer<Int8>.allocate(capacity: Int(bufsize))
             buffer.initialize(repeating: 0, count: Int(bufsize))
             defer { buffer.deallocate() }
-            
+
             switch _NSGetExecutablePath(buffer, &bufsize) {
             case 0: // success
                 return String(cString: buffer)

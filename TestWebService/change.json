@@ -5,6 +5,24 @@
         {
           "changes" : [
             {
+              "changedValue" : {
+                "from" : {
+                  "value" : "/v1/authenticated"
+                },
+                "to" : {
+                  "value" : "/v1/authenticated/oas"
+                }
+              },
+              "changeType" : "update",
+              "location" : "ServicePath"
+            }
+          ],
+          "changeType" : "composite",
+          "location" : "/v1/authenticated/oas"
+        },
+        {
+          "changes" : [
+            {
               "changes" : [
                 {
                   "addedValue" : {
@@ -29,29 +47,47 @@
             }
           ],
           "changeType" : "composite",
-          "location" : "Service"
-        },
-        {
-          "changes" : [
-            {
-              "changedValue" : {
-                "from" : {
-                  "value" : "/v1/swift/5/3"
-                },
-                "to" : {
-                  "value" : "/v1/swift/5/3/2"
-                }
-              },
-              "changeType" : "update",
-              "location" : "ServicePath"
-            }
-          ],
-          "changeType" : "composite",
-          "location" : "Service"
+          "location" : "/v1/user/{userId}/post/{postId}"
         }
       ],
       "changeType" : "composite",
       "location" : "[Service]"
+    },
+    {
+      "changes" : [
+        {
+          "changes" : [
+            {
+              "changes" : [
+                {
+                  "addedValue" : {
+                    "name" : {
+                      "value" : "age"
+                    },
+                    "offset" : {
+                      "value" : 3
+                    },
+                    "reference" : {
+                      "schemaName" : "Int"
+                    },
+                    "type" : {
+                      "exactlyOne" : true
+                    }
+                  },
+                  "changeType" : "addition",
+                  "location" : "SchemaProperty"
+                }
+              ],
+              "changeType" : "composite",
+              "location" : "[SchemaProperty]"
+            }
+          ],
+          "changeType" : "composite",
+          "location" : "Schema"
+        }
+      ],
+      "changeType" : "composite",
+      "location" : "[Schema]"
     }
   ],
   "changeType" : "composite",

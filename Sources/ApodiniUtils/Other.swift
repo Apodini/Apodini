@@ -7,12 +7,11 @@
 
 import Foundation
 
-
 /// The `Box` type can be used to wrap an object in a class
 public class Box<T> {
     /// The value stored by the `Box`
     public var value: T
-    
+
     /// Creates a new box filled with the specified value, and,
     /// if `T` has reference semantics, establishing a strong reference to it.
     public init(_ value: T) {
@@ -20,18 +19,16 @@ public class Box<T> {
     }
 }
 
-
 /// A weak reference to an object of class type
 public struct Weak<T: AnyObject> {
     /// The value stored by the `Box`
     public weak var value: T?
-    
+
     /// Creates a new box filled with the specified value, establishing a weak reference.
     public init(_ value: T) {
         self.value = value
     }
 }
-
 
 // MARK: Type-casting
 

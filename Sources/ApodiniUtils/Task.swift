@@ -14,83 +14,79 @@ import Glibc
 import Darwin
 #endif
 
-
 /// A wrapper around `Foundation.Process` (née`NSTask`)
 public class Task {
     private static let taskPool = ThreadSafeVariable<Set<Task>>([])
     private static var didRegisterAtexitHandler = false
-    
+
     // value for argv[1] if we're supposed to turn into a child process invocation
     private static let processIsChildProcessInvocationWrapper =
         String(cString: ApodiniProcessIsChildInvocationWrapperCLIArgument)
-    
-    
+
     public enum TaskError: Swift.Error {
         case other(String)
     }
-    
+
     /// Info about why and how a task was terminated
     public struct TerminationInfo {
         /// Exit code type
         public typealias ExitCode = Int32
         /// Termination reason type
         public typealias TerminationReason = Process.TerminationReason
-        
+
         /// The task's exit code
         public let exitCode: ExitCode
         /// The task's termination reason
         public let reason: TerminationReason
     }
-    
+
     /// Termination handler type alias
     public typealias TerminationHandler = (TerminationInfo) -> Void
-    
+
     private let process: Process
-    
+
     /// The url of the task's executable
     public let executableUrl: URL
     /// Whether the task currently is running
     private(set) var isRunning = false
     private var terminationHandler: TerminationHandler?
-    
+
     private let stdoutPipe = Pipe()
     private let stderrPipe = Pipe()
     private let stdinPipe = Pipe()
-    
+
     /// Whether the launched task should be put into the same process group as the current process.
     /// Any still-running tasks put in the same group as the current process will be terminated when when the current process exits.
     private let launchInCurrentProcessGroup: Bool
-    
+
     /// The argv with which the task will be launched.
     /// - Note: this property can only be mutated while as the task is not running
     public var arguments: [String] {
         willSet { assertCanMutate() }
     }
-    
+
     /// The task's environment variables
     /// - Note: this property can only be mutated while as the task is not running
     public var environment: [String: String] {
         willSet { assertCanMutate() }
     }
-    
+
     /// Whether the process should inherit its parent's (ie, the current process') environment variables
     /// - Note: this property can only be mutated while as the task is not running
     public var inheritsParentEnvironment: Bool {
         willSet { assertCanMutate() }
     }
-    
-    
+
     /// The task's process identifier.
     /// - Note: If the task is not running, the value of this property is undefined
     public var pid: Int32 {
         process.processIdentifier
     }
-    
+
     private func assertCanMutate() {
         precondition(!isRunning, "Cannot mutate running task")
     }
-    
-    
+
     /// Creates a new `Task` object and configures it using the specified options
     /// - parameter captureOutput: A boolean value indicating whether the task should capture its child process' output.
     ///         If this value is `true`, the child's output (both stdout and stderr) will be available via the respective APIs.
@@ -130,8 +126,7 @@ public class Task {
         }
         Self.registerAtexitHandlerIfNecessary()
     }
-    
-    
+
     private func launchImpl() throws {
         precondition(!isRunning)
         print("-[\(Self.self) \(#function)] \(self)")
@@ -154,23 +149,20 @@ public class Task {
         try process.run()
         isRunning = true
     }
-    
-    
+
     /// Launch the task synchronously
     public func launchSync() throws -> TerminationInfo {
         try launchImpl()
         process.waitUntilExit()
         return TerminationInfo(exitCode: process.terminationStatus, reason: process.terminationReason)
     }
-    
-    
+
     /// Launch the task asynchronously
     public func launchAsync(_ terminationHandler: TerminationHandler? = nil) throws {
         self.terminationHandler = terminationHandler
         try launchImpl()
     }
-    
-    
+
     /// Launch the task synchronously and throw an error if the task did not exit successfullly
     public func launchSyncAndAssertSuccess() throws {
         let terminationInfo = try launchSync()
@@ -178,32 +170,30 @@ public class Task {
             fatalError("Task '\(self)' terminated with non-zero exit code \(terminationInfo.exitCode)")
         }
     }
-    
+
     /// Terminate the task
     public func terminate() {
         sendSignal(SIGTERM)
     }
-    
+
     /// Send a signal to the task
     public func sendSignal(_ signal: Int32) {
         kill(pid, signal)
     }
-    
-    
+
     private func processTerminationHandlerImpl(process: Process) {
         precondition(process == self.process)
         self.terminationHandler?(TerminationInfo(exitCode: process.terminationStatus, reason: process.terminationReason))
         self.terminationHandler = nil
         Self.taskPool.write { $0.remove(self) }
     }
-    
-    
+
     /// Read the task's stdout.
     /// - Note: This only works if the task was created with the `captureOutput` option set to `true`
     public func readStdout(usingStringEncoding encoding: String.Encoding = .utf8) throws -> String {
         try stdoutPipe.readUntilEndAsString(encoding: encoding)
     }
-    
+
     /// Read the task's stderr.
     /// - Note: This only works if the task was created with the `captureOutput` option set to `true`
     public func readStderr(usingStringEncoding encoding: String.Encoding = .utf8) throws -> String {
@@ -211,17 +201,15 @@ public class Task {
     }
 }
 
-
 extension Task: Hashable, Equatable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(ObjectIdentifier(self))
     }
-    
+
     public static func == (lhs: Task, rhs: Task) -> Bool {
         ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
 }
-
 
 extension Task: CustomStringConvertible {
     public var description: String {
@@ -240,13 +228,12 @@ extension Task: CustomStringConvertible {
     }
 }
 
-
 extension Task {
     /// Kill all child processes which were launched in the current process group and are currently running, by sending them the `SIGTERM` signal.
     public static func killAllInChildrenInProcessGroup() {
         sendSignalToAllChildrenInProcessGroup(signal: SIGTERM)
     }
-    
+
     /// Send a signal to all child processes which were launched into the current process' process group and are currently running.
     public static func sendSignalToAllChildrenInProcessGroup(signal: Int32) {
         Self.taskPool.read { tasks in
@@ -255,7 +242,7 @@ extension Task {
             }
         }
     }
-    
+
     private static func registerAtexitHandlerIfNecessary() {
         guard !didRegisterAtexitHandler else {
             return
@@ -266,7 +253,6 @@ extension Task {
         }
     }
 }
-
 
 extension Task {
     /// Attempts to find the location of the execitable with the specified name, by looking through the current environment's search paths.
@@ -285,7 +271,6 @@ extension Task {
     }
 }
 
-
 extension Pipe {
     func readUntilEndAsString(encoding: String.Encoding) throws -> String {
         guard
@@ -297,7 +282,6 @@ extension Pipe {
         return string
     }
 }
-
 
 extension FileHandle {
     /// A platform-specific wrapper around `-[FileHandle readToEnd]` (if running on an OS >= 10.15.4),
@@ -315,7 +299,6 @@ extension FileHandle {
     }
 }
 
-
 extension Process.TerminationReason: CustomStringConvertible {
     public var description: String {
         switch self {
@@ -329,7 +312,6 @@ extension Process.TerminationReason: CustomStringConvertible {
     }
 }
 
-
 // Note: I have no idea if this is a good implementation, works property, or even makes sense.
 // There was an issue where accessing the `Task.taskPool` static variable from w/in the atexit
 // handler would fail but only sometimes (for some reason the atexit handler was being invoked
@@ -337,20 +319,18 @@ extension Process.TerminationReason: CustomStringConvertible {
 class ThreadSafeVariable<T> {
     private var value: T
     private let queue: DispatchQueue
-    
+
     init(_ value: T) {
         self.value = value
         self.queue = DispatchQueue(label: "Apodini.ThreadSafeVariable", attributes: .concurrent)
     }
-    
-    
+
     func read(_ block: (T) throws -> Void) rethrows {
         try queue.sync {
             try block(value)
         }
     }
-    
-    
+
     func write(_ block: (inout T) throws -> Void) rethrows {
         try queue.sync(flags: .barrier) {
             try block(&value)
