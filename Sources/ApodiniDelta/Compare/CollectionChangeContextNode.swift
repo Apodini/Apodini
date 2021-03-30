@@ -9,7 +9,6 @@ import Foundation
 
 /// A context node that holds the changes between two collections (additions, removals and changes)
 class CollectionChangeContextNode<C: ComparableObject> {
-
     private(set) var additionsAndRemovals: [DeltaIdentifier: ComparisonResult<C>] = [:]
     private(set) var changes: [DeltaIdentifier: ChangeContextNode] = [:]
 

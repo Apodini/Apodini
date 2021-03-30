@@ -17,7 +17,6 @@ protocol ComparableObject: _Comparable {
 }
 
 extension ComparableObject {
-
     /// Convenience default implementations by comparing properties with keypaths
     func compare<C: _Comparable>(_ keyPath: KeyPath<Self, C>, with other: Self) -> C.Result {
         let ownProperty = self[keyPath: keyPath]

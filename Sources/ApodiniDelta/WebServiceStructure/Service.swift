@@ -13,7 +13,6 @@ class HandlerName: PrimitiveValueWrapper<String> {}
 
 /// Represents an endpoint
 struct Service: Codable {
-
     /// Name of the handler
     let handlerName: HandlerName
 
@@ -51,7 +50,6 @@ struct Service: Codable {
 
 // MARK: - ComparableObject
 extension Service: ComparableObject {
-
     var deltaIdentifier: DeltaIdentifier { .init(handlerIdentifier.rawValue) }
 
     func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {

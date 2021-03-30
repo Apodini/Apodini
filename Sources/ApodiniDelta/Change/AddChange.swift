@@ -9,7 +9,6 @@ import Foundation
 
 /// Represent a change where a value gets added at a certain `location`
 class AddChange<V: Value>: Change {
-
     // MARK: - CodingKeys
     private enum CodingKeys: String, CodingKey {
         case addedValue

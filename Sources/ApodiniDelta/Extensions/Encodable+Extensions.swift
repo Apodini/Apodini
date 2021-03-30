@@ -8,7 +8,6 @@
 import Foundation
 
 extension Encodable {
-
     func jsonString(with outputFormatting: JSONEncoder.OutputFormatting = [.prettyPrinted, .withoutEscapingSlashes, .sortedKeys]) throws -> String {
         let encoder = JSONEncoder()
         encoder.outputFormatting = outputFormatting

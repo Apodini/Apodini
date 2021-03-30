@@ -9,7 +9,6 @@ import Foundation
 
 /// Represent a change where a value gets removed at a certain `location`
 class RemoveChange<V: Value>: Change {
-
     // MARK: - CodingKeys
     private enum CodingKeys: String, CodingKey {
         case removedValue

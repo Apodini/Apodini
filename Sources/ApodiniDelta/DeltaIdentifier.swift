@@ -9,7 +9,6 @@ import Foundation
 
 /// A `DeltaIdentifier` uniquely identifies an object in ApodiniDelta
 struct DeltaIdentifier: Value, RawRepresentable {
-
     let rawValue: String
 
     init(rawValue: String) {
@@ -32,20 +31,16 @@ struct DeltaIdentifier: Value, RawRepresentable {
 }
 
 extension DeltaIdentifier: CustomStringConvertible {
-
     public var description: String { rawValue }
-
 }
 
 extension DeltaIdentifier {
-
     func hash(into hasher: inout Hasher) {
         hasher.combine(rawValue)
     }
 }
 
 extension DeltaIdentifier {
-
     static func == (lhs: DeltaIdentifier, rhs: DeltaIdentifier) -> Bool {
         lhs.rawValue == rhs.rawValue
     }

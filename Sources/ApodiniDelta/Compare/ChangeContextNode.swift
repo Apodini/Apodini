@@ -9,7 +9,6 @@ import Foundation
 
 /// A context node that hold all changes during comparison of two comparables
 class ChangeContextNode {
-
     /// Dictionary holding the changes of a specific comparable object
     private(set) var changes: [ObjectIdentifier: ChangeContainable] = [:]
 
@@ -49,7 +48,5 @@ class ChangeContextNode {
 
 // MARK: - ChangeContainable
 extension ChangeContextNode: ChangeContainable {
-
     var containsChange: Bool { !changes.isEmpty }
-
 }

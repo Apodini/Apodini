@@ -10,7 +10,6 @@ import Apodini
 import ApodiniVaporSupport
 
 public final class DeltaInterfaceExporter: StaticInterfaceExporter {
-
     public static var parameterNamespace: [ParameterNamespace] = .individual
 
     let app: Application
@@ -57,7 +56,6 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
                 let jsonFileURL = URL(fileURLWithPath: path).appendingPathComponent("change.json")
                 try jsonString.write(to: jsonFileURL, atomically: true, encoding: .utf8)
             }
-
         } catch {
             print(error)
         }

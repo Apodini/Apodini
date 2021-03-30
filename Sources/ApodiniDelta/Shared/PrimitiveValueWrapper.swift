@@ -16,7 +16,7 @@ class PrimitiveValueWrapper<P: Primitive>: ComparableProperty {
     }
 
     static func == (lhs: PrimitiveValueWrapper<P>, rhs: PrimitiveValueWrapper<P>) -> Bool {
-        return lhs.value == rhs.value
+        lhs.value == rhs.value
     }
 
     func hash(into hasher: inout Hasher) {

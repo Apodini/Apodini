@@ -9,7 +9,6 @@ import Foundation
 
 // MARK: - Cardinality Extension
 extension ReflectionInfo.Cardinality {
-
     // MARK: - Properties
     var schemaNamePrefix: String {
         switch self {
@@ -26,7 +25,6 @@ extension ReflectionInfo.Cardinality {
 
 // MARK: - ReflectionInfo Node extensions
 extension Node where T == ReflectionInfo {
-
     // MARK: - Properties
     var isPrimitive: Bool {
         let type = value.typeInfo.type
@@ -38,7 +36,7 @@ extension Node where T == ReflectionInfo {
     }
 
     var rootName: String {
-        return value.typeInfo.name + value.cardinality.schemaNamePrefix
+        value.typeInfo.name + value.cardinality.schemaNamePrefix
     }
 
     // MARK: - Functions

@@ -14,7 +14,6 @@ struct SchemaReference: Equatable, Hashable, Codable {
 
 // MARK: - Convenience
 extension SchemaReference {
-
     static func reference(_ named: String) -> SchemaReference {
         SchemaReference(schemaName: named)
     }

@@ -13,7 +13,6 @@ protocol ChangeContainable {
 
 /// Base protocol that all comparable objects or simple properties conform to
 protocol _Comparable: Value {
-
     /// The result out of the comparison
     associatedtype Result: ChangeContainable
 
@@ -25,7 +24,6 @@ protocol _Comparable: Value {
 }
 
 extension _Comparable {
-
     /// Name of the type
     static var typeName: String { String(describing: Self.self) }
 
@@ -38,5 +36,4 @@ extension _Comparable {
 
     /// Object identifier of the type
     static var identifier: ObjectIdentifier { .init(Self.self) }
-
 }

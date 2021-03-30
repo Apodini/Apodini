@@ -12,7 +12,6 @@ class IsEnum: PrimitiveValueWrapper<Bool> {}
 
 /// Schema of a specific type
 struct Schema {
-
     /// The name of the type
     let typeName: SchemaName
 
@@ -37,18 +36,16 @@ struct Schema {
     func updated(typeName: String) -> Schema {
         .init(typeName: typeName, properties: properties, isEnumeration: isEnumeration.value)
     }
-
 }
 
 // MARK: - Convenience
 extension Schema {
-
     static func primitive(type: PrimitiveType) -> Schema {
-        return .init(typeName: type.description, properties: .empty)
+        .init(typeName: type.description, properties: .empty)
     }
 
     static func complex(typeName: String, properties: Set<SchemaProperty>) -> Schema {
-        return .init(typeName: typeName, properties: properties)
+        .init(typeName: typeName, properties: properties)
     }
 
     static func enumeration(typeName: String, cases: String...) -> Schema {
@@ -62,7 +59,6 @@ extension Schema {
 
 // MARK: - Codable
 extension Schema: Codable {
-
     // MARK: Private Inner Types
     private enum CodingKeys: String, CodingKey {
         case typeName, properties, isEnumeration
@@ -88,7 +84,6 @@ extension Schema: Codable {
 
 // MARK: - Hashable
 extension Schema: Hashable {
-
     func hash(into hasher: inout Hasher) {
         hasher.combine(typeName)
         hasher.combine(properties)
@@ -98,18 +93,15 @@ extension Schema: Hashable {
 
 // MARK: - Equatable
 extension Schema: Equatable {
-
     static func == (lhs: Schema, rhs: Schema) -> Bool {
         lhs.typeName == rhs.typeName
             && lhs.properties == rhs.properties
             && lhs.isEnumeration == rhs.isEnumeration
     }
-
 }
 
 // MARK: - ComparableObject
 extension Schema: ComparableObject {
-
     var deltaIdentifier: DeltaIdentifier { .init(typeName.value) }
 
     func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
@@ -141,5 +133,4 @@ extension Schema: ComparableObject {
 
         return context
     }
-
 }

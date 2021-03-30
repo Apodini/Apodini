@@ -19,7 +19,6 @@ enum ComparisonResult<C: _Comparable> {
 }
 
 extension ComparisonResult: ChangeContainable {
-
     var containsChange: Bool {
         if case .equal = self {
             return false
@@ -29,7 +28,6 @@ extension ComparisonResult: ChangeContainable {
 }
 
 extension ComparisonResult {
-
     /// The corresponding change object of the comparison result
     var change: Change? {
         let changeLocation = Element.changeLocation

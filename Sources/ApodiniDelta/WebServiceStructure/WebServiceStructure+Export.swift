@@ -8,7 +8,6 @@
 import Foundation
 
 extension WebServiceStructure {
-
     func export(at path: String) {
         let fileManager = FileManager.default
 
@@ -25,5 +24,4 @@ extension WebServiceStructure {
             print("Could not save \(error)")
         }
     }
-
 }

@@ -17,7 +17,6 @@ enum PropertyType: Equatable, Hashable {
 }
 
 extension PropertyType: Codable {
-
     private enum CodingKeys: String, CodingKey {
         case optional, exactlyOne, array, dictionary
     }
@@ -47,5 +46,4 @@ extension PropertyType: Codable {
         default: fatalError("Unabled to decode enum PropertyType")
         }
     }
-
 }

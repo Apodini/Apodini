@@ -14,7 +14,6 @@ extension Necessity: ComparableProperty {}
 
 /// Represents a parameter of an enpoint
 struct ServiceParameter: Codable {
-
     /// Name of the parameter
     let parameterName: ParameterName
 
@@ -33,7 +32,6 @@ struct ServiceParameter: Codable {
 
 // MARK: - Array extension
 extension Array where Element == AnyEndpointParameter {
-
     func serviceParameters(with builder: inout SchemaBuilder) -> [ServiceParameter] {
         map {
             let reference = builder.build(for: $0.propertyType, root: false) ?? .empty
@@ -50,7 +48,6 @@ extension Array where Element == AnyEndpointParameter {
 
 // MARK: - ComparableObject
 extension ServiceParameter: ComparableObject {
-
     var deltaIdentifier: DeltaIdentifier {
         .init(parameterName.value)
     }

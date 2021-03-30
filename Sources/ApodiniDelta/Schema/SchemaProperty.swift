@@ -12,7 +12,6 @@ class PropertyOffset: PrimitiveValueWrapper<Int> {}
 
 /// A property of a schema
 struct SchemaProperty: Codable {
-
     /// Property name
     let name: PropertyName
 
@@ -55,7 +54,6 @@ struct SchemaProperty: Codable {
                 propertyType = .dictionary(key: primitiveType)
                 builder.addSchema(.primitive(type: primitiveType))
             }
-
         }
         return .init(name: name, offset: offset, type: propertyType, reference: schemaReference)
     }
@@ -63,7 +61,6 @@ struct SchemaProperty: Codable {
 
 // MARK: - Convenience
 extension SchemaProperty {
-
     static func property(named: String, offset: Int, type: PropertyType, reference: SchemaReference) -> SchemaProperty {
         .init(name: named, offset: offset, type: type, reference: reference)
     }
@@ -75,7 +72,6 @@ extension SchemaProperty {
 
 // MARK: - Hashable
 extension SchemaProperty: Hashable {
-
     func hash(into hasher: inout Hasher) {
         hasher.combine(name)
         hasher.combine(offset)
@@ -86,7 +82,6 @@ extension SchemaProperty: Hashable {
 
 // MARK: - Equatable
 extension SchemaProperty: Equatable {
-
     static func == (lhs: SchemaProperty, rhs: SchemaProperty) -> Bool {
         lhs.name == rhs.name
             && lhs.offset == rhs.offset
@@ -97,7 +92,6 @@ extension SchemaProperty: Equatable {
 
 // MARK: - ComparableObject
 extension SchemaProperty: ComparableObject {
-
     var deltaIdentifier: DeltaIdentifier { .init(name.value) }
 
     func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
@@ -131,5 +125,4 @@ extension SchemaProperty: ComparableObject {
 
         return context
     }
-
 }

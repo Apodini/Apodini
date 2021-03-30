@@ -33,6 +33,5 @@ enum PrimitiveType: String, RawRepresentable, Codable {
 }
 
 extension PrimitiveType: CustomStringConvertible {
-
     var description: String { rawValue }
 }

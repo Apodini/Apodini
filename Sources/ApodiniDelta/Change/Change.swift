@@ -33,7 +33,6 @@ extension Change: Equatable {
 
 // MARK: - Convenience
 extension Change {
-
     static func valueChange<V: Value>(location: String, from: V, to: V) -> Change {
         ValueChange(location: location, from: from, to: to)
     }
@@ -49,5 +48,4 @@ extension Change {
     static func compositeChange(location: String, changes: [Change]) -> Change {
         CompositeChange(location: location, changes: changes)
     }
-
 }

@@ -9,7 +9,6 @@ import Foundation
 
 /// Represents a composite change that contains additional changes that occured starting from a certain `location`
 class CompositeChange: Change {
-
     // MARK: - CodingKeys
     private enum CodingKeys: String, CodingKey {
         case changes
@@ -49,7 +48,6 @@ class CompositeChange: Change {
 
 // MARK: - Array extension
 extension Array where Element: Change {
-
     func equalsIgnoringOrder(to other: Self) -> Bool {
         guard count == other.count else { return false }
 

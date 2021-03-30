@@ -10,7 +10,6 @@ import XCTest
 @testable import ApodiniDelta
 
 final class ComparableTests: XCTestCase {
-
     class EndpointName: PrimitiveValueWrapper<String> {}
     class Path: PrimitiveValueWrapper<String> {}
     class SomeParameterName: PrimitiveValueWrapper<String> {}
@@ -46,7 +45,6 @@ final class ComparableTests: XCTestCase {
     }
 
     struct SomeParameter: ComparableObject {
-
         let id: String
         let name: SomeParameterName
         var deltaIdentifier: DeltaIdentifier { .init(id) }
@@ -77,7 +75,6 @@ final class ComparableTests: XCTestCase {
 }
 
     func testComparision() throws {
-
         let sameIDParameter1 = SomeParameter(id: "someID", name: .init("user"))
         let sameIDParameter2 = SomeParameter(id: "someID", name: .init("user2"))
         let someParameter3 = SomeParameter(id: "someOtherID", name: .init("user"))

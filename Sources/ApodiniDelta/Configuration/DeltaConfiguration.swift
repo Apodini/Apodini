@@ -22,7 +22,6 @@ struct DeltaStorageKey: StorageKey {
 }
 
 public class DeltaConfiguration: Configuration {
-
     var webServiceStructurePath: String?
     var strategy: DeltaStrategy = .create
 
@@ -47,5 +46,4 @@ public class DeltaConfiguration: Configuration {
         self.strategy = strategy
         return self
     }
-
 }

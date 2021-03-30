@@ -9,7 +9,6 @@ import Foundation
 
 /// Builds and holds the schemas of all types that it builds
 struct SchemaBuilder {
-
     // MARK: - Properties
     private(set) var schemas: Set<Schema> = .empty
 

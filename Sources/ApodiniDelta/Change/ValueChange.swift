@@ -9,7 +9,6 @@ import Foundation
 
 /// Container for an updated value
 struct ChangedValue<V: Value>: Value {
-
     /// Old value
     let from: V
 
@@ -24,7 +23,6 @@ struct ChangedValue<V: Value>: Value {
 
 /// Represents a change where a value gets updated at a certain `location`
 class ValueChange<V: Value>: Change {
-
     // MARK: - CodingKeys
     private enum CodingKeys: String, CodingKey {
         case changedValue

@@ -22,7 +22,6 @@ extension Collection where Element: ComparableObject {
 
             // a match is considered when the unique deltaIdentifier is found in other collection
             if let matched = other.first(where: { $0.deltaIdentifier == currentIdentifier }) {
-
                 // here we register the result of comparing two matched objects. The result is a new ChangeContextNode
                 result.register(comparableObject.compare(to: matched), for: currentIdentifier)
             } else {
@@ -43,7 +42,6 @@ extension Collection where Element: ComparableObject {
 
     /// Evaluates the changes of comparing two collections
     func evaluate(node: ChangeContextNode) -> Change? {
-
         // retrieves the result calculated in `compare(to:)`
         guard let result = node.change(comparable: Element.self) else { return nil }
 

@@ -10,7 +10,6 @@ import XCTest
 @testable import ApodiniDelta
 
 final class SchemaBuilderTests: XCTestCase {
-
     struct Car: Encodable {
         let name: String
         let plateNumber: Int?
