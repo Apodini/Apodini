@@ -82,7 +82,9 @@ extension WebServiceStructure: ComparableObject {
             schemas.evaluate(node: result)
         ].compactMap { $0 }
 
-        guard !changes.isEmpty else { return nil }
+        guard !changes.isEmpty else {
+            return nil
+        }
 
         return .compositeChange(location: Self.changeLocation, changes: changes)
     }

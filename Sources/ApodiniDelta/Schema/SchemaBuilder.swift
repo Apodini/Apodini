@@ -18,7 +18,9 @@ struct SchemaBuilder {
         let typeInfo = node.value.typeInfo
         let name = typeInfo.name
 
-        if let existingSchema = schema(named: name) { return existingSchema }
+        if let existingSchema = schema(named: name) {
+            return existingSchema
+        }
 
         if node.isEnum {
             addSchema(.primitive(type: .string))
@@ -36,7 +38,9 @@ struct SchemaBuilder {
 
     // MARK: - Functions
     mutating func build(for type: Any.Type, root: Bool = true) -> SchemaReference? {
-        guard let node = try? ReflectionInfo.node(type).sanitized() else { return nil }
+        guard let node = try? ReflectionInfo.node(type).sanitized() else {
+            return nil
+        }
 
         node.contextMap { schema(from: $0) }
             .collectValues()

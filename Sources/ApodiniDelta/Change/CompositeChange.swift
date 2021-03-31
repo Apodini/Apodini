@@ -49,7 +49,9 @@ class CompositeChange: Change {
 // MARK: - Array extension
 extension Array where Element: Change {
     func equalsIgnoringOrder(to other: Self) -> Bool {
-        guard count == other.count else { return false }
+        guard count == other.count else {
+            return false
+        }
 
         for change in self where other.filter({ $0.isEqual(to: change) }).isEmpty {
             return false

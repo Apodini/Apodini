@@ -43,7 +43,9 @@ extension Collection where Element: ComparableObject {
     /// Evaluates the changes of comparing two collections
     func evaluate(node: ChangeContextNode) -> Change? {
         // retrieves the result calculated in `compare(to:)`
-        guard let result = node.change(comparable: Element.self) else { return nil }
+        guard let result = node.change(comparable: Element.self) else {
+            return nil
+        }
 
         var changes = [Change]()
 
@@ -63,7 +65,9 @@ extension Collection where Element: ComparableObject {
             }
         }
 
-        guard !changes.isEmpty else { return nil }
+        guard !changes.isEmpty else {
+            return nil
+        }
 
         return .compositeChange(location: "[\(Element.changeLocation)]", changes: changes)
     }

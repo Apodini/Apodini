@@ -7,7 +7,9 @@
 
 import Foundation
 
+/// Contains predefined shell command cases
 public enum ShellCommand {
+    /// Used for killing the specified port
     case killPort(Int)
 
     var method: String {
@@ -17,6 +19,7 @@ public enum ShellCommand {
     }
 }
 
+/// A helper function to run custom shell commands, e.g. on app launch
 public func runShellCommand(_ command: ShellCommand) {
     shell(command.method)
 }

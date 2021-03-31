@@ -67,7 +67,9 @@ extension ServiceParameter: ComparableObject {
     func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
         let context: ChangeContextNode
         if !embeddedInCollection {
-            guard let ownContext = result.change(for: Self.self) else { return nil }
+            guard let ownContext = result.change(for: Self.self) else {
+                return nil
+            }
             context = ownContext
         } else {
             context = result
@@ -81,7 +83,9 @@ extension ServiceParameter: ComparableObject {
             schemaReference.change(in: context)
         ].compactMap { $0 }
 
-        guard !changes.isEmpty else { return nil }
+        guard !changes.isEmpty else {
+            return nil
+        }
 
         return .compositeChange(location: Self.changeLocation, changes: changes)
     }

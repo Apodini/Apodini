@@ -38,7 +38,9 @@ final class ComparableTests: XCTestCase {
                 parameters.evaluate(node: result)
             ].compactMap { $0 }
 
-            guard !childrenChanges.isEmpty else { return nil }
+            guard !childrenChanges.isEmpty else {
+                return nil
+            }
 
             return .compositeChange(location: Self.changeLocation, changes: childrenChanges)
         }
@@ -58,7 +60,9 @@ final class ComparableTests: XCTestCase {
         func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
             let context: ChangeContextNode
             if !embeddedInCollection {
-                guard let ownContext = result.change(for: Self.self) else { return nil }
+                guard let ownContext = result.change(for: Self.self) else {
+                    return nil
+                }
                 context = ownContext
             } else {
                 context = result
@@ -68,7 +72,9 @@ final class ComparableTests: XCTestCase {
                 name.change(in: context)
             ].compactMap { $0 }
 
-            guard !changes.isEmpty else { return nil }
+            guard !changes.isEmpty else {
+                return nil
+            }
 
             return .compositeChange(location: Self.changeLocation, changes: changes)
         }
