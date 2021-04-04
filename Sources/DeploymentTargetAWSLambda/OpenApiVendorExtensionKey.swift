@@ -41,7 +41,7 @@ extension Dictionary where Key == String, Value == AnyCodable {
     
     /// Access the vendor extension value specified by the key
     public subscript<T>(key: OpenAPIVendorExtensionKey<T>) -> T? {
-        get { self[key.rawValue]?.value as? T }
+        get { self[key.rawValue] as? T }
         set { self[key.rawValue] = newValue.map(AnyCodable.init) }
     }
 }

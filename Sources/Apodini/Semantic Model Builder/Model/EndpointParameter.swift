@@ -18,12 +18,12 @@ public enum Necessity {
 
 protocol EndpointParameterVisitor {
     associatedtype Output
-    func visit<Element: Codable>(parameter: EndpointParameter<Element>) -> Output
+    func visit<Element: Decodable>(parameter: EndpointParameter<Element>) -> Output
 }
 
 protocol EndpointParameterThrowingVisitor {
     associatedtype Output
-    func visit<Element: Codable>(parameter: EndpointParameter<Element>) throws -> Output
+    func visit<Element: Decodable>(parameter: EndpointParameter<Element>) throws -> Output
 }
 
 /// Describes a type erasured `EndpointParameter`
@@ -54,7 +54,7 @@ public protocol AnyEndpointParameter: CustomStringConvertible {
     /// this property holds `String.Type` and not `Optional<String>.self`.
     ///
     /// Use the `nilIsValidValue` property to check if the original parameter definition used an `Optional` type.
-    var propertyType: Codable.Type { get }
+    var propertyType: Decodable.Type { get }
     /// See documentation of `propertyType`
     var nilIsValidValue: Bool { get }
     /// Defines the `Necessity` of the parameter.
@@ -111,7 +111,7 @@ extension AnyEndpointParameter {
 /// ```
 /// the generic holds `String.Type` and not `Optional<String>.self`.
 /// Use the `nilIsValidValue` property to check if the original parameter definition used an `Optional` type.
-public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter {
+public struct EndpointParameter<Type: Decodable>: _AnyEndpointParameter {
     public let id: UUID
     public var pathId: String {
         if parameterType != .path {
@@ -121,7 +121,7 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter {
     }
     public let name: String
     public let label: String
-    public let propertyType: Codable.Type
+    public let propertyType: Decodable.Type
     public let nilIsValidValue: Bool
     public let necessity: Necessity
     public let parameterType: ParameterType

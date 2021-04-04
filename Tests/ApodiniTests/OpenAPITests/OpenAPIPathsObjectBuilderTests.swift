@@ -2,12 +2,12 @@
 //  Created by Lorena Schlesinger on 09.12.20.
 //
 
-import XCTest
 @_implementationOnly import OpenAPIKit
 @testable import Apodini
 @testable import ApodiniOpenAPI
+import XCTApodini
 
-final class OpenAPIPathsObjectBuilderTests: XCTestCase {
+final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
     struct SomeStruct: Codable {
         var id = 1
         var someProp = "somesome"
@@ -29,9 +29,9 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         }
     }
 
-    func testPathBuilder() {
+    func testPathBuilder() throws {
         let handler = HandlerParam(pathParam: $param)
-        let endpoint = handler.mockEndpoint()
+        let endpoint = try handler.newMockEndpoint(application: app)
         var pathParameter = EndpointPathParameter<String>(id: _param.id)
         pathParameter.scoped(on: endpoint)
 

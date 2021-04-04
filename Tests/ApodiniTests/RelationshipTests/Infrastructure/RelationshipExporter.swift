@@ -2,17 +2,14 @@
 // Created by Andreas Bauer on 23.01.21.
 //
 
-import XCTest
+import XCTApodini
 @testable import Apodini
 
-class RelationshipExporter: MockExporter<String> {
-    var endpoints: [AnyEndpoint] = []
 
-    override func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        endpoints.append(endpoint)
-    }
-
+class RelationshipExporter: _MockExporter {
     override func finishedExporting(_ webService: WebServiceModel) {
+        super.finishedExporting(webService)
+        
         // as we are accessing the endpoints via index, ensure a consistent order for the tests
         endpoints = endpoints
             .sorted(by: { lhs, rhs in

@@ -13,12 +13,10 @@ final class DatabaseEnvironmentTests: ApodiniTests {
     }
     
     func testEnvironmentInjection() throws {
-        let component = DatabaseComponent()
-        let response = try XCTUnwrap(mockQuery(component: component, value: String.self, app: app))
-        
-        let description = try database().history.debugDescription
-        //not ideal to compare history description, but fluent database does not provide an id.
-        XCTAssert(app.database.history.debugDescription == description)
-        XCTAssert(response == description)
+        try XCTCheckHandler(
+            DatabaseComponent(),
+            application: self.app,
+            content: app.database.history.debugDescription
+        )
     }
 }

@@ -11,11 +11,12 @@ final class DownloadConfigTests: FileHandlerTests {
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
         let file = File(data: data, filename: "Testfile.jpeg")
         
-        try XCTCheckResponse(
-            try mockQuery(component: uploader, value: String.self, app: app, queued: file),
+        try XCTCheckHandler(
+            uploader,
+            application: self.app,
+            request: MockExporterRequest(on: self.app.eventLoopGroup.next(), file),
             status: .created,
-            content: file.filename,
-            connectionEffect: .close
+            content: file.filename
         )
         
         let directory = app.directory
@@ -36,17 +37,25 @@ final class DownloadConfigTests: FileHandlerTests {
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
         let file = File(data: data, filename: "Testfile.jpeg")
         
-        let result = try XCTUnwrap(mockQuery(component: uploader, value: String.self, app: app, queued: file))
-        
-        XCTAssert(result == file.filename)
+        try XCTCheckHandler(
+            uploader,
+            application: self.app,
+            request: MockExporterRequest(on: self.app.eventLoopGroup.next(), file),
+            status: .created,
+            content: file.filename
+        )
         
         // Upload second file
         uploader = Uploader(UploadConfiguration(.default, subPath: "Misc/MoreMisc/"))
         let file2 = File(data: data, filename: "Testfile123.jpeg")
         
-        let result2 = try XCTUnwrap(mockQuery(component: uploader, value: String.self, app: app, queued: file2))
-        
-        XCTAssert(result2 == file2.filename)
+        try XCTCheckHandler(
+            uploader,
+            application: self.app,
+            request: MockExporterRequest(on: self.app.eventLoopGroup.next(), file2),
+            status: .created,
+            content: file2.filename
+        )
         
         let directory = app.directory
         let config = DownloadConfiguration(.default)

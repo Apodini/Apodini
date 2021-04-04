@@ -56,6 +56,24 @@
         }
       },
       {
+        "package": "CwlCatchException",
+        "repositoryURL": "https://github.com/mattgallagher/CwlCatchException.git",
+        "state": {
+          "branch": null,
+          "revision": "f809deb30dc5c9d9b78c872e553261a61177721a",
+          "version": "2.0.0"
+        }
+      },
+      {
+        "package": "CwlPreconditionTesting",
+        "repositoryURL": "https://github.com/mattgallagher/CwlPreconditionTesting.git",
+        "state": {
+          "branch": null,
+          "revision": "02b7a39a99c4da27abe03cab2053a9034379639f",
+          "version": "2.0.0"
+        }
+      },
+      {
         "package": "FCM",
         "repositoryURL": "https://github.com/MihaelIsaev/FCM.git",
         "state": {
@@ -276,8 +294,8 @@
         "repositoryURL": "https://github.com/soto-project/soto-s3-file-transfer",
         "state": {
           "branch": null,
-          "revision": "14814e5894991705b2cc122c694bf0b3931f2c02",
-          "version": "0.3.1"
+          "revision": "513a63050519d6d386e619de131eb2f691139f3d",
+          "version": "0.3.0"
         }
       },
       {

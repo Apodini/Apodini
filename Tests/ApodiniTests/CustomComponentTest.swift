@@ -33,18 +33,15 @@ final class CustomComponentTests: ApodiniTests {
     
     
     func testComponentCreation() throws {
-        let addBird = AddBirdsHandler()
-        let endpoint = addBird.mockEndpoint(app: app)
-
         let bird = Bird(name: "Hummingbird", age: 2)
-        let exporter = MockExporter<String>(queued: bird)
-
-        let context = endpoint.createConnectionContext(for: exporter)
-
-        try XCTCheckResponse(
-            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-            content: [bird1, bird2, bird],
-            connectionEffect: .close
+        
+        try XCTCheckHandler(
+            AddBirdsHandler(),
+            application: self.app,
+            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+                UnnamedParameter(bird)
+            },
+            content: [bird1, bird2, bird]
         )
     }
     

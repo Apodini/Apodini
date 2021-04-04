@@ -39,11 +39,11 @@ public class ConnectionContext<Exporter: InterfaceExporter> {
     public func handle(
         request _: Exporter.ExporterRequest,
         eventLoop _: EventLoop,
-        final _: Bool = true
+        connectionState _: ConnectionState = .end
     ) -> EventLoopFuture<Response<EnrichedContent>> {
         fatalError("""
                    A ConnectionContext<\(Exporter.self)> (\(self)) was constructed without properly \
-                   overriding the handle(request:eventLoop:final:) function.
+                   overriding the handle(request:eventLoop:connectionState:) function.
                    """)
     }
 
@@ -72,8 +72,8 @@ public extension ConnectionContext where Exporter.ExporterRequest: WithEventLoop
     ///   - exporterRequest: The exporter defined request to be handled.
     ///   - final: True if this request is the last for the given Connection.
     /// - Returns: The response for the given Request.
-    func handle(request: Exporter.ExporterRequest, final: Bool = true) -> EventLoopFuture<Response<EnrichedContent>> {
-        handle(request: request, eventLoop: request.eventLoop, final: final)
+    func handle(request: Exporter.ExporterRequest, final: ConnectionState = .end) -> EventLoopFuture<Response<EnrichedContent>> {
+        handle(request: request, eventLoop: request.eventLoop, connectionState: final)
     }
 }
 
@@ -99,7 +99,7 @@ class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: Conne
     override func handle(
         request exporterRequest: I.ExporterRequest,
         eventLoop: EventLoop,
-        final: Bool = true
+        connectionState: ConnectionState = .end
     ) -> EventLoopFuture<Response<EnrichedContent>> {
         do {
             let newRequest = self.latestRequest?.reduce(to: exporterRequest) ?? exporterRequest
@@ -107,7 +107,7 @@ class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: Conne
             
             self.latestRequest = newRequest
 
-            let connection = Connection(state: final ? .end : .open, request: validatedRequest)
+            let connection = Connection(state: connectionState, request: validatedRequest)
 
             return requestHandler(with: validatedRequest, on: connection)
         } catch {

@@ -9,11 +9,12 @@ final class UploaderTests: FileHandlerTests {
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
         let file = File(data: data, filename: "Testfile.jpeg")
         
-        try XCTCheckResponse(
-            try mockQuery(component: uploader, value: String.self, app: app, queued: file),
+        try XCTCheckHandler(
+            uploader,
+            application: self.app,
+            request: MockExporterRequest(on: self.app.eventLoopGroup.next(), file),
             status: .created,
-            content: file.filename,
-            connectionEffect: .close
+            content: file.filename
         )
     }
     

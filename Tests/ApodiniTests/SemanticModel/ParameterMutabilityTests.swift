@@ -63,93 +63,67 @@ class ParameterMutabilityTests: ApodiniTests {
     }
 
     func testVariableCanBeChanged() throws {
-        let handler = TestHandler()
-        let endpoint = handler.mockEndpoint()
-
-        let exporter = MockExporter<String>(queued: "Rudi", 3, ", ", "Peter", 3, ", ")
-
-        let context = endpoint.createConnectionContext(for: exporter)
-        
-        // both calls should succeed
-        _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-                .wait()
-        _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-                .wait()
+        try newerXCTCheckHandler(TestHandler()) {
+            MockRequest(expectation: "Hello Paul! Hello Paul! Hello Paul!") {
+                NamedParameter("name", value: "Paul")
+                NamedParameter("times", value: 3)
+            }
+            MockRequest<String> {
+                NamedParameter("name", value: "Rudi")
+            }
+        }
     }
     
     func testConstantCannotBeChanged() throws {
-        let handler = TestHandler()
-        let endpoint = handler.mockEndpoint()
-
-        let exporter = MockExporter<String>(queued: "Rudi", 3, ", ", "Rudi", 4, ", ")
-
-        let context = endpoint.createConnectionContext(for: exporter)
-        
-        // second call should fail
-        _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-                .wait()
-        do {
-            _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-                    .wait()
-            XCTFail("Validation should fail, constant was changed!")
-        } catch {}
+        try newerXCTCheckHandler(TestHandler()) {
+            MockRequest(expectation: "Hello Paul! Hello Paul! Hello Paul!") {
+                NamedParameter("name", value: "Paul")
+                NamedParameter("times", value: 3)
+            }
+            MockRequest<String>(expectation: .error) {
+                NamedParameter("times", value: 4)
+            }
+        }
     }
     
     func testConstantWithDefaultCannotBeChanged() throws {
-        let handler = TestHandler()
-        let endpoint = handler.mockEndpoint()
+        try newerXCTCheckHandler(TestHandler()) {
+            MockRequest(expectation: "Hello Paul! Hello Paul! Hello Paul!") {
+                NamedParameter("name", value: "Paul")
+                NamedParameter("times", value: 3)
+            }
+            MockRequest<String>()
+        }
 
-        let exporter = MockExporter<String>(queued: "Rudi", 3, nil, "Rudi", 4, ", ")
-
-        let context = endpoint.createConnectionContext(for: exporter)
-        
-        // second call should fail
-        _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-                .wait()
-        do {
-            _ = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-                    .wait()
-            XCTFail("Validation should fail, constant was changed!")
-        } catch {}
+        try newerXCTCheckHandler(TestHandler()) {
+            MockRequest(expectation: "Hello Paul! Hello Paul! Hello Paul!") {
+                NamedParameter("name", value: "Paul")
+                NamedParameter("times", value: 3)
+            }
+            MockRequest<String>(expectation: .error) {
+                NamedParameter("separator", value: ", ")
+            }
+        }
     }
     
-    func testMutationOnClassTypeDefaultParameterIsNotShared() throws {
+    func testMutationOnClassTypeDefaultParameterIsNotSharedBetweeConnectionContexts() throws {
         let handler = TestHandlerUsingClassType()
-        let endpoint = handler.mockEndpoint()
-
-        let exporter = MockExporter<String>(queued: nil, nil, true, nil, nil)
-        let context1 = endpoint.createConnectionContext(for: exporter)
-        let context2 = endpoint.createConnectionContext(for: exporter)
         
-        // second call should still return "Apodini"
-        _ = try context1.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-                .wait()
+        // If a single connection context is used the Handler is kept in memory and therefore StringClass stays the same
+        #warning("This might not be a desired behaviour, shouldn't this be reset to Apodini/Apodini as override is reset but the StringClass instances it not?")
+        try newerXCTCheckHandler(TestHandlerUsingClassType()) {
+            MockRequest(expectation: "AlsoNotApodini/NotApodini") {
+                NamedParameter("override", value: true)
+            }
+            MockRequest(expectation: "AlsoNotApodini/NotApodini", options: .doNotReduceRequest)
+        }
         
-        try XCTCheckResponse(
-            context2.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-            content: "Apodini/Apodini",
-            connectionEffect: .close
-        )
-    }
-    
-    func testMutationOnClassTypeDefaultParameterIsNotSharedMultipleExporters() throws {
-        let handler = TestHandlerUsingClassType()
-        let endpoint = handler.mockEndpoint()
-
-        let exporter1 = MockExporter<String>(queued: nil, nil, true)
-        let exporter2 = MockExporter<String>(queued: nil, nil)
-
-        let context1 = endpoint.createConnectionContext(for: exporter1)
-        let context2 = endpoint.createConnectionContext(for: exporter2)
-        
-        // second call should still return "Apodini"
-        _ = try context1.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next())
-                .wait()
-        
-        try XCTCheckResponse(
-            context2.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-            content: "Apodini/Apodini",
-            connectionEffect: .close
-        )
+        // Using two different connection contexts showcases that sideeffects are not shared between different connection attempts.
+        try newerXCTCheckHandler(handler) {
+            MockRequest(expectation: "AlsoNotApodini/NotApodini") {
+                NamedParameter("override", value: true)
+            }
+            MockRequest(expectation: "Apodini/Apodini", options: .doNotReuseConnection)
+        }
     }
 }

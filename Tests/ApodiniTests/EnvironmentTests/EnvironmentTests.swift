@@ -20,12 +20,11 @@ final class EnvironmentTests: ApodiniTests {
     }
 
     func testEnvironmentInjection() throws {
-        let response = try XCTUnwrap(mockQuery(component: BirdHandler(), value: String.self, app: app))
-
-        let birdFacts = BirdFacts()
-
-        app.birdFacts = birdFacts
-        XCTAssert(response == birdFacts.someFact)
+        try XCTCheckHandler(
+            BirdHandler(),
+            application: self.app,
+            content: BirdFacts().someFact
+        )
     }
 
     func testEnvironmentObjectInjection() throws {
@@ -44,10 +43,12 @@ final class EnvironmentTests: ApodiniTests {
 
         let birdFacts = BirdFacts()
         EnvironmentObject(birdFacts, \Keys.bird).configure(app)
-
-        let response = try XCTUnwrap(mockQuery(component: AnotherBirdHandler(), value: String.self, app: app))
-
-        XCTAssertEqual(response, birdFacts.dodoFact)
+        
+        try XCTCheckHandler(
+            AnotherBirdHandler(),
+            application: self.app,
+            content: birdFacts.dodoFact
+        )
     }
 
     func testDuplicateEnvironmentObjectInjection() throws {
@@ -85,27 +86,19 @@ final class EnvironmentTests: ApodiniTests {
     }
 
     func testShouldAccessDynamicEnvironmentValueFirst() throws {
-        var handler = BirdHandler()
-        activate(&handler)
-        let staticBirdFacts = BirdFacts()
+        // inject the static value via the shared object
+        app.birdFacts = BirdFacts()
 
         let dynamicBirdFacts = BirdFacts()
         let dynamicFact = "Until humans, the Dodo had no predators"
         dynamicBirdFacts.someFact = dynamicFact
-
-        let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
-
-        // inject the static value via the shared object
-        app.birdFacts = staticBirdFacts
-        // inject the dynamic value via the .withEnvironment
-        let response: String = request.enterRequestContext(with: handler) { handler in
-            handler
-                .inject(app: app)
-                .environment(dynamicBirdFacts, for: \Application.birdFacts)
-                .handle()
-        }
-
-        XCTAssertEqual(response, dynamicFact)
+        
+        try XCTCheckHandler(
+            // inject the dynamic value via the .withEnvironment
+            BirdHandler().environment(dynamicBirdFacts, for: \Application.birdFacts),
+            application: self.app,
+            content: dynamicFact
+        )
     }
 
     func testShouldAccessStaticIfNoDynamicAvailable() throws {
@@ -116,17 +109,21 @@ final class EnvironmentTests: ApodiniTests {
         // inject the static value via the shared object
         app.birdFacts = staticBirdFacts
 
-        let response = try XCTUnwrap(mockQuery(component: BirdHandler(), value: String.self, app: app))
-
-        XCTAssertEqual(response, staticBirdFacts.someFact)
+        try XCTCheckHandler(
+            BirdHandler(),
+            application: self.app,
+            content: staticBirdFacts.someFact
+        )
     }
 
     func testShouldReturnDefaultIfNoEnvironment() throws {
         app.birdFacts = BirdFacts() // Resets value
-     
-        let response = try XCTUnwrap(mockQuery(component: BirdHandler(), value: String.self, app: app))
-
-        XCTAssertEqual(response, BirdFacts().someFact)
+        
+        try XCTCheckHandler(
+            BirdHandler(),
+            application: self.app,
+            content: BirdFacts().someFact
+        )
     }
 
     func testCustomEnvironment() throws {

@@ -9,13 +9,13 @@ import XCTApodini
 class ParameterRetrievalTests: ApodiniTests {
     struct TestHandler: Handler {
         @Parameter
-        var name: String // will be set to "Rudi"
+        var name: String
         @Parameter
-        var times: Int? // will be set to 3
+        var times: Int?
         @Parameter
-        var separator: String = " " // no value (nil) is supplied => defaultValue is used
+        var separator: String = " "
         @Parameter
-        var prefix: String? = "Standard Prefix" // "explicit nil" is supplied => defaultValue is overwritten
+        var prefix: String? = "Standard Prefix"
 
 
         func handle() -> String {
@@ -26,19 +26,51 @@ class ParameterRetrievalTests: ApodiniTests {
                     .joined(separator: separator)
         }
     }
-
+    
     func testParameterRetrieval() throws {
-        let handler = TestHandler()
-        let endpoint = handler.mockEndpoint()
-
-        let exporter = MockExporter<String>(queued: "Rudi", 3, nil, .some(.none))
-
-        let context = endpoint.createConnectionContext(for: exporter)
+        try XCTCheckHandler(
+            TestHandler(),
+            application: self.app,
+            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+                NamedParameter("name", value: "Paul")
+                NamedParameter("prefix", value: "👋 ")
+            },
+            content: "👋 Hello Paul!"
+        )
         
-        try XCTCheckResponse(
-            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-            content: "Hello Rudi! Hello Rudi! Hello Rudi!",
-            connectionEffect: .close
+        try XCTCheckHandler(
+            TestHandler(),
+            application: self.app,
+            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+                NamedParameter("name", value: "Paul")
+                NamedParameter("times", value: 3)
+                NamedParameter("separator", value: "-")
+            },
+            content: "Standard PrefixHello Paul!-Hello Paul!-Hello Paul!"
+        )
+    }
+
+    func testParameterExplicitNilRetrieval() throws {
+        try XCTCheckHandler(
+            TestHandler(),
+            application: self.app,
+            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+                NamedParameter("name", value: "Paul")
+                NamedParameter<Int>("times", value: nil)
+                NamedParameter<String>("prefix", value: nil)
+            },
+            content: "Hello Paul!"
+        )
+        
+        try XCTCheckHandler(
+            TestHandler(),
+            application: self.app,
+            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+                NamedParameter("name", value: "Paul")
+                NamedParameter("times", value: 3)
+                NamedParameter<String>("prefix", value: nil)
+            },
+            content: "Hello Paul! Hello Paul! Hello Paul!"
         )
     }
 }

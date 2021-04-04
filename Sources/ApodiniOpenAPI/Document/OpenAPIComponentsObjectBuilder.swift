@@ -36,7 +36,7 @@ class OpenAPIComponentsObjectBuilder {
     /// Types built with function are automatically stored into the componentsObject
     /// and thus can be referenced throughout the specification.
     /// In case, the given type is a reference type, the reference to the schema will be returned.
-    func buildSchema(for type: Encodable.Type) throws -> JSONSchema {
+    func buildSchema(for type: Decodable.Type) throws -> JSONSchema {
         let (schema, _) = try buildSchemaWithTitle(for: type)
         return schema
     }
@@ -61,7 +61,7 @@ class OpenAPIComponentsObjectBuilder {
 
     /// In case there is more than one type in HTTP body, a wrapper schema needs to be built.
     /// This function takes a list of types with an associated boolean flag reflecting whether it is optional.
-    func buildWrapperSchema(for types: [Codable.Type], with necessities: [Necessity]) throws -> JSONSchema {
+    func buildWrapperSchema(for types: [Decodable.Type], with necessities: [Necessity]) throws -> JSONSchema {
         let schemasWithTitles: [(JSONSchema, String)] = try types.enumerated().map {
             var (schema, title) = try buildSchemaWithTitle(for: $1)
             if case .optional = necessities[$0] {

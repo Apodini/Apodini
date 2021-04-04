@@ -110,7 +110,7 @@ class MultiInheritanceTests: ApodiniTests {
     func testMultiInheritance() {
         let context = RelationshipTestContext(app: app, service: webserviceMultiInheritance)
 
-        let resultC = context.request(on: 4, parameters: "cId")
+        let resultC = context.request(on: 4, request: MockExporterRequest(on: app.eventLoopGroup.next(), "cId"))
         XCTAssertEqual(
             resultC.formatTestRelationships(),
             ["self:read": "/testC/cId", "text:read": "/testC/cId/text"])

@@ -86,16 +86,27 @@ class ParameterNamespaceTests: ApodiniTests {
         )
     }
 
-    func testEmptyParameterNamespace() {
+    func testEmptyParameterNamespace() throws {
         XCTAssertRuntimeFailure(
             TestHandler().mockEndpoint().parameterNameCollisionCheck(),
             "Failed to reject empty namespace definition"
         )
     }
 
-    func testCustomParameterNamespace() {
-        let handler = TestHandler()
-        let endpoint = handler.mockEndpoint()
+    func testCustom1ParameterNamespace() throws {
+        let endpoint = try TestHandler().newMockEndpoint(application: app)
+
+        endpoint.parameterNameCollisionCheck(in: .path, [.lightweight, .content])
+    }
+
+    func testCustom2ParameterNamespace() throws {
+        let endpoint = try TestHandler().newMockEndpoint(application: app)
+
+        endpoint.parameterNameCollisionCheck(in: .lightweight, [.path, .content])
+    }
+
+    func testCustom3ParameterNamespace() throws {
+        let endpoint = try TestHandler().newMockEndpoint(application: app)
 
         endpoint.parameterNameCollisionCheck(in: .path, .lightweight, .content, .header)
         endpoint.parameterNameCollisionCheck(in: [.path, .header], [.lightweight, .content])

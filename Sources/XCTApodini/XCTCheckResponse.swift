@@ -145,7 +145,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
 }
 
 // swiftlint:disable:next function_parameter_count
-private func _XCTCheckResponse<C, T: Encodable & Equatable>(
+func _XCTCheckResponse<C, T: Encodable & Equatable>(
     response: () throws -> Response<C>,
     type: T.Type = T.self,
     status: (() -> Status?)?,

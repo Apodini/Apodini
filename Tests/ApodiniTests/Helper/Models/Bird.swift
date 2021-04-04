@@ -10,7 +10,7 @@
 @testable import ApodiniDatabase
 import Foundation
 
-final class Bird: DatabaseModel {
+final class Bird: Model, Content {
     static var schema: String = "Birds"
     
     @ID

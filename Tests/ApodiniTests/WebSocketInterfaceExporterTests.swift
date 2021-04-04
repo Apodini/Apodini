@@ -47,7 +47,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
 
     func testParameterRetrieval() throws {
         let handler = ParameterRetrievalTestHandler()
-        let endpoint = handler.mockEndpoint()
+        let endpoint = try handler.newMockEndpoint(application: app)
 
         let exporter = WebSocketInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)

@@ -23,5 +23,5 @@ protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
 
     var remoteAddress: SocketAddress? { get }
 
-    func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element
+    func retrieveParameter<Element: Decodable>(_ parameter: Parameter<Element>) throws -> Element
 }

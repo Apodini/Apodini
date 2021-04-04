@@ -2,18 +2,19 @@
 //  Created by Lorena Schlesinger on 09.12.20.
 //
 
-import XCTest
 @_implementationOnly import OpenAPIKit
 @testable import Apodini
 @testable import ApodiniOpenAPI
 @testable import ApodiniVaporSupport
+import XCTApodini
 
-final class OpenAPIDocumentBuilderTests: XCTestCase {
+
+final class OpenAPIDocumentBuilderTests: XCTApodiniTest {
     struct SomeStruct: Apodini.Content {
         var someProp = 4
     }
 
-    struct SomeComp: Handler {
+    struct SomeHandler: Handler {
         @Parameter var name: String
 
         func handle() -> SomeStruct {
@@ -21,11 +22,11 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
         }
     }
 
-    func testAddEndpoint() {
-        let comp = SomeComp()
+    func testAddEndpoint() throws {
+        let handler = SomeHandler()
         let webService = WebServiceModel()
-        var endpoint = comp.mockEndpoint()
-        webService.addEndpoint(&endpoint, at: ["test"])
+        var endpoint: Endpoint<SomeHandler> = try handler.newMockEndpoint(application: app)
+        //webService.addEndpoint(&endpoint, at: ["test"])
 
         let configuration = OpenAPIConfiguration()
 

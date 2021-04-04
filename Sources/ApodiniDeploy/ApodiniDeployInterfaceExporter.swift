@@ -184,7 +184,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     }
     
     
-    public func retrieveParameter<Type: Codable>(_ endpointParameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type?? {
+    public func retrieveParameter<Type: Decodable>(_ endpointParameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type?? {
         guard let paramValueContainer = request.getValueOfCollectedParameter(for: endpointParameter) else {
             return Optional<Type?>.none // this should be a "top-level" nil value (ie `.none` instead of `.some(.none)`)
         }

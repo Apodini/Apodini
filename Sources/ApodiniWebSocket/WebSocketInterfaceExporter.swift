@@ -79,7 +79,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
                     switch evaluation {
                     case .input(let inputValue):
                         let request = WebSocketInput(inputValue, eventLoop: eventLoop, remoteAddress: request.remoteAddress)
-                        return context.handle(request: request, eventLoop: eventLoop, final: false)
+                        return context.handle(request: request, eventLoop: eventLoop, connectionState: .open)
                     case .observation(let observedObject):
                         return context.handle(eventLoop: eventLoop, observedObject: observedObject)
                     }
@@ -109,7 +109,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     public func retrieveParameter<Type>(
         _ parameter: EndpointParameter<Type>,
         for request: WebSocketInput
-    ) throws -> Type?? where Type: Decodable, Type: Encodable {
+    ) throws -> Type?? where Type: Decodable {
         if let inputParameter = request.input.parameters[parameter.name] as? BasicInputParameter<Type> {
             return inputParameter.value
         } else {
@@ -117,7 +117,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
 
-    public func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable, Type: Encodable {
+    public func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable {
         (parameter.name, WebSocketParameter(BasicInputParameter<Type>()))
     }
     
@@ -156,7 +156,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             // `Handler` one more time before the connection is closed. We have to
             // manually await this future. We use an `emptyInput`, which is aggregated
             // to the latest input.
-            context.handle(request: request, eventLoop: request.eventLoop, final: true).whenComplete { result in
+            context.handle(request: request, eventLoop: request.eventLoop, connectionState: .end).whenComplete { result in
                 switch result {
                 case .success(let response):
                     Self.handleCompletionResponse(response: response, output: output)

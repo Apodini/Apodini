@@ -39,9 +39,10 @@ extension Node {
     ///   - getChildren: Get node values for a parent's children, recursively.
     /// - Throws: Rethrows any error of `getChildren`
     public init(root: T, _ getChildren: (T) throws -> [T]) rethrows {
-        let children = try getChildren(root).map {
-            try Node(root: $0, getChildren)
-        }
+        let children = try getChildren(root)
+            .map {
+                try Node(root: $0, getChildren)
+            }
 
         self.init(value: root, children: children)
     }

@@ -49,7 +49,7 @@ public final class RESTInterfaceExporter: InterfaceExporter {
             }
         }
     }
-
+    
     public func finishedExporting(_ webService: WebServiceModel) {
         if webService.getEndpoint(for: .read) == nil {
             // if the root path doesn't have a read endpoint we create a custom one, to deliver linking entry points.

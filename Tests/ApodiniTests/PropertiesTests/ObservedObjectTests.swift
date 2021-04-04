@@ -21,6 +21,14 @@ class ObservedObjectTests: ApodiniTests {
         var testObservable: TestObservable
     }
     
+    struct TestHandler: Handler {
+        @ObservedObject(\Keys.testObservable) var testObservable: TestObservable
+        
+        func handle() -> String {
+            testObservable.text
+        }
+    }
+    
     func testHandlerObservedObjectCollection() {
         struct TestHandler: Handler {
             @ObservedObject var testObservable = TestObservable()
@@ -64,213 +72,134 @@ class ObservedObjectTests: ApodiniTests {
         XCTAssert(observedObject.wrappedValue === testObservable)
     }
     
-    func testRegisterObservedListener() {
-        struct TestHandler: Handler {
-            @ObservedObject(\Keys.testObservable) var testObservable: TestObservable
-            
-            func handle() -> String {
-                testObservable.text
-            }
-        }
-        
-        struct TestListener: ObservedListener {
-            var eventLoop: EventLoop
-
-            func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<RESTInterfaceExporter>) {
-                do {
-                    try XCTCheckResponse(
-                        context.handle(eventLoop: eventLoop, observedObject: observedObject),
-                        content: "Hello Swift"
-                    )
-                } catch {
-                    XCTFail(error.localizedDescription)
-                }
-            }
-        }
-        
-        let exporter = RESTInterfaceExporter(app)
-        let handler = TestHandler()
-        let endpoint = handler.mockEndpoint(app: app)
-        let context = endpoint.createConnectionContext(for: exporter)
-
-        let request = Vapor.Request(
-            application: app.vapor.app,
-            method: .POST,
-            url: URI("http://example.de/test/a?param0=value0"),
-            collectedBody: nil,
-            on: app.eventLoopGroup.next()
-        )
-        
-        // initialize the observable object
+    func testRegisterObservedListener() throws {
         let testObservable = TestObservable()
-        
         app.storage.set(\Keys.testObservable, to: testObservable)
         
-        // send initial mock request through context
-        // (to simulate connection initiation by client)
-        _ = context.handle(request: request)
-
-        // register listener
-        context.register(listener: TestListener(eventLoop: app.eventLoopGroup.next()))
-        // change the value
-        testObservable.text = "Hello Swift"
+        let expectation = XCTestExpectation(description: "Observation is executed")
+        expectation.assertForOverFulfill = true
+        
+        try newerXCTCheckHandler(TestHandler()) {
+            MockRequest(expectation: "Hello")
+            MockObservedListener(.response("Hello Swift"), timeoutExpectation: expectation)
+            ExecuteClosure<String> {
+                testObservable.text = "Hello Swift"
+            }
+            MockRequest(expectation: "Hello Swift")
+        }
+        
+        wait(for: [expectation], timeout: 0)
     }
     
-    func testObservedListenerNotShared() {
-        struct TestHandler: Handler {
-            @ObservedObject(\Keys.testObservable) var testObservable: TestObservable
-            
-            func handle() -> String {
-                testObservable.text
-            }
-        }
-        
-        class MandatoryTestListener: ObservedListener {
-            var eventLoop: EventLoop
-            
-            var wasCalled = false
-            
-            let number: Int
-            
-            init(eventLoop: EventLoop, number: Int) {
-                self.eventLoop = eventLoop
-                self.number = number
-            }
-            
-            func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<RESTInterfaceExporter>) {
-                wasCalled = true
-            }
-            
-            deinit {
-                XCTAssertTrue(wasCalled, "Number \(number) failed!")
-            }
-        }
-        
-        let exporter = RESTInterfaceExporter(app)
-        let handler = TestHandler()
-
-        let endpoint = handler.mockEndpoint(app: app)
-        let context1 = endpoint.createConnectionContext(for: exporter)
-        let context2 = endpoint.createConnectionContext(for: exporter)
-
-        let request = Vapor.Request(
-            application: app.vapor.app,
-            method: .POST,
-            url: URI("http://example.de/test/a?param0=value0"),
-            collectedBody: nil,
-            on: app.eventLoopGroup.next()
-        )
-        
+    func testObservedListenerNotShared() throws {
         let testObservable = TestObservable()
         app.storage.set(\Keys.testObservable, to: testObservable)
         
-        // send initial mock request through context
-        // (to simulate connection initiation by client)
-        _ = context1.handle(request: request)
-        _ = context2.handle(request: request)
+        let firstExpectation = XCTestExpectation(description: "Observation is executed")
+        firstExpectation.assertForOverFulfill = true
+        let secondExpectation = XCTestExpectation(description: "Observation is executed")
+        secondExpectation.assertForOverFulfill = true
         
-        // register listener
-        context1.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next(), number: 1))
-        context2.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next(), number: 2))
-        // change the value
+        try newerXCTCheckHandler(TestHandler()) {
+            MockRequest(expectation: "Hello")
+            MockObservedListener(.response("Hello Swift"), timeoutExpectation: firstExpectation)
+        }
+        
+        try newerXCTCheckHandler(TestHandler()) {
+            MockRequest(expectation: "Hello")
+            MockObservedListener(.response("Hello Swift"), timeoutExpectation: secondExpectation)
+        }
+        
         testObservable.text = "Hello Swift"
+        wait(for: [firstExpectation, secondExpectation], timeout: 0)
     }
     
     func testChangedProperty() throws {
-        let testObservable = TestObservable()
-        
         struct TestHandler: Handler {
             @ObservedObject(\Keys.testObservable) var observable: TestObservable
             
-            @State var shouldBeTriggeredByObservedObject = false
-            
-            func handle() -> String {
-                XCTAssertEqual(_observable.changed, shouldBeTriggeredByObservedObject)
-                shouldBeTriggeredByObservedObject.toggle()
-                return observable.text
+            func handle() -> Bool {
+                _observable.changed
             }
         }
         
-        struct TestListener: ObservedListener {
-            var eventLoop: EventLoop
-            
-            init(eventLoop: EventLoop) {
-                self.eventLoop = eventLoop
-            }
-            
-            func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<RESTInterfaceExporter>) {
-                do {
-                    try XCTCheckResponse(
-                        context.handle(eventLoop: eventLoop, observedObject: observedObject),
-                        content: "Hello Swift"
-                    )
-                } catch {
-                    XCTFail(error.localizedDescription)
-                }
-            }
-        }
+        let testObservable = TestObservable()
         app.storage.set(\Keys.testObservable, to: testObservable)
         
-        let exporter = RESTInterfaceExporter(app)
-        let handler = TestHandler()
-
-        let endpoint = handler.mockEndpoint(app: app)
-        let context = endpoint.createConnectionContext(for: exporter)
-
-        // send initial mock request through context
-        // (to simulate connection initiation by client)
-        let request = Vapor.Request(
-            application: app.vapor.app,
-            method: .POST,
-            url: URI("http://example.de/test/a?param0=value0"),
-            collectedBody: nil,
-            on: app.eventLoopGroup.next()
-        )
-        _ = try context.handle(request: request).wait()
+        let expectation = XCTestExpectation(description: "Observation is executed")
+        expectation.assertForOverFulfill = true
         
-        // register listener
-        context.register(listener: TestListener(eventLoop: app.eventLoopGroup.next()))
-        // change the value
-        testObservable.text = "Hello Swift"
+        try newerXCTCheckHandler(TestHandler()) {
+            MockRequest(expectation: false)
+            MockObservedListener(.response(true), timeoutExpectation: expectation)
+            ExecuteClosure<Bool> {
+                testObservable.text = "Hello Swift"
+            }
+            MockRequest(expectation: false)
+        }
         
-        // evaluate handler again to check `changed` was reset
-        _ = try context.handle(request: request).wait()
+        wait(for: [expectation], timeout: 0)
     }
     
     func testDeferredDefualtValueInitialization() throws {
         class InitializationObserver: Apodini.ObservableObject {
-            @Apodini.Published var date = Date()
+            static var updateLatestCreatedInitializationObserver: () -> () = {}
+            
+            @Apodini.Published var id: Int
+            
+            
+            init(_ id: Int = 42) {
+                self.id = id
+                
+                InitializationObserver.updateLatestCreatedInitializationObserver = {
+                    self.id = -1
+                }
+            }
+        }
+        
+        struct Keys: EnvironmentAccessible {
+            var initializationObserver: InitializationObserver
         }
         
         struct TestHandler: Handler {
             @ObservedObject var observable = InitializationObserver()
             
-            func handle() -> String {
-                XCTAssertLessThan(Date().timeIntervalSince1970 - observable.date.timeIntervalSince1970, TimeInterval(0.1))
-                return "\(observable.date)"
+            
+            func handle() -> Int {
+                observable.id
             }
         }
         
-        let exporter = RESTInterfaceExporter(app)
-        let handler = TestHandler()
+        let initializationObserver = InitializationObserver(0)
+        app.storage.set(\Keys.initializationObserver, to: initializationObserver)
         
-        // We wait 0.1 seconds after creating the handler so the assertion in the
-        // handler would fail if the stub InitializationObserver was created right
-        // with the handler.
-        usleep(100000)
+        let notExecuteExpectation = XCTestExpectation(description: "Observation not executed")
+        notExecuteExpectation.isInverted = true
         
-        let endpoint = handler.mockEndpoint(app: app)
-        let context = endpoint.createConnectionContext(for: exporter)
+        try newerXCTCheckHandler(TestHandler()) {
+            MockRequest(expectation: 42)
+            MockObservedListener(.response(42), timeoutExpectation: notExecuteExpectation)
+            ExecuteClosure<Int> {
+                initializationObserver.id = 1
+            }
+            MockRequest(expectation: 42)
+        }
         
-        // send initial mock request through context
-        // (to simulate connection initiation by client)
-        let request = Vapor.Request(
-            application: app.vapor.app,
-            method: .POST,
-            url: URI("http://example.de/test/a?param0=value0"),
-            collectedBody: nil,
-            on: app.eventLoopGroup.next()
-        )
-        _ = try context.handle(request: request).wait()
+        wait(for: [notExecuteExpectation], timeout: 0)
+        
+        
+        let expectation = XCTestExpectation(description: "Observation executed")
+        expectation.expectedFulfillmentCount = 1
+        
+        try newerXCTCheckHandler(TestHandler()) {
+            MockRequest(expectation: 42)
+            MockObservedListener(.response(-1), timeoutExpectation: expectation)
+            ExecuteClosure<Int> {
+                InitializationObserver.updateLatestCreatedInitializationObserver()
+            }
+            MockRequest(expectation: -1)
+        }
+        
+        wait(for: [expectation], timeout: 0)
     }
 }

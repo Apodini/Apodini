@@ -5,10 +5,11 @@
 //  Created by Moritz Schüll on 20.12.20.
 //
 
-import XCTest
 @testable import Apodini
 @testable import Vapor
 @testable import ApodiniGRPC
+import XCTApodini
+
 
 private struct GRPCTestHandler: Handler {
     @Parameter("name",
@@ -39,7 +40,7 @@ private struct GRPCNothingHandler: Handler {
     }
 }
 
-final class GRPCInterfaceExporterTests: ApodiniTests {
+final class GRPCInterfaceExporterTests: XCTApodiniTest {
     // swiftlint:disable implicitly_unwrapped_optional
     fileprivate var service: GRPCService!
     fileprivate var handler: GRPCTestHandler!
@@ -86,10 +87,9 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
         let webService = WebServiceModel()
 
-        let handler = GRPCTestHandler()
-        let node = ContextNode()
-        node.addContext(GRPCServiceNameContextKey.self, value: expectedServiceName, scope: .current)
-        var endpoint = handler.mockEndpoint(context: Context(contextNode: node))
+        var endpoint = GRPCTestHandler()
+            .serviceName(expectedServiceName)
+            .mockEndpoint(wrappedHandlerOfType: GRPCTestHandler.self)
 
         webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
 
@@ -160,8 +160,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     }
 
     func testUnaryRequestHandlerWithTwoParameters() throws {
-        let handler = GRPCTestHandler2()
-        let endpoint = handler.mockEndpoint()
+        let endpoint = try GRPCTestHandler2().newMockEndpoint(application: app)
         let context = endpoint.createConnectionContext(for: exporter)
 
         // let expectedResponseString = "Hello Moritz, you are 23 years old."
@@ -192,7 +191,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     /// Tests request validation for the GRPC exporter.
     /// Should throw for a payload that does not contain data for all required parameters.
     func testUnaryRequestHandlerRequiresAllParameters() throws {
-        let endpoint = GRPCTestHandler2().mockEndpoint()
+        let endpoint = try GRPCTestHandler2().newMockEndpoint(application: app)
         let context = endpoint.createConnectionContext(for: exporter)
 
         let incompleteData: [UInt8] = [0, 0, 0, 0, 8, 10, 6, 77, 111, 114, 105, 116, 122]
@@ -355,8 +354,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
     /// Checks whether the returned response for a `.nothing` is indeed empty.
     func testClientStreamingHandlerNothingResponse() throws {
-        let handler = GRPCNothingHandler()
-        let endpoint = handler.mockEndpoint()
+        let endpoint = try GRPCNothingHandler().newMockEndpoint(application: app)
         let context = endpoint.createConnectionContext(for: self.exporter)
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
@@ -386,12 +384,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         XCTAssertEqual(gRPCServiceName(from: endpoint), "Group1Group2Service")
     }
 
-    func testServiceNameUtility_CustomName() {
+    func testServiceNameUtility_CustomName() throws {
         let serviceName = "TestService"
 
-        let node = ContextNode()
-        node.addContext(GRPCServiceNameContextKey.self, value: serviceName, scope: .current)
-        endpoint = handler.mockEndpoint(context: Context(contextNode: node))
+        let endpoint = try handler.serviceName(serviceName).newMockEndpoint(application: app)
 
         XCTAssertEqual(gRPCServiceName(from: endpoint), serviceName)
     }
@@ -403,9 +399,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     func testMethodNameUtility_CustomName() {
         let methodName = "testMethod"
 
-        let node = ContextNode()
-        node.addContext(GRPCMethodNameContextKey.self, value: methodName, scope: .current)
-        endpoint = handler.mockEndpoint(context: Context(contextNode: node))
+        let endpoint = handler.rpcName(methodName).mockEndpoint(wrappedHandlerOfType: GRPCTestHandler.self)
 
         XCTAssertEqual(gRPCMethodName(from: endpoint), methodName)
     }

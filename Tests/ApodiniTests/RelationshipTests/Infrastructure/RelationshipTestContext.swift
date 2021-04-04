@@ -40,8 +40,8 @@ class RelationshipTestContext {
         endpoints[index]
     }
 
-    func request(on index: Int, request: String = "Example Request", parameters: Any??...) -> EnrichedContent {
-        exporter.append(injected: parameters)
+    func request(on index: Int, request: MockExporterRequest? = nil) -> EnrichedContent {
+        let request = request ?? MockExporterRequest(on: app.eventLoopGroup.next())
 
         let endpoint = endpoints[index]
         let context = endpoint.createConnectionContext(for: exporter)

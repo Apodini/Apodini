@@ -106,7 +106,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
     func testParameterRetrieval() throws {
         let handler = ParameterRetrievalTestHandler()
-        let endpoint = handler.mockEndpoint()
+        let endpoint = try handler.newMockEndpoint(application: app)
 
         let exporter = RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)

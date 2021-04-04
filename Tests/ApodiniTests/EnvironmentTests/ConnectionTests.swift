@@ -34,43 +34,30 @@ final class ConnectionTests: ApodiniTests {
     }
     
     func testDefaultConnectionEnvironment() throws {
-        var testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage).inject(app: app)
-        activate(&testHandler)
-        
-        let endpoint = testHandler.mockEndpoint(app: app)
-        
-        let exporter = MockExporter<String>()
-        let context = endpoint.createConnectionContext(for: exporter)
-        
-        try XCTCheckResponse(
-            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
+        try XCTCheckHandler(
+            TestHandler(endMessage: endMessage, openMessage: openMessage),
+            application: self.app,
             content: endMessage,
             connectionEffect: .close
         )
     }
     
     func testConnectionInjection() throws {
-        let mockRequest = MockRequest.createRequest(running: app.eventLoopGroup.next(), queuedParameters: .none)
-        var testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage).inject(app: app)
-        activate(&testHandler)
+        try XCTCheckHandler(
+            TestHandler(endMessage: endMessage, openMessage: openMessage),
+            application: self.app,
+            connectionState: .open,
+            content: openMessage,
+            connectionEffect: .open
+        )
         
-        var connection = Connection(state: .open, request: mockRequest)
-        _ = try connection.enterConnectionContext(with: testHandler) { handler in
-            try XCTCheckResponse(
-                handler.handle(),
-                content: openMessage,
-                connectionEffect: .open
-            )
-        }
-        
-        connection.state = .end
-        _ = try connection.enterConnectionContext(with: testHandler) { handler in
-            try XCTCheckResponse(
-                handler.handle(),
-                content: endMessage,
-                connectionEffect: .close
-            )
-        }
+        try XCTCheckHandler(
+            TestHandler(endMessage: endMessage, openMessage: openMessage),
+            application: self.app,
+            connectionState: .end,
+            content: endMessage,
+            connectionEffect: .close
+        )
     }
 
     func testConnectionRemoteAddress() throws {

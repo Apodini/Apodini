@@ -15,11 +15,11 @@ import Apodini
 /// Returns the name of the service that is exported by
 /// the Protobuffer and GRPC exporters
 /// for this `Endpoint`.
-public func gRPCServiceName<H: Handler>(from endpoint: Endpoint<H>) -> String {
+public func gRPCServiceName(from endpoint: AnyEndpoint) -> String {
     if let serviceName = endpoint.context.get(valueFor: GRPCServiceNameContextKey.self) {
         return serviceName
     }
-
+    
     // if no explicit servicename is provided via the modifier,
     // simply use the PathComponents to come up with one
     return endpoint.absolutePath.asPathString(delimiter: "", parameterEncoding: .name)

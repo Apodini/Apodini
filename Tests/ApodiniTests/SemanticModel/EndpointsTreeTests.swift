@@ -70,7 +70,7 @@ final class EndpointsTreeTests: ApodiniTests {
     func testEndpointParameters() throws {
         let testComponent = TestComponent()
         let testHandler: TestHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
-        let endpoint = testHandler.mockEndpoint()
+        let endpoint = try testHandler.newMockEndpoint(application: app)
 
         let parameters = endpoint.parameters
         let nameParameter = parameters.first { $0.label == "_name" }!
@@ -108,26 +108,15 @@ final class EndpointsTreeTests: ApodiniTests {
     func testRequestHandler() throws {
         let name = "Paul" // this is the parameter value we want to inject
 
-        // setting up a exporter
-        let exporter = MockExporter<String>(queued: name)
-
-        // creating handlers, guards and transformers
-        let handler = BasicTestHandler()
-        let transformer = EmojiMediator(emojis: "✅")
-        let printGuard = AnyGuard(PrintGuard())
-
-        // creating a endpoint model from the handler
-        let endpoint = handler.mockEndpoint(guards: [ { printGuard } ], responseTransformers: [ { transformer } ])
-
-        // creating a context for the exporter
-        let context = endpoint.createConnectionContext(for: exporter)
-
-        // handle a request (The actual request is unused in the MockExporter)
-        try XCTCheckResponse(
-            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-            content: "✅ Hello \(name) ✅",
-            connectionEffect: .close
-        )
+        try newerXCTCheckHandler(
+            BasicTestHandler()
+                .guard(PrintGuard())
+                .response(EmojiMediator(emojis: "✅"))
+        ) {
+            MockRequest(expectation: "✅ Hello \(name) ✅") {
+                NamedParameter("name", value: name)
+            }
+        }
     }
     
     func testEndpointPathEquatable() throws {

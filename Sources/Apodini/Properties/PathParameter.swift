@@ -6,7 +6,7 @@ import ApodiniUtils
 
 /// A `@PathComponent` can be used in `Component`s to indicate that a part of a path is a parameter and can be read out in a `Handler`
 @propertyWrapper
-public struct PathParameter<Element: Codable & LosslessStringConvertible> {
+public struct PathParameter<Element: Decodable & LosslessStringConvertible> {
     var id = UUID()
     var identifyingType: IdentifyingType?
     

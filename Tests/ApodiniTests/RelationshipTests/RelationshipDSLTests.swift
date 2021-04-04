@@ -146,7 +146,7 @@ class RelationshipDSLTests: ApodiniTests {
                 "TestA:read": "/xTestA", "TestB:read": "/xTestB/{param}", "TestC:read": "/xTestC/{cId}"
             ])
 
-        let userResult = context.request(on: 2, parameters: 3)
+        let userResult = context.request(on: 2, request: MockExporterRequest(on: app.eventLoopGroup.next(), 3))
         XCTAssertEqual(
             userResult.formatTestRelationships(),
             [
@@ -154,7 +154,7 @@ class RelationshipDSLTests: ApodiniTests {
                 "TestA:read": "/xTestA", "TestC:read": "/xTestC/28"
             ])
 
-        let postResult = context.request(on: 3, parameters: 3, 10)
+        let postResult = context.request(on: 3, request: MockExporterRequest(on: app.eventLoopGroup.next(), 3, 10))
         XCTAssertEqual(
             postResult.formatTestRelationships(),
             ["self:read": "/user/3/post/10"])
@@ -213,12 +213,14 @@ class RelationshipDSLTests: ApodiniTests {
     func testOptionalReference() {
         let context = RelationshipTestContext(app: app, service: optionalReferenceWebService)
 
-        let resultNil = context.request(on: 1, parameters: nil)
+        let resultNil = context.request(on: 1, request: MockExporterRequest(on: app.eventLoopGroup.next()) {
+            UnnamedParameter<Empty>(nil)
+        })
         XCTAssertEqual(
             resultNil.formatTestRelationships(),
             ["self:read": "/referencing", "referenced:read": "/referenced/{id}"])
 
-        let resultRef = context.request(on: 1, parameters: "RefID")
+        let resultRef = context.request(on: 1, request: MockExporterRequest(on: app.eventLoopGroup.next(), "RefID"))
         XCTAssertEqual(
             resultRef.formatTestRelationships(),
             ["self:read": "/referencing", "referenced:read": "/referenced/RefID"])
@@ -353,12 +355,12 @@ class RelationshipDSLTests: ApodiniTests {
     func testCyclicReferencesDefinition() {
         let context = RelationshipTestContext(app: app, service: conflictingResolversWebService)
 
-        let resultNil = context.request(on: 0, parameters: 76)
+        let resultNil = context.request(on: 0, request: MockExporterRequest(on: app.eventLoopGroup.next(), 76))
         XCTAssertEqual(
             resultNil.formatTestRelationships(),
             ["self:read": "/user/76", "post:read": "/user/76/post/{postId}", "taggedPost:read": "/user/76/post/4"])
 
-        let resultRef = context.request(on: 1, parameters: 56, 89)
+        let resultRef = context.request(on: 1, request: MockExporterRequest(on: app.eventLoopGroup.next(), 56, 89))
         XCTAssertEqual(
             resultRef.formatTestRelationships(),
             ["self:read": "/user/56/post/89", "author:read": "/user/7"])

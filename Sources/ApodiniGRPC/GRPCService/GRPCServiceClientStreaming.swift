@@ -40,13 +40,13 @@ extension GRPCService {
                         // Discard any result that is received back from the handler.
                         // This is a client-streaming handler, thus we only send back
                         // a response in the .end case.
-                        _ = context.handle(request: message, eventLoop: request.eventLoop, final: false)
+                        _ = context.handle(request: message, eventLoop: request.eventLoop, connectionState: .open)
                     })
             case .end:
                 // send the previously retained lastMessage through the handler
                 // and set the final flag
                 let message = lastMessage ?? GRPCMessage.defaultMessage
-                let response = context.handle(request: message, eventLoop: request.eventLoop, final: true)
+                let response = context.handle(request: message, eventLoop: request.eventLoop, connectionState: .end)
                 let result = response.map { response -> Vapor.Response in
                     switch response.content {
                     case let .some(content):

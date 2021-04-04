@@ -49,52 +49,111 @@ final class ResponseTests: ApodiniTests {
     }
     
     
+    struct TestHandler4: Handler {
+        func handle() -> String {
+            "Hello Test Handler 4"
+        }
+    }
+
+    struct ResponseHandler1: Handler {
+        @Apodini.Environment(\.connection)
+        var connection: Connection
+
+        func handle() -> Apodini.Response<String> {
+            switch connection.state {
+            case .open:
+                return .send("Send")
+            default:
+                return .final("Final")
+            }
+        }
+    }
+
+    struct ResponseHandler2: Handler {
+        @Apodini.Environment(\.connection)
+        var connection: Connection
+
+        func handle() -> Apodini.Response<String> {
+            switch connection.state {
+            case .open:
+                return .nothing
+            default:
+                return .end
+            }
+        }
+    }
+    
+    func testShouldWrapInFinalByDefault() throws {
+        try XCTCheckHandler(
+            TestHandler4(),
+            application: self.app,
+            content: "Hello Test Handler 4"
+        )
+    }
+
+    func testResponsePassthrough_send() throws {
+        try XCTCheckHandler(
+            ResponseHandler1(),
+            application: self.app,
+            connectionState: .open,
+            content: "Send",
+            connectionEffect: .open
+        )
+    }
+
+    func testResponsePassthrough_final() throws {
+        try XCTCheckHandler(
+            ResponseHandler1(),
+            application: self.app,
+            connectionState: .end,
+            content: "Final",
+            connectionEffect: .close
+        )
+    }
+
+    func testResponsePassthrough_nothing() throws {
+        try XCTCheckHandler(
+            ResponseHandler2(),
+            application: self.app,
+            connectionState: .open,
+            responseType: Empty.self,
+            content: nil,
+            connectionEffect: .open
+        )
+    }
+
+    func testResponsePassthrough_end() throws {
+        try XCTCheckHandler(
+            ResponseHandler2(),
+            application: self.app,
+            connectionState: .end,
+            responseType: Empty.self,
+            content: nil,
+            connectionEffect: .close
+        )
+    }
+    
+    
     func testResponseRequestHandling() throws {
         let expectedContent = "ResponseWithRequest"
         
-        let handler = ResponseHandler(message: expectedContent)
-        let endpoint = handler.mockEndpoint()
-
-        let exporter = MockExporter<String>()
-        let context = endpoint.createConnectionContext(for: exporter)
-
-        try XCTCheckResponse(
-            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-            content: expectedContent,
-            connectionEffect: .close
-        )
+        try newerXCTCheckHandler(ResponseHandler(message: expectedContent)) {
+            MockRequest(expectation: expectedContent)
+        }
     }
 
     func testEventLoopFutureRequestHandling() throws {
         let expectedContent = "ResponseWithRequest"
         
-        let handler = FutureBasedHandler(eventLoop: app.eventLoopGroup.next(), message: expectedContent)
-        let endpoint = handler.mockEndpoint()
-
-        let exporter = MockExporter<String>()
-        let context = endpoint.createConnectionContext(for: exporter)
-        
-        try XCTCheckResponse(
-            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-            content: expectedContent,
-            connectionEffect: .open
-        )
+        try newerXCTCheckHandler(FutureBasedHandler(eventLoop: app.eventLoopGroup.next(), message: expectedContent)) {
+            MockRequest(expectation: .response(connectionEffect: .open, expectedContent))
+        }
     }
     
     func testEmptyResponseHandler() throws {
-        let handler = EmptyResponseHandler().inject(app: app)
-        let endpoint = handler.mockEndpoint()
-
-        let exporter = MockExporter<String>()
-        let context = endpoint.createConnectionContext(for: exporter)
-
-        try XCTCheckResponse(
-            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-            Empty.self,
-            status: .noContent,
-            content: nil,
-            connectionEffect: .close
-        )
+        try newerXCTCheckHandler(EmptyResponseHandler()) {
+            MockRequest(expectation: .status(.noContent))
+        }
     }
     
     func testResponseMapFunctionality() {

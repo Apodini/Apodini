@@ -27,7 +27,9 @@ let package = Package(
         .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
         .executable(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"]),
         .library(name: "DeploymentTargetLocalhostRuntimeSupport", targets: ["DeploymentTargetLocalhostRuntimeSupport"]),
-        .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"])
+        .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"]),
+        // XCTApodini
+        .library(name: "XCTApodini", targets: ["XCTApodini"])
     ],
     dependencies: [
         //.package(name: "ApodiniDeploy", path: "./ApodiniDeploy"),
@@ -121,7 +123,7 @@ let package = Package(
             name: "ApodiniDatabase",
             dependencies: [
                 .target(name: "Apodini"),
-                .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniUtils"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentKit", package: "fluent-kit"),
                 .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
@@ -273,6 +275,7 @@ let package = Package(
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
                 .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniVaporSupport"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniGRPC"),

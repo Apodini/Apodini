@@ -43,7 +43,7 @@ class AutoInheritanceRelationshipTests: ApodiniTests {
     func testAutoInheritance() {
         let context = RelationshipTestContext(app: app, service: webservice)
 
-        let userResult = context.request(on: 1, parameters: 5) // handle /user/userId
+        let userResult = context.request(on: 1, request: MockExporterRequest(on: app.eventLoopGroup.next(), 5)) // handle /user/userId
         XCTAssertEqual(
             userResult.formatTestRelationships(),
             ["self:read": "/user/5"])
@@ -93,12 +93,16 @@ class AutoInheritanceRelationshipTests: ApodiniTests {
     func testTypedInheritance() {
         let context = RelationshipTestContext(app: app, service: typedUserHandler)
 
-        let userResult = context.request(on: 1, parameters: "type0", 5) // handle /user/userId
+        let userResult = context.request(on: 1, request: MockExporterRequest(on: app.eventLoopGroup.next()) {
+            UnnamedParameter(5)
+            UnnamedParameter("type0")
+            UnnamedParameter(5)
+        }) // handle /user/userId
         XCTAssertEqual(
             userResult.formatTestRelationships(),
             ["self:read": "/type0/user/5"])
 
-        let meResult = context.request(on: 0, parameters: "type0") // handle /me
+        let meResult = context.request(on: 0, request: MockExporterRequest(on: app.eventLoopGroup.next(), "type0")) // handle /me
         XCTAssertEqual(
             meResult.formatTestRelationships(),
             ["self:read": "/type0/user/3"])
@@ -122,7 +126,7 @@ class AutoInheritanceRelationshipTests: ApodiniTests {
     func testAutoInheritanceMarkedDefault() {
         let context = RelationshipTestContext(app: app, service: webserviceDefault)
 
-        let userResult = context.request(on: 1, parameters: 5) // handle /user/userId
+        let userResult = context.request(on: 1, request: MockExporterRequest(on: app.eventLoopGroup.next(), 5)) // handle /user/userId
         XCTAssertEqual(
             userResult.formatTestRelationships(),
             ["self:read": "/user/5", "special:read": "/user/5/special"])

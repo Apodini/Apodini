@@ -84,7 +84,7 @@ extension Binding {
 
 // MARK: Parameter
 
-extension Binding where Value: Codable {
+extension Binding where Value: Decodable {
     private init(parameter: Parameter<Value>) {
         store = Properties(wrappedValue: ["parameter": parameter], namingStrategy: { names in
             names[names.count - 3]
