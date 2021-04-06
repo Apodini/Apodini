@@ -40,7 +40,7 @@ struct InternalInvocationResponder<H: Handler>: Vapor.Responder {
         }
         return endpoint.invokeImp(
             withRequest: ApodiniDeployInterfaceExporter.ExporterRequest(
-                encodedParameters: request.parameters.map { param -> (String, Data) in
+                encodedArguments: request.parameters.map { param -> (String, Data) in
                     (param.stableIdentity, param.encodedValue)
                 }
             ),

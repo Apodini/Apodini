@@ -68,7 +68,7 @@ struct Greeter: Handler {
         return RHI.invoke(
             RandomNumberGenerator.self,
             identifiedBy: .main,
-            parameters: [
+            arguments: [
                 .init(\.$lowerBound, age),
                 .init(\.$upperBound, age * 2)
             ]
