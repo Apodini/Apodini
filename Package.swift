@@ -2,6 +2,17 @@
 
 import PackageDescription
 
+// MARK: Configuration
+
+/// Configures the Package for usage of the experimental `async`/`await` syntax as introduced by
+/// https://github.com/apple/swift-evolution/blob/main/proposals/0296-async-await.md
+/// When set to `true`, a recent commit from the **main** branch of **swift-nio** is used. Furthermore, the
+/// swift compiler is configured to enable this feature. Swift 5.4 is required for this to work. You may need to reset
+/// your package caches for this to take effect.
+let _experimental_async_await = false
+
+
+// MARK: Package Definition
 
 let package = Package(
     name: "Apodini",
@@ -54,7 +65,9 @@ let package = Package(
         // We constrain it to the next minor version as it doen't follow semantic versioning.
         .package(url: "https://github.com/OpenCombine/OpenCombine.git", .upToNextMinor(from: "0.11.0")),
         // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
-        .package(url: "https://github.com/apple/swift-nio.git", from: "2.18.0"),
+        _experimental_async_await
+                    ? .package(url: "https://github.com/apple/swift-nio.git", .revision("4220c7a16a5ee0abb7da150bd3d4444940a20cc2"))
+                    : .package(url: "https://github.com/apple/swift-nio.git", from: "2.18.0"),
         // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.8.0"),
         // HTTP/2 support for SwiftNIO
@@ -94,10 +107,20 @@ let package = Package(
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Runtime", package: "Runtime"),
                 .product(name: "ConsoleKit", package: "console-kit")
-            ],
+            ] + (
+                _experimental_async_await ? [
+                    .product(name: "_NIOConcurrency", package: "swift-nio")
+                ] : []
+            ),
             exclude: [
                 "Components/ComponentBuilder.swift.gyb",
                 "Relationships/RelationshipIdentificationBuilder.swift.gyb"
+            ],
+            swiftSettings: [
+                .unsafeFlags(_experimental_async_await ? [
+                    "-Xfrontend",
+                    "-enable-experimental-concurrency"
+                    ] : [])
             ]
         ),
 
