@@ -20,18 +20,40 @@ enum PrimitiveType: String, RawRepresentable, Codable {
     case string = "String"
     case double = "Double"
     case float = "Float"
-
     case uuid = "UUID"
 
-    case unknown
-
     init(_ type: Any.Type) {
-        self = PrimitiveType(rawValue: "\(type)") ?? .unknown
-
-        precondition(self != .unknown, "'isSupportedScalarType' method has been updated with \(type), but the update is not reflected in 'PrimitiveType' enum yet.")
+        if let primitiveType = PrimitiveType(rawValue: "\(type)") {
+            self = primitiveType
+        } else {
+            fatalError("A new conformance to 'Primitive' protocol added for \(type), but the update is not reflected in 'PrimitiveType' enum yet.")
+        }
+    }
+    
+    var swiftType: _Primitive.Type {
+        switch self {
+        case .int: return Int.self
+        case .int32: return Int32.self
+        case .int64: return Int64.self
+        case .uint: return UInt.self
+        case .uint32: return UInt32.self
+        case .uint64: return UInt64.self
+        case .bool: return Bool.self
+        case .string: return String.self
+        case .double: return Double.self
+        case .float: return Float.self
+        case .uuid: return UUID.self
+        }
     }
 }
 
 extension PrimitiveType: CustomStringConvertible {
-    var description: String { rawValue }
+    public var description: String { rawValue }
+}
+
+
+extension PrimitiveType {
+    var schemaName: SchemaName {
+        .init(String(reflecting: swiftType))
+    }
 }

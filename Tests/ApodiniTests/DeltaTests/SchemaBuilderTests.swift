@@ -36,7 +36,7 @@ final class SchemaBuilderTests: XCTestCase {
     func testSchemaBuilder() throws {
         var builder = SchemaBuilder()
 
-        let accountReference = try XCTUnwrap(builder.build(for: Account.self, root: true))
+        let accountSchemaName = try XCTUnwrap(builder.build(for: Account.self))
 
         let builderSchemas = builder.schemas
 
@@ -46,19 +46,22 @@ final class SchemaBuilderTests: XCTestCase {
 
         XCTAssertEqual(builderSchemas.filter { $0.isEnumeration.value }.count, 1)
 
-        let enumSchema = try XCTUnwrap(builderSchemas.first { $0.reference == .reference("Direction") })
-        let expectedEnumSchema: Schema = .enumeration(typeName: "Direction", cases: "right", "left")
+        let enumSchema = try XCTUnwrap(builderSchemas.first { $0.schemaName == .init("ApodiniTests.SchemaBuilderTests.Direction") })
+        let expectedEnumSchema: Schema = .enumeration(
+            schemaName: .init("ApodiniTests.SchemaBuilderTests.Direction"),
+            cases: "right", "left"
+        )
         XCTAssertEqual(enumSchema, expectedEnumSchema)
 
-        let accountSchema = try XCTUnwrap(builderSchemas.first { $0.reference == accountReference })
+        let accountSchema = try XCTUnwrap(builderSchemas.first { $0.schemaName == accountSchemaName })
         let expectedAccountResult: Schema = .complex(
-            typeName: "Account",
+            schemaName: .init("ApodiniTests.SchemaBuilderTests.Account"),
             properties: [
-                .property(named: "car", offset: 1, type: .exactlyOne, reference: .reference("Car")),
-                .property(named: "amount", offset: 2, type: .optional, reference: .reference("Int")),
-                .property(named: "names", offset: 3, type: .array, reference: .reference("String")),
-                .property(named: "dict", offset: 4, type: .dictionary(key: .float), reference: .reference("User")),
-                .property(named: "direction", offset: 5, type: .array, reference: .reference("Direction"))
+                .property(named: "car", offset: 1, type: .exactlyOne, schemaName: .init("ApodiniTests.SchemaBuilderTests.Car")),
+                .property(named: "amount", offset: 2, type: .optional, schemaName: .init("Swift.Int")),
+                .property(named: "names", offset: 3, type: .array, schemaName: .init("Swift.String")),
+                .property(named: "dict", offset: 4, type: .dictionary(key: .float), schemaName: .init("ApodiniTests.SchemaBuilderTests.User")),
+                .property(named: "direction", offset: 5, type: .array, schemaName: .init("ApodiniTests.SchemaBuilderTests.Direction"))
             ])
 
         XCTAssertEqual(accountSchema, expectedAccountResult)

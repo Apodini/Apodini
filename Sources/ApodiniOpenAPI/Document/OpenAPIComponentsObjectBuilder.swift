@@ -225,8 +225,7 @@ extension OpenAPIComponentsObjectBuilder {
             .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handleDictionary)?
-            .edited(handlePrimitiveType)?
-            .edited(handleUUID)
+            .edited(handlePrimitiveType)
             else {
             fatalError("Error occurred during transforming tree of nodes with type \(node.value.typeInfo.name).")
         }

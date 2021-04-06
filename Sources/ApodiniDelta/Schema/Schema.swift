@@ -7,14 +7,13 @@
 
 import Foundation
 
-class SchemaName: PrimitiveValueWrapper<String> {}
 class IsEnum: PrimitiveValueWrapper<Bool> {}
 
 /// Schema of a specific type
 struct Schema {
     /// The name of the type
-    let typeName: SchemaName
-
+    let schemaName: SchemaName
+    
     /// Properties of the schema
     let properties: Set<SchemaProperty>
 
@@ -22,38 +21,29 @@ struct Schema {
     /// If that is the case, the properties represent the cases as strings
     let isEnumeration: IsEnum
 
-    /// The reference to the own schema
-    var reference: SchemaReference {
-        .reference(typeName.value)
-    }
-
-    private init(typeName: String, properties: Set<SchemaProperty>, isEnumeration: Bool = false) {
-        self.typeName = .init(typeName)
+    private init(schemaName: SchemaName, properties: Set<SchemaProperty>, isEnumeration: Bool = false) {
+        self.schemaName = schemaName
         self.properties = properties
         self.isEnumeration = .init(isEnumeration)
-    }
-
-    func updated(typeName: String) -> Schema {
-        .init(typeName: typeName, properties: properties, isEnumeration: isEnumeration.value)
     }
 }
 
 // MARK: - Convenience
 extension Schema {
     static func primitive(type: PrimitiveType) -> Schema {
-        .init(typeName: type.description, properties: .empty)
+        .init(schemaName: type.schemaName, properties: .empty)
     }
 
-    static func complex(typeName: String, properties: Set<SchemaProperty>) -> Schema {
-        .init(typeName: typeName, properties: properties)
+    static func complex(schemaName: SchemaName, properties: Set<SchemaProperty>) -> Schema {
+        .init(schemaName: schemaName, properties: properties)
     }
 
-    static func enumeration(typeName: String, cases: String...) -> Schema {
-        .init(typeName: typeName, properties: Set(cases.enumerated().map { .enumCase(named: $1, offset: $0 + 1) }), isEnumeration: true)
+    static func enumeration(schemaName: SchemaName, cases: String...) -> Schema {
+        .init(schemaName: schemaName, properties: Set(cases.enumerated().map { .enumCase(named: $1, offset: $0 + 1) }), isEnumeration: true)
     }
 
-    static func enumeration(typeName: String, cases: [String]) -> Schema {
-        .init(typeName: typeName, properties: Set(cases.enumerated().map { .enumCase(named: $1, offset: $0 + 1) }), isEnumeration: true)
+    static func enumeration(schemaName: SchemaName, cases: [String]) -> Schema {
+        .init(schemaName: schemaName, properties: Set(cases.enumerated().map { .enumCase(named: $1, offset: $0 + 1) }), isEnumeration: true)
     }
 }
 
@@ -61,13 +51,13 @@ extension Schema {
 extension Schema: Codable {
     // MARK: Private Inner Types
     private enum CodingKeys: String, CodingKey {
-        case typeName, properties, isEnumeration
+        case schemaName, properties, isEnumeration
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
-        typeName = try container.decode(SchemaName.self, forKey: .typeName)
+        schemaName = try container.decode(SchemaName.self, forKey: .schemaName)
         properties = try container.decodeIfPresent(Set<SchemaProperty>.self, forKey: .properties) ?? .empty
         isEnumeration = try container.decodeIfPresent(IsEnum.self, forKey: .isEnumeration) ?? .init(false)
     }
@@ -75,7 +65,7 @@ extension Schema: Codable {
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-        try container.encode(typeName, forKey: .typeName)
+        try container.encode(schemaName, forKey: .schemaName)
 
         if !properties.isEmpty { try container.encode(properties, forKey: .properties) }
         if isEnumeration.value { try container.encode(isEnumeration, forKey: .isEnumeration) }
@@ -85,7 +75,7 @@ extension Schema: Codable {
 // MARK: - Hashable
 extension Schema: Hashable {
     func hash(into hasher: inout Hasher) {
-        hasher.combine(typeName)
+        hasher.combine(schemaName)
         hasher.combine(properties)
         hasher.combine(isEnumeration)
     }
@@ -94,7 +84,7 @@ extension Schema: Hashable {
 // MARK: - Equatable
 extension Schema: Equatable {
     static func == (lhs: Schema, rhs: Schema) -> Bool {
-        lhs.typeName == rhs.typeName
+        lhs.schemaName == rhs.schemaName
             && lhs.properties == rhs.properties
             && lhs.isEnumeration == rhs.isEnumeration
     }
@@ -102,7 +92,7 @@ extension Schema: Equatable {
 
 // MARK: - ComparableObject
 extension Schema: ComparableObject {
-    var deltaIdentifier: DeltaIdentifier { .init(typeName.value) }
+    var deltaIdentifier: DeltaIdentifier { schemaName.deltaIdentifier }
 
     func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
         let context: ChangeContextNode
@@ -116,7 +106,7 @@ extension Schema: ComparableObject {
         }
 
         let changes = [
-            typeName.change(in: context),
+            schemaName.change(in: context),
             properties.evaluate(node: context),
             isEnumeration.change(in: context)
         ].compactMap { $0 }
@@ -131,7 +121,7 @@ extension Schema: ComparableObject {
     func compare(to other: Schema) -> ChangeContextNode {
         let context = ChangeContextNode()
 
-        context.register(compare(\.typeName, with: other), for: SchemaName.self)
+        context.register(compare(\.schemaName, with: other), for: SchemaName.self)
         context.register(result: compare(\.properties, with: other), for: SchemaProperty.self)
         context.register(compare(\.isEnumeration, with: other), for: IsEnum.self)
 

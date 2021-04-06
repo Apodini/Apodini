@@ -25,10 +25,6 @@ class ChangeContextNode {
         changes[C.identifier] as? C.Result
     }
 
-    /**
-     These functions can be removed if the type checking for ComparableCollection would work as expected
-     */
-
     /// Used to register the result of comparison between two collections of comparable objects
     /// - Parameters:
     ///   - result: result of comparison

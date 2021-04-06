@@ -12,7 +12,7 @@ class ServicePath: PrimitiveValueWrapper<String> {}
 class HandlerName: PrimitiveValueWrapper<String> {}
 
 /// Represents an endpoint
-struct Service: Codable {
+struct Service {
     /// Name of the handler
     let handlerName: HandlerName
 
@@ -28,8 +28,8 @@ struct Service: Codable {
     /// Parameters of the endpoint
     let parameters: [ServiceParameter]
 
-    /// The reference to the schema of the response type of the endpoint
-    let response: SchemaReference
+    /// Schema name of the response type of the endpoint
+    let response: SchemaName
 
     init(
         handlerName: String,
@@ -37,7 +37,7 @@ struct Service: Codable {
         operation: Apodini.Operation,
         absolutePath: [EndpointPath],
         parameters: [ServiceParameter],
-        response: SchemaReference
+        response: SchemaName
     ) {
         self.handlerName = .init(handlerName)
         self.handlerIdentifier = handlerIdentifier
@@ -50,7 +50,7 @@ struct Service: Codable {
 
 // MARK: - ComparableObject
 extension Service: ComparableObject {
-    var deltaIdentifier: DeltaIdentifier { .init(handlerIdentifier.rawValue) }
+    var deltaIdentifier: DeltaIdentifier { .init(handlerIdentifier) }
 
     func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
         let context: ChangeContextNode
@@ -85,7 +85,7 @@ extension Service: ComparableObject {
         context.register(compare(\.operation, with: other), for: Apodini.Operation.self)
         context.register(compare(\.absolutePath, with: other), for: ServicePath.self)
         context.register(result: compare(\.parameters, with: other), for: ServiceParameter.self)
-        context.register(compare(\.response, with: other), for: SchemaReference.self)
+        context.register(compare(\.response, with: other), for: SchemaName.self)
 
         return context
     }

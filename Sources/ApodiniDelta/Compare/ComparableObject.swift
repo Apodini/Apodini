@@ -8,10 +8,8 @@
 import Foundation
 
 /// Base protocol that all comparable objects conform to
-protocol ComparableObject: _Comparable {
+protocol ComparableObject: _Comparable, DeltaIdentifiable {
     typealias Result = ChangeContextNode
-
-    var deltaIdentifier: DeltaIdentifier { get }
 
     func evaluate(result: Result, embeddedInCollection: Bool) -> Change?
 }

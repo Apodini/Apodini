@@ -6,6 +6,7 @@
 //
 
 import Foundation
+@_implementationOnly import struct ApodiniTypeReflection.ReflectionInfo
 
 /// Builds and holds the schemas of all types that it builds
 struct SchemaBuilder {
@@ -16,15 +17,15 @@ struct SchemaBuilder {
     private mutating func schema(from node: Node<ReflectionInfo>) -> Schema {
         let node = node.sanitized()
         let typeInfo = node.value.typeInfo
-        let name = typeInfo.name
+        let schemaName = typeInfo.schemaName
 
-        if let existingSchema = schema(named: name) {
+        if let existingSchema = schema(named: schemaName) {
             return existingSchema
         }
 
         if node.isEnum {
             addSchema(.primitive(type: .string))
-            return .enumeration(typeName: name, cases: typeInfo.cases.map { $0.name })
+            return .enumeration(schemaName: schemaName, cases: typeInfo.cases.map { $0.name })
         }
 
         let properties: Set<SchemaProperty> = node.children
@@ -33,11 +34,11 @@ struct SchemaBuilder {
 
         return node.isPrimitive
             ? .primitive(type: .init(typeInfo.type))
-            : .complex(typeName: name, properties: properties)
+            : .complex(schemaName: schemaName, properties: properties)
     }
 
     // MARK: - Functions
-    mutating func build(for type: Any.Type, root: Bool = true) -> SchemaReference? {
+    mutating func build(for type: Any.Type) -> SchemaName? {
         guard let node = try? ReflectionInfo.node(type).sanitized() else {
             return nil
         }
@@ -46,12 +47,7 @@ struct SchemaBuilder {
             .collectValues()
             .save(in: &self)
 
-        let schemaName = node.value.typeInfo.name
-        if root, node.rootName != schemaName, let existing = schema(named: schemaName) {
-            return updateName(of: existing, to: node.rootName)
-        }
-
-        return .init(schemaName: schemaName)
+        return node.value.typeInfo.schemaName
     }
 
     mutating func addSchema(_ schema: Schema) {
@@ -62,14 +58,7 @@ struct SchemaBuilder {
         self.schemas.formUnion(schemas)
     }
 
-    mutating func updateName(of schema: Schema, to newName: String) -> SchemaReference {
-        let updatedSchema = schema.updated(typeName: newName)
-        schemas.remove(schema)
-        addSchema(updatedSchema)
-        return updatedSchema.reference
-    }
-
-    func schema(named: String) -> Schema? {
-        schemas.first { $0.reference.schemaName == named }
+    func schema(named: SchemaName) -> Schema? {
+        schemas.first { $0.schemaName == named }
     }
 }

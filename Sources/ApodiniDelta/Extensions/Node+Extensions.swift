@@ -7,36 +7,18 @@
 
 import Foundation
 
-// MARK: - Cardinality Extension
-extension ReflectionInfo.Cardinality {
-    // MARK: - Properties
-    var schemaNamePrefix: String {
-        switch self {
-        case .zeroToOne: return "_optional"
-        case .zeroToMany(let context):
-            switch context {
-            case .dictionary: return "_dictionary"
-            case .array: return "_array"
-            }
-        default: return ""
-        }
-    }
-}
+@_implementationOnly import ApodiniTypeReflection
+@_implementationOnly import Runtime
 
 // MARK: - ReflectionInfo Node extensions
 extension Node where T == ReflectionInfo {
     // MARK: - Properties
     var isPrimitive: Bool {
-        let type = value.typeInfo.type
-        return isSupportedScalarType(type) || type == UUID.self
+        isSupportedScalarType(value.typeInfo.type)
     }
 
     var isEnum: Bool {
         value.typeInfo.kind == .enum
-    }
-
-    var rootName: String {
-        value.typeInfo.name + value.cardinality.schemaNamePrefix
     }
 
     // MARK: - Functions
@@ -46,9 +28,14 @@ extension Node where T == ReflectionInfo {
                 edited(handleOptional)?
                 .edited(handleArray)?
                 .edited(handleDictionary)?
-                .edited(handlePrimitiveType)?
-                .edited(handleUUID)
+                .edited(handlePrimitiveType)
         else { fatalError("Error occurred during transforming tree of nodes with type \(value.typeInfo.name).") }
         return sanitized
+    }
+}
+
+extension TypeInfo {
+    var schemaName: SchemaName {
+        .init(String(reflecting: type))
     }
 }

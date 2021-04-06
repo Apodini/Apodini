@@ -7,6 +7,11 @@
 
 import Foundation
 
+/// A protocol, that requires conforming objects to introduce a `DeltaIdentifier` property
+protocol DeltaIdentifiable {
+    var deltaIdentifier: DeltaIdentifier { get }
+}
+
 /// A `DeltaIdentifier` uniquely identifies an object in ApodiniDelta
 struct DeltaIdentifier: Value, RawRepresentable {
     let rawValue: String
@@ -18,10 +23,13 @@ struct DeltaIdentifier: Value, RawRepresentable {
     init(_ rawValue: String) {
         self.init(rawValue: rawValue)
     }
+    
+    init<R: RawRepresentable>(_ rawRepresentable: R) where R.RawValue == String {
+        self.rawValue = rawRepresentable.rawValue
+    }
 
     init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        rawValue = try container.decode(String.self)
+        rawValue = try decoder.singleValueContainer().decode(String.self)
     }
 
     func encode(to encoder: Encoder) throws {

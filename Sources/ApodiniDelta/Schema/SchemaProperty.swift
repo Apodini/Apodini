@@ -6,6 +6,7 @@
 //
 
 import Foundation
+@_implementationOnly import struct ApodiniTypeReflection.ReflectionInfo
 
 class PropertyName: PrimitiveValueWrapper<String> {}
 class PropertyOffset: PrimitiveValueWrapper<Int> {}
@@ -21,21 +22,21 @@ struct SchemaProperty: Codable {
     /// Property type
     let type: PropertyType
 
-    /// The reference to the schema of property type
-    let reference: SchemaReference
+    /// Schema name of property type
+    let schemaName: SchemaName
 
-    private init(name: String, offset: Int, type: PropertyType, reference: SchemaReference) {
+    private init(name: String, offset: Int, type: PropertyType, schemaName: SchemaName) {
         self.name = .init(name)
         self.offset = .init(offset)
         self.type = type
-        self.reference = reference
+        self.schemaName = schemaName
     }
 
     static func initialize(from reflectionInfo: ReflectionInfo, in builder: inout SchemaBuilder) -> SchemaProperty? {
         guard
             let name = reflectionInfo.propertyInfo?.name,
             let offset = reflectionInfo.propertyInfo?.offset,
-            let schemaReference = builder.build(for: reflectionInfo.typeInfo.type, root: false)
+            let schemaName = builder.build(for: reflectionInfo.typeInfo.type)
         else { return nil }
 
         let propertyType: PropertyType
@@ -55,18 +56,18 @@ struct SchemaProperty: Codable {
                 builder.addSchema(.primitive(type: primitiveType))
             }
         }
-        return .init(name: name, offset: offset, type: propertyType, reference: schemaReference)
+        return .init(name: name, offset: offset, type: propertyType, schemaName: schemaName)
     }
 }
 
 // MARK: - Convenience
 extension SchemaProperty {
-    static func property(named: String, offset: Int, type: PropertyType, reference: SchemaReference) -> SchemaProperty {
-        .init(name: named, offset: offset, type: type, reference: reference)
+    static func property(named: String, offset: Int, type: PropertyType, schemaName: SchemaName) -> SchemaProperty {
+        .init(name: named, offset: offset, type: type, schemaName: schemaName)
     }
 
     static func enumCase(named: String, offset: Int) -> SchemaProperty {
-        .init(name: named, offset: offset, type: .exactlyOne, reference: .reference(.string))
+        .init(name: named, offset: offset, type: .exactlyOne, schemaName: PrimitiveType.string.schemaName)
     }
 }
 
@@ -76,7 +77,6 @@ extension SchemaProperty: Hashable {
         hasher.combine(name)
         hasher.combine(offset)
         hasher.combine(type)
-        hasher.combine(reference)
     }
 }
 
@@ -86,7 +86,6 @@ extension SchemaProperty: Equatable {
         lhs.name == rhs.name
             && lhs.offset == rhs.offset
             && lhs.type == rhs.type
-            && lhs.reference == rhs.reference
     }
 }
 
@@ -109,7 +108,7 @@ extension SchemaProperty: ComparableObject {
             name.change(in: context),
             offset.change(in: context),
             type.change(in: context),
-            reference.change(in: context)
+            schemaName.change(in: context)
         ].compactMap { $0 }
 
         guard !changes.isEmpty else {
@@ -125,7 +124,7 @@ extension SchemaProperty: ComparableObject {
         context.register(compare(\.name, with: other), for: PropertyName.self)
         context.register(compare(\.offset, with: other), for: PropertyOffset.self)
         context.register(compare(\.type, with: other), for: PropertyType.self)
-        context.register(compare(\.reference, with: other), for: SchemaReference.self)
+        context.register(compare(\.schemaName, with: other), for: SchemaName.self)
 
         return context
     }

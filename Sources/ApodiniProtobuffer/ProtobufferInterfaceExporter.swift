@@ -129,7 +129,6 @@ extension ProtobufferInterfaceExporter.Builder {
             .edited(handleOptional)?
             .edited(handleArray)?
             .edited(handlePrimitiveType)?
-            .edited(handleUUID)?
             .map(ProtobufferMessage.Property.init)
             .map {
                 $0.map(handleUUIDProperty)

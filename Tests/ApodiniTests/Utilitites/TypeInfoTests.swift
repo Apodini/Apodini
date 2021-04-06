@@ -60,22 +60,22 @@ class TypeInfoTests: ApodiniTests {
     }
     
     func testIsSupportedScalarType() {
-        XCTAssertEqual(isSupportedScalarType(Int32.self), true)
-        XCTAssertEqual(isSupportedScalarType(Int64.self), true)
-        XCTAssertEqual(isSupportedScalarType(UInt32.self), true)
-        XCTAssertEqual(isSupportedScalarType(UInt64.self), true)
-        XCTAssertEqual(isSupportedScalarType(Bool.self), true)
-        XCTAssertEqual(isSupportedScalarType(String.self), true)
-        XCTAssertEqual(isSupportedScalarType(Double.self), true)
-        XCTAssertEqual(isSupportedScalarType(Float.self), true)
+        XCTAssertTrue(isSupportedScalarType(Int32.self))
+        XCTAssertTrue(isSupportedScalarType(Int64.self))
+        XCTAssertTrue(isSupportedScalarType(UInt32.self))
+        XCTAssertTrue(isSupportedScalarType(UInt64.self))
+        XCTAssertTrue(isSupportedScalarType(Bool.self))
+        XCTAssertTrue(isSupportedScalarType(String.self))
+        XCTAssertTrue(isSupportedScalarType(Double.self))
+        XCTAssertTrue(isSupportedScalarType(Float.self))
         
         struct EmptyTest {}
         struct Test {
             var test: String
         }
         
-        XCTAssertEqual(isSupportedScalarType(Never.self), false)
-        XCTAssertEqual(isSupportedScalarType(Test.self), false)
-        XCTAssertEqual(isSupportedScalarType(EmptyTest.self), false)
+        XCTAssertFalse(isSupportedScalarType(Never.self))
+        XCTAssertFalse(isSupportedScalarType(Test.self))
+        XCTAssertFalse(isSupportedScalarType(EmptyTest.self))
     }
 }

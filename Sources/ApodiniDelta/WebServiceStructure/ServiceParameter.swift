@@ -26,21 +26,21 @@ struct ServiceParameter: Codable {
     /// Indicates whether `nil` is a valid value
     let nilIsValidValue: NilIsValidValue
 
-    /// The reference to the schema of the type of the parameter
-    let schemaReference: SchemaReference
+    /// Schema name of the type of the parameter
+    let schemaName: SchemaName
 }
 
 // MARK: - Array extension
 extension Array where Element == AnyEndpointParameter {
     func serviceParameters(with builder: inout SchemaBuilder) -> [ServiceParameter] {
         map {
-            let reference = builder.build(for: $0.propertyType, root: false) ?? .empty
+            let schemaName = builder.build(for: $0.propertyType) ?? .empty
             return ServiceParameter(
                 parameterName: .init($0.name),
                 necessity: $0.necessity,
                 type: $0.parameterType,
                 nilIsValidValue: .init($0.nilIsValidValue),
-                schemaReference: reference
+                schemaName: schemaName
             )
         }
     }
@@ -59,7 +59,7 @@ extension ServiceParameter: ComparableObject {
         context.register(compare(\.necessity, with: other), for: Necessity.self)
         context.register(compare(\.type, with: other), for: ParameterType.self)
         context.register(compare(\.nilIsValidValue, with: other), for: NilIsValidValue.self)
-        context.register(compare(\.schemaReference, with: other), for: SchemaReference.self)
+        context.register(compare(\.schemaName, with: other), for: SchemaName.self)
 
         return context
     }
@@ -80,7 +80,7 @@ extension ServiceParameter: ComparableObject {
             necessity.change(in: context),
             type.change(in: context),
             nilIsValidValue.change(in: context),
-            schemaReference.change(in: context)
+            schemaName.change(in: context)
         ].compactMap { $0 }
 
         guard !changes.isEmpty else {

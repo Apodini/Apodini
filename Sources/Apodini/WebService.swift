@@ -7,6 +7,7 @@
 
 import Foundation
 import Logging
+import ApodiniUtils
 
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
@@ -56,8 +57,15 @@ extension WebService {
         
         // If no specific address hostname is provided we bind to the default address to automatically and correcly bind in Docker containers.
         if app.http.address == nil {
-            app.http.address = .hostname(HTTPConfiguration.Defaults.hostname, port: HTTPConfiguration.Defaults.port)
+            let defaults = HTTPConfiguration.Defaults.self
+            app.http.address = .hostname(defaults.hostname, port: defaults.port)
         }
+        
+        #if DEBUG
+        if case let .hostname(_, httpPort) = app.http.address, let port = httpPort {
+            runShellCommand(.killPort(port))
+        }
+        #endif
         
         webService.register(
             app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app))
