@@ -31,5 +31,5 @@ extension UUID: Primitive {}
 
 /// Whether the type is a supported scalar type
 public func isSupportedScalarType(_ type: Any.Type) -> Bool {
-    (type.self as? _Primitive.Type) != nil
+    type.self is _Primitive.Type
 }
