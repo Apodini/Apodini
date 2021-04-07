@@ -37,7 +37,7 @@ public struct CollectedOptions<OuterNS: OuterNamespace>: Codable, ExpressibleByA
     }
     
     
-    public func containsEntry<InnerNS, Value>(forKey optionKey: OptionKey<OuterNS, InnerNS, Value>) -> Bool {
+    public func containsEntry<InnerNS, Value>(forKey optionKey: OptionKey<InnerNS, Value>) -> Bool where InnerNS.OuterNS == OuterNS {
         options.contains { $0.key == optionKey }
     }
     
@@ -57,13 +57,13 @@ public struct CollectedOptions<OuterNS: OuterNamespace>: Codable, ExpressibleByA
     
     /// - returns: the value specified for this option key, if a matching entry exists. if no matching entry exists, `nil` is returned
     /// - throws: if an entry does exist but there was an erorr reading (ie decoding) it/
-    public func getValue<InnerNS, Value>(forKey optionKey: OptionKey<OuterNS, InnerNS, Value>) throws -> Value? {
+    public func getValue<InnerNS, Value>(forKey optionKey: OptionKey<InnerNS, Value>) throws -> Value? where InnerNS.OuterNS == OuterNS {
         try getValue_imp(forKey: optionKey)
     }
     
     /// - returns: the value specified for this option key, if a matching entry exists. if no matching entry exists, the default value specified in the option key is returned.
     /// - throws: if an entry does exist but there was an erorr reading (ie decoding) it/
-    public func getValue<InnerNS, Value>(forKey optionKey: OptionKeyWithDefaultValue<OuterNS, InnerNS, Value>) throws -> Value {
+    public func getValue<InnerNS, Value>(forKey optionKey: OptionKeyWithDefaultValue<InnerNS, Value>) throws -> Value where InnerNS.OuterNS == OuterNS {
         switch try getValue_imp(forKey: optionKey) {
         case Optional<Value>.some(let value): // swiftlint:disable:this syntactic_sugar
             return value
@@ -80,7 +80,7 @@ public struct CollectedOptions<OuterNS: OuterNamespace>: Codable, ExpressibleByA
     }
     
     
-    private func getValue_imp<InnerNS, Value>(forKey optionKey: OptionKey<OuterNS, InnerNS, Value>) throws -> Value? {
+    private func getValue_imp<InnerNS, Value>(forKey optionKey: OptionKey<InnerNS, Value>) throws -> Value? where InnerNS.OuterNS == OuterNS {
         try options
             .filter { $0.key == optionKey }
             .map { try $0.readValue(as: Value.self) }

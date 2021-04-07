@@ -69,7 +69,7 @@ public struct TimeoutValue: OptionValue, RawRepresentable {
 
 public extension OptionKey where InnerNS == BuiltinDeploymentOptionsNamespace, Value == MemorySize {
     /// The option key used to specify a memory size option
-    static let memorySize = OptionKeyWithDefaultValue<DeploymentOptionsNamespace, BuiltinDeploymentOptionsNamespace, MemorySize>(
+    static let memorySize = OptionKeyWithDefaultValue<BuiltinDeploymentOptionsNamespace, MemorySize>(
         key: "memorySize",
         defaultValue: .mb(128)
     )
@@ -78,7 +78,7 @@ public extension OptionKey where InnerNS == BuiltinDeploymentOptionsNamespace, V
 
 public extension OptionKey where InnerNS == BuiltinDeploymentOptionsNamespace, Value == TimeoutValue {
     /// The option key used to specify a timeout option
-    static let timeout = OptionKeyWithDefaultValue<DeploymentOptionsNamespace, BuiltinDeploymentOptionsNamespace, TimeoutValue>(
+    static let timeout = OptionKeyWithDefaultValue<BuiltinDeploymentOptionsNamespace, TimeoutValue>(
         key: "timeout",
         defaultValue: .seconds(4)
     )

@@ -59,7 +59,7 @@ public struct LambdaDescriptionOption: OptionValue, RawRepresentable, Expressibl
 public extension OptionKey where InnerNS == LambdaDeploymentOptionsNamespace, Value == LambdaDescriptionOption {
     /// Lambda description option key.
     static let lambdaDescription =
-        OptionKey<DeploymentOptionsNamespace, LambdaDeploymentOptionsNamespace, LambdaDescriptionOption>(key: "description")
+        OptionKey<LambdaDeploymentOptionsNamespace, LambdaDescriptionOption>(key: "description")
 }
 
 

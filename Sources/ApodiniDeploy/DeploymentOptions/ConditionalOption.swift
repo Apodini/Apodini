@@ -30,10 +30,10 @@ final class ConditionalOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
     private let underlyingOption: AnyOption<OuterNS>
     
     init<InnerNS, Value>(
-        key: OptionKey<OuterNS, InnerNS, Value>,
+        key: OptionKey<InnerNS, Value>,
         value: Value,
         condition: AnyHandlerCondition
-    ) {
+    ) where InnerNS.OuterNS == OuterNS {
         self.condition = condition
         self.underlyingOption = ResolvedOption(key: key, value: value)
         super.init(key: key)
