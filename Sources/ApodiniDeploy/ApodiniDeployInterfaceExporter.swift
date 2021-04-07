@@ -79,7 +79,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     private(set) var collectedEndpoints: [CollectedEndpointInfo] = []
     private(set) var explicitlyCreatedDeploymentGroups: [DeploymentGroup.ID: Set<AnyHandlerIdentifier>] = [:]
     
-    private(set) var deploymentProviderRuntime: DeploymentProviderRuntimeSupport?
+    private(set) var deploymentProviderRuntime: DeploymentProviderRuntime?
     
     
     public required init(_ app: Apodini.Application) {

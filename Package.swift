@@ -26,7 +26,7 @@ let package = Package(
         .library(name: "ApodiniDeployRuntimeSupport", targets: ["ApodiniDeployRuntimeSupport"]),
         .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
         .executable(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"]),
-        .library(name: "DeploymentTargetLocalhostRuntimeSupport", targets: ["DeploymentTargetLocalhostRuntimeSupport"]),
+        .library(name: "DeploymentTargetLocalhostRuntime", targets: ["DeploymentTargetLocalhostRuntime"]),
         .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"])
     ],
     dependencies: [
@@ -290,7 +290,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniDeployBuildSupport"),
-                .target(name: "DeploymentTargetLocalhostRuntimeSupport"),
+                .target(name: "DeploymentTargetLocalhostRuntime"),
                 .target(name: "DeploymentTargetAWSLambdaRuntime"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniGRPC"),
@@ -367,7 +367,7 @@ let package = Package(
             ]
         ),
         .target(
-            name: "DeploymentTargetLocalhostRuntimeSupport",
+            name: "DeploymentTargetLocalhostRuntime",
             dependencies: [
                 .target(name: "DeploymentTargetLocalhostCommon"),
                 .target(name: "ApodiniDeployRuntimeSupport")

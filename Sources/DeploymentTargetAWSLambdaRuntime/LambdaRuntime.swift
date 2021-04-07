@@ -14,7 +14,7 @@ import DeploymentTargetAWSLambdaCommon
 import VaporAWSLambdaRuntime
 
 
-public class LambdaRuntime: DeploymentProviderRuntimeSupport {
+public class LambdaRuntime: DeploymentProviderRuntime {
     public static let identifier = lambdaDeploymentProviderId
     
     public let deployedSystem: DeployedSystem

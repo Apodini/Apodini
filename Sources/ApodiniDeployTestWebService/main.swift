@@ -12,9 +12,9 @@ import Foundation
 import NIO
 import Apodini
 //import ApodiniDeployBuildSupport
-import DeploymentTargetLocalhostRuntimeSupport
-import DeploymentTargetAWSLambdaRuntime
 import ApodiniDeploy
+import DeploymentTargetLocalhostRuntime
+import DeploymentTargetAWSLambdaRuntime
 import ApodiniREST
 import ApodiniOpenAPI
 
@@ -119,7 +119,7 @@ struct WebService: Apodini.WebService {
             .exporter(OpenAPIInterfaceExporter.self)
             .exporter(ApodiniDeployInterfaceExporter.self)
         ApodiniDeployConfiguration(
-            runtimes: [LocalhostRuntimeSupport.self, LambdaRuntime.self],
+            runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
             config: DeploymentConfig(deploymentGroups: DeploymentGroupsConfig(defaultGrouping: .singleNode, groups: []))
         )
     }
