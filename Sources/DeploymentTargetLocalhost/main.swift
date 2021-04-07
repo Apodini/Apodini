@@ -71,7 +71,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         logger.notice("Target executable url: \(executableUrl.path)")
         
         logger.notice("Invoking target to generate web service structure")
-        let wsStructure = try generateDefaultWebServiceStructure()
+        let wsStructure = try readWebServiceStructure()
         
         
         let nodes = Set(try computeDefaultDeployedSystemNodes(from: wsStructure).enumerated().map { idx, node in

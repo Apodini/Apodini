@@ -90,8 +90,8 @@ extension DeploymentProvider {
     }
     
     
-    /// Generate a `WebServiceStructure` for this web service
-    public func generateDefaultWebServiceStructure() throws -> WebServiceStructure {
+    /// Read the web service's structure, and return it encoded as a `WebServiceStructure` object
+    public func readWebServiceStructure() throws -> WebServiceStructure {
         let fileManager = FileManager.default
         let logger = Logger(label: "ApodiniDeployCLI.Localhost")
         
