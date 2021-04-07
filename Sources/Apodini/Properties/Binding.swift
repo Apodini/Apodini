@@ -45,6 +45,10 @@ public struct Binding<Value>: DynamicProperty, PotentiallyParameterIdentifyingBi
             return retriever(store)
         }
     }
+    
+    public var projectedValue: Self {
+        self
+    }
 }
 
 
