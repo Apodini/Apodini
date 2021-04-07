@@ -13,7 +13,7 @@ class AutoInheritanceRelationshipTests: ApodiniTests {
     }
 
     struct UserHandler: Handler {
-        @Parameter
+        @Binding
         var userId: Int
 
         func handle() -> User {
@@ -56,9 +56,9 @@ class AutoInheritanceRelationshipTests: ApodiniTests {
 
 
     struct TypedUserHandler: Handler {
-        @Parameter
+        @Binding
         var type: String
-        @Parameter
+        @Binding
         var userId: Int
 
         func handle() -> User {
@@ -67,7 +67,7 @@ class AutoInheritanceRelationshipTests: ApodiniTests {
     }
 
     struct TypedAuthenticatedUserHandler: Handler {
-        @Parameter
+        @Binding
         var type: String
 
         func handle() -> User {

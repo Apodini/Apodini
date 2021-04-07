@@ -36,8 +36,6 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
     var featured: String? = "Italy"
     
     @PathParameter var selectedCountry: String
-    @Environment(\BindingTests.featured) var featuredCountry
-    
     @Parameter var optionallySelectedCountry: String?
     
     @ComponentBuilder
@@ -49,13 +47,10 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
         Group("optional") {
             Greeter(country: $optionallySelectedCountry)
         }
-        Group("featured") {
-            Greeter(country: $featuredCountry)
-        }
         Group("country", $selectedCountry) {
-            Greeter(country: _selectedCountry.binding.asOptional)
+            Greeter(country: $selectedCountry.asOptional)
             Group("optional") {
-                ReallyOptionalGreeter(country: _selectedCountry.binding.asOptional.asOptional)
+                ReallyOptionalGreeter(country: $selectedCountry.asOptional.asOptional)
             }
         }
     }
@@ -87,12 +82,6 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
         try app.vapor.app.testable(method: .inMemory).test(.GET, "/default") { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertTrue(response.body.string.contains("USA"))
-        }
-        
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "/featured") { response in
-            XCTAssertEqual(response.status, .ok)
-            // swiftlint:disable force_unwrapping
-            XCTAssertTrue(response.body.string.contains(featured!))
         }
         
         try app.vapor.app.testable(method: .inMemory).test(.GET, "/optional") { response in

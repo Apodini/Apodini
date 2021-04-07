@@ -40,10 +40,6 @@ public struct Environment<K: EnvironmentAccessible, Value>: Property {
         fatalError("Key path not found")
     }
     
-    /// A `Binding` that reflects this `Environment`.
-    public var projectedValue: Binding<Value> {
-        Binding.environment(self)
-    }
 
     /// Sets the value for the given KeyPath.
     mutating func setValue(_ value: Value, for keyPath: WritableKeyPath<K, Value>) {

@@ -48,14 +48,18 @@ struct PathModelBuilder: PathComponentParser {
         results.append(StoredEndpointPath(path: .string(string), context: parseCurrentContext()))
     }
 
-    mutating func visit<Type: Codable>(_ parameter: Parameter<Type>) {
-        let identifyingType = parameter.option(for: PropertyOptionKey.identifying)
+    mutating func visit<T>(_ binding: Binding<T>) {
+        let identifyingType = binding.parameterOption(for: PropertyOptionKey.identifying)
 
+        guard let parameterId = binding.parameterId else {
+            fatalError("You can not pass a `Binding` as a path parameter that does not originate from a `PathParameter` or `Parameter`")
+        }
+        
         let pathParameter: AnyEndpointPathParameter
-        if let optionalParameter = parameter as? EncodeOptionalPathParameter {
-            pathParameter = optionalParameter.createPathParameterWithWrappedType(id: parameter.id, identifyingType: identifyingType)
+        if let optionalParameter = binding as? EncodeOptionalPathParameter {
+            pathParameter = optionalParameter.createPathParameterWithWrappedType(id: parameterId, identifyingType: identifyingType)
         } else {
-            pathParameter = EndpointPathParameter<Type>(id: parameter.id, identifyingType: identifyingType)
+            pathParameter = EndpointPathParameter<T>(id: parameterId, identifyingType: identifyingType)
         }
 
         results.append(StoredEndpointPath(path: .parameter(pathParameter), context: parseCurrentContext()))
@@ -120,9 +124,9 @@ private protocol EncodeOptionalPathParameter {
 }
 
 // MARK: PathParameter Model
-extension Parameter: EncodeOptionalPathParameter where Element: OptionalProtocol, Element.Wrapped: Codable {
+extension Binding: EncodeOptionalPathParameter where Value: OptionalProtocol, Value.Wrapped: Codable {
     func createPathParameterWithWrappedType(id: UUID, identifyingType: IdentifyingType?) -> AnyEndpointPathParameter {
-        EndpointPathParameter<Element.Wrapped>(id: id, identifyingType: identifyingType)
+        EndpointPathParameter<Value.Wrapped>(id: id, identifyingType: identifyingType)
     }
 }
 
