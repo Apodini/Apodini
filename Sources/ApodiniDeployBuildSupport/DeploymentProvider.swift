@@ -144,6 +144,15 @@ extension DeploymentProvider {
         from wsStructure: WebServiceStructure,
         nodeIdProvider: (Set<ExportedEndpoint>) -> String = { _ in UUID().uuidString }
     ) throws -> Set<DeployedSystem.Node> {
+        guard wsStructure.enabledDeploymentProviders.contains(Self.identifier) else {
+            throw ApodiniDeployBuildSupportError(
+                message: """
+                Identifier of current deployment provider ('\(Self.identifier.rawValue)') not found in set of enabled deployment providers.
+                This means that the web service, once deployed, will not be able to load and initialise this deployment provider's runtime.
+                """
+            )
+        }
+        
         // a mapping from all user-defined deployment groups, to the set of
         var endpointsByDeploymentGroup = [DeploymentGroup: Set<ExportedEndpoint>](
             uniqueKeysWithValues: wsStructure.deploymentConfig.deploymentGroups.map { ($0, []) }

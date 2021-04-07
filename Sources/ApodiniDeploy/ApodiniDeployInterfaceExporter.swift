@@ -134,7 +134,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
             do {
                 try self.exportWebServiceStructure(
                     to: outputUrl,
-                    deploymentConfig: self.app.storage.get(ApodiniDeployConfiguration.StorageKey.self)?.config ?? .init()
+                    apodiniDeployConfiguration: app.storage.get(ApodiniDeployConfiguration.StorageKey.self) ?? .init()
                 )
             } catch {
                 fatalError("Error exporting web service structure: \(error)")
@@ -149,7 +149,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
             do {
                 let deployedSystem = try DeployedSystem(decodingJSONAt: configUrl)
                 guard
-                    let runtimes = self.app.storage.get(ApodiniDeployConfiguration.StorageKey.self)?.runtimes,
+                    let runtimes = app.storage.get(ApodiniDeployConfiguration.StorageKey.self)?.runtimes,
                     let DPRSType = runtimes.first(where: { $0.identifier == deployedSystem.deploymentProviderId })
                 else {
                     throw ApodiniDeployError(
