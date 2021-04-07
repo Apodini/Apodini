@@ -81,7 +81,8 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         let deployedSystem = try DeployedSystem(
             deploymentProviderId: Self.identifier,
             nodes: nodes,
-            userInfo: Null()
+            userInfo: nil,
+            userInfoType: Null.self
         )
         
         let deployedSystemFileUrl = fileManager.getTemporaryFileUrl(fileExtension: "json")

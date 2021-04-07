@@ -146,7 +146,7 @@ extension DeploymentProvider {
     ) throws -> Set<DeployedSystem.Node> {
         // a mapping from all user-defined deployment groups, to the set of
         var endpointsByDeploymentGroup = [DeploymentGroup: Set<ExportedEndpoint>](
-            uniqueKeysWithValues: wsStructure.deploymentConfig.deploymentGroups.groups.map { ($0, []) }
+            uniqueKeysWithValues: wsStructure.deploymentConfig.deploymentGroups.map { ($0, []) }
         )
         // all endpoints which didn't match any of the user-defined deployment groups
         var remainingEndpoints: Set<ExportedEndpoint> = []
@@ -178,24 +178,27 @@ extension DeploymentProvider {
             try DeployedSystem.Node(
                 id: deploymentGroup.id,
                 exportedEndpoints: endpoints,
-                userInfo: Null()
+                userInfo: nil,
+                userInfoType: Null.self
             )
         }
         
-        switch wsStructure.deploymentConfig.deploymentGroups.defaultGrouping {
+        switch wsStructure.deploymentConfig.defaultGrouping {
         case .separateNodes:
             nodes += try remainingEndpoints.map { endpoint in
                 try DeployedSystem.Node(
                     id: nodeIdProvider([endpoint]),
                     exportedEndpoints: [endpoint],
-                    userInfo: Null()
+                    userInfo: nil,
+                    userInfoType: Null.self
                 )
             }
         case .singleNode:
             nodes.insert(try DeployedSystem.Node(
                 id: nodeIdProvider(remainingEndpoints),
                 exportedEndpoints: remainingEndpoints,
-                userInfo: Null()
+                userInfo: nil,
+                userInfoType: Null.self
             ))
         }
         

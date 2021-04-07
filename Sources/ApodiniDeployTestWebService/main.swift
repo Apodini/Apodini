@@ -120,7 +120,7 @@ struct WebService: Apodini.WebService {
             .exporter(ApodiniDeployInterfaceExporter.self)
         ApodiniDeployConfiguration(
             runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
-            config: DeploymentConfig(deploymentGroups: DeploymentGroupsConfig(defaultGrouping: .singleNode, groups: []))
+            config: DeploymentConfig(defaultGrouping: .singleNode, deploymentGroups: [])
         )
     }
 }
