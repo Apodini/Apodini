@@ -32,8 +32,6 @@ extension Handler {
 }
 
 
-
-
 // This extensions provides a helper for evaluating the `Handler`'s `handle` function.
 // The function hides the syntactic difference between the newly introduced `async`
 // version of `handle()` and the traditional, `EventLoopFuture`-based one.
