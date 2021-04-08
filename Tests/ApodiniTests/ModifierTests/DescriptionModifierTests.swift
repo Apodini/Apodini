@@ -7,7 +7,7 @@ import XCTest
 
 final class DescriptionModifierTests: ApodiniTests {
     struct TestHandler: Handler {
-        @Parameter
+        @Binding
         var name: String
 
         func handle() -> String {

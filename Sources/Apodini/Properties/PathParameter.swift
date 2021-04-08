@@ -22,8 +22,8 @@ public struct PathParameter<Element: Codable & LosslessStringConvertible> {
     }
     
     /// Accessing the projected value allows you to pass the `@PathParameter` to a `Handler` or `Component`
-    public var projectedValue: Parameter<Element> {
-        Parameter(from: id, identifying: identifyingType)
+    public var projectedValue: Binding<Element> {
+        parameter.projectedValue
     }
     
     
@@ -44,8 +44,8 @@ public struct PathParameter<Element: Codable & LosslessStringConvertible> {
 }
 
 extension PathParameter {
-    /// A `Binding` that reflects this `PathParameter`.
-    public var binding: Binding<Element> {
-        self.projectedValue.projectedValue
+    /// A `Parameter` that can be used to pass the `PathParameter` to a `Handler` that contains a `@Parameter` and not a `@Binding`.
+    public var parameter: Parameter<Element> {
+        Parameter(from: id, identifying: identifyingType)
     }
 }
