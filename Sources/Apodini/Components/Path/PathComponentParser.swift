@@ -7,7 +7,7 @@ protocol PathComponentParser {
 
     mutating func visit(_ string: String)
     mutating func visit(_ version: Version)
-    mutating func visit<T>(_ binding: Binding<T>)
+    mutating func visit<T>(_ parameter: Parameter<T>)
 }
 
 extension PathComponentParser {
@@ -49,11 +49,8 @@ private struct PathComponentStringBuilder: PathComponentParser {
         paths.append(string)
     }
 
-    mutating func visit<T>(_ binding: Binding<T>) {
-        guard let parameterId = binding.parameterId else {
-            fatalError("You can not pass a `Binding` as a path parameter that does not originate from a `PathParameter` or `Parameter`")
-        }
-        paths.append(parameterId.uuidString)
+    mutating func visit<T>(_ parameter: Parameter<T>) {
+        paths.append(parameter.id.uuidString)
     }
 
     func build() -> String {
