@@ -337,7 +337,7 @@ struct DecodedResponseContainer<Data: Decodable>: Decodable {
 }
 
 struct UserHandler: Handler {
-    @Parameter
+    @Binding
     var userId: User.ID
     @Parameter
     var name: String
@@ -348,7 +348,7 @@ struct UserHandler: Handler {
 }
 
 struct StatefulUserHandler: Handler {
-    @Parameter(.mutability(.constant))
+    @Binding
     var userId: User.ID
     @Parameter
     var name: String?

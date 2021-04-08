@@ -13,7 +13,7 @@ class RelationshipTests: ApodiniTests {
 
     struct TextParameterized: Handler {
         var text: String
-        @Parameter
+        @Binding
         var id: String
 
         func handle() -> String {
@@ -23,9 +23,9 @@ class RelationshipTests: ApodiniTests {
 
     struct TextParameterized2: Handler {
         var text: String
-        @Parameter
+        @Binding
         var id: String
-        @Parameter(.http(.path))
+        @Binding
         var id2: String
 
         func handle() -> String {

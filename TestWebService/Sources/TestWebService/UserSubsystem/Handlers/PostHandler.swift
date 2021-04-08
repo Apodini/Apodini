@@ -6,8 +6,8 @@ import Foundation
 import Apodini
 
 struct PostHandler: Handler {
-    @Parameter var userId: Int
-    @Parameter var postId: UUID
+    @Binding var userId: Int
+    @Binding var postId: UUID
 
     func handle() -> Post {
         Post(id: postId, title: "Example Title")
