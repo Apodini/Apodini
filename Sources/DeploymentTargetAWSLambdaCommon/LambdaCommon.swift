@@ -33,9 +33,9 @@ extension LambdaDeployedSystemContext {
 }
 
 
-public final class LambdaDeploymentOptionsNamespace: InnerNamespace {
+public struct LambdaDeploymentOptionsNamespace: InnerNamespace {
     public typealias OuterNS = DeploymentOptionsNamespace
-    public static let id = lambdaDeploymentProviderId.rawValue
+    public static let identifier = lambdaDeploymentProviderId.rawValue
 }
 
 

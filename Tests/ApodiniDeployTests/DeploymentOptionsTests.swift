@@ -12,9 +12,9 @@ import XCTest
 import XCTApodini
 
 
-class TestOptionsNamespace: InnerNamespace {
+struct TestOptionsNamespace: InnerNamespace {
     typealias OuterNS = DeploymentOptionsNamespace
-    static let id: String = "testOptionsNS"
+    static let identifier: String = "testOptionsNS"
 }
 
 

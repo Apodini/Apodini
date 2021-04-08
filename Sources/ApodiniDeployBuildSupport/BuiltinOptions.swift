@@ -8,8 +8,8 @@
 import Foundation
 
 
-public final class DeploymentOptionsNamespace: OuterNamespace {
-    public static let id: String = "DeploymentOptions"
+public struct DeploymentOptionsNamespace: OuterNamespace {
+    public static let identifier: String = "DeploymentOptions"
 }
 
 
@@ -19,9 +19,9 @@ public typealias DeploymentOptions = CollectedOptions<DeploymentOptionsNamespace
 public typealias AnyDeploymentOption = AnyOption<DeploymentOptionsNamespace>
 
 
-public final class BuiltinDeploymentOptionsNamespace: InnerNamespace {
+public struct BuiltinDeploymentOptionsNamespace: InnerNamespace {
     public typealias OuterNS = DeploymentOptionsNamespace
-    public static let id: String = "org.apodini"
+    public static let identifier: String = "org.apodini"
 }
 
 
