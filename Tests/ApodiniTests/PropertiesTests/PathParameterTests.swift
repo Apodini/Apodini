@@ -24,7 +24,7 @@ final class PathParameterTests: ApodiniTests {
     
     
     struct TestHandler: Handler {
-        @Parameter
+        @Binding
         var name: String
         
         @Parameter
@@ -47,12 +47,12 @@ final class PathParameterTests: ApodiniTests {
             Mirror(reflecting: testHandler)
                 .children
                 .compactMap {
-                    $0.value as? Parameter<String>
+                    $0.value as? Binding<String>
                 }
                 .first
         )
         
-        assert(testComponent.$name.id == parameter.id)
+        assert(testComponent.$name.parameterId == parameter.parameterId)
     }
     
     func testPassingPathComponents() throws {
