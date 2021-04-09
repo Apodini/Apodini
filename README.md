@@ -114,7 +114,7 @@ struct CountrySubsystem: Component {
     
     var content: some Component {
         Group($country) {
-            Greeter(country: Binding<String?>(_country.binding))
+            Greeter(country: Binding<String?>($country))
                 .description("Say 'Hello' to a country.")
         }
     }
