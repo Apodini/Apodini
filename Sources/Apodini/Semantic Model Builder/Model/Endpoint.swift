@@ -101,6 +101,12 @@ protocol _AnyEndpoint: AnyEndpoint {
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 public struct Endpoint<H: Handler>: _AnyEndpoint {
+    
+    public var modules: [AnyKeyPath: ContentModule] = [:]
+    
+    
+    
+    
     var inserted = false
 
     public let identifier: AnyHandlerIdentifier
