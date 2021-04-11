@@ -10,6 +10,8 @@ extension Vapor.Request: ExporterRequest, WithEventLoop, WithRemote {}
 
 /// Apodini Interface Exporter for REST.
 public final class RESTInterfaceExporter: InterfaceExporter {
+    public static let dependencies: [ContentModule.Type] = []
+    
     public static let parameterNamespace: [ParameterNamespace] = .individual
 
     let app: Vapor.Application

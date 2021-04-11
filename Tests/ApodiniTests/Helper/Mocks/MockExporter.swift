@@ -10,6 +10,10 @@ import class Vapor.Request
 extension String: ExporterRequest {}
 
 class MockExporter<Request: ExporterRequest>: InterfaceExporter {
+    public static var dependencies: [ContentModule.Type] {
+        []
+    }
+    
     var parameterValues: [Any??] = []
 
     /// Creates a new MockExporter which uses the passed parameter values as FIFO queue on retrieveParameter

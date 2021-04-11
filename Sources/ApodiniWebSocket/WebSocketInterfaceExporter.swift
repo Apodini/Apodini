@@ -17,6 +17,8 @@ import NIOWebSocket
 /// This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel.
 /// The Apodini service listens on /apodini/websocket for clients that want to communicate via the WebSocket Interface Exporter.
 public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
+    public static let dependencies: [ContentModule.Type] = []
+    
     private let app: Apodini.Application
     
     private let router: VaporWSRouter

@@ -44,6 +44,8 @@ struct ApodiniDeployError: Swift.Error {
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
 public class ApodiniDeployInterfaceExporter: InterfaceExporter {
+    public static let dependencies: [ContentModule.Type] = []
+    
     struct ApplicationStorageKey: Apodini.StorageKey {
         typealias Value = ApodiniDeployInterfaceExporter
     }

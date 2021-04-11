@@ -23,8 +23,8 @@ public enum Operation: String, CaseIterable, Hashable, CustomStringConvertible {
     }
 }
 
-struct OperationContextKey: OptionalContextKey {
-    typealias Value = Operation
+public struct OperationContextKey: OptionalContextKey {
+    public typealias Value = Operation
 }
 
 
@@ -58,6 +58,10 @@ extension Handler {
 
 // MARK: Exporter API
 
-extension Operation: ContentModule {
+extension Operation: ContextBased {
+    public typealias Key = OperationContextKey
     
+    public init(from value: Key.Value?) {
+        self = value ?? .read
+    }
 }

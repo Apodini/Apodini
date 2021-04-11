@@ -5,6 +5,8 @@ import Foundation
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 public protocol AnyEndpoint: CustomStringConvertible {
+    var content: ContentModuleStore { get }
+    
     /// An identifier which uniquely identifies this endpoint (via its handler)
     /// across multiple compilations and executions of the web service.
     var identifier: AnyHandlerIdentifier { get }
@@ -102,7 +104,7 @@ protocol _AnyEndpoint: AnyEndpoint {
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 public struct Endpoint<H: Handler>: _AnyEndpoint {
     
-    public var modules: [AnyKeyPath: ContentModule] = [:]
+    public let content: ContentModuleStore
     
     
     
@@ -163,6 +165,7 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     init(
         identifier: AnyHandlerIdentifier,
         handler: H,
+        content: ContentModuleStore? = nil,
         context: Context = Context(contextNode: ContextNode()),
         operation: Operation? = nil,
         serviceType: ServiceType = .unary,
@@ -170,8 +173,9 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
         responseTransformers: [LazyAnyResponseTransformer] = []
     ) {
         self.identifier = identifier
-        self.description = String(describing: H.self)
         self.handler = handler
+        self.content = content ?? (try! ContentModuleStore([], for: handler, using: context))
+        self.description = String(describing: H.self)
         self.context = context
         self.operation = operation ?? .read
         self.serviceType = serviceType

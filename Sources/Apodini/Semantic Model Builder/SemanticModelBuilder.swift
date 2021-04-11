@@ -50,67 +50,78 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
 
 
     func register<H: Handler>(handler: H, withContext context: Context) {
-        let operation = context.get(valueFor: OperationContextKey.self)
-        let serviceType = context.get(valueFor: ServiceTypeContextKey.self)
-        let paths = context.get(valueFor: PathComponentContextKey.self)
-        let guards = context.get(valueFor: GuardContextKey.self).allActiveGuards
-        let responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self)
+        do {
+            let store = try ContentModuleStore(try interfaceExporters.flatMap { exporter in exporter.dependencies }.satisfiableModuleSequence(), for: handler, using: context)
+            
+            let operation = context.get(valueFor: OperationContextKey.self)
+            let serviceType = context.get(valueFor: ServiceTypeContextKey.self)
+            let paths = context.get(valueFor: PathComponentContextKey.self)
+            let guards = context.get(valueFor: GuardContextKey.self).allActiveGuards
+            let responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self)
 
-        let partialCandidates = context.get(valueFor: RelationshipSourceCandidateContextKey.self)
-        let relationshipSources = context.get(valueFor: RelationshipSourceContextKey.self)
-        let relationshipDestinations = context.get(valueFor: RelationshipDestinationContextKey.self)
-        
-        let endpointIdentifier: AnyHandlerIdentifier = {
-            // the identifier specified via the `.identified(by:)` modifier, if any
-            let dslSpecifiedIdentifier = context.get(valueFor: ExplicitHandlerIdentifierContextKey.self)
-            // the identifier specified via the `IdentifiableHandler.handlerId` property, if any
-            let handlerSpecifiedIdentifier = handler.getExplicitlySpecifiedIdentifier()
-            switch (dslSpecifiedIdentifier, handlerSpecifiedIdentifier) {
-            case (.some(let identifier), .none):
-                return identifier
-            case (.none, .some(let identifier)):
-                return identifier
-            case let (.some(ident1), .some(ident2)):
-                if ident1 == ident2 {
-                    return ident1
-                } else {
-                    fatalError("""
-                        Handler '\(handler)' has multiple explicitly specified identifiers ('\(ident1)' and '\(ident2)').
-                        A handler may only have one explicitly specified identifier.
-                        This is caused by using both the 'IdentifiableHandler.handlerId' property as well as the '.identified(by:)' modifier.
-                        """
-                    )
+            let partialCandidates = context.get(valueFor: RelationshipSourceCandidateContextKey.self)
+            let relationshipSources = context.get(valueFor: RelationshipSourceContextKey.self)
+            let relationshipDestinations = context.get(valueFor: RelationshipDestinationContextKey.self)
+            
+            
+            
+            
+            let endpointIdentifier: AnyHandlerIdentifier = {
+                // the identifier specified via the `.identified(by:)` modifier, if any
+                let dslSpecifiedIdentifier = context.get(valueFor: ExplicitHandlerIdentifierContextKey.self)
+                // the identifier specified via the `IdentifiableHandler.handlerId` property, if any
+                let handlerSpecifiedIdentifier = handler.getExplicitlySpecifiedIdentifier()
+                switch (dslSpecifiedIdentifier, handlerSpecifiedIdentifier) {
+                case (.some(let identifier), .none):
+                    return identifier
+                case (.none, .some(let identifier)):
+                    return identifier
+                case let (.some(ident1), .some(ident2)):
+                    if ident1 == ident2 {
+                        return ident1
+                    } else {
+                        fatalError("""
+                            Handler '\(handler)' has multiple explicitly specified identifiers ('\(ident1)' and '\(ident2)').
+                            A handler may only have one explicitly specified identifier.
+                            This is caused by using both the 'IdentifiableHandler.handlerId' property as well as the '.identified(by:)' modifier.
+                            """
+                        )
+                    }
+                case (.none, .none):
+                    let handlerIndexPath = context.get(valueFor: HandlerIndexPath.ContextKey.self)
+                    return AnyHandlerIdentifier(handlerIndexPath.rawValue)
                 }
-            case (.none, .none):
-                let handlerIndexPath = context.get(valueFor: HandlerIndexPath.ContextKey.self)
-                return AnyHandlerIdentifier(handlerIndexPath.rawValue)
-            }
-        }()
+            }()
 
-        var endpoint = Endpoint(
-            identifier: endpointIdentifier,
-            handler: handler.inject(app: app),
-            context: context,
-            operation: operation,
-            serviceType: serviceType,
-            guards: guards.inject(app: app),
-            responseTransformers: responseTransformers.inject(app: app)
-        )
+            var endpoint = Endpoint(
+                identifier: endpointIdentifier,
+                handler: handler.inject(app: app), content: store,
+                context: context,
+                operation: operation,
+                serviceType: serviceType,
+                guards: guards.inject(app: app),
+                responseTransformers: responseTransformers.inject(app: app)
+            )
 
-        webService.addEndpoint(&endpoint, at: paths)
+            webService.addEndpoint(&endpoint, at: paths)
 
-        // calling the addEndpoint first, triggers the Operation uniqueness check
-        // and we will have less problems with that in the TypeIndex Builder and Relationship Builders.
-        // Additionally, addEndpoint may cause a insertion of a additional path parameter,
-        // which makes it necessary to be called before any operation relying on the path of the Endpoint.
+            // calling the addEndpoint first, triggers the Operation uniqueness check
+            // and we will have less problems with that in the TypeIndex Builder and Relationship Builders.
+            // Additionally, addEndpoint may cause a insertion of a additional path parameter,
+            // which makes it necessary to be called before any operation relying on the path of the Endpoint.
 
-        relationshipBuilder.collect(
-            endpoint: endpoint,
-            candidates: partialCandidates,
-            sources: relationshipSources,
-            destinations: relationshipDestinations
-        )
-        typeIndexBuilder.indexContentType(of: endpoint)
+            relationshipBuilder.collect(
+                endpoint: endpoint,
+                candidates: partialCandidates,
+                sources: relationshipSources,
+                destinations: relationshipDestinations
+            )
+            typeIndexBuilder.indexContentType(of: endpoint)
+        } catch {
+            fatalError("""
+                Handler '\(handler)' cannot be exported. The configured exporters' dependencies could not be satisfied: \(error)
+            """)
+        }
     }
 
     func finishedRegistration() {
