@@ -27,7 +27,10 @@ let package = Package(
         .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
         .executable(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"]),
         .library(name: "DeploymentTargetLocalhostRuntimeSupport", targets: ["DeploymentTargetLocalhostRuntimeSupport"]),
-        .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"])
+        .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"]),
+        
+        // Type descriptor
+        .library(name: "ApodiniTypeDescriptor", targets: ["ApodiniTypeDescriptor"])
     ],
     dependencies: [
         //.package(name: "ApodiniDeploy", path: "./ApodiniDeploy"),
@@ -264,7 +267,16 @@ let package = Package(
                 .target(name: "ProtobufferCoding")
             ]
         ),
+        
+        // ApodiniTypeDescriptor
 
+        .target(
+            name: "ApodiniTypeDescriptor",
+            dependencies: [
+                .product(name: "Runtime", package: "Runtime")
+            ]
+        ),
+        
         // XCTApodini
 
         .target(
@@ -280,7 +292,8 @@ let package = Package(
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniNotifications"),
-                .target(name: "ApodiniDeploy")
+                .target(name: "ApodiniDeploy"),
+                .target(name: "ApodiniTypeDescriptor")
             ]
         ),
         
