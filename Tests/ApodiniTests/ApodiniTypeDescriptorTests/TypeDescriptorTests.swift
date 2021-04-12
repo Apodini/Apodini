@@ -69,6 +69,40 @@ class TypeDescriptorTests: XCTestCase {
                 .init(offset: 4, path: "surname", type: .exactlyOne(String.self))
             ])
     }
+    
+    func testCustomEncoding() throws {
+        struct SomeCustomEncoding: Encodable {
+            private enum CodingKeys: String, CodingKey {
+                case hashedIDString = "top_secret"
+                case color
+                case someRandomOptionalBool
+            }
+            
+            let id: Int
+            let cars: [Car]
+            
+            func encode(to encoder: Encoder) throws {
+                var container = encoder.container(keyedBy: CodingKeys.self)
+                
+                try container.encode((0 ... 5).map { "\(id + $0)" }, forKey: .hashedIDString)
+                try container.encode(cars.first?.color, forKey: .color)
+                try container.encode(Optional<Bool>(.random()), forKey: .someRandomOptionalBool)
+            }
+        }
+        
+        let descriptor = try typeDescriptor(SomeCustomEncoding.self)
+        
+        let expectedResult = TypeDescriptor(
+            name: "SomeCustomEncoding",
+            typeWrapper: .exactlyOne(SomeCustomEncoding.self),
+            properties: [
+                .init(offset: 0, path: "top_secret", type: .array(String.self)),
+                .init(offset: 1, path: "color", type: .optional(String.self)),
+                .init(offset: 2, path: "someRandomOptionalBool", type: .optional(Bool.self)),
+            ])
+        
+        XCTAssertEqual(descriptor.debugDescription, expectedResult.debugDescription)
+    }
 }
 
 extension Property {
