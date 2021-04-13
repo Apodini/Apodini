@@ -13,7 +13,7 @@ import XCTApodini
 
 final class SemanticModelBuilderTests: ApodiniTests {
     struct TestHandler: Handler {
-        @Parameter
+        @Binding
         var name: String
         
         func handle() -> String {
@@ -28,7 +28,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
     }
     
     struct TestHandler2: Handler {
-        @Parameter
+        @Binding
         var name: String
         
         @Parameter("someId", .http(.path))
@@ -97,7 +97,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         }
     }
     
-    func testEndpointsTreeNodes() {
+    func testEndpointsTreeNodes() throws {
         // swiftlint:disable force_unwrapping
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
@@ -107,7 +107,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        let nameParameterId: UUID = testComponent.$name.id
+        let nameParameterId: UUID = try XCTUnwrap(testComponent.$name.parameterId)
         let treeNodeA: EndpointsTreeNode = modelBuilder.rootNode.children.first!
         let treeNodeB: EndpointsTreeNode = treeNodeA.children.first { $0.storedPath.description == "b" }!
         let treeNodeNameParameter: EndpointsTreeNode = treeNodeB.children.first!
