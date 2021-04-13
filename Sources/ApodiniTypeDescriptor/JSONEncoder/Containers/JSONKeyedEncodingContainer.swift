@@ -41,7 +41,7 @@ struct JSONKeyedEncodingContainer<K: CodingKey>: KeyedEncodingContainerProtocol 
 
     public mutating func encodeNil(forKey key: Key) throws {
         encoder.store(at: path(forKey: key), typeWrapper: .null)
-        self.container[key] = NSNull()
+        self.container[key.stringValue] = NSNull()
     }
     
     public mutating func encode(_ value: Bool, forKey key: Key) throws {
