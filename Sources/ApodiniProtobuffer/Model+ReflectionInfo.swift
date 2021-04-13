@@ -54,10 +54,19 @@ extension ProtobufferMessage.Property {
     }
 }
 
+fileprivate extension PrimitiveType {
+    var propertyName: String {
+        switch self {
+        case .string, .uuid: return "string"
+        default: return String(describing: swiftType).lowercased()
+        }
+    }
+}
+
 fileprivate extension TypeInfo {
     func compatibleName() throws -> String {
-        if isSupportedScalarType(type) {
-            return ApodiniUtils.mangledName(of: type).lowercased()
+        if let primitiveType = PrimitiveType(type) {
+            return primitiveType.propertyName
         } else {
             switch kind {
             case .struct, .class:

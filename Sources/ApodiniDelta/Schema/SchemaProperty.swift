@@ -51,7 +51,7 @@ struct SchemaProperty: Codable {
             case .array:
                 propertyType = .array
             case .dictionary(key: let key, _):
-                let primitiveType: PrimitiveType = .init(key.typeInfo.type)
+                let primitiveType = PrimitiveType(key.typeInfo.type) ?? .string
                 propertyType = .dictionary(key: primitiveType)
                 builder.addSchema(.primitive(type: primitiveType))
             }

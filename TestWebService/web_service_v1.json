@@ -1,6 +1,56 @@
 {
   "schemas" : [
     {
+      "schemaName" : {
+        "value" : "Foundation.UUID"
+      }
+    },
+    {
+      "schemaName" : {
+        "value" : "Swift.Int"
+      }
+    },
+    {
+      "schemaName" : {
+        "value" : "Swift.String"
+      }
+    },
+    {
+      "properties" : [
+        {
+          "name" : {
+            "value" : "title"
+          },
+          "offset" : {
+            "value" : 2
+          },
+          "schemaName" : {
+            "value" : "Swift.String"
+          },
+          "type" : {
+            "exactlyOne" : true
+          }
+        },
+        {
+          "name" : {
+            "value" : "id"
+          },
+          "offset" : {
+            "value" : 1
+          },
+          "schemaName" : {
+            "value" : "Foundation.UUID"
+          },
+          "type" : {
+            "exactlyOne" : true
+          }
+        }
+      ],
+      "schemaName" : {
+        "value" : "TestWebService.Post"
+      }
+    },
+    {
       "properties" : [
         {
           "name" : {
@@ -9,8 +59,8 @@
           "offset" : {
             "value" : 1
           },
-          "reference" : {
-            "schemaName" : "Int"
+          "schemaName" : {
+            "value" : "Swift.Int"
           },
           "type" : {
             "exactlyOne" : true
@@ -23,71 +73,21 @@
           "offset" : {
             "value" : 2
           },
-          "reference" : {
-            "schemaName" : "UUID"
+          "schemaName" : {
+            "value" : "Foundation.UUID"
           },
           "type" : {
             "exactlyOne" : true
           }
         }
       ],
-      "typeName" : {
-        "value" : "User"
+      "schemaName" : {
+        "value" : "TestWebService.User"
       }
     },
     {
-      "typeName" : {
-        "value" : "UInt"
-      }
-    },
-    {
-      "properties" : [
-        {
-          "name" : {
-            "value" : "title"
-          },
-          "offset" : {
-            "value" : 2
-          },
-          "reference" : {
-            "schemaName" : "String"
-          },
-          "type" : {
-            "exactlyOne" : true
-          }
-        },
-        {
-          "name" : {
-            "value" : "id"
-          },
-          "offset" : {
-            "value" : 1
-          },
-          "reference" : {
-            "schemaName" : "UUID"
-          },
-          "type" : {
-            "exactlyOne" : true
-          }
-        }
-      ],
-      "typeName" : {
-        "value" : "Post"
-      }
-    },
-    {
-      "typeName" : {
-        "value" : "UUID"
-      }
-    },
-    {
-      "typeName" : {
-        "value" : "String"
-      }
-    },
-    {
-      "typeName" : {
-        "value" : "Int"
+      "schemaName" : {
+        "value" : "Swift.UInt"
       }
     }
   ],
@@ -105,121 +105,7 @@
 
       ],
       "response" : {
-        "schemaName" : "String"
-      }
-    },
-    {
-      "absolutePath" : {
-        "value" : "/v1/auction"
-      },
-      "handlerIdentifier" : "0.1.0.0",
-      "handlerName" : {
-        "value" : "Auction"
-      },
-      "operation" : "read",
-      "parameters" : [
-        {
-          "necessity" : "required",
-          "nilIsValidValue" : {
-            "value" : false
-          },
-          "parameterName" : {
-            "value" : "bid"
-          },
-          "schemaReference" : {
-            "schemaName" : "UInt"
-          },
-          "type" : "lightweight"
-        }
-      ],
-      "response" : {
-        "schemaName" : "String"
-      }
-    },
-    {
-      "absolutePath" : {
-        "value" : "/v1/swift"
-      },
-      "handlerIdentifier" : "0.4.0.0.0",
-      "handlerName" : {
-        "value" : "Text"
-      },
-      "operation" : "read",
-      "parameters" : [
-
-      ],
-      "response" : {
-        "schemaName" : "String"
-      }
-    },
-    {
-      "absolutePath" : {
-        "value" : "/v1/swift/5/3"
-      },
-      "handlerIdentifier" : "0.4.0.0.1.0",
-      "handlerName" : {
-        "value" : "Text"
-      },
-      "operation" : "read",
-      "parameters" : [
-
-      ],
-      "response" : {
-        "schemaName" : "String"
-      }
-    },
-    {
-      "absolutePath" : {
-        "value" : "/v1/greet"
-      },
-      "handlerIdentifier" : "0.2.0.0",
-      "handlerName" : {
-        "value" : "TraditionalGreeter"
-      },
-      "operation" : "read",
-      "parameters" : [
-        {
-          "necessity" : "optional",
-          "nilIsValidValue" : {
-            "value" : false
-          },
-          "parameterName" : {
-            "value" : "surname"
-          },
-          "schemaReference" : {
-            "schemaName" : "String"
-          },
-          "type" : "lightweight"
-        },
-        {
-          "necessity" : "required",
-          "nilIsValidValue" : {
-            "value" : false
-          },
-          "parameterName" : {
-            "value" : "age"
-          },
-          "schemaReference" : {
-            "schemaName" : "Int"
-          },
-          "type" : "lightweight"
-        },
-        {
-          "necessity" : "optional",
-          "nilIsValidValue" : {
-            "value" : true
-          },
-          "parameterName" : {
-            "value" : "name"
-          },
-          "schemaReference" : {
-            "schemaName" : "String"
-          },
-          "type" : "lightweight"
-        }
-      ],
-      "response" : {
-        "schemaName" : "String"
+        "value" : "Swift.String"
       }
     },
     {
@@ -240,14 +126,68 @@
           "parameterName" : {
             "value" : "number"
           },
-          "schemaReference" : {
-            "schemaName" : "Int"
+          "schemaName" : {
+            "value" : "Swift.Int"
           },
           "type" : "lightweight"
         }
       ],
       "response" : {
-        "schemaName" : "Int"
+        "value" : "Swift.Int"
+      }
+    },
+    {
+      "absolutePath" : {
+        "value" : "/v1/greet"
+      },
+      "handlerIdentifier" : "0.2.0.0",
+      "handlerName" : {
+        "value" : "TraditionalGreeter"
+      },
+      "operation" : "read",
+      "parameters" : [
+        {
+          "necessity" : "optional",
+          "nilIsValidValue" : {
+            "value" : false
+          },
+          "parameterName" : {
+            "value" : "surname"
+          },
+          "schemaName" : {
+            "value" : "Swift.String"
+          },
+          "type" : "lightweight"
+        },
+        {
+          "necessity" : "required",
+          "nilIsValidValue" : {
+            "value" : false
+          },
+          "parameterName" : {
+            "value" : "age"
+          },
+          "schemaName" : {
+            "value" : "Swift.Int"
+          },
+          "type" : "lightweight"
+        },
+        {
+          "necessity" : "optional",
+          "nilIsValidValue" : {
+            "value" : true
+          },
+          "parameterName" : {
+            "value" : "name"
+          },
+          "schemaName" : {
+            "value" : "Swift.String"
+          },
+          "type" : "lightweight"
+        }
+      ],
+      "response" : {
+        "value" : "Swift.String"
       }
     },
     {
@@ -268,14 +208,14 @@
           "parameterName" : {
             "value" : "userId"
           },
-          "schemaReference" : {
-            "schemaName" : "Int"
+          "schemaName" : {
+            "value" : "Swift.Int"
           },
           "type" : "path"
         }
       ],
       "response" : {
-        "schemaName" : "User"
+        "value" : "TestWebService.User"
       }
     },
     {
@@ -296,8 +236,8 @@
           "parameterName" : {
             "value" : "userId"
           },
-          "schemaReference" : {
-            "schemaName" : "Int"
+          "schemaName" : {
+            "value" : "Swift.Int"
           },
           "type" : "path"
         },
@@ -309,14 +249,46 @@
           "parameterName" : {
             "value" : "postId"
           },
-          "schemaReference" : {
-            "schemaName" : "UUID"
+          "schemaName" : {
+            "value" : "Foundation.UUID"
           },
           "type" : "path"
         }
       ],
       "response" : {
-        "schemaName" : "Post"
+        "value" : "TestWebService.Post"
+      }
+    },
+    {
+      "absolutePath" : {
+        "value" : "/v1/swift"
+      },
+      "handlerIdentifier" : "0.4.0.0.0",
+      "handlerName" : {
+        "value" : "Text"
+      },
+      "operation" : "read",
+      "parameters" : [
+
+      ],
+      "response" : {
+        "value" : "Swift.String"
+      }
+    },
+    {
+      "absolutePath" : {
+        "value" : "/v1/swift/5/3"
+      },
+      "handlerIdentifier" : "0.4.0.0.1.0",
+      "handlerName" : {
+        "value" : "Text"
+      },
+      "operation" : "read",
+      "parameters" : [
+
+      ],
+      "response" : {
+        "value" : "Swift.String"
       }
     },
     {
@@ -332,7 +304,35 @@
 
       ],
       "response" : {
-        "schemaName" : "User"
+        "value" : "TestWebService.User"
+      }
+    },
+    {
+      "absolutePath" : {
+        "value" : "/v1/auction"
+      },
+      "handlerIdentifier" : "0.1.0.0",
+      "handlerName" : {
+        "value" : "Auction"
+      },
+      "operation" : "read",
+      "parameters" : [
+        {
+          "necessity" : "required",
+          "nilIsValidValue" : {
+            "value" : false
+          },
+          "parameterName" : {
+            "value" : "bid"
+          },
+          "schemaName" : {
+            "value" : "Swift.UInt"
+          },
+          "type" : "lightweight"
+        }
+      ],
+      "response" : {
+        "value" : "Swift.String"
       }
     }
   ],

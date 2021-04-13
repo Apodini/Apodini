@@ -33,7 +33,7 @@ struct SchemaBuilder {
             .unique()
 
         return node.isPrimitive
-            ? .primitive(type: .init(typeInfo.type))
+            ? .primitive(type: PrimitiveType(typeInfo.type) ?? .string)
             : .complex(schemaName: schemaName, properties: properties)
     }
 
