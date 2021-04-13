@@ -24,7 +24,6 @@ protocol _Comparable: Value {
 }
 
 extension _Comparable {
-
     /// An optional name that can be specified on the type,
     /// that will be used as `location` when a change occurs
     static var specifiedName: String? { nil }

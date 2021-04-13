@@ -12,7 +12,6 @@ import Foundation
 protocol Value: Codable, Hashable {}
 
 extension Value {
-    
     /// Name of the type
     static var typeName: String { String(describing: Self.self) }
     

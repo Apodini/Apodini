@@ -37,7 +37,6 @@ extension ComparableObject {
 }
 
 extension ComparableObject {
-
     func context(from result: ChangeContextNode, embeddedInCollection: Bool) -> ChangeContextNode? {
         if !embeddedInCollection {
             guard let ownContext = result.change(for: Self.self) else {
