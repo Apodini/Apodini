@@ -7,7 +7,6 @@
 
 import Foundation
 import Logging
-import ApodiniUtils
 
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
@@ -61,12 +60,6 @@ extension WebService {
             app.http.address = .hostname(defaults.hostname, port: defaults.port)
         }
         
-        #if DEBUG // fails DownloadsTests of TestWebService, therefore skipped
-        if !webService.isTest, case let .hostname(_, httpPort) = app.http.address, let port = httpPort {
-            runShellCommand(.killPort(port))
-        }
-        #endif
-        
         webService.register(
             app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app))
         )
@@ -95,11 +88,3 @@ extension WebService {
         }.accept(visitor)
     }
 }
-
-#if DEBUG
-fileprivate extension WebService {
-    var isTest: Bool {
-        String(describing: Self.self) == "TestWebService"
-    }
-}
-#endif

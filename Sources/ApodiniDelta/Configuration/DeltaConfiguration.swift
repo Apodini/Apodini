@@ -31,6 +31,10 @@ public class DeltaConfiguration: Configuration {
 
     public init() {
         self.webServiceStructurePath = nil
+        
+        #if Xcode
+        runShellCommand(.killPort(8080))
+        #endif
     }
 
     public func configure(_ app: Application) {
