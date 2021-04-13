@@ -11,7 +11,6 @@ import ApodiniGRPC
 import ApodiniProtobuffer
 import ApodiniOpenAPI
 import ApodiniWebSocket
-import ApodiniDelta
 
 struct TestWebService: Apodini.WebService {
     let greeterRelationship = Relationship(name: "greeter")
@@ -37,17 +36,12 @@ struct TestWebService: Apodini.WebService {
             title: "The great TestWebService - presented by Apodini"
         )
         
-        DeltaConfiguration()
-            .absolutePath("/Users/eld/Desktop/mswag/Apodini/TestWebService/")
-            .strategy(.compare)
-        
         ExporterConfiguration()
             .exporter(RESTInterfaceExporter.self)
             .exporter(GRPCInterfaceExporter.self)
             .exporter(ProtobufferInterfaceExporter.self)
             .exporter(OpenAPIInterfaceExporter.self)
             .exporter(WebSocketInterfaceExporter.self)
-            .exporter(DeltaInterfaceExporter.self)
     }
 }
 
