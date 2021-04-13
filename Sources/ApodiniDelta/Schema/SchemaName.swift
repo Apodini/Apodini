@@ -9,7 +9,7 @@ import Foundation
 
 /// Holds the name of the type in its `value` property containing the name of the Module where it is defined to
 /// e.g. `Swift.Int`, and simply `Int` in its `name` property.
-class SchemaName: PrimitiveValueWrapper<String> {
+class SchemaName: PropertyValueWrapper<String> {
     /// The name of the type
     var name: String {
         if let name = value.split(separator: ".").last {

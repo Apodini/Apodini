@@ -7,14 +7,8 @@
 
 import Foundation
 
-/// A typealias of `Codable` & `Equatable` & `Hashable`
-public typealias Value = Codable & Equatable & Hashable
-
-/// Base helper protocol for primitive types
-public protocol _Primitive {}
-
 /// A protocol that all supported primitive / scalar types in Apodini conform to
-public protocol Primitive: _Primitive, Value {}
+private protocol Primitive {}
 
 // MARK: - Primitive Conformance
 extension Int: Primitive {}
@@ -31,5 +25,5 @@ extension UUID: Primitive {}
 
 /// Whether the type is a supported scalar type
 public func isSupportedScalarType(_ type: Any.Type) -> Bool {
-    type.self is _Primitive.Type
+    type.self is Primitive.Type
 }

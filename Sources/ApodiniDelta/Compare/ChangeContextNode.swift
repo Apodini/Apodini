@@ -13,11 +13,13 @@ class ChangeContextNode {
     private(set) var changes: [ObjectIdentifier: ChangeContainable] = [:]
 
     /// Used to register the result of comparison between two comparable objects
-    func register<C: _Comparable>(_ result: C.Result, for type: C.Type = C.self) {
+    @discardableResult
+    func register<C: _Comparable>(_ result: C.Result, for type: C.Type = C.self) -> Self {
         if result.containsChange {
             precondition(changes[C.identifier] == nil, "Attempting to override changes of \(type).")
             changes[C.identifier] = result
         }
+        return self
     }
 
     /// Change retrieval for a specific comparable type
@@ -29,11 +31,13 @@ class ChangeContextNode {
     /// - Parameters:
     ///   - result: result of comparison
     ///   - type: The type of the `Element` of the collection
-    func register<O: ComparableObject>(result: CollectionChangeContextNode<O>, for type: O.Type = O.self) {
+    @discardableResult
+    func register<O: ComparableObject>(result: CollectionChangeContextNode<O>, for type: O.Type = O.self) -> Self {
         if result.containsChange {
             precondition(changes[O.identifier] == nil, "Attempting to override changes of \(type).")
             changes[O.identifier] = result
         }
+        return self
     }
 
     /// Collection change retrieval for a specific type

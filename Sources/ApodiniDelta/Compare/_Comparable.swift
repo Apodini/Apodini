@@ -24,8 +24,6 @@ protocol _Comparable: Value {
 }
 
 extension _Comparable {
-    /// Name of the type
-    static var typeName: String { String(describing: Self.self) }
 
     /// An optional name that can be specified on the type,
     /// that will be used as `location` when a change occurs
@@ -33,7 +31,4 @@ extension _Comparable {
 
     /// Name of the change location. Returns `specifiedName` if provided, or `typeName` by default
     static var changeLocation: String { specifiedName ?? typeName }
-
-    /// Object identifier of the type
-    static var identifier: ObjectIdentifier { .init(Self.self) }
 }

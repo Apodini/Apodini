@@ -8,8 +8,8 @@
 import Foundation
 @_implementationOnly import struct ApodiniTypeReflection.ReflectionInfo
 
-class PropertyName: PrimitiveValueWrapper<String> {}
-class PropertyOffset: PrimitiveValueWrapper<Int> {}
+class PropertyName: PropertyValueWrapper<String> {}
+class PropertyOffset: PropertyValueWrapper<Int> {}
 
 /// A property of a schema
 struct SchemaProperty: Codable {
@@ -94,14 +94,8 @@ extension SchemaProperty: ComparableObject {
     var deltaIdentifier: DeltaIdentifier { .init(name.value) }
 
     func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
-        let context: ChangeContextNode
-        if !embeddedInCollection {
-            guard let ownContext = result.change(for: Self.self) else {
-                return nil
-            }
-            context = ownContext
-        } else {
-            context = result
+        guard let context = context(from: result, embeddedInCollection: embeddedInCollection) else {
+            return nil
         }
 
         let changes = [
@@ -119,13 +113,10 @@ extension SchemaProperty: ComparableObject {
     }
 
     func compare(to other: SchemaProperty) -> ChangeContextNode {
-        let context = ChangeContextNode()
-
-        context.register(compare(\.name, with: other), for: PropertyName.self)
-        context.register(compare(\.offset, with: other), for: PropertyOffset.self)
-        context.register(compare(\.type, with: other), for: PropertyType.self)
-        context.register(compare(\.schemaName, with: other), for: SchemaName.self)
-
-        return context
+        ChangeContextNode()
+            .register(compare(\.name, with: other), for: PropertyName.self)
+            .register(compare(\.offset, with: other), for: PropertyOffset.self)
+            .register(compare(\.type, with: other), for: PropertyType.self)
+            .register(compare(\.schemaName, with: other), for: SchemaName.self)
     }
 }

@@ -35,3 +35,17 @@ extension ComparableObject {
         return ownProperty.compare(to: othersProperty)
     }
 }
+
+extension ComparableObject {
+
+    func context(from result: ChangeContextNode, embeddedInCollection: Bool) -> ChangeContextNode? {
+        if !embeddedInCollection {
+            guard let ownContext = result.change(for: Self.self) else {
+                return nil
+            }
+            return ownContext
+        }
+        
+        return result
+    }
+}

@@ -8,8 +8,8 @@
 import Foundation
 
 extension Apodini.Operation: ComparableProperty {}
-class ServicePath: PrimitiveValueWrapper<String> {}
-class HandlerName: PrimitiveValueWrapper<String> {}
+class ServicePath: PropertyValueWrapper<String> {}
+class HandlerName: PropertyValueWrapper<String> {}
 
 /// Represents an endpoint
 struct Service {
@@ -53,14 +53,8 @@ extension Service: ComparableObject {
     var deltaIdentifier: DeltaIdentifier { .init(handlerIdentifier) }
 
     func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
-        let context: ChangeContextNode
-        if !embeddedInCollection {
-            guard let ownContext = result.change(for: Self.self) else {
-                return nil
-            }
-            context = ownContext
-        } else {
-            context = result
+        guard let context = context(from: result, embeddedInCollection: embeddedInCollection) else {
+            return nil
         }
 
         let changes = [
@@ -79,14 +73,11 @@ extension Service: ComparableObject {
     }
 
     func compare(to other: Service) -> ChangeContextNode {
-        let context = ChangeContextNode()
-
-        context.register(compare(\.handlerName, with: other), for: HandlerName.self)
-        context.register(compare(\.operation, with: other), for: Apodini.Operation.self)
-        context.register(compare(\.absolutePath, with: other), for: ServicePath.self)
-        context.register(result: compare(\.parameters, with: other), for: ServiceParameter.self)
-        context.register(compare(\.response, with: other), for: SchemaName.self)
-
-        return context
+        ChangeContextNode()
+            .register(compare(\.handlerName, with: other), for: HandlerName.self)
+            .register(compare(\.operation, with: other), for: Apodini.Operation.self)
+            .register(compare(\.absolutePath, with: other), for: ServicePath.self)
+            .register(result: compare(\.parameters, with: other), for: ServiceParameter.self)
+            .register(compare(\.response, with: other), for: SchemaName.self)
     }
 }

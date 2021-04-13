@@ -167,7 +167,7 @@ private extension ProtobufferInterfaceExporter.Builder {
     func handleUUIDProperty(
         _ property: ProtobufferMessage.Property
     ) -> ProtobufferMessage.Property {
-        guard property.typeName == "UUIDMessage" else {
+        guard property.typeName == "uuid" else {
             return property
         }
         

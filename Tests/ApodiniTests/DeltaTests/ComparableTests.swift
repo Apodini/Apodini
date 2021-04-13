@@ -10,9 +10,9 @@ import XCTest
 @testable import ApodiniDelta
 
 final class ComparableTests: XCTestCase {
-    class EndpointName: PrimitiveValueWrapper<String> {}
-    class Path: PrimitiveValueWrapper<String> {}
-    class SomeParameterName: PrimitiveValueWrapper<String> {}
+    class EndpointName: PropertyValueWrapper<String> {}
+    class Path: PropertyValueWrapper<String> {}
+    class SomeParameterName: PropertyValueWrapper<String> {}
 
     struct CustomEndpoint: ComparableObject {
         let path: Path
@@ -22,13 +22,10 @@ final class ComparableTests: XCTestCase {
         var deltaIdentifier: DeltaIdentifier { .init("id") }
 
         func compare(to other: CustomEndpoint) -> ChangeContextNode {
-            let context = ChangeContextNode()
-
-            context.register(compare(\.path, with: other), for: Path.self)
-            context.register(compare(\.name, with: other), for: EndpointName.self)
-            context.register(result: compare(\.parameters, with: other), for: SomeParameter.self)
-
-            return context
+            ChangeContextNode()
+                .register(compare(\.path, with: other), for: Path.self)
+                .register(compare(\.name, with: other), for: EndpointName.self)
+                .register(result: compare(\.parameters, with: other), for: SomeParameter.self)
         }
 
         func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
@@ -52,20 +49,13 @@ final class ComparableTests: XCTestCase {
         var deltaIdentifier: DeltaIdentifier { .init(id) }
 
         func compare(to other: SomeParameter) -> ChangeContextNode {
-            let context = ChangeContextNode()
-            context.register(compare(\.name, with: other), for: SomeParameterName.self)
-            return context
+            ChangeContextNode()
+                .register(compare(\.name, with: other), for: SomeParameterName.self)
         }
 
         func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
-            let context: ChangeContextNode
-            if !embeddedInCollection {
-                guard let ownContext = result.change(for: Self.self) else {
-                    return nil
-                }
-                context = ownContext
-            } else {
-                context = result
+            guard let context = context(from: result, embeddedInCollection: embeddedInCollection) else {
+                return nil
             }
 
             let changes = [

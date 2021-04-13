@@ -9,7 +9,7 @@ import Foundation
 
 extension PrimitiveType: ComparableProperty {}
 
-enum PrimitiveType: String, RawRepresentable, Codable {
+enum PrimitiveType: String, RawRepresentable {
     case int = "Int"
     case int32 = "Int32"
     case int64 = "Int64"
@@ -30,7 +30,7 @@ enum PrimitiveType: String, RawRepresentable, Codable {
         }
     }
     
-    var swiftType: _Primitive.Type {
+    var swiftType: Any.Type {
         switch self {
         case .int: return Int.self
         case .int32: return Int32.self

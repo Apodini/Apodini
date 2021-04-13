@@ -90,12 +90,9 @@ extension WebServiceStructure: ComparableObject {
     }
 
     func compare(to other: WebServiceStructure) -> ChangeContextNode {
-        let context = ChangeContextNode()
-
-        context.register(result: compare(\.services, with: other), for: Service.self)
-        context.register(result: compare(\.schemas, with: other), for: Schema.self)
-
-        return context
+        ChangeContextNode()
+            .register(result: compare(\.services, with: other), for: Service.self)
+            .register(result: compare(\.schemas, with: other), for: Schema.self)
     }
 
     // Required from ComparableObject protocol, however not used for WebServiceStructure

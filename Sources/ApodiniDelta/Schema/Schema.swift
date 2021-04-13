@@ -7,7 +7,7 @@
 
 import Foundation
 
-class IsEnum: PrimitiveValueWrapper<Bool> {}
+class IsEnum: PropertyValueWrapper<Bool> {}
 
 /// Schema of a specific type
 struct Schema {
@@ -95,16 +95,10 @@ extension Schema: ComparableObject {
     var deltaIdentifier: DeltaIdentifier { schemaName.deltaIdentifier }
 
     func evaluate(result: ChangeContextNode, embeddedInCollection: Bool) -> Change? {
-        let context: ChangeContextNode
-        if !embeddedInCollection {
-            guard let ownContext = result.change(for: Self.self) else {
-                return nil
-            }
-            context = ownContext
-        } else {
-            context = result
+        guard let context = context(from: result, embeddedInCollection: embeddedInCollection) else {
+            return nil
         }
-
+        
         let changes = [
             schemaName.change(in: context),
             properties.evaluate(node: context),
@@ -119,12 +113,9 @@ extension Schema: ComparableObject {
     }
 
     func compare(to other: Schema) -> ChangeContextNode {
-        let context = ChangeContextNode()
-
-        context.register(compare(\.schemaName, with: other), for: SchemaName.self)
-        context.register(result: compare(\.properties, with: other), for: SchemaProperty.self)
-        context.register(compare(\.isEnumeration, with: other), for: IsEnum.self)
-
-        return context
+        ChangeContextNode()
+            .register(compare(\.schemaName, with: other), for: SchemaName.self)
+            .register(result: compare(\.properties, with: other), for: SchemaProperty.self)
+            .register(compare(\.isEnumeration, with: other), for: IsEnum.self)
     }
 }
