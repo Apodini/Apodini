@@ -57,11 +57,11 @@ class EndpointsTreeNode {
             }
 
             // swiftlint:disable:next force_unwrapping
-            precondition(endpoints[endpoint.operation] == nil, "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)")
+            precondition(endpoints[endpoint.content[Operation.self]] == nil, "Tried overwriting endpoint \(endpoints[endpoint.content[Operation.self]]!.description) with \(endpoint.description) for operation \(endpoint.content[Operation.self])")
             precondition(!endpoint.inserted, "The endpoint \(endpoint.description) is already inserted at some different place")
 
             endpoint.inserted(at: self)
-            endpoints[endpoint.operation] = endpoint
+            endpoints[endpoint.content[Operation.self]] = endpoint
         } else {
             let next = context.nextStoredPath()
             var child = nodeChildren[next.path]

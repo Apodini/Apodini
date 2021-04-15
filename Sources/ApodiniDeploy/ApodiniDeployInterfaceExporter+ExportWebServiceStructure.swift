@@ -28,7 +28,7 @@ extension ApodiniDeployInterfaceExporter {
                 let endpoint = endpointInfo.endpoint
                 return ExportedEndpoint(
                     handlerType: endpointInfo.handlerType,
-                    handlerId: endpoint.identifier,
+                    handlerId: endpoint.content[AnyHandlerIdentifier.self],
                     deploymentOptions: endpointInfo.deploymentOptions,
                     userInfo: [:]
                 )

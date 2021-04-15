@@ -25,7 +25,7 @@ struct EndpointReference: CustomStringConvertible, CustomDebugStringConvertible 
     init<H: Handler>(on node: EndpointsTreeNode, off endpoint: Endpoint<H>) {
         self.node = node
         self.absolutePath = endpoint.absolutePath
-        self.operation = endpoint.operation
+        self.operation = endpoint.content[Operation.self]
         self.responseType = endpoint.responseType
     }
 

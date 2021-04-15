@@ -27,11 +27,9 @@ extension Handler {
         }
 
         return Endpoint(
-            identifier: self.getExplicitlySpecifiedIdentifier() ?? AnyHandlerIdentifier(UUID().uuidString),
             handler: handler,
             content: try! ContentModuleStore(for: handler, using: context),
             context: context,
-            operation: operation,
             guards: guards,
             responseTransformers: responseTransformers
         )

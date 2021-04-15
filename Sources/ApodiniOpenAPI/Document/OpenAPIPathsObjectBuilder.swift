@@ -42,7 +42,7 @@ struct OpenAPIPathsObjectBuilder {
         var pathItem = pathsObject[path] ?? OpenAPI.PathItem()
 
         // Get `OpenAPI.HttpMethod` and `OpenAPI.Operation` from endpoint.
-        let httpMethod = OpenAPI.HttpMethod(endpoint.operation)
+        let httpMethod = OpenAPI.HttpMethod(endpoint.content[Operation.self])
         let operation = buildPathItemOperationObject(from: endpoint)
         pathItem.set(operation: operation, for: httpMethod)
 
@@ -85,12 +85,12 @@ private extension OpenAPIPathsObjectBuilder {
         return OpenAPI.Operation(
             tags: tags,
             description: endpointDescription,
-            operationId: endpoint.identifier.rawValue,
+            operationId: endpoint.content[AnyHandlerIdentifier.self].rawValue,
             parameters: parameters,
             requestBody: requestBody,
             responses: responses,
             vendorExtensions: [
-                "x-apodiniHandlerId": AnyCodable(endpoint.identifier.rawValue)
+                "x-apodiniHandlerId": AnyCodable(endpoint.content[AnyHandlerIdentifier.self].rawValue)
             ]
         )
     }

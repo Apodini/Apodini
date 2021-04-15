@@ -27,7 +27,7 @@ final class HandlerIdentifierTests: ApodiniTests {
 
         init(endpoint: AnyEndpoint) {
             self.init(
-                id: endpoint.identifier.rawValue,
+                id: endpoint.content[AnyHandlerIdentifier.self].rawValue,
                 path: endpoint.absolutePath.asPathString(),
                 description: endpoint.description
             )

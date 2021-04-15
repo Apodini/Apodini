@@ -9,7 +9,7 @@ public protocol AnyEndpoint: CustomStringConvertible {
     
     /// An identifier which uniquely identifies this endpoint (via its handler)
     /// across multiple compilations and executions of the web service.
-    var identifier: AnyHandlerIdentifier { get }
+//    var identifier: AnyHandlerIdentifier { get }
     
     /// Description of the `Handler` this endpoint was generated for
     var description: String { get }
@@ -17,11 +17,6 @@ public protocol AnyEndpoint: CustomStringConvertible {
     /// This property holds the `Context` instance associated with the `Endpoint`.
     /// The `Context` holds any information gathered when parsing the modeled `Handler`
     var context: Context { get }
-
-    var operation: Operation { get }
-
-    /// The communication pattern that is expressed by this endpoint.
-//    var serviceType: ServiceType { get }
 
     /// Type returned by `Component.handle(...)`
     var handleReturnType: Encodable.Type { get }
@@ -104,16 +99,12 @@ protocol _AnyEndpoint: AnyEndpoint {
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 public struct Endpoint<H: Handler>: _AnyEndpoint {
     
-    let _content: ContentModuleStore
-    
-    public var content: ModuleStore {
-        _content
-    }
+    public var content: ModuleStore
     
     
     var inserted = false
 
-    public let identifier: AnyHandlerIdentifier
+//    public let identifier: AnyHandlerIdentifier
 
     var reference: EndpointReference {
         guard let endpointReference = storedReference else {
@@ -128,10 +119,6 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     public let handler: H
 
     public let context: Context
-
-    public let operation: Operation
-
-//    public let serviceType: ServiceType
 
     public let handleReturnType: Encodable.Type
     public let responseType: Encodable.Type
@@ -149,7 +136,7 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     private var storedRelationship: [EndpointRelationship] = []
 
     public var selfRelationship: RelationshipDestination {
-        guard let destination = selfRelationship(for: operation) else {
+        guard let destination = selfRelationship(for: content[Operation.self]) else {
             fatalError("Encountered inconsistency where Endpoint doesn't have a self EndpointDestination for its own Operation!")
         }
 
@@ -165,20 +152,17 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     let responseTransformers: [LazyAnyResponseTransformer]
     
     init(
-        identifier: AnyHandlerIdentifier,
+//        identifier: AnyHandlerIdentifier,
         handler: H,
-        content: ContentModuleStore? = nil,
+        content: ModuleStore? = nil,
         context: Context = Context(contextNode: ContextNode()),
-        operation: Operation? = nil,
         guards: [LazyGuard] = [],
         responseTransformers: [LazyAnyResponseTransformer] = []
     ) {
-        self.identifier = identifier
         self.handler = handler
-        self._content = content ?? (try! ContentModuleStore(for: handler, using: context))
+        self.content = content ?? (try! ContentModuleStore(for: handler, using: context))
         self.description = String(describing: H.self)
         self.context = context
-        self.operation = operation ?? .read
         self.handleReturnType = H.Response.Content.self
         self.guards = guards
         self.responseTransformers = responseTransformers

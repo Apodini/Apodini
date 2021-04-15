@@ -7,11 +7,11 @@ private struct AnyHashableEndpoint: Hashable, Equatable {
     let endpoint: AnyEndpoint
     
     func hash(into hasher: inout Hasher) {
-        hasher.combine(endpoint.identifier)
+        hasher.combine(endpoint.content[AnyHandlerIdentifier.self])
     }
     
     static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.endpoint.identifier == rhs.endpoint.identifier
+        lhs.endpoint.content[AnyHandlerIdentifier.self] == rhs.endpoint.content[AnyHandlerIdentifier.self]
     }
 }
 

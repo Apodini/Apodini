@@ -303,3 +303,21 @@ struct ModuleStoreView: ModuleStore {
         return store[index]
     }
 }
+
+public class MockModuleStore: ModuleStore {
+    
+    private let content: [ObjectIdentifier: ContentModule]
+    
+    public init(_ contents: (ContentModule.Type, ContentModule)...) {
+        var c = [ObjectIdentifier: ContentModule]()
+        for content in contents {
+            c[ObjectIdentifier(content.0)] = content.1
+        }
+        self.content = c
+    }
+    
+    public subscript<M>(index: M.Type) -> M where M : ContentModule {
+        content[ObjectIdentifier(index)]! as! M
+    }
+    
+}

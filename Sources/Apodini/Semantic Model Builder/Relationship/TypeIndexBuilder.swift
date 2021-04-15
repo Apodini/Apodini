@@ -58,7 +58,7 @@ struct TypeIndexBuilder: CustomDebugStringConvertible {
             let capture = ParsedTypeIndexEntryCapture(reference, type: content, markedDefault: markedDefault, pathParameters: pathParameters)
 
             var index = typeIndex[identifier, default: CapturedTypeIndex()]
-            index.indexContentType(of: content, operation: endpoint.operation, capture: capture)
+            index.indexContentType(of: content, operation: endpoint.content[Operation.self], capture: capture)
 
             typeIndex[identifier] = index
         }

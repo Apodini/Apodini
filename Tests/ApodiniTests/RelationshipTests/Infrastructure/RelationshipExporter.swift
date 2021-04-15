@@ -20,7 +20,7 @@ class RelationshipExporter: MockExporter<String> {
                 let rhsString = rhs.absolutePath.asPathString()
 
                 if lhsString == rhsString {
-                    return lhs.operation < rhs.operation
+                    return lhs.content[Operation.self] < rhs.content[Operation.self]
                 }
 
                 return lhs.absolutePath.asPathString() < rhs.absolutePath.asPathString()
