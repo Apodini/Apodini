@@ -95,7 +95,7 @@ public class SyntaxTreeVisitor {
         addContext(HandlerIndexPath.ContextKey.self, value: formHandlerIndexPathForCurrentNode(), scope: .current)
 
         let responseTransformers = currentNode.getContextValue(for: ResponseTransformerContextKey.self)
-        let responseType = responseTransformers.responseType(for: H.self)
+        let responseType = responseTransformers.responseType ?? H.Response.Content.self
 
         // Intermediate solution to parse `Content` types conforming to `WithRelationships`
         // until the Metadata DSL creates a unified solution for such metadata.

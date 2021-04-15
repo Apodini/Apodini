@@ -26,7 +26,7 @@ struct EndpointReference: CustomStringConvertible, CustomDebugStringConvertible 
         self.node = node
         self.absolutePath = endpoint.absolutePath
         self.operation = endpoint.content[Operation.self]
-        self.responseType = endpoint.responseType
+        self.responseType = endpoint.content[ResponseType.self].type
     }
 
     /// Resolve the referenced `Endpoint`

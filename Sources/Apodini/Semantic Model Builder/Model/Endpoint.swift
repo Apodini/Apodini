@@ -6,22 +6,6 @@ import Foundation
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 public protocol AnyEndpoint: CustomStringConvertible {
     var content: ModuleStore { get }
-    
-    /// An identifier which uniquely identifies this endpoint (via its handler)
-    /// across multiple compilations and executions of the web service.
-//    var identifier: AnyHandlerIdentifier { get }
-    
-    /// Description of the `Handler` this endpoint was generated for
-    var description: String { get }
-
-    /// This property holds the `Context` instance associated with the `Endpoint`.
-    /// The `Context` holds any information gathered when parsing the modeled `Handler`
-    var context: Context { get }
-
-    /// Type returned by `Component.handle(...)`
-    var handleReturnType: Encodable.Type { get }
-    /// Response type ultimately returned by `Component.handle(...)` and possible following `ResponseTransformer`s
-    var responseType: Encodable.Type { get }
 
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     var parameters: [AnyEndpointParameter] { get }
@@ -114,14 +98,7 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     }
     private var storedReference: EndpointReference?
 
-    public let description: String
-
     public let handler: H
-
-    public let context: Context
-
-    public let handleReturnType: Encodable.Type
-    public let responseType: Encodable.Type
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     public var parameters: [AnyEndpointParameter]
@@ -152,21 +129,15 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     let responseTransformers: [LazyAnyResponseTransformer]
     
     init(
-//        identifier: AnyHandlerIdentifier,
         handler: H,
-        content: ModuleStore? = nil,
-        context: Context = Context(contextNode: ContextNode()),
+        content: ModuleStore,
         guards: [LazyGuard] = [],
         responseTransformers: [LazyAnyResponseTransformer] = []
     ) {
         self.handler = handler
-        self.content = content ?? (try! ContentModuleStore(for: handler, using: context))
-        self.description = String(describing: H.self)
-        self.context = context
-        self.handleReturnType = H.Response.Content.self
+        self.content = content
         self.guards = guards
         self.responseTransformers = responseTransformers
-        self.responseType = responseTransformers.responseType(for: H.self)
         self.parameters = handler.buildParametersModel()
         self.observedObjects = handler.collectObservedObjects()
     }
@@ -240,5 +211,11 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
 extension Endpoint: CustomDebugStringConvertible {
     public var debugDescription: String {
         String(describing: self.handler)
+    }
+}
+
+extension Endpoint: CustomStringConvertible {
+    public var description: String {
+        content[HandlerDescription.self]
     }
 }

@@ -9,7 +9,7 @@ import ApodiniTypeReflection
 @_implementationOnly import class Vapor.Application
 
 public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
-    public static let dependencies: [ContentModule.Type] = []
+    public static let dependencies: [ContentModule.Type] = [ResponseType.self]
     
     // MARK: Nested Types
     struct Error: Swift.Error, CustomDebugStringConvertible {
@@ -63,7 +63,7 @@ public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
 private extension ProtobufferInterfaceExporter {
     func exportThrows<H: Handler>(_ endpoint: Endpoint<H>) throws {
         // Output
-        let outputNode = try builder.buildMessage(endpoint.responseType)
+        let outputNode = try builder.buildMessage(endpoint.content[ResponseType.self].type)
         messages.formUnion(outputNode.collectValues())
         
         // Input

@@ -8,11 +8,17 @@
 
 /// Defines some sort of `Context` for a given representation (like `Endpoint`).
 /// A `Context` holds a collection of values for predefined `ContextKey`s or `OptionalContextKey`s.
-public class Context {
+public class Context: AnyContextBased {
+    public static var dependencies: [ContentModule.Type] { [] }
+    
     private let contextNode: ContextNode
     
     init(contextNode: ContextNode) {
         self.contextNode = contextNode
+    }
+    
+    public required init(from context: Context) throws {
+        self.contextNode = context.contextNode
     }
 
     /// Retrieves the value for a given `ContextKey`.

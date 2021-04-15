@@ -44,10 +44,30 @@ extension ResponseModifier: SyntaxTreeVisitable {
 }
 
 extension Array where Element == LazyAnyResponseTransformer {
-    func responseType<H: Handler>(for handler: H.Type = H.self) -> Encodable.Type {
+    var responseType: Encodable.Type? {
         guard let lastResponseTransformer = self.last else {
-            return handler.Response.Content.self
+            return nil
         }
         return lastResponseTransformer().transformedResponseContent
+    }
+}
+
+struct ResponseTransformersReturnType: ContextBased {
+    typealias Key = ResponseTransformerContextKey
+    
+    let type: Encodable.Type?
+    
+    init(from value: [LazyAnyResponseTransformer]) {
+        self.type = value.responseType
+    }
+}
+
+public struct ResponseType: DependencyBased {
+    public static var dependencies: [ContentModule.Type] = [ResponseTransformersReturnType.self, HandleReturnType.self]
+    
+    public let type: Encodable.Type
+    
+    public init(from store: ModuleStore) throws {
+        self.type = store[ResponseTransformersReturnType.self].type ?? store[HandleReturnType.self].type
     }
 }

@@ -10,7 +10,7 @@ import OpenAPIKit
 
 /// Apodini Interface Exporter for OpenAPI.
 public final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
-    public static let dependencies: [ContentModule.Type] = [AnyHandlerIdentifier.self, Operation.self]
+    public static let dependencies: [ContentModule.Type] = [AnyHandlerIdentifier.self, Operation.self, HandlerDescription.self, ResponseType.self, Context.self]
     
     public static var parameterNamespace: [ParameterNamespace] = .individual
 
@@ -38,7 +38,7 @@ public final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
         
         // Set version information from APIContextKey, if the version was not defined by developer.
         if self.configuration.version == nil {
-            self.configuration.version = endpoint.context.get(valueFor: APIVersionContextKey.self)?.description
+            self.configuration.version = endpoint.content[Context.self].get(valueFor: APIVersionContextKey.self)?.description
             updateStorage()
         }
     }

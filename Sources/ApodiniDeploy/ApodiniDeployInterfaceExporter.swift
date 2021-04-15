@@ -44,7 +44,7 @@ struct ApodiniDeployError: Swift.Error {
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
 public class ApodiniDeployInterfaceExporter: InterfaceExporter {
-    public static let dependencies: [ContentModule.Type] = [AnyHandlerIdentifier.self]
+    public static let dependencies: [ContentModule.Type] = [AnyHandlerIdentifier.self, Context.self]
     
     struct ApplicationStorageKey: Apodini.StorageKey {
         typealias Value = ApodiniDeployInterfaceExporter
@@ -91,7 +91,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     
     public func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        if let groupId = endpoint.context.get(valueFor: DSLSpecifiedDeploymentGroupIdContextKey.self) {
+        if let groupId = endpoint.content[Context.self].get(valueFor: DSLSpecifiedDeploymentGroupIdContextKey.self) {
             if explicitlyCreatedDeploymentGroups[groupId] == nil {
                 explicitlyCreatedDeploymentGroups[groupId] = []
             }
@@ -102,7 +102,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
             endpoint: endpoint,
             deploymentOptions: CollectedOptions(reducing: [
                 endpoint.handler.getDeploymentOptions(),
-                endpoint.context.get(valueFor: HandlerDeploymentOptionsContextKey.self)
+                endpoint.content[Context.self].get(valueFor: HandlerDeploymentOptionsContextKey.self)
             ].flatMap { $0.compactMap { $0.resolve(against: endpoint.handler) } })
         ))
         vaporApp.add(Vapor.Route(

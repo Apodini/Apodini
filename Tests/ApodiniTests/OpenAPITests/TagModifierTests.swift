@@ -39,7 +39,7 @@ final class TagModifierTests: ApodiniTests {
 
         let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
         let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
-        let tags = endpoint.context.get(valueFor: TagContextKey.self)
+        let tags = endpoint.content[Context.self].get(valueFor: TagContextKey.self)
     
         XCTAssertEqual(tags, ["People_Register"])
     }

@@ -13,7 +13,7 @@ import Apodini
 
 /// Apodini Interface Exporter for gRPC
 public final class GRPCInterfaceExporter: InterfaceExporter {
-    public static let dependencies: [ContentModule.Type] = [ServiceType.self]
+    public static let dependencies: [ContentModule.Type] = [ServiceType.self, Context.self]
     
     let app: Apodini.Application
     var services: [String: GRPCService]

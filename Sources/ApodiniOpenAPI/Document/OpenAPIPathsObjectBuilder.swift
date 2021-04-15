@@ -65,10 +65,10 @@ private extension OpenAPIPathsObjectBuilder {
         }
         
         // Get tags if some have been set explicitly passed via TagModifier.
-        let tags: [String] = endpoint.context.get(valueFor: TagContextKey.self) ?? [defaultTag]
+        let tags: [String] = endpoint.content[Context.self].get(valueFor: TagContextKey.self) ?? [defaultTag]
 
         // Get customDescription if it has been set explicitly passed via DescriptionModifier.
-        let customDescription = endpoint.context.get(valueFor: DescriptionContextKey.self)
+        let customDescription = endpoint.content[Context.self].get(valueFor: DescriptionContextKey.self)
 
         // Set endpointDescription to customDescription or `endpoint.description` holding the `Handler`s type name.
         let endpointDescription = customDescription ?? endpoint.description
@@ -80,7 +80,7 @@ private extension OpenAPIPathsObjectBuilder {
         let requestBody: OpenAPI.Request? = buildRequestBodyObject(from: endpoint.parameters)
 
         // Get `OpenAPI.Response.Map` containing all possible HTTP responses mapped to their status code.
-        let responses: OpenAPI.Response.Map = buildResponsesObject(from: endpoint.responseType)
+        let responses: OpenAPI.Response.Map = buildResponsesObject(from: endpoint.content[ResponseType.self].type)
 
         return OpenAPI.Operation(
             tags: tags,

@@ -54,7 +54,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         let guards = context.get(valueFor: GuardContextKey.self).allActiveGuards.inject(app: app)
         let responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self).inject(app: app)
         
-        let internalDependencies: [ContentModule.Type] = [AnyHandlerIdentifier.self, Operation.self]
+        let internalDependencies: [ContentModule.Type] = [AnyHandlerIdentifier.self, Operation.self, HandlerDescription.self, ResponseType.self, Context.self]
         
         do {
             let store = try ContentModuleStore(.fixed(interfaceExporters.flatMap { exporter in exporter.dependencies } + internalDependencies), for: handler, using: context)
@@ -67,8 +67,8 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
             let relationshipDestinations = context.get(valueFor: RelationshipDestinationContextKey.self)
 
             var endpoint = Endpoint(
-                handler: handler, content: store,
-                context: context,
+                handler: handler,
+                content: store,
                 guards: guards,
                 responseTransformers: responseTransformers
             )
