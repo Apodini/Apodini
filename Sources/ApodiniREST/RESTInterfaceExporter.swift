@@ -10,7 +10,7 @@ extension Vapor.Request: ExporterRequest, WithEventLoop, WithRemote {}
 
 /// Apodini Interface Exporter for REST.
 public final class RESTInterfaceExporter: InterfaceExporter {
-    public static let dependencies: [ContentModule.Type] = []
+    public static let dependencies: [ContentModule.Type] = [Operation.self]
     
     public static let parameterNamespace: [ParameterNamespace] = .individual
 
@@ -29,7 +29,7 @@ public final class RESTInterfaceExporter: InterfaceExporter {
 
         let routesBuilder = pathBuilder.routesBuilder(app)
 
-        let operation = endpoint.operation
+        let operation = endpoint.content[Operation.self]
 
         let endpointHandler = RESTEndpointHandler(with: configuration, for: endpoint, on: self)
         endpointHandler.register(at: routesBuilder, using: operation)

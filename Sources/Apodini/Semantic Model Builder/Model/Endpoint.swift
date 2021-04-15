@@ -5,7 +5,7 @@ import Foundation
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 public protocol AnyEndpoint: CustomStringConvertible {
-    var content: ContentModuleStore { get }
+    var content: ModuleStore { get }
     
     /// An identifier which uniquely identifies this endpoint (via its handler)
     /// across multiple compilations and executions of the web service.
@@ -21,7 +21,7 @@ public protocol AnyEndpoint: CustomStringConvertible {
     var operation: Operation { get }
 
     /// The communication pattern that is expressed by this endpoint.
-    var serviceType: ServiceType { get }
+//    var serviceType: ServiceType { get }
 
     /// Type returned by `Component.handle(...)`
     var handleReturnType: Encodable.Type { get }
@@ -104,9 +104,11 @@ protocol _AnyEndpoint: AnyEndpoint {
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 public struct Endpoint<H: Handler>: _AnyEndpoint {
     
-    public let content: ContentModuleStore
+    let _content: ContentModuleStore
     
-    
+    public var content: ModuleStore {
+        _content
+    }
     
     
     var inserted = false
@@ -129,7 +131,7 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
 
     public let operation: Operation
 
-    public let serviceType: ServiceType
+//    public let serviceType: ServiceType
 
     public let handleReturnType: Encodable.Type
     public let responseType: Encodable.Type
@@ -168,17 +170,15 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
         content: ContentModuleStore? = nil,
         context: Context = Context(contextNode: ContextNode()),
         operation: Operation? = nil,
-        serviceType: ServiceType = .unary,
         guards: [LazyGuard] = [],
         responseTransformers: [LazyAnyResponseTransformer] = []
     ) {
         self.identifier = identifier
         self.handler = handler
-        self.content = content ?? (try! ContentModuleStore([], for: handler, using: context))
+        self._content = content ?? (try! ContentModuleStore(for: handler, using: context))
         self.description = String(describing: H.self)
         self.context = context
         self.operation = operation ?? .read
-        self.serviceType = serviceType
         self.handleReturnType = H.Response.Content.self
         self.guards = guards
         self.responseTransformers = responseTransformers

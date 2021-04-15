@@ -8,48 +8,45 @@
 import Foundation
 import SwiftGraph
 
+/// A `TruthAnchor` is a type that `ContentModule`s can refer to for establishing a sense of identity.
+/// E.g. a `RelationshipModule<RESTInterfaceExporter>` and a
+/// `RelationshipModule<GraphQLInterfaceExporter>` could collect different content. However,
+/// the OpenAPI exporter would want to export the exact same information as the REST exporter. Thus,
+/// the OpenAPI exporter would use `RelationshipModule<RESTInterfaceExporter>`, too.
+/// For that to work both `RESTInterfaceExporter` and `GraphQLInterfaceExporter` must conform
+/// to `TrustAnchor`.
+/// - Note: This is not particularely helpful yet, since we always expose the **whole** service definition to all
+/// exporters. However, one could envision a `.hide(from exporter: TruthAnchor.Type)` modifier on
+/// `Component`s, where this feature becomes crucial.
+public protocol TruthAnchor { }
+
 // MARK: ContentModule
 public protocol ContentModule {
     static var dependencies: [ContentModule.Type] { get }
-    // TODO: how can I get rid of this???
-//    init<H: Handler>(from handler: H, using context: Context, _ dependencies: [ContentModule]) throws
 }
 
-public protocol ContentModuleBased: ContentModule {
-    init(from dependencies: [ContentModule]) throws
+public protocol DependencyBased: ContentModule {
+    init(from store: ModuleStore) throws
 }
 
-//extension ContentModule {
-//    public init<H>(from handler: H, using context: Context, _ dependencies: [ContentModule]) throws where H : Handler {
-//        if Self.self is HandlerBased {
-//            self = (Self as! HandlerBased.Type).create(Self.self as! HandlerBased.Type, handler: handler)
-//        }
-//        throw ContentModuleError.decodingNotSupported
-//    }
-//
-//    private static func create<M: HandlerBased, H: Handler>(_ type: M.Type, handler: H) -> M {
-//        M.init(from: handler)
-//    }
-//}
-
-extension ContentModuleBased {
-    public init<H>(from handler: H, using context: Context, _ dependencies: [ContentModule]) throws where H : Handler {
-        try self.init(from: dependencies)
+extension DependencyBased {
+    public init<H>(from handler: H, using context: Context, _ store: ModuleStore) throws where H : Handler {
+        try self.init(from: store)
     }
 }
 
 // Path information can be obtained from a `ContextBased` dependency
 
 // TODO: break up into input/ouput types, so that traversal/reflection is hidden
-public protocol HandlerBased: ContentModule {
+public protocol _HandlerBased: ContentModule {
     init<H: Handler>(from handler: H) throws
 }
 
-extension HandlerBased {
+extension _HandlerBased {
     public static var dependencies: [ContentModule.Type] { [] }
 }
 
-extension HandlerBased {
+extension _HandlerBased {
     public init<H>(from handler: H, using context: Context, _ dependencies: [ContentModule]) throws where H : Handler {
         try self.init(from: handler)
     }
@@ -59,19 +56,29 @@ public protocol AnyContextBased: ContentModule {
     init(from context: Context) throws
 }
 
-public protocol ContextBased: AnyContextBased {
+public protocol OptionalContextBased: AnyContextBased {
     associatedtype Key: OptionalContextKey
     
     init(from value: Key.Value?) throws
 }
 
-extension ContextBased {
+extension OptionalContextBased {
     public init(from context: Context) throws {
         try self.init(from: context.get(valueFor: Key.self))
     }
 }
 
+public protocol ContextBased: OptionalContextBased where Key: ContextKey {
+    init(from value: Key.Value) throws
+}
+
 extension ContextBased {
+    public init(from value: Key.Value?) throws {
+        try self.init(from: value ?? Key.defaultValue)
+    }
+}
+
+extension OptionalContextBased {
     public static var dependencies: [ContentModule.Type] { [] }
 }
 
@@ -194,9 +201,22 @@ private class ContentModuleExtractor: InterfaceExporterVisitor {
 }
 
 
-// MARK: Module Initialization
+// MARK: Module Store
 
-public class ContentModuleStore {
+public protocol ModuleStore {
+    subscript<M: ContentModule>(index: M.Type) -> M { get }
+}
+
+enum ContentModuleStoreEvaluationStrategy {
+    /// Any mode is intended for prototyping and testing. Errors thrown by the modules
+    /// are escalated to fatalErrors.
+    case any
+    /// Only the provided list of modules is initilaizted. Trying to initialize a different module
+    /// causes a fatalError.
+    case fixed([ContentModule.Type])
+}
+
+class ContentModuleStore: ModuleStore {
     private struct Identifier: Hashable {
         let content: ContentModule.Type
         let id: ObjectIdentifier
@@ -215,91 +235,71 @@ public class ContentModuleStore {
         }
     }
     
-    private let store: [Identifier: ContentModule]
+    private var store: [Identifier: ContentModule] = [:]
     
-    init<H: Handler>(_ requirements: [ContentModule.Type], for handler: H, using context: Context) throws {
-        var store: [Identifier: ContentModule] = [:]
+    private let resolve: (ContentModule.Type, ContentModuleStore) throws -> ContentModule?
+    
+    init<H: Handler>(_ strategy: ContentModuleStoreEvaluationStrategy = .any, for handler: H, using context: Context) throws {
         
-        for requirement in requirements {
-            let dependencies = try Self.instances(for: requirement.dependencies, from: store)
-            switch requirement {
-            case let type as HandlerBased.Type:
-                store[Identifier(requirement)] = try type.init(from: handler)
-            case let type as ContentModuleBased.Type:
-                store[Identifier(requirement)] = try type.init(from: dependencies)
-            case let type as AnyContextBased.Type:
-                store[Identifier(requirement)] = try type.init(from: context)
-            default:
-                fatalError("Cannot initialize unknown 'ContentModule' '\(requirement)'.")
+        switch strategy {
+        case .any:
+            self.resolve = { type, store throws in
+                let requirements = try ([type] as [ContentModule.Type]).satisfiableModuleSequence()
+                try store.initialize(requirements, handler: handler, context: context)
+                return store.store[Identifier(type)]
+            }
+        case let .fixed(modules):
+            let requirements = Set(try modules.satisfiableModuleSequence().map(Identifier.init))
+            self.resolve = { type, store in
+                guard requirements.contains(Identifier(type)) else {
+                    throw ContentModuleError.dependencyNotAvailable(type)
+                }
+                
+                let requirements = try ([type] as [ContentModule.Type]).satisfiableModuleSequence()
+                try store.initialize(requirements, handler: handler, context: context)
+                return store.store[Identifier(type)]
             }
         }
-        self.store = store
     }
     
-    public subscript(index: ContentModule.Type) -> ContentModule? {
+    public subscript<M: ContentModule>(index: M.Type) -> M {
         get {
-            store[Identifier(index)]
+            do {
+                let module = try self.resolve(index, self)!
+                return module as! M
+            } catch {
+                fatalError("ContentModuleStore could not retrieve module \(index): \(error)")
+            }
         }
     }
     
-    private static func instances(for types: [ContentModule.Type], from store: [Identifier: ContentModule]) throws -> [ContentModule] {
-        var instances = [ContentModule]()
-        for type in types {
-            guard let instance = store[Identifier(type)] else {
-                throw ContentModuleError.dependencyNotAvailable(type)
+    private func initialize<H: Handler>(_ requirements: [ContentModule.Type], handler: H, context: Context) throws {
+        let requirements = try requirements.satisfiableModuleSequence()
+        for requirement in requirements {
+            if store[Identifier(requirement)] == nil {
+                switch requirement {
+                case let type as _HandlerBased.Type:
+                    store[Identifier(requirement)] = try type.init(from: handler)
+                case let type as DependencyBased.Type:
+                    store[Identifier(requirement)] = try type.init(from: ModuleStoreView(store: self, viewer: type))
+                case let type as AnyContextBased.Type:
+                    store[Identifier(requirement)] = try type.init(from: context)
+                default:
+                    fatalError("Cannot initialize unknown 'ContentModule' '\(requirement)'.")
+                }
             }
-            instances.append(instance)
         }
-        return instances
     }
 }
 
-// MARK: Content Providers
-
-//protocol EndpointInformationInitializable {
-//    init<H: Handler>(from handler: H, using context: Context, _ dependencies: [ContentModule]) throws
-//
-//    var module: ContentModule { get }
-//}
-//
-//struct ContextProvider<Module: ContextBased>: EndpointInformationInitializable {
-//    let module: ContentModule
-//
-//    init<H>(from handler: H, using context: Context, _ dependencies: [ContentModule]) throws where H : Handler {
-//        self.module = try Module(from: context.get(valueFor: Module.Key.self))
-//    }
-//}
-//
-//extension ContextBased {
-//    static var initializable: EndpointInformationInitializable.Type {
-//        ContextProvider<Self>.self
-//    }
-//}
-//
-//struct HandlerProvider<Module: HandlerBased>: EndpointInformationInitializable {
-//    let module: ContentModule
-//
-//    init<H>(from handler: H, using context: Context, _ dependencies: [ContentModule]) throws where H : Handler {
-//        self.module = try Module(from: handler)
-//    }
-//}
-//
-//extension HandlerBased {
-//    static var initializable: EndpointInformationInitializable.Type {
-//        HandlerProvider<Self>.self
-//    }
-//}
-//
-//struct DependencyProvider<Module: ContentModuleBased>: EndpointInformationInitializable {
-//    let module: ContentModule
-//
-//    init<H>(from handler: H, using context: Context, _ dependencies: [ContentModule]) throws where H : Handler {
-//        self.module = try Module(from: dependencies)
-//    }
-//}
-//
-//extension ContentModuleBased {
-//    static var initializable: EndpointInformationInitializable.Type {
-//        DependencyProvider<Self>.self
-//    }
-//}
+struct ModuleStoreView: ModuleStore {
+    let store: ModuleStore
+    let viewer: DependencyBased.Type
+    
+    public subscript<M>(index: M.Type) -> M where M : ContentModule {
+        guard viewer.dependencies.contains(where: { d in d == index }) else {
+            fatalError("\(viewer) tried to access dependency that is not listed in its 'dependencies' property.")
+        }
+        return store[index]
+    }
+}

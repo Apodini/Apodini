@@ -20,10 +20,10 @@ public enum ServiceType {
     case bidirectional
 }
 
-struct ServiceTypeContextKey: ContextKey {
-    static var defaultValue: ServiceType = .unary
+public struct ServiceTypeContextKey: ContextKey {
+    public static var defaultValue: ServiceType = .unary
 
-    static func reduce(value: inout ServiceType, nextValue: () -> ServiceType) {
+    public static func reduce(value: inout ServiceType, nextValue: () -> ServiceType) {
         value = nextValue()
     }
 }
@@ -49,5 +49,13 @@ extension Handler {
     /// Explicitly sets the name of the gRPC service that is exposed for this `Handler`
     public func serviceType(_ serviceType: ServiceType) -> ServiceTypeModifier<Self> {
         ServiceTypeModifier(self, serviceType: serviceType)
+    }
+}
+
+extension ServiceType: OptionalContextBased {
+    public typealias Key = ServiceTypeContextKey
+    
+    public init(from value: Key.Value?) throws {
+        self = value ?? .unary
     }
 }

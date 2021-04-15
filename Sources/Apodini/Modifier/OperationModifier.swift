@@ -58,7 +58,7 @@ extension Handler {
 
 // MARK: Exporter API
 
-extension Operation: ContextBased {
+extension Operation: OptionalContextBased {
     public typealias Key = OperationContextKey
     
     public init(from value: Key.Value?) {

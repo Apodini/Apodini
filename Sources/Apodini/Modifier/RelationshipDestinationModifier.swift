@@ -2,10 +2,10 @@
 // Created by Andreas Bauer on 16.01.21.
 //
 
-struct RelationshipDestinationContextKey: ContextKey {
-    static var defaultValue: [Relationship] = []
+public struct RelationshipDestinationContextKey: ContextKey {
+    public static var defaultValue: [Relationship] = []
 
-    static func reduce(value: inout [Relationship], nextValue: () -> [Relationship]) {
+    public static func reduce(value: inout [Relationship], nextValue: () -> [Relationship]) {
         value.append(contentsOf: nextValue())
     }
 }

@@ -46,3 +46,13 @@ extension String: _PathComponent {
         parser.visit(self)
     }
 }
+
+typealias PathComponents = [PathComponent]
+
+extension PathComponents: ContextBased, OptionalContextBased, AnyContextBased, ContentModule {
+    public typealias Key = PathComponentContextKey
+    
+    public init(from value: [PathComponent]) {
+        self = value
+    }
+}

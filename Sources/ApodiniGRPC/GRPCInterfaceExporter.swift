@@ -13,7 +13,7 @@ import Apodini
 
 /// Apodini Interface Exporter for gRPC
 public final class GRPCInterfaceExporter: InterfaceExporter {
-    public static let dependencies: [ContentModule.Type] = []
+    public static let dependencies: [ContentModule.Type] = [ServiceType.self]
     
     let app: Apodini.Application
     var services: [String: GRPCService]
@@ -51,10 +51,11 @@ public final class GRPCInterfaceExporter: InterfaceExporter {
         let context = endpoint.createConnectionContext(for: self)
 
         do {
-            if endpoint.serviceType == .unary {
+            let serviceType = endpoint.content[ServiceType.self]
+            if serviceType == .unary {
                 try service.exposeUnaryEndpoint(name: methodName, context: context)
                 app.logger.info("Exported unary gRPC endpoint \(serviceName)/\(methodName)")
-            } else if endpoint.serviceType == .clientStreaming {
+            } else if serviceType == .clientStreaming {
                 try service.exposeClientStreamingEndpoint(name: methodName, context: context)
                 app.logger.info("Exported client-streaming gRPC endpoint \(serviceName)/\(methodName)")
             } else {

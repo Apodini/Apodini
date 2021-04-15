@@ -10,8 +10,36 @@ import Foundation
 
 
 /// An `AnyHandlerIdentifier` object identifies a `Handler` regardless of its concrete type.
-open class AnyHandlerIdentifier: Codable, RawRepresentable, Hashable, Equatable, CustomStringConvertible {
+open class AnyHandlerIdentifier: Codable, RawRepresentable, Hashable, Equatable, CustomStringConvertible, DependencyBased {
     public let rawValue: String
+    
+    public static var dependencies: [ContentModule.Type] = [DSLSpecifiedIdentifier.self, ExplicitlySpecifiedIdentifier.self, HandlerName.self, HandlerIndexPath.self]
+    
+    public required init(from store: ModuleStore) {
+        let dslSpecifiedIdentifier = store[DSLSpecifiedIdentifier.self].value
+        let handlerSpecifiedIdentifier = store[ExplicitlySpecifiedIdentifier.self].value
+        
+        switch (dslSpecifiedIdentifier, handlerSpecifiedIdentifier) {
+        case (.some(let identifier), .none):
+            self.rawValue = identifier.rawValue
+        case (.none, .some(let identifier)):
+            self.rawValue = identifier.rawValue
+        case let (.some(ident1), .some(ident2)):
+            if ident1 == ident2 {
+                self.rawValue = ident1.rawValue
+            } else {
+                fatalError("""
+                    Handler '\(store[HandlerName.self].name)' has multiple explicitly specified identifiers ('\(ident1)' and '\(ident2)').
+                    A handler may only have one explicitly specified identifier.
+                    This is caused by using both the 'IdentifiableHandler.handlerId' property as well as the '.identified(by:)' modifier.
+                    """
+                )
+            }
+        case (.none, .none):
+            let handlerIndexPath = store[HandlerIndexPath.self]
+            self.rawValue = handlerIndexPath.rawValue
+        }
+    }
     
     public required init(rawValue: String) {
         self.rawValue = rawValue
@@ -64,5 +92,35 @@ open class ScopedHandlerIdentifier<H: IdentifiableHandler>: AnyHandlerIdentifier
     
     public required init(from decoder: Decoder) throws {
         try super.init(from: decoder)
+    }
+    
+    public required init(from store: ModuleStore) {
+        super.init(from: store)
+    }
+}
+
+struct DSLSpecifiedIdentifier: OptionalContextBased {
+    typealias Key = ExplicitHandlerIdentifierContextKey
+    
+    let value: AnyHandlerIdentifier?
+    
+    init(from value: AnyHandlerIdentifier?) throws {
+        self.value = value
+    }
+}
+
+struct ExplicitlySpecifiedIdentifier: _HandlerBased {
+    let value: AnyHandlerIdentifier?
+    
+    init<H>(from handler: H) throws where H : Handler {
+        self.value = handler.getExplicitlySpecifiedIdentifier()
+    }
+}
+
+struct HandlerName: _HandlerBased {
+    let name: String
+    
+    init<H>(from handler: H) throws where H : Handler {
+        self.name = "\(handler)"
     }
 }

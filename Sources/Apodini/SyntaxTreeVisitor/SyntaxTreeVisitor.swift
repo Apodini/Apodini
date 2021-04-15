@@ -134,3 +134,11 @@ struct HandlerIndexPath: RawRepresentable {
         static let defaultValue: HandlerIndexPath = .init(rawValue: "")
     }
 }
+
+extension HandlerIndexPath: ContextBased {
+    typealias Key = ContextKey
+    
+    init(from value: HandlerIndexPath) {
+        self = value
+    }
+}
