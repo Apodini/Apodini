@@ -47,12 +47,12 @@ extension String: _PathComponent {
     }
 }
 
-typealias PathComponents = [PathComponent]
-
-extension PathComponents: ContextBased, OptionalContextBased, AnyContextBased, ContentModule {
+struct PathComponents: ContextBased {
     public typealias Key = PathComponentContextKey
     
+    let value: [PathComponent]
+    
     public init(from value: [PathComponent]) {
-        self = value
+        self.value = value
     }
 }

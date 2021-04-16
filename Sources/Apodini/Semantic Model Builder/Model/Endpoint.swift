@@ -9,8 +9,6 @@ public protocol AnyEndpoint: CustomStringConvertible {
 
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     var parameters: [AnyEndpointParameter] { get }
-    /// All `@ObservedObjects` that are used inside handling `Component`
-    var observedObjects: [AnyObservedObject] { get }
 
     var absolutePath: [EndpointPath] { get }
 
@@ -102,8 +100,6 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     public var parameters: [AnyEndpointParameter]
-    /// All `@ObservedObject`s that are used inside handling `Component`
-    public var observedObjects: [AnyObservedObject]
 
     public var absolutePath: [EndpointPath] {
         storedAbsolutePath
@@ -138,8 +134,7 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
         self.content = content
         self.guards = guards
         self.responseTransformers = responseTransformers
-        self.parameters = handler.buildParametersModel()
-        self.observedObjects = handler.collectObservedObjects()
+        self.parameters = content[EndpointParameters.self]
     }
     
     func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {

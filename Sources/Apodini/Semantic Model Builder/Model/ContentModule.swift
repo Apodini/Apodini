@@ -25,17 +25,12 @@ public protocol ContentModule {
     static var dependencies: [ContentModule.Type] { get }
 }
 
+// MARK: DependencyBased Module
 public protocol DependencyBased: ContentModule {
     init(from store: ModuleStore) throws
 }
 
-extension DependencyBased {
-    public init<H>(from handler: H, using context: Context, _ store: ModuleStore) throws where H : Handler {
-        try self.init(from: store)
-    }
-}
-
-// Path information can be obtained from a `ContextBased` dependency
+// MARK: _HandlerBased Module
 
 // TODO: break up into input/ouput types, so that traversal/reflection is hidden
 public protocol _HandlerBased: ContentModule {
@@ -46,11 +41,7 @@ extension _HandlerBased {
     public static var dependencies: [ContentModule.Type] { [] }
 }
 
-extension _HandlerBased {
-    public init<H>(from handler: H, using context: Context, _ dependencies: [ContentModule]) throws where H : Handler {
-        try self.init(from: handler)
-    }
-}
+// MARK: ContextBased Module
 
 public protocol AnyContextBased: ContentModule {
     init(from context: Context) throws
@@ -63,6 +54,8 @@ public protocol OptionalContextBased: AnyContextBased {
 }
 
 extension OptionalContextBased {
+    public static var dependencies: [ContentModule.Type] { [] }
+    
     public init(from context: Context) throws {
         try self.init(from: context.get(valueFor: Key.self))
     }
@@ -78,15 +71,14 @@ extension ContextBased {
     }
 }
 
-extension OptionalContextBased {
-    public static var dependencies: [ContentModule.Type] { [] }
+// MARK: ApplicationBased Module
+
+public protocol ApplicationBased: ContentModule {
+    init(from application: Application) throws
 }
 
-
-extension ContextBased {
-    public init<H>(from handler: H, using context: Context, _ dependencies: [ContentModule]) throws where H : Handler {
-        try self.init(from: context.get(valueFor: Key.self))
-    }
+extension ApplicationBased {
+    public static var dependencies: [ContentModule.Type] { [] }
 }
 
 
@@ -239,13 +231,17 @@ class ContentModuleStore: ModuleStore {
     
     private let resolve: (ContentModule.Type, ContentModuleStore) throws -> ContentModule?
     
-    init<H: Handler>(_ strategy: ContentModuleStoreEvaluationStrategy = .any, for handler: H, using context: Context) throws {
+    init<H: Handler>(
+        _ strategy: ContentModuleStoreEvaluationStrategy = .any,
+        for handler: H,
+        using context: Context,
+        _ application: Application?) throws {
         
         switch strategy {
         case .any:
             self.resolve = { type, store throws in
                 let requirements = try ([type] as [ContentModule.Type]).satisfiableModuleSequence()
-                try store.initialize(requirements, handler: handler, context: context)
+                try store.initialize(requirements, handler: handler, context: context, application: application)
                 return store.store[Identifier(type)]
             }
         case let .fixed(modules):
@@ -256,7 +252,7 @@ class ContentModuleStore: ModuleStore {
                 }
                 
                 let requirements = try ([type] as [ContentModule.Type]).satisfiableModuleSequence()
-                try store.initialize(requirements, handler: handler, context: context)
+                try store.initialize(requirements, handler: handler, context: context, application: application)
                 return store.store[Identifier(type)]
             }
         }
@@ -273,7 +269,7 @@ class ContentModuleStore: ModuleStore {
         }
     }
     
-    private func initialize<H: Handler>(_ requirements: [ContentModule.Type], handler: H, context: Context) throws {
+    private func initialize<H: Handler>(_ requirements: [ContentModule.Type], handler: H, context: Context, application: Application?) throws {
         let requirements = try requirements.satisfiableModuleSequence()
         for requirement in requirements {
             if store[Identifier(requirement)] == nil {
@@ -284,6 +280,8 @@ class ContentModuleStore: ModuleStore {
                     store[Identifier(requirement)] = try type.init(from: ModuleStoreView(store: self, viewer: type))
                 case let type as AnyContextBased.Type:
                     store[Identifier(requirement)] = try type.init(from: context)
+                case let type as ApplicationBased.Type:
+                    store[Identifier(requirement)] = try type.init(from: application!)
                 default:
                     fatalError("Cannot initialize unknown 'ContentModule' '\(requirement)'.")
                 }

@@ -2,6 +2,8 @@
 // Created by Andreas Bauer on 22.11.20.
 //
 
+struct Global: TruthAnchor { }
+
 import NIO
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
@@ -19,7 +21,6 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     let rootNode: EndpointsTreeNode
 
     var relationshipBuilder: RelationshipBuilder
-    var typeIndexBuilder: TypeIndexBuilder
 
     init(_ app: Application) {
         self.app = app
@@ -27,7 +28,6 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         rootNode = webService.root
 
         relationshipBuilder = RelationshipBuilder(logger: app.logger)
-        typeIndexBuilder = TypeIndexBuilder(logger: app.logger)
     }
 
     /// Registers an `InterfaceExporter` instance on the model builder.
@@ -54,10 +54,10 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         let guards = context.get(valueFor: GuardContextKey.self).allActiveGuards.inject(app: app)
         let responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self).inject(app: app)
         
-        let internalDependencies: [ContentModule.Type] = [AnyHandlerIdentifier.self, Operation.self, HandlerDescription.self, ResponseType.self, Context.self]
+        let internalDependencies: [ContentModule.Type] = [AnyHandlerIdentifier.self, Operation.self, HandlerDescription.self, ResponseType.self, Context.self, EndpointParameters.self, ReferenceModule.self, EndpointPathModule.self, TypeIndexModule<Global>.self]
         
         do {
-            let store = try ContentModuleStore(.fixed(interfaceExporters.flatMap { exporter in exporter.dependencies } + internalDependencies), for: handler, using: context)
+            let store = try ContentModuleStore(.fixed(interfaceExporters.flatMap { exporter in exporter.dependencies } + internalDependencies), for: handler, using: context, app)
             
             let paths = context.get(valueFor: PathComponentContextKey.self)
             
@@ -74,6 +74,12 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
             )
 
             webService.addEndpoint(&endpoint, at: paths)
+            // The `ReferenceModule` and `EndpointPathModule` cannot be implemented using one of the standard
+            // `ContentModule` protocols as they depend on the `WebServiceModel`. This should change
+            // once the latter was ported to the `ContentModule` pattern.
+            endpoint.content[ReferenceModule.self].inject(reference: endpoint.reference)
+            endpoint.content[EndpointPathModule.self].inject(absolutePath: endpoint.absolutePath)
+            
 
             // calling the addEndpoint first, triggers the Operation uniqueness check
             // and we will have less problems with that in the TypeIndex Builder and Relationship Builders.
@@ -86,7 +92,8 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
                 sources: relationshipSources,
                 destinations: relationshipDestinations
             )
-            typeIndexBuilder.indexContentType(of: endpoint)
+            // Access `TypeIndexModule` here so it is acutally created and the endpoint is registered.
+            _ = endpoint.content[TypeIndexModule<Global>.self]
         } catch {
             fatalError("""
                 Handler '\(handler)' cannot be exported. The configured exporters' dependencies could not be satisfied: \(error)
@@ -99,14 +106,16 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
 
         // the order of how relationships are built below strongly reflect our strategy
         // on how conflicting definitions shadow each other
-        let typeIndex = TypeIndex(from: typeIndexBuilder, buildingWith: relationshipBuilder)
+        if let typeIndexBuilder = TypeIndexModule<Global>.builder(for: self.app) {
+            let typeIndex = TypeIndex(from: typeIndexBuilder, buildingWith: relationshipBuilder)
+            
+            // resolving any type based Relationship creation (inference or Relationship DSL)
+            typeIndex.resolve()
 
-        // resolving any type based Relationship creation (inference or Relationship DSL)
-        typeIndex.resolve()
-
-        // after we collected any relationships from the `typeIndex.resolve()` step
-        // we can construct the final relationship model.
-        relationshipBuilder.buildAll()
+            // after we collected any relationships from the `typeIndex.resolve()` step
+            // we can construct the final relationship model.
+            relationshipBuilder.buildAll()
+        }
 
         app.logger.info("\(webService.debugDescription)")
 

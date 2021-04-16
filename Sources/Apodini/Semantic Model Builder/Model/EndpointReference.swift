@@ -57,3 +57,22 @@ extension EndpointReference: Hashable {
         hasher.combine(operation)
     }
 }
+
+class ReferenceModule: DependencyBased {
+    static var dependencies: [ContentModule.Type] = []
+    
+    var reference: EndpointReference {
+        guard let r = _reference else {
+            fatalError("ReferenceModule was used before the reference was injected by the framework!")
+        }
+        return r
+    }
+    
+    private var _reference: EndpointReference?
+    
+    required init(from store: ModuleStore) throws { }
+    
+    func inject(reference: EndpointReference) {
+        self._reference = reference
+    }
+}

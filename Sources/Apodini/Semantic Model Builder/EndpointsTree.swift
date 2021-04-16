@@ -45,7 +45,7 @@ class EndpointsTreeNode {
 
     func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, context: inout EndpointInsertionContext) {
         if context.pathEmpty {
-            for parameter in endpoint.parameters {
+            for parameter in endpoint.content[EndpointParameters.self] {
                 // when the parameter is type of .path and not contained in our path, we must append it to our path
                 if parameter.parameterType == .path && !context.retrievedPathContains(parameter: parameter) {
                     context.append(parameter: parameter)

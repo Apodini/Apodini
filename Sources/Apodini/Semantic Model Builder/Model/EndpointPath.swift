@@ -421,3 +421,22 @@ private struct PathStringBuilder: PathBuilder {
         paths.joined(separator: delimiter)
     }
 }
+
+class EndpointPathModule: DependencyBased {
+    static var dependencies: [ContentModule.Type] = []
+    
+    var absolutePath: [EndpointPath] {
+        guard let r = _absolutePath else {
+            fatalError("EndpointPathModule was used before the absolutePath was injected by the framework!")
+        }
+        return r
+    }
+    
+    private var _absolutePath: [EndpointPath]?
+    
+    required init(from store: ModuleStore) throws { }
+    
+    func inject(absolutePath: [EndpointPath]) {
+        self._absolutePath = absolutePath
+    }
+}

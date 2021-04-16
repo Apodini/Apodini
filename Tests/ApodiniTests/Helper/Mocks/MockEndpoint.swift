@@ -28,7 +28,7 @@ extension Handler {
 
         return Endpoint(
             handler: handler,
-            content: try! ContentModuleStore(for: handler, using: context),
+            content: try! ContentModuleStore(for: handler, using: context, app),
             guards: guards,
             responseTransformers: responseTransformers
         )

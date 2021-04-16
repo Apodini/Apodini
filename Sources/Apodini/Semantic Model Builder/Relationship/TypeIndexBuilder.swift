@@ -45,20 +45,15 @@ struct TypeIndexBuilder: CustomDebugStringConvertible {
         self.logger = logger
     }
 
-    mutating func indexContentType<H: Handler>(of endpoint: Endpoint<H>) {
-        let content = H.Response.Content.self
+    mutating func indexContentType(content: Encodable.Type, reference: EndpointReference, markedDefault: Bool, pathParameters: [AnyEndpointPathParameter], operation: Operation) {
         let identifier = ObjectIdentifier(content)
-
-        let reference = endpoint.reference
-        let markedDefault = endpoint.content[Context.self].get(valueFor: DefaultRelationshipContextKey.self) != nil
-        let pathParameters = endpoint.absolutePath.listPathParameters()
 
         if let info = try? typeInfo(of: content),
            info.kind == .class || info.kind == .struct || info.kind == .enum {
             let capture = ParsedTypeIndexEntryCapture(reference, type: content, markedDefault: markedDefault, pathParameters: pathParameters)
 
             var index = typeIndex[identifier, default: CapturedTypeIndex()]
-            index.indexContentType(of: content, operation: endpoint.content[Operation.self], capture: capture)
+            index.indexContentType(of: content, operation: operation, capture: capture)
 
             typeIndex[identifier] = index
         }
