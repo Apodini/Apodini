@@ -21,7 +21,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
     @PathParameter var param: String
     
     struct HandlerParam: Handler {
-        @Parameter
+        @Binding
         var pathParam: String
 
         func handle() -> String {
