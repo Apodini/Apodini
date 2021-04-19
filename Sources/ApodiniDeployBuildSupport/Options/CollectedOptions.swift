@@ -63,7 +63,9 @@ public struct CollectedOptions<OuterNS: OuterNamespace>: Codable, ExpressibleByA
     
     /// - returns: the value specified for this option key, if a matching entry exists. if no matching entry exists, the default value specified in the option key is returned.
     /// - throws: if an entry does exist but there was an erorr reading (ie decoding) it/
-    public func getValue<InnerNS, Value>(forKey optionKey: OptionKeyWithDefaultValue<InnerNS, Value>) throws -> Value where InnerNS.OuterNS == OuterNS {
+    public func getValue<InnerNS, Value>(
+        forKey optionKey: OptionKeyWithDefaultValue<InnerNS, Value>
+    ) throws -> Value where InnerNS.OuterNS == OuterNS {
         switch try getValue_imp(forKey: optionKey) {
         case Optional<Value>.some(let value): // swiftlint:disable:this syntactic_sugar
             return value

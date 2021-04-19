@@ -27,6 +27,10 @@ public protocol OuterNamespace {
 }
 
 
+/// A namespace which is nested within an `OuterNamespace`.
+/// Inner namespaces allow defining sets of options in a way that collisions are avoided, and the correct option is
+/// retrieved when fetching an option.
+/// See the `OuterNamespace` type for more information.
 public protocol InnerNamespace {
     /// The outer namespace inside which this inner namespace resides
     associatedtype OuterNS: OuterNamespace
