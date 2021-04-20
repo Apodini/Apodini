@@ -12,50 +12,50 @@ import Apodini
 /// An `InvocableHandler` is a `Handler` which can be invoked from within another handler's `handle()` function.
 /// - [Reference](https://github.com/Apodini/Apodini/blob/develop/Documentation/Components/Inter-Component%20Communication.md)
 public protocol InvocableHandler: IdentifiableHandler where Self.Response.Content: Decodable {
-    /// The protocol a custom parameters storage type has to conform to
-    typealias ParametersStorageProtocol = InvocableHandlerParametersStorageProtocol
-    /// The type of this handler's parameters storage object
-    associatedtype ParametersStorage: ParametersStorageProtocol
-        = InvocableHandlerEmptyParametersStorage<Self> where ParametersStorage.HandlerType == Self
+    /// The protocol a custom arguments storage type has to conform to
+    typealias ArgumentsStorageProtocol = InvocableHandlerArgumentsStorageProtocol
+    /// The type of this handler's arguments storage object
+    associatedtype ArgumentsStorage: ArgumentsStorageProtocol
+        = InvocableHandlerEmptyArgumentsStorage<Self> where ArgumentsStorage.HandlerType == Self
 }
 
 
 // MARK: Supporting Types
 
 
-/// The protocol used to define an `InvocableHandler`'s parameters type
-public protocol InvocableHandlerParametersStorageProtocol {
-    /// The type of the handler for which this parameters storage object stores parameters
+/// The protocol used to define an `InvocableHandler`'s arguments type
+public protocol InvocableHandlerArgumentsStorageProtocol {
+    /// The type of the handler for which this arguments storage object stores arguments
     associatedtype HandlerType: InvocableHandler
     /// Type of the `mapping` array's elements
-    typealias MappingEntry = HandlerParametersStorageMappingEntry<Self, HandlerType>
+    typealias MappingEntry = HandlerArgumentsStorageMappingEntry<Self, HandlerType>
     
     /// `MappingEntry` objects for each mapping from one of this type's properties to the corresponding `@Parameter` property in `HandlerType`
     static var mapping: [MappingEntry] { get }
 }
 
 
-/// A default parameters storage for `InvocableHandler`s which do not specify their own storage type.
-public struct InvocableHandlerEmptyParametersStorage<HandlerType: InvocableHandler>: InvocableHandler.ParametersStorageProtocol {
+/// A default arguments storage for `InvocableHandler`s which do not specify their own storage type.
+public struct InvocableHandlerEmptyArgumentsStorage<HandlerType: InvocableHandler>: InvocableHandler.ArgumentsStorageProtocol {
     public typealias HandlerType = HandlerType
     public static var mapping: [MappingEntry] { [] }
     private init() {}
 }
 
 
-/// Helper type which is used for mapping a parameter value in an `InvocableHandler`'s parameter storage type to the handler's `@Parameter` object this parameter belongs to.
-public struct HandlerParametersStorageMappingEntry<ParamsStruct: InvocableHandler.ParametersStorageProtocol, Handler: InvocableHandler> {
-    /// key path into the `Handler.Prameters` struct, to this parameter's value
-    public let paramsStructKeyPath: PartialKeyPath<ParamsStruct>
-    /// key path into the `Handler` struct, to this parameter's `Parameter<>.ID`
+/// Helper type which is used for mapping an argument value in an `InvocableHandler`'s argument storage type to the handler's `@Parameter` object this argument belongs to.
+public struct HandlerArgumentsStorageMappingEntry<ArgsStruct: InvocableHandler.ArgumentsStorageProtocol, Handler: InvocableHandler> {
+    /// key path into the `Handler.ArgumentsStorage` struct, to this argument's value
+    public let argsStructKeyPath: PartialKeyPath<ArgsStruct>
+    /// key path into the `Handler` struct, to this argument's `Parameter<>.ID`
     public let handlerKeyPath: PartialKeyPath<Handler>
 
-    /// Create a mapping entry from a property in an `InvocableHandler`'s parameter storage type to the handler's corresponding `@Parameter` property
+    /// Create a mapping entry from a property in an `InvocableHandler`'s arguments storage type to the handler's corresponding `@Parameter` property
     public init<Value>(
-        from paramsStructKeyPath: KeyPath<ParamsStruct, Value>,
+        from argsStructKeyPath: KeyPath<ArgsStruct, Value>,
         to handlerKeyPath: KeyPath<Handler, Binding<Value>>
     ) {
-        self.paramsStructKeyPath = paramsStructKeyPath
+        self.argsStructKeyPath = argsStructKeyPath
         self.handlerKeyPath = handlerKeyPath
     }
 }

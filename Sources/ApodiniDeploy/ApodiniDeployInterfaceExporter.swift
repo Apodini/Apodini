@@ -79,7 +79,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     private(set) var collectedEndpoints: [CollectedEndpointInfo] = []
     private(set) var explicitlyCreatedDeploymentGroups: [DeploymentGroup.ID: Set<AnyHandlerIdentifier>] = [:]
     
-    private(set) var deploymentProviderRuntime: DeploymentProviderRuntimeSupport?
+    private(set) var deploymentProviderRuntime: DeploymentProviderRuntime?
     
     
     public required init(_ app: Apodini.Application) {
@@ -134,7 +134,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
             do {
                 try self.exportWebServiceStructure(
                     to: outputUrl,
-                    deploymentConfig: self.app.storage.get(ApodiniDeployConfiguration.StorageKey.self)?.config ?? .init()
+                    apodiniDeployConfiguration: app.storage.get(ApodiniDeployConfiguration.StorageKey.self) ?? .init()
                 )
             } catch {
                 fatalError("Error exporting web service structure: \(error)")
@@ -149,7 +149,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
             do {
                 let deployedSystem = try DeployedSystem(decodingJSONAt: configUrl)
                 guard
-                    let runtimes = self.app.storage.get(ApodiniDeployConfiguration.StorageKey.self)?.runtimes,
+                    let runtimes = app.storage.get(ApodiniDeployConfiguration.StorageKey.self)?.runtimes,
                     let DPRSType = runtimes.first(where: { $0.identifier == deployedSystem.deploymentProviderId })
                 else {
                     throw ApodiniDeployError(
@@ -185,12 +185,12 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     
     public func retrieveParameter<Type: Codable>(_ endpointParameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type?? {
-        guard let paramValueContainer = request.getValueOfCollectedParameter(for: endpointParameter) else {
+        guard let argumentValueContainer = request.collectedArgumentValue(for: endpointParameter) else {
             return Optional<Type?>.none // this should be a "top-level" nil value (ie `.none` instead of `.some(.none)`)
         }
         
         if endpointParameter.nilIsValidValue {
-            switch paramValueContainer {
+            switch argumentValueContainer {
             case .value(let value):
                 if let value: Type? = dynamicCast(value, to: Type?.self) {
                     return .some(value)
@@ -199,7 +199,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
                 return try .some(JSONDecoder().decode(Type?.self, from: data))
             }
         } else {
-            switch paramValueContainer {
+            switch argumentValueContainer {
             case .value(let value):
                 if let value = value as? Type {
                     return .some(.some(value))
@@ -209,7 +209,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
             }
         }
         throw ApodiniDeployError(
-            message: "Unable to cast parameter value (\(paramValueContainer)) to expected type '\(Type.self)'"
+            message: "Unable to cast argument (container: \(argumentValueContainer)) to expected type '\(Type.self)'"
         )
     }
 }
@@ -219,31 +219,31 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
 
 extension ApodiniDeployInterfaceExporter {
     public struct ExporterRequest: Apodini.ExporterRequest {
-        enum Param {
+        enum Argument {
             case value(Any)    // the value, as-is
             case encoded(Data) // the value, encoded
         }
         
-        private let parameterValues: [String: Param] // key: stable endpoint param identity
+        private let argumentValues: [String: Argument] // key: stable endpoint param identity
         
-        init<H: Handler>(endpoint: Endpoint<H>, collectedParameters: [CollectedParameter<H>]) {
-            parameterValues = .init(uniqueKeysWithValues: collectedParameters.map { param -> (String, Param) in
-                guard let paramId = Apodini.Internal.getParameterId(ofBinding: endpoint.handler[keyPath: param.handlerKeyPath]) else {
-                    fatalError("Unable to get @Parameter id from collected parameter with key path \(param.handlerKeyPath)")
+        init<H: Handler>(endpoint: Endpoint<H>, collectedArguments: [CollectedArgument<H>]) {
+            argumentValues = .init(uniqueKeysWithValues: collectedArguments.map { argument -> (String, Argument) in
+                guard let paramId = Apodini.Internal.getParameterId(ofBinding: endpoint.handler[keyPath: argument.handlerKeyPath]) else {
+                    fatalError("Unable to get @Parameter id from collected parameter with key path \(argument.handlerKeyPath)")
                 }
                 let endpointParam = endpoint.parameters.first { $0.id == paramId }!
-                return (endpointParam.stableIdentity, .value(param.value))
+                return (endpointParam.stableIdentity, .value(argument.value))
             })
         }
         
-        init(encodedParameters: [(String, Data)]) {
-            parameterValues = Dictionary(
-                uniqueKeysWithValues: encodedParameters.map { ($0.0, .encoded($0.1)) }
+        init(encodedArguments: [(String, Data)]) {
+            argumentValues = Dictionary(
+                uniqueKeysWithValues: encodedArguments.map { ($0.0, .encoded($0.1)) }
             )
         }
         
-        func getValueOfCollectedParameter(for endpointParameter: AnyEndpointParameter) -> Param? {
-            parameterValues[endpointParameter.stableIdentity]
+        func collectedArgumentValue(for endpointParameter: AnyEndpointParameter) -> Argument? {
+            argumentValues[endpointParameter.stableIdentity]
         }
     }
 }
