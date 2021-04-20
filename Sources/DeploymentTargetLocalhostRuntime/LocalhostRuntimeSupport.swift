@@ -11,7 +11,7 @@ import ApodiniDeployRuntimeSupport
 import DeploymentTargetLocalhostCommon
 
 
-public class LocalhostRuntimeSupport: DeploymentProviderRuntimeSupport {
+public class LocalhostRuntime: DeploymentProviderRuntime {
     public static let identifier = localhostDeploymentProviderId
     
     public let deployedSystem: DeployedSystem

@@ -33,9 +33,9 @@ extension LambdaDeployedSystemContext {
 }
 
 
-public final class LambdaDeploymentOptionsNamespace: InnerNamespace {
+public struct LambdaDeploymentOptionsNamespace: InnerNamespace {
     public typealias OuterNS = DeploymentOptionsNamespace
-    public static let id = lambdaDeploymentProviderId.rawValue
+    public static let identifier = lambdaDeploymentProviderId.rawValue
 }
 
 
@@ -59,7 +59,7 @@ public struct LambdaDescriptionOption: OptionValue, RawRepresentable, Expressibl
 public extension OptionKey where InnerNS == LambdaDeploymentOptionsNamespace, Value == LambdaDescriptionOption {
     /// Lambda description option key.
     static let lambdaDescription =
-        OptionKey<DeploymentOptionsNamespace, LambdaDeploymentOptionsNamespace, LambdaDescriptionOption>(key: "description")
+        OptionKey<LambdaDeploymentOptionsNamespace, LambdaDescriptionOption>(key: "description")
 }
 
 

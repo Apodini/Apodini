@@ -105,12 +105,12 @@ private struct TestWebService: Apodini.WebService {
             // we use the presence of the transformation parameter to test whether the RHI properly handles default parameter values
             let nameFuture = { () -> EventLoopFuture<String> in
                 if let transformation = transformation {
-                    return RHI.invoke(TextTransformer.self, identifiedBy: .main, parameters: [
+                    return RHI.invoke(TextTransformer.self, identifiedBy: .main, arguments: [
                         .init(\.$transformation, transformation),
                         .init(\.$input, name)
                     ])
                 } else {
-                    return RHI.invoke(TextTransformer.self, identifiedBy: .main, parameters: [
+                    return RHI.invoke(TextTransformer.self, identifiedBy: .main, arguments: [
                         .init(\.$input, name)
                     ])
                 }
@@ -121,7 +121,7 @@ private struct TestWebService: Apodini.WebService {
     
     
     struct Adder: InvocableHandler {
-        struct ParametersStorage: ParametersStorageProtocol {
+        struct ArgumentsStorage: ArgumentsStorageProtocol {
             typealias HandlerType = Adder
             let x: Double
             let y: Double
@@ -166,7 +166,7 @@ private struct TestWebService: Apodini.WebService {
         func handle() throws -> EventLoopFuture<Int> {
             switch operation {
             default:
-                return RHI.invoke(Adder.self, identifiedBy: .main, parameters: .init(x: lhs, y: rhs)).map(Int.init)
+                return RHI.invoke(Adder.self, identifiedBy: .main, arguments: .init(x: lhs, y: rhs)).map(Int.init)
             }
         }
     }
