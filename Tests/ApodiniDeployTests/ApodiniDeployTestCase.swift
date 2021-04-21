@@ -24,13 +24,13 @@ class ApodiniDeployTestCase: XCTApodiniTest {
     }
     
     
-    static var xctestBundle: Bundle {
-        Bundle(for: Self.self)
-    }
-    
-    
     static var productsDirectory: URL {
-        xctestBundle.bundleURL.deletingLastPathComponent()
+        let bundle = Bundle(for: Self.self)
+        #if os(macOS)
+        return bundle.bundleURL.deletingLastPathComponent()
+        #else
+        return bundle.bundleURL
+        #endif
     }
     
     
