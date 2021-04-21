@@ -108,6 +108,10 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     private(set) var awsApiGatewayApiId: String
     let awsDeployOnly: Bool
     
+    var target: DeploymentProviderTarget {
+        .spmTarget(packageUrl: packageRootDir, targetName: productName)
+    }
+    
     private let fileManager = FileManager.default
     
     private var buildFolderUrl: URL {

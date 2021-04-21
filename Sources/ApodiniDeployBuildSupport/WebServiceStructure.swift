@@ -80,7 +80,7 @@ public struct ExportedEndpoint: Codable, Hashable, Equatable {
         handlerType: HandlerTypeIdentifier,
         handlerId: AnyHandlerIdentifier,
         deploymentOptions: DeploymentOptions,
-        userInfo: [String: Data]
+        userInfo: [String: Data] = [:]
     ) {
         self.handlerType = handlerType
         self.handlerId = handlerId

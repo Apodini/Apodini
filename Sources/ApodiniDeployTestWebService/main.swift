@@ -98,19 +98,20 @@ struct BlockHandler<T: Apodini.ResponseTransformable>: Handler {
 struct WebService: Apodini.WebService {
     var content: some Component {
         Group("rand") {
+            Text("hello").operation(.update)
             RandomNumberGenerator(handlerId: .main)
         }.formDeploymentGroup(withId: "rand")
         Group("rand2") {
+            Text("hello2").operation(.update)
             RandomNumberGenerator(handlerId: .other)
         }.formDeploymentGroup(withId: "rand2")
         Group("greet") {
             Greeter()
                 .deploymentOptions(
-                    .memory(.mb(169)),
+                    .memory(.mb(175)),
                     .timeout(.seconds(12))
                 )
         }.formDeploymentGroup(withId: "greeter")
-        BlockHandler { fatalError() }
     }
     
     var configuration: Configuration {

@@ -22,4 +22,19 @@ class ApodiniDeployTestCase: XCTApodiniTest {
         return false
         #endif
     }
+    
+    
+    static var xctestBundle: Bundle {
+        Bundle(for: Self.self)
+    }
+    
+    
+    static var productsDirectory: URL {
+        xctestBundle.bundleURL.deletingLastPathComponent()
+    }
+    
+    
+    static func urlOfBuildProduct(named productName: String) -> URL {
+        productsDirectory.appendingPathComponent(productName)
+    }
 }

@@ -54,6 +54,10 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
     let productName: String
     let packageRootDir: URL
     
+    var target: DeploymentProviderTarget {
+        .spmTarget(packageUrl: packageRootDir, targetName: productName)
+    }
+    
     // Port on which the proxy should listen
     let port: Int
     // Starting number for the started child processes

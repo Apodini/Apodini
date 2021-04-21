@@ -368,6 +368,8 @@ let package = Package(
             name: "ApodiniDeployTests",
             dependencies: [
                 .target(name: "XCTApodini"),
+                .target(name: "ApodiniDeployTestWebService"),
+                .target(name: "ApodiniUtils"),
                 .product(name: "XCTVapor", package: "vapor")
             ]
         ),
