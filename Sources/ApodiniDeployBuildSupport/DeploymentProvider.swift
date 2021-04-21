@@ -25,7 +25,6 @@ public struct DeploymentProviderID: RawRepresentable, Hashable, Equatable, Codab
 }
 
 
-
 /// The target on which a deployment provider operates.
 /// Used by the default operations implemented by ApodiniDeploy.
 public enum DeploymentProviderTarget {
@@ -35,6 +34,7 @@ public enum DeploymentProviderTarget {
     /// An already-built executable
     case executable(URL)
 }
+
 
 /// A deployment provider, i.e. a type which can manage and facilitate the process of deploying a web service to some target platform
 public protocol DeploymentProvider {
@@ -47,17 +47,16 @@ public protocol DeploymentProvider {
     /// Whether ApodiniDeploy's default implementations should launch child processes in the current process group.
     /// - Note: This should be `true` in most circumstances. Only specify this as `false` if your specific deployment
     /// provider actually needs this behaviour.
-    var shouldLaunchChildProcessesInCurrentProcessGroup: Bool { get }
+    var launchChildrenInCurrentProcessGroup: Bool { get }
 }
 
 
-extension DeploymentProvider {
-    /// The deployment provider's identifier
-    public var identifier: DeploymentProviderID {
+public extension DeploymentProvider {
+    var identifier: DeploymentProviderID { // swiftlint:disable:this missing_docs
         Self.identifier
     }
     
-    public var shouldLaunchChildProcessesInCurrentProcessGroup: Bool { true }
+    var launchChildrenInCurrentProcessGroup: Bool { true } // swiftlint:disable:this missing_docs
 }
 
 
@@ -91,7 +90,7 @@ extension DeploymentProvider {
                 executableUrl: swiftBin,
                 arguments: ["build", "--product", productName],
                 captureOutput: false,
-                launchInCurrentProcessGroup: shouldLaunchChildProcessesInCurrentProcessGroup
+                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup
             )
             guard try task.launchSync().exitCode == EXIT_SUCCESS else {
                 throw ApodiniDeployBuildSupportError(message: "Unable to build web service")
@@ -128,7 +127,7 @@ extension DeploymentProvider {
                 executableUrl: executableUrl,
                 arguments: [WellKnownCLIArguments.exportWebServiceModelStructure, modelFileUrl.path],
                 captureOutput: false,
-                launchInCurrentProcessGroup: shouldLaunchChildProcessesInCurrentProcessGroup
+                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup
             )
         case let .spmTarget(packageUrl, productName):
             let swiftBin = try Self.getSwiftBinUrl()
@@ -150,7 +149,7 @@ extension DeploymentProvider {
                     modelFileUrl.path
                 ],
                 captureOutput: false,
-                launchInCurrentProcessGroup: shouldLaunchChildProcessesInCurrentProcessGroup
+                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup
             )
         }
         

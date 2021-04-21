@@ -44,7 +44,7 @@ private struct StaticDeploymentProvider: DeploymentProvider {
         .executable(executableUrl)
     }
     
-    var shouldLaunchChildProcessesInCurrentProcessGroup: Bool { false }
+    var launchChildrenInCurrentProcessGroup: Bool { false }
 }
 
 
@@ -77,7 +77,7 @@ class WebServiceStructureExportTests: ApodiniDeployTestCase {
         
         XCTAssertEqual(5, wsStructure.endpoints.count)
         
-        LKXCTAssertEqualIgnoringOrder(wsStructure.endpoints, [
+        XCTAssertEqualIgnoringOrder(wsStructure.endpoints, [
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "Greeter"),
                 handlerId: AnyHandlerIdentifier("0.2.0"),
@@ -108,23 +108,4 @@ class WebServiceStructureExportTests: ApodiniDeployTestCase {
             )
         ])
     }
-}
-
-
-
-func LKXCTAssertEqualIgnoringOrder<C0: Collection, C1: Collection>(_ lhs: C0, _ rhs: C1) where C0.Element == C1.Element, C0.Element: Hashable {
-    guard !lhs.compareIgnoringOrder(rhs) else {
-        return
-    }
-    
-    var msg = "Collections '\(C0.self)' and '\(C1.self)' not equal ignoring order.\n"
-    msg += "lhs (#=\(lhs.count)):\n"
-    for element in lhs {
-        msg += "- \(element)\n"
-    }
-    msg += "rhs (#=\(rhs.count)):\n"
-    for element in rhs {
-        msg += "- \(element)\n"
-    }
-    XCTFail(msg)
 }
