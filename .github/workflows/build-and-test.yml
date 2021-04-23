@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        configuration: [debug, release]
+        configuration: [debug]
     steps:
     - uses: actions/checkout@v2
       with:
@@ -38,7 +38,7 @@ jobs:
       run: swift build --configuration ${{ matrix.configuration }}
     - name: Build & Test
       if: matrix.configuration == 'debug'
-      run: swift test --configuration ${{ matrix.configuration }} --enable-code-coverage
+      run: swift test --configuration ${{ matrix.configuration }} --enable-code-coverage --filter 'ApodiniDeployTests.LocalhostDeploymentProviderTests'
     - name: Convert coverage report
       if: matrix.configuration == 'debug'
       run: xcrun llvm-cov export -format="lcov" .build/debug/ApodiniPackageTests.xctest/Contents/MacOS/ApodiniPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage.lcov
@@ -54,7 +54,7 @@ jobs:
       fail-fast: false
       matrix:
         linux: [bionic, xenial, focal, amazonlinux2, centos8]
-        configuration: [debug, release]
+        configuration: [debug]
     steps:
     - uses: actions/checkout@v2
     - name: Install libsqlite3
@@ -74,4 +74,4 @@ jobs:
       run: swift build --configuration ${{ matrix.configuration }}
     - name: Build & Test
       if: matrix.configuration == 'debug'
-      run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
+      run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery --filter 'ApodiniDeployTests.LocalhostDeploymentProviderTests'
