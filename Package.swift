@@ -372,6 +372,9 @@ let package = Package(
                 .target(name: "ApodiniDeployTestWebService"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "XCTVapor", package: "vapor")
+            ],
+            resources: [
+                .copy("Resources/ADTestWebService")
             ]
         ),
         .target(

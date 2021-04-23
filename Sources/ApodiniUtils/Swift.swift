@@ -256,6 +256,16 @@ extension RandomAccessCollection {
 }
 
 
+// MARK: Array
+
+extension Array {
+    public init(reserving capacity: Int) {
+        self.init()
+        reserveCapacity(capacity)
+    }
+}
+
+
 // MARK: Date
 
 extension Date {

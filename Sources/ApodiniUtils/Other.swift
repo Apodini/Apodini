@@ -57,3 +57,21 @@ public func unsafelyCast<T>(_ value: Any, to _: T.Type) -> T {
         fatalError("Unable to cast value of type '\(type(of: value))' to type '\(T.self)'")
     }
 }
+
+
+
+/// The `DeferHandle` class can be used to tie an operation (e.g. some cleanup task) to the lifetime of an object.
+/// The object in this case is the `DeferHandle` instance.
+/// This is useful, for example, for returning handles (or tokens) which keep some state or association alive, and, when
+/// the handle is deallicated, automatically de-register the underlying association.
+public class DeferHandle {
+    let action: () -> Void
+    
+    public init(_ action: @escaping () -> Void) {
+        self.action = action
+    }
+    
+    deinit {
+        action()
+    }
+}

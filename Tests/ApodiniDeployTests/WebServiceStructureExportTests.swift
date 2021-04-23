@@ -51,7 +51,7 @@ private struct StaticDeploymentProvider: DeploymentProvider {
 class WebServiceStructureExportTests: ApodiniDeployTestCase {
     func testExportWebServiceStructure() throws {
         let wsStructure = try StaticDeploymentProvider(
-            executableUrl: Self.urlOfBuildProduct(named: "ApodiniDeployTestWebService")
+            executableUrl: Self.apodiniDeployTestWebServiceTargetUrl
         ).readWebServiceStructure()
         
         XCTAssertEqual(wsStructure.enabledDeploymentProviders, [
