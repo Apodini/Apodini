@@ -33,6 +33,7 @@ let package = Package(
         .library(name: "ApodiniVaporSupport", targets: ["ApodiniVaporSupport"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
         // Deploy
+        .library(name: "ApodiniDeploy", targets: ["ApodiniDeploy"]),
         .library(name: "ApodiniDeployBuildSupport", targets: ["ApodiniDeployBuildSupport"]),
         .library(name: "ApodiniDeployRuntimeSupport", targets: ["ApodiniDeployRuntimeSupport"]),
         .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
