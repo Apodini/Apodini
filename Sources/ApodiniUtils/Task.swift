@@ -453,29 +453,29 @@ extension FileHandle {
         }
     }
     
-    /// Attempts to determine whethet the file handle has data which can be read.
-    public var isReadable: Bool {
-        let fd = fileDescriptor
-        var fdset = fd_set()
-        var tmout = timeval()
-        print(fdset)
-        print(fdset.fds_bits)
-        print(tmout)
-        print(tmout.tv_sec, tmout.tv_usec)
-        __darwin_fd_set(fd, &fdset)
-        print("__darwin_set")
-        print(fdset)
-        print(fdset.fds_bits)
-        print(tmout)
-        print(tmout.tv_sec, tmout.tv_usec)
-        let select_retval = select(fd + 1, &fdset, nil, nil, &tmout)
-        print("select_retval: \(select_retval)")
-        print(fdset)
-        print(fdset.fds_bits)
-        print(tmout)
-        print(tmout.tv_sec, tmout.tv_usec)
-        return select_retval > 0
-    }
+//    /// Attempts to determine whethet the file handle has data which can be read.
+//    public var isReadable: Bool {
+//        let fd = fileDescriptor
+//        var fdset = fd_set()
+//        var tmout = timeval()
+//        print(fdset)
+//        print(fdset.fds_bits)
+//        print(tmout)
+//        print(tmout.tv_sec, tmout.tv_usec)
+//        __darwin_fd_set(fd, &fdset)
+//        print("__darwin_set")
+//        print(fdset)
+//        print(fdset.fds_bits)
+//        print(tmout)
+//        print(tmout.tv_sec, tmout.tv_usec)
+//        let select_retval = select(fd + 1, &fdset, nil, nil, &tmout)
+//        print("select_retval: \(select_retval)")
+//        print(fdset)
+//        print(fdset.fds_bits)
+//        print(tmout)
+//        print(tmout.tv_sec, tmout.tv_usec)
+//        return select_retval > 0
+//    }
 }
 
 
