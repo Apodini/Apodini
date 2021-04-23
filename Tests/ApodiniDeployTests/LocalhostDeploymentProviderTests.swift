@@ -313,7 +313,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         
         resetOutput()
         
-        stdioObserverToken = task.observeOutput { stdioType, data, task, shouldContinue in
+        stdioObserverToken = task.observeOutput { stdioType, data, task in
             let text = String(data: data, encoding: .utf8)!
             handleOutput(text, printToStdout: true)
             
@@ -506,7 +506,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         resetOutput()
         task.terminate()
         
-        stdioObserverToken = task.observeOutput { stdioType, data, task, shouldContinue in
+        stdioObserverToken = task.observeOutput { stdioType, data, task in
             let text = String(data: data, encoding: .utf8)!
             for _ in 0..<(text.components(separatedBy: "Application shutting down").count - 1) {
                 didShutDownServersExpectation.fulfill()

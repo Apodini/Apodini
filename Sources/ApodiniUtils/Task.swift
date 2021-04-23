@@ -206,6 +206,20 @@ public class Task {
         self.terminationHandler = nil
         Self.taskPool.write { $0.remove(self) }
     }
+    
+    
+    
+    
+    private var stdioFileHandlesObserverTokens: (AnyObject, AnyObject)?
+    
+    private var didRegisterStdioFileHandleObservers: Bool {
+        stdioFileHandlesObserverTokens != nil
+    }
+    
+    public typealias StdioObserverSignature = (StdioType, Data, Task) -> Void
+    private typealias StdioObserverRegistrationToken = Box<StdioObserverSignature>
+    
+    private var registeredStdioHandlers: [Weak<StdioObserverRegistrationToken>] = []
 }
 
 
@@ -291,56 +305,101 @@ extension Task {
     }
     
     
-    /// Observe the task's output, i.e. data written to its standard out and standard error streams.
-    /// - Note: If stderr was previously redirected to stdout, this function will, in its callback, report the stdio type for data read from stderr as stdout.
-    public func observeOutput(_ handler: @escaping (StdioType, Data, Task, inout Bool) -> Void) -> AnyObject {
-        func imp(_ stdioType: StdioType, _ fileHandleToObserve: FileHandle) -> AnyObject {
+//    /// Observe the task's output, i.e. data written to its standard out and standard error streams.
+//    /// - Note: If stderr was previously redirected to stdout, this function will, in its callback, report the stdio type for data read from stderr as stdout.
+//    public func observeOutput(_ handler: @escaping (StdioType, Data, Task, inout Bool) -> Void) -> AnyObject {
+//        func imp(_ stdioType: StdioType, _ fileHandleToObserve: FileHandle) -> AnyObject {
+//            fileHandleToObserve.waitForDataInBackgroundAndNotify()
+//            return NotificationCenter.default.addObserver(
+//                forName: .NSFileHandleDataAvailable,
+//                object: fileHandleToObserve,
+//                queue: nil
+//            ) { [weak self] (notification: Notification) in
+//                guard let self = self, let fileHandle = notification.object as? FileHandle, fileHandle == fileHandleToObserve else {
+//                    // Intentionally returning w/out calling -waitForDataInBackgroundAndNotify here,
+//                    // meaning that the observer block won't get called again.
+//                    return
+//                }
+//
+//                let data = fileHandle.availableData
+//                var shouldContinue = true
+//                if !data.isEmpty {
+//                    handler(stdioType, data, self, &shouldContinue)
+//                }
+//
+//                if shouldContinue {
+//                    fileHandle.waitForDataInBackgroundAndNotify()
+//                }
+//            }
+//        }
+//        return StdioObserverToken(notificationCenterObservers: [
+//            imp(.stdout, stdoutPipe.fileHandleForReading),
+//            imp(.stderr, stderrPipe.fileHandleForReading)
+//        ])
+//    }
+    
+    
+//    private class StdioObserverToken {
+//        let notificationCenterObservers: [AnyObject]
+//
+//        init(notificationCenterObservers: [AnyObject]) {
+//            self.notificationCenterObservers = notificationCenterObservers
+//        }
+//
+//        deinit {
+//            for observer in notificationCenterObservers {
+//                NotificationCenter.default.removeObserver(observer)
+//            }
+//        }
+//    }
+    
+    public enum StdioType: CaseIterable {
+        case stdout, stderr, stdin
+    }
+    
+    
+    
+    public func observeOutput(_ handler: @escaping StdioObserverSignature) -> AnyObject {
+        registerStdioFileHandleObserversIfNecessary()
+        let registration = Box<StdioObserverSignature>(handler)
+        registeredStdioHandlers.append(Weak(registration))
+        return registration
+    }
+    
+    
+    private func registerStdioFileHandleObserversIfNecessary() {
+        guard !didRegisterStdioFileHandleObservers else {
+            return
+        }
+        
+        func imp(fileHandle fileHandleToObserve: FileHandle, stdioType: StdioType) -> AnyObject {
             fileHandleToObserve.waitForDataInBackgroundAndNotify()
             return NotificationCenter.default.addObserver(
                 forName: .NSFileHandleDataAvailable,
                 object: fileHandleToObserve,
                 queue: nil
-            ) { [weak self] (notification: Notification) in
+            ) { [weak self] notification in
                 guard let self = self, let fileHandle = notification.object as? FileHandle, fileHandle == fileHandleToObserve else {
                     // Intentionally returning w/out calling -waitForDataInBackgroundAndNotify here,
                     // meaning that the observer block won't get called again.
                     return
                 }
-                
+
                 let data = fileHandle.availableData
-                var shouldContinue = true
                 if !data.isEmpty {
-                    handler(stdioType, data, self, &shouldContinue)
+                    self.registeredStdioHandlers
+                        .compactMap(\.value?.value)
+                        .forEach { $0(stdioType, data, self) }
                 }
                 
-                if shouldContinue {
-                    fileHandle.waitForDataInBackgroundAndNotify()
-                }
+                fileHandle.waitForDataInBackgroundAndNotify()
             }
         }
-        return StdioObserverToken(notificationCenterObservers: [
-            imp(.stdout, stdoutPipe.fileHandleForReading),
-            imp(.stderr, stderrPipe.fileHandleForReading)
-        ])
-    }
-    
-    
-    private class StdioObserverToken {
-        let notificationCenterObservers: [AnyObject]
         
-        init(notificationCenterObservers: [AnyObject]) {
-            self.notificationCenterObservers = notificationCenterObservers
-        }
-        
-        deinit {
-            for observer in notificationCenterObservers {
-                NotificationCenter.default.removeObserver(observer)
-            }
-        }
-    }
-    
-    public enum StdioType: CaseIterable {
-        case stdout, stderr, stdin
+        stdioFileHandlesObserverTokens = (
+            imp(fileHandle: stdoutPipe.fileHandleForReading, stdioType: .stdout),
+            imp(fileHandle: stderrPipe.fileHandleForReading, stdioType: .stderr)
+        )
     }
 }
 
