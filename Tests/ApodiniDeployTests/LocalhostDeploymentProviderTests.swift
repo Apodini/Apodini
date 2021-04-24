@@ -72,8 +72,8 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
     
     
     func testLocalhostDeploymentProvider() throws {
-//        let testRoot = try Self.createTestWebServiceDirStructure()
-        let testRoot = URL(fileURLWithPath: "/private/var/folders/72/gdk4ykgs6bdg2kds9pynlhzc0000gn/T/ADT_03D6198F-0742-4219-B2B6-FCCD134F59E2")
+        let testRoot = try Self.createTestWebServiceDirStructure()
+//        let testRoot = URL(fileURLWithPath: "/private/var/folders/72/gdk4ykgs6bdg2kds9pynlhzc0000gn/T/ADT_03D6198F-0742-4219-B2B6-FCCD134F59E2")
         print("TEST ROOT", testRoot)
         
         print(#file)
