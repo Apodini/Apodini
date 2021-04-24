@@ -505,7 +505,6 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         // -------------------------------------- //
         
         resetOutput()
-        task.terminate()
         
         stdioObserverToken = task.observeOutput { stdioType, data, task in
             let text = String(data: data, encoding: .utf8)!
@@ -519,10 +518,11 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 didShutDownServersExpectation.fulfill()
             }
         }
+        task.terminate()
         
-        wait(for: [taskDidTerminateExpectation], timeout: 15)
+        wait(for: [taskDidTerminateExpectation, didShutDownServersExpectation], timeout: 25, enforceOrder: false)
         
-        wait(for: [didShutDownServersExpectation], timeout: 15)
+        //wait(for: [didShutDownServersExpectation], timeout: 15)
         
 //        print("hmmm")
 //        wait(
