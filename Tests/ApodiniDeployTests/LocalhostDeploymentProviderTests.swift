@@ -520,7 +520,9 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             }
         }
         
-        wait(for: [didShutDownServersExpectation, taskDidTerminateExpectation], timeout: 45, enforceOrder: false)
+        wait(for: [taskDidTerminateExpectation], timeout: 15)
+        
+        wait(for: [didShutDownServersExpectation], timeout: 15)
         
 //        print("hmmm")
 //        wait(
