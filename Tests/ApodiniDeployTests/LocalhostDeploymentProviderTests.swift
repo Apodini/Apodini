@@ -342,16 +342,14 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             }
         }
         
-        wait(for: [taskDidTerminateExpectation, didShutDownServersExpectation], timeout: 25, enforceOrder: false)
+        // aaaaaaaargh
+        //wait(for: [taskDidTerminateExpectation, didShutDownServersExpectation], timeout: 25, enforceOrder: false)
         
-//        // Destroy the observer token, thus deregistering the underlying observer.
-//        // The important thing here is that we need to make sure the lifetime of the observer token exceeds the lifetime of the task.
-//        // Same also applies to the the task itself and other resources, such as the url sessions.
-//        // The `use` function does not
-//        use(task, stdioObserverToken)
-//        stdioObserverToken = nil
-        task = nil
+        // Destroy the observer token, thus deregistering the underlying observer.
+        // The important thing here is that we need to make sure the lifetimes of the observer token and the task
+        // extend all the way down here, so that we can know for a fact that the tests above work properly
         stdioObserverHandle = nil
+        task = nil
     }
 }
 
