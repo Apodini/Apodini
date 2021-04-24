@@ -66,6 +66,10 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
     }
     
     
+    private var task: Task!
+    private var stdioObserverHandle: AnyObject!
+    private var currentPhase: TestPhase = .launchWebService
+    
     
     func testLocalhostDeploymentProvider() throws {
         let testRoot = try Self.createTestWebServiceDirStructure()
@@ -91,7 +95,10 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             return components[..<index].joined(separator: FileManager.pathSeparator)
         }()
         
-        let task = Task(
+        
+        precondition(task == nil)
+        
+        task = Task(
             executableUrl: Self.deploymentProviderBin,
             arguments: [testRoot.path, "--product-name", "ADTestWebService"],
             //workingDirectory: <#T##URL?#>,
@@ -104,166 +111,10 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         )
         
         
-        
-//        let output = [
-//            "2021-04-23T10:12:50+0200 notice codes.vapor.application : Server starting on http://127.0.0.1:5001",
-//            "2021-04-23T10:12:50+0200 notice codes.vapor.application : Server starting on http://127.0.0.1:5000",
-//            "2021-04-23T10:12:50+0200 notice codes.vapor.application : Server starting on http://127.0.0.1:5002",
-//            "ughughugh"
-//        ]
-//
-//        let serverLaunchedRegex = try! NSRegularExpression(
-//            pattern: #"Server starting on http://(\d+\.\d+\.\d+\.\d+):(\d+)$"#,
-//            options: [.anchorsMatchLines]
-//        )
-//
-//        for line in output {
-//            let matches = serverLaunchedRegex.matches(in: line, options: [], range: NSRange(line.startIndex..<line.endIndex, in: line))
-//            print()
-//            print(matches.count)
-//            for match in matches {
-//                print(match.numberOfRanges)
-//                for idx in 0..<match.numberOfRanges {
-//                    print("- \(idx)", match.range(at: idx))
-//                }
-//            }
-//        }
-//
-//        struct StartedServerInfo: Hashable, Equatable {
-//            let ipAddress: String
-//            let port: Int
-//        }
-//
-//        let startedServers: [StartedServerInfo] = {
-//            return output.compactMap { line in
-//                let matches = serverLaunchedRegex.matches(in: line, options: [], range: NSRange(line.startIndex..<line.endIndex, in: line))
-//                guard matches.count == 1 else {
-//                    return nil
-//                }
-//                return StartedServerInfo(
-//                    ipAddress: matches[0].contentsOfCaptureGroup(atIndex: 1, in: line),
-//                    port: Int(matches[0].contentsOfCaptureGroup(atIndex: 2, in: line))!
-//                )
-//            }
-//        }()
-//
-//        XCTAssertEqualIgnoringOrder(startedServers, [
-//            StartedServerInfo(ipAddress: "127.0.0.1", port: 5000),
-//            StartedServerInfo(ipAddress: "127.0.0.1", port: 5001),
-//            StartedServerInfo(ipAddress: "127.0.0.1", port: 5002),
-//            StartedServerInfo(ipAddress: "127.0.0.1", port: 8080)
-//        ])
-//
-//
-//        fatalError()
-        
-//        /// Expectation that the deployment provider runs, computes the deployment, and launches the web service.
-//        let launchDPExpectation = XCTestExpectation(description: "Run Deployment Provider")
-//        /// Expectation that the web service launched by the deployment provider responded to requests
-//        let testRequestsExpectation = XCTestExpectation(description: "Requests Expectation")
-//        /// Expectation that the task terminated. This is used to keep the test case running as long as the task is still running
-//        let taskDidTerminateExpectation = XCTestExpectation(description: "Task did terminate")
-//
-//        var prevDidEndWithNewline = true
-//        var currentPhase: TestPhase = .launchWebService
-//        //var currentPhaseOutput = ""
-////        currentPhaseOutput.reserveCapacity(10_000)
-//
-//        var currentOutputLine = ""
-//        var currentPhaseOutputByLine = Array<String>(reserving: 2000)
-//
-//        func advanceToNextPhase() {
-//            currentPhase = TestPhase(rawValue: currentPhase.rawValue + 1)!
-//            currentOutputLine.removeAll(keepingCapacity: true)
-//            currentPhaseOutputByLine.removeAll(keepingCapacity: true)
-//            if currentPhase == .done {
-//                task.terminate()
-//            }
-//        }
-        
-        var stdioObserverToken: AnyObject?
-        
-//        stdioObserverToken = task.observeOutput { stdioType, data, task, shouldContinue in
-//            let text = String(data: data, encoding: .utf8)!
-//            currentOutputLine.append(text)
-//            print("\(prevDidEndWithNewline ? "[DP] " : "")<<<<<<<<<\(text)>>>>>>>>>", terminator: "")
-//            prevDidEndWithNewline = text.hasSuffix("\n") // TODO platform-independence! (CharSet.newlines, if that API wasnt cursed af)
-//            if prevDidEndWithNewline {
-//                currentPhaseOutputByLine.append(currentOutputLine)
-//                currentOutputLine.removeAll(keepingCapacity: true)
-//            }
-//
-//            switch currentPhase {
-//            case .launchWebService:
-//                // We're in the phase which is checking whether the web service sucessfully launched.
-//                // This is determined by finding the text `Server starting on http://127.0.0.1:5001` three times,
-//                // with the port numbers matching the expected output values (i.e. 5000, 5001, 5002 if no explicit port was specified).
-//
-//                //let last25Lines = currentPhaseOutputByLine.suffix(25)
-//                let serverLaunchedRegex = try! NSRegularExpression(
-//                    pattern: #"Server starting on http://(\d+\.\d+\.\d+\.\d+):(\d+)$"#,
-//                    options: [.anchorsMatchLines]
-//                )
-//
-//                struct StartedServerInfo: Hashable, Equatable {
-//                    let ipAddress: String
-//                    let port: Int
-//                }
-//
-//                let startedServers: [StartedServerInfo] = {
-//                    return currentPhaseOutputByLine.compactMap { line in
-//                        let matches = serverLaunchedRegex.matches(in: line, options: [], range: NSRange(line.startIndex..<line.endIndex, in: line))
-//                        guard matches.count == 1 else {
-//                            return nil
-//                        }
-//                        return StartedServerInfo(
-//                            ipAddress: matches[0].contentsOfCaptureGroup(atIndex: 1, in: line),
-//                            port: Int(matches[0].contentsOfCaptureGroup(atIndex: 2, in: line))!
-//                        )
-//                    }
-//                }()
-//
-//                if startedServers.count == 4 {
-//                    XCTAssertEqualIgnoringOrder(startedServers, [
-//                        // the gateway
-//                        StartedServerInfo(ipAddress: "127.0.0.1", port: 8080),
-//                        // the nodes
-//                        StartedServerInfo(ipAddress: "127.0.0.1", port: 5000),
-//                        StartedServerInfo(ipAddress: "127.0.0.1", port: 5001),
-//                        StartedServerInfo(ipAddress: "127.0.0.1", port: 5002)
-//                    ])
-//                    launchDPExpectation.fulfill()
-//                    advanceToNextPhase()
-//                }
-//
-//            case .sendRequests:
-//                // TODO
-//                break
-//            case .done:
-//                break
-//            }
-//
-////            if currentPhase.advance() {
-//////                currentPhaseOutput.removeAll(keepingCapacity: true)
-////            }
-//        }
-        
-        var currentPhase: TestPhase = .launchWebService
-        
         /// Expectation that the deployment provider runs, computes the deployment, and launches the web service.
         let launchDPExpectation = XCTestExpectation(description: "Run deployment provider & launch web service")
         
         // Request handling expectations
-        let handleGreeterRequestInCorrectProcessExpectation = XCTestExpectation(
-            "Greeter.pid",
-            expectedFulfillmentCount: 1,
-            assertForOverFulfill: true
-        )
-        let handleTextMutRequestInCorrectProcessExpectation = XCTestExpectation(
-            "TextMut.pid",
-            expectedFulfillmentCount: 1,
-            assertForOverFulfill: true
-        )
         let responseExpectation_v1 = XCTestExpectation(
             "Web Service response for /v1/ request",
             expectedFulfillmentCount: 1,
@@ -304,7 +155,6 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             currentLineOutput.append(text)
             previousOutputDidEndWithNewline = text.hasSuffix("\n") // TODO platform-independence! (CharSet.newlines, if that API wasnt cursed af)
             if previousOutputDidEndWithNewline {
-//                currentPhaseOutput.append(currentLineOutput)
                 currentPhaseOutput.append(contentsOf: currentLineOutput.components(separatedBy: .newlines))
                 currentLineOutput.removeAll(keepingCapacity: true)
             }
@@ -329,14 +179,15 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         // ---------------------------------------------------------------- //
         
         resetOutput()
+        precondition(stdioObserverHandle == nil)
         
-        stdioObserverToken = task.observeOutput { stdioType, data, task in
-            print("Did receive data for current phase \(currentPhase)")
+        stdioObserverHandle = task.observeOutput { [unowned self] stdioType, data, task in
+            print("Did receive data for current phase \(self.currentPhase)")
             
             let text = String(data: data, encoding: .utf8)!
             handleOutput(text, printToStdout: true)
             
-            switch currentPhase {
+            switch self.currentPhase {
             case .launchWebService:
                 // We're in the phase which is checking whether the web service sucessfully launched.
                 // This is determined by finding the text `Server starting on http://127.0.0.1:5001` three times,
@@ -411,43 +262,6 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         
         resetOutput()
         
-//        var textMutPid: Int?
-//        var greeterPid: Int?
-//
-//        stdioObserverToken = task.observeOutput { stdioType, data, task, shouldContinue in
-//            let text = String(data: data, encoding: .utf8)!
-//            handleOutput(text, printToStdout: true)
-//            let regex = try! NSRegularExpression(pattern: #"(\w+) invoked at pid (\d+)$"#, options: [])
-//            for line in currentPhaseOutput {
-//                let matches = regex.matches(in: line, options: [], range: NSRange(line.startIndex..<line.endIndex, in: line))
-//                print("MATCHES", matches, matches.map { line[Range<String.Index>($0.range, in: line)!] })
-//                guard matches.count == 1 else {
-//                    continue
-//                }
-//                resetOutput() // we matched something in the output, meaning we have to reset it in order to avoid matching that same entry again
-//                let handlerTypeName = matches[0].contentsOfCaptureGroup(atIndex: 1, in: line)
-//                let handlerPid = Int(matches[0].contentsOfCaptureGroup(atIndex: 2, in: line))!
-//
-//                func assignPid(to pid: inout Int?) {
-//                    if let pid_ = pid {
-//                        XCTAssertEqual(pid_, handlerPid, "Handler type '\(handlerTypeName)' invoked multiple times w/ different pids! (\(pid_) vs \(handlerPid))")
-//                    } else {
-//                        pid = handlerPid
-//                    }
-//                }
-//                switch handlerTypeName {
-//                case "TextMut":
-//                    assignPid(to: &textMutPid)
-//                    handleTextMutRequestInCorrectProcessExpectation.fulfill()
-//                case "Greeter":
-//                    assignPid(to: &greeterPid)
-//                    handleGreeterRequestInCorrectProcessExpectation.fulfill()
-//                default:
-//                    XCTFail("Unexpected handler type name '\(handlerTypeName)'")
-//                }
-//                XCTAssertImplication(textMutPid != nil || greeterPid != nil, textMutPid != greeterPid, "TextMut and Greeter not run at separate pids!")
-//            }
-//        }
         
         func sendTestRequest(
             to path: String, responseValidator: @escaping (HTTPURLResponse, Data) throws -> Void
@@ -473,22 +287,17 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             }
         }
         
-        
-        //let dataTask_v1 = sendTestRequest(to: "/v1/", expectedResponse: "change is", expectation: responseExpectation_v1)
-        let dataTask_v1 = sendTestRequest(to: "/v1/") { httpResponse, data in
+        sendTestRequest(to: "/v1/") { httpResponse, data in
             XCTAssertEqual(200, httpResponse.statusCode)
             let response = try JSONDecoder().decode(WrappedRESTResponse<String>.self, from: data).data
             XCTAssertEqual(response, "change is")
             responseExpectation_v1.fulfill()
-        }
-        dataTask_v1.resume()
-        
+        }.resume()
         
         
         let textMutPid = ThreadSafeVariable<pid_t?>(nil)
         
-        //let dataTask_v1TextMut = sendTestRequest(to: "/v1/textmut/?text=TUM", expectedResponse: "tum", expectation: responseExpectation_v1TextMut)
-        let dataTask_v1TextMut = sendTestRequest(to: "/v1/textmut/?text=TUM") { httpResponse, data in
+        sendTestRequest(to: "/v1/textmut/?text=TUM") { httpResponse, data in
             XCTAssertEqual(200, httpResponse.statusCode)
             let response = try JSONDecoder().decode(WrappedRESTResponse<ResponseWithPid<String>>.self, from: data).data
             XCTAssertEqual("tum", response.value)
@@ -501,11 +310,10 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 }
             }
             responseExpectation_v1TextMut.fulfill()
-        }
-        dataTask_v1TextMut.resume()
+        }.resume()
         
-        //let dataTask_v1Greeter = sendTestRequest(to: "/v1/greet/Lukas/", expectedResponse: "Hello, lukas!", expectation: responseExpectation_v1Greeter)
-        let dataTask_v1Greeter = sendTestRequest(to: "/v1/greet/Lukas/") { httpResponse, data in
+        
+        sendTestRequest(to: "/v1/greet/Lukas/") { httpResponse, data in
             XCTAssertEqual(200, httpResponse.statusCode)
             struct GreeterResponse: Codable {
                 let text: String
@@ -522,8 +330,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             }
             XCTAssertNotEqual(response.pid, response.value.textMutPid)
             responseExpectation_v1Greeter.fulfill()
-        }
-        dataTask_v1Greeter.resume()
+        }.resume()
         
         
         // Wait for the second phase to complete.
@@ -542,51 +349,27 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         // -------------------------------------- //
         
         resetOutput()
-        
         currentPhase = .shutdown
-        
-//        stdioObserverToken = task.observeOutput { stdioType, data, task in
-//            let text = String(data: data, encoding: .utf8)!
-//            handleOutput(text, printToStdout: true)
-//            for _ in 0..<(text.components(separatedBy: "Application shutting down [pid=").count - 1) {
-//                NSLog("shutDownServers_a.fulfill() %i", didShutDownServersExpectation.assertForOverFulfill)
-//                didShutDownServersExpectation.fulfill()
-//            }
-//            if text.contains("notice DeploymentTargetLocalhost.ProxyServer : shutdown") {
-//                NSLog("shutDownServers_b.fulfill() %i", didShutDownServersExpectation.assertForOverFulfill)
-//                didShutDownServersExpectation.fulfill()
-//            }
-//        }
         task.terminate()
         
         wait(for: [taskDidTerminateExpectation, didShutDownServersExpectation], timeout: 25, enforceOrder: false)
         
         currentPhase = .done
         
-        //wait(for: [didShutDownServersExpectation], timeout: 15)
-        
-//        print("hmmm")
-//        wait(
-//            //for: [launchDPExpectation, testRequestsExpectation, taskDidTerminateExpectation],
-//            for: [launchDPExpectation, taskDidTerminateExpectation],
-//            timeout: 60 * 60, // just wait a full hour lol
-//            enforceOrder: true
-//        )
-//        print("hmmmmmmmmmm")
-        
-        
-        // Destroy the observer tokens, thus deregistering the underlying observers.
-        // The important thing here is that we need to make sure the lifetime of the observer tokens exceeds the lifetime of the task.
-        // We need the assignment to `_` in order to silence a "variable was written to but never read" swift warning :/
-        _ = stdioObserverToken
-        stdioObserverToken = nil
-        
-        use(task, dataTask_v1, dataTask_v1Greeter, dataTask_v1TextMut)
+//        // Destroy the observer token, thus deregistering the underlying observer.
+//        // The important thing here is that we need to make sure the lifetime of the observer token exceeds the lifetime of the task.
+//        // Same also applies to the the task itself and other resources, such as the url sessions.
+//        // The `use` function does not
+//        use(task, stdioObserverToken)
+//        stdioObserverToken = nil
+        task = nil
+        stdioObserverHandle = nil
     }
 }
 
 
 
+@_optimize(none)
 func use(_: Any...) {}
 
 
