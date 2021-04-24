@@ -540,7 +540,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         _ = stdioObserverToken
         stdioObserverToken = nil
         
-        use(dataTask_v1, dataTask_v1Greeter, dataTask_v1TextMut)
+        use(task, dataTask_v1, dataTask_v1Greeter, dataTask_v1TextMut)
     }
 }
 
