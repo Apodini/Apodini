@@ -348,7 +348,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         // third test phase: shut everything down //
         // -------------------------------------- //
         
-        resetOutput()
+        //resetOutput()
         currentPhase = .shutdown
         task.terminate()
         
@@ -367,10 +367,6 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
     }
 }
 
-
-
-@_optimize(none)
-func use(_: Any...) {}
 
 
 
