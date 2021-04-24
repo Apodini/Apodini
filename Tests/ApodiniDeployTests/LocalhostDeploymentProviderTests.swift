@@ -29,9 +29,10 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
     }
     
     
-    enum TestPhase: Int, Comparable {
+    enum TestPhase: Int, Comparable, CustomStringConvertible {
         case launchWebService
         case sendRequests
+        case shutdown
         case done
         
         /// Advance to the next phase, if possible.
@@ -49,7 +50,21 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         static func < (lhs: Self, rhs: Self) -> Bool {
             return lhs.rawValue < rhs.rawValue
         }
+        
+        var description: String {
+            switch self {
+            case .launchWebService:
+                return "\(Self.self).launchWebService"
+            case .sendRequests:
+                return "\(Self.self).sendRequests"
+            case .shutdown:
+                return "\(Self.self).shutdown"
+            case .done:
+                return "\(Self.self).done"
+            }
+        }
     }
+    
     
     
     func testLocalhostDeploymentProvider() throws {
@@ -233,6 +248,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
 ////            }
 //        }
         
+        var currentPhase: TestPhase = .launchWebService
         
         /// Expectation that the deployment provider runs, computes the deployment, and launches the web service.
         let launchDPExpectation = XCTestExpectation(description: "Run deployment provider & launch web service")
@@ -315,46 +331,67 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         resetOutput()
         
         stdioObserverToken = task.observeOutput { stdioType, data, task in
+            print("Did receive data for current phase \(currentPhase)")
+            
             let text = String(data: data, encoding: .utf8)!
             handleOutput(text, printToStdout: true)
             
-            // We're in the phase which is checking whether the web service sucessfully launched.
-            // This is determined by finding the text `Server starting on http://127.0.0.1:5001` three times,
-            // with the port numbers matching the expected output values (i.e. 5000, 5001, 5002 if no explicit port was specified).
-            
-            let serverLaunchedRegex = try! NSRegularExpression(
-                pattern: #"Server starting on http://(\d+\.\d+\.\d+\.\d+):(\d+)$"#,
-                options: [.anchorsMatchLines]
-            )
-            
-            struct StartedServerInfo: Hashable, Equatable {
-                let ipAddress: String
-                let port: Int
-            }
-            
-            let startedServers: [StartedServerInfo] = currentPhaseOutput.compactMap { line in
-                let matches = serverLaunchedRegex.matches(in: line, options: [], range: NSRange(line.startIndex..<line.endIndex, in: line))
-                guard matches.count == 1 else {
-                    return nil
-                }
-                return StartedServerInfo(
-                    ipAddress: matches[0].contentsOfCaptureGroup(atIndex: 1, in: line),
-                    port: Int(matches[0].contentsOfCaptureGroup(atIndex: 2, in: line))!
+            switch currentPhase {
+            case .launchWebService:
+                // We're in the phase which is checking whether the web service sucessfully launched.
+                // This is determined by finding the text `Server starting on http://127.0.0.1:5001` three times,
+                // with the port numbers matching the expected output values (i.e. 5000, 5001, 5002 if no explicit port was specified).
+                
+                let serverLaunchedRegex = try! NSRegularExpression(
+                    pattern: #"Server starting on http://(\d+\.\d+\.\d+\.\d+):(\d+)$"#,
+                    options: [.anchorsMatchLines]
                 )
-            }
-            
-            if startedServers.count == 4 {
-                XCTAssertEqualIgnoringOrder(startedServers, [
-                    // the gateway
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 8080),
-                    // the nodes
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5000),
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5001),
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5002)
-                ])
-                launchDPExpectation.fulfill()
-            } else if startedServers.count < 4 {
-                //print("servers were started, but not four. servers: \(startedServers.map { "\($0.ipAddress):\($0.port)" })")
+                
+                struct StartedServerInfo: Hashable, Equatable {
+                    let ipAddress: String
+                    let port: Int
+                }
+                
+                let startedServers: [StartedServerInfo] = currentPhaseOutput.compactMap { line in
+                    let matches = serverLaunchedRegex.matches(in: line, options: [], range: NSRange(line.startIndex..<line.endIndex, in: line))
+                    guard matches.count == 1 else {
+                        return nil
+                    }
+                    return StartedServerInfo(
+                        ipAddress: matches[0].contentsOfCaptureGroup(atIndex: 1, in: line),
+                        port: Int(matches[0].contentsOfCaptureGroup(atIndex: 2, in: line))!
+                    )
+                }
+                
+                if startedServers.count == 4 {
+                    XCTAssertEqualIgnoringOrder(startedServers, [
+                        // the gateway
+                        StartedServerInfo(ipAddress: "127.0.0.1", port: 8080),
+                        // the nodes
+                        StartedServerInfo(ipAddress: "127.0.0.1", port: 5000),
+                        StartedServerInfo(ipAddress: "127.0.0.1", port: 5001),
+                        StartedServerInfo(ipAddress: "127.0.0.1", port: 5002)
+                    ])
+                    launchDPExpectation.fulfill()
+                } else if startedServers.count < 4 {
+                    //print("servers were started, but not four. servers: \(startedServers.map { "\($0.ipAddress):\($0.port)" })")
+                }
+                
+            case .sendRequests:
+                break
+                
+            case .shutdown:
+                for _ in 0..<(text.components(separatedBy: "Application shutting down [pid=").count - 1) {
+                    NSLog("shutDownServers_a.fulfill() %i", didShutDownServersExpectation.assertForOverFulfill)
+                    didShutDownServersExpectation.fulfill()
+                }
+                if text.contains("notice DeploymentTargetLocalhost.ProxyServer : shutdown") {
+                    NSLog("shutDownServers_b.fulfill() %i", didShutDownServersExpectation.assertForOverFulfill)
+                    didShutDownServersExpectation.fulfill()
+                }
+                
+            case .done:
+                break
             }
         }
         
@@ -366,7 +403,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         // which can take a long time.
         wait(for: [launchDPExpectation], timeout: 60 * 25) // TODO 25
         
-        
+        currentPhase = .sendRequests
         
         // ------------------------------------------------------------------------------------ //
         // second test phase: send some requests to the web service and see how it handles them //
@@ -506,21 +543,25 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         
         resetOutput()
         
-        stdioObserverToken = task.observeOutput { stdioType, data, task in
-            let text = String(data: data, encoding: .utf8)!
-            handleOutput(text, printToStdout: true)
-            for _ in 0..<(text.components(separatedBy: "Application shutting down [pid=").count - 1) {
-                NSLog("shutDownServers_a.fulfill() %i", didShutDownServersExpectation.assertForOverFulfill)
-                didShutDownServersExpectation.fulfill()
-            }
-            if text.contains("notice DeploymentTargetLocalhost.ProxyServer : shutdown") {
-                NSLog("shutDownServers_b.fulfill() %i", didShutDownServersExpectation.assertForOverFulfill)
-                didShutDownServersExpectation.fulfill()
-            }
-        }
+        currentPhase = .shutdown
+        
+//        stdioObserverToken = task.observeOutput { stdioType, data, task in
+//            let text = String(data: data, encoding: .utf8)!
+//            handleOutput(text, printToStdout: true)
+//            for _ in 0..<(text.components(separatedBy: "Application shutting down [pid=").count - 1) {
+//                NSLog("shutDownServers_a.fulfill() %i", didShutDownServersExpectation.assertForOverFulfill)
+//                didShutDownServersExpectation.fulfill()
+//            }
+//            if text.contains("notice DeploymentTargetLocalhost.ProxyServer : shutdown") {
+//                NSLog("shutDownServers_b.fulfill() %i", didShutDownServersExpectation.assertForOverFulfill)
+//                didShutDownServersExpectation.fulfill()
+//            }
+//        }
         task.terminate()
         
         wait(for: [taskDidTerminateExpectation, didShutDownServersExpectation], timeout: 25, enforceOrder: false)
+        
+        currentPhase = .done
         
         //wait(for: [didShutDownServersExpectation], timeout: 15)
         
