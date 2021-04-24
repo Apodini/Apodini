@@ -510,11 +510,11 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             let text = String(data: data, encoding: .utf8)!
             handleOutput(text, printToStdout: true)
             for _ in 0..<(text.components(separatedBy: "Application shutting down").count - 1) {
-                NSLog("shutDownServers.fulfill()")
+                NSLog("shutDownServers_a.fulfill() %@", NSNumber(value: didShutDownServersExpectation.assertForOverFulfill))
                 didShutDownServersExpectation.fulfill()
             }
             if text.contains("notice DeploymentTargetLocalhost.ProxyServer : shutdown") {
-                NSLog("shutDownServers.fulfill()")
+                NSLog("shutDownServers_b.fulfill() %@", NSNumber(value: didShutDownServersExpectation.assertForOverFulfill))
                 didShutDownServersExpectation.fulfill()
             }
         }
