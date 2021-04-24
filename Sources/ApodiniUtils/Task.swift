@@ -138,6 +138,16 @@ public class Task {
     }
     
     
+    deinit {
+        if let fileHandleObservers = stdioFileHandlesObserverTokens {
+            NotificationCenter.default.removeObserver(fileHandleObservers.0)
+            NotificationCenter.default.removeObserver(fileHandleObservers.1)
+            stdioFileHandlesObserverTokens = nil
+        }
+        print("Task.deinit")
+    }
+    
+    
     private func launchImpl() throws {
         precondition(!isRunning)
         print("-[\(Self.self) \(#function)] \(self)")

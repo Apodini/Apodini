@@ -283,6 +283,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         func handleOutput(_ text: String, printToStdout: Bool = false) {
             if printToStdout {
                 print("\(previousOutputDidEndWithNewline ? "[DP] " : "")\(text)", terminator: "")
+                fflush(stdout)
             }
             currentLineOutput.append(text)
             previousOutputDidEndWithNewline = text.hasSuffix("\n") // TODO platform-independence! (CharSet.newlines, if that API wasnt cursed af)
