@@ -371,10 +371,13 @@ let package = Package(
                 .target(name: "XCTApodini"),
                 .target(name: "ApodiniDeployTestWebService"),
                 .target(name: "ApodiniUtils"),
-                .product(name: "XCTVapor", package: "vapor")
-            ],
-            resources: [
-                .copy("Resources/ADTestWebService")
+                .product(name: "XCTVapor", package: "vapor"),
+                .product(name: "SotoS3", package: "soto"),
+                .product(name: "SotoLambda", package: "soto"),
+                .product(name: "SotoApiGatewayV2", package: "soto"),
+                .product(name: "SotoIAM", package: "soto"),
+                .target(name: "DeploymentTargetLocalhost"),
+                .target(name: "DeploymentTargetAWSLambda"),
             ]
         ),
         .target(

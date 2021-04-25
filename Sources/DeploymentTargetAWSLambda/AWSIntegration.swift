@@ -201,7 +201,8 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             ).launchSyncAndAssertSuccess()
             
             do {
-                logger.notice("uploading lambda package to S3")
+                let s3File = S3File(url: "s3://\(s3BucketName)/\(s3ObjectKey)")!
+                logger.notice("Uploading lambda package to \(s3File.url)")
                 let s3TransferManager = S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
                 let fmt = NumberFormatter()
                 fmt.numberStyle = .percent
@@ -209,7 +210,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 do {
                     try s3TransferManager.copy(
                         from: "\(lambdaPackageTmpDir.path)/\(zipFilename)",
-                        to: S3File(url: "s3://\(s3BucketName)/\(s3ObjectKey)")!,
+                        to: s3File,
                         progress: { progress in
                             print(
                                 "\u{1b}[2KS3 upload progress: \(fmt.string(from: NSNumber(value: progress)) ?? String(progress))",
@@ -235,7 +236,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         
         logger.notice("Creating lambda functions for nodes in the web service deployment structure (#nodes: \(deploymentStructure.nodes.count))")
         for node in deploymentStructure.nodes {
-            logger.notice("Creating lambda function for node w/ id \(node.id) (handlers: \(node.exportedEndpoints.map { ($0.handlerType, $0.handlerId) })")
+            logger.notice("Creating lambda function for node w/ id \(node.id) (handlers: \(node.exportedEndpoints.map { ($0.handlerType, $0.handlerId) }))")
             
             let functionConfig = try configureLambdaFunction(
                 forNode: node,
@@ -361,7 +362,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             roleName: "apodini.lambda.executionRole_\(Date().format("yyyy-MM-dd_HHmmss"))"
         )
         let role = try iam.createRole(request).wait().role
-        logger.notice("New role: name=\(role.roleName) arn=\(role.arn)")
+        logger.notice("Created lambda execution role: name='\(role.roleName)' arn='\(role.arn)'")
         
         func attachRolePolicy(arn: String) throws {
             logger.notice("Attaching permission policy '\(arn)' to role")

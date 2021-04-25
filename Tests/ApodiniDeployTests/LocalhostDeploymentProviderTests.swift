@@ -24,9 +24,9 @@ struct ResponseWithPid<T: Codable>: Codable {
 
 
 class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
-    static var deploymentProviderBin: URL {
-        Self.urlOfBuildProduct(named: "DeploymentTargetLocalhost")
-    }
+//    static var deploymentProviderBin: URL {
+//        Self.urlOfBuildProduct(named: "DeploymentTargetLocalhost")
+//    }
     
     
     enum TestPhase: Int, Comparable, CustomStringConvertible {
@@ -72,73 +72,43 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
     
     
     func testLocalhostDeploymentProvider() throws {
-        let testRoot = try Self.createTestWebServiceDirStructure()
-//        let testRoot = URL(fileURLWithPath: "/private/var/folders/72/gdk4ykgs6bdg2kds9pynlhzc0000gn/T/ADT_03D6198F-0742-4219-B2B6-FCCD134F59E2")
-        print("TEST ROOT", testRoot)
-        
-        print(#file)
-        
-        let srcRoot: String = {
-            let components = URL(fileURLWithPath: #filePath).pathComponents
-            let expectedTrailingComponents = ["Tests", "ApodiniDeployTests", "LocalhostDeploymentProviderTests.swift"]
-            let index = components.count - expectedTrailingComponents.count // index of the 1st expected trailing component
-            // index = components.index(components.endIndex, offsetBy: expectedTrailingComponents.count + 1, limitedBy: components.startIndex)!
-            // If the paths don't match, there's no point in continuing execution...
-            continueAfterFailure = false
-            XCTAssertEqual(
-                expectedTrailingComponents[...],
-                components[index...]
-            )
-            continueAfterFailure = true
-            //return components[...components.index(components.startIndex, offsetBy: expectedTrailingComponents.count, limitedBy: <#T##Int#>)]
-//            components[0..<index].joined(separator: FileManager.)
-            return components[..<index].joined(separator: FileManager.pathSeparator)
-        }()
-        
-        
+        guard Self.shouldRunDeploymentProviderTests else {
+            print("Skipping test case '\(#function)'.")
+            return
+        }
         precondition(task == nil)
         
+        let srcRoot = try Self.replicateApodiniSrcRootInTmpDir()
+        
         task = Task(
-            executableUrl: Self.deploymentProviderBin,
-            arguments: [testRoot.path, "--product-name", "ADTestWebService"],
+            executableUrl: Self.urlOfBuildProduct(named: "DeploymentTargetLocalhost"),
+            arguments: [srcRoot.path, "--product-name", Self.apodiniDeployTestWebServiceTargetName],
             //workingDirectory: <#T##URL?#>,
             captureOutput: true,
             redirectStderrToStdout: true,
             // the tests are dynamically loaded into an `xctest` process, which doesn't statically load CApodiniUtils,
             // meaning we cannot detect child invocations, meaning we cannot launch children into that process group.
-            launchInCurrentProcessGroup: false,
-            environment: ["LKApodiniSourceRoot": srcRoot]
+            launchInCurrentProcessGroup: false
         )
         
+        let expectedNumberOfServers = 7
         
         /// Expectation that the deployment provider runs, computes the deployment, and launches the web service.
-        let launchDPExpectation = XCTestExpectation(description: "Run deployment provider & launch web service")
+        let launchDPExpectation = XCTestExpectation("Run deployment provider & launch web service")
         
         // Request handling expectations
-        let responseExpectation_v1 = XCTestExpectation(
-            "Web Service response for /v1/ request",
-            expectedFulfillmentCount: 1,
-            assertForOverFulfill: true
-        )
-        let responseExpectation_v1TextMut = XCTestExpectation(
-            "Web Service response for /v1/textMut/ request",
-            expectedFulfillmentCount: 1,
-            assertForOverFulfill: true
-        )
-        let responseExpectation_v1Greeter = XCTestExpectation(
-            "Web Service response for /v1/greet/ request",
-            expectedFulfillmentCount: 1,
-            assertForOverFulfill: true
-        )
+        let responseExpectation_v1 = XCTestExpectation("Web Service response for /v1/ request")
+        let responseExpectation_v1TextMut = XCTestExpectation("Web Service response for /v1/textMut/ request")
+        let responseExpectation_v1Greeter = XCTestExpectation("Web Service response for /v1/greet/ request")
         
         /// Expectation that the servers spawned as part of launching the web service are all shut down
         let didShutDownServersExpectation = XCTestExpectation(
             "Did shut down servers",
-            expectedFulfillmentCount: 4,
-            assertForOverFulfill: false // hmmmmmmmmmm
+            expectedFulfillmentCount: expectedNumberOfServers,
+            assertForOverFulfill: true // hmmmmmmmmmm
         )
         /// Expectation that the task terminated. This is used to keep the test case running as long as the task is still running
-        let taskDidTerminateExpectation = XCTestExpectation(description: "Task did terminate")
+        let taskDidTerminateExpectation = XCTestExpectation("Task did terminate")
         
         /// The output collected for the current phase, separated by newlines
         var currentPhaseOutput = Array<String>(reservingCapacity: 1000)
@@ -210,17 +180,20 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 )
             }
             
-            if startedServers.count == 4 {
+            if startedServers.count == expectedNumberOfServers {
                 XCTAssertEqualIgnoringOrder(startedServers, [
                     // the gateway
                     StartedServerInfo(ipAddress: "127.0.0.1", port: 8080),
                     // the nodes
                     StartedServerInfo(ipAddress: "127.0.0.1", port: 5000),
                     StartedServerInfo(ipAddress: "127.0.0.1", port: 5001),
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5002)
+                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5002),
+                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5003),
+                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5004),
+                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5005)
                 ])
                 launchDPExpectation.fulfill()
-            } else if startedServers.count < 4 {
+            } else if startedServers.count < expectedNumberOfServers {
                 //print("servers were started, but not four. servers: \(startedServers.map { "\($0.ipAddress):\($0.port)" })")
             }
         }
@@ -231,7 +204,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         // This timeout is significantly larger than the other ones because the compilation step
         // needs to fetch and compile all dependencies of the web service, the deployment provider, and Apodini,
         // which can take a long time.
-        wait(for: [launchDPExpectation], timeout: 60 * 25) // TODO 25
+        wait(for: [launchDPExpectation], timeout: 60 * 45)
         
         resetOutput()
         stdioObserverHandle = nil
@@ -250,16 +223,11 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                     XCTFail("Unexpected error in request: \(error.localizedDescription)")
                     return
                 }
-                //print(path, response, data, data.flatMap { String(data: $0, encoding: .utf8) })
                 let msg = "request to '\(path)' failed."
                 do {
                     let response = try XCTUnwrap(response as? HTTPURLResponse, msg)
-                    //XCTAssertEqual(response.statusCode, 200, msg)
                     let data = try XCTUnwrap(data, msg)
                     try responseValidator(response, data)
-                    //let decodedResponse = try JSONDecoder().decode(WrappedRESTResponse<T>.self, from: data).data
-                    //XCTAssertEqual(expectedResponse, decodedResponse, msg)
-                    //expectation.fulfill()
                 } catch {
                     XCTFail("\(msg): \(error.localizedDescription)")
                 }
@@ -276,7 +244,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         
         let textMutPid = ThreadSafeVariable<pid_t?>(nil)
         
-        sendTestRequest(to: "/v1/textmut/?text=TUM") { httpResponse, data in
+        sendTestRequest(to: "/v1/lh_textmut/?text=TUM") { httpResponse, data in
             XCTAssertEqual(200, httpResponse.statusCode)
             let response = try JSONDecoder().decode(WrappedRESTResponse<ResponseWithPid<String>>.self, from: data).data
             XCTAssertEqual("tum", response.value)
@@ -292,7 +260,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         }.resume()
         
         
-        sendTestRequest(to: "/v1/greet/Lukas/") { httpResponse, data in
+        sendTestRequest(to: "/v1/lh_greet/Lukas/") { httpResponse, data in
             XCTAssertEqual(200, httpResponse.statusCode)
             struct GreeterResponse: Codable {
                 let text: String
@@ -343,7 +311,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         }
         
         // aaaaaaaargh
-        //wait(for: [taskDidTerminateExpectation, didShutDownServersExpectation], timeout: 25, enforceOrder: false)
+        wait(for: [taskDidTerminateExpectation, didShutDownServersExpectation], timeout: 25, enforceOrder: false)
         
         // Destroy the observer token, thus deregistering the underlying observer.
         // The important thing here is that we need to make sure the lifetimes of the observer token and the task
@@ -376,7 +344,7 @@ extension RangeReplaceableCollection {
 
 
 extension XCTestExpectation {
-    convenience init(_ description: String, expectedFulfillmentCount: Int = 1, assertForOverFulfill: Bool = false) {
+    convenience init(_ description: String, expectedFulfillmentCount: Int = 1, assertForOverFulfill: Bool = true) {
         self.init(description: description)
         self.expectedFulfillmentCount = expectedFulfillmentCount
         self.assertForOverFulfill = assertForOverFulfill

@@ -8,23 +8,28 @@
 import Foundation
 import XCTApodini
 @testable import ApodiniDeploy
+import ApodiniUtils
 
 
-class ApodiniDeployTestCase: XCTApodiniTest {
+
+class ApodiniDeployTestCase: XCTestCase {
+    struct ApodiniDeployTestError: Swift.Error {
+        let message: String
+    }
+    
+    /// Name of the test web service target (used by e.g. the web service exporter tests).
+    /// Note that this is **not** the web service in the Tests/ApodiniDeploy/Resources folder, but the target in Sources/ApodiniDeployTestWebService
     static let apodiniDeployTestWebServiceTargetName = "ApodiniDeployTestWebService"
     
+    /// Url of the test web service's executable, as compiled by SPM or Xcode
     static var apodiniDeployTestWebServiceTargetUrl: URL {
         urlOfBuildProduct(named: apodiniDeployTestWebServiceTargetName)
     }
     
     
-    static func isRunningOnLinuxDebug() -> Bool {
-        #if os(Linux) && DEBUG
-        return true
-        #else
-        return false
-        #endif
-    }
+    /// Url of the temp dir to which the test web service used for testing deployment providers was copied.
+    /// Note that this is **not** the web service in the ApodiniDeployTestWebService target, but the one in the Resources folder.
+    static private(set) var deploymentProviderTestWebServiceLocalUrl: URL?
     
     
     static var productsDirectory: URL {
@@ -37,58 +42,94 @@ class ApodiniDeployTestCase: XCTApodiniTest {
     }
     
     
+    static var shouldRunDeploymentProviderTests: Bool {
+        ProcessInfo.processInfo.environment["ENABLE_DEPLOYMENT_PROVIDER_TESTS"] != nil
+    }
+    
+    
     static func urlOfBuildProduct(named productName: String) -> URL {
         productsDirectory.appendingPathComponent(productName)
     }
     
     
-    /// A utility function which attempts to read the source root.
-    /// Note that this function should only be invoked from withing a running test case.
-    /// If this function is unable to fetch the source root, it will call `XCTFail` and abort.
-    static func tryGetApodiniSrcRootUrl() -> URL {
-        guard let srcRoot = ProcessInfo.processInfo.environment["LKApodiniSrcRoot"] else {
-            XCTFail("Unable to read source root")
-            fatalError() // should be unreachable???
+    
+    
+    private static var cachedTmpDirSrcRoot: URL? {
+        didSet {
+            print("new replicated srcRoot: \(cachedTmpDirSrcRoot?.absoluteURL.path)")
         }
-        return URL(fileURLWithPath: srcRoot)
+    }
+    
+    /// Copies the entire Apodini source code into a temporary directory.
+    /// This can be used for testing deployment providers, which usually require
+    /// Apodini's and the to-be-deployed web service's source code be present.
+    static func replicateApodiniSrcRootInTmpDir() throws -> URL {
+        //if let path = ProcessInfo.processInfo.environment[""] // TODO
+        return URL(fileURLWithPath: "/var/folders/72/gdk4ykgs6bdg2kds9pynlhzc0000gn/T/ADT_A0A34A6C-CFFB-47E3-BB5E-52788FE5454A")
+        if let url = cachedTmpDirSrcRoot {
+            return url
+        }
+        let FM = FileManager.default
+        let srcRoot = getApodiniRepoSourceRoot()
+        let tmpDir = FM.temporaryDirectory
+            .appendingPathComponent("ADT_\(UUID().uuidString)", isDirectory: true)
+        try FM.copyItem(at: URL(fileURLWithPath: srcRoot), to: tmpDir)
+        try FM.removeItem(at: tmpDir.appendingPathComponent(".build", isDirectory: true))
+        cachedTmpDirSrcRoot = tmpDir
+        return tmpDir
     }
     
     
-    static func createTestWebServiceDirStructure() throws -> URL {
+    static func getApodiniRepoSourceRoot() -> String {
+        // TODO .suffix?
+        let components = URL(fileURLWithPath: #filePath).pathComponents
+        let expectedTrailingComponents = ["Tests", "ApodiniDeployTests", "ApodiniDeployTestCase.swift"]
+        let index = components.count - expectedTrailingComponents.count // index of the 1st expected trailing component
+        // index = components.index(components.endIndex, offsetBy: expectedTrailingComponents.count + 1, limitedBy: components.startIndex)!
+        // If the paths don't match, there's no point in continuing execution...
+//        continueAfterFailure = false
+        precondition(expectedTrailingComponents[...] == components[index...])
+//        continueAfterFailure = true
+        //return components[...components.index(components.startIndex, offsetBy: expectedTrailingComponents.count, limitedBy: <#T##Int#>)]
+//            components[0..<index].joined(separator: FileManager.)
+        return components[..<index].joined(separator: FileManager.pathSeparator)
+    }
+    
+    
+    private struct ReadEnvironmentVariableError: Swift.Error, LocalizedError {
+        let key: String
         
-        let fileManager = FileManager()
-        
-//        guard let locatorPath = Bundle.module.url(forResource: "locator", withExtension: "txt") else {
-//            throw ApodiniDeployError(message: "Unable to locate locator file")
-//        }
-//
-//        print("LOCATOR", locatorPath)
-//
-//        let testWebServiceUrlInBundle = bundleResourcesUrl
-//            .appendingPathComponent("Resources", isDirectory: true)
-//            .appendingPathComponent("ADTestWebService", isDirectory: true)
-        
-        guard let testWebServiceUrlInBundle = Bundle.module.url(forResource: "ADTestWebService", withExtension: nil) else {
-            throw ApodiniDeployError(message: "Unable to locate 'ADTestWebService' in bundle.")
+        var errorDescription: String? {
+            "Unable to read environment variable for key '\(key)'"
         }
-        
-        let testWebServiceUrlInTmpDir = fileManager.temporaryDirectory
-            .appendingPathComponent("ADT_\(UUID().uuidString)", isDirectory: true)
-        
-//        try fileManager.createDirectory(
-//            at: testWebServiceUrlInTmpDir,
-//            withIntermediateDirectories: true,
-//            attributes: [:]
-//        )
-        print("\n\ncopy:\nSRC: \(testWebServiceUrlInBundle.absoluteURL.path)\nDST: \(testWebServiceUrlInTmpDir.absoluteURL.path)")
-        try fileManager.copyItem(at: testWebServiceUrlInBundle, to: testWebServiceUrlInTmpDir)
-        
-        return testWebServiceUrlInTmpDir
+    }
+    
+    static func readEnvironmentVariable(_ key: String) throws -> String {
+        if let value = ProcessInfo.processInfo.environment[key] {
+            return value
+        } else {
+            throw ReadEnvironmentVariableError(key: key)
+        }
+    }
+    
+    
+    func makeError(message: String) -> Error {
+        ApodiniDeployTestError(message: message)
     }
 }
 
 
 // MARK: XCT Utils
+
+extension XCTestCase {
+    static func isRunningOnLinuxDebug() -> Bool {
+        #if os(Linux) && DEBUG
+        return true
+        #else
+        return false
+        #endif
+    }
+}
 
 /// Asserts that two collections are equal (i.e. contain the same elements) ignoring the element's order.
 func XCTAssertEqualIgnoringOrder<C0: Collection, C1: Collection>(
