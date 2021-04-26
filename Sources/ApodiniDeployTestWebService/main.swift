@@ -111,7 +111,10 @@ struct AWS_RandomNumberGenerator: InvocableHandler, HandlerWithDeploymentOptions
         return [
             // NOTE: starting with swift 5.4 (i believe) we'll be able to drop the leading `AnyOption` here and use the implicit member thing w/ chaining
             AnyOption.memory(.mb(150))
-                .when(!(\Self.handlerId == .main || \Self.ugh == 12))
+                .when(\Self.handlerId == .main),
+            AnyOption.memory(.mb(180))
+                .when(\Self.handlerId == .other),
+            AnyOption.timeout(.seconds(12))
         ]
     }
 }
@@ -141,14 +144,28 @@ struct AWS_Greeter: Handler {
 }
 
 
+struct Text2: Handler {
+    private let text: String
+    
+    init(_ text: String) {
+        self.text = text
+    }
+    
+    func handle() -> String {
+        text
+    }
+}
+
 struct WebService: Apodini.WebService {
     var content: some Component {
         Group("aws_rand") {
+            Text2("").operation(.create)
             AWS_RandomNumberGenerator(handlerId: .main)
-        }
+        }.formDeploymentGroup(withId: "group_aws_rand")
         Group("aws_rand2") {
+            Text2("").operation(.create)
             AWS_RandomNumberGenerator(handlerId: .other)
-        }
+        }.formDeploymentGroup(withId: "group_aws_rand2")
         Group("aws_greet") {
             AWS_Greeter()
                 .deploymentOptions(
@@ -174,7 +191,7 @@ struct WebService: Apodini.WebService {
         ApodiniDeployConfiguration(
             runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
             config: DeploymentConfig(defaultGrouping: .separateNodes, deploymentGroups: [
-                .allHandlers(ofType: Text.self)
+                .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")
             ])
         )
     }

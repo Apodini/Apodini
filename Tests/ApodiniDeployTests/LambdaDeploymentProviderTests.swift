@@ -142,6 +142,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
             throw makeError(message: "Unable to find API Gateway API ID")
         }()
         
+        XCTAssertEqual(6, numDeployedLambdas)
         
         let (iamExecutionRoleName, iamExecutionRoleArn) = try { () -> (String, String) in
             let regex = try NSRegularExpression(

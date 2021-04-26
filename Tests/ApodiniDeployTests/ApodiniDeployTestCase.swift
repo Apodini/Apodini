@@ -65,7 +65,7 @@ class ApodiniDeployTestCase: XCTestCase {
     /// Apodini's and the to-be-deployed web service's source code be present.
     static func replicateApodiniSrcRootInTmpDir() throws -> URL {
         //if let path = ProcessInfo.processInfo.environment[""] // TODO
-        return URL(fileURLWithPath: "/var/folders/72/gdk4ykgs6bdg2kds9pynlhzc0000gn/T/ADT_A0A34A6C-CFFB-47E3-BB5E-52788FE5454A")
+//        return URL(fileURLWithPath: "/var/folders/72/gdk4ykgs6bdg2kds9pynlhzc0000gn/T/ADT_A0A34A6C-CFFB-47E3-BB5E-52788FE5454A")
         if let url = cachedTmpDirSrcRoot {
             return url
         }

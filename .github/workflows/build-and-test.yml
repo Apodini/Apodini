@@ -18,6 +18,8 @@ jobs:
       fail-fast: false
       matrix:
         configuration: [debug, release]
+    env:
+      ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
     steps:
     - uses: actions/checkout@v2
       with:
@@ -55,6 +57,8 @@ jobs:
       matrix:
         linux: [bionic, xenial, focal, amazonlinux2, centos8]
         configuration: [debug, release]
+    env:
+      ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
     steps:
     - uses: actions/checkout@v2
     - name: Install libsqlite3

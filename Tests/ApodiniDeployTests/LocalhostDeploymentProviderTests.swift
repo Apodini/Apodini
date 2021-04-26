@@ -138,6 +138,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         
         
         try task.launchAsync { _ in
+            //XCTAssertImplication(terminationInfo.reason == .exit, terminationInfo.exitCode == EXIT_SUCCESS)
             taskDidTerminateExpectation.fulfill()
         }
         
