@@ -11,7 +11,9 @@ extension OpenAPI.Document {
         let output: String?
         switch format {
         case .json:
-            output = String(data: try JSONEncoder().encode(self), encoding: .utf8)
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+            output = String(data: try encoder.encode(self), encoding: .utf8)
         case .yaml:
             output = try YAMLEncoder().encode(self)
         }

@@ -23,16 +23,18 @@ struct OpenAPIPathBuilder: PathBuilderWithResult {
     }
 }
 
+enum VendorExtensionKeys {
+    static let handlerID = "x-apodiniHandlerId"
+    static let pallidorOperationName = "x-pallidorOperationName"
+    static let pallidorEndpointName = "x-pallidorEndpointName"
+}
+
 /// Corresponds to `paths` section in OpenAPI document.
 /// See: https://swagger.io/specification/#paths-object
 struct OpenAPIPathsObjectBuilder {
-    private enum VendorExtensionKeys {
-        static let handlerID = "x-apodiniHandlerId"
-        static let pallidorOperationName = "x-pallidorOperationName"
-    }
-    
     var pathsObject: OpenAPI.PathItem.Map = [:]
     let componentsObjectBuilder: OpenAPIComponentsObjectBuilder
+    var pallidorNamesCollisionChecker = PallidorNamesCollisionChecker()
 
     init(componentsObjectBuilder: inout OpenAPIComponentsObjectBuilder) {
         self.componentsObjectBuilder = componentsObjectBuilder
@@ -45,42 +47,23 @@ struct OpenAPIPathsObjectBuilder {
 
         // Get or create `PathItem`.
         var pathItem = pathsObject[path] ?? OpenAPI.PathItem()
-
+        
         // Get `OpenAPI.HttpMethod` and `OpenAPI.Operation` from endpoint.
         let httpMethod = OpenAPI.HttpMethod(endpoint.operation)
-        let operation = buildPathItemOperationObject(from: endpoint)
+        let operation = buildPathItemOperationObject(from: endpoint, for: path)
         
-        assertPallidorOperationName(for: operation, in: pathItem)
+        pallidorNamesCollisionChecker.register(operation: operation)
         
         pathItem.set(operation: operation, for: httpMethod)
         
         // Add (or override) `PathItem` to map of paths.
         pathsObject[path] = pathItem
     }
-    
-    /// Pallidor operation name collision check in `pathItem` for the to be added `operation`
-    private func assertPallidorOperationName(for operation: OpenAPI.Operation, in pathItem: OpenAPI.PathItem) {
-        func pallidorOperationName(in operation: OpenAPI.Operation?) -> String? {
-            operation?.vendorExtensions[VendorExtensionKeys.pallidorOperationName]?.value as? String
-        }
-        
-        guard let specifiedName = pallidorOperationName(in: operation) else { return }
-        
-        OpenAPI.HttpMethod.allCases
-            .forEach {
-                if let existing = pallidorOperationName(in: pathItem.for($0)), existing == specifiedName {
-                    fatalError("""
-                        \(specifiedName) already registered under this path for method \($0).
-                        Pallidor operation names must be unique for methods of the same path.
-                        """)
-                }
-            }
-    }
 }
 
 private extension OpenAPIPathsObjectBuilder {
     /// https://swagger.io/specification/#operation-object
-    mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>) -> OpenAPI.Operation {
+    mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>, for path: OpenAPI.Path) -> OpenAPI.Operation {
         var defaultTag: String
         // If parameter in path, get string component directly before first parameter component in path.
         if let index = endpoint.absolutePath.firstIndex(where: { $0.isParameter() }), index > 0 {
@@ -114,6 +97,7 @@ private extension OpenAPIPathsObjectBuilder {
         var vendorExtensions = [keys.handlerID: AnyCodable(endpoint.identifier.rawValue)]
         if let pallidorOperationName = endpoint.context.get(valueFor: PallidorContextKey.self) {
             vendorExtensions[keys.pallidorOperationName] = AnyCodable(pallidorOperationName)
+            vendorExtensions[keys.pallidorEndpointName] = AnyCodable(path.pallidorEndpointName)
         }
         
         return OpenAPI.Operation(

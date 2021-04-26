@@ -7,6 +7,7 @@
 
 import Foundation
 import Apodini
+import ApodiniOpenAPI
 import ApodiniVaporSupport
 
 public final class DeltaInterfaceExporter: StaticInterfaceExporter {
@@ -34,6 +35,11 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
                 """)
         }
 
+        if let openAPIDoc = app.storage.get(OpenAPIStorageKey.self)?.document {
+            let url = URL(fileURLWithPath: webServiceStructuresPath).appendingPathComponent("openAPI.txt")
+            try? openAPIDoc.json.write(to: url, atomically: true, encoding: .utf8)
+        }
+        
         switch configuration.strategy {
         case .create:
             webServiceStructure.export(at: webServiceStructuresPath)
@@ -52,9 +58,8 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
 
             let result = savedStructure.compare(to: webServiceStructure)
             if let change = webServiceStructure.evaluate(result: result, embeddedInCollection: false) {
-                let jsonString = try change.jsonString()
                 let jsonFileURL = URL(fileURLWithPath: path).appendingPathComponent("change.json")
-                try jsonString.write(to: jsonFileURL, atomically: true, encoding: .utf8)
+                try change.json.write(to: jsonFileURL, atomically: true, encoding: .utf8)
             }
         } catch {
             print(error)
@@ -62,10 +67,9 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
     }
 
     func serveWebServiceStructure() {
-        if let json = try? webServiceStructure.jsonString() {
-            app.vapor.app.get("delta") { _ -> String in
-                json
-            }
+        let json = webServiceStructure.json
+        app.vapor.app.get("delta") { _ -> String in
+            json
         }
     }
 }

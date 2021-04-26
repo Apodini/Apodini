@@ -19,7 +19,7 @@ extension WebServiceStructure {
         let jsonFileURL = URL(fileURLWithPath: path).appendingPathComponent(filename)
 
         do {
-            try jsonString().write(to: jsonFileURL, atomically: true, encoding: .utf8)
+            try json.write(to: jsonFileURL, atomically: true, encoding: .utf8)
         } catch {
             print("Could not save \(error)")
         }

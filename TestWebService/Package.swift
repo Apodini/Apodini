@@ -26,7 +26,7 @@ let package = Package(
                 .product(name: "ApodiniOpenAPI", package: "Apodini"),
                 .product(name: "ApodiniWebSocket", package: "Apodini"),
                 .product(name: "ApodiniNotifications", package: "Apodini"),
-                .product(name: "ApodiniDelta", package: "Apodini"),
+                .product(name: "ApodiniDelta", package: "Apodini")
             ]
         ),
         .testTarget(
