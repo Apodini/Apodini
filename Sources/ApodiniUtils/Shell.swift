@@ -32,7 +32,7 @@ private func shell(_ command: String) -> String {
     task.standardOutput = pipe
     task.standardError = pipe
     task.arguments = ["-c", command]
-    task.executableURL = URL(string: "/bin/zsh")
+    task.executableURL = URL(fileURLWithPath: "/bin/zsh")
     do {
         try task.run()
     } catch {

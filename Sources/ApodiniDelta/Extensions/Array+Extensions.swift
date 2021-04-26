@@ -19,7 +19,7 @@ extension Array where Element: Equatable {
             return false
         }
 
-        for change in self where !other.contains(change) {
+        for element in self where !other.contains(element) {
             return false
         }
 

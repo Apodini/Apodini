@@ -44,6 +44,15 @@ class PropertyValueWrapper<P: PropertyProtocol>: ComparableProperty {
     init(_ value: P) {
         self.value = value
     }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(value)
+    }
+    
+    required init(from decoder: Decoder) throws {
+        value = try decoder.singleValueContainer().decode(P.self)
+    }
 }
 
 extension PropertyValueWrapper {
