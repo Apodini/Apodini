@@ -312,7 +312,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         }
         
         // aaaaaaaargh
-        wait(for: [taskDidTerminateExpectation, didShutDownServersExpectation], timeout: 25, enforceOrder: false)
+        //wait(for: [taskDidTerminateExpectation, didShutDownServersExpectation], timeout: 25, enforceOrder: false)
         
         // Destroy the observer token, thus deregistering the underlying observer.
         // The important thing here is that we need to make sure the lifetimes of the observer token and the task
