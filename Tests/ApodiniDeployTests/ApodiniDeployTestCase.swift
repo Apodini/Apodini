@@ -11,7 +11,9 @@ import XCTApodini
 import ApodiniUtils
 
 
-
+/// The base class for all test cases which test deployment providers.
+/// This class intentionally does not inherit from `XCTApodiniTest`, the reason being that
+/// that class creates an implicit `Apodini.Application`, which we do not need when testing the deployment providers.
 class ApodiniDeployTestCase: XCTestCase {
     struct ApodiniDeployTestError: Swift.Error {
         let message: String
@@ -25,11 +27,6 @@ class ApodiniDeployTestCase: XCTestCase {
     static var apodiniDeployTestWebServiceTargetUrl: URL {
         urlOfBuildProduct(named: apodiniDeployTestWebServiceTargetName)
     }
-    
-    
-    /// Url of the temp dir to which the test web service used for testing deployment providers was copied.
-    /// Note that this is **not** the web service in the ApodiniDeployTestWebService target, but the one in the Resources folder.
-    static private(set) var deploymentProviderTestWebServiceLocalUrl: URL?
     
     
     static var productsDirectory: URL {
@@ -52,46 +49,34 @@ class ApodiniDeployTestCase: XCTestCase {
     }
     
     
-    
-    
-    private static var cachedTmpDirSrcRoot: URL? {
-        didSet {
-            print("new replicated srcRoot: \(cachedTmpDirSrcRoot?.absoluteURL.path)")
-        }
-    }
+    private static var cachedTmpDirSrcRoot: URL?
     
     /// Copies the entire Apodini source code into a temporary directory.
     /// This can be used for testing deployment providers, which usually require
     /// Apodini's and the to-be-deployed web service's source code be present.
     static func replicateApodiniSrcRootInTmpDir() throws -> URL {
-        //if let path = ProcessInfo.processInfo.environment[""] // TODO
-//        return URL(fileURLWithPath: "/var/folders/72/gdk4ykgs6bdg2kds9pynlhzc0000gn/T/ADT_A0A34A6C-CFFB-47E3-BB5E-52788FE5454A")
+        if let path = ProcessInfo.processInfo.environment["AD_APODINI_SOURCE_ROOT"] {
+            return URL(fileURLWithPath: path)
+        }
         if let url = cachedTmpDirSrcRoot {
             return url
         }
-        let FM = FileManager.default
+        let fileManager = FileManager.default
         let srcRoot = getApodiniRepoSourceRoot()
-        let tmpDir = FM.temporaryDirectory
+        let tmpDir = fileManager.temporaryDirectory
             .appendingPathComponent("ADT_\(UUID().uuidString)", isDirectory: true)
-        try FM.copyItem(at: URL(fileURLWithPath: srcRoot), to: tmpDir)
-        try FM.removeItem(at: tmpDir.appendingPathComponent(".build", isDirectory: true))
+        try fileManager.copyItem(at: URL(fileURLWithPath: srcRoot), to: tmpDir)
+        try fileManager.removeItem(at: tmpDir.appendingPathComponent(".build", isDirectory: true))
         cachedTmpDirSrcRoot = tmpDir
         return tmpDir
     }
     
     
     static func getApodiniRepoSourceRoot() -> String {
-        // TODO .suffix?
         let components = URL(fileURLWithPath: #filePath).pathComponents
         let expectedTrailingComponents = ["Tests", "ApodiniDeployTests", "ApodiniDeployTestCase.swift"]
         let index = components.count - expectedTrailingComponents.count // index of the 1st expected trailing component
-        // index = components.index(components.endIndex, offsetBy: expectedTrailingComponents.count + 1, limitedBy: components.startIndex)!
-        // If the paths don't match, there's no point in continuing execution...
-//        continueAfterFailure = false
         precondition(expectedTrailingComponents[...] == components[index...])
-//        continueAfterFailure = true
-        //return components[...components.index(components.startIndex, offsetBy: expectedTrailingComponents.count, limitedBy: <#T##Int#>)]
-//            components[0..<index].joined(separator: FileManager.)
         return components[..<index].joined(separator: FileManager.pathSeparator)
     }
     
@@ -161,4 +146,23 @@ func XCTAssertImplication(
     line: UInt = #line
 ) {
     XCTAssert(!condition() || implication(), message(), file: file, line: line)
+}
+
+
+extension XCTestExpectation {
+    convenience init(_ description: String, expectedFulfillmentCount: Int = 1, assertForOverFulfill: Bool = true) {
+        self.init(description: description)
+        self.expectedFulfillmentCount = expectedFulfillmentCount
+        self.assertForOverFulfill = assertForOverFulfill
+    }
+}
+
+
+func XCTUnwrapWithFatalError<T>(
+    _ expression: @autoclosure () -> T?,
+    message: @autoclosure () -> String = "",
+    file: StaticString = #filePath,
+    line: UInt = #line
+) -> T {
+    try! XCTUnwrap(expression(), message(), file: file, line: line) // swiftlint:disable:this force_try
 }

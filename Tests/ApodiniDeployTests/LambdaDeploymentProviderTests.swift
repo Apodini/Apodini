@@ -18,11 +18,11 @@ import SotoApiGatewayV2
 
 
 class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
-    private var task: Task!
+    private var task: Task! // swiftlint:disable:this implicitly_unwrapped_optional
     private var taskStdioObserverToken: AnyObject?
     
     
-    func testLambdaDeploymentProvider() throws {
+    func testLambdaDeploymentProvider() throws { // swiftlint:disable:this function_body_length cyclomatic_complexity
         guard Self.shouldRunDeploymentProviderTests else {
             print("Skipping test case '\(#function)'.")
             return
@@ -57,7 +57,6 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
                 "--s3-bucket-name", awsS3BucketName,
                 "--s3-bucket-path", awsS3BucketPath,
                 "--aws-api-gateway-api-id", "_createNew"
-
             ],
             workingDirectory: nil,
             captureOutput: true,
@@ -83,8 +82,8 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         var fullOutput = String(reservingCapacity: 10_000)
         
-        taskStdioObserverToken = task.observeOutput { stdioType, data, task in
-            let text = String(data: data, encoding: .utf8)!
+        taskStdioObserverToken = task.observeOutput { _, data, _ in
+            let text = XCTUnwrapWithFatalError(String(data: data, encoding: .utf8))
             print(text, terminator: "")
             fullOutput += text
         }
@@ -107,7 +106,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         
         let s3Url: String = try {
-            let regex = try! NSRegularExpression(
+            let regex = try NSRegularExpression(
                 pattern: #"notice de\.lukaskollmer\.ApodiniLambda\.AWSIntegration : Uploading lambda package to (.*)$"#,
                 options: [.anchorsMatchLines]
             )
@@ -244,7 +243,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         }
         
         
-        // TODO tear down the aws resources
+        print("Deleting AWS resources created as part of the test")
         
         let awsClient = AWSClient(
             credentialProvider: .static(accessKeyId: awsAccessKeyId, secretAccessKey: awsSecretAccessKey),
@@ -285,12 +284,10 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
     }
     
     
-    
     private func sendTestRequest(
         to path: String, invokeUrl: String, responseValidator: @escaping (HTTPURLResponse, Data) throws -> Void
     ) throws -> URLSessionDataTask {
         let url = try XCTUnwrap(URL(string: "\(invokeUrl)\(path)"))
-        print("req.url: \(url)")
         return URLSession.shared.dataTask(with: url) { data, response, error in
             if let error = error {
                 XCTFail("Unexpected error in request: \(error.localizedDescription)")
@@ -305,18 +302,6 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
                 XCTFail("\(msg): \(error.localizedDescription)")
             }
         }
-    }
-}
-
-
-
-extension NSRegularExpression {
-    func matches(in string: String, options: MatchingOptions = []) -> [NSTextCheckingResult] {
-        return matches(
-            in: string,
-            options: options,
-            range: NSRange(string.startIndex..<string.endIndex, in: string)
-        )
     }
 }
 

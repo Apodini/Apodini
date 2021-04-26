@@ -17,39 +17,19 @@ struct ResponseWithPid<T: Codable>: Codable {
     let pid: pid_t
     let value: T
     
+    @available(*, unavailable)
     private init() {
-        fatalError()
+        fatalError("Type '\(Self.self)' cannot be initialised")
     }
 }
 
 
 class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
-//    static var deploymentProviderBin: URL {
-//        Self.urlOfBuildProduct(named: "DeploymentTargetLocalhost")
-//    }
-    
-    
-    enum TestPhase: Int, Comparable, CustomStringConvertible {
+    enum TestPhase: Int, CustomStringConvertible {
         case launchWebService
         case sendRequests
         case shutdown
         case done
-        
-        /// Advance to the next phase, if possible.
-        /// - returns: A boolean value indicating whether the phase was advanced to the next phase.
-        @discardableResult
-        mutating func advance() -> Bool {
-            if self != .done {
-                self = Self(rawValue: rawValue + 1)!
-                return true
-            } else {
-                return false
-            }
-        }
-        
-        static func < (lhs: Self, rhs: Self) -> Bool {
-            return lhs.rawValue < rhs.rawValue
-        }
         
         var description: String {
             switch self {
@@ -66,12 +46,12 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
     }
     
     
-    private var task: Task!
-    private var stdioObserverHandle: AnyObject!
+    private var task: Task! // swiftlint:disable:this implicitly_unwrapped_optional
+    private var stdioObserverHandle: AnyObject! // swiftlint:disable:this implicitly_unwrapped_optional
     private var currentPhase: TestPhase = .launchWebService
     
     
-    func testLocalhostDeploymentProvider() throws {
+    func testLocalhostDeploymentProvider() throws { // swiftlint:disable:this function_body_length
         guard Self.shouldRunDeploymentProviderTests else {
             print("Skipping test case '\(#function)'.")
             return
@@ -83,7 +63,6 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         task = Task(
             executableUrl: Self.urlOfBuildProduct(named: "DeploymentTargetLocalhost"),
             arguments: [srcRoot.path, "--product-name", Self.apodiniDeployTestWebServiceTargetName],
-            //workingDirectory: <#T##URL?#>,
             captureOutput: true,
             redirectStderrToStdout: true,
             // the tests are dynamically loaded into an `xctest` process, which doesn't statically load CApodiniUtils,
@@ -97,9 +76,9 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         let launchDPExpectation = XCTestExpectation("Run deployment provider & launch web service")
         
         // Request handling expectations
-        let responseExpectation_v1 = XCTestExpectation("Web Service response for /v1/ request")
-        let responseExpectation_v1TextMut = XCTestExpectation("Web Service response for /v1/textMut/ request")
-        let responseExpectation_v1Greeter = XCTestExpectation("Web Service response for /v1/greet/ request")
+        let responseExpectationV1 = XCTestExpectation("Web Service response for /v1/ request")
+        let responseExpectationV1TextMut = XCTestExpectation("Web Service response for /v1/textMut/ request")
+        let responseExpectationV1Greeter = XCTestExpectation("Web Service response for /v1/greet/ request")
         
         /// Expectation that the servers spawned as part of launching the web service are all shut down
         let didShutDownServersExpectation = XCTestExpectation(
@@ -111,7 +90,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         let taskDidTerminateExpectation = XCTestExpectation("Task did terminate")
         
         /// The output collected for the current phase, separated by newlines
-        var currentPhaseOutput = Array<String>(reservingCapacity: 1000)
+        var currentPhaseOutput: [String] = .init(reservingCapacity: 1000)
         /// The output collected for the current line
         var currentLineOutput = String(reservingCapacity: 250)
         /// Whether the previously collected output ended with a line break
@@ -123,7 +102,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 fflush(stdout)
             }
             currentLineOutput.append(text)
-            previousOutputDidEndWithNewline = text.hasSuffix("\n") // TODO platform-independence! (CharSet.newlines, if that API wasnt cursed af)
+            previousOutputDidEndWithNewline = text.hasSuffix("\n")
             if previousOutputDidEndWithNewline {
                 currentPhaseOutput.append(contentsOf: currentLineOutput.components(separatedBy: .newlines))
                 currentLineOutput.removeAll(keepingCapacity: true)
@@ -138,11 +117,8 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         
         
         try task.launchAsync { _ in
-            //XCTAssertImplication(terminationInfo.reason == .exit, terminationInfo.exitCode == EXIT_SUCCESS)
             taskDidTerminateExpectation.fulfill()
         }
-        
-        
         
         
         // ---------------------------------------------------------------- //
@@ -152,15 +128,15 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         resetOutput()
         precondition(stdioObserverHandle == nil)
         
-        stdioObserverHandle = task.observeOutput { stdioType, data, task in
-            let text = String(data: data, encoding: .utf8)!
+        stdioObserverHandle = task.observeOutput { _, data, _ in
+            let text = XCTUnwrapWithFatalError(String(data: data, encoding: .utf8))
             handleOutput(text, printToStdout: true)
             
             // We're in the phase which is checking whether the web service sucessfully launched.
             // This is determined by finding the text `Server starting on http://127.0.0.1:5001` three times,
             // with the port numbers matching the expected output values (i.e. 5000, 5001, 5002 if no explicit port was specified).
             
-            let serverLaunchedRegex = try! NSRegularExpression(
+            let serverLaunchedRegex = try! NSRegularExpression( // swiftlint:disable:this force_try
                 pattern: #"Server starting on http://(\d+\.\d+\.\d+\.\d+):(\d+)$"#,
                 options: [.anchorsMatchLines]
             )
@@ -177,7 +153,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 }
                 return StartedServerInfo(
                     ipAddress: matches[0].contentsOfCaptureGroup(atIndex: 1, in: line),
-                    port: Int(matches[0].contentsOfCaptureGroup(atIndex: 2, in: line))!
+                    port: XCTUnwrapWithFatalError(Int(matches[0].contentsOfCaptureGroup(atIndex: 2, in: line)))
                 )
             }
             
@@ -218,8 +194,9 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         
         func sendTestRequest(
             to path: String, responseValidator: @escaping (HTTPURLResponse, Data) throws -> Void
-        ) -> URLSessionDataTask {
-            return URLSession.shared.dataTask(with: URL(string: "http://127.0.0.1:8080\(path)")!) { data, response, error in
+        ) throws -> URLSessionDataTask {
+            let url = try XCTUnwrap(URL(string: "http://127.0.0.1:8080\(path)"))
+            return URLSession.shared.dataTask(with: url) { data, response, error in
                 if let error = error {
                     XCTFail("Unexpected error in request: \(error.localizedDescription)")
                     return
@@ -235,17 +212,17 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             }
         }
         
-        sendTestRequest(to: "/v1/") { httpResponse, data in
+        try sendTestRequest(to: "/v1/") { httpResponse, data in
             XCTAssertEqual(200, httpResponse.statusCode)
             let response = try JSONDecoder().decode(WrappedRESTResponse<String>.self, from: data).data
             XCTAssertEqual(response, "change is")
-            responseExpectation_v1.fulfill()
+            responseExpectationV1.fulfill()
         }.resume()
         
         
         let textMutPid = ThreadSafeVariable<pid_t?>(nil)
         
-        sendTestRequest(to: "/v1/lh_textmut/?text=TUM") { httpResponse, data in
+        try sendTestRequest(to: "/v1/lh_textmut/?text=TUM") { httpResponse, data in
             XCTAssertEqual(200, httpResponse.statusCode)
             let response = try JSONDecoder().decode(WrappedRESTResponse<ResponseWithPid<String>>.self, from: data).data
             XCTAssertEqual("tum", response.value)
@@ -257,11 +234,11 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                     pid = response.pid
                 }
             }
-            responseExpectation_v1TextMut.fulfill()
+            responseExpectationV1TextMut.fulfill()
         }.resume()
         
         
-        sendTestRequest(to: "/v1/lh_greet/Lukas/") { httpResponse, data in
+        try sendTestRequest(to: "/v1/lh_greet/Lukas/") { httpResponse, data in
             XCTAssertEqual(200, httpResponse.statusCode)
             struct GreeterResponse: Codable {
                 let text: String
@@ -277,19 +254,18 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 }
             }
             XCTAssertNotEqual(response.pid, response.value.textMutPid)
-            responseExpectation_v1Greeter.fulfill()
+            responseExpectationV1Greeter.fulfill()
         }.resume()
         
         
         // Wait for the second phase to complete.
         // This phase sends some requests to the deployed web service and checks that they were handled correctly.
         // We give it 20 seconds just to be safe
-        wait(for: [
-            responseExpectation_v1,
-            responseExpectation_v1Greeter,
-            responseExpectation_v1TextMut
-        ], timeout: 20, enforceOrder: false)
-        
+        wait(
+            for: [responseExpectationV1, responseExpectationV1Greeter, responseExpectationV1TextMut],
+            timeout: 20,
+            enforceOrder: false
+        )
         
         
         // -------------------------------------- //
@@ -299,8 +275,8 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         resetOutput()
         task.terminate()
         
-        stdioObserverHandle = task.observeOutput { stdioType, data, task in
-            let text = String(data: data, encoding: .utf8)!
+        stdioObserverHandle = task.observeOutput { _, data, _ in
+            let text = XCTUnwrapWithFatalError(String(data: data, encoding: .utf8))
             for _ in 0..<(text.components(separatedBy: "Application shutting down [pid=").count - 1) {
                 NSLog("shutDownServers_a.fulfill() %i", didShutDownServersExpectation.assertForOverFulfill)
                 didShutDownServersExpectation.fulfill()
@@ -319,35 +295,5 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         // extend all the way down here, so that we can know for a fact that the tests above work properly
         stdioObserverHandle = nil
         task = nil
-    }
-}
-
-
-
-
-extension NSTextCheckingResult {
-    func contentsOfCaptureGroup(atIndex idx: Int, in string: String) -> String {
-        precondition((0..<numberOfRanges).contains(idx), "Invalid capture group index")
-        guard let range = Range(self.range(at: idx), in: string) else {
-            fatalError("Unable to construct 'Range<String.Index>' from NSRange")
-        }
-        return String(string[range])
-    }
-}
-
-
-extension RangeReplaceableCollection {
-    public init(reservingCapacity capacity: Int) {
-        self.init()
-        self.reserveCapacity(capacity)
-    }
-}
-
-
-extension XCTestExpectation {
-    convenience init(_ description: String, expectedFulfillmentCount: Int = 1, assertForOverFulfill: Bool = true) {
-        self.init(description: description)
-        self.expectedFulfillmentCount = expectedFulfillmentCount
-        self.assertForOverFulfill = assertForOverFulfill
     }
 }

@@ -49,7 +49,7 @@ private struct StaticDeploymentProvider: DeploymentProvider {
 
 
 class WebServiceStructureExportTests: ApodiniDeployTestCase {
-    func testExportWebServiceStructure() throws {
+    func testExportWebServiceStructure() throws { // swiftlint:disable:this function_body_length
         let wsStructure = try StaticDeploymentProvider(
             executableUrl: Self.apodiniDeployTestWebServiceTargetUrl
         ).readWebServiceStructure()
@@ -129,7 +129,7 @@ class WebServiceStructureExportTests: ApodiniDeployTestCase {
                 handlerType: HandlerTypeIdentifier(rawValue: "Text"),
                 handlerId: AnyHandlerIdentifier("0.6"),
                 deploymentOptions: DeploymentOptions()
-            ),
+            )
         ])
     }
 }

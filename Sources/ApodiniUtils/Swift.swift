@@ -256,12 +256,11 @@ extension RandomAccessCollection {
 }
 
 
-// MARK: Array
-
-extension Array {
-    public init(reserving capacity: Int) {
+extension RangeReplaceableCollection {
+    /// Initialises the collection and reserves the specified capacity.
+    public init(reservingCapacity capacity: Int) {
         self.init()
-        reserveCapacity(capacity)
+        self.reserveCapacity(capacity)
     }
 }
 
