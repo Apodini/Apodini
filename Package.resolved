@@ -240,8 +240,8 @@
         "repositoryURL": "https://github.com/vapor/postgres-nio.git",
         "state": {
           "branch": null,
-          "revision": "fa93d76b3fcddcd62a996d645a7971f2003c9b84",
-          "version": "1.5.1"
+          "revision": "33eea144f465a48b17f4c63573c40d33824fdde4",
+          "version": "1.5.2"
         }
       },
       {
@@ -339,8 +339,8 @@
         "repositoryURL": "https://github.com/apple/swift-argument-parser",
         "state": {
           "branch": null,
-          "revision": "831ed5e860a70e745bc1337830af4786b2576881",
-          "version": "0.4.1"
+          "revision": "47bd06ebeff8146ecd0020809e186218b46f465f",
+          "version": "0.4.2"
         }
       },
       {
@@ -357,8 +357,8 @@
         "repositoryURL": "https://github.com/swift-server/swift-backtrace.git",
         "state": {
           "branch": null,
-          "revision": "93b3d9a76454e05379a32a2f3b2a1f5a7794b414",
-          "version": "1.2.1"
+          "revision": "54a65d6391a1467a896d0d351ff2de6f469ee53c",
+          "version": "1.2.3"
         }
       },
       {
