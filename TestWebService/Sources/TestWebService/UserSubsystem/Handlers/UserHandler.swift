@@ -9,7 +9,7 @@ import Apodini
 
 
 struct UserHandler: Handler {
-    @Parameter var userId: Int
+    @Binding var userId: Int
 
     func handle() -> User {
         User(id: userId)

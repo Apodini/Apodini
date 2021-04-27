@@ -47,7 +47,7 @@ class RelationshipDSLTests: ApodiniTests {
     }
 
     struct UserHandler: Handler {
-        @Parameter
+        @Binding
         var userId: Int
 
         func handle() -> User {
@@ -68,9 +68,9 @@ class RelationshipDSLTests: ApodiniTests {
     }
 
     struct PostHandler: Handler {
-        @Parameter
+        @Binding
         var userId: Int
-        @Parameter
+        @Binding
         var postId: Int
 
         func handle() -> Post {
@@ -85,16 +85,20 @@ class RelationshipDSLTests: ApodiniTests {
     }
 
     struct TestBHandler: Handler {
-        @Parameter
+        @Binding
         var param: String
+        
+        
         func handle() -> TestB {
             TestB(info: "TestB Info")
         }
     }
 
     struct TestCHandler: Handler {
-        @Parameter
+        @Binding
         var cId: Int
+        
+        
         func handle() -> TestC {
             TestC(id: cId)
         }
@@ -190,8 +194,9 @@ class RelationshipDSLTests: ApodiniTests {
     }
 
     struct ReferencedHandler: Handler {
-        @Parameter
+        @Binding
         var id: String
+        
         func handle() -> Referenced {
             Referenced(id: id)
         }
@@ -321,17 +326,21 @@ class RelationshipDSLTests: ApodiniTests {
     }
 
     struct User2Handler: Handler {
-        @Parameter
+        @Binding
         var userId: User2.ID
+        
+        
         func handle() -> User2 {
             User2(id: userId, taggedPost: 4)
         }
     }
     struct Post2Handler: Handler {
-        @Parameter
+        @Binding
         var userId: User2.ID
-        @Parameter
+        @Binding
         var postId: Post2.ID
+        
+        
         func handle() -> Post2 {
             Post2(id: postId, writtenBy: 7)
         }

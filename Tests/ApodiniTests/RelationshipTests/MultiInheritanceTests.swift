@@ -59,16 +59,20 @@ class MultiInheritanceTests: ApodiniTests {
     }
 
     struct TestCHandler: Handler {
-        @Parameter
+        @Binding
         var cId: String
+        
+        
         func handle() -> TestC {
             TestC(id: cId)
         }
     }
 
     struct TextParameter: Handler {
-        @Parameter
+        @Binding
         var textId: String
+        
+        
         var text: String
         func handle() -> String {
             text

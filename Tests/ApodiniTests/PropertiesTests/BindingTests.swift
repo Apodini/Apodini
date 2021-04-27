@@ -21,6 +21,14 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
         }
     }
     
+    struct BindingPassingComponent: Component {
+        @Binding var country: String?
+        
+        var content: some Component {
+            Greeter(country: $country)
+        }
+    }
+    
     struct ReallyOptionalGreeter: Handler {
         @Binding var country: String??
         
@@ -37,7 +45,6 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
     
     @PathParameter var selectedCountry: String
     @Environment(\BindingTests.featured) var featuredCountry
-    
     @Parameter var optionallySelectedCountry: String?
     
     @ComponentBuilder
@@ -53,10 +60,17 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
             Greeter(country: $featuredCountry)
         }
         Group("country", $selectedCountry) {
-            Greeter(country: _selectedCountry.binding.asOptional)
+            Greeter(country: $selectedCountry.asOptional)
             Group("optional") {
-                ReallyOptionalGreeter(country: _selectedCountry.binding.asOptional.asOptional)
+                ReallyOptionalGreeter(country: $selectedCountry.asOptional.asOptional)
             }
+        }
+    }
+    
+    @ComponentBuilder
+    var failingTestService: some Component {
+        Group($featuredCountry) {
+            Text("Should fail")
         }
     }
     
@@ -104,5 +118,13 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
             XCTAssertEqual(response.status, .ok)
             XCTAssertTrue(response.body.string.contains("Greece"))
         }
+    }
+    
+    func testAssertBindingAsPathComponent() throws {
+        let builder = SemanticModelBuilder(app)
+            .with(exporter: RESTInterfaceExporter.self)
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        
+        XCTAssertRuntimeFailure(self.failingTestService.accept(visitor))
     }
 }

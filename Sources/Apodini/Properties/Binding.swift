@@ -35,7 +35,8 @@ private enum Retrieval<Value> {
 public struct Binding<Value>: DynamicProperty, PotentiallyParameterIdentifyingBinding {
     private let store: Properties
     private var retrieval: Retrieval<Value>
-    fileprivate let parameterId: UUID?
+    let parameterId: UUID?
+    
     
     public var wrappedValue: Value {
         switch self.retrieval {
@@ -44,6 +45,24 @@ public struct Binding<Value>: DynamicProperty, PotentiallyParameterIdentifyingBi
         case .storage(let retriever):
             return retriever(store)
         }
+    }
+    
+    public var projectedValue: Self {
+        self
+    }
+}
+
+
+// MARK: PathComponent
+
+extension Binding: PathComponent & _PathComponent where Value: Codable {
+    func append<Parser: PathComponentParser>(to parser: inout Parser) {
+        guard let parameter = store.wrappedValue["parameter"] as? Parameter<Value> else {
+            assertionFailure("Only bindings created from a `Parameter` or `PathParameter` can be used as a path component")
+            return
+        }
+        
+        parser.visit(parameter)
     }
 }
 
@@ -63,6 +82,7 @@ extension Binding {
     }
 }
 
+
 // MARK: Environment
 
 extension Binding {
@@ -76,11 +96,12 @@ extension Binding {
         }
         parameterId = nil
     }
-    
+
     internal static func environment<K: EnvironmentAccessible>(_ environment: Environment<K, Value>) -> Binding<Value> {
         Binding(environment: environment)
     }
 }
+
 
 // MARK: Parameter
 
@@ -102,6 +123,7 @@ extension Binding where Value: Decodable {
         Binding(parameter: parameter)
     }
 }
+
 
 // MARK: Optional Wrapping
 

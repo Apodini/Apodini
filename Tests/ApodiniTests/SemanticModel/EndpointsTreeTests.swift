@@ -28,9 +28,9 @@ final class EndpointsTreeTests: ApodiniTests {
     }
     
     struct TestHandler: Handler {
-        @Parameter(.http(.path))
+        @Binding
         var name: String
-        var nameParameter: Parameter<String> {
+        var nameBinding: Binding<String> {
             _name
         }
 
@@ -83,7 +83,7 @@ final class EndpointsTreeTests: ApodiniTests {
         XCTAssertEqual(birthdateParameter.name, "birthdate")
 
         // basic checks to ensure proper parameter parsing
-        XCTAssertEqual(nameParameter.id, testHandler.nameParameter.id)
+        XCTAssertEqual(nameParameter.id, testHandler.nameBinding.parameterId)
         XCTAssertEqual(timesParameter.id, testHandler.timesParameter.id)
         XCTAssertEqual(timesParameter.option(for: PropertyOptionKey.http), testHandler.timesParameter.option(for: PropertyOptionKey.http))
         XCTAssertEqual(birthdateParameter.id, testHandler.birthdateParameter.id)

@@ -70,7 +70,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
     }
 
     struct UserHandler: Handler {
-        @Parameter
+        @Binding
         var userId: User.ID
         @Parameter
         var name: String

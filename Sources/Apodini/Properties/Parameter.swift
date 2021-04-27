@@ -144,9 +144,3 @@ extension Parameter: RequestInjectable {
         visitor.visit(self)
     }
 }
-
-extension Parameter: _PathComponent {
-    func append<Parser: PathComponentParser>(to parser: inout Parser) {
-        parser.visit(self)
-    }
-}
