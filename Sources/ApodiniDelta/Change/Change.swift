@@ -22,6 +22,20 @@ class Change: Codable {
             && location == other.location
             && changeType == other.changeType
     }
+    
+    func change<C: _Comparable>(_ type: C.Type) -> Change? {
+        if location == C.changeLocation {
+            return self
+        }
+        return nil
+    }
+    
+    func change<C: ComparableObject>(_ comparable: C) -> Change? {
+        if location == comparable.deltaIdentifier.rawValue {
+            return self
+        }
+        return nil
+    }
 }
 
 // MARK: - Equatable

@@ -44,4 +44,32 @@ class CompositeChange: Change {
 
         return false
     }
+    
+    override func change<C: _Comparable>(_ type: C.Type) -> Change? {
+        if let _ = super.change(C.self) {
+            return self
+        }
+        
+        for change in changes {
+            if let matched = change.change(C.self) {
+                return matched
+            }
+        }
+        
+        return nil
+    }
+    
+    func flatten() -> [Change] {
+        var result: [Change] = []
+        
+        for change in changes {
+            if let change = change as? CompositeChange {
+                result.append(contentsOf: change.flatten())
+            } else {
+                result.append(change)
+            }
+        }
+        
+        return result
+    }
 }
