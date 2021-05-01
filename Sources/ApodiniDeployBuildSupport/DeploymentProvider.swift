@@ -90,8 +90,8 @@ extension DeploymentProvider {
     }
     
     
-    /// Generate a `WebServiceStructure` for this web service
-    public func generateDefaultWebServiceStructure() throws -> WebServiceStructure {
+    /// Read the web service's structure, and return it encoded as a `WebServiceStructure` object
+    public func readWebServiceStructure() throws -> WebServiceStructure {
         let fileManager = FileManager.default
         let logger = Logger(label: "ApodiniDeployCLI.Localhost")
         
@@ -144,9 +144,18 @@ extension DeploymentProvider {
         from wsStructure: WebServiceStructure,
         nodeIdProvider: (Set<ExportedEndpoint>) -> String = { _ in UUID().uuidString }
     ) throws -> Set<DeployedSystem.Node> {
+        guard wsStructure.enabledDeploymentProviders.contains(Self.identifier) else {
+            throw ApodiniDeployBuildSupportError(
+                message: """
+                Identifier of current deployment provider ('\(Self.identifier.rawValue)') not found in set of enabled deployment providers.
+                This means that the web service, once deployed, will not be able to load and initialise this deployment provider's runtime.
+                """
+            )
+        }
+        
         // a mapping from all user-defined deployment groups, to the set of
         var endpointsByDeploymentGroup = [DeploymentGroup: Set<ExportedEndpoint>](
-            uniqueKeysWithValues: wsStructure.deploymentConfig.deploymentGroups.groups.map { ($0, []) }
+            uniqueKeysWithValues: wsStructure.deploymentConfig.deploymentGroups.map { ($0, []) }
         )
         // all endpoints which didn't match any of the user-defined deployment groups
         var remainingEndpoints: Set<ExportedEndpoint> = []
@@ -178,24 +187,27 @@ extension DeploymentProvider {
             try DeployedSystem.Node(
                 id: deploymentGroup.id,
                 exportedEndpoints: endpoints,
-                userInfo: Null()
+                userInfo: nil,
+                userInfoType: Null.self
             )
         }
         
-        switch wsStructure.deploymentConfig.deploymentGroups.defaultGrouping {
+        switch wsStructure.deploymentConfig.defaultGrouping {
         case .separateNodes:
             nodes += try remainingEndpoints.map { endpoint in
                 try DeployedSystem.Node(
                     id: nodeIdProvider([endpoint]),
                     exportedEndpoints: [endpoint],
-                    userInfo: Null()
+                    userInfo: nil,
+                    userInfoType: Null.self
                 )
             }
         case .singleNode:
             nodes.insert(try DeployedSystem.Node(
                 id: nodeIdProvider(remainingEndpoints),
                 exportedEndpoints: remainingEndpoints,
-                userInfo: Null()
+                userInfo: nil,
+                userInfoType: Null.self
             ))
         }
         

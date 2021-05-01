@@ -1,5 +1,5 @@
 //
-//  DeploymentProviderRuntimeSupport.swift
+//  DeploymentProviderRuntime.swift
 //  
 //
 //  Created by Lukas Kollmer on 2021-01-01.
@@ -34,7 +34,7 @@ public enum RemoteHandlerInvocationRequestResponse<Response: Decodable> {
 /// 3. When the remote handler invocation API was used to invoke a handler, and the dispatcher determined that the handler
 ///   should be invoked remotely (i.e. not in the current process).
 ///   In this case the runtime is given the option to simply forward the invocation to some url, or implement and perform the invocation manually.
-public protocol DeploymentProviderRuntimeSupport: AnyObject {
+public protocol DeploymentProviderRuntime: AnyObject {
     /// The unique identifier of the deployment provider this runtime belongs to.
     /// - Note: This property is used to locate the correct runtime based on the deployment provider
     ///         used to create the deployment, so it has to match the corresponding CLI's `identifier` exactly.
@@ -57,7 +57,7 @@ public protocol DeploymentProviderRuntimeSupport: AnyObject {
 }
 
 
-extension DeploymentProviderRuntimeSupport {
+extension DeploymentProviderRuntime {
     /// The identifier of the deployment provider
     public var identifier: DeploymentProviderID {
         Self.identifier

@@ -8,8 +8,8 @@
 import Foundation
 
 
-public final class DeploymentOptionsNamespace: OuterNamespace {
-    public static let id: String = "DeploymentOptions"
+public struct DeploymentOptionsNamespace: OuterNamespace {
+    public static let identifier: String = "DeploymentOptions"
 }
 
 
@@ -19,9 +19,9 @@ public typealias DeploymentOptions = CollectedOptions<DeploymentOptionsNamespace
 public typealias AnyDeploymentOption = AnyOption<DeploymentOptionsNamespace>
 
 
-public final class BuiltinDeploymentOptionsNamespace: InnerNamespace {
+public struct BuiltinDeploymentOptionsNamespace: InnerNamespace {
     public typealias OuterNS = DeploymentOptionsNamespace
-    public static let id: String = "org.apodini"
+    public static let identifier: String = "org.apodini"
 }
 
 
@@ -69,7 +69,7 @@ public struct TimeoutValue: OptionValue, RawRepresentable {
 
 public extension OptionKey where InnerNS == BuiltinDeploymentOptionsNamespace, Value == MemorySize {
     /// The option key used to specify a memory size option
-    static let memorySize = OptionKeyWithDefaultValue<DeploymentOptionsNamespace, BuiltinDeploymentOptionsNamespace, MemorySize>(
+    static let memorySize = OptionKeyWithDefaultValue<BuiltinDeploymentOptionsNamespace, MemorySize>(
         key: "memorySize",
         defaultValue: .mb(128)
     )
@@ -78,7 +78,7 @@ public extension OptionKey where InnerNS == BuiltinDeploymentOptionsNamespace, V
 
 public extension OptionKey where InnerNS == BuiltinDeploymentOptionsNamespace, Value == TimeoutValue {
     /// The option key used to specify a timeout option
-    static let timeout = OptionKeyWithDefaultValue<DeploymentOptionsNamespace, BuiltinDeploymentOptionsNamespace, TimeoutValue>(
+    static let timeout = OptionKeyWithDefaultValue<BuiltinDeploymentOptionsNamespace, TimeoutValue>(
         key: "timeout",
         defaultValue: .seconds(4)
     )

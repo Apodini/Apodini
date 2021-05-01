@@ -168,8 +168,8 @@
         "repositoryURL": "https://github.com/OpenKitten/MongoKitten.git",
         "state": {
           "branch": null,
-          "revision": "42e99850fe5ff213b68a75001ad52d20db47a9dc",
-          "version": "6.6.5"
+          "revision": "8a98326aca11c29d87a8bf1538679bb5ad9fd733",
+          "version": "6.6.6"
         }
       },
       {
@@ -177,8 +177,8 @@
         "repositoryURL": "https://github.com/vapor/multipart-kit.git",
         "state": {
           "branch": null,
-          "revision": "73706f1883f2ba950d41f18aec7e3a53766d4a6d",
-          "version": "4.0.0"
+          "revision": "08588dc4233ad4bea8aa91fa275342276a12ad19",
+          "version": "4.0.1"
         }
       },
       {
@@ -240,8 +240,8 @@
         "repositoryURL": "https://github.com/vapor/postgres-nio.git",
         "state": {
           "branch": null,
-          "revision": "fa93d76b3fcddcd62a996d645a7971f2003c9b84",
-          "version": "1.5.1"
+          "revision": "33eea144f465a48b17f4c63573c40d33824fdde4",
+          "version": "1.5.2"
         }
       },
       {
@@ -258,8 +258,8 @@
         "repositoryURL": "https://github.com/vapor/routing-kit.git",
         "state": {
           "branch": null,
-          "revision": "4cf052b78aebaf1b23f2264ce04d57b4b6eb5254",
-          "version": "4.2.0"
+          "revision": "dab93b6b90caa6501a2d30f81bad8052c18d97fb",
+          "version": "4.2.1"
         }
       },
       {
@@ -276,8 +276,8 @@
         "repositoryURL": "https://github.com/soto-project/soto.git",
         "state": {
           "branch": null,
-          "revision": "d4bdc1cdd2422ab6058bb2cec04b3fbc7ded14e2",
-          "version": "5.3.0"
+          "revision": "f3896f1d87c906604b52f802ede695469f9c1e4f",
+          "version": "5.4.0"
         }
       },
       {
@@ -339,8 +339,8 @@
         "repositoryURL": "https://github.com/apple/swift-argument-parser",
         "state": {
           "branch": null,
-          "revision": "831ed5e860a70e745bc1337830af4786b2576881",
-          "version": "0.4.1"
+          "revision": "47bd06ebeff8146ecd0020809e186218b46f465f",
+          "version": "0.4.2"
         }
       },
       {
@@ -357,8 +357,8 @@
         "repositoryURL": "https://github.com/swift-server/swift-backtrace.git",
         "state": {
           "branch": null,
-          "revision": "93b3d9a76454e05379a32a2f3b2a1f5a7794b414",
-          "version": "1.2.1"
+          "revision": "54a65d6391a1467a896d0d351ff2de6f469ee53c",
+          "version": "1.2.3"
         }
       },
       {
@@ -447,8 +447,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "18dcf59b7b18c671cb540b11d716141c8e54ee5b",
-          "version": "4.41.11"
+          "revision": "5c3f1703cdce2cbced837d07aae6d1a897abf0b9",
+          "version": "4.44.1"
         }
       },
       {
@@ -474,8 +474,8 @@
         "repositoryURL": "https://github.com/jpsim/Yams.git",
         "state": {
           "branch": null,
-          "revision": "4ec0a3c5d6a2446667a2b22c8c7d0fc82dd1d3de",
-          "version": "4.0.5"
+          "revision": "9ff1cc9327586db4e0c8f46f064b6a82ec1566fa",
+          "version": "4.0.6"
         }
       }
     ]

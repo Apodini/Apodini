@@ -58,7 +58,7 @@ public struct DeploymentGroup: Codable, Hashable, Equatable {
 }
 
 
-public struct DeploymentGroupsConfig: Codable {
+public struct DeploymentConfig: Codable {
     public enum DefaultGrouping: Int, Codable {
         /// Every handler which is not explicitly put in a group will get its own group
         case separateNodes
@@ -66,19 +66,10 @@ public struct DeploymentGroupsConfig: Codable {
         case singleNode
     }
     public let defaultGrouping: DefaultGrouping
-    public let groups: Set<DeploymentGroup>
+    public let deploymentGroups: Set<DeploymentGroup>
     
-    public init(defaultGrouping: DefaultGrouping = .separateNodes, groups: Set<DeploymentGroup> = []) {
+    public init(defaultGrouping: DefaultGrouping = .separateNodes, deploymentGroups: Set<DeploymentGroup> = []) {
         self.defaultGrouping = defaultGrouping
-        self.groups = groups
-    }
-}
-
-
-public struct DeploymentConfig: Codable {
-    public let deploymentGroups: DeploymentGroupsConfig
-    
-    public init(deploymentGroups: DeploymentGroupsConfig = .init()) {
         self.deploymentGroups = deploymentGroups
     }
 }

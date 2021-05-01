@@ -17,11 +17,11 @@ public struct ApodiniDeployConfiguration: Apodini.Configuration {
         typealias Value = ApodiniDeployConfiguration
     }
     
-    let runtimes: [DeploymentProviderRuntimeSupport.Type]
+    let runtimes: [DeploymentProviderRuntime.Type]
     let config: DeploymentConfig
     
     public init(
-        runtimes: [DeploymentProviderRuntimeSupport.Type] = [],
+        runtimes: [DeploymentProviderRuntime.Type] = [],
         config: DeploymentConfig = .init()
     ) {
         self.runtimes = runtimes
