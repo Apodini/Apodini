@@ -6,6 +6,45 @@
 //
 
 import Apodini
+@_implementationOnly import ApodiniOpenAPI
+
+struct DeltaPath {
+    static let separator = "/"
+    
+    var components: [String]
+    
+    init() {
+        components = []
+    }
+    
+    mutating func append(_ component: String) {
+        components.append(component)
+    }
+    
+    func absolutePath() -> String {
+        components.joined(separator: Self.separator)
+    }
+    
+    func pallidorEndpointName() -> PallidorEndpointName {
+        .init(components.dropFirst().first ?? absolutePath())
+    }
+}
+
+struct DeltaPathBuilder: PathBuilderWithResult {
+    var deltaPath = DeltaPath()
+
+    mutating func append(_ string: String) {
+        deltaPath.append(string)
+    }
+
+    mutating func append<Type: Codable>(_ parameter: EndpointPathParameter<Type>) {
+        deltaPath.append("{\(parameter.name)}")
+    }
+
+    func result() -> DeltaPath {
+        deltaPath
+    }
+}
 
 /// Holds the list of all registered handlers and all schemas
 struct WebServiceStructure {
@@ -26,18 +65,23 @@ struct WebServiceStructure {
         if version == nil {
             version = endpoint.context.get(valueFor: APIVersionContextKey.self)
         }
-
+        
+        let operationName = endpoint.context.get(valueFor: PallidorContextKey.self) ?? endpoint.description
+        let deltaPath = endpoint.absolutePath.build(with: DeltaPathBuilder.self)
+        
         let parameters = endpoint.parameters.serviceParameters(with: &schemaBuilder)
-
+        
         let response = schemaBuilder.build(for: endpoint.responseType) ?? .empty
 
         let service = Service(
             handlerName: endpoint.description,
             handlerIdentifier: endpoint.identifier,
             operation: endpoint.operation,
-            absolutePath: endpoint.absolutePath,
+            absolutePath: deltaPath.absolutePath(),
             parameters: parameters,
-            response: response
+            response: response,
+            operationName: operationName,
+            endpointName: deltaPath.pallidorEndpointName()
         )
 
         services.append(service)

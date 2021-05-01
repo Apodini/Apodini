@@ -14,8 +14,4 @@ extension Encodable {
         let data = (try? encoder.encode(self)) ?? Data()
         return String(decoding: data, as: UTF8.self)
     }
-
-    func printJSONString() {
-        print(json)
-    }
 }

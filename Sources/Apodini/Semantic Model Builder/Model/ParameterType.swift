@@ -21,15 +21,6 @@ public enum ParameterType: String, Codable {
 
 extension ParameterType: CustomStringConvertible {
     public var description: String {
-        switch self {
-        case .lightweight:
-            return "lightweight"
-        case .content:
-            return "content"
-        case .path:
-            return "path"
-        case .header:
-            return "header"
-        }
+        rawValue
     }
 }

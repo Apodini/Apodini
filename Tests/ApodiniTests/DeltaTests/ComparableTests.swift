@@ -106,8 +106,6 @@ final class ComparableTests: XCTestCase {
             ]
         )
 
-        change.printJSONString()
-
         XCTAssertEqual(change, expectedResult)
     }
 }

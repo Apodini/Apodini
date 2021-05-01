@@ -10,6 +10,8 @@ import Foundation
 extension Apodini.Operation: ComparableProperty {}
 class ServicePath: PropertyValueWrapper<String> {}
 class HandlerName: PropertyValueWrapper<String> {}
+class PallidorOperationName: PropertyValueWrapper<String> {}
+class PallidorEndpointName: PropertyValueWrapper<String> {}
 
 /// Represents an endpoint
 struct Service {
@@ -30,21 +32,32 @@ struct Service {
 
     /// Schema name of the response type of the endpoint
     let response: SchemaName
+    
+    /// Name of the operation specified via `.pallidor(_:)` modified
+    let operationName: PallidorOperationName
+    
+    /// The first path component of the endpoint after dropping the version
+    /// e.g. `/v1/users` -> `users`. Used in Pallidor to group endpoints in one file
+    let endpointName: PallidorEndpointName
 
     init(
         handlerName: String,
         handlerIdentifier: AnyHandlerIdentifier,
         operation: Apodini.Operation,
-        absolutePath: [EndpointPath],
+        absolutePath: String,
         parameters: [ServiceParameter],
-        response: SchemaName
+        response: SchemaName,
+        operationName: String,
+        endpointName: PallidorEndpointName
     ) {
         self.handlerName = .init(handlerName)
         self.handlerIdentifier = handlerIdentifier
         self.operation = operation
-        self.absolutePath = .init(absolutePath.asPathString())
+        self.absolutePath = .init(absolutePath)
         self.parameters = parameters
         self.response = response
+        self.operationName = .init(operationName)
+        self.endpointName = endpointName
     }
 }
 
@@ -62,6 +75,8 @@ extension Service: ComparableObject {
             operation.change(in: context),
             absolutePath.change(in: context),
             parameters.evaluate(node: context),
+            operationName.change(in: context),
+            endpointName.change(in: context),
             response.change(in: context)
         ].compactMap { $0 }
 
@@ -79,5 +94,7 @@ extension Service: ComparableObject {
             .register(compare(\.absolutePath, with: other), for: ServicePath.self)
             .register(result: compare(\.parameters, with: other), for: ServiceParameter.self)
             .register(compare(\.response, with: other), for: SchemaName.self)
+            .register(compare(\.operationName, with: other), for: PallidorOperationName.self)
+            .register(compare(\.endpointName, with: other), for: PallidorEndpointName.self)
     }
 }
