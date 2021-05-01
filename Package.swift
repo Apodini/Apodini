@@ -30,7 +30,7 @@ let package = Package(
         .library(name: "DeploymentTargetLocalhostRuntimeSupport", targets: ["DeploymentTargetLocalhostRuntimeSupport"]),
         .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"]),
         
-        .executable(name: "ApodiniDelta", targets: ["ApodiniDelta"])
+        .library(name: "ApodiniDelta", targets: ["ApodiniDelta"])
     ],
     dependencies: [
         //.package(name: "ApodiniDeploy", path: "./ApodiniDeploy"),
