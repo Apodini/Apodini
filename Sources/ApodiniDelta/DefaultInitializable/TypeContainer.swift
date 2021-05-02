@@ -63,7 +63,8 @@ enum TypeContainer {
         case .enum(cases: let cases):
             return cases.first?.asString ?? "{}"
         case .complex(properties: let properties):
-            return "{\(properties.map { $0.name.asString + ": \($0.type.jsonString)" }.joined(separator: ", "))}"
+            let sorted = properties.sorted { $0.name < $1.name }
+            return "{\(sorted.map { $0.name.asString + ": \($0.type.jsonString)" }.joined(separator: ", "))}"
         default: return defaultInitializableType?.jsonString ?? "{}"
         }
     }

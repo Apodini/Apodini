@@ -7,8 +7,8 @@
 
 import Foundation
 import Apodini
-import ApodiniOpenAPI
-import ApodiniVaporSupport
+@_implementationOnly import ApodiniOpenAPI
+@_implementationOnly import ApodiniVaporSupport
 
 public final class DeltaInterfaceExporter: StaticInterfaceExporter {
     public static var parameterNamespace: [ParameterNamespace] = .individual

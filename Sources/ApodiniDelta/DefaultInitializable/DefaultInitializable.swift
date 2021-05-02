@@ -48,12 +48,26 @@ extension String: DefaultInitializable {
 
 extension UUID: DefaultInitializable {
     static var jsonString: String {
-        defaultValue.uuidString.asString
+        test.uuidString.asString
+    }
+    
+    static var test: UUID {
+        UUID(uuidString: "3070B293-C664-412B-A43E-21FF445608B7") ?? UUID()
     }
 }
 extension Date: DefaultInitializable {
+    var noon: Date {
+        guard let date = Calendar(identifier: .gregorian).date(bySettingHour: 12, minute: 0, second: 0, of: self) else {
+            return self
+        }
+        return date
+    }
+    
+    static var test: Date {
+        Date().noon
+    }
     static var jsonString: String {
-        DateFormatter.iSO8601DateFormatter.string(from: Date()).asString
+        DateFormatter.iSO8601DateFormatter.string(from: test).asString
     }
 }
 extension Data: DefaultInitializable {
