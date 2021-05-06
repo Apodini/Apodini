@@ -15,28 +15,6 @@ defaults:
     working-directory: TestWebService
 
 jobs:
-  macos:
-    name: macOS ${{ matrix.configuration }} test TestWebService
-    runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        configuration: [debug, release]
-    steps:
-    - uses: actions/checkout@v2
-    - uses: maxim-lobanov/setup-xcode@v1.1
-      with:
-        xcode-version: latest
-    - uses: actions/cache@v2
-      with:
-        path: TestWebService/.build
-        key: ${{ runner.os }}-spm-cache-${{ hashFiles('TestWebService/Package.resolved') }}
-    - name: Check Xcode version
-      run: xcodebuild -version
-    - name: Check Swift version
-      run: swift --version
-    - name: Build & Test
-      run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} test TestWebService
     container:
