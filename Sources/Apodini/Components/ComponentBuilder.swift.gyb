@@ -5,7 +5,7 @@
     maximumNumberOfComponents = 100
 }%
 
-@resultBuilder
+@_functionBuilder
 public struct ComponentBuilder {
     public static func buildIf<T: Component>(_ component: T?) -> T? {
         return component
