@@ -15,8 +15,6 @@ import XCTApodini
 
 class ComponentTests: ApodiniTests {
     func testPreconditionTypeIsStruct() throws {
-        XCTFail()
-        
         class TestClass {}
         XCTAssertRuntimeFailure(preconditionTypeIsStruct(TestClass.self))
         

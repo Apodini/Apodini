@@ -11,7 +11,7 @@ public struct FirebaseConfiguration: Configuration {
         guard let json = try? String(contentsOf: filePath) else {
             fatalError("Could not read the FCMConfiguration from the file located at \(filePath)")
         }
-        self.configuration = FCMConfiguration.init(fromJSON: json)
+        self.configuration = FCMConfiguration(fromJSON: json)
     }
     
     
