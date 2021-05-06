@@ -40,4 +40,4 @@ jobs:
       run: swift build --configuration ${{ matrix.configuration }}
     - name: Build & Test
       if: matrix.configuration == 'debug'
-      run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
+      run: swift test --configuration ${{ matrix.configuration }}
