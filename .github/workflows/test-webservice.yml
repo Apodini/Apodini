@@ -19,7 +19,7 @@ jobs:
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} test TestWebService
     container:
-      image: swift:${{ matrix.linux }}
+      image: swift:5.3-${{ matrix.linux }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
