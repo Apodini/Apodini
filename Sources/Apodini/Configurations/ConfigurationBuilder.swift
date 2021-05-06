@@ -1,5 +1,5 @@
 /// A function builder used to aggregate multiple `Configuration`s
-@_functionBuilder
+@resultBuilder
 public enum ConfigurationBuilder {
     /// A method that transforms multiple `Configuration`s
     ///

@@ -1,5 +1,5 @@
 //
-//  main.swift
+//  LambdaDeploymentProviderCLI.swift
 //  
 //
 //  Created by Lukas Kollmer on 2021-01-18.
@@ -30,12 +30,13 @@ private func _findExecutable(_ name: String) throws -> URL {
     return url
 }
 
-let dockerBin = try _findExecutable("docker")
-let zipBin = try _findExecutable("zip")
+let dockerBin = try! _findExecutable("docker")
+let zipBin = try! _findExecutable("zip")
 
 let logger = Logger(label: "de.lukaskollmer.ApodiniLambda")
 
 
+@main
 struct LambdaDeploymentProviderCLI: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "AWS Lambda Apodini deployment provider",
@@ -311,6 +312,3 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         }
     }
 }
-
-
-LambdaDeploymentProviderCLI.main()

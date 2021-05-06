@@ -258,8 +258,8 @@
         "repositoryURL": "https://github.com/soto-project/soto.git",
         "state": {
           "branch": null,
-          "revision": "f3896f1d87c906604b52f802ede695469f9c1e4f",
-          "version": "5.4.0"
+          "revision": "bc693b36e046d9f65e5a5cefe3036a37ebbbd19d",
+          "version": "5.5.0"
         }
       },
       {
@@ -267,8 +267,8 @@
         "repositoryURL": "https://github.com/soto-project/soto-core.git",
         "state": {
           "branch": null,
-          "revision": "3d88f52213691a68608c1842edb0921f9b5ccd9f",
-          "version": "5.2.2"
+          "revision": "8691bc43e7db6098c8a84e0407e23581b041b64e",
+          "version": "5.3.0"
         }
       },
       {
@@ -429,8 +429,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "ad3fb7f87d47eaca4d97bf515c0d7e93093b38ad",
-          "version": "4.44.4"
+          "revision": "07a105b295a0b191e69761feede58edb2ebeb580",
+          "version": "4.45.0"
         }
       },
       {
