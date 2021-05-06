@@ -95,7 +95,6 @@ struct BlockHandler<T: Apodini.ResponseTransformable>: Handler {
 }
 
 
-@main
 struct WebService: Apodini.WebService {
     var content: some Component {
         Group("rand") {
@@ -126,3 +125,4 @@ struct WebService: Apodini.WebService {
     }
 }
 
+try WebService.main()

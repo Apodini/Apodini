@@ -14,7 +14,6 @@ import DeploymentTargetLocalhostCommon
 import OpenAPIKit
 
 
-@main
 private struct LocalhostDeploymentProviderCLI: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Localhost Apodini deployment provider",
@@ -136,3 +135,5 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         return
     }
 }
+
+LocalhostDeploymentProviderCLI.main()

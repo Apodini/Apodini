@@ -1,4 +1,4 @@
-// swift-tools-version:5.4
+// swift-tools-version:5.3
 
 import PackageDescription
 
@@ -308,7 +308,7 @@ let package = Package(
         ),
         
         
-        .executableTarget(
+        .target(
             name: "ApodiniDeployTestWebService",
             dependencies: [
                 .target(name: "Apodini"),
@@ -371,7 +371,7 @@ let package = Package(
                 .product(name: "XCTVapor", package: "vapor")
             ]
         ),
-        .executableTarget(
+        .target(
             name: "DeploymentTargetLocalhost",
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
@@ -397,7 +397,7 @@ let package = Package(
             ]
         ),
 
-        .executableTarget(
+        .target(
             name: "DeploymentTargetAWSLambda",
             dependencies: [
                 .target(name: "DeploymentTargetAWSLambdaCommon"),

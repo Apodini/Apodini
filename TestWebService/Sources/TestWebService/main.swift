@@ -13,7 +13,6 @@ import ApodiniOpenAPI
 import ApodiniWebSocket
 
 
-@main
 struct TestWebService: Apodini.WebService {
     let greeterRelationship = Relationship(name: "greeter")
 
@@ -45,3 +44,5 @@ struct TestWebService: Apodini.WebService {
             .exporter(WebSocketInterfaceExporter.self)
     }
 }
+
+try TestWebService.main()
