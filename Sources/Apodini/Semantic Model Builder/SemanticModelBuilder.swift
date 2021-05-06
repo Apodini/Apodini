@@ -54,51 +54,49 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         let guards = context.get(valueFor: GuardContextKey.self).allActiveGuards.inject(app: app)
         let responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self).inject(app: app)
         
-        let internalDependencies: [ContentModule.Type] = [AnyHandlerIdentifier.self, Operation.self, HandlerDescription.self, ResponseType.self, Context.self, EndpointParameters.self, ReferenceModule.self, EndpointPathModule.self, TypeIndexModule<Global>.self]
+        // GlobalBlackboard's content lives on the app's `Store`, this is only a wrapper for accessing it
+        let globalBlackboard = GlobalBlackboard<LazyHashmapBlackboard>(app)
         
-        do {
-            let store = try ContentModuleStore(.fixed(interfaceExporters.flatMap { exporter in exporter.dependencies } + internalDependencies), for: handler, using: context, app)
+        let localBlackboard = LocalBlackboard<LazyHashmapBlackboard, GlobalBlackboard<LazyHashmapBlackboard>>(globalBlackboard, using: handler, context)
+        
+        // TODO: remove once TypeIndexModule is deprecated
+        localBlackboard[Application.self] = app
             
-            let paths = context.get(valueFor: PathComponentContextKey.self)
-            
+        let paths = context.get(valueFor: PathComponentContextKey.self)
+        
 
-            let partialCandidates = context.get(valueFor: RelationshipSourceCandidateContextKey.self)
-            let relationshipSources = context.get(valueFor: RelationshipSourceContextKey.self)
-            let relationshipDestinations = context.get(valueFor: RelationshipDestinationContextKey.self)
+        let partialCandidates = context.get(valueFor: RelationshipSourceCandidateContextKey.self)
+        let relationshipSources = context.get(valueFor: RelationshipSourceContextKey.self)
+        let relationshipDestinations = context.get(valueFor: RelationshipDestinationContextKey.self)
 
-            var endpoint = Endpoint(
-                handler: handler,
-                content: store,
-                guards: guards,
-                responseTransformers: responseTransformers
-            )
+        var endpoint = Endpoint(
+            handler: handler,
+            blackboard: localBlackboard,
+            guards: guards,
+            responseTransformers: responseTransformers
+        )
 
-            webService.addEndpoint(&endpoint, at: paths)
-            // The `ReferenceModule` and `EndpointPathModule` cannot be implemented using one of the standard
-            // `ContentModule` protocols as they depend on the `WebServiceModel`. This should change
-            // once the latter was ported to the `ContentModule` pattern.
-            endpoint.content[ReferenceModule.self].inject(reference: endpoint.reference)
-            endpoint.content[EndpointPathModule.self].inject(absolutePath: endpoint.absolutePath)
-            
+        webService.addEndpoint(&endpoint, at: paths)
+        // The `ReferenceModule` and `EndpointPathModule` cannot be implemented using one of the standard
+        // `ContentModule` protocols as they depend on the `WebServiceModel`. This should change
+        // once the latter was ported to the `ContentModule` pattern.
+        endpoint[ReferenceModule.self].inject(reference: endpoint.reference)
+        endpoint[EndpointPathModule.self].inject(absolutePath: endpoint.absolutePath)
+        
 
-            // calling the addEndpoint first, triggers the Operation uniqueness check
-            // and we will have less problems with that in the TypeIndex Builder and Relationship Builders.
-            // Additionally, addEndpoint may cause a insertion of a additional path parameter,
-            // which makes it necessary to be called before any operation relying on the path of the Endpoint.
+        // calling the addEndpoint first, triggers the Operation uniqueness check
+        // and we will have less problems with that in the TypeIndex Builder and Relationship Builders.
+        // Additionally, addEndpoint may cause a insertion of a additional path parameter,
+        // which makes it necessary to be called before any operation relying on the path of the Endpoint.
 
-            relationshipBuilder.collect(
-                endpoint: endpoint,
-                candidates: partialCandidates,
-                sources: relationshipSources,
-                destinations: relationshipDestinations
-            )
-            // Access `TypeIndexModule` here so it is acutally created and the endpoint is registered.
-            _ = endpoint.content[TypeIndexModule<Global>.self]
-        } catch {
-            fatalError("""
-                Handler '\(handler)' cannot be exported. The configured exporters' dependencies could not be satisfied: \(error)
-            """)
-        }
+        relationshipBuilder.collect(
+            endpoint: endpoint,
+            candidates: partialCandidates,
+            sources: relationshipSources,
+            destinations: relationshipDestinations
+        )
+        // Access `TypeIndexModule` here so it is acutally created and the endpoint is registered.
+        _ = endpoint[TypeIndexModule<Global>.self]
     }
 
     func finishedRegistration() {

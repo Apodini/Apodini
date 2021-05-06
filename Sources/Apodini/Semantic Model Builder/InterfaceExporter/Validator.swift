@@ -90,7 +90,7 @@ private class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
     ) {
         self.exporter = exporter
         self.endpoint = endpoint
-        self.validators = endpoint.content[EndpointParameters.self].map { parameter in
+        self.validators = endpoint[EndpointParameters.self].map { parameter in
             (parameter.id, parameter.toInternal().representative(for: exporter))
         }
     }

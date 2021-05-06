@@ -8,17 +8,7 @@
 import Foundation
 import SwiftGraph
 
-/// A `TruthAnchor` is a type that `ContentModule`s can refer to for establishing a sense of identity.
-/// E.g. a `RelationshipModule<RESTInterfaceExporter>` and a
-/// `RelationshipModule<GraphQLInterfaceExporter>` could collect different content. However,
-/// the OpenAPI exporter would want to export the exact same information as the REST exporter. Thus,
-/// the OpenAPI exporter would use `RelationshipModule<RESTInterfaceExporter>`, too.
-/// For that to work both `RESTInterfaceExporter` and `GraphQLInterfaceExporter` must conform
-/// to `TrustAnchor`.
-/// - Note: This is not particularely helpful yet, since we always expose the **whole** service definition to all
-/// exporters. However, one could envision a `.hide(from exporter: TruthAnchor.Type)` modifier on
-/// `Component`s, where this feature becomes crucial.
-public protocol TruthAnchor { }
+
 
 // MARK: ContentModule
 public protocol ContentModule {
@@ -26,14 +16,20 @@ public protocol ContentModule {
 }
 
 // MARK: DependencyBased Module
-public protocol DependencyBased: ContentModule {
+public protocol DependencyBased: ContentModule, KnowledgeSource {
     init(from store: ModuleStore) throws
+}
+
+extension DependencyBased {
+    public init<B>(_ blackboard: B) throws where B : Blackboard {
+        try self.init(from: BlackboardStore(board: blackboard))
+    }
 }
 
 // MARK: _HandlerBased Module
 
 // TODO: break up into input/ouput types, so that traversal/reflection is hidden
-public protocol _HandlerBased: ContentModule {
+public protocol _HandlerBased: ContentModule, HandlerBasedKnowledgeSource {
     init<H: Handler>(from handler: H) throws
 }
 
@@ -43,8 +39,14 @@ extension _HandlerBased {
 
 // MARK: ContextBased Module
 
-public protocol AnyContextBased: ContentModule {
+public protocol AnyContextBased: ContentModule, KnowledgeSource {
     init(from context: Context) throws
+}
+
+extension AnyContextBased {
+    public init<B>(_ blackboard: B) throws where B : Blackboard {
+        try self.init(from: blackboard[AnyEndpointSource.self].context)
+    }
 }
 
 public protocol OptionalContextBased: AnyContextBased {
@@ -73,7 +75,7 @@ extension ContextBased {
 
 // MARK: ApplicationBased Module
 
-public protocol ApplicationBased: ContentModule {
+public protocol ApplicationBased: ContentModule, KnowledgeSource {
     init(from application: Application) throws
 }
 
@@ -81,94 +83,11 @@ extension ApplicationBased {
     public static var dependencies: [ContentModule.Type] { [] }
 }
 
-
-// MARK: ContentModuleGraph
-
-public extension Collection where Element == ContentModule.Type {
-    func satisfiableModuleSequence() throws -> [ContentModule.Type] {
-        return try ContentModuleGraph(modules: Array(self)).satisfiableModuleSequence()
+extension ApplicationBased {
+    public init<B>(_ blackboard: B) throws where B : Blackboard {
+        try self.init(from: blackboard[Application.self])
     }
 }
-
-private class ContentModuleGraph {
-    private struct Vertex: Hashable, Codable {
-        let content: ContentModule.Type
-        let id: ObjectIdentifier
-        
-        internal init(_ content: ContentModule.Type) {
-            self.id = ObjectIdentifier(content)
-            self.content = content
-        }
-        
-        init(from decoder: Decoder) throws {
-            throw ContentModuleError.decodingNotSupported
-        }
-        
-        func encode(to encoder: Encoder) throws {
-            try "\(content)".encode(to: encoder)
-        }
-        
-        func hash(into hasher: inout Hasher) {
-            id.hash(into: &hasher)
-        }
-        
-        static func == (lhs: Vertex, rhs: Vertex) -> Bool {
-            lhs.content == rhs.content
-        }
-    }
-    
-    
-    private let graph: UnweightedGraph<Vertex>
-    
-    init(modules: [ContentModule.Type]) {
-        var unique = [ContentModule.Type]()
-        modules.unique(in: &unique)
-        
-        let graph = UnweightedGraph(vertices: unique.map { content in Vertex(content) })
-        
-        Self.addEdges(of: modules, to: graph)
-        
-        self.graph = graph
-    }
-    
-    func satisfiableModuleSequence() throws -> [ContentModule.Type] {
-        let sortingResult = graph.topologicalSort()
-        
-        guard let sorted = sortingResult else {
-            throw ContentModuleError.dependencyCycle(graph.detectCycles().map { cycle in cycle.map { vertex in vertex.content } })
-        }
-        
-        return sorted.map { vertex in vertex.content }
-    }
-    
-    private static func addEdges(of modules: [ContentModule.Type], to graph: UnweightedGraph<Vertex>) {
-        for m in modules {
-            for d in m.dependencies {
-                graph.addEdge(from: Vertex(m), to: Vertex(d), directed: true)
-            }
-            Self.addEdges(of: m.dependencies, to: graph)
-        }
-    }
-    
-}
-
-enum ContentModuleError: Error {
-    case dependencyCycle([[ContentModule.Type]])
-    case decodingNotSupported
-    case dependencyNotAvailable(ContentModule.Type)
-}
-
-private extension Collection where Element == ContentModule.Type {
-    func unique(in buffer: inout [Element]) {
-        for module in self {
-            if !buffer.contains(where: { m in m == module }) {
-                buffer.append(module)
-                module.dependencies.unique(in: &buffer)
-            }
-        }
-    }
-}
-
 
 // MARK: AnyInterfaceExporter Conformance
 
@@ -196,126 +115,8 @@ private class ContentModuleExtractor: InterfaceExporterVisitor {
 // MARK: Module Store
 
 public protocol ModuleStore {
-    subscript<M: ContentModule>(index: M.Type) -> M { get }
-}
-
-enum ContentModuleStoreEvaluationStrategy {
-    /// Any mode is intended for prototyping and testing. Errors thrown by the modules
-    /// are escalated to fatalErrors.
-    case any
-    /// Only the provided list of modules is initilaizted. Trying to initialize a different module
-    /// causes a fatalError.
-    case fixed([ContentModule.Type])
-}
-
-class ContentModuleStore: ModuleStore {
-    private struct Identifier: Hashable {
-        let content: ContentModule.Type
-        let id: ObjectIdentifier
-        
-        internal init(_ content: ContentModule.Type) {
-            self.id = ObjectIdentifier(content)
-            self.content = content
-        }
-        
-        func hash(into hasher: inout Hasher) {
-            id.hash(into: &hasher)
-        }
-        
-        static func == (lhs: Identifier, rhs: Identifier) -> Bool {
-            lhs.content == rhs.content
-        }
-    }
-    
-    private var store: [Identifier: ContentModule] = [:]
-    
-    private let resolve: (ContentModule.Type, ContentModuleStore) throws -> ContentModule?
-    
-    init<H: Handler>(
-        _ strategy: ContentModuleStoreEvaluationStrategy = .any,
-        for handler: H,
-        using context: Context,
-        _ application: Application?) throws {
-        
-        switch strategy {
-        case .any:
-            self.resolve = { type, store throws in
-                let requirements = try ([type] as [ContentModule.Type]).satisfiableModuleSequence()
-                try store.initialize(requirements, handler: handler, context: context, application: application)
-                return store.store[Identifier(type)]
-            }
-        case let .fixed(modules):
-            let requirements = Set(try modules.satisfiableModuleSequence().map(Identifier.init))
-            self.resolve = { type, store in
-                guard requirements.contains(Identifier(type)) else {
-                    throw ContentModuleError.dependencyNotAvailable(type)
-                }
-                
-                let requirements = try ([type] as [ContentModule.Type]).satisfiableModuleSequence()
-                try store.initialize(requirements, handler: handler, context: context, application: application)
-                return store.store[Identifier(type)]
-            }
-        }
-    }
-    
-    public subscript<M: ContentModule>(index: M.Type) -> M {
-        get {
-            do {
-                let module = try self.resolve(index, self)!
-                return module as! M
-            } catch {
-                fatalError("ContentModuleStore could not retrieve module \(index): \(error)")
-            }
-        }
-    }
-    
-    private func initialize<H: Handler>(_ requirements: [ContentModule.Type], handler: H, context: Context, application: Application?) throws {
-        let requirements = try requirements.satisfiableModuleSequence()
-        for requirement in requirements {
-            if store[Identifier(requirement)] == nil {
-                switch requirement {
-                case let type as _HandlerBased.Type:
-                    store[Identifier(requirement)] = try type.init(from: handler)
-                case let type as DependencyBased.Type:
-                    store[Identifier(requirement)] = try type.init(from: ModuleStoreView(store: self, viewer: type))
-                case let type as AnyContextBased.Type:
-                    store[Identifier(requirement)] = try type.init(from: context)
-                case let type as ApplicationBased.Type:
-                    store[Identifier(requirement)] = try type.init(from: application!)
-                default:
-                    fatalError("Cannot initialize unknown 'ContentModule' '\(requirement)'.")
-                }
-            }
-        }
-    }
-}
-
-struct ModuleStoreView: ModuleStore {
-    let store: ModuleStore
-    let viewer: DependencyBased.Type
-    
-    public subscript<M>(index: M.Type) -> M where M : ContentModule {
-        guard viewer.dependencies.contains(where: { d in d == index }) else {
-            fatalError("\(viewer) tried to access dependency that is not listed in its 'dependencies' property.")
-        }
-        return store[index]
-    }
-}
-
-public class MockModuleStore: ModuleStore {
-    
-    private let content: [ObjectIdentifier: ContentModule]
-    
-    public init(_ contents: (ContentModule.Type, ContentModule)...) {
-        var c = [ObjectIdentifier: ContentModule]()
-        for content in contents {
-            c[ObjectIdentifier(content.0)] = content.1
-        }
-        self.content = c
-    }
-    
-    public subscript<M>(index: M.Type) -> M where M : ContentModule {
-        content[ObjectIdentifier(index)]! as! M
-    }
-    
+    subscript<M: _HandlerBased>(index: M.Type) -> M { get }
+    subscript<M: ApplicationBased>(index: M.Type) -> M { get }
+    subscript<M: AnyContextBased>(index: M.Type) -> M { get }
+    subscript<M: DependencyBased>(index: M.Type) -> M { get }
 }

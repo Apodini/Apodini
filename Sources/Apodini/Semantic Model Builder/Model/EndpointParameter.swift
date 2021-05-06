@@ -250,7 +250,7 @@ extension EndpointParameter: LosslessStringConvertibleEndpointParameter where Ty
 
 typealias EndpointParameters = [AnyEndpointParameter]
 
-extension EndpointParameters: _HandlerBased, ContentModule {
+extension EndpointParameters: _HandlerBased, ContentModule, HandlerBasedKnowledgeSource, KnowledgeSource {
     public init<H>(from handler: H) throws where H : Handler {
         self = handler.buildParametersModel()
     }

@@ -25,10 +25,17 @@ extension Handler {
             guards = guards.inject(app: application)
             responseTransformers = responseTransformers.inject(app: application)
         }
+        
+        var blackboard: Blackboard
+        if let application = app {
+            blackboard = LocalBlackboard<LazyHashmapBlackboard, GlobalBlackboard<LazyHashmapBlackboard>>(GlobalBlackboard<LazyHashmapBlackboard>(application), using: handler, context)
+        } else {
+            blackboard = LocalBlackboard<LazyHashmapBlackboard, LazyHashmapBlackboard>(LazyHashmapBlackboard(), using: handler, context)
+        }
 
         return Endpoint(
             handler: handler,
-            content: try! ContentModuleStore(for: handler, using: context, app),
+            blackboard: blackboard,
             guards: guards,
             responseTransformers: responseTransformers
         )

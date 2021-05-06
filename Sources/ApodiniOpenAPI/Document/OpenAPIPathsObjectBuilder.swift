@@ -42,7 +42,7 @@ struct OpenAPIPathsObjectBuilder {
         var pathItem = pathsObject[path] ?? OpenAPI.PathItem()
 
         // Get `OpenAPI.HttpMethod` and `OpenAPI.Operation` from endpoint.
-        let httpMethod = OpenAPI.HttpMethod(endpoint.content[Operation.self])
+        let httpMethod = OpenAPI.HttpMethod(endpoint[Operation.self])
         let operation = buildPathItemOperationObject(from: endpoint)
         pathItem.set(operation: operation, for: httpMethod)
 
@@ -65,10 +65,10 @@ private extension OpenAPIPathsObjectBuilder {
         }
         
         // Get tags if some have been set explicitly passed via TagModifier.
-        let tags: [String] = endpoint.content[Context.self].get(valueFor: TagContextKey.self) ?? [defaultTag]
+        let tags: [String] = endpoint[Context.self].get(valueFor: TagContextKey.self) ?? [defaultTag]
 
         // Get customDescription if it has been set explicitly passed via DescriptionModifier.
-        let customDescription = endpoint.content[Context.self].get(valueFor: DescriptionContextKey.self)
+        let customDescription = endpoint[Context.self].get(valueFor: DescriptionContextKey.self)
 
         // Set endpointDescription to customDescription or `endpoint.description` holding the `Handler`s type name.
         let endpointDescription = customDescription ?? endpoint.description
@@ -80,17 +80,17 @@ private extension OpenAPIPathsObjectBuilder {
         let requestBody: OpenAPI.Request? = buildRequestBodyObject(from: endpoint.parameters)
 
         // Get `OpenAPI.Response.Map` containing all possible HTTP responses mapped to their status code.
-        let responses: OpenAPI.Response.Map = buildResponsesObject(from: endpoint.content[ResponseType.self].type)
+        let responses: OpenAPI.Response.Map = buildResponsesObject(from: endpoint[ResponseType.self].type)
 
         return OpenAPI.Operation(
             tags: tags,
             description: endpointDescription,
-            operationId: endpoint.content[AnyHandlerIdentifier.self].rawValue,
+            operationId: endpoint[AnyHandlerIdentifier.self].rawValue,
             parameters: parameters,
             requestBody: requestBody,
             responses: responses,
             vendorExtensions: [
-                "x-apodiniHandlerId": AnyCodable(endpoint.content[AnyHandlerIdentifier.self].rawValue)
+                "x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)
             ]
         )
     }

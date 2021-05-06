@@ -46,7 +46,13 @@ final class LocalBlackboard<L: IndependentBlackboard, G: Blackboard>: Blackboard
         self.global = global
         self.local = L()
         
-        global[Blackboards.self].addBoard(self, hiddenFor: restrictions)
+        self.local[EndpointSource<H>.self] = EndpointSource(handler: handler, context: context)
+        self.local[AnyEndpointSource.self] = AnyEndpointSource(handler: handler, context: context)
+        
+        if var blackboards = try? global.request(Blackboards.self) {
+            blackboards.addBoard(self, hiddenFor: restrictions)
+            global[Blackboards.self] = blackboards
+        }
     }
     
     subscript<S>(type: S.Type) -> S where S : KnowledgeSource {
@@ -85,6 +91,7 @@ struct GlobalBlackboard<B: IndependentBlackboard>: Blackboard, StorageKey {
         self.app = app
         
         getOrInitializeBlackboard()[Application.self] = app
+        getOrInitializeBlackboard()[Blackboards.self] = Blackboards()
     }
     
     subscript<S>(type: S.Type) -> S where S : KnowledgeSource {
@@ -147,5 +154,52 @@ final class LazyHashmapBlackboard: LazyBlackboard, IndependentBlackboard {
     
     func peak<S>(_ type: S.Type) -> S? where S : KnowledgeSource {
         storage[ObjectIdentifier(type)] as? S
+    }
+}
+
+public class MockBlackboard: Blackboard {
+    
+    private var content: [ObjectIdentifier: KnowledgeSource]
+    
+    public init(_ contents: (KnowledgeSource.Type, KnowledgeSource)...) {
+        var c = [ObjectIdentifier: KnowledgeSource]()
+        for content in contents {
+            c[ObjectIdentifier(content.0)] = content.1
+        }
+        self.content = c
+    }
+    
+    public subscript<S>(_ type: S.Type) -> S where S : KnowledgeSource {
+        get {
+            content[ObjectIdentifier(type)]! as! S
+        }
+        set {
+            content[ObjectIdentifier(type)] = newValue
+        }
+    }
+    
+    public func request<S>(_ type: S.Type) throws -> S where S : KnowledgeSource {
+        self[type]
+    }
+}
+
+// TODO: remove
+struct BlackboardStore: ModuleStore {
+    let board: Blackboard
+    
+    subscript<M>(index: M.Type) -> M where M : DependencyBased {
+        board[index]
+    }
+    
+    subscript<M>(index: M.Type) -> M where M : AnyContextBased {
+        board[index]
+    }
+    
+    subscript<M>(index: M.Type) -> M where M : ApplicationBased {
+        board[index]
+    }
+    
+    subscript<M>(index: M.Type) -> M where M : _HandlerBased {
+        board[index]
     }
 }

@@ -51,7 +51,7 @@ public final class GRPCInterfaceExporter: InterfaceExporter {
         let context = endpoint.createConnectionContext(for: self)
 
         do {
-            let serviceType = endpoint.content[ServiceType.self]
+            let serviceType = endpoint[ServiceType.self]
             if serviceType == .unary {
                 try service.exposeUnaryEndpoint(name: methodName, context: context)
                 app.logger.info("Exported unary gRPC endpoint \(serviceName)/\(methodName)")

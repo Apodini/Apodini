@@ -32,7 +32,7 @@ extension HandlerDescription: _HandlerBased, ContentModule {
     }
 }
 
-public struct HandleReturnType: _HandlerBased {
+public struct HandleReturnType: _HandlerBased, HandlerBasedKnowledgeSource {
     public let type: Encodable.Type
     
     public init<H>(from handler: H) throws where H : Handler {

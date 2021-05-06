@@ -4,9 +4,7 @@
 import Foundation
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
-public protocol AnyEndpoint: CustomStringConvertible {
-    var content: ModuleStore { get }
-
+public protocol AnyEndpoint: Blackboard, CustomStringConvertible {
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     var parameters: [AnyEndpointParameter] { get }
 
@@ -80,13 +78,9 @@ protocol _AnyEndpoint: AnyEndpoint {
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 public struct Endpoint<H: Handler>: _AnyEndpoint {
-    
-    public var content: ModuleStore
-    
+    private let blackboard: Blackboard
     
     var inserted = false
-
-//    public let identifier: AnyHandlerIdentifier
 
     var reference: EndpointReference {
         guard let endpointReference = storedReference else {
@@ -99,7 +93,9 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     public let handler: H
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
-    public var parameters: [AnyEndpointParameter]
+    public var parameters: [AnyEndpointParameter] {
+        self[EndpointParameters.self]
+    }
 
     public var absolutePath: [EndpointPath] {
         storedAbsolutePath
@@ -109,7 +105,7 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     private var storedRelationship: [EndpointRelationship] = []
 
     public var selfRelationship: RelationshipDestination {
-        guard let destination = selfRelationship(for: content[Operation.self]) else {
+        guard let destination = selfRelationship(for: self[Operation.self]) else {
             fatalError("Encountered inconsistency where Endpoint doesn't have a self EndpointDestination for its own Operation!")
         }
 
@@ -126,15 +122,27 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     
     init(
         handler: H,
-        content: ModuleStore,
+        blackboard: Blackboard = MockBlackboard(),
         guards: [LazyGuard] = [],
         responseTransformers: [LazyAnyResponseTransformer] = []
     ) {
         self.handler = handler
-        self.content = content
         self.guards = guards
         self.responseTransformers = responseTransformers
-        self.parameters = content[EndpointParameters.self]
+        self.blackboard = blackboard
+    }
+    
+    public subscript<S>(_ type: S.Type) -> S where S : KnowledgeSource {
+        get {
+            self.blackboard[type]
+        }
+        nonmutating set {
+            self.blackboard[type] = newValue
+        }
+    }
+    
+    public func request<S>(_ type: S.Type) throws -> S where S : KnowledgeSource {
+        try self.blackboard.request(type)
     }
     
     func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
@@ -211,6 +219,6 @@ extension Endpoint: CustomDebugStringConvertible {
 
 extension Endpoint: CustomStringConvertible {
     public var description: String {
-        content[HandlerDescription.self]
+        self[HandlerDescription.self]
     }
 }

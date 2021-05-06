@@ -72,12 +72,12 @@ extension ParameterNamespace {
 extension AnyEndpoint {
     /// Internal method which kicks off the parameter namespace collision checks
     func parameterNameCollisionCheck(in namespaces: [ParameterNamespace]) {
-        content[EndpointParameters.self].nameCollisionCheck(on: self, in: namespaces)
+        self[EndpointParameters.self].nameCollisionCheck(on: self, in: namespaces)
     }
 
     /// Internal method which kicks off the parameter namespace collision checks
     func parameterNameCollisionCheck(in namespaces: ParameterNamespace...) {
-        content[EndpointParameters.self].nameCollisionCheck(on: self, in: namespaces)
+        self[EndpointParameters.self].nameCollisionCheck(on: self, in: namespaces)
     }
 }
 
