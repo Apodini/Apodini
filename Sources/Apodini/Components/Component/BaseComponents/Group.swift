@@ -23,7 +23,7 @@ public struct Group<Content: Component>: Component, SyntaxTreeVisitable {
         self.content = content()
     }
 
-    public init(@PathComponentFunctionBuilder path: () -> [PathComponent], @ComponentBuilder content: () -> Content) {
+    public init(@PathComponentBuilder path: () -> [PathComponent], @ComponentBuilder content: () -> Content) {
         self.pathComponents = path()
         self.content = content()
     }
