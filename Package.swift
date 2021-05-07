@@ -197,11 +197,8 @@ let package = Package(
                 .target(name: "ApodiniNotifications"),
                 .target(name: "XCTApodini")
             ],
-            exclude: [
-                "Helper/mock_fcm.json",
-                "Helper/mock_invalid_fcm.json",
-                "Helper/mock.p8",
-                "Helper/mock.pem"
+            resources: [
+                .process("Resources")
             ]
         ),
 
