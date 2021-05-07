@@ -6,28 +6,44 @@
 //
 
 import Foundation
-@_implementationOnly import AssociatedTypeRequirementsVisitor
 
 // MARK: KnowledgeSource
 
+/// A `KnowledgeSource` can be anything that can be initialized from a `Blackboard`, i.e.
+/// from other `KnowledgeSource`s. `KnowledgeSource`s are used to provide `InterfaceExporter`s
+/// with information on a `.local` endpoint, or the `.global` structure of the web service.
 public protocol KnowledgeSource {
+    static var preference: LocationPreference { get }
     init<B: Blackboard>(_ blackboard: B) throws
 }
 
-public indirect enum KnowledgeError: Error, CustomDebugStringConvertible {
+extension KnowledgeSource {
+    public static var preference: LocationPreference {
+        .local
+    }
+}
+
+/// Defines the scope of the `KnowledgeSource`.
+public enum LocationPreference {
+    /// only shared on the endpoint
+    case local
+    /// shared across the whole application
+    case global
+}
+
+public enum KnowledgeError: Error, CustomDebugStringConvertible {
+    /// An error thrown if a `KnowledgeSource` is requested from the wrong `Blackboard`, i.e. one that
+    /// cannot provide all `KnowledgeSource`s required to initilaize the former.
     case unsatisfiableDependency(String, String?)
-    case either([KnowledgeError])
     
     public var debugDescription: String {
         switch self {
         case let .unsatisfiableDependency(dependency, requiredBoard):
             var message = "'\(dependency)' was initialized as a regular 'KnowledgeSource'."
             if let required = requiredBoard {
-                message += "You can only access '\(dependency)' from a '\(required)'."
+                message += " You can only access '\(dependency)' from a '\(required)'."
             }
             return  message
-        case let .either(errors):
-            return "Trying to initialize a 'KnowledgeSource' failed. Either of the following errors must be resolved: \(errors)"
         }
     }
 }
@@ -50,9 +66,55 @@ public protocol TruthAnchor { }
 // Below are KnowledgeSources that need support by special Blackboard implementations. They
 // are the foundation for all other KnowledgeSource-Implementations.
 
-/// A `KnowledgeSource` that lives on a global `Blackboard`. It provides access to a list of local `Blackboard`s
+/// A `.global` `KnowledgeSource` that provides access to the `Application`
+/// - Note: This `KnowledgeSource` can only be accessed from `GlobalBlackboard`
+extension Application: KnowledgeSource {
+    public static let preference: LocationPreference = .global
+    
+    public convenience init<B>(_ blackboard: B) throws where B : Blackboard {
+        throw KnowledgeError.unsatisfiableDependency("Application", "GlobalBlackboard")
+    }
+}
+
+/// A `KnowledgeSource` providing access to the `Handler` and `Context` related to the `.local` `Blackboard`.
+/// - Note: This `KnowledgeSource` can only be accessed from `LocalBlackboard`
+public struct EndpointSource<H: Handler>: KnowledgeSource {
+    public let handler: H
+    public let context: Context
+    
+    internal init(handler: H, context: Context) {
+        self.handler = handler
+        self.context = context
+    }
+    
+    public init<B>(_ blackboard: B) throws where B : Blackboard {
+        throw KnowledgeError.unsatisfiableDependency("EndpointSource", "LocalBlackboard")
+    }
+}
+
+/// An untyped version of the generic `EndpointSource`
+/// - Note: This `KnowledgeSource` can only be accessed from `LocalBlackboard`
+public struct AnyEndpointSource: KnowledgeSource {
+    public let handler: Any
+    public let handlerType: Any.Type
+    public let context: Context
+    
+    internal init<H: Handler>(handler: H, context: Context) {
+        self.handler = handler
+        self.handlerType = H.self
+        self.context = context
+    }
+    
+    public init<B>(_ blackboard: B) throws where B : Blackboard {
+        throw KnowledgeError.unsatisfiableDependency("EndpointSource", "LocalBlackboard")
+    }
+}
+
+/// A `KnowledgeSource` that lives on a `.global` `Blackboard`. It provides access to a list of local `Blackboard`s
 /// available to a certain `TruthAnchor`.
+///  - Note: This `KnowledgeSource` is only accessible on `GlobalBlackboard`
 public struct Blackboards: KnowledgeSource {
+    public static let preference: LocationPreference = .global
     
     // default collection of available Blackboards for unrestricted TruthAnchors
     private var boards: [Blackboard] = []
@@ -88,91 +150,5 @@ public struct Blackboards: KnowledgeSource {
         }
         // finally the new board is added to the default collection of boards
         boards.append(board)
-    }
-}
-
-extension Application: KnowledgeSource {
-    public convenience init<B>(_ blackboard: B) throws where B : Blackboard {
-        throw KnowledgeError.unsatisfiableDependency("Application", "GlobalBlackboard")
-    }
-}
-
-public struct EndpointSource<H: Handler>: KnowledgeSource {
-    public let handler: H
-    public let context: Context
-    
-    internal init(handler: H, context: Context) {
-        self.handler = handler
-        self.context = context
-    }
-    
-    public init<B>(_ blackboard: B) throws where B : Blackboard {
-        throw KnowledgeError.unsatisfiableDependency("EndpointSource", "LocalBlackboard")
-    }
-}
-
-public struct AnyEndpointSource: KnowledgeSource {
-    public let handler: Any
-    public let handlerType: Any.Type
-    public let context: Context
-    
-    internal init<H: Handler>(handler: H, context: Context) {
-        self.handler = handler
-        self.handlerType = H.self
-        self.context = context
-    }
-    
-    public init<B>(_ blackboard: B) throws where B : Blackboard {
-        throw KnowledgeError.unsatisfiableDependency("EndpointSource", "LocalBlackboard")
-    }
-}
-
-public protocol HandlerBasedKnowledgeSource: KnowledgeSource {
-    init<H: Handler>(from handler: H) throws
-}
-
-private protocol AnyEndpointSourceVisitor: AssociatedTypeRequirementsVisitor {
-    associatedtype Visitor = AnyEndpointSourceVisitor
-    associatedtype Input = Handler
-    associatedtype Output
-    
-    func callAsFunction<T: Handler>(_ value: T) -> Output
-}
-
-extension HandlerBasedKnowledgeSource {
-    public init<B>(_ blackboard: B) throws where B : Blackboard {
-        let anyEndpointSource = blackboard[AnyEndpointSource.self]
-        
-        guard let result = Visitor(type: Self.self)(anyEndpointSource.handler) else {
-            fatalError("AssociatedTypeRequirementsVisitor didn't find a 'Handler' in 'AnyEndpointSource.handler'")
-        }
-        
-        self = (try result.get()) as! Self
-    }
-}
-
-private struct Visitor: AnyEndpointSourceVisitor {
-    typealias Output = Result<HandlerBasedKnowledgeSource, Error>
-    
-    let type: HandlerBasedKnowledgeSource.Type
-    
-    func callAsFunction<H>(_ value: H) -> Output where H : Handler {
-        Result.init(catching: {
-            try type.init(from: value)
-        })
-    }
-}
-
-extension Visitor {
-    private struct _TestHandler: Handler {
-        func handle() throws -> Int {
-            0
-        }
-    }
-    
-    @inline(never)
-    @_optimize(none)
-    func _test() {
-        _ = self(_TestHandler()) as Output
     }
 }

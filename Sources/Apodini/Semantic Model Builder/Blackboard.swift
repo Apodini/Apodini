@@ -7,6 +7,8 @@
 
 import Foundation
 
+/// A storage for `KnowledgeSource`s. The `Blackboard` takes care of initialization and storage of `KnowledgeSource`s.
+/// It also allows for mutating `KnowledgeSource`s. Most initializations are performed lazily.
 public protocol Blackboard {
     subscript<S>(_ type: S.Type) -> S where S: KnowledgeSource { get nonmutating set }
     
@@ -32,10 +34,13 @@ extension Blackboard {
 
 protocol IndependentBlackboard: Blackboard {
     init()
+    func request<S, B>(_ type: S.Type, using blackboard: B) throws -> S where S: KnowledgeSource, B: Blackboard
 }
 
-protocol LazyBlackboard: Blackboard {
-    func peak<S>(_ type: S.Type) -> S? where S: KnowledgeSource
+extension IndependentBlackboard {
+    func request<S>(_ type: S.Type) throws -> S where S : KnowledgeSource {
+        try self.request(type, using: self)
+    }
 }
 
 final class LocalBlackboard<L: IndependentBlackboard, G: Blackboard>: Blackboard {
@@ -64,19 +69,29 @@ final class LocalBlackboard<L: IndependentBlackboard, G: Blackboard>: Blackboard
             }
         }
         set {
-            local[type] = newValue
+            switch type.preference {
+            case .local:
+                local[type] = newValue
+            case .global:
+                global[type] = newValue
+            }
         }
     }
     
     func request<S>(_ type: S.Type) throws -> S where S : KnowledgeSource {
-        if let stored = (local as? LazyBlackboard)?.peak(type) ?? (global as? LazyBlackboard)?.peak(type) {
-            return stored
-        }
-        
-        do {
-            return try local.request(type)
-        } catch KnowledgeError.unsatisfiableDependency(_, _) {
-            return try global.request(type)
+        switch type.preference {
+        case .local:
+            do {
+                return try local.request(type, using: self)
+            } catch KnowledgeError.unsatisfiableDependency(_, _) {
+                return try global.request(type)
+            }
+        case .global:
+            do {
+                return try global.request(type)
+            } catch KnowledgeError.unsatisfiableDependency(_, _) {
+                return try local.request(type, using: self)
+            }
         }
     }
 }
@@ -118,19 +133,13 @@ struct GlobalBlackboard<B: IndependentBlackboard>: Blackboard, StorageKey {
     }
 }
 
-extension GlobalBlackboard: LazyBlackboard where B: LazyBlackboard {
-    func peak<S>(_ type: S.Type) -> S? where S : KnowledgeSource {
-        getOrInitializeBlackboard().peak(type)
-    }
-}
-
-final class LazyHashmapBlackboard: LazyBlackboard, IndependentBlackboard {
+final class LazyHashmapBlackboard: IndependentBlackboard {
     private var storage: [ObjectIdentifier: KnowledgeSource] = [:]
     
     subscript<S>(type: S.Type) -> S where S : KnowledgeSource {
         get {
             do {
-                return try request(type)
+                return try request(type, using: self)
             } catch {
                 fatalError("Failed creating KnowledgeSource \(type): \(error)")
             }
@@ -141,19 +150,15 @@ final class LazyHashmapBlackboard: LazyBlackboard, IndependentBlackboard {
         }
     }
     
-    func request<S>(_ type: S.Type) throws -> S where S : KnowledgeSource {
+    func request<S, B>(_ type: S.Type, using blackboard: B) throws -> S where S : KnowledgeSource, B: Blackboard {
         let id = ObjectIdentifier(type)
         if let stored = storage[id] as? S {
             return stored
         }
         
-        let new = try S(self)
+        let new = try S(blackboard)
         storage[id] = new
         return new
-    }
-    
-    func peak<S>(_ type: S.Type) -> S? where S : KnowledgeSource {
-        storage[ObjectIdentifier(type)] as? S
     }
 }
 
