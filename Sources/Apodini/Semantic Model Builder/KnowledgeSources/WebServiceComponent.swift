@@ -7,11 +7,22 @@
 
 import Foundation
 
-public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
-    public static var preference: LocationPreference {
-        .global
+@dynamicMemberLookup
+public class WebServiceRoot<A: TruthAnchor>: KnowledgeSource {
+    public static var preference: LocationPreference { .global }
+    
+    public let node: WebServiceComponent<A>
+    
+    required public init<B>(_ blackboard: B) throws where B : Blackboard {
+        self.node = WebServiceComponent(parent: nil, identifier: .root, blackboards: blackboard[Blackboards.self][for: A.self])
     }
     
+    subscript<T>(dynamicMember keyPath: KeyPath<WebServiceComponent<A>, T>) -> T {
+        node[keyPath: keyPath]
+    }
+}
+
+public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {    
     public let parent: WebServiceComponent<A>?
     public let identifier: EndpointPath
     
@@ -23,13 +34,13 @@ public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
     private let blackboards: [Blackboard]
     
     required public init<B>(_ blackboard: B) throws where B : Blackboard {
-        self.identifier = .root
-        self.parent = nil
-        
-        self.blackboards = blackboard[Blackboards.self][for: A.self]
+        // we make sure the WebServiceComponent that is meant to be initilaized here is created by
+        // delegating to the WebServiceRoot
+        _ = blackboard[WebServiceRoot<A>.self].node.findChild(for: blackboard[PathComponents.self].value, registerSelfToBlackboards: true)
+        throw KnowledgeError.instancePresent
     }
     
-    private init(parent: WebServiceComponent<A>, identifier: EndpointPath, blackboards: [Blackboard]) {
+    fileprivate init(parent: WebServiceComponent<A>?, identifier: EndpointPath, blackboards: [Blackboard]) {
         self.parent = parent
         self.identifier = identifier
         self.blackboards = blackboards
@@ -37,12 +48,9 @@ public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
     
     private func deriveEndpoints() -> [Operation: Blackboard] {
         var endpoints = [Operation: Blackboard]()
-        for endpoint in blackboards.filter({ blackboard in
-            let pathComp = blackboard[PathComponents.self]
-                                            return pathComp.value.count == self.globalPath.count-1
-            
-        }) {
+        for endpoint in blackboards.filter({ blackboard in blackboard[PathComponents.self].value.count == self.globalPath.count-1 }) {
             endpoints[endpoint[Operation.self]] = endpoint
+            endpoint[WebServiceComponent<A>.self] = self
         }
         return endpoints
     }
@@ -75,5 +83,23 @@ extension WebServiceComponent: CustomStringConvertible {
             desc += "\n" + child.description
         }
         return desc
+    }
+}
+
+extension WebServiceComponent {
+    func findChild(for path: [PathComponent], registerSelfToBlackboards: Bool = false) -> WebServiceComponent? {
+        if path.isEmpty {
+            if registerSelfToBlackboards {
+                _ = self.endpoints
+            }
+            return self
+        }
+        
+        for child in children {
+            if child.identifier == path[0].toEndpointPath() {
+                return child.findChild(for: Array(path[1...]), registerSelfToBlackboards: registerSelfToBlackboards)
+            }
+        }
+        return nil
     }
 }

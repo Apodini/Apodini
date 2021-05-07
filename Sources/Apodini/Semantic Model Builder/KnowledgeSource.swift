@@ -35,6 +35,13 @@ public enum KnowledgeError: Error, CustomDebugStringConvertible {
     /// An error thrown if a `KnowledgeSource` is requested from the wrong `Blackboard`, i.e. one that
     /// cannot provide all `KnowledgeSource`s required to initilaize the former.
     case unsatisfiableDependency(String, String?)
+    /// An error thrown if  a `KnowledgeSource`'s initilaizer is called, but there is already an instance of
+    /// that type present on the `Blackboard`. This can be used to signalize to the `Blackboard`, that
+    /// creation of the instance was delegated from the original initializer to some other `KnowledgeSource`.
+    case instancePresent
+    /// An error thrown if a `KnowledgeSource`'s initializer failed with `instancePresent`, but there was
+    /// no instance present.
+    case initializationFailed
     
     public var debugDescription: String {
         switch self {
@@ -44,6 +51,10 @@ public enum KnowledgeError: Error, CustomDebugStringConvertible {
                 message += " You can only access '\(dependency)' from a '\(required)'."
             }
             return  message
+        case .instancePresent:
+            return "The 'KnowledgeSource' aborted initilaization, because an instance of the same type was already present."
+        case .initializationFailed:
+            return "Initialization of the 'KnowledgeSource' failed without known error. There might be an issue with the 'KnowledgeSource'´s delegation logic."
         }
     }
 }
@@ -106,7 +117,7 @@ public struct AnyEndpointSource: KnowledgeSource {
     }
     
     public init<B>(_ blackboard: B) throws where B : Blackboard {
-        throw KnowledgeError.unsatisfiableDependency("EndpointSource", "LocalBlackboard")
+        throw KnowledgeError.unsatisfiableDependency("AnyEndpointSource", "LocalBlackboard")
     }
 }
 

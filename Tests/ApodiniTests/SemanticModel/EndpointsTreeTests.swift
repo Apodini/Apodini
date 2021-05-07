@@ -188,10 +188,10 @@ final class EndpointsTreeTests: ApodiniTests {
     
     private struct TestAnchor: TruthAnchor { }
     
-    func testWebServiceComponentKnowledgeSource() {
+    func testWebServiceRootKnowledgeSource() {
         var exported = false
         let exporter = MockExporter<String>(onFinished: { model in
-            let service = model.globalBlackboard[WebServiceComponent<TestAnchor>.self]
+            let service = model.globalBlackboard[WebServiceRoot<TestAnchor>.self]
             XCTAssertEqual(service.identifier, .root)
             XCTAssertNil(service.parent)
             XCTAssertEqual(service.endpoints.count, 2)
@@ -201,7 +201,7 @@ final class EndpointsTreeTests: ApodiniTests {
             
             XCTAssertEqual(service.children[0].identifier, .string("noendpointhere"))
             XCTAssertNotNil(service.children[0].parent)
-            XCTAssertEqual(ObjectIdentifier(service.children[0].parent!), ObjectIdentifier(service))
+            XCTAssertEqual(ObjectIdentifier(service.children[0].parent!), ObjectIdentifier(service.node))
             XCTAssertEqual(service.children[0].endpoints.count, 0)
             XCTAssertEqual(service.children[0].children.count, 1)
             
@@ -228,5 +228,17 @@ final class EndpointsTreeTests: ApodiniTests {
         self.validWebService.accept(visitor)
         builder.finishedRegistration()
         XCTAssertTrue(exported)
+    }
+    
+    func testWebServiceComponentKnowledgeSource() {
+        let exporter = MockExporter<String>(calling: { endpoint in
+            XCTAssertEqual(endpoint[WebServiceComponent<TestAnchor>.self].endpoints[endpoint[Operation.self]]![AnyHandlerIdentifier.self], endpoint[AnyHandlerIdentifier.self])
+        })
+        
+        
+        let builder = SemanticModelBuilder(app).with(exporter: exporter)
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        self.validWebService.accept(visitor)
+        builder.finishedRegistration()
     }
 }

@@ -159,9 +159,16 @@ final class LazyHashmapBlackboard: IndependentBlackboard {
             return stored
         }
         
-        let new = try S(blackboard)
-        storage[id] = new
-        return new
+        do {
+            let new = try S(blackboard)
+            storage[id] = new
+            return new
+        } catch KnowledgeError.instancePresent {
+            if let instance = storage[id] as? S {
+                return instance
+            }
+            throw KnowledgeError.initializationFailed
+        }
     }
 }
 
