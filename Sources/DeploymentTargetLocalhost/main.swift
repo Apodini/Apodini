@@ -1,5 +1,5 @@
 //
-//  main.swift
+//  LocalhostDeploymentProviderCLI.swift
 //  
 //
 //  Created by Lukas Kollmer on 2020-12-31.
@@ -135,6 +135,5 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         return
     }
 }
-
 
 LocalhostDeploymentProviderCLI.main()
