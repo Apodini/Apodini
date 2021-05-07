@@ -15,25 +15,39 @@ class MockExporter<Request: ExporterRequest>: InterfaceExporter {
     }
     
     var parameterValues: [Any??] = []
+    
+    let onExport: (AnyEndpoint) -> Void
+    let onFinished: (WebServiceModel) -> Void
 
     /// Creates a new MockExporter which uses the passed parameter values as FIFO queue on retrieveParameter
-    required init(queued parameterValues: Any??...) {
+    init(queued parameterValues: Any??...,
+         calling onExport: @escaping (AnyEndpoint) -> Void = { _ in },
+         onFinished: @escaping (WebServiceModel) -> Void = { _ in }) {
         self.parameterValues = parameterValues
+        self.onExport = onExport
+        self.onFinished = onFinished
     }
 
     // See https://bugs.swift.org/browse/SR-128
-    required init(queued parameterValues: [Any??]) {
+    init(queued parameterValues: [Any??],
+         calling onExport: @escaping (AnyEndpoint) -> Void = { _ in },
+         onFinished: @escaping (WebServiceModel) -> Void = { _ in }) {
         self.parameterValues = parameterValues
+        self.onExport = onExport
+        self.onFinished = onFinished
     }
 
-    required init(_ app: Apodini.Application) {}
+    required init(_ app: Apodini.Application) {
+        self.onExport = { _ in }
+        self.onFinished = { _ in }
+    }
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        // do nothing
+        onExport(endpoint)
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
-        // do nothing
+        onFinished(webService)
     }
 
     func append(injected: Any??...) {

@@ -169,4 +169,64 @@ final class EndpointsTreeTests: ApodiniTests {
             "Parsing a Handler with missing PathParameter declaration should fail!"
         )
     }
+
+    @ComponentBuilder
+    var validWebService: some Component {
+        Group("noendpointhere") {
+            Group("test", $testParameter) {
+                TestHandler(name: $testParameter)
+                    .operation(.read)
+                TestHandler(name: $testParameter)
+                    .operation(.update)
+            }
+        }
+        BasicTestHandler()
+            .operation(.create)
+        BasicTestHandler()
+            .operation(.delete)
+    }
+    
+    private struct TestAnchor: TruthAnchor { }
+    
+    func testWebServiceComponentKnowledgeSource() {
+        var exported = false
+        let exporter = MockExporter<String>(onFinished: { model in
+            let service = model.globalBlackboard[WebServiceComponent<TestAnchor>.self]
+            XCTAssertEqual(service.identifier, .root)
+            XCTAssertNil(service.parent)
+            XCTAssertEqual(service.endpoints.count, 2)
+            XCTAssertEqual(service.endpoints[.create]?[HandlerDescription.self], "BasicTestHandler")
+            XCTAssertEqual(service.endpoints[.delete]?[HandlerDescription.self], "BasicTestHandler")
+            XCTAssertEqual(service.children.count, 1)
+            
+            XCTAssertEqual(service.children[0].identifier, .string("noendpointhere"))
+            XCTAssertNotNil(service.children[0].parent)
+            XCTAssertEqual(ObjectIdentifier(service.children[0].parent!), ObjectIdentifier(service))
+            XCTAssertEqual(service.children[0].endpoints.count, 0)
+            XCTAssertEqual(service.children[0].children.count, 1)
+            
+            XCTAssertEqual(service.children[0].children[0].identifier, .string("test"))
+            XCTAssertNotNil(service.children[0].children[0].parent)
+            XCTAssertEqual(ObjectIdentifier(service.children[0].children[0].parent!), ObjectIdentifier(service.children[0]))
+            XCTAssertEqual(service.children[0].children[0].endpoints.count, 0)
+            XCTAssertEqual(service.children[0].children[0].children.count, 1)
+            
+            XCTAssertTrue(service.children[0].children[0].children[0].identifier.isParameter())
+            XCTAssertNotNil(service.children[0].children[0].children[0].parent)
+            XCTAssertEqual(ObjectIdentifier(service.children[0].children[0].children[0].parent!), ObjectIdentifier(service.children[0].children[0]))
+            XCTAssertEqual(service.children[0].children[0].children[0].endpoints.count, 2)
+            XCTAssertEqual(service.children[0].children[0].children[0].endpoints[.read]?[HandlerDescription.self], "TestHandler")
+            XCTAssertEqual(service.children[0].children[0].children[0].endpoints[.update]?[HandlerDescription.self], "TestHandler")
+            XCTAssertEqual(service.children[0].children[0].children[0].children.count, 0)
+            
+            exported = true
+        })
+        
+        
+        let builder = SemanticModelBuilder(app).with(exporter: exporter)
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        self.validWebService.accept(visitor)
+        builder.finishedRegistration()
+        XCTAssertTrue(exported)
+    }
 }

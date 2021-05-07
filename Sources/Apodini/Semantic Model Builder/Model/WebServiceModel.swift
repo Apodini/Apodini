@@ -21,9 +21,11 @@ public class WebServiceModel: CustomDebugStringConvertible {
     }()
 
     private var finishedParsing = false
+    
+    public let globalBlackboard: Blackboard
 
-    init() {
-        // init default web service
+    init(_ globalBlackboard: Blackboard = MockBlackboard()) {
+        self.globalBlackboard = globalBlackboard
     }
 
     /// Retrieve the `Endpoint` located under the `EndpointPath.root`.

@@ -37,19 +37,23 @@ public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
     
     private func deriveEndpoints() -> [Operation: Blackboard] {
         var endpoints = [Operation: Blackboard]()
-        for endpoint in blackboards.filter({ blackboard in blackboard[PathComponents.self].value.count == self.globalPath.count }) {
+        for endpoint in blackboards.filter({ blackboard in
+            let pathComp = blackboard[PathComponents.self]
+                                            return pathComp.value.count == self.globalPath.count-1
+            
+        }) {
             endpoints[endpoint[Operation.self]] = endpoint
         }
         return endpoints
     }
     
     private func deriveChildren() -> [WebServiceComponent] {
-        let children = blackboards.filter({ blackboard in blackboard[PathComponents.self].value.count > self.globalPath.count })
+        let children = blackboards.filter({ blackboard in blackboard[PathComponents.self].value.count > self.globalPath.count-1 })
         
         var childrenByPathElement = [EndpointPath: [Blackboard]]()
         
         for blackboard in children {
-            let identifier = blackboard[PathComponents.self].value[self.globalPath.count].toEndpointPath()
+            let identifier = blackboard[PathComponents.self].value[self.globalPath.count-1].toEndpointPath()
             var allChildrenWithSameIdentifier = childrenByPathElement[identifier] ?? []
             allChildrenWithSameIdentifier.append(blackboard)
             childrenByPathElement[identifier] = allChildrenWithSameIdentifier
@@ -57,5 +61,19 @@ public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
         
         return childrenByPathElement.map { (identifier, blackboards) in
             WebServiceComponent(parent: self, identifier: identifier, blackboards: blackboards) }
+    }
+}
+
+
+extension WebServiceComponent: CustomStringConvertible {
+    public var description: String {
+        var desc = "\(globalPath)"
+        for (operation, blackboard) in endpoints {
+            desc += "\n  - \(operation): \(blackboard[HandlerDescription.self])"
+        }
+        for child in children {
+            desc += "\n" + child.description
+        }
+        return desc
     }
 }

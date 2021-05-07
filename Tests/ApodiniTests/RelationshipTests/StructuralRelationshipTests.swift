@@ -132,3 +132,4 @@ class RelationshipTests: ApodiniTests {
             ["self:read": "/a/b/value0/e"])
     }
 }
+

@@ -2,8 +2,6 @@
 // Created by Andreas Bauer on 22.11.20.
 //
 
-struct Global: TruthAnchor { }
-
 import NIO
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
@@ -27,7 +25,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
 
     init(_ app: Application) {
         self.app = app
-        webService = WebServiceModel()
+        webService = WebServiceModel(GlobalBlackboard<LazyHashmapBlackboard>(app))
         rootNode = webService.root
 
         relationshipBuilder = RelationshipBuilder(logger: app.logger)
@@ -49,6 +47,14 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     func with<T: StaticInterfaceExporter>(exporter exporterType: T.Type) -> Self {
         let exporter = exporterType.init(app)
         interfaceExporters.append(AnyInterfaceExporter(exporter))
+        return self
+    }
+    
+    /// Registers an `InterfaceExporter` instance on the model builder.
+    /// - Parameter instance: The instance to register.
+    /// - Returns: `Self`
+    func with<T: InterfaceExporter>(exporter instance: T) -> Self {
+        interfaceExporters.append(AnyInterfaceExporter(instance))
         return self
     }
 

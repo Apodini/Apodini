@@ -105,8 +105,11 @@ struct GlobalBlackboard<B: IndependentBlackboard>: Blackboard, StorageKey {
     init(_ app: Application) {
         self.app = app
         
-        getOrInitializeBlackboard()[Application.self] = app
-        getOrInitializeBlackboard()[Blackboards.self] = Blackboards()
+        if app.storage[Self.self] == nil {
+            let board = getOrInitializeBlackboard()
+            board[Application.self] = app
+            board[Blackboards.self] = Blackboards()
+        }
     }
     
     subscript<S>(type: S.Type) -> S where S : KnowledgeSource {
