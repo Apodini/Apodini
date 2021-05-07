@@ -12,6 +12,7 @@ import ApodiniProtobuffer
 import ApodiniOpenAPI
 import ApodiniWebSocket
 
+
 struct TestWebService: Apodini.WebService {
     let greeterRelationship = Relationship(name: "greeter")
 
