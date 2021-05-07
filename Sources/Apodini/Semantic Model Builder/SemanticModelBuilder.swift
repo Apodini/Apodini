@@ -21,6 +21,9 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     let rootNode: EndpointsTreeNode
 
     var relationshipBuilder: RelationshipBuilder
+    var typeIndexBuilder: TypeIndexBuilder
+    
+    private var onRegistrationDone: [() -> Void] = []
 
     init(_ app: Application) {
         self.app = app
@@ -28,6 +31,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         rootNode = webService.root
 
         relationshipBuilder = RelationshipBuilder(logger: app.logger)
+        typeIndexBuilder = TypeIndexBuilder(logger: app.logger)
     }
 
     /// Registers an `InterfaceExporter` instance on the model builder.
@@ -59,61 +63,69 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         
         let localBlackboard = LocalBlackboard<LazyHashmapBlackboard, GlobalBlackboard<LazyHashmapBlackboard>>(globalBlackboard, using: handler, context)
         
-        // TODO: remove once TypeIndexModule is deprecated
-        localBlackboard[Application.self] = app
+        // We first only build the blackboards. The rest is executed at the beginning of `finishedRegistration`.
+        // This way `.global` `KnowledgeSource`s get a complete view of the web service even when accessed from
+        // an `Endpoint`.
+        onRegistrationDone.append({
+            let paths = context.get(valueFor: PathComponentContextKey.self)
             
-        let paths = context.get(valueFor: PathComponentContextKey.self)
-        
 
-        let partialCandidates = context.get(valueFor: RelationshipSourceCandidateContextKey.self)
-        let relationshipSources = context.get(valueFor: RelationshipSourceContextKey.self)
-        let relationshipDestinations = context.get(valueFor: RelationshipDestinationContextKey.self)
+            let partialCandidates = context.get(valueFor: RelationshipSourceCandidateContextKey.self)
+            let relationshipSources = context.get(valueFor: RelationshipSourceContextKey.self)
+            let relationshipDestinations = context.get(valueFor: RelationshipDestinationContextKey.self)
 
-        var endpoint = Endpoint(
-            handler: handler,
-            blackboard: localBlackboard,
-            guards: guards,
-            responseTransformers: responseTransformers
-        )
+            var endpoint = Endpoint(
+                handler: handler,
+                blackboard: localBlackboard,
+                guards: guards,
+                responseTransformers: responseTransformers
+            )
 
-        webService.addEndpoint(&endpoint, at: paths)
-        // The `ReferenceModule` and `EndpointPathModule` cannot be implemented using one of the standard
-        // `ContentModule` protocols as they depend on the `WebServiceModel`. This should change
-        // once the latter was ported to the `ContentModule` pattern.
-        endpoint[ReferenceModule.self].inject(reference: endpoint.reference)
-        endpoint[EndpointPathModule.self].inject(absolutePath: endpoint.absolutePath)
-        
+            self.webService.addEndpoint(&endpoint, at: paths)
+            // The `ReferenceModule` and `EndpointPathModule` cannot be implemented using one of the standard
+            // `ContentModule` protocols as they depend on the `WebServiceModel`. This should change
+            // once the latter was ported to the `ContentModule` pattern.
+            endpoint[ReferenceModule.self].inject(reference: endpoint.reference)
+            endpoint[EndpointPathModule.self].inject(absolutePath: endpoint.absolutePath)
+            
 
-        // calling the addEndpoint first, triggers the Operation uniqueness check
-        // and we will have less problems with that in the TypeIndex Builder and Relationship Builders.
-        // Additionally, addEndpoint may cause a insertion of a additional path parameter,
-        // which makes it necessary to be called before any operation relying on the path of the Endpoint.
+            // calling the addEndpoint first, triggers the Operation uniqueness check
+            // and we will have less problems with that in the TypeIndex Builder and Relationship Builders.
+            // Additionally, addEndpoint may cause a insertion of a additional path parameter,
+            // which makes it necessary to be called before any operation relying on the path of the Endpoint.
 
-        relationshipBuilder.collect(
-            endpoint: endpoint,
-            candidates: partialCandidates,
-            sources: relationshipSources,
-            destinations: relationshipDestinations
-        )
-        // Access `TypeIndexModule` here so it is acutally created and the endpoint is registered.
-        _ = endpoint[TypeIndexModule<Global>.self]
+            self.relationshipBuilder.collect(
+                endpoint: endpoint,
+                candidates: partialCandidates,
+                sources: relationshipSources,
+                destinations: relationshipDestinations
+            )
+            
+            let content = endpoint[HandleReturnType.self].type
+            let reference = endpoint[ReferenceModule.self].reference
+            let markedDefault = endpoint[Context.self].get(valueFor: DefaultRelationshipContextKey.self) != nil
+            let pathParameters = endpoint[EndpointPathModule.self].absolutePath.listPathParameters()
+            let operation = endpoint[Operation.self]
+            
+            self.typeIndexBuilder.indexContentType(content: content, reference: reference, markedDefault: markedDefault, pathParameters: pathParameters, operation: operation)
+        })
     }
 
     func finishedRegistration() {
+        onRegistrationDone.forEach { action in action() }
+        
         webService.finish()
 
         // the order of how relationships are built below strongly reflect our strategy
         // on how conflicting definitions shadow each other
-        if let typeIndexBuilder = TypeIndexModule<Global>.builder(for: self.app) {
-            let typeIndex = TypeIndex(from: typeIndexBuilder, buildingWith: relationshipBuilder)
-            
-            // resolving any type based Relationship creation (inference or Relationship DSL)
-            typeIndex.resolve()
+        let typeIndex = TypeIndex(from: typeIndexBuilder, buildingWith: relationshipBuilder)
+        
+        // resolving any type based Relationship creation (inference or Relationship DSL)
+        typeIndex.resolve()
 
-            // after we collected any relationships from the `typeIndex.resolve()` step
-            // we can construct the final relationship model.
-            relationshipBuilder.buildAll()
-        }
+        // after we collected any relationships from the `typeIndex.resolve()` step
+        // we can construct the final relationship model.
+        relationshipBuilder.buildAll()
 
         app.logger.info("\(webService.debugDescription)")
 

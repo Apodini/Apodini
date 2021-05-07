@@ -163,8 +163,9 @@ final class EndpointsTreeTests: ApodiniTests {
     func testRuntimeErrorOnMissingPathParameterDeclaration() {
         let builder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        self.missingPathParameterWebService.accept(visitor)
         XCTAssertRuntimeFailure(
-            self.missingPathParameterWebService.accept(visitor),
+            builder.finishedRegistration(),
             "Parsing a Handler with missing PathParameter declaration should fail!"
         )
     }
