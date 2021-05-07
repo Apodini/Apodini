@@ -3,27 +3,28 @@ import XCTApodini
 @testable import ApodiniNotifications
 
 class FCMConfigurationTests: XCTApodiniTest {
-    let currentPath = URL(fileURLWithPath: #file).deletingLastPathComponent()
-    
     func testMissingFile() throws {
-        XCTAssertRuntimeFailure(FCMConfiguration("something").configure(self.app), "FCM file doesn't exist at path: something")
+        XCTAssertRuntimeFailure(FirebaseConfiguration(URL(fileURLWithPath: "")), "FCM file doesn't exist at path: something")
         XCTAssertFalse(app.notificationCenter.isFCMConfigured)
     }
     
     func testMissingProperties() throws {
-        let url = URL(string: "Helper/mock_invalid_fcm.json", relativeTo: currentPath)
-        let path = try XCTUnwrap(url).path
+        let url = try XCTUnwrap(Bundle.module.url(forResource: "mock_invalid_fcm", withExtension: "json"))
         
-        XCTAssertRuntimeFailure(FCMConfiguration(path).configure(self.app), "FCM unable to decode serviceAccount from file located at: \(path)")
+        XCTAssertRuntimeFailure(FirebaseConfiguration(url), "FCM unable to decode serviceAccount from file located at: \(url)")
         XCTAssertFalse(app.notificationCenter.isFCMConfigured)
     }
     
     func testValidFile() throws {
-        let url = URL(string: "Helper/mock_fcm.json", relativeTo: currentPath)
-        let path = try XCTUnwrap(url).path
+        let url = try XCTUnwrap(Bundle.module.url(forResource: "mock_fcm", withExtension: "json"))
         
-        XCTAssertNoThrow(FCMConfiguration(path).configure(self.app))
+        let configuration = FirebaseConfiguration(url)
+        #if !os(macOS) || Xcode
+        XCTAssertNoThrow(configuration.configure(self.app))
         XCTAssertNotNil(app.fcm.configuration)
         XCTAssertTrue(app.notificationCenter.isFCMConfigured)
+        #else
+        print("We can not test the loaded configuration \(configuration) due to the following bug when runing it from the macOS command line: https://github.com/vapor/jwt-kit/issues/26")
+        #endif
     }
 }

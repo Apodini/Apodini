@@ -1,5 +1,5 @@
 //
-//  main.swift
+//  LambdaDeploymentProviderCLI.swift
 //  
 //
 //  Created by Lukas Kollmer on 2021-01-18.
@@ -315,6 +315,5 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         }
     }
 }
-
 
 LambdaDeploymentProviderCLI.main()

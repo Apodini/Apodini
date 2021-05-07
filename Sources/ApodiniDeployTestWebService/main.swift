@@ -197,6 +197,4 @@ struct WebService: Apodini.WebService {
     }
 }
 
-
 try WebService.main()
-

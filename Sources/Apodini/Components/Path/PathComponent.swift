@@ -8,16 +8,6 @@
 /// A full path is built out of multiple PathComponents
 public protocol PathComponent {}
 
-/// '_functionBuilder' to build `PathComponent`s
-@_functionBuilder
-public enum PathComponentFunctionBuilder {
-    /// Return any array of `PathComponent`s directly
-    public static func buildBlock(_ paths: PathComponent...) -> [PathComponent] {
-        paths
-    }
-}
-
-
 protocol _PathComponent: PathComponent {
     func append<Parser: PathComponentParser>(to parser: inout Parser)
 }
