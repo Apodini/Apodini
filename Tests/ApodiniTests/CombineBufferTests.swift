@@ -33,8 +33,8 @@ class CombineBufferTests: XCTestCase {
     }
     
     func testUninterruptedRun() throws {
-        let eventLoop = try XCTUnwrap(eventLoopGroup?.next())
-        let threadPool = try XCTUnwrap(threadPool)
+        let eventLoop = try XCTUnwrap(self.eventLoopGroup?.next())
+        let threadPool = try XCTUnwrap(self.threadPool)
         let done = eventLoop.makePromise(of: [Int].self)
         
         let sequence: [Int] = Array(1...100)
@@ -75,8 +75,8 @@ class CombineBufferTests: XCTestCase {
     }
     
     func testCancelledRun() throws {
-        let eventLoop = try XCTUnwrap(eventLoopGroup?.next())
-        let threadPool = try XCTUnwrap(threadPool)
+        let eventLoop = try XCTUnwrap(self.eventLoopGroup?.next())
+        let threadPool = try XCTUnwrap(self.threadPool)
         
         let sequence: [Int] = Array(1...100)
         
@@ -115,8 +115,8 @@ class CombineBufferTests: XCTestCase {
     }
     
     func testEarlyCompletedRun() throws {
-        let eventLoop = try XCTUnwrap(eventLoopGroup?.next())
-        let threadPool = try XCTUnwrap(threadPool)
+        let eventLoop = try XCTUnwrap(self.eventLoopGroup?.next())
+        let threadPool = try XCTUnwrap(self.threadPool)
         let done = eventLoop.makePromise(of: [Int].self)
         
         let sequence: [Int] = Array(1...100)
