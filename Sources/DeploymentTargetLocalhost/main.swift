@@ -1,5 +1,5 @@
 //
-//  main.swift
+//  LocalhostDeploymentProviderCLI.swift
 //  
 //
 //  Created by Lukas Kollmer on 2020-12-31.
@@ -71,7 +71,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         logger.notice("Target executable url: \(executableUrl.path)")
         
         logger.notice("Invoking target to generate web service structure")
-        let wsStructure = try generateDefaultWebServiceStructure()
+        let wsStructure = try readWebServiceStructure()
         
         
         let nodes = Set(try computeDefaultDeployedSystemNodes(from: wsStructure).enumerated().map { idx, node in
@@ -81,7 +81,8 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         let deployedSystem = try DeployedSystem(
             deploymentProviderId: Self.identifier,
             nodes: nodes,
-            userInfo: Null()
+            userInfo: nil,
+            userInfoType: Null.self
         )
         
         let deployedSystemFileUrl = fileManager.getTemporaryFileUrl(fileExtension: "json")
@@ -134,6 +135,5 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         return
     }
 }
-
 
 LocalhostDeploymentProviderCLI.main()

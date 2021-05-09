@@ -12,9 +12,9 @@ import Foundation
 import NIO
 import Apodini
 //import ApodiniDeployBuildSupport
-import DeploymentTargetLocalhostRuntimeSupport
-import DeploymentTargetAWSLambdaRuntime
 import ApodiniDeploy
+import DeploymentTargetLocalhostRuntime
+import DeploymentTargetAWSLambdaRuntime
 import ApodiniREST
 import ApodiniOpenAPI
 
@@ -68,7 +68,7 @@ struct Greeter: Handler {
         return RHI.invoke(
             RandomNumberGenerator.self,
             identifiedBy: .main,
-            parameters: [
+            arguments: [
                 .init(\.$lowerBound, age),
                 .init(\.$upperBound, age * 2)
             ]
@@ -119,12 +119,10 @@ struct WebService: Apodini.WebService {
             .exporter(OpenAPIInterfaceExporter.self)
             .exporter(ApodiniDeployInterfaceExporter.self)
         ApodiniDeployConfiguration(
-            runtimes: [LocalhostRuntimeSupport.self, LambdaRuntime.self],
-            config: DeploymentConfig(deploymentGroups: DeploymentGroupsConfig(defaultGrouping: .singleNode, groups: []))
+            runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
+            config: DeploymentConfig(defaultGrouping: .singleNode, deploymentGroups: [])
         )
     }
 }
 
-
 try WebService.main()
-

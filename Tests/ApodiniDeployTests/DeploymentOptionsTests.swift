@@ -12,9 +12,9 @@ import XCTest
 import XCTApodini
 
 
-class TestOptionsNamespace: InnerNamespace {
+struct TestOptionsNamespace: InnerNamespace {
     typealias OuterNS = DeploymentOptionsNamespace
-    static let id: String = "testOptionsNS"
+    static let identifier: String = "testOptionsNS"
 }
 
 
@@ -29,7 +29,7 @@ struct TestOption1: OptionValue, RawRepresentable {
 
 extension OptionKey where InnerNS == TestOptionsNamespace, Value == TestOption1 {
     /// The option key used to specify a memory size option
-    static let testOption1 = OptionKey<DeploymentOptionsNamespace, TestOptionsNamespace, TestOption1>(
+    static let testOption1 = OptionKey<TestOptionsNamespace, TestOption1>(
         key: "testOption1"
     )
 }
@@ -96,7 +96,9 @@ private struct TestWebService: Apodini.WebService {
             .exporter(ApodiniDeployInterfaceExporter.self)
         ApodiniDeployConfiguration(
             runtimes: [],
-            config: DeploymentConfig(deploymentGroups: .init(defaultGrouping: .singleNode, groups: []))
+            config: DeploymentConfig(defaultGrouping: .singleNode, deploymentGroups: [
+                .allHandlers(ofType: Text.self)
+            ])
         )
     }
 }
@@ -138,9 +140,9 @@ class DeploymentOptionsTests: ApodiniDeployTestCase {
         typealias MaxOption = ComposableOption<MaxOptionImpl>
         typealias SumOption = ComposableOption<SumOptionImpl>
         
-        let minOptionKey = OptionKey<DeploymentOptionsNamespace, TestOptionsNamespace, MinOption>(key: "min")
-        let maxOptionKey = OptionKey<DeploymentOptionsNamespace, TestOptionsNamespace, MaxOption>(key: "max")
-        let sumOptionKey = OptionKey<DeploymentOptionsNamespace, TestOptionsNamespace, SumOption>(key: "sum")
+        let minOptionKey = OptionKey<TestOptionsNamespace, MinOption>(key: "min")
+        let maxOptionKey = OptionKey<TestOptionsNamespace, MaxOption>(key: "max")
+        let sumOptionKey = OptionKey<TestOptionsNamespace, SumOption>(key: "sum")
         
         let options: [ResolvedOption<DeploymentOptionsNamespace>] = [
             ResolvedOption(key: minOptionKey, value: MinOption(rawValue: 0)),

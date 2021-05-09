@@ -12,7 +12,7 @@ public class AnyOptionKey<OuterNS: OuterNamespace>: Codable, Hashable, Equatable
     public let rawValue: String
     
     public init(key rawValue: String) {
-        self.rawValue = "\(OuterNS.id):\(rawValue)"
+        self.rawValue = "\(OuterNS.identifier):\(rawValue)"
     }
     
     public var description: String {
@@ -29,9 +29,9 @@ public class AnyOptionKey<OuterNS: OuterNamespace>: Codable, Hashable, Equatable
 }
 
 
-public class OptionKey<OuterNS, InnerNS: InnerNamespace, Value: OptionValue>: AnyOptionKey<OuterNS> where InnerNS.OuterNS == OuterNS {
+public class OptionKey<InnerNS: InnerNamespace, Value: OptionValue>: AnyOptionKey<InnerNS.OuterNS> {
     override public init(key rawValue: String) {
-        super.init(key: "\(InnerNS.id).\(rawValue)")
+        super.init(key: "\(InnerNS.identifier).\(rawValue)")
     }
     
     public required init(from decoder: Decoder) throws {
@@ -44,8 +44,7 @@ public class OptionKey<OuterNS, InnerNS: InnerNamespace, Value: OptionValue>: An
 }
 
 
-public final class OptionKeyWithDefaultValue<OuterNS, InnerNS: InnerNamespace, Value: OptionValue>: OptionKey<OuterNS, InnerNS, Value>
-where InnerNS.OuterNS == OuterNS {
+public final class OptionKeyWithDefaultValue<InnerNS: InnerNamespace, Value: OptionValue>: OptionKey<InnerNS, Value> {
     public let defaultValue: Value
     
     public init(key rawValue: String, defaultValue: Value) {

@@ -54,7 +54,7 @@ public final class ResolvedOption<OuterNS: OuterNamespace>: AnyOption<OuterNS> {
     private let reduceOptionsImp: (_ other: ResolvedOption<OuterNS>) -> ResolvedOption<OuterNS>
     
     
-    public init<InnerNS, Value>(key: OptionKey<OuterNS, InnerNS, Value>, value: Value) {
+    public init<InnerNS, Value>(key: OptionKey<InnerNS, Value>, value: Value) where InnerNS.OuterNS == OuterNS {
         self.valueStorage = .unencoded(value: value, encodingFn: { try JSONEncoder().encode(value) })
         self.reduceOptionsImp = { otherOption in
             precondition(key == otherOption.key)

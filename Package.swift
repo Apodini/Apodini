@@ -2,6 +2,17 @@
 
 import PackageDescription
 
+// MARK: Configuration
+
+/// Configures the Package for usage of the experimental `async`/`await` syntax as introduced by
+/// https://github.com/apple/swift-evolution/blob/main/proposals/0296-async-await.md
+/// When set to `true`, a recent commit from the **main** branch of **swift-nio** is used. Furthermore, the
+/// swift compiler is configured to enable this feature. Swift 5.4 is required for this to work. You may need to reset
+/// your package caches for this to take effect.
+let experimentalAsyncAwait = false
+
+
+// MARK: Package Definition
 
 let package = Package(
     name: "Apodini",
@@ -26,7 +37,7 @@ let package = Package(
         .library(name: "ApodiniDeployRuntimeSupport", targets: ["ApodiniDeployRuntimeSupport"]),
         .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
         .executable(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"]),
-        .library(name: "DeploymentTargetLocalhostRuntimeSupport", targets: ["DeploymentTargetLocalhostRuntimeSupport"]),
+        .library(name: "DeploymentTargetLocalhostRuntime", targets: ["DeploymentTargetLocalhostRuntime"]),
         .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"])
     ],
     dependencies: [
@@ -54,7 +65,9 @@ let package = Package(
         // We constrain it to the next minor version as it doen't follow semantic versioning.
         .package(url: "https://github.com/OpenCombine/OpenCombine.git", .upToNextMinor(from: "0.11.0")),
         // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
-        .package(url: "https://github.com/apple/swift-nio.git", from: "2.18.0"),
+        experimentalAsyncAwait
+                    ? .package(url: "https://github.com/apple/swift-nio.git", .revision("4220c7a16a5ee0abb7da150bd3d4444940a20cc2"))
+                    : .package(url: "https://github.com/apple/swift-nio.git", from: "2.18.0"),
         // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.8.0"),
         // HTTP/2 support for SwiftNIO
@@ -94,10 +107,20 @@ let package = Package(
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Runtime", package: "Runtime"),
                 .product(name: "ConsoleKit", package: "console-kit")
-            ],
+            ] + (
+                experimentalAsyncAwait ? [
+                    .product(name: "_NIOConcurrency", package: "swift-nio")
+                ] : []
+            ),
             exclude: [
                 "Components/ComponentBuilder.swift.gyb",
                 "Relationships/RelationshipIdentificationBuilder.swift.gyb"
+            ],
+            swiftSettings: [
+                .unsafeFlags(experimentalAsyncAwait ? [
+                    "-Xfrontend",
+                    "-enable-experimental-concurrency"
+                ] : [])
             ]
         ),
 
@@ -174,11 +197,8 @@ let package = Package(
                 .target(name: "ApodiniNotifications"),
                 .target(name: "XCTApodini")
             ],
-            exclude: [
-                "Helper/mock_fcm.json",
-                "Helper/mock_invalid_fcm.json",
-                "Helper/mock.p8",
-                "Helper/mock.pem"
+            resources: [
+                .process("Resources")
             ]
         ),
 
@@ -290,7 +310,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniDeployBuildSupport"),
-                .target(name: "DeploymentTargetLocalhostRuntimeSupport"),
+                .target(name: "DeploymentTargetLocalhostRuntime"),
                 .target(name: "DeploymentTargetAWSLambdaRuntime"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniGRPC"),
@@ -367,7 +387,7 @@ let package = Package(
             ]
         ),
         .target(
-            name: "DeploymentTargetLocalhostRuntimeSupport",
+            name: "DeploymentTargetLocalhostRuntime",
             dependencies: [
                 .target(name: "DeploymentTargetLocalhostCommon"),
                 .target(name: "ApodiniDeployRuntimeSupport")

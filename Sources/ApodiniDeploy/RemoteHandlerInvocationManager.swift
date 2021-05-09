@@ -15,14 +15,15 @@ import ApodiniVaporSupport
 @_implementationOnly import Vapor
 
 
-/// Helper type which stores a parameter for a remote handler invocation.
-public struct CollectedParameter<HandlerType: Handler> {
-    /// The (partially type-erased) key path into the handler, to the `Parameter<>.ID` object of the parameter this value references
+/// Helper type which stores an argument for a remote handler invocation.
+public struct CollectedArgument<HandlerType: Handler> {
+    /// The (partially type-erased) key path into the handler, to the `Parameter<>.ID` object of the `@Parameter` this value references
     let handlerKeyPath: PartialKeyPath<HandlerType>
-    /// The parameter value
+    
+    /// The argument value
     let value: Any
     
-    /// Type-safe way to define a parameter passed to a remote invocation
+    /// Type-safe way to define an argument passed to a remote invocation
     public init<Value>(_ keyPathIntoHandler: KeyPath<HandlerType, Binding<Value>>, _ value: Value) where HandlerType: InvocableHandler {
         self.handlerKeyPath = keyPathIntoHandler
         self.value = value
@@ -57,38 +58,38 @@ extension RemoteHandlerInvocationManager {
     /// Invoke an invocable handler from within your handler.
     /// - parameter handlerType: The static type of the `InvocableHandler` you wish to invoke
     /// - parameter handlerId: The identifier of the to-be-invoked handler. This is required to locate the handler within the web service.
-    /// - parameter parameters: The parameters to be passed to to the invoked handler
+    /// - parameter arguments: The arguments to be passed to to the invoked handler
     public func invoke<H: InvocableHandler>(
         _ handlerType: H.Type,
         identifiedBy handlerId: H.HandlerIdentifier,
-        parameters: H.ParametersStorage
+        arguments: H.ArgumentsStorage
     ) -> EventLoopFuture<H.Response.Content> {
         invokeImp(
             handlerType: H.self,
             handlerId: handlerId,
-            collectedInputParams: H.ParametersStorage.mapping.map { mappingEntry in
-                CollectedParameter<H>(
+            collectedInputArgs: H.ArgumentsStorage.mapping.map { mappingEntry in
+                CollectedArgument<H>(
                     handlerKeyPath: mappingEntry.handlerKeyPath,
-                    value: parameters[keyPath: mappingEntry.paramsStructKeyPath]
+                    value: arguments[keyPath: mappingEntry.argsStructKeyPath]
                 )
             }
         )
     }
     
-    // If the type doesn't specify a `Parameters` struct (ie, H.Parameters still is the _NoParameters default type),
-    // we enable the `CollectedParameter` API.
+    // If the type doesn't specify a `Parameters` struct (ie, H.Arguments still is the _NoArguments default type),
+    // we enable the `CollectedArgument` API.
     // This means that the developer of a Handler can force the user of the -invoke API to use the handler-provided Params type,
     // and that using the (somewhat worse, because unable to compile-time-check completion) collected params api isn't available.
     /// Invoke an invocable handler from within your handler.
     /// - parameter handlerType: The static type of the `InvocableHandler` you wish to invoke
     /// - parameter handlerId: The identifier of the to-be-invoked handler. This is required to locate the handler within the web service.
-    /// - parameter parameters: The parameters to be passed to to the invoked handler
+    /// - parameter arguments: The arguments to be passed to to the invoked handler
     public func invoke<H: InvocableHandler>(
         _ handlerType: H.Type,
         identifiedBy handlerId: H.HandlerIdentifier,
-        parameters: [CollectedParameter<H>] = []
-    ) -> EventLoopFuture<H.Response.Content> where H.ParametersStorage == InvocableHandlerEmptyParametersStorage<H> {
-        invokeImp(handlerType: handlerType, handlerId: handlerId, collectedInputParams: parameters)
+        arguments: [CollectedArgument<H>] = []
+    ) -> EventLoopFuture<H.Response.Content> where H.ArgumentsStorage == InvocableHandlerEmptyArgumentsStorage<H> {
+        invokeImp(handlerType: handlerType, handlerId: handlerId, collectedInputArgs: arguments)
     }
     
     
@@ -108,7 +109,7 @@ extension RemoteHandlerInvocationManager {
     private func invokeImp<H: InvocableHandler>(
         handlerType: H.Type,
         handlerId: H.HandlerIdentifier,
-        collectedInputParams: [CollectedParameter<H>]
+        collectedInputArgs: [CollectedArgument<H>]
     ) -> EventLoopFuture<H.Response.Content> {
         guard let internalInterfaceExporter = self.app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self) else {
             return eventLoop.makeFailedFuture(ApodiniDeployError(message: "Unable to get \(ApodiniDeployInterfaceExporter.self) object"))
@@ -121,7 +122,7 @@ extension RemoteHandlerInvocationManager {
         switch dispatchStrategy(forInvocationOf: targetEndpoint, internalInterfaceExporter: internalInterfaceExporter) {
         case .locally:
             return targetEndpoint.invokeImp(
-                withCollectedParameters: collectedInputParams,
+                withCollectedArguments: collectedInputArgs,
                 internalInterfaceExporter: internalInterfaceExporter,
                 on: eventLoop
             )
@@ -131,7 +132,7 @@ extension RemoteHandlerInvocationManager {
                 internalInterfaceExporter: internalInterfaceExporter,
                 targetNode: targetNode,
                 targetEndpoint: targetEndpoint,
-                collectedInputParams: collectedInputParams
+                collectedInputArgs: collectedInputArgs
             )
         }
     }
@@ -143,7 +144,7 @@ extension RemoteHandlerInvocationManager {
         internalInterfaceExporter: ApodiniDeployInterfaceExporter,
         targetNode: DeployedSystem.Node,
         targetEndpoint: Endpoint<H>,
-        collectedInputParams: [CollectedParameter<H>]
+        collectedInputArgs: [CollectedArgument<H>]
     ) -> EventLoopFuture<H.Response.Content> {
         guard let runtime = internalInterfaceExporter.deploymentProviderRuntime else {
             return eventLoop.makeFailedFuture(ApodiniDeployError(message: "Unable to find runtime"))
@@ -155,17 +156,17 @@ extension RemoteHandlerInvocationManager {
         var alreadyProcessedParamKeyPaths: Set<AnyKeyPath> = []
         var alreadyProcessedEndpointParamIds: Set<UUID> = []
 
-        let invocationParams: [HandlerInvocation<H>.Parameter] = collectedInputParams.map { collectedParam in
+        let invocationParams: [HandlerInvocation<H>.Parameter] = collectedInputArgs.map { collectedArg in
             // The @Parameter property wrapper declaration in the handler
             guard
-                let handlerParamId = Apodini.Internal.getParameterId(ofBinding: targetEndpoint.handler[keyPath: collectedParam.handlerKeyPath])
+                let handlerParamId = Apodini.Internal.getParameterId(ofBinding: targetEndpoint.handler[keyPath: collectedArg.handlerKeyPath])
             else {
-                fatalError("Unable to get @Parameter id for collected parameter with key path \(collectedParam.handlerKeyPath)")
+                fatalError("Unable to get @Parameter id for collected parameter with key path \(collectedArg.handlerKeyPath)")
             }
-            guard let endpointParam = targetEndpoint.findParameter(for: handlerParamId) else {
+            guard let endpointParam: AnyEndpointParameter = targetEndpoint.findParameter(for: handlerParamId) else {
                 fatalError("Unable to fetch endpoint parameter for handlerParamId '\(handlerParamId)'")
             }
-            if !alreadyProcessedParamKeyPaths.insert(collectedParam.handlerKeyPath).inserted {
+            if !alreadyProcessedParamKeyPaths.insert(collectedArg.handlerKeyPath).inserted {
                 app.logger.warning("Parameter '\(endpointParam.name)' specified multiple times in remote handler invocation")
             }
             if !alreadyProcessedEndpointParamIds.insert(endpointParam.id).inserted {
@@ -174,7 +175,7 @@ extension RemoteHandlerInvocationManager {
             return HandlerInvocation<H>.Parameter(
                 stableIdentity: endpointParam.stableIdentity,
                 name: endpointParam.name,
-                value: unsafelyCast(collectedParam.value, to: HandlerInvocation<H>.Parameter.Value.self)
+                value: unsafelyCast(collectedArg.value, to: HandlerInvocation<H>.Parameter.Value.self)
             )
         }
         let missingParamNames: [String] = targetEndpoint.parameters
@@ -262,12 +263,12 @@ extension RemoteHandlerInvocationManager {
 
 extension Endpoint {
     func invokeImp(
-        withCollectedParameters parameters: [CollectedParameter<H>],
+        withCollectedArguments arguments: [CollectedArgument<H>],
         internalInterfaceExporter: ApodiniDeployInterfaceExporter,
         on eventLoop: EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
         invokeImp(
-            withRequest: ApodiniDeployInterfaceExporter.ExporterRequest(endpoint: self, collectedParameters: parameters),
+            withRequest: ApodiniDeployInterfaceExporter.ExporterRequest(endpoint: self, collectedArguments: arguments),
             internalInterfaceExporter: internalInterfaceExporter,
             on: eventLoop
         )
