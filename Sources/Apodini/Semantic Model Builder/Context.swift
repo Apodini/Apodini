@@ -15,7 +15,7 @@ public class Context: KnowledgeSource {
         self.contextNode = contextNode
     }
     
-    public required init<B>(_ blackboard: B) throws where B : Blackboard {
+    public required init<B>(_ blackboard: B) throws where B: Blackboard {
         self.contextNode = blackboard[AnyEndpointSource.self].context.contextNode
     }
 

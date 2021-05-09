@@ -9,7 +9,7 @@ import OpenAPIKit
 
 
 /// Apodini Interface Exporter for OpenAPI.
-public final class OpenAPIInterfaceExporter: StaticInterfaceExporter {    
+public final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
     public static var parameterNamespace: [ParameterNamespace] = .individual
 
     let app: Apodini.Application

@@ -28,7 +28,10 @@ extension Handler {
         
         var blackboard: Blackboard
         if let application = app {
-            blackboard = LocalBlackboard<LazyHashmapBlackboard, GlobalBlackboard<LazyHashmapBlackboard>>(GlobalBlackboard<LazyHashmapBlackboard>(application), using: handler, context)
+            blackboard = LocalBlackboard<LazyHashmapBlackboard, GlobalBlackboard<LazyHashmapBlackboard>>(
+                GlobalBlackboard<LazyHashmapBlackboard>(application),
+                using: handler,
+                context)
         } else {
             blackboard = LocalBlackboard<LazyHashmapBlackboard, LazyHashmapBlackboard>(LazyHashmapBlackboard(), using: handler, context)
         }

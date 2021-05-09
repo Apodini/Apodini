@@ -12,7 +12,7 @@ import Apodini
 @_implementationOnly import ProtobufferCoding
 
 /// Apodini Interface Exporter for gRPC
-public final class GRPCInterfaceExporter: InterfaceExporter {    
+public final class GRPCInterfaceExporter: InterfaceExporter {
     let app: Apodini.Application
     var services: [String: GRPCService]
     var parameters: [UUID: Int]

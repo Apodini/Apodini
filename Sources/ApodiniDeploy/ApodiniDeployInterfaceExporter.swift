@@ -43,7 +43,7 @@ struct ApodiniDeployError: Swift.Error {
 /// a) compiles a list of all handlers (via their `Endpoint` objects). These are used to determine the target endpoint when manually invoking a handler.
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
-public class ApodiniDeployInterfaceExporter: InterfaceExporter {    
+public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     struct ApplicationStorageKey: Apodini.StorageKey {
         typealias Value = ApodiniDeployInterfaceExporter
     }

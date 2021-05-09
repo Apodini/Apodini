@@ -14,7 +14,7 @@ public class WebServiceRoot<A: TruthAnchor>: KnowledgeSource {
     
     public let node: WebServiceComponent<A>
     
-    required public init<B>(_ blackboard: B) throws where B : Blackboard {
+    public required init<B>(_ blackboard: B) throws where B: Blackboard {
         self.node = WebServiceComponent(parent: nil, identifier: .root, blackboards: blackboard[Blackboards.self][for: A.self])
     }
     
@@ -25,7 +25,7 @@ public class WebServiceRoot<A: TruthAnchor>: KnowledgeSource {
 
 /// Provides a structured way to access endpoints of a (partial) web service. Endpoints are organized by their
 /// `EndpointPath` and `Operation` attributes.
-public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {    
+public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
     public let parent: WebServiceComponent<A>?
     public let identifier: EndpointPath
     
@@ -36,7 +36,7 @@ public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
     
     private let blackboards: [Blackboard]
     
-    required public init<B>(_ blackboard: B) throws where B : Blackboard {
+    public required init<B>(_ blackboard: B) throws where B: Blackboard {
         // we make sure the WebServiceComponent that is meant to be initilaized here is created by
         // delegating to the WebServiceRoot
         _ = blackboard[WebServiceRoot<A>.self].node.findChild(for: blackboard[PathComponents.self].value, registerSelfToBlackboards: true)
@@ -51,7 +51,7 @@ public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
     
     private func deriveEndpoints() -> [Operation: Blackboard] {
         var endpoints = [Operation: Blackboard]()
-        for endpoint in blackboards.filter({ blackboard in blackboard[PathComponents.self].value.count == self.globalPath.count-1 }) {
+        for endpoint in blackboards.filter({ blackboard in blackboard[PathComponents.self].value.count == self.globalPath.count - 1 }) {
             endpoints[endpoint[Operation.self]] = endpoint
             endpoint[WebServiceComponent<A>.self] = self
         }
@@ -59,19 +59,22 @@ public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
     }
     
     private func deriveChildren() -> [WebServiceComponent] {
-        let children = blackboards.filter({ blackboard in blackboard[PathComponents.self].value.count > self.globalPath.count-1 })
+        let children = blackboards.filter { blackboard in
+            blackboard[PathComponents.self].value.count > self.globalPath.count - 1
+        }
         
         var childrenByPathElement = [EndpointPath: [Blackboard]]()
         
         for blackboard in children {
-            let identifier = blackboard[PathComponents.self].value[self.globalPath.count-1].toEndpointPath()
+            let identifier = blackboard[PathComponents.self].value[self.globalPath.count - 1].toEndpointPath()
             var allChildrenWithSameIdentifier = childrenByPathElement[identifier] ?? []
             allChildrenWithSameIdentifier.append(blackboard)
             childrenByPathElement[identifier] = allChildrenWithSameIdentifier
         }
         
-        return childrenByPathElement.map { (identifier, blackboards) in
-            WebServiceComponent(parent: self, identifier: identifier, blackboards: blackboards) }
+        return childrenByPathElement.map { identifier, blackboards in
+            WebServiceComponent(parent: self, identifier: identifier, blackboards: blackboards)
+        }
     }
 }
 

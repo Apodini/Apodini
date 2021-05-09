@@ -60,15 +60,15 @@ extension EndpointReference: Hashable {
 
 class ReferenceModule: KnowledgeSource {
     var reference: EndpointReference {
-        guard let r = _reference else {
+        guard let value = _reference else {
             fatalError("ReferenceModule was used before the reference was injected by the framework!")
         }
-        return r
+        return value
     }
     
     private var _reference: EndpointReference?
     
-    required init<B>(_ blackboard: B) throws where B : Blackboard { }
+    required init<B>(_ blackboard: B) throws where B: Blackboard { }
     
     func inject(reference: EndpointReference) {
         self._reference = reference

@@ -67,12 +67,15 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         // GlobalBlackboard's content lives on the app's `Store`, this is only a wrapper for accessing it
         let globalBlackboard = GlobalBlackboard<LazyHashmapBlackboard>(app)
         
-        let localBlackboard = LocalBlackboard<LazyHashmapBlackboard, GlobalBlackboard<LazyHashmapBlackboard>>(globalBlackboard, using: handler, context)
+        let localBlackboard = LocalBlackboard<
+            LazyHashmapBlackboard,
+            GlobalBlackboard<LazyHashmapBlackboard>
+        >(globalBlackboard, using: handler, context)
         
         // We first only build the blackboards. The rest is executed at the beginning of `finishedRegistration`.
         // This way `.global` `KnowledgeSource`s get a complete view of the web service even when accessed from
         // an `Endpoint`.
-        onRegistrationDone.append({
+        onRegistrationDone.append {
             let paths = context.get(valueFor: PathComponentContextKey.self)
             
 
@@ -113,8 +116,12 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
             let pathParameters = endpoint[EndpointPathModule.self].absolutePath.listPathParameters()
             let operation = endpoint[Operation.self]
             
-            self.typeIndexBuilder.indexContentType(content: content, reference: reference, markedDefault: markedDefault, pathParameters: pathParameters, operation: operation)
-        })
+            self.typeIndexBuilder.indexContentType(content: content,
+                                                   reference: reference,
+                                                   markedDefault: markedDefault,
+                                                   pathParameters: pathParameters,
+                                                   operation: operation)
+        }
     }
 
     func finishedRegistration() {

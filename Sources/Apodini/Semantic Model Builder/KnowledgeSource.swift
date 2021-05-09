@@ -13,11 +13,15 @@ import Foundation
 /// from other `KnowledgeSource`s. `KnowledgeSource`s are used to provide `InterfaceExporter`s
 /// with information on a `.local` endpoint, or the `.global` structure of the web service.
 public protocol KnowledgeSource {
+    /// The `LocationPreference` used to determine the place of initialization on a `Blackboard`.
     static var preference: LocationPreference { get }
+    /// Initializes the `KnowledgeSource` based on other `KnowledgeSource`s
+    /// available on the `blackboard`.
     init<B: Blackboard>(_ blackboard: B) throws
 }
 
 extension KnowledgeSource {
+    /// If not explicitly declared otherwise, all `KnowledgeSource`s are stored locally.
     public static var preference: LocationPreference {
         .local
     }
@@ -54,7 +58,10 @@ public enum KnowledgeError: Error, CustomDebugStringConvertible {
         case .instancePresent:
             return "The 'KnowledgeSource' aborted initilaization, because an instance of the same type was already present."
         case .initializationFailed:
-            return "Initialization of the 'KnowledgeSource' failed without known error. There might be an issue with the 'KnowledgeSource'´s delegation logic."
+            return """
+                Initialization of the 'KnowledgeSource' failed without known error.
+                There might be an issue with the 'KnowledgeSource'´s delegation logic.
+            """
         }
     }
 }
@@ -82,7 +89,7 @@ public protocol TruthAnchor { }
 extension Application: KnowledgeSource {
     public static let preference: LocationPreference = .global
     
-    public convenience init<B>(_ blackboard: B) throws where B : Blackboard {
+    public convenience init<B>(_ blackboard: B) throws where B: Blackboard {
         throw KnowledgeError.unsatisfiableDependency("Application", "GlobalBlackboard")
     }
 }
@@ -98,7 +105,7 @@ public struct EndpointSource<H: Handler>: KnowledgeSource {
         self.context = context
     }
     
-    public init<B>(_ blackboard: B) throws where B : Blackboard {
+    public init<B>(_ blackboard: B) throws where B: Blackboard {
         throw KnowledgeError.unsatisfiableDependency("EndpointSource", "LocalBlackboard")
     }
 }
@@ -116,7 +123,7 @@ public struct AnyEndpointSource: KnowledgeSource {
         self.context = context
     }
     
-    public init<B>(_ blackboard: B) throws where B : Blackboard {
+    public init<B>(_ blackboard: B) throws where B: Blackboard {
         throw KnowledgeError.unsatisfiableDependency("AnyEndpointSource", "LocalBlackboard")
     }
 }
@@ -131,9 +138,9 @@ public struct Blackboards: KnowledgeSource {
     private var boards: [Blackboard] = []
     
     // we store the available Blackboards for each restricted TruthAnchor separately
-    private var restricted: [ObjectIdentifier:[Blackboard]] = [:]
+    private var restricted: [ObjectIdentifier: [Blackboard]] = [:]
     
-    public init<B>(_ blackboard: B) throws where B : Blackboard {
+    public init<B>(_ blackboard: B) throws where B: Blackboard {
         throw KnowledgeError.unsatisfiableDependency("Blackboards", "GlobalBlackboard")
     }
     

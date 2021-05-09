@@ -6,8 +6,10 @@
 //
 
 
-
-@available(*, deprecated, message: "Replaced by 'WebServiceComponent'/'WebServiceRoot', which are lazy and properly integrated with the Blackboard-Pattern and thus don't require manual support by the 'SemanticModelBuilder'")
+@available(*, deprecated, message: """
+    Replaced by 'WebServiceComponent'/'WebServiceRoot'.
+    Those are lazy and properly integrated with the Blackboard-Pattern and thus don't require manual support by the 'SemanticModelBuilder'.
+""")
 public struct WebServiceModule<A: TruthAnchor, C: KnowledgeSource>: KnowledgeSource {
     private static var id: ObjectIdentifier {
         ObjectIdentifier(Self.self)
@@ -19,7 +21,7 @@ public struct WebServiceModule<A: TruthAnchor, C: KnowledgeSource>: KnowledgeSou
         return model
     }
     
-    public init<B>(_ blackboard: B) throws where B : Blackboard { }
+    public init<B>(_ blackboard: B) throws where B: Blackboard { }
 }
 
 
@@ -53,6 +55,6 @@ public struct RelationshipDestinations: ContextKeyKnowledgeSource {
     }
 }
 
-private struct WebServiceStore {
+private enum WebServiceStore {
     static var elements: [ObjectIdentifier: WebServiceModel] = [:]
 }

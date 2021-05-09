@@ -13,7 +13,7 @@ import Foundation
 open class AnyHandlerIdentifier: Codable, RawRepresentable, Hashable, Equatable, CustomStringConvertible, KnowledgeSource {
     public let rawValue: String
     
-    public required init<B>(_ blackboard: B) throws where B : Blackboard {
+    public required init<B>(_ blackboard: B) throws where B: Blackboard {
         let dslSpecifiedIdentifier = blackboard[DSLSpecifiedIdentifier.self].value
         let handlerSpecifiedIdentifier = blackboard[ExplicitlySpecifiedIdentifier.self].value
         
@@ -92,7 +92,7 @@ open class ScopedHandlerIdentifier<H: IdentifiableHandler>: AnyHandlerIdentifier
         try super.init(from: decoder)
     }
     
-    public required init<B>(_ blackboard: B) throws where B : Blackboard {
+    public required init<B>(_ blackboard: B) throws where B: Blackboard {
         try super.init(blackboard)
     }
 }
@@ -107,18 +107,18 @@ struct DSLSpecifiedIdentifier: OptionalContextKeyKnowledgeSource {
     }
 }
 
-struct ExplicitlySpecifiedIdentifier: HandlerBasedKnowledgeSource {
+struct ExplicitlySpecifiedIdentifier: HandlerKnowledgeSource {
     let value: AnyHandlerIdentifier?
     
-    init<H>(from handler: H) throws where H : Handler {
+    init<H>(from handler: H) throws where H: Handler {
         self.value = handler.getExplicitlySpecifiedIdentifier()
     }
 }
 
-struct HandlerName: HandlerBasedKnowledgeSource {
+struct HandlerName: HandlerKnowledgeSource {
     let name: String
     
-    init<H>(from handler: H) throws where H : Handler {
+    init<H>(from handler: H) throws where H: Handler {
         self.name = "\(handler)"
     }
 }

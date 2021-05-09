@@ -7,19 +7,19 @@
 
 import Foundation
 
-
+/// `HandlerDescription` describes a `Handler`'s type-name.
 public typealias HandlerDescription = String
 
-extension HandlerDescription: HandlerBasedKnowledgeSource {
-    public init<H>(from handler: H) throws where H : Handler {
+extension HandlerDescription: HandlerKnowledgeSource {
+    public init<H>(from handler: H) throws where H: Handler {
         self = String(describing: H.self)
     }
 }
 
-public struct HandleReturnType: HandlerBasedKnowledgeSource {
+public struct HandleReturnType: HandlerKnowledgeSource {
     public let type: Encodable.Type
     
-    public init<H>(from handler: H) throws where H : Handler {
+    public init<H>(from handler: H) throws where H: Handler {
         self.type = H.Response.Content.self
     }
 }
@@ -42,8 +42,8 @@ extension Operation: OptionalContextKeyKnowledgeSource {
 
 typealias EndpointParameters = [AnyEndpointParameter]
 
-extension EndpointParameters: HandlerBasedKnowledgeSource, KnowledgeSource {
-    public init<H>(from handler: H) throws where H : Handler {
+extension EndpointParameters: HandlerKnowledgeSource, KnowledgeSource {
+    public init<H>(from handler: H) throws where H: Handler {
         self = handler.buildParametersModel()
     }
 }

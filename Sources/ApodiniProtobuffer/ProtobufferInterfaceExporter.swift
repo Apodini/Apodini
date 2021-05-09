@@ -8,7 +8,7 @@ import ApodiniGRPC
 import ApodiniTypeReflection
 @_implementationOnly import class Vapor.Application
 
-public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {    
+public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     // MARK: Nested Types
     struct Error: Swift.Error, CustomDebugStringConvertible {
         let message: String

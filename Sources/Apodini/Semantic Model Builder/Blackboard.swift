@@ -10,6 +10,8 @@ import Foundation
 /// A storage for `KnowledgeSource`s. The `Blackboard` takes care of initialization and storage of `KnowledgeSource`s.
 /// It also allows for mutating `KnowledgeSource`s. Most initializations are performed lazily.
 public protocol Blackboard {
+    /// `Blackboard`s can be read from and written to based on a `KnowledgeSource`'s type. If not present yet,
+    /// the `Blackboard` takes care of initlaizing the `KnowledgeSource`.
     subscript<S>(_ type: S.Type) -> S where S: KnowledgeSource { get nonmutating set }
     
     /// An alternative for the `Blackboard`'s subscript for graceful error handling.
@@ -38,7 +40,7 @@ protocol IndependentBlackboard: Blackboard {
 }
 
 extension IndependentBlackboard {
-    func request<S>(_ type: S.Type) throws -> S where S : KnowledgeSource {
+    func request<S>(_ type: S.Type) throws -> S where S: KnowledgeSource {
         try self.request(type, using: self)
     }
 }
@@ -60,7 +62,7 @@ final class LocalBlackboard<L: IndependentBlackboard, G: Blackboard>: Blackboard
         }
     }
     
-    subscript<S>(type: S.Type) -> S where S : KnowledgeSource {
+    subscript<S>(type: S.Type) -> S where S: KnowledgeSource {
         get {
             do {
                 return try request(type)
@@ -78,7 +80,7 @@ final class LocalBlackboard<L: IndependentBlackboard, G: Blackboard>: Blackboard
         }
     }
     
-    func request<S>(_ type: S.Type) throws -> S where S : KnowledgeSource {
+    func request<S>(_ type: S.Type) throws -> S where S: KnowledgeSource {
         switch type.preference {
         case .local:
             do {
@@ -112,7 +114,7 @@ struct GlobalBlackboard<B: IndependentBlackboard>: Blackboard, StorageKey {
         }
     }
     
-    subscript<S>(type: S.Type) -> S where S : KnowledgeSource {
+    subscript<S>(type: S.Type) -> S where S: KnowledgeSource {
         get {
             getOrInitializeBlackboard()[type]
         }
@@ -121,25 +123,25 @@ struct GlobalBlackboard<B: IndependentBlackboard>: Blackboard, StorageKey {
         }
     }
     
-    func request<S>(_ type: S.Type) throws -> S where S : KnowledgeSource {
-        return try getOrInitializeBlackboard().request(type)
+    func request<S>(_ type: S.Type) throws -> S where S: KnowledgeSource {
+        try getOrInitializeBlackboard().request(type)
     }
     
     private func getOrInitializeBlackboard() -> Value {
-        if let bb = app.storage[Self.self] {
-            return bb
+        if let blackboard = app.storage[Self.self] {
+            return blackboard
         }
         
-        let bb = B()
-        app.storage.set(Self.self, to: bb)
-        return bb
+        let blackboard = B()
+        app.storage.set(Self.self, to: blackboard)
+        return blackboard
     }
 }
 
 final class LazyHashmapBlackboard: IndependentBlackboard {
     private var storage: [ObjectIdentifier: KnowledgeSource] = [:]
     
-    subscript<S>(type: S.Type) -> S where S : KnowledgeSource {
+    subscript<S>(type: S.Type) -> S where S: KnowledgeSource {
         get {
             do {
                 return try request(type, using: self)
@@ -153,7 +155,7 @@ final class LazyHashmapBlackboard: IndependentBlackboard {
         }
     }
     
-    func request<S, B>(_ type: S.Type, using blackboard: B) throws -> S where S : KnowledgeSource, B: Blackboard {
+    func request<S, B>(_ type: S.Type, using blackboard: B) throws -> S where S: KnowledgeSource, B: Blackboard {
         let id = ObjectIdentifier(type)
         if let stored = storage[id] as? S {
             return stored
@@ -173,18 +175,17 @@ final class LazyHashmapBlackboard: IndependentBlackboard {
 }
 
 public class MockBlackboard: Blackboard {
-    
     private var content: [ObjectIdentifier: KnowledgeSource]
     
     public init(_ contents: (KnowledgeSource.Type, KnowledgeSource)...) {
-        var c = [ObjectIdentifier: KnowledgeSource]()
+        var store = [ObjectIdentifier: KnowledgeSource]()
         for content in contents {
-            c[ObjectIdentifier(content.0)] = content.1
+            store[ObjectIdentifier(content.0)] = content.1
         }
-        self.content = c
+        self.content = store
     }
     
-    public subscript<S>(_ type: S.Type) -> S where S : KnowledgeSource {
+    public subscript<S>(_ type: S.Type) -> S where S: KnowledgeSource {
         get {
             content[ObjectIdentifier(type)]! as! S
         }
@@ -193,7 +194,7 @@ public class MockBlackboard: Blackboard {
         }
     }
     
-    public func request<S>(_ type: S.Type) throws -> S where S : KnowledgeSource {
+    public func request<S>(_ type: S.Type) throws -> S where S: KnowledgeSource {
         self[type]
     }
 }

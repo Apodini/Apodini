@@ -20,7 +20,7 @@ struct ResponseTransformersReturnType: ContextKeyKnowledgeSource {
 public struct ResponseType: KnowledgeSource {
     public let type: Encodable.Type
     
-    public init<B>(_ blackboard: B) throws where B : Blackboard {
+    public init<B>(_ blackboard: B) throws where B: Blackboard {
         self.type = blackboard[ResponseTransformersReturnType.self].type ?? blackboard[HandleReturnType.self].type
     }
 }

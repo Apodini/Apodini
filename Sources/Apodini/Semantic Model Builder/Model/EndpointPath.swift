@@ -424,15 +424,16 @@ private struct PathStringBuilder: PathBuilder {
 
 class EndpointPathModule: KnowledgeSource {
     var absolutePath: [EndpointPath] {
-        guard let r = _absolutePath else {
+        guard let value = _absolutePath else {
             fatalError("EndpointPathModule was used before the absolutePath was injected by the framework!")
         }
-        return r
+        return value
     }
     
+    // swiftlint:disable:next discouraged_optional_collection
     private var _absolutePath: [EndpointPath]?
     
-    required init<B>(_ blackboard: B) throws where B : Blackboard { }
+    required init<B>(_ blackboard: B) throws where B: Blackboard { }
     
     func inject(absolutePath: [EndpointPath]) {
         self._absolutePath = absolutePath

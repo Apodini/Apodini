@@ -45,7 +45,12 @@ struct TypeIndexBuilder: CustomDebugStringConvertible {
         self.logger = logger
     }
 
-    mutating func indexContentType(content: Encodable.Type, reference: EndpointReference, markedDefault: Bool, pathParameters: [AnyEndpointPathParameter], operation: Operation) {
+    mutating func indexContentType(
+        content: Encodable.Type,
+        reference: EndpointReference,
+        markedDefault: Bool,
+        pathParameters: [AnyEndpointPathParameter],
+        operation: Operation) {
         let identifier = ObjectIdentifier(content)
 
         if let info = try? typeInfo(of: content),

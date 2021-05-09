@@ -8,7 +8,7 @@
 import Foundation
 
 
-struct PathComponents: ContextKeyKnowledgeSource {
+public struct PathComponents: ContextKeyKnowledgeSource {
     public typealias Key = PathComponentContextKey
     
     let value: [PathComponent]

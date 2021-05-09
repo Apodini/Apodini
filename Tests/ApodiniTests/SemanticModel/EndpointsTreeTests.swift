@@ -232,7 +232,9 @@ final class EndpointsTreeTests: ApodiniTests {
     
     func testWebServiceComponentKnowledgeSource() {
         let exporter = MockExporter<String>(calling: { endpoint in
-            XCTAssertEqual(endpoint[WebServiceComponent<TestAnchor>.self].endpoints[endpoint[Operation.self]]![AnyHandlerIdentifier.self], endpoint[AnyHandlerIdentifier.self])
+            XCTAssertEqual(
+                endpoint[WebServiceComponent<TestAnchor>.self].endpoints[endpoint[Operation.self]]![AnyHandlerIdentifier.self],
+                endpoint[AnyHandlerIdentifier.self])
         })
         
         
