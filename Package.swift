@@ -128,16 +128,21 @@ let package = Package(
         .testTarget(
             name: "ApodiniTests",
             dependencies: [
+                .product(name: "Yams", package: "Yams"),
                 .target(name: "XCTApodini"),
                 .target(name: "ApodiniDatabase"),
+                .target(name: "ApodiniREST"),
+                .target(name: "ApodiniGRPC"),
+                .target(name: "ApodiniOpenAPI"),
+                .target(name: "ApodiniWebSocket"),
+                .target(name: "ApodiniProtobuffer"),
+                .target(name: "XCTApodini"),
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "OpenCombine", package: "OpenCombine"),
                 .product(name: "OpenCombineFoundation", package: "OpenCombine")
             ],
-            exclude: [
-                "ConfigurationTests/Certificates/cert.pem",
-                "ConfigurationTests/Certificates/key.pem",
-                "ConfigurationTests/Certificates/key2.pem"
+            resources: [
+                .process("Resources")
             ]
         ),
 
@@ -294,14 +299,8 @@ let package = Package(
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
                 .target(name: "Apodini"),
-                .target(name: "ApodiniVaporSupport"),
-                .target(name: "ApodiniREST"),
-                .target(name: "ApodiniGRPC"),
-                .target(name: "ApodiniProtobuffer"),
-                .target(name: "ApodiniOpenAPI"),
-                .target(name: "ApodiniWebSocket"),
-                .target(name: "ApodiniNotifications"),
-                .target(name: "ApodiniDeploy")
+                .target(name: "ApodiniDatabase"),
+                .target(name: "ApodiniUtils")
             ]
         ),
         

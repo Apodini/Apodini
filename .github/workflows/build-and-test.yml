@@ -26,12 +26,12 @@ jobs:
       ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
     steps:
     - uses: actions/checkout@v2
-    - name: Install libsqlite3
+    - name: Install libsqlite3, lsof and zsh
       if: ${{ !(startsWith( matrix.linux, 'centos' ) || startsWith( matrix.linux, 'amazonlinux' )) }}
-      run: apt-get update && apt-get install -y --no-install-recommends libsqlite3-dev
-    - name: Install libsqlite3
+      run: apt-get update && apt-get install -y --no-install-recommends libsqlite3-dev lsof zsh
+    - name: Install libsqlite3, lsof and zsh
       if: ${{ startsWith( matrix.linux, 'centos' ) || startsWith( matrix.linux, 'amazonlinux' ) }}
-      run: yum update -y && yum install -y sqlite-devel
+      run: yum update -y && yum install -y sqlite-devel lsof zsh
     - uses: actions/cache@v2
       with:
         path: .build

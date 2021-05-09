@@ -3,6 +3,8 @@ import FluentSQLiteDriver
 @testable import Apodini
 import XCTest
 import ApodiniDatabase
+import ApodiniUtils
+
 
 open class XCTApodiniTest: XCTestCase {
     // Vapor Application
@@ -17,6 +19,12 @@ open class XCTApodiniTest: XCTestCase {
     override open func tearDownWithError() throws {
         try super.tearDownWithError()
         app.shutdown()
+        
+        let processesAtPort8080 = runShellCommand(.getProcessesAtPort(8080))
+        if processesAtPort8080 != "" {
+            XCTFail("A web service is running at port 8080 after running the test case. All processes at port 8080 must be shut down after running the test case.")
+            runShellCommand(.killPort(8080))
+        }
     }
     
     open func database() throws -> Database {

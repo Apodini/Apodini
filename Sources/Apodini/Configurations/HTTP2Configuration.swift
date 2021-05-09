@@ -82,12 +82,12 @@ public final class HTTP2Configuration: Configuration {
     }
 
     /// Sets the `.pem` file from which the certificate should be read.
-    public func certificate(_ filePath: String) -> Self {
+    public func certificate(_ filePath: URL) -> Self {
         guard certData == nil else {
             return self
         }
         do {
-            certData = try Data(contentsOf: URL(fileURLWithPath: filePath))
+            certData = try Data(contentsOf: filePath)
         } catch {
             print("Cannot read certificate from file. Error: \(error)")
         }
@@ -95,12 +95,12 @@ public final class HTTP2Configuration: Configuration {
     }
 
     /// Sets the `.pem` file from which the key should be read.
-    public func key(_ filePath: String) -> Self {
+    public func key(_ filePath: URL) -> Self {
         guard keyData == nil else {
             return self
         }
         do {
-            keyData = try Data(contentsOf: URL(fileURLWithPath: filePath))
+            keyData = try Data(contentsOf: filePath)
         } catch {
             print("Cannot read key from file. Error: \(error)")
         }
