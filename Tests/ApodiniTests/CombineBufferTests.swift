@@ -5,16 +5,36 @@
 //  Created by Max Obermeier on 27.01.21.
 //
 
-import XCTest
+@testable import Apodini
 @testable import ApodiniWebSocket
 import OpenCombine
-@testable import Apodini
+import XCTApodini
 
-class CombineBufferTests: ApodiniTests {
+
+class CombineBufferTests: XCTestCase {
     static let blockTime: UInt32 = 10000
     
+    var eventLoopGroup: EventLoopGroup?
+    var threadPool: NIOThreadPool?
+    
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        
+        eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 2)
+        threadPool = NIOThreadPool(numberOfThreads: 2)
+        threadPool?.start()
+    }
+    
+    override func tearDownWithError() throws {
+        try super.tearDownWithError()
+        
+        try eventLoopGroup?.syncShutdownGracefully()
+        try threadPool?.syncShutdownGracefully()
+    }
+    
     func testUninterruptedRun() throws {
-        let eventLoop = app.eventLoopGroup.next()
+        let eventLoop = try XCTUnwrap(eventLoopGroup?.next())
+        let threadPool = try XCTUnwrap(threadPool)
         let done = eventLoop.makePromise(of: [Int].self)
         
         let sequence: [Int] = Array(1...100)
@@ -25,7 +45,7 @@ class CombineBufferTests: ApodiniTests {
             .buffer()
             .syncMap { value -> EventLoopFuture<Int> in
                 let promise = eventLoop.makePromise(of: Int.self)
-                _ = self.app.threadPool.runIfActive(eventLoop: eventLoop) {
+                _ = threadPool.runIfActive(eventLoop: eventLoop) {
                     usleep(CombineBufferTests.blockTime)
                     promise.succeed(value)
                 }
@@ -55,7 +75,8 @@ class CombineBufferTests: ApodiniTests {
     }
     
     func testCancelledRun() throws {
-        let eventLoop = app.eventLoopGroup.next()
+        let eventLoop = try XCTUnwrap(eventLoopGroup?.next())
+        let threadPool = try XCTUnwrap(threadPool)
         
         let sequence: [Int] = Array(1...100)
         
@@ -67,7 +88,7 @@ class CombineBufferTests: ApodiniTests {
             .buffer()
             .syncMap { value -> EventLoopFuture<Int> in
                 let promise = eventLoop.makePromise(of: Int.self)
-                _ = self.app.threadPool.runIfActive(eventLoop: eventLoop) {
+                _ = threadPool.runIfActive(eventLoop: eventLoop) {
                     usleep(CombineBufferTests.blockTime)
                     latestValue = value
                     promise.succeed(value)
@@ -94,7 +115,8 @@ class CombineBufferTests: ApodiniTests {
     }
     
     func testEarlyCompletedRun() throws {
-        let eventLoop = app.eventLoopGroup.next()
+        let eventLoop = try XCTUnwrap(eventLoopGroup?.next())
+        let threadPool = try XCTUnwrap(threadPool)
         let done = eventLoop.makePromise(of: [Int].self)
         
         let sequence: [Int] = Array(1...100)
@@ -105,7 +127,7 @@ class CombineBufferTests: ApodiniTests {
             .buffer()
             .syncMap { value -> EventLoopFuture<Int> in
                 let promise = eventLoop.makePromise(of: Int.self)
-                _ = self.app.threadPool.runIfActive(eventLoop: eventLoop) {
+                _ = threadPool.runIfActive(eventLoop: eventLoop) {
                     usleep(CombineBufferTests.blockTime)
                     promise.succeed(value)
                 }
