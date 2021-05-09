@@ -46,13 +46,3 @@ extension String: _PathComponent {
         parser.visit(self)
     }
 }
-
-struct PathComponents: ContextBased {
-    public typealias Key = PathComponentContextKey
-    
-    let value: [PathComponent]
-    
-    public init(from value: [PathComponent]) {
-        self.value = value
-    }
-}

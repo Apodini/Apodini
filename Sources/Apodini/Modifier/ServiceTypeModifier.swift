@@ -51,11 +51,3 @@ extension Handler {
         ServiceTypeModifier(self, serviceType: serviceType)
     }
 }
-
-extension ServiceType: OptionalContextBased {
-    public typealias Key = ServiceTypeContextKey
-    
-    public init(from value: Key.Value?) throws {
-        self = value ?? .unary
-    }
-}

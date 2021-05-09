@@ -65,8 +65,6 @@ let package = Package(
         // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
         .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
-        // Used for creating dependency graphs for `ContentModule`s
-        .package(url: "https://github.com/davecom/SwiftGraph.git", from: "3.1.0"),
         
         // Deploy
         .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
@@ -95,8 +93,7 @@ let package = Package(
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Runtime", package: "Runtime"),
-                .product(name: "ConsoleKit", package: "console-kit"),
-                .product(name: "SwiftGraph", package: "SwiftGraph")
+                .product(name: "ConsoleKit", package: "console-kit")
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb",

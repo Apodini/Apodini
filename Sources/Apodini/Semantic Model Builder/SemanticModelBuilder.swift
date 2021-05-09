@@ -89,8 +89,8 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
 
             self.webService.addEndpoint(&endpoint, at: paths)
             // The `ReferenceModule` and `EndpointPathModule` cannot be implemented using one of the standard
-            // `ContentModule` protocols as they depend on the `WebServiceModel`. This should change
-            // once the latter was ported to the `ContentModule` pattern.
+            // `KnowledgeSource` protocols as they depend on the `WebServiceModel`. This should change
+            // once the latter was ported to the Blackboard-Pattern.
             endpoint[ReferenceModule.self].inject(reference: endpoint.reference)
             endpoint[EndpointPathModule.self].inject(absolutePath: endpoint.absolutePath)
             

@@ -422,9 +422,7 @@ private struct PathStringBuilder: PathBuilder {
     }
 }
 
-class EndpointPathModule: DependencyBased {
-    static var dependencies: [ContentModule.Type] = []
-    
+class EndpointPathModule: KnowledgeSource {
     var absolutePath: [EndpointPath] {
         guard let r = _absolutePath else {
             fatalError("EndpointPathModule was used before the absolutePath was injected by the framework!")
@@ -434,7 +432,7 @@ class EndpointPathModule: DependencyBased {
     
     private var _absolutePath: [EndpointPath]?
     
-    required init(from store: ModuleStore) throws { }
+    required init<B>(_ blackboard: B) throws where B : Blackboard { }
     
     func inject(absolutePath: [EndpointPath]) {
         self._absolutePath = absolutePath

@@ -7,12 +7,8 @@
 
 
 
-public struct WebServiceModule<A: TruthAnchor, C: DependencyBased>: DependencyBased {
-    
-    public static var dependencies: [ContentModule.Type] {
-        [PathComponents.self, Operation.self] + C.dependencies
-    }
-    
+@available(*, deprecated, message: "Replaced by 'WebServiceComponent'/'WebServiceRoot', which are lazy and properly integrated with the Blackboard-Pattern and thus don't require manual support by the 'SemanticModelBuilder'")
+public struct WebServiceModule<A: TruthAnchor, C: KnowledgeSource>: KnowledgeSource {
     private static var id: ObjectIdentifier {
         ObjectIdentifier(Self.self)
     }
@@ -23,13 +19,11 @@ public struct WebServiceModule<A: TruthAnchor, C: DependencyBased>: DependencyBa
         return model
     }
     
-    public init(from store: ModuleStore) throws {
-        
-    }
+    public init<B>(_ blackboard: B) throws where B : Blackboard { }
 }
 
 
-struct PartialRelationshipSourceCandidates: ContextBased {
+struct PartialRelationshipSourceCandidates: ContextKeyKnowledgeSource {
     typealias Key = RelationshipSourceCandidateContextKey
     
     let list: [PartialRelationshipSourceCandidate]
@@ -39,7 +33,7 @@ struct PartialRelationshipSourceCandidates: ContextBased {
     }
 }
 
-public struct RelationshipSources: ContextBased {
+public struct RelationshipSources: ContextKeyKnowledgeSource {
     public typealias Key = RelationshipSourceContextKey
     
     public let list: [Relationship]
@@ -49,7 +43,7 @@ public struct RelationshipSources: ContextBased {
     }
 }
 
-public struct RelationshipDestinations: ContextBased {
+public struct RelationshipDestinations: ContextKeyKnowledgeSource {
     public typealias Key = RelationshipDestinationContextKey
     
     public let list: [Relationship]

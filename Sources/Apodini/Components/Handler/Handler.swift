@@ -23,20 +23,3 @@ extension Handler {
     }
 }
 
-
-public typealias HandlerDescription = String
-
-extension HandlerDescription: _HandlerBased, ContentModule {
-    public init<H>(from handler: H) throws where H : Handler {
-        self = String(describing: H.self)
-    }
-}
-
-public struct HandleReturnType: _HandlerBased, HandlerBasedKnowledgeSource {
-    public let type: Encodable.Type
-    
-    public init<H>(from handler: H) throws where H : Handler {
-        self.type = H.Response.Content.self
-    }
-}
-

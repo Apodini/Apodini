@@ -9,9 +9,7 @@ import OpenAPIKit
 
 
 /// Apodini Interface Exporter for OpenAPI.
-public final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
-    public static let dependencies: [ContentModule.Type] = [AnyHandlerIdentifier.self, Operation.self, HandlerDescription.self, ResponseType.self, Context.self]
-    
+public final class OpenAPIInterfaceExporter: StaticInterfaceExporter {    
     public static var parameterNamespace: [ParameterNamespace] = .individual
 
     let app: Apodini.Application

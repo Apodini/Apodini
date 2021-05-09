@@ -55,13 +55,3 @@ extension Handler {
         OperationModifier(self, operation: operation)
     }
 }
-
-// MARK: Exporter API
-
-extension Operation: OptionalContextBased {
-    public typealias Key = OperationContextKey
-    
-    public init(from value: Key.Value?) {
-        self = value ?? .read
-    }
-}

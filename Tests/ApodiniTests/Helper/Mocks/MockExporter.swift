@@ -10,10 +10,6 @@ import class Vapor.Request
 extension String: ExporterRequest {}
 
 class MockExporter<Request: ExporterRequest>: InterfaceExporter {
-    public static var dependencies: [ContentModule.Type] {
-        []
-    }
-    
     var parameterValues: [Any??] = []
     
     let onExport: (AnyEndpoint) -> Void

@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// A type that provides access to the root `WebServiceComponent` of a webservice.
 @dynamicMemberLookup
 public class WebServiceRoot<A: TruthAnchor>: KnowledgeSource {
     public static var preference: LocationPreference { .global }
@@ -22,6 +23,8 @@ public class WebServiceRoot<A: TruthAnchor>: KnowledgeSource {
     }
 }
 
+/// Provides a structured way to access endpoints of a (partial) web service. Endpoints are organized by their
+/// `EndpointPath` and `Operation` attributes.
 public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {    
     public let parent: WebServiceComponent<A>?
     public let identifier: EndpointPath

@@ -10,14 +10,12 @@ import Foundation
 
 
 /// An `AnyHandlerIdentifier` object identifies a `Handler` regardless of its concrete type.
-open class AnyHandlerIdentifier: Codable, RawRepresentable, Hashable, Equatable, CustomStringConvertible, DependencyBased {
+open class AnyHandlerIdentifier: Codable, RawRepresentable, Hashable, Equatable, CustomStringConvertible, KnowledgeSource {
     public let rawValue: String
     
-    public static var dependencies: [ContentModule.Type] = [DSLSpecifiedIdentifier.self, ExplicitlySpecifiedIdentifier.self, HandlerName.self, HandlerIndexPath.self]
-    
-    public required init(from store: ModuleStore) {
-        let dslSpecifiedIdentifier = store[DSLSpecifiedIdentifier.self].value
-        let handlerSpecifiedIdentifier = store[ExplicitlySpecifiedIdentifier.self].value
+    public required init<B>(_ blackboard: B) throws where B : Blackboard {
+        let dslSpecifiedIdentifier = blackboard[DSLSpecifiedIdentifier.self].value
+        let handlerSpecifiedIdentifier = blackboard[ExplicitlySpecifiedIdentifier.self].value
         
         switch (dslSpecifiedIdentifier, handlerSpecifiedIdentifier) {
         case (.some(let identifier), .none):
@@ -29,14 +27,14 @@ open class AnyHandlerIdentifier: Codable, RawRepresentable, Hashable, Equatable,
                 self.rawValue = ident1.rawValue
             } else {
                 fatalError("""
-                    Handler '\(store[HandlerName.self].name)' has multiple explicitly specified identifiers ('\(ident1)' and '\(ident2)').
+                    Handler '\(blackboard[HandlerName.self].name)' has multiple explicitly specified identifiers ('\(ident1)' and '\(ident2)').
                     A handler may only have one explicitly specified identifier.
                     This is caused by using both the 'IdentifiableHandler.handlerId' property as well as the '.identified(by:)' modifier.
                     """
                 )
             }
         case (.none, .none):
-            let handlerIndexPath = store[HandlerIndexPath.self]
+            let handlerIndexPath = blackboard[HandlerIndexPath.self]
             self.rawValue = handlerIndexPath.rawValue
         }
     }
@@ -94,12 +92,12 @@ open class ScopedHandlerIdentifier<H: IdentifiableHandler>: AnyHandlerIdentifier
         try super.init(from: decoder)
     }
     
-    public required init(from store: ModuleStore) {
-        super.init(from: store)
+    public required init<B>(_ blackboard: B) throws where B : Blackboard {
+        try super.init(blackboard)
     }
 }
 
-struct DSLSpecifiedIdentifier: OptionalContextBased {
+struct DSLSpecifiedIdentifier: OptionalContextKeyKnowledgeSource {
     typealias Key = ExplicitHandlerIdentifierContextKey
     
     let value: AnyHandlerIdentifier?
@@ -109,7 +107,7 @@ struct DSLSpecifiedIdentifier: OptionalContextBased {
     }
 }
 
-struct ExplicitlySpecifiedIdentifier: _HandlerBased {
+struct ExplicitlySpecifiedIdentifier: HandlerBasedKnowledgeSource {
     let value: AnyHandlerIdentifier?
     
     init<H>(from handler: H) throws where H : Handler {
@@ -117,7 +115,7 @@ struct ExplicitlySpecifiedIdentifier: _HandlerBased {
     }
 }
 
-struct HandlerName: _HandlerBased {
+struct HandlerName: HandlerBasedKnowledgeSource {
     let name: String
     
     init<H>(from handler: H) throws where H : Handler {

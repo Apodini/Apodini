@@ -81,9 +81,6 @@ private struct TestRequest: ExporterRequest {
 }
 
 private struct TestExporter: InterfaceExporter {
-    public static let dependencies: [ContentModule.Type] = []
-    
-    
     init() {}
     init(_ app: Application) {
         fatalError("No implemented")
@@ -97,8 +94,6 @@ private struct TestExporter: InterfaceExporter {
 }
 
 private struct StaticTestExporter: StaticInterfaceExporter {
-    public static let dependencies: [ContentModule.Type] = []
-    
     init() {}
     init(_ app: Application) {
         fatalError("No implemented")

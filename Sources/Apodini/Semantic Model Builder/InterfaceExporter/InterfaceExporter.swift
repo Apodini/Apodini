@@ -8,7 +8,7 @@ import protocol NIO.EventLoop
 /// Currently the following two types are supported:
 /// - `InterfaceExporter`: This type should be used for Exporters serving an accessible WebService
 /// - `StaticInterfaceExporter`: This type should be used for Exporters service a representation of the WebService (e.g. documentation)
-public protocol BaseInterfaceExporter: ContentModule {
+public protocol BaseInterfaceExporter {
     /// Defines the return type of the `export` method. The return type is currently unused.
     associatedtype EndpointExportOutput = Void
     /// Defines the return type of the `exportParameter` method. For more details see `exportParameter(...)`

@@ -58,9 +58,7 @@ extension EndpointReference: Hashable {
     }
 }
 
-class ReferenceModule: DependencyBased {
-    static var dependencies: [ContentModule.Type] = []
-    
+class ReferenceModule: KnowledgeSource {
     var reference: EndpointReference {
         guard let r = _reference else {
             fatalError("ReferenceModule was used before the reference was injected by the framework!")
@@ -70,7 +68,7 @@ class ReferenceModule: DependencyBased {
     
     private var _reference: EndpointReference?
     
-    required init(from store: ModuleStore) throws { }
+    required init<B>(_ blackboard: B) throws where B : Blackboard { }
     
     func inject(reference: EndpointReference) {
         self._reference = reference

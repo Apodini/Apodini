@@ -197,24 +197,3 @@ public class MockBlackboard: Blackboard {
         self[type]
     }
 }
-
-// TODO: remove
-struct BlackboardStore: ModuleStore {
-    let board: Blackboard
-    
-    subscript<M>(index: M.Type) -> M where M : DependencyBased {
-        board[index]
-    }
-    
-    subscript<M>(index: M.Type) -> M where M : AnyContextBased {
-        board[index]
-    }
-    
-    subscript<M>(index: M.Type) -> M where M : ApplicationBased {
-        board[index]
-    }
-    
-    subscript<M>(index: M.Type) -> M where M : _HandlerBased {
-        board[index]
-    }
-}
