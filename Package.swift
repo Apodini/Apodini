@@ -136,7 +136,6 @@ let package = Package(
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniProtobuffer"),
-                .target(name: "XCTApodini"),
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "OpenCombine", package: "OpenCombine"),
                 .product(name: "OpenCombineFoundation", package: "OpenCombine")
