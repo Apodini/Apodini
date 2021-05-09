@@ -21,8 +21,13 @@ open class XCTApodiniTest: XCTestCase {
         app.shutdown()
         
         let processesAtPort8080 = runShellCommand(.getProcessesAtPort(8080))
-        if processesAtPort8080 != "" {
-            XCTFail("A web service is running at port 8080 after running the test case. All processes at port 8080 must be shut down after running the test case.")
+        if processesAtPort8080.isEmpty {
+            XCTFail(
+                """
+                A web service is running at port 8080 after running the test case.
+                All processes at port 8080 must be shut down after running the test case.
+                """
+            )
             runShellCommand(.killPort(8080))
         }
     }

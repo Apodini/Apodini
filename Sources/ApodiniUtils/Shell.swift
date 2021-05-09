@@ -10,8 +10,9 @@ import Foundation
 
 /// Contains predefined shell command cases
 public enum ShellCommand {
-    /// Used for killing the specified port
+    /// Used for killing a process at the specified port
     case killPort(Int)
+    /// Get all processes running at the specified port
     case getProcessesAtPort(Int)
 
     var method: String {
