@@ -16,6 +16,10 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
             "Test"
         }
     }
+    
+    private var apodiniOpenAPIResourceBundle: Bundle? {
+        Bundle.allBundles.first(where: { $0.bundlePath.contains("ApodiniOpenAPI") })
+    }
 
     func testInterfaceExporterDefaultServing() throws {
         struct TestWebService: WebService {
@@ -42,7 +46,7 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
         try app.vapor.app.test(.GET, "/\(OpenAPIConfigurationDefaults.swaggerUiEndpoint)", headers: headers) { res in
             XCTAssertEqual(res.status, .ok)
 
-            guard let htmlFile = Bundle(identifier: "Apodini-ApodiniOpenAPI-resources")?.path(forResource: "swagger-ui", ofType: "html"),
+            guard let htmlFile = apodiniOpenAPIResourceBundle?.path(forResource: "swagger-ui", ofType: "html"),
                   var html = try? String(contentsOfFile: htmlFile)
                 else {
                 throw Vapor.Abort(.internalServerError)
@@ -85,7 +89,7 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
         try app.vapor.app.test(.GET, storage.configuration.swaggerUiEndpoint, headers: headers) { res in
             XCTAssertEqual(res.status, .ok)
 
-            guard let htmlFile = Bundle(identifier: "Apodini-ApodiniOpenAPI-resources")?.path(forResource: "swagger-ui", ofType: "html"),
+            guard let htmlFile = apodiniOpenAPIResourceBundle?.path(forResource: "swagger-ui", ofType: "html"),
                   var html = try? String(contentsOfFile: htmlFile)
                 else {
                 return XCTFail("Missing Swagger-UI HTML resource.")
