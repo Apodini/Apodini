@@ -6,25 +6,6 @@
 //
 
 
-@available(*, deprecated, message: """
-    Replaced by 'WebServiceComponent'/'WebServiceRoot'.
-    Those are lazy and properly integrated with the Blackboard-Pattern and thus don't require manual support by the 'SemanticModelBuilder'.
-""")
-public struct WebServiceModule<A: TruthAnchor, C: KnowledgeSource>: KnowledgeSource {
-    private static var id: ObjectIdentifier {
-        ObjectIdentifier(Self.self)
-    }
-    
-    private static var model: WebServiceModel {
-        let model = WebServiceStore.elements[Self.id] ?? WebServiceModel()
-        WebServiceStore.elements[Self.id] = model
-        return model
-    }
-    
-    public init<B>(_ blackboard: B) throws where B: Blackboard { }
-}
-
-
 struct PartialRelationshipSourceCandidates: ContextKeyKnowledgeSource {
     typealias Key = RelationshipSourceCandidateContextKey
     

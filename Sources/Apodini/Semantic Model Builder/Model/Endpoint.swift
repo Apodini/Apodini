@@ -122,7 +122,7 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     
     init(
         handler: H,
-        blackboard: Blackboard = MockBlackboard(),
+        blackboard: Blackboard,
         guards: [LazyGuard] = [],
         responseTransformers: [LazyAnyResponseTransformer] = []
     ) {

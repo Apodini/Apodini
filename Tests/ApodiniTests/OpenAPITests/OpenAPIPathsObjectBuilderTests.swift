@@ -6,6 +6,7 @@ import XCTest
 @_implementationOnly import OpenAPIKit
 @testable import Apodini
 @testable import ApodiniOpenAPI
+import ApodiniTests
 
 final class OpenAPIPathsObjectBuilderTests: XCTestCase {
     struct SomeStruct: Codable {

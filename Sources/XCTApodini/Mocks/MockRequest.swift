@@ -7,15 +7,15 @@ import Foundation
 @testable import Apodini
 
 
-enum MockRequest {
-    static func createRequest(
+public enum MockRequest {
+    public static func createRequest(
         running eventLoop: EventLoop,
         queuedParameters parameterValues: Any??...
     ) -> ValidatedRequest<MockExporter<String>, EmptyHandler> {
         createRequest(on: EmptyHandler(), running: eventLoop, queuedParameters: parameterValues)
     }
 
-    static func createRequest<H: Handler>(
+    public static func createRequest<H: Handler>(
         on handler: H,
         running eventLoop: EventLoop,
         queuedParameters parameterValues: Any??...

@@ -3,6 +3,7 @@
 //
 
 import XCTest
+import XCTApodini
 @testable import Apodini
 
 class RelationshipExporter: MockExporter<String> {

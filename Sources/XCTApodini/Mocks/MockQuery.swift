@@ -1,7 +1,7 @@
 import XCTest
 @testable import Apodini
 
-func mockQuery<Value: Encodable, H: Handler>(
+public func mockQuery<Value: Encodable, H: Handler>(
     component: H,
     value: Value.Type,
     app: Application,
