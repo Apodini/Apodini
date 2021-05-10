@@ -8,7 +8,8 @@
 import Foundation
 @testable import Apodini
 
-
+/// A `Blackboard` which only provides access to the `contents` provided on initialization or values
+/// that have previously been placed on the board.
 public class MockBlackboard: Blackboard {
     private var content: [ObjectIdentifier: KnowledgeSource]
     
@@ -35,6 +36,7 @@ public class MockBlackboard: Blackboard {
 }
 
 public extension WebServiceModel {
+    /// Create a `WebServiceModel` providing access to an empty global `Blackboard`
     convenience init(mockBlackboard: Blackboard = MockBlackboard()) {
         self.init(mockBlackboard)
     }

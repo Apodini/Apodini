@@ -7,7 +7,9 @@ import Foundation
 @testable import Apodini
 
 
+/// A namespace for methods that generate `ValidatedRequest`s from mock data.
 public enum MockRequest {
+    /// Create a request on an `EmptyHandler`
     public static func createRequest(
         running eventLoop: EventLoop,
         queuedParameters parameterValues: Any??...
@@ -15,6 +17,7 @@ public enum MockRequest {
         createRequest(on: EmptyHandler(), running: eventLoop, queuedParameters: parameterValues)
     }
 
+    /// Create a request on `handler`
     public static func createRequest<H: Handler>(
         on handler: H,
         running eventLoop: EventLoop,

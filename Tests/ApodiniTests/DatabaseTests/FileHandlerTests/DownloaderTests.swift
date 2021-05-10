@@ -10,7 +10,7 @@ final class DownloaderTests: FileHandlerTests {
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
         let file = File(data: data, filename: "Testfile.jpeg")
         
-        let response = try XCTUnwrap(mockQuery(component: uploader, value: String.self, app: app, queued: file))
+        let response = try XCTUnwrap(mockQuery(handler: uploader, value: String.self, app: app, queued: file))
         XCTAssert(response == file.filename)
         
         let downloader = SingleDownloader(DownloadConfiguration(.default))
@@ -44,14 +44,14 @@ final class DownloaderTests: FileHandlerTests {
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
         let file = File(data: data, filename: "Testfile.jpeg")
         
-        var response = try XCTUnwrap(mockQuery(component: uploader, value: String.self, app: app, queued: file))
+        var response = try XCTUnwrap(mockQuery(handler: uploader, value: String.self, app: app, queued: file))
         XCTAssert(response == file.filename)
         
         // Upload second file
         uploader = Uploader(UploadConfiguration(.default, subPath: "Misc/MoreMisc/"))
         let file2 = File(data: data, filename: "Testfile123.jpeg")
         
-        response = try XCTUnwrap(mockQuery(component: uploader, value: String.self, app: app, queued: file2))
+        response = try XCTUnwrap(mockQuery(handler: uploader, value: String.self, app: app, queued: file2))
         XCTAssert(response == file2.filename)
         
         let downloader = MultipleDownloader(DownloadConfiguration(.default))
