@@ -20,7 +20,7 @@ public protocol AnyEndpoint: Blackboard, CustomStringConvertible {
 
     /// Creates a set of `RelationshipDestination` which ensures that relationship names
     /// are unique (for all collected destination for a given `Operation`)
-    /// - Parameter operation:The `Operation` of the Relationship destination to create a unique set for.
+    /// - Parameter operation: The `Operation` of the Relationship destination to create a unique set for.
     /// - Returns: The set of uniquely named relationship destinations.
     func relationships(for operation: Operation) -> Set<RelationshipDestination>
 

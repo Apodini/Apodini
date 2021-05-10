@@ -52,16 +52,7 @@ struct PathModelBuilder: PathComponentParser {
     }
 
     mutating func visit<Type: Codable>(_ parameter: Parameter<Type>) {
-        let identifyingType = parameter.option(for: PropertyOptionKey.identifying)
-
-        let pathParameter: AnyEndpointPathParameter
-        if let optionalParameter = parameter as? EncodeOptionalPathParameter {
-            pathParameter = optionalParameter.createPathParameterWithWrappedType(id: parameter.id, identifyingType: identifyingType)
-        } else {
-            pathParameter = EndpointPathParameter<Type>(id: parameter.id, identifyingType: identifyingType)
-        }
-
-        results.append(StoredEndpointPath(path: .parameter(pathParameter), context: parseCurrentContext()))
+        results.append(StoredEndpointPath(path: .parameter(parameter.toPathParameter()), context: parseCurrentContext()))
     }
 }
 
@@ -74,16 +65,23 @@ private struct PathComponentElementParser: PathComponentParser {
     }
     
     mutating func visit<Type: Codable>(_ parameter: Parameter<Type>) {
-        let identifyingType = parameter.option(for: PropertyOptionKey.identifying)
+        element = .parameter(parameter.toPathParameter())
+    }
+}
+
+// MARK: Helpers
+
+private extension Parameter {
+    func toPathParameter() -> AnyEndpointPathParameter {
+        let identifyingType = self.option(for: PropertyOptionKey.identifying)
 
         let pathParameter: AnyEndpointPathParameter
-        if let optionalParameter = parameter as? EncodeOptionalPathParameter {
-            pathParameter = optionalParameter.createPathParameterWithWrappedType(id: parameter.id, identifyingType: identifyingType)
+        if let optionalParameter = self as? EncodeOptionalPathParameter {
+            pathParameter = optionalParameter.createPathParameterWithWrappedType(id: self.id, identifyingType: identifyingType)
         } else {
-            pathParameter = EndpointPathParameter<Type>(id: parameter.id, identifyingType: identifyingType)
+            pathParameter = EndpointPathParameter<Element>(id: self.id, identifyingType: identifyingType)
         }
-
-        element = .parameter(pathParameter)
+        return pathParameter
     }
 }
 
