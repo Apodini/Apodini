@@ -45,7 +45,7 @@ class EndpointsTreeNode {
 
     func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, context: inout EndpointInsertionContext) {
         if context.pathEmpty {
-            for parameter in endpoint.parameters {
+            for parameter in endpoint[EndpointParameters.self] {
                 // when the parameter is type of .path and not contained in our path, we must append it to our path
                 if parameter.parameterType == .path && !context.retrievedPathContains(parameter: parameter) {
                     context.append(parameter: parameter)
@@ -57,11 +57,11 @@ class EndpointsTreeNode {
             }
 
             // swiftlint:disable:next force_unwrapping
-            precondition(endpoints[endpoint.operation] == nil, "Tried overwriting endpoint \(endpoints[endpoint.operation]!.description) with \(endpoint.description) for operation \(endpoint.operation)")
+            precondition(endpoints[endpoint[Operation.self]] == nil, "Tried overwriting endpoint \(endpoints[endpoint[Operation.self]]!.description) with \(endpoint.description) for operation \(endpoint[Operation.self])")
             precondition(!endpoint.inserted, "The endpoint \(endpoint.description) is already inserted at some different place")
 
             endpoint.inserted(at: self)
-            endpoints[endpoint.operation] = endpoint
+            endpoints[endpoint[Operation.self]] = endpoint
         } else {
             let next = context.nextStoredPath()
             var child = nodeChildren[next.path]

@@ -44,9 +44,9 @@ extension ResponseModifier: SyntaxTreeVisitable {
 }
 
 extension Array where Element == LazyAnyResponseTransformer {
-    func responseType<H: Handler>(for handler: H.Type = H.self) -> Encodable.Type {
+    var responseType: Encodable.Type? {
         guard let lastResponseTransformer = self.last else {
-            return handler.Response.Content.self
+            return nil
         }
         return lastResponseTransformer().transformedResponseContent
     }

@@ -6,6 +6,7 @@ import XCTest
 @_implementationOnly import OpenAPIKit
 @testable import Apodini
 @testable import ApodiniOpenAPI
+import ApodiniTests
 
 final class OpenAPIPathsObjectBuilderTests: XCTestCase {
     struct SomeStruct: Codable {
@@ -170,7 +171,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
             tags: ["test"],
             // As there is no custom description in this case, `description` and `operationId` are the same.
             description: endpoint.description,
-            operationId: endpoint.identifier.rawValue,
+            operationId: endpoint[AnyHandlerIdentifier.self].rawValue,
             parameters: [],
             requestBody: OpenAPI.Request(
                 description: "@Parameter var someStructArray: Array<SomeStruct>",
@@ -196,7 +197,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
                 .status(code: 500): .init(
                     OpenAPI.Response(description: "Internal Server Error"))
             ],
-            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint.identifier.rawValue)]
+            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
         ))
 
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in
@@ -231,7 +232,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
             tags: ["test"],
             // As there is no custom description in this case, `description` and `operationId` are the same.
             description: endpoint.description,
-            operationId: endpoint.identifier.rawValue,
+            operationId: endpoint[AnyHandlerIdentifier.self].rawValue,
             parameters: [],
             requestBody: OpenAPI.Request(
                 description: "@Parameter var someStruct: SomeStruct",
@@ -257,7 +258,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
                 .status(code: 500): .init(
                     OpenAPI.Response(description: "Internal Server Error"))
             ],
-            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint.identifier.rawValue)]
+            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
         ))
 
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)

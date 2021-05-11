@@ -16,6 +16,9 @@ extension Array where Element == PathComponent {
     }
 }
 
+// MARK: Global Builder
+
+
 struct PathModelBuilder: PathComponentParser {
     var results: [StoredEndpointPath] = [.root]
     private var currentContext = ContextNode()
@@ -49,16 +52,44 @@ struct PathModelBuilder: PathComponentParser {
     }
 
     mutating func visit<Type: Codable>(_ parameter: Parameter<Type>) {
-        let identifyingType = parameter.option(for: PropertyOptionKey.identifying)
+        results.append(StoredEndpointPath(path: .parameter(parameter.toPathParameter()), context: parseCurrentContext()))
+    }
+}
+
+// MARK: Local Builder
+private struct PathComponentElementParser: PathComponentParser {
+    var element: EndpointPath?
+    
+    mutating func visit(_ string: String) {
+        element = .string(string)
+    }
+    
+    mutating func visit<Type: Codable>(_ parameter: Parameter<Type>) {
+        element = .parameter(parameter.toPathParameter())
+    }
+}
+
+// MARK: Helpers
+
+private extension Parameter {
+    func toPathParameter() -> AnyEndpointPathParameter {
+        let identifyingType = self.option(for: PropertyOptionKey.identifying)
 
         let pathParameter: AnyEndpointPathParameter
-        if let optionalParameter = parameter as? EncodeOptionalPathParameter {
-            pathParameter = optionalParameter.createPathParameterWithWrappedType(id: parameter.id, identifyingType: identifyingType)
+        if let optionalParameter = self as? EncodeOptionalPathParameter {
+            pathParameter = optionalParameter.createPathParameterWithWrappedType(id: self.id, identifyingType: identifyingType)
         } else {
-            pathParameter = EndpointPathParameter<Type>(id: parameter.id, identifyingType: identifyingType)
+            pathParameter = EndpointPathParameter<Element>(id: self.id, identifyingType: identifyingType)
         }
+        return pathParameter
+    }
+}
 
-        results.append(StoredEndpointPath(path: .parameter(pathParameter), context: parseCurrentContext()))
+extension PathComponent {
+    func toEndpointPath() -> EndpointPath {
+        var parser = PathComponentElementParser()
+        self.toInternal().accept(&parser)
+        return parser.element!
     }
 }
 

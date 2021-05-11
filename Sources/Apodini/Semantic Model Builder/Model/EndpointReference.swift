@@ -25,8 +25,8 @@ struct EndpointReference: CustomStringConvertible, CustomDebugStringConvertible 
     init<H: Handler>(on node: EndpointsTreeNode, off endpoint: Endpoint<H>) {
         self.node = node
         self.absolutePath = endpoint.absolutePath
-        self.operation = endpoint.operation
-        self.responseType = endpoint.responseType
+        self.operation = endpoint[Operation.self]
+        self.responseType = endpoint[ResponseType.self].type
     }
 
     /// Resolve the referenced `Endpoint`
@@ -55,5 +55,22 @@ extension EndpointReference: Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(absolutePath)
         hasher.combine(operation)
+    }
+}
+
+class ReferenceModule: KnowledgeSource {
+    var reference: EndpointReference {
+        guard let value = _reference else {
+            fatalError("ReferenceModule was used before the reference was injected by the framework!")
+        }
+        return value
+    }
+    
+    private var _reference: EndpointReference?
+    
+    required init<B>(_ blackboard: B) throws where B: Blackboard { }
+    
+    func inject(reference: EndpointReference) {
+        self._reference = reference
     }
 }

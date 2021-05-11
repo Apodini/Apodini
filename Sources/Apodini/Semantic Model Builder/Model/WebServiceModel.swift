@@ -3,6 +3,10 @@
 //
 
 /// Defines a representation for a `WebService`.
+@available(*, deprecated, message: """
+    Replaced by 'WebServiceComponent'/'WebServiceRoot'.
+    Those are lazy and properly integrated with the Blackboard-Pattern and thus don't require manual support by the 'SemanticModelBuilder'.
+""")
 public class WebServiceModel: CustomDebugStringConvertible {
     public var debugDescription: String {
         root.debugDescription
@@ -21,9 +25,11 @@ public class WebServiceModel: CustomDebugStringConvertible {
     }()
 
     private var finishedParsing = false
+    
+    public let globalBlackboard: Blackboard
 
-    init() {
-        // init default web service
+    init(_ globalBlackboard: Blackboard) {
+        self.globalBlackboard = globalBlackboard
     }
 
     /// Retrieve the `Endpoint` located under the `EndpointPath.root`.

@@ -58,12 +58,12 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
         let deploymentOptions: DeploymentOptions
         
         func hash(into hasher: inout Hasher) {
-            hasher.combine(endpoint.identifier)
+            hasher.combine(endpoint[AnyHandlerIdentifier.self])
         }
         
         static func == (lhs: CollectedEndpointInfo, rhs: CollectedEndpointInfo) -> Bool {
             lhs.handlerType == rhs.handlerType
-                && lhs.endpoint.identifier == rhs.endpoint.identifier
+                && lhs.endpoint[AnyHandlerIdentifier.self] == rhs.endpoint[AnyHandlerIdentifier.self]
                 && lhs.deploymentOptions.reduced().options.compareIgnoringOrder(
                     rhs.deploymentOptions.reduced().options,
                     computeHash: { option, hasher in hasher.combine(option) },
@@ -89,23 +89,23 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     
     public func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        if let groupId = endpoint.context.get(valueFor: DSLSpecifiedDeploymentGroupIdContextKey.self) {
+        if let groupId = endpoint[Context.self].get(valueFor: DSLSpecifiedDeploymentGroupIdContextKey.self) {
             if explicitlyCreatedDeploymentGroups[groupId] == nil {
                 explicitlyCreatedDeploymentGroups[groupId] = []
             }
-            explicitlyCreatedDeploymentGroups[groupId]!.insert(endpoint.identifier) // swiftlint:disable:this force_unwrapping
+            explicitlyCreatedDeploymentGroups[groupId]!.insert(endpoint[AnyHandlerIdentifier.self]) // swiftlint:disable:this force_unwrapping
         }
         collectedEndpoints.append(CollectedEndpointInfo(
             handlerType: HandlerTypeIdentifier(H.self),
             endpoint: endpoint,
             deploymentOptions: CollectedOptions(reducing: [
                 endpoint.handler.getDeploymentOptions(),
-                endpoint.context.get(valueFor: HandlerDeploymentOptionsContextKey.self)
+                endpoint[Context.self].get(valueFor: HandlerDeploymentOptionsContextKey.self)
             ].flatMap { $0.compactMap { $0.resolve(against: endpoint.handler) } })
         ))
         vaporApp.add(Vapor.Route(
             method: .POST,
-            path: ["__apodini", "invoke", .constant(endpoint.identifier.rawValue)],
+            path: ["__apodini", "invoke", .constant(endpoint[AnyHandlerIdentifier.self].rawValue)],
             responder: InternalInvocationResponder(internalInterfaceExporter: self, endpoint: endpoint),
             requestType: InternalInvocationResponder<H>.Request.self,
             responseType: InternalInvocationResponder<H>.Response.self
@@ -175,12 +175,12 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     
     func getEndpoint<H: IdentifiableHandler>(withIdentifier identifier: H.HandlerIdentifier, ofType _: H.Type) -> Endpoint<H>? {
-        collectedEndpoints.first { $0.endpoint.identifier == identifier }?.endpoint as? Endpoint<H>
+        collectedEndpoints.first { $0.endpoint[AnyHandlerIdentifier.self] == identifier }?.endpoint as? Endpoint<H>
     }
     
     
     func getCollectedEndpointInfo(forHandlerWithIdentifier identifier: AnyHandlerIdentifier) -> CollectedEndpointInfo? {
-        collectedEndpoints.first { $0.endpoint.identifier == identifier }
+        collectedEndpoints.first { $0.endpoint[AnyHandlerIdentifier.self] == identifier }
     }
     
     

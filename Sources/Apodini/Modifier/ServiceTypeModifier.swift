@@ -20,10 +20,10 @@ public enum ServiceType {
     case bidirectional
 }
 
-struct ServiceTypeContextKey: ContextKey {
-    static var defaultValue: ServiceType = .unary
+public struct ServiceTypeContextKey: ContextKey {
+    public static var defaultValue: ServiceType = .unary
 
-    static func reduce(value: inout ServiceType, nextValue: () -> ServiceType) {
+    public static func reduce(value: inout ServiceType, nextValue: () -> ServiceType) {
         value = nextValue()
     }
 }

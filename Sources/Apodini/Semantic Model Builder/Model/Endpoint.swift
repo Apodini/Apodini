@@ -4,32 +4,9 @@
 import Foundation
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
-public protocol AnyEndpoint: CustomStringConvertible {
-    /// An identifier which uniquely identifies this endpoint (via its handler)
-    /// across multiple compilations and executions of the web service.
-    var identifier: AnyHandlerIdentifier { get }
-    
-    /// Description of the `Handler` this endpoint was generated for
-    var description: String { get }
-
-    /// This property holds the `Context` instance associated with the `Endpoint`.
-    /// The `Context` holds any information gathered when parsing the modeled `Handler`
-    var context: Context { get }
-
-    var operation: Operation { get }
-
-    /// The communication pattern that is expressed by this endpoint.
-    var serviceType: ServiceType { get }
-
-    /// Type returned by `Component.handle(...)`
-    var handleReturnType: Encodable.Type { get }
-    /// Response type ultimately returned by `Component.handle(...)` and possible following `ResponseTransformer`s
-    var responseType: Encodable.Type { get }
-
+public protocol AnyEndpoint: Blackboard, CustomStringConvertible {
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
     var parameters: [AnyEndpointParameter] { get }
-    /// All `@ObservedObjects` that are used inside handling `Component`
-    var observedObjects: [AnyObservedObject] { get }
 
     var absolutePath: [EndpointPath] { get }
 
@@ -43,7 +20,7 @@ public protocol AnyEndpoint: CustomStringConvertible {
 
     /// Creates a set of `RelationshipDestination` which ensures that relationship names
     /// are unique (for all collected destination for a given `Operation`)
-    /// - Parameter operation :The `Operation` of the Relationship destination to create a unique set for.
+    /// - Parameter operation: The `Operation` of the Relationship destination to create a unique set for.
     /// - Returns: The set of uniquely named relationship destinations.
     func relationships(for operation: Operation) -> Set<RelationshipDestination>
 
@@ -101,9 +78,9 @@ protocol _AnyEndpoint: AnyEndpoint {
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 public struct Endpoint<H: Handler>: _AnyEndpoint {
+    private let blackboard: Blackboard
+    
     var inserted = false
-
-    public let identifier: AnyHandlerIdentifier
 
     var reference: EndpointReference {
         guard let endpointReference = storedReference else {
@@ -113,23 +90,12 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     }
     private var storedReference: EndpointReference?
 
-    public let description: String
-
     public let handler: H
-
-    public let context: Context
-
-    public let operation: Operation
-
-    public let serviceType: ServiceType
-
-    public let handleReturnType: Encodable.Type
-    public let responseType: Encodable.Type
     
     /// All `@Parameter` `RequestInjectable`s that are used inside handling `Component`
-    public var parameters: [AnyEndpointParameter]
-    /// All `@ObservedObject`s that are used inside handling `Component`
-    public var observedObjects: [AnyObservedObject]
+    public var parameters: [AnyEndpointParameter] {
+        self[EndpointParameters.self]
+    }
 
     public var absolutePath: [EndpointPath] {
         storedAbsolutePath
@@ -139,7 +105,7 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     private var storedRelationship: [EndpointRelationship] = []
 
     public var selfRelationship: RelationshipDestination {
-        guard let destination = selfRelationship(for: operation) else {
+        guard let destination = selfRelationship(for: self[Operation.self]) else {
             fatalError("Encountered inconsistency where Endpoint doesn't have a self EndpointDestination for its own Operation!")
         }
 
@@ -155,26 +121,28 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     let responseTransformers: [LazyAnyResponseTransformer]
     
     init(
-        identifier: AnyHandlerIdentifier,
         handler: H,
-        context: Context = Context(contextNode: ContextNode()),
-        operation: Operation? = nil,
-        serviceType: ServiceType = .unary,
+        blackboard: Blackboard,
         guards: [LazyGuard] = [],
         responseTransformers: [LazyAnyResponseTransformer] = []
     ) {
-        self.identifier = identifier
-        self.description = String(describing: H.self)
         self.handler = handler
-        self.context = context
-        self.operation = operation ?? .read
-        self.serviceType = serviceType
-        self.handleReturnType = H.Response.Content.self
         self.guards = guards
         self.responseTransformers = responseTransformers
-        self.responseType = responseTransformers.responseType(for: H.self)
-        self.parameters = handler.buildParametersModel()
-        self.observedObjects = handler.collectObservedObjects()
+        self.blackboard = blackboard
+    }
+    
+    public subscript<S>(_ type: S.Type) -> S where S: KnowledgeSource {
+        get {
+            self.blackboard[type]
+        }
+        nonmutating set {
+            self.blackboard[type] = newValue
+        }
+    }
+    
+    public func request<S>(_ type: S.Type) throws -> S where S: KnowledgeSource {
+        try self.blackboard.request(type)
     }
     
     func exportEndpoint<I: BaseInterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
@@ -246,5 +214,11 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
 extension Endpoint: CustomDebugStringConvertible {
     public var debugDescription: String {
         String(describing: self.handler)
+    }
+}
+
+extension Endpoint: CustomStringConvertible {
+    public var description: String {
+        self[HandlerDescription.self]
     }
 }
