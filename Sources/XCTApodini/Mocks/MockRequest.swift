@@ -2,6 +2,7 @@
 // Created by Andreas Bauer on 25.12.20.
 //
 
+#if DEBUG
 import XCTest
 import Foundation
 @testable import Apodini
@@ -45,3 +46,4 @@ public enum MockRequest {
         }
     }
 }
+#endif
