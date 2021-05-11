@@ -9,7 +9,7 @@ import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
-import XCTest
+import XCTApodini
 import ApodiniUtils
 
 
@@ -70,7 +70,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             launchInCurrentProcessGroup: false
         )
         
-        let expectedNumberOfServers = 7
+        let expectedNumberOfServers = 6
         
         /// Expectation that the deployment provider runs, computes the deployment, and launches the web service.
         let launchDPExpectation = XCTestExpectation("Run deployment provider & launch web service")
@@ -84,10 +84,14 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         let didShutDownServersExpectation = XCTestExpectation(
             "Did shut down servers",
             expectedFulfillmentCount: expectedNumberOfServers,
-            assertForOverFulfill: true // hmmmmmmmmmm
+            assertForOverFulfill: true
         )
+        /// Expectation that the proxy server is shut down
+        let proxyDidShutDownServer = XCTestExpectation("Task did terminate")
+        proxyDidShutDownServer.assertForOverFulfill = true
         /// Expectation that the task terminated. This is used to keep the test case running as long as the task is still running
         let taskDidTerminateExpectation = XCTestExpectation("Task did terminate")
+        taskDidTerminateExpectation.assertForOverFulfill = true
         
         /// The output collected for the current phase, separated by newlines
         var currentPhaseOutput: [String] = .init(reservingCapacity: 1000)
@@ -278,22 +282,23 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         stdioObserverHandle = task.observeOutput { _, data, _ in
             let text = XCTUnwrapWithFatalError(String(data: data, encoding: .utf8))
             for _ in 0..<(text.components(separatedBy: "Application shutting down [pid=").count - 1) {
-                NSLog("shutDownServers_a.fulfill() %i", didShutDownServersExpectation.assertForOverFulfill)
                 didShutDownServersExpectation.fulfill()
+                NSLog("shutDownServers_a.fulfill() %i", didShutDownServersExpectation.assertForOverFulfill)
             }
             if text.contains("notice DeploymentTargetLocalhost.ProxyServer : shutdown") {
-                NSLog("shutDownServers_b.fulfill() %i", didShutDownServersExpectation.assertForOverFulfill)
-                didShutDownServersExpectation.fulfill()
+                proxyDidShutDownServer.fulfill()
+                NSLog("shutDownServers_b.fulfill() %i", proxyDidShutDownServer.assertForOverFulfill)
             }
         }
         
-        // aaaaaaaargh
-        //wait(for: [taskDidTerminateExpectation, didShutDownServersExpectation], timeout: 25, enforceOrder: false)
+        wait(for: [taskDidTerminateExpectation, didShutDownServersExpectation, proxyDidShutDownServer], timeout: 35, enforceOrder: false)
         
         // Destroy the observer token, thus deregistering the underlying observer.
         // The important thing here is that we need to make sure the lifetimes of the observer token and the task
         // extend all the way down here, so that we can know for a fact that the tests above work properly
         stdioObserverHandle = nil
         task = nil
+        
+        XCTAssertApodiniApplicationNotRunning()
     }
 }
