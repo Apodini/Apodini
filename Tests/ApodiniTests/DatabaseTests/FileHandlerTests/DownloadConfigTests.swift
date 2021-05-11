@@ -12,7 +12,7 @@ final class DownloadConfigTests: FileHandlerTests {
         let file = File(data: data, filename: "Testfile.jpeg")
         
         try XCTCheckResponse(
-            try mockQuery(component: uploader, value: String.self, app: app, queued: file),
+            try mockQuery(handler: uploader, value: String.self, app: app, queued: file),
             status: .created,
             content: file.filename,
             connectionEffect: .close
@@ -36,7 +36,7 @@ final class DownloadConfigTests: FileHandlerTests {
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
         let file = File(data: data, filename: "Testfile.jpeg")
         
-        let result = try XCTUnwrap(mockQuery(component: uploader, value: String.self, app: app, queued: file))
+        let result = try XCTUnwrap(mockQuery(handler: uploader, value: String.self, app: app, queued: file))
         
         XCTAssert(result == file.filename)
         
@@ -44,7 +44,7 @@ final class DownloadConfigTests: FileHandlerTests {
         uploader = Uploader(UploadConfiguration(.default, subPath: "Misc/MoreMisc/"))
         let file2 = File(data: data, filename: "Testfile123.jpeg")
         
-        let result2 = try XCTUnwrap(mockQuery(component: uploader, value: String.self, app: app, queued: file2))
+        let result2 = try XCTUnwrap(mockQuery(handler: uploader, value: String.self, app: app, queued: file2))
         
         XCTAssert(result2 == file2.filename)
         

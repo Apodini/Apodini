@@ -16,7 +16,7 @@ import Apodini
 /// the Protobuffer and GRPC exporters
 /// for this `Endpoint`.
 public func gRPCServiceName<H: Handler>(from endpoint: Endpoint<H>) -> String {
-    if let serviceName = endpoint.context.get(valueFor: GRPCServiceNameContextKey.self) {
+    if let serviceName = endpoint[Context.self].get(valueFor: GRPCServiceNameContextKey.self) {
         return serviceName
     }
 
@@ -31,7 +31,7 @@ public func gRPCServiceName<H: Handler>(from endpoint: Endpoint<H>) -> String {
 /// by the Protobuffer and GRPC exporters
 /// for the `handle` method of this `Endpoint`.
 public func gRPCMethodName<H: Handler>(from endpoint: Endpoint<H>) -> String {
-    if let methodName = endpoint.context.get(valueFor: GRPCMethodNameContextKey.self) {
+    if let methodName = endpoint[Context.self].get(valueFor: GRPCMethodNameContextKey.self) {
         return methodName
     }
     // if no explicit methodname is provided via the modifier,

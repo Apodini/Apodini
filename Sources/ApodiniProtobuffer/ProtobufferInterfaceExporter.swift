@@ -61,7 +61,7 @@ public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
 private extension ProtobufferInterfaceExporter {
     func exportThrows<H: Handler>(_ endpoint: Endpoint<H>) throws {
         // Output
-        let outputNode = try builder.buildMessage(endpoint.responseType)
+        let outputNode = try builder.buildMessage(endpoint[ResponseType.self].type)
         messages.formUnion(outputNode.collectValues())
         
         // Input

@@ -2,20 +2,24 @@
 // Created by Andreas Bauer on 25.12.20.
 //
 
+#if DEBUG
 import XCTest
 import Foundation
 @testable import Apodini
 
 
-enum MockRequest {
-    static func createRequest(
+/// A namespace for methods that generate `ValidatedRequest`s from mock data.
+public enum MockRequest {
+    /// Create a request on an `EmptyHandler`
+    public static func createRequest(
         running eventLoop: EventLoop,
         queuedParameters parameterValues: Any??...
     ) -> ValidatedRequest<MockExporter<String>, EmptyHandler> {
         createRequest(on: EmptyHandler(), running: eventLoop, queuedParameters: parameterValues)
     }
 
-    static func createRequest<H: Handler>(
+    /// Create a request on `handler`
+    public static func createRequest<H: Handler>(
         on handler: H,
         running eventLoop: EventLoop,
         queuedParameters parameterValues: Any??...
@@ -42,3 +46,4 @@ enum MockRequest {
         }
     }
 }
+#endif
