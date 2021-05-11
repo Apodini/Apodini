@@ -32,7 +32,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let creationHandler = Create<Bird>()
         
         
-        let response = try XCTUnwrap(mockQuery(component: creationHandler, value: Bird.self, app: app, queued: bird))
+        let response = try XCTUnwrap(mockQuery(handler: creationHandler, value: Bird.self, app: app, queued: bird))
         XCTAssert(response == bird)
         
         let foundBird = try Bird.find(response.id, on: app.database).wait()
@@ -46,7 +46,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         let creationHandler = CreateAll<Bird>()
         
-        let response = try XCTUnwrap(mockQuery(component: creationHandler, value: [Bird].self, app: app, queued: [bird, bird2]))
+        let response = try XCTUnwrap(mockQuery(handler: creationHandler, value: [Bird].self, app: app, queued: [bird, bird2]))
 
         XCTAssert(!response.isEmpty)
         XCTAssert(response.contains(bird))

@@ -27,7 +27,7 @@ public final class RESTInterfaceExporter: InterfaceExporter {
 
         let routesBuilder = pathBuilder.routesBuilder(app)
 
-        let operation = endpoint.operation
+        let operation = endpoint[Operation.self]
 
         let endpointHandler = RESTEndpointHandler(with: configuration, for: endpoint, on: self)
         endpointHandler.register(at: routesBuilder, using: operation)

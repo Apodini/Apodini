@@ -19,7 +19,7 @@ final class EnvironmentTests: ApodiniTests {
     }
 
     func testEnvironmentInjection() throws {
-        let response = try XCTUnwrap(mockQuery(component: BirdHandler(), value: String.self, app: app))
+        let response = try XCTUnwrap(mockQuery(handler: BirdHandler(), value: String.self, app: app))
 
         let birdFacts = BirdFacts()
 
@@ -44,7 +44,7 @@ final class EnvironmentTests: ApodiniTests {
         let birdFacts = BirdFacts()
         EnvironmentObject(birdFacts, \Keys.bird).configure(app)
 
-        let response = try XCTUnwrap(mockQuery(component: AnotherBirdHandler(), value: String.self, app: app))
+        let response = try XCTUnwrap(mockQuery(handler: AnotherBirdHandler(), value: String.self, app: app))
 
         XCTAssertEqual(response, birdFacts.dodoFact)
     }
@@ -115,7 +115,7 @@ final class EnvironmentTests: ApodiniTests {
         // inject the static value via the shared object
         app.birdFacts = staticBirdFacts
 
-        let response = try XCTUnwrap(mockQuery(component: BirdHandler(), value: String.self, app: app))
+        let response = try XCTUnwrap(mockQuery(handler: BirdHandler(), value: String.self, app: app))
 
         XCTAssertEqual(response, staticBirdFacts.someFact)
     }
@@ -123,7 +123,7 @@ final class EnvironmentTests: ApodiniTests {
     func testShouldReturnDefaultIfNoEnvironment() throws {
         app.birdFacts = BirdFacts() // Resets value
      
-        let response = try XCTUnwrap(mockQuery(component: BirdHandler(), value: String.self, app: app))
+        let response = try XCTUnwrap(mockQuery(handler: BirdHandler(), value: String.self, app: app))
 
         XCTAssertEqual(response, BirdFacts().someFact)
     }

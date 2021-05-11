@@ -10,7 +10,7 @@ final class UploaderTests: FileHandlerTests {
         let file = File(data: data, filename: "Testfile.jpeg")
         
         try XCTCheckResponse(
-            try mockQuery(component: uploader, value: String.self, app: app, queued: file),
+            try mockQuery(handler: uploader, value: String.self, app: app, queued: file),
             status: .created,
             content: file.filename,
             connectionEffect: .close

@@ -124,7 +124,7 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
         let builder = SemanticModelBuilder(app)
             .with(exporter: RESTInterfaceExporter.self)
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
-        
-        XCTAssertRuntimeFailure(self.failingTestService.accept(visitor))
+        self.failingTestService.accept(visitor)
+        XCTAssertRuntimeFailure(builder.finishedRegistration())
     }
 }
