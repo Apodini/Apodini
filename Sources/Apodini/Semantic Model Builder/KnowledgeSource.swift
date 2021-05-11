@@ -117,14 +117,33 @@ public struct AnyEndpointSource: KnowledgeSource {
     public let handlerType: Any.Type
     public let context: Context
     
-    internal init<H: Handler>(handler: H, context: Context) {
-        self.handler = handler
+    private let initializer: HandlerKnowledgeSourceInitializer
+    
+    internal init<H: Handler>(source: EndpointSource<H>) {
+        self.context = source.context
+        self.initializer = source
+        self.handler = source.handler
         self.handlerType = H.self
-        self.context = context
     }
     
     public init<B>(_ blackboard: B) throws where B: Blackboard {
-        throw KnowledgeError.unsatisfiableDependency("AnyEndpointSource", "LocalBlackboard")
+        throw KnowledgeError.unsatisfiableDependency("EndpointSource", "LocalBlackboard")
+    }
+}
+
+private protocol HandlerKnowledgeSourceInitializer {
+    func create<S: HandlerKnowledgeSource>(_ type: S.Type) throws -> S
+}
+
+extension EndpointSource: HandlerKnowledgeSourceInitializer {
+    func create<S>(_ type: S.Type = S.self) throws -> S where S: HandlerKnowledgeSource {
+        try type.init(from: self.handler)
+    }
+}
+
+extension AnyEndpointSource: HandlerKnowledgeSourceInitializer {
+    func create<S>(_ type: S.Type = S.self) throws -> S where S: HandlerKnowledgeSource {
+        try initializer.create(type)
     }
 }
 

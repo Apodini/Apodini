@@ -53,8 +53,9 @@ final class LocalBlackboard<L: IndependentBlackboard, G: Blackboard>: Blackboard
         self.global = global
         self.local = L()
         
-        self.local[EndpointSource<H>.self] = EndpointSource(handler: handler, context: context)
-        self.local[AnyEndpointSource.self] = AnyEndpointSource(handler: handler, context: context)
+        let source = EndpointSource(handler: handler, context: context)
+        self.local[EndpointSource<H>.self] = source
+        self.local[AnyEndpointSource.self] = AnyEndpointSource(source: source)
         
         if var blackboards = try? global.request(Blackboards.self) {
             blackboards.addBoard(self, hiddenFor: restrictions)
