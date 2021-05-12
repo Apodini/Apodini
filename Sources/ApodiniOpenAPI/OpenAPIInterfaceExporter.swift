@@ -36,7 +36,7 @@ public final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
         
         // Set version information from APIContextKey, if the version was not defined by developer.
         if self.configuration.version == nil {
-            self.configuration.version = endpoint.context.get(valueFor: APIVersionContextKey.self)?.description
+            self.configuration.version = endpoint[Context.self].get(valueFor: APIVersionContextKey.self)?.description
             updateStorage()
         }
     }

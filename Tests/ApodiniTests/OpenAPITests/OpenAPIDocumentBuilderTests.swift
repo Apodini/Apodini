@@ -44,7 +44,7 @@ final class OpenAPIDocumentBuilderTests: XCTApodiniTest {
                         tags: ["test"],
                         // As there is no custom description in this case, `description` and `operationId` are the same.
                         description: endpoint.description,
-                        operationId: endpoint.identifier.rawValue,
+                        operationId: endpoint[AnyHandlerIdentifier.self].rawValue,
                         parameters: [
                             Either.parameter(name: "name", context: .query, schema: .string, description: "@Parameter var name: String")
                         ],
@@ -71,7 +71,7 @@ final class OpenAPIDocumentBuilderTests: XCTApodiniTest {
                                 OpenAPI.Response(description: "Internal Server Error")
                             )
                         ],
-                        vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint.identifier.rawValue)]
+                        vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
                     )
                 )
             ],

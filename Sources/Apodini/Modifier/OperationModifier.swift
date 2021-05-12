@@ -5,6 +5,8 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
+// MARK: Public API
+
 /// Defines the Operation of a given endpoint
 public enum Operation: String, CaseIterable, Hashable, CustomStringConvertible {
     /// The associated endpoint is used for a `create` operation
@@ -21,8 +23,8 @@ public enum Operation: String, CaseIterable, Hashable, CustomStringConvertible {
     }
 }
 
-struct OperationContextKey: OptionalContextKey {
-    typealias Value = Operation
+public struct OperationContextKey: OptionalContextKey {
+    public typealias Value = Operation
 }
 
 

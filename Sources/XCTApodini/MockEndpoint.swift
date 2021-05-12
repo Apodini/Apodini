@@ -91,23 +91,25 @@ extension Handler {
         self.accept(mockSyntaxTreeVisitor)
         let context = Context(contextNode: mockSyntaxTreeVisitor.currentNode)
         
-        guard let anyHandler = mockSyntaxTreeVisitor.handler, var handler = anyHandler as? H else {
+        guard let anyHandler = mockSyntaxTreeVisitor.handler, let handler = anyHandler as? H else {
             fatalError("Could not cast the handler \(String(describing: mockSyntaxTreeVisitor.handler)) to the type \(H.self)")
         }
-        var guards = context.get(valueFor: GuardContextKey.self)
-        var responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self)
+        let guards = context.get(valueFor: GuardContextKey.self)
+        let responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self)
         
+        var blackboard: Blackboard
         if let application = app {
-            handler = handler.inject(app: application)
-            guards = guards.inject(app: application)
-            responseTransformers = responseTransformers.inject(app: application)
+            blackboard = LocalBlackboard<LazyHashmapBlackboard, GlobalBlackboard<LazyHashmapBlackboard>>(
+                GlobalBlackboard<LazyHashmapBlackboard>(application),
+                using: handler,
+                context)
+        } else {
+            blackboard = LocalBlackboard<LazyHashmapBlackboard, LazyHashmapBlackboard>(LazyHashmapBlackboard(), using: handler, context)
         }
 
         return Endpoint(
-            identifier: self.getExplicitlySpecifiedIdentifier() ?? AnyHandlerIdentifier(UUID().uuidString),
             handler: handler,
-            context: context,
-            operation: nil,
+            blackboard: blackboard,
             guards: guards,
             responseTransformers: responseTransformers
         )

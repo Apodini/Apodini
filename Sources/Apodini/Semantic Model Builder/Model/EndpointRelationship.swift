@@ -62,7 +62,7 @@ public struct EndpointRelationship: Equatable {
         precondition(path == endpoint.absolutePath,
                      "Tried adding endpoint to relationship \(path.asPathString()) located under different \(endpoint.absolutePath.asPathString())")
 
-        relationshipDestinations[endpoint.operation] = RelationshipDestination(
+        relationshipDestinations[endpoint[Operation.self]] = RelationshipDestination(
             name: prefix + (nameOverride ?? relativeNamingPath.scoped(on: endpoint).build(with: RelationshipNameBuilder.self)),
             endpoint: endpoint,
             absolutePath: endpoint.absolutePath,
@@ -80,7 +80,7 @@ public struct EndpointRelationship: Equatable {
         precondition(path == endpoint.absolutePath,
                      "Tried adding endpoint to relationship \(path.asPathString()) located under different \(endpoint.absolutePath.asPathString())")
 
-        relationshipDestinations[endpoint.operation] = RelationshipDestination(
+        relationshipDestinations[endpoint[Operation.self]] = RelationshipDestination(
             name: name,
             endpoint: endpoint,
             absolutePath: endpoint.absolutePath,
@@ -190,7 +190,7 @@ public struct RelationshipDestination: CustomStringConvertible, Hashable {
     ) {
         self.name = name
         self.reference = endpoint.reference
-        self.operation = endpoint.operation
+        self.operation = endpoint[Operation.self]
         self.destinationPath = absolutePath
         self.hideLink = hideLink
         // only information for parameter resolvers are our own path

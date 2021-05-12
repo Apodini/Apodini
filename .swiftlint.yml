@@ -394,3 +394,5 @@ unused_optional_binding:
 
 vertical_whitespace: # Limit vertical whitespace to a single empty line.
   max_empty_lines: 2 # warning - default: 1
+
+child_config: Tests/.swiftlint_tests.yml

@@ -170,7 +170,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
             tags: ["test"],
             // As there is no custom description in this case, `description` and `operationId` are the same.
             description: endpoint.description,
-            operationId: endpoint.identifier.rawValue,
+            operationId: endpoint[AnyHandlerIdentifier.self].rawValue,
             parameters: [],
             requestBody: OpenAPI.Request(
                 description: "@Parameter var someStructArray: Array<SomeStruct>",
@@ -196,7 +196,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
                 .status(code: 500): .init(
                     OpenAPI.Response(description: "Internal Server Error"))
             ],
-            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint.identifier.rawValue)]
+            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
         ))
 
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in
@@ -231,7 +231,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
             tags: ["test"],
             // As there is no custom description in this case, `description` and `operationId` are the same.
             description: endpoint.description,
-            operationId: endpoint.identifier.rawValue,
+            operationId: endpoint[AnyHandlerIdentifier.self].rawValue,
             parameters: [],
             requestBody: OpenAPI.Request(
                 description: "@Parameter var someStruct: SomeStruct",
@@ -257,7 +257,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
                 .status(code: 500): .init(
                     OpenAPI.Response(description: "Internal Server Error"))
             ],
-            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint.identifier.rawValue)]
+            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
         ))
 
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)

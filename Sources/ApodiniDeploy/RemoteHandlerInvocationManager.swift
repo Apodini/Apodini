@@ -185,7 +185,7 @@ extension RemoteHandlerInvocationManager {
             fatalError("Missing parameters in remote handler invocation: \(missingParamNames)")
         }
         
-        assert(handlerId == targetEndpoint.identifier)
+        assert(handlerId == targetEndpoint[AnyHandlerIdentifier.self])
         
         do {
             let handlerInvocation = HandlerInvocation<H>(handlerId: handlerId, targetNode: targetNode, parameters: invocationParams)
@@ -199,7 +199,7 @@ extension RemoteHandlerInvocationManager {
                 let requestUrl = url
                     .appendingPathComponent("__apodini")
                     .appendingPathComponent("invoke")
-                    .appendingPathComponent(targetEndpoint.identifier.rawValue)
+                    .appendingPathComponent(targetEndpoint[AnyHandlerIdentifier.self].rawValue)
                 return internalInterfaceExporter.vaporApp.client.post(
                     Vapor.URI(url: requestUrl),
                     headers: [:],
@@ -248,7 +248,7 @@ extension RemoteHandlerInvocationManager {
             // If there's no runtime registered, we wouldn't be able to dispatch the invocation anyway
             return .locally
         }
-        let handlerId = endpoint.identifier
+        let handlerId = endpoint[AnyHandlerIdentifier.self]
         if let targetNode = runtime.deployedSystem.nodeExportingEndpoint(withHandlerId: handlerId) {
             guard let currentNode = runtime.deployedSystem.node(withId: runtime.currentNodeId) else {
                 fatalError("Unable to find current node")

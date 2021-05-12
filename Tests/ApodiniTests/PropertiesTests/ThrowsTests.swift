@@ -142,6 +142,7 @@ class ThrowsTests: ApodiniTests {
     }
 }
 
+
 private extension Handler {
     func evaluationError() -> ApodiniError {
         do {
