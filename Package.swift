@@ -32,6 +32,7 @@ let package = Package(
         .library(name: "ApodiniTypeReflection", targets: ["ApodiniTypeReflection"]),
         .library(name: "ApodiniVaporSupport", targets: ["ApodiniVaporSupport"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
+        .library(name: "ApodiniDelta", targets: ["ApodiniDelta"]),
         // Deploy
         .library(name: "ApodiniDeployBuildSupport", targets: ["ApodiniDeployBuildSupport"]),
         .library(name: "ApodiniDeployRuntimeSupport", targets: ["ApodiniDeployRuntimeSupport"]),
@@ -83,7 +84,10 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
         .package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime", from: "0.4.0"),
         .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0"),
-        .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0")
+        .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0"),
+        
+        // Migrator
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .branch("apodini-model-migrator"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -282,6 +286,14 @@ let package = Package(
             name: "ProtobufferCodingTests",
             dependencies: [
                 .target(name: "ProtobufferCoding")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniDelta",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "ApodiniMigrator", package: "ApodiniMigrator")
             ]
         ),
 
