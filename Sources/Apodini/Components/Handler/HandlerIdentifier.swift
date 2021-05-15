@@ -11,7 +11,7 @@ import Foundation
 private struct AllAnyHandlerIdentifiersAnchor: TruthAnchor {}
 
 /// A `KnowledgeSource` that initializes and holds all `AnyHandlerIdenfier`, by also asserting the uniqueness of them.
-struct AllAnyHandlerIdentifiers: KnowledgeSource {
+private struct AllAnyHandlerIdentifiers: KnowledgeSource {
     static var preference: LocationPreference { .global }
     
     /// All registered `AnyHandlerIdentifer`'s of the web service
