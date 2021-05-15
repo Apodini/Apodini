@@ -6,8 +6,8 @@ import XCTest
 import XCTApodini
 @testable import Apodini
 
-class MultiInheritanceTests: ApodiniTests {
-    struct TestA: Content, WithRelationships {
+class MultiInheritanceTests: XCTApodiniDatabaseBirdTest {
+    struct TestA: Content, Equatable, WithRelationships {
         var testA: String
         var customC: String
 
@@ -18,7 +18,7 @@ class MultiInheritanceTests: ApodiniTests {
         }
     }
 
-    struct TestB: Content, WithRelationships {
+    struct TestB: Content, Equatable, WithRelationships {
         var id: String
         var cId: String
 
@@ -27,7 +27,7 @@ class MultiInheritanceTests: ApodiniTests {
         }
     }
 
-    struct TestZ: Content, WithRelationships {
+    struct TestZ: Content, Equatable, WithRelationships {
         var id: String
         var cId: String
 
@@ -36,7 +36,7 @@ class MultiInheritanceTests: ApodiniTests {
         }
     }
 
-    struct TestC: Content, Identifiable {
+    struct TestC: Content, Equatable, Identifiable {
         var id: String
     }
 
@@ -81,110 +81,137 @@ class MultiInheritanceTests: ApodiniTests {
 
     @PathParameter(identifying: TestC.self)
     var cId: String
-
-    @ComponentBuilder
-    var webserviceMultiInheritance: some Component {
-        // The order here is important as its test the ordering capabilities of the TypeIndex
-        Group("testA") {
-            TestAHandler() // 0
-            Group("aText") {
-                Text("text") // 1
+    
+    
+    func testMultiInheritance() throws {
+        @ComponentBuilder
+        var webserviceMultiInheritance: some Component {
+            // The order here is important as its test the ordering capabilities of the TypeIndex
+            Group("testA") {
+                TestAHandler() // 0
+                Group("aText") {
+                    Text("text") // 1
+                }
+            }
+            Group("testC", $cId) {
+                TestCHandler(cId: $cId) // 4
+                Group("text") {
+                    TextParameter(textId: $cId, text: "text") // 5
+                }
+            }
+            Group("testZ") {
+                TestZHandler() // 6
+                Group("text") { // overshadows /testC/text
+                    Text("text") // 7
+                }
+            }
+            Group("testB") {
+                TestBHandler() // 2
+                Group("bText") {
+                    Text("text") // 3
+                }
             }
         }
-        Group("testC", $cId) {
-            TestCHandler(cId: $cId) // 4
-            Group("text") {
-                TextParameter(textId: $cId, text: "text") // 5
-            }
-        }
-        Group("testZ") {
-            TestZHandler() // 6
-            Group("text") { // overshadows /testC/text
-                Text("text") // 7
-            }
-        }
-        Group("testB") {
-            TestBHandler() // 2
-            Group("bText") {
-                Text("text") // 3
-            }
-        }
-    }
-
-    func testMultiInheritance() {
-        let context = RelationshipTestContext(app: app, service: webserviceMultiInheritance)
-
-        let resultC = context.request(on: 4, request: MockExporterRequest(on: app.eventLoopGroup.next(), "cId"))
-        XCTAssertEqual(
-            resultC.formatTestRelationships(),
-            ["self:read": "/testC/cId", "text:read": "/testC/cId/text"])
-
-        let resultB = context.request(on: 2)
-        XCTAssertEqual(
-            resultB.formatTestRelationships(),
-            ["self:read": "/testC/TestCId", "bText:read": "/testB/bText", "text:read": "/testC/TestCId/text"])
-
-        let resultA = context.request(on: 0)
-        XCTAssertEqual(
-            resultA.formatTestRelationships(),
-            ["self:read": "/testB", "aText:read": "/testA/aText", "bText:read": "/testB/bText", "text:read": "/testC/customCId/text"])
-
-        let resultZ = context.request(on: 6)
-        XCTAssertEqual(
-            resultZ.formatTestRelationships(),
-            ["self:read": "/testC/TestCZId", "text:read": "/testZ/text"]) // own /text shadows the inherited /text
-    }
-
-    struct CycleA: Content, WithRelationships {
-        static var relationships: Relationships {
-            Inherits<CycleB>()
-        }
-    }
-
-    struct CycleB: Content, WithRelationships {
-        static var relationships: Relationships {
-            Inherits<CycleC>()
-        }
-    }
-
-    struct CycleC: Content, WithRelationships {
-        static var relationships: Relationships {
-            Inherits<CycleA>()
-        }
-    }
-
-    struct CycleAHandler: Handler {
-        func handle() -> CycleA {
-            CycleA()
-        }
-    }
-
-    struct CycleBHandler: Handler {
-        func handle() -> CycleB {
-            CycleB()
-        }
-    }
-
-    struct CycleCHandler: Handler {
-        func handle() -> CycleC {
-            CycleC()
-        }
-    }
-
-    @ComponentBuilder
-    var cyclicWebservice: some Component {
-        Group("a") {
-            CycleAHandler()
-        }
-        Group("b") {
-            CycleBHandler()
-        }
-        Group("c") {
-            CycleCHandler()
-        }
+        
+        try XCTCheckComponent(
+            webserviceMultiInheritance,
+            exporter: RelationshipExporter(app),
+            interfaceExporterVisitors: [RelationshipExporterRetriever()],
+            checks: [
+                CheckHandler<TestCHandler>(index: 4) {
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(
+                            enrichedContent.formatTestRelationships(),
+                            ["self:read": "/testC/cId", "text:read": "/testC/cId/text"]
+                        )
+                    }) {
+                        UnnamedParameter("cId")
+                    }
+                },
+                CheckHandler<TestBHandler>(index: 2) {
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(
+                            enrichedContent.formatTestRelationships(),
+                            ["self:read": "/testC/TestCId", "bText:read": "/testB/bText", "text:read": "/testC/TestCId/text"]
+                        )
+                    })
+                },
+                CheckHandler<TestAHandler>(index: 0) {
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(
+                            enrichedContent.formatTestRelationships(),
+                            ["self:read": "/testB", "aText:read": "/testA/aText", "bText:read": "/testB/bText", "text:read": "/testC/customCId/text"]
+                        )
+                    })
+                },
+                CheckHandler<TestZHandler>(index: 6) { // own /text shadows the inherited /text
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(
+                            enrichedContent.formatTestRelationships(),
+                            ["self:read": "/testC/TestCZId", "text:read": "/testZ/text"]
+                        )
+                    })
+                }
+            ]
+        )
     }
 
     func testInheritanceWithCycle() {
-        XCTAssertRuntimeFailure(RelationshipTestContext(app: self.app, service: self.cyclicWebservice))
+        struct CycleA: Content, WithRelationships {
+            static var relationships: Relationships {
+                Inherits<CycleB>()
+            }
+        }
+
+        struct CycleB: Content, WithRelationships {
+            static var relationships: Relationships {
+                Inherits<CycleC>()
+            }
+        }
+
+        struct CycleC: Content, WithRelationships {
+            static var relationships: Relationships {
+                Inherits<CycleA>()
+            }
+        }
+
+        struct CycleAHandler: Handler {
+            func handle() -> CycleA {
+                CycleA()
+            }
+        }
+
+        struct CycleBHandler: Handler {
+            func handle() -> CycleB {
+                CycleB()
+            }
+        }
+
+        struct CycleCHandler: Handler {
+            func handle() -> CycleC {
+                CycleC()
+            }
+        }
+
+        @ComponentBuilder
+        var webService: some Component {
+            Group("a") {
+                CycleAHandler()
+            }
+            Group("b") {
+                CycleBHandler()
+            }
+            Group("c") {
+                CycleCHandler()
+            }
+        }
+        
+        XCTAssertRuntimeFailure(
+            try! self.XCTCheckComponent(
+                webService,
+                exporter: RelationshipExporter(self.app),
+                interfaceExporterVisitors: [RelationshipExporterRetriever()]
+            )
+        )
     }
 }

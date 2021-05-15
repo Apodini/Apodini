@@ -9,13 +9,11 @@ final class UploaderTests: FileHandlerTests {
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
         let file = File(data: data, filename: "Testfile.jpeg")
         
-        try XCTCheckHandler(
-            uploader,
-            application: self.app,
-            request: MockExporterRequest(on: self.app.eventLoopGroup.next(), file),
-            status: .created,
-            content: file.filename
-        )
+        try newerXCTCheckHandler(uploader) {
+            MockRequest(expectation: .response(status: .created, file.filename)) {
+                UnnamedParameter(file)
+            }
+        }
     }
     
     func testUploadConfig() throws {

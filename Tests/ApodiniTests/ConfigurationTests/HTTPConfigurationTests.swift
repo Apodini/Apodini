@@ -1,7 +1,7 @@
 @testable import Apodini
 import XCTest
 
-final class HTTPConfigurationTests: ApodiniTests {
+final class HTTPConfigurationTests: XCTApodiniDatabaseBirdTest {
     func testSettingAddress() throws {
         HTTPConfiguration()
             .address(.hostname("1.2.3.4", port: 56))

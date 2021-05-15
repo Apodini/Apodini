@@ -9,7 +9,7 @@
 import XCTest
 
 
-final class TraversableTests: ApodiniTests {
+final class TraversableTests: XCTApodiniDatabaseBirdTest {
     // swiftlint:disable identifier_name type_name
     @propertyWrapper
     struct Param<T>: Apodini.Property {

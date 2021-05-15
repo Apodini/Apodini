@@ -10,7 +10,7 @@ import XCTest
 import ApodiniUtils
 
 
-class OptionalTests: ApodiniTests {
+class OptionalTests: XCTApodiniDatabaseBirdTest {
     func testOptional() {
         let test: String? = "Paul"
         

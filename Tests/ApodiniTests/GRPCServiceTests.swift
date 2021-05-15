@@ -9,7 +9,7 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniGRPC
 
-final class GRPCServiceTests: ApodiniTests {
+final class GRPCServiceTests: XCTApodiniDatabaseBirdTest {
     override func setUpWithError() throws {
         try super.setUpWithError()
         

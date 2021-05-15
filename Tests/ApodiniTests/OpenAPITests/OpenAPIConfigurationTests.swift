@@ -6,7 +6,7 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniOpenAPI
 
-final class OpenAPIConfigurationTests: ApodiniTests {
+final class OpenAPIConfigurationTests: XCTApodiniDatabaseBirdTest {
     func testBuildDocumentWithConfiguration() throws {
         let configuredOutputFormat: OpenAPIOutputFormat = .yaml
         let configuredOutputEndpoint = "oas"

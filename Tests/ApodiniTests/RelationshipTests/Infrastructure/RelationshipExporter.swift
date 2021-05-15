@@ -6,7 +6,7 @@ import XCTApodini
 @testable import Apodini
 
 
-class RelationshipExporter: _MockExporter {
+class RelationshipExporter: MockExporter {
     override func finishedExporting(_ webService: WebServiceModel) {
         super.finishedExporting(webService)
         

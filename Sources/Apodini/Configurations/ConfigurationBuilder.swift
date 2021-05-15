@@ -1,6 +1,12 @@
 /// A function builder used to aggregate multiple `Configuration`s
+#if swift(>=5.4)
+@resultBuilder
+public enum ConfigurationBuilder {}
+#else
 @_functionBuilder
-public enum ConfigurationBuilder {
+public enum ConfigurationBuilder {}
+#endif
+extension ConfigurationBuilder {
     /// A method that transforms multiple `Configuration`s
     ///
     /// - Parameter configs: A variadic number of `ConfigurationsConvertible`

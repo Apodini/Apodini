@@ -6,7 +6,7 @@
 import XCTApodini
 
 
-class ParameterRetrievalTests: ApodiniTests {
+class ParameterRetrievalTests: XCTApodiniDatabaseBirdTest {
     struct TestHandler: Handler {
         @Parameter
         var name: String
@@ -28,49 +28,37 @@ class ParameterRetrievalTests: ApodiniTests {
     }
     
     func testParameterRetrieval() throws {
-        try XCTCheckHandler(
-            TestHandler(),
-            application: self.app,
-            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+        try newerXCTCheckHandler(TestHandler()) {
+            MockRequest(expectation: "👋 Hello Paul!") {
                 NamedParameter("name", value: "Paul")
                 NamedParameter("prefix", value: "👋 ")
-            },
-            content: "👋 Hello Paul!"
-        )
+            }
+        }
         
-        try XCTCheckHandler(
-            TestHandler(),
-            application: self.app,
-            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+        try newerXCTCheckHandler(TestHandler()) {
+            MockRequest(expectation: "Standard PrefixHello Paul!-Hello Paul!-Hello Paul!") {
                 NamedParameter("name", value: "Paul")
                 NamedParameter("times", value: 3)
                 NamedParameter("separator", value: "-")
-            },
-            content: "Standard PrefixHello Paul!-Hello Paul!-Hello Paul!"
-        )
+            }
+        }
     }
 
     func testParameterExplicitNilRetrieval() throws {
-        try XCTCheckHandler(
-            TestHandler(),
-            application: self.app,
-            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+        try newerXCTCheckHandler(TestHandler()) {
+            MockRequest(expectation: "Hello Paul!") {
                 NamedParameter("name", value: "Paul")
                 NamedParameter<Int>("times", value: nil)
                 NamedParameter<String>("prefix", value: nil)
-            },
-            content: "Hello Paul!"
-        )
+            }
+        }
         
-        try XCTCheckHandler(
-            TestHandler(),
-            application: self.app,
-            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+        try newerXCTCheckHandler(TestHandler()) {
+            MockRequest(expectation: "Hello Paul! Hello Paul! Hello Paul!") {
                 NamedParameter("name", value: "Paul")
                 NamedParameter("times", value: 3)
                 NamedParameter<String>("prefix", value: nil)
-            },
-            content: "Hello Paul! Hello Paul! Hello Paul!"
-        )
+            }
+        }
     }
 }

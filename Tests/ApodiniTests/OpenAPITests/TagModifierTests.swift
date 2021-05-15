@@ -6,7 +6,7 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniOpenAPI
 
-final class TagModifierTests: ApodiniTests {
+final class TagModifierTests: XCTApodiniDatabaseBirdTest {
     struct TestHandler: Handler {
         @Binding
         var name: String

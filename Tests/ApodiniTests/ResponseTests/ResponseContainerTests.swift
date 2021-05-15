@@ -11,7 +11,7 @@ import Vapor
 import XCTApodini
 
 
-final class ResponseContainerTests: ApodiniTests {
+final class ResponseContainerTests: XCTApodiniDatabaseBirdTest {
     private struct ExpectedContent<D: Decodable>: Decodable {
         enum CodingKeys: String, CodingKey {
             case data = "data"

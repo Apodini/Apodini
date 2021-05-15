@@ -8,7 +8,7 @@ import ApodiniTypeReflection
 
 @testable import Apodini
 
-class ReflectionInfoTests: ApodiniTests {
+class ReflectionInfoTests: XCTApodiniDatabaseBirdTest {
     func testCardinalityIsEquatable() throws {
         let keyType = ReflectionInfo(
             typeInfo: try typeInfo(of: String.self),

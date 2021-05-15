@@ -6,7 +6,7 @@ import XCTest
 import XCTApodini
 @testable import Apodini
 
-class ParameterNamespaceTests: ApodiniTests {
+class ParameterNamespaceTests: XCTApodiniDatabaseBirdTest {
     struct EmptyParameterNameHandler: Handler {
         @Parameter("")
         var param: String
@@ -53,7 +53,7 @@ class ParameterNamespaceTests: ApodiniTests {
     }
     
     private func parameterNameCollisionCheck<H: Handler>(on handler: H, in namespaces: [ParameterNamespace]) {
-        handler.mockEndpoint().parameterNameCollisionCheck(in: namespaces)
+        handler.oldMockEndpoint().parameterNameCollisionCheck(in: namespaces)
     }
 
     func testIndividualParameterNamespace() {
@@ -88,25 +88,25 @@ class ParameterNamespaceTests: ApodiniTests {
 
     func testEmptyParameterNamespace() throws {
         XCTAssertRuntimeFailure(
-            TestHandler().mockEndpoint().parameterNameCollisionCheck(),
+            TestHandler().oldMockEndpoint().parameterNameCollisionCheck(),
             "Failed to reject empty namespace definition"
         )
     }
 
     func testCustom1ParameterNamespace() throws {
-        let endpoint = try TestHandler().newMockEndpoint(application: app)
+        let endpoint = try TestHandler().mockEndpoint(application: app)
 
         endpoint.parameterNameCollisionCheck(in: .path, [.lightweight, .content])
     }
 
     func testCustom2ParameterNamespace() throws {
-        let endpoint = try TestHandler().newMockEndpoint(application: app)
+        let endpoint = try TestHandler().mockEndpoint(application: app)
 
         endpoint.parameterNameCollisionCheck(in: .lightweight, [.path, .content])
     }
 
     func testCustom3ParameterNamespace() throws {
-        let endpoint = try TestHandler().newMockEndpoint(application: app)
+        let endpoint = try TestHandler().mockEndpoint(application: app)
 
         endpoint.parameterNameCollisionCheck(in: .path, .lightweight, .content, .header)
         endpoint.parameterNameCollisionCheck(in: [.path, .header], [.lightweight, .content])

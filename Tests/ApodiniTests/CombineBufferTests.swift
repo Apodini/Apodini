@@ -10,7 +10,7 @@ import XCTest
 import OpenCombine
 @testable import Apodini
 
-class CombineBufferTests: ApodiniTests {
+class CombineBufferTests: XCTApodiniDatabaseBirdTest {
     static let blockTime: UInt32 = 10000
     
     func testUninterruptedRun() throws {

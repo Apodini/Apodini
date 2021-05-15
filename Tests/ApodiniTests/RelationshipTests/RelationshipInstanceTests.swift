@@ -6,168 +6,206 @@ import XCTest
 import XCTApodini
 @testable import Apodini
 
-class RelationshipInstanceTests: ApodiniTests {
+class RelationshipInstanceTests: XCTApodiniDatabaseBirdTest {
     let testRelationship = Relationship(name: "test")
 
-    @ComponentBuilder
-    var simpleWebservice: some Component {
-        Group("a") {
-            Text("Test1")
-                .destination(of: testRelationship)
+    func testSimpleWebService() throws {
+        @ComponentBuilder
+        var webService: some Component {
+            Group("a") {
+                Text("Test1")
+                    .destination(of: testRelationship)
+            }
+            Group("b") {
+                Text("Test2")
+                    .relationship(to: testRelationship)
+            }
         }
-        Group("b") {
-            Text("Test2")
-                .relationship(to: testRelationship)
-        }
+        
+        
+        try XCTCheckComponent(
+            webService,
+            exporter: RelationshipExporter(app),
+            interfaceExporterVisitors: [RelationshipExporterRetriever()],
+            checks: [
+                CheckHandler<Text>(index: 0) {
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(enrichedContent.formatTestRelationships(), ["self:read": "/a"])
+                    })
+                },
+                CheckHandler<Text>(index: 1) {
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(enrichedContent.formatTestRelationships(), ["self:read": "/b", "test:read": "/a"])
+                    })
+                }
+            ]
+        )
     }
 
-    func testSimpleWebService() {
-        let context = RelationshipTestContext(app: app, service: simpleWebservice)
-
-        let resultA = context.request(on: 0)
-        XCTAssertEqual(
-            resultA.formatTestRelationships(),
-            ["self:read": "/a"])
-
-        let resultB = context.request(on: 1)
-        XCTAssertEqual(
-            resultB.formatTestRelationships(),
-            ["self:read": "/b", "test:read": "/a"])
+    func testWebserviceMultipleSources() throws {
+        @ComponentBuilder
+        var webService: some Component {
+            Group("a") {
+                Text("Test1")
+                    .destination(of: testRelationship)
+            }
+            Group("b") {
+                Text("Test2")
+                    .relationship(to: testRelationship)
+            }
+            Group("c") {
+                Text("Test3")
+                    .relationship(to: testRelationship)
+            }
+        }
+        
+        try XCTCheckComponent(
+            webService,
+            exporter: RelationshipExporter(app),
+            interfaceExporterVisitors: [RelationshipExporterRetriever()],
+            checks: [
+                CheckHandler<Text>(index: 0) {
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(enrichedContent.formatTestRelationships(), ["self:read": "/a"])
+                    })
+                },
+                CheckHandler<Text>(index: 1) {
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(enrichedContent.formatTestRelationships(), ["self:read": "/b", "test:read": "/a"])
+                    })
+                },
+                CheckHandler<Text>(index: 2) {
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(enrichedContent.formatTestRelationships(), ["self:read": "/c", "test:read": "/a"])
+                    })
+                }
+            ]
+        )
     }
 
-
-    @ComponentBuilder
-    var webserviceMultipleSources: some Component {
-        Group("a") {
-            Text("Test1")
-                .destination(of: testRelationship)
-        }
-        Group("b") {
-            Text("Test2")
-                .relationship(to: testRelationship)
-        }
-        Group("c") {
-            Text("Test3")
-                .relationship(to: testRelationship)
-        }
-    }
-
-    func testWebserviceMultipleSources() {
-        let context = RelationshipTestContext(app: app, service: webserviceMultipleSources)
-
-        let resultA = context.request(on: 0)
-        XCTAssertEqual(
-            resultA.formatTestRelationships(),
-            ["self:read": "/a"])
-
-        let resultB = context.request(on: 1)
-        XCTAssertEqual(
-            resultB.formatTestRelationships(),
-            ["self:read": "/b", "test:read": "/a"])
-
-        let resultC = context.request(on: 2)
-        XCTAssertEqual(
-            resultC.formatTestRelationships(),
-            ["self:read": "/c", "test:read": "/a"])
-    }
-
-
-    @ComponentBuilder
-    var webserviceMultipleIllegalDestinations: some Component {
-        Group("a") {
-            Text("Test1")
-                .destination(of: testRelationship)
-        }
-        Group("b") {
-            Text("Test2")
-                .relationship(to: testRelationship)
-        }
-        Group("c") {
-            Text("Test3")
-                .destination(of: testRelationship)
-        }
-    }
 
     func testWebserviceMultipleIllegalDestinations() {
-        XCTAssertRuntimeFailure(RelationshipTestContext(app: self.app, service: self.webserviceMultipleIllegalDestinations),
-                                "Relationship destination must be unique")
+        @ComponentBuilder
+        var webService: some Component {
+            Group("a") {
+                Text("Test1")
+                    .destination(of: testRelationship)
+            }
+            Group("b") {
+                Text("Test2")
+                    .relationship(to: testRelationship)
+            }
+            Group("c") {
+                Text("Test3")
+                    .destination(of: testRelationship)
+            }
+        }
+        
+        XCTAssertRuntimeFailure(
+            try! self.XCTCheckComponent(
+                webService,
+                exporter: RelationshipExporter(self.app),
+                interfaceExporterVisitors: [RelationshipExporterRetriever()]
+            ),
+            "Relationship destination must be unique"
+        )
     }
 
-
-    @ComponentBuilder
-    var webServiceMultipleDestinations: some Component {
-        Group("a") {
-            Text("Test1")
-                .destination(of: testRelationship)
-            Text("Test2")
-                .operation(.update)
-                .destination(of: testRelationship)
+    func testWebserviceMultipleDestinations() throws {
+        @ComponentBuilder
+        var webService: some Component {
+            Group("a") {
+                Text("Test1")
+                    .destination(of: testRelationship)
+                Text("Test2")
+                    .operation(.update)
+                    .destination(of: testRelationship)
+            }
+            Group("b") {
+                Text("Test3")
+                    .relationship(to: testRelationship)
+            }
         }
-        Group("b") {
-            Text("Test3")
-                .relationship(to: testRelationship)
-        }
-    }
-
-    func testWebserviceMultipleDestinations() {
-        let context = RelationshipTestContext(app: app, service: webServiceMultipleDestinations)
-
-        let resultA1 = context.request(on: 0)
-        XCTAssertEqual(
-            resultA1.formatTestRelationships(),
-            ["self:read": "/a", "self:update": "/a"])
-
-        let resultA2 = context.request(on: 1)
-        XCTAssertEqual(
-            resultA2.formatTestRelationships(),
-            ["self:update": "/a", "self:read": "/a"])
-
-        let resultB = context.request(on: 2)
-        XCTAssertEqual(
-            resultB.formatTestRelationships(),
-            ["self:read": "/b", "test:read": "/a", "test:update": "/a"])
-    }
-
-
-    @ComponentBuilder
-    var webserviceCyclic: some Component {
-        Group("a") {
-            Text("Test1")
-                .relationship(to: testRelationship)
-                .destination(of: testRelationship)
-        }
+        
+        try XCTCheckComponent(
+            webService,
+            exporter: RelationshipExporter(app),
+            interfaceExporterVisitors: [RelationshipExporterRetriever()],
+            checks: [
+                CheckHandler<Text>(index: 0) {
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(enrichedContent.formatTestRelationships(), ["self:read": "/a", "self:update": "/a"])
+                    })
+                },
+                CheckHandler<Text>(index: 1) {
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(enrichedContent.formatTestRelationships(), ["self:update": "/a", "self:read": "/a"])
+                    })
+                },
+                CheckHandler<Text>(index: 2) {
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(enrichedContent.formatTestRelationships(), ["self:read": "/b", "test:read": "/a", "test:update": "/a"])
+                    })
+                }
+            ]
+        )
     }
 
     func testWebserviceCyclic() {
-        XCTAssertRuntimeFailure(RelationshipTestContext(app: self.app, service: self.webserviceCyclic),
-                                "RelationshipBuilder should reject cyclic relationship!")
-    }
-
-
-    @ComponentBuilder
-    var webserviceNoDestinations: some Component {
-        Group("a") {
-            Text("Test1")
-                .relationship(to: testRelationship)
+        @ComponentBuilder
+        var webService: some Component {
+            Group("a") {
+                Text("Test1")
+                    .relationship(to: testRelationship)
+                    .destination(of: testRelationship)
+            }
         }
+        
+        XCTAssertRuntimeFailure(
+            try! self.XCTCheckComponent(
+                webService,
+                exporter: RelationshipExporter(self.app),
+                interfaceExporterVisitors: [RelationshipExporterRetriever()]
+            ),
+            "RelationshipBuilder should reject cyclic relationship!"
+        )
     }
 
     func testWebserviceNoDestinations() {
-        XCTAssertRuntimeFailure(RelationshipTestContext(app: self.app, service: self.webserviceNoDestinations),
-                                "RelationshipBuilder should reject relationship instances without destinations!")
-    }
-
-
-    @ComponentBuilder
-    var webserviceNoSources: some Component {
-        Group("a") {
-            Text("Test1")
-                .destination(of: testRelationship)
+        @ComponentBuilder
+        var webService: some Component {
+            Group("a") {
+                Text("Test1")
+                    .relationship(to: testRelationship)
+            }
         }
+
+        XCTAssertRuntimeFailure(
+            try! self.XCTCheckComponent(
+                webService,
+                exporter: RelationshipExporter(self.app),
+                interfaceExporterVisitors: [RelationshipExporterRetriever()]
+            ),
+            "RelationshipBuilder should reject relationship instances without destinations!"
+        )
     }
 
     func testWebserviceNoSources() {
-        XCTAssertRuntimeFailure(RelationshipTestContext(app: self.app, service: self.webserviceNoSources),
-                                "RelationshipBuilder should reject relationship instances without sources!")
+        @ComponentBuilder
+        var webService: some Component {
+            Group("a") {
+                Text("Test1")
+                    .destination(of: testRelationship)
+            }
+        }
+        
+        XCTAssertRuntimeFailure(
+            try! self.XCTCheckComponent(
+                webService,
+                exporter: RelationshipExporter(self.app),
+                interfaceExporterVisitors: [RelationshipExporterRetriever()]
+            ),
+            "RelationshipBuilder should reject relationship instances without sources!"
+        )
     }
 }

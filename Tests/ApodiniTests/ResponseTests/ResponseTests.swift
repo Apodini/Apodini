@@ -11,7 +11,7 @@ import XCTest
 import XCTApodini
 
 
-final class ResponseTests: ApodiniTests {
+final class ResponseTests: XCTApodiniDatabaseBirdTest {
     struct ResponseHandler: Handler {
         var message: String
 

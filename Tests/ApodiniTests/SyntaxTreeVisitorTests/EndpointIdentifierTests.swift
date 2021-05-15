@@ -12,7 +12,7 @@ import XCTest
 @testable import ApodiniVaporSupport
 
 
-final class HandlerIdentifierTests: ApodiniTests {
+final class HandlerIdentifierTests: XCTApodiniDatabaseBirdTest {
     // Hashable summary of an endpoint, useful for comparing endpoint arrays
     private struct EndpointSummary: Hashable {
         let id: String

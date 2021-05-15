@@ -9,7 +9,7 @@ import XCTest
 @testable import Apodini
 
 
-final class PropertiesTests: ApodiniTests {
+final class PropertiesTests: XCTApodiniDatabaseBirdTest {
     func testTypedPorperties() throws {
         let elements: [(String, Property)] = [
             ("number", Parameter<Int>(wrappedValue: 42)),

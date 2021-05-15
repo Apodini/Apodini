@@ -9,7 +9,7 @@
 import XCTApodini
 
 
-class ParameterMutabilityTests: ApodiniTests {
+class ParameterMutabilityTests: XCTApodiniDatabaseBirdTest {
     struct TestHandler: Handler {
         // variable
         @Parameter

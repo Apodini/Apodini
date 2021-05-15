@@ -140,7 +140,7 @@ extension Component {
 
 /// Includes regression testing for https://github.com/Apodini/Apodini/issues/12.
 /// Read through this issues before doing any changes!
-final class ContextNodeTests: ApodiniTests {
+final class ContextNodeTests: XCTApodiniDatabaseBirdTest {
     var groupWithSingleComponent: some Component {
         Group("test") {
             TestComponent(1)

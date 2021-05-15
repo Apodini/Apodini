@@ -10,7 +10,7 @@ import XCTApodini
 @testable import Apodini
 @testable import ApodiniNotifications
 
-final class EnvironmentTests: ApodiniTests {
+final class EnvironmentTests: XCTApodiniDatabaseBirdTest {
     struct BirdHandler: Handler {
         @Apodini.Environment(\.birdFacts) var birdFacts: BirdFacts
 
@@ -20,11 +20,9 @@ final class EnvironmentTests: ApodiniTests {
     }
 
     func testEnvironmentInjection() throws {
-        try XCTCheckHandler(
-            BirdHandler(),
-            application: self.app,
-            content: BirdFacts().someFact
-        )
+        try newerXCTCheckHandler(BirdHandler()) {
+            MockRequest(expectation: BirdFacts().someFact)
+        }
     }
 
     func testEnvironmentObjectInjection() throws {
@@ -44,11 +42,10 @@ final class EnvironmentTests: ApodiniTests {
         let birdFacts = BirdFacts()
         EnvironmentObject(birdFacts, \Keys.bird).configure(app)
         
-        try XCTCheckHandler(
-            AnotherBirdHandler(),
-            application: self.app,
-            content: birdFacts.dodoFact
-        )
+        
+        try newerXCTCheckHandler(AnotherBirdHandler()) {
+            MockRequest(expectation: birdFacts.dodoFact)
+        }
     }
 
     func testDuplicateEnvironmentObjectInjection() throws {

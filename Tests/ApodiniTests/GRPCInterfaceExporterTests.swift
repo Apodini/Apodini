@@ -58,7 +58,7 @@ final class GRPCInterfaceExporterTests: XCTApodiniTest {
         try super.setUpWithError()
         service = GRPCService(name: serviceName, using: app)
         handler = GRPCTestHandler()
-        endpoint = handler.mockEndpoint()
+        endpoint = handler.oldMockEndpoint()
         exporter = GRPCInterfaceExporter(app)
         headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/grpc+proto")
@@ -70,7 +70,7 @@ final class GRPCInterfaceExporterTests: XCTApodiniTest {
         let webService = WebServiceModel()
 
         let handler = GRPCTestHandler()
-        var endpoint = handler.mockEndpoint()
+        var endpoint = handler.oldMockEndpoint()
 
         webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
 
@@ -89,7 +89,7 @@ final class GRPCInterfaceExporterTests: XCTApodiniTest {
 
         var endpoint = GRPCTestHandler()
             .serviceName(expectedServiceName)
-            .mockEndpoint(wrappedHandlerOfType: GRPCTestHandler.self)
+            .oldMockEndpoint(wrappedHandlerOfType: GRPCTestHandler.self)
 
         webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
 
@@ -160,7 +160,7 @@ final class GRPCInterfaceExporterTests: XCTApodiniTest {
     }
 
     func testUnaryRequestHandlerWithTwoParameters() throws {
-        let endpoint = try GRPCTestHandler2().newMockEndpoint(application: app)
+        let endpoint = try GRPCTestHandler2().mockEndpoint(application: app)
         let context = endpoint.createConnectionContext(for: exporter)
 
         // let expectedResponseString = "Hello Moritz, you are 23 years old."
@@ -191,7 +191,7 @@ final class GRPCInterfaceExporterTests: XCTApodiniTest {
     /// Tests request validation for the GRPC exporter.
     /// Should throw for a payload that does not contain data for all required parameters.
     func testUnaryRequestHandlerRequiresAllParameters() throws {
-        let endpoint = try GRPCTestHandler2().newMockEndpoint(application: app)
+        let endpoint = try GRPCTestHandler2().mockEndpoint(application: app)
         let context = endpoint.createConnectionContext(for: exporter)
 
         let incompleteData: [UInt8] = [0, 0, 0, 0, 8, 10, 6, 77, 111, 114, 105, 116, 122]
@@ -354,7 +354,7 @@ final class GRPCInterfaceExporterTests: XCTApodiniTest {
 
     /// Checks whether the returned response for a `.nothing` is indeed empty.
     func testClientStreamingHandlerNothingResponse() throws {
-        let endpoint = try GRPCNothingHandler().newMockEndpoint(application: app)
+        let endpoint = try GRPCNothingHandler().mockEndpoint(application: app)
         let context = endpoint.createConnectionContext(for: self.exporter)
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
@@ -387,7 +387,7 @@ final class GRPCInterfaceExporterTests: XCTApodiniTest {
     func testServiceNameUtility_CustomName() throws {
         let serviceName = "TestService"
 
-        let endpoint = try handler.serviceName(serviceName).newMockEndpoint(application: app)
+        let endpoint = try handler.serviceName(serviceName).mockEndpoint(application: app)
 
         XCTAssertEqual(gRPCServiceName(from: endpoint), serviceName)
     }
@@ -399,7 +399,7 @@ final class GRPCInterfaceExporterTests: XCTApodiniTest {
     func testMethodNameUtility_CustomName() {
         let methodName = "testMethod"
 
-        let endpoint = handler.rpcName(methodName).mockEndpoint(wrappedHandlerOfType: GRPCTestHandler.self)
+        let endpoint = handler.rpcName(methodName).oldMockEndpoint(wrappedHandlerOfType: GRPCTestHandler.self)
 
         XCTAssertEqual(gRPCMethodName(from: endpoint), methodName)
     }

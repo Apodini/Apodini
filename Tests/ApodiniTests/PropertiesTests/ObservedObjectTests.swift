@@ -5,7 +5,7 @@ import Foundation
 import XCTApodini
 
 
-class ObservedObjectTests: ApodiniTests {
+class ObservedObjectTests: XCTApodiniDatabaseBirdTest {
     // check setting changed
     class TestObservable: Apodini.ObservableObject {
         @Apodini.Published var number: Int

@@ -8,7 +8,8 @@
 #if DEBUG
 @testable import Apodini
 
-open class _MockExporter: InterfaceExporter {
+
+open class MockExporter: InterfaceExporter {
     public var endpoints: [AnyEndpoint] = []
     
     
@@ -32,7 +33,8 @@ open class _MockExporter: InterfaceExporter {
     open func finishedExporting(_ webService: WebServiceModel) {}
 }
 
-extension _MockExporter: StandardErrorCompliantExporter {
+
+extension MockExporter: StandardErrorCompliantExporter {
     public typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
 }
 #endif

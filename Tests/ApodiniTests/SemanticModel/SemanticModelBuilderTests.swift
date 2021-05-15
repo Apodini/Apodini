@@ -9,7 +9,7 @@
 import XCTApodini
 
 
-final class SemanticModelBuilderTests: ApodiniTests {
+final class SemanticModelBuilderTests: XCTApodiniDatabaseBirdTest {
     struct TestHandler: Handler {
         @Binding
         var name: String

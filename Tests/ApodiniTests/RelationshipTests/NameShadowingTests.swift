@@ -6,7 +6,7 @@ import XCTest
 import XCTApodini
 @testable import Apodini
 
-class NameShadowingTests: ApodiniTests {
+class NameShadowingTests: XCTApodiniDatabaseBirdTest {
     var aRelationship = Relationship(name: "a")
 
     struct Number: Handler {
@@ -29,7 +29,7 @@ class NameShadowingTests: ApodiniTests {
     }
 
     @ComponentBuilder
-    var webservice: some Component {
+    var webService: some Component {
         Group("dut") {
             TestDataHandler()
                 .relationship(to: aRelationship)
@@ -46,15 +46,24 @@ class NameShadowingTests: ApodiniTests {
         }
     }
 
-    func testInheritedRelationshipShadowing() {
+    func testInheritedRelationshipShadowing() throws {
         // This test cases tests, that inherited relationships do not
         // affect our name shadowing logic:
         // explicit definition (`Relationship` instances) hides -> structural hides -> inherited relationships
-        let context = RelationshipTestContext(app: app, service: webservice)
-
-        let result = context.request(on: 0)
-        XCTAssertEqual(
-            result.formatTestRelationships(),
-            ["self:read": "/dut", "self:update": "/dut", "a:read": "/other"])
+        try XCTCheckComponent(
+            webService,
+            exporter: RelationshipExporter(app),
+            interfaceExporterVisitors: [RelationshipExporterRetriever()],
+            checks: [
+                CheckHandler<TestDataHandler>(index: 0) {
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(
+                            enrichedContent.formatTestRelationships(),
+                            ["self:read": "/dut", "self:update": "/dut", "a:read": "/other"]
+                        )
+                    })
+                }
+            ]
+        )
     }
 }

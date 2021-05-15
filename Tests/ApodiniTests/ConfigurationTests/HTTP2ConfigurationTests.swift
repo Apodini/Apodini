@@ -2,7 +2,7 @@
 import NIOSSL
 import XCTest
 
-final class HTTP2ConfigurationTests: ApodiniTests {
+final class HTTP2ConfigurationTests: XCTApodiniDatabaseBirdTest {
     let currentPath = URL(fileURLWithPath: #file).deletingLastPathComponent().path
     lazy var keyPath: String = currentPath + "/Certificates/key.pem"
     lazy var key2Path: String = currentPath + "/Certificates/key2.pem"

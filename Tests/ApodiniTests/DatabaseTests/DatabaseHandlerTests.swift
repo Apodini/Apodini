@@ -2,20 +2,19 @@
 import XCTApodini
 
 
-final class DatabaseHandlerTests: ApodiniTests {
+final class DatabaseHandlerTests: XCTApodiniDatabaseBirdTest {
     func testCreateHandler() throws {
         let bird = Bird(name: "Mockingbird", age: 20)
         
         let creationHandler = Create<Bird>()
         
+        
         let response = try XCTUnwrap(
-            try XCTCheckHandler(
-                creationHandler,
-                application: self.app,
-                request: MockExporterRequest(on: self.app.eventLoopGroup.next(), bird),
-                status: .created,
-                content: bird
-            )
+            try newerXCTCheckHandler(creationHandler) {
+                MockRequest(expectation: .response(status: .created, bird)) {
+                    UnnamedParameter(bird)
+                }
+            }
         )
         
         let foundBird = try XCTUnwrap(Bird.find(response.id, on: app.database).wait())
@@ -29,13 +28,11 @@ final class DatabaseHandlerTests: ApodiniTests {
         let creationHandler = CreateAll<Bird>()
         
         let response = try XCTUnwrap(
-            try XCTCheckHandler(
-                creationHandler,
-                application: self.app,
-                request: MockExporterRequest(on: self.app.eventLoopGroup.next(), bird, bird2),
-                status: .created,
-                responseType: [Bird].self
-            )
+            try newerXCTCheckHandler(creationHandler) {
+                MockRequest<[Bird]>(expectation: .status(.created)) {
+                    UnnamedParameter([bird, bird2])
+                }
+            }
         )
         
         XCTAssert(!response.isEmpty)
@@ -57,14 +54,11 @@ final class DatabaseHandlerTests: ApodiniTests {
             .wait()
         let birdId = try XCTUnwrap(dbBird.id)
         
-        try XCTCheckHandler(
-            ReadOne<Bird>(),
-            application: self.app,
-            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+        try newerXCTCheckHandler(ReadOne<Bird>()) {
+            MockRequest(expectation: dbBird) {
                 NamedParameter("id", value: birdId)
-            },
-            content: dbBird
-        )
+            }
+        }
     }
     
     func testReadHandler() throws {
@@ -85,14 +79,11 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         
         let response = try XCTUnwrap(
-            try XCTCheckHandler(
-                ReadAll<Bird>(),
-                application: self.app,
-                request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+            newerXCTCheckHandler(ReadAll<Bird>()) {
+                MockRequest<[Bird]> {
                     NamedParameter("name", value: "Mockingbird")
-                },
-                responseType: [Bird].self
-            )
+                }
+            }
         )
         
         XCTAssert(response.count == 2)
@@ -100,36 +91,27 @@ final class DatabaseHandlerTests: ApodiniTests {
         XCTAssert(response[1].name == "Mockingbird", response.debugDescription)
         
         
-        try XCTCheckHandler(
-            ReadAll<Bird>(),
-            application: self.app,
-            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+        try newerXCTCheckHandler(ReadAll<Bird>()) {
+            MockRequest(expectation: [Bird(name: "Mockingbird", age: 21)]) {
                 NamedParameter("name", value: "Mockingbird")
                 NamedParameter("age", value: 21)
-            },
-            content: [Bird(name: "Mockingbird", age: 21)]
-        )
+            }
+        }
         
         let bird1Id = try XCTUnwrap(dbBird1.id)
-        try XCTCheckHandler(
-            ReadAll<Bird>(),
-            application: self.app,
-            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
-                NamedParameter("id", value: bird1Id)
-            },
-            content: [bird1]
-        )
         
-        try XCTCheckHandler(
-            ReadAll<Bird>(),
-            application: self.app,
-            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+        try newerXCTCheckHandler(ReadAll<Bird>()) {
+            MockRequest(expectation: [bird1]) {
+                NamedParameter("id", value: bird1Id)
+            }
+        }
+        
+        try newerXCTCheckHandler(ReadAll<Bird>()) {
+            MockRequest<[Bird]> {
                 NamedParameter("name", value: "Mockingbird")
                 NamedParameter("age", value: 22)
-            },
-            responseType: [Bird].self,
-            content: []
-        )
+            }
+        }
     }
     
     func testUpdateHandleWithSingleParameter() throws {
@@ -140,16 +122,12 @@ final class DatabaseHandlerTests: ApodiniTests {
             .wait()
         let dbBirdId = try XCTUnwrap(dbBird.id)
         
-        try XCTCheckHandler(
-            Update<Bird>(),
-            application: self.app,
-            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+        try newerXCTCheckHandler(Update<Bird>()) {
+            MockRequest(expectation: .response(status: .ok, Bird(name: "Swift", age: 20))) {
                 UnnamedParameter(dbBirdId)
                 NamedParameter("name", value: "Swift")
-            },
-            status: .ok,
-            content: Bird(name: "Swift", age: 20)
-        )
+            }
+        }
         
         let updatedBird = try XCTUnwrap(Bird.find(dbBird.id, on: self.app.database).wait())
         XCTAssertEqual(updatedBird, Bird(name: "Swift", age: 20))
@@ -165,16 +143,12 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         let newBird = Bird(name: "FooBird", age: 25)
         
-        try XCTCheckHandler(
-            Update<Bird>(),
-            application: self.app,
-            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+        try newerXCTCheckHandler(Update<Bird>()) {
+            MockRequest(expectation: .response(status: .ok, newBird)) {
                 UnnamedParameter(dbBirdId)
                 UnnamedParameter(newBird)
-            },
-            status: .ok,
-            content: newBird
-        )
+            }
+        }
         
         let updatedBird = try XCTUnwrap(Bird.find(dbBird.id, on: self.app.database).wait())
         XCTAssertEqual(updatedBird, newBird)
@@ -189,16 +163,11 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         let dbBirdId = try XCTUnwrap(dbBird.id)
         
-        try XCTCheckHandler(
-            Delete<Bird>(),
-            application: self.app,
-            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+        try newerXCTCheckHandler(Delete<Bird>()) {
+            MockRequest(expectation: .status(.noContent)) {
                 UnnamedParameter(dbBirdId)
-            },
-            status: .noContent,
-            responseType: Empty.self,
-            content: nil
-        )
+            }
+        }
         
         let deletedBird = try Bird.find(dbBird.id, on: app.database).wait()
         XCTAssertNil(deletedBird)

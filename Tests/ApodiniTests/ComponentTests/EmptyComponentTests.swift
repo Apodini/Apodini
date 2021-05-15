@@ -10,7 +10,7 @@
 import XCTest
 import XCTApodini
 
-class EmptyComponentTests: ApodiniTests {
+class EmptyComponentTests: XCTApodiniDatabaseBirdTest {
     private struct NeverComponent: Component {
         typealias Content = Never
     }

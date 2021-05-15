@@ -12,7 +12,7 @@ import XCTVapor
 import XCTest
 
 
-final class ConnectionTests: ApodiniTests {
+final class ConnectionTests: XCTApodiniDatabaseBirdTest {
     let endMessage = "End"
     let openMessage = "Open"
     
@@ -34,30 +34,24 @@ final class ConnectionTests: ApodiniTests {
     }
     
     func testDefaultConnectionEnvironment() throws {
-        try XCTCheckHandler(
-            TestHandler(endMessage: endMessage, openMessage: openMessage),
-            application: self.app,
-            content: endMessage,
-            connectionEffect: .close
-        )
+        try newerXCTCheckHandler(TestHandler(endMessage: endMessage, openMessage: openMessage)) {
+            MockRequest(expectation: endMessage)
+        }
     }
     
     func testConnectionInjection() throws {
-        try XCTCheckHandler(
-            TestHandler(endMessage: endMessage, openMessage: openMessage),
-            application: self.app,
-            connectionState: .open,
-            content: openMessage,
-            connectionEffect: .open
-        )
-        
-        try XCTCheckHandler(
-            TestHandler(endMessage: endMessage, openMessage: openMessage),
-            application: self.app,
-            connectionState: .end,
-            content: endMessage,
-            connectionEffect: .close
-        )
+        try newerXCTCheckHandler(TestHandler(endMessage: endMessage, openMessage: openMessage)) {
+            MockRequest(
+                connectionState: .open,
+                expectation: .response(connectionEffect: .open, openMessage)
+            )
+        }
+        try newerXCTCheckHandler(TestHandler(endMessage: endMessage, openMessage: openMessage)) {
+            MockRequest(
+                connectionState: .end,
+                expectation: .response(connectionEffect: .close, endMessage)
+            )
+        }
     }
 
     func testConnectionRemoteAddress() throws {

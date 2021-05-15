@@ -9,7 +9,7 @@
 @testable import Apodini
 import XCTApodini
 
-class ThrowsTests: ApodiniTests {
+class ThrowsTests: XCTApodiniDatabaseBirdTest {
     struct ErrorTestHandler: Handler {
         @Throws(.badInput, reason: "!badInput!", description: "<badInput>")
         var error1: ApodiniError
@@ -71,20 +71,20 @@ class ThrowsTests: ApodiniTests {
     }
     
     func testReasonAndDescriptionPresence() throws {
-        print(ErrorTestHandler(errorCode: 1).evaluationError().message(for: _MockExporter.self))
-        XCTAssertTrue(ErrorTestHandler(errorCode: 1).evaluationError().message(for: _MockExporter.self).contains("!badInput!"))
+        print(ErrorTestHandler(errorCode: 1).evaluationError().message(for: MockExporter.self))
+        XCTAssertTrue(ErrorTestHandler(errorCode: 1).evaluationError().message(for: MockExporter.self).contains("!badInput!"))
         #if DEBUG
-        XCTAssertTrue(ErrorTestHandler(errorCode: 1).evaluationError().message(for: _MockExporter.self).contains("<badInput>"))
+        XCTAssertTrue(ErrorTestHandler(errorCode: 1).evaluationError().message(for: MockExporter.self).contains("<badInput>"))
         #else
         XCTAssertFalse(ErrorTestHandler(errorCode: 1).evaluationError().message(for: _MockExporter.self).contains("<badInput>"))
         #endif
         
-        XCTAssertTrue(ErrorTestHandler(errorCode: 2).evaluationError().message(for: _MockExporter.self).contains("!badInput!"))
-        XCTAssertFalse(ErrorTestHandler(errorCode: 2).evaluationError().message(for: _MockExporter.self).contains("<badInput>"))
+        XCTAssertTrue(ErrorTestHandler(errorCode: 2).evaluationError().message(for: MockExporter.self).contains("!badInput!"))
+        XCTAssertFalse(ErrorTestHandler(errorCode: 2).evaluationError().message(for: MockExporter.self).contains("<badInput>"))
         
-        XCTAssertFalse(ErrorTestHandler(errorCode: 3).evaluationError().message(for: _MockExporter.self).contains("!badInput!"))
+        XCTAssertFalse(ErrorTestHandler(errorCode: 3).evaluationError().message(for: MockExporter.self).contains("!badInput!"))
         #if DEBUG
-        XCTAssertTrue(ErrorTestHandler(errorCode: 3).evaluationError().message(for: _MockExporter.self).contains("<badInput>"))
+        XCTAssertTrue(ErrorTestHandler(errorCode: 3).evaluationError().message(for: MockExporter.self).contains("<badInput>"))
         #else
         XCTAssertFalse(ErrorTestHandler(errorCode: 3).evaluationError().message(for: _MockExporter.self).contains("<badInput>"))
         #endif
@@ -95,13 +95,13 @@ class ThrowsTests: ApodiniTests {
                         errorCode: 4,
                         applyChanges: true,
                         reason: "!other!",
-                        description: "<other>").evaluationError().message(for: _MockExporter.self).contains("!other!"))
+                        description: "<other>").evaluationError().message(for: MockExporter.self).contains("!other!"))
         #if DEBUG
         XCTAssertTrue(ErrorTestHandler(
                         errorCode: 4,
                         applyChanges: true,
                         reason: "!other!",
-                        description: "<other>").evaluationError().message(for: _MockExporter.self).contains("<other>"))
+                        description: "<other>").evaluationError().message(for: MockExporter.self).contains("<other>"))
         #else
         XCTAssertFalse(ErrorTestHandler(
                         errorCode: 4,
@@ -114,24 +114,24 @@ class ThrowsTests: ApodiniTests {
                         errorCode: 4,
                         applyChanges: true,
                         reason: "!other!",
-                        description: nil).evaluationError().message(for: _MockExporter.self).contains("!other!"))
+                        description: nil).evaluationError().message(for: MockExporter.self).contains("!other!"))
         XCTAssertFalse(ErrorTestHandler(
                         errorCode: 4,
                         applyChanges: true,
                         reason: "!other!",
-                        description: nil).evaluationError().message(for: _MockExporter.self).contains("<other>"))
+                        description: nil).evaluationError().message(for: MockExporter.self).contains("<other>"))
         
         XCTAssertFalse(ErrorTestHandler(
                         errorCode: 4,
                         applyChanges: true,
                         reason: nil,
-                        description: "<other>").evaluationError().message(for: _MockExporter.self).contains("!other!"))
+                        description: "<other>").evaluationError().message(for: MockExporter.self).contains("!other!"))
         #if DEBUG
         XCTAssertTrue(ErrorTestHandler(
                         errorCode: 4,
                         applyChanges: true,
                         reason: nil,
-                        description: "<other>").evaluationError().message(for: _MockExporter.self).contains("<other>"))
+                        description: "<other>").evaluationError().message(for: MockExporter.self).contains("<other>"))
         #else
         XCTAssertFalse(ErrorTestHandler(
                         errorCode: 4,

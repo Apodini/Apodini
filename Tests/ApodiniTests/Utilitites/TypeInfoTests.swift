@@ -9,7 +9,7 @@ import XCTest
 @testable import Apodini
 import ApodiniUtils
 
-class TypeInfoTests: ApodiniTests {
+class TypeInfoTests: XCTApodiniDatabaseBirdTest {
     func testIsOptional() {
         /// A custom type
         struct Test {}

@@ -13,7 +13,7 @@ import XCTest
 import XCTApodini
 
 
-class ComponentTests: ApodiniTests {
+class ComponentTests: XCTApodiniDatabaseBirdTest {
     func testPreconditionTypeIsStruct() throws {
         class TestClass {}
         XCTAssertRuntimeFailure(preconditionTypeIsStruct(TestClass.self))

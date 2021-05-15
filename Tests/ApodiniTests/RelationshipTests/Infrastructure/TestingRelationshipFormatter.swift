@@ -2,10 +2,10 @@
 // Created by Andreas Bauer on 23.01.21.
 //
 
-#if DEBUG
 import Apodini
 
-public struct TestingRelationshipFormatter: RelationshipFormatter {
+
+struct TestingRelationshipFormatter: RelationshipFormatter {
     var hideHidden: Bool
 
     public init(hideHidden: Bool = false) {
@@ -24,4 +24,3 @@ public struct TestingRelationshipFormatter: RelationshipFormatter {
         into[of.name + ":\(of.operation)"] = representation
     }
 }
-#endif

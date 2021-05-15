@@ -308,7 +308,7 @@ extension FileHandle {
     /// we need this workaround.
     func tryReadDataToEnd() throws -> Data? {
         if #available(macOS 10.15.4, *) {
-            return try readToEnd()
+            return readDataToEndOfFile()
         } else {
             return readDataToEndOfFile()
         }

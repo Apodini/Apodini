@@ -12,7 +12,7 @@ import XCTest
 import XCTApodini
 import ApodiniREST
 
-final class BindingTests: ApodiniTests, EnvironmentAccessible {
+final class BindingTests: XCTApodiniDatabaseBirdTest, EnvironmentAccessible {
     struct Greeter: Handler {
         @Binding var country: String?
         

@@ -129,11 +129,21 @@ let package = Package(
         .testTarget(
             name: "ApodiniTests",
             dependencies: [
-                .target(name: "XCTApodini"),
-                .target(name: "ApodiniDatabase"),
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "OpenCombine", package: "OpenCombine"),
-                .product(name: "OpenCombineFoundation", package: "OpenCombine")
+                .product(name: "OpenCombineFoundation", package: "OpenCombine"),
+                .target(name: "XCTApodini"),
+                .target(name: "XCTApodiniDatabase"),
+                .target(name: "ApodiniDatabase"),
+                .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniREST"),
+                .target(name: "ApodiniGRPC"),
+                .target(name: "ApodiniProtobuffer"),
+                .target(name: "ApodiniOpenAPI"),
+                .target(name: "ApodiniWebSocket"),
+                .target(name: "ApodiniNotifications"),
+                .target(name: "ApodiniDeploy")
             ],
             exclude: [
                 "ConfigurationTests/Certificates/cert.pem",
@@ -197,7 +207,8 @@ let package = Package(
             dependencies: [
                 .product(name: "XCTVapor", package: "vapor"),
                 .target(name: "ApodiniNotifications"),
-                .target(name: "XCTApodini")
+                .target(name: "XCTApodini"),
+                .target(name: "XCTApodiniDatabase")
             ],
             resources: [
                 .process("Resources")
@@ -287,26 +298,29 @@ let package = Package(
             ]
         ),
 
-        // XCTApodini
+        //
+        // MARK: XCTApodini
+        //
 
         .target(
             name: "XCTApodini",
             dependencies: [
-                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
-                .target(name: "Apodini"),
-                .target(name: "ApodiniUtils"),
-                .target(name: "ApodiniVaporSupport"),
-                .target(name: "ApodiniREST"),
-                .target(name: "ApodiniGRPC"),
-                .target(name: "ApodiniProtobuffer"),
-                .target(name: "ApodiniOpenAPI"),
-                .target(name: "ApodiniWebSocket"),
-                .target(name: "ApodiniNotifications"),
-                .target(name: "ApodiniDeploy")
+                .target(name: "Apodini")
+            ]
+        ),
+        .target(
+            name: "XCTApodiniDatabase",
+            dependencies: [
+                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
+                .target(name: "XCTApodini"),
+                .target(name: "ApodiniDatabase")
             ]
         ),
         
+        //
+        // MARK: TestWebService
+        //
         
         .target(
             name: "ApodiniDeployTestWebService",
@@ -367,8 +381,10 @@ let package = Package(
         .testTarget(
             name: "ApodiniDeployTests",
             dependencies: [
+                .product(name: "XCTVapor", package: "vapor"),
                 .target(name: "XCTApodini"),
-                .product(name: "XCTVapor", package: "vapor")
+                .target(name: "ApodiniDeploy"),
+                .target(name: "ApodiniREST")
             ]
         ),
         .target(

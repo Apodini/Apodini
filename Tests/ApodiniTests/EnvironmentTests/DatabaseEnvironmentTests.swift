@@ -3,7 +3,7 @@ import protocol Fluent.Database
 import XCTApodini
 @testable import Apodini
 
-final class DatabaseEnvironmentTests: ApodiniTests {
+final class DatabaseEnvironmentTests: XCTApodiniDatabaseBirdTest {
     struct DatabaseComponent: Handler {
         @Apodini.Environment(\.database) var database: Database
         
@@ -13,10 +13,8 @@ final class DatabaseEnvironmentTests: ApodiniTests {
     }
     
     func testEnvironmentInjection() throws {
-        try XCTCheckHandler(
-            DatabaseComponent(),
-            application: self.app,
-            content: app.database.history.debugDescription
-        )
+        try newerXCTCheckHandler(DatabaseComponent()) {
+            MockRequest(expectation: app.database.history.debugDescription)
+        }
     }
 }

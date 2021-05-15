@@ -5,7 +5,7 @@
 import XCTest
 @testable import Apodini
 
-final class DescriptionModifierTests: ApodiniTests {
+final class DescriptionModifierTests: XCTApodiniDatabaseBirdTest {
     struct TestHandler: Handler {
         @Binding
         var name: String

@@ -8,7 +8,7 @@ import Vapor
 import XCTApodini
 
 
-class RESTInterfaceExporterTests: ApodiniTests {
+class RESTInterfaceExporterTests: XCTApodiniDatabaseBirdTest {
     lazy var application = Vapor.Application(.testing)
 
     struct Parameters: Apodini.Content, Decodable, Equatable {
@@ -106,7 +106,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
     func testParameterRetrieval() throws {
         let handler = ParameterRetrievalTestHandler()
-        let endpoint = try handler.newMockEndpoint(application: app)
+        let endpoint = try handler.mockEndpoint(application: app)
 
         let exporter = RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)

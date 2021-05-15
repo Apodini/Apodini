@@ -153,6 +153,9 @@ extension EnrichedContent {
     /// - Parameter type: The type to cast to.
     /// - Returns: Returns the casted type, nil if type didn't fit
     public func typed<T: Encodable>(_ type: T.Type = T.self) -> T? {
-        response.typed(type)
+        if T.self == EnrichedContent.self {
+            return self as? T
+        }
+        return response.typed(type)
     }
 }

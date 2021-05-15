@@ -1,8 +1,8 @@
 import Foundation
-import XCTest
-@testable import Apodini
+import XCTApodini
 
-class FileHandlerTests: ApodiniTests {
+
+class FileHandlerTests: XCTApodiniTest {
     override func setUpWithError() throws {
         try super.setUpWithError()
         let directory = app.directory

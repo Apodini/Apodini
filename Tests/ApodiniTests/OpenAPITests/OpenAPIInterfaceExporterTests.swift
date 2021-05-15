@@ -10,7 +10,7 @@ import XCTest
 @_implementationOnly import OpenAPIKit
 import XCTVapor
 
-final class OpenAPIInterfaceExporterTests: ApodiniTests {
+final class OpenAPIInterfaceExporterTests: XCTApodiniDatabaseBirdTest {
     struct SomeComp: Handler {
         func handle() -> String {
             "Test"

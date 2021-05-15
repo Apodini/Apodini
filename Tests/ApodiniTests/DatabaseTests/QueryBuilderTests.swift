@@ -4,7 +4,7 @@ import Vapor
 import XCTest
 
 
-final class QueryBuilderTests: ApodiniTests {
+final class QueryBuilderTests: XCTApodiniDatabaseBirdTest {
     func testFieldPropertyQueryBuilder() throws {
         // ApodiniDatabase.QueryBuilder(MockModel.self, fieldKeys: MockModel)
         XCTFail()

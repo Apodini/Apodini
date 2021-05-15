@@ -10,7 +10,7 @@ import XCTApodini
 @testable import Apodini
 
 
-final class ThreadSafetyTests: ApodiniTests {
+final class ThreadSafetyTests: XCTApodiniDatabaseBirdTest {
     struct Greeter: Handler {
         @Parameter var id: String
 
@@ -27,14 +27,11 @@ final class ThreadSafetyTests: ApodiniTests {
         DispatchQueue.concurrentPerform(iterations: count) { _ in
             let id = randomString(length: 40)
             
-            try! XCTCheckHandler(
-                greeter,
-                application: self.app,
-                request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+            try! newerXCTCheckHandler(greeter) {
+                MockRequest(expectation: id) {
                     NamedParameter("id", value: id)
-                },
-                content: id
-            )
+                }
+            }
 
             countMutex.lock()
             count -= 1
@@ -51,12 +48,11 @@ final class ThreadSafetyTests: ApodiniTests {
         for _ in 0..<count {
             let id = randomString(length: 40)
             
-            try! XCTCheckHandler(
-                greeter,
-                application: self.app,
-                request: MockExporterRequest(on: self.app.eventLoopGroup.next(), id),
-                content: id
-            )
+            try newerXCTCheckHandler(greeter) {
+                MockRequest(expectation: id) {
+                    UnnamedParameter(id)
+                }
+            }
 
             count -= 1
         }

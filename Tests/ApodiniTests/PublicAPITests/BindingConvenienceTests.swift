@@ -82,7 +82,7 @@ struct None: Component {
     }
 }
 
-class BindingConvenienceTests: ApodiniTests {
+class BindingConvenienceTests: XCTApodiniDatabaseBirdTest {
     func testInitialization() {
         _ = Some().content
         _ = None().content

@@ -5,8 +5,14 @@
     maxNumberOfIdentifications = 15
 }%
 
+#if swift(>=5.4)
+@resultBuilder
+public enum RelationshipIdentificationBuilder<From> {}
+#else
 @_functionBuilder
-public struct RelationshipIdentificationBuilder<From> {
+public enum RelationshipIdentificationBuilder<From> {}
+#endif
+extension RelationshipIdentificationBuilder {
     % for num_identifiers in range(1, maxNumberOfIdentifications + 1):
 %{
         indices = range(0, num_identifiers)

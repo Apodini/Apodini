@@ -10,7 +10,7 @@ import Vapor
 import XCTApodini
 
 
-class StateTests: ApodiniTests {
+class StateTests: XCTApodiniDatabaseBirdTest {
     struct TestHandler: Handler {
         @State var count: Int = 0
         

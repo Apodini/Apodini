@@ -13,7 +13,7 @@ import protocol Fluent.Database
 @testable import ApodiniVaporSupport
 
 
-final class GuardTests: ApodiniTests {
+final class GuardTests: XCTApodiniDatabaseBirdTest {
     private static var guardExpectation: XCTestExpectation?
     
     

@@ -1,5 +1,6 @@
 import Apodini
 import ApodiniDatabase
+import XCTApodiniDatabase
 import XCTest
 @testable import ApodiniNotifications
 

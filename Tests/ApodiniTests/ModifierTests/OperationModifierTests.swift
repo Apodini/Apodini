@@ -11,7 +11,7 @@ import XCTVapor
 @testable import ApodiniREST
 
 
-final class OperationModifierTests: ApodiniTests {
+final class OperationModifierTests: XCTApodiniDatabaseBirdTest {
     struct TestWebService: WebService {
         var version = Version(prefix: "version", major: 3, minor: 2, patch: 4)
         

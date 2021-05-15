@@ -13,7 +13,7 @@ import Fluent
 import Vapor
 
 
-class ThrowingErrorTests: ApodiniTests {
+class ThrowingErrorTests: XCTApodiniDatabaseBirdTest {
     struct MyError: Codable, Error {
         let reason: String
     }

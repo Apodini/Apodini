@@ -10,7 +10,7 @@
 import XCTApodini
 
 
-class WebSocketInterfaceExporterTests: ApodiniTests {
+class WebSocketInterfaceExporterTests: XCTApodiniDatabaseBirdTest {
     static let blockTime: UInt32 = 10000
     
     var testObservable = TestObservable()
@@ -47,7 +47,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
 
     func testParameterRetrieval() throws {
         let handler = ParameterRetrievalTestHandler()
-        let endpoint = try handler.newMockEndpoint(application: app)
+        let endpoint = try handler.mockEndpoint(application: app)
 
         let exporter = WebSocketInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)

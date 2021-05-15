@@ -10,7 +10,7 @@
 import XCTest
 
 
-final class DatabaseInjectionContextTests: ApodiniTests {
+final class DatabaseInjectionContextTests: XCTApodiniDatabaseBirdTest {
     func testDatabaseInjectionContextCreation() throws {
         XCTFail()
         

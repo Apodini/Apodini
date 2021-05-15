@@ -11,7 +11,7 @@ import XCTest
 import XCTApodini
 
 
-final class EndpointsTreeTests: ApodiniTests {
+final class EndpointsTreeTests: XCTApodiniDatabaseBirdTest {
     struct Birthdate: Codable {
         let year: Int
         let day: Int
@@ -70,7 +70,7 @@ final class EndpointsTreeTests: ApodiniTests {
     func testEndpointParameters() throws {
         let testComponent = TestComponent()
         let testHandler: TestHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
-        let endpoint = try testHandler.newMockEndpoint(application: app)
+        let endpoint = try testHandler.mockEndpoint(application: app)
 
         let parameters = endpoint.parameters
         let nameParameter = parameters.first { $0.label == "_name" }!

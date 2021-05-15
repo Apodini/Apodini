@@ -6,8 +6,8 @@ import XCTest
 import XCTApodini
 @testable import Apodini
 
-class AutoInheritanceRelationshipTests: ApodiniTests {
-    struct User: Content, Identifiable {
+class AutoInheritanceRelationshipTests: XCTApodiniDatabaseBirdTest {
+    struct User: Content, Equatable, Identifiable {
         var id: Int
         var name: String
     }
@@ -26,35 +26,7 @@ class AutoInheritanceRelationshipTests: ApodiniTests {
             User(id: 3, name: "Rudi")
         }
     }
-
-    @PathParameter(identifying: User.self)
-    var userId: User.ID
-
-    @ComponentBuilder
-    var webservice: some Component {
-        Group("user", $userId) {
-            UserHandler(userId: $userId)
-        }
-        Group("me") {
-            AuthenticatedUserHandler()
-        }
-    }
-
-    func testAutoInheritance() {
-        let context = RelationshipTestContext(app: app, service: webservice)
-
-        let userResult = context.request(on: 1, request: MockExporterRequest(on: app.eventLoopGroup.next(), 5)) // handle /user/userId
-        XCTAssertEqual(
-            userResult.formatTestRelationships(),
-            ["self:read": "/user/5"])
-
-        let meResult = context.request(on: 0) // handle /me
-        XCTAssertEqual(
-            meResult.formatTestRelationships(),
-            ["self:read": "/user/3"])
-    }
-
-
+    
     struct TypedUserHandler: Handler {
         @Binding
         var type: String
@@ -74,110 +46,178 @@ class AutoInheritanceRelationshipTests: ApodiniTests {
             User(id: 3, name: "Rudi")
         }
     }
-
+    
+    
     @PathParameter
     var type: String
-
-    @ComponentBuilder
-    var typedUserHandler: some Component {
-        Group($type) {
+    @PathParameter(identifying: User.self)
+    var userId: User.ID
+    
+    
+    func testAutoInheritance() throws {
+        @ComponentBuilder
+        var webService: some Component {
             Group("user", $userId) {
-                TypedUserHandler(type: $type, userId: $userId)
+                UserHandler(userId: $userId)
             }
             Group("me") {
-                TypedAuthenticatedUserHandler(type: $type)
+                AuthenticatedUserHandler()
             }
         }
+        
+        try XCTCheckComponent(
+            webService,
+            exporter: RelationshipExporter(app),
+            interfaceExporterVisitors: [RelationshipExporterRetriever()],
+            checks: [
+                CheckHandler<UserHandler>(index: 1) { // handle /user/userId
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(enrichedContent.formatTestRelationships(), ["self:read": "/user/5"])
+                    }) {
+                        UnnamedParameter(5)
+                    }
+                },
+                CheckHandler<AuthenticatedUserHandler>(index: 0) { // handle /me
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(enrichedContent.formatTestRelationships(), ["self:read": "/user/3"])
+                    })
+                }
+            ]
+        )
     }
 
-    func testTypedInheritance() {
-        let context = RelationshipTestContext(app: app, service: typedUserHandler)
-
-        let userResult = context.request(on: 1, request: MockExporterRequest(on: app.eventLoopGroup.next()) {
-            UnnamedParameter(5)
-            UnnamedParameter("type0")
-            UnnamedParameter(5)
-        }) // handle /user/userId
-        XCTAssertEqual(
-            userResult.formatTestRelationships(),
-            ["self:read": "/type0/user/5"])
-
-        let meResult = context.request(on: 0, request: MockExporterRequest(on: app.eventLoopGroup.next(), "type0")) // handle /me
-        XCTAssertEqual(
-            meResult.formatTestRelationships(),
-            ["self:read": "/type0/user/3"])
-    }
-
-
-    @ComponentBuilder
-    var webserviceDefault: some Component {
-        Group("user", $userId) {
-            UserHandler(userId: $userId)
-                .defaultRelationship()
-            Group("special") {
-                UserHandler(userId: $userId)
+    func testTypedInheritance() throws {
+        @ComponentBuilder
+        var typedUserHandler: some Component {
+            Group($type) {
+                Group("user", $userId) {
+                    TypedUserHandler(type: $type, userId: $userId)
+                }
+                Group("me") {
+                    TypedAuthenticatedUserHandler(type: $type)
+                }
             }
         }
-        Group("me") {
-            AuthenticatedUserHandler()
-        }
+        
+        try XCTCheckComponent(
+            typedUserHandler,
+            exporter: RelationshipExporter(app),
+            interfaceExporterVisitors: [RelationshipExporterRetriever()],
+            checks: [
+                CheckHandler<TypedUserHandler>(index: 1) { // handle /user/userId
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(enrichedContent.formatTestRelationships(), ["self:read": "/type0/user/5"])
+                    }) {
+                        UnnamedParameter(5)
+                        UnnamedParameter("type0")
+                        UnnamedParameter(5)
+                    }
+                },
+                CheckHandler<TypedAuthenticatedUserHandler>(index: 0) { // handle /me
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(enrichedContent.formatTestRelationships(), ["self:read": "/type0/user/3"])
+                    }) {
+                        UnnamedParameter("type0")
+                    }
+                }
+            ]
+        )
     }
 
-    func testAutoInheritanceMarkedDefault() {
-        let context = RelationshipTestContext(app: app, service: webserviceDefault)
-
-        let userResult = context.request(on: 1, request: MockExporterRequest(on: app.eventLoopGroup.next(), 5)) // handle /user/userId
-        XCTAssertEqual(
-            userResult.formatTestRelationships(),
-            ["self:read": "/user/5", "special:read": "/user/5/special"])
-
-        let meResult = context.request(on: 0) // handle /me
-        XCTAssertEqual(
-            meResult.formatTestRelationships(),
-            ["self:read": "/user/3", "special:read": "/user/3/special"])
-    }
-
-
-    @ComponentBuilder
-    var webserviceConflictingDefault: some Component {
-        Group("user", $userId) {
-            UserHandler(userId: $userId)
-                .defaultRelationship()
-            Group("special") {
+    func testAutoInheritanceMarkedDefault() throws {
+        @ComponentBuilder
+        var webService: some Component {
+            Group("user", $userId) {
                 UserHandler(userId: $userId)
                     .defaultRelationship()
+                Group("special") {
+                    UserHandler(userId: $userId)
+                }
+            }
+            Group("me") {
+                AuthenticatedUserHandler()
             }
         }
-        Group("me") {
-            AuthenticatedUserHandler()
-        }
+        
+        try XCTCheckComponent(
+            webService,
+            exporter: RelationshipExporter(app),
+            interfaceExporterVisitors: [RelationshipExporterRetriever()],
+            checks: [
+                CheckHandler<UserHandler>(index: 1) { // handle /user/userId
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(
+                            enrichedContent.formatTestRelationships(),
+                            ["self:read": "/user/5", "special:read": "/user/5/special"]
+                        )
+                    }) {
+                        UnnamedParameter(5)
+                    }
+                },
+                CheckHandler<AuthenticatedUserHandler>(index: 0) { // handle /me
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(
+                            enrichedContent.formatTestRelationships(),
+                            ["self:read": "/user/3", "special:read": "/user/3/special"]
+                        )
+                    })
+                }
+            ]
+        )
     }
 
     func testAutoInheritanceConflictingMarkedDefault() {
-        XCTAssertRuntimeFailure(RelationshipTestContext(app: self.app, service: self.webserviceConflictingDefault),
-                                "Annotating the same type twice with defaultRelationship shoudl yield an error!")
+        @ComponentBuilder
+        var webService: some Component {
+            Group("user", $userId) {
+                UserHandler(userId: $userId)
+                    .defaultRelationship()
+                Group("special") {
+                    UserHandler(userId: $userId)
+                        .defaultRelationship()
+                }
+            }
+            Group("me") {
+                AuthenticatedUserHandler()
+            }
+        }
+        
+        
+        XCTAssertRuntimeFailure(
+            try! self.XCTCheckComponent(
+                webService,
+                exporter: RelationshipExporter(self.app),
+                interfaceExporterVisitors: [RelationshipExporterRetriever()]
+            ),
+            "Annotating the same type twice with defaultRelationship shoudl yield an error!"
+        )
     }
-
-
-    @ComponentBuilder
-    var webserviceConflictingTypes: some Component {
-        Group("user", $userId) {
-            UserHandler(userId: $userId)
+    
+    func testAutoInheritanceConflictingTypes() throws {
+        @ComponentBuilder
+        var webService: some Component {
+            Group("user", $userId) {
+                UserHandler(userId: $userId)
+            }
+            Group("user2", $userId) {
+                UserHandler(userId: $userId)
+            }
+            Group("me") {
+                AuthenticatedUserHandler()
+            }
         }
-        Group("user2", $userId) {
-            UserHandler(userId: $userId)
-        }
-        Group("me") {
-            AuthenticatedUserHandler()
-        }
-    }
-
-    func testAutoInheritanceConflictingTypes() {
-        let context = RelationshipTestContext(app: app, service: webserviceConflictingTypes)
-
-        let meResult = context.request(on: 0) // handle /me
-        XCTAssertEqual(
-            meResult.formatTestRelationships(),
-            ["self:read": "/me"])
+        
+        try XCTCheckComponent(
+            webService,
+            exporter: RelationshipExporter(app),
+            interfaceExporterVisitors: [RelationshipExporterRetriever()],
+            checks: [
+                CheckHandler<AuthenticatedUserHandler>(index: 0) { // handle /me
+                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
+                        XCTAssertEqual(enrichedContent.formatTestRelationships(), ["self:read": "/me"])
+                    })
+                }
+            ]
+        )
     }
 }

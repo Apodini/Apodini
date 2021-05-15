@@ -10,7 +10,7 @@ import XCTest
 import XCTApodini
 
 
-final class PathParameterTests: ApodiniTests {
+final class PathParameterTests: XCTApodiniDatabaseBirdTest {
     struct TestComponent: Component {
         @PathParameter
         var name: String

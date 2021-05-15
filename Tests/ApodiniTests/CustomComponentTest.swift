@@ -13,7 +13,7 @@ import XCTVapor
 import XCTApodini
 
 
-final class CustomComponentTests: ApodiniTests {
+final class CustomComponentTests: XCTApodiniDatabaseBirdTest {
     struct AddBirdsHandler: Handler {
         @Apodini.Environment(\.database)
         var database: Database
@@ -35,14 +35,11 @@ final class CustomComponentTests: ApodiniTests {
     func testComponentCreation() throws {
         let bird = Bird(name: "Hummingbird", age: 2)
         
-        try XCTCheckHandler(
-            AddBirdsHandler(),
-            application: self.app,
-            request: MockExporterRequest(on: self.app.eventLoopGroup.next()) {
+        try newerXCTCheckHandler(AddBirdsHandler()) {
+            MockRequest(expectation: [bird1, bird2, bird]) {
                 UnnamedParameter(bird)
-            },
-            content: [bird1, bird2, bird]
-        )
+            }
+        }
     }
     
     func testComponentRegistration() throws {

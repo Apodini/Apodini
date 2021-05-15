@@ -1,8 +1,6 @@
-import Foundation
-import Vapor
-@testable import Apodini
 @testable import ApodiniDatabase
 import XCTApodini
+
 
 final class DownloadConfigTests: FileHandlerTests {
     func testDownloadConfigInfo() throws {
@@ -11,13 +9,11 @@ final class DownloadConfigTests: FileHandlerTests {
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
         let file = File(data: data, filename: "Testfile.jpeg")
         
-        try XCTCheckHandler(
-            uploader,
-            application: self.app,
-            request: MockExporterRequest(on: self.app.eventLoopGroup.next(), file),
-            status: .created,
-            content: file.filename
-        )
+        try newerXCTCheckHandler(uploader) {
+            MockRequest(expectation: .response(status: .created, file.filename)) {
+                UnnamedParameter(file)
+            }
+        }
         
         let directory = app.directory
         let config = DownloadConfiguration(.default)
@@ -37,25 +33,21 @@ final class DownloadConfigTests: FileHandlerTests {
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
         let file = File(data: data, filename: "Testfile.jpeg")
         
-        try XCTCheckHandler(
-            uploader,
-            application: self.app,
-            request: MockExporterRequest(on: self.app.eventLoopGroup.next(), file),
-            status: .created,
-            content: file.filename
-        )
+        try newerXCTCheckHandler(uploader) {
+            MockRequest(expectation: .response(status: .created, file.filename)) {
+                UnnamedParameter(file)
+            }
+        }
         
         // Upload second file
         uploader = Uploader(UploadConfiguration(.default, subPath: "Misc/MoreMisc/"))
         let file2 = File(data: data, filename: "Testfile123.jpeg")
         
-        try XCTCheckHandler(
-            uploader,
-            application: self.app,
-            request: MockExporterRequest(on: self.app.eventLoopGroup.next(), file2),
-            status: .created,
-            content: file2.filename
-        )
+        try newerXCTCheckHandler(uploader) {
+            MockRequest(expectation: .response(status: .created, file2.filename)) {
+                UnnamedParameter(file2)
+            }
+        }
         
         let directory = app.directory
         let config = DownloadConfiguration(.default)

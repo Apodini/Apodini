@@ -1,6 +1,7 @@
 // swiftlint:disable first_where
 import XCTest
 import XCTApodini
+import XCTApodiniDatabase
 import Fluent
 import FCM
 import APNSwift
@@ -8,7 +9,7 @@ import XCTVapor
 import Apodini
 @testable import ApodiniNotifications
 
-final class NotificationCenterTests: XCTApodiniTest {
+final class NotificationCenterTests: XCTApodiniDatabaseTest {
     override func setUpWithError() throws {
         try super.setUpWithError()
         try super.addMigrations(DeviceMigration())

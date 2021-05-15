@@ -25,7 +25,7 @@ final class OpenAPIDocumentBuilderTests: XCTApodiniTest {
     func testAddEndpoint() throws {
         let handler = SomeHandler()
         let webService = WebServiceModel()
-        var endpoint: Endpoint<SomeHandler> = try handler.newMockEndpoint(application: app)
+        var endpoint: Endpoint<SomeHandler> = try handler.mockEndpoint(application: app)
         //webService.addEndpoint(&endpoint, at: ["test"])
 
         let configuration = OpenAPIConfiguration()
