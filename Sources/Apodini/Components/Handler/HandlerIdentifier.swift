@@ -8,35 +8,66 @@
 
 import Foundation
 
+private struct AllAnyHandlerIdentifiersAnchor: TruthAnchor {}
+
+/// A `KnowledgeSource` that initializes and holds all `AnyHandlerIdenfier`, by also asserting the uniqueness of them.
+private struct AllAnyHandlerIdentifiers: KnowledgeSource {
+    static var preference: LocationPreference { .global }
+    
+    /// All registered `AnyHandlerIdentifer`'s of the web service
+    var anyHandlerIdentifiers: Set<AnyHandlerIdentifier>
+    
+    /// `KnowledgeSource` initializer
+    init<B>(_ blackboard: B) throws where B: Blackboard {
+        var anyHandlerIdentifiers: Set<AnyHandlerIdentifier> = []
+        
+        for blackboard in blackboard[Blackboards.self][for: AllAnyHandlerIdentifiersAnchor.self] {
+            let dslSpecifiedIdentifier = blackboard[DSLSpecifiedIdentifier.self].value
+            let handlerSpecifiedIdentifier = blackboard[ExplicitlySpecifiedIdentifier.self].value
+            
+            let rawValue: String
+            
+            switch (dslSpecifiedIdentifier, handlerSpecifiedIdentifier) {
+            case (.some(let identifier), .none):
+                rawValue = identifier.rawValue
+            case (.none, .some(let identifier)):
+                rawValue = identifier.rawValue
+            case let (.some(ident1), .some(ident2)):
+                if ident1 == ident2 {
+                    rawValue = ident1.rawValue
+                } else {
+                    preconditionFailure("""
+                        Handler '\(blackboard[HandlerName.self].name)' has multiple explicitly specified identifiers ('\(ident1)' and '\(ident2)').
+                        A handler may only have one explicitly specified identifier.
+                        This is caused by using both the 'IdentifiableHandler.handlerId' property as well as the '.identified(by:)' modifier.
+                        """
+                    )
+                }
+            case (.none, .none):
+                let handlerIndexPath = blackboard[HandlerIndexPath.self]
+                rawValue = handlerIndexPath.rawValue
+            }
+            
+            let anyHandlerIdentifier = AnyHandlerIdentifier(rawValue)
+            let storage = anyHandlerIdentifiers.count
+            
+            anyHandlerIdentifiers.insert(anyHandlerIdentifier)
+            
+            Swift.assert(anyHandlerIdentifiers.count > storage, "Encountered a duplicated handler identifier: '\(rawValue)'. The explicitly specified identifiers must be unique")
+            blackboard[AnyHandlerIdentifier.self] = anyHandlerIdentifier
+        }
+        
+        self.anyHandlerIdentifiers = anyHandlerIdentifiers
+    }
+}
 
 /// An `AnyHandlerIdentifier` object identifies a `Handler` regardless of its concrete type.
-open class AnyHandlerIdentifier: Codable, RawRepresentable, Hashable, Equatable, CustomStringConvertible, KnowledgeSource {
+open class AnyHandlerIdentifier: Codable, RawRepresentable, Hashable, CustomStringConvertible, KnowledgeSource {
     public let rawValue: String
     
     public required init<B>(_ blackboard: B) throws where B: Blackboard {
-        let dslSpecifiedIdentifier = blackboard[DSLSpecifiedIdentifier.self].value
-        let handlerSpecifiedIdentifier = blackboard[ExplicitlySpecifiedIdentifier.self].value
-        
-        switch (dslSpecifiedIdentifier, handlerSpecifiedIdentifier) {
-        case (.some(let identifier), .none):
-            self.rawValue = identifier.rawValue
-        case (.none, .some(let identifier)):
-            self.rawValue = identifier.rawValue
-        case let (.some(ident1), .some(ident2)):
-            if ident1 == ident2 {
-                self.rawValue = ident1.rawValue
-            } else {
-                fatalError("""
-                    Handler '\(blackboard[HandlerName.self].name)' has multiple explicitly specified identifiers ('\(ident1)' and '\(ident2)').
-                    A handler may only have one explicitly specified identifier.
-                    This is caused by using both the 'IdentifiableHandler.handlerId' property as well as the '.identified(by:)' modifier.
-                    """
-                )
-            }
-        case (.none, .none):
-            let handlerIndexPath = blackboard[HandlerIndexPath.self]
-            self.rawValue = handlerIndexPath.rawValue
-        }
+        _ = blackboard[AllAnyHandlerIdentifiers.self]
+        throw KnowledgeError.instancePresent
     }
     
     public required init(rawValue: String) {
