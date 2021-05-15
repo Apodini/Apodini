@@ -6,9 +6,8 @@ import XCTest
 @_implementationOnly import OpenAPIKit
 @testable import Apodini
 @testable import ApodiniOpenAPI
-import ApodiniTests
 
-final class OpenAPIPathsObjectBuilderTests: XCTestCase {
+final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
     struct SomeStruct: Codable {
         var id = 1
         var someProp = "somesome"
@@ -32,7 +31,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
 
     func testPathBuilder() {
         let handler = HandlerParam(pathParam: $param)
-        let endpoint = handler.mockEndpoint()
+        let endpoint = handler.mockEndpoint(app: app)
         var pathParameter = EndpointPathParameter<String>(id: _param.id)
         pathParameter.scoped(on: endpoint)
 
@@ -44,7 +43,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
     
     func testDefaultTagWithPathParameter() {
         let handler = HandlerParam(pathParam: $param)
-        var endpoint = handler.mockEndpoint()
+        var endpoint = handler.mockEndpoint(app: app)
         let webService = WebServiceModel()
         webService.addEndpoint(&endpoint, at: ["first", "second", $param, "third"])
         
@@ -58,7 +57,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
     
     func testDefaultTagWithSinglePathParameter() {
         let handler = HandlerParam(pathParam: $param)
-        var endpoint = handler.mockEndpoint()
+        var endpoint = handler.mockEndpoint(app: app)
         let webService = WebServiceModel()
         webService.addEndpoint(&endpoint, at: [$param, "first"])
         
@@ -87,7 +86,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         let webService = WebServiceModel()
 
         let comp = SomeComp()
-        var endpoint = comp.mockEndpoint()
+        var endpoint = comp.mockEndpoint(app: app)
         webService.addEndpoint(&endpoint, at: ["test/{pathParam}"])
 
         pathsObjectBuilder.addPathItem(from: endpoint)
@@ -118,7 +117,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         let webService = WebServiceModel()
 
         let comp = WrappingParamsComp()
-        var endpoint = comp.mockEndpoint()
+        var endpoint = comp.mockEndpoint(app: app)
         webService.addEndpoint(&endpoint, at: ["test"])
 
         pathsObjectBuilder.addPathItem(from: endpoint)
@@ -160,7 +159,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         let webService = WebServiceModel()
 
         let comp = ArrayParamsComp()
-        var endpoint = comp.mockEndpoint()
+        var endpoint = comp.mockEndpoint(app: app)
         webService.addEndpoint(&endpoint, at: ["test"])
 
         pathsObjectBuilder.addPathItem(from: endpoint)
@@ -221,7 +220,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         let webService = WebServiceModel()
 
         let comp = ComplexComp()
-        var endpoint = comp.mockEndpoint()
+        var endpoint = comp.mockEndpoint(app: app)
         webService.addEndpoint(&endpoint, at: ["test"])
 
         pathsObjectBuilder.addPathItem(from: endpoint)
