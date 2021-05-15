@@ -36,7 +36,7 @@ private struct AllAnyHandlerIdentifiers: KnowledgeSource {
                 if ident1 == ident2 {
                     rawValue = ident1.rawValue
                 } else {
-                    fatalError("""
+                    preconditionFailure("""
                         Handler '\(blackboard[HandlerName.self].name)' has multiple explicitly specified identifiers ('\(ident1)' and '\(ident2)').
                         A handler may only have one explicitly specified identifier.
                         This is caused by using both the 'IdentifiableHandler.handlerId' property as well as the '.identified(by:)' modifier.
