@@ -58,7 +58,7 @@ final class GRPCInterfaceExporterTests: XCTApodiniTest {
         try super.setUpWithError()
         service = GRPCService(name: serviceName, using: app)
         handler = GRPCTestHandler()
-        endpoint = handler.oldMockEndpoint()
+        endpoint = try handler.mockEndpoint(application: app)
         exporter = GRPCInterfaceExporter(app)
         headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/grpc+proto")
@@ -70,7 +70,7 @@ final class GRPCInterfaceExporterTests: XCTApodiniTest {
         let webService = WebServiceModel()
 
         let handler = GRPCTestHandler()
-        var endpoint = handler.oldMockEndpoint()
+        var endpoint: Endpoint<GRPCTestHandler> = try handler.mockEndpoint(application: app)
 
         webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
 
@@ -87,9 +87,9 @@ final class GRPCInterfaceExporterTests: XCTApodiniTest {
 
         let webService = WebServiceModel()
 
-        var endpoint = GRPCTestHandler()
+        var endpoint: Endpoint<GRPCTestHandler> = try GRPCTestHandler()
             .serviceName(expectedServiceName)
-            .oldMockEndpoint(wrappedHandlerOfType: GRPCTestHandler.self)
+            .mockEndpoint(application: app)
 
         webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
 
@@ -396,10 +396,12 @@ final class GRPCInterfaceExporterTests: XCTApodiniTest {
         XCTAssertEqual(gRPCMethodName(from: endpoint), "grpctesthandler")
     }
 
-    func testMethodNameUtility_CustomName() {
+    func testMethodNameUtility_CustomName() throws {
         let methodName = "testMethod"
 
-        let endpoint = handler.rpcName(methodName).oldMockEndpoint(wrappedHandlerOfType: GRPCTestHandler.self)
+        let endpoint: Endpoint<GRPCTestHandler> = try handler
+            .rpcName(methodName)
+            .mockEndpoint(application: app)
 
         XCTAssertEqual(gRPCMethodName(from: endpoint), methodName)
     }

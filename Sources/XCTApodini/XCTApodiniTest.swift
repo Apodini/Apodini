@@ -20,14 +20,14 @@ open class XCTApodiniTest: XCTestCase {
     }
     
     @discardableResult
-    public func newerXCTCheckHandler<H: Handler>(
+    public func XCTCheckHandler<H: Handler>(
         _ handler: H,
         @MockBuilder<H.Response.Content> _ mocks: () -> ([Mock<H.Response.Content>]) = { [MockRequest()] },
         _ message: @autoclosure () -> String = "",
         file: StaticString = #filePath,
         line: UInt = #line
     ) throws -> H.Response.Content? where H.Response.Content: Equatable {
-        try newerXCTCheckHandler(
+        try XCTCheckHandler(
             handler,
             mocks: mocks(),
             exporter: MockExporter(app),
@@ -38,7 +38,7 @@ open class XCTApodiniTest: XCTestCase {
     }
     
     @discardableResult
-    public func newerXCTCheckHandler<H: Handler>(
+    public func XCTCheckHandler<H: Handler>(
         _ handler: H,
         mocks: [Mock<H.Response.Content>],
         exporter mockExporter: MockExporter,

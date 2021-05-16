@@ -8,7 +8,7 @@
 #if DEBUG
 public struct MockExporterRequest: ExporterRequest, WithEventLoop {
     public let eventLoop: EventLoop
-    let doNotReduceRequest: Bool
+    private let doNotReduceRequest: Bool
     let mockableParameters: [String: MockableParameter]
     
     
@@ -20,14 +20,6 @@ public struct MockExporterRequest: ExporterRequest, WithEventLoop {
     
     init(on eventLoop: EventLoop, doNotReduceRequest: Bool = false, mockableParameters: [MockableParameter] = []) {
         self.init(on: eventLoop, doNotReduceRequest: doNotReduceRequest, mockableParameters: Dictionary(uniqueKeysWithValues: mockableParameters.map { ($0.id, $0) }))
-    }
-    
-    init<Value: Decodable>(on eventLoop: EventLoop, doNotReduceRequest: Bool = false, _ values: Value...) {
-        self.init(on: eventLoop, doNotReduceRequest: doNotReduceRequest, mockableParameters: values.map { UnnamedParameter($0) })
-    }
-    
-    init(on eventLoop: EventLoop, doNotReduceRequest: Bool = false, @MockableParameterBuilder mockableParameters: () -> ([MockableParameter])) {
-        self.init(on: eventLoop, doNotReduceRequest: doNotReduceRequest, mockableParameters: mockableParameters())
     }
     
     

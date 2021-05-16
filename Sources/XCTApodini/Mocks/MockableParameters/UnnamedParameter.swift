@@ -10,7 +10,7 @@ import Apodini
 
 
 public struct UnnamedParameter<Value: Decodable>: MockableParameter {
-    let value: Value?
+    private let value: Value?
     
     
     public var id: String {

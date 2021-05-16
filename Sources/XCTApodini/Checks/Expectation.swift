@@ -14,18 +14,20 @@ public enum Expectation<R: Encodable & Equatable> {
         Expectation<Empty>.response(nil)
     }
     
-    
-    #warning("See if we can remove this here?")
     public static func status(_ status: Status) -> Expectation<Empty> {
         Expectation<Empty>.response(status: status, nil)
     }
     
-    public static func status<T: Encodable & Equatable>(_ status: Status) -> Expectation<T> {
-        Expectation<T>.response(status: status, nil)
+    public static func status(_ status: Status) -> Expectation<R> {
+        Expectation<R>.response(status: status, nil)
     }
     
     public static func connectionEffect(_ connectionEffect: ConnectionEffect) -> Expectation<Empty> {
         Expectation<Empty>.response(connectionEffect: connectionEffect, nil)
+    }
+    
+    public static func connectionEffect(_ connectionEffect: ConnectionEffect) -> Expectation<R> {
+        Expectation<R>.response(connectionEffect: connectionEffect, nil)
     }
     
     case response(status: Status? = nil, connectionEffect: ConnectionEffect = .close, R?)

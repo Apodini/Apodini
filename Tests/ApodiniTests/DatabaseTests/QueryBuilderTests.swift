@@ -24,7 +24,7 @@ final class QueryBuilderTests: XCTApodiniDatabaseBirdTest {
     }
     
     func testFieldPropertyUpdatable() throws {
-        let bird = Bird(name: "MockingBird", age: 25)
+        //let bird = Bird(name: "MockingBird", age: 25)
         //let newValueContainer: TypeContainer = .string("FooBird")
         //XCTAssertNoThrow(try bird.$name.accept(ConcreteUpdatableFieldPropertyVisitor(updater: newValueContainer)))
         //XCTAssert(bird.name == "FooBird")
@@ -32,7 +32,7 @@ final class QueryBuilderTests: XCTApodiniDatabaseBirdTest {
     }
     
     func testQueryString() throws {
-        // let expectedDatabaseInjectionContext: [FieldKeyProperty] = [
+        //let expectedDatabaseInjectionContext: [FieldKeyProperty] = [
         //    FieldKeyProperty(key: FieldKey.string("name"), property: Apodini.Parameter<String>()),
         //    FieldKeyProperty(key: FieldKey.string("age"), property: Apodini.Parameter<Int>())
         //]

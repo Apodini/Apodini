@@ -35,7 +35,7 @@ final class CustomComponentTests: XCTApodiniDatabaseBirdTest {
     func testComponentCreation() throws {
         let bird = Bird(name: "Hummingbird", age: 2)
         
-        try newerXCTCheckHandler(AddBirdsHandler()) {
+        try XCTCheckHandler(AddBirdsHandler()) {
             MockRequest(expectation: [bird1, bird2, bird]) {
                 UnnamedParameter(bird)
             }

@@ -27,7 +27,7 @@ final class ThreadSafetyTests: XCTApodiniDatabaseBirdTest {
         DispatchQueue.concurrentPerform(iterations: count) { _ in
             let id = randomString(length: 40)
             
-            try! newerXCTCheckHandler(greeter) {
+            try! XCTCheckHandler(greeter) {
                 MockRequest(expectation: id) {
                     NamedParameter("id", value: id)
                 }
@@ -48,7 +48,7 @@ final class ThreadSafetyTests: XCTApodiniDatabaseBirdTest {
         for _ in 0..<count {
             let id = randomString(length: 40)
             
-            try newerXCTCheckHandler(greeter) {
+            try XCTCheckHandler(greeter) {
                 MockRequest(expectation: id) {
                     UnnamedParameter(id)
                 }

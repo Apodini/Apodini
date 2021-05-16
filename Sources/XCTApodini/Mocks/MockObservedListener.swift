@@ -8,7 +8,7 @@
 
 #if DEBUG
 public class MockObservedListener<R: Encodable & Equatable>: Mock<R> {
-    struct Listener: ObservedListener {
+    private struct Listener: ObservedListener {
         let eventLoop: EventLoop
         let handler: (EventLoopFuture<Response<EnrichedContent>>) -> ()
         
@@ -17,8 +17,8 @@ public class MockObservedListener<R: Encodable & Equatable>: Mock<R> {
         }
     }
     
-    let expectation: Expectation<R>
-    let timeoutExpectation: XCTestExpectation
+    private let expectation: Expectation<R>
+    private let timeoutExpectation: XCTestExpectation
     
     
     public init(_ expectation: Expectation<R>, timeoutExpectation: XCTestExpectation, options: MockOptions = .subsequentRequest) {

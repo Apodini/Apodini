@@ -13,7 +13,7 @@ final class DatabaseEnvironmentTests: XCTApodiniDatabaseBirdTest {
     }
     
     func testEnvironmentInjection() throws {
-        try newerXCTCheckHandler(DatabaseComponent()) {
+        try XCTCheckHandler(DatabaseComponent()) {
             MockRequest(expectation: app.database.history.debugDescription)
         }
     }

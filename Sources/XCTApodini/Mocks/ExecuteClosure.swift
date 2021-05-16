@@ -7,7 +7,7 @@
 
 #if DEBUG
 public class ExecuteClosure<R: Encodable & Equatable>: Mock<R> {
-    let closure: () -> ()
+    private let closure: () -> ()
     
     public init(options: MockOptions = .subsequentRequest, closure: @escaping () -> ()) {
         self.closure = closure

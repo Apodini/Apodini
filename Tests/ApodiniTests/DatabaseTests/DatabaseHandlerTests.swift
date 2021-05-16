@@ -10,7 +10,7 @@ final class DatabaseHandlerTests: XCTApodiniDatabaseBirdTest {
         
         
         let response = try XCTUnwrap(
-            try newerXCTCheckHandler(creationHandler) {
+            try XCTCheckHandler(creationHandler) {
                 MockRequest(expectation: .response(status: .created, bird)) {
                     UnnamedParameter(bird)
                 }
@@ -28,7 +28,7 @@ final class DatabaseHandlerTests: XCTApodiniDatabaseBirdTest {
         let creationHandler = CreateAll<Bird>()
         
         let response = try XCTUnwrap(
-            try newerXCTCheckHandler(creationHandler) {
+            try XCTCheckHandler(creationHandler) {
                 MockRequest<[Bird]>(expectation: .status(.created)) {
                     UnnamedParameter([bird, bird2])
                 }
@@ -54,7 +54,7 @@ final class DatabaseHandlerTests: XCTApodiniDatabaseBirdTest {
             .wait()
         let birdId = try XCTUnwrap(dbBird.id)
         
-        try newerXCTCheckHandler(ReadOne<Bird>()) {
+        try XCTCheckHandler(ReadOne<Bird>()) {
             MockRequest(expectation: dbBird) {
                 NamedParameter("id", value: birdId)
             }
@@ -79,7 +79,7 @@ final class DatabaseHandlerTests: XCTApodiniDatabaseBirdTest {
         
         
         let response = try XCTUnwrap(
-            newerXCTCheckHandler(ReadAll<Bird>()) {
+            XCTCheckHandler(ReadAll<Bird>()) {
                 MockRequest<[Bird]> {
                     NamedParameter("name", value: "Mockingbird")
                 }
@@ -91,7 +91,7 @@ final class DatabaseHandlerTests: XCTApodiniDatabaseBirdTest {
         XCTAssert(response[1].name == "Mockingbird", response.debugDescription)
         
         
-        try newerXCTCheckHandler(ReadAll<Bird>()) {
+        try XCTCheckHandler(ReadAll<Bird>()) {
             MockRequest(expectation: [Bird(name: "Mockingbird", age: 21)]) {
                 NamedParameter("name", value: "Mockingbird")
                 NamedParameter("age", value: 21)
@@ -100,13 +100,13 @@ final class DatabaseHandlerTests: XCTApodiniDatabaseBirdTest {
         
         let bird1Id = try XCTUnwrap(dbBird1.id)
         
-        try newerXCTCheckHandler(ReadAll<Bird>()) {
+        try XCTCheckHandler(ReadAll<Bird>()) {
             MockRequest(expectation: [bird1]) {
                 NamedParameter("id", value: bird1Id)
             }
         }
         
-        try newerXCTCheckHandler(ReadAll<Bird>()) {
+        try XCTCheckHandler(ReadAll<Bird>()) {
             MockRequest<[Bird]> {
                 NamedParameter("name", value: "Mockingbird")
                 NamedParameter("age", value: 22)
@@ -122,7 +122,7 @@ final class DatabaseHandlerTests: XCTApodiniDatabaseBirdTest {
             .wait()
         let dbBirdId = try XCTUnwrap(dbBird.id)
         
-        try newerXCTCheckHandler(Update<Bird>()) {
+        try XCTCheckHandler(Update<Bird>()) {
             MockRequest(expectation: .response(status: .ok, Bird(name: "Swift", age: 20))) {
                 UnnamedParameter(dbBirdId)
                 NamedParameter("name", value: "Swift")
@@ -143,7 +143,7 @@ final class DatabaseHandlerTests: XCTApodiniDatabaseBirdTest {
         
         let newBird = Bird(name: "FooBird", age: 25)
         
-        try newerXCTCheckHandler(Update<Bird>()) {
+        try XCTCheckHandler(Update<Bird>()) {
             MockRequest(expectation: .response(status: .ok, newBird)) {
                 UnnamedParameter(dbBirdId)
                 UnnamedParameter(newBird)
@@ -163,7 +163,7 @@ final class DatabaseHandlerTests: XCTApodiniDatabaseBirdTest {
         
         let dbBirdId = try XCTUnwrap(dbBird.id)
         
-        try newerXCTCheckHandler(Delete<Bird>()) {
+        try XCTCheckHandler(Delete<Bird>()) {
             MockRequest(expectation: .status(.noContent)) {
                 UnnamedParameter(dbBirdId)
             }

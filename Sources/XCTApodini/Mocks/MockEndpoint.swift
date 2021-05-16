@@ -30,6 +30,7 @@ private class MockSyntaxTreeVisitor: SyntaxTreeVisitor {
 }
 
 extension Component {
+    #warning("TODO: Make internal")
     func mockEndpoints(
         application: Application,
         interfaceExporter: MockExporter? = nil,
@@ -58,49 +59,6 @@ extension Component {
 
 // MARK: Mock Endpoint
 extension Handler {
-    @available(*, deprecated, message: "Please use mockEndpoint instead.", renamed: "mockEndpoint")
-    public func oldMockEndpoint(
-        app: Application? = nil
-    ) -> Endpoint<Self> {
-        oldMockEndpoint(app: app, wrappedHandlerOfType: Self.self)
-    }
-    
-    /// Creates a basic Endpoint Model from the `Handler`.
-    /// If `Application` is defined, it will be injected into all `ApplicationInjectables`.
-    /// - Note: This endpoint's identifier is not guaranteed to be stable
-    @available(*, deprecated, message: "Please use mockEndpoint instead.", renamed: "mockEndpoint")
-    public func oldMockEndpoint<H: Handler>(
-        app: Application? = nil,
-        wrappedHandlerOfType: H.Type = H.self
-    ) -> Endpoint<H> {
-        let mockSyntaxTreeVisitor = MockSyntaxTreeVisitor()
-        self.accept(mockSyntaxTreeVisitor)
-        let context = Context(contextNode: mockSyntaxTreeVisitor.currentNode)
-        
-        guard let anyHandler = mockSyntaxTreeVisitor.handler, let handler = anyHandler as? H else {
-            fatalError("Could not cast the handler \(String(describing: mockSyntaxTreeVisitor.handler)) to the type \(H.self)")
-        }
-        let guards = context.get(valueFor: GuardContextKey.self)
-        let responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self)
-        
-        var blackboard: Blackboard
-        if let application = app {
-            blackboard = LocalBlackboard<LazyHashmapBlackboard, GlobalBlackboard<LazyHashmapBlackboard>>(
-                GlobalBlackboard<LazyHashmapBlackboard>(application),
-                using: handler,
-                context)
-        } else {
-            blackboard = LocalBlackboard<LazyHashmapBlackboard, LazyHashmapBlackboard>(LazyHashmapBlackboard(), using: handler, context)
-        }
-
-        return Endpoint(
-            handler: handler,
-            blackboard: blackboard,
-            guards: guards,
-            responseTransformers: responseTransformers
-        )
-    }
-    
     #warning("TODO: Make internal")
     public func mockEndpoint<H: Handler>(
         application: Application,
@@ -124,100 +82,5 @@ extension Handler {
             "Could not export the Handler using the MockExporter"
         )
     }
-}
-
-@discardableResult
-@available(*, deprecated, message: "Please subclass XCTApodiniTest and use XCTCheckHandler provided by XCTApodiniTest instead.")
-public func XCTCheckHandler<H: Handler, T: Encodable & Equatable>(
-    _ handler: @autoclosure () throws -> H,
-    application: @escaping @autoclosure () -> Application,
-    connectionState: ConnectionState = .end,
-    request: @escaping @autoclosure () -> MockExporterRequest? = nil,
-    status: @escaping @autoclosure () -> Status? = nil,
-    responseType: T.Type = T.self,
-    connectionEffect: @autoclosure () -> ConnectionEffect = .close,
-    _ message: @autoclosure () -> String = "",
-    file: StaticString = #filePath,
-    line: UInt = #line
-) throws -> T? {
-    try _XCTCheckHandler(
-        handler,
-        application: application,
-        connectionState: connectionState,
-        request: request,
-        status: status,
-        responseType: responseType,
-        connectionEffect: connectionEffect,
-        message,
-        file: file,
-        line: line
-    )
-}
-
-@discardableResult
-@available(*, deprecated, message: "Please subclass XCTApodiniTest and use XCTCheckHandler provided by XCTApodiniTest instead.")
-public func XCTCheckHandler<H: Handler, T: Encodable & Equatable>(
-    _ handler: @autoclosure () throws -> H,
-    application: @escaping @autoclosure () -> Application,
-    connectionState: ConnectionState = .end,
-    request: @escaping @autoclosure () -> MockExporterRequest? = nil,
-    status: @escaping @autoclosure () -> Status? = nil,
-    responseType: T.Type = T.self,
-    content expectedContent: @autoclosure () -> T?,
-    connectionEffect: @autoclosure () -> ConnectionEffect = .close,
-    _ message: @autoclosure () -> String = "",
-    file: StaticString = #filePath,
-    line: UInt = #line
-) throws -> T? {
-    let content = try _XCTCheckHandler(
-        handler,
-        application: application,
-        connectionState: connectionState,
-        request: request,
-        status: status,
-        responseType: responseType,
-        connectionEffect: connectionEffect,
-        message,
-        file: file,
-        line: line
-    )
-    XCTAssertEqual(content, expectedContent(), message())
-    return content
-}
-
-@discardableResult
-private func _XCTCheckHandler<H: Handler, T: Encodable & Equatable>(
-    _ handler: () throws -> H,
-    application: () -> Application,
-    connectionState: ConnectionState = .end,
-    request: () -> MockExporterRequest?,
-    status: () -> Status?,
-    responseType: T.Type = T.self,
-    connectionEffect: () -> ConnectionEffect,
-    _ message: () -> String,
-    file: StaticString = #filePath,
-    line: UInt = #line
-) throws -> T? {
-    let eventLoop = application().eventLoopGroup.next()
-    let endpoint = try handler().oldMockEndpoint(app: application())
-    let exporter = MockExporter(application())
-    let connectionContext = endpoint.createConnectionContext(for: exporter)
-    
-    let request = request() ?? MockExporterRequest(on: eventLoop, mockableParameters: [])
-    
-    let response = try XCTUnwrap(
-        try connectionContext.handle(
-                request: request,
-                eventLoop: application().eventLoopGroup.next(),
-                connectionState: connectionState
-            )
-            .wait()
-            .typed(responseType)
-    )
-    
-    XCTAssertEqual(response.connectionEffect, connectionEffect(), message())
-    XCTAssertEqual(response.status, status(), message())
-    
-    return response.content
 }
 #endif

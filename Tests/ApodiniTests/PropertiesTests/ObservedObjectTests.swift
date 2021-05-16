@@ -79,7 +79,7 @@ class ObservedObjectTests: XCTApodiniDatabaseBirdTest {
         let expectation = XCTestExpectation(description: "Observation is executed")
         expectation.assertForOverFulfill = true
         
-        try newerXCTCheckHandler(TestHandler()) {
+        try XCTCheckHandler(TestHandler()) {
             MockRequest(expectation: "Hello")
             MockObservedListener(.response("Hello Swift"), timeoutExpectation: expectation)
             ExecuteClosure<String> {
@@ -100,12 +100,12 @@ class ObservedObjectTests: XCTApodiniDatabaseBirdTest {
         let secondExpectation = XCTestExpectation(description: "Observation is executed")
         secondExpectation.assertForOverFulfill = true
         
-        try newerXCTCheckHandler(TestHandler()) {
+        try XCTCheckHandler(TestHandler()) {
             MockRequest(expectation: "Hello")
             MockObservedListener(.response("Hello Swift"), timeoutExpectation: firstExpectation)
         }
         
-        try newerXCTCheckHandler(TestHandler()) {
+        try XCTCheckHandler(TestHandler()) {
             MockRequest(expectation: "Hello")
             MockObservedListener(.response("Hello Swift"), timeoutExpectation: secondExpectation)
         }
@@ -129,7 +129,7 @@ class ObservedObjectTests: XCTApodiniDatabaseBirdTest {
         let expectation = XCTestExpectation(description: "Observation is executed")
         expectation.assertForOverFulfill = true
         
-        try newerXCTCheckHandler(TestHandler()) {
+        try XCTCheckHandler(TestHandler()) {
             MockRequest(expectation: false)
             MockObservedListener(.response(true), timeoutExpectation: expectation)
             ExecuteClosure<Bool> {
@@ -176,7 +176,7 @@ class ObservedObjectTests: XCTApodiniDatabaseBirdTest {
         let notExecuteExpectation = XCTestExpectation(description: "Observation not executed")
         notExecuteExpectation.isInverted = true
         
-        try newerXCTCheckHandler(TestHandler()) {
+        try XCTCheckHandler(TestHandler()) {
             MockRequest(expectation: 42)
             MockObservedListener(.response(42), timeoutExpectation: notExecuteExpectation)
             ExecuteClosure<Int> {
@@ -191,7 +191,7 @@ class ObservedObjectTests: XCTApodiniDatabaseBirdTest {
         let expectation = XCTestExpectation(description: "Observation executed")
         expectation.expectedFulfillmentCount = 1
         
-        try newerXCTCheckHandler(TestHandler()) {
+        try XCTCheckHandler(TestHandler()) {
             MockRequest(expectation: 42)
             MockObservedListener(.response(-1), timeoutExpectation: expectation)
             ExecuteClosure<Int> {

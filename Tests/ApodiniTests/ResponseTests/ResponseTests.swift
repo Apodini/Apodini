@@ -12,146 +12,118 @@ import XCTApodini
 
 
 final class ResponseTests: XCTApodiniDatabaseBirdTest {
-    struct ResponseHandler: Handler {
-        var message: String
-
-        func handle() -> Response<String> {
-            .final(message)
-        }
-    }
-    
-    struct EmptyResponseHandler: Handler {
-        @Environment(\.eventLoopGroup) var eventLoopGroup: EventLoopGroup
-        
-        func handle() -> EventLoopFuture<Status> {
-            eventLoopGroup
-                .next()
-                .makeSucceededFuture(Void())
-                .transform()
-        }
-    }
-    
-    struct FutureBasedHandler: Handler {
-        var eventLoop: EventLoop
-        var message: String
-
-        func handle() -> EventLoopFuture<EventLoopFuture<EventLoopFuture<Response<String>>>> {
-            // Test if `ResponseTransformable` unwraps multiple nested EventLoopFutures
-            // Not desirable but its possible:
-            eventLoop.makeSucceededFuture(
-                eventLoop.makeSucceededFuture(
-                    eventLoop.makeSucceededFuture(
-                        Apodini.Response.send(message)
-                    )
-               )
-            )
-        }
-    }
-    
-    
-    struct TestHandler4: Handler {
-        func handle() -> String {
-            "Hello Test Handler 4"
-        }
-    }
-
-    struct ResponseHandler1: Handler {
-        @Apodini.Environment(\.connection)
-        var connection: Connection
-
-        func handle() -> Apodini.Response<String> {
-            switch connection.state {
-            case .open:
-                return .send("Send")
-            default:
-                return .final("Final")
-            }
-        }
-    }
-
-    struct ResponseHandler2: Handler {
-        @Apodini.Environment(\.connection)
-        var connection: Connection
-
-        func handle() -> Apodini.Response<String> {
-            switch connection.state {
-            case .open:
-                return .nothing
-            default:
-                return .end
-            }
-        }
-    }
-    
     func testShouldWrapInFinalByDefault() throws {
-        try XCTCheckHandler(
-            TestHandler4(),
-            application: self.app,
-            content: "Hello Test Handler 4"
-        )
+        struct TestHandler: Handler {
+            func handle() -> String {
+                "Hello Test Handler 4"
+            }
+        }
+        
+        try XCTCheckHandler(TestHandler()) {
+            MockRequest(expectation: "Hello Test Handler 4")
+        }
     }
 
-    func testResponsePassthrough_send() throws {
-        try XCTCheckHandler(
-            ResponseHandler1(),
-            application: self.app,
-            connectionState: .open,
-            content: "Send",
-            connectionEffect: .open
-        )
-    }
+    func testResponsePassthrough() throws {
+        struct ResponseHandler: Handler {
+            @Apodini.Environment(\.connection)
+            var connection: Connection
 
-    func testResponsePassthrough_final() throws {
-        try XCTCheckHandler(
-            ResponseHandler1(),
-            application: self.app,
-            connectionState: .end,
-            content: "Final",
-            connectionEffect: .close
-        )
+            func handle() -> Apodini.Response<String> {
+                switch connection.state {
+                case .open:
+                    return .send("Send")
+                default:
+                    return .final("Final")
+                }
+            }
+        }
+        
+        try XCTCheckHandler(ResponseHandler()) {
+            MockRequest(connectionState: .open, expectation: .response(connectionEffect: .open, "Send"))
+        }
+        
+        try XCTCheckHandler(ResponseHandler()) {
+            MockRequest(connectionState: .end, expectation: .response(connectionEffect: .close, "Final"))
+        }
     }
 
     func testResponsePassthrough_nothing() throws {
-        try XCTCheckHandler(
-            ResponseHandler2(),
-            application: self.app,
-            connectionState: .open,
-            responseType: Empty.self,
-            content: nil,
-            connectionEffect: .open
-        )
-    }
+        struct ResponseHandler: Handler {
+            @Apodini.Environment(\.connection)
+            var connection: Connection
 
-    func testResponsePassthrough_end() throws {
-        try XCTCheckHandler(
-            ResponseHandler2(),
-            application: self.app,
-            connectionState: .end,
-            responseType: Empty.self,
-            content: nil,
-            connectionEffect: .close
-        )
+            func handle() -> Apodini.Response<Empty> {
+                switch connection.state {
+                case .open:
+                    return .nothing
+                default:
+                    return .end
+                }
+            }
+        }
+        
+        try XCTCheckHandler(ResponseHandler()) {
+            MockRequest<Empty>(connectionState: .open, expectation: .connectionEffect(.open))
+            MockRequest<Empty>(connectionState: .end, expectation: .connectionEffect(.close))
+        }
     }
     
     
     func testResponseRequestHandling() throws {
+        struct ResponseHandler: Handler {
+            var message: String
+
+            func handle() -> Response<String> {
+                .final(message)
+            }
+        }
+        
         let expectedContent = "ResponseWithRequest"
         
-        try newerXCTCheckHandler(ResponseHandler(message: expectedContent)) {
+        try XCTCheckHandler(ResponseHandler(message: expectedContent)) {
             MockRequest(expectation: expectedContent)
         }
     }
 
     func testEventLoopFutureRequestHandling() throws {
+        struct FutureBasedHandler: Handler {
+            var eventLoop: EventLoop
+            var message: String
+
+            func handle() -> EventLoopFuture<EventLoopFuture<EventLoopFuture<Response<String>>>> {
+                // Test if `ResponseTransformable` unwraps multiple nested EventLoopFutures
+                // Not desirable but its possible:
+                eventLoop.makeSucceededFuture(
+                    eventLoop.makeSucceededFuture(
+                        eventLoop.makeSucceededFuture(
+                            Apodini.Response.send(message)
+                        )
+                   )
+                )
+            }
+        }
+        
         let expectedContent = "ResponseWithRequest"
         
-        try newerXCTCheckHandler(FutureBasedHandler(eventLoop: app.eventLoopGroup.next(), message: expectedContent)) {
+        try XCTCheckHandler(FutureBasedHandler(eventLoop: app.eventLoopGroup.next(), message: expectedContent)) {
             MockRequest(expectation: .response(connectionEffect: .open, expectedContent))
         }
     }
     
     func testEmptyResponseHandler() throws {
-        try newerXCTCheckHandler(EmptyResponseHandler()) {
+        struct EmptyResponseHandler: Handler {
+            @Environment(\.eventLoopGroup) var eventLoopGroup: EventLoopGroup
+            
+            func handle() -> EventLoopFuture<Status> {
+                eventLoopGroup
+                    .next()
+                    .makeSucceededFuture(Void())
+                    .transform()
+            }
+        }
+        
+        try XCTCheckHandler(EmptyResponseHandler()) {
             MockRequest(expectation: .status(.noContent))
         }
     }

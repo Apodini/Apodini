@@ -28,14 +28,14 @@ class ParameterRetrievalTests: XCTApodiniDatabaseBirdTest {
     }
     
     func testParameterRetrieval() throws {
-        try newerXCTCheckHandler(TestHandler()) {
+        try XCTCheckHandler(TestHandler()) {
             MockRequest(expectation: "👋 Hello Paul!") {
                 NamedParameter("name", value: "Paul")
                 NamedParameter("prefix", value: "👋 ")
             }
         }
         
-        try newerXCTCheckHandler(TestHandler()) {
+        try XCTCheckHandler(TestHandler()) {
             MockRequest(expectation: "Standard PrefixHello Paul!-Hello Paul!-Hello Paul!") {
                 NamedParameter("name", value: "Paul")
                 NamedParameter("times", value: 3)
@@ -45,7 +45,7 @@ class ParameterRetrievalTests: XCTApodiniDatabaseBirdTest {
     }
 
     func testParameterExplicitNilRetrieval() throws {
-        try newerXCTCheckHandler(TestHandler()) {
+        try XCTCheckHandler(TestHandler()) {
             MockRequest(expectation: "Hello Paul!") {
                 NamedParameter("name", value: "Paul")
                 NamedParameter<Int>("times", value: nil)
@@ -53,7 +53,7 @@ class ParameterRetrievalTests: XCTApodiniDatabaseBirdTest {
             }
         }
         
-        try newerXCTCheckHandler(TestHandler()) {
+        try XCTCheckHandler(TestHandler()) {
             MockRequest(expectation: "Hello Paul! Hello Paul! Hello Paul!") {
                 NamedParameter("name", value: "Paul")
                 NamedParameter("times", value: 3)

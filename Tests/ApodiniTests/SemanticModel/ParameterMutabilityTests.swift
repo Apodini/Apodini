@@ -63,7 +63,7 @@ class ParameterMutabilityTests: XCTApodiniDatabaseBirdTest {
     }
 
     func testVariableCanBeChanged() throws {
-        try newerXCTCheckHandler(TestHandler()) {
+        try XCTCheckHandler(TestHandler()) {
             MockRequest(expectation: "Hello Paul! Hello Paul! Hello Paul!") {
                 NamedParameter("name", value: "Paul")
                 NamedParameter("times", value: 3)
@@ -75,7 +75,7 @@ class ParameterMutabilityTests: XCTApodiniDatabaseBirdTest {
     }
     
     func testConstantCannotBeChanged() throws {
-        try newerXCTCheckHandler(TestHandler()) {
+        try XCTCheckHandler(TestHandler()) {
             MockRequest(expectation: "Hello Paul! Hello Paul! Hello Paul!") {
                 NamedParameter("name", value: "Paul")
                 NamedParameter("times", value: 3)
@@ -87,7 +87,7 @@ class ParameterMutabilityTests: XCTApodiniDatabaseBirdTest {
     }
     
     func testConstantWithDefaultCannotBeChanged() throws {
-        try newerXCTCheckHandler(TestHandler()) {
+        try XCTCheckHandler(TestHandler()) {
             MockRequest(expectation: "Hello Paul! Hello Paul! Hello Paul!") {
                 NamedParameter("name", value: "Paul")
                 NamedParameter("times", value: 3)
@@ -95,7 +95,7 @@ class ParameterMutabilityTests: XCTApodiniDatabaseBirdTest {
             MockRequest<String>()
         }
 
-        try newerXCTCheckHandler(TestHandler()) {
+        try XCTCheckHandler(TestHandler()) {
             MockRequest(expectation: "Hello Paul! Hello Paul! Hello Paul!") {
                 NamedParameter("name", value: "Paul")
                 NamedParameter("times", value: 3)
@@ -111,7 +111,7 @@ class ParameterMutabilityTests: XCTApodiniDatabaseBirdTest {
         
         // If a single connection context is used the Handler is kept in memory and therefore StringClass stays the same
         #warning("This might not be a desired behaviour, shouldn't this be reset to Apodini/Apodini as override is reset but the StringClass instances it not?")
-        try newerXCTCheckHandler(TestHandlerUsingClassType()) {
+        try XCTCheckHandler(TestHandlerUsingClassType()) {
             MockRequest(expectation: "AlsoNotApodini/NotApodini") {
                 NamedParameter("override", value: true)
             }
@@ -119,7 +119,7 @@ class ParameterMutabilityTests: XCTApodiniDatabaseBirdTest {
         }
         
         // Using two different connection contexts showcases that sideeffects are not shared between different connection attempts.
-        try newerXCTCheckHandler(handler) {
+        try XCTCheckHandler(handler) {
             MockRequest(expectation: "AlsoNotApodini/NotApodini") {
                 NamedParameter("override", value: true)
             }

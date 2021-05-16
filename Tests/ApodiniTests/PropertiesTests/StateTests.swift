@@ -141,7 +141,7 @@ class StateTests: XCTApodiniDatabaseBirdTest {
         let asyncGuardExpectation = XCTestExpectation(expectedFulfillmentCount: 3)
         let transformerrExpectation = XCTestExpectation(expectedFulfillmentCount: 3)
         
-        try newerXCTCheckHandler(
+        try XCTCheckHandler(
             TestHandler()
                 .guard(CountGuard(callback: assertion, expectation: guardExpectation))
                 .guard(AsyncCountGuard(callback: assertion, expectation: asyncGuardExpectation, eventLoop: self.app.eventLoopGroup.next()))
@@ -178,17 +178,17 @@ class StateTests: XCTApodiniDatabaseBirdTest {
         
         
         // Not shared between in the same connection context
-        try newerXCTCheckHandler(handler) {
+        try XCTCheckHandler(handler) {
             MockRequest(expectation: "")
             MockRequest(expectation: "", options: .doNotReuseConnection)
         }
         
         
         // Not shared across different instances of an exporter
-        try newerXCTCheckHandler(handler) {
+        try XCTCheckHandler(handler) {
             MockRequest(expectation: "")
         }
-        try newerXCTCheckHandler(handler) {
+        try XCTCheckHandler(handler) {
             MockRequest(expectation: "")
         }
         
@@ -212,17 +212,17 @@ class StateTests: XCTApodiniDatabaseBirdTest {
         
         
         // Not shared between in the same connection context
-        try newerXCTCheckHandler(handler) {
+        try XCTCheckHandler(handler) {
             MockRequest(expectation: "")
             MockRequest(expectation: "", options: .doNotReuseConnection)
         }
         
         
         // Not shared across different instances of an exporter
-        try newerXCTCheckHandler(handler) {
+        try XCTCheckHandler(handler) {
             MockRequest(expectation: "")
         }
-        try newerXCTCheckHandler(handler) {
+        try XCTCheckHandler(handler) {
             MockRequest(expectation: "")
         }
         

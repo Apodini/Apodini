@@ -20,7 +20,7 @@ final class EnvironmentTests: XCTApodiniDatabaseBirdTest {
     }
 
     func testEnvironmentInjection() throws {
-        try newerXCTCheckHandler(BirdHandler()) {
+        try XCTCheckHandler(BirdHandler()) {
             MockRequest(expectation: BirdFacts().someFact)
         }
     }
@@ -43,7 +43,7 @@ final class EnvironmentTests: XCTApodiniDatabaseBirdTest {
         EnvironmentObject(birdFacts, \Keys.bird).configure(app)
         
         
-        try newerXCTCheckHandler(AnotherBirdHandler()) {
+        try XCTCheckHandler(AnotherBirdHandler()) {
             MockRequest(expectation: birdFacts.dodoFact)
         }
     }
@@ -90,12 +90,9 @@ final class EnvironmentTests: XCTApodiniDatabaseBirdTest {
         let dynamicFact = "Until humans, the Dodo had no predators"
         dynamicBirdFacts.someFact = dynamicFact
         
-        try XCTCheckHandler(
-            // inject the dynamic value via the .withEnvironment
-            BirdHandler().environment(dynamicBirdFacts, for: \Application.birdFacts),
-            application: self.app,
-            content: dynamicFact
-        )
+        try XCTCheckHandler(BirdHandler().environment(dynamicBirdFacts, for: \Application.birdFacts)) {
+            MockRequest(expectation: dynamicFact)
+        }
     }
 
     func testShouldAccessStaticIfNoDynamicAvailable() throws {
@@ -106,21 +103,17 @@ final class EnvironmentTests: XCTApodiniDatabaseBirdTest {
         // inject the static value via the shared object
         app.birdFacts = staticBirdFacts
 
-        try XCTCheckHandler(
-            BirdHandler(),
-            application: self.app,
-            content: staticBirdFacts.someFact
-        )
+        try XCTCheckHandler(BirdHandler()) {
+            MockRequest(expectation: staticBirdFacts.someFact)
+        }
     }
 
     func testShouldReturnDefaultIfNoEnvironment() throws {
         app.birdFacts = BirdFacts() // Resets value
         
-        try XCTCheckHandler(
-            BirdHandler(),
-            application: self.app,
-            content: BirdFacts().someFact
-        )
+        try XCTCheckHandler(BirdHandler()) {
+            MockRequest(expectation: BirdFacts().someFact)
+        }
     }
 
     func testCustomEnvironment() throws {

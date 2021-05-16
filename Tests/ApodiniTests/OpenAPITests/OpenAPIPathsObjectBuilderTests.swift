@@ -41,9 +41,9 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
         XCTAssertEqual(pathString, OpenAPI.Path(stringLiteral: "test/{pathParam}"))
     }
     
-    func testDefaultTagWithPathParameter() {
+    func testDefaultTagWithPathParameter() throws {
         let handler = HandlerParam(pathParam: $param)
-        var endpoint = handler.oldMockEndpoint()
+        var endpoint: Endpoint<HandlerParam> = try handler.mockEndpoint(application: app)
         let webService = WebServiceModel()
         webService.addEndpoint(&endpoint, at: ["first", "second", $param, "third"])
         
@@ -55,9 +55,9 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
         XCTAssertEqual(pathsObjectBuilder.pathsObject.first?.value.get?.tags, ["second"])
     }
     
-    func testDefaultTagWithSinglePathParameter() {
+    func testDefaultTagWithSinglePathParameter() throws {
         let handler = HandlerParam(pathParam: $param)
-        var endpoint = handler.oldMockEndpoint()
+        var endpoint: Endpoint<HandlerParam> = try handler.mockEndpoint(application: app)
         let webService = WebServiceModel()
         webService.addEndpoint(&endpoint, at: [$param, "first"])
         
@@ -69,7 +69,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
         XCTAssertEqual(pathsObjectBuilder.pathsObject.first?.value.get?.tags, ["default"])
     }
 
-    func testAddPathItemOperationParams() {
+    func testAddPathItemOperationParams() throws {
         struct SomeComp: Handler {
             @Parameter(.http(.query)) var name: String
 
@@ -86,7 +86,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
         let webService = WebServiceModel()
 
         let comp = SomeComp()
-        var endpoint = comp.oldMockEndpoint()
+        var endpoint: Endpoint<SomeComp> = try comp.mockEndpoint(application: app)
         webService.addEndpoint(&endpoint, at: ["test/{pathParam}"])
 
         pathsObjectBuilder.addPathItem(from: endpoint)
@@ -117,7 +117,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
         let webService = WebServiceModel()
 
         let comp = WrappingParamsComp()
-        var endpoint = comp.oldMockEndpoint()
+        var endpoint: Endpoint<WrappingParamsComp> = try comp.mockEndpoint(application: app)
         webService.addEndpoint(&endpoint, at: ["test"])
 
         pathsObjectBuilder.addPathItem(from: endpoint)
@@ -159,7 +159,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
         let webService = WebServiceModel()
 
         let comp = ArrayParamsComp()
-        var endpoint = comp.oldMockEndpoint()
+        var endpoint: Endpoint<ArrayParamsComp> = try comp.mockEndpoint(application: app)
         webService.addEndpoint(&endpoint, at: ["test"])
 
         pathsObjectBuilder.addPathItem(from: endpoint)
@@ -205,7 +205,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
         XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 2)
     }
 
-    func testAddPathItemWithRequestBodyAndResponseStruct() {
+    func testAddPathItemWithRequestBodyAndResponseStruct() throws {
         struct ComplexComp: Handler {
             @Parameter var someStruct: SomeStruct
 
@@ -220,7 +220,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
         let webService = WebServiceModel()
 
         let comp = ComplexComp()
-        var endpoint = comp.oldMockEndpoint()
+        var endpoint: Endpoint<ComplexComp> = try comp.mockEndpoint(application: app)
         webService.addEndpoint(&endpoint, at: ["test"])
 
         pathsObjectBuilder.addPathItem(from: endpoint)

@@ -108,7 +108,7 @@ final class EndpointsTreeTests: XCTApodiniDatabaseBirdTest {
     func testRequestHandler() throws {
         let name = "Paul" // this is the parameter value we want to inject
 
-        try newerXCTCheckHandler(
+        try XCTCheckHandler(
             BasicTestHandler()
                 .guard(PrintGuard())
                 .response(EmojiMediator(emojis: "✅"))

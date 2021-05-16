@@ -9,7 +9,7 @@ final class DownloadConfigTests: FileHandlerTests {
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
         let file = File(data: data, filename: "Testfile.jpeg")
         
-        try newerXCTCheckHandler(uploader) {
+        try XCTCheckHandler(uploader) {
             MockRequest(expectation: .response(status: .created, file.filename)) {
                 UnnamedParameter(file)
             }
@@ -33,7 +33,7 @@ final class DownloadConfigTests: FileHandlerTests {
         let data = try XCTUnwrap(Data(base64Encoded: FileUtilities.getBase64EncodedTestString()))
         let file = File(data: data, filename: "Testfile.jpeg")
         
-        try newerXCTCheckHandler(uploader) {
+        try XCTCheckHandler(uploader) {
             MockRequest(expectation: .response(status: .created, file.filename)) {
                 UnnamedParameter(file)
             }
@@ -43,7 +43,7 @@ final class DownloadConfigTests: FileHandlerTests {
         uploader = Uploader(UploadConfiguration(.default, subPath: "Misc/MoreMisc/"))
         let file2 = File(data: data, filename: "Testfile123.jpeg")
         
-        try newerXCTCheckHandler(uploader) {
+        try XCTCheckHandler(uploader) {
             MockRequest(expectation: .response(status: .created, file2.filename)) {
                 UnnamedParameter(file2)
             }

@@ -52,17 +52,17 @@ class ParameterNamespaceTests: XCTApodiniDatabaseBirdTest {
         )
     }
     
-    private func parameterNameCollisionCheck<H: Handler>(on handler: H, in namespaces: [ParameterNamespace]) {
-        handler.oldMockEndpoint().parameterNameCollisionCheck(in: namespaces)
+    private func parameterNameCollisionCheck<H: Handler>(on handler: H, in namespaces: [ParameterNamespace]) throws {
+        try handler.mockEndpoint(application: app).parameterNameCollisionCheck(in: namespaces)
     }
 
-    func testIndividualParameterNamespace() {
-        parameterNameCollisionCheck(
+    func testIndividualParameterNamespace() throws {
+        try parameterNameCollisionCheck(
             on: TestHandler(),
             in: .individual
         )
         
-        parameterNameCollisionCheck(
+        try parameterNameCollisionCheck(
             on: SameNameTestHandler(),
             in: .individual
         )
@@ -70,7 +70,7 @@ class ParameterNamespaceTests: XCTApodiniDatabaseBirdTest {
 
     func testGlobalParameterNamespace() {
         XCTAssertRuntimeFailure(
-            self.parameterNameCollisionCheck(
+            try! self.parameterNameCollisionCheck(
                 on: TestHandler(),
                 in: .global
             ),
@@ -78,7 +78,7 @@ class ParameterNamespaceTests: XCTApodiniDatabaseBirdTest {
         )
         
         XCTAssertRuntimeFailure(
-            self.parameterNameCollisionCheck(
+            try! self.parameterNameCollisionCheck(
                 on: SameNameTestHandler(),
                 in: .global
             ),
@@ -88,7 +88,7 @@ class ParameterNamespaceTests: XCTApodiniDatabaseBirdTest {
 
     func testEmptyParameterNamespace() throws {
         XCTAssertRuntimeFailure(
-            TestHandler().oldMockEndpoint().parameterNameCollisionCheck(),
+            try! TestHandler().mockEndpoint(application: self.app).parameterNameCollisionCheck(),
             "Failed to reject empty namespace definition"
         )
     }

@@ -34,19 +34,19 @@ final class ConnectionTests: XCTApodiniDatabaseBirdTest {
     }
     
     func testDefaultConnectionEnvironment() throws {
-        try newerXCTCheckHandler(TestHandler(endMessage: endMessage, openMessage: openMessage)) {
+        try XCTCheckHandler(TestHandler(endMessage: endMessage, openMessage: openMessage)) {
             MockRequest(expectation: endMessage)
         }
     }
     
     func testConnectionInjection() throws {
-        try newerXCTCheckHandler(TestHandler(endMessage: endMessage, openMessage: openMessage)) {
+        try XCTCheckHandler(TestHandler(endMessage: endMessage, openMessage: openMessage)) {
             MockRequest(
                 connectionState: .open,
                 expectation: .response(connectionEffect: .open, openMessage)
             )
         }
-        try newerXCTCheckHandler(TestHandler(endMessage: endMessage, openMessage: openMessage)) {
+        try XCTCheckHandler(TestHandler(endMessage: endMessage, openMessage: openMessage)) {
             MockRequest(
                 connectionState: .end,
                 expectation: .response(connectionEffect: .close, endMessage)
