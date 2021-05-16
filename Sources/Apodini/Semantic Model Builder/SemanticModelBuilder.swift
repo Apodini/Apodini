@@ -75,7 +75,11 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         // We first only build the blackboards. The rest is executed at the beginning of `finishedRegistration`.
         // This way `.global` `KnowledgeSource`s get a complete view of the web service even when accessed from
         // an `Endpoint`.
-        onRegistrationDone.append {
+        onRegistrationDone.append { [weak self] in
+            guard let self = self else {
+                return
+            }
+            
             let paths = context.get(valueFor: PathComponentContextKey.self)
             
 
