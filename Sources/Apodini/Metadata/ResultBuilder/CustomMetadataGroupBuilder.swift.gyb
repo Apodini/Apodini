@@ -23,7 +23,7 @@
 
 /// The `CustomMetadataGroupBuilder` is responsible for building `CustomMetadataGroup`s.
 /// See `CustomMetadataGroup` for more info.
-@resultBuilder
+@_functionBuilder
 public enum CustomMetadataGroupBuilder<Group: CustomMetadataGroup, Content: AnyMetadata> {
     public static func buildBlock(_ m0: Content) -> Content {
         m0

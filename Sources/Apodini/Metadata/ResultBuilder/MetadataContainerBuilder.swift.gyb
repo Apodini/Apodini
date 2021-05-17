@@ -15,7 +15,7 @@
 
 /// The `MetadataContainerBuilder` is responsible for building `MetadataContainer`.
 /// See `MetadataContainer` for more info.
-@resultBuilder
+@_functionBuilder
 public enum MetadataContainerBuilder {
     public static func buildBlock<M0: WebServiceMetadata>(_ m0: M0) -> WebServiceMetadataContainer {
         WebServiceMetadataContainer(m0)
