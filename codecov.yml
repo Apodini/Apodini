@@ -5,6 +5,8 @@ ignore:
 - "Sources/Apodini/Components/ComponentBuilder.swift"
 - "Sources/Apodini/Components/NeverExtensions"
 - "Sources/Apodini/Relationships/RelationshipIdentificationBuilder.swift"
+- "Sources/Apodini/Metadata/ResultBuilder/CustomMetadataGroupBuilder.swift"
+- "Sources/Apodini/Metadata/ResultBuilder/MetadataContainerBuilder.swift"
 
 codecov:
   require_ci_to_pass: yes
