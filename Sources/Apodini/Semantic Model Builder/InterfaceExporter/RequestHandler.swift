@@ -23,20 +23,28 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
         let request = connection.request
         
         let guardEventLoopFutures = instance.guards.map { requestGuard -> EventLoopFuture<Void> in
-            connection.enterConnectionContext(with: requestGuard) { requestGuard in
-                requestGuard.executeGuardCheck(on: request)
+            do {
+                return try connection.enterConnectionContext(with: requestGuard) { requestGuard in
+                    requestGuard.executeGuardCheck(on: request)
+                }
+            } catch {
+                return connection.eventLoop.makeFailedFuture(error)
             }
         }
         
         return EventLoopFuture<Void>
             .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
             .flatMapThrowing { _ in
-                connection.enterConnectionContext(with: self.instance.handler) { handler in
-                    handler.evaluate(using: request.eventLoop)
-                        .transformToResponse(on: request.eventLoop)
+                do {
+                    return try connection.enterConnectionContext(with: self.instance.handler) { handler in
+                        handler.evaluate(using: request.eventLoop)
+                            .transformToResponse(on: request.eventLoop)
+                    }
+                } catch {
+                    return connection.eventLoop.makeFailedFuture(error)
                 }
             }
-            .flatMap { typedResponse -> EventLoopFuture<Response<EnrichedContent>> in
+            .flatMap { (typedResponse: Response<H.Response.Content>) -> EventLoopFuture<Response<EnrichedContent>> in
                 let transformed = self.transformResponse(
                     typedResponse.typeErasured,
                     using: connection,
@@ -68,12 +76,16 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
             return eventLoop.makeSucceededFuture(response)
         }
         
-        return connection
-            .enterConnectionContext(with: modifier) { responseTransformerInContext in
-                responseTransformerInContext.transform(response: response, on: eventLoop)
-            }
-            .flatMap { newResponse in
-                self.transformResponse(newResponse, using: connection, on: eventLoop, using: Array(modifiers.dropFirst()))
-            }
+        do {
+            return try connection
+                .enterConnectionContext(with: modifier) { responseTransformerInContext in
+                    responseTransformerInContext.transform(response: response, on: eventLoop)
+                }
+                .flatMap { newResponse in
+                    self.transformResponse(newResponse, using: connection, on: eventLoop, using: Array(modifiers.dropFirst()))
+                }
+        } catch {
+            return eventLoop.makeFailedFuture(error)
+        }
     }
 }

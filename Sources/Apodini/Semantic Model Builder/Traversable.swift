@@ -46,24 +46,24 @@ func extractRequestInjectables<Element>(from subject: Element) -> [(String, Requ
 
 extension Apodini.Request {
     func enterRequestContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>)
-                   -> EventLoopFuture<R> {
+                   throws -> EventLoopFuture<R> {
         var element = element
-        inject(in: &element)
+        try inject(in: &element)
 
         return method(element)
     }
 
-    func enterRequestContext<E, R>(with element: E, executing method: (E) -> R) -> R {
+    func enterRequestContext<E, R>(with element: E, executing method: (E) -> R) throws -> R {
         var element = element
-        inject(in: &element)
+        try inject(in: &element)
         return method(element)
     }
     
-    fileprivate func inject<E>(in element: inout E) {
+    fileprivate func inject<E>(in element: inout E) throws {
         // Inject all properties that can be injected using RequestInjectable
         
-        apply({ (requestInjectable: inout RequestInjectable) in
-            requestInjectable.inject(using: self)
+        try apply({ (requestInjectable: inout RequestInjectable) in
+            try requestInjectable.inject(using: self)
         }, to: &element)
     }
 }
@@ -71,10 +71,10 @@ extension Apodini.Request {
 // MARK: ConnectionContext
 
 extension Connection {
-    func enterConnectionContext<E, R>(with element: E, executing method: (E) throws -> R) rethrows -> R {
+    func enterConnectionContext<E, R>(with element: E, executing method: (E) throws -> R) throws -> R {
         var element = element
         
-        request.inject(in: &element)
+        try request.inject(in: &element)
         
         self.update(&element)
         return try method(element)

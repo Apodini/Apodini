@@ -132,12 +132,8 @@ public struct Parameter<Element: Codable>: Property {
 }
 
 extension Parameter: RequestInjectable {
-    mutating func inject(using request: Request) {
-        do {
-            element = try request.retrieveParameter(self)
-        } catch {
-            fatalError("Injection failed: \(self.id) could not be retrieved from \(request). This was probably caused by a bug/inconsistency in the validation.")
-        }
+    mutating func inject(using request: Request) throws {
+        element = try request.retrieveParameter(self)
     }
 
     func accept(_ visitor: RequestInjectableVisitor) {

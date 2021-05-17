@@ -29,7 +29,7 @@ final class ThreadSafetyTests: ApodiniTests {
             let id = randomString(length: 40)
             let request = MockRequest.createRequest(on: greeter, running: app.eventLoopGroup.next(), queuedParameters: id)
 
-            let response: String = request.enterRequestContext(with: greeter) { component in
+            let response: String = try! request.enterRequestContext(with: greeter) { component in
                 component.handle()
             }
             XCTAssertEqual(response, id)
@@ -50,7 +50,7 @@ final class ThreadSafetyTests: ApodiniTests {
             let id = randomString(length: 40)
             let request = MockRequest.createRequest(on: greeter, running: app.eventLoopGroup.next(), queuedParameters: id)
 
-            let response: String = request.enterRequestContext(with: greeter) { component in
+            let response: String = try request.enterRequestContext(with: greeter) { component in
                 component.handle()
             }
             XCTAssertEqual(response, id)

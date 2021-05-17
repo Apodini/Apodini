@@ -98,7 +98,7 @@ final class EnvironmentTests: ApodiniTests {
         // inject the static value via the shared object
         app.birdFacts = staticBirdFacts
         // inject the dynamic value via the .withEnvironment
-        let response: String = request.enterRequestContext(with: handler) { handler in
+        let response: String = try request.enterRequestContext(with: handler) { handler in
             handler
                 .inject(app: app)
                 .environment(dynamicBirdFacts, for: \Application.birdFacts)
