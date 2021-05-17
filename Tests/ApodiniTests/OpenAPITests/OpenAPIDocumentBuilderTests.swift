@@ -8,7 +8,7 @@ import XCTest
 @testable import ApodiniOpenAPI
 @testable import ApodiniVaporSupport
 
-final class OpenAPIDocumentBuilderTests: XCTestCase {
+final class OpenAPIDocumentBuilderTests: ApodiniTests {
     struct SomeStruct: Apodini.Content {
         var someProp = 4
     }
@@ -24,7 +24,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
     func testAddEndpoint() {
         let comp = SomeComp()
         let webService = WebServiceModel()
-        var endpoint = comp.mockEndpoint()
+        var endpoint = comp.mockEndpoint(app: app)
         webService.addEndpoint(&endpoint, at: ["test"])
 
         let configuration = OpenAPIConfiguration()
