@@ -16,12 +16,22 @@ import ApodiniUtils
 public protocol Component {
     /// The type of `Component` this `Component` is made out of if the component is a composition of multiple subcomponents.
     associatedtype Content: Component
+    associatedtype Metadata = ComponentMetadataContainer
     
     /// Different other `Component`s that are composed to describe the functionality of the`Component`
     @ComponentBuilder
     var content: Content { get }
+
+    @MetadataContainerBuilder
+    var metadata: Metadata { get }
 }
 
+// MARK: Metadata DSL
+public extension Component {
+    var metadata: ComponentMetadataContainer {
+        ComponentMetadataContainer()
+    }
+}
 
 // MARK: Syntax Tree Visitor
 extension Component {
@@ -35,6 +45,7 @@ extension Component {
         preconditionTypeIsStruct(Self.self, messagePrefix: "Component")
         if let visitable = self as? SyntaxTreeVisitable {
             visitable.accept(visitor)
+            visitor.visit(component: self)
         } else {
             HandlerVisitorHelperImpl(visitor: visitor)(self)
             if Self.Content.self != Never.self {
@@ -68,5 +79,6 @@ private struct HandlerVisitorHelperImpl: HandlerVisitorHelperImplBase {
     let visitor: SyntaxTreeVisitor
     func callAsFunction<H: Handler>(_ value: H) {
         visitor.visit(handler: value)
+        print("VISITING\(H.self): \(H.Content.self)")
     }
 }

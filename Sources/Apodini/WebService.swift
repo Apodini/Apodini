@@ -11,6 +11,8 @@ import Logging
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
 public protocol WebService: Component, ConfigurationCollection {
+    typealias Metadata = WebServiceMetadataContainer
+
     /// The current version of the `WebService`
     var version: Version { get }
     
@@ -18,6 +20,12 @@ public protocol WebService: Component, ConfigurationCollection {
     init()
 }
 
+// MARK: Metadata DSL
+public extension WebService {
+    var metadata: WebServiceMetadataContainer {
+        WebServiceMetadataContainer()
+    }
+}
 
 extension WebService {
     /// This function is executed to start up an Apodini `WebService`
@@ -80,6 +88,8 @@ extension WebService {
     }
     
     private func visit(_ visitor: SyntaxTreeVisitor) {
+        metadata.accept(visitor)
+
         visitor.addContext(APIVersionContextKey.self, value: version, scope: .environment)
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
         Group {

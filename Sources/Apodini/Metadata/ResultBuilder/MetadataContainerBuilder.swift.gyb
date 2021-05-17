@@ -1,0 +1,100 @@
+//
+// Created by Andreas Bauer on 14.05.21.
+//
+
+// swiftlint:disable all
+// This file was automatically generated and should not be edited.
+%{
+    # Defines the maximum amount of function parameters
+    num_each = 15
+
+    print("Generating MetadataContainerBuilder...")
+}%
+
+// TODO buildIf/buildEither blocks(?)
+
+/// The `MetadataContainerBuilder` is responsible for building `MetadataContainer`.
+/// See `MetadataContainer` for more info.
+@resultBuilder
+public enum MetadataContainerBuilder {
+    public static func buildBlock<M0: WebServiceMetadata>(_ m0: M0) -> WebServiceMetadataContainer {
+        WebServiceMetadataContainer(m0)
+    }
+% for num_identifiers in range(1, num_each):
+%{
+    indices = range(0, num_identifiers + 1)
+
+    generic_names = ['M{}'.format(idx) for idx in indices]
+    parameter_names = ['m{}'.format(idx) for idx in indices]
+
+    generics = ', '.join(['{}: WebServiceMetadata'.format(name) for name in generic_names])
+    params = ', '.join(['_ {}: {}'.format(param, generic) for param, generic in zip(parameter_names, generic_names)])
+}%
+    public static func buildBlock<${generics}>(${params}) -> WebServiceMetadataContainer {
+        WebServiceMetadataContainer(TupleMetadata<(${', '.join(generic_names)})>((${', '.join(parameter_names)})))
+    }
+    % end
+
+
+    public static func buildBlock<M0: HandlerMetadata>(_ m0: M0) -> HandlerMetadataContainer {
+        HandlerMetadataContainer(m0)
+    }
+% for num_identifiers in range(1, num_each):
+%{
+    indices = range(0, num_identifiers + 1)
+
+    generic_names = ['M{}'.format(idx) for idx in indices]
+    parameter_names = ['m{}'.format(idx) for idx in indices]
+
+    generics = ', '.join(['{}: HandlerMetadata'.format(name) for name in generic_names])
+    params = ', '.join(['_ {}: {}'.format(param, generic) for param, generic in zip(parameter_names, generic_names)])
+    instances = ', '.join(['AnyRelationshipIdentification(from: {})'.format(param) for param in parameter_names])
+}%
+    public static func buildBlock<${generics}>(${params}) -> HandlerMetadataContainer {
+        HandlerMetadataContainer(TupleMetadata<(${', '.join(generic_names)})>((${', '.join(parameter_names)})))
+    }
+    % end
+
+
+    public static func buildBlock<M0: ComponentOnlyMetadata>(_ m0: M0) -> ComponentMetadataContainer {
+        ComponentMetadataContainer(m0)
+    }
+% for num_identifiers in range(1, num_each):
+%{
+    indices = range(0, num_identifiers + 1)
+
+    generic_names = ['M{}'.format(idx) for idx in indices]
+    parameter_names = ['m{}'.format(idx) for idx in indices]
+
+    generics = ', '.join(['{}: ComponentOnlyMetadata'.format(name) for name in generic_names])
+    params = ', '.join(['_ {}: {}'.format(param, generic) for param, generic in zip(parameter_names, generic_names)])
+    instances = ', '.join(['AnyRelationshipIdentification(from: {})'.format(param) for param in parameter_names])
+}%
+    public static func buildBlock<${generics}>(${params}) -> ComponentMetadataContainer {
+        ComponentMetadataContainer(TupleMetadata<(${', '.join(generic_names)})>((${', '.join(parameter_names)})))
+    }
+    % end
+
+
+    public static func buildBlock<M0: ContentMetadata>(_ m0: M0) -> ContentMetadataContainer {
+        ContentMetadataContainer(m0)
+    }
+% for num_identifiers in range(1, num_each):
+%{
+    indices = range(0, num_identifiers + 1)
+
+    generic_names = ['M{}'.format(idx) for idx in indices]
+    parameter_names = ['m{}'.format(idx) for idx in indices]
+
+    generics = ', '.join(['{}: ContentMetadata'.format(name) for name in generic_names])
+    params = ', '.join(['_ {}: {}'.format(param, generic) for param, generic in zip(parameter_names, generic_names)])
+    instances = ', '.join(['AnyRelationshipIdentification(from: {})'.format(param) for param in parameter_names])
+}%
+    public static func buildBlock<${generics}>(${params}) -> ContentMetadataContainer {
+        ContentMetadataContainer(TupleMetadata<(${', '.join(generic_names)})>((${', '.join(parameter_names)})))
+    }
+    % end
+}
+%{
+    print("Finished generating MetadataContainerBuilder!")
+}%

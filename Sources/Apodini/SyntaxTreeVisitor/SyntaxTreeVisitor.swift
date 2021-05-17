@@ -85,7 +85,12 @@ public class SyntaxTreeVisitor {
     public func addContext<C: OptionalContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
         currentNode.addContext(contextKey, value: value, scope: scope)
     }
-    
+
+    func visit<C: Component>(component: C) {
+        print("visit componenet \(C.self)")
+        component.metadata.accept(self)
+        print("------------------------")
+    }
     
     /// Called every time a new `Handler` is registered
     /// - Parameter handler: The `Handler` that is registered
@@ -94,13 +99,20 @@ public class SyntaxTreeVisitor {
         // across multiple runs of an Apodini web service.
         addContext(HandlerIndexPath.ContextKey.self, value: formHandlerIndexPathForCurrentNode(), scope: .current)
 
+        handler.metadata.accept(self)
+
         let responseTransformers = currentNode.getContextValue(for: ResponseTransformerContextKey.self)
         let responseType = responseTransformers.responseType ?? H.Response.Content.self
 
+        // TODO Content stuff would currently be added to the `Context` of the Handler (which is not what we want)
+        //   additionally, we currently would not recursively parse properties having Metadata Declarations!
+        let metadataContentVisitor = StandardContentMetadataVisitor(visitor: self)
+        metadataContentVisitor(responseType)
+
         // Intermediate solution to parse `Content` types conforming to `WithRelationships`
         // until the Metadata DSL creates a unified solution for such metadata.
-        let visitor = StandardRelationshipsVisitor(visitor: self)
-        visitor(responseType)
+        let relationshipVisitor = StandardRelationshipsVisitor(visitor: self)
+        relationshipVisitor(responseType)
         
         // We capture the currentContextNode and make a copy that will be used when executing the request as
         // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the

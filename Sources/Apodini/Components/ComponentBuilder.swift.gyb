@@ -3,6 +3,8 @@
 %{
     # Edit this if you want to include more components in a single tuple component
     maximumNumberOfComponents = 100
+
+    print("Generating ComponentBuilder...")
 }%
 
 @_functionBuilder
@@ -43,3 +45,6 @@ public struct ComponentBuilder {
     
     % end
 }
+%{
+    print("Finished generating ComponentBuilder!")
+}%

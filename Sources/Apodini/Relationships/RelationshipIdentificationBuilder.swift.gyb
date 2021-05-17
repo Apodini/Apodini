@@ -3,6 +3,8 @@
 %{
     # Defines the maximum number for function parameters
     maxNumberOfIdentifications = 15
+
+    print("Generating RelationshipIdentificationBuilder...")
 }%
 
 @_functionBuilder
@@ -24,3 +26,6 @@ public struct RelationshipIdentificationBuilder<From> {
 
     % end
 }
+%{
+    print("Finished generating RelationshipIdentificationBuilder!")
+}%

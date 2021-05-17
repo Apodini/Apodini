@@ -141,6 +141,35 @@ struct AWS_Greeter: Handler {
             "Hello, \(name). Your random number in range \(age)...\(2 * age) is \(randomNumber)!"
         }
     }
+
+    var metadata: Metadata {
+        Description("""
+                    This is the description of the Endpoint
+                    """)
+
+        Collect {
+            Description("""
+                        Collect is the equivalent to `Group` for Components and is just
+                        a way of semantically grouping and nesting Metadata Definitions,
+                        making your definitions a bit nicer.
+                        """)
+        }
+
+        ParameterDescriptions {
+            ParameterDescription("""
+                                 Metadata Declaration providers can easily provide their own
+                                 special purpose groups, like `ParameterDescriptions`.
+                                 This is again just a way of semantically grouping and nesting
+                                 your Metadata definitions, though with the restriction, that
+                                 e.g. `ParameterDescriptions` only allows `ParameterDescription`
+                                 definitions (and of course nested `ParameterDescriptions`)
+                                 """)
+
+            ParameterDescriptions {
+                ParameterDescription("Desc 2")
+            }
+        }
+    }
 }
 
 
@@ -194,6 +223,10 @@ struct WebService: Apodini.WebService {
                 .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")
             ])
         )
+    }
+
+    var metadata: Metadata {
+        Description("WebService Description")
     }
 }
 

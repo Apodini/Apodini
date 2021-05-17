@@ -15,6 +15,8 @@ public protocol Handler: Component {
     /// The type that is returned from the `handle()` method when the component handles a request. The return type of the `handle` method is encoded into the response send out to the client.
     associatedtype Response: ResponseTransformable
 
+    typealias Metadata = HandlerMetadataContainer
+
     /// A function that is called when a request reaches the `Handler`
     #if compiler(>=5.4) && $AsyncAwait
     func handle() async throws -> Response
@@ -23,6 +25,12 @@ public protocol Handler: Component {
     #endif
 }
 
+// MARK: Metadata DSL
+public extension Handler {
+    var metadata: HandlerMetadataContainer {
+        HandlerMetadataContainer()
+    }
+}
 
 extension Handler {
     /// By default, `Handler`s don't provide any further content
