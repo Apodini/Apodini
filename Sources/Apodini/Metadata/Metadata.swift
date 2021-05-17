@@ -27,7 +27,10 @@ public extension MetadataDeclaration {
     }
 }
 
-extension Never: OptionalContextKey {} // TODO move the extension
+// TODO move the extension
+extension Never: OptionalContextKey {
+    public typealias Value = Never
+}
 
 
 public protocol WebServiceMetadata: MetadataDeclaration {}
