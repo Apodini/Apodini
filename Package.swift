@@ -133,10 +133,8 @@ let package = Package(
                 .product(name: "OpenCombine", package: "OpenCombine"),
                 .product(name: "OpenCombineFoundation", package: "OpenCombine")
             ],
-            exclude: [
-                "ConfigurationTests/Certificates/cert.pem",
-                "ConfigurationTests/Certificates/key.pem",
-                "ConfigurationTests/Certificates/key2.pem"
+            resources: [
+                .process("Resources")
             ]
         ),
 

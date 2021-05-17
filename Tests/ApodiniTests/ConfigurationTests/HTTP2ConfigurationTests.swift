@@ -2,63 +2,51 @@
 import NIOSSL
 import XCTest
 
-final class HTTP2ConfigurationTests: ApodiniTests {
-    let currentPath = URL(fileURLWithPath: #file).deletingLastPathComponent().path
-    lazy var keyPath: String = currentPath + "/Certificates/key.pem"
-    lazy var key2Path: String = currentPath + "/Certificates/key2.pem"
-    lazy var certPath: String = currentPath + "/Certificates/cert.pem"
-    lazy var privateKey = NIOSSLPrivateKeySource.file(keyPath)
 
+final class HTTP2ConfigurationTests: ApodiniTests {
+    private func keyPath() throws -> URL {
+        try XCTUnwrap(Bundle.module.url(forResource: "key", withExtension: "pem"))
+    }
+    private func key2Path() throws -> URL {
+        try XCTUnwrap(Bundle.module.url(forResource: "key2", withExtension: "pem"))
+    }
+    private func certPath() throws -> URL {
+        try XCTUnwrap(Bundle.module.url(forResource: "cert", withExtension: "pem"))
+    }
+    private func privateKey() throws -> NIOSSLPrivateKeySource {
+        try NIOSSLPrivateKeySource.privateKey(NIOSSLPrivateKey(file: keyPath().path, format: .pem))
+    }
+    
+    
     func testValidFile() throws {
         HTTP2Configuration()
-            .certificate(certPath)
-            .key(keyPath)
+            .certificate(try certPath())
+            .key(try keyPath())
             .configure(app)
 
         XCTAssertNotNil(app.http.tlsConfiguration)
         XCTAssertEqual(app.http.supportVersions, [.one, .two])
-        XCTAssertEqual(app.http.tlsConfiguration?.privateKey, privateKey)
+        XCTAssertEqual(app.http.tlsConfiguration?.privateKey, try privateKey())
     }
 
 
     func testCommandLineArguments() throws {
-        HTTP2Configuration(arguments: CommandLine.arguments + ["--cert", certPath, "--key", keyPath])
+        HTTP2Configuration(arguments: CommandLine.arguments + ["--cert", try certPath().path, "--key", try keyPath().path])
             .configure(app)
 
         XCTAssertNotNil(app.http.tlsConfiguration)
         XCTAssertEqual(app.http.supportVersions, [.one, .two])
-        XCTAssertEqual(app.http.tlsConfiguration?.privateKey, privateKey)
+        XCTAssertEqual(app.http.tlsConfiguration?.privateKey, try privateKey())
     }
 
     func testCommandLineArgumentOverwrite() throws {
-        HTTP2Configuration(arguments: CommandLine.arguments + ["--cert", certPath, "--key", keyPath])
-            .certificate(certPath)
-            .key(key2Path)
+        HTTP2Configuration(arguments: CommandLine.arguments + ["--cert", try certPath().path, "--key", try keyPath().path])
+            .certificate(try certPath())
+            .key(try key2Path())
             .configure(app)
 
         XCTAssertNotNil(app.http.tlsConfiguration)
         XCTAssertEqual(app.http.supportVersions, [.one, .two])
-        XCTAssertEqual(app.http.tlsConfiguration?.privateKey, privateKey)
-    }
-}
-
-extension NIOSSLPrivateKeySource: Equatable {
-    public static func == (lhs: NIOSSLPrivateKeySource, rhs: NIOSSLPrivateKeySource) -> Bool {
-        switch (lhs, rhs) {
-        case let (.privateKey(lhsKey), .file(rhsFile)):
-            // swiftlint:disable force_try
-            let rhsKey = try! NIOSSLPrivateKey(file: rhsFile, format: .pem)
-            return lhsKey == rhsKey
-        case let (.file(lhsFile), .privateKey(rhsKey)):
-            // swiftlint:disable force_try
-            let lhsKey = try! NIOSSLPrivateKey(file: lhsFile, format: .pem)
-            return lhsKey == rhsKey
-        case let (.privateKey(lhsKey), .privateKey(rhsKey)) where lhsKey == rhsKey:
-            return true
-        case let (.file(lhsFile), .file(rhsFile)) where lhsFile == rhsFile:
-            return true
-        default:
-            return false
-        }
+        XCTAssertEqual(app.http.tlsConfiguration?.privateKey, try privateKey())
     }
 }
