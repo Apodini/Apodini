@@ -8,7 +8,7 @@ import XCTest
 @testable import ApodiniOpenAPI
 @testable import ApodiniVaporSupport
 
-final class OpenAPIDocumentBuilderTests: XCTestCase {
+final class OpenAPIDocumentBuilderTests: ApodiniTests {
     struct SomeStruct: Apodini.Content {
         var someProp = 4
     }
@@ -24,7 +24,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
     func testAddEndpoint() {
         let comp = SomeComp()
         let webService = WebServiceModel()
-        var endpoint = comp.mockEndpoint()
+        var endpoint = comp.mockEndpoint(app: app)
         webService.addEndpoint(&endpoint, at: ["test"])
 
         let configuration = OpenAPIConfiguration()
@@ -43,7 +43,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                         tags: ["test"],
                         // As there is no custom description in this case, `description` and `operationId` are the same.
                         description: endpoint.description,
-                        operationId: endpoint.identifier.rawValue,
+                        operationId: endpoint[AnyHandlerIdentifier.self].rawValue,
                         parameters: [
                             Either.parameter(name: "name", context: .query, schema: .string, description: "@Parameter var name: String")
                         ],
@@ -70,7 +70,7 @@ final class OpenAPIDocumentBuilderTests: XCTestCase {
                                 OpenAPI.Response(description: "Internal Server Error")
                             )
                         ],
-                        vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint.identifier.rawValue)]
+                        vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
                     )
                 )
             ],

@@ -7,7 +7,7 @@
 
 
 import XCTest
-@testable import Apodini
+import XCTApodini
 import Vapor
 
 class ThrowsTests: ApodiniTests {
@@ -144,7 +144,7 @@ class ThrowsTests: ApodiniTests {
 }
 
 extension MockExporter: StandardErrorCompliantExporter {
-    typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
+    public typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
 }
 
 private extension Handler {

@@ -20,10 +20,12 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
 
     var relationshipBuilder: RelationshipBuilder
     var typeIndexBuilder: TypeIndexBuilder
+    
+    private var onRegistrationDone: [() -> Void] = []
 
     init(_ app: Application) {
         self.app = app
-        webService = WebServiceModel()
+        webService = WebServiceModel(GlobalBlackboard<LazyHashmapBlackboard>(app))
         rootNode = webService.root
 
         relationshipBuilder = RelationshipBuilder(logger: app.logger)
@@ -47,79 +49,94 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         interfaceExporters.append(AnyInterfaceExporter(exporter))
         return self
     }
+    
+    /// Registers an `InterfaceExporter` instance on the model builder.
+    /// - Parameter instance: The instance to register.
+    /// - Returns: `Self`
+    func with<T: InterfaceExporter>(exporter instance: T) -> Self {
+        interfaceExporters.append(AnyInterfaceExporter(instance))
+        return self
+    }
 
 
     func register<H: Handler>(handler: H, withContext context: Context) {
-        let operation = context.get(valueFor: OperationContextKey.self)
-        let serviceType = context.get(valueFor: ServiceTypeContextKey.self)
-        let paths = context.get(valueFor: PathComponentContextKey.self)
-        let guards = context.get(valueFor: GuardContextKey.self).allActiveGuards
-        let responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self)
-
-        let partialCandidates = context.get(valueFor: RelationshipSourceCandidateContextKey.self)
-        let relationshipSources = context.get(valueFor: RelationshipSourceContextKey.self)
-        let relationshipDestinations = context.get(valueFor: RelationshipDestinationContextKey.self)
+        let handler = handler.inject(app: app)
+        let guards = context.get(valueFor: GuardContextKey.self).allActiveGuards.inject(app: app)
+        let responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self).inject(app: app)
         
-        let endpointIdentifier: AnyHandlerIdentifier = {
-            // the identifier specified via the `.identified(by:)` modifier, if any
-            let dslSpecifiedIdentifier = context.get(valueFor: ExplicitHandlerIdentifierContextKey.self)
-            // the identifier specified via the `IdentifiableHandler.handlerId` property, if any
-            let handlerSpecifiedIdentifier = handler.getExplicitlySpecifiedIdentifier()
-            switch (dslSpecifiedIdentifier, handlerSpecifiedIdentifier) {
-            case (.some(let identifier), .none):
-                return identifier
-            case (.none, .some(let identifier)):
-                return identifier
-            case let (.some(ident1), .some(ident2)):
-                if ident1 == ident2 {
-                    return ident1
-                } else {
-                    fatalError("""
-                        Handler '\(handler)' has multiple explicitly specified identifiers ('\(ident1)' and '\(ident2)').
-                        A handler may only have one explicitly specified identifier.
-                        This is caused by using both the 'IdentifiableHandler.handlerId' property as well as the '.identified(by:)' modifier.
-                        """
-                    )
-                }
-            case (.none, .none):
-                let handlerIndexPath = context.get(valueFor: HandlerIndexPath.ContextKey.self)
-                return AnyHandlerIdentifier(handlerIndexPath.rawValue)
+        // GlobalBlackboard's content lives on the app's `Store`, this is only a wrapper for accessing it
+        let globalBlackboard = GlobalBlackboard<LazyHashmapBlackboard>(app)
+        
+        let localBlackboard = LocalBlackboard<
+            LazyHashmapBlackboard,
+            GlobalBlackboard<LazyHashmapBlackboard>
+        >(globalBlackboard, using: handler, context)
+        
+        // We first only build the blackboards. The rest is executed at the beginning of `finishedRegistration`.
+        // This way `.global` `KnowledgeSource`s get a complete view of the web service even when accessed from
+        // an `Endpoint`.
+        onRegistrationDone.append { [weak self] in
+            guard let self = self else {
+                return
             }
-        }()
+            
+            let paths = context.get(valueFor: PathComponentContextKey.self)
+            
 
-        var endpoint = Endpoint(
-            identifier: endpointIdentifier,
-            handler: handler.inject(app: app),
-            context: context,
-            operation: operation,
-            serviceType: serviceType,
-            guards: guards.inject(app: app),
-            responseTransformers: responseTransformers.inject(app: app)
-        )
+            let partialCandidates = context.get(valueFor: RelationshipSourceCandidateContextKey.self)
+            let relationshipSources = context.get(valueFor: RelationshipSourceContextKey.self)
+            let relationshipDestinations = context.get(valueFor: RelationshipDestinationContextKey.self)
 
-        webService.addEndpoint(&endpoint, at: paths)
+            var endpoint = Endpoint(
+                handler: handler,
+                blackboard: localBlackboard,
+                guards: guards,
+                responseTransformers: responseTransformers
+            )
 
-        // calling the addEndpoint first, triggers the Operation uniqueness check
-        // and we will have less problems with that in the TypeIndex Builder and Relationship Builders.
-        // Additionally, addEndpoint may cause a insertion of a additional path parameter,
-        // which makes it necessary to be called before any operation relying on the path of the Endpoint.
+            self.webService.addEndpoint(&endpoint, at: paths)
+            // The `ReferenceModule` and `EndpointPathModule` cannot be implemented using one of the standard
+            // `KnowledgeSource` protocols as they depend on the `WebServiceModel`. This should change
+            // once the latter was ported to the Blackboard-Pattern.
+            endpoint[ReferenceModule.self].inject(reference: endpoint.reference)
+            endpoint[EndpointPathModule.self].inject(absolutePath: endpoint.absolutePath)
+            
 
-        relationshipBuilder.collect(
-            endpoint: endpoint,
-            candidates: partialCandidates,
-            sources: relationshipSources,
-            destinations: relationshipDestinations
-        )
-        typeIndexBuilder.indexContentType(of: endpoint)
+            // calling the addEndpoint first, triggers the Operation uniqueness check
+            // and we will have less problems with that in the TypeIndex Builder and Relationship Builders.
+            // Additionally, addEndpoint may cause a insertion of a additional path parameter,
+            // which makes it necessary to be called before any operation relying on the path of the Endpoint.
+
+            self.relationshipBuilder.collect(
+                endpoint: endpoint,
+                candidates: partialCandidates,
+                sources: relationshipSources,
+                destinations: relationshipDestinations
+            )
+            
+            let content = endpoint[HandleReturnType.self].type
+            let reference = endpoint[ReferenceModule.self].reference
+            let markedDefault = endpoint[Context.self].get(valueFor: DefaultRelationshipContextKey.self) != nil
+            let pathParameters = endpoint[EndpointPathModule.self].absolutePath.listPathParameters()
+            let operation = endpoint[Operation.self]
+            
+            self.typeIndexBuilder.indexContentType(content: content,
+                                                   reference: reference,
+                                                   markedDefault: markedDefault,
+                                                   pathParameters: pathParameters,
+                                                   operation: operation)
+        }
     }
 
     func finishedRegistration() {
+        onRegistrationDone.forEach { action in action() }
+        
         webService.finish()
 
         // the order of how relationships are built below strongly reflect our strategy
         // on how conflicting definitions shadow each other
         let typeIndex = TypeIndex(from: typeIndexBuilder, buildingWith: relationshipBuilder)
-
+        
         // resolving any type based Relationship creation (inference or Relationship DSL)
         typeIndex.resolve()
 

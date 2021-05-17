@@ -3,6 +3,7 @@
 //
 
 import XCTest
+import XCTApodini
 @testable import Apodini
 
 class RelationshipExporter: MockExporter<String> {
@@ -20,7 +21,7 @@ class RelationshipExporter: MockExporter<String> {
                 let rhsString = rhs.absolutePath.asPathString()
 
                 if lhsString == rhsString {
-                    return lhs.operation < rhs.operation
+                    return lhs[Operation.self] < rhs[Operation.self]
                 }
 
                 return lhs.absolutePath.asPathString() < rhs.absolutePath.asPathString()

@@ -7,7 +7,7 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniOpenAPI
 
-final class OpenAPIPathsObjectBuilderTests: XCTestCase {
+final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
     struct SomeStruct: Codable {
         var id = 1
         var someProp = "somesome"
@@ -31,7 +31,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
 
     func testPathBuilder() {
         let handler = HandlerParam(pathParam: $param)
-        let endpoint = handler.mockEndpoint()
+        let endpoint = handler.mockEndpoint(app: app)
         var pathParameter = EndpointPathParameter<String>(id: _param.id)
         pathParameter.scoped(on: endpoint)
 
@@ -43,7 +43,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
     
     func testDefaultTagWithPathParameter() {
         let handler = HandlerParam(pathParam: $param)
-        var endpoint = handler.mockEndpoint()
+        var endpoint = handler.mockEndpoint(app: app)
         let webService = WebServiceModel()
         webService.addEndpoint(&endpoint, at: ["first", "second", $param, "third"])
         
@@ -57,7 +57,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
     
     func testDefaultTagWithSinglePathParameter() {
         let handler = HandlerParam(pathParam: $param)
-        var endpoint = handler.mockEndpoint()
+        var endpoint = handler.mockEndpoint(app: app)
         let webService = WebServiceModel()
         webService.addEndpoint(&endpoint, at: [$param, "first"])
         
@@ -86,7 +86,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         let webService = WebServiceModel()
 
         let comp = SomeComp()
-        var endpoint = comp.mockEndpoint()
+        var endpoint = comp.mockEndpoint(app: app)
         webService.addEndpoint(&endpoint, at: ["test/{pathParam}"])
 
         pathsObjectBuilder.addPathItem(from: endpoint)
@@ -117,7 +117,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         let webService = WebServiceModel()
 
         let comp = WrappingParamsComp()
-        var endpoint = comp.mockEndpoint()
+        var endpoint = comp.mockEndpoint(app: app)
         webService.addEndpoint(&endpoint, at: ["test"])
 
         pathsObjectBuilder.addPathItem(from: endpoint)
@@ -159,7 +159,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         let webService = WebServiceModel()
 
         let comp = ArrayParamsComp()
-        var endpoint = comp.mockEndpoint()
+        var endpoint = comp.mockEndpoint(app: app)
         webService.addEndpoint(&endpoint, at: ["test"])
 
         pathsObjectBuilder.addPathItem(from: endpoint)
@@ -170,7 +170,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
             tags: ["test"],
             // As there is no custom description in this case, `description` and `operationId` are the same.
             description: endpoint.description,
-            operationId: endpoint.identifier.rawValue,
+            operationId: endpoint[AnyHandlerIdentifier.self].rawValue,
             parameters: [],
             requestBody: OpenAPI.Request(
                 description: "@Parameter var someStructArray: Array<SomeStruct>",
@@ -196,7 +196,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
                 .status(code: 500): .init(
                     OpenAPI.Response(description: "Internal Server Error"))
             ],
-            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint.identifier.rawValue)]
+            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
         ))
 
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in
@@ -220,7 +220,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
         let webService = WebServiceModel()
 
         let comp = ComplexComp()
-        var endpoint = comp.mockEndpoint()
+        var endpoint = comp.mockEndpoint(app: app)
         webService.addEndpoint(&endpoint, at: ["test"])
 
         pathsObjectBuilder.addPathItem(from: endpoint)
@@ -231,7 +231,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
             tags: ["test"],
             // As there is no custom description in this case, `description` and `operationId` are the same.
             description: endpoint.description,
-            operationId: endpoint.identifier.rawValue,
+            operationId: endpoint[AnyHandlerIdentifier.self].rawValue,
             parameters: [],
             requestBody: OpenAPI.Request(
                 description: "@Parameter var someStruct: SomeStruct",
@@ -257,7 +257,7 @@ final class OpenAPIPathsObjectBuilderTests: XCTestCase {
                 .status(code: 500): .init(
                     OpenAPI.Response(description: "Internal Server Error"))
             ],
-            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint.identifier.rawValue)]
+            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
         ))
 
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)

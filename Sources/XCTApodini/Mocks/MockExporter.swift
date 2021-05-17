@@ -2,6 +2,7 @@
 // Created by Andreas Bauer on 25.12.20.
 //
 
+#if DEBUG
 import Foundation
 import class Vapor.Application
 import class Vapor.Request
@@ -9,38 +10,52 @@ import class Vapor.Request
 
 extension String: ExporterRequest {}
 
-class MockExporter<Request: ExporterRequest>: InterfaceExporter {
+open class MockExporter<Request: ExporterRequest>: InterfaceExporter {
     var parameterValues: [Any??] = []
+    
+    let onExport: (AnyEndpoint) -> Void
+    let onFinished: (WebServiceModel) -> Void
 
     /// Creates a new MockExporter which uses the passed parameter values as FIFO queue on retrieveParameter
-    required init(queued parameterValues: Any??...) {
+    public init(queued parameterValues: Any??...,
+                calling onExport: @escaping (AnyEndpoint) -> Void = { _ in },
+                onFinished: @escaping (WebServiceModel) -> Void = { _ in }) {
         self.parameterValues = parameterValues
+        self.onExport = onExport
+        self.onFinished = onFinished
     }
 
     // See https://bugs.swift.org/browse/SR-128
-    required init(queued parameterValues: [Any??]) {
+    public init(queued parameterValues: [Any??],
+                calling onExport: @escaping (AnyEndpoint) -> Void = { _ in },
+                onFinished: @escaping (WebServiceModel) -> Void = { _ in }) {
         self.parameterValues = parameterValues
+        self.onExport = onExport
+        self.onFinished = onFinished
     }
 
-    required init(_ app: Apodini.Application) {}
-
-    func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        // do nothing
+    public required init(_ app: Apodini.Application) {
+        self.onExport = { _ in }
+        self.onFinished = { _ in }
     }
 
-    func finishedExporting(_ webService: WebServiceModel) {
-        // do nothing
+    open func export<H: Handler>(_ endpoint: Endpoint<H>) {
+        onExport(endpoint)
     }
 
-    func append(injected: Any??...) {
+    open func finishedExporting(_ webService: WebServiceModel) {
+        onFinished(webService)
+    }
+
+    public func append(injected: Any??...) {
         append(injected: injected)
     }
 
-    func append(injected: [Any??]) {
+    public func append(injected: [Any??]) {
         parameterValues.append(contentsOf: injected)
     }
 
-    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Request) throws -> Type?? {
+    public func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Request) throws -> Type?? {
         guard let first = parameterValues.first else {
             print("WARN: MockExporter failed to retrieve next parameter for '\(parameter.description)'. Queue is empty")
             return nil // non existence
@@ -60,3 +75,4 @@ class MockExporter<Request: ExporterRequest>: InterfaceExporter {
         return casted
     }
 }
+#endif
