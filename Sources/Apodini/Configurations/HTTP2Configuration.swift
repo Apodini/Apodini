@@ -66,7 +66,7 @@ public final class HTTP2Configuration: Configuration {
         do {
             if let certURL = certURL, let keyURL = keyURL {
                 let certificates = try NIOSSLCertificate.fromPEMFile(certURL.path)
-                let privateKey = try NIOSSLPrivateKey.init(file: keyURL.path, format: .pem)
+                let privateKey = try NIOSSLPrivateKey(file: keyURL.path, format: .pem)
                 
                 app.http.supportVersions = [.one, .two]
                 app.http.tlsConfiguration = .forServer(
