@@ -17,7 +17,7 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
     }
 
     func callAsFunction(
-        with validatedRequest: ValidatedRequest<I, H>,
+        with validatingRequest: ValidatingRequest<I, H>,
         on connection: Connection
     ) -> EventLoopFuture<Response<EnrichedContent>> {
         let request = connection.request
@@ -53,17 +53,17 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
                 )
 
                 return transformed.map { response -> Response<EnrichedContent> in
-                    mapToEnrichedContent(response, validatedRequest: validatedRequest)
+                    mapToEnrichedContent(response, validatedRequest: validatingRequest)
                 }
             }
     }
 
-    private func mapToEnrichedContent(_ response: Response<AnyEncodable>, validatedRequest: ValidatedRequest<I, H>) -> Response<EnrichedContent> {
+    private func mapToEnrichedContent(_ response: Response<AnyEncodable>, validatedRequest: ValidatingRequest<I, H>) -> Response<EnrichedContent> {
         response.map { anyEncodable in
             EnrichedContent(
                 for: instance.endpoint,
                 response: anyEncodable,
-                parameters: validatedRequest.validatedParameterValues
+                parameters: [:] // TODO: this breaks link formatting in relationship-focused InterfaceExporters. This Information should be retrieved via a custom Validator and a new Validator extension on ConnectionContext
             )
         }
     }

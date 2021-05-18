@@ -14,7 +14,7 @@ public enum MockRequest {
     public static func createRequest(
         running eventLoop: EventLoop,
         queuedParameters parameterValues: Any??...
-    ) -> ValidatedRequest<MockExporter<String>, EmptyHandler> {
+    ) -> ValidatingRequest<MockExporter<String>, EmptyHandler> {
         createRequest(on: EmptyHandler(), running: eventLoop, queuedParameters: parameterValues)
     }
 
@@ -23,7 +23,7 @@ public enum MockRequest {
         on handler: H,
         running eventLoop: EventLoop,
         queuedParameters parameterValues: Any??...
-    ) -> ValidatedRequest<MockExporter<String>, H> {
+    ) -> ValidatingRequest<MockExporter<String>, H> {
         createRequest(on: handler, running: eventLoop, queuedParameters: parameterValues)
     }
 
@@ -31,7 +31,7 @@ public enum MockRequest {
         on handler: H,
         running eventLoop: EventLoop,
         queuedParameters parameterValues: [Any??]
-    ) -> ValidatedRequest<MockExporter<String>, H> {
+    ) -> ValidatingRequest<MockExporter<String>, H> {
         let exporter = MockExporter<String>(queued: parameterValues)
         
         let endpoint = handler.mockEndpoint()

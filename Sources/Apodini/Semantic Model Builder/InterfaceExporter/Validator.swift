@@ -5,6 +5,12 @@
 //  Created by Max Obermeier on 01.01.21.
 //
 
+
+// Validators are stateful -> Endpoint context required
+// Solution: inject Parameter with ValidatingRequest, refers to a lazy version of EndpointValidator for retrieving parameters.
+// ConnectionContext provides EndpointValidator with safepoints. EndpointValidator restores itself to those points when an Apodini.BadRequest
+// is thrown.
+
 import Foundation
 import NIO
 @_implementationOnly import AssociatedTypeRequirementsVisitor
@@ -70,60 +76,105 @@ extension Validator {
 // MARK: Endpoint Validation
 
 extension Endpoint {
-    func validator<I: InterfaceExporter>(for exporter: I) -> AnyValidator<I, EventLoop, ValidatedRequest<I, H>> {
+    func validator<I: InterfaceExporter>(for exporter: I) -> AnyValidator<I, EventLoop, ValidatingRequest<I, H>> {
         EndpointValidator(for: exporter, on: self).eraseToAnyValidator()
     }
 }
 
-private class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
+internal class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
     typealias Exporter = I
     
     private let exporter: I
     
-    private var validators: [(UUID, AnyValidator<I, Void, Any>)]
+    private var validators: [UUID: AnyValidator<I, Void, Any>]
     
     private let endpoint: Endpoint<H>
     
-    init(
+    private var validated: [UUID] = []
+    
+    private var request: I.ExporterRequest?
+    
+    fileprivate init(
         for exporter: I,
         on endpoint: Endpoint<H>
     ) {
         self.exporter = exporter
         self.endpoint = endpoint
-        self.validators = endpoint[EndpointParameters.self].map { parameter in
-            (parameter.id, parameter.toInternal().representative(for: exporter))
+        self.validators = endpoint[EndpointParameters.self].reduce(into: [UUID: AnyValidator<I, Void, Any>]()) { (validators, parameter) in
+            validators[parameter.id] = parameter.toInternal().representative(for: exporter)
         }
     }
     
     
-    func validate(_ request: I.ExporterRequest, with eventLoop: EventLoop) throws -> ValidatedRequest<I, H> {
-        var output: [UUID: Any] = [:]
+    func validate(_ request: I.ExporterRequest, with eventLoop: EventLoop) throws -> ValidatingRequest<I, H> {
+        self.validated = []
+        self.request = request
         
-        for validatorIndex in validators.indices {
-            do {
-                output[validators[validatorIndex].0] = try validators[validatorIndex].1.validate(request, with: Void())
-            } catch {
-                for validatorToResetIndex in validators[0..<validatorIndex].indices {
-                    validators[validatorToResetIndex].1.reset()
-                }
-                throw error
-            }
-        }
-
         let requestRemote = (request as? WithRemote)?.remoteAddress
-
-        return ValidatedRequest(for: exporter,
-                                with: request,
-                                using: output,
-                                on: endpoint,
-                                running: eventLoop,
-                                remoteAddress: requestRemote)
+        
+        return ValidatingRequest<I, H>(for: exporter,
+                                 with: request,
+                                 using: self,
+                                 on: endpoint,
+                                 running: eventLoop,
+                                 remoteAddress: requestRemote)
+        
+//        var output: [UUID: Any] = [:]
+//
+//        for validatorIndex in validators.indices {
+//            do {
+//                output[validators[validatorIndex].0] = try validators[validatorIndex].1.validate(request, with: Void())
+//            } catch {
+//                for validatorToResetIndex in validators[0..<validatorIndex].indices {
+//                    validators[validatorToResetIndex].1.reset()
+//                }
+//                throw error
+//            }
+//        }
+//
+//        let requestRemote = (request as? WithRemote)?.remoteAddress
+//
+//        return ValidatedRequest(for: exporter,
+//                                with: request,
+//                                using: output,
+//                                on: endpoint,
+//                                running: eventLoop,
+//                                remoteAddress: requestRemote)
+    }
+    
+    func validate<V>(one parameter: UUID) throws -> V {
+        guard let request = self.request else {
+            fatalError("EndpointValidator tried to validate parameter while no request was present.")
+        }
+        guard var validator = self.validators[parameter] else {
+            fatalError("EndpointValidator tried to validate an unknown parameter.")
+        }
+        
+        do {
+            let result = try validator.validate(request, with: Void())
+            self.validators[parameter] = validator
+            validated += [parameter]
+            
+            guard let typedResult = result as? V else {
+                fatalError("Validation failed to detect wrong type or wrong type was requested for parameter.")
+            }
+            return typedResult
+        } catch {
+            for id in validated {
+                if var validator = validators[id] {
+                    validator.reset()
+                    validators[id] = validator
+                }
+            }
+            throw error
+        }
     }
     
     func reset() {
-        for validatorIndex in validators.indices {
-            validators[validatorIndex].1.reset()
+        for (id, _) in validators {
+            validators[id]?.reset()
         }
+        self.validated = []
     }
 }
 

@@ -82,7 +82,7 @@ class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: Conne
     private let exporter: I
     private let endpoint: EndpointInstance<H>
 
-    private var validator: AnyValidator<I, EventLoop, ValidatedRequest<I, H>>
+    private var validator: AnyValidator<I, EventLoop, ValidatingRequest<I, H>>
     private var requestHandler: InternalEndpointRequestHandler<I, H> {
         InternalEndpointRequestHandler(endpoint: self.endpoint, exporter: self.exporter)
     }
@@ -103,13 +103,13 @@ class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: Conne
     ) -> EventLoopFuture<Response<EnrichedContent>> {
         do {
             let newRequest = self.latestRequest?.reduce(to: exporterRequest) ?? exporterRequest
-            let validatedRequest = try validator.validate(newRequest, with: eventLoop)
+            let validatingRequest = try validator.validate(newRequest, with: eventLoop)
             
             self.latestRequest = newRequest
 
-            let connection = Connection(state: final ? .end : .open, request: validatedRequest)
+            let connection = Connection(state: final ? .end : .open, request: validatingRequest)
 
-            return requestHandler(with: validatedRequest, on: connection)
+            return requestHandler(with: validatingRequest, on: connection)
         } catch {
             return eventLoop.makeFailedFuture(error)
         }
@@ -121,10 +121,10 @@ class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: Conne
             guard let latestRequest = latestRequest else {
                 fatalError("Can only handle changes to observed object after an initial client-request")
             }
-            let validatedRequest = try validator.validate(latestRequest, with: eventLoop)
-            let connection = Connection(state: .open, request: validatedRequest)
+            let validatingRequest = try validator.validate(latestRequest, with: eventLoop)
+            let connection = Connection(state: .open, request: validatingRequest)
 
-            return self.requestHandler(with: validatedRequest, on: connection).map { response in
+            return self.requestHandler(with: validatingRequest, on: connection).map { response in
                 observedObject.changed = false
                 return response
             }
