@@ -7,24 +7,23 @@
 
 import Foundation
 
-//@dynamicMemberLookup
-public struct Delegate<H: Handler> {
+@dynamicMemberLookup
+public struct Delegate<D> {
     
-    var handler: H
+    var delegate: D
     
     var connection = Environment(\.connection)
     
-    public init(_ handler: H) {
-        self.handler = handler
+    public init(_ delegate: D) {
+        self.delegate = delegate
     }
     
-    public subscript<T>(dynamicMember keyPath: KeyPath<H, T>) -> T {
-        handler[keyPath: keyPath]
+    public subscript<T>(dynamicMember keyPath: KeyPath<D, T>) -> T {
+        delegate[keyPath: keyPath]
     }
     
-    public func evaluate() throws -> H.Response {
-        return try connection.wrappedValue.request.enterRequestContext(with: handler) { handler in
-            try handler.handle()
-        }
+    public func callAsFunction() throws -> D {
+        try connection.wrappedValue.request.enterRequestContext(with: delegate) { _ in Void() }
+        return delegate
     }
 }

@@ -1,13 +1,14 @@
+import ApodiniUtils
+
 /// A property wrapper to inject pre-defined values  to a `Component`.
 @propertyWrapper
 public struct Environment<K: EnvironmentAccessible, Value>: Property {
     /// Keypath to access an `EnvironmentValue`.
     internal var keyPath: KeyPath<K, Value>
-    internal var dynamicValues: [KeyPath<K, Value>: Any] = [:]
+    internal var storage: Box<[KeyPath<K, Value>: Any]>?
+    private var dynamicValues = [KeyPath<K, Value>: Any]()
 
     private var app: Application?
-    /// `@Environment` can only be accessed from a `Request`.
-    private var canAccess = false
     
     /// Initializer of `Environment` specifically for `Application` for less verbose syntax.
     public init(_ keyPath: KeyPath<K, Value>) where K == Application {
@@ -24,11 +25,11 @@ public struct Environment<K: EnvironmentAccessible, Value>: Property {
         guard let app = app else {
             fatalError("The Application instance wasn't injected correctly.")
         }
-        guard canAccess else {
+        guard let dynamicValues = storage else {
             fatalError("The wrapped value was accessed before it was activated.")
         }
         
-        if let value = dynamicValues[keyPath] as? Value, dynamicValues[keyPath] != nil {
+        if let value = dynamicValues.value[keyPath] as? Value, dynamicValues.value[keyPath] != nil {
             return value
         }
         if let key = keyPath as? KeyPath<Application, Value> {
@@ -46,8 +47,16 @@ public struct Environment<K: EnvironmentAccessible, Value>: Property {
     }
 
     /// Sets the value for the given KeyPath.
-    mutating func setValue(_ value: Value, for keyPath: WritableKeyPath<K, Value>) {
-        self.dynamicValues[keyPath] = value
+    mutating func prepareValue(_ value: Value, for keyPath: WritableKeyPath<K, Value>) {
+        dynamicValues[keyPath] = value
+    }
+    
+    /// Sets the value for the given KeyPath for an **activated** Environment.
+    func setValue(_ value: Value, for keyPath: WritableKeyPath<K, Value>) {
+        guard let dynamicValues = storage else {
+            fatalError("The wrapped value was accessed before it was activated.")
+        }
+        dynamicValues.value[keyPath] = value
     }
 }
 
@@ -59,7 +68,7 @@ extension Environment: ApplicationInjectable {
 
 extension Environment: Activatable {
     mutating func activate() {
-        canAccess = true
+        storage = Box(self.dynamicValues)
     }
 }
 

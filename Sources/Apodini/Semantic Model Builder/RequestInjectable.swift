@@ -10,7 +10,7 @@ import NIO
 
 
 protocol RequestInjectable {
-    mutating func inject(using request: Request) throws
+    func inject(using request: Request) throws
     func accept(_ visitor: RequestInjectableVisitor)
 }
 

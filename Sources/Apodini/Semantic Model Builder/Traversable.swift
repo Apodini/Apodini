@@ -47,43 +47,38 @@ func extractRequestInjectables<Element>(from subject: Element) -> [(String, Requ
 extension Apodini.Request {
     func enterRequestContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>)
                    throws -> EventLoopFuture<R> {
-        var element = element
-        try inject(in: &element)
-
+        try inject(in: element)
         return method(element)
     }
 
     func enterRequestContext<E, R>(with element: E, executing method: (E) throws -> R) throws -> R {
-        var element = element
-        try inject(in: &element)
+        try inject(in: element)
         return try method(element)
     }
     
-    fileprivate func inject<E>(in element: inout E) throws {
+    fileprivate func inject<E>(in element: E) throws {
         // Inject all properties that can be injected using RequestInjectable
         
-        try apply({ (requestInjectable: inout RequestInjectable) in
+        try execute({ (requestInjectable: RequestInjectable) in
             try requestInjectable.inject(using: self)
-        }, to: &element)
+        }, on: element)
     }
 }
 
 // MARK: ConnectionContext
 
 extension Connection {
-    func enterConnectionContext<E, R>(with element: E, executing method: (E) throws -> R) throws -> R {
-        var element = element
+    func enterConnectionContext<E, R>(with element: E, executing method: (E) throws -> R) throws -> R {        
+        try request.inject(in: element)
         
-        try request.inject(in: &element)
-        
-        self.update(&element)
+        self.update(element)
         return try method(element)
     }
     
-    private func update<E>(_ element: inout E) {
-        apply({ (environment: inout Environment<Application, Connection>) in
+    private func update<E>(_ element: E) {
+        execute({ (environment: Environment<Application, Connection>) in
             environment.setValue(self, for: \.connection)
-        }, to: &element)
+        }, on: element)
     }
 }
 
@@ -93,7 +88,7 @@ extension Handler {
         var selfCopy = self
 
         apply({ (environment: inout Environment<K, Value>) in
-            environment.setValue(value, for: keyPath)
+            environment.prepareValue(value, for: keyPath)
         }, to: &selfCopy)
         
         return selfCopy
@@ -373,7 +368,7 @@ extension Delegate: Traversable {
         if let conn = connection as? Target {
             try operation(conn, "connection")
         }
-        try Apodini.execute(operation, on: handler, using: names)
+        try Apodini.execute(operation, on: delegate, using: names)
     }
     
     mutating func apply(_ mutation: (inout RequestInjectable, String) throws -> Void, using names: [String]) rethrows {
@@ -385,7 +380,7 @@ extension Delegate: Traversable {
             try mutation(&conn, "connection")
             self.connection = conn as! Environment<Application, Connection>
         }
-        try Apodini.apply(mutation, to: &handler, using: names)
+        try Apodini.apply(mutation, to: &delegate, using: names)
     }
 }
 

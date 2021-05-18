@@ -28,12 +28,12 @@ public struct Parameter<Element: Codable>: Property {
     internal let options: PropertyOptionSet<ParameterOptionNameSpace>
     internal let defaultValue: (() -> Element)?
     
-    private var element: Element?
+    private var storage: Box<Element?>?
     
     
     /// The value for the `@Parameter` as defined by the incoming request
     public var wrappedValue: Element {
-        guard let element = element else {
+        guard let element = storage?.value else {
             fatalError("You can only access a parameter while you handle a request")
         }
         
@@ -132,11 +132,21 @@ public struct Parameter<Element: Codable>: Property {
 }
 
 extension Parameter: RequestInjectable {
-    mutating func inject(using request: Request) throws {
-        element = try request.retrieveParameter(self)
+    func inject(using request: Request) throws {
+        guard let storage = self.storage else {
+            fatalError("Cannot inject request before Parameter was activated.")
+        }
+        
+        storage.value = try request.retrieveParameter(self)
     }
 
     func accept(_ visitor: RequestInjectableVisitor) {
         visitor.visit(self)
+    }
+}
+
+extension Parameter: Activatable {
+    mutating func activate() {
+        self.storage = Box(self.defaultValue?() ?? nil)
     }
 }

@@ -5,12 +5,6 @@
 //  Created by Max Obermeier on 01.01.21.
 //
 
-
-// Validators are stateful -> Endpoint context required
-// Solution: inject Parameter with ValidatingRequest, refers to a lazy version of EndpointValidator for retrieving parameters.
-// ConnectionContext provides EndpointValidator with safepoints. EndpointValidator restores itself to those points when an Apodini.BadRequest
-// is thrown.
-
 import Foundation
 import NIO
 @_implementationOnly import AssociatedTypeRequirementsVisitor
