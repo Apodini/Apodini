@@ -90,7 +90,7 @@ internal class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
     
     private let endpoint: Endpoint<H>
     
-    private var validated: [UUID] = []
+    private var validated: [UUID:Any] = [:]
     
     private var request: I.ExporterRequest?
     
@@ -107,7 +107,7 @@ internal class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
     
     
     func validate(_ request: I.ExporterRequest, with eventLoop: EventLoop) throws -> ValidatingRequest<I, H> {
-        self.validated = []
+        self.validated = [:]
         self.request = request
         
         let requestRemote = (request as? WithRemote)?.remoteAddress
@@ -118,54 +118,42 @@ internal class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
                                  on: endpoint,
                                  running: eventLoop,
                                  remoteAddress: requestRemote)
-        
-//        var output: [UUID: Any] = [:]
-//
-//        for validatorIndex in validators.indices {
-//            do {
-//                output[validators[validatorIndex].0] = try validators[validatorIndex].1.validate(request, with: Void())
-//            } catch {
-//                for validatorToResetIndex in validators[0..<validatorIndex].indices {
-//                    validators[validatorToResetIndex].1.reset()
-//                }
-//                throw error
-//            }
-//        }
-//
-//        let requestRemote = (request as? WithRemote)?.remoteAddress
-//
-//        return ValidatedRequest(for: exporter,
-//                                with: request,
-//                                using: output,
-//                                on: endpoint,
-//                                running: eventLoop,
-//                                remoteAddress: requestRemote)
     }
     
     func validate<V>(one parameter: UUID) throws -> V {
+        if let cachedResult = validated[parameter] {
+            guard let typedResult = cachedResult as? V else {
+                fatalError("Validation failed to detect wrong type or wrong type was requested for parameter.")
+            }
+            return typedResult
+        }
+        
         guard let request = self.request else {
             fatalError("EndpointValidator tried to validate parameter while no request was present.")
         }
+        
         guard var validator = self.validators[parameter] else {
-            fatalError("EndpointValidator tried to validate an unknown parameter.")
+            throw ApodiniError(type: .badInput, description: "EndpointValidator tried to validate an unknown parameter.")
         }
         
         do {
             let result = try validator.validate(request, with: Void())
             self.validators[parameter] = validator
-            validated += [parameter]
+            validated[parameter] = result
             
             guard let typedResult = result as? V else {
                 fatalError("Validation failed to detect wrong type or wrong type was requested for parameter.")
             }
+            
             return typedResult
         } catch {
-            for id in validated {
+            for (id, _) in validated {
                 if var validator = validators[id] {
                     validator.reset()
                     validators[id] = validator
                 }
             }
+            validated = [:]
             throw error
         }
     }
@@ -174,7 +162,7 @@ internal class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
         for (id, _) in validators {
             validators[id]?.reset()
         }
-        self.validated = []
+        self.validated = [:]
     }
 }
 

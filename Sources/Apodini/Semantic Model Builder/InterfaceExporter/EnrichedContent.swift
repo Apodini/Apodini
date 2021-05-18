@@ -11,9 +11,9 @@ public struct EnrichedContent: Encodable {
     private let endpoint: AnyEndpoint
 
     public let response: AnyEncodable
-    private let parameters: [UUID: Any]
+    private let parameters: (UUID) -> Any?
 
-    init(for endpoint: AnyEndpoint, response: AnyEncodable, parameters: [UUID: Any]) {
+    init(for endpoint: AnyEndpoint, response: AnyEncodable, parameters: @escaping (UUID) -> Any?) {
         self.endpoint = endpoint
         self.response = response
         self.parameters = parameters

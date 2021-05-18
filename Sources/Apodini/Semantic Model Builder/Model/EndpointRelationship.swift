@@ -200,6 +200,7 @@ public struct RelationshipDestination: CustomStringConvertible, Hashable {
     /// Resolves any path parameters contained in the `destinationPath` if
     /// there is a resolver and a value for it.
     internal mutating func resolveParameters(context: ResolveContext) {
+        print(self.destinationPath)
         destinationPath = destinationPath.map { path in
             if case let .parameter(parameter) = path {
                 var parameter = parameter.toInternal()

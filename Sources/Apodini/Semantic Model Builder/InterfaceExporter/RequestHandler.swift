@@ -63,7 +63,8 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
             EnrichedContent(
                 for: instance.endpoint,
                 response: anyEncodable,
-                parameters: [:] // TODO: this breaks link formatting in relationship-focused InterfaceExporters. This Information should be retrieved via a custom Validator and a new Validator extension on ConnectionContext
+                parameters: { uuid in
+                    try? validatedRequest.retrieveAnyParameter(uuid) }
             )
         }
     }

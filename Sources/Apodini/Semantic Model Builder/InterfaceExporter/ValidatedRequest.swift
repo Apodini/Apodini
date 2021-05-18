@@ -102,4 +102,8 @@ struct ValidatingRequest<I: InterfaceExporter, H: Handler>: Request {
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element {
         try endpointValidator.validate(one: parameter.id)
     }
+    
+    func retrieveAnyParameter(_ id: UUID) throws -> Any {
+        try endpointValidator.validate(one: id)
+    }
 }
