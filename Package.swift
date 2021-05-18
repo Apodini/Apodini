@@ -294,6 +294,7 @@ let package = Package(
             name: "ApodiniDelta",
             dependencies: [
                 .target(name: "Apodini"),
+                .target(name: "ApodiniVaporSupport"),
                 .product(name: "ApodiniMigrator", package: "ApodiniMigrator")
             ]
         ),

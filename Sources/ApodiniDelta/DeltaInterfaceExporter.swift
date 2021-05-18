@@ -8,6 +8,7 @@
 import Foundation
 import Apodini
 import ApodiniMigrator
+@_implementationOnly import ApodiniVaporSupport
 
 public final class DeltaInterfaceExporter: StaticInterfaceExporter {
     public static var parameterNamespace: [ParameterNamespace] = .individual
@@ -17,7 +18,9 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
     
     public init(_ app: Application) {
         self.app = app
-        self.document = Document()
+        document = Document()
+        
+        setServerPath()
     }
     
     public func export<H>(_ endpoint: Apodini.Endpoint<H>) where H: Handler {
@@ -29,19 +32,46 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
         let path = endpoint.absolutePath.asPathString()
         let response = document.reference(try! TypeInformation(type: endpoint[ResponseType.self].type))
         
+        let errors: [ErrorCode] = [
+            .init(code: 401, message: "Unauthorized"),
+            .init(code: 403, message: "Forbidden"),
+            .init(code: 404, message: "Not found"),
+            .init(code: 500, message: "Internal server error")
+        ]
+
         let endpoint = ApodiniMigrator.Endpoint(
             handlerName: handlerName,
             deltaIdentifier: identifier.rawValue,
             operation: .init(operation),
             absolutePath: path,
             parameters: params,
-            response: response
+            response: response,
+            errors: errors
         )
         document.add(endpoint: endpoint)
     }
     
     public func finishedExporting(_ webService: WebServiceModel) {
         try! document.export(at: Path("/Users/eld/Desktop/document.json"))
+    }
+    
+    private func setServerPath() {
+        let isHttps = app.http.tlsConfiguration != nil
+        var hostName: String?
+        var port: Int?
+        if case let .hostname(configuredHost, port: configuredPort) = app.http.address {
+            hostName = configuredHost
+            port = configuredPort
+        } else {
+            let configuration = app.vapor.app.http.server.configuration
+            hostName = configuration.hostname
+            port = configuration.port
+        }
+        
+        if let hostName = hostName, let port = port {
+            let serverPath = "http\(isHttps ? "s" : "")://\(hostName):\(port)"
+            document.setServerPath(serverPath)
+        }
     }
 }
 
