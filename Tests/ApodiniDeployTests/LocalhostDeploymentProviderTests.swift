@@ -70,7 +70,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             launchInCurrentProcessGroup: false
         )
         
-        let expectedNumberOfServers = 6
+        let expectedNumberOfNodes = 6
         
         /// Expectation that the deployment provider runs, computes the deployment, and launches the web service.
         let launchDPExpectation = XCTestExpectation("Run deployment provider & launch web service")
@@ -81,14 +81,14 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         let responseExpectationV1Greeter = XCTestExpectation("Web Service response for /v1/greet/ request")
         
         /// Expectation that the servers spawned as part of launching the web service are all shut down
-        let didShutDownServersExpectation = XCTestExpectation(
+        let didShutDownNodesExpectation = XCTestExpectation(
             "Did shut down servers",
-            expectedFulfillmentCount: expectedNumberOfServers,
+            expectedFulfillmentCount: expectedNumberOfNodes,
             assertForOverFulfill: true
         )
-        /// Expectation that the proxy server is shut down
-        let proxyDidShutDownServer = XCTestExpectation("Task did terminate")
-        proxyDidShutDownServer.assertForOverFulfill = true
+        /// Expectation that the gateway server is shut down
+        let didShutDownGateway = XCTestExpectation("Task did terminate")
+        didShutDownGateway.assertForOverFulfill = true
         /// Expectation that the task terminated. This is used to keep the test case running as long as the task is still running
         let taskDidTerminateExpectation = XCTestExpectation("Task did terminate")
         taskDidTerminateExpectation.assertForOverFulfill = true
@@ -161,7 +161,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 )
             }
             
-            if startedServers.count == expectedNumberOfServers {
+            if startedServers.count == expectedNumberOfNodes + 1 {
                 XCTAssertEqualIgnoringOrder(startedServers, [
                     // the gateway
                     StartedServerInfo(ipAddress: "127.0.0.1", port: 8080),
@@ -174,18 +174,18 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                     StartedServerInfo(ipAddress: "127.0.0.1", port: 5005)
                 ])
                 launchDPExpectation.fulfill()
-            } else if startedServers.count < expectedNumberOfServers {
-                //print("servers were started, but not four. servers: \(startedServers.map { "\($0.ipAddress):\($0.port)" })")
+            } else if startedServers.count < expectedNumberOfNodes {
+                // print("servers were started, but not \(expectedNumberOfNodes). servers: \(startedServers.map { "\($0.ipAddress):\($0.port)" })")
             }
         }
         
         
         // Wait for the first phase to complete.
-        // We give the deployment provider 25 minutes to compile and launch the web service.
+        // We give the deployment provider 30 minutes to compile and launch the web service.
         // This timeout is significantly larger than the other ones because the compilation step
         // needs to fetch and compile all dependencies of the web service, the deployment provider, and Apodini,
         // which can take a long time.
-        wait(for: [launchDPExpectation], timeout: 60 * 45)
+        wait(for: [launchDPExpectation], timeout: 30 * 60)
         
         resetOutput()
         stdioObserverHandle = nil
@@ -282,16 +282,16 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         stdioObserverHandle = task.observeOutput { _, data, _ in
             let text = XCTUnwrapWithFatalError(String(data: data, encoding: .utf8))
             for _ in 0..<(text.components(separatedBy: "Application shutting down [pid=").count - 1) {
-                didShutDownServersExpectation.fulfill()
-                NSLog("shutDownServers_a.fulfill() %i", didShutDownServersExpectation.assertForOverFulfill)
+                didShutDownNodesExpectation.fulfill()
+                NSLog("shutDownServers_a.fulfill() %i", didShutDownNodesExpectation.assertForOverFulfill)
             }
             if text.contains("notice DeploymentTargetLocalhost.ProxyServer : shutdown") {
-                proxyDidShutDownServer.fulfill()
-                NSLog("shutDownServers_b.fulfill() %i", proxyDidShutDownServer.assertForOverFulfill)
+                didShutDownGateway.fulfill()
+                NSLog("shutDownServers_b.fulfill() %i", didShutDownGateway.assertForOverFulfill)
             }
         }
         
-        wait(for: [taskDidTerminateExpectation, didShutDownServersExpectation, proxyDidShutDownServer], timeout: 35, enforceOrder: false)
+        wait(for: [taskDidTerminateExpectation, didShutDownNodesExpectation, didShutDownGateway], timeout: 60, enforceOrder: false)
         
         // Destroy the observer token, thus deregistering the underlying observer.
         // The important thing here is that we need to make sure the lifetimes of the observer token and the task
