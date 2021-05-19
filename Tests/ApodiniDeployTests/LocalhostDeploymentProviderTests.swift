@@ -56,6 +56,15 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             print("Skipping test case '\(#function)'.")
             return
         }
+        
+        runShellCommand(.killPort(8080))
+        runShellCommand(.killPort(5000))
+        runShellCommand(.killPort(5001))
+        runShellCommand(.killPort(5002))
+        runShellCommand(.killPort(5003))
+        runShellCommand(.killPort(5004))
+        runShellCommand(.killPort(5005))
+        
         precondition(task == nil)
         
         let srcRoot = try Self.replicateApodiniSrcRootInTmpDir()
