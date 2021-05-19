@@ -42,8 +42,14 @@ jobs:
     - name: Build & Test
       if: matrix.configuration == 'debug'
       run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
-    - name: Localhost Provider Tests
+    - name: Run Deployment Provider Tests
       if: ${{ matrix.linux == 'focal' && matrix.configuration == 'debug' }}
-      run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
+      run: |
+        swift test --configuration ${{ matrix.configuration }} --enable-test-discovery --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
+        swift test --configuration ${{ matrix.configuration }} --enable-test-discovery --filter ApodiniDeployTests.LambdaDeploymentProviderTests
       env:
         ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
