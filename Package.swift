@@ -40,7 +40,8 @@ let package = Package(
         .library(name: "DeploymentTargetLocalhostRuntime", targets: ["DeploymentTargetLocalhostRuntime"]),
         .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"]),
         // XCTApodini
-        .library(name: "XCTApodini", targets: ["XCTApodini"])
+        .library(name: "XCTApodini", targets: ["XCTApodini"]),
+        .library(name: "XCTApodiniDatabase", targets: ["XCTApodiniDatabase"])
     ],
     dependencies: [
         //.package(name: "ApodiniDeploy", path: "./ApodiniDeploy"),
