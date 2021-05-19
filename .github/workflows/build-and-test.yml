@@ -22,8 +22,6 @@ jobs:
       matrix:
         linux: [bionic, xenial, focal, amazonlinux2, centos8]
         configuration: [debug, release]
-    env:
-      ENABLE_DEPLOYMENT_PROVIDER_TESTS: ${{ startsWith( matrix.linux, 'focal' ) && 'YES' || 'NO' }}
     steps:
     - uses: actions/checkout@v2
     - name: Install libsqlite3, lsof and zsh
@@ -44,3 +42,8 @@ jobs:
     - name: Build & Test
       if: matrix.configuration == 'debug'
       run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
+    - name: Localhost Provider Tests
+      if: ${{ matrix.linux == 'focal' && matrix.configuration == 'debug' }}
+      run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
+      env:
+        ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
