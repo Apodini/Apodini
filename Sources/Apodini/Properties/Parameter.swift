@@ -25,7 +25,7 @@ public struct Parameter<Element: Codable>: Property {
     let id: UUID
     let name: String?
     
-    internal let options: PropertyOptionSet<ParameterOptionNameSpace>
+    internal var options: PropertyOptionSet<ParameterOptionNameSpace>
     internal let defaultValue: (() -> Element)?
     
     private var storage: Box<Element?>?

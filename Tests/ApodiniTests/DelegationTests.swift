@@ -20,7 +20,7 @@ final class DelegationTests: ApodiniTests {
     }
     
     struct TestHandler: Handler {
-        var delegate = Delegate(TestDelegate())
+        let delegate = Delegate(TestDelegate())
         
         @Parameter var name: String
         

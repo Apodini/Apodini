@@ -11,7 +11,7 @@ extension OpenAPI.Parameter.Context {
     init?(_ endpointParameter: AnyEndpointParameter) {
         switch endpointParameter.parameterType {
         case .lightweight:
-            self = .query
+                self = .query(required: !endpointParameter.nilIsValidValue && endpointParameter.option(for: PropertyOptionKey.optionality) != Optionality.optional)
         case .path:
             self = .path
         case .content, .header:
