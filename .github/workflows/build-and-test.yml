@@ -10,6 +10,11 @@ on:
       - develop
       - release
   workflow_dispatch:
+    inputs:
+      runDeploymentProviderTests:
+        description: 'Run the Apodini Deployment Provider Tests'
+        required: false
+        default: false
 
 jobs:
   linux:
@@ -43,7 +48,7 @@ jobs:
       if: matrix.configuration == 'debug'
       run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
     - name: Run Deployment Provider Tests
-      if: ${{ matrix.linux == 'focal' && matrix.configuration == 'debug' }}
+      if: ${{ github.event.inputs.runDeploymentProviderTests && matrix.linux == 'focal' && matrix.configuration == 'debug' }}
       run: |
         swift test --configuration ${{ matrix.configuration }} --enable-test-discovery --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
         swift test --configuration ${{ matrix.configuration }} --enable-test-discovery --filter ApodiniDeployTests.LambdaDeploymentProviderTests
