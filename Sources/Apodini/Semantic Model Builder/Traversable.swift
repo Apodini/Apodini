@@ -33,12 +33,12 @@ public func activate<Element>(_ subject: inout Element) {
     }, to: &subject)
 }
 
-// MARK: RequestInjectable
-func extractRequestInjectables<Element>(from subject: Element) -> [(String, RequestInjectable)] {
-    var result: [(String, RequestInjectable)] = []
+// MARK: AnyParameter
+func extractParameters<Element>(from subject: Element) -> [(String, AnyParameter)] {
+    var result: [(String, AnyParameter)] = []
     
-    execute({ (injectable: RequestInjectable, label: String) in
-        result.append((label, injectable))
+    execute({ (parameter: AnyParameter, label: String) in
+        result.append((label, parameter))
     }, on: subject)
     
     return result
@@ -365,17 +365,21 @@ extension Optional: Traversable {
 
 extension Delegate: Traversable {
     func execute<Target>(_ operation: (Target, String) throws -> Void, using names: [String]) rethrows {
+        guard Target.self != RequestInjectable.self else {
+            return // ignore RequestInjectables, as they are injected lazily later on
+        }
+        
         if let conn = connection as? Target {
             try operation(conn, "connection")
         }
         try Apodini.execute(operation, on: delegate, using: names)
     }
     
-    mutating func apply(_ mutation: (inout RequestInjectable, String) throws -> Void, using names: [String]) rethrows {
-        // do not inject requests
-    }
-    
     mutating func apply<Target>(_ mutation: (inout Target, String) throws -> Void, using names: [String]) rethrows {
+        guard Target.self != RequestInjectable.self else {
+            return // ignore RequestInjectables, as they are injected lazily later on
+        }
+        
         if var conn = connection as? Target {
             try mutation(&conn, "connection")
             self.connection = conn as! Environment<Application, Connection>

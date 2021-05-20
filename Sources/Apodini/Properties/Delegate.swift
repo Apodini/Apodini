@@ -7,7 +7,6 @@
 
 import Foundation
 
-@dynamicMemberLookup
 public struct Delegate<D> {
     
     var delegate: D
@@ -16,10 +15,6 @@ public struct Delegate<D> {
     
     public init(_ delegate: D) {
         self.delegate = delegate
-    }
-    
-    public subscript<T>(dynamicMember keyPath: KeyPath<D, T>) -> T {
-        delegate[keyPath: keyPath]
     }
     
     public func callAsFunction() throws -> D {

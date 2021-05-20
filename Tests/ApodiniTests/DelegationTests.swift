@@ -4,125 +4,107 @@
 //
 //  Created by Max Obermeier on 17.05.21.
 //
-//
-//@testable import Apodini
-//import ApodiniREST
-//import XCTApodini
-//import XCTVapor
-//import XCTest
-//
-//
-//final class DelegationTests: ApodiniTests {
-//
-//    struct TestHandler: Handler {
-//
-//
-//        func handle() -> Apodini.Response<String> {
-//            switch connection.state {
-//            case .open:
-//                return .send(openMessage)
-//            case .end:
-//                return .final(endMessage)
-//            }
-//        }
-//    }
-//
-//    func testDefaultConnectionEnvironment() throws {
-//        var testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage).inject(app: app)
-//        activate(&testHandler)
-//
-//        let endpoint = testHandler.mockEndpoint(app: app)
-//
-//        let exporter = MockExporter<String>()
-//        let context = endpoint.createConnectionContext(for: exporter)
-//
-//        try XCTCheckResponse(
-//            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
-//            content: endMessage,
-//            connectionEffect: .close
-//        )
-//    }
-//
-//    func testConnectionInjection() throws {
-//        let mockRequest = MockRequest.createRequest(running: app.eventLoopGroup.next(), queuedParameters: .none)
-//        var testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage).inject(app: app)
-//        activate(&testHandler)
-//
-//        var connection = Connection(state: .open, request: mockRequest)
-//        _ = try connection.enterConnectionContext(with: testHandler) { handler in
-//            try XCTCheckResponse(
-//                handler.handle(),
-//                content: openMessage,
-//                connectionEffect: .open
-//            )
-//        }
-//
-//        connection.state = .end
-//        _ = try connection.enterConnectionContext(with: testHandler) { handler in
-//            try XCTCheckResponse(
-//                handler.handle(),
-//                content: endMessage,
-//                connectionEffect: .close
-//            )
-//        }
-//    }
-//
-////    func testConnectionRemoteAddress() throws {
-////        struct TestHandler: Handler {
-////            @Apodini.Environment(\.connection)
-////            var connection: Connection
-////
-////            func handle() -> String {
-////                connection.remoteAddress?.description ?? "no remote"
-////            }
-////        }
-////
-////        struct TestWebService: WebService {
-////            var content: some Component {
-////                TestHandler()
-////            }
-////
-////            var configuration: Configuration {
-////                ExporterConfiguration()
-////                    .exporter(RESTInterfaceExporter.self)
-////            }
-////        }
-////
-////        TestWebService.main(app: app)
-////
-////        try app.vapor.app.test(.GET, "/v1/") { res in
-////            XCTAssertEqual(res.status, .ok)
-////            XCTAssert(res.body.string.contains("127.0.0.1:8080"))
-////        }
-////    }
-////
-////    func testConnectionEventLoop() throws {
-////        struct TestHandler: Handler {
-////            @Apodini.Environment(\.connection)
-////            var connection: Connection
-////
-////            func handle() -> String {
-////                connection.eventLoop.assertInEventLoop()
-////                return "success"
-////            }
-////        }
-////
-////        struct TestWebService: WebService {
-////            var content: some Component {
-////                TestHandler()
-////            }
-////
-////            var configuration: Configuration {
-////                ExporterConfiguration()
-////                    .exporter(RESTInterfaceExporter.self)
-////            }
-////        }
-////
-////        TestWebService.main(app: app)
-////
-////        try app.vapor.app.test(.GET, "/v1/") { res in
-////            XCTAssertEqual(res.status, .ok)
-////        }
-////    }
-//}
-//
+
+@testable import Apodini
+import ApodiniREST
+import XCTApodini
+import XCTVapor
+import XCTest
+
+
+final class DelegationTests: ApodiniTests {
+
+    struct TestDelegate {
+        @Parameter var message: String
+        @Apodini.Environment(\.connection) var connection
+    }
+    
+    struct TestHandler: Handler {
+        var delegate = Delegate(TestDelegate())
+        
+        @Parameter var name: String
+        
+        @Throws(.forbidden) var badUserNameError: ApodiniError
+
+        func handle() throws -> Apodini.Response<String> {
+            guard name == "Max" else {
+                return .final("Invalid Login")
+            }
+            
+            let delegate = try delegate()
+            
+            switch delegate.connection.state {
+            case .open:
+                return .send(delegate.message)
+            case .end:
+                return .final(delegate.message)
+            }
+        }
+    }
+
+    func testValidDelegateCall() throws {
+        var testHandler = TestHandler().inject(app: app)
+        activate(&testHandler)
+
+        let endpoint = testHandler.mockEndpoint(app: app)
+
+        let exporter = MockExporter<String>(queued: "Max", "Hello, World!")
+        let context = endpoint.createConnectionContext(for: exporter)
+        
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
+            content: "Hello, World!",
+            connectionEffect: .close
+        )
+    }
+    
+    func testMissingParameterDelegateCall() throws {
+        var testHandler = TestHandler().inject(app: app)
+        activate(&testHandler)
+
+        let endpoint = testHandler.mockEndpoint(app: app)
+
+        let exporter = MockExporter<String>(queued: "Max")
+        let context = endpoint.createConnectionContext(for: exporter)
+        
+        XCTAssertThrowsError(try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()).wait())
+    }
+    
+    func testLazynessDelegateCall() throws {
+        var testHandler = TestHandler().inject(app: app)
+        activate(&testHandler)
+
+        let endpoint = testHandler.mockEndpoint(app: app)
+
+        let exporter = MockExporter<String>(queued: "Not Max")
+        let context = endpoint.createConnectionContext(for: exporter)
+        
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
+            content: "Invalid Login",
+            connectionEffect: .close
+        )
+    }
+    
+    func testConnectionAwareDelegate() throws {
+        var testHandler = TestHandler().inject(app: app)
+        activate(&testHandler)
+
+        let endpoint = testHandler.mockEndpoint(app: app)
+
+        let exporter = MockExporter<String>(queued: "Max", "Hello, Paul!", "Max", "Hello, World!")
+        let context = endpoint.createConnectionContext(for: exporter)
+        
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next(), final: false),
+            content: "Hello, Paul!",
+            connectionEffect: .open
+        )
+        
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
+            content: "Hello, World!",
+            connectionEffect: .close
+        )
+    }
+}

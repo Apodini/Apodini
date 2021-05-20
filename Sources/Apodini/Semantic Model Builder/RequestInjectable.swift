@@ -11,32 +11,35 @@ import NIO
 
 protocol RequestInjectable {
     func inject(using request: Request) throws
-    func accept(_ visitor: RequestInjectableVisitor)
 }
 
-extension RequestInjectable {
-    func accept(_ visitor: RequestInjectableVisitor) {
+protocol AnyParameter {
+    func accept(_ visitor: AnyParameterVisitor)
+}
+
+extension AnyParameter {
+    func accept(_ visitor: AnyParameterVisitor) {
         visitor.visit(self)
     }
 }
 
-protocol RequestInjectableVisitor {
-    func visit<Injectable: RequestInjectable>(_ requestInjectable: Injectable)
+protocol AnyParameterVisitor {
+    func visit<P: AnyParameter>(_ parameter: P)
 
     func visit<Element>(_ parameter: Parameter<Element>)
 }
-extension RequestInjectableVisitor {
-    func visit<Injectable: RequestInjectable>(_ requestInjectable: Injectable) {}
+extension AnyParameterVisitor {
+    func visit<P: AnyParameter>(_ parameter: P) {}
     func visit<Element>(_ parameter: Parameter<Element>) {}
 }
 
 extension Handler {
-    func extractRequestInjectables() -> [(String, RequestInjectable)] {
-        Apodini.extractRequestInjectables(from: self)
+    func extractParameters() -> [(String, AnyParameter)] {
+        Apodini.extractParameters(from: self)
     }
 }
 extension AnyResponseTransformer {
-    func extractRequestInjectables() -> [(String, RequestInjectable)] {
-        Apodini.extractRequestInjectables(from: self)
+    func extractParameters() -> [(String, AnyParameter)] {
+        Apodini.extractParameters(from: self)
     }
 }

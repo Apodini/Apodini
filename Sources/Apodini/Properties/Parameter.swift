@@ -139,8 +139,10 @@ extension Parameter: RequestInjectable {
         
         storage.value = try request.retrieveParameter(self)
     }
+}
 
-    func accept(_ visitor: RequestInjectableVisitor) {
+extension Parameter: AnyParameter {
+    func accept(_ visitor: AnyParameterVisitor) {
         visitor.visit(self)
     }
 }
