@@ -1,7 +1,7 @@
 // swiftlint:disable all
 // This file was automatically generated and should not be edited.
 
-@resultBuilder
+@_functionBuilder
 public struct RelationshipIdentificationBuilder<From> {
     public static func buildBlock<To0: Identifiable>(_ identification0: RelationshipIdentification<From, To0>) -> [AnyRelationshipIdentification] {
         [AnyRelationshipIdentification(from: identification0)]
