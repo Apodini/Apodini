@@ -1,7 +1,7 @@
 // swiftlint:disable all
 // This file was automatically generated and should not be edited.
 
-@resultBuilder
+@_functionBuilder
 public struct ComponentBuilder {
     public static func buildIf<T: Component>(_ component: T?) -> T? {
         return component
