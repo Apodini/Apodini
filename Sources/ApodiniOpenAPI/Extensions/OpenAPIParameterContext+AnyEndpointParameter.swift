@@ -20,6 +20,8 @@ extension OpenAPI.Parameter.Context {
     }
     
     private static func isRequired(_ endpointParameter: AnyEndpointParameter) -> Bool {
-        !endpointParameter.nilIsValidValue && endpointParameter.option(for: PropertyOptionKey.optionality) != Optionality.optional
+        !endpointParameter.nilIsValidValue
+            && !endpointParameter.hasDefaultValue
+            && endpointParameter.option(for: PropertyOptionKey.optionality) != Optionality.optional
     }
 }
