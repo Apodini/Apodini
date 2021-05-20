@@ -149,6 +149,6 @@ extension Parameter: AnyParameter {
 
 extension Parameter: Activatable {
     mutating func activate() {
-        self.storage = Box(self.defaultValue?() ?? nil)
+        self.storage = Box(self.defaultValue?())
     }
 }

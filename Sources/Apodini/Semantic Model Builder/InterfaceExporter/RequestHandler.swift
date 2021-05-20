@@ -63,8 +63,7 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
             EnrichedContent(
                 for: instance.endpoint,
                 response: anyEncodable,
-                parameters: { uuid in
-                    try? validatedRequest.retrieveAnyParameter(uuid) }
+                parameters: { uuid in try? validatedRequest.retrieveAnyParameter(uuid) }
             )
         }
     }

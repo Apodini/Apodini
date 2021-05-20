@@ -13,14 +13,13 @@ import XCTest
 
 
 final class DelegationTests: ApodiniTests {
-
     struct TestDelegate {
         @Parameter var message: String
         @Apodini.Environment(\.connection) var connection
     }
     
     struct TestHandler: Handler {
-        let delegate = Delegate(TestDelegate())
+        let testD = Delegate(TestDelegate())
         
         @Parameter var name: String
         
@@ -31,7 +30,7 @@ final class DelegationTests: ApodiniTests {
                 return .final("Invalid Login")
             }
             
-            let delegate = try delegate()
+            let delegate = try testD()
             
             switch delegate.connection.state {
             case .open:

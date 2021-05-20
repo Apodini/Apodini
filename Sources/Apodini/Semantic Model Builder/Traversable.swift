@@ -68,7 +68,7 @@ extension Apodini.Request {
 // MARK: ConnectionContext
 
 extension Connection {
-    func enterConnectionContext<E, R>(with element: E, executing method: (E) throws -> R) throws -> R {        
+    func enterConnectionContext<E, R>(with element: E, executing method: (E) throws -> R) throws -> R {
         try request.inject(in: element)
         
         self.update(element)
@@ -375,7 +375,9 @@ extension Delegate: Traversable {
                 var parameter = parameter
                 parameter.options.addOption(self.optionality, for: PropertyOptionKey.optionality)
                 try operation(parameter as! Target, name)
-            }, on: delegate, using: names)
+            },
+            on: delegate,
+            using: names)
             return
         }
         
@@ -398,7 +400,9 @@ extension Delegate: Traversable {
                 var typedParameter = parameter as! Target
                 try mutation(&typedParameter, name)
                 parameter = typedParameter as! AnyParameter
-            }, to: &delegate, using: names)
+            },
+            to: &delegate,
+            using: names)
             return
         }
         

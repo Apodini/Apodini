@@ -25,14 +25,15 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
     struct SomeComp: Handler {
         @Parameter var name: String
         
-        let delegate = Delegate(SomeDelegate())
-        let requiredDelegate = Delegate(SomeRequiredDelegate(), .required)
+        let someD = Delegate(SomeDelegate())
+        let requiredD = Delegate(SomeRequiredDelegate(), .required)
 
         func handle() -> SomeStruct {
             SomeStruct()
         }
     }
 
+    // swiftlint:disable:next function_body_length
     func testAddEndpoint() throws {
         let comp = SomeComp()
         let webService = WebServiceModel()
@@ -57,10 +58,22 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
                         description: endpoint.description,
                         operationId: endpoint[AnyHandlerIdentifier.self].rawValue,
                         parameters: [
-                            Either.parameter(name: "name", context: .query(required: true), schema: .string, description: "@Parameter var name: String"),
-                            Either.parameter(name: "lazyoptional", context: .query(required: false), schema: .string, description: "@Parameter var lazyoptional: String"),
-                            Either.parameter(name: "required", context: .query(required: true), schema: .string, description: "@Parameter var required: String"),
-                            Either.parameter(name: "realoptional", context: .query(required: false), schema: .string, description: "@Parameter var realoptional: String?")
+                            Either.parameter(name: "name",
+                                             context: .query(required: true),
+                                             schema: .string,
+                                             description: "@Parameter var name: String"),
+                            Either.parameter(name: "lazyoptional",
+                                             context: .query(required: false),
+                                             schema: .string,
+                                             description: "@Parameter var lazyoptional: String"),
+                            Either.parameter(name: "required",
+                                             context: .query(required: true),
+                                             schema: .string,
+                                             description: "@Parameter var required: String"),
+                            Either.parameter(name: "realoptional",
+                                             context: .query(required: false),
+                                             schema: .string,
+                                             description: "@Parameter var realoptional: String?")
                         ],
                         responses: [
                             .status(code: 200): .init(

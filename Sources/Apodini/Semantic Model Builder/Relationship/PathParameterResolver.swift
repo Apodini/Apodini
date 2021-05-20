@@ -22,7 +22,7 @@ protocol AnyPathParameterResolver: CustomStringConvertible {
 }
 
 /// Context struct to handle resolve step.
-struct ResolveContext {    
+struct ResolveContext {
     /// The content of the response.
     let content: Any
     /// The parameter values of the current request

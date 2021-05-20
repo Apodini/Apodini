@@ -7,19 +7,29 @@
 
 import Foundation
 
+/// A `Delegate` is a lazy version of `DynamicProperty`. That is, your delegate `D` can wrap
+/// multiple `Property`s and their functionality is maintained. The `Delegate` type makes its wrapped
+/// instance of `D` discoverable to the Apodini runtime framework. Moreover, it delays initialization and verification
+/// of `@Parameter`s to the point where you call `Delegate` as a function. This enables you to decode
+/// input lazily and to do manual error handling in case decoding fails.
+/// - Warning: `D` must be a `struct`
 public struct Delegate<D> {
-    
+    // swiftlint:disable:next weak_delegate
     var delegate: D
     
     var connection = Environment(\.connection)
     
     let optionality: Optionality
     
+    /// Create a `Delegate` from the given struct `delegate`.
+    /// - Parameter `delegate`: the wrapped instance
+    /// - Parameter `optionality`: the `Optionality` for all `@Parameter`s of the `delegate`
     public init(_ delegate: D, _ optionality: Optionality = .optional) {
         self.delegate = delegate
         self.optionality = optionality
     }
     
+    /// Prepare the wrapped delegate `D` for usage.
     public func callAsFunction() throws -> D {
         try connection.wrappedValue.request.enterRequestContext(with: delegate) { _ in Void() }
         return delegate
@@ -39,5 +49,6 @@ public enum Optionality: PropertyOption {
 }
 
 extension PropertyOptionKey where PropertyNameSpace == ParameterOptionNameSpace, Option == Optionality {
+    /// The key for `Optionality` of a `Parameter`
     public static let optionality = PropertyOptionKey<ParameterOptionNameSpace, Optionality>()
 }

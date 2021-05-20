@@ -84,7 +84,7 @@ internal class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
     
     private let endpoint: Endpoint<H>
     
-    private var validated: [UUID:Any] = [:]
+    private var validated: [UUID: Any] = [:]
     
     private var request: I.ExporterRequest?
     
@@ -94,7 +94,7 @@ internal class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
     ) {
         self.exporter = exporter
         self.endpoint = endpoint
-        self.validators = endpoint[EndpointParameters.self].reduce(into: [UUID: AnyValidator<I, Void, Any>]()) { (validators, parameter) in
+        self.validators = endpoint[EndpointParameters.self].reduce(into: [UUID: AnyValidator<I, Void, Any>]()) { validators, parameter in
             validators[parameter.id] = parameter.toInternal().representative(for: exporter)
         }
     }
@@ -107,11 +107,11 @@ internal class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
         let requestRemote = (request as? WithRemote)?.remoteAddress
         
         return ValidatingRequest<I, H>(for: exporter,
-                                 with: request,
-                                 using: self,
-                                 on: endpoint,
-                                 running: eventLoop,
-                                 remoteAddress: requestRemote)
+                                       with: request,
+                                       using: self,
+                                       on: endpoint,
+                                       running: eventLoop,
+                                       remoteAddress: requestRemote)
     }
     
     func validate<V>(one parameter: UUID) throws -> V {
