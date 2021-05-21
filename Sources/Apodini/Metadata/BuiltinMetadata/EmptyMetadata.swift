@@ -2,19 +2,19 @@
 // Created by Andreas Bauer on 21.05.21.
 //
 
-extension HandlerMetadataScope {
+extension HandlerMetadataNamespace {
     public typealias Empty = EmptyHandlerMetadata
 }
 
-extension ComponentMetadataScope {
+extension ComponentMetadataNamespace {
     public typealias Empty = EmptyComponentOnlyMetadata
 }
 
-extension WebServiceMetadataScope {
+extension WebServiceMetadataNamespace {
     public typealias Empty = EmptyWebServiceMetadata
 }
 
-extension ContentMetadataScope {
+extension ContentMetadataNamespace {
     public typealias Empty = EmptyContentMetadata
 }
 

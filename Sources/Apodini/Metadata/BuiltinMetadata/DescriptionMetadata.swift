@@ -7,11 +7,11 @@
 //  Therefore we should try to make some preexisting stuff facilitating
 //  the metadata infrastructure to easily add Handler/Component/(WebService) modifiers
 
-public extension ComponentMetadataScope {
+public extension ComponentMetadataNamespace {
     typealias Description = ComponentDescriptionMetadata
 }
 
-public extension ContentMetadataScope {
+public extension ContentMetadataNamespace {
     typealias Description = ContentDescriptionMetadata
 }
 

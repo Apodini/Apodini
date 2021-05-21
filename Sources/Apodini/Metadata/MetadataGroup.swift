@@ -15,7 +15,7 @@ extension HandlerMetadataGroup {
     }
 }
 
-public protocol ComponentOnlyMetadataGroup: AnyMetadataGroup, AnyComponentOnlyMetadata {
+public protocol ComponentOnlyMetadataGroup: AnyMetadataGroup, AnyComponentOnlyMetadata, ComponentMetadataNamespace {
     @MetadataBuilder
     var content: AnyComponentOnlyMetadata { get }
 }
@@ -38,7 +38,7 @@ extension WebServiceMetadataGroup {
 }
 
 // TODO docs: ComponentMetadataGroup is not similar to ComponentMetadataDefinition, that it doesn't inherit from
-public protocol ComponentMetadataGroup: AnyMetadataGroup, AnyComponentMetadata {
+public protocol ComponentMetadataGroup: AnyMetadataGroup, AnyComponentMetadata, ComponentMetadataNamespace {
     @ComponentMetadataBuilder
     var content: AnyComponentMetadata { get }
 }
@@ -64,19 +64,19 @@ extension ContentMetadataGroup {
 // TODO don't really like the "Collect" name; think of something else, which doesn't collide with "Group"
 //    => At the end it should match the e.g. "HandlerMetadataGroup" names, cause they are intended to be used
 //       by the user as well
-extension ComponentMetadataScope {
+extension ComponentMetadataNamespace {
     public typealias Collect = StandardComponentMetadataGroup
 }
 
-extension HandlerMetadataScope {
+extension HandlerMetadataNamespace {
     public typealias Collect = StandardHandlerMetadataGroup
 }
 
-extension WebServiceMetadataScope {
+extension WebServiceMetadataNamespace {
     public typealias Collect = StandardWebServiceMetadataGroup
 }
 
-extension ContentMetadataScope {
+extension ContentMetadataNamespace {
     public typealias Collect = StandardContentMetadataGroup
 }
 

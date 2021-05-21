@@ -13,7 +13,7 @@ import ApodiniUtils
 /// A `Component` is the central building block of  Apodini. Each component handles a specific functionality of the Apodini web service.
 ///
 /// A `Component`  consists of different other components as described by the `content` property.
-public protocol Component {
+public protocol Component: ComponentMetadataNamespace {
     /// The type of `Component` this `Component` is made out of if the component is a composition of multiple subcomponents.
     associatedtype Content: Component
 

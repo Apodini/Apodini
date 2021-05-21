@@ -11,7 +11,7 @@ import _NIOConcurrency
 #endif
 
 /// A `Handler` is a `Component` which defines an endpoint and can handle requests.
-public protocol Handler: Component {
+public protocol Handler: HandlerMetadataNamespace, Component {
     /// The type that is returned from the `handle()` method when the component handles a request. The return type of the `handle` method is encoded into the response send out to the client.
     associatedtype Response: ResponseTransformable
 

@@ -6,11 +6,11 @@ public struct ParameterDescriptionContextKey: OptionalContextKey {
     public typealias Value = String
 }
 
-public extension ComponentMetadataScope {
+public extension ComponentMetadataNamespace {
     typealias ParameterDescription = ParameterDescriptionMetadata
 }
 
-public extension ComponentMetadataScope {
+public extension ComponentMetadataNamespace {
     typealias ParameterDescriptions = RestrictedComponentMetadataGroup<ParameterDescriptionMetadata>
 }
 
