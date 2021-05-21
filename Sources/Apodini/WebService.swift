@@ -11,7 +11,7 @@ import Logging
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
 public protocol WebService: Component, ConfigurationCollection {
-    typealias Metadata = WebServiceMetadataContainer
+    typealias Metadata = AnyWebServiceMetadata
 
     /// The current version of the `WebService`
     var version: Version { get }
@@ -22,8 +22,8 @@ public protocol WebService: Component, ConfigurationCollection {
 
 // MARK: Metadata DSL
 public extension WebService {
-    var metadata: WebServiceMetadataContainer {
-        WebServiceMetadataContainer()
+    var metadata: AnyWebServiceMetadata {
+        Empty()
     }
 }
 

@@ -4,8 +4,8 @@
 
 // TODO currently there is also the preexisting .description modifier
 //  while this is fine, it is pretty tedious to implement (Handler)Modifier.
-//  Therefore we should try to make some preexisting stuff facitiltating
-//  the metadata infrastructure to easiyl add Handler/Componenet/(WebService) modifiers
+//  Therefore we should try to make some preexisting stuff facilitating
+//  the metadata infrastructure to easily add Handler/Component/(WebService) modifiers
 
 public extension ComponentMetadataScope {
     typealias Description = ComponentDescriptionMetadata
@@ -16,7 +16,7 @@ public extension ContentMetadataScope {
 }
 
 
-public struct ComponentDescriptionMetadata: ComponentMetadata {
+public struct ComponentDescriptionMetadata: ComponentMetadataDeclaration {
     public typealias Key = DescriptionContextKey
 
     public let value: String
@@ -31,7 +31,7 @@ public struct ContentDescriptionContextKey: OptionalContextKey {
     public typealias Value = String
 }
 
-public struct ContentDescriptionMetadata: ContentMetadata {
+public struct ContentDescriptionMetadata: ContentMetadataDeclaration {
     public typealias Key = ContentDescriptionContextKey
 
     public let value: String

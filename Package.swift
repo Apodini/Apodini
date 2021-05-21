@@ -115,9 +115,7 @@ let package = Package(
             ),
             exclude: [
                 "Components/ComponentBuilder.swift.gyb",
-                "Relationships/RelationshipIdentificationBuilder.swift.gyb",
-                "Metadata/ResultBuilder/CustomMetadataGroupBuilder.swift.gyb",
-                "Metadata/ResultBuilder/MetadataContainerBuilder.swift.gyb"
+                "Relationships/RelationshipIdentificationBuilder.swift.gyb"
             ],
             swiftSettings: [
                 .unsafeFlags(experimentalAsyncAwait ? [

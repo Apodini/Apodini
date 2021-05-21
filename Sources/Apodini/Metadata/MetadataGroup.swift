@@ -2,65 +2,113 @@
 // Created by Andreas Bauer on 16.05.21.
 //
 
-public protocol MetadataGroup: AnyMetadata {
-    var content: AnyMetadata { get }
+public protocol AnyMetadataGroup: AnyMetadata {}
+
+public protocol HandlerMetadataGroup: AnyMetadataGroup, AnyHandlerMetadata {
+    @MetadataBuilder
+    var content: AnyHandlerMetadata { get }
 }
 
-public extension MetadataGroup {
-    typealias Key = Never // groups don't expose data themselves, See `KeyedMetadata`
-    var value: Never.Value {
-        fatalError("Cannot access the value of a Metadata Group")
+extension HandlerMetadataGroup {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
+        content.accept(visitor)
     }
+}
 
-    func acceptVisitor(_ visitor: SyntaxTreeVisitor) {
+public protocol ComponentOnlyMetadataGroup: AnyMetadataGroup, AnyComponentOnlyMetadata {
+    @MetadataBuilder
+    var content: AnyComponentOnlyMetadata { get }
+}
+
+extension ComponentOnlyMetadataGroup {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
+        content.accept(visitor)
+    }
+}
+
+public protocol WebServiceMetadataGroup: AnyMetadataGroup, AnyWebServiceMetadata {
+    @MetadataBuilder
+    var content: AnyWebServiceMetadata { get }
+}
+
+extension WebServiceMetadataGroup {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
+        content.accept(visitor)
+    }
+}
+
+// TODO docs: ComponentMetadataGroup is not similar to ComponentMetadataDeclaration, that it doesn't inherit from
+public protocol ComponentMetadataGroup: AnyMetadataGroup, AnyComponentMetadata {
+    @ComponentMetadataBuilder
+    var content: AnyComponentMetadata { get }
+}
+
+extension ComponentMetadataGroup {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
+        content.accept(visitor)
+    }
+}
+
+public protocol ContentMetadataGroup: AnyMetadataGroup, AnyContentMetadata {
+    @MetadataBuilder
+    var content: AnyContentMetadata { get }
+}
+
+extension ContentMetadataGroup {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         content.accept(visitor)
     }
 }
 
 
-public struct ComponentMetadataGroup: MetadataGroup, ComponentOnlyMetadata {
-    public var content: AnyMetadata
-    
-    public init(@MetadataContainerBuilder container: () -> ComponentMetadataContainer) {
-        self.content = container().content
-    }
-}
-
-public struct HandlerMetadataGroup: MetadataGroup, HandlerMetadata {
-    public var content: AnyMetadata
-    
-    public init(@MetadataContainerBuilder container: () -> HandlerMetadataContainer) {
-        self.content = container().content
-    }
-}
-
-public struct WebServiceMetadataGroup: MetadataGroup, WebServiceMetadata {
-    public var content: AnyMetadata
-    
-    public init(@MetadataContainerBuilder container: () -> WebServiceMetadataContainer) {
-        self.content = container().content
-    }
-}
-
-public struct ContentMetadataGroup: MetadataGroup, ContentMetadata {
-    public var content: AnyMetadata
-    
-    public init(@MetadataContainerBuilder container: () -> ContentMetadataContainer) {
-        self.content = container().content
-    }
-}
-
 // TODO don't really like the "Collect" name; think of something else, which doesn't collide with "Group"
-//    => Maybe also then adjust XXXXMetadataGroup names
+//    => At the end it should match the e.g. "HandlerMetadataGroup" names, cause they are intended to be used
+//       by the user as well
 extension ComponentMetadataScope {
-    public typealias Collect = ComponentMetadataGroup
+    public typealias Collect = StandardComponentMetadataGroup
 }
+
 extension HandlerMetadataScope {
-    public typealias Collect = HandlerMetadataGroup
+    public typealias Collect = StandardHandlerMetadataGroup
 }
+
 extension WebServiceMetadataScope {
-    public typealias Collect = WebServiceMetadataGroup
+    public typealias Collect = StandardWebServiceMetadataGroup
 }
+
 extension ContentMetadataScope {
-    public typealias Collect = ContentMetadataGroup
+    public typealias Collect = StandardContentMetadataGroup
+}
+
+
+public struct StandardHandlerMetadataGroup: HandlerMetadataGroup {
+    public var content: AnyHandlerMetadata
+
+    public init(@MetadataBuilder content: () -> AnyHandlerMetadata) {
+        self.content = content()
+    }
+}
+
+public struct StandardComponentMetadataGroup: ComponentOnlyMetadataGroup {
+    public var content: AnyComponentOnlyMetadata
+    
+    public init(@MetadataBuilder content: () -> AnyComponentOnlyMetadata) {
+        self.content = content()
+    }
+}
+
+public struct StandardWebServiceMetadataGroup: WebServiceMetadataGroup {
+    public var content: AnyWebServiceMetadata
+    
+    public init(@MetadataBuilder content: () -> AnyWebServiceMetadata) {
+        self.content = content()
+    }
+}
+
+public struct StandardContentMetadataGroup: ContentMetadataGroup {
+    public var content: AnyContentMetadata
+    
+    public init(@MetadataBuilder content: () -> AnyContentMetadata) {
+        self.content = content()
+    }
 }

@@ -27,10 +27,6 @@ public struct Group<Content: Component>: Component, SyntaxTreeVisitable {
         self.pathComponents = path()
         self.content = content()
     }
-
-    public var metadata: Metadata {
-        Description("THis is a group") // TODO remove
-    }
     
     public func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.enterContent {

@@ -12,15 +12,15 @@ import Foundation
 /// `Content` includes the conformance to `Encodable`. If the types implement the `Encodable` requirements the type doesn't need to provide additional
 /// implementation steps to conform to `ResponseTransformable`.
 public protocol Content: Encodable & ResponseTransformable {
-    associatedtype Metadata = ContentMetadataContainer
+    typealias Metadata = AnyContentMetadata
 
-    @MetadataContainerBuilder
+    @MetadataBuilder
     static var metadata: Metadata { get }
 }
 
 // MARK: Metadata DSL
 public extension Content {
-    static var metadata: ContentMetadataContainer {
-        ContentMetadataContainer()
+    static var metadata: AnyContentMetadata {
+        Empty()
     }
 }
