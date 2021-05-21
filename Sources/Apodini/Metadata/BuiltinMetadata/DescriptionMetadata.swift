@@ -10,10 +10,6 @@ public extension ComponentMetadataNamespace {
     typealias Description = ComponentDescriptionMetadata
 }
 
-public extension ContentMetadataNamespace {
-    typealias Description = ContentDescriptionMetadata
-}
-
 public struct ComponentDescriptionMetadata: ComponentMetadataDefinition {
     public typealias Key = DescriptionContextKey
 

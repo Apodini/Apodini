@@ -14,14 +14,18 @@ public protocol Modifier: Component {
     var component: ModifiedComponent { get }
 }
 
+// Workaround for the "swift conditional conformance does not imply conformance to inherited protocol" compiler error
 /// A modifier which can be invoked on a `Handler` or a `Component`
-public protocol HandlerModifier: Modifier, Handler where ModifiedComponent: Handler {
+public typealias HandlerModifier = HandlerModifierProto & Handler & HandlerMetadataNamespace
+
+/// A modifier which can be invoked on a `Handler` or a `Component`
+public protocol HandlerModifierProto: Modifier, Handler where ModifiedComponent: Handler {
     associatedtype Response = ModifiedComponent.Response
     var component: ModifiedComponent { get }
 }
 
 
-public extension HandlerModifier {
+public extension HandlerModifierProto {
     /// `HandlerModifier`s don't provide any further content
     /// - Note: this property should not be implemented in a modifier type
     var content: some Component { EmptyComponent() }

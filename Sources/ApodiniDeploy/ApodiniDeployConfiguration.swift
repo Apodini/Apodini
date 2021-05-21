@@ -105,7 +105,7 @@ public struct DeploymentOptionsModifier<C: Component>: Modifier, SyntaxTreeVisit
     }
 }
 
-extension DeploymentOptionsModifier: Handler, HandlerModifier where Self.ModifiedComponent: Handler {
+extension DeploymentOptionsModifier: HandlerModifier where Self.ModifiedComponent: Handler {
     public typealias Response = ModifiedComponent.Response
 }
 
