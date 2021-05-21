@@ -2,10 +2,9 @@
 // Created by Andreas Bauer on 17.05.21.
 //
 
-// TODO currently there is also the preexisting .description modifier
-//  while this is fine, it is pretty tedious to implement (Handler)Modifier.
-//  Therefore we should try to make some preexisting stuff facilitating
-//  the metadata infrastructure to easily add Handler/Component/(WebService) modifiers
+public struct DescriptionContextKey: OptionalContextKey {
+    public typealias Value = String
+}
 
 public extension ComponentMetadataNamespace {
     typealias Description = ComponentDescriptionMetadata
@@ -14,7 +13,6 @@ public extension ComponentMetadataNamespace {
 public extension ContentMetadataNamespace {
     typealias Description = ContentDescriptionMetadata
 }
-
 
 public struct ComponentDescriptionMetadata: ComponentMetadataDefinition {
     public typealias Key = DescriptionContextKey
@@ -26,17 +24,18 @@ public struct ComponentDescriptionMetadata: ComponentMetadataDefinition {
     }
 }
 
-// TODO currently its own thing, as Content Metadata is added to the same context as the Handler
-public struct ContentDescriptionContextKey: OptionalContextKey {
-    public typealias Value = String
+extension Component {
+    public func description(_ value: String) -> ComponentMetadataModifier<Self, ComponentDescriptionMetadata> {
+        ComponentMetadataModifier(modifies: self, with: ComponentDescriptionMetadata(value))
+    }
 }
 
-public struct ContentDescriptionMetadata: ContentMetadataDefinition {
-    public typealias Key = ContentDescriptionContextKey
-
-    public let value: String
-
-    public init(_ description: String) {
-        self.value = description
+extension Handler {
+    /// A `description` modifier can be used to explicitly specify the `description` for the given `Handler`
+    /// - Parameter description: The `description` that is used to for the handler
+    /// - Returns: The modified `Handler` with a specified `description`
+    /// TODO maybe some words about Metadata relation?
+    public func description(_ value: String) -> HandlerMetadataModifier<Self, ComponentDescriptionMetadata> {
+        HandlerMetadataModifier(modifies: self, with: ComponentDescriptionMetadata(value))
     }
 }
