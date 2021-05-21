@@ -33,12 +33,14 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         let awsRegionName: String
         let awsS3BucketName: String
         let awsS3BucketPath: String = "ApodiniDeployTests"
+        let awsAPIGatewayAPIID: String
         
         do {
             awsAccessKeyId = try Self.readEnvironmentVariable("AWS_ACCESS_KEY_ID")
             awsSecretAccessKey = try Self.readEnvironmentVariable("AWS_SECRET_ACCESS_KEY")
             awsRegionName = try Self.readEnvironmentVariable("AWS_REGION")
             awsS3BucketName = try Self.readEnvironmentVariable("S3_BUCKET_NAME")
+            awsAPIGatewayAPIID = (try? Self.readEnvironmentVariable("API_GATEWAY_ID")) ?? "_createNew"
         } catch {
             print("Error parsing environment: \(error)")
             print("Skipping test '\(#function)'.")
@@ -56,7 +58,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
                 "--aws-region", awsRegionName,
                 "--s3-bucket-name", awsS3BucketName,
                 "--s3-bucket-path", awsS3BucketPath,
-                "--aws-api-gateway-api-id", "_createNew"
+                "--aws-api-gateway-api-id", awsAPIGatewayAPIID
             ],
             workingDirectory: nil,
             captureOutput: true,
@@ -95,9 +97,9 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         task = nil
         
         
-        print("witing a bit so that the deployed resources are available")
-        sleep(7)
-        
+        print("Waiting a bit so that the deployed resources are available")
+        sleep(30)
+        print("Investigate the deployed resources")
         
         // It's important that the test continues until the end, since we need to (at least attempt to) clean up the AWS resources...
         continueAfterFailure = true
@@ -198,6 +200,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
             }
         }
         
+        print("Send requests to lambda functions")
         
         do { // Send some test requests to the /v1/rand endpoint
             let numRandTests = 25
@@ -256,30 +259,41 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         let lambda = Lambda(client: awsClient, region: awsRegion)
         let apiGateway = ApiGatewayV2(client: awsClient, region: awsRegion)
         
-        print("deleting s3 object")
-        _ = try s3.deleteObject(.init(bucket: awsS3BucketName, key: "\(awsS3BucketPath)/lambda.out.zip")).wait()
-        
-        for functionName in lambdaFunctionNames {
-            print("deleting lambda function \(functionName)")
-            try lambda.deleteFunction(.init(functionName: functionName)).wait()
+        do {
+            print("Deleting s3 object")
+            let response = try s3.deleteObject(.init(bucket: awsS3BucketName, key: "\(awsS3BucketPath)/lambda.out.zip")).wait()
+            print(response)
+            
+            for functionName in lambdaFunctionNames {
+                print("Deleting lambda function \(functionName)")
+                try lambda.deleteFunction(.init(functionName: functionName)).wait()
+            }
+            
+            if awsAPIGatewayAPIID == "_createNew" {
+                print("Deleting API gateway")
+                try apiGateway.deleteApi(.init(apiId: apiGatewayApiId)).wait()
+            } else {
+                print("Do not delete API gateway \(awsAPIGatewayAPIID) as it was passed to the test case as a specific argument")
+            }
+            
+            let detachRolePolicy = { (arn: String) throws -> Void in
+                print("Detaching policy from execution role. Role: '\(iamExecutionRoleName)' policy: \(arn)")
+                try iam.detachRolePolicy(IAM.DetachRolePolicyRequest(
+                    policyArn: arn,
+                    roleName: iamExecutionRoleName
+                )).wait()
+            }
+            
+            try detachRolePolicy("arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole")
+            try detachRolePolicy("arn:aws:iam::aws:policy/service-role/AWSLambdaRole")
+            
+            print("Deleting IAM Lambda execution role \(iamExecutionRoleName)")
+            try iam.deleteRole(IAM.DeleteRoleRequest(roleName: iamExecutionRoleName)).wait()
+        } catch {
+            XCTFail(error.localizedDescription)
         }
         
-        print("deleting API gateway")
-        try apiGateway.deleteApi(.init(apiId: apiGatewayApiId)).wait()
-        
-        let detachRolePolicy = { (arn: String) throws -> Void in
-            print("Detaching policy from execution role. Role: '\(iamExecutionRoleName)' policy: \(arn)")
-            try iam.detachRolePolicy(IAM.DetachRolePolicyRequest(
-                policyArn: arn,
-                roleName: iamExecutionRoleName
-            )).wait()
-        }
-        try detachRolePolicy("arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole")
-        try detachRolePolicy("arn:aws:iam::aws:policy/service-role/AWSLambdaRole")
-        
-        print("Deleting IAM Lambda execution role \(iamExecutionRoleName)")
-        try iam.deleteRole(IAM.DeleteRoleRequest(roleName: iamExecutionRoleName)).wait()
-        
+        print("Test complete, shutting down AWS client")
         try awsClient.syncShutdown()
     }
     
@@ -288,6 +302,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         to path: String, invokeUrl: String, responseValidator: @escaping (HTTPURLResponse, Data) throws -> Void
     ) throws -> URLSessionDataTask {
         let url = try XCTUnwrap(URL(string: "\(invokeUrl)\(path)"))
+        print("Send Request to \(url)")
         return URLSession.shared.dataTask(with: url) { data, response, error in
             if let error = error {
                 XCTFail("Unexpected error in request: \(error.localizedDescription)")
