@@ -25,9 +25,20 @@ public class Task {
         String(cString: ApodiniProcessIsChildInvocationWrapperCLIArgument)
     
     
-    public enum TaskError: Swift.Error {
-        case other(String)
+    public struct TaskError: Swift.Error {
+        public let message: String
     }
+    
+    
+    public enum StdioType: CaseIterable {
+        case stdout, stderr, stdin
+    }
+    
+    /// Function type used to observe a task's output.
+    /// 1st parameter indicates the origin of this specific event (stdout or stderr, unless the two were merged).
+    /// 2nd parameter are the data written by the task. 3rd parameter is the task itself.
+    public typealias StdioObserverSignature = (StdioType, Data, Task) -> Void
+    private typealias StdioObserverRegistrationToken = Box<StdioObserverSignature>
     
     /// Info about why and how a task was terminated
     public struct TerminationInfo {
@@ -57,6 +68,12 @@ public class Task {
     private let stderrPipe = Pipe()
     private let stdinPipe = Pipe()
     
+    private var stdioFileHandlesObserverTokens: (AnyObject, AnyObject)?
+    private var didRegisterStdioFileHandleObservers: Bool {
+        stdioFileHandlesObserverTokens != nil
+    }
+    private var registeredStdioHandlers: [Weak<StdioObserverRegistrationToken>] = []
+    
     /// Whether the launched task should be put into the same process group as the current process.
     /// Any still-running tasks put in the same group as the current process will be terminated when when the current process exits.
     private let launchInCurrentProcessGroup: Bool
@@ -64,19 +81,19 @@ public class Task {
     /// The argv with which the task will be launched.
     /// - Note: this property can only be mutated while as the task is not running
     public var arguments: [String] {
-        willSet { assertCanMutate() }
+        willSet { try! assertCanMutate() } // swiftlint:disable:this force_try
     }
     
     /// The task's environment variables
     /// - Note: this property can only be mutated while as the task is not running
     public var environment: [String: String] {
-        willSet { assertCanMutate() }
+        willSet { try! assertCanMutate() } // swiftlint:disable:this force_try
     }
     
     /// Whether the process should inherit its parent's (ie, the current process') environment variables
     /// - Note: this property can only be mutated while as the task is not running
     public var inheritsParentEnvironment: Bool {
-        willSet { assertCanMutate() }
+        willSet { try! assertCanMutate() } // swiftlint:disable:this force_try
     }
     
     
@@ -86,8 +103,10 @@ public class Task {
         process.processIdentifier
     }
     
-    private func assertCanMutate() {
-        precondition(!isRunning, "Cannot mutate running task")
+    private func assertCanMutate() throws {
+        guard !isRunning else {
+            throw TaskError(message: "Cannot mutate running task")
+        }
     }
     
     
@@ -108,6 +127,7 @@ public class Task {
         arguments: [String] = [],
         workingDirectory: URL? = nil,
         captureOutput: Bool = false,
+        redirectStderrToStdout: Bool = false,
         launchInCurrentProcessGroup: Bool,
         environment: [String: String] = [:],
         inheritsParentEnvironment: Bool = true
@@ -128,7 +148,20 @@ public class Task {
             process.standardError = stderrPipe
             process.standardInput = stdinPipe
         }
+        if redirectStderrToStdout {
+            process.standardError = stdoutPipe
+        }
         Self.registerAtexitHandlerIfNecessary()
+    }
+    
+    
+    deinit {
+        if let fileHandleObservers = stdioFileHandlesObserverTokens {
+            NotificationCenter.default.removeObserver(fileHandleObservers.0)
+            NotificationCenter.default.removeObserver(fileHandleObservers.1)
+            stdioFileHandlesObserverTokens = nil
+        }
+        print("Task.deinit")
     }
     
     
@@ -196,18 +229,115 @@ public class Task {
         self.terminationHandler = nil
         Self.taskPool.write { $0.remove(self) }
     }
+}
+
+
+// MARK: Task + Stdio Handling
+
+extension Task {
+    /// Merge the task's stdout and stderr streams.
+    /// This will redirect stderr to stdout.
+    public func mergeStdoutAndStderr() throws {
+        try assertCanMutate()
+        process.standardError = stdoutPipe
+    }
+    
+    /// Whether the task is capturing the child's standard output stream
+    public var isCapturingStdout: Bool {
+        (process.standardOutput as? Pipe) == stdoutPipe
+    }
+    
+    /// Whether the task is capturing the child's standard error stream
+    public var isCapturingStderr: Bool {
+        if let stderr = process.standardError as? Pipe {
+            return stderr == stderrPipe || stderr == stdoutPipe
+        } else {
+            return false
+        }
+    }
+    
+    /// Whether the task is capturing the child's standard input stream
+    public var isCapturingStdin: Bool {
+        (process.standardInput as? Pipe) == stdinPipe
+    }
     
     
-    /// Read the task's stdout.
+    /// Whether the task is capturing the child's stdout, stdin, and stderr.
+    public var isCapturingStdio: Bool {
+        isCapturingStdout && isCapturingStderr && isCapturingStdin
+    }
+    
+    
+    /// Whether the task's standard error is redirected to its standard output.
+    public var isStderrRedirectedToStdout: Bool {
+        get {
+            if let errPipe = process.standardError as? Pipe {
+                return errPipe == stdoutPipe
+            } else {
+                return false
+            }
+        }
+        set {
+            try! assertCanMutate() // swiftlint:disable:this force_try
+            process.standardError = newValue ? stdoutPipe : stderrPipe
+        }
+    }
+    
+    
+    /// Read the task's available stdout.
     /// - Note: This only works if the task was created with the `captureOutput` option set to `true`
-    public func readStdout(usingStringEncoding encoding: String.Encoding = .utf8) throws -> String {
+    public func readStdoutToEnd(usingStringEncoding encoding: String.Encoding = .utf8) throws -> String {
         try stdoutPipe.readUntilEndAsString(encoding: encoding)
     }
     
-    /// Read the task's stderr.
+    /// Read the task's available stderr.
     /// - Note: This only works if the task was created with the `captureOutput` option set to `true`
-    public func readStderr(usingStringEncoding encoding: String.Encoding = .utf8) throws -> String {
+    public func readStderrToEnd(usingStringEncoding encoding: String.Encoding = .utf8) throws -> String {
         try stderrPipe.readUntilEndAsString(encoding: encoding)
+    }
+    
+    
+    /// Register an observer function which will get called when the task emits output.
+    /// This will observe data written to both the task's standard output stream as well as its standard error stream.
+    public func observeOutput(_ handler: @escaping StdioObserverSignature) -> AnyObject {
+        registerStdioFileHandleObserversIfNecessary()
+        let registration = Box<StdioObserverSignature>(handler)
+        registeredStdioHandlers.append(Weak(registration))
+        return registration
+    }
+    
+    
+    private func registerStdioFileHandleObserversIfNecessary() {
+        guard !didRegisterStdioFileHandleObservers else {
+            return
+        }
+        
+        func imp(fileHandle fileHandleToObserve: FileHandle, stdioType: StdioType) -> AnyObject {
+            fileHandleToObserve.waitForDataInBackgroundAndNotify()
+            return NotificationCenter.default.addObserver(
+                forName: .NSFileHandleDataAvailable,
+                object: fileHandleToObserve,
+                queue: nil
+            ) { [weak self] notification in
+                guard let self = self, let fileHandle = notification.object as? FileHandle, fileHandle == fileHandleToObserve else {
+                    return
+                }
+
+                let data = fileHandle.availableData
+                if !data.isEmpty {
+                    self.registeredStdioHandlers
+                        .compactMap(\.value?.value)
+                        .forEach { $0(stdioType, data, self) }
+                }
+                
+                fileHandle.waitForDataInBackgroundAndNotify()
+            }
+        }
+        
+        stdioFileHandlesObserverTokens = (
+            imp(fileHandle: stdoutPipe.fileHandleForReading, stdioType: .stdout),
+            imp(fileHandle: stderrPipe.fileHandleForReading, stdioType: .stderr)
+        )
     }
 }
 
@@ -244,6 +374,7 @@ extension Task: CustomStringConvertible {
 extension Task {
     /// Kill all child processes which were launched in the current process group and are currently running, by sending them the `SIGTERM` signal.
     public static func killAllInChildrenInProcessGroup() {
+        print(#function)
         sendSignalToAllChildrenInProcessGroup(signal: SIGTERM)
     }
     
@@ -325,35 +456,6 @@ extension Process.TerminationReason: CustomStringConvertible {
             return "\(Self.self).uncaughtSignal"
         @unknown default:
             return "\(Self.self).\(self.rawValue)"
-        }
-    }
-}
-
-
-// Note: I have no idea if this is a good implementation, works property, or even makes sense.
-// There was an issue where accessing the `Task.taskPool` static variable from w/in the atexit
-// handler would fail but only sometimes (for some reason the atexit handler was being invoked
-// off the main thread). Adding this fixed the issue.
-class ThreadSafeVariable<T> {
-    private var value: T
-    private let queue: DispatchQueue
-    
-    init(_ value: T) {
-        self.value = value
-        self.queue = DispatchQueue(label: "Apodini.ThreadSafeVariable", attributes: .concurrent)
-    }
-    
-    
-    func read(_ block: (T) throws -> Void) rethrows {
-        try queue.sync {
-            try block(value)
-        }
-    }
-    
-    
-    func write(_ block: (inout T) throws -> Void) rethrows {
-        try queue.sync(flags: .barrier) {
-            try block(&value)
         }
     }
 }

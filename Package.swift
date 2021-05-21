@@ -33,6 +33,7 @@ let package = Package(
         .library(name: "ApodiniVaporSupport", targets: ["ApodiniVaporSupport"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
         // Deploy
+        .library(name: "ApodiniDeploy", targets: ["ApodiniDeploy"]),
         .library(name: "ApodiniDeployBuildSupport", targets: ["ApodiniDeployBuildSupport"]),
         .library(name: "ApodiniDeployRuntimeSupport", targets: ["ApodiniDeployRuntimeSupport"]),
         .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
@@ -146,10 +147,8 @@ let package = Package(
                 .target(name: "ApodiniNotifications"),
                 .target(name: "ApodiniDeploy")
             ],
-            exclude: [
-                "ConfigurationTests/Certificates/cert.pem",
-                "ConfigurationTests/Certificates/key.pem",
-                "ConfigurationTests/Certificates/key2.pem"
+            resources: [
+                .process("Resources")
             ]
         ),
 
@@ -382,10 +381,16 @@ let package = Package(
         .testTarget(
             name: "ApodiniDeployTests",
             dependencies: [
-                .product(name: "XCTVapor", package: "vapor"),
                 .target(name: "XCTApodini"),
-                .target(name: "ApodiniDeploy"),
-                .target(name: "ApodiniREST")
+                .target(name: "ApodiniDeployTestWebService"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "XCTVapor", package: "vapor"),
+                .product(name: "SotoS3", package: "soto"),
+                .product(name: "SotoLambda", package: "soto"),
+                .product(name: "SotoApiGatewayV2", package: "soto"),
+                .product(name: "SotoIAM", package: "soto"),
+                .target(name: "DeploymentTargetLocalhost"),
+                .target(name: "DeploymentTargetAWSLambda")
             ]
         ),
         .target(

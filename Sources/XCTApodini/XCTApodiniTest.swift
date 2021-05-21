@@ -17,6 +17,8 @@ open class XCTApodiniTest: XCTestCase {
     override open func tearDownWithError() throws {
         try super.tearDownWithError()
         app.shutdown()
+        
+        XCTAssertApodiniApplicationNotRunning()
     }
     
     @discardableResult

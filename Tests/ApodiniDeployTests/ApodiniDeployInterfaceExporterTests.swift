@@ -59,7 +59,7 @@ private struct TestWebService: Apodini.WebService {
 }
 
 
-class ApodiniDeployInterfaceExporterTests: ApodiniDeployTestCase {
+class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
     func testHandlerCollection() throws {
         guard !Self.isRunningOnLinuxDebug() else {
             return
