@@ -7,7 +7,7 @@ extension HandlerMetadataScope {
 }
 
 extension ComponentMetadataScope {
-    public typealias Empty = EmptyComponentMetadata
+    public typealias Empty = EmptyComponentOnlyMetadata
 }
 
 extension WebServiceMetadataScope {
@@ -29,7 +29,7 @@ public struct EmptyHandlerMetadata: HandlerMetadataDeclaration {
     public func accept(_ visitor: SyntaxTreeVisitor) {}
 }
 
-public struct EmptyComponentMetadata: ComponentOnlyMetadataDeclaration {
+public struct EmptyComponentOnlyMetadata: ComponentOnlyMetadataDeclaration {
     public typealias Key = Never
 
     public var value: Key.Value {
@@ -40,6 +40,16 @@ public struct EmptyComponentMetadata: ComponentOnlyMetadataDeclaration {
 }
 
 public struct EmptyWebServiceMetadata: WebServiceMetadataDeclaration {
+    public typealias Key = Never
+
+    public var value: Key.Value {
+        fatalError("Cannot access the value of an empty metadata!")
+    }
+
+    public func accept(_ visitor: SyntaxTreeVisitor) {}
+}
+
+public struct EmptyComponentMetadata: ComponentMetadataDeclaration {
     public typealias Key = Never
 
     public var value: Key.Value {

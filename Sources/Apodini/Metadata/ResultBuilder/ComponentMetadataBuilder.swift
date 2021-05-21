@@ -22,6 +22,22 @@ public extension ComponentMetadataBuilder {
         expression
     }
 
+    static func buildOptional(_ component: AnyComponentMetadata?) -> AnyComponentMetadata {
+        component ?? EmptyComponentMetadata()
+    }
+
+    static func buildEither(first: AnyComponentMetadata) -> AnyComponentMetadata {
+        first
+    }
+
+    static func buildEither(second: AnyComponentMetadata) -> AnyComponentMetadata {
+        second
+    }
+
+    static func buildArray(_ components: [AnyComponentMetadata]) -> AnyComponentMetadata {
+        AnyComponentMetadataArrayWrapper(components)
+    }
+
     static func buildBlock(_ components: AnyComponentMetadata...) -> AnyComponentMetadata {
         AnyComponentMetadataArrayWrapper(components)
     }

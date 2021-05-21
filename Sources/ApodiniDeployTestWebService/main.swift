@@ -127,6 +127,8 @@ struct AWS_Greeter: Handler {
     
     @Parameter private var age: Int
     @Parameter(.http(.path)) var name: String
+
+    var testState: String = "asdf"
     
     func handle() -> EventLoopFuture<String> {
         return RHI.invoke(
@@ -147,12 +149,16 @@ struct AWS_Greeter: Handler {
                     This is the description of the Endpoint
                     """)
 
-        Collect {
-            Description("""
-                        Collect is the equivalent to `Group` for Components and is just
-                        a way of semantically grouping and nesting Metadata Definitions,
-                        making your definitions a bit nicer.
-                        """)
+        if testState == "asdf" {
+            Collect {
+                Description("""
+                            Collect is the equivalent to `Group` for Components and is just
+                            a way of semantically grouping and nesting Metadata Definitions,
+                            making your definitions a bit nicer.
+                            """)
+
+                ParameterDescription("123456")
+            }
         }
 
         ParameterDescriptions {
