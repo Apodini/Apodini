@@ -3,11 +3,14 @@ import FluentSQLiteDriver
 @testable import Apodini
 import XCTest
 import ApodiniDatabase
+import ApodiniUtils
+
 
 open class XCTApodiniTest: XCTestCase {
     // Vapor Application
     // swiftlint:disable implicitly_unwrapped_optional
     open var app: Application!
+    
     
     override open func setUpWithError() throws {
         try super.setUpWithError()
@@ -17,6 +20,8 @@ open class XCTApodiniTest: XCTestCase {
     override open func tearDownWithError() throws {
         try super.tearDownWithError()
         app.shutdown()
+        
+        XCTAssertApodiniApplicationNotRunning()
     }
     
     open func database() throws -> Database {
