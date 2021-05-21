@@ -15,8 +15,8 @@ public enum MetadataBuilder {}
 
 // MARK: Handler Metadata
 public extension MetadataBuilder {
-    static func buildExpression<Metadata: HandlerMetadataDeclaration>(_ expression: Metadata) -> AnyHandlerMetadata {
-        WrappedHandlerMetadataDeclaration(expression)
+    static func buildExpression<Metadata: HandlerMetadataDefinition>(_ expression: Metadata) -> AnyHandlerMetadata {
+        WrappedHandlerMetadataDefinition(expression)
     }
 
     static func buildExpression<Metadata: HandlerMetadataGroup>(_ expression: Metadata) -> AnyHandlerMetadata {
@@ -50,8 +50,8 @@ public extension MetadataBuilder {
 
 // MARK: Component-Only Metadata
 public extension MetadataBuilder {
-    static func buildExpression<Metadata: ComponentOnlyMetadataDeclaration>(_ expression: Metadata) -> AnyComponentOnlyMetadata {
-        WrappedComponentOnlyMetadataDeclaration(expression)
+    static func buildExpression<Metadata: ComponentOnlyMetadataDefinition>(_ expression: Metadata) -> AnyComponentOnlyMetadata {
+        WrappedComponentOnlyMetadataDefinition(expression)
     }
 
     static func buildExpression<Metadata: ComponentOnlyMetadataGroup>(_ expression: Metadata) -> AnyComponentOnlyMetadata {
@@ -85,8 +85,8 @@ public extension MetadataBuilder {
 
 // MARK: WebService Metadata
 public extension MetadataBuilder {
-    static func buildExpression<Metadata: WebServiceMetadataDeclaration>(_ expression: Metadata) -> AnyWebServiceMetadata {
-        WrappedWebServiceMetadataDeclaration(expression)
+    static func buildExpression<Metadata: WebServiceMetadataDefinition>(_ expression: Metadata) -> AnyWebServiceMetadata {
+        WrappedWebServiceMetadataDefinition(expression)
     }
 
     static func buildExpression<Metadata: WebServiceMetadataGroup>(_ expression: Metadata) -> AnyWebServiceMetadata {
@@ -120,8 +120,8 @@ public extension MetadataBuilder {
 
 // MARK: Content Metadata
 public extension MetadataBuilder {
-    static func buildExpression<Metadata: ContentMetadataDeclaration>(_ expression: Metadata) -> AnyContentMetadata {
-        WrappedContentMetadataDeclaration(expression)
+    static func buildExpression<Metadata: ContentMetadataDefinition>(_ expression: Metadata) -> AnyContentMetadata {
+        WrappedContentMetadataDefinition(expression)
     }
 
     static func buildExpression<Metadata: ContentMetadataGroup>(_ expression: Metadata) -> AnyContentMetadata {

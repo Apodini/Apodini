@@ -37,7 +37,7 @@ extension WebServiceMetadataGroup {
     }
 }
 
-// TODO docs: ComponentMetadataGroup is not similar to ComponentMetadataDeclaration, that it doesn't inherit from
+// TODO docs: ComponentMetadataGroup is not similar to ComponentMetadataDefinition, that it doesn't inherit from
 public protocol ComponentMetadataGroup: AnyMetadataGroup, AnyComponentMetadata {
     @ComponentMetadataBuilder
     var content: AnyComponentMetadata { get }

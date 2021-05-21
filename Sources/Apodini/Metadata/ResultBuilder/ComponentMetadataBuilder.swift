@@ -14,8 +14,8 @@ public enum ComponentMetadataBuilder {}
 // TODO note about how this needs to be its own thing, as otherwise we would have some abigous methods
 
 public extension ComponentMetadataBuilder {
-    static func buildExpression<Metadata: ComponentMetadataDeclaration>(_ expression: Metadata) -> AnyComponentMetadata {
-        WrappedComponentMetadataDeclaration(expression)
+    static func buildExpression<Metadata: ComponentMetadataDefinition>(_ expression: Metadata) -> AnyComponentMetadata {
+        WrappedComponentMetadataDefinition(expression)
     }
 
     static func buildExpression<Metadata: ComponentMetadataGroup>(_ expression: Metadata) -> AnyComponentMetadata {

@@ -19,7 +19,7 @@ extension ContentMetadataScope {
 }
 
 
-public struct EmptyHandlerMetadata: HandlerMetadataDeclaration {
+public struct EmptyHandlerMetadata: HandlerMetadataDefinition {
     public typealias Key = Never
 
     public var value: Key.Value {
@@ -29,7 +29,7 @@ public struct EmptyHandlerMetadata: HandlerMetadataDeclaration {
     public func accept(_ visitor: SyntaxTreeVisitor) {}
 }
 
-public struct EmptyComponentOnlyMetadata: ComponentOnlyMetadataDeclaration {
+public struct EmptyComponentOnlyMetadata: ComponentOnlyMetadataDefinition {
     public typealias Key = Never
 
     public var value: Key.Value {
@@ -39,7 +39,7 @@ public struct EmptyComponentOnlyMetadata: ComponentOnlyMetadataDeclaration {
     public func accept(_ visitor: SyntaxTreeVisitor) {}
 }
 
-public struct EmptyWebServiceMetadata: WebServiceMetadataDeclaration {
+public struct EmptyWebServiceMetadata: WebServiceMetadataDefinition {
     public typealias Key = Never
 
     public var value: Key.Value {
@@ -49,7 +49,7 @@ public struct EmptyWebServiceMetadata: WebServiceMetadataDeclaration {
     public func accept(_ visitor: SyntaxTreeVisitor) {}
 }
 
-public struct EmptyComponentMetadata: ComponentMetadataDeclaration {
+public struct EmptyComponentMetadata: ComponentMetadataDefinition {
     public typealias Key = Never
 
     public var value: Key.Value {
@@ -59,7 +59,7 @@ public struct EmptyComponentMetadata: ComponentMetadataDeclaration {
     public func accept(_ visitor: SyntaxTreeVisitor) {}
 }
 
-public struct EmptyContentMetadata: ContentMetadataDeclaration {
+public struct EmptyContentMetadata: ContentMetadataDefinition {
     public typealias Key = Never
 
     public var value: Key.Value {

@@ -14,7 +14,7 @@ public extension ComponentMetadataScope {
     typealias ParameterDescriptions = RestrictedComponentMetadataGroup<ParameterDescriptionMetadata>
 }
 
-public struct ParameterDescriptionMetadata: ComponentMetadataDeclaration {
+public struct ParameterDescriptionMetadata: ComponentMetadataDefinition {
     public typealias Key = ParameterDescriptionContextKey
 
     public let value: String

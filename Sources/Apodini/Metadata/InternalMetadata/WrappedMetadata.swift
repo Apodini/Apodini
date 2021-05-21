@@ -2,7 +2,7 @@
 // Created by Andreas Bauer on 21.05.21.
 //
 
-struct WrappedHandlerMetadataDeclaration<Metadata: HandlerMetadataDeclaration>: AnyHandlerMetadata {
+struct WrappedHandlerMetadataDefinition<Metadata: HandlerMetadataDefinition>: AnyHandlerMetadata {
     let metadata: Metadata
 
     init(_ metadata: Metadata) {
@@ -14,7 +14,7 @@ struct WrappedHandlerMetadataDeclaration<Metadata: HandlerMetadataDeclaration>: 
     }
 }
 
-struct WrappedComponentOnlyMetadataDeclaration<Metadata: ComponentOnlyMetadataDeclaration>: AnyComponentOnlyMetadata {
+struct WrappedComponentOnlyMetadataDefinition<Metadata: ComponentOnlyMetadataDefinition>: AnyComponentOnlyMetadata {
     let metadata: Metadata
 
     init(_ metadata: Metadata) {
@@ -26,7 +26,7 @@ struct WrappedComponentOnlyMetadataDeclaration<Metadata: ComponentOnlyMetadataDe
     }
 }
 
-struct WrappedWebServiceMetadataDeclaration<Metadata: WebServiceMetadataDeclaration>: AnyWebServiceMetadata {
+struct WrappedWebServiceMetadataDefinition<Metadata: WebServiceMetadataDefinition>: AnyWebServiceMetadata {
     let metadata: Metadata
 
     init(_ metadata: Metadata) {
@@ -38,7 +38,7 @@ struct WrappedWebServiceMetadataDeclaration<Metadata: WebServiceMetadataDeclarat
     }
 }
 
-struct WrappedComponentMetadataDeclaration<Metadata: ComponentMetadataDeclaration>: AnyComponentMetadata {
+struct WrappedComponentMetadataDefinition<Metadata: ComponentMetadataDefinition>: AnyComponentMetadata {
     let metadata: Metadata
 
     init(_ metadata: Metadata) {
@@ -50,7 +50,7 @@ struct WrappedComponentMetadataDeclaration<Metadata: ComponentMetadataDeclaratio
     }
 }
 
-struct WrappedContentMetadataDeclaration<Metadata: ContentMetadataDeclaration>: AnyContentMetadata {
+struct WrappedContentMetadataDefinition<Metadata: ContentMetadataDefinition>: AnyContentMetadata {
     let metadata: Metadata
 
     init(_ metadata: Metadata) {

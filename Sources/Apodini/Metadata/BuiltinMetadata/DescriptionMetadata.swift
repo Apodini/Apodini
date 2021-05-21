@@ -16,7 +16,7 @@ public extension ContentMetadataScope {
 }
 
 
-public struct ComponentDescriptionMetadata: ComponentMetadataDeclaration {
+public struct ComponentDescriptionMetadata: ComponentMetadataDefinition {
     public typealias Key = DescriptionContextKey
 
     public let value: String
@@ -31,7 +31,7 @@ public struct ContentDescriptionContextKey: OptionalContextKey {
     public typealias Value = String
 }
 
-public struct ContentDescriptionMetadata: ContentMetadataDeclaration {
+public struct ContentDescriptionMetadata: ContentMetadataDefinition {
     public typealias Key = ContentDescriptionContextKey
 
     public let value: String
