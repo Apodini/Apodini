@@ -7,7 +7,6 @@ public protocol Configuration {
     func configure(_ app: Application)
 }
 
-
 /// This protocol is used by the `WebService` to declare `Configuration`s in an instance
 public protocol ConfigurationCollection {
     /// This stored property defines the `Configuration`s of the `WebService`
@@ -32,6 +31,22 @@ public struct EmptyConfiguration: Configuration {
 
 extension Array: Configuration where Element == Configuration {
     public func configure(_ app: Application) {
-        forEach { $0.configure(app) }
+        /*
+        var semanticModel = app.storage.get(SemanticModelBuilderKey.self)!
+        
+        self.forEach { configuration in
+            var conf = configuration
+            conf.configure(app)
+            
+            if let interfacExporter = self.exporter {
+                semanticModel = semanticModel.with(export: interfacExporter)
+            }
+        }
+        
+        app.storage.set(SemanticModelBuilderKey.self, to: semanticModel)
+ */
+        forEach {
+            $0.configure(app)
+        }
     }
 }

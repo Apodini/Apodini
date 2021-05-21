@@ -34,7 +34,7 @@ struct RESTEndpointHandler<H: Handler> {
 
         return responseFuture.flatMap { (response: Apodini.Response<EnrichedContent>) in
             guard let enrichedContent = response.content else {
-                return ResponseContainer(Empty.self, status: response.status)
+                return ResponseContainer(Empty.self, status: response.status, encoder: configuration.parentConfiguration.encoder)
                     .encodeResponse(for: request)
             }
             
@@ -49,7 +49,7 @@ struct RESTEndpointHandler<H: Handler> {
                 enrichedContent.formatSelfRelationship(into: &links, with: formatter)
             }
 
-            let container = ResponseContainer(status: response.status, data: enrichedContent, links: links)
+            let container = ResponseContainer(status: response.status, data: enrichedContent, links: links, encoder: configuration.parentConfiguration.encoder)
             return container.encodeResponse(for: request)
         }
     }

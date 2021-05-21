@@ -52,7 +52,8 @@ extension WebService {
     /// - Parameter app: The app instance that should be injected in the Apodini `WebService`
     static func main(app: Application) {
         let webService = Self()
-        webService.configuration.configure(app)
+        app.storage.set(SemanticModelBuilderKey.self, to: SemanticModelBuilder(app))
+        //webService.configuration.configure(app, &semanticModel)
         
         // If no specific address hostname is provided we bind to the default address to automatically and correcly bind in Docker containers.
         if app.http.address == nil {
@@ -60,7 +61,8 @@ extension WebService {
         }
         
         webService.register(
-            app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app))
+            // app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app))
+            app.storage.get(SemanticModelBuilderKey.self)!
         )
     }
     

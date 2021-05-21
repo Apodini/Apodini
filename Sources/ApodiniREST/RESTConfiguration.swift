@@ -2,16 +2,19 @@
 // Created by Andreas Bauer on 22.01.21.
 //
 
+import Apodini
 import Vapor
 
 struct RESTConfiguration {
     let configuration: HTTPServer.Configuration
     let bindAddress: Vapor.BindAddress
     let uriPrefix: String
+    let parentConfiguration: ParentConfiguration
 
-    init(_ configuration: HTTPServer.Configuration) {
+    init(_ configuration: HTTPServer.Configuration, _ parentConfiguration: ParentConfiguration) {
         self.configuration = configuration
         self.bindAddress = configuration.address
+        self.parentConfiguration = parentConfiguration
 
         switch bindAddress {
         case .hostname:

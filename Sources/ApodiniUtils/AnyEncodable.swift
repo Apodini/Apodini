@@ -40,6 +40,13 @@ public protocol AnyEncoder {
 
 extension JSONEncoder: AnyEncoder {}
 
+/// Something that can decode `Decodable` objects to the given respective type
+public protocol AnyDecoder {
+    /// Decode some `Decodable` data to the given type
+    func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable
+}
+
+extension JSONDecoder: AnyDecoder {}
 
 // MARK: Null
 

@@ -3,12 +3,43 @@
 //
 
 import Apodini
+import ApodiniUtils
 import Vapor
 import NIO
 
 extension Vapor.Request: ExporterRequest, WithEventLoop, WithRemote {}
 
-/// Apodini Interface Exporter for REST.
+
+public final class _RESTInterfaceExporter: Configuration {
+    let encoder: Vapor.ContentEncoder
+    let decoder: Vapor.ContentDecoder
+    let staticConfigurations: [StaticConfiguration]
+    
+    public init(encoder: Vapor.ContentEncoder, decoder: Vapor.ContentDecoder, @StaticConfigurationBuilder staticConfigurations: () -> [StaticConfiguration]) {
+        self.encoder = encoder
+        self.decoder = decoder
+        self.staticConfigurations = staticConfigurations()
+    }
+    
+    public func configure(_ app: Apodini.Application) {
+        guard var semanticModel = app.storage.get(SemanticModelBuilderKey.self) else {
+            return
+        }
+        
+        let parentConfiguration = ParentConfiguration(encoder: self.encoder, decoder: self.decoder)
+        
+        /// Insert current exporter into `SemanticModelBuilder`
+        let restExporter = RESTInterfaceExporter.init(app, parentConfiguration)
+        semanticModel = semanticModel.with(exporter: restExporter)
+        
+        /// Configure attached related static configurations
+        self.staticConfigurations.configure(app, parentConfiguration)
+        
+        app.storage.set(SemanticModelBuilderKey.self, to: semanticModel)
+    }
+}
+
+/// Apodini Interface Exporter for REST
 public final class RESTInterfaceExporter: InterfaceExporter {
     public static let parameterNamespace: [ParameterNamespace] = .individual
 
@@ -16,9 +47,9 @@ public final class RESTInterfaceExporter: InterfaceExporter {
     let configuration: RESTConfiguration
 
     /// Initialize `RESTInterfaceExporter` from `Application`
-    public required init(_ app: Apodini.Application) {
+    public required init(_ app: Apodini.Application, _ parentConfiguration: ParentConfiguration) {
         self.app = app.vapor.app
-        self.configuration = RESTConfiguration(app.vapor.app.http.server.configuration)
+        self.configuration = RESTConfiguration(app.vapor.app.http.server.configuration, parentConfiguration)
     }
 
     public func export<H: Handler>(_ endpoint: Endpoint<H>) {
@@ -94,7 +125,7 @@ public final class RESTInterfaceExporter: InterfaceExporter {
                 // If the request doesn't have a body, there is nothing to decide.
                 return nil
             }
-            return try? request.content.decode(Type.self, using: JSONDecoder())
+            return try? request.content.decode(Type.self, using: self.configuration.parentConfiguration.decoder)
 
         case .header:
             return request.headers.first(name: parameter.name) as? Type

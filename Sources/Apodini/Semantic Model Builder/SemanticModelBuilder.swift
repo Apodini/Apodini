@@ -5,7 +5,7 @@
 import NIO
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
-class SemanticModelBuilder: InterfaceExporterVisitor {
+public class SemanticModelBuilder: InterfaceExporterVisitor {
     private(set) var app: Application
 
     var interfaceExporters: [AnyInterfaceExporter] = []
@@ -53,11 +53,18 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     /// Registers an `InterfaceExporter` instance on the model builder.
     /// - Parameter instance: The instance to register.
     /// - Returns: `Self`
-    func with<T: InterfaceExporter>(exporter instance: T) -> Self {
+    public func with<T: InterfaceExporter>(exporter instance: T) -> Self {
         interfaceExporters.append(AnyInterfaceExporter(instance))
         return self
     }
-
+    
+    /// Registers an `AnyInterfaceExporter` instance on the model builder.
+    /// - Parameter instance: The instance to register.
+    /// - Returns: `Self`
+    func with(export instance: AnyInterfaceExporter) -> Self {
+        interfaceExporters.append(instance)
+        return self
+    }
 
     func register<H: Handler>(handler: H, withContext context: Context) {
         let handler = handler.inject(app: app)
@@ -179,6 +186,9 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     }
 }
 
+public struct SemanticModelBuilderKey: StorageKey {
+    public typealias Value = SemanticModelBuilder
+}
 
 private protocol IdentifiableHandlerATRVisitorHelper: AssociatedTypeRequirementsVisitor {
     associatedtype Visitor = IdentifiableHandlerATRVisitorHelper
