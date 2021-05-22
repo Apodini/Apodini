@@ -99,7 +99,6 @@ private struct HandlerVisitorHelperImpl: HandlerVisitorHelperImplBase {
     let visitor: SyntaxTreeVisitor
     func callAsFunction<H: Handler>(_ value: H) {
         visitor.visit(handler: value)
-        print("VISITING\(H.self): \(H.Content.self)")
     }
 }
 

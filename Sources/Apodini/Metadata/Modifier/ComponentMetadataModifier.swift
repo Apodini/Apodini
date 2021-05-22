@@ -20,9 +20,8 @@ public struct ComponentMetadataModifier<C: Component>: Modifier {
 
 extension ComponentMetadataModifier: SyntaxTreeVisitable {
     public func accept(_ visitor: SyntaxTreeVisitor) {
-        component.accept(visitor)
-        // Modifier has precedence over any Metadata defined in the Component itself  (executed afterwards)
         componentMetadata.accept(visitor)
+        component.accept(visitor)
     }
 }
 

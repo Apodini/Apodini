@@ -20,9 +20,8 @@ public struct HandlerMetadataModifier<H: Handler>: HandlerModifier {
 
 extension HandlerMetadataModifier: SyntaxTreeVisitable {
     public func accept(_ visitor: SyntaxTreeVisitor) {
-        component.accept(visitor)
-        // Modifier has precedence over any Metadata defined in the Handler itself (executed afterwards)
         handlerMetadata.accept(visitor)
+        component.accept(visitor)
     }
 }
 
