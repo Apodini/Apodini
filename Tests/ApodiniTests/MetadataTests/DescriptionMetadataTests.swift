@@ -13,9 +13,24 @@ final class DescriptionModifierTests: ApodiniTests {
         func handle() -> String {
             "Hello \(name)"
         }
+
+        var metadata: Metadata {
+            Description("The description inside the TestHandler")
+        }
     }
 
-    struct TestComponentDescription: Component {
+    struct TestComponentDescriptionMetadata: Component {
+        @PathParameter
+        var name: String
+
+        var content: some Component {
+            Group("a", $name) {
+                TestHandler(name: $name)
+            }
+        }
+    }
+
+    struct TestComponentDescriptionModifier: Component {
         @PathParameter
         var name: String
 
@@ -41,7 +56,23 @@ final class DescriptionModifierTests: ApodiniTests {
     func testEndpointDescription() throws {
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
-        let testComponent = TestComponentDescription()
+        let testComponent = TestComponentDescriptionMetadata()
+        Group {
+            testComponent.content
+        }.accept(visitor)
+        visitor.finishParsing()
+
+        let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
+        let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
+        let customDescription = endpoint[Context.self].get(valueFor: DescriptionContextKey.self)
+
+        XCTAssertEqual(customDescription, "The description inside the TestHandler")
+    }
+
+    func testEndpointDescriptionModifier() throws {
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
+        let testComponent = TestComponentDescriptionModifier()
         Group {
             testComponent.content
         }.accept(visitor)
