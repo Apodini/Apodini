@@ -26,9 +26,9 @@ public class RelationshipInheritance<From, To>: RelationshipsContentMetadataGrou
 
     /// Creates a new `RelationshipInheritance`, inheriting from the specified type.
     ///
-    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// A example definition for a Metadata definition looks like the following:
     /// ```swift
-    /// static var relationships: Relationships {
+    /// static var metadata: Metadata {
     ///   Inherits<SomeType>()
     /// }
     /// ```
@@ -41,9 +41,9 @@ public class RelationshipInheritance<From, To>: RelationshipsContentMetadataGrou
     /// Creates a new `RelationshipInheritance`, inheriting from the specified type using the specified resolver.
     /// Additionally it adds specified resolvers for a path parameter in the path of the destination.
     ///
-    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// A example definition for a Metadata definition looks like the following:
     /// ```swift
-    /// static var relationships: Relationships {
+    /// static var metadata: Metadata {
     ///   Inherits<SomeType> {
     ///     // Every entry here relates to one `PathParameter` definition
     ///     // in the path of the destination. `Identifying` must be added
@@ -69,9 +69,9 @@ extension RelationshipInheritance where To: Identifiable, To.ID: LosslessStringC
     /// Creates a new `RelationshipInheritance`, inheriting from the specified type using the specified resolver.
     /// Additionally it adds a specified resolver for a path parameter in the path of the destination.
     ///
-    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// A example definition for a Metadata definition looks like the following:
     /// ```swift
-    /// static var relationships: Relationships {
+    /// static var metadata: Metadata {
     ///   Inherits<SomeType>(identifiedBy: \.someId)
     /// }
     /// ```
@@ -90,9 +90,9 @@ extension RelationshipInheritance where From: Identifiable, To: Identifiable, Fr
     /// Creates a new `RelationshipInheritance`, inheriting from the specified type using the specified resolver.
     /// As the source type inherits from `Identifiable` the `Identifiable.id` property is automatically added as a resolver.
     ///
-    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// A example definition for a Metadata definition looks like the following:
     /// ```swift
-    /// static var relationships: Relationships {
+    /// static var metadata: Metadata {
     ///   // if the self type conforms to `Identifiable` \.id will be automatically added
     ///   // as a resolver for the Self type, if this shortcut init is chosen.
     ///   Inherits<SomeType>()

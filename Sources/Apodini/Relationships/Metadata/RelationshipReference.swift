@@ -24,9 +24,9 @@ public class RelationshipReference<From, To: Identifiable>: RelationshipsContent
     /// Creates a new `RelationshipReference`, referencing from the specified type using the specified resolver.
     /// - Parameters:
     ///
-    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// A example definition for a Metadata definition looks like the following:
     /// ```swift
-    /// static var relationships: Relationships {
+    /// static var metadata: Metadata {
     ///   References<SomeType>(as: "someName", identifiedBy: \.someId)
     /// }
     /// ```
@@ -42,9 +42,9 @@ public class RelationshipReference<From, To: Identifiable>: RelationshipsContent
 
     /// Creates a new `RelationshipReference`, referencing from the specified type using the specified resolver.
     ///
-    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// A example definition for a Metadata definition looks like the following:
     /// ```swift
-    /// static var relationships: Relationships {
+    /// static var metadata: Metadata {
     ///   // The \.someId property is of type Optional. The path parameter will only be resolved
     ///   // if the parameter value is present
     ///   References<SomeType>(as: "someName", identifiedBy: \.someId)
@@ -63,9 +63,9 @@ public class RelationshipReference<From, To: Identifiable>: RelationshipsContent
 
     /// Creates a new `RelationshipReference`, referencing from the specified type using the specified resolvers.
     ///
-    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// A example definition for a Metadata definition looks like the following:
     /// ```swift
-    /// static var relationships: Relationships {
+    /// static var metadata: Metadata {
     ///   References<SomeType>(as: "someName") {
     ///     // Every entry here relates to one `PathParameter` definition
     ///     // in the path of the destination. `Identifying` must be added
