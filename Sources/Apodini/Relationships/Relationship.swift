@@ -4,6 +4,8 @@
 
 import Foundation
 
+// TODO move relationship based modifiers to the "Relationship" folder?
+
 /// A instance of `Relationship` can be used to manually create
 /// relationships between different `Handler`s.
 ///

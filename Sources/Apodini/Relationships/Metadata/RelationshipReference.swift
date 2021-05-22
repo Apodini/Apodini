@@ -2,10 +2,21 @@
 // Created by Andreas Bauer on 18.01.21.
 //
 
+extension TypedContentMetadataNamespace { // TODO untype namespace?
+    /// Shorthand for using a pretyped `RelationshipReference`.
+    public typealias References<To: Identifiable> = RelationshipReference<Self, To> where To.ID: LosslessStringConvertible
+}
+
 /// A `RelationshipReference` can be used to create a referencing relationship for the annotated `Content` type.
 /// A relationship reference uses the value of properties holding the identifier of the target type
 /// to resolve a relationship with the given values.
-public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinition where To.ID: LosslessStringConvertible {
+public class RelationshipReference<From, To: Identifiable>: RelationshipsContentMetadataGroup
+    where To.ID: LosslessStringConvertible {
+    public typealias Key = RelationshipSourceCandidateContextKey
+    public override var value: [PartialRelationshipSourceCandidate] {
+        [PartialRelationshipSourceCandidate(reference: name, destinationType: destinationType, resolvers: resolvers)]
+    }
+
     let name: String
     let destinationType: To.Type
     let resolvers: [AnyPathParameterResolver]
@@ -23,7 +34,7 @@ public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinit
     ///   - type: The reference type.
     ///   - name: The name of the reference.
     ///   - keyPath: A resolver for the path parameter of the destination.
-    public init(to type: To.Type = To.self, as name: String, identifiedBy keyPath: KeyPath<From, To.ID>) {
+    public convenience init(to type: To.Type = To.self, as name: String, identifiedBy keyPath: KeyPath<From, To.ID>) {
         self.init(to: type, as: name) {
             RelationshipIdentification(type, identifiedBy: keyPath)
         }
@@ -44,7 +55,7 @@ public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinit
     ///   - type: The reference type.
     ///   - name: The name of the reference.
     ///   - keyPath: A resolver for the path parameter of the destination.
-    public init(to type: To.Type = To.self, as name: String, identifiedBy keyPath: KeyPath<From, To.ID?>) {
+    public convenience init(to type: To.Type = To.self, as name: String, identifiedBy keyPath: KeyPath<From, To.ID?>) {
         self.init(to: type, as: name) {
             RelationshipIdentification(type, identifiedBy: keyPath)
         }
@@ -80,12 +91,5 @@ public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinit
 
         precondition(name != "self", "The relationship name 'self' is reserved. To model relationship inheritance please use `Inherits`!")
         precondition(From.self != To.self, "Can't define circular relationship references. '\(name)' points to itself!")
-    }
-}
-
-extension RelationshipReference: SyntaxTreeVisitable {
-    public func accept(_ visitor: SyntaxTreeVisitor) {
-        let candidate = PartialRelationshipSourceCandidate(reference: name, destinationType: destinationType, resolvers: resolvers)
-        visitor.addContext(RelationshipSourceCandidateContextKey.self, value: [candidate], scope: .current)
     }
 }

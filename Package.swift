@@ -114,8 +114,7 @@ let package = Package(
                 ] : []
             ),
             exclude: [
-                "Components/ComponentBuilder.swift.gyb",
-                "Relationships/RelationshipIdentificationBuilder.swift.gyb"
+                "Components/ComponentBuilder.swift.gyb"
             ],
             swiftSettings: [
                 .unsafeFlags(experimentalAsyncAwait ? [

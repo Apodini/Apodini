@@ -102,11 +102,6 @@ public class SyntaxTreeVisitor {
         // Also, we currently do not recursively parse properties
         let metadataContentVisitor = StandardContentMetadataVisitor(visitor: self)
         metadataContentVisitor(responseType)
-
-        // Intermediate solution to parse `Content` types conforming to `WithRelationships`
-        // until the Metadata DSL creates a unified solution for such metadata.
-        let relationshipVisitor = StandardRelationshipsVisitor(visitor: self)
-        relationshipVisitor(responseType)
         
         // We capture the currentContextNode and make a copy that will be used when executing the request as
         // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the

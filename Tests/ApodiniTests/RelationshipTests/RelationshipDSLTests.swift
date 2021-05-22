@@ -7,24 +7,24 @@ import XCTApodini
 @testable import Apodini
 
 class RelationshipDSLTests: ApodiniTests {
-    struct User: Content, WithRelationships, Identifiable {
+    struct User: Content, Identifiable {
         var id: Int
         var name: String
         var taggedPost: Int
         var cId: Int
 
-        static var relationships: Relationships {
+        static var metadata: Metadata {
             References<Post>(as: "tagged", identifiedBy: \.taggedPost)
             Relationship(name: "TestA", to: TestA.self)
             Relationship(name: "TestC", to: TestC.self, parameter: \.cId)
         }
     }
 
-    struct AuthenticatedUser: Content, WithRelationships, Identifiable {
+    struct AuthenticatedUser: Content, Identifiable {
         var id: Int
         var secretName: String
 
-        static var relationships: Relationships {
+        static var metadata: Metadata {
             Inherits<User>()
         }
     }
@@ -173,10 +173,10 @@ class RelationshipDSLTests: ApodiniTests {
             ])
     }
 
-    struct Referencing: Content, WithRelationships {
+    struct Referencing: Content {
         var referenced: String?
 
-        static var relationships: Relationships {
+        static var metadata: Metadata {
             References<Referenced>(as: "referenced", identifiedBy: \.referenced)
         }
     }
@@ -229,8 +229,8 @@ class RelationshipDSLTests: ApodiniTests {
             ["self:read": "/referencing", "referenced:read": "/referenced/RefID"])
     }
 
-    struct Duplicates: Content, WithRelationships {
-        static var relationships: Relationships {
+    struct Duplicates: Content {
+        static var metadata: Metadata {
             Inherits<String>()
             Inherits<Int>()
         }
@@ -255,8 +255,8 @@ class RelationshipDSLTests: ApodiniTests {
     }
 
 
-    struct Unresolved: Content, WithRelationships {
-        static var relationships: Relationships {
+    struct Unresolved: Content {
+        static var metadata: Metadata {
             Inherits<String>()
         }
     }
@@ -305,20 +305,20 @@ class RelationshipDSLTests: ApodiniTests {
     }
 
 
-    struct User2: Content, WithRelationships, Identifiable {
+    struct User2: Content, Identifiable {
         var id: Int
         var taggedPost: Post2.ID
 
-        static var relationships: Relationships {
+        static var metadata: Metadata {
             References<Post2>(as: "taggedPost", identifiedBy: \.taggedPost)
         }
     }
 
-    struct Post2: Content, WithRelationships, Identifiable {
+    struct Post2: Content, Identifiable {
         var id: Int
         var writtenBy: User2.ID
 
-        static var relationships: Relationships {
+        static var metadata: Metadata {
             References<User2>(as: "author", identifiedBy: \.writtenBy)
         }
     }

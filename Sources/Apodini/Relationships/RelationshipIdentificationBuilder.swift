@@ -17,6 +17,7 @@ public extension RelationshipIdentificationBuilder {
         [AnyRelationshipIdentification(from: expression)]
     }
 
+    // swiftlint:disable:next discouraged_optional_collection
     static func buildOptional(_ component: [AnyRelationshipIdentification]?) -> [AnyRelationshipIdentification] {
         component ?? []
     }

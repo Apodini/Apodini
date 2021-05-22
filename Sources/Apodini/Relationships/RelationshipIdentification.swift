@@ -11,6 +11,11 @@ public struct AnyRelationshipIdentification {
     }
 }
 
+extension TypedContentMetadataNamespace { // TODO untyped?
+    /// Shorthand for using a pretyped `RelationshipIdentification`.
+    public typealias Identifying<To: Identifiable> = RelationshipIdentification<Self, To> where To.ID: LosslessStringConvertible
+}
+
 /// A `RelationshipIdentification` provides additional information to resolve path parameter
 /// values to the destination of a relationship, e.g. defined by `RelationshipInheritance`, `RelationshipReference`
 /// or `RelationshipSource`.

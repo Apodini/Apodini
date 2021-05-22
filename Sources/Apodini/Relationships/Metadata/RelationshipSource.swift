@@ -2,15 +2,33 @@
 // Created by Andreas Bauer on 18.01.21.
 //
 
+extension TypedContentMetadataNamespace {
+    /// Shorthand for using a pretyped `RelationshipSource`.
+    public typealias Relationship<To> = RelationshipSource<Self, To>
+}
+
 /// A `RelationshipSource` can be used to indicate that the annotated `Content` type
 /// has a relationship with the specified name to a `Handler` which returns the specified type.
 /// This is the DSL equivalent of the modifier `Handler.relationship(name:to:).
 /// In addition to the modifier, the `RelationshipSource` allows to define `RelationshipIdentification`s
 /// to add resolvers for path parameters of the destination.
-public struct RelationshipSource<From, To>: RelationshipDefinition {
+public class RelationshipSource<From, To>: RelationshipsContentMetadataGroup {
+    public typealias Key = RelationshipSourceCandidateContextKey
+    public override var value: [PartialRelationshipSourceCandidate] {
+        [PartialRelationshipSourceCandidate(link: name, destinationType: destinationType, resolvers: resolvers)]
+    }
+
     let name: String
     let destinationType: To.Type
     let resolvers: [AnyPathParameterResolver]
+
+    fileprivate init(name: String, destinationType: To.Type, resolvers: [AnyPathParameterResolver]) {
+        self.name = name
+        self.destinationType = destinationType
+        self.resolvers = resolvers
+
+        precondition(name != "self", "The relationship name 'self' is reserved. To model relationship inheritance please use `Inherits`!")
+    }
 
     /// Creates a new `RelationshipSource` with the specified name targeting a `Handler` which returns the specified type.
     ///
@@ -24,12 +42,8 @@ public struct RelationshipSource<From, To>: RelationshipDefinition {
     /// - Parameters:
     ///   - name: The name of the relationship.
     ///   - type: The return type of the relationship destination.
-    public init(name: String, to type: To.Type = To.self) {
-        self.name = name
-        self.destinationType = type
-        self.resolvers = []
-
-        precondition(name != "self", "The relationship name 'self' is reserved. To model relationship inheritance please use `Inherits`!")
+    public convenience init(name: String, to type: To.Type = To.self) {
+        self.init(name: name, destinationType: type, resolvers: [])
     }
 }
 
@@ -48,7 +62,7 @@ extension RelationshipSource where To: Identifiable, To.ID: LosslessStringConver
     ///   - name: The name of the relationship.
     ///   - type: The return type of the relationship destination.
     ///   - keyPath: A resolver for a path parameter of the destination.
-    public init(name: String, to type: To.Type = To.self, parameter keyPath: KeyPath<From, To.ID>) {
+    public convenience init(name: String, to type: To.Type = To.self, parameter keyPath: KeyPath<From, To.ID>) {
         self.init(name: name, to: type) {
             RelationshipIdentification(type, identifiedBy: keyPath)
         }
@@ -74,22 +88,11 @@ extension RelationshipSource where To: Identifiable, To.ID: LosslessStringConver
     ///   - name: The name of the relationship.
     ///   - type: The return type of the relationship destination.
     ///   - identifications: A list of resolvers for path parameter of the destination.
-    public init(
+    public convenience init(
         name: String,
         to type: To.Type = To.self,
         @RelationshipIdentificationBuilder<From> parameters identifications: () -> [AnyRelationshipIdentification]
     ) {
-        self.name = name
-        self.destinationType = type
-        self.resolvers = identifications().map { $0.resolver }
-
-        precondition(name != "self", "The relationship name 'self' is reserved. To model relationship inheritance please use `Inherits`!")
-    }
-}
-
-extension RelationshipSource: SyntaxTreeVisitable {
-    public func accept(_ visitor: SyntaxTreeVisitor) {
-        let candidate = PartialRelationshipSourceCandidate(link: name, destinationType: destinationType, resolvers: resolvers)
-        visitor.addContext(RelationshipSourceCandidateContextKey.self, value: [candidate], scope: .current)
+        self.init(name: name, destinationType: type, resolvers: identifications().map { $0.resolver })
     }
 }

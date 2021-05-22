@@ -2,9 +2,19 @@
 // Created by Andreas Bauer on 18.01.21.
 //
 
+extension TypedContentMetadataNamespace { // TODO untype namespace?
+    /// Shorthand for using a pretyped `RelationshipInheritance`.
+    public typealias Inherits<To> = RelationshipInheritance<Self, To>
+}
+
 /// A `RelationshipInheritance` can be used to indicate that the annotated `Content` type
 /// inherits Relationships from the specified target type.
-public struct RelationshipInheritance<From, To>: RelationshipDefinition {
+public class RelationshipInheritance<From, To>: RelationshipsContentMetadataGroup {
+    public typealias Key = RelationshipSourceCandidateContextKey
+    public override var value: [PartialRelationshipSourceCandidate] {
+        [PartialRelationshipSourceCandidate(destinationType: destinationType, resolvers: resolvers)]
+    }
+
     let destinationType: To.Type
     let resolvers: [AnyPathParameterResolver]
 
@@ -24,7 +34,7 @@ public struct RelationshipInheritance<From, To>: RelationshipDefinition {
     /// ```
     ///
     /// - Parameter type: The type to inherit from.
-    public init(from type: To.Type = To.self) {
+    public convenience init(from type: To.Type = To.self) {
         self.init(from: type, resolvers: [])
     }
 
@@ -47,7 +57,7 @@ public struct RelationshipInheritance<From, To>: RelationshipDefinition {
     /// - Parameters:
     ///   - type: The type to inherit from.
     ///   - identifications: A list of resolvers for path parameter of the destination.
-    public init(
+    public convenience init(
         from type: To.Type = To.self,
         @RelationshipIdentificationBuilder<From> identifiedBy identifications: () -> [AnyRelationshipIdentification]
     ) {
@@ -69,7 +79,7 @@ extension RelationshipInheritance where To: Identifiable, To.ID: LosslessStringC
     /// - Parameters:
     ///   - type: The type to inherit from.
     ///   - keyPath: A resolver for a path parameter of the destination.
-    public init(from type: To.Type = To.self, identifiedBy keyPath: KeyPath<From, To.ID>) {
+    public convenience init(from type: To.Type = To.self, identifiedBy keyPath: KeyPath<From, To.ID>) {
         self.init(from: type) {
             RelationshipIdentification(type, identifiedBy: keyPath)
         }
@@ -90,14 +100,7 @@ extension RelationshipInheritance where From: Identifiable, To: Identifiable, Fr
     /// ```
     ///
     /// - Parameter type: The type to inherit from.
-    public init(from type: To.Type = To.self) {
+    public convenience init(from type: To.Type = To.self) {
         self.init(from: type, identifiedBy: \From.id)
-    }
-}
-
-extension RelationshipInheritance: SyntaxTreeVisitable {
-    public func accept(_ visitor: SyntaxTreeVisitor) {
-        let candidate = PartialRelationshipSourceCandidate(destinationType: destinationType, resolvers: resolvers)
-        visitor.addContext(RelationshipSourceCandidateContextKey.self, value: [candidate], scope: .current)
     }
 }
