@@ -27,18 +27,6 @@ public protocol WithRelationships {
     static var relationships: Relationships { get }
 }
 
-typealias TypeShortcuts = WithRelationships
-
-extension TypeShortcuts {
-    typealias Test<To> = RelationshipSource<Self, To>
-}
-
-struct Test: WithRelationships {
-    static var relationships: Relationships {
-        Test<String>(name: "test")
-    }
-}
-
 /// A `RelationshipDefinition` defines any sort of relationship information for the
 /// given `Content` type annotated with `WithRelationships`.
 public protocol RelationshipDefinition {}
