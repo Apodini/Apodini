@@ -14,7 +14,7 @@ extension TypedContentMetadataNamespace {
 /// to add resolvers for path parameters of the destination.
 public class RelationshipSource<From, To>: RelationshipsContentMetadataGroup {
     public typealias Key = RelationshipSourceCandidateContextKey
-    public override var value: [PartialRelationshipSourceCandidate] {
+    override public var value: [PartialRelationshipSourceCandidate] {
         [PartialRelationshipSourceCandidate(link: name, destinationType: destinationType, resolvers: resolvers)]
     }
 

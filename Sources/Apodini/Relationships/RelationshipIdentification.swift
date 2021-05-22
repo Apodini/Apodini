@@ -11,7 +11,7 @@ public struct AnyRelationshipIdentification {
     }
 }
 
-extension TypedContentMetadataNamespace { // TODO untyped?
+extension TypedContentMetadataNamespace {
     /// Shorthand for using a pretyped `RelationshipIdentification`.
     public typealias Identifying<To: Identifiable> = RelationshipIdentification<Self, To> where To.ID: LosslessStringConvertible
 }

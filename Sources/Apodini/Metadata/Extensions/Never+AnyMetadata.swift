@@ -4,6 +4,7 @@
 
 extension Never: AnyMetadata {
     public func accept(_ visitor: SyntaxTreeVisitor) {
-        fatalError("Can't accept Component Never") // TODO
+        // as the Never also conforms to Component, we need to manually specify the implementation
+        fatalError("Never cannot be accepted by the SyntaxTreeVisitor!")
     }
 }

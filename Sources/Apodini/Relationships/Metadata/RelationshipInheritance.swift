@@ -2,7 +2,7 @@
 // Created by Andreas Bauer on 18.01.21.
 //
 
-extension TypedContentMetadataNamespace { // TODO untype namespace?
+extension TypedContentMetadataNamespace {
     /// Shorthand for using a pretyped `RelationshipInheritance`.
     public typealias Inherits<To> = RelationshipInheritance<Self, To>
 }
@@ -11,7 +11,7 @@ extension TypedContentMetadataNamespace { // TODO untype namespace?
 /// inherits Relationships from the specified target type.
 public class RelationshipInheritance<From, To>: RelationshipsContentMetadataGroup {
     public typealias Key = RelationshipSourceCandidateContextKey
-    public override var value: [PartialRelationshipSourceCandidate] {
+    override public var value: [PartialRelationshipSourceCandidate] {
         [PartialRelationshipSourceCandidate(destinationType: destinationType, resolvers: resolvers)]
     }
 

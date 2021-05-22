@@ -2,10 +2,8 @@
 // Created by Andreas Bauer on 20.12.20.
 //
 
-// TODO "Relationships" Metadata Group
 
-
-public struct RelationshipSourceCandidateContextKey: ContextKey { // TODO move into own file
+public struct RelationshipSourceCandidateContextKey: ContextKey {
     public typealias Value = [PartialRelationshipSourceCandidate]
     public static let defaultValue: Value = []
 

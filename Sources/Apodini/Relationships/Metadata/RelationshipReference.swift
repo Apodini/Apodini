@@ -2,7 +2,7 @@
 // Created by Andreas Bauer on 18.01.21.
 //
 
-extension TypedContentMetadataNamespace { // TODO untype namespace?
+extension TypedContentMetadataNamespace {
     /// Shorthand for using a pretyped `RelationshipReference`.
     public typealias References<To: Identifiable> = RelationshipReference<Self, To> where To.ID: LosslessStringConvertible
 }
@@ -13,7 +13,7 @@ extension TypedContentMetadataNamespace { // TODO untype namespace?
 public class RelationshipReference<From, To: Identifiable>: RelationshipsContentMetadataGroup
     where To.ID: LosslessStringConvertible {
     public typealias Key = RelationshipSourceCandidateContextKey
-    public override var value: [PartialRelationshipSourceCandidate] {
+    override public var value: [PartialRelationshipSourceCandidate] {
         [PartialRelationshipSourceCandidate(reference: name, destinationType: destinationType, resolvers: resolvers)]
     }
 
