@@ -2,6 +2,25 @@
 // Created by Andreas Bauer on 21.05.21.
 //
 
+/// The `ComponentMetadataModifier` can be used to easily add `ComponentMetadataDefinition`
+/// to a `Component` via a `Modifier`.
+/// Apodini provides `Component.metadata(content:)` and `Component.metadata(...)` as general purpose
+/// Modifiers to add arbitrary Metadata to a `Component`.
+///
+/// Furthermore `ComponentMetadataModifier` serves as a build block to easily create a custom
+/// `Modifier` for your `ComponentMetadataDefinition` without much overhead.
+/// In order to create a Modifier declare a `Component` extension as usual, returning a
+/// `ComponentMetadataModifier` instantiated via `ComponentMetadataModifier.init(modifies:with:)`:
+/// ```swift
+/// extension Component {
+///     public func myModifier(_ value: ExampleValue) -> ComponentMetadataModifier<Self> {
+///         ComponentMetadataModifier(modifies: self, with: ExampleComponentMetadata(value))
+///     }
+/// }
+/// ```
+///
+/// - Note: Be aware that a `Modifier` can be applied to all `Component`s including `Handler` and `WebService`.
+/// Therefore it is advised to not use `ComponentOnlyMetadataDefinition` with `ComponentMetadataModifier`.
 public struct ComponentMetadataModifier<C: Component>: Modifier {
     public let component: C
     // property is not called `metadata` as it would conflict with the Metadata Declaration block
