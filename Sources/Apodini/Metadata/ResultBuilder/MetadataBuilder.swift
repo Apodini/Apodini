@@ -2,9 +2,8 @@
 // Created by Andreas Bauer on 14.05.21.
 //
 
-// TODO buildIf/buildEither blocks(?)
+// swiftlint:disable missing_docs
 
-// TODO docs?
 #if swift(>=5.4)
 @resultBuilder
 public enum MetadataBuilder {}

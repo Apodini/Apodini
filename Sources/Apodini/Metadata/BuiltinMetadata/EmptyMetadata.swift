@@ -3,22 +3,36 @@
 //
 
 extension HandlerMetadataNamespace {
+    /// Name Definition for the `EmptyHandlerMetadata`
     public typealias Empty = EmptyHandlerMetadata
 }
 
 extension ComponentMetadataNamespace {
-    public typealias Empty = EmptyComponentOnlyMetadata
+    /// Name Definition for the `EmptyComponentMetadata`
+    public typealias Empty = EmptyComponentMetadata
 }
 
 extension WebServiceMetadataNamespace {
+    /// Name Definition for the `EmptyWebServiceMetadata`
     public typealias Empty = EmptyWebServiceMetadata
 }
 
 extension ContentMetadataNamespace {
+    /// Name Definition for the `EmptyContentMetadata`
     public typealias Empty = EmptyContentMetadata
 }
 
 
+/// `EmptyHandlerMetadata` is a `AnyHandlerMetadata` which in fact doesn't hold any Metadata.
+/// The Metadata is available under the `Empty` name and can be used like the following:
+/// ```swift
+/// struct ExampleHandler: Handler {
+///     // ...
+///     var metadata: Metadata {
+///         Empty()
+///     }
+/// }
+/// ```
 public struct EmptyHandlerMetadata: HandlerMetadataDefinition {
     public typealias Key = Never
 
@@ -29,6 +43,7 @@ public struct EmptyHandlerMetadata: HandlerMetadataDefinition {
     public func accept(_ visitor: SyntaxTreeVisitor) {}
 }
 
+/// `EmptyHandlerMetadata` is a `AnyHandlerMetadata` which in fact doesn't hold any Metadata.
 public struct EmptyComponentOnlyMetadata: ComponentOnlyMetadataDefinition {
     public typealias Key = Never
 
@@ -39,6 +54,16 @@ public struct EmptyComponentOnlyMetadata: ComponentOnlyMetadataDefinition {
     public func accept(_ visitor: SyntaxTreeVisitor) {}
 }
 
+/// `EmptyWebServiceMetadata` is a `AnyWebServiceMetadata` which in fact doesn't hold any Metadata.
+/// The Metadata is available under the `Empty` name and can be used like the following:
+/// ```swift
+/// struct ExampleWebService: WebService {
+///     // ...
+///     var metadata: Metadata {
+///         Empty()
+///     }
+/// }
+/// ```
 public struct EmptyWebServiceMetadata: WebServiceMetadataDefinition {
     public typealias Key = Never
 
@@ -49,6 +74,16 @@ public struct EmptyWebServiceMetadata: WebServiceMetadataDefinition {
     public func accept(_ visitor: SyntaxTreeVisitor) {}
 }
 
+/// `EmptyComponentMetadata` is a `AnyComponentMetadata` which in fact doesn't hold any Metadata.
+/// The Metadata is available under the `Empty` name and can be used like the following:
+/// ```swift
+/// struct ExampleComponent: Component {
+///     // ...
+///     var metadata: Metadata {
+///         Empty()
+///     }
+/// }
+/// ```
 public struct EmptyComponentMetadata: ComponentMetadataDefinition {
     public typealias Key = Never
 
@@ -59,6 +94,16 @@ public struct EmptyComponentMetadata: ComponentMetadataDefinition {
     public func accept(_ visitor: SyntaxTreeVisitor) {}
 }
 
+/// `EmptyContentMetadata` is a `AnyContentMetadata` which in fact doesn't hold any Metadata.
+/// The Metadata is available under the `Empty` name and can be used like the following:
+/// ```swift
+/// struct ExampleContent: Content {
+///     // ...
+///     var metadata: Metadata {
+///         Empty()
+///     }
+/// }
+/// ```
 public struct EmptyContentMetadata: ContentMetadataDefinition {
     public typealias Key = Never
 

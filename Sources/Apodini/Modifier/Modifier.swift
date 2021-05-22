@@ -44,6 +44,8 @@ public extension Modifier {
     // to prevent Metadata definitions for Modifiers altogether.
     // Problem really is the `HandlerModifier` protocol which conforms to Modifier AND Handler and thus
     // get an error like `error: 'Self.Metadata' cannot be equal to both 'HandlerMetadataCollection' and 'Never'`
+
+    /// Modifiers can't expose any Metadata.
     var metadata: Metadata {
         fatalError("Metadata of a Modifier cannot be accessed!")
     }

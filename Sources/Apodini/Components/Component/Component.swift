@@ -29,6 +29,7 @@ public protocol Component: ComponentMetadataNamespace {
 
 // MARK: Metadata DSL
 public extension Component {
+    /// Components have an empty `AnyComponentOnlyMetadata` by default.
     var metadata: AnyComponentOnlyMetadata {
         Empty()
     }
@@ -112,7 +113,7 @@ private protocol ModifierVisitor: AssociatedTypeRequirementsVisitor {
 }
 
 private struct TestModifier: Modifier {
-    var component: Text = Text("")
+    var component = Text("")
 }
 
 extension ModifierVisitor {

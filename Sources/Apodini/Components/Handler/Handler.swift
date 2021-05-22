@@ -27,6 +27,7 @@ public protocol Handler: HandlerMetadataNamespace, Component {
 
 // MARK: Metadata DSL
 public extension Handler {
+    /// Handlers have an empty `AnyHandlerMetadata` by default.
     var metadata: AnyHandlerMetadata {
         Empty()
     }

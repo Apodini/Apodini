@@ -22,6 +22,7 @@ public protocol WebService: WebServiceMetadataNamespace, Component, Configuratio
 
 // MARK: Metadata DSL
 public extension WebService {
+    /// WebService has an empty `AnyWebServiceMetadata` by default.
     var metadata: AnyWebServiceMetadata {
         Empty()
     }

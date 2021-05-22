@@ -40,7 +40,7 @@ extension DeploymentGroup {
         DeploymentGroup(id: groupId, handlerTypes: [HandlerTypeIdentifier(H.self)], handlerIds: [])
     }
     
-    /// Creates a deployment group containing the handlers with the specifiec identifiers
+    /// Creates a deployment group containing the handlers with the specific identifiers
     public static func handlers(withIds handlerIds: Set<AnyHandlerIdentifier>, groupId: DeploymentGroup.ID? = nil) -> DeploymentGroup {
         DeploymentGroup(id: groupId, handlerTypes: [], handlerIds: handlerIds)
     }
@@ -51,7 +51,7 @@ struct DSLSpecifiedDeploymentGroupIdContextKey: OptionalContextKey {
     typealias Value = DeploymentGroup.ID
     
     static func reduce(value: inout Value, nextValue: () -> Value) {
-        fatalError("Component cannot have multiple explicitly specified deployment groups. Cconflicting groups are '\(value)' and '\(nextValue())'")
+        fatalError("Component cannot have multiple explicitly specified deployment groups. Conflicting groups are '\(value)' and '\(nextValue())'")
     }
 }
 
@@ -105,7 +105,7 @@ public struct DeploymentOptionsModifier<C: Component>: Modifier, SyntaxTreeVisit
     }
 }
 
-extension DeploymentOptionsModifier: HandlerModifier where Self.ModifiedComponent: Handler {
+extension DeploymentOptionsModifier: Handler, HandlerModifier, HandlerMetadataNamespace where Self.ModifiedComponent: Handler {
     public typealias Response = ModifiedComponent.Response
 }
 
@@ -125,7 +125,7 @@ public protocol HandlerWithDeploymentOptions: Handler {
 }
 
 extension HandlerWithDeploymentOptions {
-    /// By default, `Handler`s dont't specify any type-level deployment options
+    /// By default, `Handler`s don't specify any type-level deployment options
     public static var deploymentOptions: [AnyDeploymentOption] {
         []
     }

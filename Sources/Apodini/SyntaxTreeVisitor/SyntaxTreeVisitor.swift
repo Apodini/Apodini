@@ -98,8 +98,8 @@ public class SyntaxTreeVisitor {
         let responseTransformers = currentNode.getContextValue(for: ResponseTransformerContextKey.self)
         let responseType = responseTransformers.responseType ?? H.Response.Content.self
 
-        // TODO Content stuff would currently be added to the `Context` of the Handler (which is not what we want)
-        //   additionally, we currently would not recursively parse properties having Metadata Declarations!
+        // Content Metadata is currently added to the Context of the Handler.
+        // Also, we currently do not recursively parse properties
         let metadataContentVisitor = StandardContentMetadataVisitor(visitor: self)
         metadataContentVisitor(responseType)
 

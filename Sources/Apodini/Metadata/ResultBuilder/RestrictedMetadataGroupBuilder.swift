@@ -2,7 +2,8 @@
 // Created by Andreas Bauer on 16.05.21.
 //
 
-// TODO docs?
+// swiftlint:disable missing_docs
+
 #if swift(>=5.4)
 @resultBuilder
 public enum RestrictedMetadataGroupBuilder<Group: RestrictedMetadataGroup> {}
@@ -165,4 +166,3 @@ public extension RestrictedMetadataGroupBuilder where Group: ContentMetadataGrou
         AnyContentMetadataArrayWrapper(components)
     }
 }
-

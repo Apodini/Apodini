@@ -127,8 +127,6 @@ struct AWS_Greeter: Handler {
     
     @Parameter private var age: Int
     @Parameter(.http(.path)) var name: String
-
-    var testState: String = "asdf"
     
     func handle() -> EventLoopFuture<String> {
         return RHI.invoke(
@@ -141,39 +139,6 @@ struct AWS_Greeter: Handler {
         )
         .map { randomNumber -> String in
             "Hello, \(name). Your random number in range \(age)...\(2 * age) is \(randomNumber)!"
-        }
-    }
-
-    var metadata: Metadata {
-        Description("""
-                    This is the description of the Endpoint
-                    """)
-
-        if testState == "asdf" {
-            Collect {
-                Description("""
-                            Collect is the equivalent to `Group` for Components and is just
-                            a way of semantically grouping and nesting Metadata Definitions,
-                            making your definitions a bit nicer.
-                            """)
-
-                ParameterDescription("123456")
-            }
-        }
-
-        ParameterDescriptions {
-            ParameterDescription("""
-                                 Metadata Declaration providers can easily provide their own
-                                 special purpose groups, like `ParameterDescriptions`.
-                                 This is again just a way of semantically grouping and nesting
-                                 your Metadata definitions, though with the restriction, that
-                                 e.g. `ParameterDescriptions` only allows `ParameterDescription`
-                                 definitions (and of course nested `ParameterDescriptions`)
-                                 """)
-
-            ParameterDescriptions {
-                ParameterDescription("Desc 2")
-            }
         }
     }
 }
