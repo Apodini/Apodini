@@ -20,6 +20,7 @@ struct TestWebService: Apodini.WebService {
         // Hello World! 👋
         Text("Hello World! 👋")
             .response(EmojiTransformer(emojis: "🎉"))
+            .identified(by: "sayHelloWorld")
 
         // Bigger Subsystems:
         AuctionComponent()

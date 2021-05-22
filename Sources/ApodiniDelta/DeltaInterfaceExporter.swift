@@ -27,10 +27,10 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
         let handlerName = endpoint[HandlerDescription.self]
         let operation = endpoint[Apodini.Operation.self]
         let identifier = endpoint[AnyHandlerIdentifier.self]
-        let params = try! endpoint.parameters.migratorParameters(referencedIn: &document)
+        let params = try! endpoint.parameters.migratorParameters()
         
         let path = endpoint.absolutePath.asPathString()
-        let response = document.reference(try! TypeInformation(type: endpoint[ResponseType.self].type))
+        let response = try! TypeInformation(type: endpoint[ResponseType.self].type)
         
         let errors: [ErrorCode] = [
             .init(code: 401, message: "Unauthorized"),
@@ -76,16 +76,12 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
 }
 
 extension ApodiniMigrator.Parameter {
-    static func parameter(
-        from: Apodini.AnyEndpointParameter,
-        referencedIn document: inout Document)
-    throws -> ApodiniMigrator.Parameter {
+    static func parameter(from: Apodini.AnyEndpointParameter) throws -> ApodiniMigrator.Parameter {
         let hasDefaultValue = from.typeErasuredDefaultValue != nil
         var typeInformation = try TypeInformation(type: from.propertyType)
         if from.nilIsValidValue {
             typeInformation = typeInformation.asOptional
         }
-        typeInformation = document.reference(typeInformation)
         return .init(
             parameterName: from.name,
             typeInformation: typeInformation,
@@ -95,8 +91,8 @@ extension ApodiniMigrator.Parameter {
 }
 
 extension Array where Element == Apodini.AnyEndpointParameter {
-    func migratorParameters(referencedIn document: inout Document) throws -> [ApodiniMigrator.Parameter] {
-        try map { try ApodiniMigrator.Parameter.parameter(from: $0, referencedIn: &document) }
+    func migratorParameters() throws -> [ApodiniMigrator.Parameter] {
+        try map { try ApodiniMigrator.Parameter.parameter(from: $0) }
     }
 }
 

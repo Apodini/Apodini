@@ -14,8 +14,10 @@ struct SwiftComponent: Component {
             Text("Hello Swift! 💻")
                 .response(EmojiTransformer())
                 .guard(LogGuard())
+                .identified(by: "sayHelloToSwift")
             Group("5", "3") {
                 Text("Hello Swift 5! 💻")
+                    .identified(by: "helloSwiftFiveDotThree")
             }
         }.guard(LogGuard("Someone is accessing Swift 😎!!"))
     }
