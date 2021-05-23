@@ -44,6 +44,10 @@ extension ComponentMetadataModifier: SyntaxTreeVisitable {
     }
 }
 
+extension ComponentMetadataModifier: HandlerModifier where Self.ModifiedComponent: Handler {
+    public typealias Response = ModifiedComponent.Response
+}
+
 extension Component {
     /// The `Component.metadata(content:)` Modifier can be used to apply a Component Metadata Declaration Block
     /// to the given `Component`.

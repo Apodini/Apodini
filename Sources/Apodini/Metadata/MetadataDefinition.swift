@@ -65,8 +65,8 @@ public protocol HandlerMetadataDefinition: MetadataDefinition, AnyHandlerMetadat
 /// those use `ComponentMetadataDefinition`.
 ///
 /// - Note: It is advised to use `ComponentOnlyMetadataDefinition` with care as it doesn't have its
-///     own Metadata Namespace. The `ComponentMetadataNamespace` is shared with
-///     `Handler`s and the `WebService`.
+///     own Metadata Namespace. The `ComponentMetadataNamespace` or `ComponentOnlyMetadataNamespace`
+///     is still accessible withing `Handler`s and the `WebService`.
 public protocol ComponentOnlyMetadataDefinition: MetadataDefinition, AnyComponentOnlyMetadata {}
 
 /// See `MetadataDefinition` for an explanation on what a Metadata Definition is

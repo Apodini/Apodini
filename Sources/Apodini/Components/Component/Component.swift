@@ -13,7 +13,7 @@ import ApodiniUtils
 /// A `Component` is the central building block of  Apodini. Each component handles a specific functionality of the Apodini web service.
 ///
 /// A `Component`  consists of different other components as described by the `content` property.
-public protocol Component: ComponentMetadataNamespace {
+public protocol Component: ComponentOnlyMetadataNamespace, ComponentMetadataNamespace {
     /// The type of `Component` this `Component` is made out of if the component is a composition of multiple subcomponents.
     associatedtype Content: Component
 
@@ -54,7 +54,8 @@ extension Component {
             // As stated above, this might be a Modifier and the Metadata of Modifiers can't be accessed.
             // So we only start parsing the metadata if in fact we know that it isn't a Modifier.
             if StandardModifierVisitor()(self) != true {
-                self.metadata.accept(visitor)
+                let metadata: Self.Metadata = self.metadata
+                (metadata as! AnyMetadata).accept(visitor)
             }
 
             visitable.accept(visitor)
@@ -65,7 +66,8 @@ extension Component {
                 // Covering components which are not Handlers and don't conform to `SyntaxTreeVisitable`.
                 // Such Components are typically constructed by users.
                 // Executed before we enter the content below.
-                self.metadata.accept(visitor)
+                let metadata: Self.Metadata = self.metadata
+                (metadata as! AnyMetadata).accept(visitor)
             }
 
             if Self.Content.self != Never.self {

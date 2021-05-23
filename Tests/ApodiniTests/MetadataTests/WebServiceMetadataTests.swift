@@ -1,0 +1,170 @@
+//
+// Created by Andreas Bauer on 23.05.21.
+//
+
+@testable import Apodini
+import XCTest
+import XCTApodini
+
+fileprivate struct TestIntMetadataContextKey: ContextKey {
+    static var defaultValue: [Int] = []
+
+    static func reduce(value: inout [Int], nextValue: () -> [Int]) {
+        value.append(contentsOf: nextValue())
+    }
+}
+
+fileprivate struct TestStringMetadataContextKey: OptionalContextKey {
+    typealias Value = String
+}
+
+
+fileprivate extension WebServiceMetadataNamespace {
+    typealias TestInt = TestIntWebServiceMetadata
+    typealias Ints = RestrictedWebServiceMetadataGroup<TestInt>
+}
+
+fileprivate extension TypedWebServiceMetadataNamespace {
+    typealias TestString = GenericTestStringWebServiceMetadata<Self>
+    typealias Strings = RestrictedWebServiceMetadataGroup<TestString>
+}
+
+
+fileprivate struct TestIntWebServiceMetadata: WebServiceMetadataDefinition {
+    typealias Key = TestIntMetadataContextKey
+
+    var num: Int
+    var value: [Int] {
+        [num]
+    }
+
+    init(_ num: Int) {
+        self.num = num
+    }
+}
+
+fileprivate struct GenericTestStringWebServiceMetadata<W: WebService>: WebServiceMetadataDefinition {
+    typealias Key = TestStringMetadataContextKey
+
+    var value: String = "\(W.self)"
+}
+
+
+struct ReusableTestWebServiceMetadata: WebServiceMetadataGroup {
+    var content: Metadata {
+        TestInt(14)
+        Empty()
+        Collect {
+            Empty()
+            TestInt(15)
+        }
+    }
+}
+
+fileprivate struct TestMetadataWebService: WebService {
+    typealias Content = Never
+
+    var state: Bool
+
+    init() {
+        state = true
+    }
+
+    init(state: Bool) {
+        self.state = state
+    }
+
+    var content: Never {
+        fatalError("Never can't produce content!")
+    }
+
+    var metadata: Metadata {
+        TestInt(0)
+
+        if state {
+            TestInt(1)
+        }
+
+        Empty()
+
+        Collect {
+            TestInt(2)
+
+            if state {
+                TestInt(3)
+            } else {
+                TestInt(4)
+            }
+
+            Empty()
+
+            Collect {
+                Empty()
+                TestInt(5)
+            }
+
+            TestInt(6)
+        }
+
+        Ints {
+            if state {
+                Ints {
+                    TestInt(7)
+                }
+                TestInt(8)
+            }
+
+            if state {
+                TestInt(9)
+            } else {
+                TestInt(10)
+            }
+
+            for i in 11...11 {
+                TestInt(i)
+            }
+        }
+
+        for i in 12...13 {
+            TestInt(i)
+        }
+
+        ReusableTestWebServiceMetadata()
+
+        Strings {
+            TestString()
+        }
+    }
+}
+
+final class WebServiceMetadataTest: ApodiniTests {
+    func testWebServiceMetadataTrue() {
+        let visitor = SyntaxTreeVisitor()
+        let webService = TestMetadataWebService(state: true)
+        webService.visit(visitor)
+
+        let context = Context(contextNode: visitor.currentNode)
+
+        let capturedInts = context.get(valueFor: TestIntMetadataContextKey.self)
+        let expectedInts: [Int] = [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15].reversed()
+        XCTAssertEqual(capturedInts, expectedInts)
+
+        let capturedStrings = context.get(valueFor: TestStringMetadataContextKey.self)
+        XCTAssertEqual(capturedStrings, "TestMetadataWebService")
+    }
+
+    func testWebServiceMetadataFalse() {
+        let visitor = SyntaxTreeVisitor()
+        let webService = TestMetadataWebService(state: false)
+        webService.visit(visitor)
+
+        let context = Context(contextNode: visitor.currentNode)
+
+        let captured = context.get(valueFor: TestIntMetadataContextKey.self)
+        let expected: [Int] = [0, 2, 4, 5, 6, 10, 11, 12, 13, 14, 15].reversed()
+        XCTAssertEqual(captured, expected)
+
+        let capturedStrings = context.get(valueFor: TestStringMetadataContextKey.self)
+        XCTAssertEqual(capturedStrings, "TestMetadataWebService")
+    }
+}

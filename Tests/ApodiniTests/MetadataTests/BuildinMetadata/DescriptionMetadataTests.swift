@@ -6,12 +6,15 @@ import XCTest
 @testable import Apodini
 
 final class DescriptionModifierTests: ApodiniTests {
-    struct TestHandler: Handler {
-        @Binding
-        var name: String
+    struct TestContent: Content {
+        static var metadata: Metadata {
+            Description("Content Description!")
+        }
+    }
 
-        func handle() -> String {
-            "Hello \(name)"
+    struct TestHandler: Handler {
+        func handle() -> TestContent {
+            TestContent()
         }
 
         var metadata: Metadata {
@@ -19,37 +22,42 @@ final class DescriptionModifierTests: ApodiniTests {
         }
     }
 
-    struct TestComponentDescriptionMetadata: Component {
-        @PathParameter
-        var name: String
+    struct StringTestHandler: Handler {
+        func handle() -> String {
+            "Hello World!"
+        }
+    }
 
+    struct TestComponentDescriptionMetadata: Component {
         var content: some Component {
-            Group("a", $name) {
-                TestHandler(name: $name)
+            Group("a") {
+                TestHandler()
             }
         }
     }
 
     struct TestComponentDescriptionModifier: Component {
-        @PathParameter
-        var name: String
-
         var content: some Component {
-            Group("a", $name) {
-                TestHandler(name: $name)
+            Group("a") {
+                TestHandler()
                     .description("Returns greeting with name parameter.")
             }
         }
     }
     
     struct TestComponentWithoutDescription: Component {
-        @PathParameter
-        var name: String
-
         var content: some Component {
-            Group("a", $name) {
-                TestHandler(name: $name)
+            Group("a") {
+                TestHandler()
             }
+        }
+    }
+
+    struct TestComponentWithGroupDescription: Component {
+        var content: some Component {
+            Group("a") {
+                StringTestHandler()
+            }.description("Group Description")
         }
     }
 
@@ -62,11 +70,14 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
+        print(modelBuilder.rootNode)
+        let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first)
         let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
         let customDescription = endpoint[Context.self].get(valueFor: DescriptionContextKey.self)
+        let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionContextKey.self)
 
         XCTAssertEqual(customDescription, "The description inside the TestHandler")
+        XCTAssertEqual(contentDescription, "Content Description!")
     }
 
     func testEndpointDescriptionModifier() throws {
@@ -78,11 +89,13 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
+        let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first)
         let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
         let customDescription = endpoint[Context.self].get(valueFor: DescriptionContextKey.self)
+        let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionContextKey.self)
     
         XCTAssertEqual(customDescription, "Returns greeting with name parameter.")
+        XCTAssertEqual(contentDescription, "Content Description!")
     }
     
     func testEndpointDefaultDescription() throws {
@@ -93,10 +106,29 @@ final class DescriptionModifierTests: ApodiniTests {
             testComponent.content
         }.accept(visitor)
         visitor.finishParsing()
-    
-        let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
+
+        let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first)
         let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
+        let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionContextKey.self)
         
         XCTAssertEqual(endpoint.description, "TestHandler")
+        XCTAssertEqual(contentDescription, "Content Description!")
+    }
+
+    func testComponentDescriptionModifier() throws {
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
+        let testComponent = TestComponentWithGroupDescription()
+        Group {
+            testComponent.content
+        }.accept(visitor)
+        visitor.finishParsing()
+
+        print(modelBuilder.rootNode)
+        let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first)
+        let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
+        let customDescription = endpoint[Context.self].get(valueFor: DescriptionContextKey.self)
+
+        XCTAssertEqual(customDescription, "Group Description")
     }
 }

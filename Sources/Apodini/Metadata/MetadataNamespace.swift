@@ -3,7 +3,7 @@
 //
 
 /// The `HandlerMetadataNamespace` can be used to define a appropriate
-/// Name for you `HandlerMetadataDefinition` in a way that avoids Name collisions
+/// Name for your `HandlerMetadataDefinition` in a way that avoids Name collisions
 /// on the global Scope.
 ///
 /// Given the example of `DescriptionHandlerMetadata` you can define a Name like the following:
@@ -17,50 +17,78 @@
 /// Type where the Metadata is used on.
 public protocol HandlerMetadataNamespace {}
 
-/// The `HandlerMetadataNamespace` can be used to define a appropriate
-/// Name for you `HandlerMetadataDefinition` in a way that avoids Name collisions
+/// The `ComponentOnlyMetadataNamespace` can be used to define a appropriate
+/// Name for your `ComponentOnlyMetadataDefinition` in a way that avoids Name collisions
 /// on the global Scope.
 ///
-/// Given the example of `DescriptionHandlerMetadata` you can define a Name like the following:
+/// Given the example of `DescriptionComponentOnlyMetadata` you can define a Name like the following:
 /// ```swift
-/// extension HandlerMetadataNamespace {
-///     public typealias Description = DescriptionHandlerMetadata
+/// extension ComponentOnlyMetadataNamespace {
+///     public typealias Description = DescriptionComponentOnlyMetadata
 /// }
 /// ```
 ///
-/// Refer to `TypedHandlerMetadataNamespace` if you need access to the generic `Handler`
+/// Refer to `TypedComponentMetadataNamespace` if you need access to the generic `Component`
+/// Type where the Metadata is used on.
+public protocol ComponentOnlyMetadataNamespace {}
+
+/// The `WebServiceMetadataNamespace` can be used to define a appropriate
+/// Name for your `WebServiceMetadataDefinition` in a way that avoids Name collisions
+/// on the global Scope.
+///
+/// Given the example of `DescriptionWebServiceMetadata` you can define a Name like the following:
+/// ```swift
+/// extension WebServiceMetadataNamespace {
+///     public typealias Description = DescriptionWebServiceMetadata
+/// }
+/// ```
+///
+/// Refer to `TypedWebServiceMetadataNamespace` if you need access to the generic `WebService`
 /// Type where the Metadata is used on.
 public protocol WebServiceMetadataNamespace {}
 
-/// The `HandlerMetadataNamespace` can be used to define a appropriate
-/// Name for you `HandlerMetadataDefinition` in a way that avoids Name collisions
+/// The `ComponentMetadataNamespace` can be used to define a appropriate
+/// Name for your `ComponentMetadataDefinition` in a way that avoids Name collisions
 /// on the global Scope.
 ///
-/// Given the example of `DescriptionHandlerMetadata` you can define a Name like the following:
+/// Given the example of `DescriptionComponentMetadata` you can define a Name like the following:
 /// ```swift
-/// extension HandlerMetadataNamespace {
-///     public typealias Description = DescriptionHandlerMetadata
+/// extension ComponentMetadataNamespace {
+///     public typealias Description = DescriptionComponentMetadata
 /// }
 /// ```
 ///
-/// Refer to `TypedHandlerMetadataNamespace` if you need access to the generic `Handler`
+/// Refer to `TypedComponentMetadataNamespace` if you need access to the generic `Component`
 /// Type where the Metadata is used on.
+///
+/// - Note: Refer `ComponentMetadataGroupNamespace` for very specific circumstances where using
+///     `ComponentMetadataNamespace` should be avoided.
 public protocol ComponentMetadataNamespace {}
 
-/// The `HandlerMetadataNamespace` can be used to define a appropriate
-/// Name for you `HandlerMetadataDefinition` in a way that avoids Name collisions
+/// The `ContentMetadataNamespace` can be used to define a appropriate
+/// Name for your `ContentMetadataDefinition` in a way that avoids Name collisions
 /// on the global Scope.
 ///
-/// Given the example of `DescriptionHandlerMetadata` you can define a Name like the following:
+/// Given the example of `DescriptionContentMetadata` you can define a Name like the following:
 /// ```swift
-/// extension HandlerMetadataNamespace {
-///     public typealias Description = DescriptionHandlerMetadata
+/// extension ContentMetadataNamespace {
+///     public typealias Description = DescriptionContentMetadata
 /// }
 /// ```
 ///
-/// Refer to `TypedHandlerMetadataNamespace` if you need access to the generic `Handler`
+/// Refer to `TypedContentMetadataNamespace` if you need access to the generic `Content`
 /// Type where the Metadata is used on.
 public protocol ContentMetadataNamespace {}
+
+
+/// The `ComponentMetadataGroupNamespace` can be used to define a appropriate
+/// Name for your `ComponentMetadataDefinition` specifically for the Namespace
+/// of `ComponentMetadataGroup`s.
+///
+/// This is only necessary if you additionally have equivalent or similar Component-Only and Handler and/or WebService Metadata
+/// which additionally share the same name in the `ComponentOnlyMetadataNamespace`, `HandlerMetadataNamespace` and
+/// `WebServiceMetadataNamespace` (Such example is the `EmptyComponentMetadata`).
+public typealias ComponentMetadataGroupNamespace = ComponentMetadataGroup
 
 
 /// As the `HandlerMetadataNamespace` is accessible from `HandlerMetadataGroup`s,
@@ -140,7 +168,7 @@ public typealias TypedWebServiceMetadataNamespace = WebService
 /// Doing so will make the `Example` Metadata **not available** in `ComponentMetadataGroup`s.
 /// If you want to make the Metadata available in those groups as well, relying on the
 /// user to manually specify the `Component` generic Type, declare a Name in `ComponentMetadataNamespace`
-/// like the following:
+/// (and/or `ComponentOnlyMetadataNamespace`) like the following:
 /// ```swift
 /// extension ComponentMetadataNamespace {
 ///     public typealias Example<C: Component> = ExampleComponentMetadata<C>

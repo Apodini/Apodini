@@ -75,7 +75,7 @@ extension HandlerMetadataGroup {
 ///     }
 /// }
 /// ```
-public protocol ComponentOnlyMetadataGroup: AnyMetadataGroup, AnyComponentOnlyMetadata, ComponentMetadataNamespace {
+public protocol ComponentOnlyMetadataGroup: AnyMetadataGroup, AnyComponentOnlyMetadata, ComponentOnlyMetadataNamespace, ComponentMetadataNamespace {
     associatedtype Metadata = AnyComponentOnlyMetadata
 
     @MetadataBuilder
@@ -198,20 +198,24 @@ extension ContentMetadataGroup {
     }
 }
 
-
-extension ComponentMetadataNamespace {
-    /// Name Definition for the `StandardComponentMetadataGroup`
-    public typealias Collect = StandardComponentMetadataGroup
-}
-
 extension HandlerMetadataNamespace {
     /// Name Definition for the `StandardHandlerMetadataGroup`
     public typealias Collect = StandardHandlerMetadataGroup
 }
 
+extension ComponentOnlyMetadataNamespace {
+    /// Name Definition for the `StandardComponentOnlyMetadataGroup`
+    public typealias Collect = StandardComponentOnlyMetadataGroup
+}
+
 extension WebServiceMetadataNamespace {
     /// Name Definition for the `StandardWebServiceMetadataGroup`
     public typealias Collect = StandardWebServiceMetadataGroup
+}
+
+extension ComponentMetadataNamespace {
+    /// Name Definition for the `StandardComponentMetadataGroup`
+    public typealias Collect = StandardComponentMetadataGroup
 }
 
 extension ContentMetadataNamespace {
@@ -243,7 +247,7 @@ public struct StandardHandlerMetadataGroup: HandlerMetadataGroup {
     }
 }
 
-/// `StandardComponentMetadataGroup` is a `ComponentMetadataGroup` available by default.
+/// `StandardComponentOnlyMetadataGroup` is a `ComponentOnlyMetadataGroup` available by default.
 /// It is available under the `Collect` name in `Component` Metadata Declaration Blocks
 /// (this includes `Handler`s and the `WebService`).
 ///
@@ -259,10 +263,10 @@ public struct StandardHandlerMetadataGroup: HandlerMetadataGroup {
 ///     }
 /// }
 /// ```
-public struct StandardComponentMetadataGroup: ComponentMetadataGroup {
-    public var content: AnyComponentMetadata
-    
-    public init(@MetadataBuilder content: () -> AnyComponentMetadata) {
+public struct StandardComponentOnlyMetadataGroup: ComponentOnlyMetadataGroup {
+    public var content: AnyComponentOnlyMetadata
+
+    public init(@MetadataBuilder content: () -> AnyComponentOnlyMetadata) {
         self.content = content()
     }
 }
@@ -286,6 +290,30 @@ public struct StandardWebServiceMetadataGroup: WebServiceMetadataGroup {
     public var content: AnyWebServiceMetadata
     
     public init(@MetadataBuilder content: () -> AnyWebServiceMetadata) {
+        self.content = content()
+    }
+}
+
+/// `StandardComponentMetadataGroup` is a `ComponentMetadataGroup` available by default.
+/// It is available under the `Collect` name in `Component` Metadata Declaration Blocks
+/// (this includes `Handler`s and the `WebService`).
+///
+/// It may be used in `Component` Metadata Declaration Blocks in the following way:
+/// ```swift
+/// struct ExampleComponent: Component {
+///     // ...
+///     var metadata: Metadata {
+///         // ...
+///         Collect {
+///             // ...
+///         }
+///     }
+/// }
+/// ```
+public struct StandardComponentMetadataGroup: ComponentMetadataGroup {
+    public var content: AnyComponentMetadata
+
+    public init(@ComponentMetadataBuilder content: () -> AnyComponentMetadata) {
         self.content = content()
     }
 }

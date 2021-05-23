@@ -88,13 +88,16 @@ extension WebService {
         visitor.finishParsing()
     }
     
-    private func visit(_ visitor: SyntaxTreeVisitor) {
+    func visit(_ visitor: SyntaxTreeVisitor) {
         metadata.accept(visitor)
 
         visitor.addContext(APIVersionContextKey.self, value: version, scope: .environment)
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
-        Group {
-            content
-        }.accept(visitor)
+
+        if Content.self != Never.self {
+            Group {
+                content
+            }.accept(visitor)
+        }
     }
 }

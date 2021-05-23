@@ -30,7 +30,7 @@ public class SyntaxTreeVisitor {
     /// The `semanticModelBuilders` that can interpret the Apodini DSL syntax tree collected by the `SyntaxTreeVisitor`
     private let modelBuilder: SemanticModelBuilder?
     /// Contains the current `ContextNode` that is used when creating a context for each registered `Handler`
-    private(set) var currentNode = ContextNode()
+    var currentNode = ContextNode()
     /// The `currentNodeIndexPath` is  used to uniquely identify `Handlers`, even across multiple runs of an Apodini web service if the DSL has not changed.
     /// We increase the component level specific `currentNodeIndexPath` by one for each `Handler` visited in the same component level to uniquely identify `Handlers` by  the index paths.
     private var currentNodeIndexPath: [Int] = []

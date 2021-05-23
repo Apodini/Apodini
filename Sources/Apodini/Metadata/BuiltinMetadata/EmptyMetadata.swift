@@ -7,7 +7,7 @@ extension HandlerMetadataNamespace {
     public typealias Empty = EmptyHandlerMetadata
 }
 
-extension ComponentMetadataNamespace {
+extension ComponentOnlyMetadataNamespace {
     /// Name Definition for the `EmptyComponentOnlyMetadata`
     public typealias Empty = EmptyComponentOnlyMetadata
 }
@@ -20,6 +20,11 @@ extension WebServiceMetadataNamespace {
 extension ContentMetadataNamespace {
     /// Name Definition for the `EmptyContentMetadata`
     public typealias Empty = EmptyContentMetadata
+}
+
+extension ComponentMetadataGroupNamespace {
+    /// Name Definition for the `EmptyComponentMetadata`
+    public typealias Empty = EmptyComponentMetadata
 }
 
 
@@ -84,6 +89,14 @@ public struct EmptyWebServiceMetadata: WebServiceMetadataDefinition {
 }
 
 /// `EmptyComponentMetadata` is a `AnyComponentMetadata` which in fact doesn't hold any Metadata.
+/// The Metadata is available under the `Empty` name and can be used like the following:
+/// ```swift
+/// struct ExampleComponentMetadata: ComponentMetadataGroup {
+///     var metadata: Metadata {
+///         Empty()
+///     }
+/// }
+/// ```
 public struct EmptyComponentMetadata: ComponentMetadataDefinition {
     public typealias Key = Never
 
