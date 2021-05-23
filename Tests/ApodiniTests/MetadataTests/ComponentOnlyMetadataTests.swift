@@ -6,7 +6,7 @@
 import XCTest
 import XCTApodini
 
-fileprivate struct TestIntMetadataContextKey: ContextKey {
+private struct TestIntMetadataContextKey: ContextKey {
     static var defaultValue: [Int] = []
 
     static func reduce(value: inout [Int], nextValue: () -> [Int]) {
@@ -14,23 +14,23 @@ fileprivate struct TestIntMetadataContextKey: ContextKey {
     }
 }
 
-fileprivate struct TestStringMetadataContextKey: OptionalContextKey {
+private struct TestStringMetadataContextKey: OptionalContextKey {
     typealias Value = String
 }
 
 
-fileprivate extension ComponentMetadataNamespace {
+private extension ComponentMetadataNamespace {
     typealias TestInt = TestIntComponentOnlyMetadata
     typealias Ints = RestrictedComponentOnlyMetadataGroup<TestInt>
 }
 
-fileprivate extension TypedComponentMetadataNamespace {
+private extension TypedComponentMetadataNamespace {
     typealias TestString = GenericTestStringComponentOnlyMetadata<Self>
     typealias Strings = RestrictedComponentOnlyMetadataGroup<TestString>
 }
 
 
-fileprivate struct TestIntComponentOnlyMetadata: ComponentOnlyMetadataDefinition {
+private struct TestIntComponentOnlyMetadata: ComponentOnlyMetadataDefinition {
     typealias Key = TestIntMetadataContextKey
 
     var num: Int
@@ -43,14 +43,14 @@ fileprivate struct TestIntComponentOnlyMetadata: ComponentOnlyMetadataDefinition
     }
 }
 
-fileprivate struct GenericTestStringComponentOnlyMetadata<C: Component>: ComponentOnlyMetadataDefinition {
+private struct GenericTestStringComponentOnlyMetadata<C: Component>: ComponentOnlyMetadataDefinition {
     typealias Key = TestStringMetadataContextKey
 
     var value: String = "\(C.self)"
 }
 
 
-struct ReusableTestComponentOnlyMetadata: ComponentOnlyMetadataGroup {
+private struct ReusableTestComponentOnlyMetadata: ComponentOnlyMetadataGroup {
     var content: Metadata {
         TestInt(14)
         Empty()
@@ -61,7 +61,7 @@ struct ReusableTestComponentOnlyMetadata: ComponentOnlyMetadataGroup {
     }
 }
 
-fileprivate struct TestMetadataComponent: Component {
+private struct TestMetadataComponent: Component {
     typealias Content = Never
 
     var state: Bool
@@ -112,13 +112,13 @@ fileprivate struct TestMetadataComponent: Component {
                 TestInt(10)
             }
 
-            for i in 11...11 {
-                TestInt(i)
+            for num in 11...11 {
+                TestInt(num)
             }
         }
 
-        for i in 12...13 {
-            TestInt(i)
+        for num in 12...13 {
+            TestInt(num)
         }
 
         ReusableTestComponentOnlyMetadata()
@@ -129,7 +129,7 @@ fileprivate struct TestMetadataComponent: Component {
     }
 }
 
-fileprivate struct GroupComponentWithMetadata<Content: Component>: Component, SyntaxTreeVisitable {
+private struct GroupComponentWithMetadata<Content: Component>: Component, SyntaxTreeVisitable {
     let content: Content
 
     init(@ComponentBuilder content: () -> Content) {

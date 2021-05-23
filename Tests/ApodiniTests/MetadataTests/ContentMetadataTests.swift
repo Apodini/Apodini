@@ -6,7 +6,7 @@
 import XCTest
 import XCTApodini
 
-fileprivate struct TestIntMetadataContextKey: ContextKey {
+private struct TestIntMetadataContextKey: ContextKey {
     static var defaultValue: [Int] = []
 
     static func reduce(value: inout [Int], nextValue: () -> [Int]) {
@@ -14,23 +14,23 @@ fileprivate struct TestIntMetadataContextKey: ContextKey {
     }
 }
 
-fileprivate struct TestStringMetadataContextKey: OptionalContextKey {
+private struct TestStringMetadataContextKey: OptionalContextKey {
     typealias Value = String
 }
 
 
-fileprivate extension ContentMetadataNamespace {
+private extension ContentMetadataNamespace {
     typealias TestInt = TestIntContentMetadata
     typealias Ints = RestrictedContentMetadataGroup<TestInt>
 }
 
-fileprivate extension TypedContentMetadataNamespace {
+private extension TypedContentMetadataNamespace {
     typealias TestString = GenericTestStringContentMetadata<Self>
     typealias Strings = RestrictedContentMetadataGroup<TestString>
 }
 
 
-fileprivate struct TestIntContentMetadata: ContentMetadataDefinition {
+private struct TestIntContentMetadata: ContentMetadataDefinition {
     typealias Key = TestIntMetadataContextKey
 
     var num: Int
@@ -43,14 +43,14 @@ fileprivate struct TestIntContentMetadata: ContentMetadataDefinition {
     }
 }
 
-fileprivate struct GenericTestStringContentMetadata<C: Content>: ContentMetadataDefinition {
+private struct GenericTestStringContentMetadata<C: Content>: ContentMetadataDefinition {
     typealias Key = TestStringMetadataContextKey
 
     var value: String = "\(C.self)"
 }
 
 
-struct ReusableTestContentMetadata: ContentMetadataGroup {
+private struct ReusableTestContentMetadata: ContentMetadataGroup {
     var content: Metadata {
         TestInt(14)
         Empty()
@@ -61,7 +61,7 @@ struct ReusableTestContentMetadata: ContentMetadataGroup {
     }
 }
 
-fileprivate struct TestMetadataContent: Content {
+private struct TestMetadataContent: Content {
     static var state = true
 
     static var metadata: Metadata {
@@ -106,13 +106,13 @@ fileprivate struct TestMetadataContent: Content {
                 TestInt(10)
             }
 
-            for i in 11...11 {
-                TestInt(i)
+            for num in 11...11 {
+                TestInt(num)
             }
         }
 
-        for i in 12...13 {
-            TestInt(i)
+        for num in 12...13 {
+            TestInt(num)
         }
 
         ReusableTestContentMetadata()
@@ -123,7 +123,7 @@ fileprivate struct TestMetadataContent: Content {
     }
 }
 
-fileprivate struct TestMetadataHandler: Handler {
+private struct TestMetadataHandler: Handler {
     func handle() -> TestMetadataContent {
         TestMetadataContent()
     }

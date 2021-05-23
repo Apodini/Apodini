@@ -6,7 +6,7 @@
 import XCTest
 import XCTApodini
 
-fileprivate struct TestIntMetadataContextKey: ContextKey {
+private struct TestIntMetadataContextKey: ContextKey {
     static var defaultValue: [Int] = []
 
     static func reduce(value: inout [Int], nextValue: () -> [Int]) {
@@ -14,23 +14,23 @@ fileprivate struct TestIntMetadataContextKey: ContextKey {
     }
 }
 
-fileprivate struct TestStringMetadataContextKey: OptionalContextKey {
+private struct TestStringMetadataContextKey: OptionalContextKey {
     typealias Value = String
 }
 
 
-fileprivate extension HandlerMetadataNamespace {
+private extension HandlerMetadataNamespace {
     typealias TestInt = TestIntHandlerMetadata
     typealias Ints = RestrictedHandlerMetadataGroup<TestInt>
 }
 
-fileprivate extension TypedHandlerMetadataNamespace {
+private extension TypedHandlerMetadataNamespace {
     typealias TestString = GenericTestStringHandlerMetadata<Self>
     typealias Strings = RestrictedHandlerMetadataGroup<TestString>
 }
 
 
-fileprivate struct TestIntHandlerMetadata: HandlerMetadataDefinition {
+private struct TestIntHandlerMetadata: HandlerMetadataDefinition {
     typealias Key = TestIntMetadataContextKey
 
     var num: Int
@@ -43,13 +43,13 @@ fileprivate struct TestIntHandlerMetadata: HandlerMetadataDefinition {
     }
 }
 
-fileprivate struct GenericTestStringHandlerMetadata<H: Handler>: HandlerMetadataDefinition {
+private struct GenericTestStringHandlerMetadata<H: Handler>: HandlerMetadataDefinition {
     typealias Key = TestStringMetadataContextKey
 
     var value: String = "\(H.self)"
 }
 
-fileprivate struct ReusableTestHandlerMetadata: HandlerMetadataGroup {
+private struct ReusableTestHandlerMetadata: HandlerMetadataGroup {
     var content: Metadata {
         TestInt(14)
         Empty()
@@ -60,7 +60,7 @@ fileprivate struct ReusableTestHandlerMetadata: HandlerMetadataGroup {
     }
 }
 
-fileprivate struct TestMetadataHandler: Handler {
+private struct TestMetadataHandler: Handler {
     var state: Bool
 
     func handle() -> String {
@@ -109,13 +109,13 @@ fileprivate struct TestMetadataHandler: Handler {
                 TestInt(10)
             }
 
-            for i in 11...11 {
-                TestInt(i)
+            for num in 11...11 {
+                TestInt(num)
             }
         }
 
-        for i in 12...13 {
-            TestInt(i)
+        for num in 12...13 {
+            TestInt(num)
         }
 
         ReusableTestHandlerMetadata()
@@ -165,6 +165,7 @@ final class HandlerMetadataTest: ApodiniTests {
 
     func testComponentMetadataModifier() {
         let visitor = SyntaxTreeVisitor()
+        visitor.currentNode = UnresettableContextNode()
         let component = TestMetadataHandler(state: true)
             .metadata(TestIntHandlerMetadata(16))
             .metadata {

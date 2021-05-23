@@ -6,7 +6,7 @@
 import XCTest
 import XCTApodini
 
-fileprivate struct TestIntMetadataContextKey: ContextKey {
+private struct TestIntMetadataContextKey: ContextKey {
     static var defaultValue: [Int] = []
 
     static func reduce(value: inout [Int], nextValue: () -> [Int]) {
@@ -14,23 +14,23 @@ fileprivate struct TestIntMetadataContextKey: ContextKey {
     }
 }
 
-fileprivate struct TestStringMetadataContextKey: OptionalContextKey {
+private struct TestStringMetadataContextKey: OptionalContextKey {
     typealias Value = String
 }
 
 
-fileprivate extension WebServiceMetadataNamespace {
+private extension WebServiceMetadataNamespace {
     typealias TestInt = TestIntWebServiceMetadata
     typealias Ints = RestrictedWebServiceMetadataGroup<TestInt>
 }
 
-fileprivate extension TypedWebServiceMetadataNamespace {
+private extension TypedWebServiceMetadataNamespace {
     typealias TestString = GenericTestStringWebServiceMetadata<Self>
     typealias Strings = RestrictedWebServiceMetadataGroup<TestString>
 }
 
 
-fileprivate struct TestIntWebServiceMetadata: WebServiceMetadataDefinition {
+private struct TestIntWebServiceMetadata: WebServiceMetadataDefinition {
     typealias Key = TestIntMetadataContextKey
 
     var num: Int
@@ -43,14 +43,14 @@ fileprivate struct TestIntWebServiceMetadata: WebServiceMetadataDefinition {
     }
 }
 
-fileprivate struct GenericTestStringWebServiceMetadata<W: WebService>: WebServiceMetadataDefinition {
+private struct GenericTestStringWebServiceMetadata<W: WebService>: WebServiceMetadataDefinition {
     typealias Key = TestStringMetadataContextKey
 
     var value: String = "\(W.self)"
 }
 
 
-struct ReusableTestWebServiceMetadata: WebServiceMetadataGroup {
+private struct ReusableTestWebServiceMetadata: WebServiceMetadataGroup {
     var content: Metadata {
         TestInt(14)
         Empty()
@@ -61,7 +61,7 @@ struct ReusableTestWebServiceMetadata: WebServiceMetadataGroup {
     }
 }
 
-fileprivate struct TestMetadataWebService: WebService {
+private struct TestMetadataWebService: WebService {
     typealias Content = Never
 
     var state: Bool
@@ -120,13 +120,13 @@ fileprivate struct TestMetadataWebService: WebService {
                 TestInt(10)
             }
 
-            for i in 11...11 {
-                TestInt(i)
+            for num in 11...11 {
+                TestInt(num)
             }
         }
 
-        for i in 12...13 {
-            TestInt(i)
+        for num in 12...13 {
+            TestInt(num)
         }
 
         ReusableTestWebServiceMetadata()

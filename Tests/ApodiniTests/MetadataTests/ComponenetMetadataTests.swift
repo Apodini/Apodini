@@ -6,7 +6,7 @@
 import XCTest
 import XCTApodini
 
-fileprivate struct TestIntMetadataContextKey: ContextKey {
+private struct TestIntMetadataContextKey: ContextKey {
     static var defaultValue: [Int] = []
 
     static func reduce(value: inout [Int], nextValue: () -> [Int]) {
@@ -14,23 +14,23 @@ fileprivate struct TestIntMetadataContextKey: ContextKey {
     }
 }
 
-fileprivate struct TestStringMetadataContextKey: OptionalContextKey {
+private struct TestStringMetadataContextKey: OptionalContextKey {
     typealias Value = String
 }
 
 
-fileprivate extension ComponentMetadataNamespace {
+private extension ComponentMetadataNamespace {
     typealias TestInt = TestIntComponentMetadata
     typealias Ints = RestrictedComponentMetadataGroup<TestInt>
 }
 
-fileprivate extension TypedComponentMetadataNamespace {
+private extension TypedComponentMetadataNamespace {
     typealias TestString = GenericTestStringComponentMetadata<Self>
     typealias Strings = RestrictedComponentMetadataGroup<TestString>
 }
 
 
-fileprivate struct TestIntComponentMetadata: ComponentMetadataDefinition {
+private struct TestIntComponentMetadata: ComponentMetadataDefinition {
     typealias Key = TestIntMetadataContextKey
 
     var num: Int
@@ -43,13 +43,13 @@ fileprivate struct TestIntComponentMetadata: ComponentMetadataDefinition {
     }
 }
 
-fileprivate struct GenericTestStringComponentMetadata<C: Component>: ComponentMetadataDefinition {
+private struct GenericTestStringComponentMetadata<C: Component>: ComponentMetadataDefinition {
     typealias Key = TestStringMetadataContextKey
 
     var value: String = "\(C.self)"
 }
 
-fileprivate struct ReusableTestComponentMetadata: ComponentMetadataGroup {
+private struct ReusableTestComponentMetadata: ComponentMetadataGroup {
     let offset: Int
     let state: Bool
 
@@ -71,13 +71,13 @@ fileprivate struct ReusableTestComponentMetadata: ComponentMetadataGroup {
             TestInt(offset + 4)
         }
 
-        for i in (offset + 5) ... (offset + 7) {
-            TestInt(i)
+        for num in (offset + 5) ... (offset + 7) {
+            TestInt(num)
         }
     }
 }
 
-fileprivate struct TestMetadataHandler: Handler {
+private struct TestMetadataHandler: Handler {
     func handle() -> String {
         "Hello World!"
     }
@@ -90,7 +90,7 @@ fileprivate struct TestMetadataHandler: Handler {
     }
 }
 
-fileprivate struct TestMetadataComponent: Component {
+private struct TestMetadataComponent: Component {
     var state: Bool
 
     var content: some Component {
@@ -143,17 +143,17 @@ fileprivate struct TestMetadataComponent: Component {
                 TestInt(10)
             }
 
-            for i in 11...11 {
-                TestInt(i)
+            for num in 11...11 {
+                TestInt(num)
             }
         }
 
-        for i in 12...13 {
-            TestInt(i)
+        for num in 12...13 {
+            TestInt(num)
         }
 
         ReusableTestComponentMetadata(offset: 14, state: true)
-        ReusableTestComponentMetadata(offset: 14+8, state: false)
+        ReusableTestComponentMetadata(offset: 14 + 8, state: false)
 
         Strings {
             TestString()
@@ -161,7 +161,7 @@ fileprivate struct TestMetadataComponent: Component {
     }
 }
 
-fileprivate struct TestMetadataWebService: WebService {
+private struct TestMetadataWebService: WebService {
     typealias Content = Never
     var content: Never {
         fatalError("Never can't produce content!")
