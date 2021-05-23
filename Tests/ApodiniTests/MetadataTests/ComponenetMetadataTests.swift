@@ -186,6 +186,7 @@ final class ComponentMetadataTest: ApodiniTests {
         #if swift(>=5.4)
         [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 29].reversed()
         #else
+        // swiftlint:disable:next comma
         [0, 1, 2, 3, 5, 6, 7, 8, 9,             14, 15, 16, 17,             22, 23, 26            ].reversed()
         #endif
     }
@@ -194,6 +195,7 @@ final class ComponentMetadataTest: ApodiniTests {
         #if swift(>=5.4)
         [0, 2, 4, 5, 6, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 29].reversed()
         #else
+        // swiftlint:disable:next comma
         [0, 2, 4, 5, 6, 10,             14, 15, 16, 17,             22, 23, 26            ].reversed()
         #endif
     }
