@@ -71,9 +71,11 @@ private struct ReusableTestComponentMetadata: ComponentMetadataGroup {
             TestInt(offset + 4)
         }
 
+        #if swift(>=5.4)
         for num in (offset + 5) ... (offset + 7) {
             TestInt(num)
         }
+        #endif
     }
 }
 
@@ -143,17 +145,21 @@ private struct TestMetadataComponent: Component {
                 TestInt(10)
             }
 
+            #if swift(>=5.4)
             for num in 11...11 {
                 TestInt(num)
             }
+            #endif
         }
 
+        #if swift(>=5.4)
         for num in 12...13 {
             TestInt(num)
         }
+        #endif
 
         ReusableTestComponentMetadata(offset: 14, state: true)
-        ReusableTestComponentMetadata(offset: 14 + 8, state: false)
+        ReusableTestComponentMetadata(offset: 22, state: false)
 
         Strings {
             TestString()
@@ -176,6 +182,22 @@ private struct TestMetadataWebService: WebService {
 }
 
 final class ComponentMetadataTest: ApodiniTests {
+    static var expectedIntsState: [Int] {
+        #if swift(>=5.4)
+        [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 29].reversed()
+        #else
+        [0, 1, 2, 3, 5, 6, 7, 8, 9,             14, 15, 16, 17,             22, 23, 26            ].reversed()
+        #endif
+    }
+
+    static var expectedInts: [Int] {
+        #if swift(>=5.4)
+        [0, 2, 4, 5, 6, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 29].reversed()
+        #else
+        [0, 2, 4, 5, 6, 10,             14, 15, 16, 17,             22, 23, 26            ].reversed()
+        #endif
+    }
+
     func testComponentMetadataTrue() {
         let visitor = SyntaxTreeVisitor()
         let component = TestMetadataComponent(state: true)
@@ -184,7 +206,7 @@ final class ComponentMetadataTest: ApodiniTests {
         let context = Context(contextNode: visitor.currentNode)
 
         let capturedInts = context.get(valueFor: TestIntMetadataContextKey.self)
-        let expectedInts: [Int] = [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 29].reversed()
+        let expectedInts: [Int] = Self.expectedIntsState
         XCTAssertEqual(capturedInts, expectedInts)
 
         let capturedStrings = context.get(valueFor: TestStringMetadataContextKey.self)
@@ -200,7 +222,7 @@ final class ComponentMetadataTest: ApodiniTests {
         let context = Context(contextNode: visitor.currentNode)
 
         let captured = context.get(valueFor: TestIntMetadataContextKey.self)
-        let expected: [Int] = [0, 2, 4, 5, 6, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 29].reversed()
+        let expected: [Int] = Self.expectedInts
         XCTAssertEqual(captured, expected)
 
         let capturedStrings = context.get(valueFor: TestStringMetadataContextKey.self)
@@ -219,7 +241,7 @@ final class ComponentMetadataTest: ApodiniTests {
         let context = Context(contextNode: visitor.currentNode)
 
         let capturedInts = context.get(valueFor: TestIntMetadataContextKey.self)
-        let expectedInts: [Int] = [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 29].reversed()
+        let expectedInts: [Int] = Self.expectedIntsState
             + [30, 31]
         XCTAssertEqual(capturedInts, expectedInts)
     }
@@ -257,7 +279,7 @@ final class ComponentMetadataTest: ApodiniTests {
         let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.rootNode.endpoints.first?.value)
 
         let capturedInts = endpoint[Context.self].get(valueFor: TestIntMetadataContextKey.self)
-        let expectedInts: [Int] = [100, 99, 97, 29, 28, 27, 26, 23, 22, 21, 20, 19, 17, 16, 15, 14, 13, 12, 11, 9, 8, 7, 6, 5, 3, 2, 1, 0, 98]
+        let expectedInts: [Int] = [100, 99, 97] + Self.expectedIntsState + [98]
         XCTAssertEqual(capturedInts, expectedInts)
     }
 }

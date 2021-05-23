@@ -109,14 +109,18 @@ private struct TestMetadataHandler: Handler {
                 TestInt(10)
             }
 
+            #if swift(>=5.4)
             for num in 11...11 {
                 TestInt(num)
             }
+            #endif
         }
 
+        #if swift(>=5.4)
         for num in 12...13 {
             TestInt(num)
         }
+        #endif
 
         ReusableTestHandlerMetadata()
 
@@ -131,6 +135,22 @@ class UnresettableContextNode: ContextNode {
 }
 
 final class HandlerMetadataTest: ApodiniTests {
+    static var expectedIntsState: [Int] {
+        #if swift(>=5.4)
+        [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15].reversed()
+        #else
+        [0, 1, 2, 3, 5, 6, 7, 8, 9,             14, 15].reversed()
+        #endif
+    }
+
+    static var expectedInts: [Int] {
+        #if swift(>=5.4)
+        [0, 2, 4, 5, 6, 10, 11, 12, 13, 14, 15].reversed()
+        #else
+        [0, 2, 4, 5, 6, 10,             14, 15].reversed()
+        #endif
+    }
+
     func testHandlerMetadataTrue() {
         let visitor = SyntaxTreeVisitor()
         visitor.currentNode = UnresettableContextNode()
@@ -140,7 +160,7 @@ final class HandlerMetadataTest: ApodiniTests {
         let context = Context(contextNode: visitor.currentNode)
 
         let capturedInts = context.get(valueFor: TestIntMetadataContextKey.self)
-        let expectedInts: [Int] = [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15].reversed()
+        let expectedInts: [Int] = Self.expectedIntsState
         XCTAssertEqual(capturedInts, expectedInts)
 
         let capturedStrings = context.get(valueFor: TestStringMetadataContextKey.self)
@@ -156,7 +176,7 @@ final class HandlerMetadataTest: ApodiniTests {
         let context = Context(contextNode: visitor.currentNode)
 
         let captured = context.get(valueFor: TestIntMetadataContextKey.self)
-        let expected: [Int] = [0, 2, 4, 5, 6, 10, 11, 12, 13, 14, 15].reversed()
+        let expected: [Int] = Self.expectedInts
         XCTAssertEqual(captured, expected)
 
         let capturedStrings = context.get(valueFor: TestStringMetadataContextKey.self)
@@ -176,7 +196,7 @@ final class HandlerMetadataTest: ApodiniTests {
         let context = Context(contextNode: visitor.currentNode)
 
         let capturedInts = context.get(valueFor: TestIntMetadataContextKey.self)
-        let expectedInts: [Int] = [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15].reversed() + [16, 17]
+        let expectedInts: [Int] = Self.expectedIntsState + [16, 17]
         XCTAssertEqual(capturedInts, expectedInts)
     }
 }
