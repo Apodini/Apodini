@@ -143,7 +143,7 @@ final class ContentMetadataTest: ApodiniTests {
         [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15].reversed()
         #else
         // swiftlint:disable:next comma
-        [0, 1, 2, 3, 5, 6, 7, 8, 9,             14, 15].reversed()
+        return [0, 1, 2, 3, 5, 6, 7, 8, 9,             14, 15].reversed()
         #endif
     }
 
@@ -152,7 +152,7 @@ final class ContentMetadataTest: ApodiniTests {
         [0, 2, 4, 5, 6, 10, 11, 12, 13, 14, 15].reversed()
         #else
         // swiftlint:disable:next comma
-        [0, 2, 4, 5, 6, 10,             14, 15].reversed()
+        return [0, 2, 4, 5, 6, 10,             14, 15].reversed()
         #endif
     }
 
