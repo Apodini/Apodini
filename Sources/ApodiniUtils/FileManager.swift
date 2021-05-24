@@ -79,3 +79,15 @@ extension FileManager {
         }
     }
 }
+
+
+extension FileManager {
+    /// The current platform's path separator
+    public static var pathSeparator: String {
+        #if os(Windows)
+        return "\\"
+        #else
+        return "/"
+        #endif
+    }
+}

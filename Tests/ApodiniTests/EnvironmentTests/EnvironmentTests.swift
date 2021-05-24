@@ -8,7 +8,6 @@
 import XCTest
 import XCTApodini
 @testable import Apodini
-@testable import ApodiniNotifications
 
 final class EnvironmentTests: ApodiniTests {
     struct BirdHandler: Handler {
