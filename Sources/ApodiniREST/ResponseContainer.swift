@@ -18,13 +18,17 @@ struct ResponseContainer: Encodable, ResponseEncodable {
     let status: Status?
     let data: AnyEncodable?
     let links: Links?
-    let encoder: Vapor.ContentEncoder
+    let encoder: AnyEncoder
     
     var containsNoContent: Bool {
         data == nil && (links?.isEmpty ?? true)
     }
     
-    init<E: Encodable>(_ type: E.Type = E.self, status: Status? = nil, data: E? = nil, links: Links? = nil, encoder: Vapor.ContentEncoder) {
+    init<E: Encodable>(_ type: E.Type = E.self,
+                       status: Status? = nil,
+                       data: E? = nil,
+                       links: Links? = nil,
+                       encoder: AnyEncoder = JSONEncoder()) {
         self.status = status
         self.encoder = encoder
         

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Other.swift
 //  
 //
 //  Created by Lukas Kollmer on 16.02.21.

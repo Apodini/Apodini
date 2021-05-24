@@ -38,6 +38,34 @@ struct ApodiniDeployError: Swift.Error {
     let message: String
 }
 
+public final class _ApodiniDeployInterfaceExporter: Configuration {
+    let configuration: ApodiniDeployExporterConfiguration
+    let staticConfigurations: [StaticConfiguration]
+    
+    public init(runtimes: [DeploymentProviderRuntime.Type] = [],
+                config: DeploymentConfig = .init(),
+                @StaticConfigurationBuilder staticConfigurations: () -> [StaticConfiguration] = {[]}) {
+        self.configuration = ApodiniDeployExporterConfiguration(runtimes: runtimes, config: config)
+        self.staticConfigurations = staticConfigurations()
+    }
+    
+    public func configure(_ app: Apodini.Application) {
+        guard var semanticModel = app.storage.get(SemanticModelBuilderKey.self) else {
+            fatalError("Semantic Model in Storage is not set!")
+        }
+        
+        /// Insert current exporter into `SemanticModelBuilder`
+        let deployExporter = ApodiniDeployInterfaceExporter(app, self.configuration)
+        semanticModel = semanticModel.with(exporter: deployExporter)
+        
+        /// Configure attached related static configurations
+        self.staticConfigurations.configure(app, parentConfiguration: configuration)
+        
+        /// Doesn't have to be set again since it's by-reference
+        //app.storage.set(SemanticModelBuilderKey.self, to: semanticModel)
+    }
+}
+
 
 /// A custom internal interface exporter, which:
 /// a) compiles a list of all handlers (via their `Endpoint` objects). These are used to determine the target endpoint when manually invoking a handler.
@@ -74,6 +102,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     
     let app: Apodini.Application
+    let exporterConfiguration: ApodiniDeployExporterConfiguration
     var vaporApp: Vapor.Application { app.vapor.app }
     
     private(set) var collectedEndpoints: [CollectedEndpointInfo] = []
@@ -82,8 +111,12 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     private(set) var deploymentProviderRuntime: DeploymentProviderRuntime?
     
     
-    public required init(_ app: Apodini.Application) {
+    public required init(_ app: Apodini.Application, _ exporterConfiguration: TopLevelExporterConfiguration = ApodiniDeployExporterConfiguration()) {
+        guard let castedConfiguration = dynamicCast(exporterConfiguration, to: ApodiniDeployExporterConfiguration.self) else {
+            fatalError("Wrong configuration type passed to exporter!")
+        }
         self.app = app
+        self.exporterConfiguration = castedConfiguration
         app.storage.set(ApplicationStorageKey.self, to: self)
     }
     
@@ -134,7 +167,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
             do {
                 try self.exportWebServiceStructure(
                     to: outputUrl,
-                    apodiniDeployConfiguration: app.storage.get(ApodiniDeployConfiguration.StorageKey.self) ?? .init()
+                    apodiniDeployConfiguration: self.exporterConfiguration
                 )
             } catch {
                 fatalError("Error exporting web service structure: \(error)")
@@ -149,8 +182,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
             do {
                 let deployedSystem = try DeployedSystem(decodingJSONAt: configUrl)
                 guard
-                    let runtimes = app.storage.get(ApodiniDeployConfiguration.StorageKey.self)?.runtimes,
-                    let DPRSType = runtimes.first(where: { $0.identifier == deployedSystem.deploymentProviderId })
+                    let DPRSType = self.exporterConfiguration.runtimes.first(where: { $0.identifier == deployedSystem.deploymentProviderId })
                 else {
                     throw ApodiniDeployError(
                         message: "Unable to find deployment runtime with id '\(deployedSystem.deploymentProviderId.rawValue)'"

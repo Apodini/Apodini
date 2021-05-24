@@ -9,12 +9,12 @@ struct RESTConfiguration {
     let configuration: HTTPServer.Configuration
     let bindAddress: Vapor.BindAddress
     let uriPrefix: String
-    let parentConfiguration: ParentConfiguration
+    let exporterConfiguration: RESTExporterConfiguration
 
-    init(_ configuration: HTTPServer.Configuration, _ parentConfiguration: ParentConfiguration) {
+    init(_ configuration: HTTPServer.Configuration, exporterConfiguration: RESTExporterConfiguration) {
         self.configuration = configuration
         self.bindAddress = configuration.address
-        self.parentConfiguration = parentConfiguration
+        self.exporterConfiguration = exporterConfiguration
 
         switch bindAddress {
         case .hostname:

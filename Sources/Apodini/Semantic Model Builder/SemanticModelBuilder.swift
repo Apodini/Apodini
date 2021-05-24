@@ -2,6 +2,7 @@
 // Created by Andreas Bauer on 22.11.20.
 //
 
+import Foundation
 import NIO
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
@@ -36,7 +37,7 @@ public class SemanticModelBuilder: InterfaceExporterVisitor {
     /// - Parameter exporterType: The type of `InterfaceExporter` to register.
     /// - Returns: `Self`
     func with<T: InterfaceExporter>(exporter exporterType: T.Type) -> Self {
-        let exporter = exporterType.init(app)
+        let exporter = exporterType.init(app, TopLevelExporterConfiguration())
         interfaceExporters.append(AnyInterfaceExporter(exporter))
         return self
     }
@@ -45,7 +46,7 @@ public class SemanticModelBuilder: InterfaceExporterVisitor {
     /// - Parameter exporterType: The type of `StaticInterfaceExporter` to register.
     /// - Returns: `Self`
     func with<T: StaticInterfaceExporter>(exporter exporterType: T.Type) -> Self {
-        let exporter = exporterType.init(app)
+        let exporter = exporterType.init(app, TopLevelExporterConfiguration())
         interfaceExporters.append(AnyInterfaceExporter(exporter))
         return self
     }
@@ -54,6 +55,14 @@ public class SemanticModelBuilder: InterfaceExporterVisitor {
     /// - Parameter instance: The instance to register.
     /// - Returns: `Self`
     public func with<T: InterfaceExporter>(exporter instance: T) -> Self {
+        interfaceExporters.append(AnyInterfaceExporter(instance))
+        return self
+    }
+    
+    /// Registers an `StaticInterfaceExporter` instance on the model builder.
+    /// - Parameter instance: The instance to register.
+    /// - Returns: `Self`
+    public func with<T: StaticInterfaceExporter>(exporter instance: T) -> Self {
         interfaceExporters.append(AnyInterfaceExporter(instance))
         return self
     }

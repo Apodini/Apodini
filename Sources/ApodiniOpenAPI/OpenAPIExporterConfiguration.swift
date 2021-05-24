@@ -15,17 +15,14 @@ public enum OpenAPIConfigurationDefaults {
     /// Default swagger-UI endpoint.
     public static let swaggerUiEndpoint: String = "openapi-ui"
 }
-
+ 
 /// The enclosing storage entity for OpenAPI-related information.
 public struct OpenAPIStorageValue {
     /// The OpenAPI document
     public let document: OpenAPI.Document?
-    /// The configuration used by the OpenAPIInterfaceExporter
-    public let configuration: OpenAPIConfiguration
     
-    internal init(document: OpenAPI.Document? = nil, configuration: OpenAPIConfiguration) {
+    internal init(document: OpenAPI.Document? = nil) {
         self.document = document
-        self.configuration = configuration
     }
 }
 
@@ -40,10 +37,12 @@ public enum OpenAPIOutputFormat {
     case json
     /// YAML format output.
     case yaml
+    /// Use encoding configuration of parent
+    case useParentEncoding
 }
 
 /// A configuration structure for manually setting OpenAPI information and output locations.
-public class OpenAPIConfiguration: Configuration {
+public class OpenAPIExporterConfiguration: TopLevelExporterConfiguration {
     /// General OpenAPI information.
     var title: String?
     var version: String?
@@ -56,19 +55,19 @@ public class OpenAPIConfiguration: Configuration {
     let outputEndpoint: String
     let swaggerUiEndpoint: String
     
-    /// Configure application.
-    public func configure(_ app: Application) {
-        app.storage.set(OpenAPIStorageKey.self, to: OpenAPIStorageValue(configuration: self))
-    }
+    /// Configuration of parent exporter
+    var parentConfiguration: TopLevelExporterConfiguration
     
     public init(
+        parentConfiguration: TopLevelExporterConfiguration = TopLevelExporterConfiguration(),
         outputFormat: OpenAPIOutputFormat = OpenAPIConfigurationDefaults.outputFormat,
         outputEndpoint: String = OpenAPIConfigurationDefaults.outputEndpoint,
         swaggerUiEndpoint: String = OpenAPIConfigurationDefaults.swaggerUiEndpoint,
         title: String? = nil,
         version: String? = nil,
-        serverUrls: URL...
+        serverUrls: [URL] = []
         ) {
+        self.parentConfiguration = parentConfiguration
         self.outputFormat = outputFormat
         // Prefix configured endpoints with `/` to avoid relative paths.
         self.outputEndpoint = outputEndpoint.hasPrefix("/") ? outputEndpoint : "/\(outputEndpoint)"

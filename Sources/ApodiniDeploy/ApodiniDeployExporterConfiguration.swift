@@ -11,12 +11,7 @@ import Apodini
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
 
-
-public struct ApodiniDeployConfiguration: Apodini.Configuration {
-    struct StorageKey: Apodini.StorageKey {
-        typealias Value = ApodiniDeployConfiguration
-    }
-    
+public class ApodiniDeployExporterConfiguration: TopLevelExporterConfiguration {
     let runtimes: [DeploymentProviderRuntime.Type]
     let config: DeploymentConfig
     
@@ -27,12 +22,7 @@ public struct ApodiniDeployConfiguration: Apodini.Configuration {
         self.runtimes = runtimes
         self.config = config
     }
-    
-    public func configure(_ app: Application) {
-        app.storage.set(StorageKey.self, to: self)
-    }
 }
-
 
 extension DeploymentGroup {
     /// Creates a single deployment group containing all handlers of type `H`.

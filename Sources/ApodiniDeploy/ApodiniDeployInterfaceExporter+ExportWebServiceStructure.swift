@@ -15,7 +15,7 @@ import OpenAPIKit
 
 
 extension ApodiniDeployInterfaceExporter {
-    func exportWebServiceStructure(to outputUrl: URL, apodiniDeployConfiguration: ApodiniDeployConfiguration) throws {
+    func exportWebServiceStructure(to outputUrl: URL, apodiniDeployConfiguration: ApodiniDeployExporterConfiguration) throws {
         let deploymentConfig = apodiniDeployConfiguration.config
         guard let openApiDocument = app.storage.get(OpenAPIStorageKey.self)?.document else {
             throw ApodiniDeployError(message: "Unable to get OpenAPI document")

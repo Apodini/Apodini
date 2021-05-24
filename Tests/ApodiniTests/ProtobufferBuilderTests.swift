@@ -15,7 +15,7 @@ final class ProtobufferBuilderTests: XCTestCase {
     }
     
     func buildMessage(_ type: Any.Type) throws -> String {
-        try ProtobufferInterfaceExporter.Builder()
+        try ProtobufferInterfaceExporter.Builder(configuration: GRPCExporterConfiguration())
             .buildMessage(type)
             .collectValues()
             .description
@@ -238,9 +238,9 @@ extension ProtobufferBuilderTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(GRPCInterfaceExporter.self)
-                    .exporter(ProtobufferInterfaceExporter.self)
+                _GRPCInterfaceExporter {
+                    _ProtobufferInterfaceExporter()
+                }
             }
         }
         
@@ -274,9 +274,9 @@ extension ProtobufferBuilderTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(GRPCInterfaceExporter.self)
-                    .exporter(ProtobufferInterfaceExporter.self)
+                _GRPCInterfaceExporter {
+                    _ProtobufferInterfaceExporter()
+                }
             }
         }
         
@@ -315,9 +315,9 @@ extension ProtobufferBuilderTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(GRPCInterfaceExporter.self)
-                    .exporter(ProtobufferInterfaceExporter.self)
+                _GRPCInterfaceExporter {
+                    _ProtobufferInterfaceExporter()
+                }
             }
         }
         
@@ -360,9 +360,9 @@ extension ProtobufferBuilderTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(GRPCInterfaceExporter.self)
-                    .exporter(ProtobufferInterfaceExporter.self)
+                _GRPCInterfaceExporter {
+                    _ProtobufferInterfaceExporter()
+                }
             }
         }
         
@@ -409,9 +409,9 @@ extension ProtobufferBuilderTests {
             }
             
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(ProtobufferInterfaceExporter.self)
-                IntegerWidthConfiguration.thirtyTwo
+                _GRPCInterfaceExporter(integerWidth: .thirtyTwo) {
+                    _ProtobufferInterfaceExporter()
+                }
             }
         }
         

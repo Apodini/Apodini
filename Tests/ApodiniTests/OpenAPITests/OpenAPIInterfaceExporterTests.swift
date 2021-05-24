@@ -6,6 +6,7 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniVaporSupport
 @testable import ApodiniOpenAPI
+@testable import ApodiniREST
 @_implementationOnly import Yams
 @_implementationOnly import OpenAPIKit
 import XCTVapor
@@ -24,9 +25,9 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                OpenAPIConfiguration()
-                ExporterConfiguration()
-                    .exporter(OpenAPIInterfaceExporter.self)
+                _RESTInterfaceExporter {
+                    _OpenAPIInterfaceExporter()
+                }
             }
         }
 
@@ -55,34 +56,34 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
     }
 
     func testInterfaceExporterConfiguredServing() throws {
+        let configuredOutputFormat: OpenAPIOutputFormat = .yaml
+        let configuredOutputEndpoint = "/oas"
+        let configuredSwaggerUiEndpoint = "/oas-ui"
+        
         struct TestWebService: WebService {
             var content: some Component {
                 SomeComp()
             }
 
             var configuration: Configuration {
-                OpenAPIConfiguration(
-                    outputFormat: .yaml,
-                    outputEndpoint: "oas",
-                    swaggerUiEndpoint: "oas-ui"
-                )
-                ExporterConfiguration()
-                .exporter(OpenAPIInterfaceExporter.self)
+                _RESTInterfaceExporter {
+                    _OpenAPIInterfaceExporter(outputFormat: .yaml,
+                                              outputEndpoint: "/oas",
+                                              swaggerUiEndpoint: "/oas-ui")
+                }
             }
         }
 
         TestWebService.main(app: app)
-        
-        let storage = try XCTUnwrap(app.storage.get(OpenAPIStorageKey.self))
 
-        try app.vapor.app.test(.GET, storage.configuration.outputEndpoint) { res in
+        try app.vapor.app.test(.GET, configuredOutputEndpoint) { res in
             XCTAssertEqual(res.status, .ok)
             XCTAssertThrowsError(try res.content.decode(OpenAPI.Document.self, using: JSONDecoder()))
         }
 
         let headers: HTTPHeaders = ["Content-Type": HTTPMediaType.html.serialize()]
 
-        try app.vapor.app.test(.GET, storage.configuration.swaggerUiEndpoint, headers: headers) { res in
+        try app.vapor.app.test(.GET, configuredSwaggerUiEndpoint, headers: headers) { res in
             XCTAssertEqual(res.status, .ok)
 
             guard let htmlFile = Bundle.module.path(forResource: "swagger-ui", ofType: "html"),
@@ -91,7 +92,7 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
                 return XCTFail("Missing Swagger-UI HTML resource.")
             }
 
-            html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: storage.configuration.outputEndpoint)
+            html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: configuredOutputEndpoint)
 
             XCTAssertEqual(res.body, .init(string: html))
         }

@@ -114,14 +114,11 @@ struct WebService: Apodini.WebService {
     }
     
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(RESTInterfaceExporter.self)
-            .exporter(OpenAPIInterfaceExporter.self)
-            .exporter(ApodiniDeployInterfaceExporter.self)
-        ApodiniDeployConfiguration(
-            runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
-            config: DeploymentConfig(defaultGrouping: .singleNode, deploymentGroups: [])
-        )
+        _RESTInterfaceExporter {
+            _OpenAPIInterfaceExporter()
+        }
+        _ApodiniDeployInterfaceExporter(runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
+                                        config: DeploymentConfig(defaultGrouping: .singleNode, deploymentGroups: []))
     }
 }
 

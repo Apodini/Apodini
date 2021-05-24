@@ -34,7 +34,7 @@ open class MockExporter<Request: ExporterRequest>: InterfaceExporter {
         self.onFinished = onFinished
     }
 
-    public required init(_ app: Apodini.Application) {
+    public required init(_ app: Apodini.Application, _ exporterConfiguration: TopLevelExporterConfiguration = TopLevelExporterConfiguration()) {
         self.onExport = { _ in }
         self.onFinished = { _ in }
     }

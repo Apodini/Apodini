@@ -103,6 +103,12 @@ class RESTInterfaceExporterTests: ApodiniTests {
             AuthenticatedHandler()
         }
     }
+    
+    struct TestRESTExporterCollection: ConfigurationCollection {
+        var configuration: Configuration {
+            _RESTInterfaceExporter()
+        }
+    }
 
     func testParameterRetrieval() throws {
         let handler = ParameterRetrievalTestHandler()
@@ -135,9 +141,10 @@ class RESTInterfaceExporterTests: ApodiniTests {
     }
 
     func testRESTRequest() throws {
-        let builder = SemanticModelBuilder(app)
-            .with(exporter: RESTInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        let testCollection = TestRESTExporterCollection()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: app.storage.get(SemanticModelBuilderKey.self)!)
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -169,8 +176,10 @@ class RESTInterfaceExporterTests: ApodiniTests {
             }
         }
         
-        let builder = SemanticModelBuilder(app)
-            .with(exporter: RESTInterfaceExporter.self)
+        let testCollection = TestRESTExporterCollection()
+        testCollection.configuration.configure(app)
+        
+        let builder = app.storage.get(SemanticModelBuilderKey.self)!
         WebService().register(builder)
         
         let endpointPaths = builder.rootNode
@@ -197,8 +206,10 @@ class RESTInterfaceExporterTests: ApodiniTests {
     }
 
     func testDefaultRootHandler() throws {
-        let builder = SemanticModelBuilder(app)
-            .with(exporter: RESTInterfaceExporter.self)
+        let testCollection = TestRESTExporterCollection()
+        testCollection.configuration.configure(app)
+        
+        let builder = app.storage.get(SemanticModelBuilderKey.self)!
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         webserviceWithoutRoot.accept(visitor)
         visitor.finishParsing()

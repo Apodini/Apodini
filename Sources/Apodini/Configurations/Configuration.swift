@@ -45,6 +45,9 @@ extension Array: Configuration where Element == Configuration {
         
         app.storage.set(SemanticModelBuilderKey.self, to: semanticModel)
  */
+        /// Initialize semantic model
+        app.storage.set(SemanticModelBuilderKey.self, to: SemanticModelBuilder(app))
+        
         forEach {
             $0.configure(app)
         }

@@ -92,7 +92,8 @@ let package = Package(
             dependencies: [
                 .target(name: "CApodiniUtils"),
                 .product(name: "Runtime", package: "Runtime"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
+                .product(name: "Vapor", package: "vapor")
             ]
         ),
         

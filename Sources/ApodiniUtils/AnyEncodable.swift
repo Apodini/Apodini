@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Vapor
 
 
 /// A type-erasing wrapper around some `Encodable` value
@@ -33,20 +34,38 @@ extension AnyEncodable {
 
 
 /// Something that can encde `Encodable` objects to `Data`
-public protocol AnyEncoder {
+public protocol AnyEncoder: ContentEncoder {
     /// Encode some `Encodable` object to `Data`
     func encode<T: Encodable>(_ value: T) throws -> Data
 }
 
-extension JSONEncoder: AnyEncoder {}
+extension JSONEncoder: AnyEncoder {
+    /*
+    public func encode<E>(_ encodable: E, to body: inout ByteBuffer, headers: inout HTTPHeaders) throws
+        where E: Encodable
+    {
+        headers.contentType = .json
+        try body.writeBytes(self.encode(encodable))
+    }
+ */
+}
 
 /// Something that can decode `Decodable` objects to the given respective type
-public protocol AnyDecoder {
+public protocol AnyDecoder: ContentDecoder {
     /// Decode some `Decodable` data to the given type
     func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable
 }
 
-extension JSONDecoder: AnyDecoder {}
+extension JSONDecoder: AnyDecoder {
+    /*
+    public func decode<D>(_ decodable: D.Type, from body: ByteBuffer, headers: HTTPHeaders) throws -> D
+        where D: Decodable
+    {
+        let data = body.getData(at: body.readerIndex, length: body.readableBytes) ?? Data()
+        return try self.decode(D.self, from: data)
+    }
+ */
+}
 
 // MARK: Null
 

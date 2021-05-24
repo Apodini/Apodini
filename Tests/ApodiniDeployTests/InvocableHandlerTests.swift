@@ -194,9 +194,8 @@ private struct TestWebService: Apodini.WebService {
     }
     
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(RESTInterfaceExporter.self)
-            .exporter(ApodiniDeployInterfaceExporter.self)
+        _RESTInterfaceExporter()
+        _ApodiniDeployInterfaceExporter()
     }
 }
 

@@ -41,6 +41,7 @@ private struct GRPCNothingHandler: Handler {
 
 final class GRPCInterfaceExporterTests: ApodiniTests {
     // swiftlint:disable implicitly_unwrapped_optional
+    fileprivate var exporterConfiguration: GRPCExporterConfiguration!
     fileprivate var service: GRPCService!
     fileprivate var handler: GRPCTestHandler!
     fileprivate var endpoint: Endpoint<GRPCTestHandler>!
@@ -55,7 +56,8 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        service = GRPCService(name: serviceName, using: app)
+        exporterConfiguration = GRPCExporterConfiguration()
+        service = GRPCService(name: serviceName, using: app, exporterConfiguration)
         handler = GRPCTestHandler()
         endpoint = handler.mockEndpoint()
         exporter = GRPCInterfaceExporter(app)

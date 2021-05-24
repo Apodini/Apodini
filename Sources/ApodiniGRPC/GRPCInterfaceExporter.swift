@@ -8,18 +8,51 @@
 import Foundation
 import NIO
 import Apodini
+import ApodiniUtils
 @_implementationOnly import NIOHPACK
 @_implementationOnly import ProtobufferCoding
+
+public final class _GRPCInterfaceExporter: Configuration {
+    let configuration: GRPCExporterConfiguration
+    let staticConfigurations: [StaticConfiguration]
+    
+    public init(integerWidth: IntegerWidthConfiguration = .native, @StaticConfigurationBuilder staticConfigurations: () -> [StaticConfiguration] = {[]}) {
+        self.configuration = GRPCExporterConfiguration(integerWidth: integerWidth)
+        self.staticConfigurations = staticConfigurations()
+    }
+    
+    public func configure(_ app: Apodini.Application) {
+        guard var semanticModel = app.storage.get(SemanticModelBuilderKey.self) else {
+            fatalError("Semantic Model in Storage is not set!")
+        }
+        
+        /// Insert current exporter into `SemanticModelBuilder`
+        let restExporter = GRPCInterfaceExporter(app, self.configuration)
+        semanticModel = semanticModel.with(exporter: restExporter)
+        
+        /// Configure attached related static configurations
+        self.staticConfigurations.configure(app, parentConfiguration: self.configuration)
+        
+        /// Doesn't have to be set again since it's by-reference
+        //app.storage.set(SemanticModelBuilderKey.self, to: semanticModel)
+    }
+}
 
 /// Apodini Interface Exporter for gRPC
 public final class GRPCInterfaceExporter: InterfaceExporter {
     let app: Apodini.Application
+    let exporterConfiguration: GRPCExporterConfiguration
     var services: [String: GRPCService]
     var parameters: [UUID: Int]
 
     /// Initalize `GRPCInterfaceExporter` from `Application`
-    public required init(_ app: Apodini.Application) {
+    public required init(_ app: Apodini.Application, _ exporterConfiguration: TopLevelExporterConfiguration = GRPCExporterConfiguration()) {
+        guard let castedConfiguration = dynamicCast(exporterConfiguration, to: GRPCExporterConfiguration.self) else {
+            fatalError("Wrong configuration type passed to exporter!")
+        }
+        
         self.app = app
+        self.exporterConfiguration = castedConfiguration
         self.services = [:]
         self.parameters = [:]
     }
@@ -42,7 +75,7 @@ public final class GRPCInterfaceExporter: InterfaceExporter {
         if let existingService = services[serviceName] {
             service = existingService
         } else {
-            service = GRPCService(name: serviceName, using: app)
+            service = GRPCService(name: serviceName, using: app, self.exporterConfiguration)
             services[serviceName] = service
         }
 
@@ -106,13 +139,11 @@ public final class GRPCInterfaceExporter: InterfaceExporter {
 
             let decoder = ProtobufferDecoder()
             
-            if let configuration = app.storage[IntegerWidthConfiguration.StorageKey.self] {
-                switch configuration {
-                case .thirtyTwo:
-                    decoder.integerWidthCodingStrategy = .thirtyTwo
-                case .sixtyFour:
-                    decoder.integerWidthCodingStrategy = .sixtyFour
-                }
+            switch self.exporterConfiguration.integerWidth {
+            case .thirtyTwo:
+                decoder.integerWidthCodingStrategy = .thirtyTwo
+            case .sixtyFour:
+                decoder.integerWidthCodingStrategy = .sixtyFour
             }
 
             let wrappedDecoded = try decoder.decode(wrappedType, from: request.data)

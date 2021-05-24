@@ -13,7 +13,7 @@ final class GRPCServiceTests: ApodiniTests {
     override func setUpWithError() throws {
         try super.setUpWithError()
         
-        app.storage[IntegerWidthConfiguration.StorageKey] = .native
+        //app.storage[IntegerWidthConfiguration.StorageKey] = .native
     }
     
     func testWebService<S: WebService>(_ type: S.Type, path: String) throws {
@@ -34,7 +34,7 @@ extension GRPCServiceTests {
         let expectedResponseData: [UInt8] =
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
-        let service = GRPCService(name: "TestService", using: app)
+        let service = GRPCService(name: "TestService", using: app, GRPCExporterConfiguration())
         let encodedData = service.makeResponse(responseString).body.data
         XCTAssertEqual(encodedData, Data(expectedResponseData))
     }
@@ -44,7 +44,7 @@ extension GRPCServiceTests {
         let expectedResponseData: [UInt8] =
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
-        let service = GRPCService(name: "TestService", using: app)
+        let service = GRPCService(name: "TestService", using: app, GRPCExporterConfiguration())
         let encodedData = service.makeResponse(responseString).body.data
         XCTAssertEqual(encodedData, Data(expectedResponseData))
     }
@@ -57,7 +57,7 @@ extension GRPCServiceTests {
         let expectedResponseData: [UInt8] =
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
-        let service = GRPCService(name: "TestService", using: app)
+        let service = GRPCService(name: "TestService", using: app, GRPCExporterConfiguration())
         let encodedData = service.makeResponse(response).body.data
         XCTAssertEqual(encodedData, Data(expectedResponseData))
     }
@@ -73,9 +73,7 @@ extension GRPCServiceTests {
             }
             
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(GRPCInterfaceExporter.self)
-                IntegerWidthConfiguration.sixtyFour
+                _GRPCInterfaceExporter(integerWidth: .sixtyFour)
             }
         }
         

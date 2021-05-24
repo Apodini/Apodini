@@ -9,47 +9,47 @@ import NIO
 
 extension Vapor.Request: ExporterRequest, WithEventLoop, WithRemote {}
 
-
 public final class _RESTInterfaceExporter: Configuration {
-    let encoder: Vapor.ContentEncoder
-    let decoder: Vapor.ContentDecoder
+    let configuration: RESTExporterConfiguration
     let staticConfigurations: [StaticConfiguration]
     
-    public init(encoder: Vapor.ContentEncoder, decoder: Vapor.ContentDecoder, @StaticConfigurationBuilder staticConfigurations: () -> [StaticConfiguration]) {
-        self.encoder = encoder
-        self.decoder = decoder
+    public init(encoder: AnyEncoder = JSONEncoder(), decoder: AnyDecoder = JSONDecoder(), @StaticConfigurationBuilder staticConfigurations: () -> [StaticConfiguration] = {[]}) {
+        self.configuration = RESTExporterConfiguration(encoder: encoder, decoder: decoder)
         self.staticConfigurations = staticConfigurations()
     }
     
     public func configure(_ app: Apodini.Application) {
         guard var semanticModel = app.storage.get(SemanticModelBuilderKey.self) else {
-            return
+            fatalError("Semantic Model in Storage is not set!")
         }
         
-        let parentConfiguration = ParentConfiguration(encoder: self.encoder, decoder: self.decoder)
-        
         /// Insert current exporter into `SemanticModelBuilder`
-        let restExporter = RESTInterfaceExporter.init(app, parentConfiguration)
+        let restExporter = RESTInterfaceExporter(app, self.configuration)
         semanticModel = semanticModel.with(exporter: restExporter)
         
         /// Configure attached related static configurations
-        self.staticConfigurations.configure(app, parentConfiguration)
+        self.staticConfigurations.configure(app, parentConfiguration: self.configuration)
         
-        app.storage.set(SemanticModelBuilderKey.self, to: semanticModel)
+        /// Doesn't have to be set again since it's by-reference
+        //app.storage.set(SemanticModelBuilderKey.self, to: semanticModel)
     }
 }
-
+ 
 /// Apodini Interface Exporter for REST
 public final class RESTInterfaceExporter: InterfaceExporter {
     public static let parameterNamespace: [ParameterNamespace] = .individual
 
     let app: Vapor.Application
-    let configuration: RESTConfiguration
+    let exporterConfiguration: RESTConfiguration
 
     /// Initialize `RESTInterfaceExporter` from `Application`
-    public required init(_ app: Apodini.Application, _ parentConfiguration: ParentConfiguration) {
+    public required init(_ app: Apodini.Application, _ exporterConfiguration: TopLevelExporterConfiguration = RESTExporterConfiguration()) {
+        guard let castedConfiguration = dynamicCast(exporterConfiguration, to: RESTExporterConfiguration.self) else {
+            fatalError("Wrong configuration type passed to exporter!")
+        }
         self.app = app.vapor.app
-        self.configuration = RESTConfiguration(app.vapor.app.http.server.configuration, parentConfiguration)
+        self.exporterConfiguration = RESTConfiguration(app.vapor.app.http.server.configuration,
+                                               exporterConfiguration: castedConfiguration)
     }
 
     public func export<H: Handler>(_ endpoint: Endpoint<H>) {
@@ -60,7 +60,7 @@ public final class RESTInterfaceExporter: InterfaceExporter {
 
         let operation = endpoint[Operation.self]
 
-        let endpointHandler = RESTEndpointHandler(with: configuration, for: endpoint, on: self)
+        let endpointHandler = RESTEndpointHandler(with: exporterConfiguration, for: endpoint, on: self)
         endpointHandler.register(at: routesBuilder, using: operation)
 
         app.logger.info("Exported '\(Vapor.HTTPMethod(operation).rawValue) \(pathBuilder.pathDescription)' with parameters: \(endpoint.parameters.map { $0.name })")
@@ -87,7 +87,7 @@ public final class RESTInterfaceExporter: InterfaceExporter {
 
             let relationships = webService.rootRelationships(for: .read)
 
-            let handler = RESTDefaultRootHandler(configuration: configuration, relationships: relationships)
+            let handler = RESTDefaultRootHandler(configuration: exporterConfiguration, relationships: relationships)
             handler.register(on: app)
 
             app.logger.info("Auto exported '\(HTTPMethod.GET.rawValue) /'")
@@ -125,7 +125,7 @@ public final class RESTInterfaceExporter: InterfaceExporter {
                 // If the request doesn't have a body, there is nothing to decide.
                 return nil
             }
-            return try? request.content.decode(Type.self, using: self.configuration.parentConfiguration.decoder)
+            return try? request.content.decode(Type.self, using: self.exporterConfiguration.exporterConfiguration.decoder)
 
         case .header:
             return request.headers.first(name: parameter.name) as? Type

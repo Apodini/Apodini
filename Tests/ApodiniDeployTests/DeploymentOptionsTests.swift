@@ -92,15 +92,12 @@ private struct TestWebService: Apodini.WebService {
         ])
     }
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(ApodiniDeployInterfaceExporter.self)
-        ApodiniDeployConfiguration(
-            runtimes: [],
-            config: DeploymentConfig(defaultGrouping: .singleNode, deploymentGroups: [
-                .allHandlers(ofType: Text.self)
-            ])
-        )
+        _ApodiniDeployInterfaceExporter(runtimes: [],
+                                        config: DeploymentConfig(defaultGrouping: .singleNode, deploymentGroups: [
+                                            .allHandlers(ofType: Text.self)
+                                        ]))
     }
+    
 }
 
 
