@@ -45,7 +45,7 @@ public final class RESTInterfaceExporter: InterfaceExporter {
     /// Initialize `RESTInterfaceExporter` from `Application`
     public required init(_ app: Apodini.Application, _ exporterConfiguration: TopLevelExporterConfiguration = RESTExporterConfiguration()) {
         guard let castedConfiguration = dynamicCast(exporterConfiguration, to: RESTExporterConfiguration.self) else {
-            fatalError("Wrong configuration type passed to exporter!")
+            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of RESTExporterConfiguration")
         }
         self.app = app.vapor.app
         self.exporterConfiguration = RESTConfiguration(app.vapor.app.http.server.configuration,

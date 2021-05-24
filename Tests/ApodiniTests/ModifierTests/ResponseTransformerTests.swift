@@ -100,8 +100,7 @@ final class ResponseTransformerTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                _RESTInterfaceExporter()
             }
         }
         
@@ -135,8 +134,7 @@ final class ResponseTransformerTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                _RESTInterfaceExporter()
             }
         }
 
@@ -175,8 +173,7 @@ final class ResponseTransformerTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                _RESTInterfaceExporter()
             }
         }
         

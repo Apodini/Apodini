@@ -55,8 +55,7 @@ final class CustomComponentTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                _RESTInterfaceExporter()
             }
         }
         

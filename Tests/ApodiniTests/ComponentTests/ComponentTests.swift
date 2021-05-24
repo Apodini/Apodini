@@ -42,8 +42,7 @@ class ComponentTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                _RESTInterfaceExporter()
             }
         }
         
@@ -69,8 +68,7 @@ class ComponentTests: ApodiniTests {
             }
             
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                _RESTInterfaceExporter()
             }
         }
         

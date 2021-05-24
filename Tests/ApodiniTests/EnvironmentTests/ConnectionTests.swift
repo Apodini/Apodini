@@ -89,8 +89,7 @@ final class ConnectionTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                _RESTInterfaceExporter()
             }
         }
 
@@ -119,8 +118,7 @@ final class ConnectionTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                _RESTInterfaceExporter()
             }
         }
 
