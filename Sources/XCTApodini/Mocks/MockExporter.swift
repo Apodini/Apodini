@@ -13,6 +13,7 @@ extension String: ExporterRequest {}
 open class MockExporter<Request: ExporterRequest>: InterfaceExporter {
     var parameterValues: [Any??] = []
     
+    let exporterConfiguration: TopLevelExporterConfiguration?
     let onExport: (AnyEndpoint) -> Void
     let onFinished: (WebServiceModel) -> Void
 
@@ -23,6 +24,7 @@ open class MockExporter<Request: ExporterRequest>: InterfaceExporter {
         self.parameterValues = parameterValues
         self.onExport = onExport
         self.onFinished = onFinished
+        self.exporterConfiguration = nil
     }
 
     // See https://bugs.swift.org/browse/SR-128
@@ -32,11 +34,13 @@ open class MockExporter<Request: ExporterRequest>: InterfaceExporter {
         self.parameterValues = parameterValues
         self.onExport = onExport
         self.onFinished = onFinished
+        self.exporterConfiguration = nil
     }
 
     public required init(_ app: Apodini.Application, _ exporterConfiguration: TopLevelExporterConfiguration = TopLevelExporterConfiguration()) {
         self.onExport = { _ in }
         self.onFinished = { _ in }
+        self.exporterConfiguration = exporterConfiguration
     }
 
     open func export<H: Handler>(_ endpoint: Endpoint<H>) {
