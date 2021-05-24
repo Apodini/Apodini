@@ -285,8 +285,8 @@
         "repositoryURL": "https://github.com/soto-project/soto-core.git",
         "state": {
           "branch": null,
-          "revision": "8691bc43e7db6098c8a84e0407e23581b041b64e",
-          "version": "5.3.0"
+          "revision": "c5776786a8cfd43b63b2258a143ae484e05b9c17",
+          "version": "5.3.1"
         }
       },
       {
@@ -447,8 +447,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "c6848e0f3ee726ba0ead5a9f4a338829085b65d5",
-          "version": "4.45.3"
+          "revision": "d6605a61efc7487552a26364fa1b405b81b4ddba",
+          "version": "4.45.5"
         }
       },
       {
@@ -465,8 +465,8 @@
         "repositoryURL": "https://github.com/vapor/websocket-kit.git",
         "state": {
           "branch": null,
-          "revision": "2b06a70dfcfa76a2e5079f60e3ae911511f09db0",
-          "version": "2.1.2"
+          "revision": "a2d26b3de8b3be292f3208d1c74024f76ac503da",
+          "version": "2.1.3"
         }
       },
       {
