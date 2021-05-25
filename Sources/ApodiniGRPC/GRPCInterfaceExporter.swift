@@ -21,20 +21,13 @@ public final class _GRPCInterfaceExporter: Configuration {
         self.staticConfigurations = staticConfigurations()
     }
     
-    public func configure(_ app: Apodini.Application) {
-        guard var semanticModel = app.storage.get(SemanticModelBuilderKey.self) else {
-            fatalError("Semantic Model in Storage is not set!")
-        }
-        
+    public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder?) {
         /// Insert current exporter into `SemanticModelBuilder`
         let restExporter = GRPCInterfaceExporter(app, self.configuration)
-        semanticModel = semanticModel.with(exporter: restExporter)
+        let _ = semanticModel?.with(exporter: restExporter)
         
         /// Configure attached related static configurations
-        self.staticConfigurations.configure(app, parentConfiguration: self.configuration)
-        
-        /// Doesn't have to be set again since it's by-reference
-        //app.storage.set(SemanticModelBuilderKey.self, to: semanticModel)
+        self.staticConfigurations.configure(app, semanticModel!, parentConfiguration: self.configuration)
     }
 }
 

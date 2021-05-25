@@ -62,7 +62,7 @@ public final class HTTP2Configuration: Configuration {
         }
     }
 
-    public func configure(_ app: Application) {
+    public func configure(_ app: Application, _ semanticModel: SemanticModelBuilder? = nil) {
         do {
             if let certData = certData,
                let keyData = keyData {

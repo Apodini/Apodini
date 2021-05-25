@@ -21,7 +21,7 @@ public struct APNSConfiguration: Configuration {
         self.environment = environment
     }
     
-    public func configure(_ app: Application) {
+    public func configure(_ app: Application, _ semanticModel: SemanticModelBuilder? = nil) {
         do {
             switch authentication {
             case let .pem(pemPath, privateKeyPath, pemPassword):

@@ -15,7 +15,7 @@ public struct FirebaseConfiguration: Configuration {
     }
     
     
-    public func configure(_ app: Application) {
+    public func configure(_ app: Application, _ semanticModel: SemanticModelBuilder? = nil) {
         app.fcm.configuration = configuration
     }
 }

@@ -6,19 +6,19 @@
 //
 
 public protocol StaticConfiguration {
-    func configure(_ app: Application, parentConfiguration: TopLevelExporterConfiguration)
+    func configure(_ app: Application, _ semanticModel: SemanticModelBuilder, parentConfiguration: TopLevelExporterConfiguration)
 }
 
 public struct EmptyStaticConfiguration: StaticConfiguration {
-    public func configure(_ app: Application, parentConfiguration: TopLevelExporterConfiguration) { }
+    public func configure(_ app: Application, _ semanticModel: SemanticModelBuilder, parentConfiguration: TopLevelExporterConfiguration = TopLevelExporterConfiguration()) { }
     
     public init() { }
 }
 
 extension Array where Element == StaticConfiguration {
-    public func configure(_ app: Application, parentConfiguration: TopLevelExporterConfiguration) {
+    public func configure(_ app: Application, _ semanticModel: SemanticModelBuilder, parentConfiguration: TopLevelExporterConfiguration = TopLevelExporterConfiguration()) {
         forEach {
-            $0.configure(app, parentConfiguration: parentConfiguration)
+            $0.configure(app, semanticModel, parentConfiguration: parentConfiguration)
         }
     }
 }

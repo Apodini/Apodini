@@ -1,5 +1,5 @@
 //
-//  TESTExporterConfiguration.swift
+//  TopLevelExporterConfiguration.swift
 //  
 //
 //  Created by Philipp Zagar on 22.05.21.

@@ -26,20 +26,13 @@ public final class _OpenAPIInterfaceExporter: StaticConfiguration {
                              serverUrls: serverUrls)
     }
     
-    public func configure(_ app: Apodini.Application, parentConfiguration: TopLevelExporterConfiguration) {
-        guard var semanticModel = app.storage.get(SemanticModelBuilderKey.self) else {
-            fatalError("Semantic Model in Storage is not set!")
-        }
-        
+    public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder, parentConfiguration: TopLevelExporterConfiguration) {
         /// Set configartion of parent
         self.configuration.parentConfiguration = parentConfiguration
         
         /// Create exporter and insert it into semantic model
         let openAPIExporter = OpenAPIInterfaceExporter(app, self.configuration)
-        semanticModel = semanticModel.with(exporter: openAPIExporter)
-        
-        /// Not needed  since reference type
-        //app.storage.set(SemanticModelBuilderKey.self, to: semanticModel)
+        let _ = semanticModel.with(exporter: openAPIExporter)
     }
 }
 

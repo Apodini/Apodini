@@ -90,7 +90,7 @@ public final class HTTPConfiguration: Configuration {
     }
 
     /// Configure application
-    public func configure(_ app: Application) {
+    public func configure(_ app: Application, _ semanticModel: SemanticModelBuilder? = nil) {
         if let address = address {
             app.http.address = address
         } else {

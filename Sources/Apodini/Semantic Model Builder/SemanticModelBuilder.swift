@@ -195,10 +195,6 @@ public class SemanticModelBuilder: InterfaceExporterVisitor {
     }
 }
 
-public struct SemanticModelBuilderKey: StorageKey {
-    public typealias Value = SemanticModelBuilder
-}
-
 private protocol IdentifiableHandlerATRVisitorHelper: AssociatedTypeRequirementsVisitor {
     associatedtype Visitor = IdentifiableHandlerATRVisitorHelper
     associatedtype Input = IdentifiableHandler

@@ -49,20 +49,13 @@ public final class _ApodiniDeployInterfaceExporter: Configuration {
         self.staticConfigurations = staticConfigurations()
     }
     
-    public func configure(_ app: Apodini.Application) {
-        guard var semanticModel = app.storage.get(SemanticModelBuilderKey.self) else {
-            fatalError("Semantic Model in Storage is not set!")
-        }
-        
+    public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder?) {
         /// Insert current exporter into `SemanticModelBuilder`
         let deployExporter = ApodiniDeployInterfaceExporter(app, self.configuration)
-        semanticModel = semanticModel.with(exporter: deployExporter)
+        let _ = semanticModel?.with(exporter: deployExporter)
         
         /// Configure attached related static configurations
-        self.staticConfigurations.configure(app, parentConfiguration: configuration)
-        
-        /// Doesn't have to be set again since it's by-reference
-        //app.storage.set(SemanticModelBuilderKey.self, to: semanticModel)
+        self.staticConfigurations.configure(app, semanticModel!, parentConfiguration: configuration)
     }
 }
 
