@@ -101,16 +101,36 @@ class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: Conne
         eventLoop: EventLoop,
         final: Bool = true
     ) -> EventLoopFuture<Response<EnrichedContent>> {
+        let newRequest = self.latestRequest?.reduce(to: exporterRequest) ?? exporterRequest
         do {
-            let newRequest = self.latestRequest?.reduce(to: exporterRequest) ?? exporterRequest
             let validatingRequest = try validator.validate(newRequest, with: eventLoop)
             
-            self.latestRequest = newRequest
-
             let connection = Connection(state: final ? .end : .open, request: validatingRequest)
 
             return requestHandler(with: validatingRequest, on: connection)
+                .map { result in
+                    self.latestRequest = newRequest
+                    return result
+                }
+                .flatMapErrorThrowing { error in
+                    if let apodiniError = error as? ApodiniError {
+                        if apodiniError.option(for: .errorType) != .badInput {
+                            self.latestRequest = newRequest
+                        }
+                    } else {
+                        self.latestRequest = newRequest
+                    }
+                    throw error
+                }
         } catch {
+            if let apodiniError = error as? ApodiniError {
+                if apodiniError.option(for: .errorType) != .badInput {
+                    self.latestRequest = newRequest
+                }
+            } else {
+                self.latestRequest = newRequest
+            }
+            
             return eventLoop.makeFailedFuture(error)
         }
     }
@@ -129,13 +149,14 @@ class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: Conne
                 return response
             }
         } catch {
+            observedObject.changed = false
             return eventLoop.makeFailedFuture(error)
         }
     }
 
     override func register<Listener: ObservedListener>(listener: Listener) where Listener.Exporter == I {
         // register the given listener for notifications on the handler
-        for object in endpoint.handler.collectObservedObjects() {
+        for object in collectObservedObjects(from: endpoint.handler) {
             self.observations.append(object.register {
                 listener.onObservedDidChange(object, in: self)
             })

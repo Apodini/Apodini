@@ -78,7 +78,18 @@ protocol ApplicationInjectable {
     mutating func inject(app: Application)
 }
 
+protocol ConnectionInjectable {
+    func inject(connection: Connection)
+}
+
 /// A protocol to define key paths that can be used with `@Environment` to retrieve pre-defined objects.
 public protocol EnvironmentAccessible { }
 
 extension Application: EnvironmentAccessible { }
+
+/// Properties that need a `Connection` instance.
+extension Environment: ConnectionInjectable where K == Application, Value == Connection {
+    func inject(connection: Connection) {
+        self.setValue(connection, for: \.connection)
+    }
+}

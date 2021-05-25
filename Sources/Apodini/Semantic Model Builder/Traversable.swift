@@ -11,17 +11,15 @@ import NIO
 
 // MARK: ObservableObject
 
-extension Handler {
-    /// Collects  every `ObservedObject` in the Handler.
-    func collectObservedObjects() -> [AnyObservedObject] {
-        var observedObjects: [AnyObservedObject] = []
-        
-        execute({ observedObject in
-            observedObjects.append(observedObject)
-        }, on: self)
-        
-        return observedObjects
-    }
+/// Collects  every `ObservedObject` in the Handler.
+func collectObservedObjects<E>(from element: E) -> [AnyObservedObject] {
+    var observedObjects: [AnyObservedObject] = []
+    
+    execute({ observedObject in
+        observedObjects.append(observedObject)
+    }, on: element)
+    
+    return observedObjects
 }
 
 // MARK: Activatable
@@ -76,8 +74,8 @@ extension Connection {
     }
     
     private func update<E>(_ element: E) {
-        execute({ (environment: Environment<Application, Connection>) in
-            environment.setValue(self, for: \.connection)
+        execute({ (injectable: ConnectionInjectable) in
+            injectable.inject(connection: self)
         }, on: element)
     }
 }
@@ -189,15 +187,15 @@ private func execute<Element, Target>(
 
         switch child {
         case let target as Target:
-            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "\(Target.self) \(property.name) on element \(info.name) must be a struct")
+            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "\(Target.self) \(property.name) on element \(info.name) must not be a class")
             
             try operation(target, (element as? DynamicProperty)?.namingStrategy(names + [property.name]) ?? property.name)
         case let dynamicProperty as DynamicProperty:
-            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
+            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "DynamicProperty \(property.name) on element \(info.name) must not be a class")
 
             try dynamicProperty.execute(operation, using: names + [property.name])
         case let traversables as Traversable:
-            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "Traversable \(property.name) on element \(info.name) must be a struct")
+            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "Traversable \(property.name) on element \(info.name) must not be a class")
         
             try traversables.execute(operation, using: names + [property.name])
         default:
@@ -237,7 +235,7 @@ private func apply<Element, Target>(
 
         switch child {
         case var target as Target:
-            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "\(Target.self) \(property.name) on element \(info.name) must be a struct")
+            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "\(Target.self) \(property.name) on element \(info.name) must not be a class")
             
             try mutation(&target, (element as? DynamicProperty)?.namingStrategy(names + [property.name]) ?? property.name)
             let elem = element
@@ -246,7 +244,7 @@ private func apply<Element, Target>(
                 on: &element,
                 printing: "Applying operation on all properties of \((try? typeInfo(of: Target.self))?.name ?? "Unknown Type") on element \(elem) failed.")
         case var dynamicProperty as DynamicProperty:
-            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
+            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "DynamicProperty \(property.name) on element \(info.name) must not be a class")
             
             try dynamicProperty.apply(mutation, using: names + [property.name])
             let elem = element
@@ -255,7 +253,7 @@ private func apply<Element, Target>(
                 on: &element,
                 printing: "Applying operation on all properties of \((try? typeInfo(of: Target.self))?.name ?? "Unknown Type") on element \(elem) failed.")
         case var traversable as Traversable:
-            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "Traversable \(property.name) on element \(info.name) must be a struct")
+            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "Traversable \(property.name) on element \(info.name) must not be a class")
 
             try traversable.apply(mutation, using: names + [property.name])
             let elem = element
@@ -298,15 +296,15 @@ extension Properties: Traversable {
         for (name, element) in self {
             switch element {
             case let target as Target:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Properties must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Properties must not be a class")
                 
                 try operation(target, self.namingStrategy(names + [name]) ?? name)
             case let dynamicProperty as DynamicProperty:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Properties must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Properties must not be a class")
                 
                 try dynamicProperty.execute(operation, using: names + [name])
             case let traversable as Traversable:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "Traversable \(name) on Properties must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "Traversable \(name) on Properties must not be a class")
             
                 try traversable.execute(operation, using: names + [name])
             default:
@@ -319,17 +317,17 @@ extension Properties: Traversable {
         for (name, element) in self {
             switch element {
             case var target as Target:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Properties must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Properties must not be a class")
     
                 try mutation(&target, self.namingStrategy(names + [name]) ?? name)
                 self.elements[name] = target as? Property
             case var dynamicProperty as DynamicProperty:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Properties must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Properties must not be a class")
                 
                 try dynamicProperty.apply(mutation, using: names + [name])
                 self.elements[name] = dynamicProperty
             case var traversable as Traversable:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "Traversable \(name) on Properties must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "Traversable \(name) on Properties must not be a class")
             
                 try traversable.apply(mutation, using: names + [name])
                 self.elements[name] = traversable as? Property
@@ -365,9 +363,7 @@ extension Optional: Traversable {
 
 extension Delegate: Traversable {
     func execute<Target>(_ operation: (Target, String) throws -> Void, using names: [String]) rethrows {
-        guard Target.self != RequestInjectable.self else {
-            return // ignore RequestInjectables, as they are injected lazily later on
-        }
+        let delegate = store?.value.delegate ?? delegateModel
         
         // we set the optionality of all delegated parameters according to the delegates optionality
         if Target.self == AnyParameter.self {
@@ -380,16 +376,18 @@ extension Delegate: Traversable {
             using: names)
             return
         }
-        
-        if let conn = connection as? Target {
-            try operation(conn, "connection")
-        }
+
         try Apodini.execute(operation, on: delegate, using: names)
     }
-    
+
     mutating func apply<Target>(_ mutation: (inout Target, String) throws -> Void, using names: [String]) rethrows {
-        guard Target.self != RequestInjectable.self else {
-            return // ignore RequestInjectables, as they are injected lazily later on
+        var delegate = store?.value.delegate ?? delegateModel
+        defer {
+            if let store = self.store {
+                store.value.delegate = delegate
+            } else {
+                delegateModel = delegate
+            }
         }
         
         // we set the optionality of all delegated parameters according to the delegates optionality
@@ -405,11 +403,7 @@ extension Delegate: Traversable {
             using: names)
             return
         }
-        
-        if var conn = connection as? Target {
-            try mutation(&conn, "connection")
-            self.connection = conn as! Environment<Application, Connection>
-        }
+
         try Apodini.apply(mutation, to: &delegate, using: names)
     }
 }
