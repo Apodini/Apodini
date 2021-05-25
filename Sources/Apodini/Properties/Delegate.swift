@@ -48,6 +48,7 @@ public struct Delegate<D> {
             fatalError("'Delegate' was called before activation.")
         }
         
+        // if not done yet we activate the delegate before injection
         if !store.value.didActivate {
             store.value.didActivate = true
             Apodini.activate(&store.value.delegate)
@@ -57,6 +58,9 @@ public struct Delegate<D> {
             fatalError("'Delegate' was called before injection with connection.")
         }
         
+        // if not done yet (and if the ConnectionContext has not canceled the observation yet),
+        // we now wire up the real observations with the fake observation we passed to the
+        // ConnectionContext earlier
         if store.value.observation != nil {
             if store.value.observations == nil {
                 var observations = [Observation]()
@@ -80,6 +84,7 @@ public struct Delegate<D> {
             store.value.observations = []
         }
         
+        // finally we inject everything and return the prepared delegate
         try connection.enterConnectionContext(with: store.value.delegate, executing: { _ in Void() })
         
         return store.value.delegate
@@ -124,8 +129,13 @@ extension Delegate: RequestInjectable {
     func inject(using request: Request) throws { }
 }
 
-
+// Delegate bundles all contained ObservedObjects into one.
 extension Delegate: AnyObservedObject {
+    // The `changed` property is the tricky part here, because we cannot know which of
+    // one of our internal observed objects really changed. We solve this problem by
+    // keeping track of the internal observed objects that triggered and the order they
+    // triggered in. We have to synchronize this with a lock to make sure we store the
+    // observed objects in the same order as they arrive at the ConnectionContext.
     public var changed: Bool {
         get {
             guard let store = store else {
@@ -159,6 +169,8 @@ extension Delegate: AnyObservedObject {
         }
     }
 
+    // When the framework wants to register the callback we just provide a new Observation.
+    // We then have to wire up the callbacks later on, when we really start observing.
     public func register(_ callback: @escaping () -> Void) -> Observation {
         guard let store = store else {
             fatalError("'Delegate' was injected with connection before activation.")
