@@ -9,7 +9,7 @@ extension TypedContentMetadataNamespace {
 
 /// A `RelationshipInheritance` can be used to indicate that the annotated `Content` type
 /// inherits Relationships from the specified target type.
-public class RelationshipInheritance<From, To>: RelationshipsContentMetadataGroup {
+public class RelationshipInheritance<From, To>: RelationshipsContentMetadataBlock {
     public typealias Key = RelationshipSourceCandidateContextKey
     override public var value: [PartialRelationshipSourceCandidate] {
         [PartialRelationshipSourceCandidate(destinationType: destinationType, resolvers: resolvers)]

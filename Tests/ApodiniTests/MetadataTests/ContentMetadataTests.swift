@@ -21,12 +21,12 @@ private struct TestStringMetadataContextKey: OptionalContextKey {
 
 private extension ContentMetadataNamespace {
     typealias TestInt = TestIntContentMetadata
-    typealias Ints = RestrictedContentMetadataGroup<TestInt>
+    typealias Ints = RestrictedContentMetadataBlock<TestInt>
 }
 
 private extension TypedContentMetadataNamespace {
     typealias TestString = GenericTestStringContentMetadata<Self>
-    typealias Strings = RestrictedContentMetadataGroup<TestString>
+    typealias Strings = RestrictedContentMetadataBlock<TestString>
 }
 
 
@@ -50,11 +50,11 @@ private struct GenericTestStringContentMetadata<C: Content>: ContentMetadataDefi
 }
 
 
-private struct ReusableTestContentMetadata: ContentMetadataGroup {
+private struct ReusableTestContentMetadata: ContentMetadataBlock {
     var content: Metadata {
         TestInt(14)
         Empty()
-        Collect {
+        Block {
             Empty()
             TestInt(15)
         }
@@ -73,7 +73,7 @@ private struct TestMetadataContent: Content {
 
         Empty()
 
-        Collect {
+        Block {
             TestInt(2)
 
             if state {
@@ -84,7 +84,7 @@ private struct TestMetadataContent: Content {
 
             Empty()
 
-            Collect {
+            Block {
                 TestInt(5)
                 Empty()
             }

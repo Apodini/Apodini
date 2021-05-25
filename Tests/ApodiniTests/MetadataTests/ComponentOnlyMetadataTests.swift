@@ -21,12 +21,12 @@ private struct TestStringMetadataContextKey: OptionalContextKey {
 
 private extension ComponentMetadataNamespace {
     typealias TestInt = TestIntComponentOnlyMetadata
-    typealias Ints = RestrictedComponentOnlyMetadataGroup<TestInt>
+    typealias Ints = RestrictedComponentOnlyMetadataBlock<TestInt>
 }
 
 private extension TypedComponentMetadataNamespace {
     typealias TestString = GenericTestStringComponentOnlyMetadata<Self>
-    typealias Strings = RestrictedComponentOnlyMetadataGroup<TestString>
+    typealias Strings = RestrictedComponentOnlyMetadataBlock<TestString>
 }
 
 
@@ -50,11 +50,11 @@ private struct GenericTestStringComponentOnlyMetadata<C: Component>: ComponentOn
 }
 
 
-private struct ReusableTestComponentOnlyMetadata: ComponentOnlyMetadataGroup {
+private struct ReusableTestComponentOnlyMetadata: ComponentOnlyMetadataBlock {
     var content: Metadata {
         TestInt(14)
         Empty()
-        Collect {
+        Block {
             Empty()
             TestInt(15)
         }
@@ -79,7 +79,7 @@ private struct TestMetadataComponent: Component {
 
         Empty()
 
-        Collect {
+        Block {
             TestInt(2)
 
             if state {
@@ -90,7 +90,7 @@ private struct TestMetadataComponent: Component {
 
             Empty()
 
-            Collect {
+            Block {
                 Empty()
                 TestInt(5)
             }

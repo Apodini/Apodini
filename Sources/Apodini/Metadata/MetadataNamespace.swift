@@ -61,7 +61,7 @@ public protocol WebServiceMetadataNamespace {}
 /// Refer to `TypedComponentMetadataNamespace` if you need access to the generic `Component`
 /// Type where the Metadata is used on.
 ///
-/// - Note: Refer `ComponentMetadataGroupNamespace` for very specific circumstances where using
+/// - Note: Refer `ComponentMetadataBlockNamespace` for very specific circumstances where using
 ///     `ComponentMetadataNamespace` should be avoided.
 public protocol ComponentMetadataNamespace {}
 
@@ -81,19 +81,19 @@ public protocol ComponentMetadataNamespace {}
 public protocol ContentMetadataNamespace {}
 
 
-/// The `ComponentMetadataGroupNamespace` can be used to define an appropriate
+/// The `ComponentMetadataBlockNamespace` can be used to define an appropriate
 /// Name for your `ComponentMetadataDefinition` specifically for the Namespace
-/// of `ComponentMetadataGroup`s.
+/// of `ComponentMetadataBlock`s.
 ///
 /// This is only necessary if you additionally have equivalent or similar Component-Only and Handler and/or WebService Metadata
 /// which additionally share the same name in the `ComponentOnlyMetadataNamespace`, `HandlerMetadataNamespace` and
 /// `WebServiceMetadataNamespace` (Such example is the `EmptyComponentMetadata`).
-public typealias ComponentMetadataGroupNamespace = ComponentMetadataGroup
+public typealias ComponentMetadataBlockNamespace = ComponentMetadataBlock
 
 
-/// As the `HandlerMetadataNamespace` is accessible from `HandlerMetadataGroup`s,
+/// As the `HandlerMetadataNamespace` is accessible from `HandlerMetadataBlock`s,
 /// there is no way to know the type of the `Handler` the Metadata will be used on
-/// (as `MetadataGroup`s decouple Metadata Declaration from the actual Component declared with that Metadata).
+/// (as `MetadataBlock`s decouple Metadata Declaration from the actual Component declared with that Metadata).
 ///
 /// If your `HandlerMetadataDefinition` needs access to the Generic `Handler` Type the Metadata is used on,
 /// you can use `TypedHandlerMetadataNamespace` to force that said Metadata can only be declared directly
@@ -107,8 +107,8 @@ public typealias ComponentMetadataGroupNamespace = ComponentMetadataGroup
 /// }
 /// ```
 ///
-/// Doing so will make the `Example` Metadata **not available** in `HandlerMetadataGroup`s.
-/// If you want to make the Metadata available in those groups as well, relying on the
+/// Doing so will make the `Example` Metadata **not available** in `HandlerMetadataBlock`s.
+/// If you want to make the Metadata available in those blocks as well, relying on the
 /// user to manually specify the `Handler` generic Type, declare a Name in `HandlerMetadataNamespace`
 /// like the following:
 /// ```swift
@@ -120,9 +120,9 @@ public typealias ComponentMetadataGroupNamespace = ComponentMetadataGroup
 /// and reduces the confusion about naming availability.
 public typealias TypedHandlerMetadataNamespace = Handler
 
-/// As the `WebServiceMetadataNamespace` is accessible from `WebServiceMetadataGroup`s,
+/// As the `WebServiceMetadataNamespace` is accessible from `WebServiceMetadataBlock`s,
 /// there is no way to know the type of the `WebService` the Metadata will be used on
-/// (as `MetadataGroup`s decouple Metadata Declaration from the actual Component declared with that Metadata).
+/// (as `MetadataBlock`s decouple Metadata Declaration from the actual Component declared with that Metadata).
 ///
 /// If your `WebServiceMetadataDefinition` needs access to the Generic `WebService` Type the Metadata is used on,
 /// you can use `TypedWebServiceMetadataNamespace` to force that said Metadata can only be declared directly
@@ -136,8 +136,8 @@ public typealias TypedHandlerMetadataNamespace = Handler
 /// }
 /// ```
 ///
-/// Doing so will make the `Example` Metadata **not available** in `WebServiceMetadataGroup`s.
-/// If you want to make the Metadata available in those groups as well, relying on the
+/// Doing so will make the `Example` Metadata **not available** in `WebServiceMetadataBlock`s.
+/// If you want to make the Metadata available in those blocks as well, relying on the
 /// user to manually specify the `WebService` generic Type, declare a Name in `WebServiceMetadataNamespace`
 /// like the following:
 /// ```swift
@@ -149,9 +149,9 @@ public typealias TypedHandlerMetadataNamespace = Handler
 /// and reduces the confusion about naming availability.
 public typealias TypedWebServiceMetadataNamespace = WebService
 
-/// As the `ComponentMetadataNamespace` is accessible from `ComponentMetadataGroup`s,
+/// As the `ComponentMetadataNamespace` is accessible from `ComponentMetadataBlock`s,
 /// there is no way to know the type of the `Component` the Metadata will be used on
-/// (as `MetadataGroup`s decouple Metadata Declaration from the actual Component declared with that Metadata).
+/// (as `MetadataBlock`s decouple Metadata Declaration from the actual Component declared with that Metadata).
 ///
 /// If your `ComponentMetadataDefinition` needs access to the Generic `Component` Type the Metadata is used on,
 /// you can use `TypedComponentMetadataNamespace` to force that said Metadata can only be declared directly
@@ -165,8 +165,8 @@ public typealias TypedWebServiceMetadataNamespace = WebService
 /// }
 /// ```
 ///
-/// Doing so will make the `Example` Metadata **not available** in `ComponentMetadataGroup`s.
-/// If you want to make the Metadata available in those groups as well, relying on the
+/// Doing so will make the `Example` Metadata **not available** in `ComponentMetadataBlock`s.
+/// If you want to make the Metadata available in those blocks as well, relying on the
 /// user to manually specify the `Component` generic Type, declare a Name in `ComponentMetadataNamespace`
 /// (and/or `ComponentOnlyMetadataNamespace`) like the following:
 /// ```swift
@@ -178,9 +178,9 @@ public typealias TypedWebServiceMetadataNamespace = WebService
 /// and reduces the confusion about naming availability.
 public typealias TypedComponentMetadataNamespace = Component
 
-/// As the `ContentMetadataNamespace` is accessible from `ContentMetadataGroup`s,
+/// As the `ContentMetadataNamespace` is accessible from `ContentMetadataBlock`s,
 /// there is no way to know the type of the `Content` the Metadata will be used on
-/// (as `MetadataGroup`s decouple Metadata Declaration from the actual Content declared with that Metadata).
+/// (as `MetadataBlock`s decouple Metadata Declaration from the actual Content declared with that Metadata).
 ///
 /// If your `ContentMetadataDefinition` needs access to the Generic `Content` Type the Metadata is used on,
 /// you can use `TypedContentMetadataNamespace` to force that said Metadata can only be declared directly
@@ -194,8 +194,8 @@ public typealias TypedComponentMetadataNamespace = Component
 /// }
 /// ```
 ///
-/// Doing so will make the `Example` Metadata **not available** in `ContentMetadataGroup`s.
-/// If you want to make the Metadata available in those groups as well, relying on the
+/// Doing so will make the `Example` Metadata **not available** in `ContentMetadataBlock`s.
+/// If you want to make the Metadata available in those blocks as well, relying on the
 /// user to manually specify the `Content` generic Type, declare a Name in `ContentMetadataNamespace`
 /// like the following:
 /// ```swift

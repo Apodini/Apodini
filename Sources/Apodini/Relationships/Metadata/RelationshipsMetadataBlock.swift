@@ -3,12 +3,12 @@
 //
 
 extension TypedContentMetadataNamespace {
-    /// Defines a `ContentMetadataGroup` you can use to group your Relationship Metadata.
-    /// See `RelationshipsContentMetadataGroup`.
-    public typealias Relationships = RestrictedContentMetadataGroup<RelationshipsContentMetadataGroup>
+    /// Defines a `ContentMetadataBlock` you can use to group your Relationship Metadata.
+    /// See `RelationshipsContentMetadataBlock`.
+    public typealias Relationships = RestrictedContentMetadataBlock<RelationshipsContentMetadataBlock>
 }
 
-/// The `RelationshipsContentMetadataGroup` can be used to structure your Relationship
+/// The `RelationshipsContentMetadataBlock` can be used to structure your Relationship
 /// Metadata declarations.
 /// The Metadata is available under the `Relationships` name and can be used like the following:
 /// ```swift
@@ -21,7 +21,7 @@ extension TypedContentMetadataNamespace {
 ///     }
 /// }
 /// ```
-public class RelationshipsContentMetadataGroup: ContentMetadataDefinition {
+public class RelationshipsContentMetadataBlock: ContentMetadataDefinition {
     public typealias Key = RelationshipSourceCandidateContextKey
     
     public var value: [PartialRelationshipSourceCandidate] {

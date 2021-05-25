@@ -21,12 +21,12 @@ private struct TestStringMetadataContextKey: OptionalContextKey {
 
 private extension HandlerMetadataNamespace {
     typealias TestInt = TestIntHandlerMetadata
-    typealias Ints = RestrictedHandlerMetadataGroup<TestInt>
+    typealias Ints = RestrictedHandlerMetadataBlock<TestInt>
 }
 
 private extension TypedHandlerMetadataNamespace {
     typealias TestString = GenericTestStringHandlerMetadata<Self>
-    typealias Strings = RestrictedHandlerMetadataGroup<TestString>
+    typealias Strings = RestrictedHandlerMetadataBlock<TestString>
 }
 
 
@@ -49,11 +49,11 @@ private struct GenericTestStringHandlerMetadata<H: Handler>: HandlerMetadataDefi
     var value: String = "\(H.self)"
 }
 
-private struct ReusableTestHandlerMetadata: HandlerMetadataGroup {
+private struct ReusableTestHandlerMetadata: HandlerMetadataBlock {
     var content: Metadata {
         TestInt(14)
         Empty()
-        Collect {
+        Block {
             Empty()
             TestInt(15)
         }
@@ -76,7 +76,7 @@ private struct TestMetadataHandler: Handler {
 
         Empty()
 
-        Collect {
+        Block {
             TestInt(2)
 
             if state {
@@ -87,7 +87,7 @@ private struct TestMetadataHandler: Handler {
 
             Empty()
 
-            Collect {
+            Block {
                 Empty()
                 TestInt(5)
             }

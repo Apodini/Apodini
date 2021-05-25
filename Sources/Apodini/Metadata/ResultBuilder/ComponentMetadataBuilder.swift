@@ -17,7 +17,7 @@ public extension ComponentMetadataBuilder {
         WrappedComponentMetadataDefinition(expression)
     }
 
-    static func buildExpression<Metadata: ComponentMetadataGroup>(_ expression: Metadata) -> AnyComponentMetadata {
+    static func buildExpression<Metadata: ComponentMetadataBlock>(_ expression: Metadata) -> AnyComponentMetadata {
         expression
     }
 

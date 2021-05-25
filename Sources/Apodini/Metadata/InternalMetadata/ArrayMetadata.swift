@@ -2,7 +2,7 @@
 // Created by Andreas Bauer on 21.05.21.
 //
 
-struct AnyHandlerMetadataArrayWrapper: AnyMetadataGroup, AnyHandlerMetadata {
+struct AnyHandlerMetadataArrayWrapper: AnyMetadataBlock, AnyHandlerMetadata {
     let array: [AnyHandlerMetadata]
 
     init(_ array: [AnyHandlerMetadata]) {
@@ -16,7 +16,7 @@ struct AnyHandlerMetadataArrayWrapper: AnyMetadataGroup, AnyHandlerMetadata {
     }
 }
 
-struct AnyComponentOnlyMetadataArrayWrapper: AnyMetadataGroup, AnyComponentOnlyMetadata {
+struct AnyComponentOnlyMetadataArrayWrapper: AnyMetadataBlock, AnyComponentOnlyMetadata {
     let array: [AnyComponentOnlyMetadata]
 
     init(_ array: [AnyComponentOnlyMetadata]) {
@@ -30,7 +30,7 @@ struct AnyComponentOnlyMetadataArrayWrapper: AnyMetadataGroup, AnyComponentOnlyM
     }
 }
 
-struct AnyWebServiceMetadataArrayWrapper: AnyMetadataGroup, AnyWebServiceMetadata {
+struct AnyWebServiceMetadataArrayWrapper: AnyMetadataBlock, AnyWebServiceMetadata {
     let array: [AnyWebServiceMetadata]
 
     init(_ array: [AnyWebServiceMetadata]) {
@@ -44,7 +44,7 @@ struct AnyWebServiceMetadataArrayWrapper: AnyMetadataGroup, AnyWebServiceMetadat
     }
 }
 
-struct AnyComponentMetadataArrayWrapper: AnyMetadataGroup, AnyComponentMetadata {
+struct AnyComponentMetadataArrayWrapper: AnyMetadataBlock, AnyComponentMetadata {
     let array: [AnyComponentMetadata]
 
     init(_ array: [AnyComponentMetadata]) {
@@ -58,7 +58,7 @@ struct AnyComponentMetadataArrayWrapper: AnyMetadataGroup, AnyComponentMetadata 
     }
 }
 
-struct AnyContentMetadataArrayWrapper: AnyMetadataGroup, AnyContentMetadata {
+struct AnyContentMetadataArrayWrapper: AnyMetadataBlock, AnyContentMetadata {
     let array: [AnyContentMetadata]
 
     init(_ array: [AnyContentMetadata]) {

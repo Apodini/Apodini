@@ -6,19 +6,19 @@
 
 #if swift(>=5.4)
 @resultBuilder
-public enum RestrictedMetadataGroupBuilder<Group: RestrictedMetadataGroup> {}
+public enum RestrictedMetadataBlockBuilder<Block: RestrictedMetadataBlock> {}
 #else
 @_functionBuilder
-public enum RestrictedMetadataGroupBuilder<Group: RestrictedMetadataGroup> {}
+public enum RestrictedMetadataBlockBuilder<Block: RestrictedMetadataBlock> {}
 #endif
 
-// MARK: Restricted Handler Metadata Group
-public extension RestrictedMetadataGroupBuilder where Group: HandlerMetadataGroup, Group.RestrictedContent: AnyHandlerMetadata {
-    static func buildExpression(_ expression: Group.RestrictedContent) -> AnyHandlerMetadata {
+// MARK: Restricted Handler Metadata Block
+public extension RestrictedMetadataBlockBuilder where Block: HandlerMetadataBlock, Block.RestrictedContent: AnyHandlerMetadata {
+    static func buildExpression(_ expression: Block.RestrictedContent) -> AnyHandlerMetadata {
         expression
     }
 
-    static func buildExpression(_ expression: Group) -> AnyHandlerMetadata {
+    static func buildExpression(_ expression: Block) -> AnyHandlerMetadata {
         expression
     }
 
@@ -43,13 +43,13 @@ public extension RestrictedMetadataGroupBuilder where Group: HandlerMetadataGrou
     }
 }
 
-// MARK: Restricted Component-Only Metadata Group
-public extension RestrictedMetadataGroupBuilder where Group: ComponentOnlyMetadataGroup, Group.RestrictedContent: AnyComponentOnlyMetadata {
-    static func buildExpression(_ expression: Group.RestrictedContent) -> AnyComponentOnlyMetadata {
+// MARK: Restricted Component-Only Metadata Block
+public extension RestrictedMetadataBlockBuilder where Block: ComponentOnlyMetadataBlock, Block.RestrictedContent: AnyComponentOnlyMetadata {
+    static func buildExpression(_ expression: Block.RestrictedContent) -> AnyComponentOnlyMetadata {
         expression
     }
 
-    static func buildExpression(_ expression: Group) -> AnyComponentOnlyMetadata {
+    static func buildExpression(_ expression: Block) -> AnyComponentOnlyMetadata {
         expression
     }
 
@@ -74,13 +74,13 @@ public extension RestrictedMetadataGroupBuilder where Group: ComponentOnlyMetada
     }
 }
 
-// MARK: Restricted WebService Metadata Group
-public extension RestrictedMetadataGroupBuilder where Group: WebServiceMetadataGroup, Group.RestrictedContent: AnyWebServiceMetadata {
-    static func buildExpression(_ expression: Group.RestrictedContent) -> AnyWebServiceMetadata {
+// MARK: Restricted WebService Metadata Block
+public extension RestrictedMetadataBlockBuilder where Block: WebServiceMetadataBlock, Block.RestrictedContent: AnyWebServiceMetadata {
+    static func buildExpression(_ expression: Block.RestrictedContent) -> AnyWebServiceMetadata {
         expression
     }
 
-    static func buildExpression(_ expression: Group) -> AnyWebServiceMetadata {
+    static func buildExpression(_ expression: Block) -> AnyWebServiceMetadata {
         expression
     }
 
@@ -105,13 +105,13 @@ public extension RestrictedMetadataGroupBuilder where Group: WebServiceMetadataG
     }
 }
 
-// MARK: Restricted Component Metadata Group
-public extension RestrictedMetadataGroupBuilder where Group: ComponentMetadataGroup, Group.RestrictedContent: AnyComponentMetadata {
-    static func buildExpression(_ expression: Group.RestrictedContent) -> AnyComponentMetadata {
+// MARK: Restricted Component Metadata Block
+public extension RestrictedMetadataBlockBuilder where Block: ComponentMetadataBlock, Block.RestrictedContent: AnyComponentMetadata {
+    static func buildExpression(_ expression: Block.RestrictedContent) -> AnyComponentMetadata {
         expression
     }
 
-    static func buildExpression(_ expression: Group) -> AnyComponentMetadata {
+    static func buildExpression(_ expression: Block) -> AnyComponentMetadata {
         expression
     }
 
@@ -136,13 +136,13 @@ public extension RestrictedMetadataGroupBuilder where Group: ComponentMetadataGr
     }
 }
 
-// MARK: Restricted Content Metadata Group
-public extension RestrictedMetadataGroupBuilder where Group: ContentMetadataGroup, Group.RestrictedContent: AnyContentMetadata {
-    static func buildExpression(_ expression: Group.RestrictedContent) -> AnyContentMetadata {
+// MARK: Restricted Content Metadata Block
+public extension RestrictedMetadataBlockBuilder where Block: ContentMetadataBlock, Block.RestrictedContent: AnyContentMetadata {
+    static func buildExpression(_ expression: Block.RestrictedContent) -> AnyContentMetadata {
         expression
     }
 
-    static func buildExpression(_ expression: Group) -> AnyContentMetadata {
+    static func buildExpression(_ expression: Block) -> AnyContentMetadata {
         expression
     }
 

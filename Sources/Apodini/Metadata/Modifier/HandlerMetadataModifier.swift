@@ -50,7 +50,7 @@ extension Handler {
     /// - Note: Be aware that `Handler`s and therefore `HandlerModifier` are declared inside `Component`s,
     ///     thus the `HandlerMetadataNamespace` is not available there and only `MetadataDefinition`s
     ///     from `ComponentMetadataNamespace` are available.
-    ///     As a workaround declare your `AnyHandlerMetadata` in a separate `HandlerMetadataGroup` and use it here.
+    ///     As a workaround declare your `AnyHandlerMetadata` in a separate `HandlerMetadataBlock` and use it here.
     public func metadata(@MetadataBuilder content: () -> AnyHandlerMetadata) -> HandlerMetadataModifier<Self> {
         HandlerMetadataModifier(modifies: self, with: content())
     }
@@ -63,7 +63,7 @@ extension Handler {
     /// - Note: Be aware that `Handler`s and therefore `HandlerModifier` are declared inside `Component`s,
     ///     thus the `HandlerMetadataNamespace` is not available there and only `MetadataDefinition`s
     ///     from `ComponentMetadataNamespace` are available.
-    ///     As a workaround declare your `AnyHandlerMetadata` in a separate `HandlerMetadataGroup` and use it here.
+    ///     As a workaround declare your `AnyHandlerMetadata` in a separate `HandlerMetadataBlock` and use it here.
     public func metadata<Metadata: AnyHandlerMetadata>(_ metadata: Metadata) -> HandlerMetadataModifier<Self> {
         HandlerMetadataModifier(modifies: self, with: metadata)
     }

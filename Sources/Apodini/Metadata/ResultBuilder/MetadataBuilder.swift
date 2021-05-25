@@ -18,11 +18,11 @@ public extension MetadataBuilder {
         WrappedHandlerMetadataDefinition(expression)
     }
 
-    static func buildExpression<Metadata: HandlerMetadataGroup>(_ expression: Metadata) -> AnyHandlerMetadata {
+    static func buildExpression<Metadata: HandlerMetadataBlock>(_ expression: Metadata) -> AnyHandlerMetadata {
         expression
     }
 
-    static func buildExpression<Metadata: ComponentMetadataGroup>(_ expression: Metadata) -> AnyHandlerMetadata {
+    static func buildExpression<Metadata: ComponentMetadataBlock>(_ expression: Metadata) -> AnyHandlerMetadata {
         expression
     }
 
@@ -53,11 +53,11 @@ public extension MetadataBuilder {
         WrappedComponentOnlyMetadataDefinition(expression)
     }
 
-    static func buildExpression<Metadata: ComponentOnlyMetadataGroup>(_ expression: Metadata) -> AnyComponentOnlyMetadata {
+    static func buildExpression<Metadata: ComponentOnlyMetadataBlock>(_ expression: Metadata) -> AnyComponentOnlyMetadata {
         expression
     }
 
-    static func buildExpression<Metadata: ComponentMetadataGroup>(_ expression: Metadata) -> AnyComponentOnlyMetadata {
+    static func buildExpression<Metadata: ComponentMetadataBlock>(_ expression: Metadata) -> AnyComponentOnlyMetadata {
         expression
     }
 
@@ -88,11 +88,11 @@ public extension MetadataBuilder {
         WrappedWebServiceMetadataDefinition(expression)
     }
 
-    static func buildExpression<Metadata: WebServiceMetadataGroup>(_ expression: Metadata) -> AnyWebServiceMetadata {
+    static func buildExpression<Metadata: WebServiceMetadataBlock>(_ expression: Metadata) -> AnyWebServiceMetadata {
         expression
     }
 
-    static func buildExpression<Metadata: ComponentMetadataGroup>(_ expression: Metadata) -> AnyWebServiceMetadata {
+    static func buildExpression<Metadata: ComponentMetadataBlock>(_ expression: Metadata) -> AnyWebServiceMetadata {
         expression
     }
 
@@ -123,7 +123,7 @@ public extension MetadataBuilder {
         WrappedContentMetadataDefinition(expression)
     }
 
-    static func buildExpression<Metadata: ContentMetadataGroup>(_ expression: Metadata) -> AnyContentMetadata {
+    static func buildExpression<Metadata: ContentMetadataBlock>(_ expression: Metadata) -> AnyContentMetadata {
         expression
     }
 

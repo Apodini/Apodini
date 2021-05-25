@@ -21,12 +21,12 @@ private struct TestStringMetadataContextKey: OptionalContextKey {
 
 private extension WebServiceMetadataNamespace {
     typealias TestInt = TestIntWebServiceMetadata
-    typealias Ints = RestrictedWebServiceMetadataGroup<TestInt>
+    typealias Ints = RestrictedWebServiceMetadataBlock<TestInt>
 }
 
 private extension TypedWebServiceMetadataNamespace {
     typealias TestString = GenericTestStringWebServiceMetadata<Self>
-    typealias Strings = RestrictedWebServiceMetadataGroup<TestString>
+    typealias Strings = RestrictedWebServiceMetadataBlock<TestString>
 }
 
 
@@ -50,11 +50,11 @@ private struct GenericTestStringWebServiceMetadata<W: WebService>: WebServiceMet
 }
 
 
-private struct ReusableTestWebServiceMetadata: WebServiceMetadataGroup {
+private struct ReusableTestWebServiceMetadata: WebServiceMetadataBlock {
     var content: Metadata {
         TestInt(14)
         Empty()
-        Collect {
+        Block {
             Empty()
             TestInt(15)
         }
@@ -87,7 +87,7 @@ private struct TestMetadataWebService: WebService {
 
         Empty()
 
-        Collect {
+        Block {
             TestInt(2)
 
             if state {
@@ -98,7 +98,7 @@ private struct TestMetadataWebService: WebService {
 
             Empty()
 
-            Collect {
+            Block {
                 Empty()
                 TestInt(5)
             }

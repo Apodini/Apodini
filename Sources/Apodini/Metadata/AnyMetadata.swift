@@ -3,7 +3,7 @@
 //
 
 /// The `AnyMetadata` protocol represents arbitrary Metadata.
-/// This might be a `MetadataDefinition`, a `AnyMetadataGroup` or something else.
+/// This might be a `MetadataDefinition`, a `AnyMetadataBlock` or something else.
 ///
 /// If you want to create new Metadata Definitions you may want to look at `MetadataDefinition`.
 ///
@@ -18,7 +18,7 @@
 /// - `ContentMetadata` represents arbitrary Metadata that can be declared on `Content` types.
 public protocol AnyMetadata {
     /// This method accepts the `SyntaxTreeVisitor` in order to parse the Metadata tree.
-    /// The implementation should either forward the visitor to its content (e.g. in the case of a `AnyMetadataGroup`)
+    /// The implementation should either forward the visitor to its content (e.g. in the case of a `AnyMetadataBlock`)
     /// or add the parsed Metadata to the visitor.
     ///
     /// - Parameter visitor: The `SyntaxTreeVisitor` parsing the Metadata tree.

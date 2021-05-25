@@ -2,32 +2,32 @@
 // Created by Andreas Bauer on 16.05.21.
 //
 
-/// The `AnyMetadataGroup` protocol represents Metadata that is _somehow_ grouped together.
+/// The `AnyMetadataBlock` protocol represents Metadata that is _somehow_ grouped together.
 /// How the Metadata is grouped and how it is made accessible is the responsibility
 /// of the one conforming to this protocol or of the protocol inheriting from this one.
 ///
-/// The following Metadata Groups are available:
-/// - `HandlerMetadataGroup`
-/// - `ComponentOnlyMetadataGroup`
-/// - `WebServiceMetadataGroup`
-/// - `ComponentMetadataGroup`
-/// - `ContentMetadataGroup`
+/// The following Metadata Blocks are available:
+/// - `HandlerMetadataBlock`
+/// - `ComponentOnlyMetadataBlock`
+/// - `WebServiceMetadataBlock`
+/// - `ComponentMetadataBlock`
+/// - `ContentMetadataBlock`
 ///
 /// See those docs for examples on how to use them in their respective scope
 /// or on how to create **independent** and thus **reusable** Metadata.
 ///
-/// See `RestrictedMetadataGroup` for a way to create custom Metadata Groups where
+/// See `RestrictedMetadataBlock` for a way to create custom Metadata Blocks where
 /// the content is restricted to a specific `MetadataDefinition`.
-public protocol AnyMetadataGroup: AnyMetadata {}
+public protocol AnyMetadataBlock: AnyMetadata {}
 
-/// The `HandlerMetadataGroup` protocol represents `AnyMetadataGroup`s which can only contain
+/// The `HandlerMetadataBlock` protocol represents `AnyMetadataBlock`s which can only contain
 /// `AnyHandlerMetadata` and itself can only be placed in `AnyHandlerMetadata` Declaration Blocks.
 ///
-/// See `StandardHandlerMetadataGroup` for a general purpose `HandlerMetadataGroup` available by default.
+/// See `StandardHandlerMetadataBlock` for a general purpose `HandlerMetadataBlock` available by default.
 ///
-/// By conforming to `HandlerMetadataGroup` you can create reusable Metadata like the following:
+/// By conforming to `HandlerMetadataBlock` you can create reusable Metadata like the following:
 /// ```swift
-/// struct DefaultDescriptionMetadata: HandlerMetadataGroup {
+/// struct DefaultDescriptionMetadata: HandlerMetadataBlock {
 ///     var content: Metadata {
 ///         Description("Example Description")
 ///         // ...
@@ -41,27 +41,27 @@ public protocol AnyMetadataGroup: AnyMetadata {}
 ///     }
 /// }
 /// ```
-public protocol HandlerMetadataGroup: AnyMetadataGroup, AnyHandlerMetadata, HandlerMetadataNamespace, ComponentMetadataNamespace {
+public protocol HandlerMetadataBlock: AnyMetadataBlock, AnyHandlerMetadata, HandlerMetadataNamespace, ComponentMetadataNamespace {
     associatedtype Metadata = AnyHandlerMetadata
 
     @MetadataBuilder
     var content: AnyHandlerMetadata { get }
 }
 
-extension HandlerMetadataGroup {
-    /// Forwards the `SyntaxTreeVisitor` to the content of the `AnyMetadataGroup`
+extension HandlerMetadataBlock {
+    /// Forwards the `SyntaxTreeVisitor` to the content of the `AnyMetadataBlock`
     /// - Parameter visitor: `SyntaxTreeVisitor` responsible for parsing the Metadata Tree
     public func accept(_ visitor: SyntaxTreeVisitor) {
         content.accept(visitor)
     }
 }
 
-/// The `ComponentOnlyMetadataGroup` protocol represents `AnyMetadataGroup`s which can only contain
+/// The `ComponentOnlyMetadataBlock` protocol represents `AnyMetadataBlock`s which can only contain
 /// `AnyComponentOnlyMetadata` and itself can only be placed in `AnyComponentOnlyMetadata` Declaration Blocks.
 ///
-/// By conforming to `ComponentOnlyMetadataGroup` you can create reusable Metadata like the following:
+/// By conforming to `ComponentOnlyMetadataBlock` you can create reusable Metadata like the following:
 /// ```swift
-/// struct DefaultDescriptionMetadata: ComponentOnlyMetadataGroup {
+/// struct DefaultDescriptionMetadata: ComponentOnlyMetadataBlock {
 ///     var content: Metadata {
 ///         Description("Example Description")
 ///         // ...
@@ -75,29 +75,29 @@ extension HandlerMetadataGroup {
 ///     }
 /// }
 /// ```
-public protocol ComponentOnlyMetadataGroup: AnyMetadataGroup, AnyComponentOnlyMetadata, ComponentOnlyMetadataNamespace, ComponentMetadataNamespace {
+public protocol ComponentOnlyMetadataBlock: AnyMetadataBlock, AnyComponentOnlyMetadata, ComponentOnlyMetadataNamespace, ComponentMetadataNamespace {
     associatedtype Metadata = AnyComponentOnlyMetadata
 
     @MetadataBuilder
     var content: AnyComponentOnlyMetadata { get }
 }
 
-extension ComponentOnlyMetadataGroup {
-    /// Forwards the `SyntaxTreeVisitor` to the content of the `AnyMetadataGroup`
+extension ComponentOnlyMetadataBlock {
+    /// Forwards the `SyntaxTreeVisitor` to the content of the `AnyMetadataBlock`
     /// - Parameter visitor: `SyntaxTreeVisitor` responsible for parsing the Metadata Tree
     public func accept(_ visitor: SyntaxTreeVisitor) {
         content.accept(visitor)
     }
 }
 
-/// The `WebServiceMetadataGroup` protocol represents `AnyMetadataGroup`s which can only contain
+/// The `WebServiceMetadataBlock` protocol represents `AnyMetadataBlock`s which can only contain
 /// `AnyWebServiceMetadata` and itself can only be placed in `AnyWebServiceMetadata` Declaration Blocks.
 ///
-/// See `StandardWebServiceMetadataGroup` for a general purpose `WebServiceMetadataGroup` available by default.
+/// See `StandardWebServiceMetadataBlock` for a general purpose `WebServiceMetadataBlock` available by default.
 ///
-/// By conforming to `WebServiceMetadataGroup` you can create reusable Metadata like the following:
+/// By conforming to `WebServiceMetadataBlock` you can create reusable Metadata like the following:
 /// ```swift
-/// struct DefaultDescriptionMetadata: WebServiceMetadataGroup {
+/// struct DefaultDescriptionMetadata: WebServiceMetadataBlock {
 ///     var content: Metadata {
 ///         Description("Example Description")
 ///         // ...
@@ -111,29 +111,29 @@ extension ComponentOnlyMetadataGroup {
 ///     }
 /// }
 /// ```
-public protocol WebServiceMetadataGroup: AnyMetadataGroup, AnyWebServiceMetadata, WebServiceMetadataNamespace, ComponentMetadataNamespace {
+public protocol WebServiceMetadataBlock: AnyMetadataBlock, AnyWebServiceMetadata, WebServiceMetadataNamespace, ComponentMetadataNamespace {
     associatedtype Metadata = AnyWebServiceMetadata
 
     @MetadataBuilder
     var content: AnyWebServiceMetadata { get }
 }
 
-extension WebServiceMetadataGroup {
-    /// Forwards the `SyntaxTreeVisitor` to the content of the `AnyMetadataGroup`
+extension WebServiceMetadataBlock {
+    /// Forwards the `SyntaxTreeVisitor` to the content of the `AnyMetadataBlock`
     /// - Parameter visitor: `SyntaxTreeVisitor` responsible for parsing the Metadata Tree
     public func accept(_ visitor: SyntaxTreeVisitor) {
         content.accept(visitor)
     }
 }
 
-/// The `ComponentMetadataGroup` protocol represents `AnyMetadataGroup`s which can only contain
+/// The `ComponentMetadataBlock` protocol represents `AnyMetadataBlock`s which can only contain
 /// `AnyComponentMetadata` and itself can only be placed in `AnyComponentMetadata` Declaration Blocks.
 ///
-/// See `StandardComponentMetadataGroup` for a general purpose `ComponentMetadataGroup` available by default.
+/// See `StandardComponentMetadataBlock` for a general purpose `ComponentMetadataBlock` available by default.
 ///
-/// By conforming to `ComponentMetadataGroup` you can create reusable Metadata like the following:
+/// By conforming to `ComponentMetadataBlock` you can create reusable Metadata like the following:
 /// ```swift
-/// struct DefaultDescriptionMetadata: ComponentMetadataGroup {
+/// struct DefaultDescriptionMetadata: ComponentMetadataBlock {
 ///     var content: Metadata {
 ///         Description("Example Description")
 ///         // ...
@@ -147,29 +147,29 @@ extension WebServiceMetadataGroup {
 ///     }
 /// }
 /// ```
-public protocol ComponentMetadataGroup: AnyMetadataGroup, AnyComponentMetadata, ComponentMetadataNamespace {
+public protocol ComponentMetadataBlock: AnyMetadataBlock, AnyComponentMetadata, ComponentMetadataNamespace {
     associatedtype Metadata = AnyComponentMetadata
 
     @ComponentMetadataBuilder
     var content: AnyComponentMetadata { get }
 }
 
-extension ComponentMetadataGroup {
-    /// Forwards the `SyntaxTreeVisitor` to the content of the `AnyMetadataGroup`
+extension ComponentMetadataBlock {
+    /// Forwards the `SyntaxTreeVisitor` to the content of the `AnyMetadataBlock`
     /// - Parameter visitor: `SyntaxTreeVisitor` responsible for parsing the Metadata Tree
     public func accept(_ visitor: SyntaxTreeVisitor) {
         content.accept(visitor)
     }
 }
 
-/// The `ContentMetadataGroup` protocol represents `AnyMetadataGroup`s which can only contain
+/// The `ContentMetadataBlock` protocol represents `AnyMetadataBlock`s which can only contain
 /// `AnyContentMetadata` and itself can only be placed in `AnyContentMetadata` Declaration Blocks.
 ///
-/// See `StandardContentMetadataGroup` for a general purpose `ContentMetadataGroup` available by default.
+/// See `StandardContentMetadataBlock` for a general purpose `ContentMetadataBlock` available by default.
 ///
-/// By conforming to `ContentMetadataGroup` you can create reusable Metadata like the following:
+/// By conforming to `ContentMetadataBlock` you can create reusable Metadata like the following:
 /// ```swift
-/// struct DefaultDescriptionMetadata: ContentMetadataGroup {
+/// struct DefaultDescriptionMetadata: ContentMetadataBlock {
 ///     var content: Metadata {
 ///         Description("Example Description")
 ///         // ...
@@ -183,15 +183,15 @@ extension ComponentMetadataGroup {
 ///     }
 /// }
 /// ```
-public protocol ContentMetadataGroup: AnyMetadataGroup, AnyContentMetadata, ContentMetadataNamespace {
+public protocol ContentMetadataBlock: AnyMetadataBlock, AnyContentMetadata, ContentMetadataNamespace {
     associatedtype Metadata = AnyContentMetadata
 
     @MetadataBuilder
     var content: AnyContentMetadata { get }
 }
 
-extension ContentMetadataGroup {
-    /// Forwards the `SyntaxTreeVisitor` to the content of the `AnyMetadataGroup`
+extension ContentMetadataBlock {
+    /// Forwards the `SyntaxTreeVisitor` to the content of the `AnyMetadataBlock`
     /// - Parameter visitor: `SyntaxTreeVisitor` responsible for parsing the Metadata Tree
     public func accept(_ visitor: SyntaxTreeVisitor) {
         content.accept(visitor)
@@ -199,32 +199,32 @@ extension ContentMetadataGroup {
 }
 
 extension HandlerMetadataNamespace {
-    /// Name Definition for the `StandardHandlerMetadataGroup`
-    public typealias Collect = StandardHandlerMetadataGroup
+    /// Name Definition for the `StandardHandlerMetadataBlock`
+    public typealias Block = StandardHandlerMetadataBlock
 }
 
 extension ComponentOnlyMetadataNamespace {
-    /// Name Definition for the `StandardComponentOnlyMetadataGroup`
-    public typealias Collect = StandardComponentOnlyMetadataGroup
+    /// Name Definition for the `StandardComponentOnlyMetadataBlock`
+    public typealias Block = StandardComponentOnlyMetadataBlock
 }
 
 extension WebServiceMetadataNamespace {
-    /// Name Definition for the `StandardWebServiceMetadataGroup`
-    public typealias Collect = StandardWebServiceMetadataGroup
+    /// Name Definition for the `StandardWebServiceMetadataBlock`
+    public typealias Block = StandardWebServiceMetadataBlock
 }
 
 extension ComponentMetadataNamespace {
-    /// Name Definition for the `StandardComponentMetadataGroup`
-    public typealias Collect = StandardComponentMetadataGroup
+    /// Name Definition for the `StandardComponentMetadataBlock`
+    public typealias Block = StandardComponentMetadataBlock
 }
 
 extension ContentMetadataNamespace {
-    /// Name Definition for the `StandardContentMetadataGroup`
-    public typealias Collect = StandardContentMetadataGroup
+    /// Name Definition for the `StandardContentMetadataBlock`
+    public typealias Block = StandardContentMetadataBlock
 }
 
 
-/// `StandardHandlerMetadataGroup` is a `HandlerMetadataGroup` available by default.
+/// `StandardHandlerMetadataBlock` is a `HandlerMetadataBlock` available by default.
 /// It is available under the `Collect` name in `Handler` Metadata Declaration Blocks.
 ///
 /// It may be used in `Handler` Metadata Declaration Blocks in the following way:
@@ -233,13 +233,13 @@ extension ContentMetadataNamespace {
 ///     // ...
 ///     var metadata: Metadata {
 ///         // ...
-///         Collect {
+///         Block {
 ///             // ...
 ///         }
 ///     }
 /// }
 /// ```
-public struct StandardHandlerMetadataGroup: HandlerMetadataGroup {
+public struct StandardHandlerMetadataBlock: HandlerMetadataBlock {
     public var content: AnyHandlerMetadata
 
     public init(@MetadataBuilder content: () -> AnyHandlerMetadata) {
@@ -247,7 +247,7 @@ public struct StandardHandlerMetadataGroup: HandlerMetadataGroup {
     }
 }
 
-/// `StandardComponentOnlyMetadataGroup` is a `ComponentOnlyMetadataGroup` available by default.
+/// `StandardComponentOnlyMetadataBlock` is a `ComponentOnlyMetadataBlock` available by default.
 /// It is available under the `Collect` name in `Component` Metadata Declaration Blocks
 /// (this includes `Handler`s and the `WebService`).
 ///
@@ -257,13 +257,13 @@ public struct StandardHandlerMetadataGroup: HandlerMetadataGroup {
 ///     // ...
 ///     var metadata: Metadata {
 ///         // ...
-///         Collect {
+///         Block {
 ///             // ...
 ///         }
 ///     }
 /// }
 /// ```
-public struct StandardComponentOnlyMetadataGroup: ComponentOnlyMetadataGroup {
+public struct StandardComponentOnlyMetadataBlock: ComponentOnlyMetadataBlock {
     public var content: AnyComponentOnlyMetadata
 
     public init(@MetadataBuilder content: () -> AnyComponentOnlyMetadata) {
@@ -271,7 +271,7 @@ public struct StandardComponentOnlyMetadataGroup: ComponentOnlyMetadataGroup {
     }
 }
 
-/// `StandardWebServiceMetadataGroup` is a `WebServiceMetadataGroup` available by default.
+/// `StandardWebServiceMetadataBlock` is a `WebServiceMetadataBlock` available by default.
 /// It is available under the `Collect` name in `WebService` Metadata Declaration Blocks.
 ///
 /// It may be used in `WebService` Metadata Declaration Blocks in the following way:
@@ -280,13 +280,13 @@ public struct StandardComponentOnlyMetadataGroup: ComponentOnlyMetadataGroup {
 ///     // ...
 ///     var metadata: Metadata {
 ///         // ...
-///         Collect {
+///         Block {
 ///             // ...
 ///         }
 ///     }
 /// }
 /// ```
-public struct StandardWebServiceMetadataGroup: WebServiceMetadataGroup {
+public struct StandardWebServiceMetadataBlock: WebServiceMetadataBlock {
     public var content: AnyWebServiceMetadata
     
     public init(@MetadataBuilder content: () -> AnyWebServiceMetadata) {
@@ -294,7 +294,7 @@ public struct StandardWebServiceMetadataGroup: WebServiceMetadataGroup {
     }
 }
 
-/// `StandardComponentMetadataGroup` is a `ComponentMetadataGroup` available by default.
+/// `StandardComponentMetadataBlock` is a `ComponentMetadataBlock` available by default.
 /// It is available under the `Collect` name in `Component` Metadata Declaration Blocks
 /// (this includes `Handler`s and the `WebService`).
 ///
@@ -304,13 +304,13 @@ public struct StandardWebServiceMetadataGroup: WebServiceMetadataGroup {
 ///     // ...
 ///     var metadata: Metadata {
 ///         // ...
-///         Collect {
+///         Block {
 ///             // ...
 ///         }
 ///     }
 /// }
 /// ```
-public struct StandardComponentMetadataGroup: ComponentMetadataGroup {
+public struct StandardComponentMetadataBlock: ComponentMetadataBlock {
     public var content: AnyComponentMetadata
 
     public init(@ComponentMetadataBuilder content: () -> AnyComponentMetadata) {
@@ -318,7 +318,7 @@ public struct StandardComponentMetadataGroup: ComponentMetadataGroup {
     }
 }
 
-/// `StandardContentMetadataGroup` is a `ContentMetadataGroup` available by default.
+/// `StandardContentMetadataBlock` is a `ContentMetadataBlock` available by default.
 /// It is available under the `Collect` name in `Content` Metadata Declaration Blocks.
 ///
 /// It may be used in `Content` Metadata Declaration Blocks in the following way:
@@ -327,13 +327,13 @@ public struct StandardComponentMetadataGroup: ComponentMetadataGroup {
 ///     // ...
 ///     static var metadata: Metadata {
 ///         // ...
-///         Collect {
+///         Block {
 ///             // ...
 ///         }
 ///     }
 /// }
 /// ```
-public struct StandardContentMetadataGroup: ContentMetadataGroup {
+public struct StandardContentMetadataBlock: ContentMetadataBlock {
     public var content: AnyContentMetadata
     
     public init(@MetadataBuilder content: () -> AnyContentMetadata) {
