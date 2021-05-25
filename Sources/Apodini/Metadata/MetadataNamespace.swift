@@ -2,7 +2,7 @@
 // Created by Andreas Bauer on 16.05.21.
 //
 
-/// The `HandlerMetadataNamespace` can be used to define a appropriate
+/// The `HandlerMetadataNamespace` can be used to define an appropriate
 /// Name for your `HandlerMetadataDefinition` in a way that avoids Name collisions
 /// on the global Scope.
 ///
@@ -17,7 +17,7 @@
 /// Type where the Metadata is used on.
 public protocol HandlerMetadataNamespace {}
 
-/// The `ComponentOnlyMetadataNamespace` can be used to define a appropriate
+/// The `ComponentOnlyMetadataNamespace` can be used to define an appropriate
 /// Name for your `ComponentOnlyMetadataDefinition` in a way that avoids Name collisions
 /// on the global Scope.
 ///
@@ -32,7 +32,7 @@ public protocol HandlerMetadataNamespace {}
 /// Type where the Metadata is used on.
 public protocol ComponentOnlyMetadataNamespace {}
 
-/// The `WebServiceMetadataNamespace` can be used to define a appropriate
+/// The `WebServiceMetadataNamespace` can be used to define an appropriate
 /// Name for your `WebServiceMetadataDefinition` in a way that avoids Name collisions
 /// on the global Scope.
 ///
@@ -47,7 +47,7 @@ public protocol ComponentOnlyMetadataNamespace {}
 /// Type where the Metadata is used on.
 public protocol WebServiceMetadataNamespace {}
 
-/// The `ComponentMetadataNamespace` can be used to define a appropriate
+/// The `ComponentMetadataNamespace` can be used to define an appropriate
 /// Name for your `ComponentMetadataDefinition` in a way that avoids Name collisions
 /// on the global Scope.
 ///
@@ -65,7 +65,7 @@ public protocol WebServiceMetadataNamespace {}
 ///     `ComponentMetadataNamespace` should be avoided.
 public protocol ComponentMetadataNamespace {}
 
-/// The `ContentMetadataNamespace` can be used to define a appropriate
+/// The `ContentMetadataNamespace` can be used to define an appropriate
 /// Name for your `ContentMetadataDefinition` in a way that avoids Name collisions
 /// on the global Scope.
 ///
@@ -81,7 +81,7 @@ public protocol ComponentMetadataNamespace {}
 public protocol ContentMetadataNamespace {}
 
 
-/// The `ComponentMetadataGroupNamespace` can be used to define a appropriate
+/// The `ComponentMetadataGroupNamespace` can be used to define an appropriate
 /// Name for your `ComponentMetadataDefinition` specifically for the Namespace
 /// of `ComponentMetadataGroup`s.
 ///
@@ -92,7 +92,7 @@ public typealias ComponentMetadataGroupNamespace = ComponentMetadataGroup
 
 
 /// As the `HandlerMetadataNamespace` is accessible from `HandlerMetadataGroup`s,
-/// there is no way to know the type of the `Handler` the Metadata will be used one
+/// there is no way to know the type of the `Handler` the Metadata will be used on
 /// (as `MetadataGroup`s decouple Metadata Declaration from the actual Component declared with that Metadata).
 ///
 /// If your `HandlerMetadataDefinition` needs access to the Generic `Handler` Type the Metadata is used on,
@@ -121,7 +121,7 @@ public typealias ComponentMetadataGroupNamespace = ComponentMetadataGroup
 public typealias TypedHandlerMetadataNamespace = Handler
 
 /// As the `WebServiceMetadataNamespace` is accessible from `WebServiceMetadataGroup`s,
-/// there is no way to know the type of the `WebService` the Metadata will be used one
+/// there is no way to know the type of the `WebService` the Metadata will be used on
 /// (as `MetadataGroup`s decouple Metadata Declaration from the actual Component declared with that Metadata).
 ///
 /// If your `WebServiceMetadataDefinition` needs access to the Generic `WebService` Type the Metadata is used on,
@@ -150,7 +150,7 @@ public typealias TypedHandlerMetadataNamespace = Handler
 public typealias TypedWebServiceMetadataNamespace = WebService
 
 /// As the `ComponentMetadataNamespace` is accessible from `ComponentMetadataGroup`s,
-/// there is no way to know the type of the `Component` the Metadata will be used one
+/// there is no way to know the type of the `Component` the Metadata will be used on
 /// (as `MetadataGroup`s decouple Metadata Declaration from the actual Component declared with that Metadata).
 ///
 /// If your `ComponentMetadataDefinition` needs access to the Generic `Component` Type the Metadata is used on,
@@ -179,7 +179,7 @@ public typealias TypedWebServiceMetadataNamespace = WebService
 public typealias TypedComponentMetadataNamespace = Component
 
 /// As the `ContentMetadataNamespace` is accessible from `ContentMetadataGroup`s,
-/// there is no way to know the type of the `Content` the Metadata will be used one
+/// there is no way to know the type of the `Content` the Metadata will be used on
 /// (as `MetadataGroup`s decouple Metadata Declaration from the actual Content declared with that Metadata).
 ///
 /// If your `ContentMetadataDefinition` needs access to the Generic `Content` Type the Metadata is used on,

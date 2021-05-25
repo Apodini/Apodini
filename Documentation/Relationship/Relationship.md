@@ -603,7 +603,7 @@ generator could be extended to also incorporate some relationship functionality.
 As describe in [2.3.2.1](#2321-relationship-definition-references) we can already add a relationship to the `.author` in every response
 returned on the `/article/:articleId` endpoint.
 What we currently can't do is the reverse lookup, retrieve all articles written by a certain `User`.
-Right now the user would need to manually support that by supplying a appropriate `Handler`.  
+Right now the user would need to manually support that by supplying an appropriate `Handler`.  
 Provided that the REST exporter is able to generate such a pagination route, this feature could be extended
 to incorporate relationship information and add support for a `author` query parameter.  
 A request to `/article?author={userId}` would then return a array of articles written by the specified `User`.

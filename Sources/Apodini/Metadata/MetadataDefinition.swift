@@ -4,7 +4,7 @@
 
 /// A `MetadataDefinition` represents a specific type of Metadata which can be declared
 /// on appropriate locations, like in the Metadata Declaration blocks of a `Component`.
-/// To create a `MetadataDefinition` use on of the following protocols, depending on where
+/// To create a `MetadataDefinition` use one of the following protocols, depending on where
 /// you want your `MetadataDefinition` to be accessible:
 /// - `HandlerMetadataDefinition`
 /// - `ComponentOnlyMetadataDefinition`
