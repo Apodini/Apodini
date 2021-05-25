@@ -54,7 +54,6 @@ extension Component {
             // As stated above, this might be a Modifier and the Metadata of Modifiers can't be accessed.
             // So we only start parsing the metadata if in fact we know that it isn't a Modifier.
             if StandardModifierVisitor()(self) != true {
-                let metadata: Self.Metadata = self.metadata
                 (metadata as! AnyMetadata).accept(visitor)
             }
 
@@ -66,7 +65,6 @@ extension Component {
                 // Covering components which are not Handlers and don't conform to `SyntaxTreeVisitable`.
                 // Such Components are typically constructed by users.
                 // Executed before we enter the content below.
-                let metadata: Self.Metadata = self.metadata
                 (metadata as! AnyMetadata).accept(visitor)
             }
 
