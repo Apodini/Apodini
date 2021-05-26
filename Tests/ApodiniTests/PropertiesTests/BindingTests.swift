@@ -81,7 +81,7 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
         testService.accept(visitor)
         visitor.finishParsing()
         
-        EnvironmentObject(self.featured, \BindingTests.featured).configure(self.app)
+        EnvironmentValue(self.featured, \BindingTests.featured).configure(self.app)
 
         let selectedCountry = "Germany"
         try app.vapor.app.testable(method: .inMemory).test(.GET, "country/\(selectedCountry)") { response in

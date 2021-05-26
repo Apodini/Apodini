@@ -39,7 +39,7 @@ class ObservedObjectTests: ApodiniTests {
     
     func testObservedObjectEnvironmentInjection() throws {
         struct TestHandler: Handler {
-            @ObservedObject(\Keys.testObservable) var testObservable: TestObservable
+            @Apodini.Environment(\Keys.testObservable) var testObservable: TestObservable
             
             func handle() -> String {
                 testObservable.text
@@ -54,19 +54,20 @@ class ObservedObjectTests: ApodiniTests {
         app.storage.set(\Keys.testObservable, to: testObservable)
         
         var handler = TestHandler()
+        activate(&handler)
         handler = handler.inject(app: app)
         
         let observedObjects = collectObservedObjects(from: handler)
         
         XCTAssertNoThrow(handler.handle())
         XCTAssertEqual(observedObjects.count, 1)
-        let observedObject = try XCTUnwrap(observedObjects[0] as? ObservedObject<TestObservable>)
+        let observedObject = try XCTUnwrap(observedObjects[0] as? Apodini.Environment<Keys, TestObservable>)
         XCTAssert(observedObject.wrappedValue === testObservable)
     }
     
     func testRegisterObservedListener() throws {
         struct TestHandler: Handler {
-            @ObservedObject(\Keys.testObservable) var testObservable: TestObservable
+            @Apodini.Environment(\Keys.testObservable) var testObservable: TestObservable
             
             func handle() -> String {
                 testObservable.text
@@ -118,7 +119,7 @@ class ObservedObjectTests: ApodiniTests {
     
     func testObservedListenerNotShared() {
         struct TestHandler: Handler {
-            @ObservedObject(\Keys.testObservable) var testObservable: TestObservable
+            @Apodini.Environment(\Keys.testObservable) var testObservable: TestObservable
             
             func handle() -> String {
                 testObservable.text
@@ -180,7 +181,7 @@ class ObservedObjectTests: ApodiniTests {
         let testObservable = TestObservable()
         
         struct TestHandler: Handler {
-            @ObservedObject(\Keys.testObservable) var observable: TestObservable
+            @Apodini.Environment(\Keys.testObservable) var observable: TestObservable
             
             @State var shouldBeTriggeredByObservedObject = false
             

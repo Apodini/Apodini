@@ -1,23 +1,46 @@
 import ApodiniUtils
 
-/// A property wrapper to inject pre-defined values  to a `Component`.
+
 @propertyWrapper
+/// A property wrapper to inject pre-defined values  to a `Component`.
 public struct Environment<K: EnvironmentAccessible, Value>: Property {
     /// Keypath to access an `EnvironmentValue`.
     internal var keyPath: KeyPath<K, Value>
-    internal var storage: Box<[KeyPath<K, Value>: Any]>?
-    private var dynamicValues = [KeyPath<K, Value>: Any]()
-
+    
     private var app: Application?
+    
+    // only used if Value is ObservableObject
+    private var _changed: Box<Bool>?
+    private let observe: Bool
+    
+    @LocalEnvironment private var localEnvironment: Value?
     
     /// Initializer of `Environment` specifically for `Application` for less verbose syntax.
     public init(_ keyPath: KeyPath<K, Value>) where K == Application {
+        self._localEnvironment = LocalEnvironment()
         self.keyPath = keyPath
+        self.observe = true
     }
     
     /// Initializer of `Environment` for key paths conforming to `EnvironmentAccessible`.
     public init(_ keyPath: KeyPath<K, Value>) {
+        self._localEnvironment = LocalEnvironment()
         self.keyPath = keyPath
+        self.observe = true
+    }
+    
+    /// Initializer of `Environment` specifically for `Application` for less verbose syntax.
+    public init(_ keyPath: KeyPath<K, Value>, observed: Bool) where K == Application, Value: ObservableObject {
+        self._localEnvironment = LocalEnvironment()
+        self.keyPath = keyPath
+        self.observe = observed
+    }
+    
+    /// Initializer of `Environment` for key paths conforming to `EnvironmentAccessible`.
+    public init(_ keyPath: KeyPath<K, Value>, observed: Bool) where Value: ObservableObject {
+        self._localEnvironment = LocalEnvironment()
+        self.keyPath = keyPath
+        self.observe = observed
     }
     
     /// The current value of the environment property.
@@ -25,19 +48,18 @@ public struct Environment<K: EnvironmentAccessible, Value>: Property {
         guard let app = app else {
             fatalError("The Application instance wasn't injected correctly.")
         }
-        guard let dynamicValues = storage else {
-            fatalError("The wrapped value was accessed before it was activated.")
-        }
         
-        if let value = dynamicValues.value[keyPath] as? Value, dynamicValues.value[keyPath] != nil {
+        if let value = localEnvironment {
             return value
         }
+        
         if let key = keyPath as? KeyPath<Application, Value> {
             return app[keyPath: key]
         }
         if let value = app.storage[keyPath] {
             return value
         }
+        
         fatalError("Key path not found")
     }
     
@@ -45,19 +67,67 @@ public struct Environment<K: EnvironmentAccessible, Value>: Property {
     public var projectedValue: Binding<Value> {
         Binding.environment(self)
     }
-
+    
     /// Sets the value for the given KeyPath.
     mutating func prepareValue(_ value: Value, for keyPath: WritableKeyPath<K, Value>) {
-        dynamicValues[keyPath] = value
+        _localEnvironment.prepareValue(value)
+    }
+}
+
+
+@propertyWrapper
+struct LocalEnvironment<Value> {
+    internal var storage: Box<Value?>?
+    private var dynamicValue: Value?
+    
+    /// The current value of the environment property.
+    public var wrappedValue: Value? {
+        guard let dynamicValue = storage else {
+            fatalError("The wrapped value was accessed before it was activated.")
+        }
+        
+        if let value = dynamicValue.value {
+            return value
+        }
+        
+        return nil
+    }
+
+    /// Sets the value for the given KeyPath.
+    mutating func prepareValue(_ value: Value) {
+        dynamicValue = value
     }
     
     /// Sets the value for the given KeyPath for an **activated** Environment.
-    func setValue(_ value: Value, for keyPath: WritableKeyPath<K, Value>) {
-        guard let dynamicValues = storage else {
+    func setValue(_ value: Value) {
+        guard let dynamicValue = storage else {
             fatalError("The wrapped value was accessed before it was activated.")
         }
-        dynamicValues.value[keyPath] = value
+        dynamicValue.value = value
     }
+}
+
+// MARK: Activatable
+
+extension LocalEnvironment: Activatable {
+    mutating func activate() {
+        storage = Box(self.dynamicValue)
+    }
+}
+
+extension Environment: Activatable {
+    mutating func activate() {
+        _changed = Box(false)
+        _localEnvironment.activate()
+    }
+}
+
+// MARK: ApplicationInjectable
+
+/// Properties that need an `Application` instance.
+protocol ApplicationInjectable {
+    /// injects an `Application` instance
+    mutating func inject(app: Application)
 }
 
 extension Environment: ApplicationInjectable {
@@ -66,30 +136,66 @@ extension Environment: ApplicationInjectable {
     }
 }
 
-extension Environment: Activatable {
-    mutating func activate() {
-        storage = Box(self.dynamicValues)
-    }
-}
+// MARK: ConnectionInjectable
 
-/// Properties that need an `Application` instance.
-protocol ApplicationInjectable {
-    /// injects an `Application` instance
-    mutating func inject(app: Application)
-}
-
+/// Properties that need a `Connection` instance.
 protocol ConnectionInjectable {
     func inject(connection: Connection)
 }
+
+extension LocalEnvironment: ConnectionInjectable where Value == Connection {
+    func inject(connection: Connection) {
+        self.setValue(connection)
+    }
+}
+
+extension Environment: ConnectionInjectable where Value == Connection {
+    func inject(connection: Connection) {
+        _localEnvironment.inject(connection: connection)
+    }
+}
+
+// MARK: EnvironmentAccessible
 
 /// A protocol to define key paths that can be used with `@Environment` to retrieve pre-defined objects.
 public protocol EnvironmentAccessible { }
 
 extension Application: EnvironmentAccessible { }
 
-/// Properties that need a `Connection` instance.
-extension Environment: ConnectionInjectable where K == Application, Value == Connection {
-    func inject(connection: Connection) {
-        self.setValue(connection, for: \.connection)
+
+
+// MARK: AnyObservedObject
+
+extension Environment: AnyObservedObject where Value: ObservableObject {
+    public var changed: Bool {
+        get {
+            guard let changed = _changed else {
+                fatalError("The changed flag was accessed before it was activated.")
+            }
+            return changed.value
+        }
+        nonmutating set {
+            guard let changed = _changed else {
+                fatalError("The changed flag was accessed before it was activated.")
+            }
+            changed.value = newValue
+        }
+    }
+    
+    public func register(_ callback: @escaping () -> Void) -> Observation {
+        let observation = Observation(callback)
+        
+        guard observe else { return observation }
+    
+        for property in Mirror(reflecting: wrappedValue).children {
+            switch property.value {
+            case let published as AnyPublished:
+                published.register(observation)
+            default:
+                continue
+            }
+        }
+        
+        return observation
     }
 }

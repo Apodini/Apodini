@@ -8,27 +8,15 @@ import ApodiniUtils
 /// This is helpful for service-side streams or bidirectional communication.
 @propertyWrapper
 public struct ObservedObject<Element: ObservableObject>: Property {
-    private var objectIdentifier: ObjectIdentifier?
     private var element: Element?
-    private var app: Application?
-    private let _initializer: (() -> Element)?
+    private let _initializer: () -> Element
     
     public var wrappedValue: Element {
         get {
-            guard let app = app else {
-                fatalError("The Application instance wasn't injected correctly.")
-            }
             if let element = element {
                 return element
             }
-            if let objectIdentifier = objectIdentifier,
-               let element = app.storage.get(objectIdentifier, Element.self) {
-                return element
-            }
             fatalError("The object \(String(describing: self)) cannot be found in the environment.")
-        }
-        set {
-            element = newValue
         }
     }
     
@@ -59,12 +47,6 @@ public struct ObservedObject<Element: ObservableObject>: Property {
     /// Element passed as an object.
     public init(wrappedValue initializer: @escaping @autoclosure () -> Element) {
         self._initializer = initializer
-    }
-    
-    /// Element is injected with a key path.
-    public init<Key: EnvironmentAccessible>(_ keyPath: KeyPath<Key, Element>) {
-        self.objectIdentifier = ObjectIdentifier(keyPath)
-        self._initializer = nil
     }
 }
 
@@ -102,15 +84,7 @@ extension ObservedObject: AnyObservedObject {
 extension ObservedObject: Activatable {
     mutating func activate() {
         self.changedStorage = Box(false)
-        if let initializer = self._initializer {
-            self.element = initializer()
-        }
-    }
-}
-
-extension ObservedObject: ApplicationInjectable {
-    mutating func inject(app: Application) {
-        self.app = app
+        self.element = self._initializer()
     }
 }
 

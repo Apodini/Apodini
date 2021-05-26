@@ -89,6 +89,10 @@ extension Handler {
             environment.prepareValue(value, for: keyPath)
         }, to: &selfCopy)
         
+        apply({ (environment: inout LocalEnvironment<Value>) in
+            environment.prepareValue(value)
+        }, to: &selfCopy)
+        
         return selfCopy
     }
 }
