@@ -38,6 +38,18 @@ struct RESTEndpointHandler<H: Handler> {
                     .encodeResponse(for: request)
             }
             
+            if let raw = response.content?.response.typed(Raw.self) {
+                let vaporResponse = Vapor.Response()
+                
+                if let status = response.status {
+                    vaporResponse.status = HTTPStatus(status)
+                }
+                vaporResponse.body = Vapor.Response.Body(buffer: raw.byteBuffer)
+                vaporResponse.headers = HTTPHeaders(response.information)
+                
+                return request.eventLoop.makeSucceededFuture(vaporResponse)
+            }
+            
             let formatter = LinksFormatter(configuration: self.configuration)
             var links = enrichedContent.formatRelationships(into: [:], with: formatter, sortedBy: \.linksOperationPriority)
 
