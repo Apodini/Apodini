@@ -25,24 +25,38 @@ public struct DeploymentProviderID: RawRepresentable, Hashable, Equatable, Codab
 }
 
 
+/// The target on which a deployment provider operates.
+/// Used by the default operations implemented by ApodiniDeploy.
+public enum DeploymentProviderTarget {
+    /// An SPM target in a package at the specified location
+    case spmTarget(packageUrl: URL, targetName: String)
+    
+    /// An already-built executable
+    case executable(URL)
+}
+
+
 /// A deployment provider, i.e. a type which can manage and facilitate the process of deploying a web service to some target platform
 public protocol DeploymentProvider {
     /// This deployment provider's identifier. Must be unique. Use reverse DNS or something like that
     static var identifier: DeploymentProviderID { get }
     
-    /// Path of the web service package's root directory
-    var packageRootDir: URL { get }
+    /// The target on which this deployment provider operates.
+    var target: DeploymentProviderTarget { get }
     
-    /// Name of the executable target in the web service's swift package we should deploy
-    var productName: String { get }
+    /// Whether ApodiniDeploy's default implementations should launch child processes in the current process group.
+    /// - Note: This should be `true` in most circumstances. Only specify this as `false` if your specific deployment
+    /// provider actually needs this behaviour.
+    var launchChildrenInCurrentProcessGroup: Bool { get }
 }
 
 
-extension DeploymentProvider {
-    /// The deployment provider's identifier
-    public var identifier: DeploymentProviderID {
+public extension DeploymentProvider {
+    var identifier: DeploymentProviderID { // swiftlint:disable:this missing_docs
         Self.identifier
     }
+    
+    var launchChildrenInCurrentProcessGroup: Bool { true } // swiftlint:disable:this missing_docs
 }
 
 
@@ -52,7 +66,7 @@ struct ApodiniDeployBuildSupportError: Swift.Error {
 
 
 extension DeploymentProvider {
-    private func getSwiftBinUrl() throws -> URL {
+    private static func getSwiftBinUrl() throws -> URL {
         if let swiftBin = Task.findExecutable(named: "swift") {
             return swiftBin
         } else {
@@ -64,67 +78,81 @@ extension DeploymentProvider {
     /// Builds the web service.
     /// - Returns: the url of the built executable
     public func buildWebService() throws -> URL {
-        let fileManager = FileManager.default
-        try fileManager.setWorkingDirectory(to: packageRootDir)
-        
-        let swiftBin = try getSwiftBinUrl()
-        let task = Task(
-            executableUrl: swiftBin,
-            arguments: ["build", "--product", productName],
-            captureOutput: false,
-            launchInCurrentProcessGroup: true
-        )
-        guard try task.launchSync().exitCode == EXIT_SUCCESS else {
-            throw ApodiniDeployBuildSupportError(message: "Unable to build web service")
-        }
-        let executableUrl = packageRootDir
-            .appendingPathComponent(".build", isDirectory: true)
-            .appendingPathComponent("debug", isDirectory: true)
-            .appendingPathComponent(productName, isDirectory: false)
-        guard FileManager.default.fileExists(atPath: executableUrl.path) else {
-            throw ApodiniDeployBuildSupportError(
-                message: "Unable to locate compiled executable at expected location '\(executableUrl.path)'"
+        switch target {
+        case .executable(let url):
+            return url
+        case let .spmTarget(packageUrl, productName):
+            let fileManager = FileManager()
+            try fileManager.setWorkingDirectory(to: packageUrl)
+            
+            let swiftBin = try Self.getSwiftBinUrl()
+            let task = Task(
+                executableUrl: swiftBin,
+                arguments: ["build", "--product", productName],
+                captureOutput: false,
+                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup
             )
+            guard try task.launchSync().exitCode == EXIT_SUCCESS else {
+                throw ApodiniDeployBuildSupportError(message: "Unable to build web service")
+            }
+            let executableUrl = packageUrl
+                .appendingPathComponent(".build", isDirectory: true)
+                .appendingPathComponent("debug", isDirectory: true)
+                .appendingPathComponent(productName, isDirectory: false)
+            guard FileManager.default.fileExists(atPath: executableUrl.path) else {
+                throw ApodiniDeployBuildSupportError(
+                    message: "Unable to locate compiled executable at expected location '\(executableUrl.path)'"
+                )
+            }
+            return executableUrl
         }
-        return executableUrl
     }
     
     
     /// Read the web service's structure, and return it encoded as a `WebServiceStructure` object
     public func readWebServiceStructure() throws -> WebServiceStructure {
-        let fileManager = FileManager.default
+        let fileManager = FileManager()
         let logger = Logger(label: "ApodiniDeployCLI.Localhost")
-        
-        let swiftBin = try getSwiftBinUrl()
-        try fileManager.setWorkingDirectory(to: packageRootDir)
-        
-        logger.trace("\(packageRootDir)")
-        
-        guard fileManager.directoryExists(atUrl: packageRootDir) else {
-            throw ApodiniDeployBuildSupportError(message: "Unable to find input directory")
-        }
-        
-        let packageSwiftFileUrl = packageRootDir.appendingPathComponent("Package.swift")
-        guard fileManager.fileExists(atPath: packageSwiftFileUrl.path) else {
-            throw ApodiniDeployBuildSupportError(message: "Unable to find Package.swift")
-        }
         
         let modelFileUrl = fileManager.temporaryDirectory.appendingPathComponent("AM_\(UUID().uuidString).json")
         guard fileManager.createFile(atPath: modelFileUrl.path, contents: nil, attributes: nil) else {
             throw ApodiniDeployBuildSupportError(message: "Unable to create file")
         }
         
-        let exportWebServiceModelTask = Task(
-            executableUrl: swiftBin,
-            arguments: [
-                "run",
-                productName,
-                WellKnownCLIArguments.exportWebServiceModelStructure,
-                modelFileUrl.path
-            ],
-            captureOutput: false,
-            launchInCurrentProcessGroup: true
-        )
+        let exportWebServiceModelTask: Task
+        
+        switch target {
+        case .executable(let executableUrl):
+            exportWebServiceModelTask = Task(
+                executableUrl: executableUrl,
+                arguments: [WellKnownCLIArguments.exportWebServiceModelStructure, modelFileUrl.path],
+                captureOutput: false,
+                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup
+            )
+        case let .spmTarget(packageUrl, productName):
+            let swiftBin = try Self.getSwiftBinUrl()
+            guard fileManager.directoryExists(atUrl: packageUrl) else {
+                throw ApodiniDeployBuildSupportError(message: "Unable to find input directory")
+            }
+            try fileManager.setWorkingDirectory(to: packageUrl)
+            
+            let packageSwiftFileUrl = packageUrl.appendingPathComponent("Package.swift")
+            guard fileManager.fileExists(atPath: packageSwiftFileUrl.path) else {
+                throw ApodiniDeployBuildSupportError(message: "Unable to find Package.swift")
+            }
+            exportWebServiceModelTask = Task(
+                executableUrl: swiftBin,
+                arguments: [
+                    "run",
+                    productName,
+                    WellKnownCLIArguments.exportWebServiceModelStructure,
+                    modelFileUrl.path
+                ],
+                captureOutput: false,
+                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup
+            )
+        }
+        
         logger.notice("Invoking child process `\(exportWebServiceModelTask)`")
         let terminationInfo = try exportWebServiceModelTask.launchSync()
         guard terminationInfo.exitCode == EXIT_SUCCESS else {

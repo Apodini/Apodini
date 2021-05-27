@@ -18,6 +18,10 @@ public struct HandlerTypeIdentifier: Codable, Hashable, Equatable {
         self.rawValue = "\(H.self)"
     }
     
+    internal init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+    
     public init(from decoder: Decoder) throws {
         rawValue = try decoder.singleValueContainer().decode(String.self)
     }
@@ -58,8 +62,8 @@ public struct DeploymentGroup: Codable, Hashable, Equatable {
 }
 
 
-public struct DeploymentConfig: Codable {
-    public enum DefaultGrouping: Int, Codable {
+public struct DeploymentConfig: Codable, Equatable {
+    public enum DefaultGrouping: Int, Codable, Equatable {
         /// Every handler which is not explicitly put in a group will get its own group
         case separateNodes
         /// All handlers which are not explicitly put into a group will be put into a single group

@@ -10,6 +10,7 @@ xcuserdata/
 
 # Other files
 .DS_Store
+.env
 
 # Fastlane
 fastlane/report.xml

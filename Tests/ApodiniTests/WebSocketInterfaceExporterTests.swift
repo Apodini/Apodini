@@ -10,7 +10,7 @@
 import XCTApodini
 
 
-class WebSocketInterfaceExporterTests: ApodiniTests {
+class WebSocketInterfaceExporterTests: XCTApodiniTest {
     static let blockTime: UInt32 = 10000
     
     var testObservable = TestObservable()
