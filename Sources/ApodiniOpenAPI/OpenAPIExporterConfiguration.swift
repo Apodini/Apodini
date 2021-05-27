@@ -4,6 +4,7 @@
 
 import Foundation
 import Apodini
+import ApodiniREST
 import OpenAPIKit
 
 /// Default values used for OpenAPI configuration if not explicitly specified by developer.
@@ -42,7 +43,7 @@ public enum OpenAPIOutputFormat {
 }
 
 /// A configuration structure for manually setting OpenAPI information and output locations.
-public class OpenAPIExporterConfiguration: TopLevelExporterConfiguration {
+public struct OpenAPIExporterConfiguration: ExporterConfiguration {
     /// General OpenAPI information.
     var title: String?
     var version: String?
@@ -56,10 +57,10 @@ public class OpenAPIExporterConfiguration: TopLevelExporterConfiguration {
     let swaggerUiEndpoint: String
     
     /// Configuration of parent exporter
-    var parentConfiguration: TopLevelExporterConfiguration
+    var parentConfiguration: ExporterConfiguration
     
     public init(
-        parentConfiguration: TopLevelExporterConfiguration = TopLevelExporterConfiguration(),
+        parentConfiguration: ExporterConfiguration = RESTExporterConfiguration(),
         outputFormat: OpenAPIOutputFormat = OpenAPIConfigurationDefaults.outputFormat,
         outputEndpoint: String = OpenAPIConfigurationDefaults.outputEndpoint,
         swaggerUiEndpoint: String = OpenAPIConfigurationDefaults.swaggerUiEndpoint,

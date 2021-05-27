@@ -32,24 +32,6 @@ public class SemanticModelBuilder: InterfaceExporterVisitor {
         relationshipBuilder = RelationshipBuilder(logger: app.logger)
         typeIndexBuilder = TypeIndexBuilder(logger: app.logger)
     }
-
-    /// Registers an `InterfaceExporter` instance on the model builder.
-    /// - Parameter exporterType: The type of `InterfaceExporter` to register.
-    /// - Returns: `Self`
-    func with<T: InterfaceExporter>(exporter exporterType: T.Type) -> Self {
-        let exporter = exporterType.init(app, TopLevelExporterConfiguration())
-        interfaceExporters.append(AnyInterfaceExporter(exporter))
-        return self
-    }
-
-    /// Registers an `StaticInterfaceExporter` instance on the model builder.
-    /// - Parameter exporterType: The type of `StaticInterfaceExporter` to register.
-    /// - Returns: `Self`
-    func with<T: StaticInterfaceExporter>(exporter exporterType: T.Type) -> Self {
-        let exporter = exporterType.init(app, TopLevelExporterConfiguration())
-        interfaceExporters.append(AnyInterfaceExporter(exporter))
-        return self
-    }
     
     /// Registers an `InterfaceExporter` instance on the model builder.
     /// - Parameter instance: The instance to register.
@@ -64,14 +46,6 @@ public class SemanticModelBuilder: InterfaceExporterVisitor {
     /// - Returns: `Self`
     public func with<T: StaticInterfaceExporter>(exporter instance: T) -> Self {
         interfaceExporters.append(AnyInterfaceExporter(instance))
-        return self
-    }
-    
-    /// Registers an `AnyInterfaceExporter` instance on the model builder.
-    /// - Parameter instance: The instance to register.
-    /// - Returns: `Self`
-    func with(export instance: AnyInterfaceExporter) -> Self {
-        interfaceExporters.append(instance)
         return self
     }
 

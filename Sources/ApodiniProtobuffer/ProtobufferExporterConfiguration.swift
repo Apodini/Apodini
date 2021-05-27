@@ -7,11 +7,12 @@
 
 import Foundation
 import Apodini
+import ApodiniGRPC
 
-public class ProtobufferExporterConfiguration: TopLevelExporterConfiguration {
-    var parentConfiguration: TopLevelExporterConfiguration
+public struct ProtobufferExporterConfiguration: ExporterConfiguration {
+    public var parentConfiguration: ExporterConfiguration
     
-    public init(parentConfiguration: TopLevelExporterConfiguration = TopLevelExporterConfiguration()) {
+    public init(parentConfiguration: ExporterConfiguration = GRPCExporterConfiguration()) {
         self.parentConfiguration = parentConfiguration
     }
 }

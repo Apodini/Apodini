@@ -13,8 +13,14 @@ public final class _RESTInterfaceExporter: Configuration {
     let configuration: RESTExporterConfiguration
     let staticConfigurations: [StaticConfiguration]
     
-    public init(encoder: AnyEncoder = JSONEncoder(), decoder: AnyDecoder = JSONDecoder(), @StaticConfigurationBuilder staticConfigurations: () -> [StaticConfiguration] = {[]}) {
-        self.configuration = RESTExporterConfiguration(encoder: encoder, decoder: decoder)
+    /// Not pretty, but is there a better way?
+    public init(encoder: @autoclosure () -> AnyEncoder = {
+                    let encoder = JSONEncoder()
+                    encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+                    return encoder }(),
+                decoder: AnyDecoder = JSONDecoder(),
+                @StaticConfigurationBuilder staticConfigurations: () -> [StaticConfiguration] = {[]}) {
+        self.configuration = RESTExporterConfiguration(encoder: encoder(), decoder: decoder)
         self.staticConfigurations = staticConfigurations()
     }
     
@@ -29,23 +35,23 @@ public final class _RESTInterfaceExporter: Configuration {
 }
  
 /// Apodini Interface Exporter for REST
-public final class RESTInterfaceExporter: InterfaceExporter {
-    public static let parameterNamespace: [ParameterNamespace] = .individual
+final class RESTInterfaceExporter: InterfaceExporter {
+    static let parameterNamespace: [ParameterNamespace] = .individual
 
     let app: Vapor.Application
     let exporterConfiguration: RESTConfiguration
 
     /// Initialize `RESTInterfaceExporter` from `Application`
-    public required init(_ app: Apodini.Application, _ exporterConfiguration: TopLevelExporterConfiguration = RESTExporterConfiguration()) {
+    required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = RESTExporterConfiguration()) {
         guard let castedConfiguration = dynamicCast(exporterConfiguration, to: RESTExporterConfiguration.self) else {
-            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of RESTExporterConfiguration")
+            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
         }
         self.app = app.vapor.app
         self.exporterConfiguration = RESTConfiguration(app.vapor.app.http.server.configuration,
                                                exporterConfiguration: castedConfiguration)
     }
 
-    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         var pathBuilder = RESTPathBuilder()
         endpoint.absolutePath.build(with: &pathBuilder)
 
@@ -74,7 +80,7 @@ public final class RESTInterfaceExporter: InterfaceExporter {
         }
     }
 
-    public func finishedExporting(_ webService: WebServiceModel) {
+    func finishedExporting(_ webService: WebServiceModel) {
         if webService.getEndpoint(for: .read) == nil {
             // if the root path doesn't have a read endpoint we create a custom one, to deliver linking entry points.
 
@@ -91,7 +97,7 @@ public final class RESTInterfaceExporter: InterfaceExporter {
         }
     }
 
-    public func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Vapor.Request) throws -> Type?? {
+    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Vapor.Request) throws -> Type?? {
         switch parameter.parameterType {
         case .lightweight:
             // Note: Vapor also supports decoding into a struct which holds all query parameters. Though we have the requirement,

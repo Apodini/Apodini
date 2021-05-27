@@ -22,7 +22,7 @@ public protocol BaseInterfaceExporter {
     /// Initializes a new Interface Exporter with a given Application instance.
     /// - Parameter app: The application containing any necessary state.
     /// - Parameter configuration: The configuration passed to the exporter.
-    init(_ app: Application, _ configuration: TopLevelExporterConfiguration)
+    init(_ app: Application, _ configuration: ExporterConfiguration)
     //init(_ app: Application)
 
     /// This method is called for every `Endpoint` on start up, which must be exporter

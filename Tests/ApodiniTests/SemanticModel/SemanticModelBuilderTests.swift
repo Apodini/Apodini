@@ -174,7 +174,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
 
     func testResponsePassthrough_final() throws {
         let mockRequest = MockRequest.createRequest(running: app.eventLoopGroup.next(), queuedParameters: .none)
-        let exporter = RESTInterfaceExporter(app)
+        let exporter = RESTInterfaceExporter(app, RESTExporterConfiguration())
         let handler = ResponseHandler1().environment(Connection(state: .end, request: mockRequest), for: \Apodini.Application.connection)
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)

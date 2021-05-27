@@ -40,22 +40,16 @@ struct ApodiniDeployError: Swift.Error {
 
 public final class _ApodiniDeployInterfaceExporter: Configuration {
     let configuration: ApodiniDeployExporterConfiguration
-    let staticConfigurations: [StaticConfiguration]
     
     public init(runtimes: [DeploymentProviderRuntime.Type] = [],
-                config: DeploymentConfig = .init(),
-                @StaticConfigurationBuilder staticConfigurations: () -> [StaticConfiguration] = {[]}) {
+                config: DeploymentConfig = .init()) {
         self.configuration = ApodiniDeployExporterConfiguration(runtimes: runtimes, config: config)
-        self.staticConfigurations = staticConfigurations()
     }
     
     public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder?) {
         /// Insert current exporter into `SemanticModelBuilder`
         let deployExporter = ApodiniDeployInterfaceExporter(app, self.configuration)
         let _ = semanticModel?.with(exporter: deployExporter)
-        
-        /// Configure attached related static configurations
-        self.staticConfigurations.configure(app, semanticModel!, parentConfiguration: configuration)
     }
 }
 
@@ -64,7 +58,7 @@ public final class _ApodiniDeployInterfaceExporter: Configuration {
 /// a) compiles a list of all handlers (via their `Endpoint` objects). These are used to determine the target endpoint when manually invoking a handler.
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
-public class ApodiniDeployInterfaceExporter: InterfaceExporter {
+class ApodiniDeployInterfaceExporter: InterfaceExporter {
     struct ApplicationStorageKey: Apodini.StorageKey {
         typealias Value = ApodiniDeployInterfaceExporter
     }
@@ -104,9 +98,9 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     private(set) var deploymentProviderRuntime: DeploymentProviderRuntime?
     
     
-    public required init(_ app: Apodini.Application, _ exporterConfiguration: TopLevelExporterConfiguration = ApodiniDeployExporterConfiguration()) {
+    required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = ApodiniDeployExporterConfiguration()) {
         guard let castedConfiguration = dynamicCast(exporterConfiguration, to: ApodiniDeployExporterConfiguration.self) else {
-            fatalError("Wrong configuration type passed to exporter!")
+            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
         }
         self.app = app
         self.exporterConfiguration = castedConfiguration
@@ -114,7 +108,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     }
     
     
-    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         if let groupId = endpoint[Context.self].get(valueFor: DSLSpecifiedDeploymentGroupIdContextKey.self) {
             if explicitlyCreatedDeploymentGroups[groupId] == nil {
                 explicitlyCreatedDeploymentGroups[groupId] = []
@@ -139,7 +133,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     }
     
     
-    public func finishedExporting(_ webService: WebServiceModel) {
+    func finishedExporting(_ webService: WebServiceModel) {
         do {
             try performDeploymentRelatedActions()
         } catch {
@@ -209,7 +203,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     }
     
     
-    public func retrieveParameter<Type: Codable>(_ endpointParameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type?? {
+    func retrieveParameter<Type: Codable>(_ endpointParameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type?? {
         guard let argumentValueContainer = request.collectedArgumentValue(for: endpointParameter) else {
             return Optional<Type?>.none // this should be a "top-level" nil value (ie `.none` instead of `.some(.none)`)
         }
@@ -243,7 +237,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
 // MARK: ApodiniDeployInterfaceExporter.ExporterRequest
 
 extension ApodiniDeployInterfaceExporter {
-    public struct ExporterRequest: Apodini.ExporterRequest {
+    struct ExporterRequest: Apodini.ExporterRequest {
         enum Argument {
             case value(Any)    // the value, as-is
             case encoded(Data) // the value, encoded

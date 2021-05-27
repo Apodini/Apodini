@@ -78,6 +78,8 @@ let package = Package(
         // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
         .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
+        // Used for testing of the new ExporterConfiguration
+        .package(url: "https://github.com/soto-project/soto-core.git", from: "5.0.0"),
         
         // Deploy
         .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
@@ -132,7 +134,8 @@ let package = Package(
                 .target(name: "ApodiniDatabase"),
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "OpenCombine", package: "OpenCombine"),
-                .product(name: "OpenCombineFoundation", package: "OpenCombine")
+                .product(name: "OpenCombineFoundation", package: "OpenCombine"),
+                .product(name: "SotoTestUtils", package: "soto-core"),
             ],
             exclude: [
                 "ConfigurationTests/Certificates/cert.pem",

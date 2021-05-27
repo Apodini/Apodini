@@ -10,7 +10,7 @@ import ApodiniVaporSupport
 import OpenAPIKit
 
 public final class _OpenAPIInterfaceExporter: StaticConfiguration {
-    let configuration: OpenAPIExporterConfiguration
+    var configuration: OpenAPIExporterConfiguration
     
     public init(outputFormat: OpenAPIOutputFormat = OpenAPIConfigurationDefaults.outputFormat,
                 outputEndpoint: String = OpenAPIConfigurationDefaults.outputEndpoint,
@@ -26,7 +26,7 @@ public final class _OpenAPIInterfaceExporter: StaticConfiguration {
                              serverUrls: serverUrls)
     }
     
-    public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder, parentConfiguration: TopLevelExporterConfiguration) {
+    public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder, parentConfiguration: ExporterConfiguration) {
         /// Set configartion of parent
         self.configuration.parentConfiguration = parentConfiguration
         
@@ -37,18 +37,17 @@ public final class _OpenAPIInterfaceExporter: StaticConfiguration {
 }
 
 /// Apodini Interface Exporter for OpenAPI
-public final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
-    public static var parameterNamespace: [ParameterNamespace] = .individual
+final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
+    static var parameterNamespace: [ParameterNamespace] = .individual
 
     let app: Apodini.Application
     var documentBuilder: OpenAPIDocumentBuilder
-    //var configuration: OpenAPIConfiguration
-    let exporterConfiguration: OpenAPIExporterConfiguration
+    var exporterConfiguration: OpenAPIExporterConfiguration
 
     /// Initalize`OpenAPIInterfaceExporter` from `Application`
-    public required init(_ app: Apodini.Application, _ exporterConfiguration: TopLevelExporterConfiguration = OpenAPIExporterConfiguration()) {
+    required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = OpenAPIExporterConfiguration()) {
         guard let castedConfiguration = dynamicCast(exporterConfiguration, to: OpenAPIExporterConfiguration.self) else {
-            fatalError("Wrong configuration type passed to exporter!")
+            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
         }
         
         self.app = app
@@ -61,7 +60,7 @@ public final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
         updateStorage()
     }
 
-    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         documentBuilder.addEndpoint(endpoint)
         
         // Set version information from APIContextKey, if the version was not defined by developer.
@@ -71,7 +70,7 @@ public final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
         }
     }
 
-    public func finishedExporting(_ webService: WebServiceModel) {
+    func finishedExporting(_ webService: WebServiceModel) {
         serveSpecification()
         updateStorage()
     }

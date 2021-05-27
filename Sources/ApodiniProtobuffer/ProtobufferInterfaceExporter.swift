@@ -10,13 +10,13 @@ import ApodiniUtils
 @_implementationOnly import class Vapor.Application
 
 public final class _ProtobufferInterfaceExporter: StaticConfiguration {
-    let configuration: ProtobufferExporterConfiguration
+    var configuration: ProtobufferExporterConfiguration
     
     public init() {
         self.configuration = ProtobufferExporterConfiguration()
     }
     
-    public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder, parentConfiguration: TopLevelExporterConfiguration) {
+    public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder, parentConfiguration: ExporterConfiguration) {
         /// Set configartion of parent
         self.configuration.parentConfiguration = parentConfiguration
         
@@ -26,7 +26,7 @@ public final class _ProtobufferInterfaceExporter: StaticConfiguration {
     }
 }
 
-public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
+final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     // MARK: Nested Types
     struct Error: Swift.Error, CustomDebugStringConvertible {
         let message: String
@@ -45,9 +45,9 @@ public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     private var services: Set<ProtobufferService> = .init()
     
     // MARK: Initialization
-    public required init(_ app: Apodini.Application, _ exporterConfiguration: TopLevelExporterConfiguration = ProtobufferExporterConfiguration()) {
+    required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = ProtobufferExporterConfiguration()) {
         guard let castedConfiguration = dynamicCast(exporterConfiguration, to: ProtobufferExporterConfiguration.self) else {
-            fatalError("Wrong configuration type passed to exporter!")
+            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
         }
         
         self.app = app
@@ -56,7 +56,7 @@ public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     }
     
     // MARK: Methods
-    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         do {
             try exportThrows(endpoint)
         } catch {
@@ -64,7 +64,7 @@ public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
         }
     }
     
-    public func finishedExporting(_ webService: WebServiceModel) {
+    func finishedExporting(_ webService: WebServiceModel) {
         let description = self.description
         
         app.vapor.app.get("apodini", "proto") { _ in
@@ -75,7 +75,7 @@ public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     struct Builder {
         let parentConfiguration: GRPCExporterConfiguration
         
-        init(configuration: TopLevelExporterConfiguration) {
+        init(configuration: ExporterConfiguration) {
             guard let castedConfiguration = dynamicCast(configuration, to: GRPCExporterConfiguration.self) else {
                 fatalError("Wrong configuration type passed to exporter!")
             }

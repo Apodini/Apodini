@@ -6,6 +6,7 @@
 //
 
 import Apodini
+import ApodiniUtils
 import ApodiniVaporSupport
 import NIOWebSocket
 @_implementationOnly import OpenCombine
@@ -13,21 +14,40 @@ import NIOWebSocket
 
 // MARK: Exporter
 
+public final class _WebSocketInterfaceExporter: Configuration {
+    let configuration: WebSocketExporterConfiguration
+    
+    public init() {
+        self.configuration = WebSocketExporterConfiguration()
+    }
+    
+    public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder?) {
+        /// Insert current exporter into `SemanticModelBuilder`
+        let webSocketExporter = WebSocketInterfaceExporter(app, self.configuration)
+        let _ = semanticModel?.with(exporter: webSocketExporter)
+    }
+}
+
 /// The WebSocket exporter uses a custom JSON based protocol on top of WebSocket's text messages.
 /// This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel.
 /// The Apodini service listens on /apodini/websocket for clients that want to communicate via the WebSocket Interface Exporter.
-public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
+final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private let app: Apodini.Application
-    
+    private let exporterConfiguration: WebSocketExporterConfiguration
     private let router: VaporWSRouter
 
     /// Initalize a `WebSocketInterfaceExporter` from an `Application`
-    public required init(_ app: Apodini.Application, _ configuration: TopLevelExporterConfiguration = TopLevelExporterConfiguration()) {
+    required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = WebSocketExporterConfiguration()) {
+        guard let castedConfiguration = dynamicCast(exporterConfiguration, to: WebSocketExporterConfiguration.self) else {
+            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
+        }
+        
         self.app = app
+        self.exporterConfiguration = castedConfiguration
         self.router = VaporWSRouter(app.vapor.app, logger: app.logger)
     }
 
-    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self).map { parameter in
             (name: parameter.0, value: parameter.1.parameter)
         }
@@ -106,7 +126,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }, on: endpoint.absolutePath.build(with: WebSocketPathBuilder.self))
     }
 
-    public func retrieveParameter<Type>(
+    func retrieveParameter<Type>(
         _ parameter: EndpointParameter<Type>,
         for request: WebSocketInput
     ) throws -> Type?? where Type: Decodable, Type: Encodable {
@@ -117,7 +137,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
 
-    public func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable, Type: Encodable {
+    func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable, Type: Encodable {
         (parameter.name, WebSocketParameter(BasicInputParameter<Type>()))
     }
     

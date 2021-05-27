@@ -13,7 +13,7 @@ extension String: ExporterRequest {}
 open class MockExporter<Request: ExporterRequest>: InterfaceExporter {
     var parameterValues: [Any??] = []
     
-    let exporterConfiguration: TopLevelExporterConfiguration?
+    let exporterConfiguration: ExporterConfiguration?
     let onExport: (AnyEndpoint) -> Void
     let onFinished: (WebServiceModel) -> Void
 
@@ -37,7 +37,7 @@ open class MockExporter<Request: ExporterRequest>: InterfaceExporter {
         self.exporterConfiguration = nil
     }
 
-    public required init(_ app: Apodini.Application, _ exporterConfiguration: TopLevelExporterConfiguration = TopLevelExporterConfiguration()) {
+    public required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration) {
         self.onExport = { _ in }
         self.onFinished = { _ in }
         self.exporterConfiguration = exporterConfiguration

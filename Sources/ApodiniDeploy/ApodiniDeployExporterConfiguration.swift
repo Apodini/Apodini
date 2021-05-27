@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  ApodiniDeployExporterConfiguration.swift
 //  
 //
 //  Created by Lukas Kollmer on 2021-02-07.
@@ -11,7 +11,7 @@ import Apodini
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
 
-public class ApodiniDeployExporterConfiguration: TopLevelExporterConfiguration {
+public struct ApodiniDeployExporterConfiguration: ExporterConfiguration {
     let runtimes: [DeploymentProviderRuntime.Type]
     let config: DeploymentConfig
     

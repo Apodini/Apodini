@@ -32,16 +32,16 @@ public final class _GRPCInterfaceExporter: Configuration {
 }
 
 /// Apodini Interface Exporter for gRPC
-public final class GRPCInterfaceExporter: InterfaceExporter {
+final class GRPCInterfaceExporter: InterfaceExporter {
     let app: Apodini.Application
     let exporterConfiguration: GRPCExporterConfiguration
     var services: [String: GRPCService]
     var parameters: [UUID: Int]
 
     /// Initalize `GRPCInterfaceExporter` from `Application`
-    public required init(_ app: Apodini.Application, _ exporterConfiguration: TopLevelExporterConfiguration = GRPCExporterConfiguration()) {
+    required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = GRPCExporterConfiguration()) {
         guard let castedConfiguration = dynamicCast(exporterConfiguration, to: GRPCExporterConfiguration.self) else {
-            fatalError("Wrong configuration type passed to exporter!")
+            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
         }
         
         self.app = app
@@ -50,7 +50,7 @@ public final class GRPCInterfaceExporter: InterfaceExporter {
         self.parameters = [:]
     }
 
-    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let serviceName = gRPCServiceName(from: endpoint)
         let methodName = gRPCMethodName(from: endpoint)
 
@@ -105,7 +105,7 @@ public final class GRPCInterfaceExporter: InterfaceExporter {
         }
     }
 
-    public func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: GRPCMessage) throws -> Type?? {
+    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: GRPCMessage) throws -> Type?? {
         guard let fieldTag = getFieldTag(for: parameter) else {
             // If this occurs, something went fundamentally wrong in usage
             // of the GRPC exporter.

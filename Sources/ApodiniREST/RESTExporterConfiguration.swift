@@ -9,8 +9,13 @@ import Foundation
 import Apodini
 import ApodiniUtils
 
-public class RESTExporterConfiguration: EncoderExporterConfiguration {
-    public override init(encoder: AnyEncoder = JSONEncoder(), decoder: AnyDecoder = JSONDecoder()) {
-        super.init(encoder: encoder, decoder: decoder)
+public struct RESTExporterConfiguration: ExporterConfiguration {
+    public let encoder: AnyEncoder
+    public let decoder: AnyDecoder
+    
+    public init(encoder: AnyEncoder = JSONEncoder(),
+                decoder: AnyDecoder = JSONDecoder()) {
+        self.encoder = encoder
+        self.decoder = decoder
     }
 }
