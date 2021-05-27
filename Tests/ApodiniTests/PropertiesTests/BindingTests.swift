@@ -76,7 +76,7 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
     
     struct TestRESTExporterCollection: ConfigurationCollection {
         var configuration: Configuration {
-            _RESTInterfaceExporter()
+            RESTInterfaceExporter()
         }
     }
     

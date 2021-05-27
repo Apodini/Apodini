@@ -9,7 +9,8 @@ import ApodiniVaporSupport
 @_implementationOnly import Vapor
 import OpenAPIKit
 
-public final class _OpenAPIInterfaceExporter: StaticConfiguration {
+/// Public Apodini Interface Exporter for OpenAPI
+public final class OpenAPIInterfaceExporter: RESTDependentStaticConfiguration {
     var configuration: OpenAPIExporterConfiguration
     
     public init(outputFormat: OpenAPIOutputFormat = OpenAPIConfigurationDefaults.outputFormat,
@@ -31,13 +32,13 @@ public final class _OpenAPIInterfaceExporter: StaticConfiguration {
         self.configuration.parentConfiguration = parentConfiguration
         
         /// Create exporter and insert it into semantic model
-        let openAPIExporter = OpenAPIInterfaceExporter(app, self.configuration)
+        let openAPIExporter = _OpenAPIInterfaceExporter(app, self.configuration)
         let _ = semanticModel.with(exporter: openAPIExporter)
     }
 }
 
-/// Apodini Interface Exporter for OpenAPI
-final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
+/// Internal Apodini Interface Exporter for OpenAPI
+final class _OpenAPIInterfaceExporter: StaticInterfaceExporter {
     static var parameterNamespace: [ParameterNamespace] = .individual
 
     let app: Apodini.Application

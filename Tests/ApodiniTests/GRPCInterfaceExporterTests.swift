@@ -45,7 +45,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     fileprivate var service: GRPCService!
     fileprivate var handler: GRPCTestHandler!
     fileprivate var endpoint: Endpoint<GRPCTestHandler>!
-    fileprivate var exporter: GRPCInterfaceExporter!
+    fileprivate var exporter: _GRPCInterfaceExporter!
     fileprivate var headers: HTTPHeaders!
     // swiftlint:enable implicitly_unwrapped_optional
 
@@ -60,7 +60,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         service = GRPCService(name: serviceName, using: app, exporterConfiguration)
         handler = GRPCTestHandler()
         endpoint = handler.mockEndpoint()
-        exporter = GRPCInterfaceExporter(app)
+        exporter = _GRPCInterfaceExporter(app)
         headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/grpc+proto")
     }
@@ -75,7 +75,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
         webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
 
-        let exporter = GRPCInterfaceExporter(app)
+        let exporter = _GRPCInterfaceExporter(app)
         exporter.export(endpoint)
 
         XCTAssertNotNil(exporter.services[expectedServiceName])
@@ -95,7 +95,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
         webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
 
-        let exporter = GRPCInterfaceExporter(app)
+        let exporter = _GRPCInterfaceExporter(app)
         exporter.export(endpoint)
 
         XCTAssertNotNil(exporter.services[expectedServiceName])

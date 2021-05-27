@@ -100,7 +100,7 @@ final class ResponseTransformerTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                _RESTInterfaceExporter()
+                RESTInterfaceExporter()
             }
         }
         
@@ -134,7 +134,7 @@ final class ResponseTransformerTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                _RESTInterfaceExporter()
+                RESTInterfaceExporter()
             }
         }
 
@@ -173,7 +173,7 @@ final class ResponseTransformerTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                _RESTInterfaceExporter()
+                RESTInterfaceExporter()
             }
         }
         

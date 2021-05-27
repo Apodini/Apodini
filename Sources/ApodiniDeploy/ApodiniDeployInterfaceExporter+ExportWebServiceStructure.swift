@@ -1,5 +1,5 @@
 //
-//  ApodiniDeployInterfaceExporter+ExportWebServiceStructure.swift
+//  _ApodiniDeployInterfaceExporter+ExportWebServiceStructure.swift
 //  
 //
 //  Created by Lukas Kollmer on 16.02.21.
@@ -14,7 +14,7 @@ import ApodiniDeployBuildSupport
 import OpenAPIKit
 
 
-extension ApodiniDeployInterfaceExporter {
+extension _ApodiniDeployInterfaceExporter {
     func exportWebServiceStructure(to outputUrl: URL, apodiniDeployConfiguration: ApodiniDeployExporterConfiguration) throws {
         let deploymentConfig = apodiniDeployConfiguration.config
         guard let openApiDocument = app.storage.get(OpenAPIStorageKey.self)?.document else {

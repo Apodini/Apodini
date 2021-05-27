@@ -13,9 +13,14 @@ public struct RESTExporterConfiguration: ExporterConfiguration {
     public let encoder: AnyEncoder
     public let decoder: AnyDecoder
     
-    public init(encoder: AnyEncoder = JSONEncoder(),
+    public init(encoder: @autoclosure () -> AnyEncoder = {
+                    let encoder = JSONEncoder()
+                    encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+                    return encoder }(),
                 decoder: AnyDecoder = JSONDecoder()) {
-        self.encoder = encoder
+        self.encoder = encoder()
         self.decoder = decoder
     }
+    
+    
 }

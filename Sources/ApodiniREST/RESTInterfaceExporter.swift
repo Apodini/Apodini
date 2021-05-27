@@ -9,33 +9,45 @@ import NIO
 
 extension Vapor.Request: ExporterRequest, WithEventLoop, WithRemote {}
 
-public final class _RESTInterfaceExporter: Configuration {
+/// Public Apodini Interface Exporter for REST
+public final class RESTInterfaceExporter: Configuration {
     let configuration: RESTExporterConfiguration
-    let staticConfigurations: [StaticConfiguration]
+    var staticConfigurations: [RESTDependentStaticConfiguration]
     
     /// Not pretty, but is there a better way?
     public init(encoder: @autoclosure () -> AnyEncoder = {
                     let encoder = JSONEncoder()
                     encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
                     return encoder }(),
-                decoder: AnyDecoder = JSONDecoder(),
-                @StaticConfigurationBuilder staticConfigurations: () -> [StaticConfiguration] = {[]}) {
+                decoder: AnyDecoder = JSONDecoder()) {
         self.configuration = RESTExporterConfiguration(encoder: encoder(), decoder: decoder)
-        self.staticConfigurations = staticConfigurations()
+        self.staticConfigurations = [EmptyRESTDependentStaticConfiguration()]
     }
     
     public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder?) {
         /// Insert current exporter into `SemanticModelBuilder`
-        let restExporter = RESTInterfaceExporter(app, self.configuration)
+        let restExporter = _RESTInterfaceExporter(app, self.configuration)
         let _ = semanticModel?.with(exporter: restExporter)
         
         /// Configure attached related static configurations
         self.staticConfigurations.configure(app, semanticModel!, parentConfiguration: self.configuration)
     }
 }
+
+extension RESTInterfaceExporter {
+    public convenience init(encoder: @autoclosure () -> JSONEncoder = {
+                                let encoder = JSONEncoder()
+                                encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+                                return encoder }(),
+                            decoder: JSONDecoder = JSONDecoder(),
+                            @RESTDependentStaticConfigurationBuilder staticConfigurations: () -> [RESTDependentStaticConfiguration] = {[]}) {
+        self.init(encoder: encoder(), decoder: decoder)
+        self.staticConfigurations = staticConfigurations()
+    }
+}
  
-/// Apodini Interface Exporter for REST
-final class RESTInterfaceExporter: InterfaceExporter {
+/// Internal Apodini Interface Exporter for REST
+final class _RESTInterfaceExporter: InterfaceExporter {
     static let parameterNamespace: [ParameterNamespace] = .individual
 
     let app: Vapor.Application

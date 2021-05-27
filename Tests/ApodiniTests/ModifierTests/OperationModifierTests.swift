@@ -35,7 +35,7 @@ final class OperationModifierTests: ApodiniTests {
         }
 
         var configuration: Configuration {
-            _RESTInterfaceExporter()
+            RESTInterfaceExporter()
         }
     }
     

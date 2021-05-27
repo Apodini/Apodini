@@ -49,7 +49,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
         let handler = ParameterRetrievalTestHandler()
         let endpoint = handler.mockEndpoint()
 
-        let exporter = WebSocketInterfaceExporter(app)
+        let exporter = _WebSocketInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
 
         let bird = Bird(name: "Rudi", age: 12)
@@ -86,7 +86,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
 
     func testWebSocketConnectionRequestResponseSchema() throws {
         let builder = SemanticModelBuilder(app)
-            .with(exporter: WebSocketInterfaceExporter(app))
+            .with(exporter: _WebSocketInterfaceExporter(app))
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         testService.accept(visitor)
         visitor.finishParsing()
@@ -112,7 +112,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
     
     func testWebSocketConnectionClientStreamSchema() throws {
         let builder = SemanticModelBuilder(app)
-            .with(exporter: WebSocketInterfaceExporter(app))
+            .with(exporter: _WebSocketInterfaceExporter(app))
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         testService.accept(visitor)
         visitor.finishParsing()
@@ -153,7 +153,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
     
     func testWebSocketConnectionBidirectionalStreamSchema() throws {
         let builder = SemanticModelBuilder(app)
-            .with(exporter: WebSocketInterfaceExporter(app))
+            .with(exporter: _WebSocketInterfaceExporter(app))
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         testService.accept(visitor)
         visitor.finishParsing()
@@ -175,7 +175,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
     
     func testWebSocketBadTypeError() throws {
         let builder = SemanticModelBuilder(app)
-            .with(exporter: WebSocketInterfaceExporter(app))
+            .with(exporter: _WebSocketInterfaceExporter(app))
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         testService.accept(visitor)
         visitor.finishParsing()
@@ -202,7 +202,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
     
     func testWebSocketThrowingNoImpact() throws {
         let builder = SemanticModelBuilder(app)
-            .with(exporter: WebSocketInterfaceExporter(app))
+            .with(exporter: _WebSocketInterfaceExporter(app))
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         testService.accept(visitor)
         visitor.finishParsing()
@@ -221,7 +221,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
     
     func testWebSocketThrowingCloseContext() throws {
         let builder = SemanticModelBuilder(app)
-            .with(exporter: WebSocketInterfaceExporter(app))
+            .with(exporter: _WebSocketInterfaceExporter(app))
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         testService.accept(visitor)
         visitor.finishParsing()
@@ -240,7 +240,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
     
     func testWebSocketThrowingCloseChannel() throws {
         let builder = SemanticModelBuilder(app)
-            .with(exporter: WebSocketInterfaceExporter(app))
+            .with(exporter: _WebSocketInterfaceExporter(app))
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         testService.accept(visitor)
         visitor.finishParsing()
@@ -262,7 +262,7 @@ class WebSocketInterfaceExporterTests: ApodiniTests {
     
     func testRemoteAddress() throws {
         let builder = SemanticModelBuilder(app)
-            .with(exporter: WebSocketInterfaceExporter(app))
+            .with(exporter: _WebSocketInterfaceExporter(app))
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         testService.accept(visitor)
         visitor.finishParsing()

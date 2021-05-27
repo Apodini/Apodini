@@ -38,7 +38,7 @@ struct ApodiniDeployError: Swift.Error {
     let message: String
 }
 
-public final class _ApodiniDeployInterfaceExporter: Configuration {
+public final class ApodiniDeployInterfaceExporterTEST: Configuration {
     let configuration: ApodiniDeployExporterConfiguration
     
     public init(runtimes: [DeploymentProviderRuntime.Type] = [],
@@ -48,7 +48,7 @@ public final class _ApodiniDeployInterfaceExporter: Configuration {
     
     public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder?) {
         /// Insert current exporter into `SemanticModelBuilder`
-        let deployExporter = ApodiniDeployInterfaceExporter(app, self.configuration)
+        let deployExporter = _ApodiniDeployInterfaceExporter(app, self.configuration)
         let _ = semanticModel?.with(exporter: deployExporter)
     }
 }
@@ -58,9 +58,9 @@ public final class _ApodiniDeployInterfaceExporter: Configuration {
 /// a) compiles a list of all handlers (via their `Endpoint` objects). These are used to determine the target endpoint when manually invoking a handler.
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
-class ApodiniDeployInterfaceExporter: InterfaceExporter {
+class _ApodiniDeployInterfaceExporter: InterfaceExporter {
     struct ApplicationStorageKey: Apodini.StorageKey {
-        typealias Value = ApodiniDeployInterfaceExporter
+        typealias Value = _ApodiniDeployInterfaceExporter
     }
     
     /// The information collected about an `Endpoint`.
@@ -234,9 +234,9 @@ class ApodiniDeployInterfaceExporter: InterfaceExporter {
 }
 
 
-// MARK: ApodiniDeployInterfaceExporter.ExporterRequest
+// MARK: _ApodiniDeployInterfaceExporter.ExporterRequest
 
-extension ApodiniDeployInterfaceExporter {
+extension _ApodiniDeployInterfaceExporter {
     struct ExporterRequest: Apodini.ExporterRequest {
         enum Argument {
             case value(Any)    // the value, as-is

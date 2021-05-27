@@ -12,18 +12,19 @@ import ApodiniUtils
 @_implementationOnly import NIOHPACK
 @_implementationOnly import ProtobufferCoding
 
-public final class _GRPCInterfaceExporter: Configuration {
+/// Public Apodini Interface Exporter for gRPC
+public final class GRPCInterfaceExporter: Configuration {
     let configuration: GRPCExporterConfiguration
-    let staticConfigurations: [StaticConfiguration]
+    let staticConfigurations: [GRPCDependentStaticConfiguration]
     
-    public init(integerWidth: IntegerWidthConfiguration = .native, @StaticConfigurationBuilder staticConfigurations: () -> [StaticConfiguration] = {[]}) {
+    public init(integerWidth: IntegerWidthConfiguration = .native, @GRPCDependentStaticConfigurationBuilder staticConfigurations: () -> [GRPCDependentStaticConfiguration] = {[]}) {
         self.configuration = GRPCExporterConfiguration(integerWidth: integerWidth)
         self.staticConfigurations = staticConfigurations()
     }
     
     public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder?) {
         /// Insert current exporter into `SemanticModelBuilder`
-        let restExporter = GRPCInterfaceExporter(app, self.configuration)
+        let restExporter = _GRPCInterfaceExporter(app, self.configuration)
         let _ = semanticModel?.with(exporter: restExporter)
         
         /// Configure attached related static configurations
@@ -31,8 +32,8 @@ public final class _GRPCInterfaceExporter: Configuration {
     }
 }
 
-/// Apodini Interface Exporter for gRPC
-final class GRPCInterfaceExporter: InterfaceExporter {
+/// Internal Apodini Interface Exporter for gRPC
+final class _GRPCInterfaceExporter: InterfaceExporter {
     let app: Apodini.Application
     let exporterConfiguration: GRPCExporterConfiguration
     var services: [String: GRPCService]
@@ -153,7 +154,7 @@ final class GRPCInterfaceExporter: InterfaceExporter {
 
 // MARK: Parameter retrieval utility
 
-extension GRPCInterfaceExporter {
+extension _GRPCInterfaceExporter {
     /// Retrieves explicitly provided Protobuffer field tag, if exists,
     /// or uses default field tag that was generated in `export()`.
     /// - Parameter parameter: The `AnyEndpointParameter` to get the Protobuffer field-tag for.

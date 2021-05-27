@@ -146,7 +146,7 @@ final class HandlerIdentifierTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                _RESTInterfaceExporter()
+                RESTInterfaceExporter()
             }
         }
         

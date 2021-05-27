@@ -13,7 +13,7 @@ import Apodini
 
 
 struct InternalInvocationResponder<H: Handler>: Vapor.Responder {
-    unowned let internalInterfaceExporter: ApodiniDeployInterfaceExporter
+    unowned let internalInterfaceExporter: _ApodiniDeployInterfaceExporter
     let endpoint: Endpoint<H>
     
     func respond(to vaporRequest: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
@@ -39,7 +39,7 @@ struct InternalInvocationResponder<H: Handler>: Vapor.Responder {
             return vaporRequest.eventLoop.next().makeSucceededFuture(vaporResponse)
         }
         return endpoint.invokeImp(
-            withRequest: ApodiniDeployInterfaceExporter.ExporterRequest(
+            withRequest: _ApodiniDeployInterfaceExporter.ExporterRequest(
                 encodedArguments: request.parameters.map { param -> (String, Data) in
                     (param.stableIdentity, param.encodedValue)
                 }

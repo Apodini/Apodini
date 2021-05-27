@@ -13,7 +13,7 @@ import ApodiniVaporSupport
 @_implementationOnly import Vapor
 @_implementationOnly import ProtobufferCoding
 
-/// Used by the `GRPCInterfaceExporter` to expose
+/// Used by the `_GRPCInterfaceExporter` to expose
 /// `handle` functions of `Handler`s.
 class GRPCService {
     private let app: Apodini.Application

@@ -10,12 +10,12 @@ import Vapor
 struct RESTEndpointHandler<H: Handler> {
     let configuration: RESTConfiguration
     let endpoint: Endpoint<H>
-    let exporter: RESTInterfaceExporter
+    let exporter: _RESTInterfaceExporter
     
     init(
         with configuration: RESTConfiguration,
         for endpoint: Endpoint<H>,
-        on exporter: RESTInterfaceExporter
+        on exporter: _RESTInterfaceExporter
     ) {
         self.configuration = configuration
         self.endpoint = endpoint

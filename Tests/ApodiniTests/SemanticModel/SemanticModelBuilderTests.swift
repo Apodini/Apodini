@@ -137,7 +137,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
     }
 
     func testShouldWrapInFinalByDefault() throws {
-        let exporter = RESTInterfaceExporter(app)
+        let exporter = _RESTInterfaceExporter(app)
         let handler = TestHandler4()
         let endpoint = handler.mockEndpoint()
         let context = endpoint.createConnectionContext(for: exporter)
@@ -156,7 +156,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
     }
 
     func testResponsePassthrough_send() throws {
-        let exporter = RESTInterfaceExporter(app)
+        let exporter = _RESTInterfaceExporter(app)
         let handler = ResponseHandler1()
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)
@@ -174,7 +174,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
 
     func testResponsePassthrough_final() throws {
         let mockRequest = MockRequest.createRequest(running: app.eventLoopGroup.next(), queuedParameters: .none)
-        let exporter = RESTInterfaceExporter(app, RESTExporterConfiguration())
+        let exporter = _RESTInterfaceExporter(app, RESTExporterConfiguration())
         let handler = ResponseHandler1().environment(Connection(state: .end, request: mockRequest), for: \Apodini.Application.connection)
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)
@@ -191,7 +191,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
     }
 
     func testResponsePassthrough_nothing() throws {
-        let exporter = RESTInterfaceExporter(app)
+        let exporter = _RESTInterfaceExporter(app)
         let handler = ResponseHandler2()
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)
@@ -210,7 +210,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
 
     func testResponsePassthrough_end() throws {
         let mockRequest = MockRequest.createRequest(running: app.eventLoopGroup.next(), queuedParameters: .none)
-        let exporter = RESTInterfaceExporter(app)
+        let exporter = _RESTInterfaceExporter(app)
         let handler = ResponseHandler2().environment(Connection(state: .end, request: mockRequest), for: \Apodini.Application.connection)
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)

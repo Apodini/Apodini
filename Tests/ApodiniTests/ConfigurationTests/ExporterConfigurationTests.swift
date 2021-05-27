@@ -7,6 +7,7 @@
 
 @testable import Apodini
 @testable import ApodiniREST
+@testable import ApodiniOpenAPI
 @testable import SotoXML
 import ApodiniUtils
 import Vapor
@@ -36,7 +37,7 @@ class ExporterConfigurationTests: XCTestCase {
     func testExporterConfigurationWithDefaultEncoderAndDecoder() throws {
         struct TestCollection: ConfigurationCollection {
             var configuration: Configuration {
-                _RESTInterfaceExporter()
+                RESTInterfaceExporter()
             }
         }
 
@@ -44,12 +45,12 @@ class ExporterConfigurationTests: XCTestCase {
         let configurations = try XCTUnwrap(testCollection.configuration as? [Configuration])
 
         XCTAssert(configurations.count == 1)
-        XCTAssert(configurations[0] is _RESTInterfaceExporter)
-        XCTAssert((configurations[0] as? _RESTInterfaceExporter)?.configuration.encoder is JSONEncoder)
-        XCTAssert((configurations[0] as? _RESTInterfaceExporter)?.configuration.decoder is JSONDecoder)
-        XCTAssertTrue((((configurations[0] as! _RESTInterfaceExporter).configuration.encoder as! JSONEncoder).outputFormatting.contains(.prettyPrinted)))
-        XCTAssertTrue((((configurations[0] as! _RESTInterfaceExporter).configuration.encoder as! JSONEncoder).outputFormatting.contains(.withoutEscapingSlashes)))
-        XCTAssertFalse((((configurations[0] as! _RESTInterfaceExporter).configuration.encoder as! JSONEncoder).outputFormatting.contains(.sortedKeys)))
+        XCTAssert(configurations[0] is RESTInterfaceExporter)
+        XCTAssert((configurations[0] as? RESTInterfaceExporter)?.configuration.encoder is JSONEncoder)
+        XCTAssert((configurations[0] as? RESTInterfaceExporter)?.configuration.decoder is JSONDecoder)
+        XCTAssertTrue((((configurations[0] as! RESTInterfaceExporter).configuration.encoder as! JSONEncoder).outputFormatting.contains(.prettyPrinted)))
+        XCTAssertTrue((((configurations[0] as! RESTInterfaceExporter).configuration.encoder as! JSONEncoder).outputFormatting.contains(.withoutEscapingSlashes)))
+        XCTAssertFalse((((configurations[0] as! RESTInterfaceExporter).configuration.encoder as! JSONEncoder).outputFormatting.contains(.sortedKeys)))
     }
     
     func testExporterConfigurationWithOwnEncoderAndDecoder() throws {
@@ -71,7 +72,7 @@ class ExporterConfigurationTests: XCTestCase {
         
         struct TestCollection: ConfigurationCollection {
             var configuration: Configuration {
-                _RESTInterfaceExporter(encoder: TestEncoder(), decoder: TestDecoder())
+                RESTInterfaceExporter(encoder: TestEncoder(), decoder: TestDecoder())
             }
         }
 
@@ -79,15 +80,15 @@ class ExporterConfigurationTests: XCTestCase {
         let configurations = try XCTUnwrap(testCollection.configuration as? [Configuration])
 
         XCTAssert(configurations.count == 1)
-        XCTAssert(configurations[0] is _RESTInterfaceExporter)
-        XCTAssert((configurations[0] as? _RESTInterfaceExporter)?.configuration.encoder is TestEncoder)
-        XCTAssert((configurations[0] as? _RESTInterfaceExporter)?.configuration.decoder is TestDecoder)
+        XCTAssert(configurations[0] is RESTInterfaceExporter)
+        XCTAssert((configurations[0] as? RESTInterfaceExporter)?.configuration.encoder is TestEncoder)
+        XCTAssert((configurations[0] as? RESTInterfaceExporter)?.configuration.decoder is TestDecoder)
     }
     
     func testExporterConfigurationWithXMLEncoderAndDecoder() throws {
         struct TestCollection: ConfigurationCollection {
             var configuration: Configuration {
-                _RESTInterfaceExporter(encoder: XMLEncoder(), decoder: XMLDecoder())
+                RESTInterfaceExporter(encoder: XMLEncoder(), decoder: XMLDecoder())
             }
         }
 
@@ -95,9 +96,9 @@ class ExporterConfigurationTests: XCTestCase {
         let configurations = try XCTUnwrap(testCollection.configuration as? [Configuration])
 
         XCTAssert(configurations.count == 1)
-        XCTAssert(configurations[0] is _RESTInterfaceExporter)
-        XCTAssert((configurations[0] as? _RESTInterfaceExporter)?.configuration.encoder is XMLEncoder)
-        XCTAssert((configurations[0] as? _RESTInterfaceExporter)?.configuration.decoder is XMLDecoder)
+        XCTAssert(configurations[0] is RESTInterfaceExporter)
+        XCTAssert((configurations[0] as? RESTInterfaceExporter)?.configuration.encoder is XMLEncoder)
+        XCTAssert((configurations[0] as? RESTInterfaceExporter)?.configuration.decoder is XMLDecoder)
     }
 }
 
@@ -147,7 +148,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
     
     struct TestRESTExporterCollection: ConfigurationCollection {
         var configuration: Configuration {
-            _RESTInterfaceExporter()
+            RESTInterfaceExporter()
         }
     }
 
@@ -172,7 +173,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
     
     struct TestRESTExporterCollectionWithJSONEncoderConfig: ConfigurationCollection {
         var configuration: Configuration {
-            _RESTInterfaceExporter(encoder: JSONEncoder(), decoder: JSONDecoder())
+            RESTInterfaceExporter(encoder: JSONEncoder(), decoder: JSONDecoder())
         }
     }
 
@@ -197,7 +198,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
     
     struct TestRESTExporterCollectionWithXMLCoderConfig: ConfigurationCollection {
         var configuration: Configuration {
-            _RESTInterfaceExporter(encoder: XMLEncoder(), decoder: XMLDecoder())
+            RESTInterfaceExporter(encoder: XMLEncoder(), decoder: XMLDecoder())
         }
     }
 
@@ -265,7 +266,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
     
     struct TestRESTExporterCollectionWithJSONEncoderAndXMLDecoderConfig: ConfigurationCollection {
         var configuration: Configuration {
-            _RESTInterfaceExporter(encoder: JSONEncoder(), decoder: XMLDecoder())
+            RESTInterfaceExporter(encoder: JSONEncoder() as! AnyEncoder, decoder: XMLDecoder())
         }
     }
     
@@ -294,7 +295,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
     
     struct TestRESTExporterCollectionWithXMLEncoderAndJSONDecoderConfig: ConfigurationCollection {
         var configuration: Configuration {
-            _RESTInterfaceExporter(encoder: XMLEncoder(), decoder: JSONDecoder())
+            RESTInterfaceExporter(encoder: XMLEncoder(), decoder: JSONDecoder())
         }
     }
     
@@ -318,6 +319,16 @@ class RESTExporterConfigurationTests: ApodiniTests {
             let container = try res.content.decode(ResponseContainer<User>.self, using: XMLDecoder())
             XCTAssertEqual(container.data.id, userId)
             XCTAssertEqual(container.data.name, name)
+        }
+    }
+    
+    struct TestExporterCollectionWithXMLCoderAndOpenAPI: ConfigurationCollection {
+        var configuration: Configuration {
+            /// Doesn't compile -> sometimes weird useless error messages
+            //RESTInterfaceExporter(encoder: XMLEncoder(), decoder: JSONDecoder())
+            RESTInterfaceExporter(encoder: JSONEncoder(), decoder: JSONDecoder()) {
+                OpenAPIInterfaceExporter()
+            }
         }
     }
 }

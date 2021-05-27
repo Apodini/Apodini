@@ -15,7 +15,7 @@ final class ProtobufferBuilderTests: XCTestCase {
     }
     
     func buildMessage(_ type: Any.Type) throws -> String {
-        try ProtobufferInterfaceExporter.Builder(configuration: GRPCExporterConfiguration())
+        try _ProtobufferInterfaceExporter.Builder(configuration: GRPCExporterConfiguration())
             .buildMessage(type)
             .collectValues()
             .description
@@ -238,8 +238,8 @@ extension ProtobufferBuilderTests {
             }
 
             var configuration: Configuration {
-                _GRPCInterfaceExporter {
-                    _ProtobufferInterfaceExporter()
+                GRPCInterfaceExporter {
+                    ProtobufferInterfaceExporter()
                 }
             }
         }
@@ -274,8 +274,8 @@ extension ProtobufferBuilderTests {
             }
 
             var configuration: Configuration {
-                _GRPCInterfaceExporter {
-                    _ProtobufferInterfaceExporter()
+                GRPCInterfaceExporter {
+                    ProtobufferInterfaceExporter()
                 }
             }
         }
@@ -315,8 +315,8 @@ extension ProtobufferBuilderTests {
             }
 
             var configuration: Configuration {
-                _GRPCInterfaceExporter {
-                    _ProtobufferInterfaceExporter()
+                GRPCInterfaceExporter {
+                    ProtobufferInterfaceExporter()
                 }
             }
         }
@@ -360,8 +360,8 @@ extension ProtobufferBuilderTests {
             }
 
             var configuration: Configuration {
-                _GRPCInterfaceExporter {
-                    _ProtobufferInterfaceExporter()
+                GRPCInterfaceExporter {
+                    ProtobufferInterfaceExporter()
                 }
             }
         }
@@ -409,8 +409,8 @@ extension ProtobufferBuilderTests {
             }
             
             var configuration: Configuration {
-                _GRPCInterfaceExporter(integerWidth: .thirtyTwo) {
-                    _ProtobufferInterfaceExporter()
+                GRPCInterfaceExporter(integerWidth: .thirtyTwo) {
+                    ProtobufferInterfaceExporter()
                 }
             }
         }
