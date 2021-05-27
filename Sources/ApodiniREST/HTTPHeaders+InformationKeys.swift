@@ -11,7 +11,9 @@ import Vapor
 
 extension Vapor.HTTPHeaders {
     init(_ information: [InformationKey: String]) {
-        #warning("Not implemented")
-        fatalError("Not implemented")
+        self.init()
+        for (name, value) in information {
+            self.add(name: name.rawValue, value: value)
+        }
     }
 }
