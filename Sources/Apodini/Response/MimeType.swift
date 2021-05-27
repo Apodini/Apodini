@@ -17,16 +17,32 @@ public enum MimeType: Encodable {
         case csv
         case html
         case plain
+        case css
+        case javascript
+        case xml
+        case php
     }
     
     public enum ApplicationSubtype: String, Encodable {
         case pdf
         case zip
         case json
+        case octetstream = "octet-stream"
+        case graphql
+        case sql
+        case xml
+    }
+    
+    public enum ImageSubtype: String, Encodable {
+        case png
+        case jpeg
+        case gif
+        case svg = "svg+html"
     }
     
     case text(TextSubtype, parameters: [String: String] = [:])
     case application(ApplicationSubtype, parameters: [String: String] = [:])
+    case image(ImageSubtype, parameters: [String: String] = [:])
     
     
     var type: String {
@@ -35,6 +51,8 @@ public enum MimeType: Encodable {
             return "text"
         case .application:
             return "application"
+        case .image:
+            return "image"
         }
     }
     
@@ -44,6 +62,8 @@ public enum MimeType: Encodable {
             return subtype.rawValue
         case let .application(subtype, _):
             return subtype.rawValue
+        case let .image(subtype, _):
+            return subtype.rawValue
         }
     }
     
@@ -52,6 +72,8 @@ public enum MimeType: Encodable {
         case let .text(_, parameters):
             return parameters
         case let .application(_, parameters):
+            return parameters
+        case let .image(_, parameters):
             return parameters
         }
     }

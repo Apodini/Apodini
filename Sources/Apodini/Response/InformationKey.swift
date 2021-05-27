@@ -7,6 +7,7 @@
 
 
 #warning("@Jan: Missing some information keys here")
-public enum InformationKey {
-    case authorization
+public enum InformationKey: String {
+    case authorization = "Authorization"
+    case setCookie = "Set-Cookie"
 }
