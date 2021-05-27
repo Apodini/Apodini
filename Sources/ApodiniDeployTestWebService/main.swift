@@ -187,7 +187,7 @@ struct WebService: Apodini.WebService {
         RESTInterfaceExporter {
             OpenAPIInterfaceExporter()
         }
-        ApodiniDeployInterfaceExporterTEST(runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
+        ApodiniDeployInterfaceExporter(runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
                                         config: DeploymentConfig(defaultGrouping: .separateNodes, deploymentGroups: [
                 .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")
             ]))

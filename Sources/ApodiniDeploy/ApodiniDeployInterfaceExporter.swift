@@ -38,7 +38,7 @@ struct ApodiniDeployError: Swift.Error {
     let message: String
 }
 
-public final class ApodiniDeployInterfaceExporterTEST: Configuration {
+public final class ApodiniDeployInterfaceExporter: Configuration {
     let configuration: ApodiniDeployExporterConfiguration
     
     public init(runtimes: [DeploymentProviderRuntime.Type] = [],
