@@ -9,12 +9,6 @@ import ApodiniUtils
 #warning("@Jan: We should remove EnrichedContent and move the work done there in the relevant exporters. Not every exporter needs this and we should introdce something like AnyResponse instead.")
 /// A `EnrichedContent` describes the outcome of a `ConnectionContext.handle(...)`.
 public struct EnrichedContent: Encodable {
-    internal init(endpoint: AnyEndpoint, response: AnyEncodable, parameters: [UUID : Any]) {
-        self.endpoint = endpoint
-        self.response = response
-        self.parameters = parameters
-    }
-    
     private let endpoint: AnyEndpoint
 
     public let response: AnyEncodable
