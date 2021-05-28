@@ -7,10 +7,10 @@
 
 import Foundation
 import Logging
-
+import ArgumentParser
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
-public protocol WebService: Component, ConfigurationCollection {
+public protocol WebService: Component, ConfigurationCollection, ParsableCommand {
     /// The current version of the `WebService`
     var version: Version { get }
     
@@ -20,19 +20,24 @@ public protocol WebService: Component, ConfigurationCollection {
 
 
 extension WebService {
+    /// Called by ArgumentParser with already instanciated webservice
+    public mutating func run() throws {
+        try Self.main(webService: self)
+    }
+    
     /// This function is executed to start up an Apodini `WebService`
-    public static func main() throws {
-        try main(waitForCompletion: true)
+    static func main(webService: Self? = nil) throws {
+        try main(waitForCompletion: true, webService: webService ?? Self())
     }
 
     
     /// This function is executed to start up an Apodini `WebService`
     @discardableResult
-    static func main(waitForCompletion: Bool) throws -> Application {
+    static func main(waitForCompletion: Bool, webService: Self? = nil) throws -> Application {
         let app = Application()
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
 
-        main(app: app)
+        main(app: app, webService: webService ?? Self())
         
         guard waitForCompletion else {
             try app.boot()
@@ -50,17 +55,17 @@ extension WebService {
 
     /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.main()` to startup an Apodini `WebService`.
     /// - Parameter app: The app instance that should be injected in the Apodini `WebService`
-    static func main(app: Application) {
-        let webService = Self()
+    static func main(app: Application, webService: Self? = nil) {
+        let webServiceNew = webService ?? Self()
         let semanticModel = SemanticModelBuilder(app)
-        webService.configuration.configure(app, semanticModel)
+        webServiceNew.configuration.configure(app, semanticModel)
         
         // If no specific address hostname is provided we bind to the default address to automatically and correcly bind in Docker containers.
         if app.http.address == nil {
             app.http.address = .hostname(HTTPConfiguration.Defaults.hostname, port: HTTPConfiguration.Defaults.port)
         }
         
-        webService.register(semanticModel)
+        webServiceNew.register(semanticModel)
     }
     
     

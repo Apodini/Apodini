@@ -110,7 +110,8 @@ let package = Package(
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Runtime", package: "Runtime"),
-                .product(name: "ConsoleKit", package: "console-kit")
+                .product(name: "ConsoleKit", package: "console-kit"),
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
             ] + (
                 experimentalAsyncAwait ? [
                     .product(name: "_NIOConcurrency", package: "swift-nio")

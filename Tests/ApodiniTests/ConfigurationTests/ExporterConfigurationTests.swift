@@ -266,7 +266,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
     
     struct TestRESTExporterCollectionWithJSONEncoderAndXMLDecoderConfig: ConfigurationCollection {
         var configuration: Configuration {
-            RESTInterfaceExporter(encoder: JSONEncoder() as! AnyEncoder, decoder: XMLDecoder())
+            RESTInterfaceExporter(encoder: JSONEncoder(), decoder: XMLDecoder())
         }
     }
     
