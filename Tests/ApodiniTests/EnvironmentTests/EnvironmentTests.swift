@@ -85,22 +85,25 @@ final class EnvironmentTests: ApodiniTests {
 
     func testShouldAccessDynamicEnvironmentValueFirst() throws {
         var handler = BirdHandler()
-        activate(&handler)
         let staticBirdFacts = BirdFacts()
 
         let dynamicBirdFacts = BirdFacts()
         let dynamicFact = "Until humans, the Dodo had no predators"
         dynamicBirdFacts.someFact = dynamicFact
+        
+        handler = handler
+            .inject(app: app)
+            .environment(dynamicBirdFacts, for: \Application.birdFacts)
+        
+        activate(&handler)
 
         let request = MockRequest.createRequest(on: handler, running: app.eventLoopGroup.next())
 
         // inject the static value via the shared object
         app.birdFacts = staticBirdFacts
         // inject the dynamic value via the .withEnvironment
-        let response: String = request.enterRequestContext(with: handler) { handler in
+        let response: String = try request.enterRequestContext(with: handler) { handler in
             handler
-                .inject(app: app)
-                .environment(dynamicBirdFacts, for: \Application.birdFacts)
                 .handle()
         }
 

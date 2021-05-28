@@ -31,7 +31,7 @@ class ObservedObjectTests: ApodiniTests {
         }
         
         let handler = TestHandler()
-        let observedObjects = handler.collectObservedObjects()
+        let observedObjects = collectObservedObjects(from: handler)
         
         XCTAssertEqual(observedObjects.count, 1)
         XCTAssert(observedObjects[0] is ObservedObject<TestObservable>)
@@ -56,7 +56,7 @@ class ObservedObjectTests: ApodiniTests {
         var handler = TestHandler()
         handler = handler.inject(app: app)
         
-        let observedObjects = handler.collectObservedObjects()
+        let observedObjects = collectObservedObjects(from: handler)
         
         XCTAssertNoThrow(handler.handle())
         XCTAssertEqual(observedObjects.count, 1)
@@ -64,7 +64,7 @@ class ObservedObjectTests: ApodiniTests {
         XCTAssert(observedObject.wrappedValue === testObservable)
     }
     
-    func testRegisterObservedListener() {
+    func testRegisterObservedListener() throws {
         struct TestHandler: Handler {
             @ObservedObject(\Keys.testObservable) var testObservable: TestObservable
             
@@ -108,7 +108,7 @@ class ObservedObjectTests: ApodiniTests {
         
         // send initial mock request through context
         // (to simulate connection initiation by client)
-        _ = context.handle(request: request)
+        _ = try context.handle(request: request).wait()
 
         // register listener
         context.register(listener: TestListener(eventLoop: app.eventLoopGroup.next()))

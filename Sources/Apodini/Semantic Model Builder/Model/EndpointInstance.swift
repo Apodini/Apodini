@@ -11,7 +11,7 @@ import Foundation
 struct EndpointInstance<H: Handler> {
     let endpoint: Endpoint<H>
     
-    let handler: H
+    var handler: H
     
     let guards: [AnyGuard]
     let responseTransformers: [AnyResponseTransformer]

@@ -13,15 +13,28 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
         var someProp = 4
     }
 
+    struct SomeDelegate {
+        @Parameter var lazyoptional: String
+    }
+    
+    struct SomeRequiredDelegate {
+        @Parameter var required: String
+        @Parameter var realoptional: String?
+    }
+    
     struct SomeComp: Handler {
         @Parameter var name: String
+        
+        let someD = Delegate(SomeDelegate())
+        let requiredD = Delegate(SomeRequiredDelegate(), .required)
 
         func handle() -> SomeStruct {
             SomeStruct()
         }
     }
 
-    func testAddEndpoint() {
+    // swiftlint:disable:next function_body_length
+    func testAddEndpoint() throws {
         let comp = SomeComp()
         let webService = WebServiceModel()
         var endpoint = comp.mockEndpoint(app: app)
@@ -45,7 +58,22 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
                         description: endpoint.description,
                         operationId: endpoint[AnyHandlerIdentifier.self].rawValue,
                         parameters: [
-                            Either.parameter(name: "name", context: .query, schema: .string, description: "@Parameter var name: String")
+                            Either.parameter(name: "name",
+                                             context: .query(required: true),
+                                             schema: .string,
+                                             description: "@Parameter var name: String"),
+                            Either.parameter(name: "lazyoptional",
+                                             context: .query(required: false),
+                                             schema: .string,
+                                             description: "@Parameter var lazyoptional: String"),
+                            Either.parameter(name: "required",
+                                             context: .query(required: true),
+                                             schema: .string,
+                                             description: "@Parameter var required: String"),
+                            Either.parameter(name: "realoptional",
+                                             context: .query(required: false),
+                                             schema: .string,
+                                             description: "@Parameter var realoptional: String?")
                         ],
                         responses: [
                             .status(code: 200): .init(
@@ -89,6 +117,8 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
         let builtDocument = documentBuilder.build()
 
         XCTAssertNoThrow(try builtDocument.output(.json))
+        print(try document.output(.json)!)
+        print(try builtDocument.output(.json)!)
         XCTAssertEqual(builtDocument, document)
     }
 }

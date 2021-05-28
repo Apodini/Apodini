@@ -4,16 +4,16 @@
 import NIO
 import Foundation
 
-struct ValidatedRequest<I: InterfaceExporter, H: Handler>: Request {
+struct ValidatingRequest<I: InterfaceExporter, H: Handler>: Request {
     var description: String {
-        var request = "Validated Request:\n"
+        var request = "Validating Request:\n"
         if let convertible = exporterRequest as? CustomStringConvertible {
             request += convertible.description
         }
         return request
     }
     var debugDescription: String {
-        var request = "Validated Request:\n"
+        var request = "Validating Request:\n"
         if let convertible = exporterRequest as? CustomDebugStringConvertible {
             request += convertible.debugDescription
         }
@@ -26,7 +26,7 @@ struct ValidatedRequest<I: InterfaceExporter, H: Handler>: Request {
 
     let exporter: I
     let exporterRequest: I.ExporterRequest
-    let validatedParameterValues: [UUID: Any]
+    let endpointValidator: EndpointValidator<I, H>
     let storedEndpoint: Endpoint<H>
     let eventLoop: EventLoop
     let remoteAddress: SocketAddress?
@@ -34,23 +34,24 @@ struct ValidatedRequest<I: InterfaceExporter, H: Handler>: Request {
     init(
         for exporter: I,
         with request: I.ExporterRequest,
-        using validatedParameterValues: [UUID: Any],
+        using endpointValidator: EndpointValidator<I, H>,
         on endpoint: Endpoint<H>,
         running eventLoop: EventLoop,
         remoteAddress: SocketAddress?
     ) {
         self.exporter = exporter
         self.exporterRequest = request
-        self.validatedParameterValues = validatedParameterValues
+        self.endpointValidator = endpointValidator
         self.storedEndpoint = endpoint
         self.eventLoop = eventLoop
         self.remoteAddress = remoteAddress
     }
 
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element {
-        guard let value = validatedParameterValues[parameter.id] as? Element else {
-            fatalError("ValidatedRequest could not retrieve parameter '\(parameter.id)' after validation.")
-        }
-        return value
+        try endpointValidator.validate(one: parameter.id)
+    }
+    
+    func retrieveAnyParameter(_ id: UUID) throws -> Any {
+        try endpointValidator.validate(one: id)
     }
 }
