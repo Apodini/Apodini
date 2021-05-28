@@ -25,12 +25,14 @@ public protocol Guard {
 
 extension SyncGuard {
     func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
-        request.eventLoop.makeSucceededFuture(Void())
-            .map {
-                request.enterRequestContext(with: self) { guardInstance in
-                    guardInstance.check()
-                }
+        do {
+            try request.enterRequestContext(with: self) { guardInstance in
+                guardInstance.check()
             }
+            return request.eventLoop.makeSucceededVoidFuture()
+        } catch {
+            return request.eventLoop.makeFailedFuture(error)
+        }
     }
 }
 
@@ -47,12 +49,16 @@ extension SyncGuard {
 
 extension Guard {
     func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
-        request
-            .enterRequestContext(with: self) { guardInstance in
-                guardInstance.check()
-            }
-            .hop(to: request.eventLoop)
-            .map { _ in }
+        do {
+            return try request
+                .enterRequestContext(with: self) { guardInstance in
+                    guardInstance.check()
+                }
+                .hop(to: request.eventLoop)
+                .map { _ in }
+        } catch {
+            return request.eventLoop.makeFailedFuture(error)
+        }
     }
 }
 

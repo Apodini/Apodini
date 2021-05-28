@@ -28,8 +28,9 @@ final class ThreadSafetyTests: ApodiniTests {
         DispatchQueue.concurrentPerform(iterations: count) { _ in
             let id = randomString(length: 40)
             let request = MockRequest.createRequest(on: greeter, running: app.eventLoopGroup.next(), queuedParameters: id)
-
-            let response: String = request.enterRequestContext(with: greeter) { component in
+            var greeter = greeter
+            Apodini.activate(&greeter)
+            let response: String = try! request.enterRequestContext(with: greeter) { component in
                 component.handle()
             }
             XCTAssertEqual(response, id)
@@ -43,14 +44,14 @@ final class ThreadSafetyTests: ApodiniTests {
     }
     
     func testRequestInjectableSingleThreaded() throws {
-        let greeter = Greeter()
+        var greeter = Greeter()
         var count = 1000
         
         for _ in 0..<count {
             let id = randomString(length: 40)
             let request = MockRequest.createRequest(on: greeter, running: app.eventLoopGroup.next(), queuedParameters: id)
-
-            let response: String = request.enterRequestContext(with: greeter) { component in
+            Apodini.activate(&greeter)
+            let response: String = try request.enterRequestContext(with: greeter) { component in
                 component.handle()
             }
             XCTAssertEqual(response, id)

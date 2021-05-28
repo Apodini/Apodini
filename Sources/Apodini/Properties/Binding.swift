@@ -34,7 +34,7 @@ private enum Retrieval<Value> {
 @propertyWrapper
 public struct Binding<Value>: DynamicProperty, PotentiallyParameterIdentifyingBinding {
     private let store: Properties
-    private var retrieval: Retrieval<Value>
+    private let retrieval: Retrieval<Value>
     let parameterId: UUID?
     
     

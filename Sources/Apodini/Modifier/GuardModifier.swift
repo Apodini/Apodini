@@ -70,7 +70,7 @@ public struct GuardModifier<C: Component>: Modifier {
     }
 }
 
-extension GuardModifier: Handler, HandlerModifier where Self.ModifiedComponent: Handler {
+extension GuardModifier: HandlerModifier where Self.ModifiedComponent: Handler {
     public typealias Response = ModifiedComponent.Response
 }
 
