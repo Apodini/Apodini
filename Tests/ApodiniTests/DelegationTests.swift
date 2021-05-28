@@ -210,4 +210,57 @@ final class DelegationTests: ApodiniTests {
             connectionEffect: .close
         )
     }
+    
+    struct BindingTestDelegate {
+        @Binding var number: Int
+    }
+    
+    func testBindingInjection() throws {
+        var bindingD = Delegate(BindingTestDelegate(number: Binding.constant(0)))
+        bindingD.activate()
+        
+        let connection = Connection(request: MockRequest.createRequest(running: app.eventLoopGroup.next()))
+        bindingD.inject(connection, for: \Apodini.Application.connection)
+        
+        bindingD.set(\.$number, to: 1)
+        
+        let prepared = try bindingD()
+        
+        XCTAssertEqual(prepared.number, 1)
+    }
+    
+    struct EnvKey: EnvironmentAccessible {
+        var name: String
+    }
+    
+    struct NestedEnvironmentDelegate {
+        @EnvironmentObject var number: Int
+        @Apodini.Environment(\EnvKey.name) var string: String
+    }
+    
+    struct DelegatingEnvironmentDelegate {
+        var nestedD = Delegate(NestedEnvironmentDelegate())
+        
+        func evaluate() throws -> String {
+            let nested = try nestedD()
+            return "\(nested.string):\(nested.number)"
+        }
+    }
+    
+    func testEnvironmentInjection() throws {
+        var envD = Delegate(DelegatingEnvironmentDelegate())
+        inject(app: app, to: &envD)
+        envD.activate()
+        
+        let connection = Connection(request: MockRequest.createRequest(running: app.eventLoopGroup.next()))
+        envD.inject(connection, for: \Apodini.Application.connection)
+        
+        envD
+            .environment(\EnvKey.name, "Max")
+            .environmentObject(1)
+        
+        let prepared = try envD()
+        
+        XCTAssertEqual(try prepared.evaluate(), "Max:1")
+    }
 }

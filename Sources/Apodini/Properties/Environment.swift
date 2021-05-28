@@ -144,7 +144,7 @@ protocol KeyPathInjectable {
 
 extension Environment: KeyPathInjectable {
     func inject<V>(_ value: V, for keyPath: AnyKeyPath) {
-        if keyPath == \Application.connection  {
+        if keyPath == self.keyPath  {
             if let typedValue = value as? Value {
                 _localEnvironment.setValue(typedValue)
             }

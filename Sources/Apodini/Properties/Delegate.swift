@@ -127,24 +127,29 @@ extension Delegate {
     /// - Note: If the `Binding`'s initial value was a `Parameter`, this function changes the endpoint interface
     ///         at runtime to a certain degree. This has no impact on the framework or correctness of the endpoints
     ///         interface specification, however, a client might wonder why specifiying a certain input has no effect.
-    public func set<V>(_ keypath: WritableKeyPath<D, Binding<V>>, to value: V) {
+    @discardableResult
+    public func set<V>(_ keypath: WritableKeyPath<D, Binding<V>>, to value: V) -> Delegate {
         guard let store = store else {
             fatalError("'Delegate' was manipulated before activation.")
         }
         
         store.value.delegate[keyPath: keypath] = Binding.constant(value)
+        return self
     }
 }
 
 extension Delegate {
+    @discardableResult
     public func environment<V>(_ keyPath: WritableKeyPath<Application, V>, _ value: V) -> Delegate {
         self.environment(at: keyPath, value)
     }
     
+    @discardableResult
     public func environment<K, V>(_ keyPath: WritableKeyPath<K, V>, _ value: V) -> Delegate {
         self.environment(at: keyPath, value)
     }
     
+    @discardableResult
     private func environment<K, V>(at keyPath: WritableKeyPath<K, V>, _ value: V) -> Delegate {
         guard let store = store else {
             fatalError("'Delegate' was manipulated before activation.")
@@ -156,6 +161,7 @@ extension Delegate {
 }
 
 extension Delegate {
+    @discardableResult
     public func environmentObject<T>(_ object: T) -> Delegate {
         guard let store = store else {
             fatalError("'Delegate' was manipulated before activation.")

@@ -48,7 +48,12 @@ public struct Binding<Value>: DynamicProperty, PotentiallyParameterIdentifyingBi
     }
     
     public var projectedValue: Self {
-        self
+        get {
+            self
+        }
+        set {
+            self = newValue
+        }
     }
 }
 
