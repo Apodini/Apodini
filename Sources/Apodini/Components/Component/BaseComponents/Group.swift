@@ -34,7 +34,10 @@ public struct Group<Content: Component>: Component, SyntaxTreeVisitable {
                 var component = pathComponents
                 component.markEnd()
                 visitor.addContext(PathComponentContextKey.self, value: component, scope: .environment)
-                content.accept(visitor)
+
+                if Content.self != Never.self {
+                    content.accept(visitor)
+                }
             }
         }
     }
