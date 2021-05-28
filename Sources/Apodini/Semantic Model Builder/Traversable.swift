@@ -74,8 +74,8 @@ extension Connection {
     }
     
     private func update<E>(_ element: E) {
-        execute({ (injectable: ConnectionInjectable) in
-            injectable.inject(connection: self)
+        execute({ (injectable: KeyPathInjectable) in
+            injectable.inject(self, for: \Application.connection)
         }, on: element)
     }
 }
@@ -87,10 +87,6 @@ extension Handler {
 
         apply({ (environment: inout Environment<K, Value>) in
             environment.prepareValue(value, for: keyPath)
-        }, to: &selfCopy)
-        
-        apply({ (environment: inout LocalEnvironment<Value>) in
-            environment.prepareValue(value)
         }, to: &selfCopy)
         
         return selfCopy
@@ -108,7 +104,6 @@ extension Handler {
     }
 }
 
-// MARK: Application Injectable
 extension Array where Element == LazyGuard {
     func inject(app: Application) -> Self {
         map { lazyGuard in
@@ -119,7 +114,6 @@ extension Array where Element == LazyGuard {
     }
 }
 
-// MARK: Application Injectable
 extension Array where Element == LazyAnyResponseTransformer {
     func inject(app: Application) -> Self {
         map { lazyTransformer in
@@ -135,6 +129,25 @@ public func inject<Element>(app: Application, to subject: inout Element) {
     apply({ (applicationInjectible: inout ApplicationInjectable) in
         applicationInjectible.inject(app: app)
     }, to: &subject)
+}
+
+
+// MARK: TypeInjectable
+func injectAll<Element>(values: [Any], into subject: Element) {
+    execute({ (injectable: TypeInjectable) in
+        for value in values {
+            injectable.inject(value)
+        }
+    }, on: subject)
+}
+
+// MARK: KeyPathInjectable
+func injectAll<Element>(values: [AnyKeyPath:Any], into subject: Element) {
+    execute({ (injectable: KeyPathInjectable) in
+        for (keyPath, value) in values {
+            injectable.inject(value, for: keyPath)
+        }
+    }, on: subject)
 }
 
 // MARK: Property Check

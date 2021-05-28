@@ -3,9 +3,9 @@ import ApodiniUtils
 
 @propertyWrapper
 /// A property wrapper to inject pre-defined values  to a `Component`.
-public struct Environment<K: EnvironmentAccessible, Value>: Property {
+public struct Environment<Key: EnvironmentAccessible, Value>: Property {
     /// Keypath to access an `EnvironmentValue`.
-    internal var keyPath: KeyPath<K, Value>
+    internal var keyPath: KeyPath<Key, Value>
     
     private var app: Application?
     
@@ -16,28 +16,28 @@ public struct Environment<K: EnvironmentAccessible, Value>: Property {
     @LocalEnvironment private var localEnvironment: Value?
     
     /// Initializer of `Environment` specifically for `Application` for less verbose syntax.
-    public init(_ keyPath: KeyPath<K, Value>) where K == Application {
+    public init(_ keyPath: KeyPath<Key, Value>) where Key == Application {
         self._localEnvironment = LocalEnvironment()
         self.keyPath = keyPath
         self.observe = true
     }
     
     /// Initializer of `Environment` for key paths conforming to `EnvironmentAccessible`.
-    public init(_ keyPath: KeyPath<K, Value>) {
+    public init(_ keyPath: KeyPath<Key, Value>) {
         self._localEnvironment = LocalEnvironment()
         self.keyPath = keyPath
         self.observe = true
     }
     
     /// Initializer of `Environment` specifically for `Application` for less verbose syntax.
-    public init(_ keyPath: KeyPath<K, Value>, observed: Bool) where K == Application, Value: ObservableObject {
+    public init(_ keyPath: KeyPath<Key, Value>, observed: Bool) where Key == Application, Value: ObservableObject {
         self._localEnvironment = LocalEnvironment()
         self.keyPath = keyPath
         self.observe = observed
     }
     
     /// Initializer of `Environment` for key paths conforming to `EnvironmentAccessible`.
-    public init(_ keyPath: KeyPath<K, Value>, observed: Bool) where Value: ObservableObject {
+    public init(_ keyPath: KeyPath<Key, Value>, observed: Bool) where Value: ObservableObject {
         self._localEnvironment = LocalEnvironment()
         self.keyPath = keyPath
         self.observe = observed
@@ -69,7 +69,7 @@ public struct Environment<K: EnvironmentAccessible, Value>: Property {
     }
     
     /// Sets the value for the given KeyPath.
-    mutating func prepareValue(_ value: Value, for keyPath: WritableKeyPath<K, Value>) {
+    mutating func prepareValue(_ value: Value, for keyPath: WritableKeyPath<Key, Value>) {
         _localEnvironment.prepareValue(value)
     }
 }
@@ -136,22 +136,19 @@ extension Environment: ApplicationInjectable {
     }
 }
 
-// MARK: ConnectionInjectable
+// MARK: KeyPathInjectable
 
-/// Properties that need a `Connection` instance.
-protocol ConnectionInjectable {
-    func inject(connection: Connection)
+protocol KeyPathInjectable {
+    func inject<V>(_ value: V, for keyPath: AnyKeyPath)
 }
 
-extension LocalEnvironment: ConnectionInjectable where Value == Connection {
-    func inject(connection: Connection) {
-        self.setValue(connection)
-    }
-}
-
-extension Environment: ConnectionInjectable where Value == Connection {
-    func inject(connection: Connection) {
-        _localEnvironment.inject(connection: connection)
+extension Environment: KeyPathInjectable {
+    func inject<V>(_ value: V, for keyPath: AnyKeyPath) {
+        if keyPath == \Application.connection  {
+            if let typedValue = value as? Value {
+                _localEnvironment.setValue(typedValue)
+            }
+        }
     }
 }
 

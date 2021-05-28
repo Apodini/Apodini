@@ -34,7 +34,7 @@ public struct EnvironmentObject<Value>: DynamicProperty {
             return value
         }
         
-        fatalError("Key path not found")
+        fatalError("No value of type \(Value.self) found in the local environment.")
     }
     
     /// A `Binding` that reflects this `Environment`.
@@ -52,6 +52,21 @@ extension EnvironmentObject: Activatable {
         _localEnvironment.activate()
     }
 }
+
+// MARK: TypeInjectable
+
+protocol TypeInjectable {
+    func inject<V>(_ value: V)
+}
+
+extension EnvironmentObject: TypeInjectable {
+    func inject<V>(_ value: V) {
+        if let typedValue = value as? Value {
+            _localEnvironment.setValue(typedValue)
+        }
+    }
+}
+
 
 // MARK: AnyObservedObject
 

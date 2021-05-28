@@ -26,6 +26,10 @@ public struct Delegate<D> {
         // an ordered list of the observed objects that have fired last, i.e. .last holds the object that is next to cause an evaluation
         var observedObjectsQueue: [AnyObservedObject] = []
         var observedObjectsQueueLock = NSRecursiveLock()
+        // storage for values injected via .environment
+        var environment: [AnyKeyPath:Any] = [:]
+        // storage for values injected via .environmentObject
+        var environmentObject: [Any] = []
     }
     
     var delegateModel: D
@@ -54,9 +58,12 @@ public struct Delegate<D> {
             Apodini.activate(&store.value.delegate)
         }
         
-        guard let connection = store.value.connection else {
-            fatalError("'Delegate' was called before injection with connection.")
-        }
+        // we inject environment and environmentObject and invalidate both stores afterwards
+        injectAll(values: store.value.environmentObject, into: store.value.delegate)
+        store.value.environmentObject = []
+        injectAll(values: store.value.environment, into: store.value.delegate)
+        store.value.environment = [:]
+        
         
         // if not done yet (and if the ConnectionContext has not canceled the observation yet),
         // we now wire up the real observations with the fake observation we passed to the
@@ -84,6 +91,10 @@ public struct Delegate<D> {
             store.value.observations = []
         }
         
+        guard let connection = store.value.connection else {
+            fatalError("'Delegate' was called before injection with connection.")
+        }
+        
         // finally we inject everything and return the prepared delegate
         try connection.enterConnectionContext(with: store.value.delegate, executing: { _ in Void() })
         
@@ -108,19 +119,85 @@ extension PropertyOptionKey where PropertyNameSpace == ParameterOptionNameSpace,
     public static let optionality = PropertyOptionKey<ParameterOptionNameSpace, Optionality>()
 }
 
+
+extension Delegate {
+    /// Set a delegate's `Binding` to a constant value. This allows for direct injection of information into
+    /// a delegate.
+    ///
+    /// - Note: If the `Binding`'s initial value was a `Parameter`, this function changes the endpoint interface
+    ///         at runtime to a certain degree. This has no impact on the framework or correctness of the endpoints
+    ///         interface specification, however, a client might wonder why specifiying a certain input has no effect.
+    public func set<V>(_ keypath: WritableKeyPath<D, Binding<V>>, to value: V) {
+        guard let store = store else {
+            fatalError("'Delegate' was manipulated before activation.")
+        }
+        
+        store.value.delegate[keyPath: keypath] = Binding.constant(value)
+    }
+}
+
+extension Delegate {
+    public func environment<V>(_ keyPath: WritableKeyPath<Application, V>, _ value: V) -> Delegate {
+        self.environment(at: keyPath, value)
+    }
+    
+    public func environment<K, V>(_ keyPath: WritableKeyPath<K, V>, _ value: V) -> Delegate {
+        self.environment(at: keyPath, value)
+    }
+    
+    private func environment<K, V>(at keyPath: WritableKeyPath<K, V>, _ value: V) -> Delegate {
+        guard let store = store else {
+            fatalError("'Delegate' was manipulated before activation.")
+        }
+        
+        store.value.environment[keyPath] = value
+        return self
+    }
+}
+
+extension Delegate {
+    public func environmentObject<T>(_ object: T) -> Delegate {
+        guard let store = store else {
+            fatalError("'Delegate' was manipulated before activation.")
+        }
+        
+        store.value.environmentObject.append(object)
+        return self
+    }
+}
+
+
+
+
+// MARK: Property Conformance
+
 extension Delegate: Activatable {
     mutating func activate() {
         self.store = Box(DelegateStore(delegate: delegateModel))
     }
 }
 
-extension Delegate: ConnectionInjectable {
-    func inject(connection: Connection) {
+extension Delegate: KeyPathInjectable {
+    func inject<V>(_ value: V, for keyPath: AnyKeyPath) {
         guard let store = store else {
             fatalError("'Delegate' was injected with connection before activation.")
         }
-        
-        store.value.connection = connection
+        if keyPath == \Application.connection {
+            if let connection = value as? Connection {
+                store.value.connection = connection
+            }
+        } else {
+            store.value.environment[keyPath] = value
+        }
+    }
+}
+
+extension Delegate: TypeInjectable {
+    func inject<V>(_ value: V) {
+        guard let store = store else {
+            fatalError("'Delegate' was injected with connection before activation.")
+        }
+        store.value.environmentObject.append(value)
     }
 }
 
