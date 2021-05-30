@@ -11,6 +11,15 @@
         }
       },
       {
+        "package": "ApodiniMigrator",
+        "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
+        "state": {
+          "branch": "apodini-model-migrator",
+          "revision": "7db04a097a3548dd0e569623e6f731375025632d",
+          "version": null
+        }
+      },
+      {
         "package": "AssociatedTypeRequirementsKit",
         "repositoryURL": "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git",
         "state": {
@@ -350,15 +359,6 @@
           "branch": null,
           "revision": "effe20321342705e66894d86720c5882e2f4095e",
           "version": "1.3.1"
-        }
-      },
-      {
-        "package": "swift-argument-parser",
-        "repositoryURL": "https://github.com/apple/swift-argument-parser",
-        "state": {
-          "branch": null,
-          "revision": "986d191f94cec88f6350056da59c2e59e83d1229",
-          "version": "0.4.3"
         }
       },
       {

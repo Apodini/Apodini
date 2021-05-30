@@ -87,8 +87,7 @@ let package = Package(
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0"),
         
         // Migrator
-//        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .branch("apodini-model-migrator")),
-        .package(path: "/Users/eld/Desktop/mswag/ApodiniMigrator/")
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .branch("apodini-model-migrator"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
