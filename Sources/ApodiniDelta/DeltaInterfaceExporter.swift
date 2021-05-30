@@ -15,10 +15,15 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
     
     let app: Application
     var document: Document
+    var deltaConfiguration: DeltaConfiguration?
     
     public init(_ app: Application) {
         self.app = app
         document = Document()
+        
+        if let storage = app.storage.get(DeltaStorageKey.self) {
+            self.deltaConfiguration = storage.configuration
+        }
         
         setServerPath()
     }
@@ -38,8 +43,7 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
             .init(code: 404, message: "Not found"),
             .init(code: 500, message: "Internal server error")
         ]
-
-        let endpoint = ApodiniMigrator.Endpoint(
+        let migratorEndpoint = ApodiniMigrator.Endpoint(
             handlerName: handlerName,
             deltaIdentifier: identifier.rawValue,
             operation: .init(operation),
@@ -48,11 +52,23 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
             response: response,
             errors: errors
         )
-        document.add(endpoint: endpoint)
+        document.add(endpoint: migratorEndpoint)
+        setVersion(from: endpoint)
     }
     
     public func finishedExporting(_ webService: WebServiceModel) {
-        try! document.export(at: Path("/Users/eld/Desktop/document.json"))
+        if let documentPath = deltaConfiguration?.absolutePath {
+            try? document.export(at: documentPath + "/" + "delta_document.json")
+        }
+    }
+    
+    private func setVersion<H: Handler>(from endpoint: Apodini.Endpoint<H>) {
+        if let version = endpoint[Context.self].get(valueFor: APIVersionContextKey.self) {
+            let migratorVersion: ApodiniMigrator.Version = .init(version)
+            if document.metaData.version != migratorVersion {
+                document.setVersion(migratorVersion)
+            }
+        }
     }
     
     private func setServerPath() {

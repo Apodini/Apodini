@@ -37,6 +37,10 @@ struct TestWebService: Apodini.WebService {
             swaggerUiEndpoint: "oas-ui",
             title: "The great TestWebService - presented by Apodini"
         )
+        
+        DeltaConfiguration()
+            .absolutePath("/Users/eld/Desktop")
+        
         ExporterConfiguration()
             .exporter(RESTInterfaceExporter.self)
             .exporter(GRPCInterfaceExporter.self)
