@@ -104,7 +104,7 @@ private struct TestWebService: Apodini.WebService {
 }
 
 
-class DeploymentOptionsTests: ApodiniDeployTestCase {
+class DeploymentOptionsTests: XCTApodiniTest {
     func testOptionMerging() throws {
         struct CapturedImplArgs: Hashable {
             let lhs, rhs: Int

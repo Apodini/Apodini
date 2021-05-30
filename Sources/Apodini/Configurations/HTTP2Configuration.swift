@@ -1,6 +1,6 @@
 //
 //  HTTP2Configuration.swift
-//  
+//
 //
 //  Created by Moritz Schüll on 05.12.20.
 //
@@ -25,21 +25,23 @@ import NIOSSL
 ///     .key("/some/path/key.pem")
 /// ```
 public final class HTTP2Configuration: Configuration {
-    private var certData: Data?
-    private var keyData: Data?
-
+    private var certURL: URL?
+    private var keyURL: URL?
+    
+    
     public convenience init() {
         self.init(arguments: CommandLine.arguments)
     }
-
+    
     init(arguments: [String]) {
         var commandInput = CommandInput(arguments: arguments)
         let certAndKey = detect(from: &commandInput)
-        self.certData = certAndKey?.cert
-        self.keyData = certAndKey?.key
+        self.certURL = certAndKey?.certURL
+        self.keyURL = certAndKey?.keyURL
     }
-
-    func detect(from commandInput: inout CommandInput) -> (cert: Data, key: Data)? {
+    
+    
+    func detect(from commandInput: inout CommandInput) -> (certURL: URL, keyURL: URL)? {
         struct Signature: CommandSignature {
             @Option(name: "cert", short: "c", help: "Path of the certificate")
             var certPath: String?
@@ -51,9 +53,7 @@ public final class HTTP2Configuration: Configuration {
             let signature = try Signature(from: &commandInput)
 
             if let certPath = signature.certPath, let keyPath = signature.keyPath {
-                let certData = try Data(contentsOf: URL(fileURLWithPath: certPath))
-                let keyData = try Data(contentsOf: URL(fileURLWithPath: keyPath))
-                return (certData, keyData)
+                return (URL(fileURLWithPath: certPath), URL(fileURLWithPath: keyPath))
             } else {
                 return nil
             }
@@ -64,14 +64,16 @@ public final class HTTP2Configuration: Configuration {
 
     public func configure(_ app: Application) {
         do {
-            if let certData = certData,
-               let keyData = keyData {
-                let certificates = try NIOSSLCertificate.fromPEMBytes([UInt8](certData))
-                let privateKey = try NIOSSLPrivateKey(bytes: [UInt8](keyData), format: .pem)
+            if let certURL = certURL, let keyURL = keyURL {
+                let certificates = try NIOSSLCertificate.fromPEMFile(certURL.path)
+                let privateKey = try NIOSSLPrivateKey(file: keyURL.path, format: .pem)
+                
                 app.http.supportVersions = [.one, .two]
-                app.http.tlsConfiguration =
-                    .forServer(certificateChain: certificates.map { .certificate($0) },
-                               privateKey: .privateKey(privateKey))
+                app.http.tlsConfiguration = .forServer(
+                    certificateChain: certificates.map { .certificate($0) },
+                    privateKey: .privateKey(privateKey)
+                )
+                
                 app.logger.info("Using HTTP/2 and TLS.")
             } else {
                 app.logger.info("No certificate or no key. Starting without HTTP/2.")
@@ -82,28 +84,24 @@ public final class HTTP2Configuration: Configuration {
     }
 
     /// Sets the `.pem` file from which the certificate should be read.
-    public func certificate(_ filePath: String) -> Self {
-        guard certData == nil else {
+    public func certificate(_ filePath: URL) -> Self {
+        guard certURL == nil else {
             return self
         }
-        do {
-            certData = try Data(contentsOf: URL(fileURLWithPath: filePath))
-        } catch {
-            print("Cannot read certificate from file. Error: \(error)")
-        }
+        
+        certURL = filePath
+        
         return self
     }
 
     /// Sets the `.pem` file from which the key should be read.
-    public func key(_ filePath: String) -> Self {
-        guard keyData == nil else {
+    public func key(_ filePath: URL) -> Self {
+        guard keyURL == nil else {
             return self
         }
-        do {
-            keyData = try Data(contentsOf: URL(fileURLWithPath: filePath))
-        } catch {
-            print("Cannot read key from file. Error: \(error)")
-        }
+        
+        keyURL = filePath
+        
         return self
     }
 }

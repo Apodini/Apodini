@@ -9,31 +9,31 @@ extension Handler {
     func buildParametersModel() -> [_AnyEndpointParameter] {
         let builder = ParameterModelBuilder(from: self)
             .build()
-        return builder.parameters
+        return builder.parametersInternal
     }
 }
 
-private class ParameterModelBuilder<H: Handler>: RequestInjectableVisitor {
-    let orderedRequestInjectables: [(String, RequestInjectable)]
-    let requestInjectables: [String: RequestInjectable]
+private class ParameterModelBuilder<H: Handler>: AnyParameterVisitor {
+    let orderedParameters: [(String, AnyParameter)]
+    let parameters: [String: AnyParameter]
     var currentLabel: String?
 
-    var parameters: [_AnyEndpointParameter] = []
+    var parametersInternal: [_AnyEndpointParameter] = []
 
     init(from handler: H) {
-        let orderedRequestInjectables = handler.extractRequestInjectables()
-        self.orderedRequestInjectables = orderedRequestInjectables
-        var requestInjectables = [String: RequestInjectable]()
-        for (label, injectable) in orderedRequestInjectables {
-            requestInjectables[label] = injectable
+        let orderedParameters = handler.extractParameters()
+        self.orderedParameters = orderedParameters
+        var parameters = [String: AnyParameter]()
+        for (label, parameter) in orderedParameters {
+            parameters[label] = parameter
         }
-        self.requestInjectables = requestInjectables
+        self.parameters = parameters
     }
 
     func build() -> Self {
-        for (label, requestInjectable) in orderedRequestInjectables {
+        for (label, parameter) in orderedParameters {
             currentLabel = label
-            requestInjectable.accept(self)
+            parameter.accept(self)
         }
         currentLabel = nil
         return self
@@ -49,7 +49,7 @@ private class ParameterModelBuilder<H: Handler>: RequestInjectableVisitor {
             trimmedLabel.removeFirst()
         }
 
-        if let existing = parameters.first(where: { $0.id == parameter.id }) {
+        if let existing = parametersInternal.first(where: { $0.id == parameter.id }) {
             preconditionFailure("""
                                 When parsing Parameter '\(parameter.name ?? trimmedLabel)' on Handler \(H.self) we encountered an UUID collision\
                                 with the existing Parameter '\(existing.name)'.
@@ -75,7 +75,7 @@ private class ParameterModelBuilder<H: Handler>: RequestInjectableVisitor {
             )
         }
 
-        parameters.append(endpointParameter)
+        parametersInternal.append(endpointParameter)
     }
 }
 

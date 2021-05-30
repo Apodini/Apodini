@@ -30,7 +30,7 @@ public class SyntaxTreeVisitor {
     /// The `semanticModelBuilders` that can interpret the Apodini DSL syntax tree collected by the `SyntaxTreeVisitor`
     private let modelBuilder: SemanticModelBuilder?
     /// Contains the current `ContextNode` that is used when creating a context for each registered `Handler`
-    private(set) var currentNode = ContextNode()
+    var currentNode = ContextNode()
     /// The `currentNodeIndexPath` is  used to uniquely identify `Handlers`, even across multiple runs of an Apodini web service if the DSL has not changed.
     /// We increase the component level specific `currentNodeIndexPath` by one for each `Handler` visited in the same component level to uniquely identify `Handlers` by  the index paths.
     private var currentNodeIndexPath: [Int] = []
@@ -86,7 +86,6 @@ public class SyntaxTreeVisitor {
         currentNode.addContext(contextKey, value: value, scope: scope)
     }
     
-    
     /// Called every time a new `Handler` is registered
     /// - Parameter handler: The `Handler` that is registered
     func visit<H: Handler>(handler: H) {
@@ -94,13 +93,15 @@ public class SyntaxTreeVisitor {
         // across multiple runs of an Apodini web service.
         addContext(HandlerIndexPath.ContextKey.self, value: formHandlerIndexPathForCurrentNode(), scope: .current)
 
+        handler.metadata.accept(self)
+
         let responseTransformers = currentNode.getContextValue(for: ResponseTransformerContextKey.self)
         let responseType = responseTransformers.responseType ?? H.Response.Content.self
 
-        // Intermediate solution to parse `Content` types conforming to `WithRelationships`
-        // until the Metadata DSL creates a unified solution for such metadata.
-        let visitor = StandardRelationshipsVisitor(visitor: self)
-        visitor(responseType)
+        // Content Metadata is currently added to the Context of the Handler.
+        // Also, we currently do not recursively parse properties
+        let metadataContentVisitor = StandardContentMetadataVisitor(visitor: self)
+        metadataContentVisitor(responseType)
         
         // We capture the currentContextNode and make a copy that will be used when executing the request as
         // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the

@@ -10,7 +10,9 @@ import Logging
 
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
-public protocol WebService: Component, ConfigurationCollection {
+public protocol WebService: WebServiceMetadataNamespace, Component, ConfigurationCollection {
+    typealias Metadata = AnyWebServiceMetadata
+
     /// The current version of the `WebService`
     var version: Version { get }
     
@@ -18,6 +20,13 @@ public protocol WebService: Component, ConfigurationCollection {
     init()
 }
 
+// MARK: Metadata DSL
+public extension WebService {
+    /// WebService has an empty `AnyWebServiceMetadata` by default.
+    var metadata: AnyWebServiceMetadata {
+        Empty()
+    }
+}
 
 extension WebService {
     /// This function is executed to start up an Apodini `WebService`
@@ -79,11 +88,16 @@ extension WebService {
         visitor.finishParsing()
     }
     
-    private func visit(_ visitor: SyntaxTreeVisitor) {
+    func visit(_ visitor: SyntaxTreeVisitor) {
+        metadata.accept(visitor)
+
         visitor.addContext(APIVersionContextKey.self, value: version, scope: .environment)
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
-        Group {
-            content
-        }.accept(visitor)
+
+        if Content.self != Never.self {
+            Group {
+                content
+            }.accept(visitor)
+        }
     }
 }

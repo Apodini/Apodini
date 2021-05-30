@@ -71,10 +71,21 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
     )
     var s3BucketPath: String = "/apodini-lambda/"
     
-    @Option
+    @Option(help: "Defines the AWS API Gateway ID that is used. If '_createNew' is passed in the deployment provider creates a new AWS API Gateway")
     var awsApiGatewayApiId: String
     
-    @Flag(help: "whether to skip the compilation steps and assume that build artifacts from a previous run are still located at the expected places")
+    @Option(help: """
+        Whether to remove all existing Apodini Lambda functions created by this deployment provider before deeploying.
+        
+        Warning: Deletes all existing AWS Lambda functions with the 'apodini-lambda-{api_gateway_id}-' prefix!
+                 ({api_gateway_id} is defined by the --aws-api-gateway-api-id option).
+        
+        Defaults to `true`.
+        """
+    )
+    var deleteOldApodiniLambdaFunctions = true
+    
+    @Flag(help: "Whether to skip the compilation steps and assume that build artifacts from a previous run are still located at the expected places")
     var awsDeployOnly = false
     
     lazy var packageRootDir = URL(fileURLWithPath: inputPackageDir).absoluteURL
@@ -89,7 +100,8 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
             s3BucketName: s3BucketName,
             s3BucketPath: s3BucketPath,
             awsApiGatewayApiId: awsApiGatewayApiId,
-            awsDeployOnly: awsDeployOnly
+            awsDeployOnly: awsDeployOnly,
+            deleteOldApodiniLambdaFunctions: deleteOldApodiniLambdaFunctions
         )
         try deploymentProvider.run()
     }
@@ -107,6 +119,11 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     let s3BucketPath: String
     private(set) var awsApiGatewayApiId: String
     let awsDeployOnly: Bool
+    let deleteOldApodiniLambdaFunctions: Bool
+    
+    var target: DeploymentProviderTarget {
+        .spmTarget(packageUrl: packageRootDir, targetName: productName)
+    }
     
     private let fileManager = FileManager.default
     
@@ -197,7 +214,8 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             lambdaSharedObjectFilesUrl: lambdaOutputDir,
             s3BucketName: s3BucketName,
             s3ObjectFolderKey: s3BucketPath,
-            apiGatewayApiId: awsApiGatewayApiId
+            apiGatewayApiId: awsApiGatewayApiId,
+            deleteOldApodiniLambdaFunctions: deleteOldApodiniLambdaFunctions
         )
         logger.notice("Done! Successfully applied the deployment.")
     }

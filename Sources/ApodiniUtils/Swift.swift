@@ -256,6 +256,15 @@ extension RandomAccessCollection {
 }
 
 
+extension RangeReplaceableCollection {
+    /// Initialises the collection and reserves the specified capacity.
+    public init(reservingCapacity capacity: Int) {
+        self.init()
+        self.reserveCapacity(capacity)
+    }
+}
+
+
 // MARK: Date
 
 extension Date {

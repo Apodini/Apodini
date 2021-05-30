@@ -16,8 +16,8 @@ class NameShadowingTests: ApodiniTests {
         }
     }
 
-    struct TestData: Content, WithRelationships {
-        static var relationships: Relationships {
+    struct TestData: Content {
+        static var metadata: Metadata {
             Inherits<Int>()
         }
     }

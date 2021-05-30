@@ -25,15 +25,15 @@ public struct Parameter<Element: Codable>: Property {
     let id: UUID
     let name: String?
     
-    internal let options: PropertyOptionSet<ParameterOptionNameSpace>
+    internal var options: PropertyOptionSet<ParameterOptionNameSpace>
     internal let defaultValue: (() -> Element)?
     
-    private var element: Element?
+    private var storage: Box<Element?>?
     
     
     /// The value for the `@Parameter` as defined by the incoming request
     public var wrappedValue: Element {
-        guard let element = element else {
+        guard let element = storage?.value else {
             fatalError("You can only access a parameter while you handle a request")
         }
         
@@ -132,15 +132,23 @@ public struct Parameter<Element: Codable>: Property {
 }
 
 extension Parameter: RequestInjectable {
-    mutating func inject(using request: Request) {
-        do {
-            element = try request.retrieveParameter(self)
-        } catch {
-            fatalError("Injection failed: \(self.id) could not be retrieved from \(request). This was probably caused by a bug/inconsistency in the validation.")
+    func inject(using request: Request) throws {
+        guard let storage = self.storage else {
+            fatalError("Cannot inject request before Parameter was activated.")
         }
+        
+        storage.value = try request.retrieveParameter(self)
     }
+}
 
-    func accept(_ visitor: RequestInjectableVisitor) {
+extension Parameter: AnyParameter {
+    func accept(_ visitor: AnyParameterVisitor) {
         visitor.visit(self)
+    }
+}
+
+extension Parameter: Activatable {
+    mutating func activate() {
+        self.storage = Box(self.defaultValue?())
     }
 }

@@ -2,7 +2,7 @@
 
 
 extension SyntaxTreeVisitor {
-    enum Error: Swift.Error {
+    enum UnsafeVisitAny: Swift.Error {
         case attemptedToVisitNoneComponent(Any, visitor: SyntaxTreeVisitor)
     }
 
@@ -10,7 +10,7 @@ extension SyntaxTreeVisitor {
     /// Allows you to visit an object that you know implements Component, even if you don't know the concrete type at compile time.
     func unsafeVisitAny(_ value: Any) throws {
         if StandardComponentVisitor(visitor: self)(value) == nil {
-            throw Error.attemptedToVisitNoneComponent(value, visitor: self)
+            throw UnsafeVisitAny.attemptedToVisitNoneComponent(value, visitor: self)
         }
     }
 }

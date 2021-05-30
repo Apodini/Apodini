@@ -11,17 +11,15 @@ import NIO
 
 // MARK: ObservableObject
 
-extension Handler {
-    /// Collects  every `ObservedObject` in the Handler.
-    func collectObservedObjects() -> [AnyObservedObject] {
-        var observedObjects: [AnyObservedObject] = []
-        
-        execute({ observedObject in
-            observedObjects.append(observedObject)
-        }, on: self)
-        
-        return observedObjects
-    }
+/// Collects  every `ObservedObject` in the Handler.
+func collectObservedObjects<E>(from element: E) -> [AnyObservedObject] {
+    var observedObjects: [AnyObservedObject] = []
+    
+    execute({ observedObject in
+        observedObjects.append(observedObject)
+    }, on: element)
+    
+    return observedObjects
 }
 
 // MARK: Activatable
@@ -33,12 +31,12 @@ public func activate<Element>(_ subject: inout Element) {
     }, to: &subject)
 }
 
-// MARK: RequestInjectable
-func extractRequestInjectables<Element>(from subject: Element) -> [(String, RequestInjectable)] {
-    var result: [(String, RequestInjectable)] = []
+// MARK: AnyParameter
+func extractParameters<Element>(from subject: Element) -> [(String, AnyParameter)] {
+    var result: [(String, AnyParameter)] = []
     
-    execute({ (injectable: RequestInjectable, label: String) in
-        result.append((label, injectable))
+    execute({ (parameter: AnyParameter, label: String) in
+        result.append((label, parameter))
     }, on: subject)
     
     return result
@@ -46,44 +44,39 @@ func extractRequestInjectables<Element>(from subject: Element) -> [(String, Requ
 
 extension Apodini.Request {
     func enterRequestContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>)
-                   -> EventLoopFuture<R> {
-        var element = element
-        inject(in: &element)
-
+                   throws -> EventLoopFuture<R> {
+        try inject(in: element)
         return method(element)
     }
 
-    func enterRequestContext<E, R>(with element: E, executing method: (E) -> R) -> R {
-        var element = element
-        inject(in: &element)
-        return method(element)
+    func enterRequestContext<E, R>(with element: E, executing method: (E) throws -> R) throws -> R {
+        try inject(in: element)
+        return try method(element)
     }
     
-    fileprivate func inject<E>(in element: inout E) {
+    fileprivate func inject<E>(in element: E) throws {
         // Inject all properties that can be injected using RequestInjectable
         
-        apply({ (requestInjectable: inout RequestInjectable) in
-            requestInjectable.inject(using: self)
-        }, to: &element)
+        try execute({ (requestInjectable: RequestInjectable) in
+            try requestInjectable.inject(using: self)
+        }, on: element)
     }
 }
 
 // MARK: ConnectionContext
 
 extension Connection {
-    func enterConnectionContext<E, R>(with element: E, executing method: (E) throws -> R) rethrows -> R {
-        var element = element
+    func enterConnectionContext<E, R>(with element: E, executing method: (E) throws -> R) throws -> R {
+        try request.inject(in: element)
         
-        request.inject(in: &element)
-        
-        self.update(&element)
+        self.update(element)
         return try method(element)
     }
     
-    private func update<E>(_ element: inout E) {
-        apply({ (environment: inout Environment<Application, Connection>) in
-            environment.setValue(self, for: \.connection)
-        }, to: &element)
+    private func update<E>(_ element: E) {
+        execute({ (injectable: ConnectionInjectable) in
+            injectable.inject(connection: self)
+        }, on: element)
     }
 }
 
@@ -93,7 +86,7 @@ extension Handler {
         var selfCopy = self
 
         apply({ (environment: inout Environment<K, Value>) in
-            environment.setValue(value, for: keyPath)
+            environment.prepareValue(value, for: keyPath)
         }, to: &selfCopy)
         
         return selfCopy
@@ -194,15 +187,15 @@ private func execute<Element, Target>(
 
         switch child {
         case let target as Target:
-            assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "\(Target.self) \(property.name) on element \(info.name) must be a struct")
+            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "\(Target.self) \(property.name) on element \(info.name) must not be a class")
             
             try operation(target, (element as? DynamicProperty)?.namingStrategy(names + [property.name]) ?? property.name)
         case let dynamicProperty as DynamicProperty:
-            assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
+            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "DynamicProperty \(property.name) on element \(info.name) must not be a class")
 
             try dynamicProperty.execute(operation, using: names + [property.name])
         case let traversables as Traversable:
-            assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "Traversable \(property.name) on element \(info.name) must be a struct")
+            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "Traversable \(property.name) on element \(info.name) must not be a class")
         
             try traversables.execute(operation, using: names + [property.name])
         default:
@@ -242,7 +235,7 @@ private func apply<Element, Target>(
 
         switch child {
         case var target as Target:
-            assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "\(Target.self) \(property.name) on element \(info.name) must be a struct")
+            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "\(Target.self) \(property.name) on element \(info.name) must not be a class")
             
             try mutation(&target, (element as? DynamicProperty)?.namingStrategy(names + [property.name]) ?? property.name)
             let elem = element
@@ -251,7 +244,7 @@ private func apply<Element, Target>(
                 on: &element,
                 printing: "Applying operation on all properties of \((try? typeInfo(of: Target.self))?.name ?? "Unknown Type") on element \(elem) failed.")
         case var dynamicProperty as DynamicProperty:
-            assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "DynamicProperty \(property.name) on element \(info.name) must be a struct")
+            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "DynamicProperty \(property.name) on element \(info.name) must not be a class")
             
             try dynamicProperty.apply(mutation, using: names + [property.name])
             let elem = element
@@ -260,7 +253,7 @@ private func apply<Element, Target>(
                 on: &element,
                 printing: "Applying operation on all properties of \((try? typeInfo(of: Target.self))?.name ?? "Unknown Type") on element \(elem) failed.")
         case var traversable as Traversable:
-            assert(((try? typeInfo(of: property.type).kind) ?? .none) == .struct, "Traversable \(property.name) on element \(info.name) must be a struct")
+            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "Traversable \(property.name) on element \(info.name) must not be a class")
 
             try traversable.apply(mutation, using: names + [property.name])
             let elem = element
@@ -283,6 +276,9 @@ private func apply<Element, Target>(_ mutation: (inout Target) throws -> Void, t
     using: [])
 }
 
+
+// MARK: DynamicProperty
+
 private extension DynamicProperty {
     func execute<Target>(_ operation: (Target, _ name: String) throws -> Void, using names: [String]) rethrows {
         try Apodini.execute(operation, on: self, using: names)
@@ -293,20 +289,22 @@ private extension DynamicProperty {
     }
 }
 
+// MARK: Properties
+
 extension Properties: Traversable {
     func execute<Target>(_ operation: (Target, _ name: String) throws -> Void, using names: [String]) rethrows {
         for (name, element) in self {
             switch element {
             case let target as Target:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Properties must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Properties must not be a class")
                 
                 try operation(target, self.namingStrategy(names + [name]) ?? name)
             case let dynamicProperty as DynamicProperty:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Properties must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Properties must not be a class")
                 
                 try dynamicProperty.execute(operation, using: names + [name])
             case let traversable as Traversable:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "Traversable \(name) on Properties must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "Traversable \(name) on Properties must not be a class")
             
                 try traversable.execute(operation, using: names + [name])
             default:
@@ -319,17 +317,17 @@ extension Properties: Traversable {
         for (name, element) in self {
             switch element {
             case var target as Target:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Properties must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Properties must not be a class")
     
                 try mutation(&target, self.namingStrategy(names + [name]) ?? name)
                 self.elements[name] = target as? Property
             case var dynamicProperty as DynamicProperty:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Properties must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Properties must not be a class")
                 
                 try dynamicProperty.apply(mutation, using: names + [name])
                 self.elements[name] = dynamicProperty
             case var traversable as Traversable:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "Traversable \(name) on Properties must be a struct")
+                assert((Mirror(reflecting: element).displayStyle) == .struct, "Traversable \(name) on Properties must not be a class")
             
                 try traversable.apply(mutation, using: names + [name])
                 self.elements[name] = traversable as? Property
@@ -339,6 +337,79 @@ extension Properties: Traversable {
         }
     }
 }
+
+// MARK: Optional
+
+extension Optional: Traversable {
+    func execute<Target>(_ operation: (Target, String) throws -> Void, using names: [String]) rethrows {
+        if case let .some(value) = self {
+            if let typed = value as? Target {
+                try operation(typed, names.last!)
+            }
+        }
+    }
+    
+    mutating func apply<Target>(_ mutation: (inout Target, String) throws -> Void, using names: [String]) rethrows {
+        if case let .some(value) = self {
+            if var typed = value as? Target {
+                try mutation(&typed, names.last!)
+                self = .some(typed as! Wrapped)
+            }
+        }
+    }
+}
+
+// MARK: Delegate
+
+extension Delegate: Traversable {
+    func execute<Target>(_ operation: (Target, String) throws -> Void, using names: [String]) rethrows {
+        let delegate = store?.value.delegate ?? delegateModel
+        
+        // we set the optionality of all delegated parameters according to the delegates optionality
+        if Target.self == AnyParameter.self {
+            try Apodini.execute({ (parameter: AnyParameter, name) throws in
+                var parameter = parameter
+                parameter.options.addOption(self.optionality, for: PropertyOptionKey.optionality)
+                try operation(parameter as! Target, name)
+            },
+            on: delegate,
+            using: names)
+            return
+        }
+
+        try Apodini.execute(operation, on: delegate, using: names)
+    }
+
+    mutating func apply<Target>(_ mutation: (inout Target, String) throws -> Void, using names: [String]) rethrows {
+        var delegate = store?.value.delegate ?? delegateModel
+        defer {
+            if let store = self.store {
+                store.value.delegate = delegate
+            } else {
+                delegateModel = delegate
+            }
+        }
+        
+        // we set the optionality of all delegated parameters according to the delegates optionality
+        if Target.self == AnyParameter.self {
+            let optionality = self.optionality
+            try Apodini.apply({ (parameter: inout AnyParameter, name) throws in
+                parameter.options.addOption(optionality, for: PropertyOptionKey.optionality)
+                var typedParameter = parameter as! Target
+                try mutation(&typedParameter, name)
+                parameter = typedParameter as! AnyParameter
+            },
+            to: &delegate,
+            using: names)
+            return
+        }
+
+        try Apodini.apply(mutation, to: &delegate, using: names)
+    }
+}
+
+
+// MARK: Helpers
 
 private extension Runtime.PropertyInfo {
     func unsafeSet<TObject>(value: Any, on object: inout TObject, printing errorMessage: @autoclosure () -> String) {

@@ -17,8 +17,6 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
 
     let webService: WebServiceModel
     let rootNode: EndpointsTreeNode
-    
-    private var uniqueHandlerIdentifiers: Set<AnyHandlerIdentifier> = []
 
     var relationshipBuilder: RelationshipBuilder
     var typeIndexBuilder: TypeIndexBuilder
@@ -77,7 +75,11 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         // We first only build the blackboards. The rest is executed at the beginning of `finishedRegistration`.
         // This way `.global` `KnowledgeSource`s get a complete view of the web service even when accessed from
         // an `Endpoint`.
-        onRegistrationDone.append { [weak self] in guard let self = self else { return }
+        onRegistrationDone.append { [weak self] in
+            guard let self = self else {
+                return
+            }
+            
             let paths = context.get(valueFor: PathComponentContextKey.self)
             
 
@@ -92,8 +94,6 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
                 responseTransformers: responseTransformers
             )
 
-            self.assertUniqueIdentifier(for: endpoint)
-            
             self.webService.addEndpoint(&endpoint, at: paths)
             // The `ReferenceModule` and `EndpointPathModule` cannot be implemented using one of the standard
             // `KnowledgeSource` protocols as they depend on the `WebServiceModel`. This should change
@@ -175,16 +175,6 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
 
         for child in node.children {
             call(exporter: exporter, for: child)
-        }
-    }
-    
-    private func assertUniqueIdentifier<H: Handler>(for endpoint: Endpoint<H>) {
-        let identifier = endpoint[AnyHandlerIdentifier.self]
-        let currentCount = uniqueHandlerIdentifiers.count
-        uniqueHandlerIdentifiers.insert(identifier)
-        
-        if currentCount == uniqueHandlerIdentifiers.count {
-            fatalError("Encountered a duplicated handler identifier: '\(identifier.rawValue)'. The explicitly specified identifiers must be unique")
         }
     }
 }
