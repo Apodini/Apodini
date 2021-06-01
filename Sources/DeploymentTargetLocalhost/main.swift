@@ -35,7 +35,6 @@ private struct LocalhostDeploymentProviderCLI: ParsableCommand {
     @Option(help: "Name of the web service's SPM target/product")
     var productName: String
     
-    
     mutating func run() throws {
         let deploymentProvider = LocalhostDeploymentProvider(
             productName: productName,

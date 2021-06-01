@@ -20,7 +20,7 @@ public protocol WebService: Component, ConfigurationCollection, ParsableCommand 
 
 
 extension WebService {
-    /// Called by ArgumentParser with already instanciated webservice
+    /// Called by ArgumentParser with already instanciated `WebService`
     public mutating func run() throws {
         try Self.main(webService: self)
     }
