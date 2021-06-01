@@ -32,6 +32,10 @@ public class DeltaConfiguration: Configuration {
     public init() {
         self.absolutePath = nil
         self.strategy = .create
+        
+        #if Xcode
+        runShellCommand(.killPort(8080))
+        #endif
     }
 
     public func configure(_ app: Application) {
