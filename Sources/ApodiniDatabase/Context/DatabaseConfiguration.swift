@@ -4,6 +4,7 @@ import Apodini
 @_implementationOnly import FluentMySQLDriver
 @_implementationOnly import FluentPostgresDriver
 @_implementationOnly import FluentMongoDriver
+@_implementationOnly import Foundation
 
 /// A `Configuration` used for Database Access
 public final class DatabaseConfiguration: Configuration {
@@ -53,6 +54,7 @@ public final class DatabaseConfiguration: Configuration {
     }
     
     private func databaseFactory(for type: DatabaseType) throws -> Fluent.DatabaseConfigurationFactory {
+        
         switch type {
         case .defaultMongoDB(let conString):
             return try .mongo(connectionString: conString)
@@ -65,7 +67,11 @@ public final class DatabaseConfiguration: Configuration {
         case .defaultMySQL(let conString):
             return try .mysql(url: conString)
         case let .mySQL(hostname, username, password):
-            return .mysql(hostname: hostname, username: username, password: password)
+//            let tlsConfig = TLSConfiguration()
+            let config = MySQLConfiguration(hostname: hostname, port: 8080, username: username, password: password, database: "Test", tlsConfiguration: TLSConfiguration.forClient())
+            
+            return .mysql(hostname: hostname, port: 8080, username: username, password: password, database: "Test", tlsConfiguration: TLSConfiguration.forClient(), maxConnectionsPerEventLoop: 5, connectionPoolTimeout: .seconds(60), encoder: .init(json: JSONEncoder()), decoder: .init(json: JSONDecoder()))
+//            return .mysql(hostname: hostname, username: username, password: password)
         }
     }
 }
