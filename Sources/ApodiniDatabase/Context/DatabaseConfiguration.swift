@@ -67,8 +67,9 @@ public final class DatabaseConfiguration: Configuration {
         case .defaultMySQL(let conString):
             return try .mysql(url: conString)
         case let .mySQL(hostname, username, password):
-//            let tlsConfig = TLSConfiguration()
-            let config = MySQLConfiguration(hostname: hostname, username: username, password: password, tlsConfiguration: TLSConfiguration.forClient())
+            let tlsConfig = TLSConfiguration.clientDefault
+            tlsConfig.certificateVerification = .none
+            let config = MySQLConfiguration(hostname: hostname, username: username, password: password, tlsConfiguration: tlsConfig)
             return .mysql(configuration: config)
 //            return .mysql(hostname: hostname, port: 8080, username: username, password: password, database: "Test", tlsConfiguration: TLSConfiguration.forClient(), maxConnectionsPerEventLoop: 5, connectionPoolTimeout: .seconds(60), encoder: .init(json: JSONEncoder()), decoder: .init(json: JSONDecoder()))
 //            return .mysql(hostname: hostname, username: username, password: password)
