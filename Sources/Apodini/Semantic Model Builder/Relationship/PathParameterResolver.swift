@@ -26,7 +26,7 @@ struct ResolveContext {
     /// The content of the response.
     let content: Any
     /// The parameter values of the current request
-    let parameters: [UUID: Any]
+    let parameters: (UUID) -> Any?
 }
 
 /// A resolver for a path parameter using the value of a property.
@@ -91,7 +91,7 @@ struct PathParameterResolver: AnyPathParameterResolver {
     }
 
     func resolve(context: ResolveContext) -> Any? {
-        context.parameters[parameterId]
+        context.parameters(parameterId)
     }
 }
 

@@ -192,6 +192,10 @@ struct WebService: Apodini.WebService {
                 .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")
             ]))
     }
+
+    var metadata: Metadata {
+        Description("WebService Description")
+    }
 }
 
 try WebService.main()

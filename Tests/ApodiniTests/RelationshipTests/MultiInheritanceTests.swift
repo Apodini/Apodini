@@ -7,31 +7,31 @@ import XCTApodini
 @testable import Apodini
 
 class MultiInheritanceTests: ApodiniTests {
-    struct TestA: Content, WithRelationships {
+    struct TestA: Content {
         var testA: String
         var customC: String
 
-        static var relationships: Relationships {
+        static var metadata: Metadata {
             Inherits<TestB> {
                 Identifying<TestC>(identifiedBy: \.customC)
             }
         }
     }
 
-    struct TestB: Content, WithRelationships {
+    struct TestB: Content {
         var id: String
         var cId: String
 
-        static var relationships: Relationships {
+        static var metadata: Metadata {
             Inherits<TestC>(identifiedBy: \.cId)
         }
     }
 
-    struct TestZ: Content, WithRelationships {
+    struct TestZ: Content {
         var id: String
         var cId: String
 
-        static var relationships: Relationships {
+        static var metadata: Metadata {
             Inherits<TestC>(identifiedBy: \.cId)
         }
     }
@@ -135,20 +135,20 @@ class MultiInheritanceTests: ApodiniTests {
             ["self:read": "/testC/TestCZId", "text:read": "/testZ/text"]) // own /text shadows the inherited /text
     }
 
-    struct CycleA: Content, WithRelationships {
-        static var relationships: Relationships {
+    struct CycleA: Content {
+        static var metadata: Metadata {
             Inherits<CycleB>()
         }
     }
 
-    struct CycleB: Content, WithRelationships {
-        static var relationships: Relationships {
+    struct CycleB: Content {
+        static var metadata: Metadata {
             Inherits<CycleC>()
         }
     }
 
-    struct CycleC: Content, WithRelationships {
-        static var relationships: Relationships {
+    struct CycleC: Content {
+        static var metadata: Metadata {
             Inherits<CycleA>()
         }
     }
