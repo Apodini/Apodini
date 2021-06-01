@@ -54,7 +54,6 @@ public final class DatabaseConfiguration: Configuration {
     }
     
     private func databaseFactory(for type: DatabaseType) throws -> Fluent.DatabaseConfigurationFactory {
-        
         switch type {
         case .defaultMongoDB(let conString):
             return try .mongo(connectionString: conString)
@@ -62,7 +61,13 @@ public final class DatabaseConfiguration: Configuration {
             return .sqlite(.apply(config))
         case .defaultPostgreSQL(let conString):
             return try .postgres(url: conString)
-        case let .postgreSQL(hostName, username, password, database):
+        case let .postgreSQL(hostName, port, username, password, database, configuration):
+            let config = PostgresConfiguration(hostname: hostName,
+                                               port: port,
+                                               username: username,
+                                               password: password,
+                                               database: database,
+                                               tlsConfiguration: configuration)
             return .postgres(hostname: hostName, username: username, password: password, database: database)
         case .defaultMySQL(let conString):
             return try .mysql(url: conString)
@@ -72,7 +77,6 @@ public final class DatabaseConfiguration: Configuration {
         }
     }
 }
-
 /// An enum specifying the configuration of the SQLite database type.
 public enum SQLiteConfig {
     /// Creates the database in memory
@@ -96,14 +100,17 @@ public enum DatabaseType {
     /// - Parameters:
         /// - connectionString: The URL-String the database will listen on.
     case defaultPostgreSQL(_ connectionString: String)
+    // swiftlint:disable enum_case_associated_values_count
     /// A database type for a specified postreSQL configuration
     ///
     /// - Parameters:
         /// - hostname: The name of the database host.
         /// - username: The username of the database user.
+        /// - port:     The port of the database.
         /// - password: The password of the database user.
         /// - database: The name of the database
-    case postgreSQL(hostname: String, username: String, password: String, database: String)
+        /// - configuration: The `TLSConfiguration` object  that should be used
+    case postgreSQL(hostname: String, port: Int, username: String, password: String, database: String, configuration: TLSConfiguration)
     /// A database type for a specified sqLite configuration
     ///
     /// - Parameters:
