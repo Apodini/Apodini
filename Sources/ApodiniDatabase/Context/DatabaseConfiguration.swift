@@ -1,5 +1,6 @@
 import Fluent
 import Apodini
+import NIOSSL
 @_implementationOnly import FluentSQLiteDriver
 @_implementationOnly import FluentMySQLDriver
 @_implementationOnly import FluentPostgresDriver
@@ -40,7 +41,7 @@ public final class DatabaseConfiguration: Configuration {
             try app.autoMigrate().wait()
         } catch {
             print(error)
-            fatalError("An error occured while configuring the database. \(error.localizedDescription)")
+            fatalError("An error occured while configuring the database. Error: \(error.localizedDescription)")
         }
     }
     
@@ -66,13 +67,9 @@ public final class DatabaseConfiguration: Configuration {
             return .postgres(hostname: hostName, username: username, password: password, database: database)
         case .defaultMySQL(let conString):
             return try .mysql(url: conString)
-        case let .mySQL(hostname, username, password):
-            var tlsConfig = TLSConfiguration.clientDefault
-            tlsConfig.certificateVerification = .none
+        case let .mySQL(hostname, username, password, tlsConfig):
             let config = MySQLConfiguration(hostname: hostname, username: username, password: password, tlsConfiguration: tlsConfig)
             return .mysql(configuration: config)
-//            return .mysql(hostname: hostname, port: 8080, username: username, password: password, database: "Test", tlsConfiguration: TLSConfiguration.forClient(), maxConnectionsPerEventLoop: 5, connectionPoolTimeout: .seconds(60), encoder: .init(json: JSONEncoder()), decoder: .init(json: JSONDecoder()))
-//            return .mysql(hostname: hostname, username: username, password: password)
         }
     }
 }
@@ -118,13 +115,15 @@ public enum DatabaseType {
     /// - Parameters:
     /// - connectionString: The URL-String the database will listen on.
     case defaultMySQL(_ connectionString: String)
-    /// A database type for a specified mySQL configuration
+    /// A database type for a specified mySQL configuration.
+    /// Uses the `TLSConfiguration.forClient()` configuration.
     ///
     /// - Parameters:
         /// - hostname: The name of the database host.
         /// - username: The username of the database user.
         /// - password: The password of the database user.
-    case mySQL(_ hostname: String, username: String, password: String)
+        /// - configuration: A `TLSConfiguration` that should be used.
+    case mySQL(_ hostname: String, username: String, password: String, configuration: TLSConfiguration)
 }
 
 /// An extension to the `Fluent.SQLiteConfiguration` to enable an initialization with an `Apodini.SQLiteConfig`.
