@@ -15,7 +15,7 @@
         "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
         "state": {
           "branch": "apodini-model-migrator",
-          "revision": "b59e9708b049eebc447d0dcc97639e50ce09c7c9",
+          "revision": "62c1828b94bda45508d33909b8b6fca3b38e4739",
           "version": null
         }
       },
@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/OpenKitten/BSON.git",
         "state": {
           "branch": null,
-          "revision": "a41b4e30e7b7a8afe0261abc7c6ee1d2b363a722",
-          "version": "7.0.26"
+          "revision": "5ef02954ff53960ae6fba46cd03c7bee51deb62e",
+          "version": "7.0.27"
         }
       },
       {
@@ -474,8 +474,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "9d154df6214a1d6027f04a495e8981bac49224da",
-          "version": "4.45.6"
+          "revision": "bc194e3868cbd9cf3cd41392e9b10d6fad089bc4",
+          "version": "4.45.7"
         }
       },
       {
