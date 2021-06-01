@@ -40,7 +40,6 @@ public final class DatabaseConfiguration: Configuration {
             app.migrations.add(migrations)
             try app.autoMigrate().wait()
         } catch {
-            print(error)
             fatalError("An error occured while configuring the database. Error: \(error.localizedDescription)")
         }
     }
