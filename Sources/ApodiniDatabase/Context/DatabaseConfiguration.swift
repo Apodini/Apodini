@@ -67,7 +67,7 @@ public final class DatabaseConfiguration: Configuration {
         case .defaultMySQL(let conString):
             return try .mysql(url: conString)
         case let .mySQL(hostname, username, password):
-            let tlsConfig = TLSConfiguration.clientDefault
+            var tlsConfig = TLSConfiguration.clientDefault
             tlsConfig.certificateVerification = .none
             let config = MySQLConfiguration(hostname: hostname, username: username, password: password, tlsConfiguration: tlsConfig)
             return .mysql(configuration: config)
