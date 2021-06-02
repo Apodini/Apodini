@@ -11,7 +11,7 @@ struct UnexpectedError: Hashable {
     /// The line where the compiler error occurred
     let line: Int
     /// The column where the compiler error occurred
-    let column: Int
+    let column: Int?
     /// The error message of the compiler error
     let errorMessage: String
 

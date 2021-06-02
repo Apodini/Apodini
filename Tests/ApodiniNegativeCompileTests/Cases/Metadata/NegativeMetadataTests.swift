@@ -5,7 +5,7 @@
 //  Created by Andreas Bauer on 30.05.21.
 //
 
-import XCTApodini
+import Apodini
 
 private struct TestIntMetadataContextKey: ContextKey {
     static var defaultValue: [Int] = []
@@ -58,7 +58,7 @@ struct TestStruct: Handler {
     var metadata: Metadata {
         Description("")
 
-        // error: argument type 'AnyContentMetadata' does not conform to expected type 'AnyHandlerMetadata3'
+        // error: argument type 'AnyContentMetadata' does not conform to expected type 'AnyHandlerMetadata'
         TestIntContentMetadata(0)
     }
 }

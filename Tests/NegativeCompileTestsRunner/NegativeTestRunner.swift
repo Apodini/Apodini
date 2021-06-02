@@ -53,7 +53,7 @@ class NegativeTestRunner {
         }
 
         self.errorDefinitionPattern = try NSRegularExpression(pattern: "^.*// error: (.*)$")
-        self.compilerErrorPattern = try NSRegularExpression(pattern: "^(.*):([0-9]+):([0-9]+): error: (.*)")
+        self.compilerErrorPattern = try NSRegularExpression(pattern: "^(.*):([0-9]+):([0-9]+): error: (.*)$") // TODO optional column!: "<unknown>:0: error: missing required modules: 'CBase32', 'CBcrypt'"
 
         print("Project directory: \(workingDirectory)")
     }
@@ -207,11 +207,14 @@ class NegativeTestRunner {
     }
 
     private func buildTarget(target: NegativeTestTarget) throws {
+        print("Copying test case files...")
         for testCase in target.cases {
             try fileManager.copyItem(atPath: testCase.fileUrl.path, toPath: testCase.destinationUrl.path)
 
             pathsOfCopiedTestCases.append(testCase.destinationUrl.path)
         }
+
+        runCommand(command: "ls -al \(target.directory)")
 
         #if DEBUG
         let stdOutput = runCommand(command: "swift build --build-tests")
@@ -248,6 +251,7 @@ class NegativeTestRunner {
         cleanup()
     }
 
+    @discardableResult
     private func runCommand(command: String) -> String {
         var parts: [String] = []
 
@@ -256,7 +260,8 @@ class NegativeTestRunner {
 
         let process = Process()
         process.launchPath = "/usr/bin/env"
-        process.arguments = command.split(separator: " ").map { String($0) }
+        process.arguments = ["zsh", "-c", command]
+        process.currentDirectoryPath = workingDirectory.path
 
         let stdOutPipe = Pipe()
         let stdErrPipe = Pipe()

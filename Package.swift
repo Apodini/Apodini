@@ -150,6 +150,9 @@ let package = Package(
         
         .testTarget(
             name: "ApodiniNegativeCompileTests",
+            dependencies: [
+                .target(name: "Apodini")
+            ],
             exclude: ["Cases"]
         ),
 
