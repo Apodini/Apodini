@@ -38,7 +38,7 @@ class NegativeTestRunner {
 
     init() throws {
         var workingDirectory: URL = try XCTUnwrap(URL(string: FileManager.default.currentDirectoryPath))
-        if (workingDirectory.lastPathComponent == ".build") {
+        if workingDirectory.lastPathComponent == ".build" {
             workingDirectory = workingDirectory.deletingLastPathComponent()
         }
 
@@ -117,7 +117,12 @@ class NegativeTestRunner {
                 fatalError("Could not find the 'Cases' directory inside the test target or not a directory: \(casesDirectory.relativePath)")
             }
 
-            let contents = try fileManager.contentsOfDirectory(at: casesDirectory, includingPropertiesForKeys: [.isRegularFileKey, .isDirectoryKey], options: .skipsHiddenFiles)
+            let contents = try fileManager.contentsOfDirectory(
+                at: casesDirectory,
+                includingPropertiesForKeys: [.isRegularFileKey, .isDirectoryKey],
+                options: .skipsHiddenFiles
+            )
+
             if contents.isEmpty {
                 fatalError("The 'Cases' directory of the '\(target.name)' target does not contain any test cases!")
             }
@@ -145,7 +150,11 @@ class NegativeTestRunner {
 
         if resourceValues.isDirectory == true {
             print("Entering DIR \(fileURL.path)")
-            let contents = try fileManager.contentsOfDirectory(at: fileURL, includingPropertiesForKeys: [.isRegularFileKey, .isDirectoryKey], options: .skipsHiddenFiles)
+            let contents = try fileManager.contentsOfDirectory(
+                at: fileURL,
+                includingPropertiesForKeys: [.isRegularFileKey, .isDirectoryKey],
+                options: .skipsHiddenFiles
+            )
 
             for content in contents {
                 try parseTestCaseFile(fileURL: content, collecting: &expectedErrors)
@@ -264,10 +273,10 @@ class NegativeTestRunner {
         let stdOutObserver = NotificationCenter.default.addObserver(
             forName: NSNotification.Name.NSFileHandleDataAvailable,
             object: stdOutReadingHandle,
-            queue: nil) { notification in
+            queue: nil) { _ in
             let data = stdOutReadingHandle.availableData
 
-            guard data.count > 0 else { // EOF
+            guard !data.isEmpty else { // EOF
                 return
             }
 
@@ -282,9 +291,10 @@ class NegativeTestRunner {
         let stdErrObserver = NotificationCenter.default.addObserver(
             forName: NSNotification.Name.NSFileHandleDataAvailable,
             object: stdOutReadingHandle,
-            queue: nil) { notification in
+            queue: nil) { _ in
             let data = stdErrReadingHandle.availableData
-            guard data.count > 0 else { // EOF
+
+            guard !data.isEmpty else { // EOF
                 return
             }
 
