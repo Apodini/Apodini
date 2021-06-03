@@ -14,13 +14,19 @@ public final class RESTInterfaceExporter: Configuration {
     let configuration: RESTExporterConfiguration
     var staticConfigurations: [RESTDependentStaticConfiguration]
     
-    /// Not pretty, but is there a better way?
-    public init(encoder: @autoclosure () -> AnyEncoder = {
-                    let encoder = JSONEncoder()
-                    encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
-                    return encoder }(),
-                decoder: AnyDecoder = JSONDecoder()) {
-        self.configuration = RESTExporterConfiguration(encoder: encoder(), decoder: decoder)
+    public static var defaultEncoder: AnyEncoder {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+        return encoder
+    }
+    
+    public static var defaultDecoder: AnyDecoder {
+        JSONDecoder()
+    }
+    
+    public init(encoder: AnyEncoder = defaultEncoder,
+                decoder: AnyDecoder = defaultDecoder) {
+        self.configuration = RESTExporterConfiguration(encoder: encoder, decoder: decoder)
         self.staticConfigurations = [EmptyRESTDependentStaticConfiguration()]
     }
     
@@ -35,13 +41,10 @@ public final class RESTInterfaceExporter: Configuration {
 }
 
 extension RESTInterfaceExporter {
-    public convenience init(encoder: @autoclosure () -> JSONEncoder = {
-                                let encoder = JSONEncoder()
-                                encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
-                                return encoder }(),
-                            decoder: JSONDecoder = JSONDecoder(),
+    public convenience init(encoder: JSONEncoder = defaultEncoder as! JSONEncoder,
+                            decoder: JSONDecoder = defaultDecoder as! JSONDecoder,
                             @RESTDependentStaticConfigurationBuilder staticConfigurations: () -> [RESTDependentStaticConfiguration] = {[]}) {
-        self.init(encoder: encoder(), decoder: decoder)
+        self.init(encoder: encoder, decoder: decoder)
         self.staticConfigurations = staticConfigurations()
     }
 }

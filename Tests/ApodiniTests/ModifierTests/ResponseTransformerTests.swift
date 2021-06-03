@@ -104,7 +104,7 @@ final class ResponseTransformerTests: ApodiniTests {
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
         try app.vapor.app.test(.GET, "/v1/") { res in
@@ -138,7 +138,7 @@ final class ResponseTransformerTests: ApodiniTests {
             }
         }
 
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
 
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
         try app.vapor.app.test(.GET, "/v1/") { res in
@@ -177,7 +177,7 @@ final class ResponseTransformerTests: ApodiniTests {
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/nothing") { response in
             XCTAssertEqual(response.status, .noContent)

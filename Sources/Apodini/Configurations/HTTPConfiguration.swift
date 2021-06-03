@@ -7,7 +7,6 @@
 
 import Foundation
 import NIO
-@_implementationOnly import ConsoleKit
 
 /// A `Configuration` for HTTP.
 /// The configuration can be done in two ways, either via the
@@ -42,6 +41,7 @@ public final class HTTPConfiguration: Configuration {
     
 
     /// initalize HTTPConfiguration
+    /*
     public convenience init() {
         self.init(arguments: CommandLine.arguments)
     }
@@ -50,7 +50,32 @@ public final class HTTPConfiguration: Configuration {
         var commandInput = CommandInput(arguments: arguments)
         self.address = detect(from: &commandInput)
     }
+ */
+    
+    /// initalize HTTPConfiguration
+    public init(hostname: String? = nil, port: Int? = nil, bind: String? = nil, socketPath: String? = nil) {
+        do {
+            switch (hostname, port, bind, socketPath) {
+            case (.none, .none, .none, .none):
+                self.address = nil
+            case (.none, .none, .none, .some(let socketPath)):
+                self.address = .unixDomainSocket(path: socketPath)
+            case (.none, .none, .some(let address), .none):
+                let components = address.split(separator: ":")
+                let hostname = components.first.map { String($0) }
+                let port = components.last.flatMap { Int($0) }
+                self.address = .hostname(hostname, port: port)
+            case let (hostname, port, .none, .none):
+                self.address = .hostname(hostname ?? Defaults.hostname, port: port ?? Defaults.port)
+            default:
+                throw HTTPConfigurationError.incompatibleFlags
+            }
+        } catch {
+            fatalError("Cannot read http server address provided via command line. Error: \(error)")
+        }
+    }
 
+    /*
     func detect(from commandInput: inout CommandInput) -> BindAddress? {
         struct Signature: CommandSignature {
             @Option(name: "hostname", short: "H", help: "Set the hostname the server will run on.")
@@ -88,10 +113,11 @@ public final class HTTPConfiguration: Configuration {
             fatalError("Cannot read http server address provided via command line. Error: \(error)")
         }
     }
+ */
 
     /// Configure application
     public func configure(_ app: Application, _ semanticModel: SemanticModelBuilder? = nil) {
-        if let address = address {
+        if let address = self.address {
             app.http.address = address
         } else {
             app.logger.warning("No http server address configured")

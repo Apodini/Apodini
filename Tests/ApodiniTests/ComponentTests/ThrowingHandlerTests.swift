@@ -45,7 +45,7 @@ class ThrowingErrorTests: ApodiniTests {
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .internalServerError)
@@ -63,7 +63,7 @@ class ThrowingErrorTests: ApodiniTests {
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .internalServerError)

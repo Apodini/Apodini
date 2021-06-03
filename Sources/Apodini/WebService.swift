@@ -29,24 +29,24 @@ public extension WebService {
 }
 
 extension WebService {
-    /// Called by ArgumentParser with already instanciated `WebService`
+    /// This function is executed to start up an Apodini `WebService`, called by Swift ArgumentParser on instanciated `WebService` containing CLI arguments
     public mutating func run() throws {
-        try Self.main(webService: self)
+        try Self.start(webService: self)
     }
     
     /// This function is executed to start up an Apodini `WebService`
-    static func main(webService: Self? = nil) throws {
-        try main(waitForCompletion: true, webService: webService ?? Self())
+    static func start(webService: Self? = nil) throws {
+        try start(waitForCompletion: true, webService: webService ?? Self())
     }
 
     
     /// This function is executed to start up an Apodini `WebService`
     @discardableResult
-    static func main(waitForCompletion: Bool, webService: Self? = nil) throws -> Application {
+    static func start(waitForCompletion: Bool, webService: Self? = nil) throws -> Application {
         let app = Application()
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
 
-        main(app: app, webService: webService ?? Self())
+        start(app: app, webService: webService ?? Self())
         
         guard waitForCompletion else {
             try app.boot()
@@ -62,9 +62,9 @@ extension WebService {
     }
     
 
-    /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.main()` to startup an Apodini `WebService`.
+    /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.start()` to startup an Apodini `WebService`.
     /// - Parameter app: The app instance that should be injected in the Apodini `WebService`
-    static func main(app: Application, webService: Self? = nil) {
+    static func start(app: Application, webService: Self? = nil) {
         let webServiceNew = webService ?? Self()
         let semanticModel = SemanticModelBuilder(app)
         webServiceNew.configuration.configure(app, semanticModel)

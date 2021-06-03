@@ -150,7 +150,7 @@ final class HandlerIdentifierTests: ApodiniTests {
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         
         try app.vapor.app.test(.GET, "/v1/") { res in

@@ -42,7 +42,7 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         
         try app.vapor.app.test(.GET, "/v2/") { res in
@@ -88,7 +88,7 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         
         try app.vapor.app.test(.GET, "/v2/") { res in
@@ -124,7 +124,7 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
@@ -167,7 +167,7 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         
         try app.vapor.app.test(.GET, "/v1/") { res in
@@ -195,7 +195,7 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
@@ -228,7 +228,7 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
@@ -266,7 +266,7 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)

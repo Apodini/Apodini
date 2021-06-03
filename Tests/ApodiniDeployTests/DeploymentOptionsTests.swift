@@ -182,7 +182,7 @@ class DeploymentOptionsTests: XCTApodiniTest {
 
     
     func testHandlerDeploymentOptions() throws {
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         let apodiniDeployIE = try XCTUnwrap(app.storage.get(_ApodiniDeployInterfaceExporter.ApplicationStorageKey.self))
         

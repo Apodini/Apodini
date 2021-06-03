@@ -7,7 +7,6 @@
 
 import Foundation
 import NIOSSL
-@_implementationOnly import ConsoleKit
 
 /// A `Configuration` for HTTP/2 and TLS.
 /// The configuration can be done in two ways, either via the
@@ -28,7 +27,7 @@ public final class HTTP2Configuration: Configuration {
     private var certURL: URL?
     private var keyURL: URL?
     
-    
+    /*
     public convenience init() {
         self.init(arguments: CommandLine.arguments)
     }
@@ -39,8 +38,16 @@ public final class HTTP2Configuration: Configuration {
         self.certURL = certAndKey?.certURL
         self.keyURL = certAndKey?.keyURL
     }
+ */
     
+    public init(cert: String? = nil, keyPath: String? = nil) {
+        if let certPath = cert, let keyPath = keyPath {
+            self.certURL = URL(fileURLWithPath: certPath)
+            self.keyURL = URL(fileURLWithPath: keyPath)
+        }
+    }
     
+    /*
     func detect(from commandInput: inout CommandInput) -> (certURL: URL, keyURL: URL)? {
         struct Signature: CommandSignature {
             @Option(name: "cert", short: "c", help: "Path of the certificate")
@@ -61,6 +68,7 @@ public final class HTTP2Configuration: Configuration {
             fatalError("Cannot read certificate / key file provided via command line. Error: \(error)")
         }
     }
+ */
 
     public func configure(_ app: Application, _ semanticModel: SemanticModelBuilder? = nil) {
         do {
@@ -85,22 +93,22 @@ public final class HTTP2Configuration: Configuration {
 
     /// Sets the `.pem` file from which the certificate should be read.
     public func certificate(_ filePath: URL) -> Self {
-        guard certURL == nil else {
+        guard self.certURL == nil else {
             return self
         }
         
-        certURL = filePath
+        self.certURL = filePath
         
         return self
     }
 
     /// Sets the `.pem` file from which the key should be read.
     public func key(_ filePath: URL) -> Self {
-        guard keyURL == nil else {
+        guard self.keyURL == nil else {
             return self
         }
         
-        keyURL = filePath
+        self.keyURL = filePath
         
         return self
     }
