@@ -53,7 +53,7 @@ class NegativeTestRunner {
         }
 
         self.errorDefinitionPattern = try NSRegularExpression(pattern: "^.*// error: (.*)$")
-        self.compilerErrorPattern = try NSRegularExpression(pattern: "^(.*):([0-9]+):([0-9]+): error: (.*)$") // TODO optional column!: "<unknown>:0: error: missing required modules: 'CBase32', 'CBcrypt'"
+        self.compilerErrorPattern = try NSRegularExpression(pattern: "^([^:]*):([0-9]+):(([0-9]+):)? error: (.*)$")
 
         print("Project directory: \(workingDirectory)")
     }
@@ -237,8 +237,8 @@ class NegativeTestRunner {
 
             let filePath = line.retrieveMatch(match: match, at: 1)
             let lineNumber = Int(line.retrieveMatch(match: match, at: 2)) ?? -1
-            let column = Int(line.retrieveMatch(match: match, at: 3)) ?? -1
-            let errorMessage = line.retrieveMatch(match: match, at: 4)
+            let column = Int(line.retrieveMatch(match: match, at: 4))
+            let errorMessage = line.retrieveMatch(match: match, at: 5)
 
             let marked = markExpectedErrorTriggered(in: target, absolutePath: filePath, line: lineNumber, error: errorMessage)
             if !marked {
