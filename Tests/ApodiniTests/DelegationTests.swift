@@ -161,8 +161,8 @@ final class DelegationTests: ApodiniTests {
             self.eventLoop = eventLoop
         }
 
-        func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<MockExporter<String>>) {
-            result = context.handle(eventLoop: eventLoop, observedObject: observedObject).map { response in
+        func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent, in context: ConnectionContext<MockExporter<String>>) {
+            result = context.handle(eventLoop: eventLoop, observedObject: observedObject, event: event).map { response in
                 TimeInterval("\(response.content!.response.wrappedValue)")!
             }
         }

@@ -162,10 +162,12 @@ public func check<Target, Value, E: Error>(on target: Target, for value: Value.T
 // MARK: ObservedObject
 
 /// Subscribes to all `ObservedObject`s with a closure.
-public func subscribe<Target>(on target: Target, using callback: @escaping ((AnyObservedObject) -> Void)) -> Observation? {
+public func subscribe<Target>(on target: Target, using callback: @escaping ((AnyObservedObject, TriggerEvent) -> Void)) -> Observation? {
     var observation: Observation?
     execute({ (observedObject: AnyObservedObject) in
-        observation = observedObject.register { callback(observedObject) }
+        observation = observedObject.register { triggerEvent in
+            callback(observedObject, triggerEvent)
+        }
     }, on: target)
     return observation
 }
@@ -380,7 +382,7 @@ extension Optional: Traversable {
 
 extension Delegate: Traversable {
     func execute<Target>(_ operation: (Target, String) throws -> Void, using names: [String]) rethrows {
-        let delegate = store?.value.delegate ?? delegateModel
+        let delegate = storage?.value.delegate ?? delegateModel
         
         // we set the optionality of all delegated parameters according to the delegates optionality
         if Target.self == AnyParameter.self {
@@ -398,10 +400,10 @@ extension Delegate: Traversable {
     }
 
     mutating func apply<Target>(_ mutation: (inout Target, String) throws -> Void, using names: [String]) rethrows {
-        var delegate = store?.value.delegate ?? delegateModel
+        var delegate = storage?.value.delegate ?? delegateModel
         defer {
-            if let store = self.store {
-                store.value.delegate = delegate
+            if let storage = self.storage {
+                storage.value.delegate = delegate
             } else {
                 delegateModel = delegate
             }

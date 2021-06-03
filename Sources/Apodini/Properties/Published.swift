@@ -19,7 +19,7 @@ public class Published<Element> {
                 observation.value == nil
             }
             observations.forEach { observation in
-                observation.value?.callback()
+                observation.value?.callback(TriggerEvent())
             }
         }
     }

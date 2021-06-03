@@ -165,21 +165,20 @@ extension Application: EnvironmentAccessible { }
 
 extension Environment: AnyObservedObject where Value: ObservableObject {
     public var changed: Bool {
-        get {
-            guard let changed = _changed else {
-                fatalError("The changed flag was accessed before it was activated.")
-            }
-            return changed.value
+        guard let changed = _changed else {
+            fatalError("The changed flag was accessed before it was activated.")
         }
-        nonmutating set {
-            guard let changed = _changed else {
-                fatalError("The changed flag was accessed before it was activated.")
-            }
-            changed.value = newValue
-        }
+        return changed.value
     }
     
-    public func register(_ callback: @escaping () -> Void) -> Observation {
+    public func setChanged(to value: Bool, reason event: TriggerEvent) {
+        guard let changed = _changed else {
+            fatalError("The changed flag was accessed before it was activated.")
+        }
+        changed.value = value
+    }
+    
+    public func register(_ callback: @escaping (TriggerEvent) -> Void) -> Observation {
         let observation = Observation(callback)
         
         guard observe else { return observation }

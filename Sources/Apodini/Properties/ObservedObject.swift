@@ -8,39 +8,37 @@ import ApodiniUtils
 /// This is helpful for service-side streams or bidirectional communication.
 @propertyWrapper
 public struct ObservedObject<Element: ObservableObject>: Property {
-    private var element: Element?
+    private struct Storage {
+        var changed: Bool
+        var element: Element
+        weak var ownObservation: Observation?
+        var childObservation: Observation?
+        var count: UInt64 = 0
+    }
+    
     private let _initializer: () -> Element
+    
+    private var storage: Box<Storage>?
     
     public var wrappedValue: Element {
         get {
-            if let element = element {
+            if let element = storage?.value.element {
                 return element
             }
             fatalError("The object \(String(describing: self)) cannot be found in the environment.")
         }
     }
     
-    private var changedStorage: Box<Bool>?
-    
     /// Property to check if the evaluation of the `Handler` or `Job` was triggered by this `ObservableObject`.
     public var changed: Bool {
         get {
-            guard let value = changedStorage?.value else {
+            guard let value = storage?.value.changed else {
                 fatalError("""
                     A ObservedObjects's 'changed' property was accessed before the
                     ObservedObject was activated.
                     """)
             }
             return value
-        }
-        nonmutating set {
-            guard let wrapper = changedStorage else {
-                fatalError("""
-                    A ObservedObjects's 'changed' property was accessed before the
-                    ObservedObject was activated.
-                    """)
-            }
-            wrapper.value = newValue
         }
     }
     
@@ -53,38 +51,72 @@ public struct ObservedObject<Element: ObservableObject>: Property {
 /// Type-erased `ObservedObject` protocol.
 public protocol AnyObservedObject {
     /// Method to be informed about values that have changed
-    func register(_ callback: @escaping () -> Void) -> Observation
+    func register(_ callback: @escaping (TriggerEvent) -> Void) -> Observation
     
-    /// Any `ObservedObject` has a `changed` flag that indicates if this object has been
+    /// Any `ObservedObject` should have a `changed` flag that indicates if this object has been
     /// changed _recently_. The definition of _recently_ depends on the context and usage.
     ///
     /// E.g. for `Handler`s, the `handle()` function is executed every time an `@ObservedObject`
     /// changes. The `changed` property of this object is set to `true` for the exact time where
     /// the `handle()` is evaluated because this object changed.
-    var changed: Bool { get nonmutating set }
+    /// This method can be used to control the value of the `changed` property.
+    func setChanged(to value: Bool, reason event: TriggerEvent)
 }
 
 extension ObservedObject: AnyObservedObject {
-    public func register(_ callback: @escaping () -> Void) -> Observation {
-        let observation = Observation(callback)
+    public func register(_ callback: @escaping (TriggerEvent) -> Void) -> Observation {
+        guard let storage = self.storage else {
+            fatalError("An ObservedObject was registered before it was activated.")
+        }
+        
+        let ownObservation = Observation(callback)
+        storage.value.ownObservation = ownObservation
+        
+        registerChildObservation()
+        
+        return ownObservation
+    }
     
+    public func setChanged(to value: Bool, reason event: TriggerEvent) {
+        guard let wrapper = storage else {
+            fatalError("""
+                A ObservedObjects's 'changed' property was accessed before the
+                ObservedObject was activated.
+                """)
+        }
+        wrapper.value.changed = value
+    }
+    
+    private func registerChildObservation() {
+        guard let storage = self.storage else {
+            fatalError("An ObservedObject registered to its child before it was activated.")
+        }
+        
+        storage.value.count += 1
+        let initialCount = storage.value.count
+        
+        let childObservation = Observation({ triggerEvent in
+            storage.value.ownObservation?.callback(TriggerEvent({
+                triggerEvent.cancelled || initialCount != storage.value.count
+            }))
+        })
+        
         for property in Mirror(reflecting: wrappedValue).children {
             switch property.value {
             case let published as AnyPublished:
-                published.register(observation)
+                published.register(childObservation)
             default:
                 continue
             }
         }
         
-        return observation
+        storage.value.childObservation = childObservation
     }
 }
 
 extension ObservedObject: Activatable {
     mutating func activate() {
-        self.changedStorage = Box(false)
-        self.element = self._initializer()
+        self.storage = Box(Storage(changed: false, element: self._initializer()))
     }
 }
 
@@ -92,9 +124,29 @@ extension ObservedObject: Activatable {
 /// The registering instance must hold this token until it no longer wishes to be updated about the
 /// `ObservedObject`'s state. When the token is released, the subscription is canceled.
 public class Observation {
-    let callback: () -> Void
+    let callback: (TriggerEvent) -> Void
     
-    internal init(_ callback: @escaping () -> Void) {
+    internal init(_ callback: @escaping (TriggerEvent) -> Void) {
         self.callback = callback
     }
+}
+
+public struct TriggerEvent {
+    let checkCancelled: () -> Bool
+    
+    let identifier: TriggerIdentifier
+    
+    internal init(_ cancelled: @escaping () -> Bool = { false }, id: TriggerIdentifier = .this) {
+        self.checkCancelled = cancelled
+        self.identifier = id
+    }
+    
+    public var cancelled: Bool {
+        checkCancelled()
+    }
+}
+
+indirect enum TriggerIdentifier {
+    case this
+    case index(Int, TriggerIdentifier)
 }
