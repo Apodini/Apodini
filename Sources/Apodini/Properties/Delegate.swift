@@ -24,6 +24,8 @@ public struct Delegate<D> {
         // swiftlint:disable:next discouraged_optional_collection
         var observables: [(AnyObservedObject, Observation)]?
         var changed: Bool = false
+        // storage for observable objects set via .setObservable
+        var observableObjectsSetters: [() -> Void] = []
         // storage for values injected via .environment
         var environment: [AnyKeyPath:Any] = [:]
         // storage for values injected via .environmentObject
@@ -56,7 +58,9 @@ public struct Delegate<D> {
             Apodini.activate(&store.value.delegate)
         }
         
-        // we inject environment and environmentObject and invalidate both stores afterwards
+        // we inject observedobjects, environment and environmentObject and invalidate all stores afterwards
+        store.value.observableObjectsSetters.forEach { closure in closure() }
+        store.value.observableObjectsSetters = []
         injectAll(values: store.value.environmentObject, into: store.value.delegate)
         store.value.environmentObject = []
         injectAll(values: store.value.environment, into: store.value.delegate)
@@ -134,11 +138,29 @@ extension Delegate {
 }
 
 extension Delegate {
+    /// Change a `delegate`'s `ObservedObject` to observe another `value`.
+    @discardableResult
+    public func setObservable<V: ObservableObject>(_ keypath: WritableKeyPath<D, ObservedObject<V>>, to value: V) -> Delegate {
+        guard let store = storage else {
+            fatalError("'Delegate' was manipulated before activation.")
+        }
+        
+        store.value.observableObjectsSetters.append {
+            store.value.delegate[keyPath: keypath].wrappedValue = value
+        }
+        
+        return self
+    }
+}
+
+extension Delegate {
+    /// Inject a local `value` into the `delegate`'s `Environment` properties that are based on the given `keyPath`.
     @discardableResult
     public func environment<V>(_ keyPath: WritableKeyPath<Application, V>, _ value: V) -> Delegate {
         self.environment(at: keyPath, value)
     }
     
+    /// Inject a local `value` into the `delegate`'s `Environment` properties that are based on the given `keyPath`.
     @discardableResult
     public func environment<K, V>(_ keyPath: WritableKeyPath<K, V>, _ value: V) -> Delegate {
         self.environment(at: keyPath, value)
@@ -156,6 +178,7 @@ extension Delegate {
 }
 
 extension Delegate {
+    /// Inject a local `value` into the `delegate`'s `EnvironmentObject` properties that are of type `T`.
     @discardableResult
     public func environmentObject<T>(_ object: T) -> Delegate {
         guard let store = storage else {
@@ -166,7 +189,6 @@ extension Delegate {
         return self
     }
 }
-
 
 
 
@@ -209,6 +231,7 @@ extension Delegate: RequestInjectable {
 
 // Delegate bundles all contained ObservedObjects into one.
 extension Delegate: AnyObservedObject {
+    /// Indicates if the current evaluation was caused by one of the `delegate`'s child-properties (e.g. an `ObservedObject`.
     public var changed: Bool {
         guard let store = storage else {
             fatalError("'Delegate''s AnyObservedObject property was used before activation.")

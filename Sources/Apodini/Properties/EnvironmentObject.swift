@@ -9,11 +9,20 @@ import ApodiniUtils
 
 
 @propertyWrapper
-/// A property wrapper to inject pre-defined values  to a `Component`.
+/// A property wrapper to inject pre-defined values  to a `Component`.  If `Value` is an
+/// `ObservableObject`, `Environment` observes its value just as `ObservedObject`.
+/// Use `Delegate.environmentObject(_:)` to inject a value.
 public struct EnvironmentObject<Value>: DynamicProperty {
+    
+    private struct Storage {
+        var changed: Bool
+        weak var ownObservation: Observation?
+        var childObservation: Observation?
+        var count: UInt64 = 0
+    }
 
     // only used if Value is ObservableObject
-    private var _changed: Box<Bool>?
+    private var storage: Box<Storage>?
     private let observe: Bool
     
     @LocalEnvironment private var localEnvironment: Value?
@@ -48,7 +57,7 @@ public struct EnvironmentObject<Value>: DynamicProperty {
 
 extension EnvironmentObject: Activatable {
     mutating func activate() {
-        _changed = Box(false)
+        storage = Box(Storage(changed: false))
         _localEnvironment.activate()
     }
 }
@@ -63,6 +72,7 @@ extension EnvironmentObject: TypeInjectable {
     func inject<V>(_ value: V) {
         if let typedValue = value as? Value {
             _localEnvironment.setValue(typedValue)
+            (self as? Observing)?.registerChildObservation()
         }
     }
 }
@@ -70,35 +80,67 @@ extension EnvironmentObject: TypeInjectable {
 
 // MARK: AnyObservedObject
 
-extension EnvironmentObject: AnyObservedObject where Value: ObservableObject {
+extension EnvironmentObject: AnyObservedObject, Observing where Value: ObservableObject {
     public var changed: Bool {
-        guard let changed = _changed else {
+        guard let changed = storage?.value.changed else {
             fatalError("The changed flag was accessed before it was activated.")
         }
-        return changed.value
+        return changed
     }
     
     public func setChanged(to value: Bool, reason event: TriggerEvent) {
-        guard let changed = _changed else {
+        guard observe else { return }
+        
+        guard let store = storage else {
             fatalError("The changed flag was accessed before it was activated.")
         }
-        changed.value = value
+        store.value.changed = value
     }
     
     public func register(_ callback: @escaping (TriggerEvent) -> Void) -> Observation {
-        let observation = Observation(callback)
+        guard observe else { return Observation(callback) }
         
-        guard observe else { return observation }
+        guard let storage = self.storage else {
+            fatalError("An Environment was registered before it was activated.")
+        }
+        
+        let ownObservation = Observation(callback)
+        storage.value.ownObservation = ownObservation
+        
+        registerChildObservation()
+        
+        return ownObservation
+    }
     
+    fileprivate func registerChildObservation() {
+        guard observe else { return }
+        
+        guard let storage = self.storage else {
+            fatalError("An Environment registered to its child before it was activated.")
+        }
+        
+        storage.value.count += 1
+        let initialCount = storage.value.count
+        
+        let childObservation = Observation({ triggerEvent in
+            storage.value.ownObservation?.callback(TriggerEvent({
+                triggerEvent.cancelled || initialCount != storage.value.count
+            }))
+        })
+        
         for property in Mirror(reflecting: wrappedValue).children {
             switch property.value {
             case let published as AnyPublished:
-                published.register(observation)
+                published.register(childObservation)
             default:
                 continue
             }
         }
         
-        return observation
+        storage.value.childObservation = childObservation
     }
+}
+
+private protocol Observing {
+    func registerChildObservation()
 }

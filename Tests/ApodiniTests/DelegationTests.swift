@@ -236,6 +236,7 @@ final class DelegationTests: ApodiniTests {
     struct NestedEnvironmentDelegate {
         @EnvironmentObject var number: Int
         @Apodini.Environment(\EnvKey.name) var string: String
+        
     }
     
     struct DelegatingEnvironmentDelegate {
@@ -262,5 +263,35 @@ final class DelegationTests: ApodiniTests {
         let prepared = try envD()
         
         XCTAssertEqual(try prepared.evaluate(), "Max:1")
+    }
+    
+    func testSetters() throws {
+        struct BindingObservedObjectDelegate {
+            @ObservedObject var observable = TestObservable()
+            @Binding var binding: Int
+            
+            init() {
+                _binding = .constant(0)
+            }
+        }
+        
+        
+        var envD = Delegate(BindingObservedObjectDelegate())
+        inject(app: app, to: &envD)
+        envD.activate()
+        
+        let connection = Connection(request: MockRequest.createRequest(running: app.eventLoopGroup.next()))
+        envD.inject(connection, for: \Apodini.Application.connection)
+        
+        let afterInitializationBeforeInjection = Date()
+        
+        envD
+            .set(\.$binding, to: 1)
+            .setObservable(\.$observable, to: TestObservable())
+        
+        let prepared = try envD()
+        
+        XCTAssertEqual(prepared.binding, 1)
+        XCTAssertGreaterThan(prepared.observable.date, afterInitializationBeforeInjection)
     }
 }

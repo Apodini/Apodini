@@ -3,7 +3,6 @@ import ApodiniUtils
 
 /// Property wrapper used inside of a `Handler` or `Job` that subscribes to an `ObservableObject`.
 /// Changes of `@Published` properties of the `ObservableObject` will cause re-evaluations of the `Handler` or `Job`.
-/// `ObservableObject`s can either be passed to the property wrapper as instances or in form of key paths from the environment.
 ///
 /// This is helpful for service-side streams or bidirectional communication.
 @propertyWrapper
@@ -25,7 +24,15 @@ public struct ObservedObject<Element: ObservableObject>: Property {
             if let element = storage?.value.element {
                 return element
             }
-            fatalError("The object \(String(describing: self)) cannot be found in the environment.")
+            fatalError("The object \(String(describing: self)) was accessed before it was activated.")
+        }
+        nonmutating set {
+            guard let store = storage else {
+                fatalError("ObservedObject.wrappedValue was mutated before it was activated.")
+            }
+            
+            store.value.element = newValue
+            registerChildObservation()
         }
     }
     
@@ -39,6 +46,15 @@ public struct ObservedObject<Element: ObservableObject>: Property {
                     """)
             }
             return value
+        }
+    }
+    
+    public var projectedValue: Self {
+        get {
+            self
+        }
+        set {
+            self = newValue
         }
     }
     
