@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  main.swift
 //
 //
 //  Created by Lukas Kollmer on 2021-03-18.
@@ -10,6 +10,7 @@
 
 import Foundation
 import NIO
+import ArgumentParser
 import Apodini
 //import ApodiniDeployBuildSupport
 import ApodiniDeploy
@@ -157,6 +158,13 @@ struct Text2: Handler {
 }
 
 struct WebService: Apodini.WebService {
+    @Option
+    var mode: String?
+    @Option
+    var fileurl: String?
+    @Option
+    var node: String?
+    
     var content: some Component {
         Group("aws_rand") {
             Text2("").operation(.create)
@@ -188,9 +196,11 @@ struct WebService: Apodini.WebService {
             OpenAPIInterfaceExporter()
         }
         ApodiniDeployInterfaceExporter(runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
-                                        config: DeploymentConfig(defaultGrouping: .separateNodes, deploymentGroups: [
-                .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")
-            ]))
+                                       config: DeploymentConfig(defaultGrouping: .separateNodes, deploymentGroups: [
+                .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")]),
+                                       mode: mode,
+                                       fileURL: fileurl,
+                                       node: node)
     }
 
     var metadata: Metadata {
@@ -198,4 +208,4 @@ struct WebService: Apodini.WebService {
     }
 }
 
-try WebService.main()
+WebService.main()

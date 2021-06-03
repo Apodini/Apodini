@@ -42,8 +42,15 @@ public final class ApodiniDeployInterfaceExporter: Configuration {
     let configuration: ApodiniDeployExporterConfiguration
     
     public init(runtimes: [DeploymentProviderRuntime.Type] = [],
-                config: DeploymentConfig = .init()) {
-        self.configuration = ApodiniDeployExporterConfiguration(runtimes: runtimes, config: config)
+                config: DeploymentConfig = .init(),
+                mode: String? = nil,
+                fileURL: String? = nil,
+                node: String? = nil) {
+        self.configuration = ApodiniDeployExporterConfiguration(runtimes: runtimes,
+                                                                config: config,
+                                                                mode: mode,
+                                                                fileURL: fileURL,
+                                                                node: node)
     }
     
     public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder?) {
@@ -143,14 +150,13 @@ class _ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     
     private func performDeploymentRelatedActions() throws {
-        let args = CommandLine.arguments
-        guard args.count >= 3 else {
+        guard let mode = self.exporterConfiguration.mode, let fileURL = self.exporterConfiguration.fileURL else {
             return
         }
         
-        switch args[1] {
+        switch mode {
         case WellKnownCLIArguments.exportWebServiceModelStructure:
-            let outputUrl = URL(fileURLWithPath: args[2])
+            let outputUrl = URL(fileURLWithPath: fileURL)
             do {
                 try self.exportWebServiceStructure(
                     to: outputUrl,
@@ -162,7 +168,7 @@ class _ApodiniDeployInterfaceExporter: InterfaceExporter {
             exit(EXIT_SUCCESS)
             
         case WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig:
-            let configUrl = URL(fileURLWithPath: args[2])
+            let configUrl = URL(fileURLWithPath: fileURL)
             guard let currentNodeId = ProcessInfo.processInfo.environment[WellKnownEnvironmentVariables.currentNodeId] else {
                 throw ApodiniDeployError(message: "Unable to find '\(WellKnownEnvironmentVariables.currentNodeId)' environment variable")
             }

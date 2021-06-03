@@ -94,7 +94,9 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         for node in deployedSystem.nodes {
             let task = Task(
                 executableUrl: executableUrl,
-                arguments: [WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig, deployedSystemFileUrl.path, node.id],
+                arguments: ["--mode=" + WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig,
+                            "--fileurl=" + deployedSystemFileUrl.path,
+                            "--node=" + node.id],
                 launchInCurrentProcessGroup: true,
                 environment: [WellKnownEnvironmentVariables.currentNodeId: node.id]
             )

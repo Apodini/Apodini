@@ -14,13 +14,22 @@ import ApodiniDeployRuntimeSupport
 public struct ApodiniDeployExporterConfiguration: ExporterConfiguration {
     let runtimes: [DeploymentProviderRuntime.Type]
     let config: DeploymentConfig
+    let mode: String?
+    let fileURL: String?
+    let node: String?
     
     public init(
         runtimes: [DeploymentProviderRuntime.Type] = [],
-        config: DeploymentConfig = .init()
+        config: DeploymentConfig = .init(),
+        mode: String? = nil,
+        fileURL: String? = nil,
+        node: String? = nil
     ) {
         self.runtimes = runtimes
         self.config = config
+        self.mode = mode
+        self.fileURL = fileURL
+        self.node = node
     }
 }
 

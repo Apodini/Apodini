@@ -27,48 +27,12 @@ public final class HTTP2Configuration: Configuration {
     private var certURL: URL?
     private var keyURL: URL?
     
-    /*
-    public convenience init() {
-        self.init(arguments: CommandLine.arguments)
-    }
-    
-    init(arguments: [String]) {
-        var commandInput = CommandInput(arguments: arguments)
-        let certAndKey = detect(from: &commandInput)
-        self.certURL = certAndKey?.certURL
-        self.keyURL = certAndKey?.keyURL
-    }
- */
-    
     public init(cert: String? = nil, keyPath: String? = nil) {
         if let certPath = cert, let keyPath = keyPath {
             self.certURL = URL(fileURLWithPath: certPath)
             self.keyURL = URL(fileURLWithPath: keyPath)
         }
     }
-    
-    /*
-    func detect(from commandInput: inout CommandInput) -> (certURL: URL, keyURL: URL)? {
-        struct Signature: CommandSignature {
-            @Option(name: "cert", short: "c", help: "Path of the certificate")
-            var certPath: String?
-            @Option(name: "key", short: "k", help: "Path of the key")
-            var keyPath: String?
-        }
-
-        do {
-            let signature = try Signature(from: &commandInput)
-
-            if let certPath = signature.certPath, let keyPath = signature.keyPath {
-                return (URL(fileURLWithPath: certPath), URL(fileURLWithPath: keyPath))
-            } else {
-                return nil
-            }
-        } catch {
-            fatalError("Cannot read certificate / key file provided via command line. Error: \(error)")
-        }
-    }
- */
 
     public func configure(_ app: Application, _ semanticModel: SemanticModelBuilder? = nil) {
         do {
