@@ -217,7 +217,9 @@ extension Environment: AnyObservedObject, Observing where Value: ObservableObjec
         storage.value.count += 1
         let initialCount = storage.value.count
         
-        let childObservation = Observation({ triggerEvent in
+        let childObservation = Observation({ [weak storage] triggerEvent in
+            guard let storage = storage else { return }
+            
             storage.value.ownObservation?.callback(TriggerEvent({
                 triggerEvent.cancelled || initialCount != storage.value.count
             }))

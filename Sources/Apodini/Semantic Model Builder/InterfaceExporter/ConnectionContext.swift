@@ -159,7 +159,8 @@ class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: Conne
     override func register<Listener: ObservedListener>(listener: Listener) where Listener.Exporter == I {
         // register the given listener for notifications on the handler
         for object in collectObservedObjects(from: endpoint.handler) {
-            self.observations.append(object.register { triggerEvent in
+            self.observations.append(object.register { [weak self] triggerEvent in
+                guard let self = self else { return }
                 listener.onObservedDidChange(object, triggerEvent, in: self)
             })
         }

@@ -111,7 +111,9 @@ extension ObservedObject: AnyObservedObject {
         storage.value.count += 1
         let initialCount = storage.value.count
         
-        let childObservation = Observation({ triggerEvent in
+        let childObservation = Observation({ [weak storage] triggerEvent in
+            guard let storage = storage else { return }
+            
             storage.value.ownObservation?.callback(TriggerEvent({
                 triggerEvent.cancelled || initialCount != storage.value.count
             }))
@@ -142,6 +144,9 @@ extension ObservedObject: Activatable {
 public class Observation {
     let callback: (TriggerEvent) -> Void
     
+    /// Create a new `Observation`
+    /// - Note: Make sure the `callback` holds no strong references! Otherwise, you will most likely
+    ///         create a memory-leak!
     internal init(_ callback: @escaping (TriggerEvent) -> Void) {
         self.callback = callback
     }
