@@ -142,7 +142,7 @@ let package = Package(
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "OpenCombine", package: "OpenCombine"),
                 .product(name: "OpenCombineFoundation", package: "OpenCombine"),
-                .product(name: "SotoTestUtils", package: "soto-core"),
+                .product(name: "SotoTestUtils", package: "soto-core")
             ],
             resources: [
                 .process("Resources")

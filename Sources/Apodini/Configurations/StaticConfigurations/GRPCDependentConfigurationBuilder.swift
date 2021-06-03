@@ -5,12 +5,12 @@
 //  Created by Philipp Zagar on 27.05.21.
 //
 
-@_functionBuilder
 /// A function builder used to aggregate multiple `GRPCDependentStaticConfiguration`s
+@_functionBuilder
 public enum GRPCDependentStaticConfigurationBuilder {
     /// A method that transforms multiple `GRPCDependentStaticConfiguration`s
     ///
-    /// - Parameter configs: A variadic number of `GRPCDependentStaticConfiguration`
+    /// - Parameter staticConfigurations: A variadic number of `GRPCDependentStaticConfiguration`
     ///
     /// - Returns: An `AnyConfigurationCollection` which consists of `ConfigurationConvertible`s
     public static func buildBlock(_ staticConfigurations: GRPCDependentStaticConfiguration...) -> [GRPCDependentStaticConfiguration] {

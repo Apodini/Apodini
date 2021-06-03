@@ -20,11 +20,11 @@ public final class OpenAPIInterfaceExporter: RESTDependentStaticConfiguration {
                 version: String? = nil,
                 serverUrls: URL...) {
         self.configuration = OpenAPIExporterConfiguration(outputFormat: outputFormat,
-                             outputEndpoint: outputEndpoint,
-                             swaggerUiEndpoint: swaggerUiEndpoint,
-                             title: title,
-                             version: version,
-                             serverUrls: serverUrls)
+                                                          outputEndpoint: outputEndpoint,
+                                                          swaggerUiEndpoint: swaggerUiEndpoint,
+                                                          title: title,
+                                                          version: version,
+                                                          serverUrls: serverUrls)
     }
     
     public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder, parentConfiguration: ExporterConfiguration) {
@@ -33,11 +33,12 @@ public final class OpenAPIInterfaceExporter: RESTDependentStaticConfiguration {
         
         /// Create exporter and insert it into semantic model
         let openAPIExporter = _OpenAPIInterfaceExporter(app, self.configuration)
-        let _ = semanticModel.with(exporter: openAPIExporter)
+        _ = semanticModel.with(exporter: openAPIExporter)
     }
 }
 
 /// Internal Apodini Interface Exporter for OpenAPI
+// swiftlint:disable type_name
 final class _OpenAPIInterfaceExporter: StaticInterfaceExporter {
     static var parameterNamespace: [ParameterNamespace] = .individual
 

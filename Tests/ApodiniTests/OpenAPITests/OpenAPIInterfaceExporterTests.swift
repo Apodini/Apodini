@@ -56,7 +56,6 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
     }
 
     func testInterfaceExporterConfiguredServing() throws {
-        let configuredOutputFormat: OpenAPIOutputFormat = .yaml
         let configuredOutputEndpoint = "/oas"
         let configuredSwaggerUiEndpoint = "/oas-ui"
         
@@ -68,8 +67,8 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
             var configuration: Configuration {
                 RESTInterfaceExporter(encoder: JSONEncoder(), decoder: JSONDecoder()) {
                     OpenAPIInterfaceExporter(outputFormat: .yaml,
-                                              outputEndpoint: "/oas",
-                                              swaggerUiEndpoint: "/oas-ui")
+                                             outputEndpoint: "/oas",
+                                             swaggerUiEndpoint: "/oas-ui")
                 }
             }
         }

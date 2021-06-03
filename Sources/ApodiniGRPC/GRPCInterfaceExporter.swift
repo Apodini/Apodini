@@ -18,7 +18,7 @@ public final class GRPCInterfaceExporter: Configuration {
     let staticConfigurations: [GRPCDependentStaticConfiguration]
     
     public init(integerWidth: IntegerWidthConfiguration = .native,
-                @GRPCDependentStaticConfigurationBuilder staticConfigurations: () -> [GRPCDependentStaticConfiguration] = {[]}) {
+                @GRPCDependentStaticConfigurationBuilder staticConfigurations: () -> [GRPCDependentStaticConfiguration] = { [] }) {
         self.configuration = GRPCExporterConfiguration(integerWidth: integerWidth)
         self.staticConfigurations = staticConfigurations()
     }
@@ -26,7 +26,7 @@ public final class GRPCInterfaceExporter: Configuration {
     public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder?) {
         /// Insert current exporter into `SemanticModelBuilder`
         let restExporter = _GRPCInterfaceExporter(app, self.configuration)
-        let _ = semanticModel?.with(exporter: restExporter)
+        _ = semanticModel?.with(exporter: restExporter)
         
         /// Configure attached related static configurations
         self.staticConfigurations.configure(app, semanticModel!, parentConfiguration: self.configuration)
@@ -34,6 +34,7 @@ public final class GRPCInterfaceExporter: Configuration {
 }
 
 /// Internal Apodini Interface Exporter for gRPC
+// swiftlint:disable type_name
 final class _GRPCInterfaceExporter: InterfaceExporter {
     let app: Apodini.Application
     let exporterConfiguration: GRPCExporterConfiguration

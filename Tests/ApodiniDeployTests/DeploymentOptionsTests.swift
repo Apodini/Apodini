@@ -91,13 +91,13 @@ private struct TestWebService: Apodini.WebService {
             .testOption1(14)
         ])
     }
+    
     var configuration: Configuration {
         ApodiniDeployInterfaceExporter(runtimes: [],
-                                        config: DeploymentConfig(defaultGrouping: .singleNode, deploymentGroups: [
+                                       config: DeploymentConfig(defaultGrouping: .singleNode, deploymentGroups: [
                                             .allHandlers(ofType: Text.self)
-                                        ]))
+                                       ]))
     }
-    
 }
 
 

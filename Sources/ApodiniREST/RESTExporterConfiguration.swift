@@ -18,6 +18,4 @@ public struct RESTExporterConfiguration: ExporterConfiguration {
         self.encoder = encoder
         self.decoder = decoder
     }
-    
-    
 }

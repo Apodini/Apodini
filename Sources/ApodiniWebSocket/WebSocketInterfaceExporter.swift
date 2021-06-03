@@ -24,13 +24,14 @@ public final class WebSocketInterfaceExporter: Configuration {
     public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder?) {
         /// Insert  exporter into `SemanticModelBuilder`
         let webSocketExporter = _WebSocketInterfaceExporter(app, self.configuration)
-        let _ = semanticModel?.with(exporter: webSocketExporter)
+        _ = semanticModel?.with(exporter: webSocketExporter)
     }
 }
 
 /// The WebSocket exporter uses a custom JSON based protocol on top of WebSocket's text messages.
 /// This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel.
 /// The Apodini service listens on /apodini/websocket for clients that want to communicate via the WebSocket Interface Exporter.
+// swiftlint:disable type_name
 final class _WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private let app: Apodini.Application
     private let exporterConfiguration: WebSocketExporterConfiguration
@@ -142,7 +143,7 @@ final class _WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     }
     
     #if DEBUG
-    public static func messagePrefix(for error: StandardErrorContext) -> String? {
+    static func messagePrefix(for error: StandardErrorContext) -> String? {
         switch error.option(for: .errorType) {
         case .badInput:
             return "You messed up"
@@ -161,7 +162,7 @@ final class _WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
     #else
-    public typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
+    typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
     #endif
     
     private static func handleCompletion(

@@ -22,10 +22,11 @@ public final class ProtobufferInterfaceExporter: GRPCDependentStaticConfiguratio
         
         /// Create exporter and insert it into semantic model
         let protobufferExporter = _ProtobufferInterfaceExporter(app, self.configuration)
-        let _ = semanticModel.with(exporter: protobufferExporter)
+        _ = semanticModel.with(exporter: protobufferExporter)
     }
 }
 
+// swiftlint:disable type_name
 final class _ProtobufferInterfaceExporter: StaticInterfaceExporter {
     // MARK: Nested Types
     struct Error: Swift.Error, CustomDebugStringConvertible {

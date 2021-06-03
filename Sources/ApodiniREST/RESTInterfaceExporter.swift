@@ -24,6 +24,12 @@ public final class RESTInterfaceExporter: Configuration {
         JSONDecoder()
     }
     
+    /**
+      Initializes the configuration of the `RESTInterfaceExporter` with (default) `AnyEncoder` and `AnyDecoder`
+     - Parameters:
+         - encoder: The to be used `AnyEncoder`
+         - decoder: The to be used `AnyDecoder`
+     */
     public init(encoder: AnyEncoder = defaultEncoder,
                 decoder: AnyDecoder = defaultDecoder) {
         self.configuration = RESTExporterConfiguration(encoder: encoder, decoder: decoder)
@@ -33,7 +39,7 @@ public final class RESTInterfaceExporter: Configuration {
     public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder?) {
         /// Insert current exporter into `SemanticModelBuilder`
         let restExporter = _RESTInterfaceExporter(app, self.configuration)
-        let _ = semanticModel?.with(exporter: restExporter)
+        _ = semanticModel?.with(exporter: restExporter)
         
         /// Configure attached related static configurations
         self.staticConfigurations.configure(app, semanticModel!, parentConfiguration: self.configuration)
@@ -41,15 +47,23 @@ public final class RESTInterfaceExporter: Configuration {
 }
 
 extension RESTInterfaceExporter {
+    /**
+      Initializes the configuration of the `RESTInterfaceExporter` with (default) JSON Coders and possibly associated Exporters (eg. OpenAPI Exporter)
+     - Parameters:
+         - encoder: The to be used `JSONEncoder`
+         - decoder: The to be used `JSONDecoder`
+         - staticConfiguraiton: A result builder that allows passing dependend static Exporters like the OpenAPI Exporter
+     */
     public convenience init(encoder: JSONEncoder = defaultEncoder as! JSONEncoder,
                             decoder: JSONDecoder = defaultDecoder as! JSONDecoder,
-                            @RESTDependentStaticConfigurationBuilder staticConfigurations: () -> [RESTDependentStaticConfiguration] = {[]}) {
+                            @RESTDependentStaticConfigurationBuilder staticConfigurations: () -> [RESTDependentStaticConfiguration] = { [] }) {
         self.init(encoder: encoder, decoder: decoder)
         self.staticConfigurations = staticConfigurations()
     }
 }
  
 /// Internal Apodini Interface Exporter for REST
+// swiftlint:disable type_name
 final class _RESTInterfaceExporter: InterfaceExporter {
     static let parameterNamespace: [ParameterNamespace] = .individual
 
@@ -62,8 +76,7 @@ final class _RESTInterfaceExporter: InterfaceExporter {
             fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
         }
         self.app = app.vapor.app
-        self.exporterConfiguration = RESTConfiguration(app.vapor.app.http.server.configuration,
-                                               exporterConfiguration: castedConfiguration)
+        self.exporterConfiguration = RESTConfiguration(app.vapor.app.http.server.configuration, exporterConfiguration: castedConfiguration)
     }
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {

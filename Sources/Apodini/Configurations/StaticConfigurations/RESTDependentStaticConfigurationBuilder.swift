@@ -5,8 +5,8 @@
 //  Created by Philipp Zagar on 27.05.21.
 //
 
-@_functionBuilder
 /// A function builder used to aggregate multiple `RESTDependentStaticConfiguration`s
+@_functionBuilder
 public enum RESTDependentStaticConfigurationBuilder {
     /// A method that transforms multiple `RESTDependentStaticConfiguration`s
     ///

@@ -3,7 +3,9 @@
 public protocol Configuration {
     /// A method that handles the configuration of a service which is called by the `main` function.
     ///
-    /// - Parameter app: The `Vapor.Application` which is used to register the configuration in Apodini
+    /// - Parameter
+    ///    - app: The `Vapor.Application` which is used to register the configuration in Apodini
+    ///    - semanticModel: The `SemanticModelBuilder` where the services are registered
     func configure(_ app: Application, _ semanticModel: SemanticModelBuilder?)
 }
 

@@ -4,6 +4,7 @@
 //
 //  Created by Philipp Zagar on 26.05.21.
 //
+// swiftlint:disable type_name
 
 @testable import Apodini
 @testable import ApodiniREST
@@ -48,25 +49,26 @@ class ExporterConfigurationTests: XCTestCase {
         XCTAssert(configurations[0] is RESTInterfaceExporter)
         XCTAssert((configurations[0] as? RESTInterfaceExporter)?.configuration.encoder is JSONEncoder)
         XCTAssert((configurations[0] as? RESTInterfaceExporter)?.configuration.decoder is JSONDecoder)
-        XCTAssertTrue((((configurations[0] as! RESTInterfaceExporter).configuration.encoder as! JSONEncoder).outputFormatting.contains(.prettyPrinted)))
-        XCTAssertTrue((((configurations[0] as! RESTInterfaceExporter).configuration.encoder as! JSONEncoder).outputFormatting.contains(.withoutEscapingSlashes)))
-        XCTAssertFalse((((configurations[0] as! RESTInterfaceExporter).configuration.encoder as! JSONEncoder).outputFormatting.contains(.sortedKeys)))
+        let encoder = configurations[0] as! RESTInterfaceExporter).configuration.encoder as! JSONEncoder
+        XCTAssertTrue(((encoder.outputFormatting.contains(.prettyPrinted)))
+        XCTAssertTrue(((encoder.outputFormatting.contains(.withoutEscapingSlashes)))
+        XCTAssertFalse(((encoder.outputFormatting.contains(.sortedKeys)))
     }
     
     func testExporterConfigurationWithOwnEncoderAndDecoder() throws {
         struct TestEncoder: AnyEncoder {
-            let jsonEncoder: JSONEncoder = JSONEncoder()
+            let jsonEncoder = JSONEncoder()
             
-            func encode<T>(_ value: T) throws -> Data where T : Encodable {
-                return try jsonEncoder.encode(value)
+            func encode<T>(_ value: T) throws -> Data where T: Encodable {
+                try jsonEncoder.encode(value)
             }
         }
         
         struct TestDecoder: AnyDecoder {
-            let jsonDecoder: JSONDecoder = JSONDecoder()
+            let jsonDecoder = JSONDecoder()
             
-            func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
-                return try jsonDecoder.decode(type, from: data)
+            func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable {
+                try jsonDecoder.decode(type, from: data)
             }
         }
         
@@ -253,10 +255,10 @@ class RESTExporterConfigurationTests: ApodiniTests {
         let userId = "1234"
         let name = "Rudi"
         
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "/user",
+        try app.vapor.app.testable(method: .inMemory).test(.GET,
+                                                           "/user",
                                                            headers: .init(),
-                                                           body: ByteBuffer(data: XMLEncoder().encode(User(id: userId, name: name))))
-        { res in
+                                                           body: ByteBuffer(data: XMLEncoder().encode(User(id: userId, name: name)))) { res in
             XCTAssertEqual(res.status, .ok)
             let container = try res.content.decode(ResponseContainer<User>.self, using: XMLDecoder())
             XCTAssertEqual(container.data.id, userId)
@@ -282,10 +284,10 @@ class RESTExporterConfigurationTests: ApodiniTests {
         let userId = "1234"
         let name = "Rudi"
         
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "/user",
+        try app.vapor.app.testable(method: .inMemory).test(.GET,
+                                                           "/user",
                                                            headers: .init(),
-                                                           body: ByteBuffer(data: XMLEncoder().encode(User(id: userId, name: name))))
-        { res in
+                                                           body: ByteBuffer(data: XMLEncoder().encode(User(id: userId, name: name)))) { res in
             XCTAssertEqual(res.status, .ok)
             let container = try res.content.decode(ResponseContainer<User>.self)
             XCTAssertEqual(container.data.id, userId)
@@ -311,10 +313,10 @@ class RESTExporterConfigurationTests: ApodiniTests {
         let userId = "1234"
         let name = "Rudi"
         
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "/user",
+        try app.vapor.app.testable(method: .inMemory).test(.GET,
+                                                           "/user",
                                                            headers: .init(),
-                                                           body: ByteBuffer(data: JSONEncoder().encode(User(id: userId, name: name))))
-        { res in
+                                                           body: ByteBuffer(data: JSONEncoder().encode(User(id: userId, name: name)))) { res in
             XCTAssertEqual(res.status, .ok)
             let container = try res.content.decode(ResponseContainer<User>.self, using: XMLDecoder())
             XCTAssertEqual(container.data.id, userId)
