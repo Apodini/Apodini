@@ -46,7 +46,7 @@ private struct TestIntComponentOnlyMetadata: ComponentOnlyMetadataDefinition {
 private struct GenericTestStringComponentOnlyMetadata<C: Component>: ComponentOnlyMetadataDefinition {
     typealias Key = TestStringMetadataContextKey
 
-    var value: String = String(describing: C.self)
+    var value = String(describing: C.self)
 }
 
 
