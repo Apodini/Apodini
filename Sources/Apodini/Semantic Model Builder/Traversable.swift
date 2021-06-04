@@ -421,7 +421,7 @@ private extension Runtime.PropertyInfo {
     }
 }
 
-
+#if DEBUG
     func exposedExecute<Element, Target>(_ operation: (Target, _ name: String) throws -> Void, on element: Element) rethrows {
         try execute(operation, on: element)
     }
@@ -437,3 +437,4 @@ private extension Runtime.PropertyInfo {
     func exposedApply<Element, Target>(_ mutation: (inout Target) throws -> Void, to element: inout Element) rethrows {
         try apply(mutation, to: &element)
     }
+#endif

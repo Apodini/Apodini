@@ -324,6 +324,7 @@ let package = Package(
             dependencies: [
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
+                .product(name: "CwlPosixPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.linux])),
                 .target(name: "Apodini"),
                 .target(name: "ApodiniDatabase"),
                 .target(name: "ApodiniUtils")

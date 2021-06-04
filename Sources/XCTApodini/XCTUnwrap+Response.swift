@@ -3,7 +3,7 @@
 //
 
 import XCTest
-@testable import Apodini
+import Apodini
 
 /// Overload for force unwrapping `Response` types.
 public func XCTUnwrap<T: Encodable>(

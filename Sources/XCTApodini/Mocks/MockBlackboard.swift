@@ -5,6 +5,7 @@
 //  Created by Max Obermeier on 10.05.21.
 //
 
+#if DEBUG
 import Foundation
 @testable import Apodini
 
@@ -41,3 +42,4 @@ public extension WebServiceModel {
         self.init(mockBlackboard)
     }
 }
+#endif

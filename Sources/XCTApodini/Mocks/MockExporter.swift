@@ -5,7 +5,7 @@
 import Foundation
 import class Vapor.Application
 import class Vapor.Request
-@testable import Apodini
+import Apodini
 
 extension String: ExporterRequest {}
 

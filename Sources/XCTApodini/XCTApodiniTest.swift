@@ -1,5 +1,5 @@
 import FluentSQLiteDriver
-@testable import Apodini
+import Apodini
 import XCTest
 import ApodiniDatabase
 import ApodiniUtils
