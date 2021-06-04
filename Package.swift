@@ -215,6 +215,7 @@ let package = Package(
             name: "ApodiniOpenAPI",
             dependencies: [
                 .target(name: "Apodini"),
+                .target(name: "ApodiniREST"),
                 .target(name: "ApodiniVaporSupport"),
                 .target(name: "ApodiniTypeReflection"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
