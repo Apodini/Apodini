@@ -258,16 +258,6 @@ private protocol HandlerWithDeploymentOptionsATRVisitorHelper: AssociatedTypeReq
     func callAsFunction<T: HandlerWithDeploymentOptions>(_ value: T) -> Output
 }
 
-/*
- extension IdentifiableHandlerATRVisitorHelper {
-    @inline(never)
-    @_optimize(none)
-    fileprivate func _test() {
-        _ = self(TestHandlerType())
-    }
-}
- */
-
 private struct TestHandlerWithDeploymentOptions: HandlerWithDeploymentOptions {
     typealias Response = Never
     static var deploymentOptions: [AnyDeploymentOption] { [] }

@@ -7,8 +7,6 @@
 
 #if DEBUG
 @testable import Apodini
-#endif
-
 import XCTest
 
 extension Empty: Equatable {
@@ -16,8 +14,6 @@ extension Empty: Equatable {
         true
     }
 }
-
-#if DEBUG
 
 /// Adds the possibility to easily check the `Response<T>` of a `Handler` by investigating the `Response`
 /// - Parameters:
