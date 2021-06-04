@@ -7,6 +7,7 @@ import XCTest
 
 class XCTBootstrap: XCTestCase {
     func testRunner() throws {
+        print("Bootstrapping negative test runner...")
         let runner = try NegativeTestRunner()
 
         try runner.prepareConfiguration()
@@ -221,7 +222,7 @@ class NegativeTestRunner {
         #if DEBUG
         let stdOutput = runCommand(command: "swift build --build-tests", expectedStatus: 1)
         #else
-        let stdOutput = runCommand(command: "swift build --build-tests -c release", expectedStatus: 1)
+        let stdOutput = runCommand(command: "swift build --build-tests -c release -Xswiftc -enable-testing", expectedStatus: 1)
         #endif
 
         print("[\(target.name)] Scanning results for target \(target.name)...")
@@ -254,7 +255,7 @@ class NegativeTestRunner {
     }
 
     @discardableResult
-    private func runCommand(command: String, expectedStatus: Int32 = 0) -> String {
+    private func runCommand(command: String, expectedStatus: Int32 = 0) -> String { // swiftlint:disable:this function_body_length
         var parts: [String] = []
 
         print("-----------------------------")
