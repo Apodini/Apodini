@@ -320,7 +320,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
     
     struct TestExporterCollectionWithXMLCoderAndOpenAPI: ConfigurationCollection {
         var configuration: Configuration {
-            /// Doesn't compile -> sometimes weird useless error messages
+            /// Doesn't compile (it shouldn't) -> sometimes weird useless error messages
             //RESTInterfaceExporter(encoder: XMLEncoder(), decoder: JSONDecoder())
             RESTInterfaceExporter(encoder: JSONEncoder(), decoder: JSONDecoder()) {
                 OpenAPIInterfaceExporter()
