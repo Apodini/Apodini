@@ -45,4 +45,4 @@ struct TestWebService: Apodini.WebService {
     }
 }
 
-try TestWebService.main()
+TestWebService.main()

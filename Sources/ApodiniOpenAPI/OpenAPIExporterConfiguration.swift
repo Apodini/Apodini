@@ -16,7 +16,7 @@ public enum OpenAPIConfigurationDefaults {
     /// Default swagger-UI endpoint.
     public static let swaggerUiEndpoint: String = "openapi-ui"
 }
- 
+
 /// The enclosing storage entity for OpenAPI-related information.
 public struct OpenAPIStorageValue {
     /// The OpenAPI document
@@ -47,10 +47,10 @@ public struct OpenAPIExporterConfiguration: ExporterConfiguration {
     /// General OpenAPI information.
     var title: String?
     var version: String?
-
+    
     /// Server configuration.
     var serverUrls: Set<URL> = Set<URL>()
-
+    
     /// OpenAPI output configuration.
     let outputFormat: OpenAPIOutputFormat
     let outputEndpoint: String
@@ -67,7 +67,7 @@ public struct OpenAPIExporterConfiguration: ExporterConfiguration {
         title: String? = nil,
         version: String? = nil,
         serverUrls: [URL] = []
-        ) {
+    ) {
         self.parentConfiguration = parentConfiguration
         self.outputFormat = outputFormat
         // Prefix configured endpoints with `/` to avoid relative paths.

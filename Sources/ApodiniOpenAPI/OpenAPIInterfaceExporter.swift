@@ -46,11 +46,11 @@ public final class OpenAPIInterfaceExporter: RESTDependentStaticConfiguration {
 // swiftlint:disable type_name
 final class _OpenAPIInterfaceExporter: StaticInterfaceExporter {
     static var parameterNamespace: [ParameterNamespace] = .individual
-
+    
     let app: Apodini.Application
     var documentBuilder: OpenAPIDocumentBuilder
     var exporterConfiguration: OpenAPIExporterConfiguration
-
+    
     /// Initalize`OpenAPIInterfaceExporter` from `Application`
     required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = OpenAPIExporterConfiguration()) {
         guard let castedConfiguration = dynamicCast(exporterConfiguration, to: OpenAPIExporterConfiguration.self) else {
@@ -66,7 +66,7 @@ final class _OpenAPIInterfaceExporter: StaticInterfaceExporter {
         setApplicationServer(from: app)
         updateStorage()
     }
-
+    
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         documentBuilder.addEndpoint(endpoint)
         
@@ -76,7 +76,7 @@ final class _OpenAPIInterfaceExporter: StaticInterfaceExporter {
             //updateStorage()
         }
     }
-
+    
     func finishedExporting(_ webService: WebServiceModel) {
         serveSpecification()
         updateStorage()
@@ -106,7 +106,7 @@ final class _OpenAPIInterfaceExporter: StaticInterfaceExporter {
             )
         )
     }
-
+    
     private func serveSpecification() {
         if let output = try? self.documentBuilder.document.output(configuration: self.exporterConfiguration) {
             // Register OpenAPI specification endpoint.
@@ -125,7 +125,7 @@ final class _OpenAPIInterfaceExporter: StaticInterfaceExporter {
                 }
                 // Replace placeholder with actual URL of OpenAPI specification endpoint.
                 html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: self.exporterConfiguration.outputEndpoint)
-            
+                
                 return Vapor.Response(status: .ok, headers: headers, body: .init(string: html))
             }
             
