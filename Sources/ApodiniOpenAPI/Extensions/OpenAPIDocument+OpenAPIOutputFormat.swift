@@ -18,7 +18,7 @@ extension OpenAPI.Document {
         case .yaml:
             output = try YAMLEncoder().encode(self)
         case .useParentEncoding:
-            guard let RESTExporterConfiguration =  dynamicCast(configuration.parentConfiguration, to: RESTExporterConfiguration.self) else {
+            guard let RESTExporterConfiguration = dynamicCast(configuration.parentConfiguration, to: RESTExporterConfiguration.self) else {
                 fatalError("No parent encoder specified!")
             }
             

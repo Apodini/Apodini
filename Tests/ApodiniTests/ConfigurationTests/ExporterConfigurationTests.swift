@@ -4,7 +4,6 @@
 //
 //  Created by Philipp Zagar on 26.05.21.
 //
-// swiftlint:disable type_name
 
 @testable import Apodini
 @testable import ApodiniREST
@@ -34,6 +33,7 @@ extension XMLDecoder: AnyDecoder {
     }
 }
 
+// swiftlint:disable type_name
 class ExporterConfigurationTests: XCTestCase {
     func testExporterConfigurationWithDefaultEncoderAndDecoder() throws {
         struct TestCollection: ConfigurationCollection {
