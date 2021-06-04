@@ -338,7 +338,7 @@ class NegativeTestRunner {
             FileHandle.standardError.write(remainingStdErrData)
         }
 
-        print("---------- EXIT: \(process.terminationStatus) ----------")
+        print("---------- EXIT: \(process.terminationStatus) (expected: \(expectedStatus)) ----------")
         
         XCTAssertEqual(expectedStatus, process.terminationStatus, "Found unexpected exit code for above process run!")
 
