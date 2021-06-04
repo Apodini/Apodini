@@ -36,7 +36,7 @@ jobs:
       run: yum update -y && yum install -y sqlite-devel
     - name: Install libsqlite3
       if: startsWith( matrix.linux, 'centos' )
-      run: yum update -y --allowerasing && yum install -y sqlite-devel
+      run: yum update -y --nobest && yum install -y sqlite-devel
     - uses: actions/cache@v2
       with:
         path: TestWebService/.build

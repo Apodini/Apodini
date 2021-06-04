@@ -37,7 +37,7 @@ jobs:
       run: yum update -y && yum install -y sqlite-devel lsof zsh
     - name: Install libsqlite3
       if: startsWith( matrix.linux, 'centos' )
-      run: yum update -y --allowerasing && yum install -y sqlite-devel lsof zsh
+      run: yum update -y --nobest && yum install -y sqlite-devel lsof zsh
     - uses: actions/cache@v2
       with:
         path: .build
