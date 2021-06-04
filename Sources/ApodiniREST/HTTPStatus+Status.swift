@@ -17,6 +17,8 @@ extension Vapor.HTTPStatus {
             self = .created
         case .noContent:
             self = .noContent
+        case .redirect:
+            self = .seeOther
         }
     }
 }
