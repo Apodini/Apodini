@@ -145,7 +145,10 @@ let package = Package(
         ),
 
         .testTarget(
-            name: "NegativeCompileTestsRunner"
+            name: "NegativeCompileTestsRunner",
+            dependencies: [
+                .target(name: "ApodiniUtils")
+            ]
         ),
         
         .testTarget(

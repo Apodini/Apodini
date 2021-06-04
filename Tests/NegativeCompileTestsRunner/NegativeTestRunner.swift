@@ -3,6 +3,7 @@
 //
 
 import Foundation
+import ApodiniUtils
 import XCTest
 
 class XCTBootstrap: XCTestCase {
@@ -37,8 +38,10 @@ class NegativeTestRunner {
     private let errorDefinitionPattern: NSRegularExpression
     private let compilerErrorPattern: NSRegularExpression
 
+    var observerRegistration: AnyObject?
+
     init() throws {
-        self.workingDirectory = try XCTUnwrap(URL(string: #filePath))
+        self.workingDirectory = try XCTUnwrap(URL(fileURLWithPath: #filePath))
             .deletingLastPathComponent() // removing "NegativeTestRunner.swift"
             .deletingLastPathComponent() // removing "NegativeCompileTestsRunner"
             .deletingLastPathComponent() // remoivng "Tests"
@@ -217,12 +220,10 @@ class NegativeTestRunner {
             pathsOfCopiedTestCases.append(testCase.destinationUrl.path)
         }
 
-        runCommand(command: "ls -al \(target.directory)")
-
         #if DEBUG
-        let stdOutput = runCommand(command: "swift build --build-tests", expectedStatus: 1)
+        let stdOutput = try runCommand(command: "swift", arguments: "build --build-tests", expectedStatus: 1)
         #else
-        let stdOutput = runCommand(command: "swift build --build-tests -c release -Xswiftc -enable-testing", expectedStatus: 1)
+        let stdOutput = try runCommand(command: "swift", arguments: "build --build-tests -c release -Xswiftc -enabling-testing", expectedStatus: 1)
         #endif
 
         print("[\(target.name)] Scanning results for target \(target.name)...")
@@ -255,92 +256,53 @@ class NegativeTestRunner {
     }
 
     @discardableResult
-    private func runCommand(command: String, expectedStatus: Int32 = 0) -> String { // swiftlint:disable:this function_body_length
+    private func runCommand(command: String, arguments: String, expectedStatus: Int32 = 0) throws -> String {
         var parts: [String] = []
 
         print("-----------------------------")
-        print("Running command '\(command)'...")
+        print("Running command '\(command) \(arguments)'...")
 
-        let process = Process()
-        process.launchPath = "/usr/bin/env"
-        process.arguments = ["zsh", "-c", command]
-        process.currentDirectoryPath = workingDirectory.path
-        
-        // https://stackoverflow.com/questions/67595371/swift-package-calling-usr-bin-swift-errors-with-failed-to-open-macho-file-to
-        if ProcessInfo.processInfo.environment.keys.contains("OS_ACTIVITY_DT_MODE") {
-            print("Clearing OS_ACTIVITY_DT_MODE environment variable")
-            var environment = ProcessInfo.processInfo.environment
-            environment["OS_ACTIVITY_DT_MODE"] = nil
-            process.environment = environment
+        guard let swiftBinary = Task.findExecutable(named: command) else {
+            fatalError("Could not find '\(command)' executable!")
         }
 
-        let stdOutPipe = Pipe()
-        let stdErrPipe = Pipe()
+        // https://stackoverflow.com/questions/67595371/swift-package-calling-usr-bin-swift-errors-with-failed-to-open-macho-file-to
+        var environment: [String: String] = ProcessInfo.processInfo.environment
+        if environment.keys.contains("OS_ACTIVITY_DT_MODE") {
+            print("Clearing OS_ACTIVITY_DT_MODE environment variable")
+            environment["OS_ACTIVITY_DT_MODE"] = nil
+        }
 
-        process.standardOutput = stdOutPipe
-        process.standardError = stdErrPipe
+        let task = Task(
+            executableUrl: swiftBinary,
+            arguments: arguments.split(separator: " ").map { String($0) },
+            workingDirectory: workingDirectory,
+            captureOutput: true,
+            redirectStderrToStdout: true,
+            launchInCurrentProcessGroup: false,
+            environment: environment,
+            inheritsParentEnvironment: false // even though we pass false, our construction made above inherits environment from parent!
+        )
 
-        let stdOutReadingHandle = stdOutPipe.fileHandleForReading
-        let stdErrReadingHandle = stdErrPipe.fileHandleForReading
-
-        stdOutReadingHandle.waitForDataInBackgroundAndNotify()
-        stdErrReadingHandle.waitForDataInBackgroundAndNotify()
-
-        let stdOutObserver = NotificationCenter.default.addObserver(
-            forName: NSNotification.Name.NSFileHandleDataAvailable,
-            object: stdOutReadingHandle,
-            queue: nil) { _ in
-            let data = stdOutReadingHandle.availableData
-
-            guard !data.isEmpty else { // EOF
-                return
-            }
-
+        observerRegistration = task.observeOutput { type, data, _ in
             let part = String(data: data, encoding: .utf8) ?? ""
-            print(part, terminator: "")
 
             parts.append(part)
 
-            stdOutReadingHandle.waitForDataInBackgroundAndNotify()
-        }
-
-        let stdErrObserver = NotificationCenter.default.addObserver(
-            forName: NSNotification.Name.NSFileHandleDataAvailable,
-            object: stdOutReadingHandle,
-            queue: nil) { _ in
-            let data = stdErrReadingHandle.availableData
-
-            guard !data.isEmpty else { // EOF
-                return
+            if type == .stderr {
+                print("[ERR] \(part)", terminator: "")
+            } else {
+                print(part, terminator: "")
             }
-
-            FileHandle.standardError.write(data)
-
-            stdErrReadingHandle.waitForDataInBackgroundAndNotify()
         }
 
-        process.launch()
-        process.waitUntilExit()
+        let termination = try task.launchSync()
 
-        NotificationCenter.default.removeObserver(stdOutObserver)
-        NotificationCenter.default.removeObserver(stdErrObserver)
-        
-        // sometimes there is still data left which wasn't passed to the Observer
-        let remainingStdOutData = stdOutReadingHandle.readDataToEndOfFile()
-        let remainingStdErrData = stdErrReadingHandle.readDataToEndOfFile()
-        
-        if let remainigStdOut = String(data: remainingStdOutData, encoding: .utf8) {
-            parts.append(remainigStdOut)
-            print(remainigStdOut, terminator: "")
-        }
-        
-        if !remainingStdErrData.isEmpty {
-            FileHandle.standardError.write(remainingStdErrData)
-        }
+        print("---------- EXIT: \(termination.exitCode) (expected: \(expectedStatus)) ----------")
 
-        print("---------- EXIT: \(process.terminationStatus) (expected: \(expectedStatus)) ----------")
-        
-        XCTAssertEqual(expectedStatus, process.terminationStatus, "Found unexpected exit code for above process run!")
+        XCTAssertEqual(expectedStatus, termination.exitCode, "Found unexpected exit code for above process run!")
+
+        observerRegistration = nil
 
         return parts.joined()
     }
