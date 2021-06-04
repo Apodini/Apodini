@@ -32,8 +32,11 @@ jobs:
       if: ${{ !(startsWith( matrix.linux, 'centos' ) || startsWith( matrix.linux, 'amazonlinux' )) }}
       run: apt-get update && apt-get install -y --no-install-recommends libsqlite3-dev
     - name: Install libsqlite3
-      if: ${{ startsWith( matrix.linux, 'centos' ) || startsWith( matrix.linux, 'amazonlinux' ) }}
-      run: yum update -y && yum install --allowerasing -y sqlite-devel
+      if: startsWith( matrix.linux, 'amazonlinux' )
+      run: yum update -y && yum install -y sqlite-devel
+    - name: Install libsqlite3
+      if: startsWith( matrix.linux, 'centos' )
+      run: yum update -y --allowerasing && yum install -y sqlite-devel
     - uses: actions/cache@v2
       with:
         path: TestWebService/.build
