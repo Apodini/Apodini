@@ -28,9 +28,10 @@ struct TheGameWebService: WebService {
     }
 
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(RESTInterfaceExporter.self)
-            .exporter(OpenAPIInterfaceExporter.self) // Register `OpenAPIInterfaceExporter`.
+        RESTInterfaceExporter { 
+            /// Registers the OpenAPI exporter
+            OpenAPIInterfaceExporter()
+        }
     }
 }
 

@@ -50,8 +50,7 @@ struct Greeter: Handler {
 
 struct HelloWorld: WebService {
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(RESTInterfaceExporter.self)
+        RESTInterfaceExporter()
     }
 
     var content: some Component {
@@ -72,9 +71,9 @@ import ApodiniOpenAPI
 ...
 struct HelloWorld: WebService {
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(RESTInterfaceExporter.self)
-            .exporter(OpenAPIInterfaceExporter.self)
+        RESTInterfaceExporter { 
+            OpenAPIInterfaceExporter()
+        }
     }
     ...
 }
@@ -95,9 +94,9 @@ struct Greeter: Handler {
 
 struct HelloWorld: WebService {
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(RESTInterfaceExporter.self)
-            .exporter(OpenAPIInterfaceExporter.self)
+        RESTInterfaceExporter { 
+            OpenAPIInterfaceExporter()
+        }
     }
 
     var content: some Component {
