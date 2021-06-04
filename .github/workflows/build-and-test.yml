@@ -44,9 +44,13 @@ jobs:
         key: ${{ runner.os }}-${{matrix.linux}}-spm-${{ hashFiles('Package.resolved') }}
     - name: Check Swift version
       run: swift --version
-    - name: Build
+
+    - name: Build Release # Ensuring release build runs successfully without -enable-testing flag
       if: matrix.configuration == 'release'
       run: swift build --configuration ${{ matrix.configuration }}
+    - name: Build & Test
+      if: matrix.configuration == 'release'
+      run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery -Xswiftc -enable-testing
     - name: Build & Test
       if: matrix.configuration == 'debug'
       run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery

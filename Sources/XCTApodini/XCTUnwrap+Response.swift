@@ -2,7 +2,6 @@
 // Created by Andreas Bauer on 02.02.21.
 //
 
-#if DEBUG
 import XCTest
 @testable import Apodini
 
@@ -15,4 +14,3 @@ public func XCTUnwrap<T: Encodable>(
 ) throws -> T {
     try XCTUnwrap(try expression().content, message(), file: file, line: line)
 }
-#endif

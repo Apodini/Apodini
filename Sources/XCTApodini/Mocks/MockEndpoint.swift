@@ -2,7 +2,6 @@
 // Created by Andreas Bauer on 25.12.20.
 //
 
-#if DEBUG
 @testable import Apodini
 import struct Foundation.UUID
 
@@ -46,4 +45,3 @@ public extension Handler {
         )
     }
 }
-#endif

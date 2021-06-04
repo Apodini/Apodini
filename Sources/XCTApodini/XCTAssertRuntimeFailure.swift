@@ -6,10 +6,14 @@
 //
 
 
-#if DEBUG
 import XCTest
+#if canImport(CwlPreconditionTesting) || canImport(CwlPosixPreconditionTesting)
 #if canImport(CwlPreconditionTesting)
 @_implementationOnly import CwlPreconditionTesting
+#elseif canImport(CwlPosixPreconditionTesting)
+@_implementationOnly import CwlPosixPreconditionTesting
+#endif
+// TODO CwlPOSIXPreconditioNTesting
 
 /// Asserts that an expression leads to a runtime failure.
 public func XCTAssertRuntimeFailure<T>(
@@ -30,6 +34,6 @@ public func XCTAssertRuntimeFailure<T>(
     file: StaticString = #filePath,
     line: UInt = #line) {
     // Empty implementation for Linux Tests
+    print("[WARN] XCTAssertRuntimeFailure unsupported!") // TODO remove
 }
-#endif
 #endif

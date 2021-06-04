@@ -153,10 +153,10 @@ extension DeploymentProvider {
             )
         }
         
-        logger.notice("Invoking child process `\(exportWebServiceModelTask)`")
+        logger.notice("Invoking child process `\(exportWebServiceModelTask.description)`")
         let terminationInfo = try exportWebServiceModelTask.launchSync()
         guard terminationInfo.exitCode == EXIT_SUCCESS else {
-            throw ApodiniDeployBuildSupportError(message: "Unable to generate model structure")
+            throw ApodiniDeployBuildSupportError(message: "Unable to generate model structure: \(terminationInfo.exitCode)") // TODO throws in release builds
         }
         
         logger.notice("model written to '\(modelFileUrl)'")

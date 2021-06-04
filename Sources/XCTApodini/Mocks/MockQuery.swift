@@ -1,4 +1,3 @@
-#if DEBUG
 import XCTest
 @testable import Apodini
 
@@ -18,4 +17,3 @@ public func mockQuery<Value: Encodable, H: Handler>(
     
     return try XCTUnwrap(response.typed(value))
 }
-#endif
