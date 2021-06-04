@@ -1,9 +1,11 @@
 import Fluent
 import Apodini
+import NIOSSL
 @_implementationOnly import FluentSQLiteDriver
 @_implementationOnly import FluentMySQLDriver
 @_implementationOnly import FluentPostgresDriver
 @_implementationOnly import FluentMongoDriver
+@_implementationOnly import Foundation
 
 /// A `Configuration` used for Database Access
 public final class DatabaseConfiguration: Configuration {
@@ -38,7 +40,7 @@ public final class DatabaseConfiguration: Configuration {
             app.migrations.add(migrations)
             try app.autoMigrate().wait()
         } catch {
-            fatalError("An error occured while configuring the database.")
+            fatalError("An error occured while configuring the database. Error: \(error.localizedDescription)")
         }
     }
     
@@ -59,16 +61,26 @@ public final class DatabaseConfiguration: Configuration {
             return .sqlite(.apply(config))
         case .defaultPostgreSQL(let conString):
             return try .postgres(url: conString)
-        case let .postgreSQL(hostName, username, password, database):
+        case let .postgreSQL(hostName, port, username, password, database, configuration):
+            let config = PostgresConfiguration(hostname: hostName,
+                                               port: port,
+                                               username: username,
+                                               password: password,
+                                               database: database,
+                                               tlsConfiguration: configuration)
             return .postgres(hostname: hostName, username: username, password: password, database: database)
         case .defaultMySQL(let conString):
             return try .mysql(url: conString)
-        case let .mySQL(hostname, username, password):
-            return .mysql(hostname: hostname, username: username, password: password)
+        case let .mySQL(hostname, username, password, database, tlsConfig):
+            let config = MySQLConfiguration(hostname: hostname,
+                                            username: username,
+                                            password: password,
+                                            database: database,
+                                            tlsConfiguration: tlsConfig)
+            return .mysql(configuration: config)
         }
     }
 }
-
 /// An enum specifying the configuration of the SQLite database type.
 public enum SQLiteConfig {
     /// Creates the database in memory
@@ -92,14 +104,17 @@ public enum DatabaseType {
     /// - Parameters:
         /// - connectionString: The URL-String the database will listen on.
     case defaultPostgreSQL(_ connectionString: String)
+    // swiftlint:disable enum_case_associated_values_count
     /// A database type for a specified postreSQL configuration
     ///
     /// - Parameters:
         /// - hostname: The name of the database host.
         /// - username: The username of the database user.
+        /// - port:     The port of the database.
         /// - password: The password of the database user.
         /// - database: The name of the database
-    case postgreSQL(hostname: String, username: String, password: String, database: String)
+        /// - configuration: The `TLSConfiguration` object  that should be used
+    case postgreSQL(hostname: String, port: Int, username: String, password: String, database: String, configuration: TLSConfiguration)
     /// A database type for a specified sqLite configuration
     ///
     /// - Parameters:
@@ -110,13 +125,16 @@ public enum DatabaseType {
     /// - Parameters:
     /// - connectionString: The URL-String the database will listen on.
     case defaultMySQL(_ connectionString: String)
-    /// A database type for a specified mySQL configuration
+    /// A database type for a specified mySQL configuration.
+    /// Uses the `TLSConfiguration.forClient()` configuration.
     ///
     /// - Parameters:
         /// - hostname: The name of the database host.
         /// - username: The username of the database user.
         /// - password: The password of the database user.
-    case mySQL(_ hostname: String, username: String, password: String)
+        /// - database: The name of the database
+        /// - configuration: A `TLSConfiguration` that should be used.
+    case mySQL(_ hostname: String, username: String, password: String, database: String, configuration: TLSConfiguration)
 }
 
 /// An extension to the `Fluent.SQLiteConfiguration` to enable an initialization with an `Apodini.SQLiteConfig`.
