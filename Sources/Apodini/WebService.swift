@@ -80,7 +80,9 @@ extension WebService {
             app.http.address = .hostname(HTTPConfiguration.Defaults.hostname, port: HTTPConfiguration.Defaults.port)
         }
         
-        webService.register(app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        webService.register(
+            app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app))
+        )
     }
     
     

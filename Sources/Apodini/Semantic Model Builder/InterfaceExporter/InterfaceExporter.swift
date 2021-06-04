@@ -23,7 +23,6 @@ public protocol BaseInterfaceExporter {
     /// - Parameter app: The application containing any necessary state.
     /// - Parameter configuration: The configuration passed to the exporter.
     init(_ app: Application, _ configuration: ExporterConfiguration)
-    //init(_ app: Application)
 
     /// This method is called for every `Endpoint` on start up, which must be exporter
     /// by the `InterfaceExporter`.

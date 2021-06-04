@@ -42,9 +42,9 @@ public struct PathParameter<Element: Codable & LosslessStringConvertible>: Decod
         self.identifyingType = IdentifyingType(identifying: type)
     }
     
-    public init(from decoder: Decoder) throws {
-        fatalError("Not implemented")
-    }
+    /// Required because `WebService` conform to `ParsableCommand` which conforms to `Decodable`
+    /// Can't be automatically synthesized by Swift
+    public init(from decoder: Decoder) throws {}
 }
 
 extension PathParameter {

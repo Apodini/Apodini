@@ -8,8 +8,8 @@
 @testable import Apodini
 @testable import ApodiniREST
 @testable import ApodiniOpenAPI
-@testable import SotoXML
 import ApodiniUtils
+import SotoXML
 import Vapor
 import XCTest
 import XCTApodini
