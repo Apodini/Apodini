@@ -4,6 +4,7 @@
 
 import Apodini
 import ApodiniREST
+import ApodiniUtils
 import Foundation
 import OpenAPIKit
 @_implementationOnly import Yams
@@ -17,7 +18,7 @@ extension OpenAPI.Document {
         case .yaml:
             output = try YAMLEncoder().encode(self)
         case .useParentEncoding:
-            guard let RESTExporterConfiguration = configuration.parentConfiguration as? RESTExporterConfiguration else {
+            guard let RESTExporterConfiguration =  dynamicCast(configuration.parentConfiguration, to: RESTExporterConfiguration.self) else {
                 fatalError("No parent encoder specified!")
             }
             

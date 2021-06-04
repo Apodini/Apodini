@@ -25,10 +25,10 @@ public final class RESTInterfaceExporter: Configuration {
     }
     
     /**
-      Initializes the configuration of the `RESTInterfaceExporter` with (default) `AnyEncoder` and `AnyDecoder`
+     Initializes the configuration of the `RESTInterfaceExporter` with (default) `AnyEncoder` and `AnyDecoder`
      - Parameters:
-         - encoder: The to be used `AnyEncoder`
-         - decoder: The to be used `AnyDecoder`
+     - encoder: The to be used `AnyEncoder`
+     - decoder: The to be used `AnyDecoder`
      */
     public init(encoder: AnyEncoder = defaultEncoder,
                 decoder: AnyDecoder = defaultDecoder) {
@@ -53,7 +53,7 @@ public final class RESTInterfaceExporter: Configuration {
 
 extension RESTInterfaceExporter {
     /**
-      Initializes the configuration of the `RESTInterfaceExporter` with (default) JSON Coders and possibly associated Exporters (eg. OpenAPI Exporter)
+     Initializes the configuration of the `RESTInterfaceExporter` with (default) JSON Coders and possibly associated Exporters (eg. OpenAPI Exporter)
      - Parameters:
          - encoder: The to be used `JSONEncoder`
          - decoder: The to be used `JSONDecoder`
@@ -66,37 +66,38 @@ extension RESTInterfaceExporter {
         self.staticConfigurations = staticConfigurations()
     }
 }
- 
+
 /// Internal Apodini Interface Exporter for REST
 // swiftlint:disable type_name
 final class _RESTInterfaceExporter: InterfaceExporter {
     static let parameterNamespace: [ParameterNamespace] = .individual
-
+    
     let app: Vapor.Application
     let exporterConfiguration: RESTConfiguration
-
+    
     /// Initialize `RESTInterfaceExporter` from `Application`
     required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = RESTExporterConfiguration()) {
         guard let castedConfiguration = dynamicCast(exporterConfiguration, to: RESTExporterConfiguration.self) else {
             fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
         }
+        
         self.app = app.vapor.app
         self.exporterConfiguration = RESTConfiguration(app.vapor.app.http.server.configuration, exporterConfiguration: castedConfiguration)
     }
-
+    
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         var pathBuilder = RESTPathBuilder()
         endpoint.absolutePath.build(with: &pathBuilder)
-
+        
         let routesBuilder = pathBuilder.routesBuilder(app)
-
+        
         let operation = endpoint[Operation.self]
-
+        
         let endpointHandler = RESTEndpointHandler(with: exporterConfiguration, for: endpoint, on: self)
         endpointHandler.register(at: routesBuilder, using: operation)
-
+        
         app.logger.info("Exported '\(Vapor.HTTPMethod(operation).rawValue) \(pathBuilder.pathDescription)' with parameters: \(endpoint.parameters.map { $0.name })")
-
+        
         if endpoint.inheritsRelationship {
             for selfRelationship in endpoint.selfRelationships() where selfRelationship.destinationPath != endpoint.absolutePath {
                 app.logger.info("""
@@ -105,31 +106,31 @@ final class _RESTInterfaceExporter: InterfaceExporter {
                                 """)
             }
         }
-
+        
         for operation in Operation.allCases.sorted(by: \.linksOperationPriority) {
             for destination in endpoint.relationships(for: operation) {
                 app.logger.info("  - links to: \(destination.destinationPath.asPathString())")
             }
         }
     }
-
+    
     func finishedExporting(_ webService: WebServiceModel) {
         if webService.getEndpoint(for: .read) == nil {
             // if the root path doesn't have a read endpoint we create a custom one, to deliver linking entry points.
-
+            
             let relationships = webService.rootRelationships(for: .read)
-
+            
             let handler = RESTDefaultRootHandler(configuration: exporterConfiguration, relationships: relationships)
             handler.register(on: app)
-
+            
             app.logger.info("Auto exported '\(HTTPMethod.GET.rawValue) /'")
-
+            
             for relationship in relationships {
                 app.logger.info("  - links to: \(relationship.destinationPath.asPathString())")
             }
         }
     }
-
+    
     func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Vapor.Request) throws -> Type?? {
         switch parameter.parameterType {
         case .lightweight:
@@ -143,14 +144,14 @@ final class _RESTInterfaceExporter: InterfaceExporter {
             guard let stringParameter = request.parameters.get(parameter.pathId) else {
                 return nil // the path parameter didn't exist on that request
             }
-
+            
             guard let value = parameter.initLosslessStringConvertibleParameterValue(from: stringParameter) else {
                 throw ApodiniError(type: .badInput, reason: """
                                                             Encountered illegal input for path parameter \(parameter.name).
                                                             \(Type.self) can't be initialized from \(stringParameter).
                                                             """)
             }
-
+            
             return value
         case .content:
             guard request.body.data != nil else {
@@ -158,7 +159,7 @@ final class _RESTInterfaceExporter: InterfaceExporter {
                 return nil
             }
             return try? request.content.decode(Type.self, using: self.exporterConfiguration.exporterConfiguration.decoder)
-
+            
         case .header:
             return request.headers.first(name: parameter.name) as? Type
         }
