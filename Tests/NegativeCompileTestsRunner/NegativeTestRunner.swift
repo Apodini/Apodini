@@ -37,13 +37,16 @@ class NegativeTestRunner {
     private let compilerErrorPattern: NSRegularExpression
 
     init() throws {
-        var workingDirectory: URL = try XCTUnwrap(URL(string: FileManager.default.currentDirectoryPath))
-        if workingDirectory.lastPathComponent == ".build" {
-            workingDirectory = workingDirectory.deletingLastPathComponent()
-        }
-
-        self.workingDirectory = workingDirectory
+        self.workingDirectory = try XCTUnwrap(URL(string: #filePath))
+            .deletingLastPathComponent() // removing "NegativeTestRunner.swift"
+            .deletingLastPathComponent() // removing "NegativeCompileTestsRunner"
+            .deletingLastPathComponent() // remoivng "Tests"
         self.testsDirectory = workingDirectory.appendingPathComponent("Tests")
+        
+        print("Project directory: \(workingDirectory.absoluteString)")
+        
+        self.errorDefinitionPattern = try NSRegularExpression(pattern: "^.*// error: (.*)$")
+        self.compilerErrorPattern = try NSRegularExpression(pattern: "^([^:]*):([0-9]+):(([0-9]+):)? error: (.*)$")
 
         if !fileManager.directoryExists(at: testsDirectory) {
             fatalError("""
@@ -51,14 +54,11 @@ class NegativeTestRunner {
                        \(workingDirectory.absoluteString) does not contain the 'Tests' folder!
                        """)
         }
-
-        self.errorDefinitionPattern = try NSRegularExpression(pattern: "^.*// error: (.*)$")
-        self.compilerErrorPattern = try NSRegularExpression(pattern: "^([^:]*):([0-9]+):(([0-9]+):)? error: (.*)$")
-
-        print("Project directory: \(workingDirectory)")
     }
 
     func run() throws {
+        print("Running test targets...")
+        
         for target in testTargets {
             do {
                 try buildTarget(target: target)
@@ -105,6 +105,8 @@ class NegativeTestRunner {
     }
 
     func prepareConfiguration() throws {
+        print("Parsing configuration...")
+        
         for target in configurations {
             var testCases: [NegativeTestCase] = []
 
@@ -207,7 +209,7 @@ class NegativeTestRunner {
     }
 
     private func buildTarget(target: NegativeTestTarget) throws {
-        print("Copying test case files...")
+        print("[\(target.name)] Copying test case files...")
         for testCase in target.cases {
             try fileManager.copyItem(atPath: testCase.fileUrl.path, toPath: testCase.destinationUrl.path)
 
@@ -217,12 +219,12 @@ class NegativeTestRunner {
         runCommand(command: "ls -al \(target.directory)")
 
         #if DEBUG
-        let stdOutput = runCommand(command: "swift build --build-tests")
+        let stdOutput = runCommand(command: "swift build --build-tests", expectedStatus: 1)
         #else
-        let stdOutput = runCommand(command: "swift build --build-tests -c release")
+        let stdOutput = runCommand(command: "swift build --build-tests -c release", expectedStatus: 1)
         #endif
 
-        print("Scanning results for target \(target.name)...")
+        print("[\(target.name)] Scanning results for target \(target.name)...")
 
         let lines = stdOutput.split(separator: "\n", omittingEmptySubsequences: false).map {
             String($0)
@@ -252,7 +254,7 @@ class NegativeTestRunner {
     }
 
     @discardableResult
-    private func runCommand(command: String) -> String {
+    private func runCommand(command: String, expectedStatus: Int32 = 0) -> String {
         var parts: [String] = []
 
         print("-----------------------------")
@@ -262,6 +264,14 @@ class NegativeTestRunner {
         process.launchPath = "/usr/bin/env"
         process.arguments = ["zsh", "-c", command]
         process.currentDirectoryPath = workingDirectory.path
+        
+        // https://stackoverflow.com/questions/67595371/swift-package-calling-usr-bin-swift-errors-with-failed-to-open-macho-file-to
+        if ProcessInfo.processInfo.environment.keys.contains("OS_ACTIVITY_DT_MODE") {
+            print("Clearing OS_ACTIVITY_DT_MODE environment variable")
+            var environment = ProcessInfo.processInfo.environment
+            environment["OS_ACTIVITY_DT_MODE"] = nil
+            process.environment = environment
+        }
 
         let stdOutPipe = Pipe()
         let stdErrPipe = Pipe()
@@ -313,8 +323,23 @@ class NegativeTestRunner {
 
         NotificationCenter.default.removeObserver(stdOutObserver)
         NotificationCenter.default.removeObserver(stdErrObserver)
+        
+        // sometimes there is still data left which wasn't passed to the Observer
+        let remainingStdOutData = stdOutReadingHandle.readDataToEndOfFile()
+        let remainingStdErrData = stdErrReadingHandle.readDataToEndOfFile()
+        
+        if let remainigStdOut = String(data: remainingStdOutData, encoding: .utf8) {
+            parts.append(remainigStdOut)
+            print(remainigStdOut, terminator: "")
+        }
+        
+        if !remainingStdErrData.isEmpty {
+            FileHandle.standardError.write(remainingStdErrData)
+        }
 
-        print("-----------------------------")
+        print("---------- EXIT: \(process.terminationStatus) ----------")
+        
+        XCTAssertEqual(expectedStatus, process.terminationStatus, "Found unexpected exit code for above process run!")
 
         return parts.joined()
     }
