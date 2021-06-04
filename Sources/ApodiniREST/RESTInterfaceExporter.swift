@@ -37,7 +37,6 @@ public final class RESTInterfaceExporter: Configuration {
     }
     
     public func configure(_ app: Apodini.Application) {
-        /*
         /// Instanciate exporter
         let restExporter = _RESTInterfaceExporter(app, self.configuration)
         
@@ -49,7 +48,6 @@ public final class RESTInterfaceExporter: Configuration {
         
         /// Configure attached related static configurations
         self.staticConfigurations.configure(app, parentConfiguration: self.configuration)
- */
     }
 }
 
