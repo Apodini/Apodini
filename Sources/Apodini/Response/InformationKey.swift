@@ -10,4 +10,5 @@
 public enum InformationKey: String {
     case authorization = "Authorization"
     case setCookie = "Set-Cookie"
+    case location = "Location"
 }
