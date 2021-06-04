@@ -3,13 +3,13 @@ import XCTest
 
 class ConfigurationBuilderTests: XCTestCase {
     struct SomeConfiguration: Configuration {
-        func configure(_ app: Application, _ semanticModel: SemanticModelBuilder? = nil) { }
+        func configure(_ app: Application) { }
     }
 
     struct CheckConfigurationTriggered: Configuration {
         let counter: ConfigureCounter
 
-        func configure(_ app: Application, _ semanticModel: SemanticModelBuilder? = nil) {
+        func configure(_ app: Application) {
             counter.number += 1
         }
     }

@@ -21,10 +21,15 @@ public final class WebSocketInterfaceExporter: Configuration {
         self.configuration = WebSocketExporterConfiguration(path: path)
     }
     
-    public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder?) {
-        /// Insert  exporter into `SemanticModelBuilder`
+    public func configure(_ app: Apodini.Application) {
+        /// Instanciate exporter
         let webSocketExporter = _WebSocketInterfaceExporter(app, self.configuration)
-        _ = semanticModel?.with(exporter: webSocketExporter)
+        
+        /// Insert  exporter into `SemanticModelBuilder`
+        let builder = app.exporters.semanticModelBuilderBuilder
+        app.exporters.semanticModelBuilderBuilder = { model in
+            builder(model).with(exporter: webSocketExporter)
+        }
     }
 }
 

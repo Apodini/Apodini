@@ -37,7 +37,7 @@ public class Schedule<K: EnvironmentAccessible, T: Job>: Configuration {
     }
     
     /// Enqueues the configured `Job` at server startup.
-    public func configure(_ app: Application, _ semanticModel: SemanticModelBuilder? = nil) {
+    public func configure(_ app: Application) {
         do {
             try app.scheduler.enqueue(job, with: cronTrigger, runs: runs, keyPath, on: app.eventLoopGroup.next())
         } catch JobErrors.requestPropertyWrapper {

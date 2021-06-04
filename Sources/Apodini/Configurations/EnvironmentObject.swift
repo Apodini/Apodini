@@ -15,7 +15,7 @@ public struct EnvironmentObject<Key: EnvironmentAccessible, Value>: Configuratio
         self.keyPath = keyPath
     }
     
-    public func configure(_ app: Application, _ semanticModel: SemanticModelBuilder? = nil) {
+    public func configure(_ app: Application) {
         if let oldValue = app.storage[keyPath] {
             app.logger.warning(
                 """

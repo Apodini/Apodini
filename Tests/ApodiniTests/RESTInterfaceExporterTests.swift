@@ -142,10 +142,9 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
     func testRESTRequest() throws {
         let testCollection = TestRESTExporterCollection()
-        let builder = SemanticModelBuilder(app)
-        testCollection.configuration.configure(app, builder)
+        testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -178,11 +177,10 @@ class RESTInterfaceExporterTests: ApodiniTests {
         }
         
         let testCollection = TestRESTExporterCollection()
-        let builder = SemanticModelBuilder(app)
-        testCollection.configuration.configure(app, builder)
-        
+        testCollection.configuration.configure(app)
+        let builder = app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app))
         WebService().register(builder)
-        
+
         let endpointPaths = builder.rootNode
             .collectEndpoints()
             .map { $0.absolutePath.asPathString() }
@@ -208,10 +206,9 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
     func testDefaultRootHandler() throws {
         let testCollection = TestRESTExporterCollection()
-        let builder = SemanticModelBuilder(app)
-        testCollection.configuration.configure(app, builder)
+        testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
         webserviceWithoutRoot.accept(visitor)
         visitor.finishParsing()
 

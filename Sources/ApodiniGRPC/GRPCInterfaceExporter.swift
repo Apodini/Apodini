@@ -23,13 +23,18 @@ public final class GRPCInterfaceExporter: Configuration {
         self.staticConfigurations = staticConfigurations()
     }
     
-    public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder?) {
-        /// Insert current exporter into `SemanticModelBuilder`
-        let restExporter = _GRPCInterfaceExporter(app, self.configuration)
-        _ = semanticModel?.with(exporter: restExporter)
+    public func configure(_ app: Apodini.Application) {
+        /// Instanciate exporter
+        let grpcExporter = _GRPCInterfaceExporter(app, self.configuration)
+        
+        /// Insert exporter into `SemanticModelBuilder`
+        let builder = app.exporters.semanticModelBuilderBuilder
+        app.exporters.semanticModelBuilderBuilder = { model in
+            builder(model).with(exporter: grpcExporter)
+        }
         
         /// Configure attached related static configurations
-        self.staticConfigurations.configure(app, semanticModel!, parentConfiguration: self.configuration)
+        self.staticConfigurations.configure(app, parentConfiguration: self.configuration)
     }
 }
 

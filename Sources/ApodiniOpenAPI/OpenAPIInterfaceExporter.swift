@@ -27,13 +27,18 @@ public final class OpenAPIInterfaceExporter: RESTDependentStaticConfiguration {
                                                           serverUrls: serverUrls)
     }
     
-    public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder, parentConfiguration: ExporterConfiguration) {
+    public func configure(_ app: Apodini.Application, parentConfiguration: ExporterConfiguration) {
         /// Set configartion of parent
         self.configuration.parentConfiguration = parentConfiguration
         
-        /// Create exporter and insert it into semantic model
+        /// Instanciate exporter
         let openAPIExporter = _OpenAPIInterfaceExporter(app, self.configuration)
-        _ = semanticModel.with(exporter: openAPIExporter)
+        
+        /// Insert exporter into `SemanticModelBuilder`
+        let builder = app.exporters.semanticModelBuilderBuilder
+        app.exporters.semanticModelBuilderBuilder = { model in
+            builder(model).with(exporter: openAPIExporter)
+        }
     }
 }
 

@@ -36,13 +36,20 @@ public final class RESTInterfaceExporter: Configuration {
         self.staticConfigurations = [EmptyRESTDependentStaticConfiguration()]
     }
     
-    public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder?) {
-        /// Insert current exporter into `SemanticModelBuilder`
+    public func configure(_ app: Apodini.Application) {
+        /*
+        /// Instanciate exporter
         let restExporter = _RESTInterfaceExporter(app, self.configuration)
-        _ = semanticModel?.with(exporter: restExporter)
+        
+        /// Insert exporter into `SemanticModelBuilder`
+        let builder = app.exporters.semanticModelBuilderBuilder
+        app.exporters.semanticModelBuilderBuilder = { model in
+            builder(model).with(exporter: restExporter)
+        }
         
         /// Configure attached related static configurations
-        self.staticConfigurations.configure(app, semanticModel!, parentConfiguration: self.configuration)
+        self.staticConfigurations.configure(app, parentConfiguration: self.configuration)
+ */
     }
 }
 

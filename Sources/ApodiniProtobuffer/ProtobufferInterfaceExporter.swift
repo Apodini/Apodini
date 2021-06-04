@@ -16,13 +16,18 @@ public final class ProtobufferInterfaceExporter: GRPCDependentStaticConfiguratio
         self.configuration = ProtobufferExporterConfiguration()
     }
     
-    public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder, parentConfiguration: ExporterConfiguration) {
+    public func configure(_ app: Apodini.Application, parentConfiguration: ExporterConfiguration) {
         /// Set configartion of parent
         self.configuration.parentConfiguration = parentConfiguration
         
-        /// Create exporter and insert it into semantic model
+        /// Instanciate exporter
         let protobufferExporter = _ProtobufferInterfaceExporter(app, self.configuration)
-        _ = semanticModel.with(exporter: protobufferExporter)
+        
+        /// Insert exporter into `SemanticModelBuilder`
+        let builder = app.exporters.semanticModelBuilderBuilder
+        app.exporters.semanticModelBuilderBuilder = { model in
+            builder(model).with(exporter: protobufferExporter)
+        }
     }
 }
 

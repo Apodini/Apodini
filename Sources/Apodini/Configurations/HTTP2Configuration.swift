@@ -34,7 +34,7 @@ public final class HTTP2Configuration: Configuration {
         }
     }
 
-    public func configure(_ app: Application, _ semanticModel: SemanticModelBuilder? = nil) {
+    public func configure(_ app: Application) {
         do {
             if let certURL = certURL, let keyURL = keyURL {
                 let certificates = try NIOSSLCertificate.fromPEMFile(certURL.path)

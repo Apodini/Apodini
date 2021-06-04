@@ -13,7 +13,6 @@ import Logging
 import DeploymentTargetLocalhostCommon
 import OpenAPIKit
 
-
 private struct LocalhostDeploymentProviderCLI: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Localhost Apodini deployment provider",

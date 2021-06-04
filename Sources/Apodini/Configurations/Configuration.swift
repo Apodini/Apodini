@@ -5,8 +5,7 @@ public protocol Configuration {
     ///
     /// - Parameter
     ///    - app: The `Vapor.Application` which is used to register the configuration in Apodini
-    ///    - semanticModel: The `SemanticModelBuilder` where the services are registered
-    func configure(_ app: Application, _ semanticModel: SemanticModelBuilder?)
+    func configure(_ app: Application)
 }
 
 /// This protocol is used by the `WebService` to declare `Configuration`s in an instance
@@ -25,18 +24,16 @@ extension ConfigurationCollection {
 
 
 public struct EmptyConfiguration: Configuration {
-    public func configure(_ app: Application, _ semanticModel: SemanticModelBuilder? = nil) { }
+    public func configure(_ app: Application) { }
     
     public init() { }
 }
 
 
 extension Array: Configuration where Element == Configuration {
-    public func configure(_ app: Application, _ semanticModel: SemanticModelBuilder? = nil) {
-        let semanticModelBuilder = (semanticModel != nil) ? semanticModel : SemanticModelBuilder(app)
-        
+    public func configure(_ app: Application) {
         forEach {
-            $0.configure(app, semanticModelBuilder)
+            $0.configure(app)
         }
     }
 }

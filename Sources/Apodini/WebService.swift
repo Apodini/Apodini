@@ -1,6 +1,6 @@
 //
 //  WebService.swift
-//  
+//
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
@@ -62,19 +62,25 @@ extension WebService {
     }
     
 
-    /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.start()` to startup an Apodini `WebService`.
-    /// - Parameter app: The app instance that should be injected in the Apodini `WebService`
-    static func start(app: Application, webService: Self? = nil) {
-        let webServiceNew = webService ?? Self()
-        let semanticModel = SemanticModelBuilder(app)
-        webServiceNew.configuration.configure(app, semanticModel)
+    /**
+     This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.start()` to startup an Apodini `WebService`.
+     - Parameters:
+         - app: The app instance that should be injected in the Apodini `WebService`
+         - webService: The instanciated `WebService` by the Swift ArgumentParser
+     */
+    static func start(app: Application, webService webServiceTemp: Self? = nil) {
+        /// If `WebService` isn't already instanciated by the Swift ArgumentParser, manually create an instance here
+        let webService = webServiceTemp ?? Self()
         
-        // If no specific address hostname is provided we bind to the default address to automatically and correcly bind in Docker containers.
+        /// Configure application and instanciate exporters
+        webService.configuration.configure(app)
+        
+        /// If no specific address hostname is provided we bind to the default address to automatically and correcly bind in Docker containers.
         if app.http.address == nil {
             app.http.address = .hostname(HTTPConfiguration.Defaults.hostname, port: HTTPConfiguration.Defaults.port)
         }
         
-        webServiceNew.register(semanticModel)
+        webService.register(app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
     }
     
     

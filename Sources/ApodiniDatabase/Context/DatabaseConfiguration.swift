@@ -30,7 +30,7 @@ public final class DatabaseConfiguration: Configuration {
         self.type = type
     }
     
-    public func configure(_ app: Application, _ semanticModel: SemanticModelBuilder? = nil) {
+    public func configure(_ app: Application) {
         do {
             let databases = app.databases
             let factory = try databaseFactory(for: self.type)

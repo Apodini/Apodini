@@ -1,6 +1,6 @@
 //
 //  BindingTests.swift
-//  
+//
 //
 //  Created by Max Obermeier on 24.02.21.
 //
@@ -82,13 +82,12 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
     
     func testUsingRESTExporter() throws {
         let testCollection = TestRESTExporterCollection()
-        let builder = SemanticModelBuilder(app)
-        testCollection.configuration.configure(app, builder)
+        testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
         testService.accept(visitor)
         visitor.finishParsing()
-        
+ 
         EnvironmentObject(self.featured, \BindingTests.featured).configure(self.app)
 
         let selectedCountry = "Germany"
@@ -130,10 +129,10 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
     
     func testAssertBindingAsPathComponent() throws {
         let testCollection = TestRESTExporterCollection()
-        let builder = SemanticModelBuilder(app)
-        testCollection.configuration.configure(app, builder)
-        
+        testCollection.configuration.configure(app)
+        let builder = app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app))
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        
         self.failingTestService.accept(visitor)
         XCTAssertRuntimeFailure(builder.finishedRegistration())
     }

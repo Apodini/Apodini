@@ -1,6 +1,6 @@
 //
 //  ApodiniDeployInterfaceExporter.swift
-//  
+//
 //
 //  Created by Lukas Kollmer on 2021-01-14.
 //
@@ -53,10 +53,15 @@ public final class ApodiniDeployInterfaceExporter: Configuration {
                                                                 node: node)
     }
     
-    public func configure(_ app: Apodini.Application, _ semanticModel: SemanticModelBuilder?) {
-        /// Insert current exporter into `SemanticModelBuilder`
+    public func configure(_ app: Apodini.Application) {
+        /// Instanciate exporter
         let deployExporter = _ApodiniDeployInterfaceExporter(app, self.configuration)
-        _ = semanticModel?.with(exporter: deployExporter)
+        
+        /// Insert exporter into `SemanticModelBuilder`
+        let builder = app.exporters.semanticModelBuilderBuilder
+        app.exporters.semanticModelBuilderBuilder = { model in
+            builder(model).with(exporter: deployExporter)
+        }
     }
 }
 

@@ -10,9 +10,8 @@ public protocol StaticConfiguration {
     /**
      A method that handels the configuration of dependend static exporters
      - Parameters:
-     - app: The `Vapor.Application` which is used to register the configuration in Apodini
-     - semanticModel: The `SemanticModelBuilder` where the services are registered
-     - parentConfiguration: The `Configuration` of the parent of the dependend exporter
+         - app: The `Vapor.Application` which is used to register the configuration in Apodini
+         - parentConfiguration: The `Configuration` of the parent of the dependend exporter
      */
-    func configure(_ app: Application, _ semanticModel: SemanticModelBuilder, parentConfiguration: ExporterConfiguration)
+    func configure(_ app: Application, parentConfiguration: ExporterConfiguration)
 }
