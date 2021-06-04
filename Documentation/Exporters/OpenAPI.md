@@ -49,17 +49,17 @@ This means that per default a `JSON` representation of the OAS is served at `/op
 
 ## OpenAPI-specific Configuration
 
-Additionally, you can use the `OpenAPIConfiguration` class to further specify details on the created OAS document and configure the exporter's behavior.
+Additionally, you can pass configurations to the `OpenAPIInterfaceExporter` in order to specify details of the created OAS document and configure the exporter's behavior.
 
 ```swift
     var configuration: Configuration {
-        // Add `OpenAPIConfiguration`.
-        OpenAPIConfiguration(
-            outputFormat: .yaml,
-            outputEndpoint: "/docs/openapi",
-            swaggerUiEndpoint: "/ui/swagger",
-            title: "The Game - Endangered Nature Edition, built with Apodini"
-        )
+        RESTInterfaceExporter { 
+            /// Adds configuration to the OpenAPIExporter
+            OpenAPIInterfaceExporter(outputFormat: .yaml,
+                                     outputEndpoint: "/docs/openapi",
+                                     swaggerUiEndpoint: "/ui/swagger",
+                                     title: "The Game - Endangered Nature Edition, built with Apodini")
+        }
     }
 ```
 
