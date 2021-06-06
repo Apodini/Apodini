@@ -11,6 +11,20 @@ import PackageDescription
 /// your package caches for this to take effect.
 let experimentalAsyncAwait = false
 
+var apodiniSwiftSettings: [SwiftSetting] {
+    guard experimentalAsyncAwait else {
+        return []
+    }
+    return [
+        .unsafeFlags(
+            [
+                "-Xfrontend",
+                "-enable-experimental-concurrency"
+            ]
+        )
+    ]
+}
+
 
 // MARK: Package Definition
 
@@ -116,12 +130,7 @@ let package = Package(
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
             ],
-            swiftSettings: [
-                .unsafeFlags(experimentalAsyncAwait ? [
-                    "-Xfrontend",
-                    "-enable-experimental-concurrency"
-                ] : [])
-            ]
+            swiftSettings: apodiniSwiftSettings
         ),
 
         .testTarget(
