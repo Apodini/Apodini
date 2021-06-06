@@ -116,34 +116,3 @@ public extension MetadataBuilder {
         AnyWebServiceMetadataArrayWrapper(components)
     }
 }
-
-// MARK: Content Metadata
-public extension MetadataBuilder {
-    static func buildExpression<Metadata: ContentMetadataDefinition>(_ expression: Metadata) -> AnyContentMetadata {
-        WrappedContentMetadataDefinition(expression)
-    }
-
-    static func buildExpression<Metadata: ContentMetadataBlock>(_ expression: Metadata) -> AnyContentMetadata {
-        expression
-    }
-
-    static func buildOptional(_ component: AnyContentMetadata?) -> AnyContentMetadata {
-        component ?? EmptyContentMetadata()
-    }
-
-    static func buildEither(first: AnyContentMetadata) -> AnyContentMetadata {
-        first
-    }
-
-    static func buildEither(second: AnyContentMetadata) -> AnyContentMetadata {
-        second
-    }
-
-    static func buildArray(_ components: [AnyContentMetadata]) -> AnyContentMetadata {
-        AnyContentMetadataArrayWrapper(components)
-    }
-
-    static func buildBlock(_ components: AnyContentMetadata...) -> AnyContentMetadata {
-        AnyContentMetadataArrayWrapper(components)
-    }
-}
