@@ -12,17 +12,18 @@ import PackageDescription
 let experimentalAsyncAwait = false
 
 var apodiniSwiftSettings: [SwiftSetting] {
-    guard experimentalAsyncAwait else {
+    if experimentalAsyncAwait {
+        return [
+            .unsafeFlags(
+                [
+                    "-Xfrontend",
+                    "-enable-experimental-concurrency"
+                ]
+            )
+        ]
+    } else {
         return []
     }
-    return [
-        .unsafeFlags(
-            [
-                "-Xfrontend",
-                "-enable-experimental-concurrency"
-            ]
-        )
-    ]
 }
 
 
