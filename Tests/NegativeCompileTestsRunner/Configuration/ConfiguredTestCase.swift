@@ -13,7 +13,7 @@ struct ConfiguredTestCase {
     let platform: Platform
 
     static func testCase(_ name: String, runningOn platform: Platform = Platform.currentPlatform()) -> ConfiguredTestCase {
-        self.init(name: name)
+        self.init(name: name, platform: platform)
     }
 
     private init(name: String, platform: Platform) {

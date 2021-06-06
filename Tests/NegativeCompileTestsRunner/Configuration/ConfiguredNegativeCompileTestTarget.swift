@@ -17,13 +17,13 @@ struct ConfiguredNegativeCompileTestTarget {
         configurations cases: [ConfiguredTestCase] = [],
         executingOnly testCases: [String]? = nil
     ) -> ConfiguredNegativeCompileTestTarget {
-        self.init(name: name, cases: cases)
+        self.init(name: name, cases: cases, restrictedTestCases: testCases)
     }
 
     private init(name: String, cases: [ConfiguredTestCase], restrictedTestCases: [String]?) {
         self.name = name
         self.cases = cases
-        self.testCaseWhitelist = restrictedTestCases
+        self.restrictedTestCases = restrictedTestCases
     }
 
     func isExcludedCase(_ name: String) -> Bool {
