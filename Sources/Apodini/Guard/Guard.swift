@@ -22,120 +22,6 @@ public protocol Guard {
     func check() throws -> EventLoopFuture<Void>
 }
 
-
-extension SyncGuard {
-    func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
-        do {
-            try request.enterRequestContext(with: self) { guardInstance in
-                try guardInstance.check()
-            }
-            return request.eventLoop.makeSucceededVoidFuture()
-        } catch {
-            return request.eventLoop.makeFailedFuture(error)
-        }
-    }
-}
-
-extension SyncGuard {
-    mutating func activate() {
-        Apodini.activate(&self)
-    }
-    
-    mutating func inject(app: Application) {
-        Apodini.inject(app: app, to: &self)
-    }
-}
-
-
-extension Guard {
-    func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
-        do {
-            return try request
-                .enterRequestContext(with: self) { guardInstance in
-                    try guardInstance.check()
-                }
-                .hop(to: request.eventLoop)
-                .map { _ in }
-        } catch {
-            return request.eventLoop.makeFailedFuture(error)
-        }
-    }
-}
-
-extension Guard {
-    mutating func activate() {
-        Apodini.activate(&self)
-    }
-    
-    mutating func inject(app: Application) {
-        Apodini.inject(app: app, to: &self)
-    }
-}
-
-private enum SomeGuard {
-    case sync(SyncGuard)
-    case async(Guard)
-    
-    mutating func activate() {
-        switch self {
-        case .sync(var syncGuard):
-            syncGuard.activate()
-            self = .sync(syncGuard)
-        case .async(var asyncGuard):
-            asyncGuard.activate()
-            self = .async(asyncGuard)
-        }
-    }
-    
-    mutating func inject(app: Application) {
-        switch self {
-        case .sync(var syncGuard):
-            syncGuard.inject(app: app)
-            self = .sync(syncGuard)
-        case .async(var asyncGuard):
-            asyncGuard.inject(app: app)
-            self = .async(asyncGuard)
-        }
-    }
-    
-    func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
-        switch self {
-        case .sync(let syncGuard):
-            return syncGuard.executeGuardCheck(on: request)
-        case .async(let asyncGuard):
-            return asyncGuard.executeGuardCheck(on: request)
-        }
-    }
-}
-
-struct AnyGuard {
-    let guardType: ObjectIdentifier
-    private var _wrapped: SomeGuard
-
-    init<G: Guard>(_ guard: G) {
-        guardType = ObjectIdentifier(G.self)
-        _wrapped = .async(`guard`)
-    }
-
-    init<G: SyncGuard>(_ guard: G) {
-        guardType = ObjectIdentifier(G.self)
-        _wrapped = .sync(`guard`)
-    }
-
-    func executeGuardCheck(on request: Request) -> EventLoopFuture<Void> {
-        _wrapped.executeGuardCheck(on: request)
-    }
-    
-    mutating func activate() {
-        self._wrapped.activate()
-    }
-    
-    mutating func inject(app: Application) {
-        _wrapped.inject(app: app)
-    }
-}
-
-
 extension Component {
     /// Use an asynchronous `Guard` to guard `Component`s by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
@@ -149,6 +35,11 @@ extension Component {
     /// - Returns: Returns a modified `Component` protected by the synchronous `SyncGuard`
     public func `guard`<G: SyncGuard>(_ guard: G) -> DelegateModifier<Self, SyncGuardingHandlerInitializer<G, Never>> {
         DelegateModifier(self, initializer: SyncGuardingHandlerInitializer(guard: `guard`))
+    }
+    
+    /// Resets all guards for the modified `Component`
+    public func resetGuards() -> DelegateFilterModifier<Self> {
+        self.reset(using: GuardFilter())
     }
 }
 
@@ -168,7 +59,7 @@ extension Handler {
     }
 }
 
-private struct GuardingHandler<D, G>: Handler where D: Handler, G: Guard {
+internal struct GuardingHandler<D, G>: Handler where D: Handler, G: Guard {
     var guarded: Delegate<D>
     var `guard`: Delegate<G>
     
@@ -193,7 +84,7 @@ public struct GuardingHandlerInitializer<G: Guard, R: ResponseTransformable>: De
 }
 
 
-private struct SyncGuardingHandler<D, G>: Handler where D: Handler, G: SyncGuard {
+struct SyncGuardingHandler<D, G>: Handler where D: Handler, G: SyncGuard {
     var guarded: Delegate<D>
     var `guard`: Delegate<G>
     
@@ -213,5 +104,22 @@ public struct SyncGuardingHandlerInitializer<G: SyncGuard, R: ResponseTransforma
     
     public func instance<D>(for delegate: D) throws -> SomeHandler<Response> where D : Handler {
         SomeHandler<Response>(SyncGuardingHandler(guarded: Delegate(delegate), guard: Delegate(self.guard)))
+    }
+}
+
+
+private protocol SomeGuardInitializer { }
+
+extension GuardingHandlerInitializer: SomeGuardInitializer { }
+
+extension SyncGuardingHandlerInitializer: SomeGuardInitializer { }
+
+
+private struct GuardFilter: DelegateFilter {
+    func callAsFunction<I>(_ initializer: I) -> Bool where I : AnyDelegatingHandlerInitializer {
+        if initializer is SomeGuardInitializer {
+            return false
+        }
+        return true
     }
 }

@@ -15,16 +15,13 @@ public extension Handler {
         app: Application? = nil,
         context: Context? = nil,
         operation: Apodini.Operation? = nil,
-        guards: [LazyGuard] = [],
         responseTransformers: [LazyAnyResponseTransformer] = []
     ) -> Endpoint<Self> {
         let context = context ?? Context(contextNode: ContextNode())
         var handler = self
-        var guards = guards
         var responseTransformers = responseTransformers
         if let application = app {
             handler = handler.inject(app: application)
-            guards = guards.inject(app: application)
             responseTransformers = responseTransformers.inject(app: application)
         }
         
@@ -41,7 +38,6 @@ public extension Handler {
         return Endpoint(
             handler: handler,
             blackboard: blackboard,
-            guards: guards,
             responseTransformers: responseTransformers
         )
     }

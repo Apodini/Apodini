@@ -104,16 +104,6 @@ extension Handler {
     }
 }
 
-extension Array where Element == LazyGuard {
-    func inject(app: Application) -> Self {
-        map { lazyGuard in
-            var `guard` = lazyGuard()
-            `guard`.inject(app: app)
-            return { `guard` }
-        }
-    }
-}
-
 extension Array where Element == LazyAnyResponseTransformer {
     func inject(app: Application) -> Self {
         map { lazyTransformer in

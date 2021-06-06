@@ -22,18 +22,7 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
     ) -> EventLoopFuture<Response<EnrichedContent>> {
         let request = connection.request
         
-        let guardEventLoopFutures = instance.guards.map { requestGuard -> EventLoopFuture<Void> in
-            do {
-                return try connection.enterConnectionContext(with: requestGuard) { requestGuard in
-                    requestGuard.executeGuardCheck(on: request)
-                }
-            } catch {
-                return connection.eventLoop.makeFailedFuture(error)
-            }
-        }
-        
-        return EventLoopFuture<Void>
-            .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
+        return request.eventLoop.makeSucceededVoidFuture()
             .flatMapThrowing { _ in
                 do {
                     return try connection.enterConnectionContext(with: self.instance.handler) { handler in

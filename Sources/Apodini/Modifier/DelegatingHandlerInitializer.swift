@@ -10,6 +10,14 @@ import ApodiniUtils
 
 public protocol AnyDelegatingHandlerInitializer {
     func anyinstance<D: Handler>(for delegate: D) throws -> AnyHandler
+    
+    func evaluate(filter: DelegateFilter) -> Bool
+}
+
+public extension AnyDelegatingHandlerInitializer {
+    func evaluate(filter: DelegateFilter) -> Bool {
+        filter(self)
+    }
 }
 
 public protocol DelegatingHandlerInitializer: AnyDelegatingHandlerInitializer {
@@ -40,6 +48,21 @@ public extension DelegateInitializable {
     }
 }
 
+public protocol DelegateFilter {
+    func callAsFunction<I: AnyDelegatingHandlerInitializer>(_ initializer: I) -> Bool
+}
+
+private struct AnyDelegateFilter: DelegatingHandlerInitializer, DelegateFilter {
+    let filter: DelegateFilter
+    
+    func instance<D>(for delegate: D) throws -> SomeHandler<Never> where D : Handler {
+        fatalError("AnyDelegateFilter was evaluated as normal AnyDelegatingHandlerInitializer")
+    }
+    
+    func callAsFunction<I>(_ initializer: I) -> Bool where I : AnyDelegatingHandlerInitializer {
+        filter(initializer)
+    }
+}
 
 struct DelegatingHandlerContextKey: ContextKey {
     static var defaultValue: [AnyDelegatingHandlerInitializer] = []
@@ -75,6 +98,32 @@ extension DelegateModifier: SyntaxTreeVisitable {
     }
 }
 
+public struct DelegateFilterModifier<C: Component>: Modifier {
+    public typealias ModifiedComponent = C
+    
+    public let component: C
+    private let filter: AnyDelegateFilter
+    
+    public var content: some Component { EmptyComponent() }
+    
+    fileprivate init(_ component: C, filter: AnyDelegateFilter) {
+        self.component = component
+        self.filter = filter
+    }
+}
+
+extension DelegateFilterModifier: Handler, HandlerModifier where Self.ModifiedComponent: Handler {
+    public typealias Response = C.Response
+}
+
+extension DelegateFilterModifier: SyntaxTreeVisitable {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
+        visitor.addContext(DelegatingHandlerContextKey.self, value: [filter], scope: .environment)
+        component.accept(visitor)
+    }
+}
+
+
 
 extension Component {
     /// Use a `DelegatingHandlerInitializer` to create a fitting delegating `Handler` for each of the `Component`'s endpoints.
@@ -84,6 +133,11 @@ extension Component {
     }
 }
 
+extension Component {
+    public func reset(using filter: DelegateFilter) -> DelegateFilterModifier<Self> {
+        DelegateFilterModifier(self, filter: AnyDelegateFilter(filter: filter))
+    }
+}
 
 
 class DelegatingHandlerInitializerVisitor: HandlerVisitor {
@@ -101,8 +155,15 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
         preconditionTypeIsStruct(H.self, messagePrefix: "Delegating Handler")
         if !initializers.isEmpty {
             let initializer = initializers.removeFirst()
-            let nextHandler = try initializer.anyinstance(for: handler)
-            try nextHandler.accept(self)
+            
+            if let filter = initializer as? DelegateFilter {
+                initializers = initializers.filter { initializerToFilter in
+                    initializerToFilter.evaluate(filter: filter)
+                }
+            } else {
+                let nextHandler = try initializer.anyinstance(for: handler)
+                try nextHandler.accept(self)
+            }
         } else {
             semanticModelBuilder.register(handler: handler, withContext: context)
         }

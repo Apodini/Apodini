@@ -112,12 +112,11 @@ final class EndpointsTreeTests: ApodiniTests {
         let exporter = MockExporter<String>(queued: name)
 
         // creating handlers, guards and transformers
-        let handler = BasicTestHandler()
+        let handler = BasicTestHandler().guarded(PrintGuard())
         let transformer = EmojiMediator(emojis: "✅")
-        let printGuard = AnyGuard(PrintGuard())
 
         // creating a endpoint model from the handler
-        let endpoint = handler.mockEndpoint(guards: [ { printGuard } ], responseTransformers: [ { transformer } ])
+        let endpoint = handler.mockEndpoint(responseTransformers: [ { transformer } ])
 
         // creating a context for the exporter
         let context = endpoint.createConnectionContext(for: exporter)
