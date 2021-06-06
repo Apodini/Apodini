@@ -44,7 +44,7 @@ class NegativeTestRunner {
         self.workingDirectory = try XCTUnwrap(URL(fileURLWithPath: #filePath))
             .deletingLastPathComponent() // removing "NegativeTestRunner.swift"
             .deletingLastPathComponent() // removing "NegativeCompileTestsRunner"
-            .deletingLastPathComponent() // remoivng "Tests"
+            .deletingLastPathComponent() // removing "Tests"
         self.testsDirectory = workingDirectory.appendingPathComponent("Tests")
         
         print("Project directory: \(workingDirectory.absoluteString)")
@@ -135,8 +135,15 @@ class NegativeTestRunner {
 
             for contentUrl in contents {
                 if target.isExcludedCase(contentUrl.lastPathComponent) {
+                    print("Ignoring \(contentUrl.lastPathComponent) as it is a excluded test case")
                     continue
                 }
+
+                if let configuration = target.configuration(forTestCase: contentUrl.lastPathComponent), !configuration.runsOnCurrentPlatform() {
+                    print("Ignoring \(configuration.name) as it was excluded to run on platform \(Platform.currentPlatform())")
+                    continue
+                }
+
 
                 let destination = targetDirectory.appendingPathComponent(contentUrl.lastPathComponent)
                 var expectedErrors: [ExpectedError] = []
