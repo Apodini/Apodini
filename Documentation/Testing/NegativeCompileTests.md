@@ -29,7 +29,7 @@ So, step 1. would look like the following:
 Step 2.:
 ```swift
 let configurations: TestRunnerConfiguration = [
-    .target("ExampleTargetNegativeCompileTests")
+    .target(name: "ExampleTargetNegativeCompileTests")
 ]
 ```
 
