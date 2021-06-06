@@ -21,16 +21,69 @@ public struct AnyComponent: Component, SyntaxTreeVisitable {
 }
 
 
-public struct AnyHandler: Handler, SyntaxTreeVisitable {
+public struct AnyHandler: Handler, SyntaxTreeVisitable, VisitableHandler {
     public typealias Response = Never
     
     private let _accept: (SyntaxTreeVisitor) -> Void
+    private let _handleraccept: (HandlerVisitor) throws -> Void
     
     init<H: Handler>(_ handler: H) {
         _accept = handler.accept
+        _handleraccept = handler.accept
+    }
+    
+    fileprivate init(_accept: @escaping (SyntaxTreeVisitor) -> Void, _handleraccept: @escaping (HandlerVisitor) throws -> Void) {
+        self._accept = _accept
+        self._handleraccept = _handleraccept
+    }
+    
+    
+    public func accept(_ visitor: SyntaxTreeVisitor) {
+        _accept(visitor)
+    }
+    
+    func accept(_ visitor: HandlerVisitor) throws {
+        try _handleraccept(visitor)
+    }
+}
+
+extension Handler {
+    @_disfavoredOverload
+    func accept(_ visitor: HandlerVisitor) throws {
+        try visitor.visit(handler: self)
+    }
+}
+
+
+protocol HandlerVisitor {
+    func visit<H: Handler>(handler: H) throws
+}
+
+protocol VisitableHandler {
+    func accept(_ visitor: HandlerVisitor) throws
+}
+
+
+public struct SomeHandler<R: ResponseTransformable>: SyntaxTreeVisitable, VisitableHandler {
+    public typealias Response = R
+    
+    private let _accept: (SyntaxTreeVisitor) -> Void
+    private let _handleraccept: (HandlerVisitor) throws -> Void
+    
+    public init<H: Handler>(_ handler: H) {
+        _accept = handler.accept
+        _handleraccept = handler.accept
+    }
+    
+    var anyHandler: AnyHandler {
+        AnyHandler(_accept: self._accept, _handleraccept: self._handleraccept)
     }
     
     public func accept(_ visitor: SyntaxTreeVisitor) {
         _accept(visitor)
+    }
+    
+    func accept(_ visitor: HandlerVisitor) throws {
+        try _handleraccept(visitor)
     }
 }

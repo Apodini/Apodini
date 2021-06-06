@@ -83,20 +83,20 @@ extension GuardModifier: SyntaxTreeVisitable {
 
 
 extension Component {
-    /// Use an asynchronous `Guard` to guard `Component`s by inspecting incoming requests
-    /// - Parameter guard: The `Guard` used to inspecting incoming requests
-    /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`
-    public func `guard`<G: Guard>(_ guard: @escaping @autoclosure () -> (G)) -> GuardModifier<Self> {
-        GuardModifier(self, guard: `guard`)
-    }
-    
-    /// Use a synchronous `SyncGuard` to guard `Component`s by inspecting incoming requests
-    /// - Parameter guard: The `Guard` used to inspecting incoming requests
-    /// - Returns: Returns a modified `Component` protected by the synchronous `SyncGuard`
-    public func `guard`<G: SyncGuard>(_ guard: @escaping @autoclosure () -> (G)) -> GuardModifier<Self> {
-        GuardModifier(self, guard: `guard`)
-    }
-    
+//    /// Use an asynchronous `Guard` to guard `Component`s by inspecting incoming requests
+//    /// - Parameter guard: The `Guard` used to inspecting incoming requests
+//    /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`
+//    public func `guard`<G: Guard>(_ guard: @escaping @autoclosure () -> (G)) -> GuardModifier<Self> {
+//        GuardModifier(self, guard: `guard`)
+//    }
+//
+//    /// Use a synchronous `SyncGuard` to guard `Component`s by inspecting incoming requests
+//    /// - Parameter guard: The `Guard` used to inspecting incoming requests
+//    /// - Returns: Returns a modified `Component` protected by the synchronous `SyncGuard`
+//    public func `guard`<G: SyncGuard>(_ guard: @escaping @autoclosure () -> (G)) -> GuardModifier<Self> {
+//        GuardModifier(self, guard: `guard`)
+//    }
+
     /// Resets all guards for the modified `Component`
     public func resetGuards() -> GuardModifier<Self> {
         GuardModifier(self, guard: { ResetGuard() })

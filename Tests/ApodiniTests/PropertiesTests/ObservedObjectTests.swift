@@ -299,11 +299,6 @@ class ObservedObjectTests: ApodiniTests {
     }
     
     func testObservationAfterUsingSetter() throws {
-        try _testObservationAfterUsingSetter()
-        print("ho")
-    }
-    
-    func _testObservationAfterUsingSetter() throws {
         struct TestHandler: Handler {
             @ObservedObject var testObservable = TestObservable()
             

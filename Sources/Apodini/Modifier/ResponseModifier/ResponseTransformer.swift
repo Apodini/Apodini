@@ -27,6 +27,22 @@ public protocol ResponseTransformer: AnyResponseTransformer {
     func transform(content: Self.InputContent) -> Self.Content
 }
 
+private struct ResponseTransformingHandler<D, T>: Handler where D: Handler, T: ResponseTransformer, D.Response.Content == T.InputContent {
+   
+    var transformed: Delegate<D>
+    var transformer: Delegate<T>
+    
+    @Environment(\.connection) var connection
+    
+    func handle() throws -> EventLoopFuture<Response<T.Content>> {
+        try transformed().handle().transformToResponse(on: connection.eventLoop).flatMapThrowing { responseToTransform in
+            try responseToTransform.map { content in
+                try transformer().transform(content: content)
+            }
+        }
+    }
+}
+
 
 extension ResponseTransformer {
     /// A type erased version of a `ResponseTransformer`'s `Response` type
@@ -53,14 +69,44 @@ extension ResponseTransformer {
     }
 }
 
+public struct ResponseTransformingHandlerInitializer<T: ResponseTransformer>: DelegatingHandlerInitializer {
+    public typealias Response = Apodini.Response<T.Content>
+    
+    let transformer: T
+    
+    public func instance<D>(for delegate: D) throws -> SomeHandler<Response> where D : Handler {
+        if let transformingHandler = (TransformerCandidate(transformer: transformer, delegate: delegate) as? Transformable)?() as? SomeHandler<Response> {
+            return transformingHandler
+        }
+        
+        fatalError("Cannot use response transformer \(transformer) with handler of type \(D.self) because content types do not match.")
+    }
+}
+
+private struct TransformerCandidate<Transformer: ResponseTransformer, Delegate: Handler> {
+    let transformer: Transformer
+    let delegate: Delegate
+}
+
+extension TransformerCandidate: Transformable where Transformer.InputContent == Delegate.Response.Content {
+    func callAsFunction() -> Any {
+        SomeHandler<Response<Transformer.Content>>(ResponseTransformingHandler<Delegate, Transformer>(transformed: Apodini.Delegate(delegate), transformer: Apodini.Delegate(transformer)))
+    }
+}
+
+private protocol Transformable {
+    func callAsFunction() -> Any
+}
 
 extension Handler {
     /// A `response` modifier can be used to transform the output of a `Handler`'s response to a different type using a `ResponseTransformer`
     /// - Parameter responseTransformer: The `ResponseTransformer` used to transform the response of a `Handler`
     /// - Returns: The modified `Handler` with a new `ResponseTransformable` type
     public func response<T: ResponseTransformer>(
-        _ responseTransformer: @escaping @autoclosure () -> (T)
-    ) -> ResponseModifier<Self, T> where Self.Response.Content == T.InputContent {
-        ResponseModifier(self, responseTransformer: responseTransformer)
+        _ responseTransformer: T
+    ) -> DelegateModifier<Self, ResponseTransformingHandlerInitializer<T>> where Self.Response.Content == T.InputContent {
+        // TODO: internal MutableHandlerModifier? Somehow tweak SyntaxTreeVisitable.accept() function to sort out what the real handler is while still visiting child-modifiers? Adopt Type-Erased (see transform above) system?
+        
+        DelegateModifier(self, initializer: ResponseTransformingHandlerInitializer(transformer: responseTransformer))
     }
 }

@@ -26,7 +26,7 @@ public protocol SyntaxTreeVisitable {
 
 
 /// The `SyntaxTreeVisitor` is used to parse the Apodini DSL and forward the parsed result to the `SemanticModelBuilder`s.
-public class SyntaxTreeVisitor {
+public class SyntaxTreeVisitor: HandlerVisitor {
     /// The `semanticModelBuilders` that can interpret the Apodini DSL syntax tree collected by the `SyntaxTreeVisitor`
     private let modelBuilder: SemanticModelBuilder?
     /// Contains the current `ContextNode` that is used when creating a context for each registered `Handler`
@@ -106,9 +106,19 @@ public class SyntaxTreeVisitor {
         // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the
         // currentNode would always result in the last currentNode that was used when visiting the component tree.
         let context = Context(contextNode: currentNode.copy())
-
-        modelBuilder?.register(handler: handler, withContext: context)
         
+        
+        // build the final handler using the delegating handlers
+        if let builder = modelBuilder {
+            let delegateVisitor = DelegatingHandlerInitializerVisitor(calling: builder, with: context, using: context.get(valueFor: DelegatingHandlerContextKey.self))
+            do {
+                // calls semantic model builder's `register`
+                try delegateVisitor.visit(handler: handler)
+            } catch {
+                fatalError("Failed to build delegate-stack for delegated handler \(handler): \(error)")
+            }
+        }
+            
         currentNode.resetContextNode()
     }
     
