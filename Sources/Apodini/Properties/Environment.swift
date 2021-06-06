@@ -56,12 +56,12 @@ public struct Environment<Key: EnvironmentAccessible, Value>: Property {
     
     /// The current value of the environment property.
     public var wrappedValue: Value {
-        guard let app = app else {
-            fatalError("The Application instance wasn't injected correctly.")
-        }
-        
         if let value = localEnvironment {
             return value
+        }
+        
+        guard let app = app else {
+            fatalError("The Application instance wasn't injected correctly.")
         }
         
         if let key = keyPath as? KeyPath<Application, Value> {

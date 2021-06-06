@@ -14,7 +14,7 @@ import ApodiniUtils
 /// It only maps in the `.send`,  `.finish` and `.automatic` cases.
 /// If the previous Handler or ResponseTransformer returned an `Response.end` or `Response.nothing` it is not called and will not map anything.
 /// Both types (`InputContent` and `Content`) have to conform to `Encodable`
-public protocol ResponseTransformer: AnyResponseTransformer {
+public protocol ResponseTransformer {
     /// The type that should be transformed
     associatedtype InputContent: Encodable
     /// The type the `ResponseTransformable`  should be transformed to
@@ -27,7 +27,7 @@ public protocol ResponseTransformer: AnyResponseTransformer {
     func transform(content: Self.InputContent) -> Self.Content
 }
 
-private struct ResponseTransformingHandler<D, T>: Handler where D: Handler, T: ResponseTransformer, D.Response.Content == T.InputContent {
+internal struct ResponseTransformingHandler<D, T>: Handler where D: Handler, T: ResponseTransformer, D.Response.Content == T.InputContent {
    
     var transformed: Delegate<D>
     var transformer: Delegate<T>
@@ -40,32 +40,6 @@ private struct ResponseTransformingHandler<D, T>: Handler where D: Handler, T: R
                 try transformer().transform(content: content)
             }
         }
-    }
-}
-
-
-extension ResponseTransformer {
-    /// A type erased version of a `ResponseTransformer`'s `Response` type
-    public var transformedResponseContent: Encodable.Type {
-        Self.Content.self
-    }
-    
-    
-    /// A type erasured version of a `ResponseTransformer`'s `transform(response: Self.ResponseTransformable) -> TransformedContent` method
-    /// - Parameter response: The input as a type erasured `Response<AnyEncodable>`
-    /// - Parameter eventLoop: The `EventLoop` that should be used to retrieve the `Response` of the `ResponseTransformable`
-    /// - Returns: The output as a type erasured `EventLoopFuture<Response<AnyEncodable>>`
-    public func transform(response: Response<AnyEncodable>, on eventLoop: EventLoop) -> EventLoopFuture<Response<AnyEncodable>> {
-        guard let typedInputResponse = response.typed(Self.InputContent.self) else {
-            fatalError("Could not cast the `Response<AnyEncodable>` passed to the `ResponseTransformer` to the expected \(Response<Self.Content>.self) type")
-        }
-        
-        return typedInputResponse
-            .map(transform(content:))
-            .transformToResponse(on: eventLoop)
-            .map { typedResponse in
-                typedResponse.typeErasured
-            }
     }
 }
 
@@ -105,8 +79,6 @@ extension Handler {
     public func response<T: ResponseTransformer>(
         _ responseTransformer: T
     ) -> DelegateModifier<Self, ResponseTransformingHandlerInitializer<T>> where Self.Response.Content == T.InputContent {
-        // TODO: internal MutableHandlerModifier? Somehow tweak SyntaxTreeVisitable.accept() function to sort out what the real handler is while still visiting child-modifiers? Adopt Type-Erased (see transform above) system?
-        
-        DelegateModifier(self, initializer: ResponseTransformingHandlerInitializer(transformer: responseTransformer))
+        self.delegated(by: ResponseTransformingHandlerInitializer(transformer: responseTransformer))
     }
 }

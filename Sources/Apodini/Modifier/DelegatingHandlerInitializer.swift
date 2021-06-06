@@ -65,9 +65,9 @@ private struct AnyDelegateFilter: DelegatingHandlerInitializer, DelegateFilter {
 }
 
 struct DelegatingHandlerContextKey: ContextKey {
-    static var defaultValue: [AnyDelegatingHandlerInitializer] = []
+    static var defaultValue: [(Bool, AnyDelegatingHandlerInitializer)] = []
     
-    static func reduce(value: inout [AnyDelegatingHandlerInitializer], nextValue: () -> [AnyDelegatingHandlerInitializer]) {
+    static func reduce(value: inout [(Bool, AnyDelegatingHandlerInitializer)], nextValue: () -> [(Bool, AnyDelegatingHandlerInitializer)]) {
         value.append(contentsOf: nextValue())
     }
 }
@@ -77,13 +77,15 @@ public struct DelegateModifier<C: Component, I: DelegatingHandlerInitializer>: M
     public typealias ModifiedComponent = C
     
     public let component: C
-    let initializer: I
+    private let initializer: I
+    private let prepend: Bool
     
     public var content: some Component { EmptyComponent() }
     
-    init(_ component: C, initializer: I) {
+    fileprivate init(_ component: C, initializer: I, prepend: Bool = false) {
         self.component = component
         self.initializer = initializer
+        self.prepend = prepend
     }
 }
 
@@ -93,7 +95,7 @@ extension DelegateModifier: Handler, HandlerModifier where Self.ModifiedComponen
 
 extension DelegateModifier: SyntaxTreeVisitable {
     public func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(DelegatingHandlerContextKey.self, value: [initializer], scope: .environment)
+        visitor.addContext(DelegatingHandlerContextKey.self, value: [(prepend, initializer)], scope: .environment)
         component.accept(visitor)
     }
 }
@@ -103,12 +105,14 @@ public struct DelegateFilterModifier<C: Component>: Modifier {
     
     public let component: C
     private let filter: AnyDelegateFilter
+    private let prepend: Bool
     
     public var content: some Component { EmptyComponent() }
     
-    fileprivate init(_ component: C, filter: AnyDelegateFilter) {
+    fileprivate init(_ component: C, filter: AnyDelegateFilter, prepend: Bool = false) {
         self.component = component
         self.filter = filter
+        self.prepend = prepend
     }
 }
 
@@ -118,7 +122,7 @@ extension DelegateFilterModifier: Handler, HandlerModifier where Self.ModifiedCo
 
 extension DelegateFilterModifier: SyntaxTreeVisitable {
     public func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(DelegatingHandlerContextKey.self, value: [filter], scope: .environment)
+        visitor.addContext(DelegatingHandlerContextKey.self, value: [(prepend, filter)], scope: .environment)
         component.accept(visitor)
     }
 }
@@ -128,14 +132,14 @@ extension DelegateFilterModifier: SyntaxTreeVisitable {
 extension Component {
     /// Use a `DelegatingHandlerInitializer` to create a fitting delegating `Handler` for each of the `Component`'s endpoints.
     /// All instances created by the `initializer` can delegate evaluations to their respective child-`Handler` using `Delegate`.
-    public func delegated<I: DelegatingHandlerInitializer>(by initializer: I) -> DelegateModifier<Self, I> {
-        DelegateModifier(self, initializer: initializer)
+    public func delegated<I: DelegatingHandlerInitializer>(by initializer: I, prepend: Bool = false) -> DelegateModifier<Self, I> {
+        DelegateModifier(self, initializer: initializer, prepend: prepend)
     }
 }
 
 extension Component {
-    public func reset(using filter: DelegateFilter) -> DelegateFilterModifier<Self> {
-        DelegateFilterModifier(self, filter: AnyDelegateFilter(filter: filter))
+    public func reset(using filter: DelegateFilter, prepend: Bool = false) -> DelegateFilterModifier<Self> {
+        DelegateFilterModifier(self, filter: AnyDelegateFilter(filter: filter), prepend: prepend)
     }
 }
 
@@ -145,8 +149,8 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
     let semanticModelBuilder: SemanticModelBuilder
     let context: Context
     
-    init(calling builder: SemanticModelBuilder, with context: Context, using initializers: [AnyDelegatingHandlerInitializer]) {
-        self.initializers = initializers
+    init(calling builder: SemanticModelBuilder, with context: Context, using initializers: [(Bool, AnyDelegatingHandlerInitializer)]) {
+        self.initializers = (initializers.filter { (prepend, _) in prepend }.reversed() + initializers.filter { (prepend, _) in !prepend }).map { (_, initializer) in initializer }
         self.semanticModelBuilder = builder
         self.context = context
     }
@@ -160,6 +164,7 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
                 initializers = initializers.filter { initializerToFilter in
                     initializerToFilter.evaluate(filter: filter)
                 }
+                try visit(handler: handler)
             } else {
                 let nextHandler = try initializer.anyinstance(for: handler)
                 try nextHandler.accept(self)

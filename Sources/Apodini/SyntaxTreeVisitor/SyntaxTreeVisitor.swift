@@ -94,8 +94,7 @@ public class SyntaxTreeVisitor: HandlerVisitor {
         // across multiple runs of an Apodini web service.
         addContext(HandlerIndexPath.ContextKey.self, value: formHandlerIndexPathForCurrentNode(), scope: .current)
 
-        let responseTransformers = currentNode.getContextValue(for: ResponseTransformerContextKey.self)
-        let responseType = responseTransformers.responseType ?? H.Response.Content.self
+        let responseType = H.Response.Content.self
 
         // Intermediate solution to parse `Content` types conforming to `WithRelationships`
         // until the Metadata DSL creates a unified solution for such metadata.

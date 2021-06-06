@@ -27,19 +27,19 @@ extension Component {
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`
     public func `guard`<G: Guard>(_ guard: G) -> DelegateModifier<Self, GuardingHandlerInitializer<G, Never>> {
-        DelegateModifier(self, initializer: GuardingHandlerInitializer(guard: `guard`))
+        self.delegated(by: GuardingHandlerInitializer(guard: `guard`), prepend: true)
     }
     
     /// Use a synchronous `SyncGuard` to guard `Component`s by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the synchronous `SyncGuard`
     public func `guard`<G: SyncGuard>(_ guard: G) -> DelegateModifier<Self, SyncGuardingHandlerInitializer<G, Never>> {
-        DelegateModifier(self, initializer: SyncGuardingHandlerInitializer(guard: `guard`))
+        self.delegated(by: SyncGuardingHandlerInitializer(guard: `guard`), prepend: true)
     }
     
     /// Resets all guards for the modified `Component`
     public func resetGuards() -> DelegateFilterModifier<Self> {
-        self.reset(using: GuardFilter())
+        self.reset(using: GuardFilter(), prepend: true)
     }
 }
 
@@ -48,14 +48,14 @@ extension Handler {
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`
     public func `guard`<G: Guard>(_ guard: G) -> DelegateModifier<Self, GuardingHandlerInitializer<G, Response>> {
-        DelegateModifier(self, initializer: GuardingHandlerInitializer(guard: `guard`))
+        self.delegated(by: GuardingHandlerInitializer(guard: `guard`), prepend: true)
     }
     
     /// Use a synchronous `SyncGuard` to guard a `Handler` by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the synchronous `SyncGuard`
     public func `guard`<G: SyncGuard>(_ guard: G) -> DelegateModifier<Self, SyncGuardingHandlerInitializer<G, Response>> {
-        DelegateModifier(self, initializer: SyncGuardingHandlerInitializer(guard: `guard`))
+        self.delegated(by: SyncGuardingHandlerInitializer(guard: `guard`), prepend: true)
     }
 }
 

@@ -113,11 +113,11 @@ class StateTests: ApodiniTests {
         let assertion = { (number: Int) in  XCTAssertEqual(number, count) }
         
         let handler = TestHandler()
+                        .transformed(CountTransformer())
                         .guarded(CountGuard(callback: assertion))
                         .guarded(AsyncCountGuard(callback: assertion, eventLoop: eventLoop))
         
-        let endpoint = handler.mockEndpoint(
-            responseTransformers: [ { CountTransformer() } ])
+        let endpoint = handler.mockEndpoint()
 
         let exporter = MockExporter<String>()
 
@@ -154,11 +154,11 @@ class StateTests: ApodiniTests {
         let assertion = { (number: Int) in  XCTAssertEqual(number, count) }
 
         let handler = TestHandlerUsingClassType()
+            .transformed(CountTransformerUsingClassType())
             .guarded(CountGuard(callback: assertion))
             .guarded(AsyncCountGuard(callback: assertion, eventLoop: eventLoop))
         
-        let endpoint = handler.mockEndpoint(
-            responseTransformers: [ { CountTransformerUsingClassType() } ])
+        let endpoint = handler.mockEndpoint()
 
         let exporter = MockExporter<String>()
 
@@ -184,11 +184,11 @@ class StateTests: ApodiniTests {
         let assertion = { (number: Int) in  XCTAssertEqual(number, count) }
 
         let handler = TestHandlerUsingClassType()
+            .transformed(CountTransformerUsingClassType())
             .guarded(CountGuard(callback: assertion))
             .guarded(AsyncCountGuard(callback: assertion, eventLoop: eventLoop))
         
-        let endpoint = handler.mockEndpoint(
-            responseTransformers: [ { CountTransformerUsingClassType() } ])
+        let endpoint = handler.mockEndpoint()
 
         let exporter1 = MockExporter<String>()
         let exporter2 = MockExporter<String>()
@@ -215,11 +215,11 @@ class StateTests: ApodiniTests {
         let assertion = { (number: Int) in  XCTAssertEqual(number, count) }
 
         let handler = TestHandler()
+            .transformed(CountTransformer())
             .guarded(CountGuard(callback: assertion))
             .guarded(AsyncCountGuard(callback: assertion, eventLoop: eventLoop))
         
-        let endpoint = handler.mockEndpoint(
-            responseTransformers: [ { CountTransformer() } ])
+        let endpoint = handler.mockEndpoint()
 
         let exporter = MockExporter<String>()
 
@@ -245,11 +245,11 @@ class StateTests: ApodiniTests {
         let assertion = { (number: Int) in  XCTAssertEqual(number, count) }
 
         let handler = TestHandler()
+            .transformed(CountTransformer())
             .guarded(CountGuard(callback: assertion))
             .guarded(AsyncCountGuard(callback: assertion, eventLoop: eventLoop))
         
-        let endpoint = handler.mockEndpoint(
-            responseTransformers: [ { CountTransformer() } ])
+        let endpoint = handler.mockEndpoint()
 
         let exporter1 = MockExporter<String>()
         let exporter2 = MockExporter<String>()

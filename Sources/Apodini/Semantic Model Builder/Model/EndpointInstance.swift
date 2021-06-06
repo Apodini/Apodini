@@ -13,8 +13,6 @@ struct EndpointInstance<H: Handler> {
     
     var handler: H
     
-    let responseTransformers: [AnyResponseTransformer]
-    
     init(from endpoint: Endpoint<H>) {
         self.endpoint = endpoint
         
@@ -23,12 +21,6 @@ struct EndpointInstance<H: Handler> {
         activate(&handler)
         
         self.handler = handler
-        
-        self.responseTransformers = endpoint.responseTransformers.map { lazyTransformer in
-            var transformer = lazyTransformer()
-            transformer.activate()
-            return transformer
-        }
     }
 }
     

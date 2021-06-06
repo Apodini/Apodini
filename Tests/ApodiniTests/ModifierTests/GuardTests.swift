@@ -151,6 +151,31 @@ final class GuardTests: ApodiniTests {
             }
         }
         
+        struct TestSyncGuard1: SyncGuard {
+            func check() {
+                guard let guardExpectation = GuardTests.guardExpectation else {
+                    fatalError("The test expectation must be set before testing `TestGuard`")
+                }
+                guardExpectation.fulfill()
+            }
+        }
+        struct TestSyncGuard2: SyncGuard {
+            func check() {
+                guard let guardExpectation = GuardTests.guardExpectation else {
+                    fatalError("The test expectation must be set before testing `TestGuard`")
+                }
+                guardExpectation.fulfill()
+            }
+        }
+        struct TestSyncGuard3: SyncGuard {
+            func check() {
+                guard let guardExpectation = GuardTests.guardExpectation else {
+                    fatalError("The test expectation must be set before testing `TestGuard`")
+                }
+                guardExpectation.fulfill()
+            }
+        }
+        
         GuardTests.guardExpectation = self.expectation(description: "Guard is executed")
         GuardTests.guardExpectation?.expectedFulfillmentCount = 2
         
@@ -160,8 +185,8 @@ final class GuardTests: ApodiniTests {
                     Group {
                         Text("Hello")
                             .guard(TestSyncGuard())
-                    }.guard(TestSyncGuard())
-                }.guard(TestSyncGuard())
+                    }.guard(TestSyncGuard1())
+                }.guard(TestSyncGuard2())
                     .resetGuards()
             }
 

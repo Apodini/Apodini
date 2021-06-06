@@ -52,8 +52,6 @@ public protocol AnyEndpoint: Blackboard, CustomStringConvertible {
 }
 
 protocol _AnyEndpoint: AnyEndpoint {
-    var responseTransformers: [LazyAnyResponseTransformer] { get }
-
     /// This property holds a `EndpointReference` for the given `Endpoint`.
     /// The reference can be resolve using `EndpointReference.resolve()`.
     ///
@@ -115,16 +113,12 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     public var inheritsRelationship: Bool {
         inheritedSelfRelationship != nil
     }
-
-    let responseTransformers: [LazyAnyResponseTransformer]
     
     init(
         handler: H,
-        blackboard: Blackboard,
-        responseTransformers: [LazyAnyResponseTransformer] = []
+        blackboard: Blackboard
     ) {
         self.handler = handler
-        self.responseTransformers = responseTransformers
         self.blackboard = blackboard
     }
     

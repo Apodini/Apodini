@@ -14,15 +14,12 @@ public extension Handler {
     func mockEndpoint(
         app: Application? = nil,
         context: Context? = nil,
-        operation: Apodini.Operation? = nil,
-        responseTransformers: [LazyAnyResponseTransformer] = []
+        operation: Apodini.Operation? = nil
     ) -> Endpoint<Self> {
         let context = context ?? Context(contextNode: ContextNode())
         var handler = self
-        var responseTransformers = responseTransformers
         if let application = app {
             handler = handler.inject(app: application)
-            responseTransformers = responseTransformers.inject(app: application)
         }
         
         var blackboard: Blackboard
@@ -37,8 +34,7 @@ public extension Handler {
 
         return Endpoint(
             handler: handler,
-            blackboard: blackboard,
-            responseTransformers: responseTransformers
+            blackboard: blackboard
         )
     }
 }
