@@ -22,7 +22,10 @@ var apodiniSwiftSettings: [SwiftSetting] {
             )
         ]
     } else {
-        return []
+        return [
+            // We can not pass an empty array to SwiftSetting in Swift 5.3
+            .define("PLACEHOLDER")
+        ]
     }
 }
 
