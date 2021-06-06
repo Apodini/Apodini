@@ -55,3 +55,21 @@ var i = 0
 // error: cannot find operator '++' in scope; did you mean '+= 1'?
 i++
 ```
+
+## Note to CI maintainers
+
+The `NegativeCompileTestsRunner` is built around executing a `swift build` command and parsing the build output.
+In order to avoid unnecessary recompilations (and sometimes `swift build` seemingly strips some build output if
+compiling many files) the `swift build` should pass the same compiler arguments as the original compilation
+the XCTest case was executed with (e.g. when doing `swift test -Xswiftc -DEXAMPLE` it defines the `EXAMPLE`
+Active Compilation Flag and the `swift build` command executed within the runner should reflect those same flags).
+
+We can't detect from within the runnable with which flags the file was compiled with.
+Though we can cover the most used ones within our current CI setup.
+Those are:
+
+- If `DEBUG` is **not** set, we assume compilation was done in release configuration and therefore append `-c release`
+- If run on linux platform we assume test discovery was enabled an append `--enable-test-discovery`
+- When using the `--enable-code-coverage` flag we require that the Active Compilation Condition `COVERAGE` is also 
+  set by supplying `-Xswiftc -DCOVERAGE`. When detecting `COVERAGE` we therefore
+  append `--enable-code-coverage -Xswiftc -DCOVERAGE` 

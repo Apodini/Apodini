@@ -13,6 +13,8 @@ struct NegativeTestTarget {
     /// The parsed `NegativeTestCase`s located inside the `Cases` directory
     let cases: [NegativeTestCase]
 
+    let runTestCasesIsolated: Bool
+
     /// The name of the negative test target
     var name: String {
         directory.lastPathComponent
@@ -27,4 +29,10 @@ struct NegativeTestCase {
 
     /// The parsed compiler error declarations found in the files of the test case.
     let expectedErrors: [ExpectedError]
+}
+
+extension NegativeTestCase: Equatable {
+    public static func == (lhs: NegativeTestCase, rhs: NegativeTestCase) -> Bool {
+        lhs.fileUrl == rhs.fileUrl
+    }
 }

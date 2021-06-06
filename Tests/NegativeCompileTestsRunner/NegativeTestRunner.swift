@@ -65,7 +65,7 @@ class NegativeTestRunner {
         
         for target in testTargets {
             do {
-                try buildTarget(target: target)
+                try build(target: target)
             } catch {
                 cleanup()
                 throw error
@@ -154,7 +154,12 @@ class NegativeTestRunner {
             }
 
 
-            testTargets.append(NegativeTestTarget(directory: targetDirectory, casesDirectory: casesDirectory, cases: testCases))
+            testTargets.append(NegativeTestTarget(
+                directory: targetDirectory,
+                casesDirectory: casesDirectory,
+                cases: testCases,
+                runTestCasesIsolated: target.runTestCasesIsolated
+            ))
         }
     }
 
@@ -219,20 +224,48 @@ class NegativeTestRunner {
         print("Found \(foundCount) error declaration\(foundCount != 1 ? "s": "") in \(fileURL.path)")
     }
 
-    private func buildTarget(target: NegativeTestTarget) throws {
-        if target.cases.isEmpty {
-            print("[\(target.name)] Skipping target. Not cases configured.")
+    private func build(target: NegativeTestTarget) throws {
+        if target.runTestCasesIsolated {
+            for testCase in target.cases {
+                try build(target: target, cases: [testCase])
+            }
+        } else {
+            try build(target: target, cases: target.cases)
+        }
+    }
+
+    /// Executes a given negative test target with the specified test cases.
+    /// The method copies all the files of the provided test cases out of the `Cases` directory,
+    /// executes the swift build command, analyzes the build output afterwards and runs the
+    /// cleanup logic afterwards.
+    /// - Parameters:
+    ///   - target: The target which should be executed.
+    ///   - cases: The test cases of the target which should be built/executed
+    /// - Throws: Either when copying or running the build command fails.
+    private func build(target: NegativeTestTarget, cases: [NegativeTestCase]) throws {
+        guard let firstCase = cases.first, let lastCase = cases.last else {
             return
         }
 
-        print("[\(target.name)] Copying test case files...")
+        defer {
+            cleanup()
+        }
 
-        for testCase in target.cases {
+        let identifier = """
+                         \(target.name):\
+                         \((target.cases.firstIndex(of: firstCase) ?? -2) + 1)...\((target.cases.firstIndex(of: lastCase) ?? -1) + 1)\
+                         /\(target.cases.count)
+                         """
+
+        print("[\(identifier)] Copying test case files...")
+
+        for testCase in cases {
             try fileManager.copyItem(atPath: testCase.fileUrl.path, toPath: testCase.destinationUrl.path)
 
             pathsOfCopiedTestCases.append(testCase.destinationUrl.path)
         }
 
+        // See ./Documentation/Testing/NegativeCompileTests.md#note-to-ci-maintainers
         var arguments = "build --build-tests"
         #if !DEBUG
         arguments += " -c release -Xswiftc -enable-testing"
@@ -246,7 +279,7 @@ class NegativeTestRunner {
 
         let stdOutput = try runCommand(command: "swift", arguments: arguments, expectedStatus: 1)
 
-        print("[\(target.name)] Scanning results for target \(target.name)...")
+        print("[\(identifier)] Scanning results for target \(target.name)...")
 
         let lines = stdOutput.split(separator: "\n", omittingEmptySubsequences: false).map {
             String($0)
@@ -271,8 +304,6 @@ class NegativeTestRunner {
                 )
             }
         }
-
-        cleanup()
     }
 
     @discardableResult
