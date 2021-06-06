@@ -220,18 +220,28 @@ class NegativeTestRunner {
     }
 
     private func buildTarget(target: NegativeTestTarget) throws {
+        if target.cases.isEmpty {
+            print("[\(target.name)] Skipping target. Not cases configured.")
+            return
+        }
+
         print("[\(target.name)] Copying test case files...")
+
         for testCase in target.cases {
             try fileManager.copyItem(atPath: testCase.fileUrl.path, toPath: testCase.destinationUrl.path)
 
             pathsOfCopiedTestCases.append(testCase.destinationUrl.path)
         }
 
-        #if DEBUG
-        let stdOutput = try runCommand(command: "swift", arguments: "build --build-tests", expectedStatus: 1)
-        #else
-        let stdOutput = try runCommand(command: "swift", arguments: "build --build-tests -c release -Xswiftc -enabling-testing", expectedStatus: 1)
+        var arguments = "build --build-tests"
+        #if !DEBUG
+        arguments += " -c release -Xswiftc -enable-testing"
         #endif
+        #if os(Linux)
+        arguments += " --enable-test-discovery"
+        #endif
+
+        let stdOutput = try runCommand(command: "swift", arguments: arguments, expectedStatus: 1)
 
         print("[\(target.name)] Scanning results for target \(target.name)...")
 
