@@ -22,17 +22,17 @@ struct Platform: OptionSet {
 
     static func currentPlatform() -> Platform {
         #if os(macOS)
-        Platform.macOS
+        return Platform.macOS
         #elseif os(Linux)
-        Platform.linux
+        return Platform.linux
         #elseif os(iOS)
-        Platform.iOS
+        return Platform.iOS
         #elseif os(watchOS)
-        Platform.watchOS
+        return Platform.watchOS
         #elseif os(tvOS)
-        Platform.tvOS
+        return Platform.tvOS
         #elseif os(Windows)
-        Platform.windows
+        return Platform.windows
         #else
         fatalError("Unexpected platform")
         #endif
