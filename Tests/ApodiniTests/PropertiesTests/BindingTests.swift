@@ -31,7 +31,7 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
     struct LocalizerInitializer<R: ResponseTransformable>: DelegatingHandlerInitializer {
         typealias Response = R
         
-        func instance<D>(for delegate: D) throws -> SomeHandler<Response> where D : Handler {
+        func instance<D>(for delegate: D) throws -> SomeHandler<Response> where D: Handler {
             SomeHandler(Localizer<D>(from: delegate))
         }
     }

@@ -49,6 +49,11 @@ public struct EnvironmentObject<Value>: DynamicProperty {
     public var projectedValue: Binding<Value> {
         Binding.environmentObject(self)
     }
+    
+    /// Sets the value for the given KeyPath.
+    mutating func prepareValue(_ value: Value) {
+        _localEnvironment.prepareValue(value)
+    }
 }
 
 
