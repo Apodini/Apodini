@@ -10,12 +10,12 @@ import Vapor
 struct RESTEndpointHandler<H: Handler> {
     let configuration: RESTConfiguration
     let endpoint: Endpoint<H>
-    let exporter: RESTInterfaceExporter
+    let exporter: _RESTInterfaceExporter
     
     init(
         with configuration: RESTConfiguration,
         for endpoint: Endpoint<H>,
-        on exporter: RESTInterfaceExporter
+        on exporter: _RESTInterfaceExporter
     ) {
         self.configuration = configuration
         self.endpoint = endpoint
@@ -34,8 +34,9 @@ struct RESTEndpointHandler<H: Handler> {
 
         return responseFuture.flatMap { (response: Apodini.Response<EnrichedContent>) in
             guard let enrichedContent = response.content else {
-                return ResponseContainer(Empty.self, status: response.status)
-                    .encodeResponse(for: request)
+                return ResponseContainer(Empty.self,
+                                         status: response.status,
+                                         encoder: self.configuration.exporterConfiguration.encoder).encodeResponse(for: request)
             }
             
             let formatter = LinksFormatter(configuration: self.configuration)
@@ -49,7 +50,10 @@ struct RESTEndpointHandler<H: Handler> {
                 enrichedContent.formatSelfRelationship(into: &links, with: formatter)
             }
 
-            let container = ResponseContainer(status: response.status, data: enrichedContent, links: links)
+            let container = ResponseContainer(status: response.status,
+                                              data: enrichedContent,
+                                              links: links,
+                                              encoder: self.configuration.exporterConfiguration.encoder)
             return container.encodeResponse(for: request)
         }
     }

@@ -2,10 +2,11 @@
 // Created by Andreas Bauer on 22.11.20.
 //
 
+import Foundation
 import NIO
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
-class SemanticModelBuilder: InterfaceExporterVisitor {
+public class SemanticModelBuilder: InterfaceExporterVisitor {
     private(set) var app: Application
 
     var interfaceExporters: [AnyInterfaceExporter] = []
@@ -31,33 +32,22 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         relationshipBuilder = RelationshipBuilder(logger: app.logger)
         typeIndexBuilder = TypeIndexBuilder(logger: app.logger)
     }
-
-    /// Registers an `InterfaceExporter` instance on the model builder.
-    /// - Parameter exporterType: The type of `InterfaceExporter` to register.
-    /// - Returns: `Self`
-    func with<T: InterfaceExporter>(exporter exporterType: T.Type) -> Self {
-        let exporter = exporterType.init(app)
-        interfaceExporters.append(AnyInterfaceExporter(exporter))
-        return self
-    }
-
-    /// Registers an `StaticInterfaceExporter` instance on the model builder.
-    /// - Parameter exporterType: The type of `StaticInterfaceExporter` to register.
-    /// - Returns: `Self`
-    func with<T: StaticInterfaceExporter>(exporter exporterType: T.Type) -> Self {
-        let exporter = exporterType.init(app)
-        interfaceExporters.append(AnyInterfaceExporter(exporter))
-        return self
-    }
     
     /// Registers an `InterfaceExporter` instance on the model builder.
     /// - Parameter instance: The instance to register.
     /// - Returns: `Self`
-    func with<T: InterfaceExporter>(exporter instance: T) -> Self {
+    public func with<T: InterfaceExporter>(exporter instance: T) -> Self {
         interfaceExporters.append(AnyInterfaceExporter(instance))
         return self
     }
-
+    
+    /// Registers an `StaticInterfaceExporter` instance on the model builder.
+    /// - Parameter instance: The instance to register.
+    /// - Returns: `Self`
+    public func with<T: StaticInterfaceExporter>(exporter instance: T) -> Self {
+        interfaceExporters.append(AnyInterfaceExporter(instance))
+        return self
+    }
 
     func register<H: Handler>(handler: H, withContext context: Context) {
         let handler = handler.inject(app: app)
@@ -178,7 +168,6 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         }
     }
 }
-
 
 private protocol IdentifiableHandlerATRVisitorHelper: AssociatedTypeRequirementsVisitor {
     associatedtype Visitor = IdentifiableHandlerATRVisitorHelper

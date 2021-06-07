@@ -72,7 +72,8 @@ public struct DeploymentConfig: Codable, Equatable {
     public let defaultGrouping: DefaultGrouping
     public let deploymentGroups: Set<DeploymentGroup>
     
-    public init(defaultGrouping: DefaultGrouping = .separateNodes, deploymentGroups: Set<DeploymentGroup> = []) {
+    public init(defaultGrouping: DefaultGrouping = .separateNodes,
+                deploymentGroups: Set<DeploymentGroup> = []) {
         self.defaultGrouping = defaultGrouping
         self.deploymentGroups = deploymentGroups
     }

@@ -41,6 +41,6 @@ final class UniqueIdentifierTests: ApodiniTests {
             return XCTFail("App deallocated")
         }
         
-        XCTAssertRuntimeFailure(TestWebService.main(app: app))
+        XCTAssertRuntimeFailure(TestWebService.start(app: app))
     }
 }

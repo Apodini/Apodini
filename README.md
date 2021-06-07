@@ -50,8 +50,7 @@ struct Greeter: Handler {
 
 struct HelloWorld: WebService {
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(RESTInterfaceExporter.self)
+        RESTInterfaceExporter()
     }
 
     var content: some Component {
@@ -59,7 +58,7 @@ struct HelloWorld: WebService {
     }
 }
 
-try HelloWorld.main()
+HelloWorld.main()
 
 // http://localhost:8080/v1 -> Hello, World!
 // http://localhost:8080/v1?country=Italy -> Hello, Italy!
@@ -72,9 +71,9 @@ import ApodiniOpenAPI
 ...
 struct HelloWorld: WebService {
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(RESTInterfaceExporter.self)
-            .exporter(OpenAPIInterfaceExporter.self)
+        RESTInterfaceExporter { 
+            OpenAPIInterfaceExporter()
+        }
     }
     ...
 }
@@ -95,9 +94,9 @@ struct Greeter: Handler {
 
 struct HelloWorld: WebService {
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(RESTInterfaceExporter.self)
-            .exporter(OpenAPIInterfaceExporter.self)
+        RESTInterfaceExporter { 
+            OpenAPIInterfaceExporter()
+        }
     }
 
     var content: some Component {
@@ -123,6 +122,25 @@ struct CountrySubsystem: Component {
 // http://localhost:8080/v1 -> Hello, World!
 // http://localhost:8080/v1/country/Italy -> Hello, Italy!
 ```
+Apodini allows the developer to specify CLI-arguments that are passed to the `WebService`. The arguments can for example be used in `Configuration`:
+
+```swift
+struct HelloWorld: WebService {
+    @Flag(help: "Generate an OpenAPI documentation of the WebService.")
+    var generateOpenAPIDocs = false
+    
+    var configuration: Configuration {
+        if(generateOpenAPIDocs) {
+            RESTInterfaceExporter { 
+                OpenAPIInterfaceExporter()
+            }
+        } else {
+            RESTInterfaceExporter()
+        }
+    }
+}
+```
+For further information on how to specify CLI-arguments see [https://github.com/apple/swift-argument-parser](https://github.com/apple/swift-argument-parser)
 
 ## Documentation
 

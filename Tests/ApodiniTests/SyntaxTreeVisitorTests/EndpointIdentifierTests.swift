@@ -146,12 +146,11 @@ final class HandlerIdentifierTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                RESTInterfaceExporter()
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         
         try app.vapor.app.test(.GET, "/v1/") { res in

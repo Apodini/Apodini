@@ -59,7 +59,8 @@ extension Application {
             return self.application.storage[Key.self]!
         }
 
-        var semanticModelBuilderBuilder: (SemanticModelBuilder) -> (SemanticModelBuilder) {
+        /// The `SemanticModelBuilder` to register services upon
+        public var semanticModelBuilderBuilder: (SemanticModelBuilder) -> (SemanticModelBuilder) {
             get { storage.semanticModelBuilderBuilder }
             set { storage.semanticModelBuilderBuilder = newValue }
         }

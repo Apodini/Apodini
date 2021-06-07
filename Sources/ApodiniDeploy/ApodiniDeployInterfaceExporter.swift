@@ -1,6 +1,6 @@
 //
 //  ApodiniDeployInterfaceExporter.swift
-//  
+//
 //
 //  Created by Lukas Kollmer on 2021-01-14.
 //
@@ -38,14 +38,42 @@ struct ApodiniDeployError: Swift.Error {
     let message: String
 }
 
+public final class ApodiniDeployInterfaceExporter: Configuration {
+    let configuration: ApodiniDeployExporterConfiguration
+    
+    public init(runtimes: [DeploymentProviderRuntime.Type] = [],
+                config: DeploymentConfig = .init(),
+                mode: String? = nil,
+                fileURL: String? = nil,
+                node: String? = nil) {
+        self.configuration = ApodiniDeployExporterConfiguration(runtimes: runtimes,
+                                                                config: config,
+                                                                mode: mode,
+                                                                fileURL: fileURL,
+                                                                node: node)
+    }
+    
+    public func configure(_ app: Apodini.Application) {
+        /// Instanciate exporter
+        let deployExporter = _ApodiniDeployInterfaceExporter(app, self.configuration)
+        
+        /// Insert exporter into `SemanticModelBuilder`
+        let builder = app.exporters.semanticModelBuilderBuilder
+        app.exporters.semanticModelBuilderBuilder = { model in
+            builder(model).with(exporter: deployExporter)
+        }
+    }
+}
+
 
 /// A custom internal interface exporter, which:
 /// a) compiles a list of all handlers (via their `Endpoint` objects). These are used to determine the target endpoint when manually invoking a handler.
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
-public class ApodiniDeployInterfaceExporter: InterfaceExporter {
+// swiftlint:disable type_name
+class _ApodiniDeployInterfaceExporter: InterfaceExporter {
     struct ApplicationStorageKey: Apodini.StorageKey {
-        typealias Value = ApodiniDeployInterfaceExporter
+        typealias Value = _ApodiniDeployInterfaceExporter
     }
     
     /// The information collected about an `Endpoint`.
@@ -74,6 +102,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     
     let app: Apodini.Application
+    let exporterConfiguration: ApodiniDeployExporterConfiguration
     var vaporApp: Vapor.Application { app.vapor.app }
     
     private(set) var collectedEndpoints: [CollectedEndpointInfo] = []
@@ -82,13 +111,17 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     private(set) var deploymentProviderRuntime: DeploymentProviderRuntime?
     
     
-    public required init(_ app: Apodini.Application) {
+    required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = ApodiniDeployExporterConfiguration()) {
+        guard let castedConfiguration = dynamicCast(exporterConfiguration, to: ApodiniDeployExporterConfiguration.self) else {
+            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
+        }
         self.app = app
+        self.exporterConfiguration = castedConfiguration
         app.storage.set(ApplicationStorageKey.self, to: self)
     }
     
     
-    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         if let groupId = endpoint[Context.self].get(valueFor: DSLSpecifiedDeploymentGroupIdContextKey.self) {
             if explicitlyCreatedDeploymentGroups[groupId] == nil {
                 explicitlyCreatedDeploymentGroups[groupId] = []
@@ -113,7 +146,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     }
     
     
-    public func finishedExporting(_ webService: WebServiceModel) {
+    func finishedExporting(_ webService: WebServiceModel) {
         do {
             try performDeploymentRelatedActions()
         } catch {
@@ -123,18 +156,17 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     
     private func performDeploymentRelatedActions() throws {
-        let args = CommandLine.arguments
-        guard args.count >= 3 else {
+        guard let mode = self.exporterConfiguration.mode, let fileURL = self.exporterConfiguration.fileURL else {
             return
         }
         
-        switch args[1] {
+        switch mode {
         case WellKnownCLIArguments.exportWebServiceModelStructure:
-            let outputUrl = URL(fileURLWithPath: args[2])
+            let outputUrl = URL(fileURLWithPath: fileURL)
             do {
                 try self.exportWebServiceStructure(
                     to: outputUrl,
-                    apodiniDeployConfiguration: app.storage.get(ApodiniDeployConfiguration.StorageKey.self) ?? .init()
+                    apodiniDeployConfiguration: self.exporterConfiguration
                 )
             } catch {
                 fatalError("Error exporting web service structure: \(error)")
@@ -142,15 +174,14 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
             exit(EXIT_SUCCESS)
             
         case WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig:
-            let configUrl = URL(fileURLWithPath: args[2])
+            let configUrl = URL(fileURLWithPath: fileURL)
             guard let currentNodeId = ProcessInfo.processInfo.environment[WellKnownEnvironmentVariables.currentNodeId] else {
                 throw ApodiniDeployError(message: "Unable to find '\(WellKnownEnvironmentVariables.currentNodeId)' environment variable")
             }
             do {
                 let deployedSystem = try DeployedSystem(decodingJSONAt: configUrl)
                 guard
-                    let runtimes = app.storage.get(ApodiniDeployConfiguration.StorageKey.self)?.runtimes,
-                    let DPRSType = runtimes.first(where: { $0.identifier == deployedSystem.deploymentProviderId })
+                    let DPRSType = self.exporterConfiguration.runtimes.first(where: { $0.identifier == deployedSystem.deploymentProviderId })
                 else {
                     throw ApodiniDeployError(
                         message: "Unable to find deployment runtime with id '\(deployedSystem.deploymentProviderId.rawValue)'"
@@ -184,7 +215,7 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
     }
     
     
-    public func retrieveParameter<Type: Codable>(_ endpointParameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type?? {
+    func retrieveParameter<Type: Codable>(_ endpointParameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type?? {
         guard let argumentValueContainer = request.collectedArgumentValue(for: endpointParameter) else {
             return Optional<Type?>.none // this should be a "top-level" nil value (ie `.none` instead of `.some(.none)`)
         }
@@ -215,10 +246,10 @@ public class ApodiniDeployInterfaceExporter: InterfaceExporter {
 }
 
 
-// MARK: ApodiniDeployInterfaceExporter.ExporterRequest
+// MARK: _ApodiniDeployInterfaceExporter.ExporterRequest
 
-extension ApodiniDeployInterfaceExporter {
-    public struct ExporterRequest: Apodini.ExporterRequest {
+extension _ApodiniDeployInterfaceExporter {
+    struct ExporterRequest: Apodini.ExporterRequest {
         enum Argument {
             case value(Any)    // the value, as-is
             case encoded(Data) // the value, encoded

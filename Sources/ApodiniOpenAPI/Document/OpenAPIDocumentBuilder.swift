@@ -12,20 +12,21 @@ struct OpenAPIDocumentBuilder {
     var document: OpenAPI.Document {
         self.build()
     }
-    var configuration: OpenAPIConfiguration
+    
+    let configuration: OpenAPIExporterConfiguration
     var pathsObjectBuilder: OpenAPIPathsObjectBuilder
     var componentsObjectBuilder: OpenAPIComponentsObjectBuilder
-
-    init(configuration: OpenAPIConfiguration) {
+    
+    init(configuration: OpenAPIExporterConfiguration) {
         self.configuration = configuration
         self.componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         self.pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &self.componentsObjectBuilder)
     }
-
+    
     mutating func addEndpoint<H: Handler>(_ endpoint: Endpoint<H>) {
         pathsObjectBuilder.addPathItem(from: endpoint)
     }
-
+    
     func build() -> OpenAPI.Document {
         OpenAPI.Document(
             info: OpenAPI.Document.Info(

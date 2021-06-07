@@ -6,9 +6,33 @@ import Apodini
 import ApodiniVaporSupport
 import ApodiniGRPC
 import ApodiniTypeReflection
+import ApodiniUtils
 @_implementationOnly import class Vapor.Application
 
-public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
+public final class ProtobufferInterfaceExporter: GRPCDependentStaticConfiguration {
+    var configuration: ProtobufferExporterConfiguration
+    
+    public init() {
+        self.configuration = ProtobufferExporterConfiguration()
+    }
+    
+    public func configure(_ app: Apodini.Application, parentConfiguration: ExporterConfiguration) {
+        /// Set configartion of parent
+        self.configuration.parentConfiguration = parentConfiguration
+        
+        /// Instanciate exporter
+        let protobufferExporter = _ProtobufferInterfaceExporter(app, self.configuration)
+        
+        /// Insert exporter into `SemanticModelBuilder`
+        let builder = app.exporters.semanticModelBuilderBuilder
+        app.exporters.semanticModelBuilderBuilder = { model in
+            builder(model).with(exporter: protobufferExporter)
+        }
+    }
+}
+
+// swiftlint:disable type_name
+final class _ProtobufferInterfaceExporter: StaticInterfaceExporter {
     // MARK: Nested Types
     struct Error: Swift.Error, CustomDebugStringConvertible {
         let message: String
@@ -17,31 +41,28 @@ public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
             "ProtobufferInterfaceExporterError: \(message)"
         }
     }
-
-    struct Builder {
-        var integerWidthConfiguration: IntegerWidthConfiguration = .native
-    }
     
     // MARK: Properties
     private let app: Apodini.Application
     private let builder: Builder
+    private let exporterConfiguration: ProtobufferExporterConfiguration
     
     private var messages: Set<ProtobufferMessage> = .init()
     private var services: Set<ProtobufferService> = .init()
     
     // MARK: Initialization
-    public required init(_ app: Apodini.Application) {
-        self.app = app
-        
-        var builder = Builder()
-        app.storage[IntegerWidthConfiguration.StorageKey.self].map {
-            builder.integerWidthConfiguration = $0
+    required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = ProtobufferExporterConfiguration()) {
+        guard let castedConfiguration = dynamicCast(exporterConfiguration, to: ProtobufferExporterConfiguration.self) else {
+            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
         }
-        self.builder = builder
+        
+        self.app = app
+        self.exporterConfiguration = castedConfiguration
+        self.builder = Builder(configuration: self.exporterConfiguration.parentConfiguration)
     }
     
     // MARK: Methods
-    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         do {
             try exportThrows(endpoint)
         } catch {
@@ -49,16 +70,71 @@ public final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
         }
     }
     
-    public func finishedExporting(_ webService: WebServiceModel) {
+    func finishedExporting(_ webService: WebServiceModel) {
         let description = self.description
         
         app.vapor.app.get("apodini", "proto") { _ in
             description
         }
     }
+    
+    struct Builder {
+        let parentConfiguration: GRPCExporterConfiguration
+        
+        init(configuration: ExporterConfiguration) {
+            guard let castedConfiguration = dynamicCast(configuration, to: GRPCExporterConfiguration.self) else {
+                fatalError("Wrong configuration type passed to exporter!")
+            }
+            
+            self.parentConfiguration = castedConfiguration
+        }
+        
+        func buildMessage(_ type: Any.Type) throws -> Node<ProtobufferMessage> {
+            try buildCompositeMessage(type) ?? buildScalarMessage(type)
+        }
+        
+        func buildCompositeMessage(_ type: Any.Type) throws -> Tree<ProtobufferMessage> {
+            try ReflectionInfo.node(type)
+                .edited(handleOptional)?
+                .edited(handleArray)?
+                .edited(handlePrimitiveType)?
+                .edited(handleUUID)?
+                .map(ProtobufferMessage.Property.init)
+                .map {
+                    $0.map(handleUUIDProperty)
+                }
+                .map {
+                    $0.map(handleVariableWidthInteger)
+                }
+                .contextMap(ProtobufferMessage.init)
+                .compactMap { $0 }?
+                .filter(!\.isPrimitive)
+        }
+        
+        func buildScalarMessage(_ type: Any.Type) -> Node<ProtobufferMessage> {
+            let typeName = String(describing: type)
+            
+            return Node(
+                value: ProtobufferMessage(
+                    name: "\(typeName)Message",
+                    properties: [
+                        handleVariableWidthInteger(
+                            .init(
+                                fieldRule: .required,
+                                name: "value",
+                                typeName: typeName.lowercased(),
+                                uniqueNumber: 1
+                            )
+                        )
+                    ]
+                ),
+                children: []
+            )
+        }
+    }
 }
 
-private extension ProtobufferInterfaceExporter {
+private extension _ProtobufferInterfaceExporter {
     func exportThrows<H: Handler>(_ endpoint: Endpoint<H>) throws {
         // Output
         let outputNode = try builder.buildMessage(endpoint[ResponseType.self].type)
@@ -117,54 +193,9 @@ private extension ProtobufferInterfaceExporter {
     }
 }
 
-// MARK: - ProtobufferInterfaceExporter.Builder Implementation
+// MARK: - _ProtobufferInterfaceExporter.Builder Implementation
 
-extension ProtobufferInterfaceExporter.Builder {
-    func buildMessage(_ type: Any.Type) throws -> Node<ProtobufferMessage> {
-        try buildCompositeMessage(type) ?? buildScalarMessage(type)
-    }
-    
-    func buildCompositeMessage(_ type: Any.Type) throws -> Tree<ProtobufferMessage> {
-        try ReflectionInfo.node(type)
-            .edited(handleOptional)?
-            .edited(handleArray)?
-            .edited(handlePrimitiveType)?
-            .edited(handleUUID)?
-            .map(ProtobufferMessage.Property.init)
-            .map {
-                $0.map(handleUUIDProperty)
-            }
-            .map {
-                $0.map(handleVariableWidthInteger)
-            }
-            .contextMap(ProtobufferMessage.init)
-            .compactMap { $0 }?
-            .filter(!\.isPrimitive)
-    }
-    
-    func buildScalarMessage(_ type: Any.Type) -> Node<ProtobufferMessage> {
-        let typeName = String(describing: type)
-        
-        return Node(
-            value: ProtobufferMessage(
-                name: "\(typeName)Message",
-                properties: [
-                    handleVariableWidthInteger(
-                        .init(
-                            fieldRule: .required,
-                            name: "value",
-                            typeName: typeName.lowercased(),
-                            uniqueNumber: 1
-                        )
-                    )
-                ]
-            ),
-            children: []
-        )
-    }
-}
-
-private extension ProtobufferInterfaceExporter.Builder {
+private extension _ProtobufferInterfaceExporter.Builder {
     func handleUUIDProperty(
         _ property: ProtobufferMessage.Property
     ) -> ProtobufferMessage.Property {
@@ -187,7 +218,7 @@ private extension ProtobufferInterfaceExporter.Builder {
             return property
         }
         
-        let suffix = String(integerWidthConfiguration.rawValue)
+        let suffix = String(self.parentConfiguration.integerWidth.rawValue)
         let typeName = property.typeName + suffix
         
         return .init(
@@ -220,9 +251,9 @@ private extension ProtobufferMessage {
     }
 }
 
-// MARK: - ProtobufferInterfaceExporter: CustomStringConvertible
+// MARK: - _ProtobufferInterfaceExporter: CustomStringConvertible
 
-extension ProtobufferInterfaceExporter: CustomStringConvertible {
+extension _ProtobufferInterfaceExporter: CustomStringConvertible {
     public var description: String {
         let protoFile = [
             #"syntax = "proto3";"#,

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  DeploymentProvider.swift
 //  
 //
 //  Created by Lukas Kollmer on 2020-12-31.
@@ -125,7 +125,7 @@ extension DeploymentProvider {
         case .executable(let executableUrl):
             exportWebServiceModelTask = Task(
                 executableUrl: executableUrl,
-                arguments: [WellKnownCLIArguments.exportWebServiceModelStructure, modelFileUrl.path],
+                arguments: ["--mode=" + WellKnownCLIArguments.exportWebServiceModelStructure, "--fileurl=" + modelFileUrl.path],
                 captureOutput: false,
                 launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup
             )
@@ -145,8 +145,8 @@ extension DeploymentProvider {
                 arguments: [
                     "run",
                     productName,
-                    WellKnownCLIArguments.exportWebServiceModelStructure,
-                    modelFileUrl.path
+                    "--mode=" + WellKnownCLIArguments.exportWebServiceModelStructure,
+                    "--fileurl=" + modelFileUrl.path
                 ],
                 captureOutput: false,
                 launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup

@@ -111,8 +111,8 @@ extension RemoteHandlerInvocationManager {
         handlerId: H.HandlerIdentifier,
         collectedInputArgs: [CollectedArgument<H>]
     ) -> EventLoopFuture<H.Response.Content> {
-        guard let internalInterfaceExporter = self.app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self) else {
-            return eventLoop.makeFailedFuture(ApodiniDeployError(message: "Unable to get \(ApodiniDeployInterfaceExporter.self) object"))
+        guard let internalInterfaceExporter = self.app.storage.get(_ApodiniDeployInterfaceExporter.ApplicationStorageKey.self) else {
+            return eventLoop.makeFailedFuture(ApodiniDeployError(message: "Unable to get \(_ApodiniDeployInterfaceExporter.self) object"))
         }
         
         guard let targetEndpoint: Endpoint<H> = internalInterfaceExporter.getEndpoint(withIdentifier: handlerId, ofType: H.self) else {
@@ -141,7 +141,7 @@ extension RemoteHandlerInvocationManager {
     /// Remotely invoke a specific endpoint, in a specific node of the deployed system
     private func invokeRemotely<H: InvocableHandler>( // swiftlint:disable:this function_body_length cyclomatic_complexity
         handlerId: H.HandlerIdentifier,
-        internalInterfaceExporter: ApodiniDeployInterfaceExporter,
+        internalInterfaceExporter: _ApodiniDeployInterfaceExporter,
         targetNode: DeployedSystem.Node,
         targetEndpoint: Endpoint<H>,
         collectedInputArgs: [CollectedArgument<H>]
@@ -242,7 +242,7 @@ extension RemoteHandlerInvocationManager {
     
     private func dispatchStrategy<IH: InvocableHandler>(
         forInvocationOf endpoint: Endpoint<IH>,
-        internalInterfaceExporter: ApodiniDeployInterfaceExporter
+        internalInterfaceExporter: _ApodiniDeployInterfaceExporter
     ) -> DispatchStrategy {
         guard let runtime = internalInterfaceExporter.deploymentProviderRuntime else {
             // If there's no runtime registered, we wouldn't be able to dispatch the invocation anyway
@@ -264,11 +264,11 @@ extension RemoteHandlerInvocationManager {
 extension Endpoint {
     func invokeImp(
         withCollectedArguments arguments: [CollectedArgument<H>],
-        internalInterfaceExporter: ApodiniDeployInterfaceExporter,
+        internalInterfaceExporter: _ApodiniDeployInterfaceExporter,
         on eventLoop: EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
         invokeImp(
-            withRequest: ApodiniDeployInterfaceExporter.ExporterRequest(endpoint: self, collectedArguments: arguments),
+            withRequest: _ApodiniDeployInterfaceExporter.ExporterRequest(endpoint: self, collectedArguments: arguments),
             internalInterfaceExporter: internalInterfaceExporter,
             on: eventLoop
         )
@@ -276,8 +276,8 @@ extension Endpoint {
     
     
     func invokeImp(
-        withRequest request: ApodiniDeployInterfaceExporter.ExporterRequest,
-        internalInterfaceExporter: ApodiniDeployInterfaceExporter,
+        withRequest request: _ApodiniDeployInterfaceExporter.ExporterRequest,
+        internalInterfaceExporter: _ApodiniDeployInterfaceExporter,
         on eventLoop: EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
         let context = self.createConnectionContext(for: internalInterfaceExporter)

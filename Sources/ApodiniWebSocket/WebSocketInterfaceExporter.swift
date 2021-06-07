@@ -6,6 +6,7 @@
 //
 
 import Apodini
+import ApodiniUtils
 import ApodiniVaporSupport
 import NIOWebSocket
 @_implementationOnly import OpenCombine
@@ -13,21 +14,46 @@ import NIOWebSocket
 
 // MARK: Exporter
 
+public final class WebSocketInterfaceExporter: Configuration {
+    let configuration: WebSocketExporterConfiguration
+    
+    public init(path: String = "apodini/websocket") {
+        self.configuration = WebSocketExporterConfiguration(path: path)
+    }
+    
+    public func configure(_ app: Apodini.Application) {
+        /// Instanciate exporter
+        let webSocketExporter = _WebSocketInterfaceExporter(app, self.configuration)
+        
+        /// Insert  exporter into `SemanticModelBuilder`
+        let builder = app.exporters.semanticModelBuilderBuilder
+        app.exporters.semanticModelBuilderBuilder = { model in
+            builder(model).with(exporter: webSocketExporter)
+        }
+    }
+}
+
 /// The WebSocket exporter uses a custom JSON based protocol on top of WebSocket's text messages.
 /// This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel.
 /// The Apodini service listens on /apodini/websocket for clients that want to communicate via the WebSocket Interface Exporter.
-public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
+// swiftlint:disable type_name
+final class _WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private let app: Apodini.Application
-    
+    private let exporterConfiguration: WebSocketExporterConfiguration
     private let router: VaporWSRouter
 
     /// Initalize a `WebSocketInterfaceExporter` from an `Application`
-    public required init(_ app: Apodini.Application) {
+    required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = WebSocketExporterConfiguration()) {
+        guard let castedConfiguration = dynamicCast(exporterConfiguration, to: WebSocketExporterConfiguration.self) else {
+            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
+        }
+        
         self.app = app
-        self.router = VaporWSRouter(app.vapor.app, logger: app.logger)
+        self.exporterConfiguration = castedConfiguration
+        self.router = VaporWSRouter(app.vapor.app, logger: app.logger, at: self.exporterConfiguration.path)
     }
 
-    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self).map { parameter in
             (name: parameter.0, value: parameter.1.parameter)
         }
@@ -106,7 +132,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }, on: endpoint.absolutePath.build(with: WebSocketPathBuilder.self))
     }
 
-    public func retrieveParameter<Type>(
+    func retrieveParameter<Type>(
         _ parameter: EndpointParameter<Type>,
         for request: WebSocketInput
     ) throws -> Type?? where Type: Decodable, Type: Encodable {
@@ -117,12 +143,12 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
 
-    public func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable, Type: Encodable {
+    func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable, Type: Encodable {
         (parameter.name, WebSocketParameter(BasicInputParameter<Type>()))
     }
     
     #if DEBUG
-    public static func messagePrefix(for error: StandardErrorContext) -> String? {
+    static func messagePrefix(for error: StandardErrorContext) -> String? {
         switch error.option(for: .errorType) {
         case .badInput:
             return "You messed up"
@@ -141,12 +167,12 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
     #else
-    public typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
+    typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
     #endif
     
     private static func handleCompletion(
         completion: Subscribers.Completion<Never>,
-        context: ConnectionContext<WebSocketInterfaceExporter>,
+        context: ConnectionContext<_WebSocketInterfaceExporter>,
         request: WebSocketInput,
         output: PassthroughSubject<Message<EnrichedContent>, Error>
     ) {
@@ -226,7 +252,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
 // MARK: Handling of ObservedObject
 
 private struct DelegatingObservedListener: ObservedListener {
-    func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<WebSocketInterfaceExporter>) {
+    func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<_WebSocketInterfaceExporter>) {
         callback(observedObject)
     }
     
@@ -247,7 +273,7 @@ private enum Evaluation {
 
 // MARK: Input Definition
 
-/// A struct that wrapps the `WebSocketInterfaceExporter`'s internal representation of
+/// A struct that wrapps the `_WebSocketInterfaceExporter`'s internal representation of
 /// an `@Parameter`.
 public struct WebSocketParameter {
     internal var parameter: InputParameter
@@ -257,7 +283,7 @@ public struct WebSocketParameter {
     }
 }
 
-/// A struct that wrapps the `WebSocketInterfaceExporter`'s internal representation of
+/// A struct that wrapps the `_WebSocketInterfaceExporter`'s internal representation of
 /// the complete input of an endpoint.
 public struct WebSocketInput: ExporterRequest, WithEventLoop, WithRemote {
     internal var input: SomeInput
@@ -313,9 +339,9 @@ private extension StandardError {
     var wsError: WSError {
         switch self.option(for: .webSocketConnectionConsequence) {
         case .closeContext:
-            return FatalWSError(reason: self.message(for: WebSocketInterfaceExporter.self), code: self.option(for: .webSocketErrorCode))
+            return FatalWSError(reason: self.message(for: _WebSocketInterfaceExporter.self), code: self.option(for: .webSocketErrorCode))
         default:
-            return ModerateWSError(reason: self.message(for: WebSocketInterfaceExporter.self))
+            return ModerateWSError(reason: self.message(for: _WebSocketInterfaceExporter.self))
         }
     }
 }

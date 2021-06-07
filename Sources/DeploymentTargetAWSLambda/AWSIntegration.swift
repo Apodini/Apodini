@@ -186,7 +186,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 // create & add bootstrap file
                 let bootstrapFileContents = """
                 #!/bin/bash
-                ./\(lambdaExecutableUrl.lastPathComponent) \(WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig) ./\(launchInfoFileUrl.lastPathComponent)
+                ./\(lambdaExecutableUrl.lastPathComponent) --mode=\(WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig) --fileurl=./\(launchInfoFileUrl.lastPathComponent)
                 """
                 let bootstrapFileUrl = lambdaPackageTmpDir.appendingPathComponent("bootstrap", isDirectory: false)
                 try bootstrapFileContents.write(to: bootstrapFileUrl, atomically: true, encoding: .utf8)

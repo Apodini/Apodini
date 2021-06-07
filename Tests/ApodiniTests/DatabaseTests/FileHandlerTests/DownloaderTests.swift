@@ -16,7 +16,7 @@ final class DownloaderTests: FileHandlerTests {
         let downloader = SingleDownloader(DownloadConfiguration(.default))
         let endpoint = downloader.mockEndpoint(app: app)
         
-        let exporter = RESTInterfaceExporter(app)
+        let exporter = _RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
         let uri = URI("http://example.de/test/fileName")
@@ -57,7 +57,7 @@ final class DownloaderTests: FileHandlerTests {
         let downloader = MultipleDownloader(DownloadConfiguration(.default))
         let endpoint = downloader.mockEndpoint(app: app)
         
-        let exporter = RESTInterfaceExporter(app)
+        let exporter = _RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
         let uri = URI("http://example.de/test/fileName")

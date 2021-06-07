@@ -71,7 +71,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let handler = ReadOne<Bird>()
         let endpoint = handler.mockEndpoint(app: app)
         
-        let exporter = RESTInterfaceExporter(app)
+        let exporter = _RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
         let uri = URI("http://example.de/test/id")
@@ -110,7 +110,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let readHandler = ReadAll<Bird>()
         let endpoint = readHandler.mockEndpoint(app: app)
         
-        let exporter = RESTInterfaceExporter(app)
+        let exporter = _RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
         var uri = URI("http://example.de/test/bird?name=Mockingbird")
@@ -156,7 +156,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let handler = Update<Bird>()
         let endpoint = handler.mockEndpoint(app: app)
         
-        let exporter = RESTInterfaceExporter(app)
+        let exporter = _RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
         let bodyData = ByteBuffer(data: try JSONEncoder().encode(parameters))
@@ -203,7 +203,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let handler = Update<Bird>()
         let endpoint = handler.mockEndpoint(app: app)
         
-        let exporter = RESTInterfaceExporter(app)
+        let exporter = _RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
         let bodyData = ByteBuffer(data: try JSONEncoder().encode(updatedBird))
@@ -249,7 +249,7 @@ final class DatabaseHandlerTests: ApodiniTests {
         let handler = Delete<Bird>()
         let endpoint = handler.mockEndpoint(app: app)
         
-        let exporter = RESTInterfaceExporter(app)
+        let exporter = _RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
         let uri = URI("http://example.de/test/id")

@@ -45,11 +45,17 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
         }
     }
 
+    struct TestWebSocketExporterCollection: ConfigurationCollection {
+        var configuration: Configuration {
+            WebSocketInterfaceExporter()
+        }
+    }
+    
     func testParameterRetrieval() throws {
         let handler = ParameterRetrievalTestHandler()
         let endpoint = handler.mockEndpoint()
 
-        let exporter = WebSocketInterfaceExporter(app)
+        let exporter = _WebSocketInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
 
         let bird = Bird(name: "Rudi", age: 12)
@@ -85,9 +91,10 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
     }
 
     func testWebSocketConnectionRequestResponseSchema() throws {
-        let builder = SemanticModelBuilder(app)
-            .with(exporter: WebSocketInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        let testCollection = TestWebSocketExporterCollection()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -111,9 +118,10 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
     }
     
     func testWebSocketConnectionClientStreamSchema() throws {
-        let builder = SemanticModelBuilder(app)
-            .with(exporter: WebSocketInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        let testCollection = TestWebSocketExporterCollection()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -152,9 +160,10 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
     }
     
     func testWebSocketConnectionBidirectionalStreamSchema() throws {
-        let builder = SemanticModelBuilder(app)
-            .with(exporter: WebSocketInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        let testCollection = TestWebSocketExporterCollection()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -174,9 +183,10 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
     }
     
     func testWebSocketBadTypeError() throws {
-        let builder = SemanticModelBuilder(app)
-            .with(exporter: WebSocketInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        let testCollection = TestWebSocketExporterCollection()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -201,9 +211,10 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
     }
     
     func testWebSocketThrowingNoImpact() throws {
-        let builder = SemanticModelBuilder(app)
-            .with(exporter: WebSocketInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        let testCollection = TestWebSocketExporterCollection()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -220,9 +231,10 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
     }
     
     func testWebSocketThrowingCloseContext() throws {
-        let builder = SemanticModelBuilder(app)
-            .with(exporter: WebSocketInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        let testCollection = TestWebSocketExporterCollection()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -239,9 +251,10 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
     }
     
     func testWebSocketThrowingCloseChannel() throws {
-        let builder = SemanticModelBuilder(app)
-            .with(exporter: WebSocketInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        let testCollection = TestWebSocketExporterCollection()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -261,9 +274,10 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
     }
     
     func testRemoteAddress() throws {
-        let builder = SemanticModelBuilder(app)
-            .with(exporter: WebSocketInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        let testCollection = TestWebSocketExporterCollection()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
         testService.accept(visitor)
         visitor.finishParsing()
 

@@ -91,15 +91,12 @@ private struct TestWebService: Apodini.WebService {
             .testOption1(14)
         ])
     }
+    
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(ApodiniDeployInterfaceExporter.self)
-        ApodiniDeployConfiguration(
-            runtimes: [],
-            config: DeploymentConfig(defaultGrouping: .singleNode, deploymentGroups: [
-                .allHandlers(ofType: Text.self)
-            ])
-        )
+        ApodiniDeployInterfaceExporter(runtimes: [],
+                                       config: DeploymentConfig(defaultGrouping: .singleNode, deploymentGroups: [
+                                            .allHandlers(ofType: Text.self)
+                                       ]))
     }
 }
 
@@ -185,9 +182,9 @@ class DeploymentOptionsTests: XCTApodiniTest {
 
     
     func testHandlerDeploymentOptions() throws {
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
-        let apodiniDeployIE = try XCTUnwrap(app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self))
+        let apodiniDeployIE = try XCTUnwrap(app.storage.get(_ApodiniDeployInterfaceExporter.ApplicationStorageKey.self))
         
         do {
             let handler1 = try XCTUnwrap(apodiniDeployIE.getCollectedEndpointInfo(forHandlerWithIdentifier: TestWebService.handler1Id))

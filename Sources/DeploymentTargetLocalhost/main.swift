@@ -13,7 +13,6 @@ import Logging
 import DeploymentTargetLocalhostCommon
 import OpenAPIKit
 
-
 private struct LocalhostDeploymentProviderCLI: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Localhost Apodini deployment provider",
@@ -34,7 +33,6 @@ private struct LocalhostDeploymentProviderCLI: ParsableCommand {
     
     @Option(help: "Name of the web service's SPM target/product")
     var productName: String
-    
     
     mutating func run() throws {
         let deploymentProvider = LocalhostDeploymentProvider(
@@ -95,7 +93,11 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         for node in deployedSystem.nodes {
             let task = Task(
                 executableUrl: executableUrl,
-                arguments: [WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig, deployedSystemFileUrl.path, node.id],
+                arguments: [
+                    "--mode=" + WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig,
+                    "--fileurl=" + deployedSystemFileUrl.path,
+                    "--node=" + node.id
+                ],
                 launchInCurrentProcessGroup: true,
                 environment: [WellKnownEnvironmentVariables.currentNodeId: node.id]
             )
