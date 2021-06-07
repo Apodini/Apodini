@@ -28,7 +28,6 @@ public protocol ResponseTransformer {
 }
 
 internal struct ResponseTransformingHandler<D, T>: Handler where D: Handler, T: ResponseTransformer, D.Response.Content == T.InputContent {
-   
     var transformed: Delegate<D>
     var transformer: Delegate<T>
     
@@ -48,8 +47,11 @@ public struct ResponseTransformingHandlerInitializer<T: ResponseTransformer>: De
     
     let transformer: T
     
-    public func instance<D>(for delegate: D) throws -> SomeHandler<Response> where D : Handler {
-        if let transformingHandler = (TransformerCandidate(transformer: transformer, delegate: delegate) as? Transformable)?() as? SomeHandler<Response> {
+    public func instance<D>(for delegate: D) throws -> SomeHandler<Response> where D: Handler {
+        if let transformingHandler =
+            (TransformerCandidate(
+                transformer: transformer,
+                delegate: delegate) as? Transformable)?() as? SomeHandler<Response> {
             return transformingHandler
         }
         
@@ -64,7 +66,9 @@ private struct TransformerCandidate<Transformer: ResponseTransformer, Delegate: 
 
 extension TransformerCandidate: Transformable where Transformer.InputContent == Delegate.Response.Content {
     func callAsFunction() -> Any {
-        SomeHandler<Response<Transformer.Content>>(ResponseTransformingHandler<Delegate, Transformer>(transformed: Apodini.Delegate(delegate), transformer: Apodini.Delegate(transformer)))
+        SomeHandler<Response<Transformer.Content>>(ResponseTransformingHandler<Delegate, Transformer>(
+                                                    transformed: Apodini.Delegate(delegate),
+                                                    transformer: Apodini.Delegate(transformer)))
     }
 }
 
@@ -78,7 +82,7 @@ extension Handler {
     /// - Returns: The modified `Handler` with a new `ResponseTransformable` type
     public func response<T: ResponseTransformer>(
         _ responseTransformer: T
-    ) -> DelegateModifier<Self, ResponseTransformingHandlerInitializer<T>> where Self.Response.Content == T.InputContent {
+    ) -> DelegationModifier<Self, ResponseTransformingHandlerInitializer<T>> where Self.Response.Content == T.InputContent {
         self.delegated(by: ResponseTransformingHandlerInitializer(transformer: responseTransformer))
     }
 }

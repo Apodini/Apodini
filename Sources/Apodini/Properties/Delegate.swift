@@ -23,11 +23,11 @@ public struct Delegate<D> {
         weak var observation: Observation?
         // swiftlint:disable:next discouraged_optional_collection
         var observables: [(AnyObservedObject, Observation)]?
-        var changed: Bool = false
+        var changed = false
         // storage for observable objects set via .setObservable
         var observableObjectsSetters: [() -> Void] = []
         // storage for values injected via .environment
-        var environment: [AnyKeyPath:Any] = [:]
+        var environment: [AnyKeyPath: Any] = [:]
         // storage for values injected via .environmentObject
         var environmentObject: [Any] = []
     }
@@ -189,7 +189,6 @@ extension Delegate {
         return self
     }
 }
-
 
 
 // MARK: Property Conformance

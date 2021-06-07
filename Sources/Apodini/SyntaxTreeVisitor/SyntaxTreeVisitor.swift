@@ -109,7 +109,9 @@ public class SyntaxTreeVisitor: HandlerVisitor {
         
         // build the final handler using the delegating handlers
         if let builder = modelBuilder {
-            let delegateVisitor = DelegatingHandlerInitializerVisitor(calling: builder, with: context, using: context.get(valueFor: DelegatingHandlerContextKey.self))
+            let delegateVisitor = DelegatingHandlerInitializerVisitor(calling: builder,
+                                                                      with: context,
+                                                                      using: context.get(valueFor: DelegatingHandlerContextKey.self))
             do {
                 // calls semantic model builder's `register`
                 try delegateVisitor.visit(handler: handler)

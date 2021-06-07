@@ -309,7 +309,7 @@ only_rules:
     # Don’t include vertical whitespace (empty line) after opening braces.
   - void_return
     # Prefer -> Void over -> ().
-  - weak_delegate
+ # - weak_delegate (we don't really use the delegate pattern anywhere and the name-collision with our own 'Delegate' is annoying)
     # Delegates should be weak to avoid reference cycles.
   - xctfail_message
     # An XCTFail call should include a description of the assertion.

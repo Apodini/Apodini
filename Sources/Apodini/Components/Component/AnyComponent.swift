@@ -32,9 +32,9 @@ public struct AnyHandler: Handler, SyntaxTreeVisitable, VisitableHandler {
         _handleraccept = handler.accept
     }
     
-    fileprivate init(_accept: @escaping (SyntaxTreeVisitor) -> Void, _handleraccept: @escaping (HandlerVisitor) throws -> Void) {
-        self._accept = _accept
-        self._handleraccept = _handleraccept
+    fileprivate init(accept: @escaping (SyntaxTreeVisitor) -> Void, handleraccept: @escaping (HandlerVisitor) throws -> Void) {
+        self._accept = accept
+        self._handleraccept = handleraccept
     }
     
     
@@ -76,7 +76,7 @@ public struct SomeHandler<R: ResponseTransformable>: SyntaxTreeVisitable, Visita
     }
     
     var anyHandler: AnyHandler {
-        AnyHandler(_accept: self._accept, _handleraccept: self._handleraccept)
+        AnyHandler(accept: self._accept, handleraccept: self._handleraccept)
     }
     
     public func accept(_ visitor: SyntaxTreeVisitor) {

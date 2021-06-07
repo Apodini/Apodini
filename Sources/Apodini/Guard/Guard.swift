@@ -26,19 +26,19 @@ extension Component {
     /// Use an asynchronous `Guard` to guard `Component`s by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`
-    public func `guard`<G: Guard>(_ guard: G) -> DelegateModifier<Self, GuardingHandlerInitializer<G, Never>> {
+    public func `guard`<G: Guard>(_ guard: G) -> DelegationModifier<Self, GuardingHandlerInitializer<G, Never>> {
         self.delegated(by: GuardingHandlerInitializer(guard: `guard`), prepend: true)
     }
     
     /// Use a synchronous `SyncGuard` to guard `Component`s by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the synchronous `SyncGuard`
-    public func `guard`<G: SyncGuard>(_ guard: G) -> DelegateModifier<Self, SyncGuardingHandlerInitializer<G, Never>> {
+    public func `guard`<G: SyncGuard>(_ guard: G) -> DelegationModifier<Self, SyncGuardingHandlerInitializer<G, Never>> {
         self.delegated(by: SyncGuardingHandlerInitializer(guard: `guard`), prepend: true)
     }
     
     /// Resets all guards for the modified `Component`
-    public func resetGuards() -> DelegateFilterModifier<Self> {
+    public func resetGuards() -> DelegationFilterModifier<Self> {
         self.reset(using: GuardFilter(), prepend: true)
     }
 }
@@ -47,14 +47,14 @@ extension Handler {
     /// Use an asynchronous `Guard` to guard a `Handler` by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`
-    public func `guard`<G: Guard>(_ guard: G) -> DelegateModifier<Self, GuardingHandlerInitializer<G, Response>> {
+    public func `guard`<G: Guard>(_ guard: G) -> DelegationModifier<Self, GuardingHandlerInitializer<G, Response>> {
         self.delegated(by: GuardingHandlerInitializer(guard: `guard`), prepend: true)
     }
     
     /// Use a synchronous `SyncGuard` to guard a `Handler` by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the synchronous `SyncGuard`
-    public func `guard`<G: SyncGuard>(_ guard: G) -> DelegateModifier<Self, SyncGuardingHandlerInitializer<G, Response>> {
+    public func `guard`<G: SyncGuard>(_ guard: G) -> DelegationModifier<Self, SyncGuardingHandlerInitializer<G, Response>> {
         self.delegated(by: SyncGuardingHandlerInitializer(guard: `guard`), prepend: true)
     }
 }
@@ -78,7 +78,7 @@ public struct GuardingHandlerInitializer<G: Guard, R: ResponseTransformable>: De
     
     let `guard`: G
     
-    public func instance<D>(for delegate: D) throws -> SomeHandler<Response> where D : Handler {
+    public func instance<D>(for delegate: D) throws -> SomeHandler<Response> where D: Handler {
         SomeHandler<Response>(GuardingHandler(guarded: Delegate(delegate), guard: Delegate(self.guard)))
     }
 }
@@ -102,7 +102,7 @@ public struct SyncGuardingHandlerInitializer<G: SyncGuard, R: ResponseTransforma
     
     let `guard`: G
     
-    public func instance<D>(for delegate: D) throws -> SomeHandler<Response> where D : Handler {
+    public func instance<D>(for delegate: D) throws -> SomeHandler<Response> where D: Handler {
         SomeHandler<Response>(SyncGuardingHandler(guarded: Delegate(delegate), guard: Delegate(self.guard)))
     }
 }
@@ -115,8 +115,8 @@ extension GuardingHandlerInitializer: SomeGuardInitializer { }
 extension SyncGuardingHandlerInitializer: SomeGuardInitializer { }
 
 
-private struct GuardFilter: DelegateFilter {
-    func callAsFunction<I>(_ initializer: I) -> Bool where I : AnyDelegatingHandlerInitializer {
+private struct GuardFilter: DelegationFilter {
+    func callAsFunction<I>(_ initializer: I) -> Bool where I: AnyDelegatingHandlerInitializer {
         if initializer is SomeGuardInitializer {
             return false
         }

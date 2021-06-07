@@ -236,7 +236,6 @@ final class DelegationTests: ApodiniTests {
     struct NestedEnvironmentDelegate {
         @EnvironmentObject var number: Int
         @Apodini.Environment(\EnvKey.name) var string: String
-        
     }
     
     struct DelegatingEnvironmentDelegate {

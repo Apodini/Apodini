@@ -7,7 +7,6 @@ import ApodiniUtils
 /// Use `Delegate.environment(_:, _:)` to inject a value locally, or define a global default
 /// using `EnvironmentValue`.
 public struct Environment<Key: EnvironmentAccessible, Value>: Property {
-    
     private struct Storage {
         var changed: Bool
         weak var ownObservation: Observation?
@@ -92,7 +91,7 @@ struct LocalEnvironment<Value> {
     private var dynamicValue: Value?
     
     /// The current value of the environment property.
-    public var wrappedValue: Value? {
+    var wrappedValue: Value? {
         guard let dynamicValue = storage else {
             fatalError("The wrapped value was accessed before it was activated.")
         }
@@ -155,7 +154,7 @@ protocol KeyPathInjectable {
 
 extension Environment: KeyPathInjectable {
     func inject<V>(_ value: V, for keyPath: AnyKeyPath) {
-        if keyPath == self.keyPath  {
+        if keyPath == self.keyPath {
             if let typedValue = value as? Value {
                 _localEnvironment.setValue(typedValue)
                 (self as? Observing)?.registerChildObservation()
@@ -172,7 +171,6 @@ public protocol EnvironmentAccessible { }
 extension Application: EnvironmentAccessible { }
 
 
-
 // MARK: AnyObservedObject
 
 extension Environment: AnyObservedObject, Observing where Value: ObservableObject {
@@ -184,7 +182,9 @@ extension Environment: AnyObservedObject, Observing where Value: ObservableObjec
     }
     
     public func setChanged(to value: Bool, reason event: TriggerEvent) {
-        guard observe else { return }
+        guard observe else {
+            return
+        }
         
         guard let store = storage else {
             fatalError("The changed flag was accessed before it was activated.")
@@ -193,7 +193,9 @@ extension Environment: AnyObservedObject, Observing where Value: ObservableObjec
     }
     
     public func register(_ callback: @escaping (TriggerEvent) -> Void) -> Observation {
-        guard observe else { return Observation(callback) }
+        guard observe else {
+            return Observation(callback)
+        }
         
         guard let storage = self.storage else {
             fatalError("An Environment was registered before it was activated.")
@@ -208,7 +210,9 @@ extension Environment: AnyObservedObject, Observing where Value: ObservableObjec
     }
     
     fileprivate func registerChildObservation() {
-        guard observe else { return }
+        guard observe else {
+            return
+        }
         
         guard let storage = self.storage else {
             fatalError("An Environment registered to its child before it was activated.")
@@ -217,13 +221,15 @@ extension Environment: AnyObservedObject, Observing where Value: ObservableObjec
         storage.value.count += 1
         let initialCount = storage.value.count
         
-        let childObservation = Observation({ [weak storage] triggerEvent in
-            guard let storage = storage else { return }
+        let childObservation = Observation { [weak storage] triggerEvent in
+            guard let storage = storage else {
+                return
+            }
             
-            storage.value.ownObservation?.callback(TriggerEvent({
+            storage.value.ownObservation?.callback(TriggerEvent {
                 triggerEvent.cancelled || initialCount != storage.value.count
-            }))
-        })
+            })
+        }
         
         for property in Mirror(reflecting: wrappedValue).children {
             switch property.value {

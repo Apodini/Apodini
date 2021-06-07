@@ -122,7 +122,7 @@ func injectAll<Element>(values: [Any], into subject: Element) {
 }
 
 // MARK: KeyPathInjectable
-func injectAll<Element>(values: [AnyKeyPath:Any], into subject: Element) {
+func injectAll<Element>(values: [AnyKeyPath: Any], into subject: Element) {
     execute({ (injectable: KeyPathInjectable) in
         for (keyPath, value) in values {
             injectable.inject(value, for: keyPath)

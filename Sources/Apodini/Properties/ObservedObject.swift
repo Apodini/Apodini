@@ -38,15 +38,13 @@ public struct ObservedObject<Element: ObservableObject>: Property {
     
     /// Property to check if the evaluation of the `Handler` or `Job` was triggered by this `ObservableObject`.
     public var changed: Bool {
-        get {
-            guard let value = storage?.value.changed else {
-                fatalError("""
-                    A ObservedObjects's 'changed' property was accessed before the
-                    ObservedObject was activated.
-                    """)
-            }
-            return value
+        guard let value = storage?.value.changed else {
+            fatalError("""
+                A ObservedObjects's 'changed' property was accessed before the
+                ObservedObject was activated.
+                """)
         }
+        return value
     }
     
     public var projectedValue: Self {
@@ -111,13 +109,15 @@ extension ObservedObject: AnyObservedObject {
         storage.value.count += 1
         let initialCount = storage.value.count
         
-        let childObservation = Observation({ [weak storage] triggerEvent in
-            guard let storage = storage else { return }
+        let childObservation = Observation { [weak storage] triggerEvent in
+            guard let storage = storage else {
+                return
+            }
             
-            storage.value.ownObservation?.callback(TriggerEvent({
+            storage.value.ownObservation?.callback(TriggerEvent {
                 triggerEvent.cancelled || initialCount != storage.value.count
-            }))
-        })
+            })
+        }
         
         for property in Mirror(reflecting: wrappedValue).children {
             switch property.value {
@@ -152,6 +152,8 @@ public class Observation {
     }
 }
 
+/// A `TriggerEvent` is emitted by an `ObservableObject`'s `Published` properties when they change.
+/// - Note: Always check the `cancelled` property before acting in behalf of the event.
 public struct TriggerEvent {
     let checkCancelled: () -> Bool
     
@@ -162,6 +164,7 @@ public struct TriggerEvent {
         self.identifier = id
     }
     
+    /// Indicates if the event is outdated. If `true`, discard the event and abort the triggered action.
     public var cancelled: Bool {
         checkCancelled()
     }

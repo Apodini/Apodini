@@ -77,7 +77,9 @@ class ObservedObjectTests: ApodiniTests {
         struct TestListener: ObservedListener {
             var eventLoop: EventLoop
 
-            func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent, in context: ConnectionContext<RESTInterfaceExporter>) {
+            func onObservedDidChange(_ observedObject: AnyObservedObject,
+                                     _ event: TriggerEvent,
+                                     in context: ConnectionContext<RESTInterfaceExporter>) {
                 do {
                     try XCTCheckResponse(
                         context.handle(eventLoop: eventLoop, observedObject: observedObject, event: event),
@@ -138,7 +140,9 @@ class ObservedObjectTests: ApodiniTests {
                 self.number = number
             }
             
-            func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent, in context: ConnectionContext<RESTInterfaceExporter>) {
+            func onObservedDidChange(_ observedObject: AnyObservedObject,
+                                     _ event: TriggerEvent,
+                                     in context: ConnectionContext<RESTInterfaceExporter>) {
                 wasCalled = true
             }
             
@@ -199,7 +203,9 @@ class ObservedObjectTests: ApodiniTests {
                 self.eventLoop = eventLoop
             }
             
-            func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent, in context: ConnectionContext<RESTInterfaceExporter>) {
+            func onObservedDidChange(_ observedObject: AnyObservedObject,
+                                     _ event: TriggerEvent,
+                                     in context: ConnectionContext<RESTInterfaceExporter>) {
                 do {
                     try XCTCheckResponse(
                         context.handle(eventLoop: eventLoop, observedObject: observedObject, event: event),
@@ -293,7 +299,7 @@ class ObservedObjectTests: ApodiniTests {
                     }
                    
                    return "\(response.content!.response.wrappedValue)"
-               }
+                }
             }
         }
     }

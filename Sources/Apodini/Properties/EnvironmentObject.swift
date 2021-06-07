@@ -13,7 +13,6 @@ import ApodiniUtils
 /// `ObservableObject`, `Environment` observes its value just as `ObservedObject`.
 /// Use `Delegate.environmentObject(_:)` to inject a value.
 public struct EnvironmentObject<Value>: DynamicProperty {
-    
     private struct Storage {
         var changed: Bool
         weak var ownObservation: Observation?
@@ -89,7 +88,9 @@ extension EnvironmentObject: AnyObservedObject, Observing where Value: Observabl
     }
     
     public func setChanged(to value: Bool, reason event: TriggerEvent) {
-        guard observe else { return }
+        guard observe else {
+            return
+        }
         
         guard let store = storage else {
             fatalError("The changed flag was accessed before it was activated.")
@@ -98,7 +99,9 @@ extension EnvironmentObject: AnyObservedObject, Observing where Value: Observabl
     }
     
     public func register(_ callback: @escaping (TriggerEvent) -> Void) -> Observation {
-        guard observe else { return Observation(callback) }
+        guard observe else {
+            return Observation(callback)
+        }
         
         guard let storage = self.storage else {
             fatalError("An Environment was registered before it was activated.")
@@ -113,7 +116,9 @@ extension EnvironmentObject: AnyObservedObject, Observing where Value: Observabl
     }
     
     fileprivate func registerChildObservation() {
-        guard observe else { return }
+        guard observe else {
+            return
+        }
         
         guard let storage = self.storage else {
             fatalError("An Environment registered to its child before it was activated.")
@@ -122,13 +127,15 @@ extension EnvironmentObject: AnyObservedObject, Observing where Value: Observabl
         storage.value.count += 1
         let initialCount = storage.value.count
         
-        let childObservation = Observation({ [weak storage] triggerEvent in
-            guard let storage = storage else { return }
+        let childObservation = Observation { [weak storage] triggerEvent in
+            guard let storage = storage else {
+                return
+            }
             
-            storage.value.ownObservation?.callback(TriggerEvent({
+            storage.value.ownObservation?.callback(TriggerEvent {
                 triggerEvent.cancelled || initialCount != storage.value.count
-            }))
-        })
+            })
+        }
         
         for property in Mirror(reflecting: wrappedValue).children {
             switch property.value {
