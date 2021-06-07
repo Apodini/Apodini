@@ -1,5 +1,5 @@
 //
-//  RESTDependentConfiguration.swift
+//  RESTDependentStaticConfiguration.swift
 //  
 //
 //  Created by Philipp Zagar on 27.05.21.
