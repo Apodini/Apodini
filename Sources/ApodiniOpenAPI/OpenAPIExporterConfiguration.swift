@@ -4,6 +4,7 @@
 
 import Foundation
 import Apodini
+import ApodiniREST
 import OpenAPIKit
 
 /// Default values used for OpenAPI configuration if not explicitly specified by developer.
@@ -20,12 +21,9 @@ public enum OpenAPIConfigurationDefaults {
 public struct OpenAPIStorageValue {
     /// The OpenAPI document
     public let document: OpenAPI.Document?
-    /// The configuration used by the OpenAPIInterfaceExporter
-    public let configuration: OpenAPIConfiguration
     
-    internal init(document: OpenAPI.Document? = nil, configuration: OpenAPIConfiguration) {
+    internal init(document: OpenAPI.Document? = nil) {
         self.document = document
-        self.configuration = configuration
     }
 }
 
@@ -40,35 +38,37 @@ public enum OpenAPIOutputFormat {
     case json
     /// YAML format output.
     case yaml
+    /// Use encoding configuration of parent
+    case useParentEncoding
 }
 
 /// A configuration structure for manually setting OpenAPI information and output locations.
-public class OpenAPIConfiguration: Configuration {
+public struct OpenAPIExporterConfiguration: ExporterConfiguration {
     /// General OpenAPI information.
     var title: String?
     var version: String?
-
+    
     /// Server configuration.
     var serverUrls: Set<URL> = Set<URL>()
-
+    
     /// OpenAPI output configuration.
     let outputFormat: OpenAPIOutputFormat
     let outputEndpoint: String
     let swaggerUiEndpoint: String
     
-    /// Configure application.
-    public func configure(_ app: Application) {
-        app.storage.set(OpenAPIStorageKey.self, to: OpenAPIStorageValue(configuration: self))
-    }
+    /// Configuration of parent exporter
+    var parentConfiguration: ExporterConfiguration
     
     public init(
+        parentConfiguration: ExporterConfiguration = RESTExporterConfiguration(),
         outputFormat: OpenAPIOutputFormat = OpenAPIConfigurationDefaults.outputFormat,
         outputEndpoint: String = OpenAPIConfigurationDefaults.outputEndpoint,
         swaggerUiEndpoint: String = OpenAPIConfigurationDefaults.swaggerUiEndpoint,
         title: String? = nil,
         version: String? = nil,
-        serverUrls: URL...
-        ) {
+        serverUrls: [URL] = []
+    ) {
+        self.parentConfiguration = parentConfiguration
         self.outputFormat = outputFormat
         // Prefix configured endpoints with `/` to avoid relative paths.
         self.outputEndpoint = outputEndpoint.hasPrefix("/") ? outputEndpoint : "/\(outputEndpoint)"
