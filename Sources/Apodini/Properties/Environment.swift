@@ -27,27 +27,25 @@ public struct Environment<Key: EnvironmentAccessible, Value>: Property {
     
     /// Initializer of `Environment` specifically for `Application` for less verbose syntax.
     public init(_ keyPath: KeyPath<Key, Value>) where Key == Application {
-        self._localEnvironment = LocalEnvironment()
-        self.keyPath = keyPath
-        self.observe = true
+        self.init(from: keyPath, observed: true)
     }
     
     /// Initializer of `Environment` for key paths conforming to `EnvironmentAccessible`.
     public init(_ keyPath: KeyPath<Key, Value>) {
-        self._localEnvironment = LocalEnvironment()
-        self.keyPath = keyPath
-        self.observe = true
+        self.init(from: keyPath, observed: true)
     }
     
     /// Initializer of `Environment` specifically for `Application` for less verbose syntax.
     public init(_ keyPath: KeyPath<Key, Value>, observed: Bool) where Key == Application, Value: ObservableObject {
-        self._localEnvironment = LocalEnvironment()
-        self.keyPath = keyPath
-        self.observe = observed
+        self.init(from: keyPath, observed: observed)
     }
     
     /// Initializer of `Environment` for key paths conforming to `EnvironmentAccessible`.
     public init(_ keyPath: KeyPath<Key, Value>, observed: Bool) where Value: ObservableObject {
+        self.init(from: keyPath, observed: observed)
+    }
+    
+    private init(from keyPath: KeyPath<Key, Value>, observed: Bool) {
         self._localEnvironment = LocalEnvironment()
         self.keyPath = keyPath
         self.observe = observed

@@ -43,12 +43,6 @@ func extractParameters<Element>(from subject: Element) -> [(String, AnyParameter
 }
 
 extension Apodini.Request {
-    func enterRequestContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>)
-                   throws -> EventLoopFuture<R> {
-        try inject(in: element)
-        return method(element)
-    }
-
     func enterRequestContext<E, R>(with element: E, executing method: (E) throws -> R) throws -> R {
         try inject(in: element)
         return try method(element)
@@ -332,27 +326,6 @@ extension Properties: Traversable {
                 self.elements[name] = traversable as? Property
             default:
                 break
-            }
-        }
-    }
-}
-
-// MARK: Optional
-
-extension Optional: Traversable {
-    func execute<Target>(_ operation: (Target, String) throws -> Void, using names: [String]) rethrows {
-        if case let .some(value) = self {
-            if let typed = value as? Target {
-                try operation(typed, names.last!)
-            }
-        }
-    }
-    
-    mutating func apply<Target>(_ mutation: (inout Target, String) throws -> Void, using names: [String]) rethrows {
-        if case let .some(value) = self {
-            if var typed = value as? Target {
-                try mutation(&typed, names.last!)
-                self = .some(typed as! Wrapped)
             }
         }
     }
