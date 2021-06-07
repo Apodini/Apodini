@@ -324,8 +324,8 @@ excluded: # paths to ignore during linting. Takes precedence over `included`.
   - Sources/Apodini/Components/Path/PathComponentBuilder.swift
   - Sources/Apodini/Components/ComponentBuilder.swift
   - Sources/Apodini/Configurations/ConfigurationBuilder.swift
-  - Sources/Apodini/Configurations/StaticConfigurations/GRPCDependentConfigurationBuilder.swift
-  - Sources/Apodini/Configurations/StaticConfigurations/RESTDependentConfigurationBuilder.swift
+  - Sources/Apodini/Configurations/StaticConfigurations/GRPCDependentStaticConfigurationBuilder.swift
+  - Sources/Apodini/Configurations/StaticConfigurations/RESTDependentStaticConfigurationBuilder.swift
   - Sources/Apodini/Relationships/RelationshipIdentificationBuilder.swift
   - Sources/Apodini/Metadata/ResultBuilder/ComponentMetadataBuilder.swift
   - Sources/Apodini/Metadata/ResultBuilder/MetadataBuilder.swift
