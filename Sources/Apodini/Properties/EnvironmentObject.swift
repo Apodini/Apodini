@@ -47,7 +47,7 @@ public struct EnvironmentObject<Value>: DynamicProperty {
     
     /// A `Binding` that reflects this `Environment`.
     public var projectedValue: Binding<Value> {
-        Binding.environment(self)
+        Binding.environmentObject(self)
     }
 }
 

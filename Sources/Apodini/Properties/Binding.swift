@@ -121,7 +121,7 @@ extension Binding {
         parameterId = nil
     }
 
-    internal static func environment(_ environment: EnvironmentObject<Value>) -> Binding<Value> {
+    internal static func environmentObject(_ environment: EnvironmentObject<Value>) -> Binding<Value> {
         Binding(environmentobject: environment)
     }
 }

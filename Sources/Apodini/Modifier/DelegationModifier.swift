@@ -91,30 +91,6 @@ public extension DelegatingHandlerInitializer {
     }
 }
 
-
-// MARK: DelegateInitializable
-
-/// A convenience protocol that can be used to obtain a `DelegatingHandlerInitializer` from `Handler`-types
-/// that take no other parameters on their initializer but the `delegate`.
-public protocol DelegateInitializable: Handler {
-    init<D: Handler>(from delegate: D) throws
-}
-
-public extension DelegateInitializable {
-    /// Returns the standard `DelegatingHandlerInitializer` for this type. The returned value can be passed into
-    /// the `.delegated(by:)` function defined on `Handler`s and `Component`s.
-    static var initializer: DelegateInitializableInitializer<Self> {
-        DelegateInitializableInitializer<Self>()
-    }
-}
-
-public struct DelegateInitializableInitializer<I: DelegateInitializable>: DelegatingHandlerInitializer {
-    public func instance<D>(for delegate: D) throws -> SomeHandler<I.Response> where D: Handler {
-        SomeHandler(try I(from: delegate))
-    }
-}
-
-
 // MARK: DelegatingHandlerContextKey
 
 struct DelegatingHandlerContextKey: ContextKey {
