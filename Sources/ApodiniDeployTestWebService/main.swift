@@ -195,6 +195,10 @@ struct WebService: Apodini.WebService {
             ])
         )
     }
+
+    var metadata: Metadata {
+        Description("WebService Description")
+    }
 }
 
 try WebService.main()

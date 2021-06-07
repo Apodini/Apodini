@@ -262,19 +262,19 @@ As this might not always be given, one can also annotate that explicitly using t
 
 #### 2.3.2 Explicitly
 
-##### 2.3.2.1 Relationship Definition: `References`
+##### 2.3.2.1 Relationship Metadata: `References`
 
 For this chapter we consider the following example:
 
 ```swift
-struct Article: Identifiable, WithRelationships {
+struct Article: Content, Identifiable {
   var id: String
   var heading: String
   var content: String
 
   var writtenBy: String
 
-  static var relationships: some RelationshipDefinition {
+  static var metadata: Metadata {
     References<User>(as: "author", identifiedBy: \.writtenBy)
   }
 }
@@ -335,7 +335,7 @@ query {
 }
 ```
 
-##### 2.3.2.2 Relationship Definition: `Inherits`
+##### 2.3.2.2 Relationship Metadata: `Inherits`
 
 A special case to the previous chapter is when you want to create a Relationship definition for the primary identifier
 of the data structure (e.g. the `.id` property of an `Identifiable`).  
@@ -353,11 +353,11 @@ destination.
 The example below illustrates such a definition.
 
 ```swift
-struct MeUser: Identifiable, WithRelationships {
+struct MeUser: Content, Identifiable {
   var id: String
   var loginToken: String
 
-  static var relationships: some RelationshipDefinition {
+  static var metadata: Metadata {
     Inherits<User>(identifiedBy: \.id)
   }
 }
@@ -603,7 +603,7 @@ generator could be extended to also incorporate some relationship functionality.
 As describe in [2.3.2.1](#2321-relationship-definition-references) we can already add a relationship to the `.author` in every response
 returned on the `/article/:articleId` endpoint.
 What we currently can't do is the reverse lookup, retrieve all articles written by a certain `User`.
-Right now the user would need to manually support that by supplying a appropriate `Handler`.  
+Right now the user would need to manually support that by supplying an appropriate `Handler`.  
 Provided that the REST exporter is able to generate such a pagination route, this feature could be extended
 to incorporate relationship information and add support for a `author` query parameter.  
 A request to `/article?author={userId}` would then return a array of articles written by the specified `User`.

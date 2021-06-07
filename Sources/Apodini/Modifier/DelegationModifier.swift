@@ -38,7 +38,7 @@ public struct DelegationModifier<C: Component, I: DelegatingHandlerInitializer>:
     }
 }
 
-extension DelegationModifier: Handler, HandlerModifier where Self.ModifiedComponent: Handler {
+extension DelegationModifier: HandlerModifier where Self.ModifiedComponent: Handler {
     public typealias Response = I.Response
 }
 
@@ -130,18 +130,22 @@ struct DelegatingHandlerContextKey: ContextKey {
 
 class DelegatingHandlerInitializerVisitor: HandlerVisitor {
     var initializers: [AnyDelegatingHandlerInitializer]
-    let semanticModelBuilder: SemanticModelBuilder
-    let context: Context
+    let semanticModelBuilder: SemanticModelBuilder?
+    unowned let visitor: SyntaxTreeVisitor
     
-    init(calling builder: SemanticModelBuilder, with context: Context, using initializers: [(Bool, AnyDelegatingHandlerInitializer)]) {
+    init(calling builder: SemanticModelBuilder?, with visitor: SyntaxTreeVisitor) {
+        let initializers = visitor.currentNode.getContextValue(for: DelegatingHandlerContextKey.self)
         self.initializers = (initializers.filter { prepend, _ in prepend }.reversed()
                                 + initializers.filter { prepend, _ in !prepend }).map { _, initializer in initializer }
         self.semanticModelBuilder = builder
-        self.context = context
+        self.visitor = visitor
     }
     
     func visit<H: Handler>(handler: H) throws {
         preconditionTypeIsStruct(H.self, messagePrefix: "Delegating Handler")
+        
+        handler.metadata.accept(visitor)
+        
         if !initializers.isEmpty {
             let initializer = initializers.removeFirst()
             
@@ -155,7 +159,12 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
                 try nextHandler.accept(self)
             }
         } else {
-            semanticModelBuilder.register(handler: handler, withContext: context)
+            // We capture the currentContextNode and make a copy that will be used when executing the request as
+            // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the
+            // currentNode would always result in the last currentNode that was used when visiting the component tree.
+            let context = Context(contextNode: visitor.currentNode.copy())
+            
+            semanticModelBuilder?.register(handler: handler, withContext: context)
         }
     }
 }

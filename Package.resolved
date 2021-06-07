@@ -42,8 +42,8 @@
         "repositoryURL": "https://github.com/OpenKitten/BSON.git",
         "state": {
           "branch": null,
-          "revision": "a41b4e30e7b7a8afe0261abc7c6ee1d2b363a722",
-          "version": "7.0.26"
+          "revision": "5ef02954ff53960ae6fba46cd03c7bee51deb62e",
+          "version": "7.0.27"
         }
       },
       {
@@ -60,8 +60,8 @@
         "repositoryURL": "https://github.com/mattgallagher/CwlCatchException.git",
         "state": {
           "branch": null,
-          "revision": "f809deb30dc5c9d9b78c872e553261a61177721a",
-          "version": "2.0.0"
+          "revision": "682841464136f8c66e04afe5dbd01ab51a3a56f2",
+          "version": "2.1.0"
         }
       },
       {
@@ -96,8 +96,8 @@
         "repositoryURL": "https://github.com/vapor/fluent.git",
         "state": {
           "branch": null,
-          "revision": "4004e926cdef1fbb937501c8a60554349cced675",
-          "version": "4.2.0"
+          "revision": "5810a409eb0271a576f68887fa6713dae3985056",
+          "version": "4.3.1"
         }
       },
       {
@@ -105,8 +105,8 @@
         "repositoryURL": "https://github.com/vapor/fluent-kit.git",
         "state": {
           "branch": null,
-          "revision": "ea23e12404dc3a598dd8f3084650550d2b6b1ac5",
-          "version": "1.12.0"
+          "revision": "2eddf6fda3f1ca114f96e0cf82875fefab342343",
+          "version": "1.13.0"
         }
       },
       {
@@ -141,8 +141,8 @@
         "repositoryURL": "https://github.com/vapor/fluent-sqlite-driver.git",
         "state": {
           "branch": null,
-          "revision": "6f29f6f182c812075f09c7575c18ac5535c26824",
-          "version": "4.0.1"
+          "revision": "9ca34be792979fb0f1dbd8e45b8af9f1e1440474",
+          "version": "4.1.0"
         }
       },
       {
@@ -447,8 +447,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "d6605a61efc7487552a26364fa1b405b81b4ddba",
-          "version": "4.45.5"
+          "revision": "bc194e3868cbd9cf3cd41392e9b10d6fad089bc4",
+          "version": "4.45.7"
         }
       },
       {

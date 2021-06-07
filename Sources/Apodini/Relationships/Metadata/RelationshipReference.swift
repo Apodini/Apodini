@@ -2,10 +2,21 @@
 // Created by Andreas Bauer on 18.01.21.
 //
 
+extension TypedContentMetadataNamespace {
+    /// Shorthand for using a pretyped `RelationshipReference`.
+    public typealias References<To: Identifiable> = RelationshipReference<Self, To> where To.ID: LosslessStringConvertible
+}
+
 /// A `RelationshipReference` can be used to create a referencing relationship for the annotated `Content` type.
 /// A relationship reference uses the value of properties holding the identifier of the target type
 /// to resolve a relationship with the given values.
-public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinition where To.ID: LosslessStringConvertible {
+public class RelationshipReference<From, To: Identifiable>: RelationshipsContentMetadataBlock
+    where To.ID: LosslessStringConvertible {
+    public typealias Key = RelationshipSourceCandidateContextKey
+    override public var value: [PartialRelationshipSourceCandidate] {
+        [PartialRelationshipSourceCandidate(reference: name, destinationType: destinationType, resolvers: resolvers)]
+    }
+
     let name: String
     let destinationType: To.Type
     let resolvers: [AnyPathParameterResolver]
@@ -13,9 +24,9 @@ public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinit
     /// Creates a new `RelationshipReference`, referencing from the specified type using the specified resolver.
     /// - Parameters:
     ///
-    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// A example definition for a Metadata definition looks like the following:
     /// ```swift
-    /// static var relationships: Relationships {
+    /// static var metadata: Metadata {
     ///   References<SomeType>(as: "someName", identifiedBy: \.someId)
     /// }
     /// ```
@@ -23,7 +34,7 @@ public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinit
     ///   - type: The reference type.
     ///   - name: The name of the reference.
     ///   - keyPath: A resolver for the path parameter of the destination.
-    public init(to type: To.Type = To.self, as name: String, identifiedBy keyPath: KeyPath<From, To.ID>) {
+    public convenience init(to type: To.Type = To.self, as name: String, identifiedBy keyPath: KeyPath<From, To.ID>) {
         self.init(to: type, as: name) {
             RelationshipIdentification(type, identifiedBy: keyPath)
         }
@@ -31,9 +42,9 @@ public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinit
 
     /// Creates a new `RelationshipReference`, referencing from the specified type using the specified resolver.
     ///
-    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// A example definition for a Metadata definition looks like the following:
     /// ```swift
-    /// static var relationships: Relationships {
+    /// static var metadata: Metadata {
     ///   // The \.someId property is of type Optional. The path parameter will only be resolved
     ///   // if the parameter value is present
     ///   References<SomeType>(as: "someName", identifiedBy: \.someId)
@@ -44,7 +55,7 @@ public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinit
     ///   - type: The reference type.
     ///   - name: The name of the reference.
     ///   - keyPath: A resolver for the path parameter of the destination.
-    public init(to type: To.Type = To.self, as name: String, identifiedBy keyPath: KeyPath<From, To.ID?>) {
+    public convenience init(to type: To.Type = To.self, as name: String, identifiedBy keyPath: KeyPath<From, To.ID?>) {
         self.init(to: type, as: name) {
             RelationshipIdentification(type, identifiedBy: keyPath)
         }
@@ -52,9 +63,9 @@ public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinit
 
     /// Creates a new `RelationshipReference`, referencing from the specified type using the specified resolvers.
     ///
-    /// A example definition for a `WithRelationships` definition looks like the following:
+    /// A example definition for a Metadata definition looks like the following:
     /// ```swift
-    /// static var relationships: Relationships {
+    /// static var metadata: Metadata {
     ///   References<SomeType>(as: "someName") {
     ///     // Every entry here relates to one `PathParameter` definition
     ///     // in the path of the destination. `Identifying` must be added
@@ -80,12 +91,5 @@ public struct RelationshipReference<From, To: Identifiable>: RelationshipDefinit
 
         precondition(name != "self", "The relationship name 'self' is reserved. To model relationship inheritance please use `Inherits`!")
         precondition(From.self != To.self, "Can't define circular relationship references. '\(name)' points to itself!")
-    }
-}
-
-extension RelationshipReference: SyntaxTreeVisitable {
-    public func accept(_ visitor: SyntaxTreeVisitor) {
-        let candidate = PartialRelationshipSourceCandidate(reference: name, destinationType: destinationType, resolvers: resolvers)
-        visitor.addContext(RelationshipSourceCandidateContextKey.self, value: [candidate], scope: .current)
     }
 }

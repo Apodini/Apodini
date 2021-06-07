@@ -127,8 +127,8 @@ struct RelationshipSourceCandidate: SomeRelationshipSourceCandidate {
 
 /// A `RelationshipSourceCandidate` but without the scope of the `Endpoint`
 /// meaning still missing the `EndpointReference` and missing any `PathParameterResolver` in the `resolvers`.
-struct PartialRelationshipSourceCandidate: SomeRelationshipSourceCandidate {
-    var debugDescription: String {
+public struct PartialRelationshipSourceCandidate: SomeRelationshipSourceCandidate {
+    public var debugDescription: String {
         "PartialRelationshipSourceCandidate(\(type.debugDescription), targeting: \(destinationType), resolvers: \(resolvers.count))"
     }
 

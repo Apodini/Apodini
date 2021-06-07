@@ -38,7 +38,7 @@ public struct DelegationFilterModifier<C: Component>: Modifier {
     }
 }
 
-extension DelegationFilterModifier: Handler, HandlerModifier where Self.ModifiedComponent: Handler {
+extension DelegationFilterModifier: HandlerModifier where Self.ModifiedComponent: Handler {
     public typealias Response = C.Response
 }
 

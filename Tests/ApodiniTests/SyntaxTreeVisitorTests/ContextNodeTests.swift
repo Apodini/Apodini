@@ -65,7 +65,7 @@ struct IntModifier<C: Component>: Modifier, SyntaxTreeVisitable {
     }
 }
 
-extension IntModifier: Handler, HandlerModifier where ModifiedComponent: Handler {
+extension IntModifier: Handler, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: Handler {
     typealias Response = ModifiedComponent.Response
 }
 
@@ -92,7 +92,7 @@ struct OptionalIntModifier<C: Component>: Modifier, SyntaxTreeVisitable {
     }
 }
 
-extension OptionalIntModifier: Handler, HandlerModifier where ModifiedComponent: Handler {
+extension OptionalIntModifier: Handler, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: Handler {
     typealias Response = ModifiedComponent.Response
 }
 
@@ -119,7 +119,7 @@ struct IntAdditionModifier<C: Component>: Modifier, SyntaxTreeVisitable {
     }
 }
 
-extension IntAdditionModifier: Handler, HandlerModifier where ModifiedComponent: Handler {
+extension IntAdditionModifier: Handler, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: Handler {
     typealias Response = ModifiedComponent.Response
 }
 

@@ -320,12 +320,14 @@ excluded: # paths to ignore during linting. Takes precedence over `included`.
   - .build
   - TestWebService/.build
   - .swiftpm
-  # We ignore all files with @_functionBuilder as as long as we support 5.3: https://github.com/Apodini/Apodini/runs/2525316261?check_suite_focus=true
+  # We ignore all files with @_functionBuilder/@resultBuilder as long as we support 5.3: https://github.com/Apodini/Apodini/runs/2525316261?check_suite_focus=true
   - Sources/Apodini/Components/Path/PathComponentBuilder.swift
   - Sources/Apodini/Components/ComponentBuilder.swift
   - Sources/Apodini/Configurations/ConfigurationBuilder.swift
   - Sources/Apodini/Relationships/RelationshipIdentificationBuilder.swift
-  - Sources/Apodini/Relationships/RelationshipDefinitionBuilder.swift
+  - Sources/Apodini/Metadata/ResultBuilder/ComponentMetadataBuilder.swift
+  - Sources/Apodini/Metadata/ResultBuilder/MetadataBuilder.swift
+  - Sources/Apodini/Metadata/ResultBuilder/RestrictedMetadataBlockBuilder.swift
 
 closure_body_length: # Closure bodies should not span too many lines.
   - 35 # warning - default: 20

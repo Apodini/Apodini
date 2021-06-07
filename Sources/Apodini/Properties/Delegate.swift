@@ -137,6 +137,7 @@ extension Delegate {
     }
 }
 
+
 extension Delegate {
     /// Change a `delegate`'s `ObservedObject` to observe another `value`.
     @discardableResult
