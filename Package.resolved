@@ -42,8 +42,8 @@
         "repositoryURL": "https://github.com/OpenKitten/BSON.git",
         "state": {
           "branch": null,
-          "revision": "a41b4e30e7b7a8afe0261abc7c6ee1d2b363a722",
-          "version": "7.0.26"
+          "revision": "5ef02954ff53960ae6fba46cd03c7bee51deb62e",
+          "version": "7.0.27"
         }
       },
       {
@@ -96,8 +96,8 @@
         "repositoryURL": "https://github.com/vapor/fluent.git",
         "state": {
           "branch": null,
-          "revision": "c67c33ad788445406a5bf6a63880229e5f580577",
-          "version": "4.3.0"
+          "revision": "5810a409eb0271a576f68887fa6713dae3985056",
+          "version": "4.3.1"
         }
       },
       {
@@ -105,8 +105,8 @@
         "repositoryURL": "https://github.com/vapor/fluent-kit.git",
         "state": {
           "branch": null,
-          "revision": "e22fb0973725b662319fd4a7365988f1ae796e27",
-          "version": "1.12.1"
+          "revision": "2eddf6fda3f1ca114f96e0cf82875fefab342343",
+          "version": "1.13.0"
         }
       },
       {
@@ -141,8 +141,8 @@
         "repositoryURL": "https://github.com/vapor/fluent-sqlite-driver.git",
         "state": {
           "branch": null,
-          "revision": "6f29f6f182c812075f09c7575c18ac5535c26824",
-          "version": "4.0.1"
+          "revision": "9ca34be792979fb0f1dbd8e45b8af9f1e1440474",
+          "version": "4.1.0"
         }
       },
       {
@@ -447,8 +447,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "9d154df6214a1d6027f04a495e8981bac49224da",
-          "version": "4.45.6"
+          "revision": "bc194e3868cbd9cf3cd41392e9b10d6fad089bc4",
+          "version": "4.45.7"
         }
       },
       {
