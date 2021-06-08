@@ -270,9 +270,16 @@ class NegativeTestRunner {
         #if !DEBUG
         arguments += " -c release -Xswiftc -enable-testing"
         #endif
+
+        #if RELEASE_TESTING
+        precondition(arguments.contains("-c release"))
+        arguments += " -Xswiftc -DRELEASE_TESTING"
+        #endif
+
         #if os(Linux)
         arguments += " --enable-test-discovery"
         #endif
+
         #if COVERAGE // custom defined Active Compilation Condition which we set when we enable code coverage collection
         arguments += " --enable-code-coverage -Xswiftc -DCOVERAGE"
         #endif
