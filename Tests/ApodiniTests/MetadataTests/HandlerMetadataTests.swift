@@ -205,7 +205,6 @@ final class HandlerMetadataTest: ApodiniTests {
     
     func testDelegatedHandlerMetadata() {
         struct TestDelegatingHandler<D: Handler>: Handler {
-            
             let delegate: Delegate<D>
             
             func handle() throws -> some ResponseTransformable {
@@ -219,7 +218,7 @@ final class HandlerMetadataTest: ApodiniTests {
         }
         
         struct TestDelegatingHandlerInitializer: DelegatingHandlerInitializer {
-            func instance<D>(for delegate: D) throws -> SomeHandler<String> where D : Handler {
+            func instance<D>(for delegate: D) throws -> SomeHandler<String> where D: Handler {
                 SomeHandler(TestDelegatingHandler(delegate: Delegate(delegate)))
             }
         }
