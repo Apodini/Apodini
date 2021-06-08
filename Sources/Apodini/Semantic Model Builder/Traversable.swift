@@ -421,7 +421,7 @@ private extension Runtime.PropertyInfo {
     }
 }
 
-#if DEBUG
+#if DEBUG || RELEASE_TESTING
     func exposedExecute<Element, Target>(_ operation: (Target, _ name: String) throws -> Void, on element: Element) rethrows {
         try execute(operation, on: element)
     }

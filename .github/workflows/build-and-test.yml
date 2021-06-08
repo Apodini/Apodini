@@ -50,7 +50,7 @@ jobs:
       run: swift build -c release
     - name: Release Build & Test
       if: matrix.configuration == 'release_testing'
-      run: swift test -c release --enable-test-discovery -Xswiftc -enable-testing -Xswiftc -DDEBUG
+      run: swift test -c release --enable-test-discovery -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
     - name: Debug Build & Test
       if: matrix.configuration == 'debug'
       run: swift test -c debug --enable-test-discovery
