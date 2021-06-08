@@ -11,14 +11,14 @@ import Apodini
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
 
-public struct ApodiniDeployExporterConfiguration {
+struct ApodiniDeployExporterConfiguration {
     let runtimes: [DeploymentProviderRuntime.Type]
     let config: DeploymentConfig
     let mode: String?
     let fileURL: String?
     let node: String?
     
-    public init(
+    init(
         runtimes: [DeploymentProviderRuntime.Type] = [],
         config: DeploymentConfig = .init(),
         mode: String? = nil,

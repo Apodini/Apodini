@@ -43,7 +43,7 @@ public enum OpenAPIOutputFormat {
 }
 
 /// A configuration structure for manually setting OpenAPI information and output locations.
-public struct OpenAPIExporterConfiguration {
+struct OpenAPIExporterConfiguration {
     /// General OpenAPI information.
     var title: String?
     var version: String?
@@ -59,7 +59,7 @@ public struct OpenAPIExporterConfiguration {
     /// Configuration of parent exporter
     var parentConfiguration: RESTExporterConfiguration
     
-    public init(
+    init(
         parentConfiguration: RESTExporterConfiguration = RESTExporterConfiguration(),
         outputFormat: OpenAPIOutputFormat = OpenAPIConfigurationDefaults.outputFormat,
         outputEndpoint: String = OpenAPIConfigurationDefaults.outputEndpoint,
