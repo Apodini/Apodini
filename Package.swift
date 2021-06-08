@@ -157,6 +157,21 @@ let package = Package(
             ]
         ),
 
+        .testTarget(
+            name: "NegativeCompileTestsRunner",
+            dependencies: [
+                .target(name: "ApodiniUtils")
+            ]
+        ),
+        
+        .testTarget(
+            name: "ApodiniNegativeCompileTests",
+            dependencies: [
+                .target(name: "Apodini")
+            ],
+            exclude: ["Cases"]
+        ),
+
         .target(
             name: "ApodiniDatabase",
             dependencies: [
