@@ -201,4 +201,43 @@ final class HandlerMetadataTest: ApodiniTests {
         let expectedInts: [Int] = Self.expectedIntsState + [16, 17]
         XCTAssertEqual(capturedInts, expectedInts)
     }
+    
+    
+    func testDelegatedHandlerMetadata() {
+        struct TestDelegatingHandler<D: Handler>: Handler {
+            
+            let delegate: Delegate<D>
+            
+            func handle() throws -> some ResponseTransformable {
+                ""
+            }
+            
+            var metadata: Metadata {
+                TestInt(42)
+                TestString(value: "TestDelegatingHandler")
+            }
+        }
+        
+        struct TestDelegatingHandlerInitializer: DelegatingHandlerInitializer {
+            func instance<D>(for delegate: D) throws -> SomeHandler<String> where D : Handler {
+                SomeHandler(TestDelegatingHandler(delegate: Delegate(delegate)))
+            }
+        }
+        
+        
+        let visitor = SyntaxTreeVisitor()
+        visitor.currentNode = UnresettableContextNode()
+        let component = TestMetadataHandler(state: true).delegated(by: TestDelegatingHandlerInitializer())
+        
+        component.accept(visitor)
+
+        let context = Context(contextNode: visitor.currentNode)
+
+        let capturedInts = context.get(valueFor: TestIntMetadataContextKey.self)
+        let expectedInts: [Int] = Self.expectedIntsState
+        XCTAssertEqual(capturedInts, expectedInts + [42])
+
+        let capturedStrings = context.get(valueFor: TestStringMetadataContextKey.self)
+        XCTAssertEqual(capturedStrings, "TestDelegatingHandler")
+    }
 }

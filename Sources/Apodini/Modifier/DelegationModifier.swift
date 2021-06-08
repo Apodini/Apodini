@@ -29,8 +29,6 @@ public struct DelegationModifier<C: Component, I: DelegatingHandlerInitializer>:
     private let initializer: I
     private let prepend: Bool
     
-    public var content: some Component { EmptyComponent() }
-    
     fileprivate init(_ component: C, initializer: I, prepend: Bool = false) {
         self.component = component
         self.initializer = initializer
@@ -109,6 +107,8 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
     let semanticModelBuilder: SemanticModelBuilder?
     unowned let visitor: SyntaxTreeVisitor
     
+    var contextBuilders: [() -> Void] = []
+    
     init(calling builder: SemanticModelBuilder?, with visitor: SyntaxTreeVisitor) {
         let initializers = visitor.currentNode.getContextValue(for: DelegatingHandlerContextKey.self)
         self.initializers = (initializers.filter { prepend, _ in prepend }.reversed()
@@ -120,7 +120,9 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
     func visit<H: Handler>(handler: H) throws {
         preconditionTypeIsStruct(H.self, messagePrefix: "Delegating Handler")
         
-        handler.metadata.accept(visitor)
+        self.contextBuilders.append {
+            handler.metadata.accept(self.visitor)
+        }
         
         if !initializers.isEmpty {
             let initializer = initializers.removeFirst()
@@ -135,6 +137,8 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
                 try nextHandler.accept(self)
             }
         } else {
+            contextBuilders.reversed().forEach { builder in builder() }
+            
             // We capture the currentContextNode and make a copy that will be used when executing the request as
             // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the
             // currentNode would always result in the last currentNode that was used when visiting the component tree.
