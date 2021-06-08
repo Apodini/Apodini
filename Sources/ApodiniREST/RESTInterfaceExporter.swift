@@ -28,8 +28,8 @@ public final class RESTInterfaceExporter: Configuration {
     /**
      Initializes the configuration of the `RESTInterfaceExporter` with `AnyEncoder` and `AnyDecoder`
      - Parameters:
-         - encoder: The to be used `AnyEncoder`
-         - decoder: The to be used `AnyDecoder`
+         - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
+         - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
          - staticConfiguraiton: Allows passing dependend static Exporters like the OpenAPI Exporter
      */
     init(encoder: AnyEncoder,
@@ -58,8 +58,8 @@ extension RESTInterfaceExporter {
     /**
      Initializes the configuration of the `RESTInterfaceExporter` with (default) `AnyEncoder` and `AnyDecoder`
      - Parameters:
-         - encoder: The to be used `AnyEncoder`
-         - decoder: The to be used `AnyDecoder`
+         - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
+         - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
      */
     public convenience init(encoder: AnyEncoder = defaultEncoder,
                             decoder: AnyDecoder = defaultDecoder) {
@@ -69,13 +69,14 @@ extension RESTInterfaceExporter {
     /**
      Initializes the configuration of the `RESTInterfaceExporter` with (default) JSON Coders and possibly associated Exporters (eg. OpenAPI Exporter)
      - Parameters:
-         - encoder: The to be used `JSONEncoder`
-         - decoder: The to be used `JSONDecoder`
+         - encoder: The to be used `JSONEncoder`, defaults to a `JSONEncoder`
+         - decoder: The to be used `JSONDecoder`, defaults to a `JSONDecoder`
          - staticConfiguraiton: A result builder that allows passing dependend static Exporters like the OpenAPI Exporter
      */
     public convenience init(encoder: JSONEncoder = defaultEncoder as! JSONEncoder,
                             decoder: JSONDecoder = defaultDecoder as! JSONDecoder,
-                            @RESTDependentStaticConfigurationBuilder staticConfigurations: () -> [RESTDependentStaticConfiguration] = { [EmptyRESTDependentStaticConfiguration()] }) {
+                            @RESTDependentStaticConfigurationBuilder staticConfigurations:
+                                () -> [RESTDependentStaticConfiguration] = { [EmptyRESTDependentStaticConfiguration()] }) {
         self.init(encoder: encoder, decoder: decoder, staticConfigurations: staticConfigurations())
     }
 }

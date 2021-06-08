@@ -17,7 +17,8 @@ public final class GRPCInterfaceExporter: Configuration {
     let staticConfigurations: [GRPCDependentStaticConfiguration]
     
     public init(integerWidth: IntegerWidthConfiguration = .native,
-                @GRPCDependentStaticConfigurationBuilder staticConfigurations: () -> [GRPCDependentStaticConfiguration] = { [EmptyGRPCDependentStaticConfiguration()] }) {
+                @GRPCDependentStaticConfigurationBuilder staticConfigurations:
+                    () -> [GRPCDependentStaticConfiguration] = { [EmptyGRPCDependentStaticConfiguration()] }) {
         self.configuration = GRPCExporterConfiguration(integerWidth: integerWidth)
         self.staticConfigurations = staticConfigurations()
     }
