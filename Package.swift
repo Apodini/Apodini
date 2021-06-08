@@ -11,6 +11,24 @@ import PackageDescription
 /// your package caches for this to take effect.
 let experimentalAsyncAwait = false
 
+var apodiniSwiftSettings: [SwiftSetting] {
+    if experimentalAsyncAwait {
+        return [
+            .unsafeFlags(
+                [
+                    "-Xfrontend",
+                    "-enable-experimental-concurrency"
+                ]
+            )
+        ]
+    } else {
+        return [
+            // We can not pass an empty array to SwiftSetting in Swift 5.3
+            .define("PLACEHOLDER")
+        ]
+    }
+}
+
 
 // MARK: Package Definition
 
@@ -116,12 +134,7 @@ let package = Package(
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
             ],
-            swiftSettings: [
-                .unsafeFlags(experimentalAsyncAwait ? [
-                    "-Xfrontend",
-                    "-enable-experimental-concurrency"
-                ] : [])
-            ]
+            swiftSettings: apodiniSwiftSettings
         ),
 
         .testTarget(
