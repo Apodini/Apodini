@@ -16,6 +16,35 @@ defaults:
     working-directory: TestWebService
 
 jobs:
+  macos:
+    name: macOS ${{ matrix.configuration }}
+    runs-on: macos-11
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [debug, release, release_testing]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: maxim-lobanov/setup-xcode@v1.2.3
+      with:
+        xcode-version: latest
+    - uses: actions/cache@v2
+      with:
+        path: .build
+        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+    - name: Check Xcode version
+      run: xcodebuild -version
+    - name: Check Swift version
+      run: swift --version
+    - name: Release Build # Ensuring release build runs successfully without -enable-testing flag
+      if: matrix.configuration == 'release'
+      run: swift build -c release
+    - name: Release Build & Test
+      if: matrix.configuration == 'release_testing'
+      run: swift test -c release --enable-test-discovery -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
+    - name: Debug Build & Test
+      if: matrix.configuration == 'debug'
+      run: swift test -c debug --enable-test-discovery --enable-code-coverage -Xswiftc -DCOVERAGE
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} test TestWebService
     container:
@@ -25,7 +54,7 @@ jobs:
       fail-fast: false
       matrix:
         linux: [bionic, xenial, focal, amazonlinux2, centos8]
-        configuration: [debug, release]
+        configuration: [debug, release, release_testing]
     steps:
     - uses: actions/checkout@v2
     - name: Install libsqlite3
@@ -43,5 +72,12 @@ jobs:
         key: ${{ runner.os }}-${{matrix.linux}}-spm-${{ hashFiles('TestWebService/Package.resolved') }}
     - name: Check Swift version
       run: swift --version
-    - name: Build & Test
-      run: swift test --configuration ${{ matrix.configuration }}
+    - name: Release Build # Ensuring release build runs successfully without -enable-testing flag
+      if: matrix.configuration == 'release'
+      run: swift build -c release
+    - name: Release Build & Test
+      if: matrix.configuration == 'release_testing'
+      run: swift test -c release --enable-test-discovery -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
+    - name: Debug Build & Test
+      if: matrix.configuration == 'debug'
+      run: swift test -c debug --enable-test-discovery
