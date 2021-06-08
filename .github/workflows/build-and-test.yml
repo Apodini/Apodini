@@ -20,7 +20,7 @@ jobs:
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} test build
     container:
-      image: swift:5.3-${{ matrix.linux }}
+      image: swift:${{ matrix.linux }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -49,12 +49,12 @@ jobs:
       run: swift build --configuration ${{ matrix.configuration }}
     - name: Build & Test
       if: matrix.configuration == 'debug'
-      run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
+      run: swift test --configuration ${{ matrix.configuration }}
     - name: Run Deployment Provider Tests
       if: ${{ github.event.inputs.runDeploymentProviderTests && matrix.linux == 'focal' && matrix.configuration == 'debug' }}
       run: |
-        swift test --configuration ${{ matrix.configuration }} --enable-test-discovery --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
-        swift test --configuration ${{ matrix.configuration }} --enable-test-discovery --filter ApodiniDeployTests.LambdaDeploymentProviderTests
+        swift test --configuration ${{ matrix.configuration }} --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
+        swift test --configuration ${{ matrix.configuration }} --filter ApodiniDeployTests.LambdaDeploymentProviderTests
       env:
         ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

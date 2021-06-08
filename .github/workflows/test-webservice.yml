@@ -19,7 +19,7 @@ jobs:
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} test TestWebService
     container:
-      image: swift:5.3-${{ matrix.linux }}
+      image: swift:${{ matrix.linux }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -40,8 +40,8 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: TestWebService/.build
-        key: ${{ runner.os }}-${{matrix.linux}}-spm-cache-${{ hashFiles('TestWebService/Package.resolved') }}
+        key: ${{ runner.os }}-${{matrix.linux}}-spm-${{ hashFiles('TestWebService/Package.resolved') }}
     - name: Check Swift version
       run: swift --version
     - name: Build & Test
-      run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
+      run: swift test --configuration ${{ matrix.configuration }}

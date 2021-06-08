@@ -1,36 +1,7 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.4
 
 import PackageDescription
 
-// MARK: Configuration
-
-/// Configures the Package for usage of the experimental `async`/`await` syntax as introduced by
-/// https://github.com/apple/swift-evolution/blob/main/proposals/0296-async-await.md
-/// When set to `true`, a recent commit from the **main** branch of **swift-nio** is used. Furthermore, the
-/// swift compiler is configured to enable this feature. Swift 5.4 is required for this to work. You may need to reset
-/// your package caches for this to take effect.
-let experimentalAsyncAwait = false
-
-var apodiniSwiftSettings: [SwiftSetting] {
-    if experimentalAsyncAwait {
-        return [
-            .unsafeFlags(
-                [
-                    "-Xfrontend",
-                    "-enable-experimental-concurrency"
-                ]
-            )
-        ]
-    } else {
-        return [
-            // We can not pass an empty array to SwiftSetting in Swift 5.3
-            .define("PLACEHOLDER")
-        ]
-    }
-}
-
-
-// MARK: Package Definition
 
 let package = Package(
     name: "Apodini",
@@ -60,17 +31,16 @@ let package = Package(
         .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"])
     ],
     dependencies: [
-        //.package(name: "ApodiniDeploy", path: "./ApodiniDeploy"),
-        .package(url: "https://github.com/vapor/vapor.git", from: "4.39.1"),
-        .package(url: "https://github.com/vapor/fluent.git", from: "4.1.0"),
-        .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.0.0"),
+        .package(url: "https://github.com/vapor/vapor.git", from: "4.45.3"),
+        .package(url: "https://github.com/vapor/fluent.git", from: "4.2.0"),
+        .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.12.0"),
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.0.1"),
         // Used to parse command line arguments
-        .package(url: "https://github.com/vapor/console-kit.git", from: "4.2.4"),
+        .package(url: "https://github.com/vapor/console-kit.git", from: "4.2.6"),
         // Used by the `NotificationCenter` to send push notifications to `APNS`.
         .package(name: "apnswift", url: "https://github.com/kylebrowning/APNSwift.git", from: "3.0.0"),
         // Used by the `NotificationCenter` to send push notifications to `FCM`.
-        .package(url: "https://github.com/MihaelIsaev/FCM.git", from: "2.8.0"),
+        .package(url: "https://github.com/MihaelIsaev/FCM.git", from: "2.10.1"),
         .package(url: "https://github.com/vapor/fluent-mongo-driver.git", from: "1.0.2"),
         .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.1.2"),
         .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.0.0"),
@@ -78,31 +48,29 @@ let package = Package(
         // As AssociatedTypeRequirementsKit does not follow semantic versioning we constraint it to the current minor version
         .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", .upToNextMinor(from: "0.3.2")),
         // Used to parse crontabs in the `Scheduler` class
-        .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.0"),
+        .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.1"),
         .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.4.0"),
         // OpenCombine seems to be only available as a pre release and is not feature complete.
         // We constrain it to the next minor version as it doen't follow semantic versioning.
         .package(url: "https://github.com/OpenCombine/OpenCombine.git", .upToNextMinor(from: "0.11.0")),
         // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
-        experimentalAsyncAwait
-                    ? .package(url: "https://github.com/apple/swift-nio.git", .revision("4220c7a16a5ee0abb7da150bd3d4444940a20cc2"))
-                    : .package(url: "https://github.com/apple/swift-nio.git", from: "2.18.0"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.29.0"),
         // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
-        .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.8.0"),
+        .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.13.1"),
         // HTTP/2 support for SwiftNIO
-        .package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.13.0"),
+        .package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.17.0"),
         // Swift logging API
-        .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.4.2"),
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
         // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
         .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
-        .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
+        .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.6"),
         
         // Deploy
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
-        .package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime", from: "0.4.0"),
-        .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0"),
-        .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0")
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "0.4.3"),
+        .package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime", from: "0.6.1"),
+        .package(url: "https://github.com/soto-project/soto.git", from: "5.5.0"),
+        .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.1")
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -126,15 +94,10 @@ let package = Package(
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Runtime", package: "Runtime"),
                 .product(name: "ConsoleKit", package: "console-kit")
-            ] + (
-                experimentalAsyncAwait ? [
-                    .product(name: "_NIOConcurrency", package: "swift-nio")
-                ] : []
-            ),
+            ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
-            ],
-            swiftSettings: apodiniSwiftSettings
+            ]
         ),
 
         .testTarget(
@@ -331,7 +294,7 @@ let package = Package(
         ),
         
         
-        .target(
+        .executableTarget(
             name: "ApodiniDeployTestWebService",
             dependencies: [
                 .target(name: "Apodini"),
@@ -402,7 +365,7 @@ let package = Package(
                 .target(name: "DeploymentTargetAWSLambda")
             ]
         ),
-        .target(
+        .executableTarget(
             name: "DeploymentTargetLocalhost",
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
@@ -428,7 +391,7 @@ let package = Package(
             ]
         ),
 
-        .target(
+        .executableTarget(
             name: "DeploymentTargetAWSLambda",
             dependencies: [
                 .target(name: "DeploymentTargetAWSLambdaCommon"),
