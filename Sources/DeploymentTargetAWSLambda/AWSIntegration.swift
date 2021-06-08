@@ -41,7 +41,6 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
     private static let apodiniDeployApiGatewayDescription = "Created by ApodiniDeploy"
     private static let apodiniDeployApiGatewayNamePrefix = "ApodiniDeploy."
     
-    //private let tmpDirUrl: URL
     private let fileManager = FileManager.default
     private let logger = Logger(label: "de.lukaskollmer.ApodiniLambda.AWSIntegration")
     
@@ -58,12 +57,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
     private var deployedLambdaFunctions: Set<String> = [] // Set of lambda function names
     
     
-    init(
-        awsRegionName: String,
-        awsCredentials: SotoCore.CredentialProviderFactory//,
-        //tmpDirUrl: URL
-    ) {
-        //self.tmpDirUrl = tmpDirUrl
+    init(awsRegionName: String, awsCredentials: SotoCore.CredentialProviderFactory) {
         awsRegion = .init(rawValue: awsRegionName)
         awsClient = AWSClient(
             credentialProvider: awsCredentials,
@@ -220,7 +214,6 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             
             let functionConfig = try configureLambdaFunction(
                 forNode: node,
-                //exportedEndpoint: exportedEndpoint,
                 allFunctions: allFunctions,
                 s3BucketName: s3BucketName,
                 s3ObjectKey: s3ObjectKey,
