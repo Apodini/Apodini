@@ -317,13 +317,6 @@ class NegativeTestRunner {
             fatalError("Could not find '\(command)' executable!")
         }
 
-        // https://stackoverflow.com/questions/67595371/swift-package-calling-usr-bin-swift-errors-with-failed-to-open-macho-file-to
-        var environment: [String: String] = ProcessInfo.processInfo.environment
-        if environment.keys.contains("OS_ACTIVITY_DT_MODE") {
-            print("Clearing OS_ACTIVITY_DT_MODE environment variable")
-            environment["OS_ACTIVITY_DT_MODE"] = nil
-        }
-
         let task = Task(
             executableUrl: swiftBinary,
             arguments: arguments.split(separator: " ").map { String($0) },
@@ -331,8 +324,10 @@ class NegativeTestRunner {
             captureOutput: true,
             redirectStderrToStdout: true,
             launchInCurrentProcessGroup: false,
-            environment: environment,
-            inheritsParentEnvironment: false // even though we pass false, our construction made above inherits environment from parent!
+
+            // https://stackoverflow.com/questions/67595371/swift-package-calling-usr-bin-swift-errors-with-failed-to-open-macho-file-to
+            environment: ["OS_ACTIVITY_DT_MODE": nil],
+            inheritsParentEnvironment: true
         )
 
         observerRegistration = task.observeOutput { type, data, _ in
