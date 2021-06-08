@@ -6,7 +6,6 @@
 //
 
 
-#if DEBUG
 import XCTest
 #if canImport(CwlPreconditionTesting)
 @_implementationOnly import CwlPreconditionTesting
@@ -30,6 +29,6 @@ public func XCTAssertRuntimeFailure<T>(
     file: StaticString = #filePath,
     line: UInt = #line) {
     // Empty implementation for Linux Tests
+    print("[NOTICE] XCTAssertRuntimeFailure unsupported on platform!")
 }
-#endif
 #endif
