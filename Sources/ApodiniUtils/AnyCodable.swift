@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Vapor
 
 /// A type-erasing wrapper around some `Encodable` value
 public struct AnyEncodable: Encodable {
@@ -33,45 +32,15 @@ extension AnyEncodable {
 
 
 /// Something that can encde `Encodable` objects to `Data`
-public protocol AnyEncoder: ContentEncoder {
+public protocol AnyEncoder {
     /// Encode some `Encodable` object to `Data`
     func encode<E: Encodable>(_ value: E) throws -> Data
 }
 
 /// Something that can decode `Decodable` objects to the given respective type
-public protocol AnyDecoder: ContentDecoder {
+public protocol AnyDecoder {
     /// Decode some `Decodable` data to the given type
     func decode<D>(_ type: D.Type, from data: Data) throws -> D where D: Decodable
-}
-
-/// Default implementation of the `ContentEncoder` protocol that sets the content type to JSON
-extension AnyEncoder {
-    /**
-     Encodes the given object which conform to `Encodable` into the `Bytebuffer`
-     - Parameters:
-        - encodable: The to be encoded object
-        - to: The ByteBuffer to encode to
-        - headers: The HTTP header to set the content type
-     */
-    public func encode<E>(_ encodable: E, to body: inout ByteBuffer, headers: inout HTTPHeaders) throws where E: Encodable {
-        headers.contentType = .json
-        try body.writeBytes(self.encode(encodable))
-    }
-}
-
-/// Default implementation of the `ContentDecoder` protocol
-extension AnyDecoder {
-    /**
-     Decodes the given object which conform to `Decodable` from the `Bytebuffer`
-     - Parameters:
-        - decodable: The type of the to be decoded object
-        - to: The ByteBuffer to encode from
-        - headers: The HTTP header to get the content type
-     */
-    public func decode<D>(_ decodable: D.Type, from body: ByteBuffer, headers: HTTPHeaders) throws -> D where D: Decodable {
-        let data = body.getData(at: body.readerIndex, length: body.readableBytes) ?? Data()
-        return try self.decode(D.self, from: data)
-    }
 }
 
 extension JSONEncoder: AnyEncoder {}

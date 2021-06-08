@@ -7,9 +7,8 @@
 
 import Foundation
 import Apodini
-import ApodiniUtils
 
-public struct RESTExporterConfiguration: ExporterConfiguration {
+public struct RESTExporterConfiguration {
     public let encoder: AnyEncoder
     public let decoder: AnyDecoder
     

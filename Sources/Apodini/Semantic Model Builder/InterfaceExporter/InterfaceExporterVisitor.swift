@@ -82,9 +82,6 @@ private struct TestRequest: ExporterRequest {
 
 private struct TestExporter: InterfaceExporter {
     init() {}
-    init(_ app: Application, _ configuration: ExporterConfiguration) {
-        fatalError("No implemented")
-    }
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         fatalError("Not implemented")
     }
@@ -95,9 +92,6 @@ private struct TestExporter: InterfaceExporter {
 
 private struct StaticTestExporter: StaticInterfaceExporter {
     init() {}
-    init(_ app: Application, _ configuration: ExporterConfiguration) {
-        fatalError("No implemented")
-    }
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         fatalError("Not implemented")
     }

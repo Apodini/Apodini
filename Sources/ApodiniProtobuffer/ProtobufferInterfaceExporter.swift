@@ -16,7 +16,7 @@ public final class ProtobufferInterfaceExporter: GRPCDependentStaticConfiguratio
         self.configuration = ProtobufferExporterConfiguration()
     }
     
-    public func configure(_ app: Apodini.Application, parentConfiguration: ExporterConfiguration) {
+    public func configure(_ app: Apodini.Application, parentConfiguration: GRPCExporterConfiguration) {
         /// Set configartion of parent
         self.configuration.parentConfiguration = parentConfiguration
         
@@ -51,13 +51,10 @@ final class _ProtobufferInterfaceExporter: StaticInterfaceExporter {
     private var services: Set<ProtobufferService> = .init()
     
     // MARK: Initialization
-    required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = ProtobufferExporterConfiguration()) {
-        guard let castedConfiguration = dynamicCast(exporterConfiguration, to: ProtobufferExporterConfiguration.self) else {
-            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
-        }
-        
+    required init(_ app: Apodini.Application,
+                  _ exporterConfiguration: ProtobufferExporterConfiguration = ProtobufferExporterConfiguration()) {
         self.app = app
-        self.exporterConfiguration = castedConfiguration
+        self.exporterConfiguration = exporterConfiguration
         self.builder = Builder(configuration: self.exporterConfiguration.parentConfiguration)
     }
     
@@ -81,7 +78,7 @@ final class _ProtobufferInterfaceExporter: StaticInterfaceExporter {
     struct Builder {
         let parentConfiguration: GRPCExporterConfiguration
         
-        init(configuration: ExporterConfiguration) {
+        init(configuration: GRPCExporterConfiguration) {
             guard let castedConfiguration = dynamicCast(configuration, to: GRPCExporterConfiguration.self) else {
                 fatalError("Wrong configuration type passed to exporter!")
             }

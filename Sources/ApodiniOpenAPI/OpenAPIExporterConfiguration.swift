@@ -43,7 +43,7 @@ public enum OpenAPIOutputFormat {
 }
 
 /// A configuration structure for manually setting OpenAPI information and output locations.
-public struct OpenAPIExporterConfiguration: ExporterConfiguration {
+public struct OpenAPIExporterConfiguration {
     /// General OpenAPI information.
     var title: String?
     var version: String?
@@ -57,10 +57,10 @@ public struct OpenAPIExporterConfiguration: ExporterConfiguration {
     let swaggerUiEndpoint: String
     
     /// Configuration of parent exporter
-    var parentConfiguration: ExporterConfiguration
+    var parentConfiguration: RESTExporterConfiguration
     
     public init(
-        parentConfiguration: ExporterConfiguration = RESTExporterConfiguration(),
+        parentConfiguration: RESTExporterConfiguration = RESTExporterConfiguration(),
         outputFormat: OpenAPIOutputFormat = OpenAPIConfigurationDefaults.outputFormat,
         outputEndpoint: String = OpenAPIConfigurationDefaults.outputEndpoint,
         swaggerUiEndpoint: String = OpenAPIConfigurationDefaults.swaggerUiEndpoint,

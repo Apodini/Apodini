@@ -8,7 +8,6 @@
 import Foundation
 import NIO
 import Apodini
-import ApodiniUtils
 @_implementationOnly import NIOHPACK
 @_implementationOnly import ProtobufferCoding
 
@@ -47,13 +46,10 @@ final class _GRPCInterfaceExporter: InterfaceExporter {
     var parameters: [UUID: Int]
 
     /// Initalize `GRPCInterfaceExporter` from `Application`
-    required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = GRPCExporterConfiguration()) {
-        guard let castedConfiguration = dynamicCast(exporterConfiguration, to: GRPCExporterConfiguration.self) else {
-            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
-        }
-        
+    required init(_ app: Apodini.Application,
+                  _ exporterConfiguration: GRPCExporterConfiguration = GRPCExporterConfiguration()) {
         self.app = app
-        self.exporterConfiguration = castedConfiguration
+        self.exporterConfiguration = exporterConfiguration
         self.services = [:]
         self.parameters = [:]
     }

@@ -111,12 +111,10 @@ class _ApodiniDeployInterfaceExporter: InterfaceExporter {
     private(set) var deploymentProviderRuntime: DeploymentProviderRuntime?
     
     
-    required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = ApodiniDeployExporterConfiguration()) {
-        guard let castedConfiguration = dynamicCast(exporterConfiguration, to: ApodiniDeployExporterConfiguration.self) else {
-            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
-        }
+    required init(_ app: Apodini.Application,
+                  _ exporterConfiguration: ApodiniDeployExporterConfiguration = ApodiniDeployExporterConfiguration()) {
         self.app = app
-        self.exporterConfiguration = castedConfiguration
+        self.exporterConfiguration = exporterConfiguration
         app.storage.set(ApplicationStorageKey.self, to: self)
     }
     

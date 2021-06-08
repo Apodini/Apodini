@@ -7,9 +7,8 @@
 
 import Foundation
 import Apodini
-import ApodiniUtils
 
-public struct GRPCExporterConfiguration: ExporterConfiguration {
+public struct GRPCExporterConfiguration {
     public let integerWidth: IntegerWidthConfiguration
     
     public init(integerWidth: IntegerWidthConfiguration = .native) {

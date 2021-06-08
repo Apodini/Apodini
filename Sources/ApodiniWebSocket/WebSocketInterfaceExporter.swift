@@ -6,7 +6,6 @@
 //
 
 import Apodini
-import ApodiniUtils
 import ApodiniVaporSupport
 import NIOWebSocket
 @_implementationOnly import OpenCombine
@@ -43,13 +42,10 @@ final class _WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private let router: VaporWSRouter
 
     /// Initalize a `WebSocketInterfaceExporter` from an `Application`
-    required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = WebSocketExporterConfiguration()) {
-        guard let castedConfiguration = dynamicCast(exporterConfiguration, to: WebSocketExporterConfiguration.self) else {
-            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
-        }
-        
+    required init(_ app: Apodini.Application,
+                  _ exporterConfiguration: WebSocketExporterConfiguration = WebSocketExporterConfiguration()) {
         self.app = app
-        self.exporterConfiguration = castedConfiguration
+        self.exporterConfiguration = exporterConfiguration
         self.router = VaporWSRouter(app.vapor.app, logger: app.logger, at: self.exporterConfiguration.path)
     }
 

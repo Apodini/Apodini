@@ -9,10 +9,10 @@ import Foundation
 import Apodini
 import ApodiniGRPC
 
-public struct ProtobufferExporterConfiguration: ExporterConfiguration {
-    public var parentConfiguration: ExporterConfiguration
+public struct ProtobufferExporterConfiguration {
+    public var parentConfiguration: GRPCExporterConfiguration
     
-    public init(parentConfiguration: ExporterConfiguration = GRPCExporterConfiguration()) {
+    public init(parentConfiguration: GRPCExporterConfiguration = GRPCExporterConfiguration()) {
         self.parentConfiguration = parentConfiguration
     }
 }

@@ -4,7 +4,7 @@
 
 import Foundation
 import Apodini
-import ApodiniUtils
+import ApodiniREST
 import ApodiniVaporSupport
 @_implementationOnly import Vapor
 import OpenAPIKit
@@ -27,7 +27,7 @@ public final class OpenAPIInterfaceExporter: RESTDependentStaticConfiguration {
                                                           serverUrls: serverUrls)
     }
     
-    public func configure(_ app: Apodini.Application, parentConfiguration: ExporterConfiguration) {
+    public func configure(_ app: Apodini.Application, parentConfiguration: RESTExporterConfiguration) {
         /// Set configartion of parent
         self.configuration.parentConfiguration = parentConfiguration
         
@@ -52,13 +52,10 @@ final class _OpenAPIInterfaceExporter: StaticInterfaceExporter {
     var exporterConfiguration: OpenAPIExporterConfiguration
     
     /// Initalize`OpenAPIInterfaceExporter` from `Application`
-    required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = OpenAPIExporterConfiguration()) {
-        guard let castedConfiguration = dynamicCast(exporterConfiguration, to: OpenAPIExporterConfiguration.self) else {
-            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
-        }
-        
+    required init(_ app: Apodini.Application,
+                  _ exporterConfiguration: OpenAPIExporterConfiguration = OpenAPIExporterConfiguration()) {
         self.app = app
-        self.exporterConfiguration = castedConfiguration
+        self.exporterConfiguration = exporterConfiguration
         
         self.documentBuilder = OpenAPIDocumentBuilder(
             configuration: self.exporterConfiguration

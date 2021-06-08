@@ -3,7 +3,6 @@
 //
 
 import Apodini
-import ApodiniUtils
 import Vapor
 import NIO
 
@@ -14,12 +13,14 @@ public final class RESTInterfaceExporter: Configuration {
     let configuration: RESTExporterConfiguration
     var staticConfigurations: [RESTDependentStaticConfiguration]
     
+    /// The default `AnyEncoder`, a `JSONEncoder` with certain set parameters
     public static var defaultEncoder: AnyEncoder {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
         return encoder
     }
     
+    /// The default `AnyDecoder`, a `JSONDecoder`
     public static var defaultDecoder: AnyDecoder {
         JSONDecoder()
     }
@@ -76,13 +77,11 @@ final class _RESTInterfaceExporter: InterfaceExporter {
     let exporterConfiguration: RESTConfiguration
     
     /// Initialize `RESTInterfaceExporter` from `Application`
-    required init(_ app: Apodini.Application, _ exporterConfiguration: ExporterConfiguration = RESTExporterConfiguration()) {
-        guard let castedConfiguration = dynamicCast(exporterConfiguration, to: RESTExporterConfiguration.self) else {
-            fatalError("Wrong configuration type passed to exporter, \(type(of: exporterConfiguration)) instead of \(Self.self)")
-        }
-        
+    required init(_ app: Apodini.Application,
+                  _ exporterConfiguration: RESTExporterConfiguration = RESTExporterConfiguration()) {
         self.app = app.vapor.app
-        self.exporterConfiguration = RESTConfiguration(app.vapor.app.http.server.configuration, exporterConfiguration: castedConfiguration)
+        self.exporterConfiguration = RESTConfiguration(app.vapor.app.http.server.configuration,
+                                                       exporterConfiguration: exporterConfiguration)
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {

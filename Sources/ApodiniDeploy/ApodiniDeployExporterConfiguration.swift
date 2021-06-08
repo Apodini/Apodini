@@ -11,7 +11,7 @@ import Apodini
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
 
-public struct ApodiniDeployExporterConfiguration: ExporterConfiguration {
+public struct ApodiniDeployExporterConfiguration {
     let runtimes: [DeploymentProviderRuntime.Type]
     let config: DeploymentConfig
     let mode: String?
