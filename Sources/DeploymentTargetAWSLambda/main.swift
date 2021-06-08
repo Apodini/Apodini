@@ -23,27 +23,47 @@ internal func makeError(code: Int = 0, _ message: String) -> Swift.Error {
 }
 
 
-private func _findExecutable(_ name: String) throws -> URL {
+func findExecutable(_ name: String) throws -> URL {
     guard let url = Task.findExecutable(named: name) else {
         throw makeError("Unable to find executable '\(name)'")
     }
     return url
 }
 
-let dockerBin = try _findExecutable("docker")
-let zipBin = try _findExecutable("zip")
 
 let logger = Logger(label: "de.lukaskollmer.ApodiniLambda")
 
 
-struct LambdaDeploymentProviderCLI: ParsableCommand {
+private func readAwsCredentialsFromEnvironment() -> (accessKeyId: String, secretAccessKey: String)? {
+    let env = ProcessInfo.processInfo.environment
+    if let accessKey = env["AWS_ACCESS_KEY_ID"], let secretAccessKey = env["AWS_SECRET_ACCESS_KEY"] {
+        return (accessKey, secretAccessKey)
+    } else {
+        return nil
+    }
+}
+
+private func makeAWSCredentialProviderFactory(profileName: String?) -> SotoCore.CredentialProviderFactory {
+    if let profileName = profileName {
+        return .configFile(profile: profileName)
+    } else if let credentials = readAwsCredentialsFromEnvironment() {
+        return .static(accessKeyId: credentials.accessKeyId, secretAccessKey: credentials.secretAccessKey)
+    } else {
+        // if no profile name was explicitly specified, and we also were unable
+        // to find credentials in the environment variables, we fall back to the "default" profile
+        return .configFile(profile: "default")
+    }
+}
+
+
+struct DeployWebServiceCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
+        commandName: "deploy",
         abstract: "AWS Lambda Apodini deployment provider",
         discussion: """
             Deploys an Apodini REST web service to AWS Lambda, mapping the deployed system's nodes to Lambda functions.
             Also configures an API Gateway to make the Lambda functions accessible over HTTP.
-            """,
-        version: "0.0.1"
+            """
     )
     
     @Argument(help: "Directory containing the Package.swift with the to-be-deployed web service's target")
@@ -92,7 +112,7 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
     
     
     func run() throws {
-        var deploymentProvider = LambdaDeploymentProvider(
+        var deploymentProvider = LambdaDeploymentProviderImpl(
             productName: productName,
             packageRootDir: URL(fileURLWithPath: inputPackageDir).absoluteURL,
             awsProfileName: awsProfileName,
@@ -108,8 +128,9 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
 }
 
 
-struct LambdaDeploymentProvider: DeploymentProvider {
+struct LambdaDeploymentProviderImpl: DeploymentProvider {
     static let identifier: DeploymentProviderID = lambdaDeploymentProviderId
+
     
     let productName: String
     let packageRootDir: URL
@@ -176,18 +197,8 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         
         let awsIntegration = AWSIntegration(
             awsRegionName: awsRegion,
-            awsCredentials: {
-                if let profileName = awsProfileName {
-                    return .configFile(profile: profileName)
-                } else if let credentials = readAwsCredentialsFromEnvironment() {
-                    return .static(accessKeyId: credentials.accessKeyId, secretAccessKey: credentials.secretAccessKey)
-                } else {
-                    // if no profile name was explicitly specified, and we also were unable
-                    // to find credentials in the environment variables, we fall back to the "default" profile
-                    return .configFile(profile: "default")
-                }
-            }(),
-            tmpDirUrl: self.tmpDirUrl
+            awsCredentials: makeAWSCredentialProviderFactory(profileName: awsProfileName)//,
+            //tmpDirUrl: self.tmpDirUrl
         )
         
         if awsApiGatewayApiId == "_createNew" {
@@ -215,7 +226,8 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             s3BucketName: s3BucketName,
             s3ObjectFolderKey: s3BucketPath,
             apiGatewayApiId: awsApiGatewayApiId,
-            deleteOldApodiniLambdaFunctions: deleteOldApodiniLambdaFunctions
+            deleteOldApodiniLambdaFunctions: deleteOldApodiniLambdaFunctions,
+            tmpDirUrl: self.tmpDirUrl
         )
         logger.notice("Done! Successfully applied the deployment.")
     }
@@ -241,7 +253,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         )
         
         let task = Task(
-            executableUrl: dockerBin,
+            executableUrl: try findExecutable("docker"),
             arguments: [
                 "build",
                 "-f", dockerfileUrl.path,
@@ -264,7 +276,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     
     private func runInDocker(imageName: String, bashCommand: String, workingDirectory: URL? = nil) throws {
         let task = Task(
-            executableUrl: dockerBin,
+            executableUrl: try findExecutable("docker"),
             arguments: [
                 "run", "--rm",
                 "--volume", "\(packageRootDir.path)/..:/src/",
@@ -318,16 +330,84 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         try fileManager.copyItem(at: outputUrl, to: dstExecutableUrl, overwriteExisting: true)
         return dstExecutableUrl
     }
+}
+
+
+struct RemoveDeploymentCommand: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "remove-deployment",
+        abstract: "Removes all AWS resources associated with the most recent deployment to the specified API Gateway.",
+        discussion: """
+            Use this command to "undo" the deployment of a web service and remove AWS resources created and configured by this deployment provider
+            from an AWS account.
+            """
+    )
     
+    @Option
+    var awsRegion: String = "eu-central-1"
     
-    private func readAwsCredentialsFromEnvironment() -> (accessKeyId: String, secretAccessKey: String)? {
-        let env = ProcessInfo.processInfo.environment
-        if let accessKey = env["AWS_ACCESS_KEY_ID"], let secretAccessKey = env["AWS_SECRET_ACCESS_KEY"] {
-            return (accessKey, secretAccessKey)
-        } else {
-            return nil
-        }
+    @Option
+    var awsProfileName: String?
+    
+    @Option
+    var apiGatewayApiId: String
+    
+    @Option(help: "Whether the API Gateway itself should remain in the account after all other resources were removed")
+    var keepApiGateway: Bool
+    
+    @Flag
+    var dryRun = false
+    
+    func run() throws {
+        let awsIntegration = AWSIntegration(
+            awsRegionName: awsRegion,
+            awsCredentials: makeAWSCredentialProviderFactory(profileName: awsProfileName)
+        )
+        try awsIntegration.removeDeploymentRelatedResources(
+            apiGatewayId: self.apiGatewayApiId,
+            keepApiGateway: self.keepApiGateway,
+            isDryRun: self.dryRun
+        )
     }
 }
+
+
+struct DeleteAllApodiniIAMRolesCommand: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "delete-iam-roles",
+        abstract: "Deletes *all* Apodini-related IAM roles from the AWS account. Use with caution."
+    )
+    
+    @Option
+    var awsRegion: String = "eu-central-1"
+    
+    @Option
+    var awsProfileName: String?
+    
+    @Flag
+    var dryRun = false
+    
+    func run() throws {
+        let awsIntegration = AWSIntegration(
+            awsRegionName: awsRegion,
+            awsCredentials: makeAWSCredentialProviderFactory(profileName: awsProfileName)
+        )
+        try awsIntegration.deleteAllApodiniIamRoles(isDryRun: dryRun)
+    }
+}
+
+
+struct LambdaDeploymentProviderCLI: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "AWS Lambda Apodini deployment provider",
+        discussion: """
+            The AWS Lambda deployment provider implements functionality related to managing the deployment of Apodini web services to AWS Lambda.
+            """,
+        version: "0.0.1",
+        subcommands: [DeployWebServiceCommand.self, RemoveDeploymentCommand.self, DeleteAllApodiniIAMRolesCommand.self],
+        defaultSubcommand: DeployWebServiceCommand.self
+    )
+}
+
 
 LambdaDeploymentProviderCLI.main()
