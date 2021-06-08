@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 2/3/21.
 //
 
-#if DEBUG
+#if DEBUG || RELEASE_TESTING
 @testable import Apodini
 import XCTest
 

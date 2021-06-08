@@ -2,11 +2,10 @@
 // Created by Andreas Bauer on 25.12.20.
 //
 
-#if DEBUG
 import Foundation
 import class Vapor.Application
 import class Vapor.Request
-@testable import Apodini
+import Apodini
 
 extension String: ExporterRequest {}
 
@@ -75,4 +74,3 @@ open class MockExporter<Request: ExporterRequest>: InterfaceExporter {
         return casted
     }
 }
-#endif
