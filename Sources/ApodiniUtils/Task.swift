@@ -190,7 +190,7 @@ public class Task {
             process.environment = environment
         } else {
             process.environment = self.environment
-                .filter { (_, value) in
+                .filter { _, value in
                     value != nil
                 }
                 .mapValues { value -> String in
