@@ -18,7 +18,7 @@ on:
 
 jobs:
   linux:
-    name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} test build
+    name: Linux ${{ matrix.linux }} ${{ matrix.configuration }}
     container:
       image: swift:5.3-${{ matrix.linux }}
     runs-on: ubuntu-latest
@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         linux: [bionic, xenial, focal, amazonlinux2, centos8]
-        configuration: [debug, release]
+        configuration: [debug, release, release_testing]
     steps:
     - uses: actions/checkout@v2
     - name: Install libsqlite3, lsof and zsh
@@ -44,17 +44,22 @@ jobs:
         key: ${{ runner.os }}-${{matrix.linux}}-spm-${{ hashFiles('Package.resolved') }}
     - name: Check Swift version
       run: swift --version
-    - name: Build
+
+    - name: Release Build # Ensuring release build runs successfully without -enable-testing flag
       if: matrix.configuration == 'release'
-      run: swift build --configuration ${{ matrix.configuration }}
-    - name: Build & Test
+      run: swift build -c release
+    - name: Release Build & Test
+      if: matrix.configuration == 'release_testing'
+      run: swift test -c release --enable-test-discovery -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
+    - name: Debug Build & Test
       if: matrix.configuration == 'debug'
-      run: swift test --configuration ${{ matrix.configuration }} --enable-test-discovery
-    - name: Run Deployment Provider Tests
+      run: swift test -c debug --enable-test-discovery
+
+    - name: Run Deployment Provider Tests DEBUG
       if: ${{ github.event.inputs.runDeploymentProviderTests && matrix.linux == 'focal' && matrix.configuration == 'debug' }}
       run: |
-        swift test --configuration ${{ matrix.configuration }} --enable-test-discovery --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
-        swift test --configuration ${{ matrix.configuration }} --enable-test-discovery --filter ApodiniDeployTests.LambdaDeploymentProviderTests
+        swift test -c debug --enable-test-discovery --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
+        swift test -c debug --enable-test-discovery --filter ApodiniDeployTests.LambdaDeploymentProviderTests
       env:
         ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

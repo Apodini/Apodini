@@ -5,7 +5,6 @@
 //  Created by Paul Schmiedmayer on 5/10/21.
 //
 
-#if DEBUG
 import XCTest
 import ApodiniUtils
 
@@ -41,4 +40,3 @@ public func XCTAssertApodiniApplicationNotRunning(
         runShellCommand(.killPort(8080))
     }
 }
-#endif

@@ -1,6 +1,5 @@
-#if DEBUG
 import FluentSQLiteDriver
-@testable import Apodini
+import Apodini
 import XCTest
 import ApodiniDatabase
 import ApodiniUtils
@@ -40,4 +39,3 @@ open class XCTApodiniTest: XCTestCase {
         try app.autoMigrate().wait()
     }
 }
-#endif
