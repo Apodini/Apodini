@@ -39,22 +39,33 @@ final class DownloadConfigTests: FileHandlerTests {
         let result = try XCTUnwrap(mockQuery(handler: uploader, value: String.self, app: app, queued: file))
         
         XCTAssert(result == file.filename)
+        print("Test1")
         
         // Upload second file
         uploader = Uploader(UploadConfiguration(.default, subPath: "Misc/MoreMisc/"))
         let file2 = File(data: data, filename: "Testfile123.jpeg")
+        print("Test2")
         
         let result2 = try XCTUnwrap(mockQuery(handler: uploader, value: String.self, app: app, queued: file2))
-        
+
+        print("Test3")
+
         XCTAssert(result2 == file2.filename)
+
+        print("Test4")
         
         let directory = app.directory
         let config = DownloadConfiguration(.default)
         let fileInfos = try config.retrieveFileInfos(".jpeg", in: directory)
-        
+
+        print("Test5")
+
         XCTAssertNotNil(fileInfos)
         let infos = try XCTUnwrap(fileInfos)
+        print("Test6")
         XCTAssert(infos[0].fileName == file.filename || infos[0].fileName == file2.filename)
+        print("Test7")
         XCTAssert(infos[1].fileName == file.filename || infos[1].fileName == file2.filename)
+        print("Test8")
     }
 }

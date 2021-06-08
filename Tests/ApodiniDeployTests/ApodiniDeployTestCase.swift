@@ -109,7 +109,7 @@ class ApodiniDeployTestCase: XCTestCase {
 
 extension XCTestCase {
     static func isRunningOnLinuxDebug() -> Bool {
-        #if os(Linux) && DEBUG
+        #if os(Linux) && (DEBUG || RELEASE_TESTING)
         return true
         #else
         return false
