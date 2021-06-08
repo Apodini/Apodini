@@ -60,8 +60,8 @@ extension Handler {
 }
 
 internal struct GuardingHandler<D, G>: Handler where D: Handler, G: Guard {
-    var guarded: Delegate<D>
-    var `guard`: Delegate<G>
+    let guarded: Delegate<D>
+    let `guard`: Delegate<G>
     
     func handle() throws -> EventLoopFuture<D.Response> {
         try `guard`().check().flatMapThrowing { _ in
@@ -83,8 +83,8 @@ public struct GuardingHandlerInitializer<G: Guard, R: ResponseTransformable>: De
 
 
 struct SyncGuardingHandler<D, G>: Handler where D: Handler, G: SyncGuard {
-    var guarded: Delegate<D>
-    var `guard`: Delegate<G>
+    let guarded: Delegate<D>
+    let `guard`: Delegate<G>
     
     func handle() throws -> D.Response {
         try `guard`().check()

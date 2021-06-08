@@ -28,8 +28,8 @@ public protocol ResponseTransformer {
 }
 
 internal struct ResponseTransformingHandler<D, T>: Handler where D: Handler, T: ResponseTransformer, D.Response.Content == T.InputContent {
-    var transformed: Delegate<D>
-    var transformer: Delegate<T>
+    let transformed: Delegate<D>
+    let transformer: Delegate<T>
     
     @Environment(\.connection) var connection
     

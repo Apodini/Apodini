@@ -39,7 +39,7 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
     struct Localizer<H: Handler>: Handler {
         @Parameter var language: String = "EN"
         
-        var delegate: Delegate<H>
+        let delegate: Delegate<H>
         
         init(from delegate: H) {
             self.delegate = Delegate(delegate)
