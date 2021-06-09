@@ -76,8 +76,8 @@ final class _RESTInterfaceExporter: InterfaceExporter {
     let exporterConfiguration: RESTConfiguration
     
     /// Initialize `RESTInterfaceExporter` from `Application`
-    required init(_ app: Apodini.Application,
-                  _ exporterConfiguration: RESTExporterConfiguration = RESTExporterConfiguration()) {
+    init(_ app: Apodini.Application,
+         _ exporterConfiguration: RESTExporterConfiguration = RESTExporterConfiguration()) {
         self.app = app.vapor.app
         self.exporterConfiguration = RESTConfiguration(app.vapor.app.http.server.configuration,
                                                        exporterConfiguration: exporterConfiguration)

@@ -47,8 +47,8 @@ final class _GRPCInterfaceExporter: InterfaceExporter {
     var parameters: [UUID: Int]
 
     /// Initalize `GRPCInterfaceExporter` from `Application`
-    required init(_ app: Apodini.Application,
-                  _ exporterConfiguration: GRPCExporterConfiguration = GRPCExporterConfiguration()) {
+    init(_ app: Apodini.Application,
+         _ exporterConfiguration: GRPCExporterConfiguration = GRPCExporterConfiguration()) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
         self.services = [:]

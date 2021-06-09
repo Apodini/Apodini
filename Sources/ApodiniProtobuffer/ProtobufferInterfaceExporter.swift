@@ -51,8 +51,8 @@ final class _ProtobufferInterfaceExporter: StaticInterfaceExporter {
     private var services: Set<ProtobufferService> = .init()
     
     // MARK: Initialization
-    required init(_ app: Apodini.Application,
-                  _ exporterConfiguration: ProtobufferExporterConfiguration = ProtobufferExporterConfiguration()) {
+    init(_ app: Apodini.Application,
+         _ exporterConfiguration: ProtobufferExporterConfiguration = ProtobufferExporterConfiguration()) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
         self.builder = Builder(configuration: self.exporterConfiguration.parentConfiguration)

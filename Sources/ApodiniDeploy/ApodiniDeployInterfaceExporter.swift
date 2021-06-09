@@ -111,8 +111,8 @@ class _ApodiniDeployInterfaceExporter: InterfaceExporter {
     private(set) var deploymentProviderRuntime: DeploymentProviderRuntime?
     
     
-    required init(_ app: Apodini.Application,
-                  _ exporterConfiguration: ApodiniDeployExporterConfiguration = ApodiniDeployExporterConfiguration()) {
+    init(_ app: Apodini.Application,
+         _ exporterConfiguration: ApodiniDeployExporterConfiguration = ApodiniDeployExporterConfiguration()) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
         app.storage.set(ApplicationStorageKey.self, to: self)

@@ -52,8 +52,8 @@ final class _OpenAPIInterfaceExporter: StaticInterfaceExporter {
     var exporterConfiguration: OpenAPIExporterConfiguration
     
     /// Initalize`OpenAPIInterfaceExporter` from `Application`
-    required init(_ app: Apodini.Application,
-                  _ exporterConfiguration: OpenAPIExporterConfiguration = OpenAPIExporterConfiguration()) {
+    init(_ app: Apodini.Application,
+         _ exporterConfiguration: OpenAPIExporterConfiguration = OpenAPIExporterConfiguration()) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
         

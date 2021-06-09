@@ -42,8 +42,8 @@ final class _WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private let router: VaporWSRouter
 
     /// Initalize a `WebSocketInterfaceExporter` from an `Application`
-    required init(_ app: Apodini.Application,
-                  _ exporterConfiguration: WebSocketExporterConfiguration = WebSocketExporterConfiguration()) {
+    init(_ app: Apodini.Application,
+         _ exporterConfiguration: WebSocketExporterConfiguration = WebSocketExporterConfiguration()) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
         self.router = VaporWSRouter(app.vapor.app, logger: app.logger, at: self.exporterConfiguration.path)
