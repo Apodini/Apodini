@@ -362,10 +362,11 @@ extension Task: CustomStringConvertible {
             ("launchInCurrentProcessGroup", launchInCurrentProcessGroup),
             ("inheritsParentEnvironment", inheritsParentEnvironment),
             ("environment", environment),
-            ("isRunning", isRunning)
+            ("isRunning", isRunning),
+            ("currentDirectoryURL", process.currentDirectoryURL?.path ?? "(null)")
         ]
         if isRunning {
-            properties .append(("pid", pid))
+            properties.append(("pid", pid))
         }
         return "<\(Self.self) \(properties.map { "\($0.0): \($0.1)" }.joined(separator: ", "))>"
     }
