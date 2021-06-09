@@ -46,7 +46,7 @@ private struct TestIntHandlerMetadata: HandlerMetadataDefinition {
 private struct GenericTestStringHandlerMetadata<H: Handler>: HandlerMetadataDefinition {
     typealias Key = TestStringMetadataContextKey
 
-    var value: String = "\(H.self)"
+    var value = String(describing: H.self)
 }
 
 private struct ReusableTestHandlerMetadata: HandlerMetadataBlock {

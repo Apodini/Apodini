@@ -46,7 +46,7 @@ private struct TestIntContentMetadata: ContentMetadataDefinition {
 private struct GenericTestStringContentMetadata<C: Content>: ContentMetadataDefinition {
     typealias Key = TestStringMetadataContextKey
 
-    var value: String = "\(C.self)"
+    var value = String(describing: C.self)
 }
 
 

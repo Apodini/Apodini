@@ -1,4 +1,4 @@
-#if DEBUG
+#if DEBUG || RELEASE_TESTING
 import XCTest
 @testable import Apodini
 
