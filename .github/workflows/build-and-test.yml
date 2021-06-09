@@ -60,10 +60,10 @@ jobs:
       run: swift build -c release
     - name: Release Build & Test
       if: matrix.configuration == 'release_testing'
-      run: swift test -c release --enable-test-discovery -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
+      run: swift test -c release -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
     - name: Debug Build & Test
       if: matrix.configuration == 'debug'
-      run: swift test -c debug --enable-test-discovery --enable-code-coverage -Xswiftc -DCOVERAGE
+      run: swift test -c debug --enable-code-coverage -Xswiftc -DCOVERAGE
     - name: Run Deployment Provider Tests debug
       if: ${{ github.event.inputs.runDeploymentProviderTests && matrix.configuration == 'debug' }}
       run: |
@@ -120,18 +120,18 @@ jobs:
       run: swift --version
     - name: Release Build # Ensuring release build runs successfully without -enable-testing flag
       if: matrix.configuration == 'release'
-      run: swift build -c release -Xswiftc -Xfrontend -Xswiftc -sil-verify-none
+      run: swift build -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c release
     - name: Release Build & Test
       if: matrix.configuration == 'release_testing'
-      run: swift test -c release -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING -Xswiftc -Xfrontend -Xswiftc -sil-verify-none
+      run: swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c release -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
     - name: Debug Build & Test
       if: matrix.configuration == 'debug'
-      run: swift test -c debug -Xswiftc -Xfrontend -Xswiftc -sil-verify-none
+      run: swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug
     - name: Run Deployment Provider Tests debug
       if: ${{ github.event.inputs.runDeploymentProviderTests && matrix.linux == 'focal' && matrix.configuration == 'debug' }}
       run: |
-        swift test -c debug --enable-test-discovery --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
-        swift test -c debug --enable-test-discovery --filter ApodiniDeployTests.LambdaDeploymentProviderTests
+        swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug --enable-test-discovery --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
+        swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug --enable-test-discovery --filter ApodiniDeployTests.LambdaDeploymentProviderTests
       env:
         ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -141,8 +141,8 @@ jobs:
     - name: Run Deployment Provider Tests release testing
       if: ${{ github.event.inputs.runDeploymentProviderTests && matrix.linux == 'focal' && matrix.configuration == 'release_testing' }}
       run: |
-        swift test -c debug --enable-test-discovery -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
-        swift test -c debug --enable-test-discovery -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING --filter ApodiniDeployTests.LambdaDeploymentProviderTests
+        swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug --enable-test-discovery -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
+        swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug --enable-test-discovery -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING --filter ApodiniDeployTests.LambdaDeploymentProviderTests
       env:
         ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
