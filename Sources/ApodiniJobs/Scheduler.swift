@@ -85,12 +85,12 @@ public class Scheduler {
         // Subscribes to all `ObservedObject`s
         // using a closure that takes each `ObservedObject`.
         let observation = subscribe(on: activatedJob,
-                                    using: { observedObject in
+                                    using: { observedObject, event in
                                         // Executes the `Job` on its own event loop
                                         jobConfiguration.eventLoop.execute {
-                                            observedObject.changed = true
+                                            observedObject.setChanged(to: true, reason: event)
                                             activatedJob.run()
-                                            observedObject.changed = false
+                                            observedObject.setChanged(to: false, reason: event)
                                         }
                                     }
         )

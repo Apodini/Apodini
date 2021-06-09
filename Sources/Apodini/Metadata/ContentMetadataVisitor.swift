@@ -21,7 +21,7 @@ extension ContentMetadataVisitor {
         _ = self(TestContent.self) as Output
     }
 }
-
+ 
 struct StandardContentMetadataVisitor: ContentMetadataVisitor {
     let visitor: SyntaxTreeVisitor
 
