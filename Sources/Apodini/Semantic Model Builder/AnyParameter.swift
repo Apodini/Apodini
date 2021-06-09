@@ -34,8 +34,3 @@ extension Handler {
         Apodini.extractParameters(from: self)
     }
 }
-extension AnyResponseTransformer {
-    func extractParameters() -> [(String, AnyParameter)] {
-        Apodini.extractParameters(from: self)
-    }
-}

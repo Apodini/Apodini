@@ -26,7 +26,7 @@ public protocol SyntaxTreeVisitable {
 
 
 /// The `SyntaxTreeVisitor` is used to parse the Apodini DSL and forward the parsed result to the `SemanticModelBuilder`s.
-public class SyntaxTreeVisitor {
+public class SyntaxTreeVisitor: HandlerVisitor {
     /// The `semanticModelBuilders` that can interpret the Apodini DSL syntax tree collected by the `SyntaxTreeVisitor`
     private let modelBuilder: SemanticModelBuilder?
     /// Contains the current `ContextNode` that is used when creating a context for each registered `Handler`
@@ -92,23 +92,24 @@ public class SyntaxTreeVisitor {
         // We increase the component level specific `currentNodeIndexPath` by one for each `Handler` visited in the same component level to uniquely identify `Handlers`
         // across multiple runs of an Apodini web service.
         addContext(HandlerIndexPath.ContextKey.self, value: formHandlerIndexPathForCurrentNode(), scope: .current)
-
-        handler.metadata.accept(self)
-
-        let responseTransformers = currentNode.getContextValue(for: ResponseTransformerContextKey.self)
-        let responseType = responseTransformers.responseType ?? H.Response.Content.self
+        
+        let responseType = H.Response.Content.self
 
         // Content Metadata is currently added to the Context of the Handler.
         // Also, we currently do not recursively parse properties
         let metadataContentVisitor = StandardContentMetadataVisitor(visitor: self)
         metadataContentVisitor(responseType)
         
-        // We capture the currentContextNode and make a copy that will be used when executing the request as
-        // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the
-        // currentNode would always result in the last currentNode that was used when visiting the component tree.
-        let context = Context(contextNode: currentNode.copy())
-
-        modelBuilder?.register(handler: handler, withContext: context)
+        
+        // build the final handler using the delegating handlers
+        let delegateVisitor = DelegatingHandlerInitializerVisitor(calling: modelBuilder,
+                                                                  with: self)
+        do {
+            // calls semantic model builder's `register`
+            try delegateVisitor.visit(handler: handler)
+        } catch {
+            fatalError("Failed to build delegate-stack for delegated handler \(handler): \(error)")
+        }
         
         currentNode.resetContextNode()
     }

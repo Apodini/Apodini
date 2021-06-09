@@ -48,7 +48,12 @@ public struct Binding<Value>: DynamicProperty, PotentiallyParameterIdentifyingBi
     }
     
     public var projectedValue: Self {
-        self
+        get {
+            self
+        }
+        set {
+            self = newValue
+        }
     }
 }
 
@@ -90,7 +95,7 @@ extension Binding {
         store = Properties(wrappedValue: ["environment": environment])
         retrieval = .storage { store in
             guard let parameter = store.wrappedValue["environment"] as? Environment<K, Value> else {
-                fatalError("Could not find Environment object in store. The internal logic of Binding is broken!")
+                fatalError("Could not find Environment in store. The internal logic of Binding is broken!")
             }
             return parameter.wrappedValue
         }
@@ -99,6 +104,25 @@ extension Binding {
 
     internal static func environment<K: EnvironmentAccessible>(_ environment: Environment<K, Value>) -> Binding<Value> {
         Binding(environment: environment)
+    }
+}
+
+// MARK: EnvironmentObject
+
+extension Binding {
+    private init(environmentobject: EnvironmentObject<Value>) {
+        store = Properties(wrappedValue: ["environmentobject": environmentobject])
+        retrieval = .storage { store in
+            guard let parameter = store.wrappedValue["environmentobject"] as? EnvironmentObject<Value> else {
+                fatalError("Could not find EnvironmentObject in store. The internal logic of Binding is broken!")
+            }
+            return parameter.wrappedValue
+        }
+        parameterId = nil
+    }
+
+    internal static func environmentObject(_ environment: EnvironmentObject<Value>) -> Binding<Value> {
+        Binding(environmentobject: environment)
     }
 }
 

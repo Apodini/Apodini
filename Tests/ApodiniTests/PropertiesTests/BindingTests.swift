@@ -16,8 +16,37 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
     struct Greeter: Handler {
         @Binding var country: String?
         
+        @Binding var language: String
+        
+        init(country: Binding<String?>, language: Binding<String> = .constant("EN")) {
+            self._country = country
+            self._language = language
+        }
+        
         func handle() -> String {
-            country ?? "World"
+            country ?? (language == "DE" ? "Welt" : "World")
+        }
+    }
+    
+    struct LocalizerInitializer<R: ResponseTransformable>: DelegatingHandlerInitializer {
+        typealias Response = R
+        
+        func instance<D>(for delegate: D) throws -> SomeHandler<Response> where D: Handler {
+            SomeHandler(Localizer<D>(from: delegate))
+        }
+    }
+    
+    struct Localizer<H: Handler>: Handler {
+        @Parameter var language: String = "EN"
+        
+        let delegate: Delegate<H>
+        
+        init(from delegate: H) {
+            self.delegate = Delegate(delegate)
+        }
+        
+        func handle() throws -> H.Response {
+            try delegate.environmentObject(language)().handle()
         }
     }
     
@@ -46,6 +75,7 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
     @PathParameter var selectedCountry: String
     @Environment(\BindingTests.featured) var featuredCountry
     @Parameter var optionallySelectedCountry: String?
+    @EnvironmentObject var language: String
     
     @ComponentBuilder
     var testService: some Component {
@@ -65,6 +95,10 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
                 ReallyOptionalGreeter(country: $selectedCountry.asOptional.asOptional)
             }
         }
+        Group("localized") {
+            Greeter(country: $optionallySelectedCountry, language: $language)
+                .delegated(by: LocalizerInitializer<String>())
+        }
     }
     
     @ComponentBuilder
@@ -81,7 +115,7 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
         testService.accept(visitor)
         visitor.finishParsing()
         
-        EnvironmentObject(self.featured, \BindingTests.featured).configure(self.app)
+        EnvironmentValue(self.featured, \BindingTests.featured).configure(self.app)
 
         let selectedCountry = "Germany"
         try app.vapor.app.testable(method: .inMemory).test(.GET, "country/\(selectedCountry)") { response in
@@ -117,6 +151,11 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
         try app.vapor.app.testable(method: .inMemory).test(.GET, "/optional?country=Greece") { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertTrue(response.body.string.contains("Greece"))
+        }
+        
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "/localized?language=DE") { response in
+            XCTAssertEqual(response.status, .ok)
+            XCTAssertTrue(response.body.string.contains("Welt"))
         }
     }
     

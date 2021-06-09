@@ -1,4 +1,3 @@
-import Foundation
 import Apodini
 
 /// A enum to tell the `UploadConfiguration` in which directory the file should be stored.

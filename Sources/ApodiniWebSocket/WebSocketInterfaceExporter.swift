@@ -59,8 +59,8 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             // instance of the endpoint. Each time we pipe the `observation` into
             // `input` along with its `promise` which must be succeeded further down
             // the line.
-            let listener = DelegatingObservedListener(eventLoop: eventLoop, callback: { observedObject in
-                input.send(.observation(observedObject))
+            let listener = DelegatingObservedListener(eventLoop: eventLoop, callback: { observedObject, event in
+                input.send(.observation(observedObject, event))
             })
             
             let context = endpoint.createConnectionContext(for: self)
@@ -80,8 +80,8 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
                     case .input(let inputValue):
                         let request = WebSocketInput(inputValue, eventLoop: eventLoop, remoteAddress: request.remoteAddress)
                         return context.handle(request: request, eventLoop: eventLoop, final: false)
-                    case .observation(let observedObject):
-                        return context.handle(eventLoop: eventLoop, observedObject: observedObject)
+                    case let .observation(observedObject, event):
+                        return context.handle(eventLoop: eventLoop, observedObject: observedObject, event: event)
                     }
                 }
                 .sink(
@@ -226,23 +226,23 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
 // MARK: Handling of ObservedObject
 
 private struct DelegatingObservedListener: ObservedListener {
-    func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<WebSocketInterfaceExporter>) {
-        callback(observedObject)
+    func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent, in context: ConnectionContext<WebSocketInterfaceExporter>) {
+        callback(observedObject, event)
     }
     
-    init(eventLoop: EventLoop, callback: @escaping (AnyObservedObject) -> Void) {
+    init(eventLoop: EventLoop, callback: @escaping (AnyObservedObject, TriggerEvent) -> Void) {
         self.eventLoop = eventLoop
         self.callback = callback
     }
     
     var eventLoop: EventLoop
     
-    var callback: (AnyObservedObject) -> Void
+    var callback: (AnyObservedObject, TriggerEvent) -> Void
 }
 
 private enum Evaluation {
     case input(SomeInput)
-    case observation(AnyObservedObject)
+    case observation(AnyObservedObject, TriggerEvent)
 }
 
 // MARK: Input Definition
