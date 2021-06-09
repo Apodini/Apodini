@@ -34,6 +34,7 @@ private struct TestIntHandlerMetadata: HandlerMetadataDefinition {
     typealias Key = TestIntMetadataContextKey
 
     var num: Int
+    
     var value: [Int] {
         [num]
     }
