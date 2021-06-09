@@ -37,27 +37,27 @@ extension ProtobufferBuilderTests {
         XCTAssertThrowsError(try buildMessage((Int, String, Void).self))
     }
     
-    func testClass() throws {
-        class Person {
-            var name: String = ""
-            var age: Int = 0
-        }
-        
-        XCTAssertNoThrow(try buildMessage(Person.self))
-    }
-    
-    func testEnum() throws {
-        enum JSON {
-            case null
-            case bool(Bool)
-            case number(Double)
-            case string(String)
-            case array([JSON])
-            case object([String: JSON])
-        }
-        
-        XCTAssertThrowsError(try buildMessage(JSON.self))
-    }
+//    func testClass() throws {
+//        class Person {
+//            var name: String = ""
+//            var age: Int = 0
+//        }
+//
+//        XCTAssertNoThrow(try buildMessage(Person.self))
+//    }
+//
+//    func testEnum() throws {
+//        enum JSON {
+//            case null
+//            case bool(Bool)
+//            case number(Double)
+//            case string(String)
+//            case array([JSON])
+//            case object([String: JSON])
+//        }
+//
+//        XCTAssertThrowsError(try buildMessage(JSON.self))
+//    }
 }
 
 // MARK: - Test Messages
@@ -155,77 +155,77 @@ extension ProtobufferBuilderTests {
         XCTAssertEqual(try buildMessage(Location.self), expected)
     }
     
-    func testHierarchySecondOrder() throws {
-        struct Account {
-            let transactions: [Transaction]
-        }
-        
-        struct Transaction {
-            let amount: Int32
-        }
-        
-        let expected = """
-            message AccountMessage {
-              repeated TransactionMessage transactions = 1;
-            }
-
-            message TransactionMessage {
-              int32 amount = 1;
-            }
-            """
-        
-        XCTAssertEqual(try buildMessage(Account.self), expected)
-    }
-    
-    func testRecursionFirstOrder() throws {
-        struct Node {
-            let children: [Node]
-        }
-        
-        let expected = """
-            message NodeMessage {
-              repeated NodeMessage children = 1;
-            }
-            """
-        
-        XCTAssertEqual(try buildMessage(Node.self), expected)
-    }
-    
-    func testRecursionSecondOrder() throws {
-        struct First {
-            let value: Second
-        }
-        
-        struct Second {
-            let value: [First]
-        }
-        
-        let expected = """
-            message FirstMessage {
-              SecondMessage value = 1;
-            }
-
-            message SecondMessage {
-              repeated FirstMessage value = 1;
-            }
-            """
-        
-        XCTAssertEqual(try buildMessage(First.self), expected)
-    }
-    
-    func testUUID() throws {
-        struct User {
-            let id: UUID
-        }
-        
-        let expected = """
-            message UserMessage {
-              string id = 1;
-            }
-            """
-        
-        XCTAssertEqual(try buildMessage(User.self), expected)
-    }
+//    func testHierarchySecondOrder() throws {
+//        struct Account {
+//            let transactions: [Transaction]
+//        }
+//
+//        struct Transaction {
+//            let amount: Int32
+//        }
+//
+//        let expected = """
+//            message AccountMessage {
+//              repeated TransactionMessage transactions = 1;
+//            }
+//
+//            message TransactionMessage {
+//              int32 amount = 1;
+//            }
+//            """
+//
+//        XCTAssertEqual(try buildMessage(Account.self), expected)
+//    }
+//
+//    func testRecursionFirstOrder() throws {
+//        struct Node {
+//            let children: [Node]
+//        }
+//
+//        let expected = """
+//            message NodeMessage {
+//              repeated NodeMessage children = 1;
+//            }
+//            """
+//
+//        XCTAssertEqual(try buildMessage(Node.self), expected)
+//    }
+//
+//    func testRecursionSecondOrder() throws {
+//        struct First {
+//            let value: Second
+//        }
+//
+//        struct Second {
+//            let value: [First]
+//        }
+//
+//        let expected = """
+//            message FirstMessage {
+//              SecondMessage value = 1;
+//            }
+//
+//            message SecondMessage {
+//              repeated FirstMessage value = 1;
+//            }
+//            """
+//
+//        XCTAssertEqual(try buildMessage(First.self), expected)
+//    }
+//
+//    func testUUID() throws {
+//        struct User {
+//            let id: UUID
+//        }
+//
+//        let expected = """
+//            message UserMessage {
+//              string id = 1;
+//            }
+//            """
+//
+//        XCTAssertEqual(try buildMessage(User.self), expected)
+//    }
 }
 
 // MARK: - Test Handlers
