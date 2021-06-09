@@ -42,7 +42,7 @@ final class EnvironmentTests: ApodiniTests {
         }
 
         let birdFacts = BirdFacts()
-        EnvironmentObject(birdFacts, \Keys.bird).configure(app)
+        EnvironmentValue(birdFacts, \Keys.bird).configure(app)
 
         let response = try XCTUnwrap(mockQuery(handler: AnotherBirdHandler(), value: String.self, app: app))
 
@@ -58,8 +58,8 @@ final class EnvironmentTests: ApodiniTests {
         let birdFacts2 = BirdFacts()
         birdFacts2.someFact = ""
 
-        EnvironmentObject(birdFacts, \Keys.bird).configure(app)
-        EnvironmentObject(birdFacts2, \Keys.bird).configure(app)
+        EnvironmentValue(birdFacts, \Keys.bird).configure(app)
+        EnvironmentValue(birdFacts2, \Keys.bird).configure(app)
         
         var environment = Environment(\Keys.bird)
         environment.inject(app: app)
