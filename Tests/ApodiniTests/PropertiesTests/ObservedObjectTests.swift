@@ -11,9 +11,9 @@ class ObservedObjectTests: ApodiniTests {
         @Apodini.Published var number: Int
         @Apodini.Published var text: String
         
-        init() {
-            number = 0
-            text = "Hello"
+        init(_ number: Int = 0, _ text: String = "Hello") {
+            self.number = number
+            self.text = text
         }
     }
     
@@ -39,7 +39,7 @@ class ObservedObjectTests: ApodiniTests {
     
     func testObservedObjectEnvironmentInjection() throws {
         struct TestHandler: Handler {
-            @ObservedObject(\Keys.testObservable) var testObservable: TestObservable
+            @Apodini.Environment(\Keys.testObservable) var testObservable: TestObservable
             
             func handle() -> String {
                 testObservable.text
@@ -54,19 +54,20 @@ class ObservedObjectTests: ApodiniTests {
         app.storage.set(\Keys.testObservable, to: testObservable)
         
         var handler = TestHandler()
+        activate(&handler)
         handler = handler.inject(app: app)
         
         let observedObjects = collectObservedObjects(from: handler)
         
         XCTAssertNoThrow(handler.handle())
         XCTAssertEqual(observedObjects.count, 1)
-        let observedObject = try XCTUnwrap(observedObjects[0] as? ObservedObject<TestObservable>)
+        let observedObject = try XCTUnwrap(observedObjects[0] as? Apodini.Environment<Keys, TestObservable>)
         XCTAssert(observedObject.wrappedValue === testObservable)
     }
     
     func testRegisterObservedListener() throws {
         struct TestHandler: Handler {
-            @ObservedObject(\Keys.testObservable) var testObservable: TestObservable
+            @Apodini.Environment(\Keys.testObservable) var testObservable: TestObservable
             
             func handle() -> String {
                 testObservable.text
@@ -76,10 +77,12 @@ class ObservedObjectTests: ApodiniTests {
         struct TestListener: ObservedListener {
             var eventLoop: EventLoop
 
-            func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<RESTInterfaceExporter>) {
+            func onObservedDidChange(_ observedObject: AnyObservedObject,
+                                     _ event: TriggerEvent,
+                                     in context: ConnectionContext<RESTInterfaceExporter>) {
                 do {
                     try XCTCheckResponse(
-                        context.handle(eventLoop: eventLoop, observedObject: observedObject),
+                        context.handle(eventLoop: eventLoop, observedObject: observedObject, event: event),
                         content: "Hello Swift"
                     )
                 } catch {
@@ -118,7 +121,7 @@ class ObservedObjectTests: ApodiniTests {
     
     func testObservedListenerNotShared() {
         struct TestHandler: Handler {
-            @ObservedObject(\Keys.testObservable) var testObservable: TestObservable
+            @Apodini.Environment(\Keys.testObservable) var testObservable: TestObservable
             
             func handle() -> String {
                 testObservable.text
@@ -137,7 +140,9 @@ class ObservedObjectTests: ApodiniTests {
                 self.number = number
             }
             
-            func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<RESTInterfaceExporter>) {
+            func onObservedDidChange(_ observedObject: AnyObservedObject,
+                                     _ event: TriggerEvent,
+                                     in context: ConnectionContext<RESTInterfaceExporter>) {
                 wasCalled = true
             }
             
@@ -180,7 +185,7 @@ class ObservedObjectTests: ApodiniTests {
         let testObservable = TestObservable()
         
         struct TestHandler: Handler {
-            @ObservedObject(\Keys.testObservable) var observable: TestObservable
+            @Apodini.Environment(\Keys.testObservable) var observable: TestObservable
             
             @State var shouldBeTriggeredByObservedObject = false
             
@@ -198,10 +203,12 @@ class ObservedObjectTests: ApodiniTests {
                 self.eventLoop = eventLoop
             }
             
-            func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<RESTInterfaceExporter>) {
+            func onObservedDidChange(_ observedObject: AnyObservedObject,
+                                     _ event: TriggerEvent,
+                                     in context: ConnectionContext<RESTInterfaceExporter>) {
                 do {
                     try XCTCheckResponse(
-                        context.handle(eventLoop: eventLoop, observedObject: observedObject),
+                        context.handle(eventLoop: eventLoop, observedObject: observedObject, event: event),
                         content: "Hello Swift"
                     )
                 } catch {
@@ -272,5 +279,299 @@ class ObservedObjectTests: ApodiniTests {
             on: app.eventLoopGroup.next()
         )
         _ = try context.handle(request: request).wait()
+    }
+    
+    
+    class TestListener: ObservedListener {
+        var eventLoop: EventLoop
+        
+        var result: (() -> EventLoopFuture<String>)?
+        
+        init(eventLoop: EventLoop) {
+            self.eventLoop = eventLoop
+        }
+
+        func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent, in context: ConnectionContext<MockExporter<String>>) {
+            result = {
+                context.handle(eventLoop: self.eventLoop, observedObject: observedObject, event: event).map { response in
+                    if response.content == nil {
+                        return "Nothing"
+                    }
+                   
+                   return "\(response.content!.response.wrappedValue)"
+                }
+            }
+        }
+    }
+    
+    func testObservationAfterUsingSetter() throws {
+        struct TestHandler: Handler {
+            @ObservedObject var testObservable = TestObservable()
+            
+            @Apodini.Environment(\.connection) var connection
+            
+            @State var count: Int = 1
+            
+            let secondObservable: TestObservable
+            
+            func handle() -> Apodini.Response<String> {
+                defer {
+                    count += 1
+                    if testObservable.text == "World" {
+                        // should not trigger evaluation
+                        testObservable.text = "Cancelled"
+                        testObservable = secondObservable
+                    }
+                }
+                let response = "\(count): \(testObservable.number) - \(testObservable.text) (\(_testObservable.changed ? "event" : "request"))"
+                switch connection.state {
+                case .open:
+                    return .send(response)
+                case .end:
+                    return .final(response)
+                }
+            }
+        }
+        
+        
+        let eventLoop = app.eventLoopGroup.next()
+        
+        let listener = TestListener(eventLoop: eventLoop)
+        
+        let observable = TestObservable()
+        let observable2 = TestObservable(100, "Hello, World!")
+        var testHandler = TestHandler(testObservable: observable, secondObservable: observable2).inject(app: app)
+        activate(&testHandler)
+
+        let endpoint = testHandler.mockEndpoint(app: app)
+
+        let exporter = MockExporter<String>()
+        let context = endpoint.createConnectionContext(for: exporter)
+        context.register(listener: listener)
+
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: eventLoop, final: false),
+            content: "1: 0 - Hello (request)",
+            connectionEffect: .open
+        )
+        
+        // should trigger second evaluation
+        observable.number = 1
+        
+        XCTAssertNotNil(listener.result)
+        XCTAssertEqual(try listener.result!().wait(), "2: 1 - Hello (event)")
+        listener.result = nil
+        
+        // should trigger third evaluation, which triggers another evaluation, but also changes observable object
+        observable.text = "World"
+        XCTAssertNotNil(listener.result)
+        XCTAssertEqual(try listener.result!().wait(), "3: 1 - World (event)")
+        // test that the event triggered by the third evaluation was cancelled (this should happen, as at the time it would be
+        // evaluated, the @ObservedObject by which the event was observed observes a different observable)
+        XCTAssertNotNil(listener.result)
+        XCTAssertEqual(try listener.result!().wait(), "Nothing")
+        
+        listener.result = nil
+        
+        // should not trigger
+        observable.text = "Never"
+        XCTAssertNil(listener.result)
+        
+        // should trigger forth evaluation
+        observable2.number = 101
+        XCTAssertNotNil(listener.result)
+        XCTAssertEqual(try listener.result!().wait(), "4: 101 - Hello, World! (event)")
+        listener.result = nil
+        
+        // final evaluation
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: eventLoop),
+            content: "5: 101 - Hello, World! (request)",
+            connectionEffect: .close
+        )
+    }
+    
+    func testObservationAfterUsingEnvironmentInjection() throws {
+        struct TestHandler: Handler {
+            @Apodini.Environment(\Keys.testObservable) var testObservable
+            
+            @Apodini.Environment(\.connection) var connection
+            
+            @State var count: Int = 1
+            
+            let secondObservable: TestObservable
+
+            func handle() -> Apodini.Response<String> {
+                defer {
+                    count += 1
+                    if testObservable.text == "World" {
+                        // should not trigger evaluation
+                        testObservable.text = "Cancelled"
+                        _testObservable.inject(secondObservable, for: \Keys.testObservable)
+                    }
+                }
+                let response = "\(count): \(testObservable.number) - \(testObservable.text) (\(_testObservable.changed ? "event" : "request"))"
+                switch connection.state {
+                case .open:
+                    return .send(response)
+                case .end:
+                    return .final(response)
+                }
+            }
+        }
+        
+        
+        let eventLoop = app.eventLoopGroup.next()
+        
+        let listener = TestListener(eventLoop: eventLoop)
+        
+        let observable = TestObservable()
+        let observable2 = TestObservable(100, "Hello, World!")
+        let testHandler = TestHandler(secondObservable: observable2).inject(app: app)
+        app.storage.set(\Keys.testObservable, to: observable)
+
+        let endpoint = testHandler.mockEndpoint(app: app)
+
+        let exporter = MockExporter<String>()
+        let context = endpoint.createConnectionContext(for: exporter)
+        
+        context.register(listener: listener)
+
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: eventLoop, final: false),
+            content: "1: 0 - Hello (request)",
+            connectionEffect: .open
+        )
+        
+        // should trigger second evaluation
+        observable.number = 1
+        
+        XCTAssertNotNil(listener.result)
+        XCTAssertEqual(try listener.result!().wait(), "2: 1 - Hello (event)")
+        listener.result = nil
+        
+        // should trigger third evaluation, which triggers another evaluation, but also changes observable object
+        observable.text = "World"
+        XCTAssertNotNil(listener.result)
+        XCTAssertEqual(try listener.result!().wait(), "3: 1 - World (event)")
+        // test that the event triggered by the third evaluation was cancelled (this should happen, as at the time it would be
+        // evaluated, the @ObservedObject by which the event was observed observes a different observable)
+        XCTAssertNotNil(listener.result)
+        XCTAssertEqual(try listener.result!().wait(), "Nothing")
+        
+        listener.result = nil
+        
+        // should not trigger
+        observable.text = "Never"
+        XCTAssertNil(listener.result)
+        
+        // should trigger forth evaluation
+        observable2.number = 101
+        XCTAssertNotNil(listener.result)
+        XCTAssertEqual(try listener.result!().wait(), "4: 101 - Hello, World! (event)")
+        listener.result = nil
+        
+        // final evaluation
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: eventLoop),
+            content: "5: 101 - Hello, World! (request)",
+            connectionEffect: .close
+        )
+    }
+    
+    
+    func testObservationAfterUsingEnvironmentObjectInjection() throws {
+        struct TestHandler: Handler {
+            @EnvironmentObject var testObservable: TestObservable
+            
+            @Apodini.Environment(\.connection) var connection
+            
+            @State var count: Int = 1
+            
+            let secondObservable: TestObservable
+            
+            init(secondObservable: TestObservable, testObservableObject: TestObservable) {
+                var envObj = EnvironmentObject<TestObservable>()
+                envObj.prepareValue(testObservableObject)
+                self._testObservable = envObj
+                self.secondObservable = secondObservable
+            }
+            
+            func handle() -> Apodini.Response<String> {
+                defer {
+                    count += 1
+                    if testObservable.text == "World" {
+                        // should not trigger evaluation
+                        testObservable.text = "Cancelled"
+                        _testObservable.inject(secondObservable)
+                    }
+                }
+                let response = "\(count): \(testObservable.number) - \(testObservable.text) (\(_testObservable.changed ? "event" : "request"))"
+                switch connection.state {
+                case .open:
+                    return .send(response)
+                case .end:
+                    return .final(response)
+                }
+            }
+        }
+        
+        
+        let eventLoop = app.eventLoopGroup.next()
+        
+        let listener = TestListener(eventLoop: eventLoop)
+        
+        let observable = TestObservable()
+        let observable2 = TestObservable(100, "Hello, World!")
+        let testHandler = TestHandler(secondObservable: observable2, testObservableObject: observable).inject(app: app)
+        app.storage.set(\Keys.testObservable, to: observable)
+
+        let endpoint = testHandler.mockEndpoint(app: app)
+
+        let exporter = MockExporter<String>()
+        let context = endpoint.createConnectionContext(for: exporter)
+        
+        context.register(listener: listener)
+
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: eventLoop, final: false),
+            content: "1: 0 - Hello (request)",
+            connectionEffect: .open
+        )
+        
+        // should trigger second evaluation
+        observable.number = 1
+        
+        XCTAssertNotNil(listener.result)
+        XCTAssertEqual(try listener.result!().wait(), "2: 1 - Hello (event)")
+        listener.result = nil
+        
+        // should trigger third evaluation, which triggers another evaluation, but also changes observable object
+        observable.text = "World"
+        XCTAssertNotNil(listener.result)
+        XCTAssertEqual(try listener.result!().wait(), "3: 1 - World (event)")
+        // test that the event triggered by the third evaluation was cancelled (this should happen, as at the time it would be
+        // evaluated, the @ObservedObject by which the event was observed observes a different observable)
+        XCTAssertNotNil(listener.result)
+        XCTAssertEqual(try listener.result!().wait(), "Nothing")
+        
+        listener.result = nil
+        
+        // should not trigger
+        observable.text = "Never"
+        XCTAssertNil(listener.result)
+        
+        // should trigger forth evaluation
+        observable2.number = 101
+        XCTAssertNotNil(listener.result)
+        XCTAssertEqual(try listener.result!().wait(), "4: 101 - Hello, World! (event)")
+        listener.result = nil
+        
+        // final evaluation
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: eventLoop),
+            content: "5: 101 - Hello, World! (request)",
+            connectionEffect: .close
+        )
     }
 }
