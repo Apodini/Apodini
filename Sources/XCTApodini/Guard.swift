@@ -5,7 +5,7 @@
 //  Created by Max Obermeier on 06.06.21.
 //
 
-#if DEBUG
+#if DEBUG || RELEASE_TESTING
 @testable import Apodini
 
 // MARK: Guarded Handler

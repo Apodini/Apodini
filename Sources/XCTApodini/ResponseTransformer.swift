@@ -6,7 +6,7 @@
 //
 
 
-#if DEBUG
+#if DEBUG || RELEASE_TESTING
 @testable import Apodini
 import ApodiniUtils
 
