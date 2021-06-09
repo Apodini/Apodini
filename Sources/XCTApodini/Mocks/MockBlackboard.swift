@@ -5,7 +5,7 @@
 //  Created by Max Obermeier on 10.05.21.
 //
 
-#if DEBUG
+#if DEBUG || RELEASE_TESTING
 import Foundation
 @testable import Apodini
 

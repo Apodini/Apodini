@@ -46,7 +46,7 @@ private struct TestIntWebServiceMetadata: WebServiceMetadataDefinition {
 private struct GenericTestStringWebServiceMetadata<W: WebService>: WebServiceMetadataDefinition {
     typealias Key = TestStringMetadataContextKey
 
-    var value: String = "\(W.self)"
+    var value = String(describing: W.self)
 }
 
 

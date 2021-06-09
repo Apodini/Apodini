@@ -46,7 +46,7 @@ private struct TestIntComponentMetadata: ComponentMetadataDefinition {
 private struct GenericTestStringComponentMetadata<C: Component>: ComponentMetadataDefinition {
     typealias Key = TestStringMetadataContextKey
 
-    var value: String = "\(C.self)"
+    var value = String(describing: C.self)
 }
 
 private struct ReusableTestComponentMetadata: ComponentMetadataBlock {

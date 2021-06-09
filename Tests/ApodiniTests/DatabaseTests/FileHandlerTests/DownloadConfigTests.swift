@@ -45,13 +45,13 @@ final class DownloadConfigTests: FileHandlerTests {
         let file2 = File(data: data, filename: "Testfile123.jpeg")
         
         let result2 = try XCTUnwrap(mockQuery(handler: uploader, value: String.self, app: app, queued: file2))
-        
+
         XCTAssert(result2 == file2.filename)
         
         let directory = app.directory
         let config = DownloadConfiguration(.default)
         let fileInfos = try config.retrieveFileInfos(".jpeg", in: directory)
-        
+
         XCTAssertNotNil(fileInfos)
         let infos = try XCTUnwrap(fileInfos)
         XCTAssert(infos[0].fileName == file.filename || infos[0].fileName == file2.filename)
