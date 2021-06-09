@@ -26,17 +26,14 @@ public final class RESTInterfaceExporter: Configuration {
     }
     
     /**
-     Initializes the configuration of the `RESTInterfaceExporter` with `AnyEncoder` and `AnyDecoder`
+     Initializes the configuration of the `RESTInterfaceExporter` with (default) `AnyEncoder` and `AnyDecoder`
      - Parameters:
          - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
          - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
-         - staticConfiguraiton: Allows passing dependend static Exporters like the OpenAPI Exporter
      */
-    init(encoder: AnyEncoder,
-         decoder: AnyDecoder,
-         staticConfigurations: [RESTDependentStaticConfiguration]) {
+    public init(encoder: AnyEncoder = defaultEncoder, decoder: AnyDecoder = defaultDecoder) {
         self.configuration = RESTExporterConfiguration(encoder: encoder, decoder: decoder)
-        self.staticConfigurations = staticConfigurations
+        self.staticConfigurations = [EmptyRESTDependentStaticConfiguration()]
     }
     
     public func configure(_ app: Apodini.Application) {
@@ -56,17 +53,6 @@ public final class RESTInterfaceExporter: Configuration {
 
 extension RESTInterfaceExporter {
     /**
-     Initializes the configuration of the `RESTInterfaceExporter` with (default) `AnyEncoder` and `AnyDecoder`
-     - Parameters:
-         - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
-         - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
-     */
-    public convenience init(encoder: AnyEncoder = defaultEncoder,
-                            decoder: AnyDecoder = defaultDecoder) {
-        self.init(encoder: encoder, decoder: decoder, staticConfigurations: [EmptyRESTDependentStaticConfiguration()])
-    }
-    
-    /**
      Initializes the configuration of the `RESTInterfaceExporter` with (default) JSON Coders and possibly associated Exporters (eg. OpenAPI Exporter)
      - Parameters:
          - encoder: The to be used `JSONEncoder`, defaults to a `JSONEncoder`
@@ -75,9 +61,9 @@ extension RESTInterfaceExporter {
      */
     public convenience init(encoder: JSONEncoder = defaultEncoder as! JSONEncoder,
                             decoder: JSONDecoder = defaultDecoder as! JSONDecoder,
-                            @RESTDependentStaticConfigurationBuilder staticConfigurations:
-                                () -> [RESTDependentStaticConfiguration] = { [EmptyRESTDependentStaticConfiguration()] }) {
-        self.init(encoder: encoder, decoder: decoder, staticConfigurations: staticConfigurations())
+                            @RESTDependentStaticConfigurationBuilder staticConfigurations: () -> [RESTDependentStaticConfiguration] = { [] }) {
+        self.init(encoder: encoder, decoder: decoder)
+        self.staticConfigurations = staticConfigurations()
     }
 }
 
