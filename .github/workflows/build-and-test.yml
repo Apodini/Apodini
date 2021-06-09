@@ -123,10 +123,10 @@ jobs:
       run: swift build -c release -Xswiftc -Xfrontend -Xswiftc -sil-verify-none
     - name: Release Build & Test
       if: matrix.configuration == 'release_testing'
-      run: swift test -c release --enable-test-discovery -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING -Xswiftc -Xfrontend -Xswiftc -sil-verify-none
+      run: swift test -c release -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING -Xswiftc -Xfrontend -Xswiftc -sil-verify-none
     - name: Debug Build & Test
       if: matrix.configuration == 'debug'
-      run: swift test -c debug --enable-test-discovery -Xswiftc -Xfrontend -Xswiftc -sil-verify-none
+      run: swift test -c debug -Xswiftc -Xfrontend -Xswiftc -sil-verify-none
     - name: Run Deployment Provider Tests debug
       if: ${{ github.event.inputs.runDeploymentProviderTests && matrix.linux == 'focal' && matrix.configuration == 'debug' }}
       run: |
