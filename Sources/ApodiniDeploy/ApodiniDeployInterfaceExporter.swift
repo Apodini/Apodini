@@ -38,7 +38,7 @@ struct ApodiniDeployError: Swift.Error {
     let message: String
 }
 
-public final class ApodiniDeployInterfaceExporter: Configuration {
+public final class ApodiniDeploy: Configuration {
     let configuration: ApodiniDeployExporterConfiguration
     
     public init(runtimes: [DeploymentProviderRuntime.Type] = [],
@@ -55,7 +55,7 @@ public final class ApodiniDeployInterfaceExporter: Configuration {
     
     public func configure(_ app: Apodini.Application) {
         /// Instanciate exporter
-        let deployExporter = _ApodiniDeployInterfaceExporter(app, self.configuration)
+        let deployExporter = ApodiniDeployInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: deployExporter)
@@ -68,9 +68,9 @@ public final class ApodiniDeployInterfaceExporter: Configuration {
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
 // swiftlint:disable type_name
-class _ApodiniDeployInterfaceExporter: InterfaceExporter {
+class ApodiniDeployInterfaceExporter: InterfaceExporter {
     struct ApplicationStorageKey: Apodini.StorageKey {
-        typealias Value = _ApodiniDeployInterfaceExporter
+        typealias Value = ApodiniDeployInterfaceExporter
     }
     
     /// The information collected about an `Endpoint`.
@@ -243,7 +243,7 @@ class _ApodiniDeployInterfaceExporter: InterfaceExporter {
 
 // MARK: _ApodiniDeployInterfaceExporter.ExporterRequest
 
-extension _ApodiniDeployInterfaceExporter {
+extension ApodiniDeployInterfaceExporter {
     struct ExporterRequest: Apodini.ExporterRequest {
         enum Argument {
             case value(Any)    // the value, as-is

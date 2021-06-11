@@ -9,8 +9,8 @@ import Foundation
 import Apodini
 
 /// Provides utility functionality that is common to
-/// both, the `_ProtobufferInterfaceExporter` and
-/// the `_GRPCInterfaceExporter`.
+/// both, the `ProtobufferInterfaceExporter` and
+/// the `GRPCInterfaceExporter`.
 
 /// Returns the name of the service that is exported by
 /// the Protobuffer and GRPC exporters

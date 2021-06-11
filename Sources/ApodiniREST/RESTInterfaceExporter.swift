@@ -9,7 +9,7 @@ import NIO
 extension Vapor.Request: ExporterRequest, WithEventLoop, WithRemote {}
 
 /// Public Apodini Interface Exporter for REST
-public final class RESTInterfaceExporter: Configuration {
+public final class REST: Configuration {
     let configuration: RESTExporterConfiguration
     var staticConfigurations: [RESTDependentStaticConfiguration]
     
@@ -38,7 +38,7 @@ public final class RESTInterfaceExporter: Configuration {
     
     public func configure(_ app: Apodini.Application) {
         /// Instanciate exporter
-        let restExporter = _RESTInterfaceExporter(app, self.configuration)
+        let restExporter = RESTInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: restExporter)
@@ -48,7 +48,7 @@ public final class RESTInterfaceExporter: Configuration {
     }
 }
 
-extension RESTInterfaceExporter {
+extension REST {
     /**
      Initializes the configuration of the `RESTInterfaceExporter` with (default) JSON Coders and possibly associated Exporters (eg. OpenAPI Exporter)
      - Parameters:
@@ -66,7 +66,7 @@ extension RESTInterfaceExporter {
 
 /// Internal Apodini Interface Exporter for REST
 // swiftlint:disable type_name
-final class _RESTInterfaceExporter: InterfaceExporter {
+final class RESTInterfaceExporter: InterfaceExporter {
     static let parameterNamespace: [ParameterNamespace] = .individual
     
     let app: Vapor.Application

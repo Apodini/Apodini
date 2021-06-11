@@ -76,7 +76,7 @@ class ObservedObjectTests: ApodiniTests {
         struct TestListener: ObservedListener {
             var eventLoop: EventLoop
 
-            func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<_RESTInterfaceExporter>) {
+            func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<RESTInterfaceExporter>) {
                 do {
                     try XCTCheckResponse(
                         context.handle(eventLoop: eventLoop, observedObject: observedObject),
@@ -88,7 +88,7 @@ class ObservedObjectTests: ApodiniTests {
             }
         }
         
-        let exporter = _RESTInterfaceExporter(app)
+        let exporter = RESTInterfaceExporter(app)
         let handler = TestHandler()
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)
@@ -137,7 +137,7 @@ class ObservedObjectTests: ApodiniTests {
                 self.number = number
             }
             
-            func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<_RESTInterfaceExporter>) {
+            func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<RESTInterfaceExporter>) {
                 wasCalled = true
             }
             
@@ -146,7 +146,7 @@ class ObservedObjectTests: ApodiniTests {
             }
         }
         
-        let exporter = _RESTInterfaceExporter(app)
+        let exporter = RESTInterfaceExporter(app)
         let handler = TestHandler()
 
         let endpoint = handler.mockEndpoint(app: app)
@@ -198,7 +198,7 @@ class ObservedObjectTests: ApodiniTests {
                 self.eventLoop = eventLoop
             }
             
-            func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<_RESTInterfaceExporter>) {
+            func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<RESTInterfaceExporter>) {
                 do {
                     try XCTCheckResponse(
                         context.handle(eventLoop: eventLoop, observedObject: observedObject),
@@ -211,7 +211,7 @@ class ObservedObjectTests: ApodiniTests {
         }
         app.storage.set(\Keys.testObservable, to: testObservable)
         
-        let exporter = _RESTInterfaceExporter(app)
+        let exporter = RESTInterfaceExporter(app)
         let handler = TestHandler()
 
         let endpoint = handler.mockEndpoint(app: app)
@@ -251,7 +251,7 @@ class ObservedObjectTests: ApodiniTests {
             }
         }
         
-        let exporter = _RESTInterfaceExporter(app)
+        let exporter = RESTInterfaceExporter(app)
         let handler = TestHandler()
         
         // We wait 0.1 seconds after creating the handler so the assertion in the

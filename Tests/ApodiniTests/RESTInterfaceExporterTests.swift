@@ -106,7 +106,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
     
     struct TestRESTExporterCollection: ConfigurationCollection {
         var configuration: Configuration {
-            RESTInterfaceExporter()
+            REST()
         }
     }
 
@@ -114,7 +114,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         let handler = ParameterRetrievalTestHandler()
         let endpoint = handler.mockEndpoint()
 
-        let exporter = _RESTInterfaceExporter(app)
+        let exporter = RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
 
         let body = Bird(name: "Rudi", age: 12)

@@ -25,8 +25,8 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter {
-                    OpenAPIInterfaceExporter()
+                REST {
+                    OpenAPI()
                 }
             }
         }
@@ -65,8 +65,8 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter(encoder: JSONEncoder(), decoder: JSONDecoder()) {
-                    OpenAPIInterfaceExporter(outputFormat: .yaml,
+                REST(encoder: JSONEncoder(), decoder: JSONDecoder()) {
+                    OpenAPI(outputFormat: .yaml,
                                              outputEndpoint: "/oas",
                                              swaggerUiEndpoint: "/oas-ui")
                 }

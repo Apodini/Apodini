@@ -55,7 +55,7 @@ final class CustomComponentTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
         

@@ -65,7 +65,7 @@ fileprivate extension TypeInfo {
             case .tuple:
                 return try tupleName() + "Message"
             default:
-                throw _ProtobufferInterfaceExporter.Error(message: "Kind: \(kind) is not supported")
+                throw ProtobufferInterfaceExporter.Error(message: "Kind: \(kind) is not supported")
             }
         }
     }
@@ -81,7 +81,7 @@ fileprivate extension TypeInfo {
         if type == Void.self {
             return "Void"
         } else {
-            throw _ProtobufferInterfaceExporter.Error(message: "Tuple: \(type) is not supported")
+            throw ProtobufferInterfaceExporter.Error(message: "Tuple: \(type) is not supported")
         }
     }
 }

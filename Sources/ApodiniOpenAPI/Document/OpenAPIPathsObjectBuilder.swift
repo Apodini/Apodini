@@ -18,15 +18,15 @@ struct OpenAPIPathBuilder: PathBuilderWithResult {
         components.append("{\(parameter.name)}")
     }
     
-    func result() -> OpenAPI.Path {
-        OpenAPI.Path(stringLiteral: self.components.joined(separator: "/"))
+    func result() -> OpenAPIKit.OpenAPI.Path {
+        OpenAPIKit.OpenAPI.Path(stringLiteral: self.components.joined(separator: "/"))
     }
 }
 
 /// Corresponds to `paths` section in OpenAPI document.
 /// See: https://swagger.io/specification/#paths-object
 struct OpenAPIPathsObjectBuilder {
-    var pathsObject: OpenAPI.PathItem.Map = [:]
+    var pathsObject: OpenAPIKit.OpenAPI.PathItem.Map = [:]
     let componentsObjectBuilder: OpenAPIComponentsObjectBuilder
     
     init(componentsObjectBuilder: inout OpenAPIComponentsObjectBuilder) {
@@ -39,10 +39,10 @@ struct OpenAPIPathsObjectBuilder {
         let path = endpoint.absolutePath.build(with: OpenAPIPathBuilder.self)
         
         // Get or create `PathItem`.
-        var pathItem = pathsObject[path] ?? OpenAPI.PathItem()
+        var pathItem = pathsObject[path] ?? OpenAPIKit.OpenAPI.PathItem()
         
         // Get `OpenAPI.HttpMethod` and `OpenAPI.Operation` from endpoint.
-        let httpMethod = OpenAPI.HttpMethod(endpoint[Operation.self])
+        let httpMethod = OpenAPIKit.OpenAPI.HttpMethod(endpoint[Operation.self])
         let operation = buildPathItemOperationObject(from: endpoint)
         pathItem.set(operation: operation, for: httpMethod)
         
@@ -53,7 +53,7 @@ struct OpenAPIPathsObjectBuilder {
 
 private extension OpenAPIPathsObjectBuilder {
     /// https://swagger.io/specification/#operation-object
-    mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>) -> OpenAPI.Operation {
+    mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>) -> OpenAPIKit.OpenAPI.Operation {
         var defaultTag: String
         // If parameter in path, get string component directly before first parameter component in path.
         if let index = endpoint.absolutePath.firstIndex(where: { $0.isParameter() }), index > 0 {
@@ -74,15 +74,15 @@ private extension OpenAPIPathsObjectBuilder {
         let endpointDescription = customDescription ?? endpoint.description
         
         // Get `Parameter.Array` from existing `query` or `path` parameters.
-        let parameters: OpenAPI.Parameter.Array = buildParametersArray(from: endpoint.parameters)
+        let parameters: OpenAPIKit.OpenAPI.Parameter.Array = buildParametersArray(from: endpoint.parameters)
         
         // Get `OpenAPI.Request` body object containing HTTP body types.
-        let requestBody: OpenAPI.Request? = buildRequestBodyObject(from: endpoint.parameters)
+        let requestBody: OpenAPIKit.OpenAPI.Request? = buildRequestBodyObject(from: endpoint.parameters)
         
         // Get `OpenAPI.Response.Map` containing all possible HTTP responses mapped to their status code.
-        let responses: OpenAPI.Response.Map = buildResponsesObject(from: endpoint[ResponseType.self].type)
+        let responses: OpenAPIKit.OpenAPI.Response.Map = buildResponsesObject(from: endpoint[ResponseType.self].type)
         
-        return OpenAPI.Operation(
+        return OpenAPIKit.OpenAPI.Operation(
             tags: tags,
             description: endpointDescription,
             operationId: endpoint[AnyHandlerIdentifier.self].rawValue,
@@ -96,9 +96,9 @@ private extension OpenAPIPathsObjectBuilder {
     }
     
     /// https://swagger.io/specification/#parameter-object
-    mutating func buildParametersArray(from parameters: [AnyEndpointParameter]) -> OpenAPI.Parameter.Array {
+    mutating func buildParametersArray(from parameters: [AnyEndpointParameter]) -> OpenAPIKit.OpenAPI.Parameter.Array {
         parameters.compactMap {
-            if let context = OpenAPI.Parameter.Context($0) {
+            if let context = OpenAPIKit.OpenAPI.Parameter.Context($0) {
                 return Either.parameter(name: $0.name, context: context, schema: JSONSchema.from($0.propertyType), description: $0.description)
             }
             return nil
@@ -106,8 +106,8 @@ private extension OpenAPIPathsObjectBuilder {
     }
     
     /// https://swagger.io/specification/#request-body-object
-    mutating func buildRequestBodyObject(from parameters: [AnyEndpointParameter]) -> OpenAPI.Request? {
-        var requestBody: OpenAPI.Request?
+    mutating func buildRequestBodyObject(from parameters: [AnyEndpointParameter]) -> OpenAPIKit.OpenAPI.Request? {
+        var requestBody: OpenAPIKit.OpenAPI.Request?
         let contentParameters = parameters.filter {
             $0.parameterType == .content
         }
@@ -126,7 +126,7 @@ private extension OpenAPIPathsObjectBuilder {
             fatalError("Could not build schema for request body wrapped by parameters \(contentParameters).")
         }
         if let requestJSONSchema = requestJSONSchema {
-            requestBody = OpenAPI.Request(description: contentParameters
+            requestBody = OpenAPIKit.OpenAPI.Request(description: contentParameters
                                             .map {
                                                 $0.description
                                             }
@@ -140,8 +140,8 @@ private extension OpenAPIPathsObjectBuilder {
     }
     
     /// https://swagger.io/specification/#responses-object
-    mutating func buildResponsesObject(from responseType: Encodable.Type) -> OpenAPI.Response.Map {
-        var responseContent: OpenAPI.Content.Map = [:]
+    mutating func buildResponsesObject(from responseType: Encodable.Type) -> OpenAPIKit.OpenAPI.Response.Map {
+        var responseContent: OpenAPIKit.OpenAPI.Content.Map = [:]
         let responseJSONSchema: JSONSchema
         do {
             responseJSONSchema = try componentsObjectBuilder.buildResponse(for: responseType)
@@ -149,24 +149,24 @@ private extension OpenAPIPathsObjectBuilder {
             fatalError("Could not build schema for response body for type \(responseType).")
         }
         responseContent[responseJSONSchema.openAPIContentType] = .init(schema: responseJSONSchema)
-        var responses: OpenAPI.Response.Map = [:]
-        responses[.status(code: 200)] = .init(OpenAPI.Response(
+        var responses: OpenAPIKit.OpenAPI.Response.Map = [:]
+        responses[.status(code: 200)] = .init(OpenAPIKit.OpenAPI.Response(
                                                 description: "OK",
                                                 headers: nil,
                                                 content: responseContent,
                                                 vendorExtensions: [:])
         )
         responses[.status(code: 401)] = .init(
-            OpenAPI.Response(description: "Unauthorized")
+            OpenAPIKit.OpenAPI.Response(description: "Unauthorized")
         )
         responses[.status(code: 403)] = .init(
-            OpenAPI.Response(description: "Forbidden")
+            OpenAPIKit.OpenAPI.Response(description: "Forbidden")
         )
         responses[.status(code: 404)] = .init(
-            OpenAPI.Response(description: "Not Found")
+            OpenAPIKit.OpenAPI.Response(description: "Not Found")
         )
         responses[.status(code: 500)] = .init(
-            OpenAPI.Response(description: "Internal Server Error")
+            OpenAPIKit.OpenAPI.Response(description: "Internal Server Error")
         )
         return responses
     }

@@ -89,7 +89,7 @@ final class ConnectionTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
 
@@ -118,7 +118,7 @@ final class ConnectionTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
 

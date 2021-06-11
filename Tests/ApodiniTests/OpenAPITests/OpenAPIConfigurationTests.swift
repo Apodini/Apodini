@@ -23,7 +23,7 @@ final class OpenAPIConfigurationTests: ApodiniTests {
             title: configuredTitle
         )
         
-        let openAPIExporter = _OpenAPIInterfaceExporter(app, openAPIConfiguration)
+        let openAPIExporter = OpenAPIInterfaceExporter(app, openAPIConfiguration)
         //openAPIConfiguration.configure(app)
 
         //let storage = try XCTUnwrap(app.storage.get(OpenAPIStorageKey.self))
@@ -49,7 +49,7 @@ final class OpenAPIConfigurationTests: ApodiniTests {
 
     func testBuildDocumentWithDefaultConfiguration() throws {
         let openAPIConfiguration = OpenAPIExporterConfiguration()
-        let openAPIExporter = _OpenAPIInterfaceExporter(app, openAPIConfiguration)
+        let openAPIExporter = OpenAPIInterfaceExporter(app, openAPIConfiguration)
 
         XCTAssertEqual(openAPIExporter.exporterConfiguration.outputFormat, OpenAPIConfigurationDefaults.outputFormat)
         XCTAssertEqual(openAPIExporter.exporterConfiguration.outputEndpoint, "/\(OpenAPIConfigurationDefaults.outputEndpoint)")

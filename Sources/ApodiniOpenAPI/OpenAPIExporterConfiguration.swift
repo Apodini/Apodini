@@ -20,9 +20,9 @@ public enum OpenAPIConfigurationDefaults {
 /// The enclosing storage entity for OpenAPI-related information.
 public struct OpenAPIStorageValue {
     /// The OpenAPI document
-    public let document: OpenAPI.Document?
+    public let document: OpenAPIKit.OpenAPI.Document?
     
-    internal init(document: OpenAPI.Document? = nil) {
+    internal init(document: OpenAPIKit.OpenAPI.Document? = nil) {
         self.document = document
     }
 }

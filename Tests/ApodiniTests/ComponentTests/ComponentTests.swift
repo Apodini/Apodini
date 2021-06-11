@@ -42,7 +42,7 @@ class ComponentTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
         
@@ -68,7 +68,7 @@ class ComponentTests: ApodiniTests {
             }
             
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
         

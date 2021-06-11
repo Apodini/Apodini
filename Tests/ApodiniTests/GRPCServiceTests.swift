@@ -71,7 +71,7 @@ extension GRPCServiceTests {
             }
             
             var configuration: Configuration {
-                GRPCInterfaceExporter(integerWidth: .sixtyFour)
+                GRPC(integerWidth: .sixtyFour)
             }
         }
         

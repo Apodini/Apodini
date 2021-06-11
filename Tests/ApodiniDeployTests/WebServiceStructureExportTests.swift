@@ -25,10 +25,10 @@ private struct TestWebService: Apodini.WebService {
     }
     
     var configuration: Configuration {
-        RESTInterfaceExporter {
-            OpenAPIInterfaceExporter()
+        REST {
+            OpenAPI()
         }
-        ApodiniDeployInterfaceExporter()
+        ApodiniDeploy()
     }
 }
 

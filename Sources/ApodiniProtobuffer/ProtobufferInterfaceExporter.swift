@@ -9,7 +9,7 @@ import ApodiniTypeReflection
 import ApodiniUtils
 @_implementationOnly import class Vapor.Application
 
-public final class ProtobufferInterfaceExporter: GRPCDependentStaticConfiguration {
+public final class Protobuffer: GRPCDependentStaticConfiguration {
     var configuration: ProtobufferExporterConfiguration
     
     public init() {
@@ -21,7 +21,7 @@ public final class ProtobufferInterfaceExporter: GRPCDependentStaticConfiguratio
         self.configuration.parentConfiguration = parentConfiguration
         
         /// Instanciate exporter
-        let protobufferExporter = _ProtobufferInterfaceExporter(app, self.configuration)
+        let protobufferExporter = ProtobufferInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(staticExporter: protobufferExporter)
@@ -29,7 +29,7 @@ public final class ProtobufferInterfaceExporter: GRPCDependentStaticConfiguratio
 }
 
 // swiftlint:disable type_name
-final class _ProtobufferInterfaceExporter: StaticInterfaceExporter {
+final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     // MARK: Nested Types
     struct Error: Swift.Error, CustomDebugStringConvertible {
         let message: String
@@ -128,7 +128,7 @@ final class _ProtobufferInterfaceExporter: StaticInterfaceExporter {
     }
 }
 
-private extension _ProtobufferInterfaceExporter {
+private extension ProtobufferInterfaceExporter {
     func exportThrows<H: Handler>(_ endpoint: Endpoint<H>) throws {
         // Output
         let outputNode = try builder.buildMessage(endpoint[ResponseType.self].type)
@@ -187,9 +187,9 @@ private extension _ProtobufferInterfaceExporter {
     }
 }
 
-// MARK: - _ProtobufferInterfaceExporter.Builder Implementation
+// MARK: - ProtobufferInterfaceExporter.Builder Implementation
 
-private extension _ProtobufferInterfaceExporter.Builder {
+private extension ProtobufferInterfaceExporter.Builder {
     func handleUUIDProperty(
         _ property: ProtobufferMessage.Property
     ) -> ProtobufferMessage.Property {
@@ -245,9 +245,9 @@ private extension ProtobufferMessage {
     }
 }
 
-// MARK: - _ProtobufferInterfaceExporter: CustomStringConvertible
+// MARK: - ProtobufferInterfaceExporter: CustomStringConvertible
 
-extension _ProtobufferInterfaceExporter: CustomStringConvertible {
+extension ProtobufferInterfaceExporter: CustomStringConvertible {
     public var description: String {
         let protoFile = [
             #"syntax = "proto3";"#,

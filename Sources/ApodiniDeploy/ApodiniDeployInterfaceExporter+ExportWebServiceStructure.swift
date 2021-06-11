@@ -14,7 +14,7 @@ import ApodiniDeployBuildSupport
 import OpenAPIKit
 
 
-extension _ApodiniDeployInterfaceExporter {
+extension ApodiniDeployInterfaceExporter {
     func exportWebServiceStructure(to outputUrl: URL, apodiniDeployConfiguration: ApodiniDeployExporterConfiguration) throws {
         let deploymentConfig = apodiniDeployConfiguration.config
         guard let openApiDocument = app.storage.get(OpenAPIStorageKey.self)?.document else {

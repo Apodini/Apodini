@@ -57,7 +57,7 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
         
@@ -100,7 +100,7 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
         
@@ -133,7 +133,7 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
         

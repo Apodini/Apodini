@@ -13,7 +13,7 @@ import NIOWebSocket
 
 // MARK: Exporter
 
-public final class WebSocketInterfaceExporter: Configuration {
+public final class WebSocket: Configuration {
     let configuration: WebSocketExporterConfiguration
     
     public init(path: String = "apodini/websocket") {
@@ -22,7 +22,7 @@ public final class WebSocketInterfaceExporter: Configuration {
     
     public func configure(_ app: Apodini.Application) {
         /// Instanciate exporter
-        let webSocketExporter = _WebSocketInterfaceExporter(app, self.configuration)
+        let webSocketExporter = WebSocketInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: webSocketExporter)
@@ -33,7 +33,7 @@ public final class WebSocketInterfaceExporter: Configuration {
 /// This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel.
 /// The Apodini service listens on /apodini/websocket for clients that want to communicate via the WebSocket Interface Exporter.
 // swiftlint:disable type_name
-final class _WebSocketInterfaceExporter: StandardErrorCompliantExporter {
+final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private let app: Apodini.Application
     private let exporterConfiguration: WebSocketExporterConfiguration
     private let router: VaporWSRouter
@@ -165,7 +165,7 @@ final class _WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     
     private static func handleCompletion(
         completion: Subscribers.Completion<Never>,
-        context: ConnectionContext<_WebSocketInterfaceExporter>,
+        context: ConnectionContext<WebSocketInterfaceExporter>,
         request: WebSocketInput,
         output: PassthroughSubject<Message<EnrichedContent>, Error>
     ) {
@@ -245,7 +245,7 @@ final class _WebSocketInterfaceExporter: StandardErrorCompliantExporter {
 // MARK: Handling of ObservedObject
 
 private struct DelegatingObservedListener: ObservedListener {
-    func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<_WebSocketInterfaceExporter>) {
+    func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<WebSocketInterfaceExporter>) {
         callback(observedObject)
     }
     
@@ -266,7 +266,7 @@ private enum Evaluation {
 
 // MARK: Input Definition
 
-/// A struct that wrapps the `_WebSocketInterfaceExporter`'s internal representation of
+/// A struct that wrapps the `WebSocketInterfaceExporter`'s internal representation of
 /// an `@Parameter`.
 public struct WebSocketParameter {
     internal var parameter: InputParameter
@@ -276,7 +276,7 @@ public struct WebSocketParameter {
     }
 }
 
-/// A struct that wrapps the `_WebSocketInterfaceExporter`'s internal representation of
+/// A struct that wrapps the `WebSocketInterfaceExporter`'s internal representation of
 /// the complete input of an endpoint.
 public struct WebSocketInput: ExporterRequest, WithEventLoop, WithRemote {
     internal var input: SomeInput
@@ -332,9 +332,9 @@ private extension StandardError {
     var wsError: WSError {
         switch self.option(for: .webSocketConnectionConsequence) {
         case .closeContext:
-            return FatalWSError(reason: self.message(for: _WebSocketInterfaceExporter.self), code: self.option(for: .webSocketErrorCode))
+            return FatalWSError(reason: self.message(for: WebSocketInterfaceExporter.self), code: self.option(for: .webSocketErrorCode))
         default:
-            return ModerateWSError(reason: self.message(for: _WebSocketInterfaceExporter.self))
+            return ModerateWSError(reason: self.message(for: WebSocketInterfaceExporter.self))
         }
     }
 }

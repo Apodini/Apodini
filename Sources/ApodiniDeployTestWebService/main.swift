@@ -192,10 +192,10 @@ struct WebService: Apodini.WebService {
     }
     
     var configuration: Configuration {
-        RESTInterfaceExporter {
-            OpenAPIInterfaceExporter()
+        REST {
+            OpenAPI()
         }
-        ApodiniDeployInterfaceExporter(runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
+        ApodiniDeploy(runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
                                        config: DeploymentConfig(defaultGrouping: .separateNodes, deploymentGroups: [
                 .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")]),
                                        mode: mode,

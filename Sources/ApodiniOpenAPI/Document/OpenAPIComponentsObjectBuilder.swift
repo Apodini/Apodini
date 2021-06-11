@@ -20,7 +20,7 @@ enum OpenAPISchemaConstants {
 /// Corresponds to `components` section in OpenAPI document
 /// See: https://swagger.io/specification/#components-object
 class OpenAPIComponentsObjectBuilder {
-    var componentsObject: OpenAPI.Components = .init(
+    var componentsObject: OpenAPIKit.OpenAPI.Components = .init(
         schemas: [:],
         responses: [:],
         parameters: [:],
@@ -197,8 +197,8 @@ extension OpenAPIComponentsObjectBuilder {
     }
     
     /// Creates a componentKey usable for saving the schema into componentsObject.
-    private func componentKey(for name: String) -> OpenAPI.ComponentKey {
-        guard let componentKey = OpenAPI.ComponentKey(rawValue: name) else {
+    private func componentKey(for name: String) -> OpenAPIKit.OpenAPI.ComponentKey {
+        guard let componentKey = OpenAPIKit.OpenAPI.ComponentKey(rawValue: name) else {
             fatalError("Failed to set component key \(name) in OpenAPI components.")
         }
         return componentKey

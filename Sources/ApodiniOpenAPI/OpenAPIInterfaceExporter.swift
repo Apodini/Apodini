@@ -10,7 +10,7 @@ import ApodiniVaporSupport
 import OpenAPIKit
 
 /// Public Apodini Interface Exporter for OpenAPI
-public final class OpenAPIInterfaceExporter: RESTDependentStaticConfiguration {
+public final class OpenAPI: RESTDependentStaticConfiguration {
     var configuration: OpenAPIExporterConfiguration
     
     public init(outputFormat: OpenAPIOutputFormat = OpenAPIConfigurationDefaults.outputFormat,
@@ -32,7 +32,7 @@ public final class OpenAPIInterfaceExporter: RESTDependentStaticConfiguration {
         self.configuration.parentConfiguration = parentConfiguration
         
         /// Instanciate exporter
-        let openAPIExporter = _OpenAPIInterfaceExporter(app, self.configuration)
+        let openAPIExporter = OpenAPIInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(staticExporter: openAPIExporter)
@@ -41,7 +41,7 @@ public final class OpenAPIInterfaceExporter: RESTDependentStaticConfiguration {
 
 /// Internal Apodini Interface Exporter for OpenAPI
 // swiftlint:disable type_name
-final class _OpenAPIInterfaceExporter: StaticInterfaceExporter {
+final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
     static var parameterNamespace: [ParameterNamespace] = .individual
     
     let app: Apodini.Application

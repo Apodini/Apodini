@@ -15,7 +15,7 @@ final class ProtobufferBuilderTests: XCTestCase {
     }
     
     func buildMessage(_ type: Any.Type) throws -> String {
-        try _ProtobufferInterfaceExporter.Builder(configuration: GRPCExporterConfiguration())
+        try ProtobufferInterfaceExporter.Builder(configuration: GRPCExporterConfiguration())
             .buildMessage(type)
             .collectValues()
             .description
@@ -238,8 +238,8 @@ extension ProtobufferBuilderTests {
             }
 
             var configuration: Configuration {
-                GRPCInterfaceExporter {
-                    ProtobufferInterfaceExporter()
+                GRPC {
+                    Protobuffer()
                 }
             }
         }
@@ -274,8 +274,8 @@ extension ProtobufferBuilderTests {
             }
 
             var configuration: Configuration {
-                GRPCInterfaceExporter {
-                    ProtobufferInterfaceExporter()
+                GRPC {
+                    Protobuffer()
                 }
             }
         }
@@ -315,8 +315,8 @@ extension ProtobufferBuilderTests {
             }
 
             var configuration: Configuration {
-                GRPCInterfaceExporter {
-                    ProtobufferInterfaceExporter()
+                GRPC {
+                    Protobuffer()
                 }
             }
         }
@@ -360,8 +360,8 @@ extension ProtobufferBuilderTests {
             }
 
             var configuration: Configuration {
-                GRPCInterfaceExporter {
-                    ProtobufferInterfaceExporter()
+                GRPC {
+                    Protobuffer()
                 }
             }
         }
@@ -409,8 +409,8 @@ extension ProtobufferBuilderTests {
             }
             
             var configuration: Configuration {
-                GRPCInterfaceExporter(integerWidth: .thirtyTwo) {
-                    ProtobufferInterfaceExporter()
+                GRPC(integerWidth: .thirtyTwo) {
+                    Protobuffer()
                 }
             }
         }

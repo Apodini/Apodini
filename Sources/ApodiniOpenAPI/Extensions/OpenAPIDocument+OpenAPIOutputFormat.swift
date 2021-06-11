@@ -9,7 +9,7 @@ import Foundation
 import OpenAPIKit
 @_implementationOnly import Yams
 
-extension OpenAPI.Document {
+extension OpenAPIKit.OpenAPI.Document {
     func output(configuration: OpenAPIExporterConfiguration) throws -> String? {
         let output: String?
         switch configuration.outputFormat {

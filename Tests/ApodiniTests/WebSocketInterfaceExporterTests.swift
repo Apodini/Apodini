@@ -47,7 +47,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
 
     struct TestWebSocketExporterCollection: ConfigurationCollection {
         var configuration: Configuration {
-            WebSocketInterfaceExporter()
+            WebSocket()
         }
     }
     
@@ -55,7 +55,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
         let handler = ParameterRetrievalTestHandler()
         let endpoint = handler.mockEndpoint()
 
-        let exporter = _WebSocketInterfaceExporter(app)
+        let exporter = WebSocketInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
 
         let bird = Bird(name: "Rudi", age: 12)

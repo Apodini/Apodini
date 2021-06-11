@@ -6,7 +6,7 @@ import Foundation
 import Apodini
 import OpenAPIKit
 
-extension OpenAPI.Parameter.Context {
+extension OpenAPIKit.OpenAPI.Parameter.Context {
     /// Currently, only `query` and `path` are supported.
     init?(_ endpointParameter: AnyEndpointParameter) {
         switch endpointParameter.parameterType {

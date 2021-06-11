@@ -41,7 +41,7 @@ class ThrowingErrorTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
         
@@ -59,7 +59,7 @@ class ThrowingErrorTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
         

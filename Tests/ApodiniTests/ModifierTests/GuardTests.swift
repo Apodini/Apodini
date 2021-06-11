@@ -38,7 +38,7 @@ final class GuardTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
         
@@ -84,7 +84,7 @@ final class GuardTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
         
@@ -120,7 +120,7 @@ final class GuardTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
         
@@ -163,7 +163,7 @@ final class GuardTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
         
@@ -191,7 +191,7 @@ final class GuardTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
         
@@ -224,7 +224,7 @@ final class GuardTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
         
@@ -262,7 +262,7 @@ final class GuardTests: ApodiniTests {
             }
             
             var configuration: Configuration {
-                RESTInterfaceExporter()
+                REST()
             }
         }
         

@@ -9,7 +9,7 @@ import OpenAPIKit
 /// Creates the OpenAPI specification document
 /// https://swagger.io/specification/#openapi-object
 struct OpenAPIDocumentBuilder {
-    var document: OpenAPI.Document {
+    var document: OpenAPIKit.OpenAPI.Document {
         self.build()
     }
     
@@ -27,9 +27,9 @@ struct OpenAPIDocumentBuilder {
         pathsObjectBuilder.addPathItem(from: endpoint)
     }
     
-    func build() -> OpenAPI.Document {
-        OpenAPI.Document(
-            info: OpenAPI.Document.Info(
+    func build() -> OpenAPIKit.OpenAPI.Document {
+        OpenAPIKit.OpenAPI.Document(
+            info: OpenAPIKit.OpenAPI.Document.Info(
                 title: configuration.title ?? "",
                 version: configuration.version ?? ""
             ),

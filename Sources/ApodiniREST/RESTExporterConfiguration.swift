@@ -21,8 +21,8 @@ public struct RESTExporterConfiguration {
          - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
          - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
      */
-    public init(encoder: AnyEncoder = RESTInterfaceExporter.defaultEncoder,
-                decoder: AnyDecoder = RESTInterfaceExporter.defaultDecoder) {
+    public init(encoder: AnyEncoder = REST.defaultEncoder,
+                decoder: AnyDecoder = REST.defaultDecoder) {
         self.encoder = encoder
         self.decoder = decoder
     }

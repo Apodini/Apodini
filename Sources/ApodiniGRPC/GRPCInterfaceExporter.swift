@@ -12,7 +12,7 @@ import Apodini
 @_implementationOnly import ProtobufferCoding
 
 /// Public Apodini Interface Exporter for gRPC
-public final class GRPCInterfaceExporter: Configuration {
+public final class GRPC: Configuration {
     let configuration: GRPCExporterConfiguration
     let staticConfigurations: [GRPCDependentStaticConfiguration]
     
@@ -25,7 +25,7 @@ public final class GRPCInterfaceExporter: Configuration {
     
     public func configure(_ app: Apodini.Application) {
         /// Instanciate exporter
-        let grpcExporter = _GRPCInterfaceExporter(app, self.configuration)
+        let grpcExporter = GRPCInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: grpcExporter)
@@ -37,7 +37,7 @@ public final class GRPCInterfaceExporter: Configuration {
 
 /// Internal Apodini Interface Exporter for gRPC
 // swiftlint:disable type_name
-final class _GRPCInterfaceExporter: InterfaceExporter {
+final class GRPCInterfaceExporter: InterfaceExporter {
     let app: Apodini.Application
     let exporterConfiguration: GRPCExporterConfiguration
     var services: [String: GRPCService]
@@ -155,7 +155,7 @@ final class _GRPCInterfaceExporter: InterfaceExporter {
 
 // MARK: Parameter retrieval utility
 
-extension _GRPCInterfaceExporter {
+extension GRPCInterfaceExporter {
     /// Retrieves explicitly provided Protobuffer field tag, if exists,
     /// or uses default field tag that was generated in `export()`.
     /// - Parameter parameter: The `AnyEndpointParameter` to get the Protobuffer field-tag for.
