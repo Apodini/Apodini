@@ -34,11 +34,8 @@ public final class OpenAPIInterfaceExporter: RESTDependentStaticConfiguration {
         /// Instanciate exporter
         let openAPIExporter = _OpenAPIInterfaceExporter(app, self.configuration)
         
-        /// Insert exporter into `SemanticModelBuilder`
-        let builder = app.exporters.semanticModelBuilderBuilder
-        app.exporters.semanticModelBuilderBuilder = { model in
-            builder(model).with(exporter: openAPIExporter)
-        }
+        /// Insert exporter into `InterfaceExporterStorage`
+        app.registerExporter(staticExporter: openAPIExporter)
     }
 }
 

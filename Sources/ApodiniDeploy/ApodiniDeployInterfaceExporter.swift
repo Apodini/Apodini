@@ -57,11 +57,8 @@ public final class ApodiniDeployInterfaceExporter: Configuration {
         /// Instanciate exporter
         let deployExporter = _ApodiniDeployInterfaceExporter(app, self.configuration)
         
-        /// Insert exporter into `SemanticModelBuilder`
-        let builder = app.exporters.semanticModelBuilderBuilder
-        app.exporters.semanticModelBuilderBuilder = { model in
-            builder(model).with(exporter: deployExporter)
-        }
+        /// Insert exporter into `InterfaceExporterStorage`
+        app.registerExporter(exporter: deployExporter)
     }
 }
 

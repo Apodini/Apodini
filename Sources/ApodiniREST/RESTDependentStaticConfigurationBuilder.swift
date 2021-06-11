@@ -6,8 +6,15 @@
 //
 
 /// A function builder used to aggregate multiple `RESTDependentStaticConfiguration`s
+#if swift(>=5.4)
+@resultBuilder
+public enum RESTDependentStaticConfigurationBuilder {}
+#else
 @_functionBuilder
-public enum RESTDependentStaticConfigurationBuilder {
+public enum RESTDependentStaticConfigurationBuilder {}
+#endif
+
+public extension RESTDependentStaticConfigurationBuilder {
     /// A method that transforms multiple `RESTDependentStaticConfiguration`s
     ///
     /// - Parameter configs: A variadic number of `RESTDependentStaticConfiguration`

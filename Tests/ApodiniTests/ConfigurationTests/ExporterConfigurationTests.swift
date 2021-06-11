@@ -158,7 +158,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
         let testCollection = TestRESTExporterCollection()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -182,7 +182,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
         let testCollection = TestRESTExporterCollectionWithJSONEncoderConfig()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -206,7 +206,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
         let testCollection = TestRESTExporterCollectionWithXMLCoderConfig()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -244,7 +244,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
         let testCollection = TestRESTExporterCollectionWithXMLCoderConfig()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testServiceXML.accept(visitor)
         visitor.finishParsing()
 
@@ -272,7 +272,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
         let testCollection = TestRESTExporterCollectionWithJSONEncoderAndXMLDecoderConfig()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testServiceXML.accept(visitor)
         visitor.finishParsing()
 
@@ -300,7 +300,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
         let testCollection = TestRESTExporterCollectionWithXMLEncoderAndJSONDecoderConfig()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testServiceXML.accept(visitor)
         visitor.finishParsing()
 

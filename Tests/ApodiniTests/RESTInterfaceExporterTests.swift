@@ -144,7 +144,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         let testCollection = TestRESTExporterCollection()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -178,7 +178,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         
         let testCollection = TestRESTExporterCollection()
         testCollection.configuration.configure(app)
-        let builder = app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app))
+        let builder = SemanticModelBuilder(app)
         WebService().register(builder)
 
         let endpointPaths = builder.rootNode
@@ -208,7 +208,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         let testCollection = TestRESTExporterCollection()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         webserviceWithoutRoot.accept(visitor)
         visitor.finishParsing()
 

@@ -34,19 +34,19 @@ extension WebService {
         try Self.start(webService: self)
     }
     
-    /// This function is executed to start up an Apodini `WebService`
-    static func start(webService: Self? = nil) throws {
-        try start(waitForCompletion: true, webService: webService ?? Self())
-    }
-
-    
-    /// This function is executed to start up an Apodini `WebService`
+    /**
+     This function is executed to start up an Apodini `WebService`
+     - Parameters:
+         - waitForCompletion: Indicates whether the `Application` is launched or just booted. Defaults to true, meaning the `Application` is run
+         - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
+     - Returns: The application on which the `WebService` is operating on
+     */
     @discardableResult
-    static func start(waitForCompletion: Bool, webService: Self? = nil) throws -> Application {
+    static func start(waitForCompletion: Bool = true, webService: Self = Self()) throws -> Application {
         let app = Application()
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
 
-        start(app: app, webService: webService ?? Self())
+        start(app: app, webService: webService)
         
         guard waitForCompletion else {
             try app.boot()
@@ -66,12 +66,9 @@ extension WebService {
      This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.start()` to startup an Apodini `WebService`.
      - Parameters:
          - app: The app instance that should be injected in the Apodini `WebService`
-         - webService: The instanciated `WebService` by the Swift ArgumentParser
+         - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
      */
-    static func start(app: Application, webService webServiceTemp: Self? = nil) {
-        /// If `WebService` isn't already instanciated by the Swift ArgumentParser, manually create an instance here
-        let webService = webServiceTemp ?? Self()
-        
+    static func start(app: Application, webService: Self = Self()) {
         /// Configure application and instanciate exporters
         webService.configuration.configure(app)
         
@@ -81,7 +78,7 @@ extension WebService {
         }
         
         webService.register(
-            app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app))
+            SemanticModelBuilder(app)
         )
     }
     

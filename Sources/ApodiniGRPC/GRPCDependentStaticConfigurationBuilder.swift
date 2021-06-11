@@ -6,8 +6,15 @@
 //
 
 /// A function builder used to aggregate multiple `GRPCDependentStaticConfiguration`s
+#if swift(>=5.4)
+@resultBuilder
+public enum GRPCDependentStaticConfigurationBuilder {}
+#else
 @_functionBuilder
-public enum GRPCDependentStaticConfigurationBuilder {
+public enum GRPCDependentStaticConfigurationBuilder {}
+#endif
+
+public extension GRPCDependentStaticConfigurationBuilder {
     /// A method that transforms multiple `GRPCDependentStaticConfiguration`s
     ///
     /// - Parameter staticConfigurations: A variadic number of `GRPCDependentStaticConfiguration`

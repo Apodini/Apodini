@@ -94,7 +94,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
         let testCollection = TestWebSocketExporterCollection()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -121,7 +121,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
         let testCollection = TestWebSocketExporterCollection()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -163,7 +163,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
         let testCollection = TestWebSocketExporterCollection()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -186,7 +186,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
         let testCollection = TestWebSocketExporterCollection()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -214,7 +214,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
         let testCollection = TestWebSocketExporterCollection()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -234,7 +234,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
         let testCollection = TestWebSocketExporterCollection()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -254,7 +254,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
         let testCollection = TestWebSocketExporterCollection()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -277,7 +277,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
         let testCollection = TestWebSocketExporterCollection()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testService.accept(visitor)
         visitor.finishParsing()
 

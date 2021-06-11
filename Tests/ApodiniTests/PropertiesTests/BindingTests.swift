@@ -84,7 +84,7 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
         let testCollection = TestRESTExporterCollection()
         testCollection.configuration.configure(app)
         
-        let visitor = SyntaxTreeVisitor(modelBuilder: app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app)))
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testService.accept(visitor)
         visitor.finishParsing()
  
@@ -130,7 +130,7 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
     func testAssertBindingAsPathComponent() throws {
         let testCollection = TestRESTExporterCollection()
         testCollection.configuration.configure(app)
-        let builder = app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app))
+        let builder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         
         self.failingTestService.accept(visitor)

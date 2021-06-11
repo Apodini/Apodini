@@ -23,11 +23,8 @@ public final class ProtobufferInterfaceExporter: GRPCDependentStaticConfiguratio
         /// Instanciate exporter
         let protobufferExporter = _ProtobufferInterfaceExporter(app, self.configuration)
         
-        /// Insert exporter into `SemanticModelBuilder`
-        let builder = app.exporters.semanticModelBuilderBuilder
-        app.exporters.semanticModelBuilderBuilder = { model in
-            builder(model).with(exporter: protobufferExporter)
-        }
+        /// Insert exporter into `InterfaceExporterStorage`
+        app.registerExporter(staticExporter: protobufferExporter)
     }
 }
 

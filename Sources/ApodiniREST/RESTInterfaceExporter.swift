@@ -40,11 +40,8 @@ public final class RESTInterfaceExporter: Configuration {
         /// Instanciate exporter
         let restExporter = _RESTInterfaceExporter(app, self.configuration)
         
-        /// Insert exporter into `SemanticModelBuilder`
-        let builder = app.exporters.semanticModelBuilderBuilder
-        app.exporters.semanticModelBuilderBuilder = { model in
-            builder(model).with(exporter: restExporter)
-        }
+        /// Insert exporter into `InterfaceExporterStorage`
+        app.registerExporter(exporter: restExporter)
         
         /// Configure attached related static configurations
         self.staticConfigurations.configure(app, parentConfiguration: self.configuration)

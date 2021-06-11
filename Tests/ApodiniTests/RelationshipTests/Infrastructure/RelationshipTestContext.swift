@@ -16,8 +16,8 @@ class RelationshipTestContext {
     }
 
     init<C: Component>(app: Application, service: C) {
+        app.registerExporter(exporter: RelationshipExporter())
         let builder = SemanticModelBuilder(app)
-            .with(exporter: RelationshipExporter())
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         service.accept(visitor)
         visitor.finishParsing()

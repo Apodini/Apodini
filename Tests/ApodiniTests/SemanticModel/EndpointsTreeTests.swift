@@ -223,7 +223,7 @@ final class EndpointsTreeTests: ApodiniTests {
         })
         
         
-        let builder = SemanticModelBuilder(app).with(exporter: exporter)
+        let builder = SemanticModelBuilder(app.registerExporter(exporter: exporter))
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         self.validWebService.accept(visitor)
         builder.finishedRegistration()
@@ -238,7 +238,7 @@ final class EndpointsTreeTests: ApodiniTests {
         })
         
         
-        let builder = SemanticModelBuilder(app).with(exporter: exporter)
+        let builder = SemanticModelBuilder(app.registerExporter(exporter: exporter))
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         self.validWebService.accept(visitor)
         builder.finishedRegistration()

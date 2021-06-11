@@ -24,11 +24,8 @@ public final class WebSocketInterfaceExporter: Configuration {
         /// Instanciate exporter
         let webSocketExporter = _WebSocketInterfaceExporter(app, self.configuration)
         
-        /// Insert  exporter into `SemanticModelBuilder`
-        let builder = app.exporters.semanticModelBuilderBuilder
-        app.exporters.semanticModelBuilderBuilder = { model in
-            builder(model).with(exporter: webSocketExporter)
-        }
+        /// Insert exporter into `InterfaceExporterStorage`
+        app.registerExporter(exporter: webSocketExporter)
     }
 }
 

@@ -55,10 +55,11 @@ Additionally, you can pass configurations to the `OpenAPIInterfaceExporter` in o
     var configuration: Configuration {
         RESTInterfaceExporter { 
             /// Adds configuration to the OpenAPIExporter
-            OpenAPIInterfaceExporter(outputFormat: .yaml,
-                                     outputEndpoint: "/docs/openapi",
-                                     swaggerUiEndpoint: "/ui/swagger",
-                                     title: "The Game - Endangered Nature Edition, built with Apodini")
+            OpenAPIInterfaceExporter(
+                outputFormat: .yaml,
+                outputEndpoint: "/docs/openapi",
+                swaggerUiEndpoint: "/ui/swagger",
+                title: "The Game - Endangered Nature Edition, built with Apodini")
         }
     }
 ```

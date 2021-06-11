@@ -6,10 +6,10 @@ import Foundation
 import NIO
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
-public class SemanticModelBuilder: InterfaceExporterVisitor {
+class SemanticModelBuilder: InterfaceExporterVisitor {
     private(set) var app: Application
 
-    var interfaceExporters: [AnyInterfaceExporter] = []
+    var interfaceExporters: [AnyInterfaceExporter]
     /// This property (which is to be made configurable) toggles if the default `ParameterNamespace`
     /// (which is the strictest option possible) can be overridden by Exporters, which may allow more lenient
     /// restrictions. In the end the Exporter with the strictest `ParameterNamespace` will dictate the requirements
@@ -24,29 +24,15 @@ public class SemanticModelBuilder: InterfaceExporterVisitor {
     
     private var onRegistrationDone: [() -> Void] = []
 
-    init(_ app: Application) {
+    init(_ app: Application, interfaceExporters: [AnyInterfaceExporter] = []) {
         self.app = app
+        self.interfaceExporters = interfaceExporters.isEmpty ? app.interfaceExporters : interfaceExporters
+        
         webService = WebServiceModel(GlobalBlackboard<LazyHashmapBlackboard>(app))
         rootNode = webService.root
 
         relationshipBuilder = RelationshipBuilder(logger: app.logger)
         typeIndexBuilder = TypeIndexBuilder(logger: app.logger)
-    }
-    
-    /// Registers an `InterfaceExporter` instance on the model builder.
-    /// - Parameter instance: The instance to register.
-    /// - Returns: `Self`
-    public func with<T: InterfaceExporter>(exporter instance: T) -> Self {
-        interfaceExporters.append(AnyInterfaceExporter(instance))
-        return self
-    }
-    
-    /// Registers an `StaticInterfaceExporter` instance on the model builder.
-    /// - Parameter instance: The instance to register.
-    /// - Returns: `Self`
-    public func with<T: StaticInterfaceExporter>(exporter instance: T) -> Self {
-        interfaceExporters.append(AnyInterfaceExporter(instance))
-        return self
     }
 
     func register<H: Handler>(handler: H, withContext context: Context) {

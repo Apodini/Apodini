@@ -27,11 +27,8 @@ public final class GRPCInterfaceExporter: Configuration {
         /// Instanciate exporter
         let grpcExporter = _GRPCInterfaceExporter(app, self.configuration)
         
-        /// Insert exporter into `SemanticModelBuilder`
-        let builder = app.exporters.semanticModelBuilderBuilder
-        app.exporters.semanticModelBuilderBuilder = { model in
-            builder(model).with(exporter: grpcExporter)
-        }
+        /// Insert exporter into `InterfaceExporterStorage`
+        app.registerExporter(exporter: grpcExporter)
         
         /// Configure attached related static configurations
         self.staticConfigurations.configure(app, parentConfiguration: self.configuration)
