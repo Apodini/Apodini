@@ -224,6 +224,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         }
     }
     
+    // swiftlint:disable type_name
     struct TestRESTExporterCollectionCaseInsensitive: ConfigurationCollection {
         var configuration: Configuration {
             REST(caseInsensitiveRouting: true)

@@ -36,7 +36,6 @@ public final class GRPC: Configuration {
 }
 
 /// Internal Apodini Interface Exporter for gRPC
-// swiftlint:disable type_name
 final class GRPCInterfaceExporter: InterfaceExporter {
     let app: Apodini.Application
     let exporterConfiguration: GRPC.ExporterConfiguration

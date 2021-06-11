@@ -19,12 +19,13 @@ public final class OpenAPI: RESTDependentStaticConfiguration {
                 title: String? = nil,
                 version: String? = nil,
                 serverUrls: URL...) {
-        self.configuration = OpenAPI.ExporterConfiguration(outputFormat: outputFormat,
-                                                          outputEndpoint: outputEndpoint,
-                                                          swaggerUiEndpoint: swaggerUiEndpoint,
-                                                          title: title,
-                                                          version: version,
-                                                          serverUrls: serverUrls)
+        self.configuration = OpenAPI.ExporterConfiguration(
+                                outputFormat: outputFormat,
+                                outputEndpoint: outputEndpoint,
+                                swaggerUiEndpoint: swaggerUiEndpoint,
+                                title: title,
+                                version: version,
+                                serverUrls: serverUrls)
     }
     
     public func configure(_ app: Apodini.Application, parentConfiguration: REST.ExporterConfiguration) {
@@ -40,7 +41,6 @@ public final class OpenAPI: RESTDependentStaticConfiguration {
 }
 
 /// Internal Apodini Interface Exporter for OpenAPI
-// swiftlint:disable type_name
 final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
     static var parameterNamespace: [ParameterNamespace] = .individual
     

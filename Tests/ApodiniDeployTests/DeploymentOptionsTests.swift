@@ -94,9 +94,9 @@ private struct TestWebService: Apodini.WebService {
     
     var configuration: Configuration {
         ApodiniDeploy(runtimes: [],
-                                       config: DeploymentConfig(defaultGrouping: .singleNode, deploymentGroups: [
-                                            .allHandlers(ofType: Text.self)
-                                       ]))
+                      config: DeploymentConfig(defaultGrouping: .singleNode, deploymentGroups: [
+                        .allHandlers(ofType: Text.self)
+                      ]))
     }
 }
 

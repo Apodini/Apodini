@@ -14,6 +14,7 @@ public protocol Configuration {
 }
 
 extension Configuration {
+    /// Defaults to no available subcommands, so an empty array
     public var subcommands: [ParsableCommand.Type] {
         []
     }

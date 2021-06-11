@@ -28,7 +28,6 @@ public final class Protobuffer: GRPCDependentStaticConfiguration {
     }
 }
 
-// swiftlint:disable type_name
 final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     // MARK: Nested Types
     struct Error: Swift.Error, CustomDebugStringConvertible {

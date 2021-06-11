@@ -43,20 +43,16 @@ extension Application {
     }
     
     var interfaceExporters: [AnyInterfaceExporter] {
-        get {
-            storage[InterfaceExporerKey.self]?.interfaceExporters ?? []
-        }
+        storage[InterfaceExporerKey.self]?.interfaceExporters ?? []
     }
     
     private var interfaceExporterStorage: InterfaceExporterStorage {
-        get {
-            guard let exporterStorage = storage[InterfaceExporerKey.self] else {
-                let exporterStorage = InterfaceExporterStorage()
-                storage[InterfaceExporerKey.self] = exporterStorage
-                return exporterStorage
-            }
+        guard let exporterStorage = storage[InterfaceExporerKey.self] else {
+            let exporterStorage = InterfaceExporterStorage()
+            storage[InterfaceExporerKey.self] = exporterStorage
             return exporterStorage
         }
+        return exporterStorage
     }
     
     /// Registers an `InterfaceExporter` instance on the model builder.

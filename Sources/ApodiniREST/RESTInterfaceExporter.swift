@@ -68,7 +68,6 @@ extension REST {
 }
 
 /// Internal Apodini Interface Exporter for REST
-// swiftlint:disable type_name
 final class RESTInterfaceExporter: InterfaceExporter {
     static let parameterNamespace: [ParameterNamespace] = .individual
     

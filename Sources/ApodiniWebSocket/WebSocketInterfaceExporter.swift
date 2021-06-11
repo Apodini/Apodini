@@ -32,7 +32,6 @@ public final class WebSocket: Configuration {
 /// The WebSocket exporter uses a custom JSON based protocol on top of WebSocket's text messages.
 /// This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel.
 /// The Apodini service listens on /apodini/websocket for clients that want to communicate via the WebSocket Interface Exporter.
-// swiftlint:disable type_name
 final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private let app: Apodini.Application
     private let exporterConfiguration: WebSocket.ExporterConfiguration

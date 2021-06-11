@@ -46,11 +46,12 @@ public final class ApodiniDeploy: Configuration {
                 mode: String? = nil,
                 fileURL: String? = nil,
                 node: String? = nil) {
-        self.configuration = ApodiniDeploy.ExporterConfiguration(runtimes: runtimes,
-                                                                config: config,
-                                                                mode: mode,
-                                                                fileURL: fileURL,
-                                                                node: node)
+        self.configuration = ApodiniDeploy.ExporterConfiguration(
+                                runtimes: runtimes,
+                                config: config,
+                                mode: mode,
+                                fileURL: fileURL,
+                                node: node)
     }
     
     public func configure(_ app: Apodini.Application) {
@@ -67,7 +68,6 @@ public final class ApodiniDeploy: Configuration {
 /// a) compiles a list of all handlers (via their `Endpoint` objects). These are used to determine the target endpoint when manually invoking a handler.
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
-// swiftlint:disable type_name
 class ApodiniDeployInterfaceExporter: InterfaceExporter {
     struct ApplicationStorageKey: Apodini.StorageKey {
         typealias Value = ApodiniDeployInterfaceExporter
