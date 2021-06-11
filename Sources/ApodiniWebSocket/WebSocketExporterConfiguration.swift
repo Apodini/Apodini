@@ -7,10 +7,12 @@
 
 import Apodini
 
-struct WebSocketExporterConfiguration {
-    let path: String
-    
-    init(path: String = "apodini/websocket") {
-        self.path = path
+extension WebSocket {
+    public struct ExporterConfiguration {
+        let path: String
+        
+        init(path: String = "apodini/websocket") {
+            self.path = path
+        }
     }
 }

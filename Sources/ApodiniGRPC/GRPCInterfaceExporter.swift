@@ -13,13 +13,13 @@ import Apodini
 
 /// Public Apodini Interface Exporter for gRPC
 public final class GRPC: Configuration {
-    let configuration: GRPCExporterConfiguration
+    let configuration: GRPC.ExporterConfiguration
     let staticConfigurations: [GRPCDependentStaticConfiguration]
     
     public init(integerWidth: IntegerWidthConfiguration = .native,
                 @GRPCDependentStaticConfigurationBuilder staticConfigurations:
                     () -> [GRPCDependentStaticConfiguration] = { [EmptyGRPCDependentStaticConfiguration()] }) {
-        self.configuration = GRPCExporterConfiguration(integerWidth: integerWidth)
+        self.configuration = GRPC.ExporterConfiguration(integerWidth: integerWidth)
         self.staticConfigurations = staticConfigurations()
     }
     
@@ -39,13 +39,13 @@ public final class GRPC: Configuration {
 // swiftlint:disable type_name
 final class GRPCInterfaceExporter: InterfaceExporter {
     let app: Apodini.Application
-    let exporterConfiguration: GRPCExporterConfiguration
+    let exporterConfiguration: GRPC.ExporterConfiguration
     var services: [String: GRPCService]
     var parameters: [UUID: Int]
 
     /// Initalize `GRPCInterfaceExporter` from `Application`
     init(_ app: Apodini.Application,
-         _ exporterConfiguration: GRPCExporterConfiguration = GRPCExporterConfiguration()) {
+         _ exporterConfiguration: GRPC.ExporterConfiguration = GRPC.ExporterConfiguration()) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
         self.services = [:]

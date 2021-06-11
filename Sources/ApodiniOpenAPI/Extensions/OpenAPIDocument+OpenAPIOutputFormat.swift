@@ -10,7 +10,7 @@ import OpenAPIKit
 @_implementationOnly import Yams
 
 extension OpenAPIKit.OpenAPI.Document {
-    func output(configuration: OpenAPIExporterConfiguration) throws -> String? {
+    func output(configuration: OpenAPI.ExporterConfiguration) throws -> String? {
         let output: String?
         switch configuration.outputFormat {
         case .json:

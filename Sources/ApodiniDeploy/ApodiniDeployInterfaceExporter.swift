@@ -39,14 +39,14 @@ struct ApodiniDeployError: Swift.Error {
 }
 
 public final class ApodiniDeploy: Configuration {
-    let configuration: ApodiniDeployExporterConfiguration
+    let configuration: ApodiniDeploy.ExporterConfiguration
     
     public init(runtimes: [DeploymentProviderRuntime.Type] = [],
                 config: DeploymentConfig = .init(),
                 mode: String? = nil,
                 fileURL: String? = nil,
                 node: String? = nil) {
-        self.configuration = ApodiniDeployExporterConfiguration(runtimes: runtimes,
+        self.configuration = ApodiniDeploy.ExporterConfiguration(runtimes: runtimes,
                                                                 config: config,
                                                                 mode: mode,
                                                                 fileURL: fileURL,
@@ -99,7 +99,7 @@ class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     
     let app: Apodini.Application
-    let exporterConfiguration: ApodiniDeployExporterConfiguration
+    let exporterConfiguration: ApodiniDeploy.ExporterConfiguration
     var vaporApp: Vapor.Application { app.vapor.app }
     
     private(set) var collectedEndpoints: [CollectedEndpointInfo] = []
@@ -109,7 +109,7 @@ class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     
     init(_ app: Apodini.Application,
-         _ exporterConfiguration: ApodiniDeployExporterConfiguration = ApodiniDeployExporterConfiguration()) {
+         _ exporterConfiguration: ApodiniDeploy.ExporterConfiguration = ApodiniDeploy.ExporterConfiguration()) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
         app.storage.set(ApplicationStorageKey.self, to: self)

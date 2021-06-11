@@ -40,7 +40,7 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
         var endpoint = comp.mockEndpoint(app: app)
         webService.addEndpoint(&endpoint, at: ["test"])
 
-        let exporterConfiguration = OpenAPIExporterConfiguration()
+        let exporterConfiguration = OpenAPI.ExporterConfiguration()
 
         var documentBuilder = OpenAPIDocumentBuilder(configuration: exporterConfiguration)
         documentBuilder.addEndpoint(endpoint)

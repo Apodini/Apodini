@@ -10,7 +10,7 @@ extension Vapor.Request: ExporterRequest, WithEventLoop, WithRemote {}
 
 /// Public Apodini Interface Exporter for REST
 public final class REST: Configuration {
-    let configuration: RESTExporterConfiguration
+    let configuration: REST.ExporterConfiguration
     var staticConfigurations: [RESTDependentStaticConfiguration]
     
     /// The default `AnyEncoder`, a `JSONEncoder` with certain set parameters
@@ -32,7 +32,7 @@ public final class REST: Configuration {
          - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
      */
     public init(encoder: AnyEncoder = defaultEncoder, decoder: AnyDecoder = defaultDecoder) {
-        self.configuration = RESTExporterConfiguration(encoder: encoder, decoder: decoder)
+        self.configuration = REST.ExporterConfiguration(encoder: encoder, decoder: decoder)
         self.staticConfigurations = [EmptyRESTDependentStaticConfiguration()]
     }
     
@@ -74,7 +74,7 @@ final class RESTInterfaceExporter: InterfaceExporter {
     
     /// Initialize `RESTInterfaceExporter` from `Application`
     init(_ app: Apodini.Application,
-         _ exporterConfiguration: RESTExporterConfiguration = RESTExporterConfiguration()) {
+         _ exporterConfiguration: REST.ExporterConfiguration = REST.ExporterConfiguration()) {
         self.app = app.vapor.app
         self.exporterConfiguration = RESTConfiguration(app.vapor.app.http.server.configuration,
                                                        exporterConfiguration: exporterConfiguration)

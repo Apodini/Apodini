@@ -9,13 +9,13 @@ import XCTest
 
 final class OpenAPIConfigurationTests: ApodiniTests {
     func testBuildDocumentWithConfiguration() throws {
-        let configuredOutputFormat: OpenAPIOutputFormat = .yaml
+        let configuredOutputFormat: OpenAPI.OutputFormat = .yaml
         let configuredOutputEndpoint = "oas"
         let configuredSwaggerUiEndpoint = "oas-ui"
         let configuredTitle = "The great TestWebService - presented by Apodini"
-        let configuredParentRESTConfiguration = RESTExporterConfiguration(encoder: JSONEncoder(), decoder: JSONDecoder())
+        let configuredParentRESTConfiguration = REST.ExporterConfiguration(encoder: JSONEncoder(), decoder: JSONDecoder())
 
-        let openAPIConfiguration = OpenAPIExporterConfiguration(
+        let openAPIConfiguration = OpenAPI.ExporterConfiguration(
             parentConfiguration: configuredParentRESTConfiguration,
             outputFormat: configuredOutputFormat,
             outputEndpoint: configuredOutputEndpoint,
@@ -24,9 +24,6 @@ final class OpenAPIConfigurationTests: ApodiniTests {
         )
         
         let openAPIExporter = OpenAPIInterfaceExporter(app, openAPIConfiguration)
-        //openAPIConfiguration.configure(app)
-
-        //let storage = try XCTUnwrap(app.storage.get(OpenAPIStorageKey.self))
 
         XCTAssertEqual(openAPIExporter.exporterConfiguration.outputFormat, configuredOutputFormat)
         // Since given as relative paths, `outputEndpoint` was prefixed.
@@ -38,9 +35,7 @@ final class OpenAPIConfigurationTests: ApodiniTests {
         XCTAssertEqual(openAPIExporter.exporterConfiguration.title, configuredTitle)
         // Just simple assertions since it's very tricky to compare encoders
         XCTAssertNotNil(openAPIExporter.exporterConfiguration.parentConfiguration)
-        XCTAssertTrue(openAPIExporter.exporterConfiguration.parentConfiguration is RESTExporterConfiguration)
-        XCTAssertNoThrow(openAPIExporter.exporterConfiguration.parentConfiguration as! RESTExporterConfiguration)
-        let parentConfiguration = openAPIExporter.exporterConfiguration.parentConfiguration as! RESTExporterConfiguration
+        let parentConfiguration = openAPIExporter.exporterConfiguration.parentConfiguration
         XCTAssertNotNil(parentConfiguration.encoder)
         XCTAssertNotNil(parentConfiguration.decoder)
         XCTAssertTrue(parentConfiguration.encoder is JSONEncoder)
@@ -48,12 +43,12 @@ final class OpenAPIConfigurationTests: ApodiniTests {
     }
 
     func testBuildDocumentWithDefaultConfiguration() throws {
-        let openAPIConfiguration = OpenAPIExporterConfiguration()
+        let openAPIConfiguration = OpenAPI.ExporterConfiguration()
         let openAPIExporter = OpenAPIInterfaceExporter(app, openAPIConfiguration)
 
-        XCTAssertEqual(openAPIExporter.exporterConfiguration.outputFormat, OpenAPIConfigurationDefaults.outputFormat)
-        XCTAssertEqual(openAPIExporter.exporterConfiguration.outputEndpoint, "/\(OpenAPIConfigurationDefaults.outputEndpoint)")
-        XCTAssertEqual(openAPIExporter.exporterConfiguration.swaggerUiEndpoint, "/\(OpenAPIConfigurationDefaults.swaggerUiEndpoint)")
+        XCTAssertEqual(openAPIExporter.exporterConfiguration.outputFormat, OpenAPI.ConfigurationDefaults.outputFormat)
+        XCTAssertEqual(openAPIExporter.exporterConfiguration.outputEndpoint, "/\(OpenAPI.ConfigurationDefaults.outputEndpoint)")
+        XCTAssertEqual(openAPIExporter.exporterConfiguration.swaggerUiEndpoint, "/\(OpenAPI.ConfigurationDefaults.swaggerUiEndpoint)")
         XCTAssertNil(openAPIExporter.exporterConfiguration.title)
         // Just simple assertions since it's very tricky to compare encoders
         XCTAssertNotNil(openAPIExporter.exporterConfiguration.parentConfiguration)

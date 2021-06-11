@@ -9,10 +9,12 @@ import Foundation
 import Apodini
 import ApodiniGRPC
 
-struct ProtobufferExporterConfiguration {
-    var parentConfiguration: GRPCExporterConfiguration
-    
-    init(parentConfiguration: GRPCExporterConfiguration = GRPCExporterConfiguration()) {
-        self.parentConfiguration = parentConfiguration
+extension Protobuffer {
+    struct ExporterConfiguration {
+        var parentConfiguration: GRPC.ExporterConfiguration
+        
+        init(parentConfiguration: GRPC.ExporterConfiguration = GRPC.ExporterConfiguration()) {
+            self.parentConfiguration = parentConfiguration
+        }
     }
 }

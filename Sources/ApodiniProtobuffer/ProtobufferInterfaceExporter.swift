@@ -10,13 +10,13 @@ import ApodiniUtils
 @_implementationOnly import class Vapor.Application
 
 public final class Protobuffer: GRPCDependentStaticConfiguration {
-    var configuration: ProtobufferExporterConfiguration
+    var configuration: Protobuffer.ExporterConfiguration
     
     public init() {
-        self.configuration = ProtobufferExporterConfiguration()
+        self.configuration = Protobuffer.ExporterConfiguration()
     }
     
-    public func configure(_ app: Apodini.Application, parentConfiguration: GRPCExporterConfiguration) {
+    public func configure(_ app: Apodini.Application, parentConfiguration: GRPC.ExporterConfiguration) {
         /// Set configartion of parent
         self.configuration.parentConfiguration = parentConfiguration
         
@@ -42,14 +42,14 @@ final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     // MARK: Properties
     private let app: Apodini.Application
     private let builder: Builder
-    private let exporterConfiguration: ProtobufferExporterConfiguration
+    private let exporterConfiguration: Protobuffer.ExporterConfiguration
     
     private var messages: Set<ProtobufferMessage> = .init()
     private var services: Set<ProtobufferService> = .init()
     
     // MARK: Initialization
     init(_ app: Apodini.Application,
-         _ exporterConfiguration: ProtobufferExporterConfiguration = ProtobufferExporterConfiguration()) {
+         _ exporterConfiguration: Protobuffer.ExporterConfiguration = Protobuffer.ExporterConfiguration()) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
         self.builder = Builder(configuration: self.exporterConfiguration.parentConfiguration)
@@ -73,10 +73,10 @@ final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
     }
     
     struct Builder {
-        let parentConfiguration: GRPCExporterConfiguration
+        let parentConfiguration: GRPC.ExporterConfiguration
         
-        init(configuration: GRPCExporterConfiguration) {
-            guard let castedConfiguration = dynamicCast(configuration, to: GRPCExporterConfiguration.self) else {
+        init(configuration: GRPC.ExporterConfiguration) {
+            guard let castedConfiguration = dynamicCast(configuration, to: GRPC.ExporterConfiguration.self) else {
                 fatalError("Wrong configuration type passed to exporter!")
             }
             

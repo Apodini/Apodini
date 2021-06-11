@@ -17,7 +17,7 @@ import ApodiniVaporSupport
 /// `handle` functions of `Handler`s.
 class GRPCService {
     private let app: Apodini.Application
-    private let exporterConfiguration: GRPCExporterConfiguration
+    private let exporterConfiguration: GRPC.ExporterConfiguration
     var vaporApp: Vapor.Application {
         app.vapor.app
     }
@@ -34,7 +34,7 @@ class GRPCService {
     /// - Parameters:
     ///     - name: The name of the service. Will be part of the route at which the service is exposed.
     ///     - app: The current Apodini application.
-    init(name: String, using app: Apodini.Application, _ configuration: GRPCExporterConfiguration) {
+    init(name: String, using app: Apodini.Application, _ configuration: GRPC.ExporterConfiguration) {
         self.serviceName = name
         self.app = app
         self.exporterConfiguration = configuration

@@ -15,7 +15,7 @@ final class ProtobufferBuilderTests: XCTestCase {
     }
     
     func buildMessage(_ type: Any.Type) throws -> String {
-        try ProtobufferInterfaceExporter.Builder(configuration: GRPCExporterConfiguration())
+        try ProtobufferInterfaceExporter.Builder(configuration: GRPC.ExporterConfiguration())
             .buildMessage(type)
             .collectValues()
             .description

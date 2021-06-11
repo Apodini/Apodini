@@ -11,15 +11,15 @@ import OpenAPIKit
 
 /// Public Apodini Interface Exporter for OpenAPI
 public final class OpenAPI: RESTDependentStaticConfiguration {
-    var configuration: OpenAPIExporterConfiguration
+    var configuration: OpenAPI.ExporterConfiguration
     
-    public init(outputFormat: OpenAPIOutputFormat = OpenAPIConfigurationDefaults.outputFormat,
-                outputEndpoint: String = OpenAPIConfigurationDefaults.outputEndpoint,
-                swaggerUiEndpoint: String = OpenAPIConfigurationDefaults.swaggerUiEndpoint,
+    public init(outputFormat: OpenAPI.OutputFormat = OpenAPI.ConfigurationDefaults.outputFormat,
+                outputEndpoint: String = OpenAPI.ConfigurationDefaults.outputEndpoint,
+                swaggerUiEndpoint: String = OpenAPI.ConfigurationDefaults.swaggerUiEndpoint,
                 title: String? = nil,
                 version: String? = nil,
                 serverUrls: URL...) {
-        self.configuration = OpenAPIExporterConfiguration(outputFormat: outputFormat,
+        self.configuration = OpenAPI.ExporterConfiguration(outputFormat: outputFormat,
                                                           outputEndpoint: outputEndpoint,
                                                           swaggerUiEndpoint: swaggerUiEndpoint,
                                                           title: title,
@@ -27,7 +27,7 @@ public final class OpenAPI: RESTDependentStaticConfiguration {
                                                           serverUrls: serverUrls)
     }
     
-    public func configure(_ app: Apodini.Application, parentConfiguration: RESTExporterConfiguration) {
+    public func configure(_ app: Apodini.Application, parentConfiguration: REST.ExporterConfiguration) {
         /// Set configartion of parent
         self.configuration.parentConfiguration = parentConfiguration
         
@@ -46,11 +46,11 @@ final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
     
     let app: Apodini.Application
     var documentBuilder: OpenAPIDocumentBuilder
-    var exporterConfiguration: OpenAPIExporterConfiguration
+    var exporterConfiguration: OpenAPI.ExporterConfiguration
     
     /// Initalize`OpenAPIInterfaceExporter` from `Application`
     init(_ app: Apodini.Application,
-         _ exporterConfiguration: OpenAPIExporterConfiguration = OpenAPIExporterConfiguration()) {
+         _ exporterConfiguration: OpenAPI.ExporterConfiguration = OpenAPI.ExporterConfiguration()) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
         
@@ -94,8 +94,8 @@ final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
     
     private func updateStorage() {
         app.storage.set(
-            OpenAPIStorageKey.self,
-            to: OpenAPIStorageValue(
+            OpenAPI.StorageKey.self,
+            to: OpenAPI.StorageValue(
                 document: self.documentBuilder.document
             )
         )

@@ -13,11 +13,11 @@ struct OpenAPIDocumentBuilder {
         self.build()
     }
     
-    let configuration: OpenAPIExporterConfiguration
+    let configuration: OpenAPI.ExporterConfiguration
     var pathsObjectBuilder: OpenAPIPathsObjectBuilder
     var componentsObjectBuilder: OpenAPIComponentsObjectBuilder
     
-    init(configuration: OpenAPIExporterConfiguration) {
+    init(configuration: OpenAPI.ExporterConfiguration) {
         self.configuration = configuration
         self.componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         self.pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &self.componentsObjectBuilder)

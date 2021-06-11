@@ -14,10 +14,10 @@ import NIOWebSocket
 // MARK: Exporter
 
 public final class WebSocket: Configuration {
-    let configuration: WebSocketExporterConfiguration
+    let configuration: WebSocket.ExporterConfiguration
     
     public init(path: String = "apodini/websocket") {
-        self.configuration = WebSocketExporterConfiguration(path: path)
+        self.configuration = WebSocket.ExporterConfiguration(path: path)
     }
     
     public func configure(_ app: Apodini.Application) {
@@ -35,12 +35,12 @@ public final class WebSocket: Configuration {
 // swiftlint:disable type_name
 final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private let app: Apodini.Application
-    private let exporterConfiguration: WebSocketExporterConfiguration
+    private let exporterConfiguration: WebSocket.ExporterConfiguration
     private let router: VaporWSRouter
 
     /// Initalize a `WebSocketInterfaceExporter` from an `Application`
     init(_ app: Apodini.Application,
-         _ exporterConfiguration: WebSocketExporterConfiguration = WebSocketExporterConfiguration()) {
+         _ exporterConfiguration: WebSocket.ExporterConfiguration = WebSocket.ExporterConfiguration()) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
         self.router = VaporWSRouter(app.vapor.app, logger: app.logger, at: self.exporterConfiguration.path)

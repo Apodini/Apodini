@@ -11,25 +11,27 @@ import Apodini
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
 
-struct ApodiniDeployExporterConfiguration {
-    let runtimes: [DeploymentProviderRuntime.Type]
-    let config: DeploymentConfig
-    let mode: String?
-    let fileURL: String?
-    let node: String?
-    
-    init(
-        runtimes: [DeploymentProviderRuntime.Type] = [],
-        config: DeploymentConfig = .init(),
-        mode: String? = nil,
-        fileURL: String? = nil,
-        node: String? = nil
-    ) {
-        self.runtimes = runtimes
-        self.config = config
-        self.mode = mode
-        self.fileURL = fileURL
-        self.node = node
+extension ApodiniDeploy {
+    struct ExporterConfiguration {
+        let runtimes: [DeploymentProviderRuntime.Type]
+        let config: DeploymentConfig
+        let mode: String?
+        let fileURL: String?
+        let node: String?
+        
+        init(
+            runtimes: [DeploymentProviderRuntime.Type] = [],
+            config: DeploymentConfig = .init(),
+            mode: String? = nil,
+            fileURL: String? = nil,
+            node: String? = nil
+        ) {
+            self.runtimes = runtimes
+            self.config = config
+            self.mode = mode
+            self.fileURL = fileURL
+            self.node = node
+        }
     }
 }
 

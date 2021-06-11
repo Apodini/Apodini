@@ -15,12 +15,12 @@ public protocol GRPCDependentStaticConfiguration {
          - app: The `Vapor.Application` which is used to register the configuration in Apodini
          - parentConfiguration: The `GRPCExporterConfiguration` of the parent of the dependend exporter
      */
-    func configure(_ app: Application, parentConfiguration: GRPCExporterConfiguration)
+    func configure(_ app: Application, parentConfiguration: GRPC.ExporterConfiguration)
 }
 
 /// The default configuration is an `EmptyGRPCDependentStaticConfiguration`
 public struct EmptyGRPCDependentStaticConfiguration: GRPCDependentStaticConfiguration {
-    public func configure(_ app: Application, parentConfiguration: GRPCExporterConfiguration) { }
+    public func configure(_ app: Application, parentConfiguration: GRPC.ExporterConfiguration) { }
     
     public init() { }
 }
@@ -32,7 +32,7 @@ extension Array where Element == GRPCDependentStaticConfiguration {
          - app: The `Vapor.Application` which is used to register the configuration in Apodini
          - parentConfiguration: The `GRPCExporterConfiguration` of the parent of the dependend static exporters
      */
-    func configure(_ app: Application, parentConfiguration: GRPCExporterConfiguration) {
+    func configure(_ app: Application, parentConfiguration: GRPC.ExporterConfiguration) {
         forEach {
             $0.configure(app, parentConfiguration: parentConfiguration)
         }
