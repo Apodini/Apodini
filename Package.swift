@@ -7,9 +7,28 @@ import PackageDescription
 /// Configures the Package for usage of the experimental `async`/`await` syntax as introduced by
 /// https://github.com/apple/swift-evolution/blob/main/proposals/0296-async-await.md
 /// When set to `true`, a recent commit from the **main** branch of **swift-nio** is used. Furthermore, the
-/// swift compiler is configured to enable this feature. Swift 5.4 is required for this to work. You may need to reset
+/// swift compiler is configured to enable this feature. Swift 5.5 is required for this to work. You may need to reset
 /// your package caches for this to take effect.
 let experimentalAsyncAwait = false
+
+var apodiniSwiftSettings: [SwiftSetting] {
+    if experimentalAsyncAwait {
+        return [
+            .unsafeFlags(
+                [
+                    "-Xfrontend",
+                    "-enable-experimental-concurrency",
+                    "-DAPODINI_EXPERIMENTAL_ASYNC_AWAIT"
+                ]
+            )
+        ]
+    } else {
+        return [
+            // We can not pass an empty array to SwiftSetting in Swift 5.3
+            .define("PLACEHOLDER")
+        ]
+    }
+}
 
 
 // MARK: Package Definition
@@ -67,7 +86,7 @@ let package = Package(
         .package(url: "https://github.com/OpenCombine/OpenCombine.git", .upToNextMinor(from: "0.11.0")),
         // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
         experimentalAsyncAwait
-                    ? .package(url: "https://github.com/apple/swift-nio.git", .revision("4220c7a16a5ee0abb7da150bd3d4444940a20cc2"))
+                    ? .package(url: "https://github.com/apple/swift-nio.git", .revision("67f084365315b8470cd22eb161d855755b3e2748"))
                     : .package(url: "https://github.com/apple/swift-nio.git", from: "2.18.0"),
         // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.8.0"),
@@ -116,12 +135,7 @@ let package = Package(
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
             ],
-            swiftSettings: [
-                .unsafeFlags(experimentalAsyncAwait ? [
-                    "-Xfrontend",
-                    "-enable-experimental-concurrency"
-                ] : [])
-            ]
+            swiftSettings: apodiniSwiftSettings
         ),
 
         .testTarget(
@@ -142,6 +156,21 @@ let package = Package(
             resources: [
                 .process("Resources")
             ]
+        ),
+
+        .testTarget(
+            name: "NegativeCompileTestsRunner",
+            dependencies: [
+                .target(name: "ApodiniUtils")
+            ]
+        ),
+        
+        .testTarget(
+            name: "ApodiniNegativeCompileTests",
+            dependencies: [
+                .target(name: "Apodini")
+            ],
+            exclude: ["Cases"]
         ),
 
         .target(

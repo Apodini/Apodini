@@ -43,12 +43,6 @@ func extractParameters<Element>(from subject: Element) -> [(String, AnyParameter
 }
 
 extension Apodini.Request {
-    func enterRequestContext<E, R>(with element: E, executing method: (E) -> EventLoopFuture<R>)
-                   throws -> EventLoopFuture<R> {
-        try inject(in: element)
-        return method(element)
-    }
-
     func enterRequestContext<E, R>(with element: E, executing method: (E) throws -> R) throws -> R {
         try inject(in: element)
         return try method(element)
@@ -74,8 +68,8 @@ extension Connection {
     }
     
     private func update<E>(_ element: E) {
-        execute({ (injectable: ConnectionInjectable) in
-            injectable.inject(connection: self)
+        execute({ (injectable: KeyPathInjectable) in
+            injectable.inject(self, for: \Application.connection)
         }, on: element)
     }
 }
@@ -104,33 +98,30 @@ extension Handler {
     }
 }
 
-// MARK: Application Injectable
-extension Array where Element == LazyGuard {
-    func inject(app: Application) -> Self {
-        map { lazyGuard in
-            var `guard` = lazyGuard()
-            `guard`.inject(app: app)
-            return { `guard` }
-        }
-    }
-}
-
-// MARK: Application Injectable
-extension Array where Element == LazyAnyResponseTransformer {
-    func inject(app: Application) -> Self {
-        map { lazyTransformer in
-            var transformer = lazyTransformer()
-            transformer.inject(app: app)
-            return { transformer }
-        }
-    }
-}
-
 /// Injects an `Application` instance to a target.
 public func inject<Element>(app: Application, to subject: inout Element) {
     apply({ (applicationInjectible: inout ApplicationInjectable) in
         applicationInjectible.inject(app: app)
     }, to: &subject)
+}
+
+
+// MARK: TypeInjectable
+func injectAll<Element>(values: [Any], into subject: Element) {
+    execute({ (injectable: TypeInjectable) in
+        for value in values {
+            injectable.inject(value)
+        }
+    }, on: subject)
+}
+
+// MARK: KeyPathInjectable
+func injectAll<Element>(values: [AnyKeyPath: Any], into subject: Element) {
+    execute({ (injectable: KeyPathInjectable) in
+        for (keyPath, value) in values {
+            injectable.inject(value, for: keyPath)
+        }
+    }, on: subject)
 }
 
 // MARK: Property Check
@@ -145,10 +136,12 @@ public func check<Target, Value, E: Error>(on target: Target, for value: Value.T
 // MARK: ObservedObject
 
 /// Subscribes to all `ObservedObject`s with a closure.
-public func subscribe<Target>(on target: Target, using callback: @escaping ((AnyObservedObject) -> Void)) -> Observation? {
+public func subscribe<Target>(on target: Target, using callback: @escaping ((AnyObservedObject, TriggerEvent) -> Void)) -> Observation? {
     var observation: Observation?
     execute({ (observedObject: AnyObservedObject) in
-        observation = observedObject.register { callback(observedObject) }
+        observation = observedObject.register { triggerEvent in
+            callback(observedObject, triggerEvent)
+        }
     }, on: target)
     return observation
 }
@@ -338,32 +331,11 @@ extension Properties: Traversable {
     }
 }
 
-// MARK: Optional
-
-extension Optional: Traversable {
-    func execute<Target>(_ operation: (Target, String) throws -> Void, using names: [String]) rethrows {
-        if case let .some(value) = self {
-            if let typed = value as? Target {
-                try operation(typed, names.last!)
-            }
-        }
-    }
-    
-    mutating func apply<Target>(_ mutation: (inout Target, String) throws -> Void, using names: [String]) rethrows {
-        if case let .some(value) = self {
-            if var typed = value as? Target {
-                try mutation(&typed, names.last!)
-                self = .some(typed as! Wrapped)
-            }
-        }
-    }
-}
-
 // MARK: Delegate
 
 extension Delegate: Traversable {
     func execute<Target>(_ operation: (Target, String) throws -> Void, using names: [String]) rethrows {
-        let delegate = store?.value.delegate ?? delegateModel
+        let delegate = storage?.value.delegate ?? delegateModel
         
         // we set the optionality of all delegated parameters according to the delegates optionality
         if Target.self == AnyParameter.self {
@@ -381,10 +353,10 @@ extension Delegate: Traversable {
     }
 
     mutating func apply<Target>(_ mutation: (inout Target, String) throws -> Void, using names: [String]) rethrows {
-        var delegate = store?.value.delegate ?? delegateModel
+        var delegate = storage?.value.delegate ?? delegateModel
         defer {
-            if let store = self.store {
-                store.value.delegate = delegate
+            if let storage = self.storage {
+                storage.value.delegate = delegate
             } else {
                 delegateModel = delegate
             }
@@ -421,7 +393,7 @@ private extension Runtime.PropertyInfo {
     }
 }
 
-#if DEBUG
+#if DEBUG || RELEASE_TESTING
     func exposedExecute<Element, Target>(_ operation: (Target, _ name: String) throws -> Void, on element: Element) rethrows {
         try execute(operation, on: element)
     }

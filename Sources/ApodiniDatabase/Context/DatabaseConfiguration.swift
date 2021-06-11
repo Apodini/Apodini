@@ -71,8 +71,12 @@ public final class DatabaseConfiguration: Configuration {
             return .postgres(hostname: hostName, username: username, password: password, database: database)
         case .defaultMySQL(let conString):
             return try .mysql(url: conString)
-        case let .mySQL(hostname, username, password, tlsConfig):
-            let config = MySQLConfiguration(hostname: hostname, username: username, password: password, tlsConfiguration: tlsConfig)
+        case let .mySQL(hostname, username, password, database, tlsConfig):
+            let config = MySQLConfiguration(hostname: hostname,
+                                            username: username,
+                                            password: password,
+                                            database: database,
+                                            tlsConfiguration: tlsConfig)
             return .mysql(configuration: config)
         }
     }
@@ -128,8 +132,9 @@ public enum DatabaseType {
         /// - hostname: The name of the database host.
         /// - username: The username of the database user.
         /// - password: The password of the database user.
+        /// - database: The name of the database
         /// - configuration: A `TLSConfiguration` that should be used.
-    case mySQL(_ hostname: String, username: String, password: String, configuration: TLSConfiguration)
+    case mySQL(_ hostname: String, username: String, password: String, database: String, configuration: TLSConfiguration)
 }
 
 /// An extension to the `Fluent.SQLiteConfiguration` to enable an initialization with an `Apodini.SQLiteConfig`.

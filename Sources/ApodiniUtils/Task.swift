@@ -86,7 +86,7 @@ public class Task {
     
     /// The task's environment variables
     /// - Note: this property can only be mutated while as the task is not running
-    public var environment: [String: String] {
+    public var environment: [String: String?] {
         willSet { try! assertCanMutate() } // swiftlint:disable:this force_try
     }
     
@@ -119,9 +119,9 @@ public class Task {
     ///         Launching the child into the parent's process group means that the child will receive all signals sent to the parent (eg `SIGINT`, etc),
     ///         which is probably the desired behaviour if the child's lifetime is to be tied to the parent's lifetime.
     /// - parameter inheritsParentEnvironment: A boolean value indicating whether the child should, when launched, inherit the parent's environment variables.
-    ///         If this value is `false`, the child will be launched with only the environment variables specified in its own environment (see the `enviromment` parameter, and the property with the same name).
-    ///         If this value is `true`, the chlid's enviromnent will be constructed by merging the current process' enviromment with the values specified for the child,
-    ///         with the child's values taking precedence if a key exists in both environments
+    ///         If this value is `false`, the child will be launched with only the environment variables specified in its own environment (see the `environment` parameter, and the property with the same name).
+    ///         If this value is `true`, the child's environment will be constructed by merging the current process' environment with the values specified for the child,
+    ///         with the child's values taking precedence if a key exists in both environments and a value if nil unsetting any inherited environment variables.
     public init(
         executableUrl: URL,
         arguments: [String] = [],
@@ -129,7 +129,7 @@ public class Task {
         captureOutput: Bool = false,
         redirectStderrToStdout: Bool = false,
         launchInCurrentProcessGroup: Bool,
-        environment: [String: String] = [:],
+        environment: [String: String?] = [:],
         inheritsParentEnvironment: Bool = true
     ) {
         self.executableUrl = executableUrl
@@ -142,7 +142,7 @@ public class Task {
         process.terminationHandler = { [weak self] process in
             self?.processTerminationHandlerImpl(process: process)
         }
-        process.environment = environment
+
         if captureOutput {
             process.standardOutput = stdoutPipe
             process.standardError = stderrPipe
@@ -177,12 +177,25 @@ public class Task {
             process.arguments = self.arguments
         }
         if inheritsParentEnvironment {
-            process.environment = ProcessInfo.processInfo.environment
+            var environment = ProcessInfo.processInfo.environment
+
             for (key, value) in self.environment {
-                process.environment![key] = value // swiftlint:disable:this force_unwrapping
+                if let environmentValue = value {
+                    environment[key] = environmentValue
+                } else {
+                    environment[key] = nil
+                }
             }
+
+            process.environment = environment
         } else {
             process.environment = self.environment
+                .filter { _, value in
+                    value != nil
+                }
+                .mapValues { value -> String in
+                    value! // swiftlint:disable:this force_unwrapping
+                }
         }
         try process.run()
         isRunning = true
@@ -204,7 +217,7 @@ public class Task {
     }
     
     
-    /// Launch the task synchronously and throw an error if the task did not exit successfullly
+    /// Launch the task synchronously and throw an error if the task did not exit successfully
     public func launchSyncAndAssertSuccess() throws {
         let terminationInfo = try launchSync()
         guard terminationInfo.exitCode == EXIT_SUCCESS else {
@@ -400,7 +413,7 @@ extension Task {
 
 
 extension Task {
-    /// Attempts to find the location of the execitable with the specified name, by looking through the current environment's search paths.
+    /// Attempts to find the location of the executable with the specified name, by looking through the current environment's search paths.
     public static func findExecutable(named binaryName: String) -> URL? {
         guard let searchPaths = ProcessInfo.processInfo.environment["PATH"]?.components(separatedBy: ":") else {
             return nil
@@ -435,7 +448,7 @@ extension FileHandle {
     /// or `-[FileHandle readDataToEndOfFile]` (if running on earlier OS versions).
     /// The two functions implement the same functionality, the difference being that the latter one
     /// might throw NSExceptions (which we can't really catch from Swift) and is marked for eventual deprecation.
-    /// However, since we eant to retain the 10.15 deployment target, and SPM does not support specifying minor versions,
+    /// However, since we want to retain the 10.15 deployment target, and SPM does not support specifying minor versions,
     /// we need this workaround.
     func tryReadDataToEnd() throws -> Data? {
         if #available(macOS 10.15.4, *) {

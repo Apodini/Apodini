@@ -14,7 +14,7 @@ import Foundation
 public protocol Content: Encodable & ResponseTransformable, ContentMetadataNamespace {
     typealias Metadata = AnyContentMetadata
 
-    @MetadataBuilder
+    @ContentMetadataBuilder
     static var metadata: Metadata { get }
 }
 

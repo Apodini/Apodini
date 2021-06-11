@@ -5,7 +5,7 @@
 //  Created by Max Obermeier on 10.05.21.
 //
 
-#if DEBUG
+#if DEBUG || RELEASE_TESTING
 import Foundation
 @testable import Apodini
 
@@ -15,11 +15,11 @@ public class MockBlackboard: Blackboard {
     private var content: [ObjectIdentifier: KnowledgeSource]
     
     public init(_ contents: (KnowledgeSource.Type, KnowledgeSource)...) {
-        var store = [ObjectIdentifier: KnowledgeSource]()
+        var storage = [ObjectIdentifier: KnowledgeSource]()
         for content in contents {
-            store[ObjectIdentifier(content.0)] = content.1
+            storage[ObjectIdentifier(content.0)] = content.1
         }
-        self.content = store
+        self.content = storage
     }
     
     public subscript<S>(_ type: S.Type) -> S where S: KnowledgeSource {

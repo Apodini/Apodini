@@ -186,7 +186,7 @@ extension ComponentMetadataBlock {
 public protocol ContentMetadataBlock: AnyMetadataBlock, AnyContentMetadata, ContentMetadataNamespace {
     associatedtype Metadata = AnyContentMetadata
 
-    @MetadataBuilder
+    @ContentMetadataBuilder
     var content: AnyContentMetadata { get }
 }
 
@@ -336,7 +336,7 @@ public struct StandardComponentMetadataBlock: ComponentMetadataBlock {
 public struct StandardContentMetadataBlock: ContentMetadataBlock {
     public var content: AnyContentMetadata
     
-    public init(@MetadataBuilder content: () -> AnyContentMetadata) {
+    public init(@ContentMetadataBuilder content: () -> AnyContentMetadata) {
         self.content = content()
     }
 }

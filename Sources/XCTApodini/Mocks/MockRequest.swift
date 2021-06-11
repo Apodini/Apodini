@@ -2,7 +2,7 @@
 // Created by Andreas Bauer on 25.12.20.
 //
 
-#if DEBUG
+#if DEBUG || RELEASE_TESTING
 import XCTest
 import Foundation
 @testable import Apodini
