@@ -30,9 +30,10 @@ public final class REST: Configuration {
      - Parameters:
          - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
          - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
+         - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitivly
      */
-    public init(encoder: AnyEncoder = defaultEncoder, decoder: AnyDecoder = defaultDecoder) {
-        self.configuration = REST.ExporterConfiguration(encoder: encoder, decoder: decoder)
+    public init(encoder: AnyEncoder = defaultEncoder, decoder: AnyDecoder = defaultDecoder, caseInsensitiveRouting: Bool = false) {
+        self.configuration = REST.ExporterConfiguration(encoder: encoder, decoder: decoder, caseInsensitiveRouting: caseInsensitiveRouting)
         self.staticConfigurations = [EmptyRESTDependentStaticConfiguration()]
     }
     
@@ -54,12 +55,14 @@ extension REST {
      - Parameters:
          - encoder: The to be used `JSONEncoder`, defaults to a `JSONEncoder`
          - decoder: The to be used `JSONDecoder`, defaults to a `JSONDecoder`
+         - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitivly
          - staticConfiguraiton: A result builder that allows passing dependend static Exporters like the OpenAPI Exporter
      */
     public convenience init(encoder: JSONEncoder = defaultEncoder as! JSONEncoder,
                             decoder: JSONDecoder = defaultDecoder as! JSONDecoder,
+                            caseInsensitiveRouting: Bool = false,
                             @RESTDependentStaticConfigurationBuilder staticConfigurations: () -> [RESTDependentStaticConfiguration] = { [] }) {
-        self.init(encoder: encoder, decoder: decoder)
+        self.init(encoder: encoder, decoder: decoder, caseInsensitiveRouting: caseInsensitiveRouting)
         self.staticConfigurations = staticConfigurations()
     }
 }
@@ -124,6 +127,9 @@ final class RESTInterfaceExporter: InterfaceExporter {
                 app.logger.info("  - links to: \(relationship.destinationPath.asPathString())")
             }
         }
+        
+        // Set option to activate case insensitive routing, default is false (so case-sensitive)
+        self.app.routes.caseInsensitive = self.exporterConfiguration.exporterConfiguration.caseInsensitiveRouting
     }
     
     func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Vapor.Request) throws -> Type?? {

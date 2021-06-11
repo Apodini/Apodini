@@ -158,6 +158,146 @@ class RESTInterfaceExporterTests: ApodiniTests {
         }
     }
     
+    @ComponentBuilder
+    var testServiceCaseSensitive: some Component {
+        Group {
+            "uSEr"
+                .hideLink()
+                .relationship(name: "uSEr")
+            $userId
+        } content: {
+            UserHandler(userId: $userId)
+        }
+    }
+    
+    struct TestRESTExporterCollectionCaseSensitive: ConfigurationCollection {
+        var configuration: Configuration {
+            REST(caseInsensitiveRouting: false)
+        }
+    }
+    
+    func testRESTRequestCaseSensitive() throws {
+        let testCollection = TestRESTExporterCollectionCaseSensitive()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testServiceCaseSensitive.accept(visitor)
+        visitor.finishParsing()
+
+        let userId = "1234"
+        let name = "Rudi"
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "uSEr/\(userId)?name=\(name)") { response in
+            XCTAssertEqual(response.status, .ok)
+            let container = try response.content.decode(DecodedResponseContainer<User>.self)
+            XCTAssertEqual(container.data.id, userId)
+            XCTAssertEqual(container.data.name, name)
+        }
+    }
+    
+    func testRESTRequestCaseSensitive2() throws {
+        let testCollection = TestRESTExporterCollectionCaseSensitive()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testServiceCaseSensitive.accept(visitor)
+        visitor.finishParsing()
+
+        let userId = "1234"
+        let name = "Rudi"
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "USER/\(userId)?name=\(name)") { response in
+            XCTAssertEqual(response.status, .notFound)
+        }
+    }
+    
+    func testRESTRequestCaseSensitive3() throws {
+        let testCollection = TestRESTExporterCollectionCaseSensitive()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testServiceCaseSensitive.accept(visitor)
+        visitor.finishParsing()
+
+        let userId = "1234"
+        let name = "Rudi"
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "user/\(userId)?name=\(name)") { response in
+            XCTAssertEqual(response.status, .notFound)
+        }
+    }
+    
+    struct TestRESTExporterCollectionCaseInsensitive: ConfigurationCollection {
+        var configuration: Configuration {
+            REST(caseInsensitiveRouting: true)
+        }
+    }
+    
+    func testRESTRequestCaseInsensitive() throws {
+        let testCollection = TestRESTExporterCollectionCaseInsensitive()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testServiceCaseSensitive.accept(visitor)
+        visitor.finishParsing()
+
+        let userId = "1234"
+        let name = "Rudi"
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "uSEr/\(userId)?name=\(name)") { response in
+            XCTAssertEqual(response.status, .ok)
+            let container = try response.content.decode(DecodedResponseContainer<User>.self)
+            XCTAssertEqual(container.data.id, userId)
+            XCTAssertEqual(container.data.name, name)
+        }
+    }
+    
+    func testRESTRequestCaseInsensitive2() throws {
+        let testCollection = TestRESTExporterCollectionCaseInsensitive()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testServiceCaseSensitive.accept(visitor)
+        visitor.finishParsing()
+
+        let userId = "1234"
+        let name = "Rudi"
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "user/\(userId)?name=\(name)") { response in
+            XCTAssertEqual(response.status, .ok)
+            let container = try response.content.decode(DecodedResponseContainer<User>.self)
+            XCTAssertEqual(container.data.id, userId)
+            XCTAssertEqual(container.data.name, name)
+        }
+    }
+    
+    func testRESTRequestCaseInsensitive3() throws {
+        let testCollection = TestRESTExporterCollectionCaseInsensitive()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testServiceCaseSensitive.accept(visitor)
+        visitor.finishParsing()
+
+        let userId = "1234"
+        let name = "Rudi"
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "uSEr/\(userId)?name=\(name)") { response in
+            XCTAssertEqual(response.status, .ok)
+            let container = try response.content.decode(DecodedResponseContainer<User>.self)
+            XCTAssertEqual(container.data.id, userId)
+            XCTAssertEqual(container.data.name, name)
+        }
+    }
+    
+    func testRESTRequestCaseInsensitive4() throws {
+        let testCollection = TestRESTExporterCollectionCaseInsensitive()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testServiceCaseSensitive.accept(visitor)
+        visitor.finishParsing()
+
+        let userId = "1234"
+        let name = "Rudi"
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "uSErA/\(userId)?name=\(name)") { response in
+            XCTAssertEqual(response.status, .notFound)
+        }
+    }
     
     func testEndpointPaths() throws {
         struct WebService: Apodini.WebService {
