@@ -30,18 +30,18 @@ struct TestWebService: Apodini.WebService {
     }
     
     var configuration: Configuration {
-        RESTInterfaceExporter {
-            OpenAPIInterfaceExporter(outputFormat: .json,
-                                     outputEndpoint: "oas",
-                                     swaggerUiEndpoint: "oas-ui",
-                                     title: "The great TestWebService - presented by Apodini")
+        REST {
+            OpenAPI(outputFormat: .json,
+                    outputEndpoint: "oas",
+                    swaggerUiEndpoint: "oas-ui",
+                    title: "The great TestWebService - presented by Apodini")
         }
         
-        GRPCInterfaceExporter {
-            ProtobufferInterfaceExporter()
+        GRPC {
+            Protobuffer()
         }
         
-        WebSocketInterfaceExporter()
+        WebSocket()
     }
 }
 
