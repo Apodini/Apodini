@@ -15,7 +15,7 @@
         "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
         "state": {
           "branch": "apodini-model-migrator",
-          "revision": "62c1828b94bda45508d33909b8b6fca3b38e4739",
+          "revision": "4bf36548ab6c34a9ade9e1b6202e73c3fa8901bb",
           "version": null
         }
       },
@@ -366,8 +366,8 @@
         "repositoryURL": "https://github.com/apple/swift-argument-parser",
         "state": {
           "branch": null,
-          "revision": "9564d61b08a5335ae0a36f789a7d71493eacadfc",
-          "version": "0.3.2"
+          "revision": "986d191f94cec88f6350056da59c2e59e83d1229",
+          "version": "0.4.3"
         }
       },
       {

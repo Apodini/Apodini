@@ -8,6 +8,7 @@
 import Foundation
 import Apodini
 import ApodiniMigrator
+import Logging
 @_implementationOnly import ApodiniVaporSupport
 
 public final class DeltaInterfaceExporter: StaticInterfaceExporter {
@@ -15,14 +16,23 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
     
     let app: Application
     var document: Document
+    let logger: Logger
     var deltaConfiguration: DeltaConfiguration?
     
     public init(_ app: Application) {
         self.app = app
         document = Document()
+        logger = Logger(label: "org.apodini.\(Self.self)")
         
         if let storage = app.storage.get(DeltaStorageKey.self) {
-            self.deltaConfiguration = storage.configuration
+            deltaConfiguration = storage.configuration
+        } else {
+            logger.warning(
+                """
+                \(DeltaConfiguration.self) not set. Use \(DeltaConfiguration.self)() and `.absolutePath(_:)` to specify where `DeltaDocument` should
+                be persisted locally.
+                """
+            )
         }
         
         setServerPath()
@@ -32,10 +42,22 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
         let handlerName = endpoint[HandlerDescription.self]
         let operation = endpoint[Apodini.Operation.self]
         let identifier = endpoint[AnyHandlerIdentifier.self]
-        let params = try! endpoint.parameters.migratorParameters()
+        let params = endpoint.parameters.migratorParameters(of: H.self, with: logger)
         
         let path = endpoint.absolutePath.asPathString()
-        let response = try! TypeInformation(type: endpoint[ResponseType.self].type)
+        let responseType = endpoint[ResponseType.self].type
+        let response: TypeInformation
+        do {
+            response = try TypeInformation(type: responseType)
+        } catch {
+            logger.error(
+                """
+                Error encountered while building the `TypeInformation` of response with type \(responseType) for handler \(handlerName): \(error).
+                Response type set to \(Null.self).
+                """
+            )
+            response = .scalar(.null)
+        }
         
         let errors: [ErrorCode] = [
             .init(code: 401, message: "Unauthorized"),
@@ -43,6 +65,7 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
             .init(code: 404, message: "Not found"),
             .init(code: 500, message: "Internal server error")
         ]
+        
         let migratorEndpoint = ApodiniMigrator.Endpoint(
             handlerName: handlerName,
             deltaIdentifier: identifier.rawValue,
@@ -58,7 +81,18 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
     
     public func finishedExporting(_ webService: WebServiceModel) {
         if let documentPath = deltaConfiguration?.absolutePath {
-            try? document.export(at: documentPath + "/" + "delta_document.json")
+            do {
+                try document.export(at: documentPath + "/" + "delta_document.json")
+            } catch {
+                logger.error("Error encountered while exporting `DeltaDocument` at \(documentPath): \(error)")
+            }
+        } else {
+            logger.warning(
+                """
+                \(DeltaConfiguration.self) not set. Use \(DeltaConfiguration.self)() and `.absolutePath(_:)` to specify where `DeltaDocument` should
+                be persisted locally.
+                """
+            )
         }
     }
     
@@ -88,59 +122,5 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
             let serverPath = "http\(isHttps ? "s" : "")://\(hostName):\(port)"
             document.setServerPath(serverPath)
         }
-    }
-}
-
-extension ApodiniMigrator.Parameter {
-    static func parameter(from: Apodini.AnyEndpointParameter) throws -> ApodiniMigrator.Parameter {
-        let hasDefaultValue = from.typeErasuredDefaultValue != nil
-        var typeInformation = try TypeInformation(type: from.propertyType)
-        if from.nilIsValidValue {
-            typeInformation = typeInformation.asOptional
-        }
-        return .init(
-            parameterName: from.name,
-            typeInformation: typeInformation,
-            hasDefaultValue: hasDefaultValue,
-            parameterType: .init(from.parameterType))
-    }
-}
-
-extension Array where Element == Apodini.AnyEndpointParameter {
-    func migratorParameters() throws -> [ApodiniMigrator.Parameter] {
-        try map { try ApodiniMigrator.Parameter.parameter(from: $0) }
-    }
-}
-
-extension ApodiniMigrator.Operation {
-    init(_ from: Apodini.Operation) {
-        switch from {
-        case .create: self = .create
-        case .read: self = .read
-        case .update: self = .update
-        case .delete: self = .delete
-        }
-    }
-}
-
-extension ApodiniMigrator.ParameterType {
-    init(_ from: Apodini.ParameterType) {
-        switch from {
-        case .lightweight: self = .lightweight
-        case .content:  self = .content
-        case .path: self = .path
-        case .header: self = .header
-        }
-    }
-}
-
-extension ApodiniMigrator.Version {
-    init(_ from: Apodini.Version) {
-        self.init(
-            prefix: from.prefix,
-            major: from.major,
-            minor: from.minor,
-            patch: from.patch
-        )
     }
 }

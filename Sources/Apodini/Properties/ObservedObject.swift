@@ -3,56 +3,56 @@ import ApodiniUtils
 
 /// Property wrapper used inside of a `Handler` or `Job` that subscribes to an `ObservableObject`.
 /// Changes of `@Published` properties of the `ObservableObject` will cause re-evaluations of the `Handler` or `Job`.
-/// `ObservableObject`s can either be passed to the property wrapper as instances or in form of key paths from the environment.
 ///
 /// This is helpful for service-side streams or bidirectional communication.
 @propertyWrapper
 public struct ObservedObject<Element: ObservableObject>: Property {
-    private var objectIdentifier: ObjectIdentifier?
-    private var element: Element?
-    private var app: Application?
-    private let _initializer: (() -> Element)?
+    private struct Storage {
+        var changed: Bool
+        var element: Element
+        weak var ownObservation: Observation?
+        var childObservation: Observation?
+        var count: UInt64 = 0
+    }
+    
+    private let _initializer: () -> Element
+    
+    private var storage: Box<Storage>?
     
     public var wrappedValue: Element {
         get {
-            guard let app = app else {
-                fatalError("The Application instance wasn't injected correctly.")
-            }
-            if let element = element {
+            if let element = storage?.value.element {
                 return element
             }
-            if let objectIdentifier = objectIdentifier,
-               let element = app.storage.get(objectIdentifier, Element.self) {
-                return element
-            }
-            fatalError("The object \(String(describing: self)) cannot be found in the environment.")
+            fatalError("The object \(String(describing: self)) was accessed before it was activated.")
         }
-        set {
-            element = newValue
+        nonmutating set {
+            guard let store = storage else {
+                fatalError("ObservedObject.wrappedValue was mutated before it was activated.")
+            }
+            
+            store.value.element = newValue
+            registerChildObservation()
         }
     }
     
-    private var changedStorage: Box<Bool>?
-    
     /// Property to check if the evaluation of the `Handler` or `Job` was triggered by this `ObservableObject`.
     public var changed: Bool {
-        get {
-            guard let value = changedStorage?.value else {
-                fatalError("""
-                    A ObservedObjects's 'changed' property was accessed before the
-                    ObservedObject was activated.
-                    """)
-            }
-            return value
+        guard let value = storage?.value.changed else {
+            fatalError("""
+                A ObservedObjects's 'changed' property was accessed before the
+                ObservedObject was activated.
+                """)
         }
-        nonmutating set {
-            guard let wrapper = changedStorage else {
-                fatalError("""
-                    A ObservedObjects's 'changed' property was accessed before the
-                    ObservedObject was activated.
-                    """)
-            }
-            wrapper.value = newValue
+        return value
+    }
+    
+    public var projectedValue: Self {
+        get {
+            self
+        }
+        set {
+            self = newValue
         }
     }
     
@@ -60,57 +60,81 @@ public struct ObservedObject<Element: ObservableObject>: Property {
     public init(wrappedValue initializer: @escaping @autoclosure () -> Element) {
         self._initializer = initializer
     }
-    
-    /// Element is injected with a key path.
-    public init<Key: EnvironmentAccessible>(_ keyPath: KeyPath<Key, Element>) {
-        self.objectIdentifier = ObjectIdentifier(keyPath)
-        self._initializer = nil
-    }
 }
 
 /// Type-erased `ObservedObject` protocol.
 public protocol AnyObservedObject {
     /// Method to be informed about values that have changed
-    func register(_ callback: @escaping () -> Void) -> Observation
+    func register(_ callback: @escaping (TriggerEvent) -> Void) -> Observation
     
-    /// Any `ObservedObject` has a `changed` flag that indicates if this object has been
+    /// Any `ObservedObject` should have a `changed` flag that indicates if this object has been
     /// changed _recently_. The definition of _recently_ depends on the context and usage.
     ///
     /// E.g. for `Handler`s, the `handle()` function is executed every time an `@ObservedObject`
     /// changes. The `changed` property of this object is set to `true` for the exact time where
     /// the `handle()` is evaluated because this object changed.
-    var changed: Bool { get nonmutating set }
+    /// This method can be used to control the value of the `changed` property.
+    func setChanged(to value: Bool, reason event: TriggerEvent)
 }
 
 extension ObservedObject: AnyObservedObject {
-    public func register(_ callback: @escaping () -> Void) -> Observation {
-        let observation = Observation(callback)
+    public func register(_ callback: @escaping (TriggerEvent) -> Void) -> Observation {
+        guard let storage = self.storage else {
+            fatalError("An ObservedObject was registered before it was activated.")
+        }
+        
+        let ownObservation = Observation(callback)
+        storage.value.ownObservation = ownObservation
+        
+        registerChildObservation()
+        
+        return ownObservation
+    }
     
+    public func setChanged(to value: Bool, reason event: TriggerEvent) {
+        guard let wrapper = storage else {
+            fatalError("""
+                A ObservedObjects's 'changed' property was accessed before the
+                ObservedObject was activated.
+                """)
+        }
+        wrapper.value.changed = value
+    }
+    
+    private func registerChildObservation() {
+        guard let storage = self.storage else {
+            fatalError("An ObservedObject registered to its child before it was activated.")
+        }
+        
+        storage.value.count += 1
+        let initialCount = storage.value.count
+        
+        let childObservation = Observation { [weak storage] triggerEvent in
+            guard let storage = storage else {
+                return
+            }
+            
+            storage.value.ownObservation?.callback(TriggerEvent {
+                triggerEvent.cancelled || initialCount != storage.value.count
+            })
+        }
+        
         for property in Mirror(reflecting: wrappedValue).children {
             switch property.value {
             case let published as AnyPublished:
-                published.register(observation)
+                published.register(childObservation)
             default:
                 continue
             }
         }
         
-        return observation
+        storage.value.childObservation = childObservation
     }
 }
 
 extension ObservedObject: Activatable {
     mutating func activate() {
-        self.changedStorage = Box(false)
-        if let initializer = self._initializer {
-            self.element = initializer()
-        }
-    }
-}
-
-extension ObservedObject: ApplicationInjectable {
-    mutating func inject(app: Application) {
-        self.app = app
+        self.storage = Box(Storage(changed: false, element: self._initializer()))
     }
 }
 
@@ -118,9 +142,35 @@ extension ObservedObject: ApplicationInjectable {
 /// The registering instance must hold this token until it no longer wishes to be updated about the
 /// `ObservedObject`'s state. When the token is released, the subscription is canceled.
 public class Observation {
-    let callback: () -> Void
+    let callback: (TriggerEvent) -> Void
     
-    internal init(_ callback: @escaping () -> Void) {
+    /// Create a new `Observation`
+    /// - Note: Make sure the `callback` holds no strong references! Otherwise, you will most likely
+    ///         create a memory-leak!
+    internal init(_ callback: @escaping (TriggerEvent) -> Void) {
         self.callback = callback
     }
+}
+
+/// A `TriggerEvent` is emitted by an `ObservableObject`'s `Published` properties when they change.
+/// - Note: Always check the `cancelled` property before acting in behalf of the event.
+public struct TriggerEvent {
+    let checkCancelled: () -> Bool
+    
+    let identifier: TriggerIdentifier
+    
+    internal init(_ cancelled: @escaping () -> Bool = { false }, id: TriggerIdentifier = .this) {
+        self.checkCancelled = cancelled
+        self.identifier = id
+    }
+    
+    /// Indicates if the event is outdated. If `true`, discard the event and abort the triggered action.
+    public var cancelled: Bool {
+        checkCancelled()
+    }
+}
+
+indirect enum TriggerIdentifier {
+    case this
+    case index(Int, TriggerIdentifier)
 }

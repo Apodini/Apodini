@@ -2,7 +2,7 @@
 // Created by Andreas Bauer on 25.12.20.
 //
 
-#if DEBUG
+#if DEBUG || RELEASE_TESTING
 @testable import Apodini
 import struct Foundation.UUID
 
@@ -14,18 +14,12 @@ public extension Handler {
     func mockEndpoint(
         app: Application? = nil,
         context: Context? = nil,
-        operation: Apodini.Operation? = nil,
-        guards: [LazyGuard] = [],
-        responseTransformers: [LazyAnyResponseTransformer] = []
+        operation: Apodini.Operation? = nil
     ) -> Endpoint<Self> {
         let context = context ?? Context(contextNode: ContextNode())
         var handler = self
-        var guards = guards
-        var responseTransformers = responseTransformers
         if let application = app {
             handler = handler.inject(app: application)
-            guards = guards.inject(app: application)
-            responseTransformers = responseTransformers.inject(app: application)
         }
         
         var blackboard: Blackboard
@@ -40,9 +34,7 @@ public extension Handler {
 
         return Endpoint(
             handler: handler,
-            blackboard: blackboard,
-            guards: guards,
-            responseTransformers: responseTransformers
+            blackboard: blackboard
         )
     }
 }

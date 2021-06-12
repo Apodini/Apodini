@@ -161,8 +161,8 @@ final class DelegationTests: ApodiniTests {
             self.eventLoop = eventLoop
         }
 
-        func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<MockExporter<String>>) {
-            result = context.handle(eventLoop: eventLoop, observedObject: observedObject).map { response in
+        func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent, in context: ConnectionContext<MockExporter<String>>) {
+            result = context.handle(eventLoop: eventLoop, observedObject: observedObject, event: event).map { response in
                 TimeInterval("\(response.content!.response.wrappedValue)")!
             }
         }
@@ -209,5 +209,88 @@ final class DelegationTests: ApodiniTests {
             content: "Invalid Login",
             connectionEffect: .close
         )
+    }
+    
+    struct BindingTestDelegate {
+        @Binding var number: Int
+    }
+    
+    func testBindingInjection() throws {
+        var bindingD = Delegate(BindingTestDelegate(number: Binding.constant(0)))
+        bindingD.activate()
+        
+        let connection = Connection(request: MockRequest.createRequest(running: app.eventLoopGroup.next()))
+        bindingD.inject(connection, for: \Apodini.Application.connection)
+        
+        bindingD.set(\.$number, to: 1)
+        
+        let prepared = try bindingD()
+        
+        XCTAssertEqual(prepared.number, 1)
+    }
+    
+    struct EnvKey: EnvironmentAccessible {
+        var name: String
+    }
+    
+    struct NestedEnvironmentDelegate {
+        @EnvironmentObject var number: Int
+        @Apodini.Environment(\EnvKey.name) var string: String
+    }
+    
+    struct DelegatingEnvironmentDelegate {
+        var nestedD = Delegate(NestedEnvironmentDelegate())
+        
+        func evaluate() throws -> String {
+            let nested = try nestedD()
+            return "\(nested.string):\(nested.number)"
+        }
+    }
+    
+    func testEnvironmentInjection() throws {
+        var envD = Delegate(DelegatingEnvironmentDelegate())
+        inject(app: app, to: &envD)
+        envD.activate()
+        
+        let connection = Connection(request: MockRequest.createRequest(running: app.eventLoopGroup.next()))
+        envD.inject(connection, for: \Apodini.Application.connection)
+        
+        envD
+            .environment(\EnvKey.name, "Max")
+            .environmentObject(1)
+        
+        let prepared = try envD()
+        
+        XCTAssertEqual(try prepared.evaluate(), "Max:1")
+    }
+    
+    func testSetters() throws {
+        struct BindingObservedObjectDelegate {
+            @ObservedObject var observable = TestObservable()
+            @Binding var binding: Int
+            
+            init() {
+                _binding = .constant(0)
+            }
+        }
+        
+        
+        var envD = Delegate(BindingObservedObjectDelegate())
+        inject(app: app, to: &envD)
+        envD.activate()
+        
+        let connection = Connection(request: MockRequest.createRequest(running: app.eventLoopGroup.next()))
+        envD.inject(connection, for: \Apodini.Application.connection)
+        
+        let afterInitializationBeforeInjection = Date()
+        
+        envD
+            .set(\.$binding, to: 1)
+            .setObservable(\.$observable, to: TestObservable())
+        
+        let prepared = try envD()
+        
+        XCTAssertEqual(prepared.binding, 1)
+        XCTAssertGreaterThan(prepared.observable.date, afterInitializationBeforeInjection)
     }
 }
