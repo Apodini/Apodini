@@ -19,7 +19,7 @@ public protocol ObservedListener {
 
     /// Callback that will be called by a `ConnectionContext` if an observed value
     /// in the context's handler did change.
-    func onObservedDidChange(_ observedObject: AnyObservedObject, in context: ConnectionContext<Exporter>)
+    func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent, in context: ConnectionContext<Exporter>)
 }
 
 /// `ConnectionContext` holds the internal state of an endpoint for one connection
@@ -50,7 +50,9 @@ public class ConnectionContext<Exporter: InterfaceExporter> {
     /// Runs through the context's handler with the state after the latest client-request.
     /// Should be used by exporters after an observed value in the context did change,
     /// to retrieve the proper message that has to be sent to the client.
-    public func handle(eventLoop _: EventLoop, observedObject _: AnyObservedObject) -> EventLoopFuture<Response<EnrichedContent>> {
+    public func handle(eventLoop _: EventLoop,
+                       observedObject _: AnyObservedObject,
+                       event: TriggerEvent) -> EventLoopFuture<Response<EnrichedContent>> {
         fatalError("""
                    A ConnectionContext<\(Exporter.self)> (\(self)) was constructed without properly \
                    overriding the handle(request:observedObject:) function.
@@ -135,8 +137,12 @@ class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: Conne
         }
     }
 
-    override func handle(eventLoop: EventLoop, observedObject: AnyObservedObject) -> EventLoopFuture<Response<EnrichedContent>> {
-        observedObject.changed = true
+    override func handle(eventLoop: EventLoop, observedObject: AnyObservedObject, event: TriggerEvent) -> EventLoopFuture<Response<EnrichedContent>> {
+        guard !event.cancelled else {
+            return eventLoop.makeSucceededFuture(.nothing)
+        }
+        
+        observedObject.setChanged(to: true, reason: event)
         do {
             guard let latestRequest = latestRequest else {
                 fatalError("Can only handle changes to observed object after an initial client-request")
@@ -145,11 +151,11 @@ class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: Conne
             let connection = Connection(state: .open, request: validatingRequest)
 
             return self.requestHandler(with: validatingRequest, on: connection).map { response in
-                observedObject.changed = false
+                observedObject.setChanged(to: false, reason: event)
                 return response
             }
         } catch {
-            observedObject.changed = false
+            observedObject.setChanged(to: false, reason: event)
             return eventLoop.makeFailedFuture(error)
         }
     }
@@ -157,8 +163,11 @@ class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: Conne
     override func register<Listener: ObservedListener>(listener: Listener) where Listener.Exporter == I {
         // register the given listener for notifications on the handler
         for object in collectObservedObjects(from: endpoint.handler) {
-            self.observations.append(object.register {
-                listener.onObservedDidChange(object, in: self)
+            self.observations.append(object.register { [weak self] triggerEvent in
+                guard let self = self else {
+                    return
+                }
+                listener.onObservedDidChange(object, triggerEvent, in: self)
             })
         }
     }

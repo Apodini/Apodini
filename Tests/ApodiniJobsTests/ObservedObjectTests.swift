@@ -79,7 +79,7 @@ final class ObservedObjectTests: XCTApodiniTest {
         var wasRun = false
         
         struct SubscribingJob: Job {
-            @ObservedObject(\Keys2.emittingJob) var observedObject: EmittingJob
+            @Environment(\Keys2.emittingJob) var observedObject: EmittingJob
             
             let onRun: () -> Void
             

@@ -37,8 +37,6 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
 
     func register<H: Handler>(handler: H, withContext context: Context) {
         let handler = handler.inject(app: app)
-        let guards = context.get(valueFor: GuardContextKey.self).allActiveGuards.inject(app: app)
-        let responseTransformers = context.get(valueFor: ResponseTransformerContextKey.self).inject(app: app)
         
         // GlobalBlackboard's content lives on the app's `Store`, this is only a wrapper for accessing it
         let globalBlackboard = GlobalBlackboard<LazyHashmapBlackboard>(app)
@@ -65,9 +63,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
 
             var endpoint = Endpoint(
                 handler: handler,
-                blackboard: localBlackboard,
-                guards: guards,
-                responseTransformers: responseTransformers
+                blackboard: localBlackboard
             )
 
             self.webService.addEndpoint(&endpoint, at: paths)

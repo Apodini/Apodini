@@ -22,18 +22,7 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
     ) -> EventLoopFuture<Response<EnrichedContent>> {
         let request = connection.request
         
-        let guardEventLoopFutures = instance.guards.map { requestGuard -> EventLoopFuture<Void> in
-            do {
-                return try connection.enterConnectionContext(with: requestGuard) { requestGuard in
-                    requestGuard.executeGuardCheck(on: request)
-                }
-            } catch {
-                return connection.eventLoop.makeFailedFuture(error)
-            }
-        }
-        
-        return EventLoopFuture<Void>
-            .whenAllSucceed(guardEventLoopFutures, on: request.eventLoop)
+        return request.eventLoop.makeSucceededVoidFuture()
             .flatMapThrowing { _ in
                 do {
                     return try connection.enterConnectionContext(with: self.instance.handler) { handler in
@@ -44,17 +33,8 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
                     return connection.eventLoop.makeFailedFuture(error)
                 }
             }
-            .flatMap { (typedResponse: Response<H.Response.Content>) -> EventLoopFuture<Response<EnrichedContent>> in
-                let transformed = self.transformResponse(
-                    typedResponse.typeErasured,
-                    using: connection,
-                    on: request.eventLoop,
-                    using: self.instance.responseTransformers
-                )
-
-                return transformed.map { response -> Response<EnrichedContent> in
-                    mapToEnrichedContent(response, validatedRequest: validatingRequest)
-                }
+            .map { (typedResponse: Response<H.Response.Content>) -> Response<EnrichedContent> in
+                mapToEnrichedContent(typedResponse.typeErasured, validatedRequest: validatingRequest)
             }
     }
 
@@ -65,27 +45,6 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
                 response: anyEncodable,
                 parameters: { uuid in try? validatedRequest.retrieveAnyParameter(uuid) }
             )
-        }
-    }
-
-    private func transformResponse(_ response: Response<AnyEncodable>,
-                                   using connection: Connection,
-                                   on eventLoop: EventLoop,
-                                   using modifiers: [AnyResponseTransformer]) -> EventLoopFuture<Response<AnyEncodable>> {
-        guard let modifier = modifiers.first else {
-            return eventLoop.makeSucceededFuture(response)
-        }
-        
-        do {
-            return try connection
-                .enterConnectionContext(with: modifier) { responseTransformerInContext in
-                    responseTransformerInContext.transform(response: response, on: eventLoop)
-                }
-                .flatMap { newResponse in
-                    self.transformResponse(newResponse, using: connection, on: eventLoop, using: Array(modifiers.dropFirst()))
-                }
-        } catch {
-            return eventLoop.makeFailedFuture(error)
         }
     }
 }
