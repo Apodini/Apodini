@@ -132,18 +132,18 @@ public struct AnyEndpointSource: KnowledgeSource {
 }
 
 private protocol HandlerKnowledgeSourceInitializer {
-    func create<S: HandlerKnowledgeSource>(_ type: S.Type) throws -> S
+    func create<S: HandlerKnowledgeSource, B: Blackboard>(_ type: S.Type, using blackboard: B) throws -> S
 }
 
 extension EndpointSource: HandlerKnowledgeSourceInitializer {
-    func create<S>(_ type: S.Type = S.self) throws -> S where S: HandlerKnowledgeSource {
-        try type.init(from: self.handler)
+    func create<S, B>(_ type: S.Type = S.self, using blackboard: B) throws -> S where S: HandlerKnowledgeSource, B: Blackboard {
+        try type.init(from: self.handler, blackboard)
     }
 }
 
 extension AnyEndpointSource: HandlerKnowledgeSourceInitializer {
-    func create<S>(_ type: S.Type = S.self) throws -> S where S: HandlerKnowledgeSource {
-        try initializer.create(type)
+    func create<S, B>(_ type: S.Type = S.self, using blackboard: B) throws -> S where S: HandlerKnowledgeSource, B: Blackboard {
+        try initializer.create(type, using: blackboard)
     }
 }
 

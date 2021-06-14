@@ -23,11 +23,11 @@ struct RelationshipInstance {
         self.name = name
     }
 
-    mutating func addSource<H: Handler>(_ endpoint: Endpoint<H>) {
+    mutating func addSource<H: Handler>(_ endpoint: RelationshipEndpoint<H>) {
         sources.insert(endpoint.reference)
     }
 
-    mutating func addDestination<H: Handler>(_ endpoint: Endpoint<H>) {
+    mutating func addDestination<H: Handler>(_ endpoint: RelationshipEndpoint<H>) {
         destinations.insert(endpoint.reference)
     }
 }

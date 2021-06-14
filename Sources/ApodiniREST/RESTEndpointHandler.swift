@@ -10,15 +10,18 @@ import Vapor
 struct RESTEndpointHandler<H: Handler> {
     let configuration: RESTConfiguration
     let endpoint: Endpoint<H>
+    let relationshipEndpoint: AnyRelationshipEndpoint
     let exporter: RESTInterfaceExporter
     
     init(
         with configuration: RESTConfiguration,
         for endpoint: Endpoint<H>,
+        _ relationshipEndpoint: AnyRelationshipEndpoint,
         on exporter: RESTInterfaceExporter
     ) {
         self.configuration = configuration
         self.endpoint = endpoint
+        self.relationshipEndpoint = relationshipEndpoint
         self.exporter = exporter
     }
     
@@ -32,7 +35,14 @@ struct RESTEndpointHandler<H: Handler> {
 
         let responseFuture = context.handle(request: request)
 
-        return responseFuture.flatMap { (response: Apodini.Response<EnrichedContent>) in
+        return responseFuture
+            .map { response in
+                response.typeErasured.map { content in
+                    EnrichedContent(for: relationshipEndpoint,
+                                    response: content,
+                                    parameters: { _ in nil }) }
+                }
+            .flatMap { (response: Apodini.Response<EnrichedContent>) in
             guard let enrichedContent = response.content else {
                 return ResponseContainer(Empty.self, status: response.status)
                     .encodeResponse(for: request)

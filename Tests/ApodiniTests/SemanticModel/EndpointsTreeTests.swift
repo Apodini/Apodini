@@ -191,7 +191,7 @@ final class EndpointsTreeTests: ApodiniTests {
     func testWebServiceRootKnowledgeSource() {
         var exported = false
         let exporter = MockExporter<String>(onFinished: { model in
-            let service = model.globalBlackboard[WebServiceRoot<TestAnchor>.self]
+            let service = model[WebServiceRoot<TestAnchor>.self]
             XCTAssertEqual(service.identifier, .root)
             XCTAssertNil(service.parent)
             XCTAssertEqual(service.endpoints.count, 2)

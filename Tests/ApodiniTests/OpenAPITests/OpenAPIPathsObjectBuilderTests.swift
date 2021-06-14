@@ -44,7 +44,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
     func testDefaultTagWithPathParameter() {
         let handler = HandlerParam(pathParam: $param)
         var endpoint = handler.mockEndpoint(app: app)
-        let webService = WebServiceModel()
+        let webService = RelationshipWebServiceModel()
         webService.addEndpoint(&endpoint, at: ["first", "second", $param, "third"])
         
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
@@ -58,7 +58,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
     func testDefaultTagWithSinglePathParameter() {
         let handler = HandlerParam(pathParam: $param)
         var endpoint = handler.mockEndpoint(app: app)
-        let webService = WebServiceModel()
+        let webService = RelationshipWebServiceModel()
         webService.addEndpoint(&endpoint, at: [$param, "first"])
         
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
@@ -83,7 +83,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
 
-        let webService = WebServiceModel()
+        let webService = RelationshipWebServiceModel()
 
         let comp = SomeComp()
         var endpoint = comp.mockEndpoint(app: app)
@@ -114,7 +114,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
 
-        let webService = WebServiceModel()
+        let webService = RelationshipWebServiceModel()
 
         let comp = WrappingParamsComp()
         var endpoint = comp.mockEndpoint(app: app)
@@ -156,7 +156,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
 
-        let webService = WebServiceModel()
+        let webService = RelationshipWebServiceModel()
 
         let comp = ArrayParamsComp()
         var endpoint = comp.mockEndpoint(app: app)
@@ -217,7 +217,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
 
-        let webService = WebServiceModel()
+        let webService = RelationshipWebServiceModel()
 
         let comp = ComplexComp()
         var endpoint = comp.mockEndpoint(app: app)

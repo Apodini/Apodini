@@ -1,5 +1,5 @@
 //
-//  ResponseTransformerKnowledge.swift
+//  ResponseTypeKnowledge.swift
 //  
 //
 //  Created by Max Obermeier on 09.05.21.

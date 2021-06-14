@@ -54,7 +54,7 @@ public struct EndpointRelationship: Equatable {
     ///   - nameOverride: Optional override for the relationship name.
     ///   - hideLink: Flag defining if the Relationship link should be hidden.
     mutating func addEndpoint(
-        _ endpoint: _AnyEndpoint,
+        _ endpoint: _AnyRelationshipEndpoint,
         prefix: String,
         relativeNamingPath: [EndpointPath],
         nameOverride: String? = nil,
@@ -76,7 +76,7 @@ public struct EndpointRelationship: Equatable {
     /// - Parameters:
     ///   - endpoint: The destination Endpoint of the Relationship.
     ///   - name: The name for the Relationship.
-    mutating func addEndpoint(_ endpoint: _AnyEndpoint, name: String) {
+    mutating func addEndpoint(_ endpoint: _AnyRelationshipEndpoint, name: String) {
         precondition(path == endpoint.absolutePath,
                      "Tried adding endpoint to relationship \(path.asPathString()) located under different \(endpoint.absolutePath.asPathString())")
 
@@ -88,7 +88,7 @@ public struct EndpointRelationship: Equatable {
         )
     }
 
-    mutating func addEndpoint(self endpoint: _AnyEndpoint) {
+    mutating func addEndpoint(self endpoint: _AnyRelationshipEndpoint) {
         addEndpoint(endpoint, name: "self")
     }
 
@@ -184,7 +184,7 @@ public struct RelationshipDestination: CustomStringConvertible, Hashable {
     /// Initializer to create structural Relationships or relationships derived from `Relationship` instances.
     fileprivate init(
         name: String,
-        endpoint: _AnyEndpoint,
+        endpoint: _AnyRelationshipEndpoint,
         absolutePath: [EndpointPath],
         hideLink: Bool
     ) {

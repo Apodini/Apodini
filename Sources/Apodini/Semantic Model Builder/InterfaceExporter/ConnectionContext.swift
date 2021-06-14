@@ -6,12 +6,15 @@
 //
 
 import NIO
+import ApodiniUtils
 
 /// An `ObservedListener` can be notified by a `ConnectionContext` if an observed object
 /// in the connection's handler has changed.
 public protocol ObservedListener {
     /// Defines the InterfaceExporter used for thus `ObservedListener`
     associatedtype Exporter: InterfaceExporter
+    
+    associatedtype Handler: Apodini.Handler
 
     /// The `EventLoop` that is used by this connection to send service-streaming
     /// responses to the client.
@@ -19,68 +22,26 @@ public protocol ObservedListener {
 
     /// Callback that will be called by a `ConnectionContext` if an observed value
     /// in the context's handler did change.
-    func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent, in context: ConnectionContext<Exporter>)
-}
-
-/// `ConnectionContext` holds the internal state of an endpoint for one connection
-/// in a format suitable for a specific `InterfaceExporter`.
-public class ConnectionContext<Exporter: InterfaceExporter> {
-    fileprivate init() {
-        // Marked private as nobody is allowed to instantiate a `ConnectionContext` directly
-        // fileprivate because `InternalConnectionContext` still needs to call it
-    }
-
-    /// This method is called for every request which is to be handled.
-    /// - Parameters:
-    ///   - exporterRequest: The exporter defined request to be handled.
-    ///   - eventLoop: Defines the `EventLoop` on which the handling process should be run.
-    ///   - final: True if this request is the last for the given Connection.
-    /// - Returns: The response for the given Request.
-    public func handle(
-        request _: Exporter.ExporterRequest,
-        eventLoop _: EventLoop,
-        final _: Bool = true
-    ) -> EventLoopFuture<Response<EnrichedContent>> {
-        fatalError("""
-                   A ConnectionContext<\(Exporter.self)> (\(self)) was constructed without properly \
-                   overriding the handle(request:eventLoop:final:) function.
-                   """)
-    }
-
-    /// Runs through the context's handler with the state after the latest client-request.
-    /// Should be used by exporters after an observed value in the context did change,
-    /// to retrieve the proper message that has to be sent to the client.
-    public func handle(eventLoop _: EventLoop,
-                       observedObject _: AnyObservedObject,
-                       event: TriggerEvent) -> EventLoopFuture<Response<EnrichedContent>> {
-        fatalError("""
-                   A ConnectionContext<\(Exporter.self)> (\(self)) was constructed without properly \
-                   overriding the handle(request:observedObject:) function.
-                   """)
-    }
-
-    /// Register a listener that will be notified once an observed object did change in the handler
-    /// that is being used in this connection.
-    public func register<Listener: ObservedListener>(listener _: Listener) where Listener.Exporter == Exporter {
-        fatalError("A ConnectionContext<\(Exporter.self)> (\(self)) was constructed without properly overriding the register(...) function.")
-    }
+    func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent, in context: ConnectionContext<Exporter, Handler>)
 }
 
 // MARK: Exporter Request with EventLoop
-public extension ConnectionContext where Exporter.ExporterRequest: WithEventLoop {
+public extension ConnectionContext where I.ExporterRequest: WithEventLoop {
     /// This method is called for every request which is to be handled.
     /// Shorthand method for the case where the exporter request conforms to `WithEventLoop`.
     /// - Parameters:
     ///   - exporterRequest: The exporter defined request to be handled.
     ///   - final: True if this request is the last for the given Connection.
     /// - Returns: The response for the given Request.
-    func handle(request: Exporter.ExporterRequest, final: Bool = true) -> EventLoopFuture<Response<EnrichedContent>> {
+    func handle(request: I.ExporterRequest, final: Bool = true) -> EventLoopFuture<Response<H.Response.Content>> {
         handle(request: request, eventLoop: request.eventLoop, final: final)
     }
 }
 
 
-class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: ConnectionContext<I> {
+/// `ConnectionContext` holds the internal state of an endpoint for one connection
+/// in a format suitable for a specific `InterfaceExporter`.
+public class ConnectionContext<I: InterfaceExporter, H: Handler> {
     private let exporter: I
     private let endpoint: EndpointInstance<H>
 
@@ -98,11 +59,17 @@ class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: Conne
         self.validator = endpoint.validator(for: exporter)
     }
     
-    override func handle(
+    /// This method is called for every request which is to be handled.
+    /// - Parameters:
+    ///   - exporterRequest: The exporter defined request to be handled.
+    ///   - eventLoop: Defines the `EventLoop` on which the handling process should be run.
+    ///   - final: True if this request is the last for the given Connection.
+    /// - Returns: The response for the given Request.
+    public func handle(
         request exporterRequest: I.ExporterRequest,
         eventLoop: EventLoop,
         final: Bool = true
-    ) -> EventLoopFuture<Response<EnrichedContent>> {
+    ) -> EventLoopFuture<Response<H.Response.Content>> {
         let newRequest = self.latestRequest?.reduce(to: exporterRequest) ?? exporterRequest
         do {
             let validatingRequest = try validator.validate(newRequest, with: eventLoop)
@@ -137,7 +104,10 @@ class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: Conne
         }
     }
 
-    override func handle(eventLoop: EventLoop, observedObject: AnyObservedObject, event: TriggerEvent) -> EventLoopFuture<Response<EnrichedContent>> {
+    /// Runs through the context's handler with the state after the latest client-request.
+    /// Should be used by exporters after an observed value in the context did change,
+    /// to retrieve the proper message that has to be sent to the client.
+    public func handle(eventLoop: EventLoop, observedObject: AnyObservedObject, event: TriggerEvent) -> EventLoopFuture<Response<H.Response.Content>> {
         guard !event.cancelled else {
             return eventLoop.makeSucceededFuture(.nothing)
         }
@@ -160,7 +130,9 @@ class EndpointSpecificConnectionContext<I: InterfaceExporter, H: Handler>: Conne
         }
     }
 
-    override func register<Listener: ObservedListener>(listener: Listener) where Listener.Exporter == I {
+    /// Register a listener that will be notified once an observed object did change in the handler
+    /// that is being used in this connection.
+    public func register<Listener: ObservedListener>(listener: Listener) where Listener.Exporter == I, Listener.Handler == H {
         // register the given listener for notifications on the handler
         for object in collectObservedObjects(from: endpoint.handler) {
             self.observations.append(object.register { [weak self] triggerEvent in

@@ -11,7 +11,7 @@ import Apodini
 
 // MARK: Unary request handler
 extension GRPCService {
-    func createUnaryHandler(context: ConnectionContext<GRPCInterfaceExporter>) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+    func createUnaryHandler<H: Handler>(context: ConnectionContext<GRPCInterfaceExporter, H>) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         { (request: Vapor.Request) in
             if !self.contentTypeIsSupported(request: request) {
                 return request.eventLoop.makeFailedFuture(GRPCError.unsupportedContentType(
@@ -51,7 +51,7 @@ extension GRPCService {
     /// The endpoint will be accessible at [host]/[serviceName]/[endpoint].
     /// - Parameters:
     ///     - endpoint: The name of the endpoint that should be exposed.
-    func exposeUnaryEndpoint(name endpoint: String, context: ConnectionContext<GRPCInterfaceExporter>) throws {
+    func exposeUnaryEndpoint<H: Handler>(name endpoint: String, context: ConnectionContext<GRPCInterfaceExporter, H>) throws {
         if methodNames.contains(endpoint) {
             throw GRPCServiceError.endpointAlreadyExists
         }

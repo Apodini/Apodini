@@ -4,16 +4,17 @@
 
 import Foundation
 import ApodiniUtils
+import Apodini
 
 
 /// A `EnrichedContent` describes the outcome of a `ConnectionContext.handle(...)`.
-public struct EnrichedContent: Encodable {
-    private let endpoint: AnyEndpoint
+struct EnrichedContent: Encodable {
+    private let endpoint: AnyRelationshipEndpoint
 
     public let response: AnyEncodable
     private let parameters: (UUID) -> Any?
 
-    init(for endpoint: AnyEndpoint, response: AnyEncodable, parameters: @escaping (UUID) -> Any?) {
+    init(for endpoint: AnyRelationshipEndpoint, response: AnyEncodable, parameters: @escaping (UUID) -> Any?) {
         self.endpoint = endpoint
         self.response = response
         self.parameters = parameters
@@ -34,7 +35,7 @@ public struct EnrichedContent: Encodable {
     public func formatRelationships<Formatter: RelationshipFormatter>(
         into initialValue: Formatter.Result,
         with formatter: Formatter,
-        for operation: Operation
+        for operation: Apodini.Operation
     ) -> Formatter.Result {
         let context = ResolveContext(content: response.wrappedValue, parameters: parameters)
 
@@ -72,7 +73,7 @@ public struct EnrichedContent: Encodable {
     public func formatRelationships<Formatter: RelationshipFormatter, T: Comparable>(
         into initialValue: Formatter.Result,
         with formatter: Formatter,
-        sortedBy sortKeyPath: KeyPath<Operation, T>
+        sortedBy sortKeyPath: KeyPath<Apodini.Operation, T>
     ) -> Formatter.Result {
         let context = ResolveContext(content: response.wrappedValue, parameters: parameters)
 
@@ -132,7 +133,7 @@ public struct EnrichedContent: Encodable {
     public func formatSelfRelationship<Formatter: RelationshipFormatter>(
         into initialValue: inout Formatter.Result,
         with formatter: Formatter,
-        for operation: Operation
+        for operation: Apodini.Operation
     ) -> Bool {
         guard let relationship = endpoint.selfRelationship(for: operation) else {
             return false

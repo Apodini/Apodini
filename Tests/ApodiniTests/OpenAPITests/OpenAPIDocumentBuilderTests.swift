@@ -36,7 +36,7 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
     // swiftlint:disable:next function_body_length
     func testAddEndpoint() throws {
         let comp = SomeComp()
-        let webService = WebServiceModel()
+        let webService = RelationshipWebServiceModel()
         var endpoint = comp.mockEndpoint(app: app)
         webService.addEndpoint(&endpoint, at: ["test"])
 

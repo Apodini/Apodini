@@ -66,7 +66,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     func testDefaultEndpointNaming() throws {
         let expectedServiceName = "Group1Group2Service"
 
-        let webService = WebServiceModel()
+        let webService = RelationshipWebServiceModel()
 
         let handler = GRPCTestHandler()
         var endpoint = handler.mockEndpoint()
@@ -84,7 +84,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     func testExplicitEndpointNaming() throws {
         let expectedServiceName = "MyService"
 
-        let webService = WebServiceModel()
+        let webService = RelationshipWebServiceModel()
 
         let handler = GRPCTestHandler()
         let node = ContextNode()
@@ -380,7 +380,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     }
 
     func testServiceNameUtility_DefaultName() {
-        let webService = WebServiceModel()
+        let webService = RelationshipWebServiceModel()
         webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
 
         XCTAssertEqual(gRPCServiceName(from: endpoint), "Group1Group2Service")

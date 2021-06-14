@@ -22,11 +22,18 @@ protocol AnyPathParameterResolver: CustomStringConvertible {
 }
 
 /// Context struct to handle resolve step.
-struct ResolveContext {
+public struct ResolveContext {
+    public init(content: Any, parameters: @escaping (UUID) -> Any?) {
+        self.content = content
+        self.parameters = parameters
+    }
+    
+    
+    
     /// The content of the response.
-    let content: Any
+    public let content: Any
     /// The parameter values of the current request
-    let parameters: (UUID) -> Any?
+    public let parameters: (UUID) -> Any?
 }
 
 /// A resolver for a path parameter using the value of a property.

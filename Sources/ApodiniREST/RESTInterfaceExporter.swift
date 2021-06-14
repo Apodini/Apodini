@@ -9,7 +9,7 @@ import NIO
 extension Vapor.Request: ExporterRequest, WithEventLoop, WithRemote {}
 
 /// Apodini Interface Exporter for REST.
-public final class RESTInterfaceExporter: InterfaceExporter {
+public final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
     public static let parameterNamespace: [ParameterNamespace] = .individual
 
     let app: Vapor.Application
@@ -28,14 +28,16 @@ public final class RESTInterfaceExporter: InterfaceExporter {
         let routesBuilder = pathBuilder.routesBuilder(app)
 
         let operation = endpoint[Operation.self]
+        
+        let relationshipEndpoint = endpoint[AnyRelationshipEndpointInstance.self].instance
 
-        let endpointHandler = RESTEndpointHandler(with: configuration, for: endpoint, on: self)
+        let endpointHandler = RESTEndpointHandler(with: configuration, for: endpoint, relationshipEndpoint, on: self)
         endpointHandler.register(at: routesBuilder, using: operation)
 
-        app.logger.info("Exported '\(Vapor.HTTPMethod(operation).rawValue) \(pathBuilder.pathDescription)' with parameters: \(endpoint.parameters.map { $0.name })")
+        app.logger.info("Exported '\(Vapor.HTTPMethod(operation).rawValue) \(pathBuilder.pathDescription)' with parameters: \(endpoint[EndpointParameters.self].map { $0.name })")
 
-        if endpoint.inheritsRelationship {
-            for selfRelationship in endpoint.selfRelationships() where selfRelationship.destinationPath != endpoint.absolutePath {
+        if relationshipEndpoint.inheritsRelationship {
+            for selfRelationship in relationshipEndpoint.selfRelationships() where selfRelationship.destinationPath != endpoint.absolutePath {
                 app.logger.info("""
                                   - inherits from: \(Vapor.HTTPMethod(selfRelationship.operation).rawValue) \
                                 \(selfRelationship.destinationPath.asPathString())
@@ -44,17 +46,21 @@ public final class RESTInterfaceExporter: InterfaceExporter {
         }
 
         for operation in Operation.allCases.sorted(by: \.linksOperationPriority) {
-            for destination in endpoint.relationships(for: operation) {
+            for destination in relationshipEndpoint.relationships(for: operation) {
                 app.logger.info("  - links to: \(destination.destinationPath.asPathString())")
             }
         }
     }
 
     public func finishedExporting(_ webService: WebServiceModel) {
-        if webService.getEndpoint(for: .read) == nil {
+        let root = webService[WebServiceRoot<RESTInterfaceExporter>.self]
+        
+        let relationshipModel = webService[RelationshipModelKnowledgeSource.self].model
+        
+        if root.node.endpoints[.read] == nil {
             // if the root path doesn't have a read endpoint we create a custom one, to deliver linking entry points.
 
-            let relationships = webService.rootRelationships(for: .read)
+            let relationships = relationshipModel.rootRelationships(for: .read)
 
             let handler = RESTDefaultRootHandler(configuration: configuration, relationships: relationships)
             handler.register(on: app)
