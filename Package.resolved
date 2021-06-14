@@ -14,8 +14,8 @@
         "package": "ApodiniMigrator",
         "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
         "state": {
-          "branch": "apodini-model-migrator",
-          "revision": "4bf36548ab6c34a9ade9e1b6202e73c3fa8901bb",
+          "branch": null,
+          "revision": "86a255d5ad5d795c8da68e24573bea6bab66fde4",
           "version": null
         }
       },

@@ -12,29 +12,33 @@ import Logging
 
 // MARK: - ApodiniMigrator.Parameter
 extension ApodiniMigrator.Parameter {
-    static func of<H: Handler>(_ handler: H.Type, from: Apodini.AnyEndpointParameter, with logger: Logger) -> ApodiniMigrator.Parameter {
-        let hasDefaultValue = from.typeErasuredDefaultValue != nil
-        var typeInformation: TypeInformation
+    static func of<H: Handler>(_ handler: H.Type, from parameter: Apodini.AnyEndpointParameter, with logger: Logger) -> ApodiniMigrator.Parameter {
+        let typeInformation: TypeInformation
         do {
-            typeInformation = try TypeInformation(type: from.propertyType)
-            if from.nilIsValidValue {
-                typeInformation = typeInformation.asOptional
-            }
+            typeInformation = try TypeInformation(type: parameter.propertyType)
         } catch {
             logger.error(
                 """
-                Error encountered while building the `TypeInformation` for \(from.propertyType) of parameter \(from.name) in handler \(H.self): \(error).
+                Error encountered while building the `TypeInformation` for \(parameter.propertyType) of parameter \(parameter.name) in handler \(H.self): \(error).
                 Using \(Null.self) for the type of the parameter.
                 """
             )
             typeInformation = .scalar(.null)
         }
         
+        let isRequired: Bool = {
+            parameter.parameterType == .path
+                || (!parameter.nilIsValidValue
+                        && !parameter.hasDefaultValue
+                        && parameter.option(for: PropertyOptionKey.optionality) != .optional)
+        }()
+        
         return .init(
-            parameterName: from.name,
+            name: parameter.name,
             typeInformation: typeInformation,
-            hasDefaultValue: hasDefaultValue,
-            parameterType: .init(from.parameterType))
+            parameterType: .init(parameter.parameterType),
+            isRequired: isRequired
+        )
     }
 }
 

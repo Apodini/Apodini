@@ -107,7 +107,7 @@ let package = Package(
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0"),
         
         // Migrator
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .revision("4bf36548ab6c34a9ade9e1b6202e73c3fa8901bb"))
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .revision("86a255d5ad5d795c8da68e24573bea6bab66fde4"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
