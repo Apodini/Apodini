@@ -8,8 +8,9 @@
 import Apodini
 import Vapor
 
+
 extension Vapor.HTTPStatus {
-    init(_ status: Apodini.Status) {
+    public init(_ status: Apodini.Status) {
         switch status {
         case .ok:
             self = .ok

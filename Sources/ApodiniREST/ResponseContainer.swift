@@ -6,10 +6,11 @@ import Apodini
 import ApodiniUtils
 import Vapor
 
-struct ResponseContainer: Encodable, ResponseEncodable {
-    typealias Links = [String: String]
+
+public struct ResponseContainer: Encodable, ResponseEncodable {
+    public typealias Links = [String: String]
     
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case data = "data"
         case links = "_links"
     }
@@ -42,7 +43,7 @@ struct ResponseContainer: Encodable, ResponseEncodable {
     }
     
     
-    func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+    public func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         let jsonEncoder = JSONEncoder()
         jsonEncoder.outputFormatting = [.withoutEscapingSlashes, .prettyPrinted]
 

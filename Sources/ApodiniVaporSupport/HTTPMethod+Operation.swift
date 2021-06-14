@@ -5,8 +5,9 @@
 import Apodini
 import Vapor
 
+
 extension Vapor.HTTPMethod {
-    init(_ operation: Apodini.Operation) {
+    public init(_ operation: Apodini.Operation) {
         switch operation {
         case .create:
             self =  .POST

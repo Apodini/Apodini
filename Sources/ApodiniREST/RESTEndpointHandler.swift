@@ -38,13 +38,13 @@ struct RESTEndpointHandler<H: Handler> {
                     .encodeResponse(for: request)
             }
             
-            if let raw = response.content?.response.typed(Raw.self) {
+            if let blob = response.content?.response.typed(Blob.self) {
                 let vaporResponse = Vapor.Response()
                 
                 if let status = response.status {
                     vaporResponse.status = HTTPStatus(status)
                 }
-                vaporResponse.body = Vapor.Response.Body(buffer: raw.byteBuffer)
+                vaporResponse.body = Vapor.Response.Body(buffer: blob.byteBuffer)
                 vaporResponse.headers = HTTPHeaders(response.information)
                 
                 return request.eventLoop.makeSucceededFuture(vaporResponse)
