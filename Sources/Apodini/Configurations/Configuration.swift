@@ -1,23 +1,11 @@
-import ArgumentParser
-
 /// `Configuration`s are used to register services to Apodini.
 /// Each `Configuration` handles different kinds of services.
 public protocol Configuration {
-    /// Subcommands specified by the individual exporters
-    var subcommands: [ParsableCommand.Type] { get }
-    
     /// A method that handles the configuration of a service which is called by the `main` function.
     ///
     /// - Parameter
     ///    - app: The `Vapor.Application` which is used to register the configuration in Apodini
     func configure(_ app: Application)
-}
-
-extension Configuration {
-    /// Defaults to no available subcommands, so an empty array
-    public var subcommands: [ParsableCommand.Type] {
-        []
-    }
 }
 
 /// This protocol is used by the `WebService` to declare `Configuration`s in an instance
@@ -42,15 +30,7 @@ public struct EmptyConfiguration: Configuration {
 }
 
 
-extension Array: Configuration where Element == Configuration {
-    public var subcommands: [ParsableCommand.Type] {
-        var subcommands: [ParsableCommand.Type] = []
-        forEach {
-            subcommands.append(contentsOf: $0.subcommands)
-        }
-        return subcommands
-    }
-    
+extension Array: Configuration where Element == Configuration {    
     public func configure(_ app: Application) {
         forEach {
             $0.configure(app)
