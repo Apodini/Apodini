@@ -157,7 +157,24 @@ struct Text2: Handler {
     }
 }
 
+
+struct Test: ParsableCommand {
+    @Option var count: Int = 1
+    
+    
+    func run() throws {
+        print(count)
+        print("👋")
+    }
+}
+
+
 struct WebService: Apodini.WebService {
+    static var subcommands: [ParsableCommand.Type] {
+        [Test.self]
+    }
+    
+    
     @Option
     var mode: String?
     @Option

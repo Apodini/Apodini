@@ -8,10 +8,13 @@
 import Foundation
 import Logging
 import ArgumentParser
+@_implementationOnly import Runtime
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
 public protocol WebService: WebServiceMetadataNamespace, Component, ConfigurationCollection, ParsableCommand {
     typealias Metadata = AnyWebServiceMetadata
+    
+    static var subcommands: [ParsableCommand.Type] { get }
     
     /// The current version of the `WebService`
     var version: Version { get }
@@ -20,7 +23,7 @@ public protocol WebService: WebServiceMetadataNamespace, Component, Configuratio
     init()
 }
 
-// MARK: Metadata DSL
+// MARK: WebService + Metadata DSL
 public extension WebService {
     /// WebService has an empty `AnyWebServiceMetadata` by default.
     var metadata: AnyWebServiceMetadata {
@@ -28,10 +31,50 @@ public extension WebService {
     }
 }
 
+
+// MARK: WebService + Subcommands
+public extension WebService {
+    static var subcommands: [ParsableCommand.Type] {
+        []
+    }
+}
+
+
+private struct Start: ParsableCommand {
+    static var configuration: CommandConfiguration = CommandConfiguration()
+}
+
+
+// MARK: WebService + Main
 extension WebService {
-    /// This function is executed to start up an Apodini `WebService`, called by Swift ArgumentParser on instanciated `WebService` containing CLI arguments
-    public mutating func run() throws {
-        try Self.start(webService: self)
+    public static func main() {
+        main(nil)
+    }
+    
+    public static func main(_ arguments: [String]?) {
+        // If we would be able to create an instance of the web service we would even get the subcommands from the Configuration
+        // https://github.com/wickwirew/Runtime/pull/91 needs to be solved first.
+        let webService = try? createInstance(of: Self.self) as? Self.Type
+        var subcommands = webService?.configuration.subcommands ?? []
+        // A workaround for the poblem above would be to have a static subcommands property
+        subcommands.append(contentsOf: Self.subcommands)
+        
+        // We will definitiely add the Web Service instance itself to the list of subcommands
+        subcommands.append(Self.self)
+        
+        // This seems to work independent of the way we get the subcommends above:
+        var configuration = Self.configuration
+        configuration.subcommands.append(contentsOf: subcommands)
+        configuration.defaultSubcommand = Self.self
+        
+        Start.configuration = configuration
+        do {
+            var command = try Start.parseAsRoot(arguments)
+            try command.validate()
+            try command.run()
+        } catch {
+            Self.exit(withError: error)
+        }
     }
     
     /**
@@ -87,10 +130,13 @@ extension WebService {
     public var version: Version {
         Version()
     }
-}
-
-
-extension WebService {
+    
+    
+    /// This function is executed to start up an Apodini `WebService`, called by Swift ArgumentParser on instanciated `WebService` containing CLI arguments
+    public mutating func run() throws {
+        try Self.start(webService: self)
+    }
+    
     func register(_ modelBuilder: SemanticModelBuilder) {
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
         self.visit(visitor)
