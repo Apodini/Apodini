@@ -52,17 +52,9 @@ extension WebService {
     }
     
     public static func main(_ arguments: [String]?) {
-        // If we would be able to create an instance of the web service we would even get the subcommands from the Configuration
-        // https://github.com/wickwirew/Runtime/pull/91 needs to be solved first.
-        let webService = try? createInstance(of: Self.self) as? Self.Type
-        var subcommands = webService?.configuration.subcommands ?? []
-        // A workaround for the poblem above would be to have a static subcommands property
-        subcommands.append(contentsOf: Self.subcommands)
-        
-        // We will definitiely add the Web Service instance itself to the list of subcommands
+        var subcommands = Self.subcommands
         subcommands.append(Self.self)
         
-        // This seems to work independent of the way we get the subcommends above:
         var configuration = Self.configuration
         configuration.subcommands.append(contentsOf: subcommands)
         configuration.defaultSubcommand = Self.self
