@@ -69,6 +69,8 @@ public protocol AnyEndpointParameter: CustomStringConvertible {
 
     /// Can be used to retrieve options configured for this parameter in the `ParameterOptionNameSpace`.
     func option<Option>(for key: PropertyOptionKey<ParameterOptionNameSpace, Option>) -> Option?
+    
+    func derivePathParameterModel() -> EndpointPath
 }
 
 protocol _AnyEndpointParameter: AnyEndpointParameter {

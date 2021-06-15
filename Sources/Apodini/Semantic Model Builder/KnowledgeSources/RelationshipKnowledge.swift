@@ -45,7 +45,9 @@ public struct AnyRelationshipEndpointInstance: KnowledgeSource {
     
     public init<B>(_ blackboard: B) throws where B : Blackboard {
         _ = blackboard[RelationshipModelKnowledgeSource.self]
-        self.instance = blackboard[RelationshipModelKnowledgeSource.EndpointInjector.self].endpoint
+        // we cannot use the `EndpointInjector`'s `endpoint` directly, as this is an incomplete version. Instead we use the version stored
+        // on the model
+        self.instance = blackboard[RelationshipModelKnowledgeSource.EndpointInjector.self].endpoint.reference.resolve()
     }
 }
 
@@ -118,7 +120,7 @@ extension RelationshipModelKnowledgeSource {
     
     
     struct EndpointInjector: HandlerKnowledgeSource {
-            let endpoint: AnyRelationshipEndpoint
+            let endpoint: _AnyRelationshipEndpoint
         
         init<H, B>(from handler: H, _ blackboard: B) throws where H : Handler, B : Blackboard {
             var endpoint = RelationshipEndpoint(handler: handler, blackboard: blackboard)

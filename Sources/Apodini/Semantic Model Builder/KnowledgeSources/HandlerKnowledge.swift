@@ -48,7 +48,7 @@ extension EndpointParameters: HandlerKnowledgeSource, KnowledgeSource {
     }
 }
 
-public extension Endpoint {
+public extension AnyEndpoint {
     var parameters: EndpointParameters { self[EndpointParameters.self] }
 }
 

@@ -44,6 +44,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     fileprivate var service: GRPCService!
     fileprivate var handler: GRPCTestHandler!
     fileprivate var endpoint: Endpoint<GRPCTestHandler>!
+    fileprivate var rendpoint: RelationshipEndpoint<GRPCTestHandler>!
     fileprivate var exporter: GRPCInterfaceExporter!
     fileprivate var headers: HTTPHeaders!
     // swiftlint:enable implicitly_unwrapped_optional
@@ -57,25 +58,35 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         try super.setUpWithError()
         service = GRPCService(name: serviceName, using: app)
         handler = GRPCTestHandler()
-        endpoint = handler.mockEndpoint()
+        (endpoint, rendpoint) = handler.mockRelationshipEndpoint()
         exporter = GRPCInterfaceExporter(app)
         headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/grpc+proto")
     }
 
     func testDefaultEndpointNaming() throws {
+        struct TestWebService: WebService {
+            var content: some Component {
+                Group("Group1") {
+                    Group("Group2") {
+                        GRPCTestHandler()
+                    }
+                }
+            }
+        }        
+        
         let expectedServiceName = "Group1Group2Service"
 
-        let webService = RelationshipWebServiceModel()
-
-        let handler = GRPCTestHandler()
-        var endpoint = handler.mockEndpoint()
-
-        webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
+        TestWebService().accept(visitor)
+        visitor.finishParsing()
+        
+        let endpoint = try XCTUnwrap(modelBuilder.endpointsToExport.first as? Endpoint<GRPCTestHandler>)
 
         let exporter = GRPCInterfaceExporter(app)
         exporter.export(endpoint)
-
+        print(exporter.services)
         XCTAssertNotNil(exporter.services[expectedServiceName])
     }
 
@@ -89,9 +100,9 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let handler = GRPCTestHandler()
         let node = ContextNode()
         node.addContext(GRPCServiceNameContextKey.self, value: expectedServiceName, scope: .current)
-        var endpoint = handler.mockEndpoint(context: Context(contextNode: node))
+        var (endpoint, rendpoint) = handler.mockRelationshipEndpoint(context: Context(contextNode: node))
 
-        webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
+        webService.addEndpoint(&rendpoint, at: ["Group1", "Group2"])
 
         let exporter = GRPCInterfaceExporter(app)
         exporter.export(endpoint)
@@ -379,11 +390,29 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         _ = try stream.write(.end).wait()
     }
 
-    func testServiceNameUtility_DefaultName() {
-        let webService = RelationshipWebServiceModel()
-        webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
+    func testServiceNameUtility_DefaultName() throws {
+        struct TestWebService: WebService {
+            var content: some Component {
+                Group("Group1") {
+                    Group("Group2") {
+                        GRPCTestHandler()
+                    }
+                }
+            }
+        }
+        
+        
+        
+        let expectedServiceName = "Group1Group2Service"
 
-        XCTAssertEqual(gRPCServiceName(from: endpoint), "Group1Group2Service")
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
+        TestWebService().accept(visitor)
+        visitor.finishParsing()
+        
+        let endpoint = try XCTUnwrap(modelBuilder.endpointsToExport.first as? Endpoint<GRPCTestHandler>)
+
+        XCTAssertEqual(gRPCServiceName(from: endpoint), expectedServiceName)
     }
 
     func testServiceNameUtility_CustomName() {

@@ -33,14 +33,14 @@ struct RESTEndpointHandler<H: Handler> {
     func handleRequest(request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         let context = endpoint.createConnectionContext(for: exporter)
 
-        let responseFuture = context.handle(request: request)
+        let responseFuture = context.handleAndReturnParameters(request: request, eventLoop: request.eventLoop)
 
         return responseFuture
-            .map { response in
+            .map { (response, parameters) in
                 response.typeErasured.map { content in
                     EnrichedContent(for: relationshipEndpoint,
                                     response: content,
-                                    parameters: { _ in nil }) }
+                                    parameters: parameters) }
                 }
             .flatMap { (response: Apodini.Response<EnrichedContent>) in
             guard let enrichedContent = response.content else {

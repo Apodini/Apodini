@@ -227,7 +227,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
 // MARK: Handling of ObservedObject
 
 private struct DelegatingObservedListener<H: Handler>: ObservedListener {
-    func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent, in context: ConnectionContext<WebSocketInterfaceExporter, H>) {
+    func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent) {
         callback(observedObject, event)
     }
     

@@ -2,7 +2,7 @@
 // Created by Andreas Bauer on 10.01.21.
 //
 
-/// Defines a representation for a `WebService`.
+/// Defines a representation for a `WebService` that is used to build up and present relationship-information.
 public class RelationshipWebServiceModel: CustomDebugStringConvertible {
     public var debugDescription: String {
         root.debugDescription
@@ -28,15 +28,15 @@ public class RelationshipWebServiceModel: CustomDebugStringConvertible {
         self.globalBlackboard = globalBlackboard
     }
 
-    /// Retrieve the `Endpoint` located under the `EndpointPath.root`.
-    /// - Parameter operation: The `Operation` to retrieve the `Endpoint` for.
-    /// - Returns: The `AnyEndpoint` or nil if it doesn't exist.
+    /// Retrieve the `RelationshipEndpoint` located under the `EndpointPath.root`.
+    /// - Parameter operation: The `Operation` to retrieve the `RelationshipEndpoint` for.
+    /// - Returns: The `AnyRelationshipEndpoint` or nil if it doesn't exist.
     public func getEndpoint(for operation: Operation) -> AnyRelationshipEndpoint? {
         rootEndpoints[operation]
     }
 
     /// Shortcut for calling `relationships(endpoint: operation, for: operation)`
-    /// - Parameter operation: Defines the `Operation` for the root `Endpoint`
+    /// - Parameter operation: Defines the `Operation` for the root `RelationshipEndpoint`
     ///     AND for the `RelationshipDestination`s to be retrieved from that endpoint.
     /// - Returns: The set of `RelationshipDestination`. If the `Endpoint` doesn't exist
     ///     default structural relationships are returned.
@@ -46,14 +46,14 @@ public class RelationshipWebServiceModel: CustomDebugStringConvertible {
 
     /// Creates a `Set<RelationshipDestination` which ensures that relationship names
     /// are unique (for all collected destination for: a given `Operation`).
-    /// The relationships are retrieved for a certain `Endpoint` defined by the given `Operation`.
+    /// The relationships are retrieved for a certain `RelationshipEndpoint` defined by the given `Operation`.
     /// If the `Endpoint` doesn't exist  default structural relationships are returned,
     /// being the main difference over `getEndpoint(for: endpointOperation)?.relationships(for: relationshipOperation)`.
     ///
     /// - Parameters:
-    ///   - endpoint: The `Operation` of the `Endpoint` to retrieve the Relationships from.
+    ///   - endpoint: The `Operation` of the `RelationshipEndpoint` to retrieve the Relationships from.
     ///   - operation: The `Operation` of the Relationship destination to create a unique set for.
-    /// - Returns: The set of uniquely named relationship destinations. If the `Endpoint` doesn't exist
+    /// - Returns: The set of uniquely named relationship destinations. If the `RelationshipEndpoint` doesn't exist
     ///     default structural relationships are returned.
     public func rootRelationships(endpoint: Operation, for operation: Operation) -> Set<RelationshipDestination> {
         if let endpoint = rootEndpoints[endpoint] {

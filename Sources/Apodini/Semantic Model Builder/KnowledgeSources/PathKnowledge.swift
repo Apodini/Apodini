@@ -11,26 +11,76 @@ import Foundation
 public struct PathComponents: ContextKeyKnowledgeSource {
     public typealias Key = PathComponentContextKey
     
-    let value: [PathComponent]
+    public let value: [PathComponent]
     
     public init(from value: [PathComponent]) {
         self.value = value
     }
 }
 
-public struct EndpointPathComponents: KnowledgeSource {
-    
-    let value: [EndpointPath]
+public typealias EndpointPathComponents = ScopedEndpointPathComponents<UnscopedEndpointPathComponents>
+
+public typealias EndpointPathComponentsWithHTTPParameterOptions = ScopedEndpointPathComponents<UnscopedEndpointPathComponentsWithHTTPParameterOptions>
+
+public struct UnscopedEndpointPathComponents: EndpointPathComponentProvider {
+    public let value: [EndpointPath]
     
     public init<B>(_ blackboard: B) throws where B : Blackboard {
         self.value = blackboard[PathComponents.self].value
             .pathModelBuilder()
             .results.map { component in component.path }
-            .scoped(on: blackboard[ParameterCollection.self])
     }
 }
 
-extension EndpointPathComponents {
+public protocol EndpointPathComponentProvider: KnowledgeSource {
+    var value: [EndpointPath] { get }
+}
+
+public struct ScopedEndpointPathComponents<P: EndpointPathComponentProvider>: KnowledgeSource {
+    public let value: [EndpointPath]
+    
+    public init<B>(_ blackboard: B) throws where B : Blackboard {
+        self.value = blackboard[P.self].value
+            .scoped(on: blackboard[ParameterCollection.self])
+            .map { path in
+                if case let .parameter(parameter) = path {
+                    precondition(parameter.scopedEndpointHasDefinedParameter, "Endpoint was identified by its path while its Handler did not contain a matching Parameter for PathParameter \(path)!")
+                }
+                return path
+            }
+    }
+}
+
+public struct UnscopedEndpointPathComponentsWithHTTPParameterOptions: EndpointPathComponentProvider {
+    
+    public let value: [EndpointPath]
+    
+    public init<B>(_ blackboard: B) throws where B : Blackboard {
+        let baseElements = blackboard[UnscopedEndpointPathComponents.self].value
+        let pathParametersOnHandler = blackboard[EndpointParameters.self].filter { parameter in
+            parameter.parameterType == .path
+        }
+
+        let pathParametersOnHandlerButNotOnPath = pathParametersOnHandler.filter { parameter in
+            !baseElements.compactMap { element in
+                if case let EndpointPath.parameter(parameter) = element {
+                    return parameter
+                }
+                return nil
+            }.contains(where: { (parameterElement: AnyEndpointPathParameter) in
+                parameterElement.id == parameter.id
+            })
+        }
+        
+        let newPathElements = pathParametersOnHandlerButNotOnPath.map { parameter in
+            parameter.derivePathParameterModel()
+        }
+        
+        self.value = (baseElements + newPathElements)
+    }
+}
+
+extension ScopedEndpointPathComponents {
     struct ParameterCollection: Apodini.ParameterCollection, KnowledgeSource {
         let parameters: [AnyEndpointParameter]
         
@@ -46,7 +96,7 @@ extension EndpointPathComponents {
     }
 }
 
-public extension Endpoint {
+public extension AnyEndpoint {
     var absolutePath: [EndpointPath] {
         self[EndpointPathComponents.self].value
     }

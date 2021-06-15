@@ -17,7 +17,7 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
     }
 
     func callAsFunction(
-        with validatingRequest: ValidatingRequest<I, H>,
+        with request: Request,
         on connection: Connection
     ) -> EventLoopFuture<Response<H.Response.Content>> {
         let request = connection.request

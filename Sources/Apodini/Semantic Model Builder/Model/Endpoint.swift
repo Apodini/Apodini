@@ -24,6 +24,8 @@ public protocol AnyEndpoint: Blackboard, CustomStringConvertible, ParameterColle
     /// - Returns: The result of the individual `BaseInterfaceExporter.exporterParameter(...)` calls.
     @discardableResult
     func exportParameters<I: BaseInterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput]
+    
+    func createAnyConnectionContext<I: InterfaceExporter>(for exporter: I) -> AnyConnectionContext<I>
 }
 
 protocol _AnyEndpoint: AnyEndpoint {
@@ -70,6 +72,10 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
 
     public func createConnectionContext<I: InterfaceExporter>(for exporter: I) -> ConnectionContext<I, H> {
         ConnectionContext(for: exporter, on: self)
+    }
+    
+    public func createAnyConnectionContext<I: InterfaceExporter>(for exporter: I) -> AnyConnectionContext<I> {
+        self.createConnectionContext(for: exporter).typeErased
     }
 
     public func findParameter(for id: UUID) -> AnyEndpointParameter? {

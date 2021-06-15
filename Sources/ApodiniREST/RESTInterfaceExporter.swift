@@ -23,13 +23,15 @@ public final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
 
     public func export<H: Handler>(_ endpoint: Endpoint<H>) {
         var pathBuilder = RESTPathBuilder()
-        endpoint.absolutePath.build(with: &pathBuilder)
+        
+        let relationshipEndpoint = endpoint[AnyRelationshipEndpointInstance.self].instance
+
+        let absolutePath = endpoint.absoluteRESTPath
+        absolutePath.build(with: &pathBuilder)
 
         let routesBuilder = pathBuilder.routesBuilder(app)
 
         let operation = endpoint[Operation.self]
-        
-        let relationshipEndpoint = endpoint[AnyRelationshipEndpointInstance.self].instance
 
         let endpointHandler = RESTEndpointHandler(with: configuration, for: endpoint, relationshipEndpoint, on: self)
         endpointHandler.register(at: routesBuilder, using: operation)
@@ -37,7 +39,7 @@ public final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
         app.logger.info("Exported '\(Vapor.HTTPMethod(operation).rawValue) \(pathBuilder.pathDescription)' with parameters: \(endpoint[EndpointParameters.self].map { $0.name })")
 
         if relationshipEndpoint.inheritsRelationship {
-            for selfRelationship in relationshipEndpoint.selfRelationships() where selfRelationship.destinationPath != endpoint.absolutePath {
+            for selfRelationship in relationshipEndpoint.selfRelationships() where selfRelationship.destinationPath != absolutePath {
                 app.logger.info("""
                                   - inherits from: \(Vapor.HTTPMethod(selfRelationship.operation).rawValue) \
                                 \(selfRelationship.destinationPath.asPathString())
@@ -105,5 +107,14 @@ public final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
         case .header:
             return request.headers.first(name: parameter.name) as? Type
         }
+    }
+}
+
+
+extension AnyEndpoint {
+    /// RESTInterfaceExporter exports `@Parameter(.http(.path))`, which are not listed on the
+    /// path-elements on the `Component`-tree as additional path elements at the end of the path.
+    var absoluteRESTPath: [EndpointPath] {
+        self[EndpointPathComponentsWithHTTPParameterOptions.self].value
     }
 }

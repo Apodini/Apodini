@@ -177,3 +177,7 @@ extension RelationshipEndpoint: CustomStringConvertible {
         self[HandlerDescription.self]
     }
 }
+
+public extension AnyRelationshipEndpoint {
+    var parameters: EndpointParameters { self[EndpointParameters.self] }
+}
