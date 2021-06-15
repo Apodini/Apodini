@@ -8,7 +8,7 @@
 import Foundation
 import Logging
 import ArgumentParser
-@_implementationOnly import Runtime
+
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
 public protocol WebService: WebServiceMetadataNamespace, Component, ConfigurationCollection, ParsableCommand {
