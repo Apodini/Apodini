@@ -8,21 +8,29 @@
 import Foundation
 
 
+/// <#Description#>
 public enum Information {
-    static let dateFormatter: DateFormatter = {
+    private static let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "EEE, dd LLL yyyy HH:mm:ss zzz"
         return dateFormatter
     }()
     
+    /// An `Information` instance carrying `Authorization` information
     case authorization(Authorization)
+    /// An `Information` instance carrying information about cookies
     case cookies([String: String])
+    /// An `Information` instance carrying information that redirects a client to a new location
     case redirectTo(URL)
+    /// An `Information` instance carrying information that indicates when a resource expires for caching information
     case expires(Date)
+    /// An `Information` instance carrying an eTag that identifies a resource to enable caching
     case eTag(String, weak: Bool = false)
+    /// A custom `Information` instance  that can be used to encode custom information
     case custom(key: String, value: String)
     
     
+    /// Creates an key value par of the `Information` instance.
     public var keyValuePair: (key: String, value: String) {
         switch self {
         case let .authorization(authorization):
@@ -40,6 +48,11 @@ public enum Information {
         }
     }
     
+    /// Creeate an `Information` based on a key and value
+    /// Tries to match it to the implemented `Information` types. If there is no clear match the function returns a `.custom` `Information` instance.
+    /// - Parameters:
+    ///   - key: The `Information` key
+    ///   - value: The `Information` value
     public init(key: String, value: String) {
         let parsedInformation: Information?
         

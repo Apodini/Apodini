@@ -9,7 +9,7 @@ import NIO
 import ApodiniUtils
 
 
-public struct Response<Content: Encodable>: ResponseTransformable {    
+public struct Response<Content: Encodable>: ResponseTransformable {
     public static var nothing: Response<Content> {
         Response<Content>(connectionEffect: .open)
     }
