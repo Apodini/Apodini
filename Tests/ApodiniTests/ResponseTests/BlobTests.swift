@@ -1,12 +1,12 @@
 //
-//  File.swift
+//  BlobTests.swift
 //  
 //
 //  Created by Paul Schmiedmayer on 6/16/21.
 //
 
 import XCTApodini
-import ApodiniREST
+@testable import ApodiniREST
 @testable import Apodini
 @testable import ApodiniOpenAPI
 import Vapor
@@ -53,7 +53,7 @@ final class BlobTests: ApodiniTests {
         )
     }
     
-    func testBlobResponseHandlerWithRESTExporter() throws {
+    func testBlobRESTEndpointHandler() throws {
         struct BlobResponseHandler: Handler {
             @Parameter var name: String
             @Parameter var mimeType: MimeType
@@ -67,11 +67,11 @@ final class BlobTests: ApodiniTests {
         let endpoint = handler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
-        let context = endpoint.createConnectionContext(for: exporter)
+        let endpointHandler = RESTEndpointHandler(with: RESTConfiguration(app.vapor.app.http.server.configuration), for: endpoint, on: exporter)
         
         
         func makeRequest(blobContent: String, mimeType: MimeType) throws {
-            let firstRequest = Vapor.Request(
+            let request = Vapor.Request(
                 application: app.vapor.app,
                 method: .GET,
                 url: URI("https://ase.in.tum.de/schmiedmayer?name=\(blobContent)"),
@@ -79,15 +79,10 @@ final class BlobTests: ApodiniTests {
                 on: app.eventLoopGroup.next()
             )
             
-            let blob = try XCTUnwrap(
-                try context.handle(request: firstRequest)
-                    .wait()
-                    .typed(Blob.self)?
-                    .content
-            )
+            let response = try endpointHandler.handleRequest(request: request).wait()
+            let byteBuffer = try XCTUnwrap(response.body.buffer)
                 
-            XCTAssertEqual(blob.byteBuffer.getString(at: blob.byteBuffer.readerIndex, length: blob.byteBuffer.readableBytes), blobContent)
-            XCTAssertEqual(blob.type, mimeType)
+            XCTAssertEqual(byteBuffer.getString(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes), blobContent)
         }
 
         try makeRequest(blobContent: "Nadine", mimeType: .application(.json))
@@ -98,5 +93,29 @@ final class BlobTests: ApodiniTests {
     func testBlobResponseHandlerWithOpenAPIExporter() throws {
         let blobSchema = try OpenAPIComponentsObjectBuilder().buildResponse(for: Blob.self)
         XCTAssertEqual(.string(format: .binary, required: true), blobSchema)
+    }
+    
+    func testBlobEncoding() throws {
+        let blob = Blob(Data("Paul".utf8), type: .text(.plain))
+        
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        let encodedBlob = try XCTUnwrap(String(data: try encoder.encode(blob), encoding: .utf8))
+        
+        XCTAssertEqual(
+            encodedBlob,
+            """
+            {
+              "type" : {
+                "type" : "text",
+                "subtype" : "plain",
+                "parameters" : {
+            
+                }
+              },
+              "byteBuffer" : "UGF1bA=="
+            }
+            """
+        )
     }
 }

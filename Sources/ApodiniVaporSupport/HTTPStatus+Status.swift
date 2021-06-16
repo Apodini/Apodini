@@ -1,24 +1,15 @@
 //
-//  File.swift
-//  
+//  HTTPStatus+Status.swift
 //
-//  Created by Paul Schmiedmayer on 6/16/21.
+//
+//  Created by Paul Schmiedmayer on 5/26/21.
 //
 
-import Foundation
-
-//
- //  HTTPStatus+Status.swift
- //
- //
- //  Created by Paul Schmiedmayer on 5/26/21.
- //
-
- import Apodini
- import Vapor
+import Apodini
+import Vapor
 
 
- extension Vapor.HTTPStatus {
+extension Vapor.HTTPStatus {
     /// Creates a `Vapor``HTTPStatus` based on an `Apodini` `Status`.
     /// - Parameter status: The `Apodini` `Status` that should be transformed in a `Vapor``HTTPStatus`
     public init(_ status: Apodini.Status) {

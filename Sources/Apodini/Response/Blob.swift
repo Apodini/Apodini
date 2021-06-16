@@ -28,8 +28,7 @@ public struct Blob: Encodable, ResponseTransformable {
     ///   - data: The `Data` representation of the `Blob`
     ///   - type: The MIME type associated with the `Blob`
     public init(_ data: Data, type: MimeType? = nil) {
-        self.byteBuffer = ByteBuffer(data: data)
-        self.type = type
+        self.init(ByteBuffer(data: data), type: type)
     }
     
     
@@ -43,7 +42,7 @@ public struct Blob: Encodable, ResponseTransformable {
     
     
     public func encode(to encoder: Encoder) throws {
-        print(
+        Application.logger.debug(
             """
             Information: The used Exporter currently doesn't support Blob's as a content of an Apodini Reponse.
             The data and mime type will be encoded according to the data encoding strategy passed by the Encoder.
