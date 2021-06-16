@@ -6,16 +6,18 @@ import Apodini
 import ApodiniUtils
 import Vapor
 
-struct ResponseContainer: Encodable, ResponseEncodable {
-    typealias Links = [String: String]
+
+public struct ResponseContainer: Encodable, ResponseEncodable {
+    public typealias Links = [String: String]
     
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case data = "data"
         case links = "_links"
     }
     
     
     let status: Status?
+    let information: Set<Information>
     let data: AnyEncodable?
     let links: Links?
     
@@ -23,8 +25,9 @@ struct ResponseContainer: Encodable, ResponseEncodable {
         data == nil && (links?.isEmpty ?? true)
     }
     
-    init<E: Encodable>(_ type: E.Type = E.self, status: Status? = nil, data: E? = nil, links: Links? = nil) {
+    init<E: Encodable>(_ type: E.Type = E.self, status: Status? = nil, information: Set<Information> = [], data: E? = nil, links: Links? = nil) {
         self.status = status
+        self.information = information
         
         if let data = data {
             self.data = AnyEncodable(data)
@@ -42,18 +45,19 @@ struct ResponseContainer: Encodable, ResponseEncodable {
     }
     
     
-    func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+    public func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         let jsonEncoder = JSONEncoder()
         jsonEncoder.outputFormatting = [.withoutEscapingSlashes, .prettyPrinted]
 
         let response = Vapor.Response()
+        response.headers = HTTPHeaders(information)
         
         switch status {
         case .noContent where !containsNoContent:
             // If there is any content in the HTTP body (data or links) we must not return an status code .noContent
             response.status = .ok
         case let .some(status):
-            response.status = httpStatusCode(fromStatus: status)
+            response.status = HTTPStatus(status)
         default:
             if containsNoContent {
                 response.status = .noContent
@@ -70,16 +74,5 @@ struct ResponseContainer: Encodable, ResponseEncodable {
             return request.eventLoop.makeFailedFuture(error)
         }
         return request.eventLoop.makeSucceededFuture(response)
-    }
-    
-    private func httpStatusCode(fromStatus status: Status) -> HTTPStatus {
-        switch status {
-        case .ok:
-            return HTTPStatus.ok
-        case .created:
-            return HTTPStatus.created
-        case .noContent:
-            return HTTPStatus.noContent
-        }
     }
 }

@@ -14,7 +14,7 @@ extension OpenAPI.Parameter.Context {
             self = .query(required: Self.isRequired(endpointParameter))
         case .path:
             self = .path
-        case .content, .header:
+        case .content:
             return nil
         }
     }

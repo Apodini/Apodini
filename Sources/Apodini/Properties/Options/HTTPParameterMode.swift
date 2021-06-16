@@ -9,8 +9,6 @@ public enum HTTPParameterMode: PropertyOption {
     case path
     /// The property associated with the `@Parameter` property wrapper should be decoded from the URI query of the HTTP request
     case query
-    /// The property associated with the `@Parameter` property wrapper should be decoded from the HTTP headers.
-    case header
 }
 
 extension PropertyOptionKey where PropertyNameSpace == ParameterOptionNameSpace, Option == HTTPParameterMode {

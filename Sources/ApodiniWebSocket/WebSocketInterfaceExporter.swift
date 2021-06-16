@@ -259,7 +259,7 @@ public struct WebSocketParameter {
 
 /// A struct that wrapps the `WebSocketInterfaceExporter`'s internal representation of
 /// the complete input of an endpoint.
-public struct WebSocketInput: ExporterRequest, WithEventLoop, WithRemote {
+public struct WebSocketInput: ExporterRequestWithEventLoop {
     internal var input: SomeInput
     public let eventLoop: EventLoop
     public let remoteAddress: SocketAddress?
