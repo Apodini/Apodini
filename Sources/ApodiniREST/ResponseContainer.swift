@@ -17,7 +17,7 @@ public struct ResponseContainer: Encodable, ResponseEncodable {
     
     
     let status: Status?
-    let information: Set<Information>
+    let information: Set<AnyInformation>
     let data: AnyEncodable?
     let links: Links?
     
@@ -25,7 +25,7 @@ public struct ResponseContainer: Encodable, ResponseEncodable {
         data == nil && (links?.isEmpty ?? true)
     }
     
-    init<E: Encodable>(_ type: E.Type = E.self, status: Status? = nil, information: Set<Information> = [], data: E? = nil, links: Links? = nil) {
+    init<E: Encodable>(_ type: E.Type = E.self, status: Status? = nil, information: Set<AnyInformation> = [], data: E? = nil, links: Links? = nil) {
         self.status = status
         self.information = information
         

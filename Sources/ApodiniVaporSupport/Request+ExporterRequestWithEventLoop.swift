@@ -7,12 +7,13 @@
 
 import Apodini
 import Vapor
+import Foundation
 
 
 extension Vapor.Request: ExporterRequestWithEventLoop {
-    public var information: Set<Information> {
-        Set(headers.map { name, value in
-            Information(key: name, value: value)
+    public var information: Set<AnyInformation> {
+        Set(headers.map { key, rawValue in
+            AnyInformation(key: key, rawValue: rawValue)
         })
     }
 }
