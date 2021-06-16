@@ -25,6 +25,8 @@ public enum WellKnownEnvironmentVariables {
     public static let fileUrl = "ApodiniDeployFileURL"
 }
 
+// swiftlint:disable type_name
+/// Possible values of the well-known environment variable `WellKnownEnvironmentVariables.executionMode`
 public enum WellKnownEnvironmentVariableExecutionMode {
     /// Value of an environment variable to tell Apodini to write the web service's structure to disk.
     /// In the support framework so that we can share this constant between Apodini (which needs to check for it)

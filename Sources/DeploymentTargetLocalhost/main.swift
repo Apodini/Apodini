@@ -94,9 +94,14 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
             let task = Task(
                 executableUrl: executableUrl,
                 launchInCurrentProcessGroup: true,
-                environment: [WellKnownEnvironmentVariables.executionMode: WellKnownEnvironmentVariableExecutionMode.launchWebServiceInstanceWithCustomConfig,
-                              WellKnownEnvironmentVariables.fileUrl: deployedSystemFileUrl.path,
-                              WellKnownEnvironmentVariables.currentNodeId: node.id]
+                environment: [
+                    WellKnownEnvironmentVariables.executionMode:
+                        WellKnownEnvironmentVariableExecutionMode.launchWebServiceInstanceWithCustomConfig,
+                    WellKnownEnvironmentVariables.fileUrl:
+                        deployedSystemFileUrl.path,
+                    WellKnownEnvironmentVariables.currentNodeId:
+                        node.id
+                ]
             )
             func taskTerminationHandler(_ terminationInfo: Task.TerminationInfo) {
                 switch (terminationInfo.reason, terminationInfo.exitCode) {

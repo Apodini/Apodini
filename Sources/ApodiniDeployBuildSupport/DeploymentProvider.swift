@@ -127,8 +127,11 @@ extension DeploymentProvider {
                 executableUrl: executableUrl,
                 captureOutput: false,
                 launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup,
-                environment: [WellKnownEnvironmentVariables.executionMode: WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
-                              WellKnownEnvironmentVariables.fileUrl: modelFileUrl.path]
+                environment: [
+                    WellKnownEnvironmentVariables.executionMode:
+                        WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
+                    WellKnownEnvironmentVariables.fileUrl: modelFileUrl.path
+                ]
             )
         case let .spmTarget(packageUrl, productName):
             let swiftBin = try Self.getSwiftBinUrl()
@@ -149,8 +152,11 @@ extension DeploymentProvider {
                 ],
                 captureOutput: false,
                 launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup,
-                environment: [WellKnownEnvironmentVariables.executionMode: WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
-                              WellKnownEnvironmentVariables.fileUrl: modelFileUrl.path]
+                environment: [
+                    WellKnownEnvironmentVariables.executionMode:
+                        WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
+                    WellKnownEnvironmentVariables.fileUrl: modelFileUrl.path
+                ]
             )
         }
         

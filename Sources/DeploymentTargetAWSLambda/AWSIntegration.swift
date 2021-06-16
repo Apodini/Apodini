@@ -185,7 +185,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             
             do {
                 // create & add bootstrap file
-                // TODO: Not entirly sure if this passing of ENVs works
+                // TODO: Not entirly sure if this passing of ENVs works?
                 let bootstrapFileContents = """
                 #!/bin/bash
                 \(WellKnownEnvironmentVariables.executionMode)=\(WellKnownEnvironmentVariableExecutionMode.launchWebServiceInstanceWithCustomConfig)
