@@ -87,3 +87,11 @@ extension AnyInformation: Hashable {
         hasher.combine(key)
     }
 }
+
+
+extension AnyInformation {
+    /// A custom `Information` that is defined by a key and a rawValue expressed by a `String`
+    public static func custom(key: String, rawValue: String) -> AnyInformation {
+        AnyInformation(key: key, rawValue: rawValue)
+    }
+}

@@ -112,3 +112,12 @@ public struct Authorization: Information {
         self.value = value
     }
 }
+
+
+extension AnyInformation {
+    /// An `Information` carrying authorization information
+    /// - Parameter authorization: /// The content of an `Authorization` `Information`
+    public static func authorization(_ authorization: Authorization.Value) -> AnyInformation {
+        AnyInformation(Authorization(authorization))
+    }
+}

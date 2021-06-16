@@ -35,3 +35,11 @@ public struct RedirectTo: Information {
         self.value = value
     }
 }
+
+
+extension AnyInformation {
+    /// An `Information` instance carrying information that redirects a client to a new location
+    public static func redirectTo(_ redirectTo: RedirectTo.Value) -> AnyInformation {
+        AnyInformation(RedirectTo(redirectTo))
+    }
+}

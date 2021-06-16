@@ -32,7 +32,7 @@ public struct Cookies: Information {
             
             let substrings = keyValuePair.split(separator: "=", maxSplits: 1)
             guard substrings.count == 2 else {
-                return nil
+                continue
             }
             cookies[String(substrings[0])] = String(substrings[1])
         }
@@ -42,5 +42,13 @@ public struct Cookies: Information {
     
     public init(_ value: [String: String]) {
         self.value = value
+    }
+}
+
+
+extension AnyInformation {
+    /// An `Information` instance carrying information about cookies
+    public static func cookies(_ cookies: Cookies.Value) -> AnyInformation {
+        AnyInformation(Cookies(cookies))
     }
 }

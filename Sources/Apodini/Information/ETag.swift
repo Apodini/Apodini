@@ -21,6 +21,11 @@ public struct ETag: Information {
         }
         
         
+        public init(tag: String, isWeak: Bool = false) {
+            self.tag = tag
+            self.isWeak = isWeak
+        }
+        
         public init?(rawValue: String) {
             let isWeak = rawValue.hasPrefix("W/")
             var eTagValue = rawValue
@@ -35,8 +40,7 @@ public struct ETag: Information {
             eTagValue.removeFirst()
             eTagValue.removeLast()
             
-            self.tag = eTagValue
-            self.isWeak = isWeak
+            self = .init(tag: eTagValue, isWeak: isWeak)
         }
     }
     
@@ -64,5 +68,13 @@ public struct ETag: Information {
     
     public init(_ value: Value) {
         self.value = value
+    }
+}
+
+
+extension AnyInformation {
+    /// An `Information` instance carrying an eTag that identifies a resource to enable caching
+    public static func etag(_ tag: String, isWeak: Bool = false) -> AnyInformation {
+        AnyInformation(ETag(ETag.Value(tag: tag, isWeak: isWeak)))
     }
 }

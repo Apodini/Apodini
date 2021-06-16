@@ -40,6 +40,12 @@ final class InformationTests: XCTestCase {
         )
         XCTAssertTrue(noCookies.isEmpty)
         
+        let noValidCookies = try XCTUnwrap(
+            AnyInformation(key: "Cookie", rawValue: "test=")
+                .typed(Cookies.self)
+        )
+        XCTAssertTrue(noValidCookies.isEmpty)
+        
         let oneCookie = try XCTUnwrap(
             AnyInformation(key: "Cookie", rawValue: "name=value")
                 .typed(Cookies.self)

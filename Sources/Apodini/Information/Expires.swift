@@ -41,3 +41,11 @@ public struct Expires: Information {
         self.value = value
     }
 }
+
+
+extension AnyInformation {
+    /// An `Information` carrying information about the expiration date of resources
+    public static func expires(_ eexpires: Expires.Value) -> AnyInformation {
+        AnyInformation(Expires(eexpires))
+    }
+}
