@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 5/26/21.
 //
 
-#warning("@Jan: Missing some more mime types here")
+
 public enum MimeType: Encodable {
     enum CodingKeys: CodingKey {
         case type

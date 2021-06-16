@@ -17,6 +17,7 @@ public struct ResponseContainer: Encodable, ResponseEncodable {
     
     
     let status: Status?
+    let information: [Information]
     let data: AnyEncodable?
     let links: Links?
     
@@ -24,8 +25,9 @@ public struct ResponseContainer: Encodable, ResponseEncodable {
         data == nil && (links?.isEmpty ?? true)
     }
     
-    init<E: Encodable>(_ type: E.Type = E.self, status: Status? = nil, data: E? = nil, links: Links? = nil) {
+    init<E: Encodable>(_ type: E.Type = E.self, status: Status? = nil, information: [Information] = [], data: E? = nil, links: Links? = nil) {
         self.status = status
+        self.information = information
         
         if let data = data {
             self.data = AnyEncodable(data)
@@ -48,6 +50,7 @@ public struct ResponseContainer: Encodable, ResponseEncodable {
         jsonEncoder.outputFormatting = [.withoutEscapingSlashes, .prettyPrinted]
 
         let response = Vapor.Response()
+        response.headers = HTTPHeaders(information)
         
         switch status {
         case .noContent where !containsNoContent:

@@ -6,7 +6,6 @@ import Foundation
 import ApodiniUtils
 
 
-#warning("@Jan: We should remove EnrichedContent and move the work done there in the relevant exporters. Not every exporter needs this and we should introdce something like AnyResponse instead.")
 /// A `EnrichedContent` describes the outcome of a `ConnectionContext.handle(...)`.
 public struct EnrichedContent: Encodable {
     private let endpoint: AnyEndpoint

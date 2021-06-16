@@ -10,10 +10,10 @@ import Vapor
 
 
 extension Vapor.HTTPHeaders {
-    public init(_ information: [InformationKey: String]) {
+    public init(_ information: [Information]) {
         self.init()
-        for (name, value) in information {
-            self.add(name: name.rawValue, value: value)
+        for (name, value) in information.map({ $0.keyValuePair }) {
+            self.add(name: name, value: value)
         }
     }
 }
