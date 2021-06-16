@@ -179,5 +179,6 @@ extension RelationshipEndpoint: CustomStringConvertible {
 }
 
 public extension AnyRelationshipEndpoint {
+    /// Provides the ``EndpointParameters`` that correspond to the ``Parameter``s defined on the ``Handler`` of this ``RelationshipEndpoint``.
     var parameters: EndpointParameters { self[EndpointParameters.self] }
 }

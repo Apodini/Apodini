@@ -59,7 +59,9 @@ class RelationshipBuilder {
         collectDestinations(for: endpoint, destinations)
     }
 
-    private func collectRelationshipCandidates<H: Handler>(for endpoint: RelationshipEndpoint<H>, _ partialCandidates: [PartialRelationshipSourceCandidate]) {
+    private func collectRelationshipCandidates<H: Handler>(
+        for endpoint: RelationshipEndpoint<H>,
+        _ partialCandidates: [PartialRelationshipSourceCandidate]) {
         collectedRelationshipCandidates.append(contentsOf: partialCandidates.linked(to: endpoint))
     }
 

@@ -9,6 +9,8 @@ import NIO
 import ApodiniUtils
 import Foundation
 
+/// A type-erased version of ``ConnectionContext`` that wrapps ``Response/content``s into an
+/// `AnyEncodable`
 public struct AnyConnectionContext<I: InterfaceExporter> {
     private let _handleRequest: (I.ExporterRequest, EventLoop, Bool) -> EventLoopFuture<Response<AnyEncodable>>
     private let _handleRequestAndReturnParameters: (I.ExporterRequest, EventLoop, Bool) -> EventLoopFuture<(Response<AnyEncodable>, (UUID) -> Any?)>
@@ -51,7 +53,7 @@ public struct AnyConnectionContext<I: InterfaceExporter> {
         request exporterRequest: I.ExporterRequest,
         eventLoop: EventLoop,
         final: Bool = true
-    ) -> EventLoopFuture<(Response<AnyEncodable>,(UUID) -> Any?)> {
+    ) -> EventLoopFuture<(Response<AnyEncodable>, (UUID) -> Any?)> {
         _handleRequestAndReturnParameters(exporterRequest, eventLoop, final)
     }
     
@@ -65,14 +67,19 @@ public struct AnyConnectionContext<I: InterfaceExporter> {
     /// Register a listener that will be notified once an observed object did change in the handler
     /// that is being used in this connection.
     func register<Listener: ObservedListener>(listener: Listener) {
-        _register(AnyObservedListener(_eventLoop: { listener.eventLoop }, _onObservedDidChange: listener.onObservedDidChange))
+        _register(AnyObservedListener(eventLoop: { listener.eventLoop }, onObservedDidChange: listener.onObservedDidChange))
     }
 }
 
 private extension AnyConnectionContext {
     struct AnyObservedListener: ObservedListener {
-        let _eventLoop: () -> EventLoop
-        let _onObservedDidChange: (AnyObservedObject, TriggerEvent) -> Void
+        private let _eventLoop: () -> EventLoop
+        private let _onObservedDidChange: (AnyObservedObject, TriggerEvent) -> Void
+        
+        internal init(eventLoop: @escaping () -> EventLoop, onObservedDidChange: @escaping (AnyObservedObject, TriggerEvent) -> Void) {
+            self._eventLoop = eventLoop
+            self._onObservedDidChange = onObservedDidChange
+        }
         
         var eventLoop: EventLoop {
             _eventLoop()
@@ -132,7 +139,7 @@ public class ConnectionContext<I: InterfaceExporter, H: Handler> {
         request exporterRequest: I.ExporterRequest,
         eventLoop: EventLoop,
         final: Bool = true
-    ) -> EventLoopFuture<(Response<H.Response.Content>,(UUID) -> Any?)> {
+    ) -> EventLoopFuture<(Response<H.Response.Content>, (UUID) -> Any?)> {
         let newRequest = self.latestRequest?.reduce(to: exporterRequest) ?? exporterRequest
         do {
             let validatingRequest = try validator.validate(newRequest, with: eventLoop)
@@ -178,7 +185,11 @@ public class ConnectionContext<I: InterfaceExporter, H: Handler> {
         eventLoop: EventLoop,
         final: Bool = true
     ) -> EventLoopFuture<Response<H.Response.Content>> {
-        self.handleAndReturnParameters(request: exporterRequest, eventLoop: eventLoop, final: final).map { (response, parameters) in
+        self.handleAndReturnParameters(
+            request: exporterRequest,
+            eventLoop: eventLoop,
+            final: final)
+        .map { response, _ in
             response
         }
     }
@@ -186,7 +197,10 @@ public class ConnectionContext<I: InterfaceExporter, H: Handler> {
     /// Runs through the context's handler with the state after the latest client-request.
     /// Should be used by exporters after an observed value in the context did change,
     /// to retrieve the proper message that has to be sent to the client.
-    public func handle(eventLoop: EventLoop, observedObject: AnyObservedObject, event: TriggerEvent) -> EventLoopFuture<Response<H.Response.Content>> {
+    public func handle(
+        eventLoop: EventLoop,
+        observedObject: AnyObservedObject,
+        event: TriggerEvent) -> EventLoopFuture<Response<H.Response.Content>> {
         guard !event.cancelled else {
             return eventLoop.makeSucceededFuture(.nothing)
         }
@@ -238,18 +252,43 @@ public extension ConnectionContext where I.ExporterRequest: WithEventLoop {
 }
 
 extension ConnectionContext {
-    fileprivate func handle(request exporterRequest: I.ExporterRequest, eventLoop: EventLoop, final: Bool) -> EventLoopFuture<Response<AnyEncodable>> {
-        self.handle(request: exporterRequest, eventLoop: eventLoop, final: final).map { (response: Response<H.Response.Content>) in response.typeErasured }
+    fileprivate func handle(
+        request exporterRequest: I.ExporterRequest,
+        eventLoop: EventLoop,
+        final: Bool) -> EventLoopFuture<Response<AnyEncodable>> {
+        self.handle(
+            request: exporterRequest,
+            eventLoop: eventLoop,
+            final: final)
+        .map { (response: Response<H.Response.Content>) in
+            response.typeErasured
+        }
     }
     
-    fileprivate func handleAndReturnParameters(request exporterRequest: I.ExporterRequest, eventLoop: EventLoop, final: Bool) -> EventLoopFuture<(Response<AnyEncodable>, (UUID) -> Any?)> {
-        self.handleAndReturnParameters(request: exporterRequest, eventLoop: eventLoop, final: final).map { (response : Response<H.Response.Content>, parameters) in (response.typeErasured, parameters) }
+    fileprivate func handleAndReturnParameters(
+        request exporterRequest: I.ExporterRequest,
+        eventLoop: EventLoop,
+        final: Bool) -> EventLoopFuture<(Response<AnyEncodable>, (UUID) -> Any?)> {
+        self.handleAndReturnParameters(
+            request: exporterRequest,
+            eventLoop: eventLoop,
+            final: final)
+        .map { (response: Response<H.Response.Content>, parameters) in
+            (response.typeErasured, parameters)
+        }
     }
     
     fileprivate func handle(eventLoop: EventLoop, observedObject: AnyObservedObject, event: TriggerEvent) -> EventLoopFuture<Response<AnyEncodable>> {
-        self.handle(eventLoop: eventLoop, observedObject: observedObject, event: event).map { (response: Response<H.Response.Content>) in response.typeErasured }
+        self.handle(
+            eventLoop: eventLoop,
+            observedObject: observedObject,
+            event: event)
+        .map { (response: Response<H.Response.Content>) in
+            response.typeErasured
+        }
     }
     
+    /// A type-erased wrapper around this ``ConnectionContext``.
     public var typeErased: AnyConnectionContext<I> {
         AnyConnectionContext(self)
     }

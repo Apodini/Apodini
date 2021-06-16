@@ -3,7 +3,7 @@
 //
 import Foundation
 
-
+/// A ``ParameterCollection`` provides random access to an endpoint's ``EndpointParameter``s.
 public protocol ParameterCollection {
     /// This method returns the instance of a `AnyEndpointParameter` if the given `Endpoint` holds a parameter
     /// for the supplied parameter id. Otherwise nil is returned.
@@ -29,7 +29,6 @@ public protocol AnyEndpoint: Blackboard, CustomStringConvertible, ParameterColle
 }
 
 protocol _AnyEndpoint: AnyEndpoint {
-
     /// Internal method which is called to call the `InterfaceExporter.export(...)` method on the given `exporter`.
     ///
     /// - Parameter exporter: The `BaseInterfaceExporter` used to export the given `Endpoint`

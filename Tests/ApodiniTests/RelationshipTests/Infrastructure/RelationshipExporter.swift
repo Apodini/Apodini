@@ -10,7 +10,6 @@ class RelationshipExporter: MockExporter<String> {
     var endpoints: [(AnyEndpoint, AnyRelationshipEndpoint)] = []
 
     override func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        
         let rendpoint = endpoint[AnyRelationshipEndpointInstance.self].instance
         
         endpoints.append((endpoint, rendpoint))

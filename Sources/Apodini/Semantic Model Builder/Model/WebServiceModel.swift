@@ -14,7 +14,7 @@ public struct WebServiceModel: Blackboard {
         self.blackboard = blackboard
     }
     
-    public subscript<S>(_ type: S.Type) -> S where S : KnowledgeSource {
+    public subscript<S>(_ type: S.Type) -> S where S: KnowledgeSource {
         get {
             blackboard[type]
         }
@@ -23,7 +23,7 @@ public struct WebServiceModel: Blackboard {
         }
     }
     
-    public func request<S>(_ type: S.Type) throws -> S where S : KnowledgeSource {
+    public func request<S>(_ type: S.Type) throws -> S where S: KnowledgeSource {
         try blackboard.request(type)
     }
 }

@@ -11,7 +11,7 @@ import Apodini
 struct EnrichedContent: Encodable {
     private let endpoint: AnyRelationshipEndpoint
 
-    public let response: AnyEncodable
+    let response: AnyEncodable
     private let parameters: (UUID) -> Any?
 
     init(for endpoint: AnyRelationshipEndpoint, response: AnyEncodable, parameters: @escaping (UUID) -> Any?) {
@@ -20,7 +20,7 @@ struct EnrichedContent: Encodable {
         self.parameters = parameters
     }
 
-    public func encode(to encoder: Encoder) throws {
+    func encode(to encoder: Encoder) throws {
         try response.encode(to: encoder)
     }
 
@@ -32,7 +32,7 @@ struct EnrichedContent: Encodable {
     ///   - formatter: The actual instance of the `RelationshipFormatter`.
     ///   - operation: The `Operation` for which to retrieve all `RelationshipDestination` from the given `Endpoint`.
     /// - Returns: The formatted result.
-    public func formatRelationships<Formatter: RelationshipFormatter>(
+    func formatRelationships<Formatter: RelationshipFormatter>(
         into initialValue: Formatter.Result,
         with formatter: Formatter,
         for operation: Apodini.Operation
@@ -51,7 +51,7 @@ struct EnrichedContent: Encodable {
     ///   - initialValue: The initial value the `RelationshipFormatter` should reduce into.
     ///   - formatter: The actual instance of the `RelationshipFormatter`.
     /// - Returns: The formatted result.
-    public func formatRelationships<Formatter: RelationshipFormatter>(
+    func formatRelationships<Formatter: RelationshipFormatter>(
         into initialValue: Formatter.Result,
         with formatter: Formatter
     ) -> Formatter.Result {
@@ -70,7 +70,7 @@ struct EnrichedContent: Encodable {
     ///   - formatter: The actual instance of the `RelationshipFormatter`.
     ///   - sortKeyPath: The relationships will be applied to the formatter in the given order.
     /// - Returns: The formatted result.
-    public func formatRelationships<Formatter: RelationshipFormatter, T: Comparable>(
+    func formatRelationships<Formatter: RelationshipFormatter, T: Comparable>(
         into initialValue: Formatter.Result,
         with formatter: Formatter,
         sortedBy sortKeyPath: KeyPath<Apodini.Operation, T>
@@ -95,7 +95,7 @@ struct EnrichedContent: Encodable {
     ///   - initialValue: The initial value the `RelationshipFormatter` should reduce into.
     ///   - formatter: The actual instance of the `RelationshipFormatter`.
     /// - Returns: The formatted result.
-    public func formatSelfRelationships<Formatter: RelationshipFormatter>(
+    func formatSelfRelationships<Formatter: RelationshipFormatter>(
         into initialValue: Formatter.Result,
         with formatter: Formatter
     ) -> Formatter.Result {
@@ -114,7 +114,7 @@ struct EnrichedContent: Encodable {
     /// - Parameters:
     ///   - initialValue: The initial value the `RelationshipFormatter` should reduce into.
     ///   - formatter: The actual instance of the `RelationshipFormatter`.
-    public func formatSelfRelationship<Formatter: RelationshipFormatter>(
+    func formatSelfRelationship<Formatter: RelationshipFormatter>(
         into initialValue: inout Formatter.Result,
         with formatter: Formatter
     ) {
@@ -130,7 +130,7 @@ struct EnrichedContent: Encodable {
     ///   - formatter: The actual instance of the `RelationshipFormatter`.
     ///   - operation: The `Operation` for which to retrieve the self `RelationshipDestination` from the given `Endpoint`.
     /// Returns: Returns whether a `RelationshipDestination` for the given `Operation` existed.
-    public func formatSelfRelationship<Formatter: RelationshipFormatter>(
+    func formatSelfRelationship<Formatter: RelationshipFormatter>(
         into initialValue: inout Formatter.Result,
         with formatter: Formatter,
         for operation: Apodini.Operation
@@ -153,7 +153,7 @@ extension EnrichedContent {
     /// Returns the typed version of the stored response property.
     /// - Parameter type: The type to cast to.
     /// - Returns: Returns the casted type, nil if type didn't fit
-    public func typed<T: Encodable>(_ type: T.Type = T.self) -> T? {
+    func typed<T: Encodable>(_ type: T.Type = T.self) -> T? {
         response.typed(type)
     }
 }

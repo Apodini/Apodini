@@ -43,7 +43,7 @@ struct RelationshipDestinations: ContextKeyKnowledgeSource {
 public struct AnyRelationshipEndpointInstance: KnowledgeSource {
     public let instance: AnyRelationshipEndpoint
     
-    public init<B>(_ blackboard: B) throws where B : Blackboard {
+    public init<B>(_ blackboard: B) throws where B: Blackboard {
         _ = blackboard[RelationshipModelKnowledgeSource.self]
         // we cannot use the `EndpointInjector`'s `endpoint` directly, as this is an incomplete version. Instead we use the version stored
         // on the model
@@ -52,12 +52,11 @@ public struct AnyRelationshipEndpointInstance: KnowledgeSource {
 }
 
 public struct RelationshipModelKnowledgeSource: KnowledgeSource {
-    
     public static var preference: LocationPreference { .global }
     
     public let model: RelationshipWebServiceModel
     
-    public init<B>(_ blackboard: B) throws where B : Blackboard {
+    public init<B>(_ blackboard: B) throws where B: Blackboard {
         let allBlackboards = blackboard[Blackboards.self][for: GlobalRelationshipAnchor.self]
         
         for localBlackboard in allBlackboards {
@@ -93,7 +92,7 @@ extension RelationshipModelKnowledgeSource {
         
         var builder: RelationshipBuilder
         
-        init<B>(_ blackboard: B) throws where B : Blackboard {
+        init<B>(_ blackboard: B) throws where B: Blackboard {
             self.builder = RelationshipBuilder(logger: blackboard[Logger.self])
         }
     }
@@ -103,7 +102,7 @@ extension RelationshipModelKnowledgeSource {
         
         var builder: TypeIndexBuilder
         
-        init<B>(_ blackboard: B) throws where B : Blackboard {
+        init<B>(_ blackboard: B) throws where B: Blackboard {
             self.builder = TypeIndexBuilder(logger: blackboard[Logger.self])
         }
     }
@@ -113,7 +112,7 @@ extension RelationshipModelKnowledgeSource {
         
         var model: RelationshipWebServiceModel
         
-        init<B>(_ blackboard: B) throws where B : Blackboard {
+        init<B>(_ blackboard: B) throws where B: Blackboard {
             self.model = RelationshipWebServiceModel(blackboard)
         }
     }
@@ -122,7 +121,7 @@ extension RelationshipModelKnowledgeSource {
     struct EndpointInjector: HandlerKnowledgeSource {
             let endpoint: _AnyRelationshipEndpoint
         
-        init<H, B>(from handler: H, _ blackboard: B) throws where H : Handler, B : Blackboard {
+        init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
             var endpoint = RelationshipEndpoint(handler: handler, blackboard: blackboard)
             let path = blackboard[PathComponents.self].value
             
@@ -146,11 +145,12 @@ extension RelationshipModelKnowledgeSource {
             let pathParameters = endpoint[EndpointPathModule.self].absolutePath.listPathParameters()
             let operation = endpoint[Operation.self]
             
-            blackboard[TypeIndexBuilderSource.self].builder.indexContentType(content: content,
-                                                   reference: reference,
-                                                   markedDefault: markedDefault,
-                                                   pathParameters: pathParameters,
-                                                   operation: operation)
+            blackboard[TypeIndexBuilderSource.self].builder.indexContentType(
+                content: content,
+                reference: reference,
+                markedDefault: markedDefault,
+                pathParameters: pathParameters,
+                operation: operation)
             
             self.endpoint = endpoint
         }

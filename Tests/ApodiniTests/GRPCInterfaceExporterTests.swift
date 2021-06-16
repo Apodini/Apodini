@@ -73,7 +73,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                     }
                 }
             }
-        }        
+        }
         
         let expectedServiceName = "Group1Group2Service"
 
@@ -400,8 +400,6 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                 }
             }
         }
-        
-        
         
         let expectedServiceName = "Group1Group2Service"
 

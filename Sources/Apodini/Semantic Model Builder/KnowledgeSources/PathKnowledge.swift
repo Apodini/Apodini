@@ -18,14 +18,38 @@ public struct PathComponents: ContextKeyKnowledgeSource {
     }
 }
 
+/// The ``KnowledgeSource`` that provides access to the abolute path of an ``Endpoint`` as defined via ``Group``.
 public typealias EndpointPathComponents = ScopedEndpointPathComponents<UnscopedEndpointPathComponents>
 
-public typealias EndpointPathComponentsWithHTTPParameterOptions = ScopedEndpointPathComponents<UnscopedEndpointPathComponentsWithHTTPParameterOptions>
+/// A ``KnowledgeSource`` that extends the base-path provided by ``EndpointPathComponents`` by appending a a path-segment for each
+/// path parameter defined on the according ``Handler`` that was not explicitly used in the path.
+///
+/// ``Parameter`` can be modified using ``AnyPropertyOption/http(_:)`` to use ``HTTPParameterMode/path``.  In that case,
+/// the endpoint's path is extended by those ``Parameter``s. ``Parameter``s which use ``HTTPParameterMode/path`` and are
+/// already explicitly defined on the path via a ``Group`` are not appended, of course.
+///
+/// ```swift
+/// struct MyHandler: Handler {
+///     @Parameter(.http(.path)) var id: UUID
+///
+///     func handle() -> UUID { id }
+/// }
+///
+/// struct MyWebService: WebService {
+///     var content: Component {
+///         MyHandler()
+///     }
+/// }
+/// ```
+///
+/// In this example,  the path for `MyHandler` would be `v1/{id}`, even though the `{id}` component is not explicitly
+/// specified via a ``Group``, if the exporter uses the ``EndpointPathComponentsHTTP``.
+public typealias EndpointPathComponentsHTTP = ScopedEndpointPathComponents<UnscopedEndpointPathComponentsHTTP>
 
 public struct UnscopedEndpointPathComponents: EndpointPathComponentProvider {
     public let value: [EndpointPath]
     
-    public init<B>(_ blackboard: B) throws where B : Blackboard {
+    public init<B>(_ blackboard: B) throws where B: Blackboard {
         self.value = blackboard[PathComponents.self].value
             .pathModelBuilder()
             .results.map { component in component.path }
@@ -39,7 +63,7 @@ public protocol EndpointPathComponentProvider: KnowledgeSource {
 public struct ScopedEndpointPathComponents<P: EndpointPathComponentProvider>: KnowledgeSource {
     public let value: [EndpointPath]
     
-    public init<B>(_ blackboard: B) throws where B : Blackboard {
+    public init<B>(_ blackboard: B) throws where B: Blackboard {
         self.value = blackboard[P.self].value
             .scoped(on: blackboard[ParameterCollection.self])
             .map { path in
@@ -51,11 +75,10 @@ public struct ScopedEndpointPathComponents<P: EndpointPathComponentProvider>: Kn
     }
 }
 
-public struct UnscopedEndpointPathComponentsWithHTTPParameterOptions: EndpointPathComponentProvider {
-    
+public struct UnscopedEndpointPathComponentsHTTP: EndpointPathComponentProvider {
     public let value: [EndpointPath]
     
-    public init<B>(_ blackboard: B) throws where B : Blackboard {
+    public init<B>(_ blackboard: B) throws where B: Blackboard {
         let baseElements = blackboard[UnscopedEndpointPathComponents.self].value
         let pathParametersOnHandler = blackboard[EndpointParameters.self].filter { parameter in
             parameter.parameterType == .path
@@ -67,13 +90,14 @@ public struct UnscopedEndpointPathComponentsWithHTTPParameterOptions: EndpointPa
                     return parameter
                 }
                 return nil
-            }.contains(where: { (parameterElement: AnyEndpointPathParameter) in
+            }
+            .contains(where: { (parameterElement: AnyEndpointPathParameter) in
                 parameterElement.id == parameter.id
             })
         }
         
         let newPathElements = pathParametersOnHandlerButNotOnPath.map { parameter in
-            parameter.derivePathParameterModel()
+            parameter.toInternal().derivePathParameterModel()
         }
         
         self.value = (baseElements + newPathElements)
@@ -84,7 +108,7 @@ extension ScopedEndpointPathComponents {
     struct ParameterCollection: Apodini.ParameterCollection, KnowledgeSource {
         let parameters: [AnyEndpointParameter]
         
-        init<B>(_ blackboard: B) throws where B : Blackboard {
+        init<B>(_ blackboard: B) throws where B: Blackboard {
             self.parameters = blackboard[EndpointParameters.self]
         }
         
@@ -97,6 +121,7 @@ extension ScopedEndpointPathComponents {
 }
 
 public extension AnyEndpoint {
+    /// The ``Endpoint``'s absolute path from the root of the web service as defined by ``EndpointPathComponents``.
     var absolutePath: [EndpointPath] {
         self[EndpointPathComponents.self].value
     }

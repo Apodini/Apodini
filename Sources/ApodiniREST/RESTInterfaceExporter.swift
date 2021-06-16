@@ -115,6 +115,6 @@ extension AnyEndpoint {
     /// RESTInterfaceExporter exports `@Parameter(.http(.path))`, which are not listed on the
     /// path-elements on the `Component`-tree as additional path elements at the end of the path.
     var absoluteRESTPath: [EndpointPath] {
-        self[EndpointPathComponentsWithHTTPParameterOptions.self].value
+        self[EndpointPathComponentsHTTP.self].value
     }
 }

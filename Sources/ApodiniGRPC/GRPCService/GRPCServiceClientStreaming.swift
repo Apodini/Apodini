@@ -12,8 +12,8 @@ import Apodini
 // MARK: Client streaming request handler
 extension GRPCService {
     private func drainBody<H: Handler>(from request: Vapor.Request,
-                           using context: ConnectionContext<GRPCInterfaceExporter, H>,
-                           promise: EventLoopPromise<Vapor.Response>) {
+                                       using context: ConnectionContext<GRPCInterfaceExporter, H>,
+                                       promise: EventLoopPromise<Vapor.Response>) {
         var lastMessage: GRPCMessage?
         request.body.drain { (bodyStream: BodyStreamResult) in
             switch bodyStream {
@@ -65,7 +65,8 @@ extension GRPCService {
         }
     }
 
-    func createClientStreamingHandler<H: Handler>(context: ConnectionContext<GRPCInterfaceExporter, H>) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+    func createClientStreamingHandler<H: Handler>(context: ConnectionContext<GRPCInterfaceExporter, H>)
+        -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         { (request: Vapor.Request) in
             if !self.contentTypeIsSupported(request: request) {
                 return request.eventLoop.makeFailedFuture(GRPCError.unsupportedContentType(

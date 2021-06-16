@@ -49,8 +49,14 @@ class RelationshipTestContext {
         let context = endpoint.createAnyConnectionContext(for: exporter)
 
         do {
-            let (response, parameters) = try context.handleAndReturnParameters(request: request, eventLoop: app.eventLoopGroup.next(), final: true).wait()
-            return try XCTUnwrap(response.map { anyEncodable in EnrichedContent(for: rendpoint, response: anyEncodable, parameters: parameters) })
+            let (response, parameters) = try context.handleAndReturnParameters(
+                request: request,
+                eventLoop: app.eventLoopGroup.next(),
+                final: true)
+                .wait()
+            return try XCTUnwrap(response.map { anyEncodable in
+                EnrichedContent(for: rendpoint, response: anyEncodable, parameters: parameters)
+            })
         } catch {
             fatalError("Error when handling Relationship request: \(error)")
         }

@@ -44,7 +44,7 @@ public extension Handler {
         return (Endpoint(
             handler: handler,
             blackboard: blackboard
-        ),RelationshipEndpoint(
+        ), RelationshipEndpoint(
             handler: handler,
             blackboard: blackboard
         ))

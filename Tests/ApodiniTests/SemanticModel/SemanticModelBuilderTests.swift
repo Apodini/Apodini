@@ -108,7 +108,8 @@ final class SemanticModelBuilderTests: ApodiniTests {
         visitor.finishParsing()
 
         let nameParameterId: UUID = try XCTUnwrap(testComponent.$name.parameterId)
-        let treeNodeA: EndpointsTreeNode = GlobalBlackboard<LazyHashmapBlackboard>(app)[RelationshipModelKnowledgeSource.self].model.root.children.first!
+        let globalBlackboard = GlobalBlackboard<LazyHashmapBlackboard>(app)
+        let treeNodeA: EndpointsTreeNode = globalBlackboard[RelationshipModelKnowledgeSource.self].model.root.children.first!
         let treeNodeB: EndpointsTreeNode = treeNodeA.children.first { $0.storedPath.description == "b" }!
         let treeNodeNameParameter: EndpointsTreeNode = treeNodeB.children.first!
         let treeNodeSomeOtherIdParameter: EndpointsTreeNode = treeNodeA.children.first { $0.storedPath.description != "b" }!

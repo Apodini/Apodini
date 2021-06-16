@@ -40,6 +40,7 @@ extension Operation: OptionalContextKeyKnowledgeSource {
     }
 }
 
+/// A collection of ``AnyEndpointParameter`` that can be directly obtained from a local ``Blackboard``.
 public typealias EndpointParameters = [AnyEndpointParameter]
 
 extension EndpointParameters: HandlerKnowledgeSource, KnowledgeSource {
@@ -49,6 +50,7 @@ extension EndpointParameters: HandlerKnowledgeSource, KnowledgeSource {
 }
 
 public extension AnyEndpoint {
+    /// Provides the ``EndpointParameters`` that correspond to the ``Parameter``s defined on the ``Handler`` of this ``Endpoint``.
     var parameters: EndpointParameters { self[EndpointParameters.self] }
 }
 

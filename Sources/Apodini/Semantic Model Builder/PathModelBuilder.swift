@@ -159,7 +159,7 @@ extension Parameter: EncodeOptionalPathParameter where Element: OptionalProtocol
 
 // MARK: PathParameter Model
 extension EndpointParameter {
-    public func derivePathParameterModel() -> EndpointPath {
+    func derivePathParameterModel() -> EndpointPath {
         let identifyingType = options.option(for: PropertyOptionKey.identifying)
 
         return .parameter(EndpointPathParameter<Type>(id: id, identifyingType: identifyingType))

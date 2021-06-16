@@ -25,7 +25,7 @@ final class UniqueIdentifierTests: ApodiniTests {
         struct IdentifierAccessingExporter: StaticInterfaceExporter {
             init(_ app: Application) { }
             
-            func export<H>(_ endpoint: Endpoint<H>) -> () where H : Handler {
+            func export<H>(_ endpoint: Endpoint<H>) where H: Handler {
                 _ = endpoint[AnyHandlerIdentifier.self]
             }
         }
