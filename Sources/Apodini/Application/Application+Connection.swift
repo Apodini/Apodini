@@ -63,6 +63,8 @@ public struct Connection {
     public var remoteAddress: SocketAddress? { request.remoteAddress }
     /// The `EventLoop` the request is running on.
     public var eventLoop: EventLoop { request.eventLoop }
+    /// The `Information` the request is carrying.
+    public var information: [Information] { request.information }
     
     /// Holds the latest `Request`
     var request: Request
