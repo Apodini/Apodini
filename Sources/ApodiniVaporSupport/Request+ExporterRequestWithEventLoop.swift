@@ -10,9 +10,9 @@ import Vapor
 
 
 extension Vapor.Request: ExporterRequestWithEventLoop {
-    public var information: [Information] {
-        headers.map { name, value in
+    public var information: Set<Information> {
+        Set(headers.map { name, value in
             Information(key: name, value: value)
-        }
+        })
     }
 }

@@ -33,7 +33,7 @@ struct ValidatingRequest<I: InterfaceExporter, H: Handler>: Request {
     var remoteAddress: SocketAddress? {
         exporterRequest.remoteAddress
     }
-    var information: [Information] {
+    var information: Set<Information> {
         exporterRequest.information
     }
 

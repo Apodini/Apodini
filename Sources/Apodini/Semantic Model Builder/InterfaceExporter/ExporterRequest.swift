@@ -10,15 +10,17 @@ public protocol ExporterRequest: Reducible {
     var remoteAddress: SocketAddress? { get }
     
     /// Additional information that is carried with the request
-    var information: [Information] { get }
+    var information: Set<Information> { get }
 }
 
 extension ExporterRequest {
+    /// The remote address of the client that created the request.
     public var remoteAddress: SocketAddress? {
         nil
     }
     
-    public var information: [Information] {
+    /// Additional information that is carried with the request
+    public var information: Set<Information> {
         []
     }
 }

@@ -18,30 +18,30 @@ public struct Response<Content: Encodable>: ResponseTransformable {
         Response<Content>(connectionEffect: .close)
     }
     
-    public static func send(_ content: Self.Content, status: Status? = nil, information: [Information] = []) -> Response<Content> {
+    public static func send(_ content: Self.Content, status: Status? = nil, information: Set<Information> = []) -> Response<Content> {
         Response<Content>(status: status, content: content, information: information, connectionEffect: .open)
     }
     
-    public static func send(_ status: Status? = nil, information: [Information] = []) -> Response<Content> {
+    public static func send(_ status: Status? = nil, information: Set<Information> = []) -> Response<Content> {
         Response<Content>(status: status, information: information, connectionEffect: .open)
     }
     
-    public static func final(_ content: Self.Content, status: Status? = nil, information: [Information] = []) -> Response<Content> {
+    public static func final(_ content: Self.Content, status: Status? = nil, information: Set<Information> = []) -> Response<Content> {
         Response<Content>(status: status, content: content, information: information, connectionEffect: .close)
     }
     
-    public static func final(_ status: Status? = nil, information: [Information] = []) -> Response<Content> {
+    public static func final(_ status: Status? = nil, information: Set<Information> = []) -> Response<Content> {
         Response<Content>(status: status, information: information, connectionEffect: .close)
     }
     
     
     public let status: Status?
     public let content: Content?
-    public let information: [Information]
+    public let information: Set<Information>
     public let connectionEffect: ConnectionEffect
     
     
-    private init(status: Status? = nil, content: Content? = nil, information: [Information] = [], connectionEffect: ConnectionEffect) {
+    private init(status: Status? = nil, content: Content? = nil, information: Set<Information> = [], connectionEffect: ConnectionEffect) {
         self.status = status
         self.content = content
         self.information = information

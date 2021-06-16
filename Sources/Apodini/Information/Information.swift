@@ -8,7 +8,7 @@
 import Foundation
 
 
-/// <#Description#>
+/// Information describes additional metadata that can be attached to a `Response` or can be found in the `ConnectionContext` in the `@Environment` of a `Handler`.
 public enum Information {
     private static let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -31,20 +31,37 @@ public enum Information {
     
     
     /// Creates an key value par of the `Information` instance.
-    public var keyValuePair: (key: String, value: String) {
+    public var keyValuePair: (key: InformationKey, value: String) {
         switch self {
         case let .authorization(authorization):
-            return ("Authorization", authorization.value)
+            return (key, authorization.value)
         case let .cookies(cookies):
-            return ("Cookie", cookies.map { "\($0.0)=\($0.1)" }.joined(separator: "; "))
+            return (key, cookies.map { "\($0.0)=\($0.1)" }.joined(separator: "; "))
         case let .redirectTo(url):
-            return ("Location", url.absoluteString)
+            return (key, url.absoluteString)
         case let .expires(date):
-            return ("Expires", Information.dateFormatter.string(from: date))
+            return (key, Information.dateFormatter.string(from: date))
         case let .eTag(value, isWeak):
-            return ("ETag", "\(isWeak ? "W/" : "")\"\(value)\"")
-        case let .custom(key, value):
-            return (key, value)
+            return (key, "\(isWeak ? "W/" : "")\"\(value)\"")
+        case let .custom(_, value):
+            return (self.key, value)
+        }
+    }
+    
+    var key: InformationKey {
+        switch self {
+        case .authorization:
+            return .authorization
+        case .cookies:
+            return .cookies
+        case .redirectTo:
+            return .redirectTo
+        case .expires:
+            return .expires
+        case .eTag:
+            return .eTag
+        case let .custom(key, _):
+            return .unknown(key)
         }
     }
     
@@ -127,5 +144,16 @@ public enum Information {
         eTagValue.removeLast()
         
         return .eTag(eTagValue, weak: isWeak)
+    }
+}
+
+
+extension Information: Hashable {
+    public static func == (lhs: Information, rhs: Information) -> Bool {
+        lhs.key == rhs.key
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(key)
     }
 }
