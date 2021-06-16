@@ -6,14 +6,16 @@
 //
 
 
-public enum MimeType: Encodable {
+/// MIME type (Multipurpose Internet Mail Extensions) that expresses the format of a `Blob`
+public enum MimeType: Codable, Equatable {
     enum CodingKeys: CodingKey {
         case type
         case subtype
         case parameters
     }
     
-    public enum TextSubtype: String, Encodable {
+    /// Text-only data (https://www.iana.org/assignments/media-types/media-types.xhtml#text)
+    public enum TextSubtype: String, Codable, Hashable {
         case csv
         case html
         case plain
@@ -23,7 +25,8 @@ public enum MimeType: Encodable {
         case php
     }
     
-    public enum ApplicationSubtype: String, Encodable {
+    /// Any kind of binary data (https://www.iana.org/assignments/media-types/media-types.xhtml#application)
+    public enum ApplicationSubtype: String, Codable, Hashable {
         case pdf
         case zip
         case json
@@ -33,7 +36,8 @@ public enum MimeType: Encodable {
         case xml
     }
     
-    public enum ImageSubtype: String, Encodable {
+    /// Any kind of image data (https://www.iana.org/assignments/media-types/media-types.xhtml#image)
+    public enum ImageSubtype: String, Codable, Hashable {
         case png
         case jpeg
         case gif
@@ -75,6 +79,36 @@ public enum MimeType: Encodable {
             return parameters
         case let .image(_, parameters):
             return parameters
+        }
+    }
+    
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let type = try container.decode(String.self, forKey: .type)
+        switch type {
+        case "text":
+            self = .text(
+                try container.decode(TextSubtype.self, forKey: .subtype),
+                parameters: try container.decodeIfPresent([String: String].self, forKey: .parameters) ?? [:]
+            )
+        case "application":
+            self = .application(
+                try container.decode(ApplicationSubtype.self, forKey: .subtype),
+                parameters: try container.decodeIfPresent([String: String].self, forKey: .parameters) ?? [:]
+            )
+        case "image":
+            self = .image(
+                try container.decode(ImageSubtype.self, forKey: .subtype),
+                parameters: try container.decodeIfPresent([String: String].self, forKey: .parameters) ?? [:]
+            )
+        default:
+            var codingPath = decoder.codingPath
+            codingPath.append(CodingKeys.type)
+            throw DecodingError.valueNotFound(
+                Status.self,
+                DecodingError.Context(codingPath: codingPath, debugDescription: "Could not find a correct Mime Type, found: \(type)")
+            )
         }
     }
     

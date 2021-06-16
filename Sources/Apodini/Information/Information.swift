@@ -74,15 +74,15 @@ public enum Information {
         let parsedInformation: Information?
         
         switch key {
-        case "Authorization":
+        case InformationKey.authorization.rawValue:
             parsedInformation = Information.parseAuthorization(value)
-        case "Cookie":
+        case InformationKey.cookies.rawValue:
             parsedInformation = Information.parseCookie(value)
-        case "Location":
+        case InformationKey.redirectTo.rawValue:
             parsedInformation = Information.parseLocation(value)
-        case "Expires":
+        case InformationKey.expires.rawValue:
             parsedInformation = Information.parseExpires(value)
-        case "ETag":
+        case InformationKey.eTag.rawValue:
             parsedInformation = Information.parseETag(value)
         default:
             parsedInformation = .custom(key: key, value: value)
