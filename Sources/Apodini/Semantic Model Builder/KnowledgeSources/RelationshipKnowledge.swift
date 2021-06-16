@@ -21,21 +21,21 @@ struct PartialRelationshipSourceCandidates: ContextKeyKnowledgeSource {
 }
 
 struct RelationshipSources: ContextKeyKnowledgeSource {
-    public typealias Key = RelationshipSourceContextKey
+    typealias Key = RelationshipSourceContextKey
     
-    public let list: [Relationship]
+    let list: [Relationship]
     
-    public init(from value: [Relationship]) {
+    init(from value: [Relationship]) {
         self.list = value
     }
 }
 
 struct RelationshipDestinations: ContextKeyKnowledgeSource {
-    public typealias Key = RelationshipDestinationContextKey
+    typealias Key = RelationshipDestinationContextKey
     
-    public let list: [Relationship]
+    let list: [Relationship]
     
-    public init(from value: [Relationship]) {
+    init(from value: [Relationship]) {
         self.list = value
     }
 }
