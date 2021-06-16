@@ -58,8 +58,8 @@ final class BlobTests: ApodiniTests {
             @Parameter var name: String
             @Parameter var mimeType: MimeType
             
-            func handle() -> Blob {
-                Blob(Data(name.utf8), type: mimeType)
+            func handle() -> Apodini.Response<Blob> {
+                .send(Blob(Data(name.utf8), type: mimeType), status: .ok)
             }
         }
         
@@ -117,5 +117,39 @@ final class BlobTests: ApodiniTests {
             }
             """
         )
+    }
+    
+    func testMIMEDecoding() throws {
+        let validMIMEJSON =
+            """
+            {
+              "type" : "text",
+              "subtype" : "plain",
+              "parameters" : {
+            
+              }
+            }
+            """
+        
+        let decoder = JSONDecoder()
+        let mimeType = try XCTUnwrap(decoder.decode(MimeType.self, from: Data(validMIMEJSON.utf8)))
+        
+        XCTAssertEqual(mimeType.type, "text")
+        XCTAssertEqual(mimeType.subtype, "plain")
+        XCTAssertTrue(mimeType.parameters.isEmpty)
+        
+        
+        let inValidMIMEJSON =
+            """
+            {
+              "type" : "myFancyType",
+              "subtype" : "plain",
+              "parameters" : {
+            
+              }
+            }
+            """
+        
+        try XCTAssertThrowsError(decoder.decode(MimeType.self, from: Data(inValidMIMEJSON.utf8)))
     }
 }
