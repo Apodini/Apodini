@@ -182,11 +182,15 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             try deploymentStructure.writeJSON(to: launchInfoFileUrl)
             try fileManager.setPosixPermissions("rw-r--r--", forItemAt: launchInfoFileUrl)
             
+            
             do {
                 // create & add bootstrap file
+                // TODO: Not entirly sure if this passing of ENVs works
                 let bootstrapFileContents = """
                 #!/bin/bash
-                ./\(lambdaExecutableUrl.lastPathComponent) --mode=\(WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig) --fileurl=./\(launchInfoFileUrl.lastPathComponent)
+                \(WellKnownEnvironmentVariables.executionMode)=\(WellKnownEnvironmentVariableExecutionMode.launchWebServiceInstanceWithCustomConfig)
+                \(WellKnownEnvironmentVariables.fileUrl)=\(launchInfoFileUrl.lastPathComponent)
+                ./\(lambdaExecutableUrl.lastPathComponent)
                 """
                 let bootstrapFileUrl = lambdaPackageTmpDir.appendingPathComponent("bootstrap", isDirectory: false)
                 try bootstrapFileContents.write(to: bootstrapFileUrl, atomically: true, encoding: .utf8)

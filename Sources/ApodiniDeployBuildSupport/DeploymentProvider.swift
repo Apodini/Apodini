@@ -125,9 +125,10 @@ extension DeploymentProvider {
         case .executable(let executableUrl):
             exportWebServiceModelTask = Task(
                 executableUrl: executableUrl,
-                arguments: ["--mode=" + WellKnownCLIArguments.exportWebServiceModelStructure, "--fileurl=" + modelFileUrl.path],
                 captureOutput: false,
-                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup
+                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup,
+                environment: [WellKnownEnvironmentVariables.executionMode: WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
+                              WellKnownEnvironmentVariables.fileUrl: modelFileUrl.path]
             )
         case let .spmTarget(packageUrl, productName):
             let swiftBin = try Self.getSwiftBinUrl()
@@ -144,12 +145,12 @@ extension DeploymentProvider {
                 executableUrl: swiftBin,
                 arguments: [
                     "run",
-                    productName,
-                    "--mode=" + WellKnownCLIArguments.exportWebServiceModelStructure,
-                    "--fileurl=" + modelFileUrl.path
+                    productName
                 ],
                 captureOutput: false,
-                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup
+                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup,
+                environment: [WellKnownEnvironmentVariables.executionMode: WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
+                              WellKnownEnvironmentVariables.fileUrl: modelFileUrl.path]
             )
         }
         

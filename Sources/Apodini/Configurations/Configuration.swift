@@ -30,7 +30,7 @@ public struct EmptyConfiguration: Configuration {
 }
 
 
-extension Array: Configuration where Element == Configuration {    
+extension Array: Configuration where Element == Configuration {
     public func configure(_ app: Application) {
         forEach {
             $0.configure(app)

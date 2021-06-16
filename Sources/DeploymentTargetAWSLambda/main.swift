@@ -285,8 +285,9 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         try runInDocker(
             imageName: dockerImageName,
             bashCommand: [
-                "swift", "run", productName,
-                "--mode=" + WellKnownCLIArguments.exportWebServiceModelStructure, "--fileurl=.build/\(tmpDirName)/\(filename)" // can't use self.tmpDirUrl here since that's an absolute path but we need a relative one bc this is running in the docker container which has a different mount path
+                "\(WellKnownEnvironmentVariables.executionMode)=\(WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure)",
+                "\(WellKnownEnvironmentVariables.fileUrl)=.build/\(tmpDirName)/\(filename)", // can't use self.tmpDirUrl here since that's an absolute path but we need a relative one bc this is running in the docker container which has a different mount path
+                "swift", "run", productName
             ].joined(separator: " ")
         )
         let url = tmpDirUrl.appendingPathComponent(filename, isDirectory: false)

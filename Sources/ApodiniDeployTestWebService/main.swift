@@ -10,7 +10,6 @@
 
 import Foundation
 import NIO
-import ArgumentParser
 import Apodini
 //import ApodiniDeployBuildSupport
 import ApodiniDeploy
@@ -157,14 +156,7 @@ struct Text2: Handler {
     }
 }
 
-struct WebService: Apodini.WebService {
-    @Option
-    var mode: String?
-    @Option
-    var fileurl: String?
-    @Option
-    var node: String?
-    
+struct WebService: Apodini.WebService {    
     var content: some Component {
         Group("aws_rand") {
             Text2("").operation(.create)
@@ -197,10 +189,7 @@ struct WebService: Apodini.WebService {
         }
         ApodiniDeploy(runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
                                        config: DeploymentConfig(defaultGrouping: .separateNodes, deploymentGroups: [
-                .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")]),
-                                       mode: mode,
-                                       fileURL: fileurl,
-                                       node: node)
+                .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")]))
     }
 
     var metadata: Metadata {

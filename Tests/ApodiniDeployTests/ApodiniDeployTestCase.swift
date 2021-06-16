@@ -40,8 +40,9 @@ class ApodiniDeployTestCase: XCTestCase {
     
     
     static var shouldRunDeploymentProviderTests: Bool {
-        ProcessInfo.processInfo.environment["ENABLE_DEPLOYMENT_PROVIDER_TESTS"] != nil
-            || ProcessInfo.processInfo.environment["AD_APODINI_SOURCE_ROOT"] != nil
+//        ProcessInfo.processInfo.environment["ENABLE_DEPLOYMENT_PROVIDER_TESTS"] != nil
+//            || ProcessInfo.processInfo.environment["AD_APODINI_SOURCE_ROOT"] != nil
+        true
     }
     
     

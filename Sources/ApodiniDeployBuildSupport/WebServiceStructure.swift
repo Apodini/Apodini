@@ -11,25 +11,28 @@ import ApodiniUtils
 import OpenAPIKit
 
 
-/// This type defines well-known command line arguments.
-/// These are CLI args which will cause Apodini to perform some specific action
-public enum WellKnownCLIArguments {
-    /// The CLI argument used to tell Apodini to write the web service's structure to disk.
-    /// In the support framework so that we can share this constant between Apodini (which needs to check for it)
-    /// and the deployment provider (which needs to pass it to the invocation).
-    public static let exportWebServiceModelStructure = "apodini-dump-web-service-model-structure"
-
-    /// The CLI argument used to tell an Apodini server that it's being launched with a custom config
-    public static let launchWebServiceInstanceWithCustomConfig = "apodini-launch-web-service-with-custom-config"
-}
-
-
 /// Well-known environment variables, i.e. environment variables which are read by Apodini and used when performing certain tasks.
 /// Note: environment variables which are used in a lambda context must satisfy the regex `[a-zA-Z]([a-zA-Z0-9_])+`
 public enum WellKnownEnvironmentVariables {
     /// Key for an environment variable specifying the current instance's node id (relative to the whole deployed system).
     /// This environment variable is only set of the web service is running as part of a managed deployment.
     public static let currentNodeId = "ApodiniDeployCurrentNodeId"
+    
+    /// Key for an environment variable specifying the execution mode of ApodiniDeploy, ether dump the WebService's model structur or launch the WebService with custom config
+    public static let executionMode = "ApodiniDeployExecutionMode"
+    
+    /// Key for an environment variable specifying the url of the directory used for ApodiniDeploy, either the outputURL or configURL
+    public static let fileUrl = "ApodiniDeployFileURL"
+}
+
+public enum WellKnownEnvironmentVariableExecutionMode {
+    /// Value of an environment variable to tell Apodini to write the web service's structure to disk.
+    /// In the support framework so that we can share this constant between Apodini (which needs to check for it)
+    /// and the deployment provider (which needs to pass it to the invocation).
+    public static let exportWebServiceModelStructure = "ApodiniDumpWebSericeModelStructure"
+    
+    /// Value of an environment variable to tell an Apodini server that it's being launched with a custom config
+    public static let launchWebServiceInstanceWithCustomConfig = "ApodiniLaunchWebServiceInstanceWithCustomConfig"
 }
 
 
