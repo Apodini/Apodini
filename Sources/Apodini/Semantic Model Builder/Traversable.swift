@@ -341,7 +341,11 @@ extension Delegate: Traversable {
         if Target.self == AnyParameter.self {
             try Apodini.execute({ (parameter: AnyParameter, name) throws in
                 var parameter = parameter
-                parameter.options.addOption(self.optionality, for: PropertyOptionKey.optionality)
+                parameter.options.addOption(
+                    self.optionality == .optional
+                        ?.optional
+                        : parameter.options.option(for: PropertyOptionKey.optionality) ?? .required,
+                    for: PropertyOptionKey.optionality)
                 try operation(parameter as! Target, name)
             },
             on: delegate,
@@ -364,9 +368,12 @@ extension Delegate: Traversable {
         
         // we set the optionality of all delegated parameters according to the delegates optionality
         if Target.self == AnyParameter.self {
-            let optionality = self.optionality
             try Apodini.apply({ (parameter: inout AnyParameter, name) throws in
-                parameter.options.addOption(optionality, for: PropertyOptionKey.optionality)
+                parameter.options.addOption(
+                    self.optionality == .optional
+                        ?.optional
+                        : parameter.options.option(for: PropertyOptionKey.optionality) ?? .required,
+                    for: PropertyOptionKey.optionality)
                 var typedParameter = parameter as! Target
                 try mutation(&typedParameter, name)
                 parameter = typedParameter as! AnyParameter
