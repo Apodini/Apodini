@@ -56,7 +56,7 @@ open class MockExporter<Request: ExporterRequest>: InterfaceExporter {
 
     public func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Request) throws -> Type?? {
         guard let first = parameterValues.first else {
-            print("WARN: MockExporter failed to retrieve next parameter for '\(parameter.description)'. Queue is empty")
+            Apodini.Application.logger.warning("MockExporter failed to retrieve next parameter for '\(parameter.description)'. Queue is empty")
             return nil // non existence
         }
         parameterValues.removeFirst()
