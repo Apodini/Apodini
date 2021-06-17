@@ -102,21 +102,9 @@ final class BlobTests: ApodiniTests {
         encoder.outputFormatting = .prettyPrinted
         let encodedBlob = try XCTUnwrap(String(data: try encoder.encode(blob), encoding: .utf8))
         
-        XCTAssertEqual(
-            encodedBlob,
-            """
-            {
-              "type" : {
-                "type" : "text",
-                "subtype" : "plain",
-                "parameters" : {
-            
-                }
-              },
-              "byteBuffer" : "UGF1bA=="
-            }
-            """
-        )
+        XCTAssert(encodedBlob.contains(#""byteBuffer" : "UGF1bA==""#))
+        XCTAssert(encodedBlob.contains(#""type" : "text""#))
+        XCTAssert(encodedBlob.contains(#""subtype" : "plain""#))
     }
     
     func testMIMEDecoding() throws {
