@@ -118,6 +118,12 @@ extension PropertyOptionKey where PropertyNameSpace == ParameterOptionNameSpace,
     public static let optionality = PropertyOptionKey<ParameterOptionNameSpace, Optionality>()
 }
 
+extension Optionality {
+    public static func & (lhs: Self, rhs: Self) -> Self {
+        lhs == .optional ?.optional : rhs
+    }
+}
+
 
 extension Delegate {
     /// Set a delegate's `Binding` to a constant value. This allows for direct injection of information into
