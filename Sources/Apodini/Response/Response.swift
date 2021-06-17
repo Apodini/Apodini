@@ -9,11 +9,6 @@ import NIO
 import ApodiniUtils
 
 
-public struct Empty: Encodable {
-    fileprivate init() {}
-}
-
-
 public struct Response<Content: Encodable>: ResponseTransformable {
     public static var nothing: Response<Content> {
         Response<Content>(connectionEffect: .open)

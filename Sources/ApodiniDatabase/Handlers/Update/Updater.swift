@@ -50,8 +50,7 @@ internal struct Updater<Model: DatabaseModel> {
                 do {
                     try visitable.accept(ConcreteUpdatableFieldPropertyVisitor(updater: value))
                 } catch {
-                    print(error.localizedDescription + "\n" +
-                        "An error occurred while trying to update the property \(visitable) of the model \(model) with the new value \(value)")
+                    Application.logger.error("Trying to update the property \(visitable) of the model \(model) with \(value): \(error.localizedDescription)")
                 }
             }
         }

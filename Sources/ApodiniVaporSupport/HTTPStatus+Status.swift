@@ -1,6 +1,6 @@
 //
 //  HTTPStatus+Status.swift
-//  
+//
 //
 //  Created by Paul Schmiedmayer on 5/26/21.
 //
