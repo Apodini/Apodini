@@ -7,6 +7,8 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniOpenAPI
 @testable import ApodiniVaporSupport
+import ApodiniREST
+
 
 final class OpenAPIDocumentBuilderTests: ApodiniTests {
     struct SomeStruct: Apodini.Content {
