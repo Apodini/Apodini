@@ -46,6 +46,7 @@ public struct Cookies: Information {
 }
 
 
+// MARK: - AnyInformation + Cookies
 extension AnyInformation {
     /// An `Information` instance carrying information about cookies
     public static func cookies(_ cookies: Cookies.Value) -> AnyInformation {

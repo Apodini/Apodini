@@ -8,8 +8,38 @@
 import Foundation
 
 
+// MARK: Authorization
 /// An `Information` carrying authorization information
 public struct Authorization: Information {
+    public static var key: String {
+        "Authorization"
+    }
+    
+    
+    public private(set) var value: Value
+    
+    
+    public var rawValue: String {
+        value.rawValue
+    }
+    
+    
+    public init?(rawValue: String) {
+        guard let value = Value(rawValue: rawValue) else {
+            return nil
+        }
+        
+        self.init(value)
+    }
+    
+    public init(_ value: Value) {
+        self.value = value
+    }
+}
+
+
+// MARK: Authorization Value
+extension Authorization {
     /// The content of an `Authorization` `Information`
     public struct Value: RawRepresentable {
         /// The authorization type
@@ -85,38 +115,13 @@ public struct Authorization: Information {
             self = Self(type: String(substrings[0]), credentials: String(substrings[1]))
         }
     }
-    
-    
-    public static var key: String {
-        "Authorization"
-    }
-    
-    
-    public private(set) var value: Value
-    
-    
-    public var rawValue: String {
-        value.rawValue
-    }
-    
-    
-    public init?(rawValue: String) {
-        guard let value = Value(rawValue: rawValue) else {
-            return nil
-        }
-        
-        self.init(value)
-    }
-    
-    public init(_ value: Value) {
-        self.value = value
-    }
 }
 
 
+// MARK: - AnyInformation + Authorization
 extension AnyInformation {
     /// An `Information` carrying authorization information
-    /// - Parameter authorization: /// The content of an `Authorization` `Information`
+    /// - Parameter authorization: The content of an `Authorization` `Information`
     public static func authorization(_ authorization: Authorization.Value) -> AnyInformation {
         AnyInformation(Authorization(authorization))
     }

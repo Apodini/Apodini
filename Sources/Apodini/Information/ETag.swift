@@ -8,9 +8,39 @@
 import Foundation
 
 
+// MARK: ETag
 /// An `Information` instance carrying an eTag that identifies a resource to enable caching
 public struct ETag: Information {
-    /// The content of an `Authorization` `Information`
+    public static var key: String {
+        "ETag"
+    }
+    
+    
+    public private(set) var value: Value
+    
+    
+    public var rawValue: String {
+        value.rawValue
+    }
+    
+    
+    public init?(rawValue: String) {
+        guard let value = Value(rawValue: rawValue) else {
+            return nil
+        }
+        
+        self.init(value)
+    }
+    
+    public init(_ value: Value) {
+        self.value = value
+    }
+}
+
+
+// MARK: ETag Value
+extension ETag {
+    /// The content of an `ETag` `Information`
     public struct Value: RawRepresentable {
         let tag: String
         let isWeak: Bool
@@ -43,35 +73,10 @@ public struct ETag: Information {
             self = .init(tag: eTagValue, isWeak: isWeak)
         }
     }
-    
-    
-    public static var key: String {
-        "ETag"
-    }
-    
-    
-    public private(set) var value: Value
-    
-    
-    public var rawValue: String {
-        value.rawValue
-    }
-    
-    
-    public init?(rawValue: String) {
-        guard let value = Value(rawValue: rawValue) else {
-            return nil
-        }
-        
-        self.init(value)
-    }
-    
-    public init(_ value: Value) {
-        self.value = value
-    }
 }
 
 
+// MARK: - AnyInformation + ETag
 extension AnyInformation {
     /// An `Information` instance carrying an eTag that identifies a resource to enable caching
     public static func etag(_ tag: String, isWeak: Bool = false) -> AnyInformation {

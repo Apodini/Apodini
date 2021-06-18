@@ -8,6 +8,7 @@
 import Foundation
 
 
+// MARK: ETag
 /// An `Information` carrying information about the expiration date of resources
 public struct Expires: Information {
     private static let dateFormatter: DateFormatter = {
@@ -43,6 +44,7 @@ public struct Expires: Information {
 }
 
 
+// MARK: - AnyInformation + ETag
 extension AnyInformation {
     /// An `Information` carrying information about the expiration date of resources
     public static func expires(_ eexpires: Expires.Value) -> AnyInformation {

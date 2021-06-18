@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Set+Information.swift
 //  
 //
 //  Created by Paul Schmiedmayer on 6/16/21.

@@ -8,6 +8,7 @@
 import Foundation
 
 
+// MARK: RedirectTo
 /// An `Information` instance carrying information that redirects a client to a new location
 public struct RedirectTo: Information {
     public static var key: String {
@@ -37,6 +38,7 @@ public struct RedirectTo: Information {
 }
 
 
+// MARK: - AnyInformation + RedirectTo
 extension AnyInformation {
     /// An `Information` instance carrying information that redirects a client to a new location
     public static func redirectTo(_ redirectTo: RedirectTo.Value) -> AnyInformation {

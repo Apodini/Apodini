@@ -18,7 +18,7 @@ public struct Response<Content: Encodable>: ResponseTransformable {
         Response<Content>(connectionEffect: .close)
     }
     
-    public static func send(_ content: Self.Content, status: Status? = nil, information: Set<AnyInformation> = []) -> Response<Content> {
+    public static func send(_ content: Content, status: Status? = nil, information: Set<AnyInformation> = []) -> Response<Content> {
         Response<Content>(status: status, content: content, information: information, connectionEffect: .open)
     }
     
@@ -26,7 +26,7 @@ public struct Response<Content: Encodable>: ResponseTransformable {
         Response<Content>(status: status, information: information, connectionEffect: .open)
     }
     
-    public static func final(_ content: Self.Content, status: Status? = nil, information: Set<AnyInformation> = []) -> Response<Content> {
+    public static func final(_ content: Content, status: Status? = nil, information: Set<AnyInformation> = []) -> Response<Content> {
         Response<Content>(status: status, content: content, information: information, connectionEffect: .close)
     }
     
