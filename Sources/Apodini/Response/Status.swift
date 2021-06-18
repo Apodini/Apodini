@@ -16,6 +16,8 @@ public enum Status: ResponseTransformable {
     case created
     /// The request was handled and the response does not contain any content
     case noContent
+    /// The request was handled and the client should be redirected to another URL
+    case redirect
     
     public func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<Empty>> {
         eventLoop.makeSucceededFuture(Response.final(self))

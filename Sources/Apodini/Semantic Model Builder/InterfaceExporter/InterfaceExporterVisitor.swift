@@ -74,11 +74,7 @@ private struct StandardStaticExporterVisitableVisitor: StaticExporterVisitableVi
 
 // MARK: AssociatedKit workaround
 
-private struct TestRequest: ExporterRequest {
-    var remoteAddress: SocketAddress? {
-        nil
-    }
-}
+private struct TestRequest: ExporterRequest {}
 
 private struct TestExporter: InterfaceExporter {
     init() {}

@@ -107,7 +107,7 @@ let package = Package(
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0"),
         
         // Migrator
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .revision("6d9e708d480857ecc50e053a6770db8f5936e868"))
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .revision("ecc76c7d0d4bcfb82c7fd226f8917f92356b29cd"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -126,6 +126,7 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "NIO", package: "swift-nio"),
+                .product(name: "NIOFoundationCompat", package: "swift-nio"),
                 .product(name: "NIOHTTP2", package: "swift-nio-http2"),
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
                 .product(name: "Logging", package: "swift-log"),
@@ -244,6 +245,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniREST"),
                 .target(name: "ApodiniTypeReflection"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                 .product(name: "Yams", package: "Yams")
@@ -268,8 +270,7 @@ let package = Package(
             name: "ApodiniREST",
             dependencies: [
                 .target(name: "Apodini"),
-                .target(name: "ApodiniVaporSupport"),
-                .product(name: "FluentKit", package: "fluent-kit")
+                .target(name: "ApodiniVaporSupport")
             ]
         ),
 

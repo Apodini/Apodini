@@ -17,13 +17,26 @@ extension ApodiniMigrator.Parameter {
         do {
             typeInformation = try TypeInformation(type: parameter.propertyType)
         } catch {
-            logger.error(
-                """
-                Error encountered while building the `TypeInformation` for \(parameter.propertyType) of parameter \(parameter.name) in handler \(H.self): \(error).
-                Using \(Null.self) for the type of the parameter.
-                """
-            )
-            typeInformation = .scalar(.null)
+            if parameter.propertyType == MimeType.self {
+                let codingKeys = MimeType.CodingKeys.self
+                typeInformation = .object(
+                    name: .init(MimeType.self),
+                    properties: [
+                        .init(name: codingKeys.type.stringValue, type: .scalar(.string)),
+                        .init(name: codingKeys.subtype.stringValue, type: .scalar(.string)),
+                        .init(name: codingKeys.parameters.stringValue, type: .dictionary(key: .string, value: .scalar(.string)))
+                    ]
+                )
+            } else {
+                logger.error(
+                    """
+                    Error encountered while building the `TypeInformation` for \(parameter.propertyType) of parameter \(parameter.name) in handler \(H.self): \(error).
+                    Using \(Null.self) for the type of the parameter.
+                    """
+                )
+                typeInformation = .scalar(.null)
+            }
+            
         }
         
         let isRequired: Bool = {
@@ -68,7 +81,6 @@ extension ApodiniMigrator.ParameterType {
         case .lightweight: self = .lightweight
         case .content:  self = .content
         case .path: self = .path
-        case .header: self = .header
         }
     }
 }

@@ -50,13 +50,17 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
         do {
             response = try TypeInformation(type: responseType)
         } catch {
-            logger.error(
-                """
-                Error encountered while building the `TypeInformation` of response with type \(responseType) for handler \(handlerName): \(error).
-                Response type set to \(Null.self).
-                """
-            )
-            response = .scalar(.null)
+            if responseType == Blob.self {
+                response = .scalar(.data)
+            } else {
+                logger.error(
+                    """
+                    Error encountered while building the `TypeInformation` of response with type \(responseType) for handler \(handlerName): \(error).
+                    Response type set to \(Null.self).
+                    """
+                )
+                response = .scalar(.null)
+            }
         }
         
         let errors: [ErrorCode] = [
