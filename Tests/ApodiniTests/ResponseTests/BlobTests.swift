@@ -67,8 +67,8 @@ final class BlobTests: ApodiniTests {
         let endpoint = handler.mockEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
-        let endpointHandler = RESTEndpointHandler(with: RESTConfiguration(app.vapor.app.http.server.configuration,
-                                                                          exporterConfiguration: REST.ExporterConfiguration()),
+        let endpointHandler = RESTEndpointHandler(with: REST.Configuration(app.vapor.app.http.server.configuration),
+                                                  withExporterConfiguration: REST.ExporterConfiguration(),
                                                   for: endpoint,
                                                   on: exporter)
         

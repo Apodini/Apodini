@@ -71,14 +71,15 @@ final class RESTInterfaceExporter: InterfaceExporter {
     static let parameterNamespace: [ParameterNamespace] = .individual
     
     let app: Vapor.Application
-    let exporterConfiguration: RESTConfiguration
+    let RESTconfiguration: REST.Configuration
+    let exporterConfiguration: REST.ExporterConfiguration
     
     /// Initialize `RESTInterfaceExporter` from `Application`
     init(_ app: Apodini.Application,
          _ exporterConfiguration: REST.ExporterConfiguration = REST.ExporterConfiguration()) {
         self.app = app.vapor.app
-        self.exporterConfiguration = RESTConfiguration(app.vapor.app.http.server.configuration,
-                                                       exporterConfiguration: exporterConfiguration)
+        self.RESTconfiguration = REST.Configuration(app.vapor.app.http.server.configuration)
+        self.exporterConfiguration = exporterConfiguration
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
@@ -89,7 +90,10 @@ final class RESTInterfaceExporter: InterfaceExporter {
         
         let operation = endpoint[Operation.self]
         
-        let endpointHandler = RESTEndpointHandler(with: exporterConfiguration, for: endpoint, on: self)
+        let endpointHandler = RESTEndpointHandler(with: RESTconfiguration,
+                                                  withExporterConfiguration: exporterConfiguration,
+                                                  for: endpoint,
+                                                  on: self)
         endpointHandler.register(at: routesBuilder, using: operation)
         
         app.logger.info("Exported '\(Vapor.HTTPMethod(operation).rawValue) \(pathBuilder.pathDescription)' with parameters: \(endpoint.parameters.map { $0.name })")
@@ -116,7 +120,9 @@ final class RESTInterfaceExporter: InterfaceExporter {
             
             let relationships = webService.rootRelationships(for: .read)
             
-            let handler = RESTDefaultRootHandler(configuration: exporterConfiguration, relationships: relationships)
+            let handler = RESTDefaultRootHandler(configuration: RESTconfiguration,
+                                                 exporterConfiguration: exporterConfiguration,
+                                                 relationships: relationships)
             handler.register(on: app)
             
             app.logger.info("Auto exported '\(HTTPMethod.GET.rawValue) /'")
@@ -127,7 +133,7 @@ final class RESTInterfaceExporter: InterfaceExporter {
         }
         
         // Set option to activate case insensitive routing, default is false (so case-sensitive)
-        self.app.routes.caseInsensitive = self.exporterConfiguration.exporterConfiguration.caseInsensitiveRouting
+        self.app.routes.caseInsensitive = self.exporterConfiguration.caseInsensitiveRouting
     }
     
     func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Vapor.Request) throws -> Type?? {
@@ -158,7 +164,7 @@ final class RESTInterfaceExporter: InterfaceExporter {
                 return nil
             }
             
-            return try? request.content.decode(Type.self, using: self.exporterConfiguration.exporterConfiguration.decoder)
+            return try? request.content.decode(Type.self, using: self.exporterConfiguration.decoder)
         }
     }
 }

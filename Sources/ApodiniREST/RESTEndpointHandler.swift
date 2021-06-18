@@ -9,16 +9,19 @@ import Vapor
 
 
 struct RESTEndpointHandler<H: Handler> {
-    let configuration: RESTConfiguration
+    let configuration: REST.Configuration
+    let exporterConfiguration: REST.ExporterConfiguration
     let endpoint: Endpoint<H>
     let exporter: RESTInterfaceExporter
     
     init(
-        with configuration: RESTConfiguration,
+        with configuration: REST.Configuration,
+        withExporterConfiguration exporterConfiguration: REST.ExporterConfiguration,
         for endpoint: Endpoint<H>,
         on exporter: RESTInterfaceExporter
     ) {
         self.configuration = configuration
+        self.exporterConfiguration = exporterConfiguration
         self.endpoint = endpoint
         self.exporter = exporter
     }
@@ -38,7 +41,7 @@ struct RESTEndpointHandler<H: Handler> {
                 return ResponseContainer(Empty.self,
                                          status: response.status,
                                          information: response.information,
-                                         encoder: self.configuration.exporterConfiguration.encoder).encodeResponse(for: request)
+                                         encoder: exporterConfiguration.encoder).encodeResponse(for: request)
             }
             
             if let blob = response.content?.response.typed(Blob.self) {
@@ -67,7 +70,7 @@ struct RESTEndpointHandler<H: Handler> {
                                               information: response.information,
                                               data: enrichedContent,
                                               links: links,
-                                              encoder: self.configuration.exporterConfiguration.encoder)
+                                              encoder: exporterConfiguration.encoder)
                                               
             return container.encodeResponse(for: request)
         }
