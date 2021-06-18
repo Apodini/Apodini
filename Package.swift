@@ -244,7 +244,6 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniVaporSupport"),
-                .target(name: "ApodiniREST"),
                 .target(name: "ApodiniTypeReflection"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                 .product(name: "Yams", package: "Yams")

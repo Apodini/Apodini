@@ -24,7 +24,7 @@ class RelationshipTestContext {
 
         let anyExporter: AnyInterfaceExporter
         do {
-            anyExporter = try XCTUnwrap(builder.interfaceExporters.first)
+            anyExporter = try XCTUnwrap(app.interfaceExporters.first)
         } catch {
             fatalError("Failed to unwrap interface exporter: \(error)")
         }

@@ -9,7 +9,6 @@ import NIO
 class SemanticModelBuilder: InterfaceExporterVisitor {
     private(set) var app: Application
 
-    var interfaceExporters: [AnyInterfaceExporter]
     /// This property (which is to be made configurable) toggles if the default `ParameterNamespace`
     /// (which is the strictest option possible) can be overridden by Exporters, which may allow more lenient
     /// restrictions. In the end the Exporter with the strictest `ParameterNamespace` will dictate the requirements
@@ -24,9 +23,8 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     
     private var onRegistrationDone: [() -> Void] = []
 
-    init(_ app: Application, interfaceExporters: [AnyInterfaceExporter] = []) {
+    init(_ app: Application) {
         self.app = app
-        self.interfaceExporters = interfaceExporters.isEmpty ? app.interfaceExporters : interfaceExporters
         
         webService = WebServiceModel(GlobalBlackboard<LazyHashmapBlackboard>(app))
         rootNode = webService.root
@@ -118,11 +116,11 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
 
         app.logger.info("\(webService.debugDescription)")
 
-        if interfaceExporters.isEmpty {
+        if app.interfaceExporters.isEmpty {
             app.logger.warning("There aren't any Interface Exporters registered!")
         }
 
-        interfaceExporters.acceptAll(self)
+        app.interfaceExporters.acceptAll(self)
     }
 
     func visit<I>(exporter: I) where I: InterfaceExporter {
