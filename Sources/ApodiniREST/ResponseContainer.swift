@@ -6,16 +6,18 @@ import Apodini
 import ApodiniUtils
 import Vapor
 
-struct ResponseContainer: Encodable, ResponseEncodable {
-    typealias Links = [String: String]
+
+public struct ResponseContainer: Encodable, ResponseEncodable {
+    public typealias Links = [String: String]
     
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case data = "data"
         case links = "_links"
     }
     
     
     let status: Status?
+    let information: Set<AnyInformation>
     let data: AnyEncodable?
     let links: Links?
     
@@ -23,8 +25,9 @@ struct ResponseContainer: Encodable, ResponseEncodable {
         data == nil && (links?.isEmpty ?? true)
     }
     
-    init<E: Encodable>(_ type: E.Type = E.self, status: Status? = nil, data: E? = nil, links: Links? = nil) {
+    init<E: Encodable>(_ type: E.Type = E.self, status: Status? = nil, information: Set<AnyInformation> = [], data: E? = nil, links: Links? = nil) {
         self.status = status
+        self.information = information
         
         if let data = data {
             self.data = AnyEncodable(data)
@@ -42,11 +45,12 @@ struct ResponseContainer: Encodable, ResponseEncodable {
     }
     
     
-    func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+    public func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         let jsonEncoder = JSONEncoder()
         jsonEncoder.outputFormatting = [.withoutEscapingSlashes, .prettyPrinted]
 
         let response = Vapor.Response()
+        response.headers = HTTPHeaders(information)
         
         switch status {
         case .noContent where !containsNoContent:
