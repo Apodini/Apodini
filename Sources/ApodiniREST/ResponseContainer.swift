@@ -53,7 +53,7 @@ struct ResponseContainer: Encodable, ResponseEncodable {
             // If there is any content in the HTTP body (data or links) we must not return an status code .noContent
             response.status = .ok
         case let .some(status):
-            response.status = httpStatusCode(fromStatus: status)
+            response.status = HTTPStatus(status)
         default:
             if containsNoContent {
                 response.status = .noContent
@@ -70,16 +70,5 @@ struct ResponseContainer: Encodable, ResponseEncodable {
             return request.eventLoop.makeFailedFuture(error)
         }
         return request.eventLoop.makeSucceededFuture(response)
-    }
-    
-    private func httpStatusCode(fromStatus status: Status) -> HTTPStatus {
-        switch status {
-        case .ok:
-            return HTTPStatus.ok
-        case .created:
-            return HTTPStatus.created
-        case .noContent:
-            return HTTPStatus.noContent
-        }
     }
 }

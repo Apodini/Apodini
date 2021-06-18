@@ -8,6 +8,7 @@
 import Apodini
 import Vapor
 
+
 extension Vapor.Application {
     struct LifecycleHandlery: Apodini.LifecycleHandler {
         var app: Vapor.Application
