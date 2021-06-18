@@ -8,6 +8,8 @@ import ApodiniTypeReflection
 @testable import Apodini
 @testable import ApodiniVaporSupport
 @testable import ApodiniOpenAPI
+import ApodiniREST
+
 
 final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     let someString = "Some String"

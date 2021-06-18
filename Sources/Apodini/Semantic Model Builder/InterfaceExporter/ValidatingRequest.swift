@@ -29,22 +29,26 @@ struct ValidatingRequest<I: InterfaceExporter, H: Handler>: Request {
     let endpointValidator: EndpointValidator<I, H>
     let storedEndpoint: Endpoint<H>
     let eventLoop: EventLoop
-    let remoteAddress: SocketAddress?
+    
+    var remoteAddress: SocketAddress? {
+        exporterRequest.remoteAddress
+    }
+    var information: Set<AnyInformation> {
+        exporterRequest.information
+    }
 
     init(
         for exporter: I,
         with request: I.ExporterRequest,
         using endpointValidator: EndpointValidator<I, H>,
         on endpoint: Endpoint<H>,
-        running eventLoop: EventLoop,
-        remoteAddress: SocketAddress?
+        running eventLoop: EventLoop
     ) {
         self.exporter = exporter
         self.exporterRequest = request
         self.endpointValidator = endpointValidator
         self.storedEndpoint = endpoint
         self.eventLoop = eventLoop
-        self.remoteAddress = remoteAddress
     }
 
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element {

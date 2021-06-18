@@ -15,8 +15,6 @@ public enum ParameterType {
     /// Such parameters have a matching parameter in the `[EndpointPath]`.
     /// Such parameters are required to conform to `LosslessStringConvertible`.
     case path
-    /// Parameters contained in the HTTP headers of a request.
-    case header
 }
 
 extension ParameterType: CustomStringConvertible {
@@ -28,8 +26,6 @@ extension ParameterType: CustomStringConvertible {
             return "content"
         case .path:
             return "path"
-        case .header:
-            return "header"
         }
     }
 }

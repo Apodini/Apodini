@@ -104,14 +104,13 @@ internal class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
         self.validated = [:]
         self.request = request
         
-        let requestRemote = (request as? WithRemote)?.remoteAddress
-        
-        return ValidatingRequest<I, H>(for: exporter,
-                                       with: request,
-                                       using: self,
-                                       on: endpoint,
-                                       running: eventLoop,
-                                       remoteAddress: requestRemote)
+        return ValidatingRequest<I, H>(
+            for: exporter,
+            with: request,
+            using: self,
+            on: endpoint,
+            running: eventLoop
+        )
     }
     
     func validate<V>(one parameter: UUID) throws -> V {
