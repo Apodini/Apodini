@@ -16,13 +16,13 @@ import OpenAPIKit
 public enum WellKnownEnvironmentVariables {
     /// Key for an environment variable specifying the current instance's node id (relative to the whole deployed system).
     /// This environment variable is only set of the web service is running as part of a managed deployment.
-    public static let currentNodeId = "ApodiniDeployCurrentNodeId"
+    public static let currentNodeId = "AD_CURRENT_NODE_ID"
     
     /// Key for an environment variable specifying the execution mode of ApodiniDeploy, ether dump the WebService's model structur or launch the WebService with custom config
-    public static let executionMode = "ApodiniDeployExecutionMode"
+    public static let executionMode = "AD_EXECUTION_MODE"
     
     /// Key for an environment variable specifying the url of the directory used for ApodiniDeploy, either the outputURL or configURL
-    public static let fileUrl = "ApodiniDeployFileURL"
+    public static let fileUrl = "AD_INPUT_FILE_PATH"
 }
 
 // swiftlint:disable type_name

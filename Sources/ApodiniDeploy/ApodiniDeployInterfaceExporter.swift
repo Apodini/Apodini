@@ -42,8 +42,7 @@ public final class ApodiniDeploy: Configuration {
     let configuration: ApodiniDeploy.ExporterConfiguration
     
     public init(runtimes: [DeploymentProviderRuntime.Type] = [],
-                config: DeploymentConfig = .init(),
-                mode: String? = nil) {
+                config: DeploymentConfig = .init()) {
         self.configuration = ApodiniDeploy.ExporterConfiguration(
                                 runtimes: runtimes,
                                 config: config)
@@ -146,12 +145,12 @@ class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     
     private func performDeploymentRelatedActions() throws {
-        // If those enironment variable do not exist, return immediatly
-        guard let mode = ProcessInfo.processInfo.environment[WellKnownEnvironmentVariables.executionMode] else {
-            return
-        }
+        let env = ProcessInfo.processInfo.environment
         
-        guard let fileURL = ProcessInfo.processInfo.environment[WellKnownEnvironmentVariables.fileUrl] else {
+        // If those enironment variable do not exist, return immediatly
+        guard let mode = env[WellKnownEnvironmentVariables.executionMode],
+              let fileURL = env[WellKnownEnvironmentVariables.fileUrl]
+        else {
             return
         }
         
