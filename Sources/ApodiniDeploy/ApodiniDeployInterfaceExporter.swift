@@ -145,7 +145,7 @@ class ApodiniDeployInterfaceExporter: InterfaceExporter {
     private func performDeploymentRelatedActions() throws {
         let env = ProcessInfo.processInfo.environment
         
-        // If those enironment variable do not exist, return immediatly
+        // If those enironment variables do not exist, return immediatly
         guard let mode = env[WellKnownEnvironmentVariables.executionMode],
               let fileURL = env[WellKnownEnvironmentVariables.fileUrl]
         else {
@@ -167,7 +167,7 @@ class ApodiniDeployInterfaceExporter: InterfaceExporter {
             
         case WellKnownEnvironmentVariableExecutionMode.launchWebServiceInstanceWithCustomConfig:
             let configUrl = URL(fileURLWithPath: fileURL)
-            guard let currentNodeId = ProcessInfo.processInfo.environment[WellKnownEnvironmentVariables.currentNodeId] else {
+            guard let currentNodeId = env[WellKnownEnvironmentVariables.currentNodeId] else {
                 throw ApodiniDeployError(message: "Unable to find '\(WellKnownEnvironmentVariables.currentNodeId)' environment variable")
             }
             do {
