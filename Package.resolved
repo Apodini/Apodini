@@ -177,8 +177,8 @@
         "repositoryURL": "https://github.com/vapor/multipart-kit.git",
         "state": {
           "branch": null,
-          "revision": "2376b4949e8a1675f7c495224029498194eecf61",
-          "version": "4.0.3"
+          "revision": "c9ea04017b7fb3b1f034ad7a77f8e53d3e080be5",
+          "version": "4.2.1"
         }
       },
       {
@@ -276,8 +276,8 @@
         "repositoryURL": "https://github.com/soto-project/soto.git",
         "state": {
           "branch": null,
-          "revision": "bc693b36e046d9f65e5a5cefe3036a37ebbbd19d",
-          "version": "5.5.0"
+          "revision": "9a7fcaa3e434b57c92bcb8a1b60ee9fdf84334c6",
+          "version": "5.6.0"
         }
       },
       {
@@ -447,8 +447,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "bc194e3868cbd9cf3cd41392e9b10d6fad089bc4",
-          "version": "4.45.7"
+          "revision": "605d8c86cfc51cf875b9e09b3c8f55e4137b0b55",
+          "version": "4.47.0"
         }
       },
       {

@@ -4,6 +4,7 @@
 
 import Foundation
 import Apodini
+import ApodiniREST
 import ApodiniUtils
 import ApodiniTypeReflection
 import ApodiniVaporSupport
@@ -45,18 +46,22 @@ class OpenAPIComponentsObjectBuilder {
     /// Therefore `ResponseContainer`'s CodingKeys are reused.
     /// The resulting JSONSchema is stored in the componentsObject.
     func buildResponse(for type: Encodable.Type) throws -> JSONSchema {
-        let (schema, title) = try buildSchemaWithTitle(for: type)
-        let schemaName = "\(title)Response"
-        let schemaObject: JSONSchema = .object(
-            title: schemaName,
-            properties: [
-                ResponseContainer.CodingKeys.data.rawValue: schema,
-                ResponseContainer.CodingKeys.links.rawValue: try buildSchema(for: ResponseContainer.Links.self)
-            ])
-        if !schemaExists(for: schemaName) {
-            saveSchema(name: schemaName, schema: schemaObject)
+        if type == Blob.self {
+            return .string(format: .binary, required: true)
+        } else {
+            let (schema, title) = try buildSchemaWithTitle(for: type)
+            let schemaName = "\(title)Response"
+            let schemaObject: JSONSchema = .object(
+                title: schemaName,
+                properties: [
+                    ResponseContainer.CodingKeys.data.rawValue: schema,
+                    ResponseContainer.CodingKeys.links.rawValue: try buildSchema(for: ResponseContainer.Links.self)
+                ])
+            if !schemaExists(for: schemaName) {
+                saveSchema(name: schemaName, schema: schemaObject)
+            }
+            return .reference(.component(named: schemaName))
         }
-        return .reference(.component(named: schemaName))
     }
     
     /// In case there is more than one type in HTTP body, a wrapper schema needs to be built.

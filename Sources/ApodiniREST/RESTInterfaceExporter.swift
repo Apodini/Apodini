@@ -5,8 +5,7 @@
 import Apodini
 import Vapor
 import NIO
-
-extension Vapor.Request: ExporterRequest, WithEventLoop, WithRemote {}
+import ApodiniVaporSupport
 
 /// Public Apodini Interface Exporter for REST
 public final class REST: Configuration {
@@ -158,10 +157,8 @@ final class RESTInterfaceExporter: InterfaceExporter {
                 // If the request doesn't have a body, there is nothing to decide.
                 return nil
             }
-            return try? request.content.decode(Type.self, using: self.exporterConfiguration.exporterConfiguration.decoder)
             
-        case .header:
-            return request.headers.first(name: parameter.name) as? Type
+            return try? request.content.decode(Type.self, using: self.exporterConfiguration.exporterConfiguration.decoder)
         }
     }
 }

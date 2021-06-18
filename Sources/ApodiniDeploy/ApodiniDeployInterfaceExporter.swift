@@ -25,8 +25,6 @@ extension AnyEndpointParameter {
             prefix = "l"
         case .path:
             prefix = "p"
-        case .header:
-            prefix = "h"
         }
         return "\(prefix):\(name)"
     }
