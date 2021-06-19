@@ -37,10 +37,17 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
 
     // swiftlint:disable:next function_body_length
     func testAddEndpoint() throws {
-        let comp = SomeComp()
-        let webService = WebServiceModel()
-        var endpoint = comp.mockEndpoint(app: app)
-        webService.addEndpoint(&endpoint, at: ["test"])
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
+            
+        Group("test") {
+            SomeComp()
+        }
+        .accept(visitor)
+        
+        visitor.finishParsing()
+        
+        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<SomeComp>)
 
         let configuration = OpenAPIConfiguration()
 

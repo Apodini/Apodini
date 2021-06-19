@@ -22,7 +22,20 @@ final class UniqueIdentifierTests: ApodiniTests {
     }
     
     func testUniqueIdentifiers() {
+        struct IdentifierAccessingExporter: StaticInterfaceExporter {
+            init(_ app: Application) { }
+            
+            func export<H>(_ endpoint: Endpoint<H>) where H: Handler {
+                _ = endpoint[AnyHandlerIdentifier.self]
+            }
+        }
+        
+        
         struct TestWebService: WebService {
+            var configuration: Configuration {
+                ExporterConfiguration().exporter(IdentifierAccessingExporter.self)
+            }
+            
             var content: some Component {
                 Group("ok") {
                     SomeIdentifiableHandler()

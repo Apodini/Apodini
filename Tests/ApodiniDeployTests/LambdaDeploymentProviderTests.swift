@@ -145,7 +145,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         XCTAssertEqual(6, numDeployedLambdas)
         
-        let (iamExecutionRoleName, iamExecutionRoleArn) = try { () -> (String, String) in
+        let (iamExecutionRoleName, _) = try { () -> (String, String) in
             let regex = try NSRegularExpression(
                 pattern: #"Created lambda execution role: name='(.*)' arn='(.*)'$"#,
                 options: .anchorsMatchLines

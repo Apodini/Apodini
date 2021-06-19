@@ -14,22 +14,11 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     /// restrictions. In the end the Exporter with the strictest `ParameterNamespace` will dictate the requirements
     /// towards parameter naming.
     private let allowLenientParameterNamespaces = true
-
-    let webService: WebServiceModel
-    let rootNode: EndpointsTreeNode
-
-    var relationshipBuilder: RelationshipBuilder
-    var typeIndexBuilder: TypeIndexBuilder
     
-    private var onRegistrationDone: [() -> Void] = []
+    var collectedEndpoints: [_AnyEndpoint] = []
 
     init(_ app: Application) {
         self.app = app
-        webService = WebServiceModel(GlobalBlackboard<LazyHashmapBlackboard>(app))
-        rootNode = webService.root
-
-        relationshipBuilder = RelationshipBuilder(logger: app.logger)
-        typeIndexBuilder = TypeIndexBuilder(logger: app.logger)
     }
 
     /// Registers an `InterfaceExporter` instance on the model builder.
@@ -70,78 +59,16 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
             GlobalBlackboard<LazyHashmapBlackboard>
         >(globalBlackboard, using: handler, context)
         
-        // We first only build the blackboards. The rest is executed at the beginning of `finishedRegistration`.
-        // This way `.global` `KnowledgeSource`s get a complete view of the web service even when accessed from
-        // an `Endpoint`.
-        onRegistrationDone.append { [weak self] in
-            guard let self = self else {
-                return
-            }
-            
-            let paths = context.get(valueFor: PathComponentContextKey.self)
-            
-
-            let partialCandidates = context.get(valueFor: RelationshipSourceCandidateContextKey.self)
-            let relationshipSources = context.get(valueFor: RelationshipSourceContextKey.self)
-            let relationshipDestinations = context.get(valueFor: RelationshipDestinationContextKey.self)
-
-            var endpoint = Endpoint(
-                handler: handler,
-                blackboard: localBlackboard
-            )
-
-            self.webService.addEndpoint(&endpoint, at: paths)
-            // The `ReferenceModule` and `EndpointPathModule` cannot be implemented using one of the standard
-            // `KnowledgeSource` protocols as they depend on the `WebServiceModel`. This should change
-            // once the latter was ported to the Blackboard-Pattern.
-            endpoint[ReferenceModule.self].inject(reference: endpoint.reference)
-            endpoint[EndpointPathModule.self].inject(absolutePath: endpoint.absolutePath)
-            
-
-            // calling the addEndpoint first, triggers the Operation uniqueness check
-            // and we will have less problems with that in the TypeIndex Builder and Relationship Builders.
-            // Additionally, addEndpoint may cause a insertion of a additional path parameter,
-            // which makes it necessary to be called before any operation relying on the path of the Endpoint.
-
-            self.relationshipBuilder.collect(
-                endpoint: endpoint,
-                candidates: partialCandidates,
-                sources: relationshipSources,
-                destinations: relationshipDestinations
-            )
-            
-            let content = endpoint[HandleReturnType.self].type
-            let reference = endpoint[ReferenceModule.self].reference
-            let markedDefault = endpoint[Context.self].get(valueFor: DefaultRelationshipContextKey.self) != nil
-            let pathParameters = endpoint[EndpointPathModule.self].absolutePath.listPathParameters()
-            let operation = endpoint[Operation.self]
-            
-            self.typeIndexBuilder.indexContentType(content: content,
-                                                   reference: reference,
-                                                   markedDefault: markedDefault,
-                                                   pathParameters: pathParameters,
-                                                   operation: operation)
-        }
+        // We first only build the blackboards and the `Endpoint`. The validation and exporting is done at the
+        // beginning of `finishedRegistration`. This way `.global` `KnowledgeSource`s get a complete view of
+        // the web service even when accessed from an `Endpoint`.
+        collectedEndpoints.append(Endpoint(
+            handler: handler,
+            blackboard: localBlackboard
+        ))
     }
 
     func finishedRegistration() {
-        onRegistrationDone.forEach { action in action() }
-        
-        webService.finish()
-
-        // the order of how relationships are built below strongly reflect our strategy
-        // on how conflicting definitions shadow each other
-        let typeIndex = TypeIndex(from: typeIndexBuilder, buildingWith: relationshipBuilder)
-        
-        // resolving any type based Relationship creation (inference or Relationship DSL)
-        typeIndex.resolve()
-
-        // after we collected any relationships from the `typeIndex.resolve()` step
-        // we can construct the final relationship model.
-        relationshipBuilder.buildAll()
-
-        app.logger.info("\(webService.debugDescription)")
-
         if interfaceExporters.isEmpty {
             app.logger.warning("There aren't any Interface Exporters registered!")
         }
@@ -150,27 +77,23 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     }
 
     func visit<I>(exporter: I) where I: InterfaceExporter {
-        call(exporter: exporter, for: webService.root)
-        exporter.finishedExporting(webService)
+        call(exporter: exporter)
+        exporter.finishedExporting(WebServiceModel(blackboard: GlobalBlackboard<LazyHashmapBlackboard>(app)))
     }
 
     func visit<I>(staticExporter: I) where I: StaticInterfaceExporter {
-        call(exporter: staticExporter, for: webService.root)
-        staticExporter.finishedExporting(webService)
+        call(exporter: staticExporter)
+        staticExporter.finishedExporting(WebServiceModel(blackboard: GlobalBlackboard<LazyHashmapBlackboard>(app)))
     }
 
-    private func call<I: BaseInterfaceExporter>(exporter: I, for node: EndpointsTreeNode) {
-        for (_, endpoint) in node.endpoints {
+    private func call<I: BaseInterfaceExporter>(exporter: I) {
+        for endpoint in collectedEndpoints {
             // before we run unnecessary export steps, we first verify that the Endpoint is indeed valid
             // in the case of not allowing lenient namespace definitions we just pass a empty array
             // which will result in the default namespace being used
             endpoint.parameterNameCollisionCheck(in: allowLenientParameterNamespaces ? I.parameterNamespace : .global)
 
             endpoint.exportEndpoint(on: exporter)
-        }
-
-        for child in node.children {
-            call(exporter: exporter, for: child)
         }
     }
 }

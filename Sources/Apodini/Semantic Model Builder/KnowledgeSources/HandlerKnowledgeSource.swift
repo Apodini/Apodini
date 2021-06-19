@@ -9,7 +9,7 @@ import Foundation
 
 /// A helper protocol that provides typed access to the `Handler` stored in `AnyEndpointSource`.
 public protocol HandlerKnowledgeSource: KnowledgeSource {
-    init<H: Handler>(from handler: H) throws
+    init<H: Handler, B: Blackboard>(from handler: H, _ blackboard: B) throws
 }
 
 extension HandlerKnowledgeSource {
@@ -17,6 +17,6 @@ extension HandlerKnowledgeSource {
     public init<B>(_ blackboard: B) throws where B: Blackboard {
         let anyEndpointSource = blackboard[AnyEndpointSource.self]
         
-        self = try anyEndpointSource.create(Self.self)
+        self = try anyEndpointSource.create(Self.self, using: blackboard)
     }
 }

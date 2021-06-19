@@ -76,10 +76,11 @@ class ObservedObjectTests: ApodiniTests {
         
         struct TestListener: ObservedListener {
             var eventLoop: EventLoop
+            
+            var context: ConnectionContext<RESTInterfaceExporter, TestHandler>
 
             func onObservedDidChange(_ observedObject: AnyObservedObject,
-                                     _ event: TriggerEvent,
-                                     in context: ConnectionContext<RESTInterfaceExporter>) {
+                                     _ event: TriggerEvent) {
                 do {
                     try XCTCheckResponse(
                         context.handle(eventLoop: eventLoop, observedObject: observedObject, event: event),
@@ -114,7 +115,7 @@ class ObservedObjectTests: ApodiniTests {
         _ = try context.handle(request: request).wait()
 
         // register listener
-        context.register(listener: TestListener(eventLoop: app.eventLoopGroup.next()))
+        context.register(listener: TestListener(eventLoop: app.eventLoopGroup.next(), context: context))
         // change the value
         testObservable.text = "Hello Swift"
     }
@@ -131,18 +132,20 @@ class ObservedObjectTests: ApodiniTests {
         class MandatoryTestListener: ObservedListener {
             var eventLoop: EventLoop
             
+            var context: ConnectionContext<RESTInterfaceExporter, TestHandler>
+            
             var wasCalled = false
             
             let number: Int
             
-            init(eventLoop: EventLoop, number: Int) {
+            init(eventLoop: EventLoop, number: Int, context: ConnectionContext<RESTInterfaceExporter, TestHandler>) {
                 self.eventLoop = eventLoop
+                self.context = context
                 self.number = number
             }
             
             func onObservedDidChange(_ observedObject: AnyObservedObject,
-                                     _ event: TriggerEvent,
-                                     in context: ConnectionContext<RESTInterfaceExporter>) {
+                                     _ event: TriggerEvent) {
                 wasCalled = true
             }
             
@@ -175,8 +178,8 @@ class ObservedObjectTests: ApodiniTests {
         _ = context2.handle(request: request)
         
         // register listener
-        context1.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next(), number: 1))
-        context2.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next(), number: 2))
+        context1.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next(), number: 1, context: context1))
+        context2.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next(), number: 2, context: context2))
         // change the value
         testObservable.text = "Hello Swift"
     }
@@ -199,13 +202,10 @@ class ObservedObjectTests: ApodiniTests {
         struct TestListener: ObservedListener {
             var eventLoop: EventLoop
             
-            init(eventLoop: EventLoop) {
-                self.eventLoop = eventLoop
-            }
+            var context: ConnectionContext<RESTInterfaceExporter, TestHandler>
             
             func onObservedDidChange(_ observedObject: AnyObservedObject,
-                                     _ event: TriggerEvent,
-                                     in context: ConnectionContext<RESTInterfaceExporter>) {
+                                     _ event: TriggerEvent) {
                 do {
                     try XCTCheckResponse(
                         context.handle(eventLoop: eventLoop, observedObject: observedObject, event: event),
@@ -236,7 +236,7 @@ class ObservedObjectTests: ApodiniTests {
         _ = try context.handle(request: request).wait()
         
         // register listener
-        context.register(listener: TestListener(eventLoop: app.eventLoopGroup.next()))
+        context.register(listener: TestListener(eventLoop: app.eventLoopGroup.next(), context: context))
         // change the value
         testObservable.text = "Hello Swift"
         
@@ -282,23 +282,26 @@ class ObservedObjectTests: ApodiniTests {
     }
     
     
-    class TestListener: ObservedListener {
+    class TestListener<H: Handler>: ObservedListener {
         var eventLoop: EventLoop
+        
+        var context: ConnectionContext<MockExporter<String>, H>
         
         var result: (() -> EventLoopFuture<String>)?
         
-        init(eventLoop: EventLoop) {
+        init(eventLoop: EventLoop, context: ConnectionContext<MockExporter<String>, H>) {
             self.eventLoop = eventLoop
+            self.context = context
         }
 
-        func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent, in context: ConnectionContext<MockExporter<String>>) {
+        func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent) {
             result = {
-                context.handle(eventLoop: self.eventLoop, observedObject: observedObject, event: event).map { response in
+                self.context.handle(eventLoop: self.eventLoop, observedObject: observedObject, event: event).map { response in
                     if response.content == nil {
                         return "Nothing"
                     }
                    
-                   return "\(response.content!.response.wrappedValue)"
+                   return "\(response.content!)"
                 }
             }
         }
@@ -336,17 +339,19 @@ class ObservedObjectTests: ApodiniTests {
         
         let eventLoop = app.eventLoopGroup.next()
         
-        let listener = TestListener(eventLoop: eventLoop)
+        let exporter = MockExporter<String>()
         
         let observable = TestObservable()
         let observable2 = TestObservable(100, "Hello, World!")
         var testHandler = TestHandler(testObservable: observable, secondObservable: observable2).inject(app: app)
         activate(&testHandler)
-
         let endpoint = testHandler.mockEndpoint(app: app)
-
-        let exporter = MockExporter<String>()
+        
         let context = endpoint.createConnectionContext(for: exporter)
+        
+        let listener = TestListener(eventLoop: eventLoop, context: context)
+        
+
         context.register(listener: listener)
 
         try XCTCheckResponse(
@@ -423,8 +428,6 @@ class ObservedObjectTests: ApodiniTests {
         
         let eventLoop = app.eventLoopGroup.next()
         
-        let listener = TestListener(eventLoop: eventLoop)
-        
         let observable = TestObservable()
         let observable2 = TestObservable(100, "Hello, World!")
         let testHandler = TestHandler(secondObservable: observable2).inject(app: app)
@@ -434,6 +437,8 @@ class ObservedObjectTests: ApodiniTests {
 
         let exporter = MockExporter<String>()
         let context = endpoint.createConnectionContext(for: exporter)
+        
+        let listener = TestListener(eventLoop: eventLoop, context: context)
         
         context.register(listener: listener)
 
@@ -519,8 +524,6 @@ class ObservedObjectTests: ApodiniTests {
         
         let eventLoop = app.eventLoopGroup.next()
         
-        let listener = TestListener(eventLoop: eventLoop)
-        
         let observable = TestObservable()
         let observable2 = TestObservable(100, "Hello, World!")
         let testHandler = TestHandler(secondObservable: observable2, testObservableObject: observable).inject(app: app)
@@ -530,6 +533,8 @@ class ObservedObjectTests: ApodiniTests {
 
         let exporter = MockExporter<String>()
         let context = endpoint.createConnectionContext(for: exporter)
+        
+        let listener = TestListener(eventLoop: eventLoop, context: context)
         
         context.register(listener: listener)
 
