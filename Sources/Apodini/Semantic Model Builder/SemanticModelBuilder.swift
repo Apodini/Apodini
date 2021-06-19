@@ -42,7 +42,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     }
 
     func finishedRegistration() {
-        if interfaceExporters.isEmpty {
+        if app.interfaceExporters.isEmpty {
             app.logger.warning("There aren't any Interface Exporters registered!")
         }
 

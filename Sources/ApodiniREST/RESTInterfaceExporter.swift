@@ -71,14 +71,14 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
     public static let parameterNamespace: [ParameterNamespace] = .individual
     
     let app: Vapor.Application
-    let RESTconfiguration: REST.Configuration
+    let configuration: REST.Configuration
     let exporterConfiguration: REST.ExporterConfiguration
     
     /// Initialize `RESTInterfaceExporter` from `Application`
     init(_ app: Apodini.Application,
          _ exporterConfiguration: REST.ExporterConfiguration = REST.ExporterConfiguration()) {
         self.app = app.vapor.app
-        self.RESTconfiguration = REST.Configuration(app.vapor.app.http.server.configuration)
+        self.configuration = REST.Configuration(app.vapor.app.http.server.configuration)
         self.exporterConfiguration = exporterConfiguration
     }
     
