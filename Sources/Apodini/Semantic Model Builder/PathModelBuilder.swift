@@ -71,7 +71,7 @@ private struct PathComponentElementParser: PathComponentParser {
 
 // MARK: Helpers
 
-extension Parameter {
+private extension Parameter {
     func toPathParameter() -> AnyEndpointPathParameter {
         let identifyingType = self.option(for: PropertyOptionKey.identifying)
 

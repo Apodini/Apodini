@@ -116,7 +116,7 @@ public struct RelationshipEndpoint<H: Handler>: _AnyRelationshipEndpoint {
     mutating func inserted(at treeNode: EndpointsTreeNode) {
         inserted = true
         storedAbsolutePath = treeNode.absolutePath.scoped(on: self)
-        storedReference = EndpointReference(on: treeNode, off: self)
+        storedReference = EndpointReference(on: treeNode, of: self)
     }
 
     mutating func initRelationships(with result: RelationshipBuilderResult) {
@@ -157,12 +157,6 @@ public struct RelationshipEndpoint<H: Handler>: _AnyRelationshipEndpoint {
             relationships.append(inherits)
         }
         return relationships
-    }
-    
-    public func findParameter(for id: UUID) -> AnyEndpointParameter? {
-        self[EndpointParameters.self].first { parameter in
-            parameter.id == id
-        }
     }
 }
 

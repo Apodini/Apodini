@@ -47,7 +47,7 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
         
         visitor.finishParsing()
         
-        let endpoint = try XCTUnwrap(modelBuilder.endpointsToExport.first as? Endpoint<SomeComp>)
+        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<SomeComp>)
 
         let configuration = OpenAPIConfiguration()
 

@@ -82,7 +82,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         TestWebService().accept(visitor)
         visitor.finishParsing()
         
-        let endpoint = try XCTUnwrap(modelBuilder.endpointsToExport.first as? Endpoint<GRPCTestHandler>)
+        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<GRPCTestHandler>)
 
         let exporter = GRPCInterfaceExporter(app)
         exporter.export(endpoint)
@@ -408,7 +408,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         TestWebService().accept(visitor)
         visitor.finishParsing()
         
-        let endpoint = try XCTUnwrap(modelBuilder.endpointsToExport.first as? Endpoint<GRPCTestHandler>)
+        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<GRPCTestHandler>)
 
         XCTAssertEqual(gRPCServiceName(from: endpoint), expectedServiceName)
     }

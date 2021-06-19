@@ -61,7 +61,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         let builder = SemanticModelBuilder(app)
         TestWebService().register(builder)
         
-        let actualEndpoints: [EndpointSummary] = builder.endpointsToExport.map(EndpointSummary.init)
+        let actualEndpoints: [EndpointSummary] = builder.collectedEndpoints.map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
             EndpointSummary(id: "0.0.0", path: "/v1/x", description: String(describing: type(of: Text("a")))),
@@ -90,7 +90,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         let builder = SemanticModelBuilder(app)
         TestWebService().register(builder)
         
-        let actualEndpoints: [EndpointSummary] = builder.endpointsToExport.map(EndpointSummary.init)
+        let actualEndpoints: [EndpointSummary] = builder.collectedEndpoints.map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
             EndpointSummary(id: "0.0", path: "/v1", description: String(describing: type(of: Text("a")))),
@@ -118,7 +118,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         let builder = SemanticModelBuilder(app)
         TestWebService().register(builder)
         
-        let actualEndpoints: [EndpointSummary] = builder.endpointsToExport.map(EndpointSummary.init)
+        let actualEndpoints: [EndpointSummary] = builder.collectedEndpoints.map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
             EndpointSummary(id: "0.0.0.0", path: "/v1/x/y/z", description: String(describing: type(of: Text("a")))),
@@ -187,7 +187,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         let builder = SemanticModelBuilder(app)
         TestWebService().register(builder)
         
-        let actualEndpoints: [EndpointSummary] = builder.endpointsToExport.map(EndpointSummary.init)
+        let actualEndpoints: [EndpointSummary] = builder.collectedEndpoints.map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
             EndpointSummary(id: "0.0.0.0.0.0.0", path: "/v1", description: String(describing: type(of: Text("text"))))

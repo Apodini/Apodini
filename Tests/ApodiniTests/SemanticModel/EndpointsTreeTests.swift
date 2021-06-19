@@ -166,7 +166,7 @@ final class EndpointsTreeTests: ApodiniTests {
         self.missingPathParameterWebService.accept(visitor)
         builder.finishedRegistration()
         XCTAssertRuntimeFailure(
-            builder.endpointsToExport.first![EndpointPathComponents.self],
+            builder.collectedEndpoints.first![EndpointPathComponents.self],
             "Accessing a Handler's path with missing PathParameter declaration should fail!"
         )
     }

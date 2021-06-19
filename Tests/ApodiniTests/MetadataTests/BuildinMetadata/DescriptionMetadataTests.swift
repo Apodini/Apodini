@@ -70,7 +70,7 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.endpointsToExport.first)
+        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
         let customDescription = endpoint[Context.self].get(valueFor: DescriptionContextKey.self)
         let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionContextKey.self)
 
@@ -87,7 +87,7 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.endpointsToExport.first)
+        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
         let customDescription = endpoint[Context.self].get(valueFor: DescriptionContextKey.self)
         let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionContextKey.self)
     
@@ -104,7 +104,7 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.endpointsToExport.first)
+        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
         let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionContextKey.self)
         
         XCTAssertEqual(endpoint.description, "TestHandler")
@@ -120,7 +120,7 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.endpointsToExport.first)
+        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
         let customDescription = endpoint[Context.self].get(valueFor: DescriptionContextKey.self)
 
         XCTAssertEqual(customDescription, "Group Description")

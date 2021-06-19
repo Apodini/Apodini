@@ -228,10 +228,7 @@ public class ConnectionContext<I: InterfaceExporter, H: Handler> {
     public func register<Listener: ObservedListener>(listener: Listener) {
         // register the given listener for notifications on the handler
         for object in collectObservedObjects(from: endpoint.handler) {
-            self.observations.append(object.register { [weak self] triggerEvent in
-                guard self != nil else {
-                    return
-                }
+            self.observations.append(object.register { triggerEvent in
                 listener.onObservedDidChange(object, triggerEvent)
             })
         }

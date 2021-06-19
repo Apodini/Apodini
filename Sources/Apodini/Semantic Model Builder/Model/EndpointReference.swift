@@ -22,7 +22,7 @@ struct EndpointReference: CustomStringConvertible, CustomDebugStringConvertible 
     /// Holds the response type of the `Endpoint`
     let responseType: Any.Type
 
-    init<H: Handler>(on node: EndpointsTreeNode, off endpoint: RelationshipEndpoint<H>) {
+    init<H: Handler>(on node: EndpointsTreeNode, of endpoint: RelationshipEndpoint<H>) {
         self.node = node
         self.absolutePath = endpoint.absolutePath
         self.operation = endpoint[Operation.self]

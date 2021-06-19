@@ -52,7 +52,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         
         visitor.finishParsing()
         
-        let endpoint = try XCTUnwrap(modelBuilder.endpointsToExport.first as? Endpoint<HandlerParam>)
+        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<HandlerParam>)
         
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
@@ -101,7 +101,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         
         visitor.finishParsing()
         
-        let endpoint = try XCTUnwrap(modelBuilder.endpointsToExport.first as? Endpoint<SomeComp>)
+        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<SomeComp>)
 
         pathsObjectBuilder.addPathItem(from: endpoint)
         let path = OpenAPI.Path(stringLiteral: "test/{pathParam}/{id}")
@@ -138,7 +138,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         
         visitor.finishParsing()
         
-        let endpoint = try XCTUnwrap(modelBuilder.endpointsToExport.first as? Endpoint<WrappingParamsComp>)
+        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<WrappingParamsComp>)
 
         pathsObjectBuilder.addPathItem(from: endpoint)
         let path = OpenAPI.Path(stringLiteral: "test")
@@ -186,7 +186,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         
         visitor.finishParsing()
         
-        let endpoint = try XCTUnwrap(modelBuilder.endpointsToExport.first as? Endpoint<ArrayParamsComp>)
+        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<ArrayParamsComp>)
 
         pathsObjectBuilder.addPathItem(from: endpoint)
         let path = OpenAPI.Path(stringLiteral: "test")
@@ -253,7 +253,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         
         visitor.finishParsing()
         
-        let endpoint = try XCTUnwrap(modelBuilder.endpointsToExport.first as? Endpoint<ComplexComp>)
+        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<ComplexComp>)
 
         pathsObjectBuilder.addPathItem(from: endpoint)
 

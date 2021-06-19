@@ -15,7 +15,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     /// towards parameter naming.
     private let allowLenientParameterNamespaces = true
     
-    var endpointsToExport: [_AnyEndpoint] = []
+    var collectedEndpoints: [_AnyEndpoint] = []
 
     init(_ app: Application) {
         self.app = app
@@ -62,7 +62,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         // We first only build the blackboards and the `Endpoint`. The validation and exporting is done at the
         // beginning of `finishedRegistration`. This way `.global` `KnowledgeSource`s get a complete view of
         // the web service even when accessed from an `Endpoint`.
-        endpointsToExport.append(Endpoint(
+        collectedEndpoints.append(Endpoint(
             handler: handler,
             blackboard: localBlackboard
         ))
@@ -87,7 +87,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     }
 
     private func call<I: BaseInterfaceExporter>(exporter: I) {
-        for endpoint in endpointsToExport {
+        for endpoint in collectedEndpoints {
             // before we run unnecessary export steps, we first verify that the Endpoint is indeed valid
             // in the case of not allowing lenient namespace definitions we just pass a empty array
             // which will result in the default namespace being used
