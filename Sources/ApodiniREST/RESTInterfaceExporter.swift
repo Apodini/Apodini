@@ -68,7 +68,7 @@ extension REST {
 
 /// Internal Apodini Interface Exporter for REST
 final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
-    public static let parameterNamespace: [ParameterNamespace] = .individual
+    static let parameterNamespace: [ParameterNamespace] = .individual
     
     let app: Vapor.Application
     let configuration: REST.Configuration
@@ -119,7 +119,7 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
         }
     }
 
-    public func finishedExporting(_ webService: WebServiceModel) {
+    func finishedExporting(_ webService: WebServiceModel) {
         let root = webService[WebServiceRoot<RESTInterfaceExporter>.self]
         
         let relationshipModel = webService[RelationshipModelKnowledgeSource.self].model

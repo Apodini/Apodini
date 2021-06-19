@@ -23,7 +23,7 @@ final class UniqueIdentifierTests: ApodiniTests {
     
     func testUniqueIdentifiers() {
         struct IdentifierAccessing: Configuration {
-            public func configure(_ app: Apodini.Application) {
+            func configure(_ app: Apodini.Application) {
                 let identifierExporter = IdentifierAccessingExporter(app)
                 app.registerExporter(staticExporter: identifierExporter)
             }

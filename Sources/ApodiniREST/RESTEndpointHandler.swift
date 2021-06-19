@@ -82,6 +82,6 @@ struct RESTEndpointHandler<H: Handler> {
                                               encoder: exporterConfiguration.encoder)
                                               
             return container.encodeResponse(for: request)
-        }
+            }
     }
 }
