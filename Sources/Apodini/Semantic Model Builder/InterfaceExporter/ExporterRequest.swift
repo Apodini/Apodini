@@ -5,20 +5,32 @@
 import NIO
 
 /// The Protocol any Exporter Request type must conform to
-public protocol ExporterRequest: Reducible {}
+public protocol ExporterRequest: Reducible {
+    /// The remote address of the client that created the request.
+    var remoteAddress: SocketAddress? { get }
+    
+    /// Additional information that is carried with the request
+    var information: Set<AnyInformation> { get }
+}
+
+extension ExporterRequest {
+    /// The remote address of the client that created the request.
+    public var remoteAddress: SocketAddress? {
+        nil
+    }
+    
+    /// Additional information that is carried with the request
+    public var information: Set<AnyInformation> {
+        []
+    }
+}
 
 /// When your `ExporterRequest` conforms to this protocol, it indicates that it delivers
 /// its own `EventLoop` out of the box. Having that conformance you can use a shorthand
 /// `ConnectionContext.handle(...)` method on without specifying an `EventLoop`.
-public protocol WithEventLoop {
+public protocol ExporterRequestWithEventLoop: ExporterRequest {
     /// Defines the associated `EventLoop`.
     var eventLoop: EventLoop { get }
-}
-
-/// Implmented by `ExporterRequest`that provide a remote address.
-public protocol WithRemote {
-    /// The remote address of the client that created the request.
-    var remoteAddress: SocketAddress? { get }
 }
 
 /// An object that can merge itself and a `new` element

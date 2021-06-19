@@ -239,9 +239,9 @@ public class ConnectionContext<I: InterfaceExporter, H: Handler> {
 }
 
 // MARK: Exporter Request with EventLoop
-public extension ConnectionContext where I.ExporterRequest: WithEventLoop {
+public extension ConnectionContext where I.ExporterRequest: ExporterRequestWithEventLoop {
     /// This method is called for every request which is to be handled.
-    /// Shorthand method for the case where the exporter request conforms to `WithEventLoop`.
+    /// Shorthand method for the case where the exporter request conforms to `ExporterRequestWithEventLoop`.
     /// - Parameters:
     ///   - exporterRequest: The exporter defined request to be handled.
     ///   - final: True if this request is the last for the given Connection.

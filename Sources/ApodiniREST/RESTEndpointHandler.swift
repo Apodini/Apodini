@@ -7,6 +7,7 @@ import Apodini
 import ApodiniVaporSupport
 import Vapor
 
+
 struct RESTEndpointHandler<H: Handler> {
     let configuration: RESTConfiguration
     let endpoint: Endpoint<H>
@@ -45,8 +46,19 @@ struct RESTEndpointHandler<H: Handler> {
             }
             .flatMap { (response: Apodini.Response<EnrichedContent>) in
                 guard let enrichedContent = response.content else {
-                    return ResponseContainer(Empty.self, status: response.status)
+                    return ResponseContainer(Empty.self, status: response.status, information: response.information)
                         .encodeResponse(for: request)
+                }
+                
+                if let blob = response.content?.response.typed(Blob.self) {
+                    let vaporResponse = Vapor.Response()
+                    
+                    if let status = response.status {
+                        vaporResponse.status = HTTPStatus(status)
+                    }
+                    vaporResponse.body = Vapor.Response.Body(buffer: blob.byteBuffer)
+                    
+                    return request.eventLoop.makeSucceededFuture(vaporResponse)
                 }
                 
                 let formatter = LinksFormatter(configuration: self.configuration)
@@ -60,7 +72,7 @@ struct RESTEndpointHandler<H: Handler> {
                     enrichedContent.formatSelfRelationship(into: &links, with: formatter)
                 }
 
-                let container = ResponseContainer(status: response.status, data: enrichedContent, links: links)
+                let container = ResponseContainer(status: response.status, information: response.information, data: enrichedContent, links: links)
                 return container.encodeResponse(for: request)
             }
     }

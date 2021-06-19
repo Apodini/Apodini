@@ -297,4 +297,56 @@ final class DelegationTests: ApodiniTests {
         XCTAssertEqual(prepared.binding, 1)
         XCTAssertGreaterThan(prepared.observable.date, afterInitializationBeforeInjection)
     }
+    
+    func testOptionalOptionality() throws {
+        struct OptionalDelegate {
+            @Parameter var name: String
+        }
+        
+        struct RequiredDelegatingDelegate {
+            let delegate = Delegate(OptionalDelegate())
+        }
+        
+        struct SomeHandler: Handler {
+            let delegate = Delegate(RequiredDelegatingDelegate(), .required)
+            
+            func handle() throws -> some ResponseTransformable {
+                try delegate().delegate().name
+            }
+        }
+        
+        let parameter = try XCTUnwrap(SomeHandler().buildParametersModel().first as? EndpointParameter<String>)
+        
+        XCTAssertEqual(ObjectIdentifier(parameter.propertyType), ObjectIdentifier(String.self))
+        XCTAssertEqual(parameter.necessity, .required)
+        XCTAssertEqual(parameter.nilIsValidValue, false)
+        XCTAssertEqual(parameter.hasDefaultValue, false)
+        XCTAssertEqual(parameter.option(for: .optionality), .optional)
+    }
+    
+    func testRequiredOptionality() throws {
+        struct RequiredDelegate {
+            @Parameter var name: String
+        }
+        
+        struct RequiredDelegatingDelegate {
+            var delegate = Delegate(RequiredDelegate(), .required)
+        }
+        
+        struct SomeHandler: Handler {
+            let delegate = Delegate(RequiredDelegatingDelegate(), .required)
+            
+            func handle() throws -> some ResponseTransformable {
+                try delegate().delegate().name
+            }
+        }
+        
+        let parameter = try XCTUnwrap(SomeHandler().buildParametersModel().first as? EndpointParameter<String>)
+        
+        XCTAssertEqual(ObjectIdentifier(parameter.propertyType), ObjectIdentifier(String.self))
+        XCTAssertEqual(parameter.necessity, .required)
+        XCTAssertEqual(parameter.nilIsValidValue, false)
+        XCTAssertEqual(parameter.hasDefaultValue, false)
+        XCTAssertEqual(parameter.option(for: .optionality), .required)
+    }
 }
