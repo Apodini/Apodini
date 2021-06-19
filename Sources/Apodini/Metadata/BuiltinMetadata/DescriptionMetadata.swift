@@ -23,7 +23,7 @@ extension ContentMetadataNamespace {
 }
 
 /// The `ComponentDescriptionMetadata` can be used to add a Description to a `Component`.
-/// The Metadata is available under the `Description` name and can be used like the following:
+/// The Metadata is available under the `ComponentMetadataNamespace.Description` name and can be used like the following:
 /// ```swift
 /// struct ExampleComponent: Component {
 ///     // ...
@@ -44,7 +44,7 @@ public struct ComponentDescriptionMetadata: ComponentMetadataDefinition {
 }
 
 /// The `ContentDescriptionMetadata` can be used to add a Description to a `Content`.
-/// The Metadata is available under the `Description` name and can be used like the following:
+/// The Metadata is available under the `ContentMetadataNamespace.Description` name and can be used like the following:
 /// ```swift
 /// struct ExampleContent: Content {
 ///     // ...
