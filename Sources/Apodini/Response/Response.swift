@@ -66,7 +66,8 @@ extension Response {
 
 
 extension Response {
-    var typeErasured: Response<AnyEncodable> {
+    /// Provides a type-erased version of the ``Response`` by wrapping the ``content`` into an `AnyEncodable`.
+    public var typeErasured: Response<AnyEncodable> {
         map { content in
             guard let anyEncodable = content as? AnyEncodable else {
                 return AnyEncodable(content)
@@ -80,8 +81,6 @@ extension Response {
 extension Response {
     func typed<T: Encodable>(_ type: T.Type = T.self) -> Response<T>? {
         if let anyEncodable = content as? AnyEncodable, let typedContent = anyEncodable.typed(type) {
-            return Response<T>(status: status, content: typedContent, information: information, connectionEffect: connectionEffect)
-        } else if let enrichedContent = content as? EnrichedContent, let typedContent = enrichedContent.typed(type) {
             return Response<T>(status: status, content: typedContent, information: information, connectionEffect: connectionEffect)
         } else if let content = content {
             if let typedContent = content as? T {

@@ -6,6 +6,7 @@
 //
 
 import Apodini
+import ApodiniUtils
 import ApodiniVaporSupport
 import NIOWebSocket
 @_implementationOnly import OpenCombine
@@ -56,7 +57,7 @@ final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         
         self.router.register({(clientInput: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, request: Vapor.Request) -> (
                     defaultInput: SomeInput,
-                    output: AnyPublisher<Message<EnrichedContent>, Error>
+                    output: AnyPublisher<Message<H.Response.Content>, Error>
                 ) in
             var cancellables: Set<AnyCancellable> = []
             
@@ -77,7 +78,7 @@ final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             // instance of the endpoint. Each time we pipe the `observation` into
             // `input` along with its `promise` which must be succeeded further down
             // the line.
-            let listener = DelegatingObservedListener(eventLoop: eventLoop, callback: { observedObject, event in
+            let listener = DelegatingObservedListener<H>(eventLoop: eventLoop, callback: { observedObject, event in
                 input.send(.observation(observedObject, event))
             })
             
@@ -87,13 +88,13 @@ final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             
             // We need a second gap in the publisher-chain here so we can map freely between
             // `value`s and `completion`s.
-            let output: PassthroughSubject<Message<EnrichedContent>, Error> = PassthroughSubject()
+            let output: PassthroughSubject<Message<H.Response.Content>, Error> = PassthroughSubject()
             // Handle all incoming client-messages and observations one after another.
             // The `syncMap` automatically awaits the future, while `buffer` makes sure
             // messages are never dropped.
             input
                 .buffer()
-                .syncMap { evaluation -> EventLoopFuture<Apodini.Response<EnrichedContent>> in
+                .syncMap { evaluation -> EventLoopFuture<Apodini.Response<H.Response.Content>> in
                     switch evaluation {
                     case .input(let inputValue):
                         let request = WebSocketInput(inputValue, eventLoop: eventLoop, remoteAddress: request.remoteAddress)
@@ -162,11 +163,11 @@ final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
     #endif
     
-    private static func handleCompletion(
+    private static func handleCompletion<H: Handler>(
         completion: Subscribers.Completion<Never>,
-        context: ConnectionContext<WebSocketInterfaceExporter>,
+        context: ConnectionContext<WebSocketInterfaceExporter, H>,
         request: WebSocketInput,
-        output: PassthroughSubject<Message<EnrichedContent>, Error>
+        output: PassthroughSubject<Message<H.Response.Content>, Error>
     ) {
         switch completion {
         case .finished:
@@ -185,9 +186,9 @@ final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
     
-    private static func handleValue(
-        result: Result<Apodini.Response<EnrichedContent>, Error>,
-        output: PassthroughSubject<Message<EnrichedContent>, Error>
+    private static func handleValue<C: Encodable>(
+        result: Result<Apodini.Response<C>, Error>,
+        output: PassthroughSubject<Message<C>, Error>
     ) {
         switch result {
         case .success(let response):
@@ -197,9 +198,9 @@ final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
     
-    private static func handleCompletionResponse(
-        response: Apodini.Response<EnrichedContent>,
-        output: PassthroughSubject<Message<EnrichedContent>, Error>
+    private static func handleCompletionResponse<C: Encodable>(
+        response: Apodini.Response<C>,
+        output: PassthroughSubject<Message<C>, Error>
     ) {
         if let content = response.content {
             output.send(.message(content))
@@ -207,9 +208,9 @@ final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         output.send(completion: .finished)
     }
     
-    private static func handleRegularResponse(
-        response: Apodini.Response<EnrichedContent>,
-        output: PassthroughSubject<Message<EnrichedContent>, Error>
+    private static func handleRegularResponse<C: Encodable>(
+        response: Apodini.Response<C>,
+        output: PassthroughSubject<Message<C>, Error>
     ) {
         if let content = response.content {
             output.send(.message(content))
@@ -219,9 +220,9 @@ final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
     
-    private static func handleError(
+    private static func handleError<C: Encodable>(
         error: Error,
-        output: PassthroughSubject<Message<EnrichedContent>, Error>,
+        output: PassthroughSubject<Message<C>, Error>,
         close: Bool = false
     ) {
         let error = error.apodiniError
@@ -243,8 +244,8 @@ final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
 
 // MARK: Handling of ObservedObject
 
-private struct DelegatingObservedListener: ObservedListener {
-    func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent, in context: ConnectionContext<WebSocketInterfaceExporter>) {
+private struct DelegatingObservedListener<H: Handler>: ObservedListener {
+    func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent) {
         callback(observedObject, event)
     }
     

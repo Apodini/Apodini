@@ -164,9 +164,10 @@ final class EndpointsTreeTests: ApodiniTests {
         let builder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         self.missingPathParameterWebService.accept(visitor)
+        builder.finishedRegistration()
         XCTAssertRuntimeFailure(
-            builder.finishedRegistration(),
-            "Parsing a Handler with missing PathParameter declaration should fail!"
+            builder.collectedEndpoints.first![EndpointPathComponents.self],
+            "Accessing a Handler's path with missing PathParameter declaration should fail!"
         )
     }
 
@@ -191,7 +192,7 @@ final class EndpointsTreeTests: ApodiniTests {
     func testWebServiceRootKnowledgeSource() {
         var exported = false
         let exporter = MockExporter<String>(onFinished: { model in
-            let service = model.globalBlackboard[WebServiceRoot<TestAnchor>.self]
+            let service = model[WebServiceRoot<TestAnchor>.self]
             XCTAssertEqual(service.identifier, .root)
             XCTAssertNil(service.parent)
             XCTAssertEqual(service.endpoints.count, 2)

@@ -108,13 +108,18 @@ final class SemanticModelBuilderTests: ApodiniTests {
         visitor.finishParsing()
 
         let nameParameterId: UUID = try XCTUnwrap(testComponent.$name.parameterId)
-        let treeNodeA: EndpointsTreeNode = modelBuilder.rootNode.children.first!
+        let globalBlackboard = GlobalBlackboard<LazyHashmapBlackboard>(app)
+        let model = globalBlackboard[RelationshipModelKnowledgeSource.self].model
+        
+        XCTAssertEqual(model.root.collectEndpoints().count, 3)
+        
+        let treeNodeA: EndpointsTreeNode = model.root.children.first!
         let treeNodeB: EndpointsTreeNode = treeNodeA.children.first { $0.storedPath.description == "b" }!
         let treeNodeNameParameter: EndpointsTreeNode = treeNodeB.children.first!
         let treeNodeSomeOtherIdParameter: EndpointsTreeNode = treeNodeA.children.first { $0.storedPath.description != "b" }!
-        let endpointGroupLevel: AnyEndpoint = treeNodeSomeOtherIdParameter.endpoints.first!.value
+        let endpointGroupLevel: AnyRelationshipEndpoint = treeNodeSomeOtherIdParameter.endpoints.first!.value
         let someOtherIdParameterId: UUID = endpointGroupLevel.parameters.first { $0.name == "someOtherId" }!.id
-        let endpoint: AnyEndpoint = treeNodeNameParameter.endpoints.first!.value
+        let endpoint: AnyRelationshipEndpoint = treeNodeNameParameter.endpoints.first!.value
         
         XCTAssertEqual(treeNodeA.endpoints.count, 0)
         XCTAssertEqual(treeNodeB.endpoints.count, 0)
@@ -128,7 +133,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         
         // test nested use of path parameter that is only set inside `Handler` (i.e. `TestHandler2`)
         let treeNodeSomeIdParameter: EndpointsTreeNode = treeNodeNameParameter.children.first!
-        let nestedEndpoint: AnyEndpoint = treeNodeSomeIdParameter.endpoints.first!.value
+        let nestedEndpoint: AnyRelationshipEndpoint = treeNodeSomeIdParameter.endpoints.first!.value
         let someIdParameterId: UUID = nestedEndpoint.parameters.first { $0.name == "someId" }!.id
         
         XCTAssertEqual(nestedEndpoint.parameters.count, 2)

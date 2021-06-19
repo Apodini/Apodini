@@ -7,24 +7,26 @@ import XCTApodini
 @testable import Apodini
 
 class RelationshipExporter: MockExporter<String> {
-    var endpoints: [AnyEndpoint] = []
+    var endpoints: [(AnyEndpoint, AnyRelationshipEndpoint)] = []
 
     override func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        endpoints.append(endpoint)
+        let rendpoint = endpoint[AnyRelationshipEndpointInstance.self].instance
+        
+        endpoints.append((endpoint, rendpoint))
     }
 
     override func finishedExporting(_ webService: WebServiceModel) {
         // as we are accessing the endpoints via index, ensure a consistent order for the tests
         endpoints = endpoints
             .sorted(by: { lhs, rhs in
-                let lhsString = lhs.absolutePath.asPathString()
-                let rhsString = rhs.absolutePath.asPathString()
+                let lhsString = lhs.0.absolutePath.asPathString()
+                let rhsString = rhs.0.absolutePath.asPathString()
 
                 if lhsString == rhsString {
-                    return lhs[Operation.self] < rhs[Operation.self]
+                    return lhs.0[Operation.self] < rhs.0[Operation.self]
                 }
 
-                return lhs.absolutePath.asPathString() < rhs.absolutePath.asPathString()
+                return lhs.0.absolutePath.asPathString() < rhs.0.absolutePath.asPathString()
             })
     }
 }

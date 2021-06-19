@@ -141,7 +141,7 @@ struct DSLSpecifiedIdentifier: OptionalContextKeyKnowledgeSource {
 struct ExplicitlySpecifiedIdentifier: HandlerKnowledgeSource {
     let value: AnyHandlerIdentifier?
     
-    init<H>(from handler: H) throws where H: Handler {
+    init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
         self.value = handler.getExplicitlySpecifiedIdentifier()
     }
 }
@@ -149,7 +149,7 @@ struct ExplicitlySpecifiedIdentifier: HandlerKnowledgeSource {
 struct HandlerName: HandlerKnowledgeSource {
     let name: String
     
-    init<H>(from handler: H) throws where H: Handler {
+    init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
         self.name = "\(handler)"
     }
 }

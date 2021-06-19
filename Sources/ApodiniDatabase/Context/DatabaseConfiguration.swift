@@ -5,7 +5,7 @@ import NIOSSL
 @_implementationOnly import FluentMySQLDriver
 @_implementationOnly import FluentPostgresDriver
 @_implementationOnly import FluentMongoDriver
-@_implementationOnly import Foundation
+import Foundation
 
 /// A `Configuration` used for Database Access
 public final class DatabaseConfiguration: Configuration {

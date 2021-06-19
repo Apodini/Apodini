@@ -6,7 +6,7 @@ import Foundation
 
 class EndpointsTreeNode {
     let storedPath: StoredEndpointPath
-    var endpoints: [Operation: _AnyEndpoint] = [:]
+    var endpoints: [Operation: _AnyRelationshipEndpoint] = [:]
 
     let parent: EndpointsTreeNode?
     private var nodeChildren: [EndpointPath: EndpointsTreeNode] = [:]
@@ -43,7 +43,7 @@ class EndpointsTreeNode {
         }
     }
 
-    func addEndpoint<H: Handler>(_ endpoint: inout Endpoint<H>, context: inout EndpointInsertionContext) {
+    func addEndpoint<H: Handler>(_ endpoint: inout RelationshipEndpoint<H>, context: inout EndpointInsertionContext) {
         if context.pathEmpty {
             for parameter in endpoint[EndpointParameters.self] {
                 // when the parameter is type of .path and not contained in our path, we must append it to our path
@@ -110,7 +110,7 @@ class EndpointsTreeNode {
 }
 
 struct EndpointInsertionContext {
-    private let endpoint: AnyEndpoint
+    private let endpoint: AnyRelationshipEndpoint
     private(set) var storedPath: [StoredEndpointPath]
 
     /// This array holds all UUIDs of Parameters which were already retrieved from the path array above.
@@ -125,7 +125,7 @@ struct EndpointInsertionContext {
         storedPath.count
     }
 
-    init(for endpoint: AnyEndpoint, with pathComponents: [PathComponent]) {
+    init(for endpoint: AnyRelationshipEndpoint, with pathComponents: [PathComponent]) {
         self.endpoint = endpoint
         self.storedPath = pathComponents.pathModelBuilder().results
     }

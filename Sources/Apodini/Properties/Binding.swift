@@ -64,7 +64,6 @@ extension Binding: PathComponent & _PathComponent where Value: Codable {
     func append<Parser: PathComponentParser>(to parser: inout Parser) {
         guard let parameter = store.wrappedValue["parameter"] as? Parameter<Value> else {
             preconditionFailure("Only bindings created from a `Parameter` or `PathParameter` can be used as a path component")
-            return
         }
         
         parser.visit(parameter)
