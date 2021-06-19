@@ -61,6 +61,11 @@ class ParameterMutabilityTests: ApodiniTests {
             }
         }
     }
+    
+    func testReduction() {
+        XCTAssertEqual(Mutability.constant & Mutability.variable, .constant)
+        XCTAssertEqual(Mutability.variable & Mutability.constant, .variable)
+    }
 
     func testVariableCanBeChanged() throws {
         let handler = TestHandler()
