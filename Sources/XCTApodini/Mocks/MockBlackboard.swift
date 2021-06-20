@@ -36,8 +36,8 @@ public class MockBlackboard: Blackboard {
     }
 }
 
-public extension WebServiceModel {
-    /// Create a `WebServiceModel` providing access to an empty global `Blackboard`
+public extension RelationshipWebServiceModel {
+    /// Create a `RelationshipWebServiceModel` providing access to an empty global `Blackboard`
     convenience init(mockBlackboard: Blackboard = MockBlackboard()) {
         self.init(mockBlackboard)
     }

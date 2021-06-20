@@ -37,39 +37,46 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
 //
 //        let path: [EndpointPath] = [.string("test"), .parameter(pathParameter)]
 //        let pathString = path.build(with: OpenAPIPathBuilder.self)
-//        
+//
 //        XCTAssertEqual(pathString, OpenAPI.Path(stringLiteral: "test/{pathParam}"))
 //    }
-//    
-//    func testDefaultTagWithPathParameter() {
-//        let handler = HandlerParam(pathParam: $param)
-//        var endpoint = handler.mockEndpoint(app: app)
-//        let webService = WebServiceModel()
-//        webService.addEndpoint(&endpoint, at: ["first", "second", $param, "third"])
-//        
+//
+//    func testDefaultTagWithPathParameter() throws {
+//        let modelBuilder = SemanticModelBuilder(app)
+//        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
+//
+//        Group("first", "second", $param, "third") {
+//            HandlerParam(pathParam: $param)
+//        }
+//        .accept(visitor)
+//
+//        visitor.finishParsing()
+//
+//        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<HandlerParam>)
+//
 //        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
 //        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
 //        pathsObjectBuilder.addPathItem(from: endpoint)
-//        
+//
 //        XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
 //        XCTAssertEqual(pathsObjectBuilder.pathsObject.first?.value.get?.tags, ["second"])
 //    }
-//    
+//
 //    func testDefaultTagWithSinglePathParameter() {
 //        let handler = HandlerParam(pathParam: $param)
-//        var endpoint = handler.mockEndpoint(app: app)
-//        let webService = WebServiceModel()
-//        webService.addEndpoint(&endpoint, at: [$param, "first"])
-//        
+//        var (endpoint, rendpoint) = handler.mockRelationshipEndpoint(app: app)
+//        let webService = RelationshipWebServiceModel()
+//        webService.addEndpoint(&rendpoint, at: [$param, "first"])
+//
 //        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
 //        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
 //        pathsObjectBuilder.addPathItem(from: endpoint)
-//        
+//
 //        XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
 //        XCTAssertEqual(pathsObjectBuilder.pathsObject.first?.value.get?.tags, ["default"])
 //    }
 //
-//    func testAddPathItemOperationParams() {
+//    func testAddPathItemOperationParams() throws {
 //        struct SomeComp: Handler {
 //            @Parameter(.http(.query)) var name: String
 //
@@ -83,17 +90,24 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
 //        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
 //        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
 //
-//        let webService = WebServiceModel()
 //
-//        let comp = SomeComp()
-//        var endpoint = comp.mockEndpoint(app: app)
-//        webService.addEndpoint(&endpoint, at: ["test/{pathParam}"])
+//        let modelBuilder = SemanticModelBuilder(app)
+//        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
+//
+//        Group("test/{pathParam}") {
+//            SomeComp()
+//        }
+//        .accept(visitor)
+//
+//        visitor.finishParsing()
+//
+//        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<SomeComp>)
 //
 //        pathsObjectBuilder.addPathItem(from: endpoint)
 //        let path = OpenAPI.Path(stringLiteral: "test/{pathParam}/{id}")
 //        let queryParam = Either.parameter(name: "name", context: .query, schema: .string, description: "@Parameter var name: String")
 //        let pathParam = Either.parameter(name: "id", context: .path, schema: .string, description: "@Parameter var id: String")
-//        
+//
 //        XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
 //        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains(key: path))
 //        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in
@@ -114,11 +128,17 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
 //        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
 //        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
 //
-//        let webService = WebServiceModel()
+//        let modelBuilder = SemanticModelBuilder(app)
+//        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
 //
-//        let comp = WrappingParamsComp()
-//        var endpoint = comp.mockEndpoint(app: app)
-//        webService.addEndpoint(&endpoint, at: ["test"])
+//        Group("test") {
+//            WrappingParamsComp()
+//        }
+//        .accept(visitor)
+//
+//        visitor.finishParsing()
+//
+//        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<WrappingParamsComp>)
 //
 //        pathsObjectBuilder.addPathItem(from: endpoint)
 //        let path = OpenAPI.Path(stringLiteral: "test")
@@ -156,11 +176,17 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
 //        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
 //        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
 //
-//        let webService = WebServiceModel()
+//        let modelBuilder = SemanticModelBuilder(app)
+//        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
 //
-//        let comp = ArrayParamsComp()
-//        var endpoint = comp.mockEndpoint(app: app)
-//        webService.addEndpoint(&endpoint, at: ["test"])
+//        Group("test") {
+//            ArrayParamsComp()
+//        }
+//        .accept(visitor)
+//
+//        visitor.finishParsing()
+//
+//        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<ArrayParamsComp>)
 //
 //        pathsObjectBuilder.addPathItem(from: endpoint)
 //        let path = OpenAPI.Path(stringLiteral: "test")
@@ -205,7 +231,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
 //        XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 2)
 //    }
 //
-//    func testAddPathItemWithRequestBodyAndResponseStruct() {
+//    func testAddPathItemWithRequestBodyAndResponseStruct() throws {
 //        struct ComplexComp: Handler {
 //            @Parameter var someStruct: SomeStruct
 //
@@ -217,11 +243,17 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
 //        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
 //        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
 //
-//        let webService = WebServiceModel()
+//        let modelBuilder = SemanticModelBuilder(app)
+//        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
 //
-//        let comp = ComplexComp()
-//        var endpoint = comp.mockEndpoint(app: app)
-//        webService.addEndpoint(&endpoint, at: ["test"])
+//        Group("test") {
+//            ComplexComp()
+//        }
+//        .accept(visitor)
+//
+//        visitor.finishParsing()
+//
+//        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<ComplexComp>)
 //
 //        pathsObjectBuilder.addPathItem(from: endpoint)
 //

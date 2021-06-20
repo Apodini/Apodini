@@ -36,7 +36,9 @@ struct OpenAPIPathsObjectBuilder {
     /// https://swagger.io/specification/#path-item-object
     mutating func addPathItem<H: Handler>(from endpoint: Endpoint<H>) {
         // Get OpenAPI-compliant path representation.
-        let path = endpoint.absolutePath.build(with: OpenAPIPathBuilder.self)
+        let absolutePath = endpoint.absoluteRESTPath
+        
+        let path = absolutePath.build(with: OpenAPIPathBuilder.self)
 
         // Get or create `PathItem`.
         var pathItem = pathsObject[path] ?? OpenAPI.PathItem()
@@ -55,13 +57,15 @@ private extension OpenAPIPathsObjectBuilder {
     /// https://swagger.io/specification/#operation-object
     mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>) -> OpenAPI.Operation {
         var defaultTag: String
+        let absolutePath = endpoint.absoluteRESTPath
+        
         // If parameter in path, get string component directly before first parameter component in path.
-        if let index = endpoint.absolutePath.firstIndex(where: { $0.isParameter() }), index > 0 {
-            let stringComponent = endpoint.absolutePath[index - 1].description
+        if let index = absolutePath.firstIndex(where: { $0.isParameter() }), index > 0 {
+            let stringComponent = absolutePath[index - 1].description
             defaultTag = stringComponent.isEmpty ? "default" : stringComponent
         // If not, get string component that was appended last to the path.
         } else {
-            defaultTag = endpoint.absolutePath.last { ($0.isString()) }?.description ?? "default"
+            defaultTag = absolutePath.last { ($0.isString()) }?.description ?? "default"
         }
         
         // Get tags if some have been set explicitly passed via TagModifier.
@@ -169,5 +173,13 @@ private extension OpenAPIPathsObjectBuilder {
             OpenAPI.Response(description: "Internal Server Error")
         )
         return responses
+    }
+}
+
+extension AnyEndpoint {
+    /// RESTInterfaceExporter exports `@Parameter(.http(.path))`, which are not listed on the
+    /// path-elements on the `Component`-tree as additional path elements at the end of the path.
+    var absoluteRESTPath: [EndpointPath] {
+        self[EndpointPathComponentsHTTP.self].value
     }
 }

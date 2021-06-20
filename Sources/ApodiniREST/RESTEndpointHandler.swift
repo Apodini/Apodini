@@ -11,15 +11,18 @@ import Vapor
 struct RESTEndpointHandler<H: Handler> {
     let configuration: RESTConfiguration
     let endpoint: Endpoint<H>
+    let relationshipEndpoint: AnyRelationshipEndpoint
     let exporter: RESTInterfaceExporter
     
     init(
         with configuration: RESTConfiguration,
         for endpoint: Endpoint<H>,
+        _ relationshipEndpoint: AnyRelationshipEndpoint,
         on exporter: RESTInterfaceExporter
     ) {
         self.configuration = configuration
         self.endpoint = endpoint
+        self.relationshipEndpoint = relationshipEndpoint
         self.exporter = exporter
     }
     
@@ -31,38 +34,46 @@ struct RESTEndpointHandler<H: Handler> {
     func handleRequest(request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         let context = endpoint.createConnectionContext(for: exporter)
 
-        let responseFuture = context.handle(request: request)
+        let responseFuture = context.handleAndReturnParameters(request: request, eventLoop: request.eventLoop)
 
-        return responseFuture.flatMap { (response: Apodini.Response<EnrichedContent>) in
-            guard let enrichedContent = response.content else {
-                return ResponseContainer(Empty.self, status: response.status, information: response.information)
-                    .encodeResponse(for: request)
-            }
-            
-            if let blob = response.content?.response.typed(Blob.self) {
-                let vaporResponse = Vapor.Response()
-                
-                if let status = response.status {
-                    vaporResponse.status = HTTPStatus(status)
+        return responseFuture
+            .map { response, parameters in
+                response.typeErasured.map { content in
+                    EnrichedContent(for: relationshipEndpoint,
+                                    response: content,
+                                    parameters: parameters)
                 }
-                vaporResponse.body = Vapor.Response.Body(buffer: blob.byteBuffer)
+            }
+            .flatMap { (response: Apodini.Response<EnrichedContent>) in
+                guard let enrichedContent = response.content else {
+                    return ResponseContainer(Empty.self, status: response.status, information: response.information)
+                        .encodeResponse(for: request)
+                }
                 
-                return request.eventLoop.makeSucceededFuture(vaporResponse)
-            }
-            
-            let formatter = LinksFormatter(configuration: self.configuration)
-            var links = enrichedContent.formatRelationships(into: [:], with: formatter, sortedBy: \.linksOperationPriority)
+                if let blob = response.content?.response.typed(Blob.self) {
+                    let vaporResponse = Vapor.Response()
+                    
+                    if let status = response.status {
+                        vaporResponse.status = HTTPStatus(status)
+                    }
+                    vaporResponse.body = Vapor.Response.Body(buffer: blob.byteBuffer)
+                    
+                    return request.eventLoop.makeSucceededFuture(vaporResponse)
+                }
+                
+                let formatter = LinksFormatter(configuration: self.configuration)
+                var links = enrichedContent.formatRelationships(into: [:], with: formatter, sortedBy: \.linksOperationPriority)
 
-            let readExisted = enrichedContent.formatSelfRelationship(into: &links, with: formatter, for: .read)
-            if !readExisted {
-                // by default (if it exists) we point self to .read (which is the most probably of being inherited).
-                // Otherwise we guarantee a "self" relationship, by adding the self relationship
-                // for the operation of the endpoint which is guaranteed to exist.
-                enrichedContent.formatSelfRelationship(into: &links, with: formatter)
-            }
+                let readExisted = enrichedContent.formatSelfRelationship(into: &links, with: formatter, for: .read)
+                if !readExisted {
+                    // by default (if it exists) we point self to .read (which is the most probably of being inherited).
+                    // Otherwise we guarantee a "self" relationship, by adding the self relationship
+                    // for the operation of the endpoint which is guaranteed to exist.
+                    enrichedContent.formatSelfRelationship(into: &links, with: formatter)
+                }
 
-            let container = ResponseContainer(status: response.status, information: response.information, data: enrichedContent, links: links)
-            return container.encodeResponse(for: request)
-        }
+                let container = ResponseContainer(status: response.status, information: response.information, data: enrichedContent, links: links)
+                return container.encodeResponse(for: request)
+            }
     }
 }
