@@ -45,23 +45,10 @@ public extension OptionalContextKey where Value: AnyArray {
     }
 }
 
-/// Helper protocol providing access to a type erased default value of a `ContextKey`.
-public protocol HasDefaultValue {
-    /// The type erased default value of the `ContextKey`.
-    static var defaultValue: Any { get }
-}
-
 
 /// A `ContextKey` is a `OptionalContextKey` with the addition of the definition of a default value.
 /// See implications of the reduction logic `OptionalContextKey.reduce(...)`.
-public protocol ContextKey: OptionalContextKey, HasDefaultValue {
+public protocol ContextKey: OptionalContextKey {
     /// The default value this `ContextKey` provides.
     static var defaultValue: Self.Value { get }
-}
-
-extension ContextKey {
-    // Type erased default value for a `ContextKey`.
-    public static var defaultValue: Any {
-        defaultValue as Self.Value
-    }
 }
