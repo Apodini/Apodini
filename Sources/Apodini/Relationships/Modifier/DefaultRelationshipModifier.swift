@@ -14,12 +14,9 @@ public struct DefaultRelationshipModifier<H: Handler>: HandlerModifier {
     init(_ component: H) {
         self.component = component
     }
-}
 
-extension DefaultRelationshipModifier: SyntaxTreeVisitable {
-    public func accept(_ visitor: SyntaxTreeVisitor) {
+    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(DefaultRelationshipContextKey.self, value: (), scope: .current)
-        component.accept(visitor)
     }
 }
 

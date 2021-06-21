@@ -13,7 +13,7 @@ import XCTVapor
 
 final class OperationModifierTests: ApodiniTests {
     struct HelloWorldHandler: Handler {
-        func handle() -> Strign {
+        func handle() -> String {
             "Hello World"
         }
 

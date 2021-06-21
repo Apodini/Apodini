@@ -102,7 +102,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let handler = GRPCTestHandler()
         let node = ContextNode()
         node.addContext(GRPCServiceNameContextKey.self, value: expectedServiceName, scope: .current)
-        var (endpoint, rendpoint) = handler.mockRelationshipEndpoint(context: Context(contextNode: node))
+        var (endpoint, rendpoint) = handler.mockRelationshipEndpoint(context: node.export())
 
         webService.addEndpoint(&rendpoint, at: ["Group1", "Group2"])
 
@@ -420,7 +420,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
         let node = ContextNode()
         node.addContext(GRPCServiceNameContextKey.self, value: serviceName, scope: .current)
-        endpoint = handler.mockEndpoint(context: Context(contextNode: node))
+        endpoint = handler.mockEndpoint(context: node.export())
 
         XCTAssertEqual(gRPCServiceName(from: endpoint), serviceName)
     }
@@ -434,7 +434,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
         let node = ContextNode()
         node.addContext(GRPCMethodNameContextKey.self, value: methodName, scope: .current)
-        endpoint = handler.mockEndpoint(context: Context(contextNode: node))
+        endpoint = handler.mockEndpoint(context: node.export())
 
         XCTAssertEqual(gRPCMethodName(from: endpoint), methodName)
     }

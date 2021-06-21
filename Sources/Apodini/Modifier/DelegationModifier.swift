@@ -34,17 +34,14 @@ public struct DelegationModifier<C: Component, I: DelegatingHandlerInitializer>:
         self.initializer = initializer
         self.prepend = prepend
     }
+
+    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
+        visitor.addContext(DelegatingHandlerContextKey.self, value: [(prepend, initializer)], scope: .environment)
+    }
 }
 
 extension DelegationModifier: HandlerModifier where Self.ModifiedComponent: Handler {
     public typealias Response = I.Response
-}
-
-extension DelegationModifier: SyntaxTreeVisitable {
-    public func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(DelegatingHandlerContextKey.self, value: [(prepend, initializer)], scope: .environment)
-        component.accept(visitor)
-    }
 }
 
 
@@ -92,11 +89,8 @@ public extension DelegatingHandlerInitializer {
 // MARK: DelegatingHandlerContextKey
 
 struct DelegatingHandlerContextKey: ContextKey {
-    static var defaultValue: [(Bool, AnyDelegatingHandlerInitializer)] = []
-    
-    static func reduce(value: inout [(Bool, AnyDelegatingHandlerInitializer)], nextValue: () -> [(Bool, AnyDelegatingHandlerInitializer)]) {
-        value.append(contentsOf: nextValue())
-    }
+    typealias Value = [(Bool, AnyDelegatingHandlerInitializer)]
+    static var defaultValue: Value = []
 }
 
 
@@ -107,10 +101,8 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
     let semanticModelBuilder: SemanticModelBuilder?
     unowned let visitor: SyntaxTreeVisitor
     
-    var contextBuilders: [() -> Void] = []
-    
     init(calling builder: SemanticModelBuilder?, with visitor: SyntaxTreeVisitor) {
-        let initializers = visitor.currentNode.getContextValue(for: DelegatingHandlerContextKey.self)
+        let initializers = visitor.currentNode.peekValue(for: DelegatingHandlerContextKey.self)
         self.initializers = (initializers.filter { prepend, _ in prepend }.reversed()
                                 + initializers.filter { prepend, _ in !prepend }).map { _, initializer in initializer }
         self.semanticModelBuilder = builder
@@ -119,10 +111,8 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
     
     func visit<H: Handler>(handler: H) throws {
         preconditionTypeIsStruct(H.self, messagePrefix: "Delegating Handler")
-        
-        self.contextBuilders.append {
-            handler.metadata.accept(self.visitor)
-        }
+
+        handler.metadata.accept(self.visitor)
         
         if !initializers.isEmpty {
             let initializer = initializers.removeFirst()
@@ -137,13 +127,7 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
                 try nextHandler.accept(self)
             }
         } else {
-            contextBuilders.reversed().forEach { builder in builder() }
-            
-            // We capture the currentContextNode and make a copy that will be used when executing the request as
-            // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the
-            // currentNode would always result in the last currentNode that was used when visiting the component tree.
-            let context = Context(contextNode: visitor.currentNode.copy())
-            
+            let context = visitor.currentNode.export()
             semanticModelBuilder?.register(handler: handler, withContext: context)
         }
     }

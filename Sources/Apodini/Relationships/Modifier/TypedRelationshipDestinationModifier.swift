@@ -15,13 +15,10 @@ public struct TypedRelationshipDestinationModifier<H: Handler, To>: HandlerModif
 
         precondition(name != "self", "The relationship name 'self' is reserved. To model relationship inheritance please use `Inherits`!")
     }
-}
 
-extension TypedRelationshipDestinationModifier: SyntaxTreeVisitable {
-    public func accept(_ visitor: SyntaxTreeVisitor) {
+    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
         let candidate = PartialRelationshipSourceCandidate(link: name, destinationType: destinationType)
         visitor.addContext(RelationshipSourceCandidateContextKey.self, value: [candidate], scope: .current)
-        component.accept(visitor)
     }
 }
 

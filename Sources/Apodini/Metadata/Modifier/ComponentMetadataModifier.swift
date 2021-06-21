@@ -35,12 +35,9 @@ public struct ComponentMetadataModifier<C: Component>: Modifier {
         self.component = component
         self.componentMetadata = metadata
     }
-}
 
-extension ComponentMetadataModifier: SyntaxTreeVisitable {
-    public func accept(_ visitor: SyntaxTreeVisitor) {
+    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
         componentMetadata.accept(visitor)
-        component.accept(visitor)
     }
 }
 

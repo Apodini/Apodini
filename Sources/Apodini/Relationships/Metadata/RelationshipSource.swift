@@ -13,7 +13,6 @@ extension TypedContentMetadataNamespace {
 /// In addition to the modifier, the `RelationshipSource` allows to define `RelationshipIdentification`s
 /// to add resolvers for path parameters of the destination.
 public class RelationshipSource<From, To>: RelationshipsContentMetadataBlock {
-    public typealias Key = RelationshipSourceCandidateContextKey
     override public var value: [PartialRelationshipSourceCandidate] {
         [PartialRelationshipSourceCandidate(link: name, destinationType: destinationType, resolvers: resolvers)]
     }

@@ -19,12 +19,9 @@ public struct GRPCMethodModifier<H: Handler>: HandlerModifier {
         self.component = component
         self.methodName = methodName
     }
-}
 
-extension GRPCMethodModifier: SyntaxTreeVisitable {
-    public func accept(_ visitor: SyntaxTreeVisitor) {
+    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(GRPCMethodNameContextKey.self, value: methodName, scope: .current)
-        component.accept(visitor)
     }
 }
 

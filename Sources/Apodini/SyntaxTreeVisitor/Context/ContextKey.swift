@@ -5,32 +5,43 @@
 //  Created by Paul Schmiedmayer on 6/26/20.
 //
 
-// swiftlint:disable missing_docs
-
 /// A `OptionalContextKey` serves as a key definition for a `ContextNode`.
 /// Optionally it can serve a reduction logic when inserting a new value into the `ContextNode`,
 /// see `OptionalContextKey.reduce(...)`.
 /// The `OptionalContextKey` is optional in the sense that it doesn't provide a default value, meaning
-/// it may not exists on the `Context` for a given `Handler`.
+/// it may not exist on the `Context` for a given `Handler`.
 public protocol OptionalContextKey {
     /// The type of the value the `OptionalContextKey` identifies. The value MUST NOT be of type `Optional`.
     associatedtype Value
 
     /// This function can be optionally implemented to provide a reduction logic when inserting a new
-    /// value into a `ContextNode`. By default the previous value will just be overwritten.
-    /// As `OptionalContextKey` do not provide a default value, `reduce(...)` will not be called on first
-    /// insertion of a value for this `OptionalContextKey`.
+    /// value into a `ContextNode`.
+    ///
+    /// There are the following two default implementations - depending on the type - if no custom logic is specified:
+    /// - The value with higher precedence overwrites the previous value
+    /// - The value with higher precedence will be appended to the previous value for `Array` based ContextKeys
+    ///
+    /// For `ContextKey`s with default value, the default value won't ever be passed to the `reduce(...)` function.
     ///
     /// - Parameters:
     ///   - value: The current value of the context key.
     ///         The result of the reduction must be written into this inout parameter.
     ///   - nextValue: The return value of the provided closure is the newly inserted value.
-    static func reduce(value: inout Self.Value, nextValue: () -> Self.Value)
+    static func reduce(value: inout Self.Value, nextValue: Self.Value)
 }
 
 public extension OptionalContextKey {
-    static func reduce(value: inout Self.Value, nextValue: () -> Self.Value) {
-        value = nextValue()
+    /// Default reduction logic. Completely replaces the current value with the next value.
+    static func reduce(value: inout Self.Value, nextValue: Self.Value) {
+        value = nextValue
+    }
+}
+
+public extension OptionalContextKey where Value: AnyArray {
+    /// Default reduction logic for array based `ContextKey`s.
+    /// Joins the contents of the collections my appending the next value to the current value.
+    static func reduce(value: inout Self.Value, nextValue: Self.Value) {
+        value.append(contentsOf: nextValue)
     }
 }
 
@@ -49,6 +60,7 @@ public protocol ContextKey: OptionalContextKey, HasDefaultValue {
 }
 
 extension ContextKey {
+    // Type erased default value for a `ContextKey`.
     public static var defaultValue: Any {
         defaultValue as Self.Value
     }

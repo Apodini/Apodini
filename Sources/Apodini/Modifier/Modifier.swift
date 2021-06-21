@@ -7,11 +7,17 @@
 
 
 /// A modifier which can be invoked on a `Component`
-public protocol Modifier: Component {
+public protocol Modifier: Component, SyntaxTreeVisitable {
     associatedtype ModifiedComponent: Component
     typealias Content = Never
-    
+
+    /// The `Component` which is modified.
     var component: ModifiedComponent { get }
+
+    /// This method is called when an instance of the `Modifier` is parsed inside the component tree.
+    /// Use this method to place calls to `SyntaxTreeVisitor.addContext(...)`.
+    /// - Parameter visitor: The `SyntaxTreeVisitor` parsing the given `Modifier`
+    func parseModifier(_ visitor: SyntaxTreeVisitor)
 }
 
 // Workaround for the "swift conditional conformance does not imply conformance to inherited protocol" compiler error
@@ -34,6 +40,19 @@ public extension HandlerModifierProto {
     /// - Note: this function should not be implemented in a modifier type
     func handle() -> Response {
         fatalError("A Modifier's handle method should never be called!")
+    }
+}
+
+
+// MARK: SyntaxTreeVisitor
+public extension Modifier {
+    /// Default implementation for the `SyntaxTreeVisitable` protocol.
+    /// Do not overwrite!
+    func accept(_ visitor: SyntaxTreeVisitor) {
+        visitor.markContextWorkSetBegin(isModifier: true)
+
+        parseModifier(visitor)
+        component.accept(visitor)
     }
 }
 

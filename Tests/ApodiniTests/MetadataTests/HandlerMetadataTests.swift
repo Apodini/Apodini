@@ -7,11 +7,8 @@ import XCTest
 import XCTApodini
 
 private struct TestIntMetadataContextKey: ContextKey {
+    typealias Value = [Int]
     static var defaultValue: [Int] = []
-
-    static func reduce(value: inout [Int], nextValue: () -> [Int]) {
-        value.append(contentsOf: nextValue())
-    }
 }
 
 private struct TestStringMetadataContextKey: OptionalContextKey {
@@ -131,36 +128,31 @@ private struct TestMetadataHandler: Handler {
     }
 }
 
-class UnresettableContextNode: ContextNode {
-    override func resetContextNode() {}
-}
-
 final class HandlerMetadataTest: ApodiniTests {
     static var expectedIntsState: [Int] {
         #if swift(>=5.4)
-        [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15].reversed()
+        [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15]
         #else
         // swiftlint:disable:next comma
-        return [0, 1, 2, 3, 5, 6, 7, 8, 9,             14, 15].reversed()
+        return [0, 1, 2, 3, 5, 6, 7, 8, 9,      14, 15]
         #endif
     }
 
     static var expectedInts: [Int] {
         #if swift(>=5.4)
-        [0, 2, 4, 5, 6, 10, 11, 12, 13, 14, 15].reversed()
+        [0, 2, 4, 5, 6, 10, 11, 12, 13, 14, 15]
         #else
         // swiftlint:disable:next comma
-        return [0, 2, 4, 5, 6, 10,             14, 15].reversed()
+        return [0, 2, 4, 5, 6, 10,      14, 15]
         #endif
     }
 
     func testHandlerMetadataTrue() {
         let visitor = SyntaxTreeVisitor()
-        visitor.currentNode = UnresettableContextNode()
         let handler = TestMetadataHandler(state: true)
         handler.accept(visitor)
 
-        let context = Context(contextNode: visitor.currentNode)
+        let context = visitor.currentNode.export()
 
         let capturedInts = context.get(valueFor: TestIntMetadataContextKey.self)
         let expectedInts: [Int] = Self.expectedIntsState
@@ -172,11 +164,10 @@ final class HandlerMetadataTest: ApodiniTests {
 
     func testHandlerMetadataFalse() {
         let visitor = SyntaxTreeVisitor()
-        visitor.currentNode = UnresettableContextNode()
         let handler = TestMetadataHandler(state: false)
         handler.accept(visitor)
 
-        let context = Context(contextNode: visitor.currentNode)
+        let context = visitor.currentNode.export()
 
         let captured = context.get(valueFor: TestIntMetadataContextKey.self)
         let expected: [Int] = Self.expectedInts
@@ -188,7 +179,6 @@ final class HandlerMetadataTest: ApodiniTests {
 
     func testComponentMetadataModifier() {
         let visitor = SyntaxTreeVisitor()
-        visitor.currentNode = UnresettableContextNode()
         let component = TestMetadataHandler(state: true)
             .metadata(TestIntHandlerMetadata(16))
             .metadata {
@@ -196,7 +186,7 @@ final class HandlerMetadataTest: ApodiniTests {
             }
         component.accept(visitor)
 
-        let context = Context(contextNode: visitor.currentNode)
+        let context = visitor.currentNode.export()
 
         let capturedInts = context.get(valueFor: TestIntMetadataContextKey.self)
         let expectedInts: [Int] = Self.expectedIntsState + [16, 17]
@@ -226,12 +216,11 @@ final class HandlerMetadataTest: ApodiniTests {
         
         
         let visitor = SyntaxTreeVisitor()
-        visitor.currentNode = UnresettableContextNode()
         let component = TestMetadataHandler(state: true).delegated(by: TestDelegatingHandlerInitializer())
         
         component.accept(visitor)
 
-        let context = Context(contextNode: visitor.currentNode)
+        let context = visitor.currentNode.export()
 
         let capturedInts = context.get(valueFor: TestIntMetadataContextKey.self)
         let expectedInts: [Int] = Self.expectedIntsState

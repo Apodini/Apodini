@@ -13,8 +13,8 @@ public struct ContentDescriptionContextKey: OptionalContextKey {
 }
 
 extension ComponentMetadataNamespace {
-    /// Name Definition for the `ComponentDescriptionMetadata`
-    public typealias Description = ComponentDescriptionMetadata
+    /// Name Definition for the `DescriptionMetadata`
+    public typealias Description = DescriptionMetadata
 }
 
 extension ContentMetadataNamespace {
@@ -22,7 +22,7 @@ extension ContentMetadataNamespace {
     public typealias Description = ContentDescriptionMetadata
 }
 
-/// The `ComponentDescriptionMetadata` can be used to add a Description to a `Component`.
+/// The `DescriptionMetadata` can be used to add a Description to a `Component`.
 /// The Metadata is available under the `ComponentMetadataNamespace.Description` name and can be used like the following:
 /// ```swift
 /// struct ExampleComponent: Component {
@@ -32,7 +32,7 @@ extension ContentMetadataNamespace {
 ///     }
 /// }
 /// ```
-public struct ComponentDescriptionMetadata: ComponentMetadataDefinition {
+public struct DescriptionMetadata: ComponentMetadataDefinition {
     public typealias Key = DescriptionContextKey
     public let value: String
 
@@ -66,19 +66,19 @@ public struct ContentDescriptionMetadata: ContentMetadataDefinition {
 
 
 extension Component {
-    /// A `description` Modifier can be used to specify the `ComponentDescriptionMetadata` via a `Modifier`.
+    /// A `description` Modifier can be used to specify the `DescriptionMetadata` via a `Modifier`.
     /// - Parameter description: The description used for the `Component`.
-    /// - Returns: The modified `Component` with the `ComponentDescriptionMetadata` added.
+    /// - Returns: The modified `Component` with the `DescriptionMetadata` added.
     public func description(_ description: String) -> ComponentMetadataModifier<Self> {
-        ComponentMetadataModifier(modifies: self, with: ComponentDescriptionMetadata(description))
+        ComponentMetadataModifier(modifies: self, with: DescriptionMetadata(description))
     }
 }
 
 extension Handler {
-    /// A `description` Modifier can be used to specify the `ComponentDescriptionMetadata` via a `HandlerModifier`.
+    /// A `description` Modifier can be used to specify the `DescriptionMetadata` via a `HandlerModifier`.
     /// - Parameter description: The `description` that is used to for the `Handler`.
-    /// - Returns: The modified `Handler` with the `ComponentDescriptionMetadata` added.
+    /// - Returns: The modified `Handler` with the `DescriptionMetadata` added.
     public func description(_ value: String) -> HandlerMetadataModifier<Self> {
-        HandlerMetadataModifier(modifies: self, with: ComponentDescriptionMetadata(value))
+        HandlerMetadataModifier(modifies: self, with: DescriptionMetadata(value))
     }
 }
