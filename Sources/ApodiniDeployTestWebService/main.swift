@@ -20,10 +20,9 @@ import ApodiniOpenAPI
 
 
 
-/*
- This file implements the `ApodiniDeployTestWebService`,
- which is used to test the two deployment providers (localhost and Lambda).
- */
+
+// This file implements the `ApodiniDeployTestWebService`,
+// which is used to test the two deployment providers (localhost and Lambda).
 
 
 

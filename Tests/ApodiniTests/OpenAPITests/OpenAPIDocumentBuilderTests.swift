@@ -126,8 +126,6 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
         let builtDocument = documentBuilder.build()
 
         XCTAssertNoThrow(try builtDocument.output(configuration: exporterConfiguration))
-        print(try document.output(configuration: exporterConfiguration)!)
-        print(try builtDocument.output(configuration: exporterConfiguration)!)
         XCTAssertEqual(builtDocument, document)
     }
 }

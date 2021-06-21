@@ -238,7 +238,7 @@ class ApodiniDeployInterfaceExporter: InterfaceExporter {
 }
 
 
-// MARK: _ApodiniDeployInterfaceExporter.ExporterRequest
+// MARK: ApodiniDeployInterfaceExporter.ExporterRequest
 
 extension ApodiniDeployInterfaceExporter {
     struct ExporterRequest: Apodini.ExporterRequest {

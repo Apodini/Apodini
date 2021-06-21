@@ -57,13 +57,12 @@ extension REST {
         /// Indicates whether the HTTP route is interpreted case-sensitivly
         public let caseInsensitiveRouting: Bool
         
-        /**
-         Initializes the `RESTExporterConfiguration` of the `RESTInterfaceExporter`
-         - Parameters:
-             - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
-             - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
-             - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitivly
-         */
+        
+        /// Initializes the `RESTExporterConfiguration` of the `RESTInterfaceExporter`
+        /// - Parameters:
+        ///    - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
+        ///    - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
+        ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitivly
         public init(encoder: AnyEncoder = REST.defaultEncoder,
                     decoder: AnyDecoder = REST.defaultDecoder,
                     caseInsensitiveRouting: Bool = false) {

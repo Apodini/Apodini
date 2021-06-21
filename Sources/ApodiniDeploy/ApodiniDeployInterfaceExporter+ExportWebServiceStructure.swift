@@ -1,5 +1,5 @@
 //
-//  _ApodiniDeployInterfaceExporter+ExportWebServiceStructure.swift
+//  ApodiniDeployInterfaceExporter+ExportWebServiceStructure.swift
 //  
 //
 //  Created by Lukas Kollmer on 16.02.21.

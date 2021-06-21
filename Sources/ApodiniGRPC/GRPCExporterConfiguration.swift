@@ -14,11 +14,9 @@ extension GRPC {
         /// The to be used `IntegerWidthConfiguration` of the `GRPCInterfaceExporter`
         public let integerWidth: IntegerWidthConfiguration
         
-        /**
-         Initializes the `GRPCExporterConfiguration`
-         - Parameters:
-         - integerWidth: The to be used `IntegerWidthConfiguration`, defaults to .native which automatically detects the systems setting
-         */
+        /// Initializes the `GRPCExporterConfiguration`
+        /// - Parameters:
+        /// - integerWidth: The to be used `IntegerWidthConfiguration`, defaults to .native which automatically detects the systems setting
         public init(integerWidth: IntegerWidthConfiguration = .native) {
             self.integerWidth = integerWidth
 

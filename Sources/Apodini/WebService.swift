@@ -34,13 +34,11 @@ extension WebService {
         try Self.start(webService: self)
     }
     
-    /**
-     This function is executed to start up an Apodini `WebService`
-     - Parameters:
-         - waitForCompletion: Indicates whether the `Application` is launched or just booted. Defaults to true, meaning the `Application` is run
-         - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
-     - Returns: The application on which the `WebService` is operating on
-     */
+    /// This function is executed to start up an Apodini `WebService`
+    /// - Parameters:
+    ///    - waitForCompletion: Indicates whether the `Application` is launched or just booted. Defaults to true, meaning the `Application` is run
+    ///    - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
+    /// - Returns: The application on which the `WebService` is operating on
     @discardableResult
     static func start(waitForCompletion: Bool = true, webService: Self = Self()) throws -> Application {
         let app = Application()
@@ -62,12 +60,10 @@ extension WebService {
     }
     
 
-    /**
-     This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.start()` to startup an Apodini `WebService`.
-     - Parameters:
-         - app: The app instance that should be injected in the Apodini `WebService`
-         - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
-     */
+     /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.start()` to startup an Apodini `WebService`.
+     /// - Parameters:
+     ///    - app: The app instance that should be injected in the Apodini `WebService`
+     ///    - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
     static func start(app: Application, webService: Self = Self()) {
         /// Configure application and instanciate exporters
         webService.configuration.configure(app)

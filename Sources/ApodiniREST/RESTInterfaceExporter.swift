@@ -24,13 +24,11 @@ public final class REST: Configuration {
         JSONDecoder()
     }
     
-    /**
-     Initializes the configuration of the `RESTInterfaceExporter` with (default) `AnyEncoder` and `AnyDecoder`
-     - Parameters:
-         - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
-         - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
-         - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitivly
-     */
+    /// Initializes the configuration of the `RESTInterfaceExporter` with (default) `AnyEncoder` and `AnyDecoder`
+    /// - Parameters:
+    ///    - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
+    ///    - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
+    ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitivly
     public init(encoder: AnyEncoder = defaultEncoder, decoder: AnyDecoder = defaultDecoder, caseInsensitiveRouting: Bool = false) {
         self.configuration = REST.ExporterConfiguration(encoder: encoder, decoder: decoder, caseInsensitiveRouting: caseInsensitiveRouting)
         self.staticConfigurations = [EmptyRESTDependentStaticConfiguration()]
@@ -49,14 +47,12 @@ public final class REST: Configuration {
 }
 
 extension REST {
-    /**
-     Initializes the configuration of the `RESTInterfaceExporter` with (default) JSON Coders and possibly associated Exporters (eg. OpenAPI Exporter)
-     - Parameters:
-         - encoder: The to be used `JSONEncoder`, defaults to a `JSONEncoder`
-         - decoder: The to be used `JSONDecoder`, defaults to a `JSONDecoder`
-         - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitivly
-         - staticConfiguraiton: A result builder that allows passing dependend static Exporters like the OpenAPI Exporter
-     */
+    /// Initializes the configuration of the `RESTInterfaceExporter` with (default) JSON Coders and possibly associated Exporters (eg. OpenAPI Exporter)
+    /// - Parameters:
+    ///    - encoder: The to be used `JSONEncoder`, defaults to a `JSONEncoder`
+    ///    - decoder: The to be used `JSONDecoder`, defaults to a `JSONDecoder`
+    ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitivly
+    ///    - staticConfiguraiton: A result builder that allows passing dependend static Exporters like the OpenAPI Exporter
     public convenience init(encoder: JSONEncoder = defaultEncoder as! JSONEncoder,
                             decoder: JSONDecoder = defaultDecoder as! JSONDecoder,
                             caseInsensitiveRouting: Bool = false,
