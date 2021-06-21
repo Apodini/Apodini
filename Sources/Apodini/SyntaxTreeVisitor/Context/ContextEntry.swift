@@ -75,11 +75,11 @@ class ContextEntry<Key: OptionalContextKey>: AnyContextEntry {
             fatalError("RHS with type \(type(of: rhs)) doesn't match in type with \(Self.self)")
         }
 
-        let values = filterForLocalScope
+        let lhsValues = filterForLocalScope
             ? values.filter { $0.scope == .environment }
             : values
 
-        return ContextEntry(values + selfRHS.values)
+        return ContextEntry(lhsValues + selfRHS.values)
     }
 
     func reduce() -> Any {
