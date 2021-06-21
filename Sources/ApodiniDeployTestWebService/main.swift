@@ -5,13 +5,14 @@
 //  Created by Lukas Kollmer on 2021-03-18.
 //
 
-// This file still is work in progress...
-// swiftlint:disable all
+// We prefix some types with 'LH_' and 'AWS_' to indicate whether they belong to
+// the localhost or the AWS part of the tests. Yeah the underscore isn't excatly ideal but it makes
+// differentiating between the two kinds of components a lot easier...
+// swiftlint:disable type_name
 
 import Foundation
 import NIO
 import Apodini
-//import ApodiniDeployBuildSupport
 import ApodiniDeploy
 import DeploymentTargetLocalhostRuntime
 import DeploymentTargetAWSLambdaRuntime
@@ -19,12 +20,10 @@ import ApodiniREST
 import ApodiniOpenAPI
 
 
-
 /*
  This file implements the `ApodiniDeployTestWebService`,
  which is used to test the two deployment providers (localhost and Lambda).
  */
-
 
 
 // MARK: Localhost Components
@@ -40,7 +39,6 @@ struct LH_ResponseWithPid<T: Codable>: Content, Codable {
 }
 
 
-
 struct LH_TextMut: InvocableHandler {
     class HandlerIdentifier: ScopedHandlerIdentifier<LH_TextMut> {
         static let main = HandlerIdentifier("main")
@@ -50,10 +48,9 @@ struct LH_TextMut: InvocableHandler {
     @Parameter var text: String
     
     func handle() -> LH_ResponseWithPid<String> {
-        return LH_ResponseWithPid(text.lowercased())
+        LH_ResponseWithPid(text.lowercased())
     }
 }
-
 
 
 struct LH_GreeterResponse: Codable {
@@ -67,7 +64,7 @@ struct LH_Greeter: Handler {
     @Parameter(.http(.path)) var name: String
     
     func handle() -> EventLoopFuture<LH_ResponseWithPid<LH_GreeterResponse>> {
-        return RHI.invoke(
+        RHI.invoke(
             LH_TextMut.self,
             identifiedBy: .main,
             arguments: [.init(\.$text, name)]
@@ -82,10 +79,7 @@ struct LH_Greeter: Handler {
 }
 
 
-
 // MARK: Lambda Components
-
-
 
 struct AWS_RandomNumberGenerator: InvocableHandler, HandlerWithDeploymentOptions {
     class HandlerIdentifier: ScopedHandlerIdentifier<AWS_RandomNumberGenerator> {
@@ -101,25 +95,21 @@ struct AWS_RandomNumberGenerator: InvocableHandler, HandlerWithDeploymentOptions
     func handle() throws -> Int {
         print("\(Self.self) invoked at pid \(getpid())")
         guard lowerBound <= upperBound else {
-            //return 0 // TODO have this throw an error, and test how the RHI API would deal w/ that
-            throw NSError(domain: "xxx", code: 123, userInfo: [NSLocalizedDescriptionKey: "localdesc"])
+            throw NSError(domain: "ApodiniDeployTestWebService", code: 0, userInfo: [
+                NSLocalizedDescriptionKey: "Invalid bounds. Got \(lowerBound)...\(upperBound)"
+            ])
         }
         return Int.random(in: lowerBound...upperBound)
     }
     
     static var deploymentOptions: [AnyDeploymentOption] {
-        return [
-            // NOTE: starting with swift 5.4 (i believe) we'll be able to drop the leading `AnyOption` here and use the implicit member thing w/ chaining
-            AnyOption.memory(.mb(150))
-                .when(\Self.handlerId == .main),
-            AnyOption.memory(.mb(180))
-                .when(\Self.handlerId == .other),
-            AnyOption.timeout(.seconds(12))
+        [
+            .memory(.mb(150)).when(\Self.handlerId == .main),
+            .memory(.mb(180)).when(\Self.handlerId == .other),
+            .timeout(.seconds(12))
         ]
     }
 }
-
-
 
 
 struct AWS_Greeter: Handler {
@@ -129,7 +119,7 @@ struct AWS_Greeter: Handler {
     @Parameter(.http(.path)) var name: String
     
     func handle() -> EventLoopFuture<String> {
-        return RHI.invoke(
+        RHI.invoke(
             AWS_RandomNumberGenerator.self,
             identifiedBy: .main,
             arguments: [
