@@ -1,4 +1,5 @@
 # Apodini
+[![DOI](https://zenodo.org/badge/274515276.svg)](https://zenodo.org/badge/latestdoi/274515276)
 [![codecov](https://codecov.io/gh/apodini/apodini/branch/develop/graph/badge.svg?token=QOAYN4SWRN)](https://codecov.io/gh/apodini/apodini)
 [![jazzy](https://raw.githubusercontent.com/Apodini/Apodini/gh-pages/badge.svg)](https://apodini.github.io/Apodini/)
 ![Build and Test](https://github.com/Apodini/Apodini/workflows/Build%20and%20Test/badge.svg)
