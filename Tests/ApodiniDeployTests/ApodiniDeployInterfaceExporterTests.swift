@@ -53,8 +53,7 @@ private struct TestWebService: Apodini.WebService {
     }
     
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(ApodiniDeployInterfaceExporter.self)
+        ApodiniDeploy()
     }
 }
 
@@ -71,7 +70,7 @@ class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
                 try setUpWithError()
             }
             
-            TestWebService.main(app: app)
+            TestWebService.start(app: app)
             
             let apodiniDeployIE = try XCTUnwrap(app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self))
             let actual = apodiniDeployIE.collectedEndpoints

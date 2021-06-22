@@ -1,5 +1,5 @@
 //
-//  API.swift
+//  Version.swift
 //  Apodini
 //
 //  Created by Paul Schmiedmayer on 6/26/20.
@@ -7,7 +7,7 @@
 
 
 /// A `Version` can be  used to specify the version of a Web API using semantic versioning
-public struct Version {
+public struct Version: Decodable {
     /// Default values for a `Version`
     public enum Defaults {
         /// The default prefix

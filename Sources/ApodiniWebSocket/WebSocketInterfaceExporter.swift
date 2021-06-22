@@ -14,21 +14,39 @@ import NIOWebSocket
 
 // MARK: Exporter
 
+public final class WebSocket: Configuration {
+    let configuration: WebSocket.ExporterConfiguration
+    
+    public init(path: String = "apodini/websocket") {
+        self.configuration = WebSocket.ExporterConfiguration(path: path)
+    }
+    
+    public func configure(_ app: Apodini.Application) {
+        /// Instanciate exporter
+        let webSocketExporter = WebSocketInterfaceExporter(app, self.configuration)
+        
+        /// Insert exporter into `InterfaceExporterStorage`
+        app.registerExporter(exporter: webSocketExporter)
+    }
+}
+
 /// The WebSocket exporter uses a custom JSON based protocol on top of WebSocket's text messages.
 /// This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel.
 /// The Apodini service listens on /apodini/websocket for clients that want to communicate via the WebSocket Interface Exporter.
-public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
+final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private let app: Apodini.Application
-    
+    private let exporterConfiguration: WebSocket.ExporterConfiguration
     private let router: VaporWSRouter
 
     /// Initalize a `WebSocketInterfaceExporter` from an `Application`
-    public required init(_ app: Apodini.Application) {
+    init(_ app: Apodini.Application,
+         _ exporterConfiguration: WebSocket.ExporterConfiguration = WebSocket.ExporterConfiguration()) {
         self.app = app
-        self.router = VaporWSRouter(app.vapor.app, logger: app.logger)
+        self.exporterConfiguration = exporterConfiguration
+        self.router = VaporWSRouter(app.vapor.app, logger: app.logger, at: self.exporterConfiguration.path)
     }
 
-    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self).map { parameter in
             (name: parameter.0, value: parameter.1.parameter)
         }
@@ -107,7 +125,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }, on: endpoint.absolutePath.build(with: WebSocketPathBuilder.self))
     }
 
-    public func retrieveParameter<Type>(
+    func retrieveParameter<Type>(
         _ parameter: EndpointParameter<Type>,
         for request: WebSocketInput
     ) throws -> Type?? where Type: Decodable, Type: Encodable {
@@ -118,12 +136,12 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
 
-    public func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable, Type: Encodable {
+    func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable, Type: Encodable {
         (parameter.name, WebSocketParameter(BasicInputParameter<Type>()))
     }
     
     #if DEBUG
-    public static func messagePrefix(for error: StandardErrorContext) -> String? {
+    static func messagePrefix(for error: StandardErrorContext) -> String? {
         switch error.option(for: .errorType) {
         case .badInput:
             return "You messed up"
@@ -142,7 +160,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
     #else
-    public typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
+    typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
     #endif
     
     private static func handleCompletion<H: Handler>(

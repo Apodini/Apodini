@@ -63,7 +63,7 @@ struct StatelessClient {
         let response = eventLoop.makePromise(of: [O].self)
         var responses: [O] = []
         
-        _ = WebSocket.connect(
+        _ = Vapor.WebSocket.connect(
             to: self.address,
             on: eventLoop
         ) { websocket in
@@ -102,7 +102,7 @@ struct StatelessClient {
         return response.futureResult
     }
     
-    private func sendOpen(context: UUID, on endpoint: String, to websocket: WebSocket, promise: EventLoopPromise<Void>) {
+    private func sendOpen(context: UUID, on endpoint: String, to websocket: Vapor.WebSocket, promise: EventLoopPromise<Void>) {
         do {
             // create context on user endpoint
             let message = try encode(OpenContextMessage(context: context, endpoint: endpoint))
@@ -113,7 +113,7 @@ struct StatelessClient {
         }
     }
     
-    private func send<I: Encodable, O>(messages: [I], on context: UUID, to websocket: WebSocket, promise: EventLoopPromise<O>) {
+    private func send<I: Encodable, O>(messages: [I], on context: UUID, to websocket: Vapor.WebSocket, promise: EventLoopPromise<O>) {
         for input in messages {
             do {
                 let message = try encode(ClientMessage(context: context, parameters: input))
@@ -128,7 +128,7 @@ struct StatelessClient {
         }
     }
     
-    private func sendClose<O>(context: UUID, to websocket: WebSocket, promise: EventLoopPromise<O>) {
+    private func sendClose<O>(context: UUID, to websocket: Vapor.WebSocket, promise: EventLoopPromise<O>) {
         do {
             let message = try encode(CloseContextMessage(context: context))
             self.logger.debug(">>> \(message)")
@@ -142,7 +142,7 @@ struct StatelessClient {
     }
     
     private func onText<O: Decodable>(
-        websocket: WebSocket,
+        websocket: Vapor.WebSocket,
         string: String,
         context: UUID,
         promise: EventLoopPromise<[O]>,

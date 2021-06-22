@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  ApodiniDeployExporterConfiguration.swift
 //  
 //
 //  Created by Lukas Kollmer on 2021-02-07.
@@ -11,28 +11,20 @@ import Apodini
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
 
-
-public struct ApodiniDeployConfiguration: Apodini.Configuration {
-    struct StorageKey: Apodini.StorageKey {
-        typealias Value = ApodiniDeployConfiguration
-    }
-    
-    let runtimes: [DeploymentProviderRuntime.Type]
-    let config: DeploymentConfig
-    
-    public init(
-        runtimes: [DeploymentProviderRuntime.Type] = [],
-        config: DeploymentConfig = .init()
-    ) {
-        self.runtimes = runtimes
-        self.config = config
-    }
-    
-    public func configure(_ app: Application) {
-        app.storage.set(StorageKey.self, to: self)
+extension ApodiniDeploy {
+    struct ExporterConfiguration {
+        let runtimes: [DeploymentProviderRuntime.Type]
+        let config: DeploymentConfig
+        
+        init(
+            runtimes: [DeploymentProviderRuntime.Type] = [],
+            config: DeploymentConfig = .init()
+        ) {
+            self.runtimes = runtimes
+            self.config = config
+        }
     }
 }
-
 
 extension DeploymentGroup {
     /// Creates a single deployment group containing all handlers of type `H`.

@@ -19,10 +19,6 @@ public protocol BaseInterfaceExporter {
     /// enforcing Parameter names to be unique across all different `ParameterType`s.
     static var parameterNamespace: [ParameterNamespace] { get }
 
-    /// Initializes a new Interface Exporter with a given Application instance.
-    /// - Parameter app: The application containing any necessary state.
-    init(_ app: Application)
-
     /// This method is called for every `Endpoint` on start up, which must be exporter
     /// by the `InterfaceExporter`.
     ///

@@ -14,7 +14,7 @@ An OpenAPI definition can then be used by documentation generation tools to disp
 
 ## Usage in Apodini `WebService`
 
-Add the `OpenAPIInterfaceExporter` in combination with the `RESTInterfaceExporter` for a working RESTful API with associated OAS.
+Add `OpenAPI` in combination with `REST` for a working RESTful API with associated OAS.
 
 ```swift
 import Apodini
@@ -28,9 +28,10 @@ struct TheGameWebService: WebService {
     }
 
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(RESTInterfaceExporter.self)
-            .exporter(OpenAPIInterfaceExporter.self) // Register `OpenAPIInterfaceExporter`.
+        REST { 
+            /// Registers the OpenAPI exporter
+            OpenAPI()
+        }
     }
 }
 
@@ -48,17 +49,18 @@ This means that per default a `JSON` representation of the OAS is served at `/op
 
 ## OpenAPI-specific Configuration
 
-Additionally, you can use the `OpenAPIConfiguration` class to further specify details on the created OAS document and configure the exporter's behavior.
+Additionally, you can pass configurations to `OpenAPI` in order to specify details of the created OAS document and configure the exporter's behavior.
 
 ```swift
     var configuration: Configuration {
-        // Add `OpenAPIConfiguration`.
-        OpenAPIConfiguration(
-            outputFormat: .yaml,
-            outputEndpoint: "/docs/openapi",
-            swaggerUiEndpoint: "/ui/swagger",
-            title: "The Game - Endangered Nature Edition, built with Apodini"
-        )
+        REST { 
+            /// Adds configuration to the OpenAPIExporter
+            OpenAPI(
+                outputFormat: .yaml,
+                outputEndpoint: "/docs/openapi",
+                swaggerUiEndpoint: "/ui/swagger",
+                title: "The Game - Endangered Nature Edition, built with Apodini")
+        }
     }
 ```
 
