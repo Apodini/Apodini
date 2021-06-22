@@ -110,7 +110,7 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: .build
-        key: ${{ runner.os }}-${{matrix.linux}}-spm-${{ hashFiles('Package.resolved') }}
+        key: ${{ runner.os }}-${{matrix.linux}}-${{matrix.configuration}}-spm-${{ hashFiles('Package.resolved') }}
     - name: Check Swift version
       run: swift --version
     - name: Release Build # Ensuring release build runs successfully without -enable-testing flag
