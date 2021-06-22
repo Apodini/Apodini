@@ -280,3 +280,22 @@ extension Delegate: AnyObservedObject {
         return observation
     }
 }
+
+public enum IE {}
+
+public extension IE {
+    static func standaloneDelegate<H: Handler>(_ delegate: H) -> Delegate<H> {
+        var instance = Delegate(delegate, .required)
+        instance.activate()
+        return instance
+    }
+    
+    static func evaluate<H: Handler>(delegate: Delegate<H>, using request: Request) throws -> H.Response {
+        do {
+            try delegate.inject(using: request)
+        } catch {
+            throw ApodiniError(type: .serverError, reason: "Internal Framework Error", description: "Could not inject Request into 'Delegate'")
+        }
+        return try delegate().handle()
+    }
+}

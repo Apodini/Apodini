@@ -40,6 +40,7 @@ let package = Package(
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
+        .library(name: "ApodiniExtension", targets: ["ApodiniExtension"]),
         .library(name: "ApodiniUtils", targets: ["ApodiniUtils"]),
         .library(name: "ApodiniDatabase", targets: ["ApodiniDatabase"]),
         .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
@@ -137,6 +138,16 @@ let package = Package(
                 "Components/ComponentBuilder.swift.gyb"
             ],
             swiftSettings: apodiniSwiftSettings
+        ),
+        
+        .target(
+            name: "ApodiniExtension",
+            dependencies: [
+                .target(name: "ApodiniUtils"),
+                .target(name: "Apodini"),
+                .product(name: "OpenCombine", package: "OpenCombine"),
+                .product(name: "NIO", package: "swift-nio"),
+            ]
         ),
 
         .testTarget(

@@ -7,7 +7,7 @@
 import Foundation
 import NIO
 
-protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
+public protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
     /// Returns a description of the Request.
     /// If the `ExporterRequest` also conforms to `CustomStringConvertible`, its `description`
     /// will be appended.
@@ -16,8 +16,6 @@ protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
     /// If the `ExporterRequest` also conforms to `CustomDebugStringConvertible`, its `debugDescription`
     /// will be appended.
     var debugDescription: String { get }
-
-    var endpoint: AnyEndpoint { get }
 
     var eventLoop: EventLoop { get }
 
