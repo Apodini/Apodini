@@ -7,18 +7,40 @@
 
 import Apodini
 
-public extension Request {
-    func evaluate<H: Handler>(on handler: H) throws -> H.Response {
-        try Delegate<H>.standaloneInstance(of: handler).evaluate(using: self)
+extension Request {
+    public func evaluate<H: Handler>(on handler: H) -> EventLoopFuture<Response<H.Response.Content>> {
+        let delegate = Delegate.standaloneInstance(of: handler)
+        return delegate.evaluate(using: self)
     }
 }
 
 internal extension Delegate where D: Handler {
-    static func standaloneInstance<H: Handler>(of delegate: H) -> Delegate<H> {
+    static func standaloneInstance(of delegate: D) -> Delegate<D> {
         return IE.standaloneDelegate(delegate)
     }
     
-    func evaluate(using request: Request) throws -> D.Response {
-        try IE.evaluate(delegate: self, using: request)
+    func evaluate(using request: Request, with state: ConnectionState = .end) throws -> D.Response {
+        try IE.evaluate(delegate: self, using: request, with: state)
+    }
+    
+    func evaluate(using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
+        do {
+            let result: D.Response = try self.evaluate(using: request, with: state)
+            return result.transformToResponse(on: request.eventLoop)
+        } catch {
+            return request.eventLoop.makeFailedFuture(error)
+        }
+    }
+    
+    func evaluate(_ trigger: TriggerEvent, using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
+        guard !trigger.cancelled else {
+            return request.eventLoop.makeSucceededFuture(.nothing)
+        }
+        
+        self.setChanged(to: true, reason: trigger)
+        return self.evaluate(using: request, with: state).always { _ in
+            self.setChanged(to: false, reason: trigger)
+        }
     }
 }
+

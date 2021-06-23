@@ -7,6 +7,7 @@
 
 import Apodini
 import ApodiniUtils
+import ApodiniExtension
 import ApodiniVaporSupport
 import NIOWebSocket
 @_implementationOnly import OpenCombine
@@ -75,7 +76,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             // The `syncMap` automatically awaits the future, while `buffer` makes sure
             // messages are never dropped.
             input
-                .buffer()
+                .buffer(size: Int.max, prefetch: .keepFull, whenFull: .dropNewest)
                 .syncMap { evaluation -> EventLoopFuture<Apodini.Response<H.Response.Content>> in
                     switch evaluation {
                     case .input(let inputValue):

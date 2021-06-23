@@ -302,6 +302,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniVaporSupport"),
                 .product(name: "OpenCombine", package: "OpenCombine"),
                 .product(name: "OpenCombineFoundation", package: "OpenCombine"),

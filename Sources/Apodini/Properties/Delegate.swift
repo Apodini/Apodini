@@ -290,8 +290,9 @@ public extension IE {
         return instance
     }
     
-    static func evaluate<H: Handler>(delegate: Delegate<H>, using request: Request) throws -> H.Response {
+    static func evaluate<H: Handler>(delegate: Delegate<H>, using request: Request, with state: ConnectionState = .end) throws -> H.Response {
         do {
+            try delegate.inject(Connection(state: state, request: request), for: \Application.connection)
             try delegate.inject(using: request)
         } catch {
             throw ApodiniError(type: .serverError, reason: "Internal Framework Error", description: "Could not inject Request into 'Delegate'")
