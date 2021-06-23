@@ -28,7 +28,7 @@ protocol EndpointParameterThrowingVisitor {
 
 /// Describes a type erasured `EndpointParameter`
 public protocol AnyEndpointParameter: CustomStringConvertible {
-    /// The `UUID` which uniquely identifies the given `AnyEndpointParameter`.
+    /// The `UUID` which uniquely identifies the given `AnyEndpointParameter` and the `Parameter` it represents.
     var id: UUID { get }
     var pathId: String { get }
     /// This property holds the name as defined by the user.

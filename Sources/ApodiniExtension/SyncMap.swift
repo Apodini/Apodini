@@ -17,37 +17,39 @@ public extension Publisher {
     /// The `EventLoop` is not blocked. Completions also await the currently pending future.
     func syncMap<Value>(
         _ transform: @escaping (Output) -> EventLoopFuture<Value>
-    ) -> SyncMap<Self, Value> {
-        SyncMap(upstream: self, transform: transform)
+    ) -> Publishers.SyncMap<Self, Value> {
+        Publishers.SyncMap(upstream: self, transform: transform)
     }
 }
 
-/// The `Publisher` behind `Publisher.syncMap`.
-public struct SyncMap<Upstream: Publisher, O>: Publisher {
-    public typealias Failure = Upstream.Failure
-    
-    public typealias Output = Result<O, Error>
+extension Publishers {
+    /// The `Publisher` behind `Publisher.syncMap`.
+    public struct SyncMap<Upstream: Publisher, O>: Publisher {
+        public typealias Failure = Upstream.Failure
+        
+        public typealias Output = Result<O, Error>
 
-    /// The publisher from which this publisher receives elements.
-    private let upstream: Upstream
+        /// The publisher from which this publisher receives elements.
+        private let upstream: Upstream
 
-    /// The closure that transforms elements from the upstream publisher.
-    private let transform: (Upstream.Output) -> EventLoopFuture<O>
+        /// The closure that transforms elements from the upstream publisher.
+        private let transform: (Upstream.Output) -> EventLoopFuture<O>
 
-    internal init(upstream: Upstream,
-                  transform: @escaping (Upstream.Output) -> EventLoopFuture<O>) {
-        self.upstream = upstream
-        self.transform = transform
-    }
+        internal init(upstream: Upstream,
+                      transform: @escaping (Upstream.Output) -> EventLoopFuture<O>) {
+            self.upstream = upstream
+            self.transform = transform
+        }
 
-    public func receive<Downstream: Subscriber>(subscriber: Downstream)
-    where Result<O, Error> == Downstream.Input, Downstream.Failure == Failure {
-        upstream.subscribe(Inner(downstream: subscriber, map: transform))
+        public func receive<Downstream: Subscriber>(subscriber: Downstream)
+        where Result<O, Error> == Downstream.Input, Downstream.Failure == Failure {
+            upstream.subscribe(Inner(downstream: subscriber, map: transform))
+        }
     }
 }
 
 
-private extension SyncMap {
+private extension Publishers.SyncMap {
     final class Inner<Downstream: Subscriber>: Subscriber, CustomStringConvertible, CustomPlaygroundDisplayConvertible
     where Downstream.Input == Result<O, Error>, Downstream.Failure == Failure {
         typealias Input = Upstream.Output
@@ -142,7 +144,7 @@ private extension SyncMap {
     }
 }
 
-private extension SyncMap.Inner {
+private extension Publishers.SyncMap.Inner {
     // This wrapper around the `upstream` `Subscription` stores
     // the downstream demand. It provides the `requestOne` function
     // for the `Subscriber` to request one new value from the `upstream`

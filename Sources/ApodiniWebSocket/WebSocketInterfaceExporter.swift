@@ -276,7 +276,7 @@ public struct WebSocketInput: ExporterRequestWithEventLoop {
 
 // MARK: Input Accumulation
 
-extension WebSocketInput: Reducible {
+extension WebSocketInput: Apodini.Reducible {
     public func reduce(to new: WebSocketInput) -> WebSocketInput {
         var newParameters: [String: InputParameter] = [:]
         for (name, value) in new.input.parameters {

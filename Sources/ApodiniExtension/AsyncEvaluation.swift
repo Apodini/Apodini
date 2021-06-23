@@ -7,58 +7,67 @@
 
 import Apodini
 import OpenCombine
+import Foundation
 
-public extension Publisher where Output: Request {
-    #warning("""
-        This method would acutally require 'Publishers.Merge', which - at the time of writing - is
-        not implemented in OpenCombine (see https://github.com/OpenCombine/OpenCombine/pull/72).
-        Thus a combination of 'sink' and 'PassthroughSubject' is used to merge the Publishers.
-        However, this results in unlimited upsteam-demand and since downstream-demand might
-        be limited, 'PasstroughSubject' might drop elements. To cope with this issue, an unlimited
-        'buffer' is used behind the 'PassthroughSubject'!
-    """)
-    func subscribe<H: Handler>(to handler: H) -> some WithDelegate {
-        let delegate = Delegate.standaloneInstance(of: handler)
+
+// MARK: Handling Statefulness
+
+public extension Publisher where Output: Reducible {
+    func reduce() -> some Publisher where Output.Input == Output {
+        var last: Output?
         
-        var subject: PassthroughSubject<Event, Failure>? = PassthroughSubject<Event, Failure>()
-        var sink: AnyCancellable?
-        var observation: Observation?
-        
-        // just for silencing "never read" compiler warning
-        _ = sink
-        _ = observation
-        
-        sink = self.sink(receiveCompletion: { completion in
-            subject!.send(completion: completion)
-            subject = nil
-            sink = nil
-            observation = nil
-        }, receiveValue: { request in
-            subject!.send(.request(request))
-        })
-        
-        observation = delegate.register { trigger in
-            guard let subject = subject else {
-                return
-            }
-            
-            subject.send(.trigger(trigger))
+        return self.map { (new : Output) -> Output in
+            let result = last?.reduce(with: new) ?? new
+            last = result
+            return result
         }
-
-        return subject!
-            .buffer(size: Int.max, prefetch: .keepFull, whenFull: .dropNewest)
-            .withDelegate(delegate)
     }
 }
+
+public extension Publisher {
+    func reduce<R: Reducible>(with initial: R) -> some Publisher where Output == R.Input {
+        var last: R = initial
+        
+        return self.map { (new : Output) -> R in
+            let result = last.reduce(with: new)
+            last = result
+            return result
+        }
+    }
+}
+
+
+// MARK: Handling Initialization
 
 public extension Publisher where Output: Request {
     func attach<H: Handler>(on handler: H) -> some WithDelegate {
-        let delegate = Delegate.standaloneInstance(of: handler)
-        
+        self.withDelegate(.standaloneInstance(of: handler))
+    }
+}
+
+
+// MARK: Handling Subscription
+
+public extension WithDelegate where Output: Request {
+
+    func subscribe<H: Handler>(to handler: H) -> some WithDelegate {
+        let subject = PassthroughSubject<Event, Failure>()
+        let observation = delegate.register { trigger in
+            subject.send(.trigger(trigger))
+        }
+
         return self
+            .map { request in
+                _ = observation // this keeps `observation` from being deallocated
+                return Event.request(request)
+            }
+            .mergeValues(of: subject)
             .withDelegate(delegate)
     }
 }
+
+
+// MARK: Handling Event Evaluation
 
 public extension WithDelegate where Output == Event {
     func evaluate() -> some WithDelegate {
@@ -85,6 +94,9 @@ private extension Publisher where Output == Event {
     }
 }
 
+
+// MARK: Handling Request Evaluation
+
 public extension WithDelegate where Output: Request {
     func evaluate() -> some WithDelegate {
         self.evaluate(on: delegate).withDelegate(delegate)
@@ -98,6 +110,9 @@ private extension Publisher where Output: Request {
         }
     }
 }
+
+
+// MARK: Handling Errors
 
 public extension Publisher {
     func closeOnError<R: ResponseTransformable>() -> some Publisher where Output == Result<R, ApodiniError> {
@@ -196,5 +211,36 @@ struct PublisherWithDelegate<P: Publisher, H: Handler>: WithDelegate {
 extension Publisher {
     func withDelegate<H: Handler>(_ delegate: Delegate<H>) -> PublisherWithDelegate<Self, H> {
         PublisherWithDelegate(wrapped: self, delegate: delegate)
+    }
+}
+
+
+// MARK: Reducible
+
+/// An object that can merge itself and a `new` element
+/// of same type.
+public protocol Reducible {
+    associatedtype Input
+    
+    /// Called to reduce self with the given instance.
+    ///
+    /// Optional to implement. By default new will overwrite the existing instance.
+    ///
+    /// - Parameter new: The instance to be combined with.
+    /// - Returns: The reduced instance.
+    func reduce(with new: Input) -> Self
+}
+
+public protocol Initializable {
+    associatedtype InitialInput
+    
+    init(_ initial: InitialInput)
+}
+
+extension Optional: Reducible where Wrapped: Reducible, Wrapped: Initializable, Wrapped.Input == Wrapped.InitialInput {
+    public typealias Input = Wrapped.Input
+    
+    public func reduce(with new: Input) -> Optional<Wrapped> {
+        self?.reduce(with: new) ?? Wrapped(new)
     }
 }
