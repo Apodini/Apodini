@@ -28,19 +28,18 @@ final class HTTP2ConfigurationTests: ApodiniTests {
         XCTAssertEqual(app.http.supportVersions, [.one, .two])
         XCTAssertEqual(app.http.tlsConfiguration?.privateKey, try privateKey())
     }
-
-
+    
     func testCommandLineArguments() throws {
-        HTTP2Configuration(arguments: CommandLine.arguments + ["--cert", try certPath().path, "--key", try keyPath().path])
+        HTTP2Configuration(cert: try certPath().path, keyPath: try keyPath().path)
             .configure(app)
 
         XCTAssertNotNil(app.http.tlsConfiguration)
         XCTAssertEqual(app.http.supportVersions, [.one, .two])
         XCTAssertEqual(app.http.tlsConfiguration?.privateKey, try privateKey())
     }
-
+    
     func testCommandLineArgumentOverwrite() throws {
-        HTTP2Configuration(arguments: CommandLine.arguments + ["--cert", try certPath().path, "--key", try keyPath().path])
+        HTTP2Configuration(cert: try certPath().path, keyPath: try keyPath().path)
             .certificate(try certPath())
             .key(try key2Path())
             .configure(app)

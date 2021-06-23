@@ -262,13 +262,24 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     }
     
     
-    private func runInDocker(imageName: String, bashCommand: String, workingDirectory: URL? = nil) throws {
+    private func runInDocker(imageName: String, bashCommand: String, workingDirectory: URL? = nil, environment: [String: String?] = [:]) throws {
         let task = Task(
             executableUrl: dockerBin,
             arguments: [
                 "run", "--rm",
                 "--volume", "\(packageRootDir.path)/..:/src/",
                 "--workdir", "/src/\(packageRootDir.lastPathComponent)",
+                environment.reduce(into: "") { res, env in
+                    guard let value = env.value else {
+                        return
+                    }
+            
+                    res.append(
+                        """
+                            --env \(env.key)='\(value)'
+                        """ + " "
+                    )
+                },
                 imageName,
                 "bash", "-cl", bashCommand
             ],
@@ -285,9 +296,12 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         try runInDocker(
             imageName: dockerImageName,
             bashCommand: [
-                "swift", "run", productName,
-                WellKnownCLIArguments.exportWebServiceModelStructure, ".build/\(tmpDirName)/\(filename)" // can't use self.tmpDirUrl here since that's an absolute path but we need a relative one bc this is running in the docker container which has a different mount path
-            ].joined(separator: " ")
+                "swift", "run", productName
+            ].joined(separator: " "),
+            environment: [
+                WellKnownEnvironmentVariables.executionMode: WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
+                WellKnownEnvironmentVariables.fileUrl: ".build/\(tmpDirName)/\(filename)" // can't use self.tmpDirUrl here since that's an absolute path but we need a relative one bc this is running in the docker container which has a different mount path
+            ]
         )
         let url = tmpDirUrl.appendingPathComponent(filename, isDirectory: false)
         return try WebServiceStructure(decodingJSONAt: url)

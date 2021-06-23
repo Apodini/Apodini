@@ -6,7 +6,7 @@ import XCTVapor
 final class ProtobufferBuilderTests: XCTestCase {
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
         let app = Application()
-        S.main(app: app)
+        S.start(app: app)
         defer { app.shutdown() }
         
         try app.vapor.app.test(.GET, "apodini/proto") { res in
@@ -15,7 +15,7 @@ final class ProtobufferBuilderTests: XCTestCase {
     }
     
     func buildMessage(_ type: Any.Type) throws -> String {
-        try ProtobufferInterfaceExporter.Builder()
+        try ProtobufferInterfaceExporter.Builder(configuration: GRPC.ExporterConfiguration())
             .buildMessage(type)
             .collectValues()
             .description
@@ -238,9 +238,9 @@ extension ProtobufferBuilderTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(GRPCInterfaceExporter.self)
-                    .exporter(ProtobufferInterfaceExporter.self)
+                GRPC {
+                    Protobuffer()
+                }
             }
         }
         
@@ -274,9 +274,9 @@ extension ProtobufferBuilderTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(GRPCInterfaceExporter.self)
-                    .exporter(ProtobufferInterfaceExporter.self)
+                GRPC {
+                    Protobuffer()
+                }
             }
         }
         
@@ -315,9 +315,9 @@ extension ProtobufferBuilderTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(GRPCInterfaceExporter.self)
-                    .exporter(ProtobufferInterfaceExporter.self)
+                GRPC {
+                    Protobuffer()
+                }
             }
         }
         
@@ -360,9 +360,9 @@ extension ProtobufferBuilderTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(GRPCInterfaceExporter.self)
-                    .exporter(ProtobufferInterfaceExporter.self)
+                GRPC {
+                    Protobuffer()
+                }
             }
         }
         
@@ -409,9 +409,9 @@ extension ProtobufferBuilderTests {
             }
             
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(ProtobufferInterfaceExporter.self)
-                IntegerWidthConfiguration.thirtyTwo
+                GRPC(integerWidth: .thirtyTwo) {
+                    Protobuffer()
+                }
             }
         }
         

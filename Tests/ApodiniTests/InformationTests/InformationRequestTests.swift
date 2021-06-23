@@ -6,8 +6,8 @@
 //
 
 @testable import Apodini
+@testable import ApodiniREST
 import XCTApodini
-import ApodiniREST
 import Vapor
 
 

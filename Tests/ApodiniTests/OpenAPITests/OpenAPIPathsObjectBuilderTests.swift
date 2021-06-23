@@ -110,7 +110,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
 //
 //        XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
 //        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains(key: path))
-//        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in
+//        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPIKit.OpenAPI.Path, value: OpenAPIKit.OpenAPI.PathItem) -> Bool in
 //            key == path && ((value.get?.parameters.contains(queryParam)) != nil) && ((value.get?.parameters.contains(pathParam)) != nil)
 //        })
 //    }
@@ -225,7 +225,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
 //            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
 //        ))
 //
-//        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in
+//        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPIKit.OpenAPI.Path, value: OpenAPIKit.OpenAPI.PathItem) -> Bool in
 //            key == path && value == pathItem
 //        })
 //        XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 2)
@@ -294,7 +294,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
 //
 //        XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
 //        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains(key: path))
-//        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in
+//        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPIKit.OpenAPI.Path, value: OpenAPIKit.OpenAPI.PathItem) -> Bool in
 //            key == path && value == pathItem
 //        })
 //        XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 3)

@@ -7,7 +7,6 @@
 
 import Foundation
 import NIO
-@_implementationOnly import ConsoleKit
 
 /// A `Configuration` for HTTP.
 /// The configuration can be done in two ways, either via the
@@ -37,50 +36,23 @@ public final class HTTPConfiguration: Configuration {
         }
     }
     
-    
     private var address: BindAddress?
     
-
     /// initalize HTTPConfiguration
-    public convenience init() {
-        self.init(arguments: CommandLine.arguments)
-    }
-
-    init(arguments: [String]) {
-        var commandInput = CommandInput(arguments: arguments)
-        self.address = detect(from: &commandInput)
-    }
-
-    func detect(from commandInput: inout CommandInput) -> BindAddress? {
-        struct Signature: CommandSignature {
-            @Option(name: "hostname", short: "H", help: "Set the hostname the server will run on.")
-            var hostname: String?
-
-            @Option(name: "port", short: "p", help: "Set the port the server will run on.")
-            var port: Int?
-
-            @Option(name: "bind", short: "b", help: "Convenience for setting hostname and port together.")
-            var bind: String?
-
-            @Option(name: "unix-socket", short: nil, help: "Set the path for the unix domain socket file the server will bind to.")
-            var socketPath: String?
-        }
-
+    public init(hostname: String? = nil, port: Int? = nil, bind: String? = nil, socketPath: String? = nil) {
         do {
-            let signature = try Signature(from: &commandInput)
-
-            switch (signature.hostname, signature.port, signature.bind, signature.socketPath) {
+            switch (hostname, port, bind, socketPath) {
             case (.none, .none, .none, .none):
-                return nil
+                self.address = nil
             case (.none, .none, .none, .some(let socketPath)):
-                return .unixDomainSocket(path: socketPath)
+                self.address = .unixDomainSocket(path: socketPath)
             case (.none, .none, .some(let address), .none):
                 let components = address.split(separator: ":")
                 let hostname = components.first.map { String($0) }
                 let port = components.last.flatMap { Int($0) }
-                return .hostname(hostname, port: port)
+                self.address = .hostname(hostname, port: port)
             case let (hostname, port, .none, .none):
-                return .hostname(hostname ?? Defaults.hostname, port: port ?? Defaults.port)
+                self.address = .hostname(hostname ?? Defaults.hostname, port: port ?? Defaults.port)
             default:
                 throw HTTPConfigurationError.incompatibleFlags
             }
@@ -91,7 +63,7 @@ public final class HTTPConfiguration: Configuration {
 
     /// Configure application
     public func configure(_ app: Application) {
-        if let address = address {
+        if let address = self.address {
             app.http.address = address
         } else {
             app.logger.warning("No http server address configured")

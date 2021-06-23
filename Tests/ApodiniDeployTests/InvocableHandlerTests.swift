@@ -194,16 +194,15 @@ private struct TestWebService: Apodini.WebService {
     }
     
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(RESTInterfaceExporter.self)
-            .exporter(ApodiniDeployInterfaceExporter.self)
+        REST()
+        ApodiniDeploy()
     }
 }
 
 
 class InvocableHandlerTests: XCTApodiniTest {
     func testSimpleRemoteHandlerInvocation() throws {
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         try app.vapor.app.test(.GET, "/v1/f") { res in
             XCTAssertEqual(res.status, .ok)
             try XCTAssertEqual(res.content.decodeRESTResponseData(String.self), "F")
@@ -211,7 +210,7 @@ class InvocableHandlerTests: XCTApodiniTest {
     }
     
     func testArrayBasedParameterPassing() throws {
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         try app.vapor.app.test(
             .GET,
             "/v1/greet?name=lukas&transformation=\(TestWebService.TextTransformer.Transformation.makeUppercase.rawValue)"
@@ -222,7 +221,7 @@ class InvocableHandlerTests: XCTApodiniTest {
     }
     
     func testArrayBasedParameterPassingDefaultParameterValueHandling() throws {
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         try app.vapor.app.test(.GET, "/v1/greet?name=LuKAs") { res in // default value for the TextTransformer.transformation parameter is .identity
             XCTAssertEqual(res.status, .ok)
             try XCTAssertEqual(res.content.decodeRESTResponseData(String.self), "Hello LuKAs!")
@@ -230,7 +229,7 @@ class InvocableHandlerTests: XCTApodiniTest {
     }
     
     func testParametersStorageObjectBasedParameterPassing() throws {
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         try app.vapor.app.test(.GET, "/v1/calc?operation=add&lhs=5&rhs=7") { res in
             XCTAssertEqual(res.status, .ok)
             try XCTAssertEqual(res.content.decodeRESTResponseData(Int.self), 12)

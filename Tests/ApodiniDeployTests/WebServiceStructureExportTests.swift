@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  WebServiceStructureExportTests.swift
 //  
 //
 //  Created by Lukas Kollmer on 2021-03-17.
@@ -25,10 +25,10 @@ private struct TestWebService: Apodini.WebService {
     }
     
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(RESTInterfaceExporter.self)
-            .exporter(OpenAPIInterfaceExporter.self)
-            .exporter(ApodiniDeployInterfaceExporter.self)
+        REST {
+            OpenAPI()
+        }
+        ApodiniDeploy()
     }
 }
 

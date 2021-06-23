@@ -13,9 +13,8 @@ struct RESTPathBuilder: PathBuilder {
     }
 
     mutating func append(_ string: String) {
-        let pathComponent = string.lowercased()
-        pathComponents.append(.constant(pathComponent))
-        pathString.append(pathComponent)
+        pathComponents.append(.constant(string))
+        pathString.append(string)
     }
 
     mutating func root() {
