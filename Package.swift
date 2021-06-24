@@ -92,6 +92,8 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.13.0"),
         // Swift logging API
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
+        // CLI-Argument parsing in the WebService and ApodiniDeploy
+        .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0")),
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
         // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
         .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
@@ -100,7 +102,6 @@ let package = Package(
         .package(url: "https://github.com/soto-project/soto-core.git", from: "5.0.0"),
         
         // Deploy
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
         .package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime", from: "0.4.0"),
         .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0"),
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0")
