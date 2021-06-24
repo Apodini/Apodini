@@ -1,5 +1,5 @@
 //
-//  InputValidation.swift
+//  RequestProcessing.swift
 //  
 //
 //  Created by Max Obermeier on 23.06.21.
@@ -10,12 +10,58 @@ import OpenCombine
 import Apodini
 import ApodiniUtils
 
-// MARK: Request Parsing Error
 
-public enum RequestParsingError: Error {
-    case noValuePresent
+// MARK: Caching
+
+public extension Publisher where Output: Request {
+    func cache() -> some Publisher {
+        self.map { request in
+            request.cache()
+        }
+    }
 }
 
+public extension Request {
+    func cache() -> Request {
+        CachingRequest(self)
+    }
+}
+
+ class CachingRequest<R: Request>: WithRequest {
+    typealias InitialInput = R
+    
+    var request: Request {
+        _request as Request
+    }
+    
+    private var _request: R
+    
+    private var cache = [UUID: Any]()
+    
+    init(_ request: R) {
+        self._request = request
+    }
+    
+    lazy var description: String = _request.description
+
+    lazy var debugDescription: String = _request.debugDescription
+
+    lazy var eventLoop: EventLoop = _request.eventLoop
+
+    lazy var remoteAddress: SocketAddress? = _request.remoteAddress
+    
+    lazy var information: Set<AnyInformation> = _request.information
+    
+    func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element : Decodable, Element : Encodable {
+        if let cached = cache[parameter.id] as? Element {
+            return cached
+        }
+        
+        let value = try _request.retrieveParameter(parameter)
+        cache[parameter.id] = value
+        return value
+    }
+}
 
 
 // MARK: Necessity Validation
@@ -40,7 +86,7 @@ public struct NecessityValidation {
             if let defaultValue = defaultValues[uuid] {
                 return defaultValue()
             }
-            throw ApodiniError(type: .badInput, reason: "Didn't retrieve any parameters for a required parameter '\(descriptions[uuid]?.description ?? "??")'.")
+            throw ApodiniError(type: .badInput, reason: "Didn't retrieve any parameters for a required parameter '\(descriptions[uuid] ?? "??")'.")
         }
     }
     
@@ -49,14 +95,14 @@ public struct NecessityValidation {
     }
     
     struct ValidatingRequest: WithRequest {
-        public private(set) var request: Request
+        private(set) var request: Request
         
         let handler: (UUID) throws -> Any
 
-        public func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element : Decodable, Element : Encodable {
+        func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element : Decodable, Element : Encodable {
             do {
                 return try request.retrieveParameter(parameter)
-            } catch (RequestParsingError.noValuePresent) {
+            } catch DecodingError.keyNotFound(_, _), DecodingError.valueNotFound(_, _) {
                 guard let typedValue = try handler(parameter.id) as? Element else {
                     fatalError("Internal logic of NecessityValidation broken: type mismatch")
                 }
@@ -84,7 +130,7 @@ public extension Publisher where Output: Request {
     }
 }
 
-/// - Note: Must be used last in a sequence of validating `Request`s, otherwise the internal
+/// - Note: Must be used last in a sequence of failable `Request`s, otherwise the internal
 ///         state might get corrupted.
 public class MutabilityValidatingRequest<R: Request>: WithRequest, Initializable {
     public typealias InitialInput = R
