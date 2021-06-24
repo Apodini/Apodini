@@ -7,6 +7,7 @@
 
 import Foundation
 import NIO
+import ApodiniUtils
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 // MARK: Protocols
@@ -104,14 +105,13 @@ internal class EndpointValidator<I: InterfaceExporter, H: Handler>: Validator {
         self.validated = [:]
         self.request = request
         
-        let requestRemote = (request as? WithRemote)?.remoteAddress
-        
-        return ValidatingRequest<I, H>(for: exporter,
-                                       with: request,
-                                       using: self,
-                                       on: endpoint,
-                                       running: eventLoop,
-                                       remoteAddress: requestRemote)
+        return ValidatingRequest<I, H>(
+            for: exporter,
+            with: request,
+            using: self,
+            on: endpoint,
+            running: eventLoop
+        )
     }
     
     func validate<V>(one parameter: UUID) throws -> V {
@@ -267,7 +267,7 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
             switch definition.options.option(for: .mutability) ?? .variable {
             case .constant:
                 if let initialValue = self.initialValue {
-                    if !unsafeEqual(first: initialValue as Any, second: retrievedValue as Any) {
+                    if !AnyEquatable.compare(initialValue as Any, retrievedValue as Any).isEqual {
                         throw ApodiniError(type: .badInput, reason: "Parameter retrieval returned value for constant '\(definition.description)' even though its value has already been defined.")
                     }
                 } else {
@@ -283,32 +283,5 @@ private struct ParameterRepresentative<Type: Codable, E: InterfaceExporter> {
     
     mutating func reset() {
         self.initialValue = _initialValueBackup
-    }
-}
-
-// MARK: Helpers
-
-private func unsafeEqual<T>(first: T, second: Any) -> Bool {
-    let associatedTypeRequirementsVisitor = EquatableVisitorImplementation()
-    if associatedTypeRequirementsVisitor(first) == nil {
-        return false
-    }
-    return associatedTypeRequirementsVisitor(second) ?? false
-}
-
-private class EquatableVisitorImplementation: EquatableVisitor {
-    var firstValue: Any?
-
-    func callAsFunction<T: Equatable>(_ value: T) -> Bool {
-        if let first = firstValue {
-            if let firstAsT = first as? T {
-                return firstAsT == value
-            } else {
-                return false
-            }
-        } else {
-            firstValue = value
-            return false
-        }
     }
 }

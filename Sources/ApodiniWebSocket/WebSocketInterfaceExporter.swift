@@ -6,6 +6,7 @@
 //
 
 import Apodini
+import ApodiniUtils
 import ApodiniVaporSupport
 import NIOWebSocket
 @_implementationOnly import OpenCombine
@@ -13,21 +14,39 @@ import NIOWebSocket
 
 // MARK: Exporter
 
+public final class WebSocket: Configuration {
+    let configuration: WebSocket.ExporterConfiguration
+    
+    public init(path: String = "apodini/websocket") {
+        self.configuration = WebSocket.ExporterConfiguration(path: path)
+    }
+    
+    public func configure(_ app: Apodini.Application) {
+        /// Instanciate exporter
+        let webSocketExporter = WebSocketInterfaceExporter(app, self.configuration)
+        
+        /// Insert exporter into `InterfaceExporterStorage`
+        app.registerExporter(exporter: webSocketExporter)
+    }
+}
+
 /// The WebSocket exporter uses a custom JSON based protocol on top of WebSocket's text messages.
 /// This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel.
 /// The Apodini service listens on /apodini/websocket for clients that want to communicate via the WebSocket Interface Exporter.
-public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
+final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     private let app: Apodini.Application
-    
+    private let exporterConfiguration: WebSocket.ExporterConfiguration
     private let router: VaporWSRouter
 
     /// Initalize a `WebSocketInterfaceExporter` from an `Application`
-    public required init(_ app: Apodini.Application) {
+    init(_ app: Apodini.Application,
+         _ exporterConfiguration: WebSocket.ExporterConfiguration = WebSocket.ExporterConfiguration()) {
         self.app = app
-        self.router = VaporWSRouter(app.vapor.app, logger: app.logger)
+        self.exporterConfiguration = exporterConfiguration
+        self.router = VaporWSRouter(app.vapor.app, logger: app.logger, at: self.exporterConfiguration.path)
     }
 
-    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self).map { parameter in
             (name: parameter.0, value: parameter.1.parameter)
         }
@@ -38,7 +57,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         
         self.router.register({(clientInput: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, request: Vapor.Request) -> (
                     defaultInput: SomeInput,
-                    output: AnyPublisher<Message<EnrichedContent>, Error>
+                    output: AnyPublisher<Message<H.Response.Content>, Error>
                 ) in
             var cancellables: Set<AnyCancellable> = []
             
@@ -59,7 +78,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             // instance of the endpoint. Each time we pipe the `observation` into
             // `input` along with its `promise` which must be succeeded further down
             // the line.
-            let listener = DelegatingObservedListener(eventLoop: eventLoop, callback: { observedObject, event in
+            let listener = DelegatingObservedListener<H>(eventLoop: eventLoop, callback: { observedObject, event in
                 input.send(.observation(observedObject, event))
             })
             
@@ -69,13 +88,13 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
             
             // We need a second gap in the publisher-chain here so we can map freely between
             // `value`s and `completion`s.
-            let output: PassthroughSubject<Message<EnrichedContent>, Error> = PassthroughSubject()
+            let output: PassthroughSubject<Message<H.Response.Content>, Error> = PassthroughSubject()
             // Handle all incoming client-messages and observations one after another.
             // The `syncMap` automatically awaits the future, while `buffer` makes sure
             // messages are never dropped.
             input
                 .buffer()
-                .syncMap { evaluation -> EventLoopFuture<Apodini.Response<EnrichedContent>> in
+                .syncMap { evaluation -> EventLoopFuture<Apodini.Response<H.Response.Content>> in
                     switch evaluation {
                     case .input(let inputValue):
                         let request = WebSocketInput(inputValue, eventLoop: eventLoop, remoteAddress: request.remoteAddress)
@@ -106,7 +125,7 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }, on: endpoint.absolutePath.build(with: WebSocketPathBuilder.self))
     }
 
-    public func retrieveParameter<Type>(
+    func retrieveParameter<Type>(
         _ parameter: EndpointParameter<Type>,
         for request: WebSocketInput
     ) throws -> Type?? where Type: Decodable, Type: Encodable {
@@ -117,12 +136,12 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
 
-    public func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable, Type: Encodable {
+    func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable, Type: Encodable {
         (parameter.name, WebSocketParameter(BasicInputParameter<Type>()))
     }
     
     #if DEBUG
-    public static func messagePrefix(for error: StandardErrorContext) -> String? {
+    static func messagePrefix(for error: StandardErrorContext) -> String? {
         switch error.option(for: .errorType) {
         case .badInput:
             return "You messed up"
@@ -141,14 +160,14 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
     #else
-    public typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
+    typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
     #endif
     
-    private static func handleCompletion(
+    private static func handleCompletion<H: Handler>(
         completion: Subscribers.Completion<Never>,
-        context: ConnectionContext<WebSocketInterfaceExporter>,
+        context: ConnectionContext<WebSocketInterfaceExporter, H>,
         request: WebSocketInput,
-        output: PassthroughSubject<Message<EnrichedContent>, Error>
+        output: PassthroughSubject<Message<H.Response.Content>, Error>
     ) {
         switch completion {
         case .finished:
@@ -167,9 +186,9 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
     
-    private static func handleValue(
-        result: Result<Apodini.Response<EnrichedContent>, Error>,
-        output: PassthroughSubject<Message<EnrichedContent>, Error>
+    private static func handleValue<C: Encodable>(
+        result: Result<Apodini.Response<C>, Error>,
+        output: PassthroughSubject<Message<C>, Error>
     ) {
         switch result {
         case .success(let response):
@@ -179,9 +198,9 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
     
-    private static func handleCompletionResponse(
-        response: Apodini.Response<EnrichedContent>,
-        output: PassthroughSubject<Message<EnrichedContent>, Error>
+    private static func handleCompletionResponse<C: Encodable>(
+        response: Apodini.Response<C>,
+        output: PassthroughSubject<Message<C>, Error>
     ) {
         if let content = response.content {
             output.send(.message(content))
@@ -189,9 +208,9 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         output.send(completion: .finished)
     }
     
-    private static func handleRegularResponse(
-        response: Apodini.Response<EnrichedContent>,
-        output: PassthroughSubject<Message<EnrichedContent>, Error>
+    private static func handleRegularResponse<C: Encodable>(
+        response: Apodini.Response<C>,
+        output: PassthroughSubject<Message<C>, Error>
     ) {
         if let content = response.content {
             output.send(.message(content))
@@ -201,9 +220,9 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
         }
     }
     
-    private static func handleError(
+    private static func handleError<C: Encodable>(
         error: Error,
-        output: PassthroughSubject<Message<EnrichedContent>, Error>,
+        output: PassthroughSubject<Message<C>, Error>,
         close: Bool = false
     ) {
         let error = error.apodiniError
@@ -225,8 +244,8 @@ public final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
 
 // MARK: Handling of ObservedObject
 
-private struct DelegatingObservedListener: ObservedListener {
-    func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent, in context: ConnectionContext<WebSocketInterfaceExporter>) {
+private struct DelegatingObservedListener<H: Handler>: ObservedListener {
+    func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent) {
         callback(observedObject, event)
     }
     
@@ -259,7 +278,7 @@ public struct WebSocketParameter {
 
 /// A struct that wrapps the `WebSocketInterfaceExporter`'s internal representation of
 /// the complete input of an endpoint.
-public struct WebSocketInput: ExporterRequest, WithEventLoop, WithRemote {
+public struct WebSocketInput: ExporterRequestWithEventLoop {
     internal var input: SomeInput
     public let eventLoop: EventLoop
     public let remoteAddress: SocketAddress?

@@ -74,17 +74,10 @@ private struct StandardStaticExporterVisitableVisitor: StaticExporterVisitableVi
 
 // MARK: AssociatedKit workaround
 
-private struct TestRequest: ExporterRequest {
-    var remoteAddress: SocketAddress? {
-        nil
-    }
-}
+private struct TestRequest: ExporterRequest {}
 
 private struct TestExporter: InterfaceExporter {
     init() {}
-    init(_ app: Application) {
-        fatalError("No implemented")
-    }
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         fatalError("Not implemented")
     }
@@ -95,9 +88,6 @@ private struct TestExporter: InterfaceExporter {
 
 private struct StaticTestExporter: StaticInterfaceExporter {
     init() {}
-    init(_ app: Application) {
-        fatalError("No implemented")
-    }
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         fatalError("Not implemented")
     }

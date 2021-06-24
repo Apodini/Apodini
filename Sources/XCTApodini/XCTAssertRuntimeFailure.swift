@@ -29,6 +29,6 @@ public func XCTAssertRuntimeFailure<T>(
     file: StaticString = #filePath,
     line: UInt = #line) {
     // Empty implementation for Linux Tests
-    print("[NOTICE] XCTAssertRuntimeFailure unsupported on platform!")
+    print("[NOTICE] XCTAssertRuntimeFailure unsupported on this platform!")
 }
 #endif

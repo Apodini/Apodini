@@ -281,19 +281,15 @@ extension Endpoint {
         on eventLoop: EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
         let context = self.createConnectionContext(for: internalInterfaceExporter)
-        let responseFuture: EventLoopFuture<Apodini.Response<EnrichedContent>> = context.handle(request: request, eventLoop: eventLoop)
-        return responseFuture.flatMapThrowing { (response: Apodini.Response<EnrichedContent>) -> H.Response.Content in
+        let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = context.handle(request: request, eventLoop: eventLoop)
+        return responseFuture.flatMapThrowing { (response: Apodini.Response<H.Response.Content>) -> H.Response.Content in
             guard response.connectionEffect == .close else {
                 throw ApodiniDeployError(message: "Unexpected response value: \(response). Expected '.final'.")
             }
             guard let content = response.content else {
                 throw ApodiniDeployError(message: "Unable to get response content")
             }
-            if let value = content.typed(H.Response.Content.self) {
-                return value
-            } else {
-                throw ApodiniDeployError(message: "Unable to convert response to expected type '\(H.Response.Content.self)'")
-            }
+            return content
         }
     }
 }

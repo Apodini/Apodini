@@ -28,7 +28,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         init(endpoint: AnyEndpoint) {
             self.init(
                 id: endpoint[AnyHandlerIdentifier.self].rawValue,
-                path: endpoint.absolutePath.asPathString(),
+                path: endpoint.absoluteRESTPath.asPathString(),
                 description: endpoint.description
             )
         }
@@ -61,7 +61,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         let builder = SemanticModelBuilder(app)
         TestWebService().register(builder)
         
-        let actualEndpoints: [EndpointSummary] = builder.rootNode.collectEndpoints().map(EndpointSummary.init)
+        let actualEndpoints: [EndpointSummary] = builder.collectedEndpoints.map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
             EndpointSummary(id: "0.0.0", path: "/v1/x", description: String(describing: type(of: Text("a")))),
@@ -90,7 +90,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         let builder = SemanticModelBuilder(app)
         TestWebService().register(builder)
         
-        let actualEndpoints: [EndpointSummary] = builder.rootNode.collectEndpoints().map(EndpointSummary.init)
+        let actualEndpoints: [EndpointSummary] = builder.collectedEndpoints.map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
             EndpointSummary(id: "0.0", path: "/v1", description: String(describing: type(of: Text("a")))),
@@ -118,7 +118,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         let builder = SemanticModelBuilder(app)
         TestWebService().register(builder)
         
-        let actualEndpoints: [EndpointSummary] = builder.rootNode.collectEndpoints().map(EndpointSummary.init)
+        let actualEndpoints: [EndpointSummary] = builder.collectedEndpoints.map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
             EndpointSummary(id: "0.0.0.0", path: "/v1/x/y/z", description: String(describing: type(of: Text("a")))),
@@ -146,12 +146,11 @@ final class HandlerIdentifierTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                REST()
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         
         try app.vapor.app.test(.GET, "/v1/") { res in
@@ -187,7 +186,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         let builder = SemanticModelBuilder(app)
         TestWebService().register(builder)
         
-        let actualEndpoints: [EndpointSummary] = builder.rootNode.collectEndpoints().map(EndpointSummary.init)
+        let actualEndpoints: [EndpointSummary] = builder.collectedEndpoints.map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
             EndpointSummary(id: "0.0.0.0.0.0.0", path: "/v1", description: String(describing: type(of: Text("text"))))

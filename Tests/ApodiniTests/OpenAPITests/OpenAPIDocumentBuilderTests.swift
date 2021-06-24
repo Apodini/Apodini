@@ -7,6 +7,8 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniOpenAPI
 @testable import ApodiniVaporSupport
+import ApodiniREST
+
 
 final class OpenAPIDocumentBuilderTests: ApodiniTests {
     struct SomeStruct: Apodini.Content {
@@ -35,18 +37,25 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
 
     // swiftlint:disable:next function_body_length
     func testAddEndpoint() throws {
-        let comp = SomeComp()
-        let webService = WebServiceModel()
-        var endpoint = comp.mockEndpoint(app: app)
-        webService.addEndpoint(&endpoint, at: ["test"])
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
+            
+        Group("test") {
+            SomeComp()
+        }
+        .accept(visitor)
+        
+        visitor.finishParsing()
+        
+        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<SomeComp>)
 
-        let configuration = OpenAPIConfiguration()
+        let exporterConfiguration = OpenAPI.ExporterConfiguration()
 
-        var documentBuilder = OpenAPIDocumentBuilder(configuration: configuration)
+        var documentBuilder = OpenAPIDocumentBuilder(configuration: exporterConfiguration)
         documentBuilder.addEndpoint(endpoint)
         let document = OpenAPI.Document(
-            info: OpenAPI.Document.Info(title: configuration.title ?? "", version: configuration.version ?? ""),
-            servers: configuration.serverUrls.map {
+            info: OpenAPI.Document.Info(title: exporterConfiguration.title ?? "", version: exporterConfiguration.version ?? ""),
+            servers: exporterConfiguration.serverUrls.map {
                 .init(url: $0)
             },
             paths: [
@@ -116,9 +125,7 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
 
         let builtDocument = documentBuilder.build()
 
-        XCTAssertNoThrow(try builtDocument.output(.json))
-        print(try document.output(.json)!)
-        print(try builtDocument.output(.json)!)
+        XCTAssertNoThrow(try builtDocument.output(configuration: exporterConfiguration))
         XCTAssertEqual(builtDocument, document)
     }
 }

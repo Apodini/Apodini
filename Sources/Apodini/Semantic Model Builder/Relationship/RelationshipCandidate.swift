@@ -170,7 +170,7 @@ public struct PartialRelationshipSourceCandidate: SomeRelationshipSourceCandidat
         self.resolvers = resolvers
     }
 
-    mutating func link(to endpoint: _AnyEndpoint) {
+    mutating func link(to endpoint: _AnyRelationshipEndpoint) {
         storedReference = endpoint.reference
     }
 
@@ -180,7 +180,7 @@ public struct PartialRelationshipSourceCandidate: SomeRelationshipSourceCandidat
 }
 
 extension Array where Element == PartialRelationshipSourceCandidate {
-    func linked(to endpoint: _AnyEndpoint) -> [PartialRelationshipSourceCandidate] {
+    func linked(to endpoint: _AnyRelationshipEndpoint) -> [PartialRelationshipSourceCandidate] {
         map {
             var candidate = $0
             candidate.link(to: endpoint)

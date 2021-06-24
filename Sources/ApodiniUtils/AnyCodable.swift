@@ -1,12 +1,11 @@
 //
-//  AnyEncodable.swift
+//  AnyCodable.swift
 //  
 //
 //  Created by Paul Schmiedmayer on 1/4/21.
 //
 
 import Foundation
-
 
 /// A type-erasing wrapper around some `Encodable` value
 public struct AnyEncodable: Encodable {
@@ -35,11 +34,18 @@ extension AnyEncodable {
 /// Something that can encde `Encodable` objects to `Data`
 public protocol AnyEncoder {
     /// Encode some `Encodable` object to `Data`
-    func encode<T: Encodable>(_ value: T) throws -> Data
+    func encode<E: Encodable>(_ value: E) throws -> Data
+}
+
+/// Something that can decode `Decodable` objects to the given respective type
+public protocol AnyDecoder {
+    /// Decode some `Decodable` data to the given type
+    func decode<D>(_ type: D.Type, from data: Data) throws -> D where D: Decodable
 }
 
 extension JSONEncoder: AnyEncoder {}
 
+extension JSONDecoder: AnyDecoder {}
 
 // MARK: Null
 

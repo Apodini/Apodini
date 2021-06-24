@@ -148,22 +148,25 @@ final class DelegationTests: ApodiniTests {
         let before = Date().timeIntervalSince1970
         // this call is first to invoke delegate
         let response = try context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()).wait()
-        let observableInitializationTime = TimeInterval("\(response.content!.response.wrappedValue)")!
+        let observableInitializationTime = TimeInterval(response.content!)!
         XCTAssertGreaterThan(observableInitializationTime, before)
     }
     
-    class TestListener: ObservedListener {
+    class TestListener<H: Handler>: ObservedListener where H.Response.Content: StringProtocol {
         var eventLoop: EventLoop
+        
+        var context: ConnectionContext<MockExporter<String>, H>
         
         var result: EventLoopFuture<TimeInterval>?
         
-        init(eventLoop: EventLoop) {
+        init(eventLoop: EventLoop, context: ConnectionContext<MockExporter<String>, H>) {
             self.eventLoop = eventLoop
+            self.context = context
         }
 
-        func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent, in context: ConnectionContext<MockExporter<String>>) {
+        func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent) {
             result = context.handle(eventLoop: eventLoop, observedObject: observedObject, event: event).map { response in
-                TimeInterval("\(response.content!.response.wrappedValue)")!
+                TimeInterval(response.content!)!
             }
         }
     }
@@ -171,16 +174,17 @@ final class DelegationTests: ApodiniTests {
     func testObservability() throws {
         let eventLoop = app.eventLoopGroup.next()
         
-        let listener = TestListener(eventLoop: eventLoop)
-        
         let observable = TestObservable()
         var testHandler = TestHandler(observable).inject(app: app)
         activate(&testHandler)
 
         let endpoint = testHandler.mockEndpoint(app: app)
-
+        
         let exporter = MockExporter<String>(queued: "Not Max", false, "Max", true, "", "Max", true, "", "Not Max", false)
         let context = endpoint.createConnectionContext(for: exporter)
+        
+        let listener = TestListener<TestHandler>(eventLoop: eventLoop, context: context)
+
         context.register(listener: listener)
 
         try XCTCheckResponse(
@@ -292,5 +296,57 @@ final class DelegationTests: ApodiniTests {
         
         XCTAssertEqual(prepared.binding, 1)
         XCTAssertGreaterThan(prepared.observable.date, afterInitializationBeforeInjection)
+    }
+    
+    func testOptionalOptionality() throws {
+        struct OptionalDelegate {
+            @Parameter var name: String
+        }
+        
+        struct RequiredDelegatingDelegate {
+            let delegate = Delegate(OptionalDelegate())
+        }
+        
+        struct SomeHandler: Handler {
+            let delegate = Delegate(RequiredDelegatingDelegate(), .required)
+            
+            func handle() throws -> some ResponseTransformable {
+                try delegate().delegate().name
+            }
+        }
+        
+        let parameter = try XCTUnwrap(SomeHandler().buildParametersModel().first as? EndpointParameter<String>)
+        
+        XCTAssertEqual(ObjectIdentifier(parameter.propertyType), ObjectIdentifier(String.self))
+        XCTAssertEqual(parameter.necessity, .required)
+        XCTAssertEqual(parameter.nilIsValidValue, false)
+        XCTAssertEqual(parameter.hasDefaultValue, false)
+        XCTAssertEqual(parameter.option(for: .optionality), .optional)
+    }
+    
+    func testRequiredOptionality() throws {
+        struct RequiredDelegate {
+            @Parameter var name: String
+        }
+        
+        struct RequiredDelegatingDelegate {
+            var delegate = Delegate(RequiredDelegate(), .required)
+        }
+        
+        struct SomeHandler: Handler {
+            let delegate = Delegate(RequiredDelegatingDelegate(), .required)
+            
+            func handle() throws -> some ResponseTransformable {
+                try delegate().delegate().name
+            }
+        }
+        
+        let parameter = try XCTUnwrap(SomeHandler().buildParametersModel().first as? EndpointParameter<String>)
+        
+        XCTAssertEqual(ObjectIdentifier(parameter.propertyType), ObjectIdentifier(String.self))
+        XCTAssertEqual(parameter.necessity, .required)
+        XCTAssertEqual(parameter.nilIsValidValue, false)
+        XCTAssertEqual(parameter.hasDefaultValue, false)
+        XCTAssertEqual(parameter.option(for: .optionality), .required)
     }
 }

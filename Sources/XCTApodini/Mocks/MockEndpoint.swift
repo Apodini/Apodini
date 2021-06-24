@@ -13,9 +13,18 @@ public extension Handler {
     /// - Note: This endpoint's identifier is not guaranteed to be stable
     func mockEndpoint(
         app: Application? = nil,
-        context: Context? = nil,
-        operation: Apodini.Operation? = nil
+        context: Context? = nil
     ) -> Endpoint<Self> {
+        mockRelationshipEndpoint(app: app, context: context).0
+    }
+    
+    /// Creates a basic Endpoint Model from the `Handler`.
+    /// If `Application` is defined, it will be injected into all `ApplicationInjectables`.
+    /// - Note: This endpoint's identifier is not guaranteed to be stable
+    func mockRelationshipEndpoint(
+        app: Application? = nil,
+        context: Context? = nil
+    ) -> (Endpoint<Self>, RelationshipEndpoint<Self>) {
         let context = context ?? Context(contextNode: ContextNode())
         var handler = self
         if let application = app {
@@ -32,10 +41,13 @@ public extension Handler {
             blackboard = LocalBlackboard<LazyHashmapBlackboard, LazyHashmapBlackboard>(LazyHashmapBlackboard(), using: handler, context)
         }
 
-        return Endpoint(
+        return (Endpoint(
             handler: handler,
             blackboard: blackboard
-        )
+        ), RelationshipEndpoint(
+            handler: handler,
+            blackboard: blackboard
+        ))
     }
 }
 #endif

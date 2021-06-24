@@ -41,7 +41,7 @@ public enum EndpointPath: CustomStringConvertible, CustomDebugStringConvertible 
         return false
     }
 
-    func scoped(on endpoint: AnyEndpoint) -> EndpointPath {
+    func scoped(on endpoint: ParameterCollection) -> EndpointPath {
         if case let .parameter(parameter) = self {
             var parameter = parameter.toInternal()
             parameter.scoped(on: endpoint)
@@ -146,7 +146,7 @@ protocol _AnyEndpointPathParameter: AnyEndpointPathParameter {
     /// - `scopedEndpointHasDefinedParameter`
     ///
     /// - Parameter endpoint: The scope to use for the Parameter
-    mutating func scoped(on endpoint: AnyEndpoint)
+    mutating func scoped(on endpoint: ParameterCollection)
 
     /// Internal method to remove the scope of a PathParameter again.
     /// See `scoped(on:)` for more information on scoped PathParameters.
@@ -207,7 +207,7 @@ public struct EndpointPathParameter<Type: Codable>: _AnyEndpointPathParameter {
         self.identifyingType = identifyingType
     }
 
-    mutating func scoped(on endpoint: AnyEndpoint) {
+    mutating func scoped(on endpoint: ParameterCollection) {
         precondition(storedScopedEndpointHasDefinedParameter == nil, "Cannot scope an already scoped EndpointPathParameter!")
 
         if let parameter = endpoint.findParameter(for: id) {
@@ -239,7 +239,7 @@ public struct EndpointPathParameter<Type: Codable>: _AnyEndpointPathParameter {
 
 // MARK: EndpointPath
 extension Array where Element == EndpointPath {
-    func scoped(on endpoint: AnyEndpoint) -> [Element] {
+    func scoped(on endpoint: ParameterCollection) -> [Element] {
         map { path in
             path.scoped(on: endpoint)
         }

@@ -17,9 +17,9 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
     }
 
     func callAsFunction(
-        with validatingRequest: ValidatingRequest<I, H>,
+        with request: Request,
         on connection: Connection
-    ) -> EventLoopFuture<Response<EnrichedContent>> {
+    ) -> EventLoopFuture<Response<H.Response.Content>> {
         let request = connection.request
         
         return request.eventLoop.makeSucceededVoidFuture()
@@ -33,18 +33,5 @@ struct InternalEndpointRequestHandler<I: InterfaceExporter, H: Handler> {
                     return connection.eventLoop.makeFailedFuture(error)
                 }
             }
-            .map { (typedResponse: Response<H.Response.Content>) -> Response<EnrichedContent> in
-                mapToEnrichedContent(typedResponse.typeErasured, validatedRequest: validatingRequest)
-            }
-    }
-
-    private func mapToEnrichedContent(_ response: Response<AnyEncodable>, validatedRequest: ValidatingRequest<I, H>) -> Response<EnrichedContent> {
-        response.map { anyEncodable in
-            EnrichedContent(
-                for: instance.endpoint,
-                response: anyEncodable,
-                parameters: { uuid in try? validatedRequest.retrieveAnyParameter(uuid) }
-            )
-        }
     }
 }

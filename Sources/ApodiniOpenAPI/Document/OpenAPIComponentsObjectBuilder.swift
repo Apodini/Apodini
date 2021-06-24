@@ -4,6 +4,7 @@
 
 import Foundation
 import Apodini
+import ApodiniREST
 import ApodiniUtils
 import ApodiniTypeReflection
 import ApodiniVaporSupport
@@ -20,7 +21,7 @@ enum OpenAPISchemaConstants {
 /// Corresponds to `components` section in OpenAPI document
 /// See: https://swagger.io/specification/#components-object
 class OpenAPIComponentsObjectBuilder {
-    var componentsObject: OpenAPI.Components = .init(
+    var componentsObject: OpenAPIKit.OpenAPI.Components = .init(
         schemas: [:],
         responses: [:],
         parameters: [:],
@@ -31,7 +32,7 @@ class OpenAPIComponentsObjectBuilder {
         callbacks: [:],
         vendorExtensions: [:]
     )
-
+    
     /// Use this function to build a schema for an arbitrary type.
     /// Types built with function are automatically stored into the componentsObject
     /// and thus can be referenced throughout the specification.
@@ -40,25 +41,29 @@ class OpenAPIComponentsObjectBuilder {
         let (schema, _) = try buildSchemaWithTitle(for: type)
         return schema
     }
-
+    
     /// For responses, a wrapper object is created as it is returned by the REST API.
     /// Therefore `ResponseContainer`'s CodingKeys are reused.
     /// The resulting JSONSchema is stored in the componentsObject.
     func buildResponse(for type: Encodable.Type) throws -> JSONSchema {
-        let (schema, title) = try buildSchemaWithTitle(for: type)
-        let schemaName = "\(title)Response"
-        let schemaObject: JSONSchema = .object(
-            title: schemaName,
-            properties: [
-                ResponseContainer.CodingKeys.data.rawValue: schema,
-                ResponseContainer.CodingKeys.links.rawValue: try buildSchema(for: ResponseContainer.Links.self)
-            ])
-        if !schemaExists(for: schemaName) {
-            saveSchema(name: schemaName, schema: schemaObject)
+        if type == Blob.self {
+            return .string(format: .binary, required: true)
+        } else {
+            let (schema, title) = try buildSchemaWithTitle(for: type)
+            let schemaName = "\(title)Response"
+            let schemaObject: JSONSchema = .object(
+                title: schemaName,
+                properties: [
+                    ResponseContainer.CodingKeys.data.rawValue: schema,
+                    ResponseContainer.CodingKeys.links.rawValue: try buildSchema(for: ResponseContainer.Links.self)
+                ])
+            if !schemaExists(for: schemaName) {
+                saveSchema(name: schemaName, schema: schemaObject)
+            }
+            return .reference(.component(named: schemaName))
         }
-        return .reference(.component(named: schemaName))
     }
-
+    
     /// In case there is more than one type in HTTP body, a wrapper schema needs to be built.
     /// This function takes a list of types with an associated boolean flag reflecting whether it is optional.
     func buildWrapperSchema(for types: [Codable.Type], with necessities: [Necessity]) throws -> JSONSchema {
@@ -96,7 +101,7 @@ extension OpenAPIComponentsObjectBuilder {
         let schemaNode = node.contextMap { (node: Node<ReflectionInfo>) -> JSONSchema in
             let schema = deriveSchemaFromReflectionInfo(node)
             let schemaName = createSchemaName(for: node)
-
+            
             // If there is a reference type that is not yet saved into the
             // componentsObject, a new schema is created and saved.
             if schema.isReference && !schemaExists(for: schemaName) {
@@ -114,12 +119,12 @@ extension OpenAPIComponentsObjectBuilder {
         let title = createSchemaName(for: node, root: true)
         return (schemaNode.value, title)
     }
-
+    
     /// Saves a schema into componentsObject.
     private func saveSchema(name: String, schema: JSONSchema) {
         self.componentsObject.schemas[componentKey(for: name)] = schema
     }
-
+    
     /// Creates specification compliant schema names.
     private func createSchemaName(for node: Node<ReflectionInfo>, root: Bool = false) -> String {
         var schemaName: String
@@ -132,7 +137,7 @@ extension OpenAPIComponentsObjectBuilder {
         } else {
             schemaName = node.value.typeInfo.mangledName
         }
-
+        
         // The schemaName is prefixed if the root type cardinality != .exactlyOne.
         if root {
             switch node.value.cardinality {
@@ -149,10 +154,10 @@ extension OpenAPIComponentsObjectBuilder {
                 return schemaName
             }
         }
-
+        
         return schemaName
     }
-
+    
     /// Constructs a schema with type specific attributes, e.g. optional.
     private func deriveSchemaFromReflectionInfo(_ node: Node<ReflectionInfo>) -> JSONSchema {
         let isPrimitive = node.children.isEmpty
@@ -164,9 +169,9 @@ extension OpenAPIComponentsObjectBuilder {
             }
             return false
         }()
-
+        
         var schema: JSONSchema
-
+        
         if isPrimitive {
             schema = JSONSchema.from(node.value.typeInfo.type, defaultType: .object)
         } else {
@@ -189,16 +194,16 @@ extension OpenAPIComponentsObjectBuilder {
         }
         return schema
     }
-
+    
     /// Checks if schema is already part of componentsObject.
     private func schemaExists(for name: String) -> Bool {
         let internalReference = JSONReference<JSONSchema>.InternalReference.component(name: name)
         return self.componentsObject.contains(internalReference)
     }
-
+    
     /// Creates a componentKey usable for saving the schema into componentsObject.
-    private func componentKey(for name: String) -> OpenAPI.ComponentKey {
-        guard let componentKey = OpenAPI.ComponentKey(rawValue: name) else {
+    private func componentKey(for name: String) -> OpenAPIKit.OpenAPI.ComponentKey {
+        guard let componentKey = OpenAPIKit.OpenAPI.ComponentKey(rawValue: name) else {
             fatalError("Failed to set component key \(name) in OpenAPI components.")
         }
         return componentKey
@@ -213,7 +218,7 @@ extension OpenAPIComponentsObjectBuilder {
         var counter = 0
         return try recursiveEdit(node: node, counter: &counter)
     }
-
+    
     /// Recursively reflects types in a type tree and adjusts them.
     private static func recursiveEdit(node: Node<ReflectionInfo>, counter: inout Int) throws -> Node<ReflectionInfo> {
         if counter > OpenAPISchemaConstants.allowedRecursionDepth {
@@ -222,12 +227,12 @@ extension OpenAPIComponentsObjectBuilder {
         counter += 1
         let before = node.collectValues()
         guard let newNode = try node
-            .edited(handleOptional)?
-            .edited(handleArray)?
-            .edited(handleDictionary)?
-            .edited(handlePrimitiveType)?
-            .edited(handleUUID)
-            else {
+                .edited(handleOptional)?
+                .edited(handleArray)?
+                .edited(handleDictionary)?
+                .edited(handlePrimitiveType)?
+                .edited(handleUUID)
+        else {
             fatalError("Error occurred during transforming tree of nodes with type \(node.value.typeInfo.name).")
         }
         let after = newNode.collectValues()

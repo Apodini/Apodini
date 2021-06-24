@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  main.swift
 //
 //
 //  Created by Lukas Kollmer on 2021-03-18.
@@ -20,10 +20,8 @@ import ApodiniREST
 import ApodiniOpenAPI
 
 
-/*
- This file implements the `ApodiniDeployTestWebService`,
- which is used to test the two deployment providers (localhost and Lambda).
- */
+// This file implements the `ApodiniDeployTestWebService`,
+// which is used to test the two deployment providers (localhost and Lambda).
 
 
 // MARK: Localhost Components
@@ -146,7 +144,7 @@ struct Text2: Handler {
     }
 }
 
-struct WebService: Apodini.WebService {
+struct WebService: Apodini.WebService {    
     var content: some Component {
         Group("aws_rand") {
             Text2("").operation(.create)
@@ -174,16 +172,12 @@ struct WebService: Apodini.WebService {
     }
     
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(RESTInterfaceExporter.self)
-            .exporter(OpenAPIInterfaceExporter.self)
-            .exporter(ApodiniDeployInterfaceExporter.self)
-        ApodiniDeployConfiguration(
-            runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
-            config: DeploymentConfig(defaultGrouping: .separateNodes, deploymentGroups: [
-                .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")
-            ])
-        )
+        REST {
+            OpenAPI()
+        }
+        ApodiniDeploy(runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
+                                       config: DeploymentConfig(defaultGrouping: .separateNodes, deploymentGroups: [
+                .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")]))
     }
 
     var metadata: Metadata {
@@ -191,4 +185,4 @@ struct WebService: Apodini.WebService {
     }
 }
 
-try WebService.main()
+WebService.main()

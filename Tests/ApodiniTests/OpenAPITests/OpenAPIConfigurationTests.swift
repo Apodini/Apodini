@@ -5,43 +5,52 @@
 import XCTest
 @testable import Apodini
 @testable import ApodiniOpenAPI
+@testable import ApodiniREST
 
 final class OpenAPIConfigurationTests: ApodiniTests {
     func testBuildDocumentWithConfiguration() throws {
-        let configuredOutputFormat: OpenAPIOutputFormat = .yaml
+        let configuredOutputFormat: OpenAPI.OutputFormat = .yaml
         let configuredOutputEndpoint = "oas"
         let configuredSwaggerUiEndpoint = "oas-ui"
         let configuredTitle = "The great TestWebService - presented by Apodini"
+        let configuredParentRESTConfiguration = REST.ExporterConfiguration(encoder: JSONEncoder(), decoder: JSONDecoder())
 
-        let openAPIConfiguration = OpenAPIConfiguration(
+        let openAPIConfiguration = OpenAPI.ExporterConfiguration(
+            parentConfiguration: configuredParentRESTConfiguration,
             outputFormat: configuredOutputFormat,
             outputEndpoint: configuredOutputEndpoint,
             swaggerUiEndpoint: configuredSwaggerUiEndpoint,
             title: configuredTitle
         )
-        openAPIConfiguration.configure(app)
+        
+        let openAPIExporter = OpenAPIInterfaceExporter(app, openAPIConfiguration)
 
-        let storage = try XCTUnwrap(app.storage.get(OpenAPIStorageKey.self))
-
-        XCTAssertEqual(storage.configuration.outputFormat, configuredOutputFormat)
+        XCTAssertEqual(openAPIExporter.exporterConfiguration.outputFormat, configuredOutputFormat)
         // Since given as relative paths, `outputEndpoint` was prefixed.
-        XCTAssertNotEqual(storage.configuration.outputEndpoint, "\(configuredOutputEndpoint)")
-        XCTAssertEqual(storage.configuration.outputEndpoint, "\(openAPIConfiguration.outputEndpoint)")
+        XCTAssertNotEqual(openAPIExporter.exporterConfiguration.outputEndpoint, "\(configuredOutputEndpoint)")
+        XCTAssertEqual(openAPIExporter.exporterConfiguration.outputEndpoint, "\(openAPIConfiguration.outputEndpoint)")
         // Since given as relative paths, `swaggerUiEndpoint` was prefixed.
-        XCTAssertNotEqual(storage.configuration.swaggerUiEndpoint, "\(configuredSwaggerUiEndpoint)")
-        XCTAssertEqual(storage.configuration.swaggerUiEndpoint, "\(openAPIConfiguration.swaggerUiEndpoint)")
-        XCTAssertEqual(storage.configuration.title, configuredTitle)
+        XCTAssertNotEqual(openAPIExporter.exporterConfiguration.swaggerUiEndpoint, "\(configuredSwaggerUiEndpoint)")
+        XCTAssertEqual(openAPIExporter.exporterConfiguration.swaggerUiEndpoint, "\(openAPIConfiguration.swaggerUiEndpoint)")
+        XCTAssertEqual(openAPIExporter.exporterConfiguration.title, configuredTitle)
+        // Just simple assertions since it's very tricky to compare encoders
+        XCTAssertNotNil(openAPIExporter.exporterConfiguration.parentConfiguration)
+        let parentConfiguration = openAPIExporter.exporterConfiguration.parentConfiguration
+        XCTAssertNotNil(parentConfiguration.encoder)
+        XCTAssertNotNil(parentConfiguration.decoder)
+        XCTAssertTrue(parentConfiguration.encoder is JSONEncoder)
+        XCTAssertTrue(parentConfiguration.decoder is JSONDecoder)
     }
 
     func testBuildDocumentWithDefaultConfiguration() throws {
-        OpenAPIConfiguration()
-            .configure(app)
+        let openAPIConfiguration = OpenAPI.ExporterConfiguration()
+        let openAPIExporter = OpenAPIInterfaceExporter(app, openAPIConfiguration)
 
-        let storage = try XCTUnwrap(app.storage.get(OpenAPIStorageKey.self))
-
-        XCTAssertEqual(storage.configuration.outputFormat, OpenAPIConfigurationDefaults.outputFormat)
-        XCTAssertEqual(storage.configuration.outputEndpoint, "/\(OpenAPIConfigurationDefaults.outputEndpoint)")
-        XCTAssertEqual(storage.configuration.swaggerUiEndpoint, "/\(OpenAPIConfigurationDefaults.swaggerUiEndpoint)")
-        XCTAssertNil(storage.configuration.title)
+        XCTAssertEqual(openAPIExporter.exporterConfiguration.outputFormat, OpenAPI.ConfigurationDefaults.outputFormat)
+        XCTAssertEqual(openAPIExporter.exporterConfiguration.outputEndpoint, "/\(OpenAPI.ConfigurationDefaults.outputEndpoint)")
+        XCTAssertEqual(openAPIExporter.exporterConfiguration.swaggerUiEndpoint, "/\(OpenAPI.ConfigurationDefaults.swaggerUiEndpoint)")
+        XCTAssertNil(openAPIExporter.exporterConfiguration.title)
+        // Just simple assertions since it's very tricky to compare encoders
+        XCTAssertNotNil(openAPIExporter.exporterConfiguration.parentConfiguration)
     }
 }

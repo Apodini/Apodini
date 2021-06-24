@@ -41,7 +41,7 @@ extension RelationshipDestination {
     ///   - formatter: The actual instance of the `RelationshipFormatter`.
     ///   - result: The `Formatter.Result` to write into.
     ///   - context: Optional `ResolveContext`. If present this can be used to resolve path parameters.
-    func formatRelationship<Formatter: RelationshipFormatter>(
+    public func formatRelationship<Formatter: RelationshipFormatter>(
         with formatter: Formatter,
         result: inout Formatter.Result,
         context: ResolveContext?
@@ -79,7 +79,7 @@ extension Set where Element == RelationshipDestination {
     ///   - includeSelf: If true the special self relationship will also be formatted (as last one).
     ///   - context: Optional `ResolveContext`. If present this can be used to resolve path parameters.
     /// - Returns: The fully formatted `Formatter.Result`.
-    func formatRelationships<Formatter: RelationshipFormatter>(
+    public func formatRelationships<Formatter: RelationshipFormatter>(
         into initialValue: Formatter.Result,
         with formatter: Formatter,
         context: ResolveContext?
