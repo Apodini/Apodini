@@ -144,7 +144,7 @@ struct Text2: Handler {
     }
 }
 
-struct WebService: Apodini.WebService {    
+struct WebService: Apodini.WebService {
     var content: some Component {
         Group("aws_rand") {
             Text2("").operation(.create)
@@ -175,9 +175,15 @@ struct WebService: Apodini.WebService {
         REST {
             OpenAPI()
         }
-        ApodiniDeploy(runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
-                                       config: DeploymentConfig(defaultGrouping: .separateNodes, deploymentGroups: [
-                .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")]))
+        ApodiniDeploy(
+            runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
+            config: DeploymentConfig(
+                defaultGrouping: .separateNodes,
+                deploymentGroups: [
+                    .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")
+                ]
+            )
+        )
     }
 
     var metadata: Metadata {
