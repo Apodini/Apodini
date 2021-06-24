@@ -101,10 +101,11 @@ struct AWS_RandomNumberGenerator: InvocableHandler, HandlerWithDeploymentOptions
     }
     
     static var deploymentOptions: [AnyDeploymentOption] {
+        // NOTE: starting with swift 5.4 we'll be able to drop the leading `AnyOption` here and use the implicit member thing w/ chaining
         [
-            .memory(.mb(150)).when(\Self.handlerId == .main),
-            .memory(.mb(180)).when(\Self.handlerId == .other),
-            .timeout(.seconds(12))
+            AnyDeploymentOption.memory(.mb(150)).when(\Self.handlerId == .main),
+            AnyDeploymentOption.memory(.mb(180)).when(\Self.handlerId == .other),
+            AnyDeploymentOption.timeout(.seconds(12))
         ]
     }
 }
