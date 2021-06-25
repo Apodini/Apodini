@@ -274,27 +274,24 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
     }
     
     
-    private func runInDocker(imageName: String, bashCommand: String, workingDirectory: URL? = nil, environment: [String: String?] = [:]) throws {
-        let task = Task(
-            executableUrl: try findExecutable("docker"),
-            arguments: [
+    private func runInDocker(imageName: String, bashCommand: String, workingDirectory: URL? = nil, environment: [String: String] = [:]) throws {
+        let taskArguments = { () -> [String] in
+            var args: [String] = [
                 "run", "--rm",
                 "--volume", "\(packageRootDir.path)/..:/src/",
-                "--workdir", "/src/\(packageRootDir.lastPathComponent)",
-                environment.reduce(into: "") { res, env in
-                    guard let value = env.value else {
-                        return
-                    }
-            
-                    res.append(
-                        """
-                            --env \(env.key)='\(value)'
-                        """ + " "
-                    )
-                },
-                imageName,
-                "bash", "-cl", bashCommand
-            ],
+                "--workdir", "/src/\(packageRootDir.lastPathComponent)"
+            ]
+            args.append(contentsOf: environment.flatMap { key, value -> [String] in
+                ["--env", "\(key)=\(value.shellEscaped())"]
+            })
+            args.append(contentsOf: [
+                imageName, "bash", "-cl", bashCommand
+            ])
+            return args
+        }()
+        let task = Task(
+            executableUrl: try findExecutable("docker"),
+            arguments: taskArguments,
             workingDirectory: workingDirectory,
             captureOutput: false,
             launchInCurrentProcessGroup: true
