@@ -45,7 +45,7 @@ extension String {
     /// Returns a copy of the string, with all quotation marks (both single `'` and double `"`) escaped.
     /// This function is intended for strings which are used as parameters to shell commands.
     public func shellEscaped() -> String {
-        return self
+        self
             .replacingOccurrences(of: "'", with: #"\'"#)
             .replacingOccurrences(of: "\"", with: #"\""#)
     }
