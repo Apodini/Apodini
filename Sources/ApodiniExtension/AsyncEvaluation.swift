@@ -98,15 +98,27 @@ private extension Publisher where Output == Event {
 // MARK: Handling Request Evaluation
 
 public extension WithDelegate where Output: Request {
-    func evaluate() -> some WithDelegate {
-        self.evaluate(on: delegate).withDelegate(delegate)
+    func evaluate() -> Publishers.SyncMap<Self, Response<H.Response.Content>> {
+        self.evaluate(on: delegate)
+    }
+    
+    func evaluate() -> Publishers.SyncMap<Self, ResponseWithRequest<H.Response.Content>> {
+        self.evaluateAndReturnRequest(on: self.delegate)
     }
 }
 
 private extension Publisher where Output: Request {
-    func evaluate<H: Handler>(on delegate: Delegate<H>) -> some Publisher {
+    func evaluate<H: Handler>(on delegate: Delegate<H>) -> Publishers.SyncMap<Self, Response<H.Response.Content>> {
         return self.syncMap { request in
             delegate.evaluate(using: request)
+        }
+    }
+    
+    func evaluateAndReturnRequest<H: Handler>(on delegate: Delegate<H>) -> Publishers.SyncMap<Self, ResponseWithRequest<H.Response.Content>> {
+        return self.syncMap { request in
+            delegate.evaluate(using: request).map { (response: Response<H.Response.Content>) in
+                ResponseWithRequest(response: response, request: request)
+            }
         }
     }
 }

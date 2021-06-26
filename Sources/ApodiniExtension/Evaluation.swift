@@ -6,11 +6,24 @@
 //
 
 import Apodini
+import ApodiniUtils
+import Foundation
+
+public struct ResponseWithRequest<C: Encodable>: WithRequest {
+    public let response: Response<C>
+    public let request: Request
+}
 
 extension Request {
     public func evaluate<H: Handler>(on handler: H) -> EventLoopFuture<Response<H.Response.Content>> {
         let delegate = Delegate.standaloneInstance(of: handler)
         return delegate.evaluate(using: self)
+    }
+    
+    public func evaluate<H: Handler>(on handler: H) -> EventLoopFuture<ResponseWithRequest<H.Response.Content>> {
+        self.evaluate(on: handler).map { (response: Response<H.Response.Content>) in
+            ResponseWithRequest(response: response, request: self)
+        }
     }
 }
 

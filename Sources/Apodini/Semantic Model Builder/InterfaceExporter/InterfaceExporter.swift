@@ -2,6 +2,8 @@
 // Created by Andreas Bauer on 22.11.20.
 //
 
+// TODO: special `export` functions for Blob and Empty, no special protocol for StandardErrorCompliantExporter
+
 import protocol NIO.EventLoop
 
 /// This is the base protocol shared by any Exporter type supported by Apodini.
