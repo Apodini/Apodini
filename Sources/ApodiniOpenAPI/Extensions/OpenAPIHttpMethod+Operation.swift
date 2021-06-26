@@ -6,7 +6,7 @@ import Foundation
 import Apodini
 import OpenAPIKit
 
-extension OpenAPI.HttpMethod {
+extension OpenAPIKit.OpenAPI.HttpMethod {
     init(_ operation: Apodini.Operation) {
         switch operation {
         case .read:

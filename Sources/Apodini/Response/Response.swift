@@ -37,7 +37,7 @@ public struct Response<Content: Encodable>: ResponseTransformable {
     
     public let status: Status?
     public let content: Content?
-    public let information: Set<AnyInformation>
+    public var information: Set<AnyInformation>
     public let connectionEffect: ConnectionEffect
     
     

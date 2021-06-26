@@ -6,7 +6,7 @@ import ApodiniUtils
 
 /// A `@PathComponent` can be used in `Component`s to indicate that a part of a path is a parameter and can be read out in a `Handler`
 @propertyWrapper
-public struct PathParameter<Element: Codable & LosslessStringConvertible> {
+public struct PathParameter<Element: Codable & LosslessStringConvertible>: Decodable {
     var id = UUID()
     var identifyingType: IdentifyingType?
     
@@ -41,6 +41,10 @@ public struct PathParameter<Element: Codable & LosslessStringConvertible> {
         self.init()
         self.identifyingType = IdentifyingType(identifying: type)
     }
+    
+    /// Required because `WebService` conform to `ParsableCommand` which conforms to `Decodable`
+    /// Can't be automatically synthesized by Swift
+    public init(from decoder: Decoder) throws {}
 }
 
 extension PathParameter {

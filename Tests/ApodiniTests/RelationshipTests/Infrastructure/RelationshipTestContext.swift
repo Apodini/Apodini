@@ -18,15 +18,15 @@ class RelationshipTestContext {
     }
 
     init<C: Component>(app: Application, service: C) {
+        app.registerExporter(exporter: RelationshipExporter())
         let builder = SemanticModelBuilder(app)
-            .with(exporter: RelationshipExporter.self)
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         service.accept(visitor)
         visitor.finishParsing()
 
         let anyExporter: AnyInterfaceExporter
         do {
-            anyExporter = try XCTUnwrap(builder.interfaceExporters.first)
+            anyExporter = try XCTUnwrap(app.interfaceExporters.first)
         } catch {
             fatalError("Failed to unwrap interface exporter: \(error)")
         }

@@ -6,6 +6,7 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniVaporSupport
 @testable import ApodiniOpenAPI
+@testable import ApodiniREST
 @_implementationOnly import Yams
 @_implementationOnly import OpenAPIKit
 import XCTVapor
@@ -24,22 +25,22 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                OpenAPIConfiguration()
-                ExporterConfiguration()
-                    .exporter(OpenAPIInterfaceExporter.self)
+                REST {
+                    OpenAPI()
+                }
             }
         }
 
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
 
-        try app.vapor.app.test(.GET, "\(OpenAPIConfigurationDefaults.outputEndpoint)") { res in
+        try app.vapor.app.test(.GET, "\(OpenAPI.ConfigurationDefaults.outputEndpoint)") { res in
             XCTAssertEqual(res.status, .ok)
             XCTAssertNoThrow(try res.content.decode(OpenAPI.Document.self, using: JSONDecoder()))
         }
 
         let headers: HTTPHeaders = ["Content-Type": HTTPMediaType.html.serialize()]
 
-        try app.vapor.app.test(.GET, "/\(OpenAPIConfigurationDefaults.swaggerUiEndpoint)", headers: headers) { res in
+        try app.vapor.app.test(.GET, "/\(OpenAPI.ConfigurationDefaults.swaggerUiEndpoint)", headers: headers) { res in
             XCTAssertEqual(res.status, .ok)
 
             guard let htmlFile = Bundle.apodiniOpenAPIResources.path(forResource: "swagger-ui", ofType: "html"),
@@ -48,41 +49,40 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
                 throw Vapor.Abort(.internalServerError)
             }
 
-            html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: "/\(OpenAPIConfigurationDefaults.outputEndpoint)")
+            html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: "/\(OpenAPI.ConfigurationDefaults.outputEndpoint)")
 
             XCTAssertEqual(res.body, .init(string: html))
         }
     }
 
     func testInterfaceExporterConfiguredServing() throws {
+        let configuredOutputEndpoint = "/oas"
+        let configuredSwaggerUiEndpoint = "/oas-ui"
+        
         struct TestWebService: WebService {
             var content: some Component {
                 SomeComp()
             }
 
             var configuration: Configuration {
-                OpenAPIConfiguration(
-                    outputFormat: .yaml,
-                    outputEndpoint: "oas",
-                    swaggerUiEndpoint: "oas-ui"
-                )
-                ExporterConfiguration()
-                .exporter(OpenAPIInterfaceExporter.self)
+                REST(encoder: JSONEncoder(), decoder: JSONDecoder()) {
+                    OpenAPI(outputFormat: .yaml,
+                            outputEndpoint: "/oas",
+                            swaggerUiEndpoint: "/oas-ui")
+                }
             }
         }
 
-        TestWebService.main(app: app)
-        
-        let storage = try XCTUnwrap(app.storage.get(OpenAPIStorageKey.self))
+        TestWebService.start(app: app)
 
-        try app.vapor.app.test(.GET, storage.configuration.outputEndpoint) { res in
+        try app.vapor.app.test(.GET, configuredOutputEndpoint) { res in
             XCTAssertEqual(res.status, .ok)
             XCTAssertThrowsError(try res.content.decode(OpenAPI.Document.self, using: JSONDecoder()))
         }
 
         let headers: HTTPHeaders = ["Content-Type": HTTPMediaType.html.serialize()]
 
-        try app.vapor.app.test(.GET, storage.configuration.swaggerUiEndpoint, headers: headers) { res in
+        try app.vapor.app.test(.GET, configuredSwaggerUiEndpoint, headers: headers) { res in
             XCTAssertEqual(res.status, .ok)
 
             guard let htmlFile = Bundle.apodiniOpenAPIResources.path(forResource: "swagger-ui", ofType: "html"),
@@ -91,7 +91,7 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
                 return XCTFail("Missing Swagger-UI HTML resource.")
             }
 
-            html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: storage.configuration.outputEndpoint)
+            html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: configuredOutputEndpoint)
 
             XCTAssertEqual(res.body, .init(string: html))
         }

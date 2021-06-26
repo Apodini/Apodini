@@ -55,12 +55,11 @@ final class CustomComponentTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                REST()
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         
         let headers: HTTPHeaders = ["Content-Type": "application/json"]

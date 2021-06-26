@@ -9,26 +9,27 @@ import OpenAPIKit
 /// Creates the OpenAPI specification document
 /// https://swagger.io/specification/#openapi-object
 struct OpenAPIDocumentBuilder {
-    var document: OpenAPI.Document {
+    var document: OpenAPIKit.OpenAPI.Document {
         self.build()
     }
-    var configuration: OpenAPIConfiguration
+    
+    let configuration: OpenAPI.ExporterConfiguration
     var pathsObjectBuilder: OpenAPIPathsObjectBuilder
     var componentsObjectBuilder: OpenAPIComponentsObjectBuilder
-
-    init(configuration: OpenAPIConfiguration) {
+    
+    init(configuration: OpenAPI.ExporterConfiguration) {
         self.configuration = configuration
         self.componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         self.pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &self.componentsObjectBuilder)
     }
-
+    
     mutating func addEndpoint<H: Handler>(_ endpoint: Endpoint<H>) {
         pathsObjectBuilder.addPathItem(from: endpoint)
     }
-
-    func build() -> OpenAPI.Document {
-        OpenAPI.Document(
-            info: OpenAPI.Document.Info(
+    
+    func build() -> OpenAPIKit.OpenAPI.Document {
+        OpenAPIKit.OpenAPI.Document(
+            info: OpenAPIKit.OpenAPI.Document.Info(
                 title: configuration.title ?? "",
                 version: configuration.version ?? ""
             ),

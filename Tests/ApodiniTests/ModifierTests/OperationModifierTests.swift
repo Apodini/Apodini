@@ -35,14 +35,13 @@ final class OperationModifierTests: ApodiniTests {
         }
 
         var configuration: Configuration {
-            ExporterConfiguration()
-                .exporter(RESTInterfaceExporter.self)
+            REST()
         }
     }
     
     override func setUpWithError() throws {
         try super.setUpWithError()
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
     }
     
     func testRESTOperationModifier() throws {

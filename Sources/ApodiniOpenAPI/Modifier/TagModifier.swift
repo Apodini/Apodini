@@ -11,7 +11,7 @@ public struct TagContextKey: OptionalContextKey {
 public struct TagModifier<H: Handler>: HandlerModifier {
     public let component: H
     let tags: [String]
-
+    
     init(_ component: H, tags: [String]) {
         self.component = component
         self.tags = tags

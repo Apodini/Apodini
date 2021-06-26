@@ -67,8 +67,6 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent.git", from: "4.1.0"),
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.0.0"),
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.0.1"),
-        // Used to parse command line arguments
-        .package(url: "https://github.com/vapor/console-kit.git", from: "4.2.4"),
         // Used by the `NotificationCenter` to send push notifications to `APNS`.
         .package(name: "apnswift", url: "https://github.com/kylebrowning/APNSwift.git", from: "3.0.0"),
         // Used by the `NotificationCenter` to send push notifications to `FCM`.
@@ -95,13 +93,16 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.13.0"),
         // Swift logging API
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
+        // CLI-Argument parsing in the WebService and ApodiniDeploy
+        .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0")),
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
         // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
         .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
+        // Used for testing of the new ExporterConfiguration
+        .package(url: "https://github.com/soto-project/soto-core.git", from: "5.0.0"),
         
         // Deploy
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
         .package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime", from: "0.4.0"),
         .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0"),
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0")
@@ -113,7 +114,8 @@ let package = Package(
             dependencies: [
                 .target(name: "CApodiniUtils"),
                 .product(name: "Runtime", package: "Runtime"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
+                .product(name: "Vapor", package: "vapor")
             ]
         ),
         
@@ -128,7 +130,7 @@ let package = Package(
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Runtime", package: "Runtime"),
-                .product(name: "ConsoleKit", package: "console-kit")
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
             ] + (
                 experimentalAsyncAwait ? [
                     .product(name: "_NIOConcurrency", package: "swift-nio")
@@ -163,7 +165,8 @@ let package = Package(
                 .target(name: "ApodiniProtobuffer"),
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "OpenCombine", package: "OpenCombine"),
-                .product(name: "OpenCombineFoundation", package: "OpenCombine")
+                .product(name: "OpenCombineFoundation", package: "OpenCombine"),
+                .product(name: "SotoTestUtils", package: "soto-core")
             ],
             resources: [
                 .process("Resources")
@@ -251,8 +254,8 @@ let package = Package(
             name: "ApodiniOpenAPI",
             dependencies: [
                 .target(name: "Apodini"),
-                .target(name: "ApodiniVaporSupport"),
                 .target(name: "ApodiniREST"),
+                .target(name: "ApodiniVaporSupport"),
                 .target(name: "ApodiniTypeReflection"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                 .product(name: "Yams", package: "Yams")

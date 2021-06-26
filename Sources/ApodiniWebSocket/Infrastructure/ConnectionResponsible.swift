@@ -12,7 +12,7 @@ import ApodiniUtils
 typealias ContextOpener = (ConnectionResponsible, UUID) -> (ContextResponsible)
 
 class ConnectionResponsible: Identifiable {
-    unowned var websocket: WebSocket
+    unowned var websocket: Vapor.WebSocket
     
     let logger: Logger
 
@@ -24,7 +24,7 @@ class ConnectionResponsible: Identifiable {
     
     private var contexts: [UUID: ContextResponsible] = [:]
     
-    init(_ websocket: WebSocket, request: Vapor.Request, onClose: @escaping (ID) -> Void, endpoints: [String: ContextOpener], logger: Logger) {
+    init(_ websocket: Vapor.WebSocket, request: Vapor.Request, onClose: @escaping (ID) -> Void, endpoints: [String: ContextOpener], logger: Logger) {
         self.websocket = websocket
         self.onClose = onClose
         self.endpoints = endpoints

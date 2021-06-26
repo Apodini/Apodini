@@ -329,6 +329,8 @@ excluded: # paths to ignore during linting. Takes precedence over `included`.
   - Sources/Apodini/Metadata/ResultBuilder/ComponentMetadataBuilder.swift
   - Sources/Apodini/Metadata/ResultBuilder/ContentMetadataBuilder.swift
   - Sources/Apodini/Metadata/ResultBuilder/RestrictedMetadataBlockBuilder.swift
+  - Sources/ApodiniGRPC/GRPCDependentStaticConfigurationBuilder.swift
+  - Sources/ApodiniREST/RESTDependentStaticConfigurationBuilder.swift
 
 closure_body_length: # Closure bodies should not span too many lines.
   - 35 # warning - default: 20

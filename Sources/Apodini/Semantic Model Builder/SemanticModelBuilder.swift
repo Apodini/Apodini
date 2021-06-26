@@ -2,13 +2,13 @@
 // Created by Andreas Bauer on 22.11.20.
 //
 
+import Foundation
 import NIO
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 class SemanticModelBuilder: InterfaceExporterVisitor {
     private(set) var app: Application
 
-    var interfaceExporters: [AnyInterfaceExporter] = []
     /// This property (which is to be made configurable) toggles if the default `ParameterNamespace`
     /// (which is the strictest option possible) can be overridden by Exporters, which may allow more lenient
     /// restrictions. In the end the Exporter with the strictest `ParameterNamespace` will dictate the requirements
@@ -20,33 +20,6 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     init(_ app: Application) {
         self.app = app
     }
-
-    /// Registers an `InterfaceExporter` instance on the model builder.
-    /// - Parameter exporterType: The type of `InterfaceExporter` to register.
-    /// - Returns: `Self`
-    func with<T: InterfaceExporter>(exporter exporterType: T.Type) -> Self {
-        let exporter = exporterType.init(app)
-        interfaceExporters.append(AnyInterfaceExporter(exporter))
-        return self
-    }
-
-    /// Registers an `StaticInterfaceExporter` instance on the model builder.
-    /// - Parameter exporterType: The type of `StaticInterfaceExporter` to register.
-    /// - Returns: `Self`
-    func with<T: StaticInterfaceExporter>(exporter exporterType: T.Type) -> Self {
-        let exporter = exporterType.init(app)
-        interfaceExporters.append(AnyInterfaceExporter(exporter))
-        return self
-    }
-    
-    /// Registers an `InterfaceExporter` instance on the model builder.
-    /// - Parameter instance: The instance to register.
-    /// - Returns: `Self`
-    func with<T: InterfaceExporter>(exporter instance: T) -> Self {
-        interfaceExporters.append(AnyInterfaceExporter(instance))
-        return self
-    }
-
 
     func register<H: Handler>(handler: H, withContext context: Context) {
         let handler = handler.inject(app: app)
@@ -69,11 +42,11 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     }
 
     func finishedRegistration() {
-        if interfaceExporters.isEmpty {
+        if app.interfaceExporters.isEmpty {
             app.logger.warning("There aren't any Interface Exporters registered!")
         }
 
-        interfaceExporters.acceptAll(self)
+        app.interfaceExporters.acceptAll(self)
     }
 
     func visit<I>(exporter: I) where I: InterfaceExporter {
@@ -97,7 +70,6 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         }
     }
 }
-
 
 private protocol IdentifiableHandlerATRVisitorHelper: AssociatedTypeRequirementsVisitor {
     associatedtype Visitor = IdentifiableHandlerATRVisitorHelper

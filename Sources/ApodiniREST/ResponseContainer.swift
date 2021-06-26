@@ -20,14 +20,21 @@ public struct ResponseContainer: Encodable, ResponseEncodable {
     let information: Set<AnyInformation>
     let data: AnyEncodable?
     let links: Links?
+    let encoder: AnyEncoder
     
     var containsNoContent: Bool {
         data == nil && (links?.isEmpty ?? true)
     }
     
-    init<E: Encodable>(_ type: E.Type = E.self, status: Status? = nil, information: Set<AnyInformation> = [], data: E? = nil, links: Links? = nil) {
+    init<E: Encodable>(_ type: E.Type = E.self,
+                       status: Status? = nil,
+                       information: Set<AnyInformation> = [],
+                       data: E? = nil,
+                       links: Links? = nil,
+                       encoder: AnyEncoder = JSONEncoder()) {
         self.status = status
         self.information = information
+        self.encoder = encoder
         
         if let data = data {
             self.data = AnyEncodable(data)
@@ -46,9 +53,6 @@ public struct ResponseContainer: Encodable, ResponseEncodable {
     
     
     public func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        let jsonEncoder = JSONEncoder()
-        jsonEncoder.outputFormatting = [.withoutEscapingSlashes, .prettyPrinted]
-
         let response = Vapor.Response()
         response.headers = HTTPHeaders(information)
         
@@ -68,7 +72,7 @@ public struct ResponseContainer: Encodable, ResponseEncodable {
         
         do {
             if !containsNoContent {
-                try response.content.encode(self, using: jsonEncoder)
+                try response.content.encode(self, using: self.encoder)
             }
         } catch {
             return request.eventLoop.makeFailedFuture(error)

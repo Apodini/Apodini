@@ -14,7 +14,7 @@ final class WebserviceTests: XCTestCase {
             }
         }
 
-        let app = try TestWebService.main(waitForCompletion: false)
+        let app = try TestWebService.start(waitForCompletion: false)
         app.shutdown()
     }
 }

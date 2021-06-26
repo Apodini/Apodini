@@ -151,6 +151,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         //
         
         let s3ObjectKey = "\(s3ObjectFolderKey.trimmingCharacters(in: CharacterSet(charactersIn: "/")))/\(lambdaExecutableUrl.lastPathComponent).zip"
+        var launchInfoFileUrl: URL
         
         do {
             logger.notice("Creating lambda package")
@@ -178,15 +179,16 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             
             try addToLambdaPackage(lambdaExecutableUrl)
             
-            let launchInfoFileUrl = lambdaPackageTmpDir.appendingPathComponent("launchInfo.json", isDirectory: false)
+            launchInfoFileUrl = lambdaPackageTmpDir.appendingPathComponent("launchInfo.json", isDirectory: false)
             try deploymentStructure.writeJSON(to: launchInfoFileUrl)
             try fileManager.setPosixPermissions("rw-r--r--", forItemAt: launchInfoFileUrl)
+            
             
             do {
                 // create & add bootstrap file
                 let bootstrapFileContents = """
                 #!/bin/bash
-                ./\(lambdaExecutableUrl.lastPathComponent) \(WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig) ./\(launchInfoFileUrl.lastPathComponent)
+                ./\(lambdaExecutableUrl.lastPathComponent)
                 """
                 let bootstrapFileUrl = lambdaPackageTmpDir.appendingPathComponent("bootstrap", isDirectory: false)
                 try bootstrapFileContents.write(to: bootstrapFileUrl, atomically: true, encoding: .utf8)
@@ -243,6 +245,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             
             let functionConfig = try configureLambdaFunction(
                 forNode: node,
+                withInfoFileUrl: launchInfoFileUrl,
                 //exportedEndpoint: exportedEndpoint,
                 allFunctions: allFunctions,
                 s3BucketName: s3BucketName,
@@ -389,8 +392,9 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
     /// If a suitable function already exists (determined based on the node's id) this existing function will be re-used.
     /// Otherwise a new function will be created.
     /// - returns: the deployed-to function
-    private func configureLambdaFunction( // swiftlint:disable:this function_body_length
+    private func configureLambdaFunction( // swiftlint:disable:this function_body_length function_parameter_count
         forNode node: DeployedSystem.Node,
+        withInfoFileUrl launchInfoFileUrl: URL,
         allFunctions: [Lambda.FunctionConfiguration],
         s3BucketName: String,
         s3ObjectKey: String,
@@ -408,7 +412,9 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         let memorySize: UInt = try deploymentOptions.getValue(forKey: .memorySize).rawValue
         let timeoutInSec = Int((try deploymentOptions.getValue(forKey: .timeout) as ApodiniDeployBuildSupport.TimeoutValue).rawValue)
         let lambdaEnv: Lambda.Environment = .init(variables: [
-            WellKnownEnvironmentVariables.currentNodeId: node.id
+            WellKnownEnvironmentVariables.currentNodeId: node.id,
+            WellKnownEnvironmentVariables.executionMode: WellKnownEnvironmentVariableExecutionMode.launchWebServiceInstanceWithCustomConfig,
+            WellKnownEnvironmentVariables.fileUrl: launchInfoFileUrl.lastPathComponent
         ])
         
         if let function = allFunctions.first(where: { $0.functionName == lambdaName }) {
