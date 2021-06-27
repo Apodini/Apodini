@@ -16,7 +16,7 @@ struct RESTEndpointHandler<H: Handler> {
     let relationshipEndpoint: AnyRelationshipEndpoint
     let exporter: RESTInterfaceExporter
     
-    let contentStrategy: AllIdentityStrategy
+    private let strategy: AnyDecodingStrategy<Vapor.Request>
     
     let defaultStore: DefaultValueStore
     
@@ -33,7 +33,19 @@ struct RESTEndpointHandler<H: Handler> {
         self.relationshipEndpoint = relationshipEndpoint
         self.exporter = exporter
         
-        self.contentStrategy = AllIdentityStrategy(exporterConfiguration.decoder)
+        self.strategy = ParameterTypeSpecific(
+                            .lightweight,
+                            using: LightweightStrategy(),
+                            otherwise: ParameterTypeSpecific(
+                                        .path,
+                                        using: PathStrategy(),
+                                        otherwise: AllIdentityStrategy(exporterConfiguration.decoder).transformed { request in
+                                                        if let buffer = request.body.data {
+                                                            return buffer.getData(at: buffer.readerIndex, length: buffer.readableBytes) ?? Data()
+                                                        } else {
+                                                            return Data()
+                                                        }
+        })).applied(to: endpoint)
         
         self.defaultStore = DefaultValueStore(for: endpoint)
     }
@@ -44,23 +56,8 @@ struct RESTEndpointHandler<H: Handler> {
     }
 
     func handleRequest(request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        let strategy = ParameterTypeSpecific(.lightweight,
-                                             using: LightweightStrategy(request: request),
-                                             otherwise: ParameterTypeSpecific(.path,
-                                                                              using: PathStrategy(request: request),
-                                                                              otherwise: contentStrategy))
-
-        let data = { () -> Data? in
-            if let buffer = request.body.data {
-                return buffer.getData(at: buffer.readerIndex, length: buffer.readableBytes)
-            } else {
-                return nil
-            }
-        }()
-        
         let apodiniRequest = strategy
-                                .applied(to: endpoint)
-                                .decodeRequest(from: data,
+                                .decodeRequest(from: request,
                                                with: DefaultRequestBasis(base: request),
                                                on: request.eventLoop)
                                 .insertDefaults(with: defaultStore)
@@ -120,41 +117,54 @@ struct RESTEndpointHandler<H: Handler> {
 
 
 private struct LightweightStrategy: EndpointDecodingStrategy {
-    let request: Vapor.Request
+    func strategy<Element: Decodable>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, Vapor.Request> {
+        LightweightParameterStrategy<Element>(name: parameter.name).typeErased
+    }
+}
+
+private struct LightweightParameterStrategy<E: Decodable>: ParameterDecodingStrategy {
+    let name: String
     
-    func strategy<Element: Decodable>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element> {
-        guard let query = request.query[Element.self, at: parameter.name] else {
-            return ThrowingStrategy<Element>(DecodingError.keyNotFound(
-                parameter.name,
-                DecodingError.Context(codingPath: [parameter.name],
-                                      debugDescription: "No query parameter with name \(parameter.name) present in request \(request.description)",
-                                      underlyingError: nil))).typeErased // the query parameter doesn't exists
+    func decode(from request: Vapor.Request) throws -> E {
+        guard let query = request.query[E.self, at: name] else {
+            throw DecodingError.keyNotFound(
+                name,
+                DecodingError.Context(codingPath: [name],
+                                      debugDescription: "No query parameter with name \(name) present in request \(request.description)",
+                                      underlyingError: nil)) // the query parameter doesn't exists
         }
-        return GivenStrategy(query).typeErased
+        return query
     }
 }
 
 private struct PathStrategy: EndpointDecodingStrategy {
-    let request: Vapor.Request
+    func strategy<Element: Decodable>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, Vapor.Request> {
+        PathParameterStrategy(parameter: parameter).typeErased
+    }
+}
+
+
+private struct PathParameterStrategy<E: Codable>: ParameterDecodingStrategy {
+    let parameter: EndpointParameter<E>
     
-    func strategy<Element: Decodable>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element> {
+    func decode(from request: Vapor.Request) throws -> E {
         guard let stringParameter = request.parameters.get(parameter.pathId) else {
-            return ThrowingStrategy<Element>(DecodingError.keyNotFound(
+            throw DecodingError.keyNotFound(
                 parameter.pathId,
                 DecodingError.Context(
                     codingPath: [parameter.pathId],
                     debugDescription: "No path parameter with id \(parameter.pathId) present in request \(request.description)",
                     underlyingError: nil
-                ))).typeErased // the path parameter didn't exist on that request
+                )) // the path parameter didn't exist on that request
         }
         
         guard let value = parameter.initLosslessStringConvertibleParameterValue(from: stringParameter) else {
-            return ThrowingStrategy<Element>(ApodiniError(type: .badInput, reason: """
+            throw ApodiniError(type: .badInput, reason: """
                                                         Encountered illegal input for path parameter \(parameter.name).
                                                         \(Element.self) can't be initialized from \(stringParameter).
-                                                        """)).typeErased
+                                                        """)
         }
         
-        return GivenStrategy(value).typeErased
+        return value
     }
 }

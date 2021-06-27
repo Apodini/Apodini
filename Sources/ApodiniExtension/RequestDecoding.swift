@@ -58,22 +58,22 @@ public struct DefaultRequestBasis: RequestBasis {
 }
 
 extension DecodingStrategy {
-    public func decodeRequest(from data: Data?, with basis: RequestBasis, on eventLoop: EventLoop) -> some Request {
-        DecodingRequest(basis: basis, eventLoop: eventLoop, data: data ?? Data(), strategy: self)
+    public func decodeRequest(from input: Input, with basis: RequestBasis, on eventLoop: EventLoop) -> some Request {
+        DecodingRequest(basis: basis, eventLoop: eventLoop, input: input, strategy: self.typeErased)
     }
 }
 
-private struct DecodingRequest: Request {
+private struct DecodingRequest<Input>: Request {
     let basis: RequestBasis
     
     let eventLoop: EventLoop
     
-    let data: Data
+    let input: Input
     
-    let strategy: DecodingStrategy
+    let strategy: AnyDecodingStrategy<Input>
     
     func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element : Decodable, Element : Encodable {
-        try strategy.strategy(for: parameter).decode(from: data)
+        try strategy.strategy(for: parameter).decode(from: input)
     }
     
     var description: String {
@@ -97,37 +97,144 @@ private struct DecodingRequest: Request {
 // MARK: DecodingStrategy
 
 public protocol DecodingStrategy {
-    func strategy<Element: Decodable>(for parameter: Parameter<Element>) -> AnyParameterDecodingStrategy<Element>
+    associatedtype Input = Data
+    
+    func strategy<Element: Decodable>(for parameter: Parameter<Element>) -> AnyParameterDecodingStrategy<Element, Input>
 }
 
 public protocol EndpointDecodingStrategy {
-    func strategy<Element: Decodable>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element>
+    associatedtype Input = Data
+    
+    func strategy<Element: Decodable>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, Input>
 }
 
 public protocol BaseDecodingStrategy: DecodingStrategy, EndpointDecodingStrategy {
-    func strategy<Element: Decodable, I: Identifiable>(for parameter: I) -> AnyParameterDecodingStrategy<Element> where I.ID == UUID
+    associatedtype Input = Data
+    
+    func strategy<Element: Decodable, I: Identifiable>(for parameter: I) -> AnyParameterDecodingStrategy<Element, Input> where I.ID == UUID
 }
 
 
+public extension DecodingStrategy {
+    var typeErased: AnyDecodingStrategy<Input> {
+        AnyDecodingStrategy(self)
+    }
+}
+
+public struct AnyDecodingStrategy<I>: DecodingStrategy {
+    private let caller: DecodingStrategyCaller
+    
+    
+    init<S: DecodingStrategy>(_ strategy: S) where S.Input == I {
+        self.caller = SomeDecodingStrategyCaller(strategy: strategy)
+    }
+    
+    
+    public func strategy<Element>(for parameter: Parameter<Element>) -> AnyParameterDecodingStrategy<Element, I> where Element : Decodable, Element : Encodable {
+        caller.call(with: parameter)
+    }
+}
+
+private protocol DecodingStrategyCaller {
+    func call<E: Decodable, I>(with parameter: Parameter<E>) -> AnyParameterDecodingStrategy<E, I>
+}
+
+private struct SomeDecodingStrategyCaller<S: DecodingStrategy>: DecodingStrategyCaller {
+    let strategy: S
+    
+    func call<E: Decodable, I>(with parameter: Parameter<E>) -> AnyParameterDecodingStrategy<E, I> {
+        guard let parameterStrategy = strategy.strategy(for: parameter) as? AnyParameterDecodingStrategy<E, I> else {
+            fatalError("'SomeDecodingStrategyCaller' was used with wrong input type (\(I.self) instead of \(S.Input.self))")
+        }
+        return parameterStrategy
+    }
+}
+
+
+public extension EndpointDecodingStrategy {
+    var typeErased: AnyEndpointDecodingStrategy<Input> {
+        AnyEndpointDecodingStrategy(self)
+    }
+}
+
+public struct AnyEndpointDecodingStrategy<I>: EndpointDecodingStrategy {
+    private let caller: EndpointDecodingStrategyCaller
+    
+    
+    init<S: EndpointDecodingStrategy>(_ strategy: S) where S.Input == I {
+        self.caller = SomeEndpointDecodingStrategyCaller(strategy: strategy)
+    }
+    
+    
+    public func strategy<Element>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, I> where Element : Decodable, Element : Encodable {
+        caller.call(with: parameter)
+    }
+}
+
+private protocol EndpointDecodingStrategyCaller {
+    func call<E: Decodable, I>(with parameter: EndpointParameter<E>) -> AnyParameterDecodingStrategy<E, I>
+}
+
+private struct SomeEndpointDecodingStrategyCaller<S: EndpointDecodingStrategy>: EndpointDecodingStrategyCaller {
+    let strategy: S
+    
+    func call<E: Decodable, I>(with parameter: EndpointParameter<E>) -> AnyParameterDecodingStrategy<E, I> {
+        guard let parameterStrategy = strategy.strategy(for: parameter) as? AnyParameterDecodingStrategy<E, I> else {
+            fatalError("'SomeEndpointDecodingStrategyCaller' was used with wrong input type (\(I.self) instead of \(S.Input.self))")
+        }
+        return parameterStrategy
+    }
+}
+
+
+public struct AnyBaseDecodingStrategy<Input>: BaseDecodingStrategy {
+    private let caller: BaseDecodingStrategyCaller
+    
+    
+    init<S: BaseDecodingStrategy>(_ strategy: S) where S.Input == Input {
+        self.caller = SomeBaseDecodingStrategyCaller(strategy: strategy)
+    }
+    
+    public func strategy<Element, I>(for parameter: I) -> AnyParameterDecodingStrategy<Element, Data> where Element : Decodable, I : Identifiable, I.ID == UUID {
+        caller.call(with: parameter)
+    }
+}
+
+private protocol BaseDecodingStrategyCaller {
+    func call<E: Decodable, I, ID: Identifiable>(with parameter: ID) -> AnyParameterDecodingStrategy<E, I> where ID.ID == UUID
+}
+
+private struct SomeBaseDecodingStrategyCaller<S: BaseDecodingStrategy>: BaseDecodingStrategyCaller {
+    let strategy: S
+    
+    func call<E: Decodable, I, ID: Identifiable>(with parameter: ID) -> AnyParameterDecodingStrategy<E, I> where ID.ID == UUID {
+        let untypedParameterStrategy: AnyParameterDecodingStrategy<E, S.Input> = strategy.strategy(for: parameter)
+        guard let parameterStrategy = untypedParameterStrategy as? AnyParameterDecodingStrategy<E, I> else {
+            fatalError("'SomeBaseDecodingStrategyCaller' was used with wrong input type (\(I.self) instead of \(S.Input.self))")
+        }
+        return parameterStrategy
+    }
+}
+
 
 extension BaseDecodingStrategy {
-    public func strategy<Element>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element> where Element : Decodable, Element : Encodable {
+    public func strategy<Element>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, Input> where Element : Decodable, Element : Encodable {
         self.strategy(parameter)
     }
     
-    public func strategy<Element>(for parameter: Parameter<Element>) -> AnyParameterDecodingStrategy<Element> where Element : Decodable, Element : Encodable {
+    public func strategy<Element>(for parameter: Parameter<Element>) -> AnyParameterDecodingStrategy<Element, Input> where Element : Decodable, Element : Encodable {
         self.strategy(parameter)
     }
     
-    private func strategy<I: Identifiable, Element: Decodable>(_ parameter: I) -> AnyParameterDecodingStrategy<Element> where I.ID == UUID {
+    private func strategy<I: Identifiable, Element: Decodable>(_ parameter: I) -> AnyParameterDecodingStrategy<Element, Input> where I.ID == UUID {
         self.strategy(for: parameter)
     }
 }
 
 
 extension EndpointDecodingStrategy {
-    public func applied(to endpoint: AnyEndpoint) -> some DecodingStrategy {
-        EndpointParameterBasedDecodingStrategy(self, on: endpoint)
+    public func applied(to endpoint: AnyEndpoint) -> AnyDecodingStrategy<Input> {
+        EndpointParameterBasedDecodingStrategy(self, on: endpoint).typeErased
     }
 }
 
@@ -142,7 +249,7 @@ private struct EndpointParameterBasedDecodingStrategy<S: EndpointDecodingStrateg
         self.endpointParameters = endpoint[EndpointParametersById.self].parameters
     }
     
-    func strategy<Element: Decodable>(for parameter: Parameter<Element>) -> AnyParameterDecodingStrategy<Element> {
+    func strategy<Element: Decodable>(for parameter: Parameter<Element>) -> AnyParameterDecodingStrategy<Element, S.Input> {
         guard let parameter = endpointParameters[parameter.id] as? CanCallEndpointParameterDecodingStrategy else {
             fatalError("Couldn't find matching 'EndpointParameter' with id \(parameter.id) while determining 'ParsingStrategy'.")
         }
@@ -152,19 +259,19 @@ private struct EndpointParameterBasedDecodingStrategy<S: EndpointDecodingStrateg
 }
 
 private protocol CanCallEndpointParameterDecodingStrategy {
-    func call<S: EndpointDecodingStrategy, Element: Decodable>(_ strategy: S) -> AnyParameterDecodingStrategy<Element>
+    func call<S: EndpointDecodingStrategy, Element: Decodable, Input>(_ strategy: S) -> AnyParameterDecodingStrategy<Element, Input>
 }
 
 extension EndpointParameter: CanCallEndpointParameterDecodingStrategy {
-    func call<S, V>(_ strategy: S) -> AnyParameterDecodingStrategy<V> where S : EndpointDecodingStrategy, V : Decodable {
+    func call<S, V, I>(_ strategy: S) -> AnyParameterDecodingStrategy<V, I> where S : EndpointDecodingStrategy, V : Decodable {
         let baseStrategy = strategy.strategy(for: self)
         if nilIsValidValue { // V == Optional<Type>
-            if let typedStrategy = OptionalWrappingStrategy(baseStrategy: baseStrategy).typeErased as? AnyParameterDecodingStrategy<V> {
+            if let typedStrategy = OptionalWrappingStrategy(baseStrategy: baseStrategy).typeErased as? AnyParameterDecodingStrategy<V, I> {
                 return typedStrategy
             }
             fatalError("Internal logic of 'EndpointParameter.call(_:)' is broken: wrong type in nil case.")
         } else { // V == Type
-            if let typedStrategy = baseStrategy as? AnyParameterDecodingStrategy<V> {
+            if let typedStrategy = baseStrategy as? AnyParameterDecodingStrategy<V, I> {
                 return typedStrategy
             }
             fatalError("Internal logic of 'EndpointParameter.call(_:)' is broken: wrong type in base case.")
@@ -175,9 +282,9 @@ extension EndpointParameter: CanCallEndpointParameterDecodingStrategy {
 private struct OptionalWrappingStrategy<P: ParameterDecodingStrategy>: ParameterDecodingStrategy {
     let baseStrategy: P
     
-    func decode(from data: Data) throws -> Optional<P.Element> {
+    func decode(from input: P.Input) throws -> Optional<P.Element> {
         do {
-            return .some(try baseStrategy.decode(from: data))
+            return .some(try baseStrategy.decode(from: input))
         } catch DecodingError.valueNotFound(_, _) {
             return .none
         }
@@ -188,42 +295,25 @@ private struct OptionalWrappingStrategy<P: ParameterDecodingStrategy>: Parameter
 
 public protocol ParameterDecodingStrategy {
     associatedtype Element: Decodable
+    associatedtype Input = Data
     
-    func decode(from data: Data) throws -> Element
+    func decode(from input: Input) throws -> Element
 }
 
 public extension ParameterDecodingStrategy {
-    var typeErased: AnyParameterDecodingStrategy<Element> {
+    var typeErased: AnyParameterDecodingStrategy<Element, Input> {
         AnyParameterDecodingStrategy(self)
     }
 }
 
-public struct AnyParameterDecodingStrategy<E: Decodable>: ParameterDecodingStrategy {
-    private let _decode: (Data) throws -> E
+public struct AnyParameterDecodingStrategy<E: Decodable, I>: ParameterDecodingStrategy {
+    private let _decode: (I) throws -> E
     
-    internal init<S: ParameterDecodingStrategy>(_ strategy: S) where S.Element == E {
+    internal init<S: ParameterDecodingStrategy>(_ strategy: S) where S.Element == E, S.Input == I {
         self._decode = strategy.decode
     }
     
-    public func decode(from data: Data) throws -> E {
-        try _decode(data)
-    }
-}
-
-extension String: CodingKey {
-    public init?(intValue: Int) {
-        self = String(describing: intValue)
-    }
-    
-    public init?(stringValue: String) {
-        self = stringValue
-    }
-    
-    public var stringValue: String {
-        self
-    }
-    
-    public var intValue: Int? {
-        Int(self)
+    public func decode(from input: I) throws -> E {
+        try _decode(input)
     }
 }
