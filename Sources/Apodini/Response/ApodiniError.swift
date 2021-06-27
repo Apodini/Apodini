@@ -63,41 +63,13 @@ public struct ApodiniError: Error {
     }
 }
 
-// MARK: StandardError
-
-public protocol StandardErrorCompliantOption: PropertyOption {
+public protocol ApodiniErrorCompliantOption: PropertyOption {
     static func `default`(for type: ErrorType) -> Self
 }
 
-public protocol ErrorMessagePrefixStrategy {}
-
-public struct StandardErrorMessagePrefix: ErrorMessagePrefixStrategy {}
-
-public struct NoErrorMessagePrefix: ErrorMessagePrefixStrategy {}
-
-public struct CustomErrorMessagePrefix: ErrorMessagePrefixStrategy {}
-
-public protocol StandardErrorCompliantExporter: InterfaceExporter {
-    associatedtype ErrorMessagePrefixStrategy: Apodini.ErrorMessagePrefixStrategy = CustomErrorMessagePrefix
-    /// Default prefixes for `ErrorType`
-    static func messagePrefix(for context: StandardErrorContext) -> String?
-}
-
-public protocol StandardErrorContext {
-    func option<Option: StandardErrorCompliantOption>(for key: PropertyOptionKey<ErrorOptionNameSpace, Option>) -> Option
-}
-
-public protocol StandardError: Error, StandardErrorContext {
-    func message<E: StandardErrorCompliantExporter>(for exporter: E.Type) -> String
-}
-
-extension ApodiniError: StandardError {
-    public func option<T: StandardErrorCompliantOption>(for key: OptionKey<T>) -> T {
+extension ApodiniError {
+    public func option<T: ApodiniErrorCompliantOption>(for key: OptionKey<T>) -> T {
         self.options.option(for: key) ?? T.default(for: self.type)
-    }
-    
-    public func message<E: StandardErrorCompliantExporter>(for exporter: E.Type) -> String {
-        self.message(with: E.messagePrefix(for: self))
     }
     
     public func message(with prefix: String?) -> String {
@@ -133,44 +105,36 @@ public extension Error {
     var apodiniError: ApodiniError {
         if let apodiniError = self as? ApodiniError {
             return apodiniError
+        } else if let localizedError = self as? LocalizedError {
+            return ApodiniError(type: .other)(localizedError)
         } else {
             return ApodiniError(type: .other, description: self.localizedDescription)
         }
     }
 }
 
-// MARK: Exporter Defaults
-
-public extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == StandardErrorMessagePrefix {
-    static func messagePrefix(for error: StandardErrorContext) -> String? {
-        switch error.option(for: .errorType) {
-        case .badInput:
-            return "Bad Input"
-        case .notFound:
-            return "Resource Not Found"
-        case .unauthenticated:
-            return "Unauthenticated"
-        case .forbidden:
-            return "Forbidden"
-        case .serverError:
-            return "Unexpected Server Error"
-        case .notAvailable:
-            return "Resource Not Available"
-        case .other:
-            return "Error"
-        }
+extension ApodiniError {
+    public func callAsFunction(_ error: LocalizedError) -> ApodiniError {
+        self(reason: error.failureReason, description: error.errorDescription ?? error.recoverySuggestion ?? error.helpAnchor ?? error.localizedDescription)
     }
 }
 
-public extension StandardErrorCompliantExporter where ErrorMessagePrefixStrategy == NoErrorMessagePrefix {
-    static func messagePrefix(for error: StandardErrorContext) -> String? {
-        nil
+// MARK: LocalizedError Conformance
+
+extension ApodiniError: LocalizedError {
+    public var failureReason: String? {
+        self.reason
+    }
+    
+    public var errorDescription: String? {
+        self.description
     }
 }
+
 
 // MARK: Exporter Agnostic Options
 
-extension ErrorType: StandardErrorCompliantOption {
+extension ErrorType: ApodiniErrorCompliantOption {
     public static func `default`(for type: ErrorType) -> Self {
         type
     }

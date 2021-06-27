@@ -10,7 +10,7 @@ import NIOWebSocket
 
 // MARK: WebSocketErrorCode
 
-extension WebSocketErrorCode: StandardErrorCompliantOption {
+extension WebSocketErrorCode: ApodiniErrorCompliantOption {
     public static func `default`(for type: ErrorType) -> Self {
         switch type {
         case .badInput:
@@ -38,7 +38,7 @@ extension AnyPropertyOption where PropertyNameSpace == ErrorOptionNameSpace {
 
 /// An enum that specifies the effect an `Error` has on the associated
 /// WebSocket connection and context.
-public enum WebSocketConnectionConsequence: StandardErrorCompliantOption {
+public enum WebSocketConnectionConsequence: ApodiniErrorCompliantOption {
     /// The associated error is reported to the client, but the
     /// context remains open.
     case none

@@ -34,7 +34,7 @@ public final class WebSocket: Configuration {
 /// The WebSocket exporter uses a custom JSON based protocol on top of WebSocket's text messages.
 /// This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel.
 /// The Apodini service listens on /apodini/websocket for clients that want to communicate via the WebSocket Interface Exporter.
-final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
+final class WebSocketInterfaceExporter: InterfaceExporter {
     private let app: Apodini.Application
     private let exporterConfiguration: WebSocket.ExporterConfiguration
     private let router: VaporWSRouter
@@ -140,29 +140,6 @@ final class WebSocketInterfaceExporter: StandardErrorCompliantExporter {
     func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable, Type: Encodable {
         (parameter.name, WebSocketParameter(BasicInputParameter<Type>()))
     }
-    
-    #if DEBUG
-    static func messagePrefix(for error: StandardErrorContext) -> String? {
-        switch error.option(for: .errorType) {
-        case .badInput:
-            return "You messed up"
-        case .notFound:
-            return "Wow...such empty"
-        case .unauthenticated:
-            return "Who even are you"
-        case .forbidden:
-            return "You shall not pass!"
-        case .serverError:
-            return "I messed up"
-        case .notAvailable:
-            return "Not now...I'm busy"
-        case .other:
-            return "Something's wrong, I can feel it"
-        }
-    }
-    #else
-    typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
-    #endif
     
     private static func handleCompletion<H: Handler>(
         completion: Subscribers.Completion<Never>,
@@ -329,13 +306,13 @@ extension BasicInputParameter: ReducibleParameter {
 
 // MARK: WSError Conformance
 
-private extension StandardError {
+private extension ApodiniError {
     var wsError: WSError {
         switch self.option(for: .webSocketConnectionConsequence) {
         case .closeContext:
-            return FatalWSError(reason: self.message(for: WebSocketInterfaceExporter.self), code: self.option(for: .webSocketErrorCode))
+            return FatalWSError(reason: self.webSocketMessage, code: self.option(for: .webSocketErrorCode))
         default:
-            return ModerateWSError(reason: self.message(for: WebSocketInterfaceExporter.self))
+            return ModerateWSError(reason: self.webSocketMessage)
         }
     }
 }
@@ -348,3 +325,39 @@ private struct FatalWSError: WSClosingError {
     var reason: String
     var code: WebSocketErrorCode
 }
+
+
+
+#if DEBUG
+extension ApodiniError {
+    var webSocketMessage: String {
+        return self.message(with: messagePrefix(for: self))
+    }
+}
+
+private func messagePrefix(for error: ApodiniError) -> String? {
+    switch error.option(for: .errorType) {
+    case .badInput:
+        return "You messed up"
+    case .notFound:
+        return "Wow...such empty"
+    case .unauthenticated:
+        return "Who even are you"
+    case .forbidden:
+        return "You shall not pass!"
+    case .serverError:
+        return "I messed up"
+    case .notAvailable:
+        return "Not now...I'm busy"
+    case .other:
+        return "Something's wrong, I can feel it"
+    }
+}
+#else
+extension ApodiniError {
+    var webSocketMessage: String {
+        self.standardMessage
+    }
+}
+#endif
+

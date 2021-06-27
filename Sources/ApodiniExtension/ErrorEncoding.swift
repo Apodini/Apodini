@@ -14,10 +14,14 @@ public extension Error {
         let error = self.apodiniError
         return error.message(with: standardMessagePrefix(for: error))
     }
+    
+    var unprefixedMessage: String {
+        self.apodiniError.message(with: nil)
+    }
 }
 
 
-private func standardMessagePrefix(for error: StandardErrorContext) -> String? {
+private func standardMessagePrefix(for error: ApodiniError) -> String? {
     switch error.option(for: .errorType) {
     case .badInput:
         return "Bad Input"
