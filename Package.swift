@@ -280,6 +280,7 @@ let package = Package(
             name: "ApodiniREST",
             dependencies: [
                 .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniVaporSupport")
             ]
         ),

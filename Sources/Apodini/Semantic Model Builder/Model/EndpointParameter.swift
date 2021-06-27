@@ -111,7 +111,7 @@ extension AnyEndpointParameter {
 /// ```
 /// the generic holds `String.Type` and not `Optional<String>.self`.
 /// Use the `nilIsValidValue` property to check if the original parameter definition used an `Optional` type.
-public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter {
+public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifiable {
     public let id: UUID
     public var pathId: String {
         if parameterType != .path {

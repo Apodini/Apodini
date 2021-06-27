@@ -22,9 +22,44 @@ public protocol RequestBasis {
     var information: Set<AnyInformation> { get }
 }
 
-extension AnyDecoder {
-    func decodeRequest<P: DecodingStrategy>(from data: Data?, using strategy: P, with basis: RequestBasis, on eventLoop: EventLoop) -> some Request {
-        DecodingRequest(basis: basis, eventLoop: eventLoop, data: data ?? Data(), decoder: self, strategy: strategy)
+public struct DefaultRequestBasis: RequestBasis {
+    private let _description: String?
+    private let _debugDescription: String?
+    
+    public let remoteAddress: SocketAddress?
+    public let information: Set<AnyInformation>
+    
+    public var description: String {
+        _description ?? "Request(remoteAddress: \(remoteAddress?.description ?? "nil"), information: \(information))"
+    }
+    
+    public var debugDescription: String {
+        _debugDescription ?? "DefaultRequestBasis(remoteAddress: \(remoteAddress?.description ?? "nil"), information: \(information))"
+    }
+    
+    public init(description: String? = nil,
+                debugDescription: String? = nil,
+                remoteAddress: SocketAddress? = nil,
+                information: Set<AnyInformation> = []) {
+        self._description = description
+        self._debugDescription = debugDescription
+        self.remoteAddress = remoteAddress
+        self.information = information
+    }
+    
+    public init(base: Any,
+                remoteAddress: SocketAddress? = nil,
+                information: Set<AnyInformation> = []) {
+        self.init(description: (base as? CustomStringConvertible)?.description ?? "\(base)",
+                  debugDescription: (base as? CustomDebugStringConvertible)?.debugDescription ?? "\(base)",
+                  remoteAddress: remoteAddress,
+                  information: information)
+    }
+}
+
+extension DecodingStrategy {
+    public func decodeRequest(from data: Data?, with basis: RequestBasis, on eventLoop: EventLoop) -> some Request {
+        DecodingRequest(basis: basis, eventLoop: eventLoop, data: data ?? Data(), strategy: self)
     }
 }
 
@@ -34,8 +69,6 @@ private struct DecodingRequest: Request {
     let eventLoop: EventLoop
     
     let data: Data
-    
-    let decoder: AnyDecoder
     
     let strategy: DecodingStrategy
     
@@ -76,20 +109,25 @@ public protocol BaseDecodingStrategy: DecodingStrategy, EndpointDecodingStrategy
 }
 
 
-extension EndpointDecodingStrategy {
-    func applied(to endpoint: AnyEndpoint) -> DecodingStrategy {
-        EndpointParameterBasedDecodingStrategy(self, on: endpoint)
+
+extension BaseDecodingStrategy {
+    public func strategy<Element>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element> where Element : Decodable, Element : Encodable {
+        self.strategy(parameter)
+    }
+    
+    public func strategy<Element>(for parameter: Parameter<Element>) -> AnyParameterDecodingStrategy<Element> where Element : Decodable, Element : Encodable {
+        self.strategy(parameter)
+    }
+    
+    private func strategy<I: Identifiable, Element: Decodable>(_ parameter: I) -> AnyParameterDecodingStrategy<Element> where I.ID == UUID {
+        self.strategy(for: parameter)
     }
 }
 
 
-extension BaseDecodingStrategy {
-    public func strategy<Element>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element> where Element : Decodable, Element : Encodable {
-        self.strategy(for: parameter)
-    }
-    
-    public func strategy<Element>(for parameter: Parameter<Element>) -> AnyParameterDecodingStrategy<Element> where Element : Decodable, Element : Encodable {
-        self.strategy(for: parameter)
+extension EndpointDecodingStrategy {
+    public func applied(to endpoint: AnyEndpoint) -> some DecodingStrategy {
+        EndpointParameterBasedDecodingStrategy(self, on: endpoint)
     }
 }
 
@@ -101,9 +139,7 @@ private struct EndpointParameterBasedDecodingStrategy<S: EndpointDecodingStrateg
     
     init(_ strategy: S, on endpoint: AnyEndpoint) {
         self.strategy = strategy
-        self.endpointParameters = endpoint[EndpointParameters.self].reduce(into: [UUID: AnyEndpointParameter](), { storage, parameter in
-            storage[parameter.id] = parameter
-        })
+        self.endpointParameters = endpoint[EndpointParametersById.self].parameters
     }
     
     func strategy<Element: Decodable>(for parameter: Parameter<Element>) -> AnyParameterDecodingStrategy<Element> {

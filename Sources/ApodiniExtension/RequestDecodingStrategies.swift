@@ -33,46 +33,48 @@ public struct NumberOfContentParameterDependentStrategy: EndpointDecodingStrateg
 }
 
 public extension NumberOfContentParameterDependentStrategy {
-    static func oneIdentityOrAllNamedContentStrategy<D: AnyDecoder>(_ decoder: D, for endpoint: AnyEndpoint) -> Self {
+    static func oneIdentityOrAllNamedContentStrategy(_ decoder: AnyDecoder, for endpoint: AnyEndpoint) -> Self {
         self.init(for: endpoint, using: AllIdentityStrategy(decoder), or: AllNamedStrategy(decoder))
     }
 }
 
-public struct AllNamedStrategy<D: AnyDecoder>: EndpointDecodingStrategy {
-    private let decoder: D
+public struct AllNamedStrategy: EndpointDecodingStrategy {
+    private let decoder: AnyDecoder
     
-    public init(_ decoder: D) {
+    public init(_ decoder: AnyDecoder) {
         self.decoder = decoder
     }
     
     public func strategy<Element>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element> where Element : Decodable, Element : Encodable {
-        NamedChildPatternStrategy<DynamicNamePattern<Element>, D>(parameter.name, decoder).typeErased
+        NamedChildPatternStrategy<DynamicNamePattern<Element>>(parameter.name, decoder).typeErased
     }
 }
 
-public struct AllIdentityStrategy<D: AnyDecoder>: BaseDecodingStrategy {
-    private let decoder: D
+public struct AllIdentityStrategy: BaseDecodingStrategy {
+    private let decoder: AnyDecoder
     
-    public init(_ decoder: D) {
+    public init(_ decoder: AnyDecoder) {
         self.decoder = decoder
     }
     
     public func strategy<Element, I>(for parameter: I) -> AnyParameterDecodingStrategy<Element> where Element : Decodable, I: Identifiable {
-        PlainPatternStrategy<IdentityPattern<Element>, D>(decoder).typeErased
+        PlainPatternStrategy<IdentityPattern<Element>>(decoder).typeErased
     }
 }
 
-public struct ContentSpecific<P: EndpointDecodingStrategy, B: EndpointDecodingStrategy>: EndpointDecodingStrategy {
+public struct ParameterTypeSpecific<P: EndpointDecodingStrategy, B: EndpointDecodingStrategy>: EndpointDecodingStrategy {
     private let backup: B
     private let primary: P
+    private let parameterType: ParameterType
     
-    public init(_ primary: P, otherwise backup: B) {
+    public init(_ type: ParameterType = .content, using primary: P, otherwise backup: B) {
         self.backup = backup
         self.primary = primary
+        self.parameterType = type
     }
     
     public func strategy<Element>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element> where Element : Decodable, Element : Encodable {
-        if parameter.parameterType == .content {
+        if parameter.parameterType == self.parameterType {
             return primary.strategy(for: parameter)
         } else {
             return backup.strategy(for: parameter)
@@ -115,12 +117,24 @@ public struct GivenStrategy<E: Decodable>: ParameterDecodingStrategy {
     }
 }
 
-public struct PlainPatternStrategy<P: DecodingPattern, D: AnyDecoder>: ParameterDecodingStrategy {
+public struct ThrowingStrategy<E: Decodable>: ParameterDecodingStrategy {
+    private let error: Error
+    
+    public init(_ error: Error) {
+        self.error = error
+    }
+    
+    public func decode(from data: Data) throws -> E {
+        throw error
+    }
+}
+
+public struct PlainPatternStrategy<P: DecodingPattern>: ParameterDecodingStrategy {
     public typealias Content = P.Element
     
-    private let decoder: D
+    private let decoder: AnyDecoder
     
-    public init(_ decoder: D) {
+    public init(_ decoder: AnyDecoder) {
         self.decoder = decoder
     }
     
@@ -129,14 +143,14 @@ public struct PlainPatternStrategy<P: DecodingPattern, D: AnyDecoder>: Parameter
     }
 }
 
-public struct NamedChildPatternStrategy<P: DecodingPattern, D: AnyDecoder>: ParameterDecodingStrategy {
+public struct NamedChildPatternStrategy<P: DecodingPattern>: ParameterDecodingStrategy {
     public typealias Content = P.Element
     
     private let name: String
     
-    private let decoder: D
+    private let decoder: AnyDecoder
     
-    public init(_ name: String, _ decoder: D) {
+    public init(_ name: String, _ decoder: AnyDecoder) {
         self.name = name
         self.decoder = decoder
     }

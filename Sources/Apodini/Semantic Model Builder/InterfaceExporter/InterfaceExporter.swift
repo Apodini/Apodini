@@ -2,7 +2,7 @@
 // Created by Andreas Bauer on 22.11.20.
 //
 
-// TODO: special `export` functions for Blob and Empty, no special protocol for StandardErrorCompliantExporter
+// TODO: special `export` functions for Blob and Empty
 
 import protocol NIO.EventLoop
 

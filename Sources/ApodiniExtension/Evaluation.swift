@@ -33,15 +33,17 @@ internal extension Delegate where D: Handler {
     }
     
     func evaluate(using request: Request, with state: ConnectionState = .end) throws -> D.Response {
-        try IE.evaluate(delegate: self, using: request, with: state)
+        return try IE.evaluate(delegate: self, using: request, with: state)
     }
     
     func evaluate(using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
-        do {
-            let result: D.Response = try self.evaluate(using: request, with: state)
-            return result.transformToResponse(on: request.eventLoop)
-        } catch {
-            return request.eventLoop.makeFailedFuture(error)
+        request.eventLoop.makeSucceededVoidFuture().flatMap {
+            do {
+                let result: D.Response = try self.evaluate(using: request, with: state)
+                return result.transformToResponse(on: request.eventLoop)
+            } catch {
+                return request.eventLoop.makeFailedFuture(error)
+            }
         }
     }
     
@@ -57,3 +59,47 @@ internal extension Delegate where D: Handler {
     }
 }
 
+
+// MARK: WithRequest
+
+public protocol WithRequest: Request {
+    var request: Request { get }
+}
+
+
+public extension WithRequest {
+    var description: String {
+        request.description
+    }
+
+    var debugDescription: String {
+        request.debugDescription
+    }
+
+    var eventLoop: EventLoop {
+        request.eventLoop
+    }
+
+    var remoteAddress: SocketAddress? {
+        request.remoteAddress
+    }
+    
+    var information: Set<AnyInformation> {
+        request.information
+    }
+
+    func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element {
+        try request.retrieveParameter(parameter)
+    }
+}
+
+public extension WithRequest {
+    func unwrapped<T: Request>(to type: T.Type = T.self) -> T? {
+        if let typed = self as? T {
+            return typed
+        } else if let withRequest = self.request as? WithRequest {
+            return withRequest.unwrapped()
+        }
+        return nil
+    }
+}

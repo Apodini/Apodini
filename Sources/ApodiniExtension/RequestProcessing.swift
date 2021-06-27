@@ -22,59 +22,65 @@ public extension Publisher where Output: Request {
 }
 
 public extension Request {
-    func cache() -> Request {
+    func cache() -> CachingRequest {
         CachingRequest(self)
     }
 }
 
- class CachingRequest<R: Request>: WithRequest {
-    typealias InitialInput = R
-    
-    var request: Request {
-        _request as Request
-    }
-    
-    private var _request: R
+public class CachingRequest: WithRequest {
+    public var request: Request
     
     private var cache = [UUID: Any]()
     
-    init(_ request: R) {
-        self._request = request
+    init(_ request: Request) {
+        self.request = request
     }
     
-    lazy var description: String = _request.description
+    lazy public var description: String = request.description
 
-    lazy var debugDescription: String = _request.debugDescription
+    lazy public var debugDescription: String = request.debugDescription
 
-    lazy var eventLoop: EventLoop = _request.eventLoop
+    lazy public var eventLoop: EventLoop = request.eventLoop
 
-    lazy var remoteAddress: SocketAddress? = _request.remoteAddress
+    lazy public var remoteAddress: SocketAddress? = request.remoteAddress
     
-    lazy var information: Set<AnyInformation> = _request.information
+    lazy public var information: Set<AnyInformation> = request.information
     
-    func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element : Decodable, Element : Encodable {
-        if let cached = cache[parameter.id] as? Element {
-            return cached
+    public func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element : Decodable, Element : Encodable {
+        if let cached = cache[parameter.id] {
+            if let typed = cached as? Element {
+                return typed
+            }
         }
         
-        let value = try _request.retrieveParameter(parameter)
+        let value = try request.retrieveParameter(parameter)
         cache[parameter.id] = value
         return value
+    }
+    
+    public func peak(_ parameter: UUID) -> Any? {
+        cache[parameter]
     }
 }
 
 
-// MARK: Necessity Validation
+// MARK: Default Value Insertion
 
-public struct NecessityValidation {
+public struct DefaultValueStore {
     
     private let handler: (UUID) throws -> Any
     
     
     public init(for endpoint: AnyEndpoint) {
         let defaultValues = endpoint[EndpointParameters.self].reduce(into: [UUID: () -> Any](), { storage, parameter in
-            if let defaultValue = parameter.typeErasuredDefaultValue, parameter.necessity == .required {
+            if let defaultValue = parameter.typeErasuredDefaultValue, parameter.necessity == .optional {
                 storage[parameter.id] = defaultValue
+            }
+        })
+        
+        let defaultNilValues = endpoint[EndpointParameters.self].reduce(into: [UUID: Any](), { storage, parameter in
+            if case let .some(.some(nilValue)) = (parameter as? DefaultNilValueProvider)?.nilValue {
+                storage[parameter.id] = nilValue
             }
         })
         
@@ -86,15 +92,18 @@ public struct NecessityValidation {
             if let defaultValue = defaultValues[uuid] {
                 return defaultValue()
             }
+            if let defaultNilValue = defaultNilValues[uuid] {
+                return defaultNilValue
+            }
             throw ApodiniError(type: .badInput, reason: "Didn't retrieve any parameters for a required parameter '\(descriptions[uuid] ?? "??")'.")
         }
     }
     
-    public func validateNecessity(_ request: Request) -> Request {
-        ValidatingRequest(request: request, handler: handler)
+    func insertDefaults(_ request: Request) -> Request {
+        DefaultInsertingRequest(request: request, handler: handler)
     }
     
-    struct ValidatingRequest: WithRequest {
+    struct DefaultInsertingRequest: WithRequest {
         private(set) var request: Request
         
         let handler: (UUID) throws -> Any
@@ -104,7 +113,7 @@ public struct NecessityValidation {
                 return try request.retrieveParameter(parameter)
             } catch DecodingError.keyNotFound(_, _), DecodingError.valueNotFound(_, _) {
                 guard let typedValue = try handler(parameter.id) as? Element else {
-                    fatalError("Internal logic of NecessityValidation broken: type mismatch")
+                    fatalError("Internal logic of DefaultValueStore broken: type mismatch")
                 }
                 return typedValue
             }
@@ -112,11 +121,31 @@ public struct NecessityValidation {
     }
 }
 
-public extension Publisher where Output: Request {
-    func validateNecessity(with validation: NecessityValidation) -> some Publisher {
-        self.map { request in
-            validation.validateNecessity(request)
+private protocol DefaultNilValueProvider {
+    var nilValue: Any? { get }
+}
+
+extension EndpointParameter: DefaultNilValueProvider {
+    var nilValue: Any? {
+        if nilIsValidValue {
+            return .some(Optional<Type>.none as Any)
+        } else {
+            return .none
         }
+    }
+}
+
+public extension Publisher where Output: Request {
+    func insertDefaults(with validation: DefaultValueStore) -> some Publisher {
+        self.map { request in
+            validation.insertDefaults(request)
+        }
+    }
+}
+
+public extension Request {
+    func insertDefaults(with validation: DefaultValueStore) -> Request {
+        validation.insertDefaults(self)
     }
 }
 
