@@ -27,6 +27,7 @@ jobs:
         delete-branch: true
         base: develop
         branch: bots/update-dependencies
-        assignees: PSchmiedmayer
-        committer: PSchmiedmayer <PSchmiedmayer@users.noreply.github.com>
-        author: PSchmiedmayer <PSchmiedmayer@users.noreply.github.com>
+        assignees: ApodiniBot
+        committer: ApodiniBot <ApodiniBot@users.noreply.github.com>
+        author: ApodiniBot <ApodiniBot@users.noreply.github.com>
+        reviewers: PSchmiedmayer
