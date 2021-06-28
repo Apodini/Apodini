@@ -11,10 +11,6 @@ on:
       - release
   workflow_dispatch:
     inputs:
-      runDeploymentProviderTests:
-        description: 'Run the Apodini Deployment Provider Tests'
-        required: false
-        default: true
 
 jobs:
   latest-beta-swift-version:
@@ -65,7 +61,7 @@ jobs:
       if: matrix.configuration == 'debug'
       run: swift test -c debug --enable-code-coverage -Xswiftc -DCOVERAGE
     - name: Run Deployment Provider Tests debug
-      if: ${{ github.event.inputs.runDeploymentProviderTests && matrix.configuration == 'debug' }}
+      if: matrix.configuration == 'debug'
       run: |
         swift test -c debug --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
         swift test -c debug --filter ApodiniDeployTests.LambdaDeploymentProviderTests
@@ -76,7 +72,7 @@ jobs:
         AWS_REGION: ${{ secrets.AWS_REGION }}
         S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
     - name: Run Deployment Provider Tests release testing
-      if: ${{ github.event.inputs.runDeploymentProviderTests && matrix.configuration == 'release_testing' }}
+      if: matrix.configuration == 'release_testing'
       run: |
         swift test -c debug -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
         swift test -c debug -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING --filter ApodiniDeployTests.LambdaDeploymentProviderTests
@@ -128,7 +124,7 @@ jobs:
       if: matrix.configuration == 'debug'
       run: swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug
     - name: Run Deployment Provider Tests debug
-      if: ${{ github.event.inputs.runDeploymentProviderTests && matrix.linux == 'focal' && matrix.configuration == 'debug' }}
+      if: ${{ matrix.linux == 'focal' && matrix.configuration == 'debug' }}
       run: |
         swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
         swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug --filter ApodiniDeployTests.LambdaDeploymentProviderTests
@@ -139,7 +135,7 @@ jobs:
         AWS_REGION: ${{ secrets.AWS_REGION }}
         S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
     - name: Run Deployment Provider Tests release testing
-      if: ${{ github.event.inputs.runDeploymentProviderTests && matrix.linux == 'focal' && matrix.configuration == 'release_testing' }}
+      if: ${{ matrix.linux == 'focal' && matrix.configuration == 'release_testing' }}
       run: |
         swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
         swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING --filter ApodiniDeployTests.LambdaDeploymentProviderTests
