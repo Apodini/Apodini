@@ -14,7 +14,7 @@ on:
       runDeploymentProviderTests:
         description: 'Run the Apodini Deployment Provider Tests'
         required: false
-        default: false
+        default: true
 
 jobs:
   latest-beta-swift-version:

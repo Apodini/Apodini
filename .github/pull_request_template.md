@@ -1,16 +1,14 @@
 # *Name of the PR*
 
-## :recycle: Current situation
+## :recycle: Current situation & Problem
 *Describe the current situation (if possible with and exemplary (or real) code snippet and/or where this is used)*
 
 ## :bulb: Proposed solution
-*Describe the solution (if possible with and exemplary (or real) code snippet)*
+*Describe the solution and how this affects the project and internal structure*
 
-### Problem that is solved
-*Provide a description and link issues that are solved*
-
-### Implications
-*Describe the implications, e.g. refactoring*
+## :grear: Release Notes 
+*Add a short summary of the feature as well as possible migration guides if this is a breaking change so this section can be added to the release notes.*
+*Include code snippets that provide examples of the feature implemented if it appends or changes the public interface.*
 
 ## :heavy_plus_sign: Additional Information
 *Provide some additional information if possible*

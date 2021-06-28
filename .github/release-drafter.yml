@@ -2,17 +2,19 @@ branches: [release]
 name-template: '$NEXT_PATCH_VERSION'
 tag-template: '$NEXT_PATCH_VERSION'
 categories:
-  - title: '🚀 Features'
+  - title: 'Semantic Version Major'
+    labels:
+      - 'needs version bump'
+  - title: 'Semantic Version Minor'
     labels:
       - 'feature'
       - 'enhancement'
-  - title: '🐛 Bug Fixes'
+  - title: 'Other Changes'
     labels:
       - 'fix'
       - 'bugfix'
       - 'bug'
-  - title: '🧰 Maintenance'
-    label: 'chore'
+      - 'documentation'
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
 template: |
   ## Changes
