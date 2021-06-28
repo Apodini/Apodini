@@ -20,7 +20,7 @@ public extension GRPCDependentStaticConfigurationBuilder {
     /// - Parameter staticConfigurations: A variadic number of `GRPCDependentStaticConfiguration`
     ///
     /// - Returns: An `AnyConfigurationCollection` which consists of `ConfigurationConvertible`s
-    public static func buildBlock(_ staticConfigurations: GRPCDependentStaticConfiguration...) -> [GRPCDependentStaticConfiguration] {
+    static func buildBlock(_ staticConfigurations: GRPCDependentStaticConfiguration...) -> [GRPCDependentStaticConfiguration] {
         staticConfigurations
     }
     
@@ -30,7 +30,7 @@ public extension GRPCDependentStaticConfigurationBuilder {
     /// - Parameter staticConfiguration: The `GRPCDependentStaticConfiguration` within the if statement.
     ///
     /// - Returns: Either the `GRPCDependentStaticConfiguration` within the branch if the condition evaluates to `true` or an empty array.
-    public static func buildIf(_ staticConfiguration: GRPCDependentStaticConfiguration?) -> GRPCDependentStaticConfiguration {
+    static func buildIf(_ staticConfiguration: GRPCDependentStaticConfiguration?) -> GRPCDependentStaticConfiguration {
         staticConfiguration ?? EmptyGRPCDependentStaticConfiguration()
     }
     
@@ -40,7 +40,7 @@ public extension GRPCDependentStaticConfigurationBuilder {
     /// - Parameter first: The `GRPCDependentStaticConfiguration` within the if statement
     ///
     /// - Returns: The `GRPCDependentStaticConfiguration` within the if statement
-    public static func buildEither(first: GRPCDependentStaticConfiguration) -> GRPCDependentStaticConfiguration {
+    static func buildEither(first: GRPCDependentStaticConfiguration) -> GRPCDependentStaticConfiguration {
         first
     }
     
@@ -50,7 +50,7 @@ public extension GRPCDependentStaticConfigurationBuilder {
     /// - Parameter second: The `GRPCDependentStaticConfiguration` within the else statement
     ///
     /// - Returns: The `GRPCDependentStaticConfiguration` within the else statement
-    public static func buildEither(second: GRPCDependentStaticConfiguration) -> GRPCDependentStaticConfiguration {
+    static func buildEither(second: GRPCDependentStaticConfiguration) -> GRPCDependentStaticConfiguration {
         second
     }
 }

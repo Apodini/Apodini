@@ -24,11 +24,11 @@ public final class Protobuffer: GRPCDependentStaticConfiguration {
         let protobufferExporter = ProtobufferInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
-        app.registerExporter(staticExporter: protobufferExporter)
+        app.registerExporter(exporter: protobufferExporter)
     }
 }
 
-final class ProtobufferInterfaceExporter: StaticInterfaceExporter {
+final class ProtobufferInterfaceExporter: InterfaceExporter {
     // MARK: Nested Types
     struct Error: Swift.Error, CustomDebugStringConvertible {
         let message: String

@@ -154,7 +154,7 @@ extension Parameter: Activatable {
 }
 
 
-extension IE {
+extension _Internal {
     public static func option<E: Codable, Option>(for key: Parameter<E>.OptionKey<Option>, on parameter: Parameter<E>) -> Option? {
         parameter.option(for: key)
     }

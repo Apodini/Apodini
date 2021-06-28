@@ -63,13 +63,4 @@ extension Application {
         interfaceExporterStorage.append(AnyInterfaceExporter(instance))
         return self
     }
-    
-    /// Registers an `StaticInterfaceExporter` instance on the model builder.
-    /// - Parameter instance: The instance of the `StaticInterfaceExporter` to register.
-    /// - Returns: `Self`
-    @discardableResult
-    public func registerExporter<T: StaticInterfaceExporter>(staticExporter instance: T) -> Self {
-        interfaceExporterStorage.append(AnyInterfaceExporter(instance))
-        return self
-    }
 }

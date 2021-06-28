@@ -83,7 +83,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
         
         try XCTCheckResponse(
         context.handle(
-            request: WebSocketInput(input, eventLoop: eventLoop),
+            request: input,
             eventLoop: eventLoop),
             content: Parameters(param0: "value0", param1: nil, pathA: "a", pathB: "b", bird: bird),
             connectionEffect: .close

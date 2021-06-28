@@ -36,12 +36,12 @@ public final class OpenAPI: RESTDependentStaticConfiguration {
         let openAPIExporter = OpenAPIInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
-        app.registerExporter(staticExporter: openAPIExporter)
+        app.registerExporter(exporter: openAPIExporter)
     }
 }
 
 /// Internal Apodini Interface Exporter for OpenAPI
-final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
+final class OpenAPIInterfaceExporter: InterfaceExporter {
     static var parameterNamespace: [ParameterNamespace] = .individual
     
     let app: Apodini.Application

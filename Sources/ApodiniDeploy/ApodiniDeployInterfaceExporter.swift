@@ -7,6 +7,7 @@
 
 import Foundation
 import Apodini
+import ApodiniExtension
 import ApodiniUtils
 import ApodiniVaporSupport
 import ApodiniDeployBuildSupport
@@ -60,7 +61,7 @@ public final class ApodiniDeploy: Configuration {
 /// a) compiles a list of all handlers (via their `Endpoint` objects). These are used to determine the target endpoint when manually invoking a handler.
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
-class ApodiniDeployInterfaceExporter: InterfaceExporter {
+class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
     struct ApplicationStorageKey: Apodini.StorageKey {
         typealias Value = ApodiniDeployInterfaceExporter
     }
@@ -241,7 +242,7 @@ class ApodiniDeployInterfaceExporter: InterfaceExporter {
 // MARK: ApodiniDeployInterfaceExporter.ExporterRequest
 
 extension ApodiniDeployInterfaceExporter {
-    struct ExporterRequest: Apodini.ExporterRequest {
+    struct ExporterRequest {
         enum Argument {
             case value(Any)    // the value, as-is
             case encoded(Data) // the value, encoded
@@ -251,7 +252,7 @@ extension ApodiniDeployInterfaceExporter {
         
         init<H: Handler>(endpoint: Endpoint<H>, collectedArguments: [CollectedArgument<H>]) {
             argumentValues = .init(uniqueKeysWithValues: collectedArguments.map { argument -> (String, Argument) in
-                guard let paramId = Apodini.Internal.getParameterId(ofBinding: endpoint.handler[keyPath: argument.handlerKeyPath]) else {
+                guard let paramId = Apodini._Internal.getParameterId(ofBinding: endpoint.handler[keyPath: argument.handlerKeyPath]) else {
                     fatalError("Unable to get @Parameter id from collected parameter with key path \(argument.handlerKeyPath)")
                 }
                 let endpointParam = endpoint.parameters.first { $0.id == paramId }!

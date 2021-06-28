@@ -155,11 +155,11 @@ final class DelegationTests: ApodiniTests {
     class TestListener<H: Handler>: ObservedListener where H.Response.Content: StringProtocol {
         var eventLoop: EventLoop
         
-        var context: ConnectionContext<MockExporter<String>, H>
+        var context: ConnectionContext<String, H>
         
         var result: EventLoopFuture<TimeInterval>?
         
-        init(eventLoop: EventLoop, context: ConnectionContext<MockExporter<String>, H>) {
+        init(eventLoop: EventLoop, context: ConnectionContext<String, H>) {
             self.eventLoop = eventLoop
             self.context = context
         }

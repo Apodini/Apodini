@@ -8,9 +8,10 @@
 import Foundation
 import NIO
 import Apodini
+import ApodiniExtension
 
 /// gRPC message
-public final class GRPCMessage: Apodini.ExporterRequest {
+public final class GRPCMessage {
     /// Default message that can be used to call handlers in cases
     /// where no input message was provided.
     /// Content is empty, length is zero, and the compressed flag is not set.

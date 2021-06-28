@@ -80,7 +80,7 @@ protocol _AnyEndpointParameter: AnyEndpointParameter {
     ///
     /// - Parameter exporter: The `InterfaceExporter`.
     /// - Returns: Returns what `InterfaceExporter.retrieveParameter(...)` returns.
-    func exportParameter<I: BaseInterfaceExporter>(on exporter: I) -> I.ParameterExportOutput
+    func exportParameter<I: InterfaceExporter>(on exporter: I) -> I.ParameterExportOutput
 
     /// Used to derive a `EndpointPath` (specifically a `.parameter(parameter:)` instance)
     /// from the given `EndpointParameter`.
@@ -190,14 +190,14 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
         try visitor.visit(parameter: self)
     }
 
-    func exportParameter<I: BaseInterfaceExporter>(on exporter: I) -> I.ParameterExportOutput {
+    func exportParameter<I: InterfaceExporter>(on exporter: I) -> I.ParameterExportOutput {
         exporter.exportParameter(self)
     }
 }
 
 // MARK: Endpoint Parameter
 extension Array where Element == AnyEndpointParameter {
-    func exportParameters<I: BaseInterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
+    func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
         self.map { parameter -> I.ParameterExportOutput in
             parameter.toInternal().exportParameter(on: exporter)
         }

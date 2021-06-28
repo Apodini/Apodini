@@ -34,7 +34,7 @@ public final class WebSocket: Configuration {
 /// The WebSocket exporter uses a custom JSON based protocol on top of WebSocket's text messages.
 /// This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel.
 /// The Apodini service listens on /apodini/websocket for clients that want to communicate via the WebSocket Interface Exporter.
-final class WebSocketInterfaceExporter: InterfaceExporter {
+final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
     private let app: Apodini.Application
     private let exporterConfiguration: WebSocket.ExporterConfiguration
     private let router: VaporWSRouter
@@ -56,70 +56,61 @@ final class WebSocketInterfaceExporter: InterfaceExporter {
             result[parameter.name] = parameter.value
         }))
         
+        let decodingStrategy = InterfaceExporterLegacyStrategy(self).applied(to: endpoint)
+        
+        let defaultValueStore = endpoint[DefaultValueStore.self]
+        
         self.router.register({(clientInput: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, request: Vapor.Request) -> (
                     defaultInput: SomeInput,
                     output: AnyPublisher<Message<H.Response.Content>, Error>
                 ) in
+            
+            // We need a new `Delegate` for each connection
+            var delegate = Delegate(endpoint.handler, .required)
+            
+            var latestRequest: Apodini.Request = EmptyRequest(eventLoop: eventLoop, information: request.information)
+            
             var cancellables: Set<AnyCancellable> = []
+            var observation: Observation?
             
-            // We have to be able to handle both, incoming `clientInput` and
-            // `observation`s coming from `ObservedObject`s. Thus we open a first
-            //  gap in the publisher-chain where we can insert the `observation`s.
-            let input = PassthroughSubject<Evaluation, Never>()
-            
-            // Here we just forward the `_input` into the `input`.
-            clientInput.sink(receiveCompletion: { _ in
-                input.send(completion: .finished)
-            }, receiveValue: { value in
-                input.send(.input(value))
-            })
-            .store(in: &cancellables)
-            
-            // This listener is notified each time an `ObservedObject` triggers this
-            // instance of the endpoint. Each time we pipe the `observation` into
-            // `input` along with its `promise` which must be succeeded further down
-            // the line.
-            let listener = DelegatingObservedListener<H>(eventLoop: eventLoop, callback: { observedObject, event in
-                input.send(.observation(observedObject, event))
-            })
-            
-            let context = endpoint.createConnectionContext(for: self)
-            
-            context.register(listener: listener)
-            
-            // We need a second gap in the publisher-chain here so we can map freely between
+            // We need a gap in the publisher-chain here so we can map freely between
             // `value`s and `completion`s.
             let output: PassthroughSubject<Message<H.Response.Content>, Error> = PassthroughSubject()
-            // Handle all incoming client-messages and observations one after another.
-            // The `syncMap` automatically awaits the future, while `buffer` makes sure
-            // messages are never dropped.
-            input
-                .buffer(size: Int.max, prefetch: .keepFull, whenFull: .dropNewest)
-                .syncMap { evaluation -> EventLoopFuture<Apodini.Response<H.Response.Content>> in
-                    switch evaluation {
-                    case .input(let inputValue):
-                        let request = WebSocketInput(inputValue, eventLoop: eventLoop, remoteAddress: request.remoteAddress)
-                        return context.handle(request: request, eventLoop: eventLoop, final: false)
-                    case let .observation(observedObject, event):
-                        return context.handle(eventLoop: eventLoop, observedObject: observedObject, event: event)
-                    }
+            
+            clientInput
+            .buffer(size: Int.max, prefetch: .keepFull, whenFull: .dropNewest)
+            .reduce()
+            .map { (someInput: SomeInput) in
+                (request, someInput)
+            }
+            .decode(using: decodingStrategy, with: eventLoop)
+            .insertDefaults(with: defaultValueStore)
+            .validateParameterMutability()
+            .cache()
+            .subscribe(to: &delegate, using: &observation)
+            .map { event in
+                if case let .request(request) = event {
+                    latestRequest = request
                 }
-                .sink(
-                    // The completion is also synchronized by `syncMap` it waits for any future
-                    // to complete before forwarding it.
-                    receiveCompletion: { completion in
-                        let request = WebSocketInput(emptyInput, eventLoop: eventLoop, remoteAddress: request.remoteAddress)
-                        Self.handleCompletion(completion: completion, context: context, request: request, output: output)
-                        // We have to reference the cancellable here so it stays in memory and isn't cancled early.
-                        cancellables.removeAll()
-                    },
-                    // The input was already handled and unwrapped by the `syncMap`. We just have to map the obtained
-                    // `Response` to our `output` or handle the error returned from `handle`.
-                    receiveValue: { result in
-                        Self.handleValue(result: result, output: output)
-                    }
-                )
-                .store(in: &cancellables)
+                return event
+            }
+            .evaluate(on: &delegate)
+            .sink(
+                // The completion is also synchronized by `syncMap` it waits for any future
+                // to complete before forwarding it.
+                receiveCompletion: { completion in
+                Self.handleCompletion(completion: completion, handler: &delegate, request: latestRequest, output: output)
+                    // We have to reference the cancellable here so it stays in memory and isn't cancled early.
+                    cancellables.removeAll()
+                    observation = nil
+                },
+                // The input was already handled and unwrapped by the `syncMap`. We just have to map the obtained
+                // `Response` to our `output` or handle the error returned from `handle`.
+                receiveValue: { result in
+                    Self.handleValue(result: result, output: output)
+                }
+            )
+            .store(in: &cancellables)
 
 
             return (defaultInput: emptyInput, output: output.eraseToAnyPublisher())
@@ -128,9 +119,9 @@ final class WebSocketInterfaceExporter: InterfaceExporter {
 
     func retrieveParameter<Type>(
         _ parameter: EndpointParameter<Type>,
-        for request: WebSocketInput
+        for request: SomeInput
     ) throws -> Type?? where Type: Decodable, Type: Encodable {
-        if let inputParameter = request.input.parameters[parameter.name] as? BasicInputParameter<Type> {
+        if let inputParameter = request.parameters[parameter.name] as? BasicInputParameter<Type> {
             return inputParameter.value
         } else {
             return nil
@@ -143,8 +134,8 @@ final class WebSocketInterfaceExporter: InterfaceExporter {
     
     private static func handleCompletion<H: Handler>(
         completion: Subscribers.Completion<Never>,
-        context: ConnectionContext<WebSocketInterfaceExporter, H>,
-        request: WebSocketInput,
+        handler: inout Delegate<H>,
+        request: Apodini.Request,
         output: PassthroughSubject<Message<H.Response.Content>, Error>
     ) {
         switch completion {
@@ -153,7 +144,7 @@ final class WebSocketInterfaceExporter: InterfaceExporter {
             // `Handler` one more time before the connection is closed. We have to
             // manually await this future. We use an `emptyInput`, which is aggregated
             // to the latest input.
-            context.handle(request: request, eventLoop: request.eventLoop, final: true).whenComplete { result in
+            request.evaluate(on: &handler, .end).whenComplete { (result: Result<Apodini.Response<H.Response.Content>, Error>) in
                 switch result {
                 case .success(let response):
                     Self.handleCompletionResponse(response: response, output: output)
@@ -220,28 +211,6 @@ final class WebSocketInterfaceExporter: InterfaceExporter {
 }
 
 
-// MARK: Handling of ObservedObject
-
-private struct DelegatingObservedListener<H: Handler>: ObservedListener {
-    func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent) {
-        callback(observedObject, event)
-    }
-    
-    init(eventLoop: EventLoop, callback: @escaping (AnyObservedObject, TriggerEvent) -> Void) {
-        self.eventLoop = eventLoop
-        self.callback = callback
-    }
-    
-    var eventLoop: EventLoop
-    
-    var callback: (AnyObservedObject, TriggerEvent) -> Void
-}
-
-private enum Evaluation {
-    case input(SomeInput)
-    case observation(AnyObservedObject, TriggerEvent)
-}
-
 // MARK: Input Definition
 
 /// A struct that wrapps the `WebSocketInterfaceExporter`'s internal representation of
@@ -254,34 +223,20 @@ public struct WebSocketParameter {
     }
 }
 
-/// A struct that wrapps the `WebSocketInterfaceExporter`'s internal representation of
-/// the complete input of an endpoint.
-public struct WebSocketInput: ExporterRequestWithEventLoop {
-    internal var input: SomeInput
-    public let eventLoop: EventLoop
-    public let remoteAddress: SocketAddress?
-    
-    internal init(_ input: SomeInput, eventLoop: EventLoop, remoteAddress: SocketAddress? = nil) {
-        self.input = input
-        self.eventLoop = eventLoop
-        self.remoteAddress = remoteAddress
-    }
-}
-
 
 // MARK: Input Accumulation
 
-extension WebSocketInput: Apodini.Reducible {
-    public func reduce(to new: WebSocketInput) -> WebSocketInput {
+extension SomeInput: Reducible {
+    func reduce(with new: SomeInput) -> SomeInput {
         var newParameters: [String: InputParameter] = [:]
-        for (name, value) in new.input.parameters {
-            if let reducible = self.input.parameters[name] as? ReducibleParameter {
+        for (name, value) in new.parameters {
+            if let reducible = self.parameters[name] as? ReducibleParameter {
                 newParameters[name] = reducible.reduce(to: value)
             } else {
                 newParameters[name] = value
             }
         }
-        return WebSocketInput(SomeInput(parameters: newParameters), eventLoop: new.eventLoop, remoteAddress: new.remoteAddress)
+        return SomeInput(parameters: newParameters)
     }
 }
 

@@ -5,14 +5,27 @@
 import XCTest
 import XCTApodini
 @testable import Apodini
+@testable import ApodiniREST
 
 class RelationshipExporter: MockExporter<String> {
-    var endpoints: [(AnyEndpoint, AnyRelationshipEndpoint)] = []
+    var endpoints: [(AnyEndpoint, AnyRelationshipEndpoint, (String, [Any??], Application) throws -> EnrichedContent)] = []
 
     override func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let rendpoint = endpoint[AnyRelationshipEndpointInstance.self].instance
         
-        endpoints.append((endpoint, rendpoint))
+        endpoints.append((endpoint, rendpoint, { request, parameters, app in
+            self.append(injected: parameters)
+            let context = endpoint.createConnectionContext(for: self)
+            
+            let (response, parameters) = try context.handleAndReturnParameters(
+                request: request,
+                eventLoop: app.eventLoopGroup.next(),
+                final: true)
+                .wait()
+            return try XCTUnwrap(response.typeErasured.map { anyEncodable in
+                EnrichedContent(for: rendpoint, response: anyEncodable, parameters: parameters)
+            })
+        }))
     }
 
     override func finishedExporting(_ webService: WebServiceModel) {
@@ -50,8 +63,6 @@ class RelationshipExporterRetriever: InterfaceExporterVisitor {
             fatalError("Error retrieving RelationshipExporter: \(error)")
         }
     }
-
-    func visit<I>(staticExporter: I) where I: StaticInterfaceExporter {}
 }
 
 

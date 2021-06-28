@@ -42,7 +42,7 @@ struct RESTEndpointHandler<H: Handler> {
                                         otherwise: AllIdentityStrategy(exporterConfiguration.decoder).transformedToVaporRequestBasedStrategy()
                             )).applied(to: endpoint)
         
-        self.defaultStore = DefaultValueStore(for: endpoint)
+        self.defaultStore = endpoint[DefaultValueStore.self]
     }
     
     
@@ -51,13 +51,15 @@ struct RESTEndpointHandler<H: Handler> {
     }
 
     func handleRequest(request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+        var delegate = Delegate(endpoint.handler, .required)
+        
         return strategy
             .decodeRequest(from: request,
-                           with: DefaultRequestBasis(base: request),
-                           on: request.eventLoop)
+                           with: request,
+                           with: request.eventLoop)
             .insertDefaults(with: defaultStore)
             .cache()
-            .evaluate(on: endpoint.handler)
+            .evaluate(on: &delegate)
             .map { (responseAndRequest: ResponseWithRequest<H.Response.Content>) in
                 let parameters: (UUID) -> Any? = responseAndRequest.unwrapped(to: CachingRequest.self)?.peak(_:) ?? { _ in nil }
                 

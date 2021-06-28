@@ -13,7 +13,7 @@ import Foundation
 // MARK: Handling Statefulness
 
 public extension Publisher where Output: Reducible {
-    func reduce() -> some Publisher where Output.Input == Output {
+    func reduce() -> OpenCombine.Publishers.Map<Self, Output> where Output.Input == Output {
         var last: Output?
         
         return self.map { (new : Output) -> Output in
@@ -25,11 +25,11 @@ public extension Publisher where Output: Reducible {
 }
 
 public extension Publisher {
-    func reduce<R: Reducible>(with initial: R) -> some Publisher where Output == R.Input {
-        var last: R = initial
+    func reduce<R: Initializable>(_ type: R.Type = R.self) -> OpenCombine.Publishers.Map<Self, R> where Output == R.Input {
+        var last: R?
         
         return self.map { (new : Output) -> R in
-            let result = last.reduce(with: new)
+            let result = last?.reduce(with: new) ?? R(new)
             last = result
             return result
         }
@@ -37,58 +37,49 @@ public extension Publisher {
 }
 
 
-// MARK: Handling Initialization
-
-public extension Publisher where Output: Request {
-    func attach<H: Handler>(on handler: H) -> some WithDelegate {
-        self.withDelegate(.standaloneInstance(of: handler))
-    }
-}
-
-
 // MARK: Handling Subscription
 
-public extension WithDelegate where Output: Request {
-
-    func subscribe<H: Handler>(to handler: H) -> some WithDelegate {
+public extension Publisher where Output: Request {
+    func subscribe<H: Handler>(to handler: inout Delegate<H>, using store: inout Optional<Observation>) -> OpenCombine.Publishers.FlatMap<AnyPublisher<Event, Self.Failure>, OpenCombine.Publishers.SetFailureType<OpenCombine.Publishers.Sequence<Array<AnyPublisher<Event, Self.Failure>>, Never>, AnyPublisher<Event, Self.Failure>.Failure>> {
+        _Internal.prepareIfNotReady(&handler)
+        
         let subject = PassthroughSubject<Event, Failure>()
-        let observation = delegate.register { trigger in
+        store = handler.register { trigger in
             subject.send(.trigger(trigger))
         }
-
-        return self
-            .map { request in
-                _ = observation // this keeps `observation` from being deallocated
-                return Event.request(request)
-            }
-            .mergeValues(of: subject)
-            .withDelegate(delegate)
+        
+        return [subject.buffer(size: Int.max, prefetch: .keepFull, whenFull: .dropNewest).eraseToAnyPublisher(),
+                self.handleEvents(receiveCompletion: { completion in
+                    subject.send(completion: .finished)
+                }, receiveCancel: {
+                    subject.send(completion: .finished)
+                }).map { request in
+                    return Event.request(request)
+                }.eraseToAnyPublisher()
+        ].publisher.flatMap { publisher in publisher }
     }
 }
 
 
 // MARK: Handling Event Evaluation
 
-public extension WithDelegate where Output == Event {
-    func evaluate() -> some WithDelegate {
-        self.evaluate(on: delegate).withDelegate(delegate)
-    }
-}
 
-private extension Publisher where Output == Event {
-    func evaluate<H: Handler>(on delegate: Delegate<H>) -> some Publisher {
+public extension Publisher where Output == Event {
+    func evaluate<H: Handler>(on handler: inout Delegate<H>) -> Publishers.SyncMap<Self, Response<H.Response.Content>> {
         var lastRequest: Request?
-
+        _Internal.prepareIfNotReady(&handler)
+        let preparedHandler = handler
+        
         return self.syncMap { (event: Event) -> EventLoopFuture<Response<H.Response.Content>> in
             switch event {
             case let .request(request):
                 lastRequest = request
-                return delegate.evaluate(using: request)
+                return preparedHandler.evaluate(using: request, with: .open)
             case let .trigger(trigger):
                 guard let request = lastRequest else {
                     fatalError("Can only handle changes to observed object after an initial client-request")
                 }
-                return delegate.evaluate(trigger, using: request)
+                return preparedHandler.evaluate(trigger, using: request, with: .open)
             }
         }
     }
@@ -97,26 +88,22 @@ private extension Publisher where Output == Event {
 
 // MARK: Handling Request Evaluation
 
-public extension WithDelegate where Output: Request {
-    func evaluate() -> Publishers.SyncMap<Self, Response<H.Response.Content>> {
-        self.evaluate(on: delegate)
-    }
-    
-    func evaluate() -> Publishers.SyncMap<Self, ResponseWithRequest<H.Response.Content>> {
-        self.evaluateAndReturnRequest(on: self.delegate)
-    }
-}
-
-private extension Publisher where Output: Request {
-    func evaluate<H: Handler>(on delegate: Delegate<H>) -> Publishers.SyncMap<Self, Response<H.Response.Content>> {
+public extension Publisher where Output: Request {
+    func evaluate<H: Handler>(on handler: inout Delegate<H>) -> Publishers.SyncMap<Self, Response<H.Response.Content>> {
+        _Internal.prepareIfNotReady(&handler)
+        let preparedHandler = handler
+        
         return self.syncMap { request in
-            delegate.evaluate(using: request)
+            preparedHandler.evaluate(using: request, with: .open)
         }
     }
     
-    func evaluateAndReturnRequest<H: Handler>(on delegate: Delegate<H>) -> Publishers.SyncMap<Self, ResponseWithRequest<H.Response.Content>> {
+    func evaluateAndReturnRequest<H: Handler>(on handler: inout Delegate<H>) -> Publishers.SyncMap<Self, ResponseWithRequest<H.Response.Content>> {
+        _Internal.prepareIfNotReady(&handler)
+        let preparedHandler = handler
+        
         return self.syncMap { request in
-            delegate.evaluate(using: request).map { (response: Response<H.Response.Content>) in
+            preparedHandler.evaluate(using: request, with: .open).map { (response: Response<H.Response.Content>) in
                 ResponseWithRequest(response: response, request: request)
             }
         }
@@ -147,40 +134,6 @@ public enum Event {
     case trigger(TriggerEvent)
 }
 
-// MARK: WithDelegate
-
-public protocol WithDelegate: Publisher {
-    associatedtype H: Handler
-    var delegate: Delegate<H> { get }
-}
-
-struct PublisherWithDelegate<P: Publisher, H: Handler>: WithDelegate {
-    typealias Output = P.Output
-    
-    typealias Failure = P.Failure
-    
-    private let wrapped: P
-    
-    let delegate: Delegate<H>
-    
-    internal init(wrapped: P, delegate: Delegate<H>) {
-        self.wrapped = wrapped
-        self.delegate = delegate
-    }
-    
-    
-    func receive<S>(subscriber: S) where S: Subscriber, Failure == S.Failure, Output == S.Input {
-        wrapped.receive(subscriber: subscriber)
-    }
-}
-
-extension Publisher {
-    func withDelegate<H: Handler>(_ delegate: Delegate<H>) -> PublisherWithDelegate<Self, H> {
-        PublisherWithDelegate(wrapped: self, delegate: delegate)
-    }
-}
-
-
 // MARK: Reducible
 
 /// An object that can merge itself and a `new` element
@@ -197,16 +150,6 @@ public protocol Reducible {
     func reduce(with new: Input) -> Self
 }
 
-public protocol Initializable {
-    associatedtype InitialInput
-    
-    init(_ initial: InitialInput)
-}
-
-extension Optional: Reducible where Wrapped: Reducible, Wrapped: Initializable, Wrapped.Input == Wrapped.InitialInput {
-    public typealias Input = Wrapped.Input
-    
-    public func reduce(with new: Input) -> Optional<Wrapped> {
-        self?.reduce(with: new) ?? Wrapped(new)
-    }
+public protocol Initializable: Reducible {
+    init(_ initial: Input)
 }

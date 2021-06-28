@@ -25,11 +25,11 @@ final class UniqueIdentifierTests: ApodiniTests {
         struct IdentifierAccessing: Configuration {
             func configure(_ app: Apodini.Application) {
                 let identifierExporter = IdentifierAccessingExporter(app)
-                app.registerExporter(staticExporter: identifierExporter)
+                app.registerExporter(exporter: identifierExporter)
             }
         }
         
-        struct IdentifierAccessingExporter: StaticInterfaceExporter {
+        struct IdentifierAccessingExporter: InterfaceExporter {
             init(_ app: Application) { }
             
             func export<H>(_ endpoint: Endpoint<H>) where H: Handler {

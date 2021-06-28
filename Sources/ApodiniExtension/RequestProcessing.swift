@@ -14,7 +14,7 @@ import ApodiniUtils
 // MARK: Caching
 
 public extension Publisher where Output: Request {
-    func cache() -> some Publisher {
+    func cache() -> OpenCombine.Publishers.Map<Self, CachingRequest> {
         self.map { request in
             request.cache()
         }
@@ -68,56 +68,67 @@ public class CachingRequest: WithRequest {
 
 public struct DefaultValueStore {
     
-    private let handler: (UUID) throws -> Any
+    private let handler: (UUID, Error) throws -> Any
     
     
-    public init(for endpoint: AnyEndpoint) {
-        let defaultValues = endpoint[EndpointParameters.self].reduce(into: [UUID: () -> Any](), { storage, parameter in
+    internal init(_ parameters: EndpointParameters) {
+        let defaultValues = parameters.reduce(into: [UUID: () -> Any](), { storage, parameter in
             if let defaultValue = parameter.typeErasuredDefaultValue, parameter.necessity == .optional {
                 storage[parameter.id] = defaultValue
             }
         })
         
-        let defaultNilValues = endpoint[EndpointParameters.self].reduce(into: [UUID: Any](), { storage, parameter in
+        let defaultNilValues = parameters.reduce(into: [UUID: Any](), { storage, parameter in
             if case let .some(.some(nilValue)) = (parameter as? DefaultNilValueProvider)?.nilValue {
                 storage[parameter.id] = nilValue
             }
         })
         
-        let descriptions = endpoint[EndpointParameters.self].reduce(into: [UUID: String](), { storage, parameter in
+        let descriptions = parameters.reduce(into: [UUID: String](), { storage, parameter in
             storage[parameter.id] = parameter.description
         })
         
-        handler = { uuid in
+        handler = { uuid, originalError in
             if let defaultValue = defaultValues[uuid] {
                 return defaultValue()
             }
             if let defaultNilValue = defaultNilValues[uuid] {
                 return defaultNilValue
             }
-            throw ApodiniError(type: .badInput, reason: "Didn't retrieve any parameters for a required parameter '\(descriptions[uuid] ?? "??")'.")
+            throw ApodiniError(type: .badInput, reason: "Didn't retrieve any parameters for a required parameter '\(descriptions[uuid] ?? "??")'.", description: "\(originalError)")
         }
     }
     
-    func insertDefaults(_ request: Request) -> Request {
+    func insertDefaults(_ request: Request) -> DefaultInsertingRequest {
         DefaultInsertingRequest(request: request, handler: handler)
     }
     
-    struct DefaultInsertingRequest: WithRequest {
-        private(set) var request: Request
+    public struct DefaultInsertingRequest {
+        var _request: Request
         
-        let handler: (UUID) throws -> Any
+        let handler: (UUID, Error) throws -> Any
+        
+        init(request: Request, handler: @escaping (UUID, Error) throws -> Any) {
+            self._request = request
+            self.handler = handler
+        }
 
-        func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element : Decodable, Element : Encodable {
+        public func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element : Decodable, Element : Encodable {
             do {
-                return try request.retrieveParameter(parameter)
-            } catch DecodingError.keyNotFound(_, _), DecodingError.valueNotFound(_, _) {
-                guard let typedValue = try handler(parameter.id) as? Element else {
+                return try _request.retrieveParameter(parameter)
+            } catch {
+                guard let typedValue = try handler(parameter.id, error) as? Element else {
                     fatalError("Internal logic of DefaultValueStore broken: type mismatch")
                 }
                 return typedValue
             }
         }
+    }
+}
+
+extension DefaultValueStore.DefaultInsertingRequest: WithRequest {
+    public var request: Request {
+        _request
     }
 }
 
@@ -136,16 +147,16 @@ extension EndpointParameter: DefaultNilValueProvider {
 }
 
 public extension Publisher where Output: Request {
-    func insertDefaults(with validation: DefaultValueStore) -> some Publisher {
+    func insertDefaults(with defaults: DefaultValueStore) -> OpenCombine.Publishers.Map<Self, DefaultValueStore.DefaultInsertingRequest> {
         self.map { request in
-            validation.insertDefaults(request)
+            defaults.insertDefaults(request)
         }
     }
 }
 
 public extension Request {
-    func insertDefaults(with validation: DefaultValueStore) -> Request {
-        validation.insertDefaults(self)
+    func insertDefaults(with defaults: DefaultValueStore) -> DefaultValueStore.DefaultInsertingRequest {
+        defaults.insertDefaults(self)
     }
 }
 
@@ -154,8 +165,8 @@ public extension Request {
 // MARK: Mutability Validation
 
 public extension Publisher where Output: Request {
-    func validateParameterMutability() -> some Publisher {
-        self.reduce(with: Optional<MutabilityValidatingRequest<Output>>.none)
+    func validateParameterMutability() -> OpenCombine.Publishers.Map<Self, MutabilityValidatingRequest<Output>>  {
+        self.reduce()
     }
 }
 
@@ -182,7 +193,7 @@ public class MutabilityValidatingRequest<R: Request>: WithRequest, Initializable
         do {
             let retrievedValue = try _request.retrieveParameter(parameter)
             
-            switch IE.option(for: .mutability, on: parameter) ?? .variable {
+            switch _Internal.option(for: .mutability, on: parameter) ?? .variable {
             case .constant:
                 if case let .some((_, .some(initialValue))) = self.previousValues[parameter.id] {
                     if !AnyEquatable.compare(initialValue as Any, retrievedValue as Any).isEqual {
@@ -211,7 +222,7 @@ extension MutabilityValidatingRequest: Reducible {
             previousValues[key] = failed ? (backup, backup) : (last, last)
         }
         self.failed = false
-        self._request = _request
+        self._request = new
         return self
     }
 }

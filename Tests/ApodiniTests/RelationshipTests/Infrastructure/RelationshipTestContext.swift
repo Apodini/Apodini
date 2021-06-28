@@ -13,7 +13,7 @@ class RelationshipTestContext {
     let app: Application
     let exporter: RelationshipExporter
 
-    var endpoints: [(AnyEndpoint, AnyRelationshipEndpoint)] {
+    var endpoints: [(AnyEndpoint, AnyRelationshipEndpoint, (String, [Any??], Application) throws -> EnrichedContent)] {
         exporter.endpoints
     }
 
@@ -43,20 +43,10 @@ class RelationshipTestContext {
     }
 
     func request(on index: Int, request: String = "Example Request", parameters: Any??...) -> EnrichedContent {
-        exporter.append(injected: parameters)
-
-        let (endpoint, rendpoint) = endpoints[index]
-        let context = endpoint.createAnyConnectionContext(for: exporter)
+        let (_, rendpoint, executable) = endpoints[index]
 
         do {
-            let (response, parameters) = try context.handleAndReturnParameters(
-                request: request,
-                eventLoop: app.eventLoopGroup.next(),
-                final: true)
-                .wait()
-            return try XCTUnwrap(response.map { anyEncodable in
-                EnrichedContent(for: rendpoint, response: anyEncodable, parameters: parameters)
-            })
+            return try executable(request, parameters, app)
         } catch {
             fatalError("Error when handling Relationship request: \(error)")
         }
