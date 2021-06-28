@@ -52,7 +52,7 @@ let package = Package(
         // We constrain it to the next minor version as it doen't follow semantic versioning.
         .package(url: "https://github.com/OpenCombine/OpenCombine.git", .upToNextMinor(from: "0.11.0")),
         // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
-        .package(url: "https://github.com/apple/swift-nio.git", from: "2.29.0"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.30.0"),
         // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.13.1"),
         // HTTP/2 support for SwiftNIO
