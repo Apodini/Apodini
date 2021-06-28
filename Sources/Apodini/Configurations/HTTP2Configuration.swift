@@ -41,7 +41,7 @@ public final class HTTP2Configuration: Configuration {
                 let privateKey = try NIOSSLPrivateKey(file: keyURL.path, format: .pem)
                 
                 app.http.supportVersions = [.one, .two]
-                app.http.tlsConfiguration = .forServer(
+                app.http.tlsConfiguration = .makeServerConfiguration(
                     certificateChain: certificates.map { .certificate($0) },
                     privateKey: .privateKey(privateKey)
                 )

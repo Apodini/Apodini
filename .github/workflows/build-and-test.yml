@@ -64,24 +64,14 @@ jobs:
       if: matrix.configuration == 'debug'
       run: |
         swift test -c debug --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
-        swift test -c debug --filter ApodiniDeployTests.LambdaDeploymentProviderTests
       env:
         ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: ${{ secrets.AWS_REGION }}
-        S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
     - name: Run Deployment Provider Tests release testing
       if: matrix.configuration == 'release_testing'
       run: |
         swift test -c debug -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
-        swift test -c debug -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING --filter ApodiniDeployTests.LambdaDeploymentProviderTests
       env:
         ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: ${{ secrets.AWS_REGION }}
-        S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
     - name: Convert coverage report
       if: matrix.configuration == 'debug'
       run: xcrun llvm-cov export -format="lcov" .build/debug/ApodiniPackageTests.xctest/Contents/MacOS/ApodiniPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage.lcov
@@ -127,21 +117,11 @@ jobs:
       if: ${{ matrix.linux == 'focal' && matrix.configuration == 'debug' }}
       run: |
         swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
-        swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug --filter ApodiniDeployTests.LambdaDeploymentProviderTests
       env:
         ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: ${{ secrets.AWS_REGION }}
-        S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
     - name: Run Deployment Provider Tests release testing
       if: ${{ matrix.linux == 'focal' && matrix.configuration == 'release_testing' }}
       run: |
         swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING --filter ApodiniDeployTests.LocalhostDeploymentProviderTests
-        swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING --filter ApodiniDeployTests.LambdaDeploymentProviderTests
       env:
         ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: ${{ secrets.AWS_REGION }}
-        S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
