@@ -2,7 +2,7 @@
   "object": {
     "pins": [
       {
-        "package": "apnswift",
+        "package": "APNSwift",
         "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
         "state": {
           "branch": null,
@@ -200,7 +200,7 @@
         }
       },
       {
-        "package": "DNSClient",
+        "package": "NioDNS",
         "repositoryURL": "https://github.com/OpenKitten/NioDNS.git",
         "state": {
           "branch": null,
@@ -222,8 +222,8 @@
         "repositoryURL": "https://github.com/OpenCombine/OpenCombine.git",
         "state": {
           "branch": null,
-          "revision": "9bba5081344163296ddf537048566b95513b8f39",
-          "version": "0.11.0"
+          "revision": "28993ae57de5a4ea7e164787636cafad442d568c",
+          "version": "0.12.0"
         }
       },
       {
@@ -402,8 +402,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "d161bf658780b209c185994528e7e24376cf7283",
-          "version": "2.29.0"
+          "revision": "d79e33308b0ac83326b0ead0ea6446e604b8162d",
+          "version": "2.30.0"
         }
       },
       {
