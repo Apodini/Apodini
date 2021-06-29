@@ -63,8 +63,38 @@ public extension Publisher where Output: Request {
 
 // MARK: Handling Event Evaluation
 
-
-public extension Publisher where Output == Event {
+extension Publisher where Output == Event {
+    public func evaluate<H: Handler>(on handler: inout Delegate<H>) -> AnyPublisher<Result<Response<H.Response.Content>, Error>, Self.Failure> {
+        var lastRequest: Request?
+        _Internal.prepareIfNotReady(&handler)
+        let preparedHandler = handler
+        
+        let subject = PassthroughSubject<(Event, ConnectionState), Failure>()
+        
+        return [self.handleEvents(receiveCompletion: { completion in
+            if let finalRequest = lastRequest {
+                subject.send((.request(finalRequest), .end))
+            }
+            subject.send(completion: .finished)
+        }).map { event in
+            (event, .open)
+        }.eraseToAnyPublisher(), subject.eraseToAnyPublisher()]
+        .publisher
+        .flatMap { publisher in publisher }
+        .syncMap { (event: Event, state: ConnectionState) -> EventLoopFuture<Response<H.Response.Content>> in
+            switch event {
+            case let .request(request):
+                lastRequest = request
+                return preparedHandler.evaluate(using: request, with: state)
+            case let .trigger(trigger):
+                guard let request = lastRequest else {
+                    fatalError("Can only handle changes to observed object after an initial client-request")
+                }
+                return preparedHandler.evaluate(trigger, using: request, with: state)
+            }
+        }.eraseToAnyPublisher()
+    }
+    
     func evaluate<H: Handler>(on handler: inout Delegate<H>) -> Publishers.SyncMap<Self, Response<H.Response.Content>> {
         var lastRequest: Request?
         _Internal.prepareIfNotReady(&handler)

@@ -172,7 +172,7 @@ public extension Publisher where Output: Request {
 
 /// - Note: Must be used last in a sequence of failable `Request`s, otherwise the internal
 ///         state might get corrupted.
-public class MutabilityValidatingRequest<R: Request>: WithRequest, Initializable {
+public struct MutabilityValidatingRequest<R: Request>: WithRequest, Initializable {
     public typealias InitialInput = R
     
     public var request: Request {
@@ -181,12 +181,16 @@ public class MutabilityValidatingRequest<R: Request>: WithRequest, Initializable
     
     private var _request: R
     
-    private var previousValues = [UUID: (backup: Any?, last: Any?)]()
+    private var persistentStore: Box<(previousValues: [UUID: (backup: Any?, last: Any?)], failed: Bool)>
     
-    private var failed = false
-    
-    public required init(_ initial: R) {
+    public init(_ initial: R) {
         self._request = initial
+        self.persistentStore = Box((previousValues: [UUID: (backup: Any?, last: Any?)](), failed: false))
+    }
+    
+    internal init(_request: R, persistentStore: Box<(previousValues: [UUID: (backup: Any?, last: Any?)], failed: Bool)>) {
+        self._request = _request
+        self.persistentStore = persistentStore
     }
     
     public func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element : Decodable, Element : Encodable {
@@ -195,12 +199,12 @@ public class MutabilityValidatingRequest<R: Request>: WithRequest, Initializable
             
             switch _Internal.option(for: .mutability, on: parameter) ?? .variable {
             case .constant:
-                if case let .some((_, .some(initialValue))) = self.previousValues[parameter.id] {
+                if case let .some((_, .some(initialValue))) = self.persistentStore.value.previousValues[parameter.id] {
                     if !AnyEquatable.compare(initialValue as Any, retrievedValue as Any).isEqual {
                         throw ApodiniError(type: .badInput, reason: "Parameter retrieval returned value for constant '\(parameter)' even though its value has already been defined.")
                     }
                 } else {
-                    self.previousValues[parameter.id] = (nil, retrievedValue)
+                    self.persistentStore.value.previousValues[parameter.id] = (nil, retrievedValue)
                 }
             case .variable:
                 break
@@ -208,7 +212,7 @@ public class MutabilityValidatingRequest<R: Request>: WithRequest, Initializable
             
             return retrievedValue
         } catch {
-            failed = true
+            self.persistentStore.value.failed = true
             throw error
         }
     }
@@ -218,11 +222,10 @@ extension MutabilityValidatingRequest: Reducible {
     public typealias Input = R
     
     public func reduce(with new: R) -> Self {
-        for (key, (backup, last)) in previousValues {
-            previousValues[key] = failed ? (backup, backup) : (last, last)
+        for (key, (backup, last)) in self.persistentStore.value.previousValues {
+            self.persistentStore.value.previousValues[key] = self.persistentStore.value.failed ? (backup, backup) : (last, last)
         }
-        self.failed = false
-        self._request = new
-        return self
+        self.persistentStore.value.failed = false
+        return MutabilityValidatingRequest(_request: new, persistentStore: persistentStore) 
     }
 }

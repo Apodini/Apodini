@@ -26,7 +26,7 @@ struct StatelessClient {
         self.address = address
         var logger = Logger(label: "org.apodini.websocket.client")
         #if DEBUG
-//        logger.logLevel = .debug
+        logger.logLevel = .debug
         #endif
         self.logger = logger
         self.eventLoop = eventLoop

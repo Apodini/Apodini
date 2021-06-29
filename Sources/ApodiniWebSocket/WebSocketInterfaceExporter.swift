@@ -68,8 +68,6 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
             // We need a new `Delegate` for each connection
             var delegate = Delegate(endpoint.handler, .required)
             
-            var latestRequest: Apodini.Request = EmptyRequest(eventLoop: eventLoop, information: request.information)
-            
             var cancellables: Set<AnyCancellable> = []
             var observation: Observation?
             
@@ -80,29 +78,21 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
             clientInput
             .buffer(size: Int.max, prefetch: .keepFull, whenFull: .dropNewest)
             .reduce()
-            .map { (someInput: SomeInput) in
-                (request, someInput)
+            .map { (someInput: SomeInput) -> (DefaultRequestBasis, SomeInput) in
+                (DefaultRequestBasis(base: someInput, remoteAddress: request.remoteAddress, information: request.information), someInput)
             }
             .decode(using: decodingStrategy, with: eventLoop)
             .insertDefaults(with: defaultValueStore)
             .validateParameterMutability()
             .cache()
             .subscribe(to: &delegate, using: &observation)
-            .map { event in
-                if case let .request(request) = event {
-                    latestRequest = request
-                }
-                return event
-            }
             .evaluate(on: &delegate)
             .sink(
-                // The completion is also synchronized by `syncMap` it waits for any future
-                // to complete before forwarding it.
-                receiveCompletion: { completion in
-                Self.handleCompletion(completion: completion, handler: &delegate, request: latestRequest, output: output)
+                receiveCompletion: { _ in // is always .finished
                     // We have to reference the cancellable here so it stays in memory and isn't cancled early.
                     cancellables.removeAll()
                     observation = nil
+                    output.send(completion: .finished)
                 },
                 // The input was already handled and unwrapped by the `syncMap`. We just have to map the obtained
                 // `Response` to our `output` or handle the error returned from `handle`.
