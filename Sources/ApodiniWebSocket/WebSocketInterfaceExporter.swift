@@ -69,7 +69,6 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
             var delegate = Delegate(endpoint.handler, .required)
             
             var cancellables: Set<AnyCancellable> = []
-            var observation: Observation?
             
             // We need a gap in the publisher-chain here so we can map freely between
             // `value`s and `completion`s.
@@ -85,13 +84,29 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
             .insertDefaults(with: defaultValueStore)
             .validateParameterMutability()
             .cache()
-            .subscribe(to: &delegate, using: &observation)
+            .subscribe(to: &delegate)
             .evaluate(on: &delegate)
+            .cancel(if: { result in
+                switch result {
+                case let .success(response):
+                    if response.connectionEffect == .close {
+                        return true
+                    } else {
+                        return false
+                    }
+                case let .failure(error):
+                    switch error.apodiniError.option(for: .webSocketConnectionConsequence) {
+                    case .closeChannel, .closeContext:
+                        return true
+                    case .none:
+                        return false
+                    }
+                }
+            })
             .sink(
                 receiveCompletion: { _ in // is always .finished
                     // We have to reference the cancellable here so it stays in memory and isn't cancled early.
                     cancellables.removeAll()
-                    observation = nil
                     output.send(completion: .finished)
                 },
                 // The input was already handled and unwrapped by the `syncMap`. We just have to map the obtained

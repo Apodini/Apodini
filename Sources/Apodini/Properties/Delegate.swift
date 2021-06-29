@@ -87,6 +87,9 @@ public struct Delegate<D> {
         } else {
             // the delegate isn't observed anymore, thus we also drop the references
             // to all child-observations
+            for observable in store.value.observables ?? [] {
+                observable.0.setChanged(to: false, reason: TriggerEvent())
+            }
             store.value.observables = []
         }
         
@@ -253,6 +256,14 @@ extension Delegate: AnyObservedObject {
             fatalError("'Delegate''s AnyObservedObject property was used before activation.")
         }
         
+        guard store.value.observation != nil else {
+            for observable in store.value.observables ?? [] {
+                observable.0.setChanged(to: false, reason: event)
+            }
+            store.value.observables = []
+            return
+        }
+        
         guard let observables = store.value.observables else {
             fatalError("'Delegate''s 'changed' property was set while not prepared vor observing")
         }
@@ -260,8 +271,8 @@ extension Delegate: AnyObservedObject {
         switch event.identifier {
         case let .index(index, identifier):
             observables[index].0.setChanged(to: value, reason: TriggerEvent(event.checkCancelled, id: identifier))
-        default:
-            fatalError("'Delegate' was passed a 'TriggerEvent' which's 'identifier' was no '.index'")
+        case .this:
+            break // system event...we don't have to alter a specific observable
         }
         
         store.value.changed = value

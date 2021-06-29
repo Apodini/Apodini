@@ -40,77 +40,140 @@ public extension Publisher {
 // MARK: Handling Subscription
 
 public extension Publisher where Output: Request {
-    func subscribe<H: Handler>(to handler: inout Delegate<H>, using store: inout Optional<Observation>) -> OpenCombine.Publishers.FlatMap<AnyPublisher<Event, Self.Failure>, OpenCombine.Publishers.SetFailureType<OpenCombine.Publishers.Sequence<Array<AnyPublisher<Event, Self.Failure>>, Never>, AnyPublisher<Event, Self.Failure>.Failure>> {
+    func subscribe<H: Handler>(to handler: inout Delegate<H>) -> CancellablePublisher<AnyPublisher<Event, Failure>> {
         _Internal.prepareIfNotReady(&handler)
         
         let subject = PassthroughSubject<Event, Failure>()
-        store = handler.register { trigger in
+        let completionEventSubject = PassthroughSubject<Event, Failure>()
+        
+        var observation: Observation?
+        
+        observation = handler.register { trigger in
             subject.send(.trigger(trigger))
         }
         
         return [subject.buffer(size: Int.max, prefetch: .keepFull, whenFull: .dropNewest).eraseToAnyPublisher(),
-                self.handleEvents(receiveCompletion: { completion in
-                    subject.send(completion: .finished)
-                }, receiveCancel: {
-                    subject.send(completion: .finished)
-                }).map { request in
-                    return Event.request(request)
-                }.eraseToAnyPublisher()
+                self
+                    .handleEvents(receiveCompletion: { _ in
+                        completionEventSubject.send(Event.update(.end))
+                    })
+                    .map { request in
+                        Event.request(request)
+                    }
+                    .eraseToAnyPublisher(),
+                completionEventSubject.eraseToAnyPublisher()
         ].publisher.flatMap { publisher in publisher }
+        .filter { _ in observation != nil }
+        .eraseToAnyPublisher()
+        .asCancellable {
+            subject.send(completion: .finished)
+            completionEventSubject.send(completion: .finished)
+            observation = nil
+        }
+    }
+}
+
+
+public struct CancellablePublisher<P: Publisher>: Publisher, Cancellable {
+    internal init(cancelCallback: @escaping () -> Void, _publisher: P) {
+        self.cancelCallback = cancelCallback
+        self._publisher = _publisher
+    }
+    
+    public typealias Output = P.Output
+    
+    public typealias Failure = P.Failure
+    
+    private let cancelCallback: () -> Void
+    
+    private let _publisher: P
+    
+    public func receive<Subscriber: OpenCombine.Subscriber>(subscriber: Subscriber) where P.Failure == Subscriber.Failure, P.Output == Subscriber.Input {
+        _publisher.receive(subscriber: subscriber)
+    }
+    
+    public func cancel() {
+        cancelCallback()
+    }
+}
+
+extension Publisher {
+    public func asCancellable(_ callback: @escaping () -> Void) -> CancellablePublisher<Self> {
+        CancellablePublisher(cancelCallback: callback, _publisher: self)
     }
 }
 
 
 // MARK: Handling Event Evaluation
 
-extension Publisher where Output == Event {
-    public func evaluate<H: Handler>(on handler: inout Delegate<H>) -> AnyPublisher<Result<Response<H.Response.Content>, Error>, Self.Failure> {
-        var lastRequest: Request?
-        _Internal.prepareIfNotReady(&handler)
-        let preparedHandler = handler
-        
-        let subject = PassthroughSubject<(Event, ConnectionState), Failure>()
-        
-        return [self.handleEvents(receiveCompletion: { completion in
-            if let finalRequest = lastRequest {
-                subject.send((.request(finalRequest), .end))
-            }
-            subject.send(completion: .finished)
-        }).map { event in
-            (event, .open)
-        }.eraseToAnyPublisher(), subject.eraseToAnyPublisher()]
-        .publisher
-        .flatMap { publisher in publisher }
-        .syncMap { (event: Event, state: ConnectionState) -> EventLoopFuture<Response<H.Response.Content>> in
-            switch event {
-            case let .request(request):
-                lastRequest = request
-                return preparedHandler.evaluate(using: request, with: state)
-            case let .trigger(trigger):
-                guard let request = lastRequest else {
-                    fatalError("Can only handle changes to observed object after an initial client-request")
-                }
-                return preparedHandler.evaluate(trigger, using: request, with: state)
-            }
-        }.eraseToAnyPublisher()
-    }
+public protocol ErrorHandler {
+    associatedtype Output
+    associatedtype Failure
     
-    func evaluate<H: Handler>(on handler: inout Delegate<H>) -> Publishers.SyncMap<Self, Response<H.Response.Content>> {
+    func handle(_ error: ApodiniError) -> ErrorHandlingStrategy<Output, Failure>
+}
+
+public enum ErrorHandlingStrategy<Output, Failure> {
+    case graceful(Output)
+    case ignore
+    case abort(Failure)
+}
+
+extension CancellablePublisher where Output == Event {
+    public func evaluate<H: Handler>(on handler: inout Delegate<H>) -> CancellablePublisher<AnyPublisher<Result<Response<H.Response.Content>, Error>, Self.Failure>> {
         var lastRequest: Request?
         _Internal.prepareIfNotReady(&handler)
         let preparedHandler = handler
         
-        return self.syncMap { (event: Event) -> EventLoopFuture<Response<H.Response.Content>> in
+        var connectionState = ConnectionState.open
+        
+        var wasEvaluatedWithConnectionStateEnd = false
+        
+        return self
+        .compactMap { event in
+            switch event {
+            case let .update(state):
+                connectionState = state
+                if let request = lastRequest, !wasEvaluatedWithConnectionStateEnd {
+                    return .request(request)
+                } else {
+                    return nil
+                }
+            default:
+                return event
+            }
+        }
+        .syncMap { (event: Event) -> EventLoopFuture<Response<H.Response.Content>> in
             switch event {
             case let .request(request):
+                wasEvaluatedWithConnectionStateEnd = connectionState == .end
                 lastRequest = request
-                return preparedHandler.evaluate(using: request, with: .open)
+                return preparedHandler.evaluate(using: request, with: connectionState)
             case let .trigger(trigger):
+                wasEvaluatedWithConnectionStateEnd = connectionState == .end
                 guard let request = lastRequest else {
-                    fatalError("Can only handle changes to observed object after an initial client-request")
+                    fatalError("Cannot handle TriggerEvent before first Request!")
                 }
-                return preparedHandler.evaluate(trigger, using: request, with: .open)
+                
+                return preparedHandler.evaluate(trigger, using: request, with: connectionState)
+            case .update(_):
+                fatalError("Handled above!")
             }
+        }
+        .eraseToAnyPublisher()
+        .asCancellable {
+            self.cancel()
+        }
+    }
+}
+
+extension CancellablePublisher {
+    public func cancel(if condition: @escaping (Output) -> Bool) -> OpenCombine.Publishers.Map<Self, Output> {
+        return self.map { (value: Output) -> Output in
+            if condition(value) {
+                self.cancel()
+            }
+            return value
         }
     }
 }
@@ -162,6 +225,7 @@ public extension Publisher {
 public enum Event {
     case request(Request)
     case trigger(TriggerEvent)
+    case update(ConnectionState)
 }
 
 // MARK: Reducible
