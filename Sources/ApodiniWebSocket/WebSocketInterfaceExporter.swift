@@ -60,6 +60,8 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
         
         let defaultValueStore = endpoint[DefaultValueStore.self]
         
+        let transformer = Transformer<H>()
+        
         self.router.register({(clientInput: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, request: Vapor.Request) -> (
                     defaultInput: SomeInput,
                     output: AnyPublisher<Message<H.Response.Content>, Error>
@@ -68,13 +70,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
             // We need a new `Delegate` for each connection
             var delegate = Delegate(endpoint.handler, .required)
             
-            var cancellables: Set<AnyCancellable> = []
-            
-            // We need a gap in the publisher-chain here so we can map freely between
-            // `value`s and `completion`s.
-            let output: PassthroughSubject<Message<H.Response.Content>, Error> = PassthroughSubject()
-            
-            clientInput
+        let output = clientInput
             .buffer(size: Int.max, prefetch: .keepFull, whenFull: .dropNewest)
             .reduce()
             .map { (someInput: SomeInput) -> (DefaultRequestBasis, SomeInput) in
@@ -86,36 +82,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
             .cache()
             .subscribe(to: &delegate)
             .evaluate(on: &delegate)
-            .cancel(if: { result in
-                switch result {
-                case let .success(response):
-                    if response.connectionEffect == .close {
-                        return true
-                    } else {
-                        return false
-                    }
-                case let .failure(error):
-                    switch error.apodiniError.option(for: .webSocketConnectionConsequence) {
-                    case .closeChannel, .closeContext:
-                        return true
-                    case .none:
-                        return false
-                    }
-                }
-            })
-            .sink(
-                receiveCompletion: { _ in // is always .finished
-                    // We have to reference the cancellable here so it stays in memory and isn't cancled early.
-                    cancellables.removeAll()
-                    output.send(completion: .finished)
-                },
-                // The input was already handled and unwrapped by the `syncMap`. We just have to map the obtained
-                // `Response` to our `output` or handle the error returned from `handle`.
-                receiveValue: { result in
-                    Self.handleValue(result: result, output: output)
-                }
-            )
-            .store(in: &cancellables)
+            .transform(using: transformer)
 
 
             return (defaultInput: emptyInput, output: output.eraseToAnyPublisher())
@@ -137,80 +104,20 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
         (parameter.name, WebSocketParameter(BasicInputParameter<Type>()))
     }
     
-    private static func handleCompletion<H: Handler>(
-        completion: Subscribers.Completion<Never>,
-        handler: inout Delegate<H>,
-        request: Apodini.Request,
-        output: PassthroughSubject<Message<H.Response.Content>, Error>
-    ) {
-        switch completion {
-        case .finished:
-            // We received the close-context message from the client. We evaluate the
-            // `Handler` one more time before the connection is closed. We have to
-            // manually await this future. We use an `emptyInput`, which is aggregated
-            // to the latest input.
-            request.evaluate(on: &handler, .end).whenComplete { (result: Result<Apodini.Response<H.Response.Content>, Error>) in
-                switch result {
-                case .success(let response):
-                    Self.handleCompletionResponse(response: response, output: output)
-                case .failure(let error):
-                    Self.handleError(error: error, output: output, close: true)
-                }
+    struct Transformer<H: Handler>: ResultTransformer {
+        func handle(error: ApodiniError) -> ErrorHandlingStrategy<Message<H.Response.Content>, Error> {
+            switch error.option(for: .webSocketConnectionConsequence) {
+            case .none:
+                return .graceful(.error(error))
+            case .closeContext:
+                return .complete(.error(error))
+            case .closeChannel:
+                return .abort(error)
             }
         }
-    }
-    
-    private static func handleValue<C: Encodable>(
-        result: Result<Apodini.Response<C>, Error>,
-        output: PassthroughSubject<Message<C>, Error>
-    ) {
-        switch result {
-        case .success(let response):
-            Self.handleRegularResponse(response: response, output: output)
-        case .failure(let error):
-            Self.handleError(error: error, output: output)
-        }
-    }
-    
-    private static func handleCompletionResponse<C: Encodable>(
-        response: Apodini.Response<C>,
-        output: PassthroughSubject<Message<C>, Error>
-    ) {
-        if let content = response.content {
-            output.send(.message(content))
-        }
-        output.send(completion: .finished)
-    }
-    
-    private static func handleRegularResponse<C: Encodable>(
-        response: Apodini.Response<C>,
-        output: PassthroughSubject<Message<C>, Error>
-    ) {
-        if let content = response.content {
-            output.send(.message(content))
-        }
-        if response.connectionEffect == .close {
-            output.send(completion: .finished)
-        }
-    }
-    
-    private static func handleError<C: Encodable>(
-        error: Error,
-        output: PassthroughSubject<Message<C>, Error>,
-        close: Bool = false
-    ) {
-        let error = error.apodiniError
-        switch error.option(for: .webSocketConnectionConsequence) {
-        case .none:
-            output.send(.error(error.wsError))
-            if close {
-                output.send(completion: .finished)
-            }
-        case .closeContext:
-            output.send(.error(error.wsError))
-            output.send(completion: .finished)
-        case .closeChannel:
-            output.send(completion: .failure(error.wsError))
+        
+        func transform(content: H.Response.Content) -> Message<H.Response.Content> {
+            Message.message(content)
         }
     }
 }
