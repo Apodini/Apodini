@@ -147,7 +147,7 @@ public extension EndpointDecodingStrategy {
 public struct NumberOfContentParameterDependentStrategy<Input>: EndpointDecodingStrategy {
     private let strategy: AnyEndpointDecodingStrategy<Input>
     
-    init<One: EndpointDecodingStrategy, Many: EndpointDecodingStrategy>(
+    public init<One: EndpointDecodingStrategy, Many: EndpointDecodingStrategy>(
         for endpoint: AnyEndpoint,
         using one: One,
         or many: Many) where One.Input == Input, Many.Input == Input {

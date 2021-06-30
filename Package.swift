@@ -49,6 +49,7 @@ let package = Package(
         .library(name: "ApodiniOpenAPI", targets: ["ApodiniOpenAPI"]),
         .library(name: "ApodiniProtobuffer", targets: ["ApodiniProtobuffer"]),
         .library(name: "ApodiniREST", targets: ["ApodiniREST"]),
+        .library(name: "ApodiniHTTP", targets: ["ApodiniHTTP"]),
         .library(name: "ApodiniTypeReflection", targets: ["ApodiniTypeReflection"]),
         .library(name: "ApodiniVaporSupport", targets: ["ApodiniVaporSupport"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
@@ -282,6 +283,16 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniVaporSupport")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniHTTP",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "OpenCombine", package: "OpenCombine"),
             ]
         ),
 

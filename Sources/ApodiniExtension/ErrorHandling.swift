@@ -19,7 +19,7 @@ public protocol ResultTransformer {
     associatedtype Failure: Error
     
     func handle(error: ApodiniError) -> ErrorHandlingStrategy<Output, Failure>
-    func transform(content: Input) -> Output
+    func transform(content: Input) throws -> Output
 }
 
 public enum ErrorHandlingStrategy<Output, Failure: Error> {
@@ -41,23 +41,31 @@ extension CancellablePublisher {
                     self.cancel()
                 }
                 if let content = response.content {
-                    return transformer.transform(content: content)
+                    do {
+                        return try transformer.transform(content: content)
+                    } catch {
+                        return try self.handleError(transformer: transformer, error: error)
+                    }
                 } else {
                     return nil
                 }
             case let .failure(error):
-                switch transformer.handle(error: error.apodiniError) {
-                case .ignore:
-                    return nil
-                case let .graceful(output):
-                    return output
-                case let .complete(output):
-                    self.cancel()
-                    return output
-                case let .abort(error):
-                    throw error
-                }
+                return try self.handleError(transformer: transformer, error: error)
             }
+        }
+    }
+    
+    private func handleError<T: ResultTransformer>(transformer: T, error: Error) throws -> T.Output? {
+        switch transformer.handle(error: error.apodiniError) {
+        case .ignore:
+            return nil
+        case let .graceful(output):
+            return output
+        case let .complete(output):
+            self.cancel()
+            return output
+        case let .abort(error):
+            throw error
         }
     }
     
@@ -69,21 +77,29 @@ extension CancellablePublisher {
                     self.cancel()
                 }
                 if let content = response.content {
-                    return transformer.transform(content: content)
+                    do {
+                        return try transformer.transform(content: content)
+                    } catch {
+                        return self.handleError(transformer: transformer, error: error)
+                    }
                 } else {
                     return nil
                 }
             case let .failure(error):
-                switch transformer.handle(error: error.apodiniError) {
-                case .ignore:
-                    return nil
-                case let .graceful(output):
-                    return output
-                case let .complete(output):
-                    self.cancel()
-                    return output
-                }
+                return self.handleError(transformer: transformer, error: error)
             }
+        }
+    }
+    
+    private func handleError<T: ResultTransformer>(transformer: T, error: Error) -> T.Output? where T.Failure == Never {
+        switch transformer.handle(error: error.apodiniError) {
+        case .ignore:
+            return nil
+        case let .graceful(output):
+            return output
+        case let .complete(output):
+            self.cancel()
+            return output
         }
     }
 }
@@ -110,20 +126,28 @@ extension EventLoopFuture {
     }
     
     private func transformContent<T: ResultTransformer>(using transformer: T) -> EventLoopFuture<T.Output> where T.Input == Value {
-        self.map { content in
-            transformer.transform(content: content)
-        }.flatMapErrorThrowing { error in
-            let error = error.apodiniError
-            switch transformer.handle(error: error) {
-            case let .graceful(output):
-                return output
-            case let .complete(output):
-                return output
-            case let .abort(failure):
-                throw failure
-            case .ignore:
-                throw ApodiniError(type: .serverError, reason: "Unhandled Error", description: error.standardMessage)
+        self.flatMapThrowing { content in
+            do {
+                return try transformer.transform(content: content)
+            } catch {
+                return try self.handleError(transformer, error)
             }
+        }.flatMapErrorThrowing { error in
+            return try self.handleError(transformer, error)
+        }
+    }
+    
+    private func handleError<T: ResultTransformer>(_ transformer: T, _ error: Error) throws -> T.Output {
+        let error = error.apodiniError
+        switch transformer.handle(error: error) {
+        case let .graceful(output):
+            return output
+        case let .complete(output):
+            return output
+        case let .abort(failure):
+            throw failure
+        case .ignore:
+            throw ApodiniError(type: .serverError, reason: "Unhandled Error", description: error.standardMessage)
         }
     }
 }
