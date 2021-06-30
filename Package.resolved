@@ -2,7 +2,7 @@
   "object": {
     "pins": [
       {
-        "package": "apnswift",
+        "package": "APNSwift",
         "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
         "state": {
           "branch": null,
@@ -200,7 +200,7 @@
         }
       },
       {
-        "package": "DNSClient",
+        "package": "NioDNS",
         "repositoryURL": "https://github.com/OpenKitten/NioDNS.git",
         "state": {
           "branch": null,
@@ -453,11 +453,11 @@
       },
       {
         "package": "vapor-aws-lambda-runtime",
-        "repositoryURL": "https://github.com/vapor-community/vapor-aws-lambda-runtime",
+        "repositoryURL": "https://github.com/PSchmiedmayer/vapor-aws-lambda-runtime.git",
         "state": {
           "branch": null,
-          "revision": "eef25d71854e87ba7e6f0388b8bc38b6ca865cc5",
-          "version": "0.6.1"
+          "revision": "c8eee3bf6ddea81e1887a46986d347368143edb0",
+          "version": "0.6.2"
         }
       },
       {
