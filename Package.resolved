@@ -453,10 +453,10 @@
       },
       {
         "package": "vapor-aws-lambda-runtime",
-        "repositoryURL": "https://github.com/PSchmiedmayer/vapor-aws-lambda-runtime.git",
+        "repositoryURL": "https://github.com/vapor-community/vapor-aws-lambda-runtime.git",
         "state": {
           "branch": null,
-          "revision": "c8eee3bf6ddea81e1887a46986d347368143edb0",
+          "revision": "610aaed1cdd7ef434ed23bc7006000948a221527",
           "version": "0.6.2"
         }
       },

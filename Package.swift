@@ -69,7 +69,7 @@ let package = Package(
         .package(url: "https://github.com/soto-project/soto-core.git", from: "5.3.0"),
         
         // Deploy
-        .package(url: "https://github.com/PSchmiedmayer/vapor-aws-lambda-runtime.git", .upToNextMinor(from: "0.6.0")),
+        .package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime.git", .upToNextMinor(from: "0.6.2")),
         .package(url: "https://github.com/soto-project/soto.git", from: "5.5.0"),
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0")
     ],
