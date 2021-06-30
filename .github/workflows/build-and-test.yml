@@ -31,10 +31,10 @@ jobs:
       run: swift --version
     - name: Debug Build & Test
       run: swift test
-  latest-swift-version-linux:
-    name: Latest Swift Version Linux
+  latest-nightly-swift-version-linux:
+    name: Latest (Nightly) Swift Version Linux
     container:
-      image: swift:nightly-focal
+      image: swiftlang/swift:nightly-focal
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
