@@ -61,7 +61,11 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-log.git", from: "1.4.0"),
         // CLI-Argument parsing in the WebService and ApodiniDeploy
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0")),
-        .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
+
+        .package(url: "https://github.com/Supereg/Runtime.git", .branch("fix/linux-swift5.4-class-metadata-layout")),
+        // restore original package url once https://github.com/wickwirew/Runtime/pull/93 is merged
+        // .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
+
         // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
         .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),

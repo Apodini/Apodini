@@ -39,10 +39,6 @@ extension ProtobufferBuilderTests {
     }
     
     func testClass() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testClass on Linux due to a runtime error assoociated with classes in the Runtime framework")
-        #endif
-        
         class Person {
             var name: String = ""
             var age: Int = 0
@@ -161,10 +157,6 @@ extension ProtobufferBuilderTests {
     }
     
     func testHierarchySecondOrder() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testHierarchySecondOrder on Linux due to a runtime error assoociated with arrays in the Runtime framework")
-        #endif
-        
         struct Account {
             let transactions: [Transaction]
         }
@@ -187,10 +179,6 @@ extension ProtobufferBuilderTests {
     }
 
     func testRecursionFirstOrder() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testRecursionFirstOrder on Linux due to a runtime error assoociated with arrays in the Runtime framework")
-        #endif
-        
         struct Node {
             let children: [Node]
         }
@@ -205,10 +193,6 @@ extension ProtobufferBuilderTests {
     }
 
     func testRecursionSecondOrder() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testRecursionFirstOrder on Linux due to a runtime error assoociated with arrays in the Runtime framework")
-        #endif
-        
         struct First {
             let value: Second
         }

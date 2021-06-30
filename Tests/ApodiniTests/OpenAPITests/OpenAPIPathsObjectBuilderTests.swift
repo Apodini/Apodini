@@ -30,10 +30,6 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
     }
 
     func testPathBuilder() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testPathBuilder on Linux due to a runtime error assoociated with classes in the Runtime framework")
-        #endif
-        
         let handler = HandlerParam(pathParam: $param)
         let endpoint = handler.mockEndpoint(app: app)
         var pathParameter = EndpointPathParameter<String>(id: _param.id)
@@ -46,10 +42,6 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
     }
     
     func testDefaultTagWithPathParameter() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testDefaultTagWithPathParameter on Linux due to a runtime error assoociated with classes in the Runtime framework")
-        #endif
-        
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
         
@@ -71,10 +63,6 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
     }
     
     func testDefaultTagWithSinglePathParameter() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testDefaultTagWithSinglePathPar... on Linux due to a runtime error assoociated with classes in the Runtime framework")
-        #endif
-        
         let handler = HandlerParam(pathParam: $param)
         var (endpoint, rendpoint) = handler.mockRelationshipEndpoint(app: app)
         let webService = RelationshipWebServiceModel()
@@ -89,10 +77,6 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
     }
     
     func testAddPathItemOperationParams() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testAddPathItemOperationParams on Linux due to a runtime error assoociated with classes in the Runtime framework")
-        #endif
-        
         struct SomeComp: Handler {
             @Parameter(.http(.query)) var name: String
             
@@ -132,10 +116,6 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
     }
     
     func testAddPathItemOperationWrappedParams() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testAddPathItemOperationWrapped... on Linux due to a runtime error assoociated with classes in the Runtime framework")
-        #endif
-        
         struct WrappingParamsComp: Handler {
             @Parameter var someStruct1: SomeStruct?
             @Parameter var someStruct2: SomeStruct
@@ -185,10 +165,6 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
     }
     
     func testAddPathItemOperationArrayParams() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testAddPathItemOperationArrayPa... on Linux due to a runtime error assoociated with classes in the Runtime framework")
-        #endif
-        
         struct ArrayParamsComp: Handler {
             @Parameter var someStructArray: [SomeStruct]
             
@@ -256,10 +232,6 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
     }
     
     func testAddPathItemWithRequestBodyAndResponseStruct() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testAddPathItemWithRequestBodyA... on Linux due to a runtime error assoociated with classes in the Runtime framework")
-        #endif
-        
         struct ComplexComp: Handler {
             @Parameter var someStruct: SomeStruct
             

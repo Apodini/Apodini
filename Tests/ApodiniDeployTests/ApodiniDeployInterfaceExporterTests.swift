@@ -60,10 +60,6 @@ private struct TestWebService: Apodini.WebService {
 
 class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
     func testHandlerCollection() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testHandlerCollection on Linux due to a runtime error assoociated with arrays in the Runtime framework")
-        #endif
-        
         for idx in 0..<100 {
             if idx > 0 {
                 try tearDownWithError()

@@ -80,10 +80,6 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         XCTAssertEqual(componentsBuilder.componentsObject.schemas.count, 0)
         XCTAssertEqual(componentsBuilder.componentsObject, .noComponents)
         
-        #if os(Linux)
-        throw XCTSkip("Skipped testBuildSchemaNonStructs on Linux due to a runtime error assoociated with arrays in the Runtime framework")
-        #endif
-        
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: type(of: someArray)))
         schema = try componentsBuilder.buildSchema(for: type(of: someArray))
         XCTAssertEqual(schema, .array(items: .init(.integer())))
@@ -100,10 +96,6 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         let responseSchemaNameDict = "Dictionaryof\(SomeStruct.self)Response"
         XCTAssertNoThrow(try componentsBuilder.buildResponse(for: Dictionary<String, SomeStruct>.self))
         XCTAssertNoThrow(try JSONSchema.reference(.component(named: responseSchemaNameDict)).dereferenced(in: componentsBuilder.componentsObject))
-        
-        #if os(Linux)
-        throw XCTSkip("Skipped testBuildSchemaForResponses... on Linux due to a runtime error assoociated with arrays in the Runtime framework")
-        #endif
         
         let responseSchemaNameArray = "Arrayof\(SomeStruct.self)Response"
         XCTAssertNoThrow(try componentsBuilder.buildResponse(for: Array<SomeStruct>.self))
@@ -134,10 +126,6 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     }
     
     func testBuildSchemaReference() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testBuildSchemaReference on Linux due to a runtime error assoociated with classes in the Runtime framework")
-        #endif
-        
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: SomeComplexStruct.self))
         XCTAssertNoThrow(try JSONSchema.reference(.component(named: "\(SomeComplexStruct.self)")).dereferenced(in: componentsBuilder.componentsObject))
@@ -145,10 +133,6 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     }
     
     func testBuildSchemaArrayReference() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testBuildSchemaArrayReference on Linux due to a runtime error assoociated with arrays in the Runtime framework")
-        #endif
-        
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: Array<SomeStruct>.self))
         XCTAssertNoThrow(try JSONSchema.reference(.component(named: "\(SomeStruct.self)")).dereferenced(in: componentsBuilder.componentsObject))
@@ -170,10 +154,6 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     }
     
     func testBuildSchemaCorrect() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testBuildSchemaCorrect on Linux due to a runtime error assoociated with arrays in the Runtime framework")
-        #endif
-        
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: SomeComplexStruct.self))
         XCTAssertNoThrow(try componentsBuilder.buildSchema(for: SomeStructWithEnum.self))
@@ -244,10 +224,6 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     }
     
     func testCreateReflectionInfoTree() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testCreateReflectionInfoTree on Linux due to a runtime error assoociated with arrays in the Runtime framework")
-        #endif
-        
         struct Card {
             let number: Int
         }

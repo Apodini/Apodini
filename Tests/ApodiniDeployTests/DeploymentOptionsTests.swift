@@ -180,10 +180,6 @@ class DeploymentOptionsTests: XCTApodiniTest {
     
     
     func testHandlerDeploymentOptions() throws {
-        #if os(Linux)
-        throw XCTSkip("Skipped testHandlerDeploymentOptions on Linux due to a runtime error assoociated with classes in the Runtime framework")
-        #endif
-        
         TestWebService.start(app: app)
         
         let apodiniDeployIE = try XCTUnwrap(app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self))
