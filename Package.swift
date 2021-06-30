@@ -357,6 +357,7 @@ let package = Package(
         .testTarget(
             name: "ApodiniDeployTests",
             dependencies: [
+                .target(name: "Apodini"),
                 .target(name: "XCTApodini"),
                 .target(name: "ApodiniDeployTestWebService"),
                 .target(name: "ApodiniUtils"),
