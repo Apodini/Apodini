@@ -114,6 +114,10 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
             }
         }
     }
+    
+    func export<H>(blob endpoint: Endpoint<H>) where H : Handler, H.Response.Content == Blob {
+        export(endpoint)
+    }
 
     func finishedExporting(_ webService: WebServiceModel) {
         let root = webService[WebServiceRoot<RESTInterfaceExporter>.self]

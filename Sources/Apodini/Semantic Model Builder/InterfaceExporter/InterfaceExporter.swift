@@ -19,12 +19,19 @@ public protocol InterfaceExporter {
     /// enforcing Parameter names to be unique across all different `ParameterType`s.
     static var parameterNamespace: [ParameterNamespace] { get }
 
-    /// This method is called for every `Endpoint` on start up, which must be exporter
-    /// by the `InterfaceExporter`.
+    /// This method is called for every `Endpoint` on start up, which must be exported
+    /// by the `InterfaceExporter` where the `Endpoint`'s response is no ``Blob``.
     ///
     /// - Parameter endpoint: The `Endpoint` which is to be exported.
     /// - Returns: `EndpointExportOutput` which is defined by the `InterfaceExporter`.
     func export<H: Handler>(_ endpoint: Endpoint<H>) -> EndpointExportOutput
+    
+    /// This method is called for every `Endpoint` on start up, which must be exporter
+    /// by the `InterfaceExporter` where the `Endpoint`'s response is ``Blob``
+    ///
+    /// - Parameter endpoint: The `Endpoint` which is to be exported.
+    /// - Returns: `EndpointExportOutput` which is defined by the `InterfaceExporter`.
+    func export<H: Handler>(blob endpoint: Endpoint<H>) -> EndpointExportOutput where H.Response.Content == Blob
 
     /// This optional method can be defined to export a `EndpointParameter`.
     /// It is called for every `EndpointParameter` on an `Endpoint` when calling `Endpoint.exportParameters(...)`.

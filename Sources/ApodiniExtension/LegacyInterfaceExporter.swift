@@ -31,3 +31,9 @@ public protocol LegacyInterfaceExporter: InterfaceExporter {
     /// - Throws: Any Apodini Error or any other error happening while decoding.
     func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: ExporterRequest) throws -> Type??
 }
+
+public extension LegacyInterfaceExporter {
+    func export<H>(blob endpoint: Endpoint<H>) -> EndpointExportOutput where H : Handler, H.Response.Content == Blob {
+        export(endpoint)
+    }
+}

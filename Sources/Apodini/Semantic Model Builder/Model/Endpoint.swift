@@ -71,10 +71,6 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     public func request<S>(_ type: S.Type) throws -> S where S: KnowledgeSource {
         try self.blackboard.request(type)
     }
-    
-    func exportEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
-        exporter.export(self)
-    }
 
     /// Provides the ``EndpointParameters`` that correspond to the ``Parameter``s defined on the ``Handler`` of this ``Endpoint``
     public var parameters: [AnyEndpointParameter] {
@@ -84,6 +80,26 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     @discardableResult
     public func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
         self[EndpointParameters.self].exportParameters(on: exporter)
+    }
+}
+
+extension Endpoint {
+    func exportEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
+        if let blobEndpoint = self as? BlobEndpoint {
+            return blobEndpoint.exportBlobEndpoint(on: exporter)
+        } else {
+            return exporter.export(self)
+        }
+    }
+}
+
+private protocol BlobEndpoint {
+    func exportBlobEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput
+}
+
+extension Endpoint: BlobEndpoint where H.Response.Content == Blob {
+    func exportBlobEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
+        exporter.export(blob: self)
     }
 }
 

@@ -106,19 +106,6 @@ extension Publisher {
 
 // MARK: Handling Event Evaluation
 
-public protocol ErrorHandler {
-    associatedtype Output
-    associatedtype Failure
-    
-    func handle(_ error: ApodiniError) -> ErrorHandlingStrategy<Output, Failure>
-}
-
-public enum ErrorHandlingStrategy<Output, Failure> {
-    case graceful(Output)
-    case ignore
-    case abort(Failure)
-}
-
 extension CancellablePublisher where Output == Event {
     public func evaluate<H: Handler>(on handler: inout Delegate<H>) -> CancellablePublisher<AnyPublisher<Result<Response<H.Response.Content>, Error>, Self.Failure>> {
         var lastRequest: Request?

@@ -63,6 +63,10 @@ final class ProtobufferInterfaceExporter: InterfaceExporter {
         }
     }
     
+    func export<H>(blob endpoint: Endpoint<H>) where H : Handler, H.Response.Content == Blob {
+        export(endpoint)
+    }
+    
     func finishedExporting(_ webService: WebServiceModel) {
         let description = self.description
         
