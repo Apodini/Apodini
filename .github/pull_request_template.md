@@ -6,7 +6,7 @@
 ## :bulb: Proposed solution
 *Describe the solution and how this affects the project and internal structure*
 
-## :grear: Release Notes 
+## :gear: Release Notes 
 *Add a short summary of the feature as well as possible migration guides if this is a breaking change so this section can be added to the release notes.*
 *Include code snippets that provide examples of the feature implemented if it appends or changes the public interface.*
 
