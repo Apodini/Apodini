@@ -94,7 +94,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        linux: [bionic, xenial, focal, amazonlinux2, centos8]
+        linux: [bionic, focal, amazonlinux2, centos8]
         configuration: [debug, release, release_testing]
     steps:
     - uses: actions/checkout@v2
