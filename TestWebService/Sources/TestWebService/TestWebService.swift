@@ -32,10 +32,12 @@ struct TestWebService: Apodini.WebService {
     
     var configuration: Configuration {
         REST {
-            OpenAPI(outputFormat: .json,
-                    outputEndpoint: "oas",
-                    swaggerUiEndpoint: "oas-ui",
-                    title: "The great TestWebService - presented by Apodini")
+            OpenAPI(
+                outputFormat: .json,
+                outputEndpoint: "oas",
+                swaggerUiEndpoint: "oas-ui",
+                title: "The great TestWebService - presented by Apodini"
+            )
         }
         
         GRPC {
