@@ -10,9 +10,8 @@ protocol AnyContextEntryCollection {
     ///   - derivedFromModifier: Defines if the supplied `AnyContextEntry`
     func add(entry: AnyContextEntry, derivedFromModifier: Bool)
 
-    /// as
-    ///
-    /// - Returns:
+    /// This method joins all `AnyContextEntry`s in the collection.
+    /// - Returns: The resulting `AnyContextEntry` containing all entries of the entries of this collection.
     func joined() -> AnyContextEntry
 }
 
