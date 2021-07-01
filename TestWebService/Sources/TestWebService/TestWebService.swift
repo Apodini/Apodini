@@ -13,6 +13,7 @@ import ApodiniOpenAPI
 import ApodiniWebSocket
 
 
+@main
 struct TestWebService: Apodini.WebService {
     let greeterRelationship = Relationship(name: "greeter")
 
@@ -31,10 +32,12 @@ struct TestWebService: Apodini.WebService {
     
     var configuration: Configuration {
         REST {
-            OpenAPI(outputFormat: .json,
-                    outputEndpoint: "oas",
-                    swaggerUiEndpoint: "oas-ui",
-                    title: "The great TestWebService - presented by Apodini")
+            OpenAPI(
+                outputFormat: .json,
+                outputEndpoint: "oas",
+                swaggerUiEndpoint: "oas-ui",
+                title: "The great TestWebService - presented by Apodini"
+            )
         }
         
         GRPC {
@@ -44,5 +47,3 @@ struct TestWebService: Apodini.WebService {
         WebSocket()
     }
 }
-
-TestWebService.main()

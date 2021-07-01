@@ -16,26 +16,7 @@ import SotoApiGatewayV2
 import OpenAPIKit
 
 
-internal func makeError(code: Int = 0, _ message: String) -> Swift.Error {
-    NSError(domain: "LambdaDeploy", code: code, userInfo: [
-        NSLocalizedDescriptionKey: message
-    ])
-}
-
-
-private func _findExecutable(_ name: String) throws -> URL {
-    guard let url = Task.findExecutable(named: name) else {
-        throw makeError("Unable to find executable '\(name)'")
-    }
-    return url
-}
-
-let dockerBin = try _findExecutable("docker")
-let zipBin = try _findExecutable("zip")
-
-let logger = Logger(label: "de.lukaskollmer.ApodiniLambda")
-
-
+@main
 struct LambdaDeploymentProviderCLI: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "AWS Lambda Apodini deployment provider",
@@ -145,16 +126,16 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     
     mutating func run() throws {
         if awsDeployOnly {
-            logger.notice("Running with the --aws-deploy-only flag. Will skip compilation and try to re-use previous files")
+            Context.logger.notice("Running with the --aws-deploy-only flag. Will skip compilation and try to re-use previous files")
         }
         try fileManager.initialize()
         try fileManager.setWorkingDirectory(to: packageRootDir)
         try fileManager.createDirectory(at: tmpDirUrl, withIntermediateDirectories: true, attributes: nil)
         
         let dockerImageName = try prepareDockerImage()
-        logger.notice("successfully built docker image. image name: \(dockerImageName)")
+        Context.logger.notice("successfully built docker image. image name: \(dockerImageName)")
         
-        logger.notice("generating web service structure")
+        Context.logger.notice("generating web service structure")
         let webServiceStructure = try { () -> WebServiceStructure in
             if awsDeployOnly {
                 let data = try Data(contentsOf: tmpDirUrl.appendingPathComponent("WebServiceStructure.json", isDirectory: false), options: [])
@@ -206,7 +187,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             ? tmpDirUrl.appendingPathComponent("lambda.out", isDirectory: false)
             : try compileForLambda(usingDockerImage: dockerImageName)
         
-        logger.notice("Deploying to AWS")
+        Context.logger.notice("Deploying to AWS")
         try awsIntegration.deployToLambda(
             deploymentStructure: deploymentStructure,
             openApiDocument: webServiceStructure.openApiDocument,
@@ -217,20 +198,21 @@ struct LambdaDeploymentProvider: DeploymentProvider {
             apiGatewayApiId: awsApiGatewayApiId,
             deleteOldApodiniLambdaFunctions: deleteOldApodiniLambdaFunctions
         )
-        logger.notice("Done! Successfully applied the deployment.")
+        Context.logger.notice("Done! Successfully applied the deployment.")
     }
     
     
     /// - returns: the name of the docker image
     private func prepareDockerImage() throws -> String {
-        logger.notice("preparing docker image")
+        Context.logger.notice("preparing docker image")
         let imageName = "apodini-lambda-builder"
         let dockerfileUrl = tmpDirUrl.appendingPathComponent("Dockerfile", isDirectory: false)
+        
         guard
-            let dockerfileBundleUrl = Bundle.module.url(forResource: "Dockerfile", withExtension: nil),
-            let dockerignoreBundleUrl = Bundle.module.url(forResource: "dockerignore", withExtension: nil)
+            let dockerfileBundleUrl = Context.resourcesBundle.url(forResource: "Dockerfile", withExtension: nil),
+            let dockerignoreBundleUrl = Context.resourcesBundle.url(forResource: "dockerignore", withExtension: nil)
         else {
-            throw makeError("Unable to locate docker resources in bundle")
+            throw Context.makeError("Unable to locate docker resources in bundle")
         }
         
         try fileManager.copyItem(at: dockerfileBundleUrl, to: dockerfileUrl, overwriteExisting: true)
@@ -241,7 +223,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         )
         
         let task = Task(
-            executableUrl: dockerBin,
+            executableUrl: Context.dockerBin,
             arguments: [
                 "build",
                 "-f", dockerfileUrl.path,
@@ -264,7 +246,7 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     
     private func runInDocker(imageName: String, bashCommand: String, workingDirectory: URL? = nil, environment: [String: String?] = [:]) throws {
         let task = Task(
-            executableUrl: dockerBin,
+            executableUrl: Context.dockerBin,
             arguments: [
                 "run", "--rm",
                 "--volume", "\(packageRootDir.path)/..:/src/",
@@ -310,11 +292,11 @@ struct LambdaDeploymentProvider: DeploymentProvider {
     
     /// - returns: the directory containing all build artifacts (ie, the built executable and collected shared object files)
     private func compileForLambda(usingDockerImage dockerImageName: String) throws -> URL {
-        logger.notice("Compiling SPM target '\(productName)' for lambda")
+        Context.logger.notice("Compiling SPM target '\(productName)' for lambda")
         let scriptFilename = "collect-shared-object-files.sh"
         do { // Copy the script into the temp dir, so that it can be run by the docker container
-            guard let urlInBundle = Bundle.module.url(forResource: scriptFilename, withExtension: nil) else {
-                throw makeError("Unable to find '\(scriptFilename)' resource in bundle")
+            guard let urlInBundle = Context.resourcesBundle.url(forResource: scriptFilename, withExtension: nil) else {
+                throw Context.makeError("Unable to find '\(scriptFilename)' resource in bundle")
             }
             let localUrl = tmpDirUrl.appendingPathComponent(scriptFilename, isDirectory: false)
             try fileManager.copyItem(at: urlInBundle, to: localUrl, overwriteExisting: true)
@@ -343,5 +325,3 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         }
     }
 }
-
-LambdaDeploymentProviderCLI.main()

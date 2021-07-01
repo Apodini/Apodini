@@ -125,7 +125,7 @@ extension RelationshipModelKnowledgeSource {
             var endpoint = RelationshipEndpoint(handler: handler, blackboard: blackboard)
             let path = blackboard[PathComponents.self].value
             
-            blackboard[WebServiceModelSource].model.addEndpoint(&endpoint, at: path)
+            blackboard[WebServiceModelSource.self].model.addEndpoint(&endpoint, at: path)
             
             // The `ReferenceModule` and `EndpointPathModule` cannot be implemented using one of the standard
             // `KnowledgeSource` protocols as they depend on the `RelationshipWebServiceModel`. This should change
@@ -133,7 +133,7 @@ extension RelationshipModelKnowledgeSource {
             endpoint[ReferenceModule.self].inject(reference: endpoint.reference)
             endpoint[EndpointPathModule.self].inject(absolutePath: endpoint.absolutePath)
             
-            blackboard[RelationshipBuilderSource].builder.collect(
+            blackboard[RelationshipBuilderSource.self].builder.collect(
                 endpoint: endpoint,
                 candidates: blackboard[PartialRelationshipSourceCandidates.self].list,
                 sources: blackboard[RelationshipSources.self].list,

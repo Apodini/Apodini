@@ -7,7 +7,7 @@
     print("Generating ComponentBuilder...")
 }%
 
-@_functionBuilder
+@resultBuilder
 public struct ComponentBuilder {
     public static func buildIf<T: Component>(_ component: T?) -> T? {
         return component
