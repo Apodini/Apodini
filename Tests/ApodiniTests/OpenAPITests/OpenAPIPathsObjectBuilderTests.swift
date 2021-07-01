@@ -29,12 +29,12 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         }
     }
 
-    func testPathBuilder() {
+    func testPathBuilder() throws {
         let handler = HandlerParam(pathParam: $param)
         let endpoint = handler.mockEndpoint(app: app)
         var pathParameter = EndpointPathParameter<String>(id: _param.id)
         pathParameter.scoped(on: endpoint)
-
+        
         let path: [EndpointPath] = [.string("test"), .parameter(pathParameter)]
         let pathString = path.build(with: OpenAPIPathBuilder.self)
         
@@ -44,7 +44,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
     func testDefaultTagWithPathParameter() throws {
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
-            
+        
         Group("first", "second", $param, "third") {
             HandlerParam(pathParam: $param)
         }
@@ -62,7 +62,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         XCTAssertEqual(pathsObjectBuilder.pathsObject.first?.value.get?.tags, ["second"])
     }
     
-    func testDefaultTagWithSinglePathParameter() {
+    func testDefaultTagWithSinglePathParameter() throws {
         let handler = HandlerParam(pathParam: $param)
         var (endpoint, rendpoint) = handler.mockRelationshipEndpoint(app: app)
         let webService = RelationshipWebServiceModel()
@@ -75,25 +75,25 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
         XCTAssertEqual(pathsObjectBuilder.pathsObject.first?.value.get?.tags, ["default"])
     }
-
+    
     func testAddPathItemOperationParams() throws {
         struct SomeComp: Handler {
             @Parameter(.http(.query)) var name: String
-
+            
             @Parameter(.http(.path)) var id: String
-
+            
             func handle() -> String {
                 "Hello \(name)!"
             }
         }
-
+        
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
-
+        
         
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
-            
+        
         Group("test/{pathParam}") {
             SomeComp()
         }
@@ -102,7 +102,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         visitor.finishParsing()
         
         let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<SomeComp>)
-
+        
         pathsObjectBuilder.addPathItem(from: endpoint)
         let path = OpenAPI.Path(stringLiteral: "test/{pathParam}/{id}")
         let queryParam = Either.parameter(name: "name", context: .query, schema: .string, description: "@Parameter var name: String")
@@ -114,23 +114,23 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
             key == path && ((value.get?.parameters.contains(queryParam)) != nil) && ((value.get?.parameters.contains(pathParam)) != nil)
         })
     }
-
+    
     func testAddPathItemOperationWrappedParams() throws {
         struct WrappingParamsComp: Handler {
             @Parameter var someStruct1: SomeStruct?
             @Parameter var someStruct2: SomeStruct
-
+            
             func handle() -> String {
                 "Hello"
             }
         }
-
+        
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
-
+        
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
-            
+        
         Group("test") {
             WrappingParamsComp()
         }
@@ -139,12 +139,12 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         visitor.finishParsing()
         
         let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<WrappingParamsComp>)
-
+        
         pathsObjectBuilder.addPathItem(from: endpoint)
         let path = OpenAPI.Path(stringLiteral: "test")
-
+        
         let wrappedRef = try componentsObjectBuilder.componentsObject.reference(named: "SomeStruct_SomeStruct", ofType: JSONSchema.self)
-
+        
         XCTAssertEqual(
             componentsObjectBuilder.componentsObject[wrappedRef],
             .object(
@@ -158,27 +158,27 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
                 ]
             )
         )
-
+        
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains(key: path))
         XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 3)
     }
-
+    
     func testAddPathItemOperationArrayParams() throws {
         struct ArrayParamsComp: Handler {
             @Parameter var someStructArray: [SomeStruct]
-
+            
             func handle() -> [SomeStruct] {
                 []
             }
         }
-
+        
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
-
+        
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
-            
+        
         Group("test") {
             ArrayParamsComp()
         }
@@ -187,10 +187,10 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         visitor.finishParsing()
         
         let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<ArrayParamsComp>)
-
+        
         pathsObjectBuilder.addPathItem(from: endpoint)
         let path = OpenAPI.Path(stringLiteral: "test")
-
+        
         let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
             // As there is no custom tag in this case, `tags` is derived by rules (i.e., last appended string path compontent).
             tags: ["test"],
@@ -224,28 +224,28 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
             ],
             vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
         ))
-
+        
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPIKit.OpenAPI.Path, value: OpenAPIKit.OpenAPI.PathItem) -> Bool in
             key == path && value == pathItem
         })
         XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 2)
     }
-
+    
     func testAddPathItemWithRequestBodyAndResponseStruct() throws {
         struct ComplexComp: Handler {
             @Parameter var someStruct: SomeStruct
-
+            
             func handle() -> ResponseStruct {
                 ResponseStruct()
             }
         }
-
+        
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
-
+        
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
-            
+        
         Group("test") {
             ComplexComp()
         }
@@ -254,9 +254,9 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         visitor.finishParsing()
         
         let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<ComplexComp>)
-
+        
         pathsObjectBuilder.addPathItem(from: endpoint)
-
+        
         let path = OpenAPI.Path(stringLiteral: "/test")
         let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
             // As there is no custom tag in this case, `tags` is derived by rules (i.e., last appended string path compontent).
@@ -291,7 +291,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
             ],
             vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
         ))
-
+        
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains(key: path))
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPIKit.OpenAPI.Path, value: OpenAPIKit.OpenAPI.PathItem) -> Bool in
