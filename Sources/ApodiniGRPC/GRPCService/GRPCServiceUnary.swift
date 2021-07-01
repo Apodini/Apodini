@@ -21,11 +21,9 @@ extension GRPCService {
 
             let promise = request.eventLoop.makePromise(of: Vapor.Response.self)
             request.body.collect().whenSuccess { _ in
-                guard let byteBuffer = request.body.data,
-                      let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
-                    return promise.fail(GRPCError.payloadReadError("Cannot read data from the request-payload"))
-                }
-
+                let byteBuffer = request.body.data ?? ByteBuffer()
+                let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) ?? Data()
+                
                 // retrieve all the GRPC messages that were delivered in the
                 // request payload. Since this is a unary endpoint, it
                 // should be one at max (so we discard potential following messages).

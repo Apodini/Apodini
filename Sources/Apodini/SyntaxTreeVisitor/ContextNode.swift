@@ -52,10 +52,12 @@ class ContextNode {
         let newValue: C.Value
 
         if isOptional(C.Value.self) {
-            fatalError("""
-                       The `Value` type of a `ContextKey` or `OptionalContextKey` must not be a `Optional` type.
-                       Found \(C.Value.self) as `Value` type for key \(C.self).
-                       """)
+            fatalError(
+               """
+               The `Value` type of a `ContextKey` or `OptionalContextKey` must not be a `Optional` type.
+               Found \(C.Value.self) as `Value` type for key \(C.self).
+               """
+            )
         }
         
         if let currentLocalValue = getNodeOnlyContextValue(for: C.self) ?? getNodeContextValue(for: C.self) {

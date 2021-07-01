@@ -169,7 +169,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             logger.notice("zipping lambda package")
             let zipFilename = "lambda.zip"
             try Task(
-                executableUrl: try findExecutable("zip"),
+                executableUrl: Context.zipBin,
                 arguments: try [zipFilename] + fileManager.contentsOfDirectory(atPath: lambdaPackageTmpDir.path),
                 workingDirectory: lambdaPackageTmpDir,
                 captureOutput: true, // suppress output
@@ -261,7 +261,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             for endpoint in pathItem.endpoints {
                 var operation = endpoint.operation
                 guard let handlerId = operation.vendorExtensions[.apodiniHandlerId] else {
-                    throw makeError("Unable to read handler id from OpenAPI operation object")
+                    throw Context.makeError("Unable to read handler id from OpenAPI operation object")
                 }
                 let lambdaFunctionConfig = lambdaFunctionConfigForHandlerId(handlerId)
                 operation.vendorExtensions[.amazonApiGatewayIntegration] = [
@@ -281,7 +281,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         for (_, pathItem) in apiGatewayImportDef.paths {
             for endpoint in pathItem.endpoints {
                 guard let handlerId: String = endpoint.operation.vendorExtensions[.apodiniHandlerId] else {
-                    throw makeError("Unable to read handler id from OpenAPI operation object")
+                    throw Context.makeError("Unable to read handler id from OpenAPI operation object")
                 }
                 let lambdaFunctionConfig = lambdaFunctionConfigForHandlerId(handlerId)
                 let path = OpenAPI.Path(["__apodini", "invoke", handlerId])

@@ -1,30 +1,33 @@
-//
-//  main.swift
-//
-//
-//  Created by Lukas Kollmer on 2021-03-18.
-//
+import Apodini
+import ApodiniDeploy
+import ApodiniOpenAPI
+import ApodiniREST
+import DeploymentTargetLocalhostRuntime
+import DeploymentTargetAWSLambdaRuntime
+import Foundation
+import NIO
 
 // We prefix some types with 'LH_' and 'AWS_' to indicate whether they belong to
 // the localhost or the AWS part of the tests. Yeah the underscore isn't excatly ideal but it makes
 // differentiating between the two kinds of components a lot easier...
 // swiftlint:disable type_name
 
-import Foundation
-import NIO
-import Apodini
-import ApodiniDeploy
-import DeploymentTargetLocalhostRuntime
-import DeploymentTargetAWSLambdaRuntime
-import ApodiniREST
-import ApodiniOpenAPI
+// MARK: - Text Handler
+
+struct TextHandler: Handler {
+    private let text: String
+    
+    init(_ text: String) {
+        self.text = text
+    }
+    
+    func handle() -> String {
+        text
+    }
+}
 
 
-// This file implements the `ApodiniDeployTestWebService`,
-// which is used to test the two deployment providers (localhost and Lambda).
-
-
-// MARK: Localhost Components
+// MARK: - Localhost Components
 
 struct LH_ResponseWithPid<T: Codable>: Content, Codable {
     let pid: pid_t
@@ -77,7 +80,7 @@ struct LH_Greeter: Handler {
 }
 
 
-// MARK: Lambda Components
+// MARK: - Lambda Components
 
 struct AWS_RandomNumberGenerator: InvocableHandler, HandlerWithDeploymentOptions {
     class HandlerIdentifier: ScopedHandlerIdentifier<AWS_RandomNumberGenerator> {
@@ -131,65 +134,3 @@ struct AWS_Greeter: Handler {
         }
     }
 }
-
-
-struct Text2: Handler {
-    private let text: String
-    
-    init(_ text: String) {
-        self.text = text
-    }
-    
-    func handle() -> String {
-        text
-    }
-}
-
-struct WebService: Apodini.WebService {
-    var content: some Component {
-        Group("aws_rand") {
-            Text2("").operation(.create)
-            AWS_RandomNumberGenerator(handlerId: .main)
-        }.formDeploymentGroup(withId: "group_aws_rand")
-        Group("aws_rand2") {
-            Text2("").operation(.create)
-            AWS_RandomNumberGenerator(handlerId: .other)
-        }.formDeploymentGroup(withId: "group_aws_rand2")
-        Group("aws_greet") {
-            AWS_Greeter()
-                .deploymentOptions(
-                    .memory(.mb(175)),
-                    .timeout(.seconds(12))
-                )
-        }
-        Group("lh_textmut") {
-            LH_TextMut()
-        }
-        Group("lh_greet") {
-            LH_Greeter()
-        }
-        Text("change is")
-        Text("the only constant").operation(.delete)
-    }
-    
-    var configuration: Configuration {
-        REST {
-            OpenAPI()
-        }
-        ApodiniDeploy(
-            runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
-            config: DeploymentConfig(
-                defaultGrouping: .separateNodes,
-                deploymentGroups: [
-                    .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")
-                ]
-            )
-        )
-    }
-
-    var metadata: Metadata {
-        Description("WebService Description")
-    }
-}
-
-WebService.main()
