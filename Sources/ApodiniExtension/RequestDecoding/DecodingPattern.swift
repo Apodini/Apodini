@@ -28,16 +28,16 @@ public struct IdentityPattern<E: Decodable>: DecodingPattern {
     }
 }
 
-/// - Note: Only works with ``NamedChildPatternStrategy``
-public struct DynamicNamePattern<E: Decodable>: DecodingPattern {
-    public let value: E
+/// - Note: Only works with ``NamedChildPatternStrategy`` or ``IndexedNamedChildPatternStrategy``
+public struct DynamicNamePattern<E: DecodingPattern>: DecodingPattern {
+    public let value: E.Element
     
     public init(from decoder: Decoder) throws {
         guard let name = namedChildStrategyFieldName.currentValue?.name else {
             fatalError("DynamicNamePattern was used without setting field name prior to decoding!")
         }
         let container = try decoder.container(keyedBy: String.self)
-        value = try container.decode(E.self, forKey: name)
+        value = try container.decode(E.self, forKey: name).value
     }
 }
 
@@ -66,5 +66,38 @@ extension String: CodingKey {
     
     public var intValue: Int? {
         Int(self)
+    }
+}
+
+
+/// - Note: Only works with ``IndexedNamedChildPatternStrategy``
+public struct DynamicIndexPattern<E: DecodingPattern>: DecodingPattern {
+    public let value: E.Element
+    
+    public init(from decoder: Decoder) throws {
+        guard let index = indexStrategyIndex.currentValue?.index else {
+            fatalError("DynamicIndexPattern was used without setting index prior to decoding!")
+        }
+        var container = try decoder.unkeyedContainer()
+        
+        while container.currentIndex < index {
+            _ = try container.decode(MockDecodable.self)
+        }
+        
+        value = try container.decode(E.self).value
+    }
+    
+    private struct MockDecodable: Decodable {
+        init(from decoder: Decoder) throws { }
+    }
+}
+
+internal let indexStrategyIndex = ThreadSpecificVariable<Index>()
+
+internal class Index {
+    var index: Int
+    
+    init(_ index: Int) {
+        self.index = index
     }
 }

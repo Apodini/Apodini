@@ -182,7 +182,7 @@ public struct AllNamedStrategy: EndpointDecodingStrategy {
     }
     
     public func strategy<Element>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, Data> where Element : Decodable, Element : Encodable {
-        NamedChildPatternStrategy<DynamicNamePattern<Element>>(parameter.name, decoder).typeErased
+        NamedChildPatternStrategy<DynamicNamePattern<IdentityPattern<Element>>>(parameter.name, decoder).typeErased
     }
 }
 

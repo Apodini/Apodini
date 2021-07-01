@@ -71,7 +71,6 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
             var delegate = Delegate(endpoint.handler, .required)
             
         let output = clientInput
-            .buffer(size: Int.max, prefetch: .keepFull, whenFull: .dropNewest)
             .reduce()
             .map { (someInput: SomeInput) -> (DefaultRequestBasis, SomeInput) in
                 (DefaultRequestBasis(base: someInput, remoteAddress: request.remoteAddress, information: request.information), someInput)
@@ -116,8 +115,8 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
             }
         }
         
-        func transform(content: H.Response.Content) -> Message<H.Response.Content> {
-            Message.message(content)
+        func transform(input: H.Response.Content) -> Message<H.Response.Content> {
+            Message.message(input)
         }
     }
 }

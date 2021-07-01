@@ -43,33 +43,40 @@ public extension Publisher where Output: Request {
     func subscribe<H: Handler>(to handler: inout Delegate<H>) -> CancellablePublisher<AnyPublisher<Event, Failure>> {
         _Internal.prepareIfNotReady(&handler)
         
+        let handler = handler
+
         let subject = PassthroughSubject<Event, Failure>()
-        let completionEventSubject = PassthroughSubject<Event, Failure>()
-        
+
         var observation: Observation?
-        
+
         observation = handler.register { trigger in
             subject.send(.trigger(trigger))
         }
+
+        var cancellables: Set<AnyCancellable> = []
+
+        let downstream = subject
+            .eagerBuffer()
+            .filter({ _ in observation != nil })
+            .eraseToAnyPublisher()
+            .asCancellable {
+                subject.send(completion: .finished)
+                observation = nil
+                cancellables.removeAll()
+            }
         
-        return [subject.buffer(size: Int.max, prefetch: .keepFull, whenFull: .dropNewest).eraseToAnyPublisher(),
-                self
-                    .handleEvents(receiveCompletion: { _ in
-                        completionEventSubject.send(Event.update(.end))
-                    })
-                    .map { request in
-                        Event.request(request)
-                    }
-                    .eraseToAnyPublisher(),
-                completionEventSubject.eraseToAnyPublisher()
-        ].publisher.flatMap { publisher in publisher }
-        .filter { _ in observation != nil }
-        .eraseToAnyPublisher()
-        .asCancellable {
-            subject.send(completion: .finished)
-            completionEventSubject.send(completion: .finished)
-            observation = nil
-        }
+        self.sink(receiveCompletion: { completion in
+            switch completion {
+            case .finished:
+                subject.send(.update(.end))
+            default:
+                subject.send(completion: completion)
+            }
+        }, receiveValue: { request in
+            subject.send(.request(request))
+        }).store(in: &cancellables)
+        
+        return downstream
     }
 }
 

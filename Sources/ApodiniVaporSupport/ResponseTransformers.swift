@@ -16,39 +16,39 @@ public struct VaporResponseTransformer<H: Handler>: ResultTransformer {
         self.encoder = encoder
     }
     
-    public func transform(content: Apodini.Response<H.Response.Content>) throws -> Vapor.Response {
+    public func transform(input: Apodini.Response<H.Response.Content>) throws -> Vapor.Response {
         var body: Vapor.Response.Body
         
-        if let content = content.content {
+        if let content = input.content {
             body = Vapor.Response.Body(data: try encoder.encode(content))
         } else {
             body = Vapor.Response.Body()
         }
         
-        return Vapor.Response(status: content.responseStatus,
-                              headers: HTTPHeaders(content.information),
+        return Vapor.Response(status: input.responseStatus,
+                              headers: HTTPHeaders(input.information),
                               body: body)
     }
     
     public func handle(error: ApodiniError) -> ErrorHandlingStrategy<Vapor.Response, ApodiniError> {
-            .abort(error)
+        .abort(error)
     }
 }
 
 public struct VaporBlobResponseTransformer: ResultTransformer {
     public init() { }
     
-    public func transform(content: Apodini.Response<Blob>) -> Vapor.Response {
+    public func transform(input: Apodini.Response<Blob>) -> Vapor.Response {
         var body: Vapor.Response.Body
         
-        if let content = content.content {
+        if let content = input.content {
             body = Vapor.Response.Body(buffer: content.byteBuffer)
         } else {
             body = Vapor.Response.Body()
         }
         
-        return Vapor.Response(status: content.responseStatus,
-                              headers: HTTPHeaders(content.information),
+        return Vapor.Response(status: input.responseStatus,
+                              headers: HTTPHeaders(input.information),
                               body: body)
     }
     

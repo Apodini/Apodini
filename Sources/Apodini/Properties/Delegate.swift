@@ -32,11 +32,25 @@ public struct Delegate<D> {
         var environmentObject: [Any] = []
     }
     
+    private class ClearObservablesOnDealloc {
+        private let storage: Box<Storage>?
+        
+        init(_ storage: Box<Storage>) {
+            self.storage = storage
+        }
+        
+        deinit {
+            storage?.value.observables = []
+        }
+    }
+    
     var delegateModel: D
     
     let optionality: Optionality
     
     var storage: Box<Storage>?
+    
+    private var onDealloc: ClearObservablesOnDealloc?
     
     /// Create a `Delegate` from the given struct `delegate`.
     /// - Parameter `delegate`: the wrapped instance
@@ -207,7 +221,9 @@ extension Delegate {
 
 extension Delegate: Activatable {
     mutating func activate() {
-        self.storage = Box(Storage(delegate: delegateModel))
+        let storage = Box(Storage(delegate: delegateModel))
+        self.storage = storage
+        self.onDealloc = ClearObservablesOnDealloc(storage)
     }
 }
 

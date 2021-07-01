@@ -119,3 +119,31 @@ public struct NamedChildPatternStrategy<P: DecodingPattern>: ParameterDecodingSt
         return try decoder.decode(P.self, from: data).value
     }
 }
+
+public struct IndexedNamedChildPatternStrategy<P: DecodingPattern>: ParameterDecodingStrategy {
+    public typealias Content = P.Element
+
+    private let decoder: AnyDecoder
+    
+    private let name: String
+
+    public init(_ name: String, _ decoder: AnyDecoder) {
+        self.name = name
+        self.decoder = decoder
+    }
+
+    public func decode(from input: (Data, Int)) throws -> P.Element {
+        if let nameWrapper = namedChildStrategyFieldName.currentValue {
+            nameWrapper.name = name
+        } else {
+            namedChildStrategyFieldName.currentValue = FieldName(name)
+        }
+        
+        if let indexWrapper = indexStrategyIndex.currentValue {
+            indexWrapper.index = input.1
+        } else {
+            indexStrategyIndex.currentValue = Index(input.1)
+        }
+        return try decoder.decode(P.self, from: input.0).value
+    }
+}

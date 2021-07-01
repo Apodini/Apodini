@@ -30,9 +30,9 @@ struct AutomaticCommunicationalPattern: HandlerKnowledgeSource {
     
     init<H, B>(from handler: H, _ blackboard: B) throws where H : Handler, B : Blackboard {
         if H.Response.self is CustomizableResponse.Type {
-            self.value = .requestResponse
-        } else {
             self.value = .bidirectionalStream
+        } else {
+            self.value = .requestResponse
         }
     }
 }

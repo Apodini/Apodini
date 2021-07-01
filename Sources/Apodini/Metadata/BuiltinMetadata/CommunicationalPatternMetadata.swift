@@ -25,7 +25,7 @@ public struct CommunicationalPatternContextKey: OptionalContextKey {
 
 extension HandlerMetadataNamespace {
     /// Name Definition for the `ComponentDescriptionMetadata`
-    public typealias Pattern = ComponentDescriptionMetadata
+    public typealias Pattern = CommunicationalPatternMetadata
 }
 
 /// The ``CommunicationalPatternMetadata`` can be used to explicitly declare a ``Handler``'s

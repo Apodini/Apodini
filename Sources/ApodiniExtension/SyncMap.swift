@@ -97,6 +97,8 @@ private extension Publishers.SyncMap {
         func receive(_ input: Input) -> Subscribers.Demand {
             self.lock.lock()
             self.awaiting = true
+            var isSynchronous = true
+            var demandToRequest: Subscribers.Demand?
             self.map(input).whenComplete { result in
                 self.lock.lock()
                 self.awaiting = false
@@ -110,15 +112,24 @@ private extension Publishers.SyncMap {
                     self.lock.unlock()
                     self.downstream.receive(completion: completion)
                 } else {
-                    // Otherwise we add the `demand` we obtained from passing
-                    // `output` to `downstream` to our `subscription` which will
-                    // also request one new value.
-                    self.subscription?.request(demand)
+                    // Otherwise we have to handle our demand
+                    if isSynchronous {
+                        // If `isSynchronous` is still `true`, then the future completed
+                        // synchronously and thus we have to report demand via this
+                        // `receive` function's return value
+                        demandToRequest = self.subscription?.register(demand)
+                    } else {
+                        // Otherwise we add the `demand` we obtained from passing
+                        // `output` to `downstream` to our `subscription` which will
+                        // also request one new value.
+                        self.subscription?.request(demand)
+                    }
                     self.lock.unlock()
                 }
             }
+            isSynchronous = false
             self.lock.unlock()
-            return .none
+            return demandToRequest ?? .none
         }
 
         func receive(completion: Subscribers.Completion<Failure>) {
@@ -175,6 +186,13 @@ private extension Publishers.SyncMap.Inner {
             self.subscription?.cancel()
             self.subscription = nil
             self.onDemand = nil
+        }
+        
+        func register(_ demand: Subscribers.Demand) -> Subscribers.Demand {
+            self.lock.lock()
+            self.demand += demand
+            self.lock.unlock()
+            return self.demand > 0 ? .max(1) : .none
         }
         
         func requestOne() {

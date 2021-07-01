@@ -19,7 +19,7 @@ public protocol ResultTransformer {
     associatedtype Failure: Error
     
     func handle(error: ApodiniError) -> ErrorHandlingStrategy<Output, Failure>
-    func transform(content: Input) throws -> Output
+    func transform(input: Input) throws -> Output
 }
 
 public enum ErrorHandlingStrategy<Output, Failure: Error> {
@@ -42,7 +42,7 @@ extension CancellablePublisher {
                 }
                 if let content = response.content {
                     do {
-                        return try transformer.transform(content: content)
+                        return try transformer.transform(input: content)
                     } catch {
                         return try self.handleError(transformer: transformer, error: error)
                     }
@@ -52,6 +52,23 @@ extension CancellablePublisher {
             case let .failure(error):
                 return try self.handleError(transformer: transformer, error: error)
             }
+        }
+    }
+    
+    public func transform<T: ResultTransformer>(using transformer: T) -> CancellablePublisher<OpenCombine.Publishers.TryCompactMap<Self, T.Output>> where Result<T.Input, Error> == Output {
+        self.tryCompactMap { result -> T.Output? in
+            switch result {
+            case let .success(response):
+                do {
+                    return try transformer.transform(input: response)
+                } catch {
+                    return try self.handleError(transformer: transformer, error: error)
+                }
+            case let .failure(error):
+                return try self.handleError(transformer: transformer, error: error)
+            }
+        }.asCancellable {
+            self.cancel()
         }
     }
     
@@ -66,40 +83,6 @@ extension CancellablePublisher {
             return output
         case let .abort(error):
             throw error
-        }
-    }
-    
-    public func transform<T: ResultTransformer>(using transformer: T) -> OpenCombine.Publishers.CompactMap<Self, T.Output> where Result<Response<T.Input>, Error> == Output, T.Failure == Never, Failure == Never {
-        self.compactMap{ result -> T.Output? in
-            switch result {
-            case let .success(response):
-                if response.connectionEffect == .close {
-                    self.cancel()
-                }
-                if let content = response.content {
-                    do {
-                        return try transformer.transform(content: content)
-                    } catch {
-                        return self.handleError(transformer: transformer, error: error)
-                    }
-                } else {
-                    return nil
-                }
-            case let .failure(error):
-                return self.handleError(transformer: transformer, error: error)
-            }
-        }
-    }
-    
-    private func handleError<T: ResultTransformer>(transformer: T, error: Error) -> T.Output? where T.Failure == Never {
-        switch transformer.handle(error: error.apodiniError) {
-        case .ignore:
-            return nil
-        case let .graceful(output):
-            return output
-        case let .complete(output):
-            self.cancel()
-            return output
         }
     }
 }
@@ -128,7 +111,7 @@ extension EventLoopFuture {
     private func transformContent<T: ResultTransformer>(using transformer: T) -> EventLoopFuture<T.Output> where T.Input == Value {
         self.flatMapThrowing { content in
             do {
-                return try transformer.transform(content: content)
+                return try transformer.transform(input: content)
             } catch {
                 return try self.handleError(transformer, error)
             }
