@@ -7,9 +7,9 @@
 
 import Foundation
 import ArgumentParser
-import DeploymentTargetLocalhost
-import DeploymentTargetAWSLambda
 import ApodiniDeployBuildSupport
+import DeploymentTargetAWSLambda
+import Apodini
 
 //apodini deploy local -inputDir
 public struct DeploymentCLI<Service: Apodini.WebService>: ParsableCommand {

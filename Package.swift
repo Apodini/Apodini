@@ -58,7 +58,8 @@ let package = Package(
         .library(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
         .library(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"]),
         .library(name: "DeploymentTargetLocalhostRuntime", targets: ["DeploymentTargetLocalhostRuntime"]),
-        .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"])
+        .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"]),
+        .library(name: "ApodiniDeploymentCLI", targets: ["ApodiniDeploymentCLI"])
     ],
     dependencies: [
         //.package(name: "ApodiniDeploy", path: "./ApodiniDeploy"),
@@ -467,6 +468,14 @@ let package = Package(
                 .target(name: "DeploymentTargetAWSLambdaCommon"),
                 .target(name: "ApodiniDeployRuntimeSupport"),
                 .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
+            ]
+        ),
+        .target(
+            name: "ApodiniDeploymentCLI",
+            dependencies: [
+                .target(name: "DeploymentTargetLocalhost"),
+                .target(name: "DeploymentTargetAWSLambda"),
+                .target(name: "Apodini")
             ]
         )
     ]

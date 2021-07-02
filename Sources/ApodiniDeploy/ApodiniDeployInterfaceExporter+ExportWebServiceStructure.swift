@@ -50,7 +50,11 @@ extension ApodiniDeployInterfaceExporter {
     func exportWebServiceStructure(apodiniDeployConfiguration: ApodiniDeploy.ExporterConfiguration) throws {
         let deploymentConfig = apodiniDeployConfiguration.config
         guard let openApiDocument = app.storage.get(OpenAPI.StorageKey.self)?.document else {
-            throw ApodiniDeployError(message: "Unable to get OpenAPI document")
+            #if !DEBUG && !RELEASE_TESTING
+                throw ApodiniDeployError(message: "Unable to get OpenAPI document")
+            #else
+                return
+            #endif
         }
         var allDeploymentGroups: Set<DeploymentGroup> = deploymentConfig.deploymentGroups
         allDeploymentGroups += explicitlyCreatedDeploymentGroups.map { groupId, handlerIds in
