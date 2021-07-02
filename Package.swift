@@ -55,8 +55,8 @@ let package = Package(
         .library(name: "ApodiniDeploy", targets: ["ApodiniDeploy"]),
         .library(name: "ApodiniDeployBuildSupport", targets: ["ApodiniDeployBuildSupport"]),
         .library(name: "ApodiniDeployRuntimeSupport", targets: ["ApodiniDeployRuntimeSupport"]),
-        .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
-        .executable(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"]),
+        .library(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
+        .library(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"]),
         .library(name: "DeploymentTargetLocalhostRuntime", targets: ["DeploymentTargetLocalhostRuntime"]),
         .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"])
     ],
@@ -366,6 +366,8 @@ let package = Package(
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniDeployBuildSupport"),
                 .target(name: "ApodiniDeployRuntimeSupport"),
+                .target(name: "DeploymentTargetLocalhost"),
+                .target(name: "DeploymentTargetAWSLambda"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit")
             ]
         ),

@@ -1,5 +1,5 @@
 //
-//  LambdaDeploymentProviderCLI.swift
+//  LambdaDeploymentProvider.swift
 //  
 //
 //  Created by Lukas Kollmer on 2021-01-18.
@@ -14,6 +14,7 @@ import SotoS3
 import SotoLambda
 import SotoApiGatewayV2
 import OpenAPIKit
+import Apodini
 
 
 internal func makeError(code: Int = 0, _ message: String) -> Swift.Error {
@@ -23,28 +24,31 @@ internal func makeError(code: Int = 0, _ message: String) -> Swift.Error {
 }
 
 
-private func _findExecutable(_ name: String) throws -> URL {
+private func _findExecutable(_ name: String) -> URL {
     guard let url = Task.findExecutable(named: name) else {
-        throw makeError("Unable to find executable '\(name)'")
+       fatalError("Unable to find executable '\(name)'")
     }
     return url
 }
 
-let dockerBin = try _findExecutable("docker")
-let zipBin = try _findExecutable("zip")
+let dockerBin = _findExecutable("docker")
+let zipBin = _findExecutable("zip")
 
 let logger = Logger(label: "de.lukaskollmer.ApodiniLambda")
 
 
-struct LambdaDeploymentProviderCLI: ParsableCommand {
-    static let configuration = CommandConfiguration(
+public struct AWSLambdaCLI<Service: Apodini.WebService>: ParsableCommand {
+    public static var configuration: CommandConfiguration {
+        CommandConfiguration(
+            commandName: "aws",
         abstract: "AWS Lambda Apodini deployment provider",
         discussion: """
             Deploys an Apodini REST web service to AWS Lambda, mapping the deployed system's nodes to Lambda functions.
             Also configures an API Gateway to make the Lambda functions accessible over HTTP.
             """,
         version: "0.0.1"
-    )
+        )
+    }
     
     @Argument(help: "Directory containing the Package.swift with the to-be-deployed web service's target")
     var inputPackageDir: String
@@ -91,7 +95,10 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
     lazy var packageRootDir = URL(fileURLWithPath: inputPackageDir).absoluteURL
     
     
-    func run() throws {
+    public func run() throws {
+        let service = Service.init()
+        service.runSyntaxTreeVisit()
+        
         var deploymentProvider = LambdaDeploymentProvider(
             productName: productName,
             packageRootDir: URL(fileURLWithPath: inputPackageDir).absoluteURL,
@@ -105,6 +112,8 @@ struct LambdaDeploymentProviderCLI: ParsableCommand {
         )
         try deploymentProvider.run()
     }
+    
+    public init() {}
 }
 
 
@@ -343,5 +352,3 @@ struct LambdaDeploymentProvider: DeploymentProvider {
         }
     }
 }
-
-LambdaDeploymentProviderCLI.main()

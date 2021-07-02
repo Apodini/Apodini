@@ -24,6 +24,21 @@ public struct DeploymentProviderID: RawRepresentable, Hashable, Equatable, Codab
     }
 }
 
+public struct DeploymentStorage: MemoryStorage {
+    public static var current: DeploymentStorage = DeploymentStorage()
+    
+    private var object: Object?
+    public typealias Object = WebServiceStructure
+    
+    public mutating func store(_ object: WebServiceStructure) {
+        self.object = object
+    }
+
+    public func retrieve() -> WebServiceStructure? {
+        object
+    }
+}
+
 
 /// The target on which a deployment provider operates.
 /// Used by the default operations implemented by ApodiniDeploy.
@@ -60,12 +75,24 @@ public extension DeploymentProvider {
 }
 
 
-struct ApodiniDeployBuildSupportError: Swift.Error {
+public struct ApodiniDeployBuildSupportError: Swift.Error {
     let message: String
+    
+    public init(message: String) {
+        self.message = message
+    }
 }
 
 
 extension DeploymentProvider {
+    
+    public func retrieveWebServiceStructure() throws -> WebServiceStructure {
+        guard let wsStructure = DeploymentStorage.current.retrieve() else {
+            throw ApodiniDeployBuildSupportError(message: "Failed to retrieve DeploymentStorage.")
+        }
+        return wsStructure
+    }
+    
     private static func getSwiftBinUrl() throws -> URL {
         if let swiftBin = Task.findExecutable(named: "swift") {
             return swiftBin
@@ -110,67 +137,68 @@ extension DeploymentProvider {
     
     
     /// Read the web service's structure, and return it encoded as a `WebServiceStructure` object
-    public func readWebServiceStructure() throws -> WebServiceStructure {
-        let fileManager = FileManager()
-        let logger = Logger(label: "ApodiniDeployCLI.Localhost")
-        
-        let modelFileUrl = fileManager.temporaryDirectory.appendingPathComponent("AM_\(UUID().uuidString).json")
-        guard fileManager.createFile(atPath: modelFileUrl.path, contents: nil, attributes: nil) else {
-            throw ApodiniDeployBuildSupportError(message: "Unable to create file")
-        }
-        
-        let exportWebServiceModelTask: Task
-        
-        switch target {
-        case .executable(let executableUrl):
-            exportWebServiceModelTask = Task(
-                executableUrl: executableUrl,
-                captureOutput: false,
-                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup,
-                environment: [
-                    WellKnownEnvironmentVariables.executionMode:
-                        WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
-                    WellKnownEnvironmentVariables.fileUrl: modelFileUrl.path
-                ]
-            )
-        case let .spmTarget(packageUrl, productName):
-            let swiftBin = try Self.getSwiftBinUrl()
-            guard fileManager.directoryExists(atUrl: packageUrl) else {
-                throw ApodiniDeployBuildSupportError(message: "Unable to find input directory")
-            }
-            try fileManager.setWorkingDirectory(to: packageUrl)
-            
-            let packageSwiftFileUrl = packageUrl.appendingPathComponent("Package.swift")
-            guard fileManager.fileExists(atPath: packageSwiftFileUrl.path) else {
-                throw ApodiniDeployBuildSupportError(message: "Unable to find Package.swift")
-            }
-            exportWebServiceModelTask = Task(
-                executableUrl: swiftBin,
-                arguments: [
-                    "run",
-                    productName
-                ],
-                captureOutput: false,
-                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup,
-                environment: [
-                    WellKnownEnvironmentVariables.executionMode:
-                        WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
-                    WellKnownEnvironmentVariables.fileUrl: modelFileUrl.path
-                ]
-            )
-        }
-        
-        logger.notice("Invoking child process `\(exportWebServiceModelTask)`")
-        let terminationInfo = try exportWebServiceModelTask.launchSync()
-        guard terminationInfo.exitCode == EXIT_SUCCESS else {
-            throw ApodiniDeployBuildSupportError(message: "Unable to generate model structure: \(terminationInfo.exitCode)")
-        }
-        
-        logger.notice("model written to '\(modelFileUrl)'")
-        
-        let data = try Data(contentsOf: modelFileUrl, options: [])
-        return try JSONDecoder().decode(WebServiceStructure.self, from: data)
-    }
+//    public func readWebServiceStructure() throws -> WebServiceStructure {
+//        print("read ws structure")
+//        let fileManager = FileManager()
+//        let logger = Logger(label: "ApodiniDeployCLI.Localhost")
+//        
+//        let modelFileUrl = fileManager.temporaryDirectory.appendingPathComponent("AM_\(UUID().uuidString).json")
+//        guard fileManager.createFile(atPath: modelFileUrl.path, contents: nil, attributes: nil) else {
+//            throw ApodiniDeployBuildSupportError(message: "Unable to create file")
+//        }
+//        
+//        let exportWebServiceModelTask: Task
+//        
+//        switch target {
+//        case .executable(let executableUrl):
+//            exportWebServiceModelTask = Task(
+//                executableUrl: executableUrl,
+//                captureOutput: false,
+//                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup,
+//                environment: [
+//                    WellKnownEnvironmentVariables.executionMode:
+//                        WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
+//                    WellKnownEnvironmentVariables.fileUrl: modelFileUrl.path
+//                ]
+//            )
+//        case let .spmTarget(packageUrl, productName):
+//            let swiftBin = try Self.getSwiftBinUrl()
+//            guard fileManager.directoryExists(atUrl: packageUrl) else {
+//                throw ApodiniDeployBuildSupportError(message: "Unable to find input directory")
+//            }
+//            try fileManager.setWorkingDirectory(to: packageUrl)
+//            
+//            let packageSwiftFileUrl = packageUrl.appendingPathComponent("Package.swift")
+//            guard fileManager.fileExists(atPath: packageSwiftFileUrl.path) else {
+//                throw ApodiniDeployBuildSupportError(message: "Unable to find Package.swift")
+//            }
+//            exportWebServiceModelTask = Task(
+//                executableUrl: swiftBin,
+//                arguments: [
+//                    "run",
+//                    productName
+//                ],
+//                captureOutput: false,
+//                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup,
+//                environment: [
+//                    WellKnownEnvironmentVariables.executionMode:
+//                        WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
+//                    WellKnownEnvironmentVariables.fileUrl: modelFileUrl.path
+//                ]
+//            )
+//        }
+//        
+//        logger.notice("Invoking child process `\(exportWebServiceModelTask)`")
+//        let terminationInfo = try exportWebServiceModelTask.launchSync()
+//        guard terminationInfo.exitCode == EXIT_SUCCESS else {
+//            throw ApodiniDeployBuildSupportError(message: "Unable to generate model structure: \(terminationInfo.exitCode)")
+//        }
+//        
+//        logger.notice("model written to '\(modelFileUrl)'")
+//        
+//        let data = try Data(contentsOf: modelFileUrl, options: [])
+//        return try JSONDecoder().decode(WebServiceStructure.self, from: data)
+//    }
     
     
     /// Based on a `WebServiceStructure` as input (i.e. a representation of an entire web service),

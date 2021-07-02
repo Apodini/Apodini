@@ -65,6 +65,10 @@ class ApodiniDeployInterfaceExporter: InterfaceExporter {
         typealias Value = ApodiniDeployInterfaceExporter
     }
     
+    struct CollectedEndpointsStorageKey: Apodini.StorageKey {
+        typealias Value = [ExportedEndpoint]
+    }
+    
     /// The information collected about an `Endpoint`.
     /// - Note: This type's `Hashable`  implementation ignores deployment options.
     /// - Note: This type's `Equatable` implementation ignores all context of the endpoint other than its identifier,
@@ -135,6 +139,7 @@ class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     func finishedExporting(_ webService: WebServiceModel) {
         do {
+//            try exportWebServiceStructure(apodiniDeployConfiguration: self.exporterConfiguration)
             try performDeploymentRelatedActions()
         } catch {
             fatalError("Error performing deployment-related actions: \(error)")
@@ -149,6 +154,7 @@ class ApodiniDeployInterfaceExporter: InterfaceExporter {
         guard let mode = env[WellKnownEnvironmentVariables.executionMode],
               let fileURL = env[WellKnownEnvironmentVariables.fileUrl]
         else {
+            try exportWebServiceStructure(apodiniDeployConfiguration: self.exporterConfiguration)
             return
         }
         

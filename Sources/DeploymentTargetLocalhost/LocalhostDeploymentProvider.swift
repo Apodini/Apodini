@@ -1,5 +1,5 @@
 //
-//  LocalhostDeploymentProviderCLI.swift
+//  LocalhostDeploymentProvider.swift
 //  
 //
 //  Created by Lukas Kollmer on 2020-12-31.
@@ -12,18 +12,25 @@ import ArgumentParser
 import Logging
 import DeploymentTargetLocalhostCommon
 import OpenAPIKit
+import Apodini
 
-private struct LocalhostDeploymentProviderCLI: ParsableCommand {
-    static let configuration = CommandConfiguration(
-        abstract: "Localhost Apodini deployment provider",
-        discussion: """
+public struct LocalHostCLI<Service: Apodini.WebService>: ParsableCommand {
+    public static var configuration: CommandConfiguration {
+        CommandConfiguration(
+            commandName: "local",
+            abstract: "Localhost Apodini deployment provider",
+            discussion: """
             Deploys an Apodini web service to localhost, mapping the deployed system's nodes to independent processes.
             """,
-        version: "0.0.1"
-    )
+            version: "0.0.1"
+        )
+    }
+    
+//    @OptionGroup
+//    var options: Deploy
     
     @Argument(help: "Directory containing the Package.swift with the to-be-deployed web service's target")
-    var inputPackageDir: String
+    var inputPackageDir: String = "/Users/felice/Documents/ApodiniDemoWebService"
     
     @Option(help: "The port on which the API should listen")
     var port: Int = 8080
@@ -32,9 +39,12 @@ private struct LocalhostDeploymentProviderCLI: ParsableCommand {
     var endpointProcessesBasePort: Int = 5000
     
     @Option(help: "Name of the web service's SPM target/product")
-    var productName: String
+    var productName: String = "TestWebService"
     
-    mutating func run() throws {
+    mutating public func run() throws {
+        let service = Service.init()
+        service.runSyntaxTreeVisit()
+        
         let deploymentProvider = LocalhostDeploymentProvider(
             productName: productName,
             packageRootDir: URL(fileURLWithPath: inputPackageDir).absoluteURL,
@@ -43,6 +53,8 @@ private struct LocalhostDeploymentProviderCLI: ParsableCommand {
         )
         try deploymentProvider.run()
     }
+    
+    public init() {}
 }
 
 
@@ -68,12 +80,29 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         try fileManager.initialize()
         try fileManager.setWorkingDirectory(to: packageRootDir)
         
-        logger.notice("Compiling target '\(productName)'")
-        let executableUrl = try buildWebService()
+        logger.notice("Starting deployment of \(productName)..")
+        
+        var buildMode: String
+        #if DEBUG
+        buildMode = "debug"
+        #else
+        buildMode = "release"
+        #endif
+        
+        let executableUrl = packageRootDir
+            .appendingPathComponent(".build", isDirectory: true)
+            .appendingPathComponent(buildMode, isDirectory: true)
+            .appendingPathComponent(productName, isDirectory: false)
+        guard FileManager.default.fileExists(atPath: executableUrl.path) else {
+            throw ApodiniDeployBuildSupportError(
+                message: "Unable to locate compiled executable at expected location '\(executableUrl.path)'"
+            )
+        }
+        
         logger.notice("Target executable url: \(executableUrl.path)")
         
-        logger.notice("Invoking target to generate web service structure")
-        let wsStructure = try readWebServiceStructure()
+        logger.notice("Retrieve web service structure.")
+        let wsStructure = try retrieveWebServiceStructure()
         
         
         let nodes = Set(try computeDefaultDeployedSystemNodes(from: wsStructure).enumerated().map { idx, node in
@@ -109,11 +138,11 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                     // This seems to be the combination with which a fatalError terminates a program.
                     // If one of the children was terminated with a fatalError, we re-spawn it to keep the server running
                     logger.warning("Restarting child for node '\(node.id)'")
-                    // Temporarily disabled because this (sometimes?) triggers a compiler bug where swiftc will just hang forever.
-                    // try! task.launchAsync(taskTerminationHandler)
-//                case (.uncaughtSignal, SIGTERM):
-//                    // The task was terminated
-//                    break
+                // Temporarily disabled because this (sometimes?) triggers a compiler bug where swiftc will just hang forever.
+                // try! task.launchAsync(taskTerminationHandler)
+                //                case (.uncaughtSignal, SIGTERM):
+                //                    // The task was terminated
+                //                    break
                 default:
                     // If one of the children terminated, and it was not caused by a fatalError, we shut down the entire thing
                     logger.warning("Child for node '\(node.id)' terminated unexpectedly. killing everything just to be safe.")
@@ -143,5 +172,3 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         return
     }
 }
-
-LocalhostDeploymentProviderCLI.main()
