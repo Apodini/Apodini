@@ -12,8 +12,6 @@ import ArgumentParser
 import Logging
 import DeploymentTargetLocalhostCommon
 import OpenAPIKit
-import Apodini
-
 
 public struct LocalhostDeploymentProvider: DeploymentProvider {
     public static let identifier: DeploymentProviderID = localhostDeploymentProviderId

@@ -2,7 +2,7 @@
   "object": {
     "pins": [
       {
-        "package": "apnswift",
+        "package": "APNSwift",
         "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
         "state": {
           "branch": null,
@@ -182,7 +182,7 @@
         }
       },
       {
-        "package": "DNSClient",
+        "package": "NioDNS",
         "repositoryURL": "https://github.com/OpenKitten/NioDNS.git",
         "state": {
           "branch": null,
@@ -204,8 +204,8 @@
         "repositoryURL": "https://github.com/OpenCombine/OpenCombine.git",
         "state": {
           "branch": null,
-          "revision": "9bba5081344163296ddf537048566b95513b8f39",
-          "version": "0.11.0"
+          "revision": "28993ae57de5a4ea7e164787636cafad442d568c",
+          "version": "0.12.0"
         }
       },
       {
@@ -246,11 +246,11 @@
       },
       {
         "package": "Runtime",
-        "repositoryURL": "https://github.com/wickwirew/Runtime.git",
+        "repositoryURL": "https://github.com/Supereg/Runtime.git",
         "state": {
-          "branch": null,
-          "revision": "a848b81e1a0100801f572e5273ffe4352fd54088",
-          "version": "2.2.2"
+          "branch": "fix/linux-swift5.4-class-metadata-layout",
+          "revision": "c71b275c39094f07fd94832604cf6eddb8479093",
+          "version": null
         }
       },
       {
@@ -435,11 +435,11 @@
       },
       {
         "package": "vapor-aws-lambda-runtime",
-        "repositoryURL": "https://github.com/vapor-community/vapor-aws-lambda-runtime",
+        "repositoryURL": "https://github.com/vapor-community/vapor-aws-lambda-runtime.git",
         "state": {
           "branch": null,
-          "revision": "eef25d71854e87ba7e6f0388b8bc38b6ca865cc5",
-          "version": "0.6.1"
+          "revision": "610aaed1cdd7ef434ed23bc7006000948a221527",
+          "version": "0.6.2"
         }
       },
       {

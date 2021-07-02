@@ -3,6 +3,7 @@ import XCTVapor
 @testable import ApodiniProtobuffer
 @testable import ApodiniGRPC
 
+
 final class ProtobufferBuilderTests: XCTestCase {
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
         let app = Application()
@@ -42,7 +43,7 @@ extension ProtobufferBuilderTests {
             var name: String = ""
             var age: Int = 0
         }
-        
+
         XCTAssertNoThrow(try buildMessage(Person.self))
     }
     
@@ -55,7 +56,7 @@ extension ProtobufferBuilderTests {
             case array([JSON])
             case object([String: JSON])
         }
-        
+
         XCTAssertThrowsError(try buildMessage(JSON.self))
     }
 }
@@ -176,7 +177,7 @@ extension ProtobufferBuilderTests {
         
         XCTAssertEqual(try buildMessage(Account.self), expected)
     }
-    
+
     func testRecursionFirstOrder() throws {
         struct Node {
             let children: [Node]
@@ -190,7 +191,7 @@ extension ProtobufferBuilderTests {
         
         XCTAssertEqual(try buildMessage(Node.self), expected)
     }
-    
+
     func testRecursionSecondOrder() throws {
         struct First {
             let value: Second
@@ -212,7 +213,7 @@ extension ProtobufferBuilderTests {
         
         XCTAssertEqual(try buildMessage(First.self), expected)
     }
-    
+
     func testUUID() throws {
         struct User {
             let id: UUID

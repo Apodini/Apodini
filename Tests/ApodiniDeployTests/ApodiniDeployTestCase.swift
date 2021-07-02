@@ -107,16 +107,6 @@ class ApodiniDeployTestCase: XCTestCase {
 
 // MARK: XCT Utils
 
-extension XCTestCase {
-    static func isRunningOnLinuxDebug() -> Bool {
-        #if os(Linux) && (DEBUG || RELEASE_TESTING)
-        return true
-        #else
-        return false
-        #endif
-    }
-}
-
 /// Asserts that two collections are equal (i.e. contain the same elements) ignoring the element's order.
 func XCTAssertEqualIgnoringOrder<C0: Collection, C1: Collection>(
     _ lhs: C0, _ rhs: C1, file: StaticString = #filePath, line: UInt = #line

@@ -4,15 +4,8 @@
 
 // swiftlint:disable missing_docs
 
-#if swift(>=5.4)
 @resultBuilder
-public enum RelationshipIdentificationBuilder<From> {}
-#else
-@_functionBuilder
-public enum RelationshipIdentificationBuilder<From> {}
-#endif
-
-public extension RelationshipIdentificationBuilder {
+public enum RelationshipIdentificationBuilder<From> {
     static func buildExpression<To: Identifiable>(_ expression: RelationshipIdentification<From, To>) -> [AnyRelationshipIdentification] {
         [AnyRelationshipIdentification(from: expression)]
     }

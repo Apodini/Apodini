@@ -51,7 +51,7 @@ private struct StaticDeploymentProvider: DeploymentProvider {
 extension DeploymentProvider {
     func testableWebServiceStructureRetrieval() throws -> WebServiceStructure {
         let service = ApodiniDeployTestWebService.WebService()
-        service.runSyntaxTreeVisit()
+        service.runSyntaxTreeVisitor()
         return try retrieveWebServiceStructure()
     }
 }

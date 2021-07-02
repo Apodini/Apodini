@@ -60,10 +60,10 @@ private struct TestWebService: Apodini.WebService {
 
 class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
     func testHandlerCollection() throws {
-        guard !Self.isRunningOnLinuxDebug() else {
-            return
-        }
-        
+        #if os(Linux)
+        throw XCTSkip("Skipped testHandlerCollection on Linux due to some undiscovered issues on focal nightly and xenial 5.4.2 builds")
+        #endif
+
         for idx in 0..<100 {
             if idx > 0 {
                 try tearDownWithError()

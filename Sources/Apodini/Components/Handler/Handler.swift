@@ -6,9 +6,6 @@
 //
 
 import NIO
-#if compiler(>=5.5) && $APODINI_EXPERIMENTAL_ASYNC_AWAIT
-import _NIOConcurrency
-#endif
 
 /// A `Handler` is a `Component` which defines an endpoint and can handle requests.
 public protocol Handler: HandlerMetadataNamespace, Component {
@@ -18,12 +15,7 @@ public protocol Handler: HandlerMetadataNamespace, Component {
     typealias Metadata = AnyHandlerMetadata
 
     /// A function that is called when a request reaches the `Handler`
-    #if compiler(>=5.5) && $APODINI_EXPERIMENTAL_ASYNC_AWAIT
-    @available(macOS 12, *)
-    func handle() async throws -> Response
-    #else
     func handle() throws -> Response
-    #endif
 }
 
 // MARK: Metadata DSL
@@ -45,14 +37,6 @@ extension Handler {
 // The function hides the syntactic difference between the newly introduced `async`
 // version of `handle()` and the traditional, `EventLoopFuture`-based one.
 extension Handler {
-    #if compiler(>=5.5) && $APODINI_EXPERIMENTAL_ASYNC_AWAIT
-    @available(macOS 12, *)
-    internal func evaluate(using eventLoop: EventLoop) -> EventLoopFuture<Response> {
-        let promise: EventLoopPromise<Response> = eventLoop.makePromise()
-        promise.completeWithAsync(self.handle)
-        return promise.futureResult
-    }
-    #else
     internal func evaluate(using eventLoop: EventLoop) -> EventLoopFuture<Response> {
         let promise: EventLoopPromise<Response> = eventLoop.makePromise()
         do {
@@ -63,5 +47,4 @@ extension Handler {
         }
         return promise.futureResult
     }
-    #endif
 }

@@ -139,6 +139,8 @@ class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     func finishedExporting(_ webService: WebServiceModel) {
         do {
+            guard !exporterConfiguration.runtimes.isEmpty else { return }
+            
             try exportWebServiceStructure(apodiniDeployConfiguration: self.exporterConfiguration)
             try performDeploymentRelatedActions()
         } catch {

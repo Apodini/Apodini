@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.4
 
 import PackageDescription
 
@@ -15,7 +15,7 @@ let package = Package(
         .package(name: "Apodini", path: "..")
     ],
     targets: [
-        .target(
+        .executableTarget(
             name: "TestWebService",
             dependencies: [
                 .product(name: "Apodini", package: "Apodini"),
