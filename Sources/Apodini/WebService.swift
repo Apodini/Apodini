@@ -76,22 +76,10 @@ extension WebService {
         webService.register(
             SemanticModelBuilder(app)
         )
-
-//        do {
-//            try configuration.subcommands.compactMap {
-//                (try $0.parseAsRoot()) as? ApodiniCommand
-//            }.map { command -> ApodiniCommand in
-//                var varCommand = command
-//                varCommand.configure(app)
-//                return varCommand
-//            }
-//
-//        } catch {
-//            fatalError("\(error)")
-//        }
     }
     
-    public func runSyntaxTreeVisit() {
+    /// Runs the `SyntaxTreeVisitor` without starting the web service.
+    public func runSyntaxTreeVisitor() {
         let app = Application()
         app.logger.info("Running SynatxTreeVisitor to retrieve web service structure.")
         app.logger.logLevel = .error
@@ -128,24 +116,5 @@ extension WebService {
                 content
             }.accept(visitor)
         }
-    }
-}
-
-public protocol MemoryStorage {
-    associatedtype Object
-    
-    static var current: Self { get set }
-    
-    mutating func store(_ object: Object)
-    func retrieve() -> Object?
-}
-
-public protocol ApodiniCommand: ParsableCommand {
-    mutating func configure(_ app: Apodini.Application)
-}
-
-extension Logger {
-    mutating func silence() {
-        self = .init(label: "")
     }
 }

@@ -335,8 +335,12 @@ let package = Package(
                 .target(name: "ApodiniUtils")
             ]
         ),
-        
-        
+        .target(
+            name: "ApodiniDeployTestWebServiceExecutable",
+            dependencies: [
+                .target(name: "ApodiniDeployTestWebService")
+            ]
+        ),
         .target(
             name: "ApodiniDeployTestWebService",
             dependencies: [
@@ -399,7 +403,8 @@ let package = Package(
             name: "ApodiniDeployTests",
             dependencies: [
                 .target(name: "XCTApodini"),
-                .target(name: "ApodiniDeployTestWebService"),
+                .target(name: "ApodiniDeployTestWebServiceExecutable"),
+//                .target(name: "ApodiniDeployTestWebService"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "SotoS3", package: "soto"),

@@ -1,5 +1,5 @@
 //
-//  main.swift
+//  WebService.swift
 //
 //
 //  Created by Lukas Kollmer on 2021-03-18.
@@ -155,8 +155,8 @@ struct Text2: Handler {
     }
 }
 
-struct WebService: Apodini.WebService {    
-    var content: some Component {
+public struct WebService: Apodini.WebService {
+    public var content: some Component {
         Group("aws_rand") {
             Text2("").operation(.create)
             AWS_RandomNumberGenerator(handlerId: .main)
@@ -182,7 +182,7 @@ struct WebService: Apodini.WebService {
         Text("the only constant").operation(.delete)
     }
     
-    var configuration: Configuration {
+    public var configuration: Configuration {
         REST {
             OpenAPI()
         }
@@ -191,9 +191,10 @@ struct WebService: Apodini.WebService {
                 .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")]))
     }
 
-    var metadata: Metadata {
+    public var metadata: Metadata {
         Description("WebService Description")
     }
+    
+    public init() {}
 }
 
-WebService.main()

@@ -139,6 +139,7 @@ class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     func finishedExporting(_ webService: WebServiceModel) {
         do {
+            try exportWebServiceStructure(apodiniDeployConfiguration: self.exporterConfiguration)
             try performDeploymentRelatedActions()
         } catch {
             fatalError("Error performing deployment-related actions: \(error)")
@@ -148,12 +149,10 @@ class ApodiniDeployInterfaceExporter: InterfaceExporter {
     
     private func performDeploymentRelatedActions() throws {
         let env = ProcessInfo.processInfo.environment
-        print(#function)
         // If those enironment variables do not exist, return immediatly
         guard let mode = env[WellKnownEnvironmentVariables.executionMode],
               let fileURL = env[WellKnownEnvironmentVariables.fileUrl]
         else {
-            try exportWebServiceStructure(apodiniDeployConfiguration: self.exporterConfiguration)
             return
         }
         
@@ -196,7 +195,6 @@ class ApodiniDeployInterfaceExporter: InterfaceExporter {
                 throw ApodiniDeployError(message: "Unable to launch with custom config: \(error)")
             }
         default:
-            try exportWebServiceStructure(apodiniDeployConfiguration: self.exporterConfiguration)
             break
         }
     }

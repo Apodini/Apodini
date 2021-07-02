@@ -21,7 +21,7 @@ class ApodiniDeployTestCase: XCTestCase {
     
     /// Name of the test web service target (used by e.g. the web service exporter tests).
     /// Note that this is **not** the web service in the Tests/ApodiniDeploy/Resources folder, but the target in Sources/ApodiniDeployTestWebService
-    static let apodiniDeployTestWebServiceTargetName = "ApodiniDeployTestWebService"
+    static let apodiniDeployTestWebServiceTargetName = "ApodiniDeployTestWebServiceExecutable"
     
     /// Url of the test web service's executable, as compiled by SPM or Xcode
     static var apodiniDeployTestWebServiceTargetUrl: URL {

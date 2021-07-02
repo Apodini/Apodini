@@ -14,6 +14,7 @@ import ApodiniUtils
 @testable import ApodiniDeployBuildSupport
 import DeploymentTargetLocalhostCommon
 import DeploymentTargetAWSLambdaCommon
+import ApodiniDeployTestWebService
 
 
 private struct TestWebService: Apodini.WebService {
@@ -47,12 +48,19 @@ private struct StaticDeploymentProvider: DeploymentProvider {
     var launchChildrenInCurrentProcessGroup: Bool { false }
 }
 
+extension DeploymentProvider {
+    func testableWebServiceStructureRetrieval() throws -> WebServiceStructure {
+        let service = ApodiniDeployTestWebService.WebService()
+        service.runSyntaxTreeVisit()
+        return try retrieveWebServiceStructure()
+    }
+}
 
 class WebServiceStructureExportTests: ApodiniDeployTestCase {
     func testExportWebServiceStructure() throws { // swiftlint:disable:this function_body_length
         let wsStructure = try StaticDeploymentProvider(
             executableUrl: Self.apodiniDeployTestWebServiceTargetUrl
-        ).readWebServiceStructure()
+        ).testableWebServiceStructureRetrieval()
         
         XCTAssertEqual(wsStructure.enabledDeploymentProviders, [
             localhostDeploymentProviderId, lambdaDeploymentProviderId

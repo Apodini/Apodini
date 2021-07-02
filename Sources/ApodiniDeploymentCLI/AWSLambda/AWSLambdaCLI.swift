@@ -14,20 +14,17 @@ public struct AWSLambdaCLI<Service: Apodini.WebService>: ParsableCommand {
     public static var configuration: CommandConfiguration {
         CommandConfiguration(
             commandName: "aws",
-        abstract: "AWS Lambda Apodini deployment provider",
-        discussion: """
+            abstract: "AWS Lambda Apodini deployment provider",
+            discussion: """
             Deploys an Apodini REST web service to AWS Lambda, mapping the deployed system's nodes to Lambda functions.
             Also configures an API Gateway to make the Lambda functions accessible over HTTP.
             """,
-        version: "0.0.1"
+            version: "0.0.2"
         )
     }
-    
-    @Argument(help: "Directory containing the Package.swift with the to-be-deployed web service's target")
-    var inputPackageDir: String
-    
-    @Option(help: "Name of the web service's SPM target/product")
-    var productName: String
+
+    @OptionGroup
+    var options: DeploymentCLI<Service>.Options
     
     @Option
     var awsProfileName: String?
@@ -65,16 +62,16 @@ public struct AWSLambdaCLI<Service: Apodini.WebService>: ParsableCommand {
     @Flag(help: "Whether to skip the compilation steps and assume that build artifacts from a previous run are still located at the expected places")
     var awsDeployOnly = false
     
-    lazy var packageRootDir = URL(fileURLWithPath: inputPackageDir).absoluteURL
+    lazy var packageRootDir = URL(fileURLWithPath: options.inputPackageDir).absoluteURL
     
     
     public func run() throws {
-        let service = Service.init()
-        service.runSyntaxTreeVisit()
+        let service = Service()
+        service.runSyntaxTreeVisitor()
         
         var deploymentProvider = AWSLambdaDeploymentProvider(
-            productName: productName,
-            packageRootDir: URL(fileURLWithPath: inputPackageDir).absoluteURL,
+            productName: options.productName,
+            packageRootDir: URL(fileURLWithPath: options.inputPackageDir).absoluteURL,
             awsProfileName: awsProfileName,
             awsRegion: awsRegion,
             s3BucketName: s3BucketName,

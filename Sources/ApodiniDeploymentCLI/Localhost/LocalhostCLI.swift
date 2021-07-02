@@ -18,15 +18,12 @@ public struct LocalHostCLI<Service: Apodini.WebService>: ParsableCommand {
             discussion: """
             Deploys an Apodini web service to localhost, mapping the deployed system's nodes to independent processes.
             """,
-            version: "0.0.1"
+            version: "0.0.2"
         )
     }
     
-//    @OptionGroup
-//    var options: Deploy
-    
-    @Argument(help: "Directory containing the Package.swift with the to-be-deployed web service's target")
-    var inputPackageDir: String = "/Users/felice/Documents/ApodiniDemoWebService"
+    @OptionGroup
+    var options: DeploymentCLI<Service>.Options
     
     @Option(help: "The port on which the API should listen")
     var port: Int = 8080
@@ -34,16 +31,13 @@ public struct LocalHostCLI<Service: Apodini.WebService>: ParsableCommand {
     @Option(help: "The port number for the first-launched child process")
     var endpointProcessesBasePort: Int = 5000
     
-    @Option(help: "Name of the web service's SPM target/product")
-    var productName: String = "TestWebService"
-    
-    mutating public func run() throws {
-        let service = Service.init()
-        service.runSyntaxTreeVisit()
+    public mutating func run() throws {
+        let service = Service()
+        service.runSyntaxTreeVisitor()
         
         let deploymentProvider = LocalhostDeploymentProvider(
-            productName: productName,
-            packageRootDir: URL(fileURLWithPath: inputPackageDir).absoluteURL,
+            productName: options.productName,
+            packageRootDir: URL(fileURLWithPath: options.inputPackageDir).absoluteURL,
             port: port,
             endpointProcessesBasePort: endpointProcessesBasePort
         )

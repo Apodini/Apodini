@@ -13,7 +13,6 @@ import Apodini
 
 //apodini deploy local -inputDir
 public struct DeploymentCLI<Service: Apodini.WebService>: ParsableCommand {
-    
     public static var configuration: CommandConfiguration {
         CommandConfiguration(
             commandName: "deploy",
