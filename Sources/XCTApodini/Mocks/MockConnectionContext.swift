@@ -138,7 +138,7 @@ extension RESTInterfaceExporter: EndpointDecodingStrategyProvider {
                 using: LightweightStrategy(),
                 otherwise: ParameterTypeSpecific(
                             .path,
-                            using: PathStrategy(),
+                            using: PathStrategy(useNameAsIdentifier: false),
                             otherwise: AllIdentityStrategy(exporterConfiguration.decoder).transformedToVaporRequestBasedStrategy()
                 )).typeErased
     }

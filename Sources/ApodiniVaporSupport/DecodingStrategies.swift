@@ -10,6 +10,7 @@ import Vapor
 import Apodini
 import ApodiniExtension
 
+/// Decodes parameters from the `Request`'s query parameters on a name-basis.
 public struct LightweightStrategy: EndpointDecodingStrategy {
     public init() {}
     
@@ -33,20 +34,26 @@ private struct LightweightParameterStrategy<E: Decodable>: ParameterDecodingStra
     }
 }
 
+/// Decodes parameters from the `Request`'s path parameters matching either on a name- or id-basis.
 public struct PathStrategy: EndpointDecodingStrategy {
-    public init() {}
+    let useNameAsIdentifier: Bool
+    
+    public init(useNameAsIdentifier: Bool = true) {
+        self.useNameAsIdentifier = useNameAsIdentifier
+    }
     
     public func strategy<Element: Decodable>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, Vapor.Request> {
-        PathParameterStrategy(parameter: parameter).typeErased
+        PathParameterStrategy(parameter: parameter, useNameAsIdentifier: useNameAsIdentifier).typeErased
     }
 }
 
 
 private struct PathParameterStrategy<E: Codable>: ParameterDecodingStrategy {
     let parameter: EndpointParameter<E>
+    let useNameAsIdentifier: Bool
     
     func decode(from request: Vapor.Request) throws -> E {
-        guard let stringParameter = request.parameters.get(parameter.name) else {
+        guard let stringParameter = request.parameters.get(useNameAsIdentifier ? parameter.name : parameter.id.uuidString) else {
             throw DecodingError.keyNotFound(
                 parameter.name,
                 DecodingError.Context(

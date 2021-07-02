@@ -38,7 +38,7 @@ struct RESTEndpointHandler<H: Handler> {
                             using: LightweightStrategy(),
                             otherwise: ParameterTypeSpecific(
                                         .path,
-                                        using: PathStrategy(),
+                                        using: PathStrategy(useNameAsIdentifier: false),
                                         otherwise: AllIdentityStrategy(exporterConfiguration.decoder).transformedToVaporRequestBasedStrategy()
                             )).applied(to: endpoint)
         
