@@ -10,6 +10,12 @@ import NIO
 
 
 public extension Publisher {
+    /// Returns an `EventLoopFuture` that is completed with the first value published on this
+    /// OpenCombine `Publisher`.
+    ///
+    /// If the publisher completes with a failure, the future fails with the contained error. If the
+    /// publisher completes successfully without ever sending a value, the future is completed
+    /// with a value of `nil`.
     func firstFuture(on eventLoop: EventLoop) -> EventLoopFuture<Output?> {
         var cancellables = Set<AnyCancellable>()
         

@@ -20,7 +20,7 @@ struct VaporEndpointKnowledge: KnowledgeSource {
     
     let defaultValues: DefaultValueStore
     
-    init<B>(_ blackboard: B) throws where B : Blackboard {
+    init<B>(_ blackboard: B) throws where B: Blackboard {
         let knowledge = blackboard[ProtocolAgnosticEndpointKnowledge.self]
         
         self.method = Vapor.HTTPMethod(knowledge.operation)
@@ -48,7 +48,7 @@ struct ProtocolAgnosticEndpointKnowledge: KnowledgeSource {
     
     let defaultValues: DefaultValueStore
     
-    init<B>(_ blackboard: B) throws where B : Blackboard {
+    init<B>(_ blackboard: B) throws where B: Blackboard {
         self.operation = blackboard[Apodini.Operation.self]
         self.pattern = blackboard[CommunicationalPattern.self]
         self.path = blackboard[EndpointPathComponentsHTTP.self].value

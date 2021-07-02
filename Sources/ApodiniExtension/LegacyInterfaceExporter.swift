@@ -8,7 +8,7 @@
 import Apodini
 
 
-/// A legacy version of the ``InterfaceExporter`` protocol, which relies on ``retrieveParameter(_:for:)``
+/// A legacy version of the `InterfaceExporter` protocol, which relies on ``retrieveParameter(_:for:)``
 /// and ``InterfaceExporterLegacyStrategy`` for decoding input instead of a proper ``DecodingStrategy``.
 public protocol LegacyInterfaceExporter: InterfaceExporter {
     /// Defines the type of the Request the exporter uses.
@@ -33,7 +33,8 @@ public protocol LegacyInterfaceExporter: InterfaceExporter {
 }
 
 public extension LegacyInterfaceExporter {
-    func export<H>(blob endpoint: Endpoint<H>) -> EndpointExportOutput where H : Handler, H.Response.Content == Blob {
+    /// The default implementation for exporting Apodini `Blob` for legacy exporters is to export them as a normal endpoint.
+    func export<H>(blob endpoint: Endpoint<H>) -> EndpointExportOutput where H: Handler, H.Response.Content == Blob {
         export(endpoint)
     }
 }

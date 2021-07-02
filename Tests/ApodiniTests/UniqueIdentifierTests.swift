@@ -36,7 +36,7 @@ final class UniqueIdentifierTests: ApodiniTests {
                 _ = endpoint[AnyHandlerIdentifier.self]
             }
             
-            func export<H>(blob endpoint: Endpoint<H>) where H : Handler, H.Response.Content == Blob {
+            func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {
                 export(endpoint)
             }
         }

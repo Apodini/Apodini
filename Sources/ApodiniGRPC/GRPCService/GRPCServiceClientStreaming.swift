@@ -105,7 +105,9 @@ extension GRPCService {
     /// The endpoint will be accessible at [host]/[serviceName]/[endpoint].
     /// - Parameters:
     ///     - endpoint: The name of the endpoint that should be exposed.
-    func exposeClientStreamingEndpoint<H: Handler>(name methodName: String? = nil, _ endpoint: Endpoint<H>, strategy: AnyDecodingStrategy<GRPCMessage>) throws {
+    func exposeClientStreamingEndpoint<H: Handler>(name methodName: String? = nil,
+                                                   _ endpoint: Endpoint<H>,
+                                                   strategy: AnyDecodingStrategy<GRPCMessage>) throws {
         let methodName = methodName ?? gRPCMethodName(from: endpoint)
         
         if methodNames.contains(methodName) {

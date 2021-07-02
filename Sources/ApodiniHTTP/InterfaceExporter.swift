@@ -72,7 +72,7 @@ struct Exporter: InterfaceExporter {
     
     static let parameterNamespace: [ParameterNamespace] = .individual
     
-    func export<H>(_ endpoint: Endpoint<H>) -> () where H : Handler {
+    func export<H>(_ endpoint: Endpoint<H>) where H: Handler {
         let knowledge = endpoint[VaporEndpointKnowledge.self]
         
         switch knowledge.pattern {
@@ -99,7 +99,7 @@ struct Exporter: InterfaceExporter {
         }
     }
     
-    func export<H>(blob endpoint: Endpoint<H>) -> () where H : Handler, H.Response.Content == Blob {
+    func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {
         let knowledge = endpoint[VaporEndpointKnowledge.self]
         
         switch knowledge.pattern {
@@ -115,7 +115,9 @@ struct Exporter: InterfaceExporter {
     
     // MARK: Request Response Closure
     
-    private func buildRequestResponseClosure<H: Handler>(for endpoint: Endpoint<H>, using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
+    private func buildRequestResponseClosure<H: Handler>(
+        for endpoint: Endpoint<H>,
+        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
         let strategy = singleInputDecodingStrategy(for: endpoint)
         
         let transformer = VaporResponseTransformer<H>(configuration.encoder)
@@ -134,7 +136,9 @@ struct Exporter: InterfaceExporter {
     
     // MARK: Blob Request Response Closure
     
-    private func buildBlobRequestResponseClosure<H: Handler>(for endpoint: Endpoint<H>, using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> where H.Response.Content == Blob {
+    private func buildBlobRequestResponseClosure<H: Handler>(
+        for endpoint: Endpoint<H>,
+        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> where H.Response.Content == Blob {
         let strategy = singleInputDecodingStrategy(for: endpoint)
         
         let transformer = VaporBlobResponseTransformer()
@@ -153,7 +157,9 @@ struct Exporter: InterfaceExporter {
     
     // MARK: Service Streaming Closure
     
-    private func buildServiceSideStreamingClosure<H: Handler>(for endpoint: Endpoint<H>, using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
+    private func buildServiceSideStreamingClosure<H: Handler>(
+        for endpoint: Endpoint<H>,
+        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
         let strategy = singleInputDecodingStrategy(for: endpoint)
         
         let abortAnyError = AbortTransformer<H>()
@@ -183,8 +189,8 @@ struct Exporter: InterfaceExporter {
                     let body = try configuration.encoder.encode(content)
                     
                     return Vapor.Response(status: HTTPStatus(status ?? .ok),
-                                                   headers: HTTPHeaders(information),
-                                                   body: Vapor.Response.Body(data: body))
+                                          headers: HTTPHeaders(information),
+                                          body: Vapor.Response.Body(data: body))
                 }
                 .firstFuture(on: request.eventLoop)
                 .map { optionalResponse in
@@ -196,7 +202,9 @@ struct Exporter: InterfaceExporter {
     
     // MARK: Client Streaming Closure
     
-    private func buildClientSideStreamingClosure<H: Handler>(for endpoint: Endpoint<H>, using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
+    private func buildClientSideStreamingClosure<H: Handler>(
+        for endpoint: Endpoint<H>,
+        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
         let strategy = multiInputDecodingStrategy(for: endpoint)
         
         let abortAnyError = AbortTransformer<H>()
@@ -205,7 +213,10 @@ struct Exporter: InterfaceExporter {
         
         return { (request: Vapor.Request) in
             guard let requestCount = try configuration.decoder.decode(ArrayCount.self, from: request.bodyData).count else {
-                throw ApodiniError(type: .badInput, reason: "Expected array at top level of body.", description: "Input for client side steaming endpoints must be an array at top level.")
+                throw ApodiniError(
+                    type: .badInput,
+                    reason: "Expected array at top level of body.",
+                    description: "Input for client side steaming endpoints must be an array at top level.")
             }
             
             var delegate = Delegate(endpoint.handler, .required)
@@ -244,14 +255,19 @@ struct Exporter: InterfaceExporter {
     
     // MARK: Bidirectional Streaming Closure
     
-    private func buildBidirectionalStreamingClosure<H: Handler>(for endpoint: Endpoint<H>, using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
+    private func buildBidirectionalStreamingClosure<H: Handler>(
+        for endpoint: Endpoint<H>,
+        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
         let strategy = multiInputDecodingStrategy(for: endpoint)
         
         let abortAnyError = AbortTransformer<H>()
         
         return { (request: Vapor.Request) in
             guard let requestCount = try configuration.decoder.decode(ArrayCount.self, from: request.bodyData).count else {
-                throw ApodiniError(type: .badInput, reason: "Expected array at top level of body.", description: "Input for client side steaming endpoints must be an array at top level.")
+                throw ApodiniError(
+                    type: .badInput,
+                    reason: "Expected array at top level of body.",
+                    description: "Input for client side steaming endpoints must be an array at top level.")
             }
             
             var delegate = Delegate(endpoint.handler, .required)
@@ -281,8 +297,8 @@ struct Exporter: InterfaceExporter {
                     let body = try configuration.encoder.encode(content)
                     
                     return Vapor.Response(status: HTTPStatus(status ?? .ok),
-                                                   headers: HTTPHeaders(information),
-                                                   body: Vapor.Response.Body(data: body))
+                                          headers: HTTPHeaders(information),
+                                          body: Vapor.Response.Body(data: body))
                 }
                 .firstFuture(on: request.eventLoop)
                 .map { optionalResponse in
@@ -310,25 +326,28 @@ struct Exporter: InterfaceExporter {
     private func singleInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<Vapor.Request> {
         ParameterTypeSpecific(
             .path,
-             using: PathStrategy(),
-             otherwise: ParameterTypeSpecific(
+            using: PathStrategy(),
+            otherwise: ParameterTypeSpecific(
                 .lightweight,
                 using: LightweightStrategy(),
-                otherwise: NumberOfContentParameterDependentStrategy
+                otherwise: NumberOfContentParameterAwareStrategy
                                 .oneIdentityOrAllNamedContentStrategy(configuration.decoder, for: endpoint)
                                 .transformedToVaporRequestBasedStrategy())
-            ).applied(to: endpoint)
+            )
+            .applied(to: endpoint)
             .typeErased
     }
     
     private func multiInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<(Vapor.Request, Int)> {
         ParameterTypeSpecific(
             .path,
-            using: PathStrategy().transformed { (request, _) in request },
+            using: PathStrategy().transformed { request, _ in request },
             otherwise: ParameterTypeSpecific(
                 .lightweight,
-                using: AllNamedAtIndexWithLightweightPattern(decoder: configuration.decoder).transformed { (request, index) in (request.bodyData, index)},
-                otherwise: AllNamedAtIndexWithContentPattern(decoder: configuration.decoder).transformed { (request, index) in (request.bodyData, index)}
+                using: AllNamedAtIndexWithLightweightPattern(decoder: configuration.decoder)
+                    .transformed { request, index in (request.bodyData, index) },
+                otherwise: AllNamedAtIndexWithContentPattern(decoder: configuration.decoder)
+                    .transformed { request, index in (request.bodyData, index) }
             )
         )
         .applied(to: endpoint)
@@ -364,7 +383,8 @@ struct Exporter: InterfaceExporter {
     private struct AllNamedAtIndexWithLightweightPattern: EndpointDecodingStrategy {
         let decoder: AnyDecoder
         
-        func strategy<Element>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, (Data, Int)> where Element : Decodable, Element : Encodable {
+        func strategy<Element>(for parameter: EndpointParameter<Element>)
+            -> AnyParameterDecodingStrategy<Element, (Data, Int)> where Element: Decodable, Element: Encodable {
             IndexedNamedChildPatternStrategy<
                 DynamicIndexPattern<
                     LightweightPattern<
@@ -376,7 +396,8 @@ struct Exporter: InterfaceExporter {
     private struct AllNamedAtIndexWithContentPattern: EndpointDecodingStrategy {
         let decoder: AnyDecoder
         
-        func strategy<Element>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, (Data, Int)> where Element : Decodable, Element : Encodable {
+        func strategy<Element>(for parameter: EndpointParameter<Element>)
+            -> AnyParameterDecodingStrategy<Element, (Data, Int)> where Element: Decodable, Element: Encodable {
             IndexedNamedChildPatternStrategy<
                 DynamicIndexPattern<
                     ContentPattern<

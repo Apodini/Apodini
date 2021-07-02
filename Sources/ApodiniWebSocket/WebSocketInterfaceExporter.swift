@@ -193,11 +193,10 @@ private struct FatalWSError: WSClosingError {
 }
 
 
-
 #if DEBUG
 extension ApodiniError {
     var webSocketMessage: String {
-        return self.message(with: messagePrefix(for: self))
+        self.message(with: messagePrefix(for: self))
     }
 }
 
@@ -226,4 +225,3 @@ extension ApodiniError {
     }
 }
 #endif
-

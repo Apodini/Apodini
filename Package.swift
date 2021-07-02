@@ -115,7 +115,7 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "Apodini"),
                 .product(name: "OpenCombine", package: "OpenCombine"),
-                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "NIO", package: "swift-nio")
             ]
         ),
 
@@ -258,7 +258,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniVaporSupport"),
-                .product(name: "OpenCombine", package: "OpenCombine"),
+                .product(name: "OpenCombine", package: "OpenCombine")
             ]
         ),
 
@@ -352,7 +352,7 @@ let package = Package(
                 .target(name: "XCTApodini"),
                 .target(name: "ApodiniHTTP"),
                 .target(name: "ApodiniVaporSupport"),
-                .product(name: "XCTVapor", package: "vapor"),
+                .product(name: "XCTVapor", package: "vapor")
             ]
         ),
         

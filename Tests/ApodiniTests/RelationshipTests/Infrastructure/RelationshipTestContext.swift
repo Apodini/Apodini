@@ -12,7 +12,8 @@ import ApodiniUtils
 class RelationshipTestContext {
     let app: Application
     let exporter: RelationshipExporter
-
+    
+    // swiftlint:disable:next large_tuple
     var endpoints: [(AnyEndpoint, AnyRelationshipEndpoint, (String, [Any??], Application) throws -> EnrichedContent)] {
         exporter.endpoints
     }
@@ -43,7 +44,7 @@ class RelationshipTestContext {
     }
 
     func request(on index: Int, request: String = "Example Request", parameters: Any??...) -> EnrichedContent {
-        let (_, rendpoint, executable) = endpoints[index]
+        let (_, _, executable) = endpoints[index]
 
         do {
             return try executable(request, parameters, app)

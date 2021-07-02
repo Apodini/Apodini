@@ -12,7 +12,9 @@ import ApodiniExtension
 
 // MARK: Unary request handler
 extension GRPCService {
-    func createUnaryHandler<H: Handler>(handler: H, strategy: AnyDecodingStrategy<GRPCMessage>, defaults: DefaultValueStore) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+    func createUnaryHandler<H: Handler>(handler: H,
+                                        strategy: AnyDecodingStrategy<GRPCMessage>,
+                                        defaults: DefaultValueStore) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         { (request: Vapor.Request) in
             if !self.contentTypeIsSupported(request: request) {
                 return request.eventLoop.makeFailedFuture(GRPCError.unsupportedContentType(

@@ -15,8 +15,7 @@ import OpenCombine
 
 
 class EndToEndTests: XCTApodiniTest {
-
-    override open func setUpWithError() throws {
+    override func setUpWithError() throws {
         try super.setUpWithError()
         
         configuration.configure(app)
@@ -36,9 +35,19 @@ class EndToEndTests: XCTApodiniTest {
             "\(greeting ?? "Hello"), \(name)!"
         }
     }
+    
+    struct BlobGreeter: Handler {
+        @Parameter(.http(.path)) var name: String
+        
+        @Parameter(.http(.query)) var greeting: String?
+
+        func handle() -> Blob {
+            Blob("\(greeting ?? "Hello"), \(name)!".data(using: .utf8)!)
+        }
+    }
 
     class FakeTimer: Apodini.ObservableObject {
-        @Apodini.Published private var _trigger: Bool = true
+        @Apodini.Published private var _trigger = true
         
         init() {  }
         
@@ -80,7 +89,7 @@ class EndToEndTests: XCTApodiniTest {
         
         func handle() -> Apodini.Response<String> {
             if connection.state == .end {
-                var response = "Hello, " + list[0..<list.count-1].joined(separator: ", ")
+                var response = "Hello, " + list[0..<list.count - 1].joined(separator: ", ")
                 if let last = list.last {
                     response += " and " + last
                 } else {
@@ -135,6 +144,9 @@ class EndToEndTests: XCTApodiniTest {
         Group("bs") {
             BidirectionalStreamingGreeter()
         }
+        Group("blob") {
+            BlobGreeter()
+        }
     }
 
     func testRequestResponsePattern() throws {
@@ -170,39 +182,61 @@ class EndToEndTests: XCTApodiniTest {
     
     func testClientSideStreamingPattern() throws {
         let body = [
-            ["query": [
-                "country": "Germany"
-            ]],
-            ["query": [
-                "country": "Taiwan"
-            ]],
-            [String:[String:String]]()
+            [
+                "query": [
+                    "country": "Germany"
+                ]
+            ],
+            [
+                "query": [
+                    "country": "Taiwan"
+                ]
+            ],
+            [String: [String: String]]()
         ]
         
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "/cs", body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())) { response in
-            XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Germany, Taiwan and the World!")
-        }
+        try app.vapor.app.testable(method: .inMemory)
+            .test(.GET, "/cs", body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())) { response in
+                XCTAssertEqual(response.status, .ok)
+                XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Germany, Taiwan and the World!")
+            }
     }
     
     func testBidirectionalStreamingPattern() throws {
         let body = [
-            ["query": [
-                "country": "Germany"
-            ]],
-            ["query": [
-                "country": "Taiwan"
-            ]],
-            [String:[String:String]]()
+            [
+                "query": [
+                    "country": "Germany"
+                ]
+            ],
+            [
+                "query": [
+                    "country": "Taiwan"
+                ]
+            ],
+            [String: [String: String]]()
         ]
         
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "/bs", body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())) { response in
+        try app.vapor.app.testable(method: .inMemory)
+            .test(.GET, "/bs", body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())) { response in
+                XCTAssertEqual(response.status, .ok)
+                XCTAssertEqual(try response.content.decode([String].self, using: JSONDecoder()), [
+                    "Hello, Germany!",
+                    "Hello, Taiwan!",
+                    "Hello, World!"
+                ])
+            }
+    }
+    
+    func testBlob() throws {
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "/blob/Paul", body: nil) { response in
             XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.content.decode([String].self, using: JSONDecoder()), [
-                "Hello, Germany!",
-                "Hello, Taiwan!",
-                "Hello, World!",
-            ])
+            XCTAssertEqual(response.body.string, "Hello, Paul!")
+        }
+        
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "/blob/Andi?greeting=Wuzzup", body: nil) { response in
+            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(response.body.string, "Wuzzup, Andi!")
         }
     }
 }

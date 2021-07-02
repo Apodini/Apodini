@@ -2,8 +2,6 @@
 // Created by Andreas Bauer on 22.11.20.
 //
 
-// TODO: special `export` functions for Blob and Empty
-
 import protocol NIO.EventLoop
 
 /// This is the base protocol shared by any Exporter type supported by Apodini. Any Interface Exporter
@@ -56,8 +54,6 @@ public extension InterfaceExporter {
     /// Default empty implementation as method is optionally to implement
     func finishedExporting(_ webService: WebServiceModel) {}
 }
-
-
 
 
 public extension InterfaceExporter {

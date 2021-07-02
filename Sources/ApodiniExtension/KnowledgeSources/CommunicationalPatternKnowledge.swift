@@ -10,7 +10,7 @@ import Apodini
 
 
 extension CommunicationalPattern: KnowledgeSource {
-    public init<B>(_ blackboard: B) throws where B : Blackboard {
+    public init<B>(_ blackboard: B) throws where B: Blackboard {
         self = blackboard[ExplicitCommunicationalPattern.self].value ?? blackboard[AutomaticCommunicationalPattern.self].value
     }
 }
@@ -28,7 +28,7 @@ private struct ExplicitCommunicationalPattern: OptionalContextKeyKnowledgeSource
 struct AutomaticCommunicationalPattern: HandlerKnowledgeSource {
     let value: CommunicationalPattern
     
-    init<H, B>(from handler: H, _ blackboard: B) throws where H : Handler, B : Blackboard {
+    init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
         if H.Response.self is CustomizableResponse.Type {
             self.value = .bidirectionalStream
         } else {
@@ -42,4 +42,3 @@ private protocol CustomizableResponse { }
 extension Response: CustomizableResponse { }
 
 extension EventLoopFuture: CustomizableResponse where Value: CustomizableResponse { }
-

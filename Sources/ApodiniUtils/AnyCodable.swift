@@ -43,7 +43,7 @@ extension JSONEncoder: AnyEncoder {}
 /// Something that can decode `Decodable` objects from `Data`
 public protocol AnyDecoder {
     /// Decode some `Decodable` object from `Data`
-    func decode<T>(_: T.Type, from: Data) throws -> T where T : Decodable
+    func decode<T>(_: T.Type, from: Data) throws -> T where T: Decodable
 }
 
 extension JSONDecoder: AnyDecoder {}

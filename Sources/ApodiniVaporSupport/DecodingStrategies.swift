@@ -69,6 +69,9 @@ private struct PathParameterStrategy<E: Codable>: ParameterDecodingStrategy {
 
 
 public extension DecodingStrategy where Input == Data {
+    /// Transforms a ``DecodingStrategy`` with ``DecodingStrategy/Input`` type `Data` to
+    /// a strategy that takes a Vapor `Request` as an ``DecodingStrategy/Input`` by extracting
+    /// the request's ``bodyData``.
     func transformedToVaporRequestBasedStrategy() -> TransformingStrategy<Self, Vapor.Request> {
         self.transformed { (request: Vapor.Request) in
             request.bodyData
@@ -77,6 +80,9 @@ public extension DecodingStrategy where Input == Data {
 }
 
 public extension EndpointDecodingStrategy where Input == Data {
+    /// Transforms an ``EndpointDecodingStrategy`` with ``EndpointDecodingStrategy/Input`` type `Data` to
+    /// a strategy that takes a Vapor `Request` as an ``EndpointDecodingStrategy/Input`` by extracting
+    /// the request's ``bodyData``.
     func transformedToVaporRequestBasedStrategy() -> TransformingEndpointStrategy<Self, Vapor.Request> {
         self.transformed { (request: Vapor.Request) in
             request.bodyData
@@ -85,6 +91,9 @@ public extension EndpointDecodingStrategy where Input == Data {
 }
 
 public extension BaseDecodingStrategy where Input == Data {
+    /// Transforms a ``BaseDecodingStrategy`` with ``BaseDecodingStrategy/Input`` type `Data` to
+    /// a strategy that takes a Vapor `Request` as an ``BaseDecodingStrategy/Input`` by extracting
+    /// the request's ``bodyData``.
     func transformedToVaporRequestBasedStrategy() -> TransformingBaseStrategy<Self, Vapor.Request> {
         self.transformed { (request: Vapor.Request) in
             request.bodyData
@@ -93,6 +102,8 @@ public extension BaseDecodingStrategy where Input == Data {
 }
 
 public extension Vapor.Request {
+    /// Extracts the readable part of the request's `body` and returns it as a `Data` object. If no data is found, an empty
+    /// `Data` object is returned.
     var bodyData: Data {
         if let buffer = self.body.data {
             return buffer.getData(at: buffer.readerIndex, length: buffer.readableBytes) ?? Data()

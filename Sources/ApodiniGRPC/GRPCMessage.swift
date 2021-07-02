@@ -20,7 +20,7 @@ public final class GRPCMessage {
     internal var data: Data
     var length: Int
     var compressed: Bool
-    public let remoteAddress: SocketAddress?
+    let remoteAddress: SocketAddress?
 
     init(from data: Data, length: Int, compressed: Bool, remoteAddress: SocketAddress?) {
         self.data = data

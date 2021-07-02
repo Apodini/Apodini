@@ -115,7 +115,11 @@ public extension Error {
 
 extension ApodiniError {
     public func callAsFunction(_ error: LocalizedError) -> ApodiniError {
-        self(reason: error.failureReason, description: error.errorDescription ?? error.recoverySuggestion ?? error.helpAnchor ?? error.localizedDescription)
+        self(reason: error.failureReason,
+             description: error.errorDescription
+                            ?? error.recoverySuggestion
+                            ?? error.helpAnchor
+                            ?? error.localizedDescription)
     }
 }
 

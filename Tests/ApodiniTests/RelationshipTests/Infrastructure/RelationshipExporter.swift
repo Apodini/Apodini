@@ -8,6 +8,7 @@ import XCTApodini
 @testable import ApodiniREST
 
 class RelationshipExporter: MockExporter<String> {
+    // swiftlint:disable:next large_tuple
     var endpoints: [(AnyEndpoint, AnyRelationshipEndpoint, (String, [Any??], Application) throws -> EnrichedContent)] = []
 
     override func export<H: Handler>(_ endpoint: Endpoint<H>) {

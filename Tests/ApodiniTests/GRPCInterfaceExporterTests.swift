@@ -143,10 +143,16 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        var handler = service.createUnaryHandler(handler: endpoint.handler, strategy: decodingStrategy, defaults: endpoint[DefaultValueStore.self])
+        var handler = service.createUnaryHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])
         XCTAssertThrowsError(try handler(vaporRequest).wait())
 
-        handler = service.createClientStreamingHandler(handler: endpoint.handler, strategy: decodingStrategy, defaults: endpoint[DefaultValueStore.self])
+        handler = service.createClientStreamingHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])
         XCTAssertThrowsError(try handler(vaporRequest).wait())
     }
 
@@ -168,7 +174,11 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        let response = try service.createUnaryHandler(handler: endpoint.handler, strategy: decodingStrategy, defaults: endpoint[DefaultValueStore.self])(vaporRequest).wait()
+        let response = try service.createUnaryHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
+            .wait()
         let responseData = try XCTUnwrap(response.body.data)
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
@@ -199,7 +209,11 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        let response = try service.createUnaryHandler(handler: endpoint.handler, strategy: decodingStrategy, defaults: endpoint[DefaultValueStore.self])(vaporRequest).wait()
+        let response = try service.createUnaryHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
+            .wait()
         let responseData = try XCTUnwrap(response.body.data)
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
@@ -226,7 +240,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        let handler = service.createUnaryHandler(handler: endpoint.handler, strategy: decodingStrategy, defaults: endpoint[DefaultValueStore.self])
+        let handler = service.createUnaryHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])
         XCTAssertThrowsError(try handler(vaporRequest).wait())
     }
 
@@ -257,7 +274,11 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        let response = try service.createUnaryHandler(handler: endpoint.handler, strategy: decodingStrategy, defaults: endpoint[DefaultValueStore.self])(vaporRequest).wait()
+        let response = try service.createUnaryHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
+            .wait()
         let responseData = try XCTUnwrap(response.body.data)
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
@@ -280,7 +301,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
         vaporRequest.bodyStorage = .stream(stream)
 
-        service.createClientStreamingHandler(handler: endpoint.handler, strategy: decodingStrategy, defaults: endpoint[DefaultValueStore.self])(vaporRequest)
+        service.createClientStreamingHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
             .whenSuccess { response in
                 guard let responseData = response.body.data else {
                     XCTFail("Received empty response but expected: \(expectedResponseData)")
@@ -318,7 +342,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
         vaporRequest.bodyStorage = .stream(stream)
 
-        service.createClientStreamingHandler(handler: endpoint.handler, strategy: decodingStrategy, defaults: endpoint[DefaultValueStore.self])(vaporRequest)
+        service.createClientStreamingHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
             .whenSuccess { response in
                 guard let responseData = response.body.data else {
                     XCTFail("Received empty response but expected: \(expectedResponseData)")
@@ -354,7 +381,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         vaporRequest.bodyStorage = .stream(stream)
 
         // get first response
-        service.createClientStreamingHandler(handler: endpoint.handler, strategy: decodingStrategy, defaults: endpoint[DefaultValueStore.self])(vaporRequest)
+        service.createClientStreamingHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
             .whenSuccess { response in
                 guard let responseData = response.body.data else {
                     XCTFail("Received empty response but expected: \(expectedResponseData)")
@@ -387,7 +417,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
         vaporRequest.bodyStorage = .stream(stream)
 
-        service.createClientStreamingHandler(handler: endpoint.handler, strategy: decodingStrategy, defaults: endpoint[DefaultValueStore.self])(vaporRequest)
+        service.createClientStreamingHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
             .whenSuccess { response in
                 XCTAssertEqual(response.body.data,
                                Optional(Data()),

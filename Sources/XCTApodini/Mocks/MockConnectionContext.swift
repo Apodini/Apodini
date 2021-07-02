@@ -16,6 +16,11 @@ import Vapor
 import ApodiniREST
 
 // MARK: Mock ConnectionContext
+
+/// A wrapper around a `Delegate` that allows for evaluating it with a
+/// certain `Input`.  The evaluation comes with the complete standard
+/// set of validation mechanisms. Furthermore, the ``ConnectionContext`` also
+/// takes care of observing the `Delegate`.
 public class ConnectionContext<Input, H: Handler> {
     var delegate: Delegate<H>
     
@@ -38,15 +43,21 @@ public class ConnectionContext<Input, H: Handler> {
         self.delegate.activate()
     }
     
+    /// Evaluate the inner `Delegate` using the given `request`.
     public func handle(request: Input, eventLoop: EventLoop, final: Bool = true) -> EventLoopFuture<Apodini.Response<H.Response.Content>> {
-        self.handleAndReturnParameters(request: request, eventLoop: eventLoop, final: final).map { (response, _) in response }
+        self.handleAndReturnParameters(request: request, eventLoop: eventLoop, final: final).map { response, _ in response }
     }
     
-    public func handleAndReturnParameters(request: Input, eventLoop: EventLoop, final: Bool = true) -> EventLoopFuture<(Apodini.Response<H.Response.Content>, (UUID) -> Any?)> {
+    /// Evaluate the inner `Delegate` using the given `request` while also providing a callback that returnes the value for all
+    /// decoded input parameters based on the parameter's id.
+    public func handleAndReturnParameters(
+        request: Input,
+        eventLoop: EventLoop,
+        final: Bool = true) -> EventLoopFuture<(Apodini.Response<H.Response.Content>, (UUID) -> Any?)> {
         if self.observation == nil {
-            self.observation = delegate.register({ event in
+            self.observation = delegate.register { event in
                 self.listeners.forEach { listener in listener.onObservedDidChange(self.delegate, event) }
-            })
+            }
         }
         
         let request = strategy
@@ -60,7 +71,11 @@ public class ConnectionContext<Input, H: Handler> {
         return cachingRequest.evaluate(on: &delegate, final ? .end : .open).map { response in (response, cachingRequest.peak(_:)) }
     }
     
-    public func handle(eventLoop: EventLoop, observedObject: AnyObservedObject? = nil, event: TriggerEvent) -> EventLoopFuture<Apodini.Response<H.Response.Content>> {
+    /// Evaluate the inner `Delegate` based on the given `event`.
+    public func handle(
+        eventLoop: EventLoop,
+        observedObject: AnyObservedObject? = nil,
+        event: TriggerEvent) -> EventLoopFuture<Apodini.Response<H.Response.Content>> {
         guard let request = self.latestRequest else {
             fatalError("Mock ConnectionContext tried to handle event before a Request was present.")
         }
@@ -68,30 +83,37 @@ public class ConnectionContext<Input, H: Handler> {
         return delegate.evaluate(event, using: request.cache(), with: .open)
     }
     
+    /// Register an `ObservedListener` to be called whenever an `ObservableObject` observed by the `Delegate`
+    /// is triggered.
     public func register(listener: ObservedListener) {
         listeners.append(listener)
     }
 }
 
 public extension ConnectionContext where Input: WithEventLoop {
+    /// Evaluate the inner `Delegate` using the given `request`.
     func handle(request: Input, final: Bool = true) -> EventLoopFuture<Apodini.Response<H.Response.Content>> {
         handle(request: request, eventLoop: request.eventLoop, final: final)
     }
 }
 
+/// Something that brings an NIO `EventLoop`.
 public protocol WithEventLoop {
+    /// The `EventLoop` associated with this object.
     var eventLoop: EventLoop { get }
 }
 
 extension Vapor.Request: WithEventLoop { }
 
 extension Endpoint {
+    /// Create a ``ConnectionContext`` for a ApodiniExtension `LegacyInterfaceExporter`.
     public func createConnectionContext<IE: LegacyInterfaceExporter>(for exporter: IE) -> ConnectionContext<IE.ExporterRequest, H> {
         ConnectionContext(delegate: Delegate(handler, .required),
                           strategy: InterfaceExporterLegacyStrategy(exporter).applied(to: self).typeErased,
                           defaults: self[DefaultValueStore.self])
     }
     
+    /// Create a ``ConnectionContext`` for any object that can provide a fitting strategy for decoding its ``EndpointDecodingStrategyProvider/Input``.
     public func createConnectionContext<IE: EndpointDecodingStrategyProvider>(for exporter: IE) -> ConnectionContext<IE.Input, H> {
         ConnectionContext(delegate: Delegate(handler, .required),
                           strategy: exporter.strategy.applied(to: self).typeErased,
@@ -99,9 +121,13 @@ extension Endpoint {
     }
 }
 
+/// A type which provides a fixed ApodiniExtension `EndpointDecodingStrategy` that
+/// can decode the ``Input``
 public protocol EndpointDecodingStrategyProvider {
+    /// The type that the associated strategy can decode.
     associatedtype Input
     
+    /// The strategy for decoding the associated ``Input``
     var strategy: AnyEndpointDecodingStrategy<Input> { get }
 }
 
@@ -118,7 +144,9 @@ extension RESTInterfaceExporter: EndpointDecodingStrategyProvider {
     }
 }
 
+/// An object that can be called whenever a ``TriggerEvent`` is raised.
 public protocol ObservedListener {
+    /// The function to be called whenever a ``TriggerEvent`` is raised.
     func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent)
 }
 

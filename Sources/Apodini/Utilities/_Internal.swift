@@ -9,4 +9,4 @@
 /// The `_Internal` enum models a publicly exported namespace
 /// containing definitions which need to be made public, but should be considered ad implementation details,
 /// and are not intended to be accessed or in any way used by clients.
-public enum _Internal {}
+public enum _Internal {} // swiftlint:disable:this type_name

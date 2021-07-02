@@ -71,7 +71,7 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
         }
     }
     
-    func export<H>(blob endpoint: Endpoint<H>) where H : Handler, H.Response.Content == Blob {
+    func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {
         export(endpoint)
     }
     

@@ -155,6 +155,7 @@ extension Parameter: Activatable {
 
 
 extension _Internal {
+    /// Returns the option for the given `key` if present.
     public static func option<E: Codable, Option>(for key: Parameter<E>.OptionKey<Option>, on parameter: Parameter<E>) -> Option? {
         parameter.option(for: key)
     }

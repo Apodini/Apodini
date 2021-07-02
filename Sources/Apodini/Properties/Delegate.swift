@@ -293,12 +293,14 @@ extension Delegate: AnyObservedObject {
 }
 
 public extension _Internal {
+    /// Activates the delegate if not done yet.
     static func prepareIfNotReady<H: Handler>(_ delegate: inout Delegate<H>) {
         if delegate.storage == nil {
             delegate.activate()
         }
     }
     
+    /// Evaluates the delegate using the given `state` and `request`.
     static func evaluate<H: Handler>(delegate: Delegate<H>, using request: Request, with state: ConnectionState = .end) throws -> H.Response {
         do {
             delegate.inject(Connection(state: state, request: request), for: \Application.connection)

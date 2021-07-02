@@ -7,6 +7,10 @@
 
 import Foundation
 
+/// A type describing the kind of communication that a ``Handler`` is designed for.
+///
+/// The pattern in a communication is defined by the quantity and order of messages
+/// that are sent from client to server and from server to client.
 public enum CommunicationalPattern {
     /// **One** client message followed by **one** service message
     case requestResponse
