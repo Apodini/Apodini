@@ -208,8 +208,6 @@ struct Exporter: InterfaceExporter {
                 throw ApodiniError(type: .badInput, reason: "Expected array at top level of body.", description: "Input for client side steaming endpoints must be an array at top level.")
             }
             
-            print(requestCount)
-            
             var delegate = Delegate(endpoint.handler, .required)
             
             return Array(0..<requestCount)
@@ -221,7 +219,6 @@ struct Exporter: InterfaceExporter {
                 .insertDefaults(with: defaultValues)
                 .validateParameterMutability()
                 .cache()
-                .handleEvents(receiveCompletion: { c in Swift.print(c) })
                 .subscribe(to: &delegate)
                 .evaluate(on: &delegate)
                 .transform(using: abortAnyError)

@@ -445,7 +445,6 @@ struct BidirectionalHandler: Handler {
     @State var count = 0
     
     func handle() -> EventLoopFuture<Apodini.Response<Bool>> {
-        print(count)
         count += 1
         
         if !_observed.changed {
@@ -465,16 +464,10 @@ struct BidirectionalHandler: Handler {
             usleep(WebSocketInterfaceExporterTests.blockTime)
             if input == latestInput {
                 // not triggered by input, but by observable
-                if !_observed.changed {
-                    print("-----------YYYYYYY")
-                }
                 XCTAssertTrue(_observed.changed)
                 promise.succeed(.send(false))
             } else {
                 // triggered by input, not observable
-                if _observed.changed {
-                    print("-----------XXXXXXX")
-                }
                 XCTAssertFalse(_observed.changed)
                 latestInput = input
                 promise.succeed(.send(true))

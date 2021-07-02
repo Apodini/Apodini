@@ -46,12 +46,12 @@ private struct PathParameterStrategy<E: Codable>: ParameterDecodingStrategy {
     let parameter: EndpointParameter<E>
     
     func decode(from request: Vapor.Request) throws -> E {
-        guard let stringParameter = request.parameters.get(parameter.pathId) else {
+        guard let stringParameter = request.parameters.get(parameter.name) else {
             throw DecodingError.keyNotFound(
-                parameter.pathId,
+                parameter.name,
                 DecodingError.Context(
-                    codingPath: [parameter.pathId],
-                    debugDescription: "No path parameter with id \(parameter.pathId) present in request \(request.description)",
+                    codingPath: [parameter.name],
+                    debugDescription: "No path parameter with name \(parameter.name) present in request \(request.description)",
                     underlyingError: nil
                 )) // the path parameter didn't exist on that request
         }
