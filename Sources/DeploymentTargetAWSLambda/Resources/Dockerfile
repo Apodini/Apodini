@@ -1,4 +1,4 @@
-FROM swift:5.4-amazonlinux2
+FROM swift:amazonlinux2
 
 ARG USER_ID
 ARG GROUP_ID
