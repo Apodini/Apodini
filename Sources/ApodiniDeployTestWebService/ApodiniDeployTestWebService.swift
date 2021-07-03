@@ -6,7 +6,8 @@ import DeploymentTargetLocalhostRuntime
 import DeploymentTargetAWSLambdaRuntime
 import ApodiniREST
 import ApodiniOpenAPI
-
+import ArgumentParser
+import ApodiniDeploymentCLI
 
 /// Used to test the two deployment providers (localhost and Lambda).
 public struct WebService: Apodini.WebService {
@@ -53,6 +54,10 @@ public struct WebService: Apodini.WebService {
 
     public var metadata: Metadata {
         Description("WebService Description")
+    }
+    
+    public static var configuration: CommandConfiguration {
+        CommandConfiguration(subcommands: [DeploymentCLI<Self>.self])
     }
     
     public init() {}

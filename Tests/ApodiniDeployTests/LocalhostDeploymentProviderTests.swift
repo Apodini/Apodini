@@ -11,6 +11,7 @@ import FoundationNetworking
 #endif
 import XCTApodini
 import ApodiniUtils
+import ApodiniDeployTestWebService
 
 
 struct ResponseWithPid<T: Codable>: Codable {
@@ -70,8 +71,8 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         let srcRoot = try Self.replicateApodiniSrcRootInTmpDir()
         
         task = Task(
-            executableUrl: Self.urlOfBuildProduct(named: "DeploymentTargetLocalhost"),
-            arguments: [srcRoot.path, "--product-name", Self.apodiniDeployTestWebServiceTargetName],
+            executableUrl: Self.urlOfBuildProduct(named: Self.apodiniDeployTestWebServiceTargetName),
+            arguments: ["deploy", "local", Self.getApodiniRepoSourceRoot(), "--product-name", Self.apodiniDeployTestWebServiceTargetName],
             captureOutput: true,
             redirectStderrToStdout: true,
             // the tests are dynamically loaded into an `xctest` process, which doesn't statically load CApodiniUtils,

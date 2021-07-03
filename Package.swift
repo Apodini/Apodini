@@ -320,7 +320,9 @@ let package = Package(
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniNotifications"),
-                .target(name: "ApodiniDeploy")
+                .target(name: "ApodiniDeploy"),
+                .target(name: "ApodiniDeploymentCLI"),
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]
         ),
         
