@@ -399,6 +399,9 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             WellKnownEnvironmentVariables.fileUrl: launchInfoFileUrl.lastPathComponent
         ])
         
+        let executionRole = try fetchOrCreateLambdaExecutionRole(forApiGatewayWithId: apiGatewayApiId)
+        logger.notice("Using lambda execution role: name='\(executionRole.roleName)' arn='\(executionRole.arn)'")
+        
         if let function = allFunctions.first(where: { $0.functionName == lambdaName }) {
             logger.notice("Found existing lambda function w/ matching name. Updating code")
             _ = try lambda.updateFunctionConfiguration(Lambda.UpdateFunctionConfigurationRequest(
@@ -407,14 +410,19 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 memorySize: Int(memorySize),
                 timeout: timeoutInSec
             )).wait()
-            return try lambda.updateFunctionCode(Lambda.UpdateFunctionCodeRequest(
-                functionName: function.functionName!,
-                s3Bucket: s3BucketName,
-                s3Key: s3ObjectKey
-            )).wait()
+            return try lambda
+                .updateFunctionCode(Lambda.UpdateFunctionCodeRequest(
+                    functionName: function.functionName!,
+                    s3Bucket: s3BucketName,
+                    s3Key: s3ObjectKey
+                ))
+                .map { functionConfiguration in
+                    self.logger.notice("Deployed lambda function \(lambdaName)")
+                    return functionConfiguration
+                }
+                .wait()
         } else {
             logger.notice("Creating new lambda function \(lambdaName)")
-            let executionRoleArn = try fetchOrCreateLambdaExecutionRole(forApiGatewayWithId: apiGatewayApiId).arn
             let createFunctionRequest = Lambda.CreateFunctionRequest(
                 code: .init(s3Bucket: s3BucketName, s3Key: s3ObjectKey),
                 description: "Apodini-created lambda function",
@@ -424,7 +432,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 memorySize: Int(memorySize),
                 packageType: .zip,
                 publish: true,
-                role: executionRoleArn,
+                role: executionRole.arn,
                 runtime: .providedAl2,
                 tags: nil, // [String : String]?.none,
                 timeout: timeoutInSec
@@ -440,7 +448,12 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             // see also: https://stackoverflow.com/q/36419442
             func createLambdaImp(iteration: Int = 1) throws -> Lambda.FunctionConfiguration {
                 do {
-                    return try lambda.createFunction(createFunctionRequest).wait()
+                    return try lambda.createFunction(createFunctionRequest)
+                        .map { functionConfiguration in
+                            self.logger.notice("Deployed lambda function \(lambdaName)")
+                            return functionConfiguration
+                        }
+                        .wait()
                 } catch let error as LambdaErrorType {
                     guard
                         error.errorCode == LambdaErrorType.invalidParameterValueException.errorCode,
