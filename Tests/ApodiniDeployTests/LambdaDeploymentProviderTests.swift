@@ -147,7 +147,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         let (iamExecutionRoleName, _) = try { () -> (String, String) in
             let regex = try NSRegularExpression(
-                pattern: #"Created lambda execution role: name='(.*)' arn='(.*)'$"#,
+                pattern: #"Using lambda execution role: name='(.*)' arn='(.*)'$"#,
                 options: .anchorsMatchLines
             )
             for line in output {
@@ -167,7 +167,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         let lambdaFunctionNames: [String]
         do {
             let regex = try NSRegularExpression(
-                pattern: #"Creating new lambda function (.*)$"#,
+                pattern: #"Deployed lambda function (.*)$"#,
                 options: .anchorsMatchLines
             )
             var names: [String] = []
