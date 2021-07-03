@@ -24,11 +24,10 @@ public struct DeploymentProviderID: RawRepresentable, Hashable, Equatable, Codab
     }
 }
 
-public struct DeploymentStorage: MemoryStorage {
-    public static var current = DeploymentStorage()
+public struct DeploymentMemoryStorage: MemoryStorage {
+    public static var current = DeploymentMemoryStorage()
     
-    private var object: Object?
-    public typealias Object = WebServiceStructure
+    private var object: WebServiceStructure?
     
     public mutating func store(_ object: WebServiceStructure) {
         self.object = object
@@ -87,7 +86,7 @@ public struct ApodiniDeployBuildSupportError: Swift.Error {
 extension DeploymentProvider {
     /// Retrieves the web service structure that has been saved by the same process.
     public func retrieveWebServiceStructure() throws -> WebServiceStructure {
-        guard let wsStructure = DeploymentStorage.current.retrieve() else {
+        guard let wsStructure = DeploymentMemoryStorage.current.retrieve() else {
             throw ApodiniDeployBuildSupportError(message: "Failed to retrieve DeploymentStorage.")
         }
         return wsStructure

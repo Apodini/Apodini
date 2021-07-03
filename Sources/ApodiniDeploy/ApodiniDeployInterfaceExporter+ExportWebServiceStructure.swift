@@ -77,6 +77,6 @@ extension ApodiniDeployInterfaceExporter {
             openApiDocument: openApiDocument,
             enabledDeploymentProviders: apodiniDeployConfiguration.runtimes.map { $0.identifier }
         )
-        DeploymentStorage.current.store(webServiceStructure)
+        DeploymentMemoryStorage.current.store(webServiceStructure)
     }
 }
