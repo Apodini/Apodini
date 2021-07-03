@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/swift-server/async-http-client.git",
         "state": {
           "branch": null,
-          "revision": "3fd0658dd91864099481b23740afd1757d1f0634",
-          "version": "1.4.0"
+          "revision": "8e4d51908dd49272667126403bf977c5c503f78f",
+          "version": "1.5.0"
         }
       },
       {
@@ -285,8 +285,8 @@
         "repositoryURL": "https://github.com/vapor/sql-kit.git",
         "state": {
           "branch": null,
-          "revision": "211ce34be6a2dcd8b9f0c04f6a561c642a940c86",
-          "version": "3.9.0"
+          "revision": "dd87127c7b005237b24ee24917c515ecae9ff0ef",
+          "version": "3.9.1"
         }
       },
       {
@@ -429,8 +429,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "605d8c86cfc51cf875b9e09b3c8f55e4137b0b55",
-          "version": "4.47.0"
+          "revision": "086d0b80f2c3623ffd6b5e32b964ad00b67c2e90",
+          "version": "4.47.1"
         }
       },
       {

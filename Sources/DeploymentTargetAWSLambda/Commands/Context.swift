@@ -1,23 +1,10 @@
 import ApodiniUtils
 import Logging
 import Foundation
+import SotoCore
 
 
 enum Context {
-    internal static func makeError(code: Int = 0, _ message: String) -> Swift.Error {
-        NSError(domain: "LambdaDeploy", code: code, userInfo: [
-            NSLocalizedDescriptionKey: message
-        ])
-    }
-
-
-    private static func _findExecutable(_ name: String) -> URL {
-        guard let url = Task.findExecutable(named: name) else {
-            fatalError("Unable to find executable '\(name)'")
-        }
-        return url
-    }
-
     static let dockerBin = _findExecutable("docker")
     static let zipBin = _findExecutable("zip")
     static let logger = Logger(label: "de.lukaskollmer.ApodiniLambda")
@@ -55,5 +42,40 @@ enum Context {
         #else
         return Bundle.module
         #endif
+    }
+    
+    
+    static func makeError(code: Int = 0, _ message: String) -> Swift.Error {
+        NSError(domain: "LambdaDeploy", code: code, userInfo: [
+            NSLocalizedDescriptionKey: message
+        ])
+    }
+    
+    static func makeAWSCredentialProviderFactory(profileName: String?) -> SotoCore.CredentialProviderFactory {
+        if let profileName = profileName {
+            return .configFile(profile: profileName)
+        } else if let credentials = readAwsCredentialsFromEnvironment() {
+            return .static(accessKeyId: credentials.accessKeyId, secretAccessKey: credentials.secretAccessKey)
+        } else {
+            // if no profile name was explicitly specified, and we also were unable
+            // to find credentials in the environment variables, we fall back to the "default" profile
+            return .configFile(profile: "default")
+        }
+    }
+    
+    private static func readAwsCredentialsFromEnvironment() -> (accessKeyId: String, secretAccessKey: String)? {
+        let env = ProcessInfo.processInfo.environment
+        if let accessKey = env["AWS_ACCESS_KEY_ID"], let secretAccessKey = env["AWS_SECRET_ACCESS_KEY"] {
+            return (accessKey, secretAccessKey)
+        } else {
+            return nil
+        }
+    }
+    
+    private static func _findExecutable(_ name: String) -> URL {
+        guard let url = Task.findExecutable(named: name) else {
+            fatalError("Unable to find executable '\(name)'")
+        }
+        return url
     }
 }
