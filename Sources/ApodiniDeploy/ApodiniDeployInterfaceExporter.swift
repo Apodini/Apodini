@@ -145,8 +145,6 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
     
     private func performDeploymentRelatedActions() throws {
         let env = ProcessInfo.processInfo.environment
-        
-        // If those enironment variables do not exist, return immediatly
         guard let mode = env[WellKnownEnvironmentVariables.executionMode],
               let fileURL = env[WellKnownEnvironmentVariables.fileUrl]
         else {
