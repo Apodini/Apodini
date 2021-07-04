@@ -9,11 +9,7 @@ import Foundation
 import XCTApodini
 
 
-class ResultTransformerTests: XCTApodiniTest {
-    struct MockHandler: Handler {
-        func handle() -> String { "" }
-    }
-    
+class ResultTransformerTests: XCTApodiniTest {   
     struct ResponseUnawareTransformer<E: Encodable>: ResultTransformer {
         func transform(input: E) throws -> E {
             input
@@ -39,8 +35,6 @@ class ResultTransformerTests: XCTApodiniTest {
             XCTAssertEqual(apodini.option(for: .errorType), .serverError)
         }
     }
-    
-    
     
     func testSomethingWithResponseUnawareTransformer() throws {
         let eventLoop = app.eventLoopGroup.next()
