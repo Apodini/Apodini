@@ -56,7 +56,15 @@ class DecodingStrategiesTests: XCTApodiniTest {
         let parameter = Parameter<String>(.http(.path))
         
         let endpoint = MockHandler().mockEndpoint(app: app)
-        endpoint[EndpointParameters.self] = [EndpointParameter<String>(id: parameter.id, name: "", label: "", nilIsValidValue: false, necessity: .required, options: parameter.options, defaultValue: nil)]
+        endpoint[EndpointParameters.self] = [
+            EndpointParameter<String>(id: parameter.id,
+                                      name: "",
+                                      label: "",
+                                      nilIsValidValue: false,
+                                      necessity: .required,
+                                      options: parameter.options,
+                                      defaultValue: nil)
+        ]
         
         let strategy = PathStrategy(useNameAsIdentifier: false).applied(to: endpoint)
         
