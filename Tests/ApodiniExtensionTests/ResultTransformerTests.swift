@@ -9,7 +9,7 @@ import Foundation
 import XCTApodini
 
 
-class ResultTransformerTests: XCTApodiniTest {   
+class ResultTransformerTests: XCTApodiniTest {
     struct ResponseUnawareTransformer<E: Encodable>: ResultTransformer {
         func transform(input: E) throws -> E {
             input
