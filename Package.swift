@@ -366,6 +366,13 @@ let package = Package(
             ]
         ),
         
+            .testTarget(
+                name: "ApodiniExtensionTests",
+                dependencies: [
+                    .target(name: "XCTApodini"),
+                ]
+            ),
+        
         //
         // MARK: Deploy
         //

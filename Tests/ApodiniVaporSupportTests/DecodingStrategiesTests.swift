@@ -72,8 +72,9 @@ class DecodingStrategiesTests: XCTApodiniTest {
     }
     
     private func singleParameterStrategy<Value>(for parameter: Parameter<Value>) -> AnyDecodingStrategy<Data> {
-        IdentifierBasedStrategy<Data>()
+        (IdentifierBasedStrategy<Data>()
                             .with(strategy: PlainPatternStrategy<IdentityPattern<String>>(JSONDecoder()), for: parameter)
+                            .typeErased as AnyBaseDecodingStrategy<Data>)
                             .typeErased
     }
 }

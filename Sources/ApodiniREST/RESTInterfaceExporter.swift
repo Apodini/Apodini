@@ -144,38 +144,6 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
         // Set option to activate case insensitive routing, default is false (so case-sensitive)
         self.app.routes.caseInsensitive = self.exporterConfiguration.caseInsensitiveRouting
     }
-    
-    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Vapor.Request) throws -> Type?? {
-        switch parameter.parameterType {
-        case .lightweight:
-            // Note: Vapor also supports decoding into a struct which holds all query parameters. Though we have the requirement,
-            //   that .lightweight parameter types conform to LosslessStringConvertible, meaning our DSL doesn't allow for that right now
-            guard let query = request.query[Type.self, at: parameter.name] else {
-                return nil // the query parameter doesn't exists
-            }
-            return query
-        case .path:
-            guard let stringParameter = request.parameters.get(parameter.pathId) else {
-                return nil // the path parameter didn't exist on that request
-            }
-            
-            guard let value = parameter.initLosslessStringConvertibleParameterValue(from: stringParameter) else {
-                throw ApodiniError(type: .badInput, reason: """
-                                                            Encountered illegal input for path parameter \(parameter.name).
-                                                            \(Type.self) can't be initialized from \(stringParameter).
-                                                            """)
-            }
-            
-            return value
-        case .content:
-            guard request.body.data != nil else {
-                // If the request doesn't have a body, there is nothing to decide.
-                return nil
-            }
-            
-            return try? request.content.decode(Type.self, using: self.exporterConfiguration.decoder)
-        }
-    }
 }
 
 
