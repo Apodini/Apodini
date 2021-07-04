@@ -9,7 +9,6 @@ import Foundation
 import Apodini
 import ApodiniUtils
 import ApodiniDeployBuildSupport
-import Vapor
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
@@ -98,21 +97,6 @@ extension HandlerInvocation {
                 throw error
             }
         }
-        
-        /// Encode the parameter's value into a `Vapor.ContentContainer`, using the specified `Vapor.ContentEncoder`
-        public func encodeValue(into content: inout Vapor.ContentContainer, using encoder: Vapor.ContentEncoder) throws {
-            let box = Box(content)
-            switch AnyEncodableEncodeIntoVaporContentATRVisitor(boxedContentContainer: box, encoder: encoder)(value) {
-            case .none:
-                throw ApodiniDeployRuntimeSupportError(message: "Value is not encodable")
-            case .some(.none):
-                // success
-                content = box.value
-            case .some(.some(let error)):
-                // the encoding process failed
-                throw error
-            }
-        }
     }
 }
 
@@ -139,20 +123,5 @@ private struct AnyEncodableEncodeUsingEncoderATRVisitor: AnyEncodableATRVisitorB
     let encoder: AnyEncoder
     func callAsFunction<T: Encodable>(_ value: T) -> Result<Data, Error> {
         .init(catching: { try encoder.encode(value) })
-    }
-}
-
-
-private struct AnyEncodableEncodeIntoVaporContentATRVisitor: AnyEncodableATRVisitorBase { // swiftlint:disable:this type_name
-    let boxedContentContainer: Box<Vapor.ContentContainer>
-    let encoder: Vapor.ContentEncoder
-    
-    func callAsFunction<T: Encodable>(_ value: T) -> Error? {
-        do {
-            try boxedContentContainer.value.encode(value, using: encoder)
-            return nil
-        } catch {
-            return error
-        }
     }
 }

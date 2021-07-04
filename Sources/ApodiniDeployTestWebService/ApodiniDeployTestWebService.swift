@@ -13,11 +13,13 @@ import ApodiniOpenAPI
 struct WebService: Apodini.WebService {
     var content: some Component {
         Group("aws_rand") {
-            Text2("").operation(.create)
+            TextHandler("")
+                .operation(.create)
             AWS_RandomNumberGenerator(handlerId: .main)
         }.formDeploymentGroup(withId: "group_aws_rand")
         Group("aws_rand2") {
-            Text2("").operation(.create)
+            TextHandler("")
+                .operation(.create)
             AWS_RandomNumberGenerator(handlerId: .other)
         }.formDeploymentGroup(withId: "group_aws_rand2")
         Group("aws_greet") {
@@ -34,7 +36,8 @@ struct WebService: Apodini.WebService {
             LH_Greeter()
         }
         Text("change is")
-        Text("the only constant").operation(.delete)
+        Text("the only constant")
+            .operation(.delete)
     }
     
     var configuration: Configuration {

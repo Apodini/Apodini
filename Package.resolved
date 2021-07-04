@@ -2,7 +2,7 @@
   "object": {
     "pins": [
       {
-        "package": "APNSwift",
+        "package": "apnswift",
         "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
         "state": {
           "branch": null,
@@ -200,7 +200,7 @@
         }
       },
       {
-        "package": "NioDNS",
+        "package": "DNSClient",
         "repositoryURL": "https://github.com/OpenKitten/NioDNS.git",
         "state": {
           "branch": null,
@@ -266,8 +266,8 @@
         "package": "Runtime",
         "repositoryURL": "https://github.com/Supereg/Runtime.git",
         "state": {
-          "branch": "fix/linux-swift5.4-class-metadata-layout",
-          "revision": "c71b275c39094f07fd94832604cf6eddb8479093",
+          "branch": "master",
+          "revision": "596e22a518bb3f8177cd796cd77e5386098a33f8",
           "version": null
         }
       },
