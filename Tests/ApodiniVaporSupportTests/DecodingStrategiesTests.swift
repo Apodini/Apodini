@@ -10,7 +10,6 @@ import ApodiniVaporSupport
 import Vapor
 @testable import Apodini
 import XCTVapor
-import SwiftUI
 
 typealias Request = Vapor.Request
 
