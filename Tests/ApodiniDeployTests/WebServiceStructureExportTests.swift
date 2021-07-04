@@ -15,7 +15,6 @@ import ApodiniUtils
 import DeploymentTargetLocalhostRuntime
 import DeploymentTargetLocalhostCommon
 import DeploymentTargetAWSLambdaCommon
-import ApodiniDeployTestWebService
 
 
 private struct TestWebService: Apodini.WebService {
