@@ -46,6 +46,8 @@ extension Component {
     public func accept(_ visitor: SyntaxTreeVisitor) {
         preconditionTypeIsStruct(Self.self, messagePrefix: "Component")
 
+        visitor.markContextWorkSetBegin()
+
         if let visitable = self as? SyntaxTreeVisitable {
             // This cases covers any Components conforming to SyntaxTreeVisitable.
             // Most commonly this are Modifiers, but also Components like `Group`
@@ -113,6 +115,8 @@ private protocol ModifierVisitor: AssociatedTypeRequirementsVisitor {
 
 private struct TestModifier: Modifier {
     var component = Text("")
+
+    func parseModifier(_ visitor: SyntaxTreeVisitor) {}
 }
 
 extension ModifierVisitor {

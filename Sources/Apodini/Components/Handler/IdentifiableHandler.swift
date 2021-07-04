@@ -22,13 +22,12 @@ struct ExplicitHandlerIdentifierContextKey: Apodini.OptionalContextKey {
 }
 
 
-public struct ExplicitlyIdentifiedHandlerModifier<Content: Handler>: HandlerModifier, SyntaxTreeVisitable {
+public struct ExplicitlyIdentifiedHandlerModifier<Content: Handler>: HandlerModifier {
     public let component: Content
     let identifier: AnyHandlerIdentifier
-    
-    public func accept(_ visitor: SyntaxTreeVisitor) {
+
+    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(ExplicitHandlerIdentifierContextKey.self, value: identifier, scope: .current)
-        component.accept(visitor)
     }
 }
 

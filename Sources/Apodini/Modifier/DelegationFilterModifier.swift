@@ -36,17 +36,14 @@ public struct DelegationFilterModifier<C: Component>: Modifier {
         self.filter = filter
         self.prepend = prepend
     }
+
+    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
+        visitor.addContext(DelegatingHandlerContextKey.self, value: [(prepend, filter)], scope: .environment)
+    }
 }
 
 extension DelegationFilterModifier: HandlerModifier where Self.ModifiedComponent: Handler {
     public typealias Response = C.Response
-}
-
-extension DelegationFilterModifier: SyntaxTreeVisitable {
-    public func accept(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(DelegatingHandlerContextKey.self, value: [(prepend, filter)], scope: .environment)
-        component.accept(visitor)
-    }
 }
 
 

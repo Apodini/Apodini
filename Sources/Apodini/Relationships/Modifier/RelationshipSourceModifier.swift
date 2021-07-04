@@ -3,11 +3,8 @@
 //
 
 public struct RelationshipSourceContextKey: ContextKey {
+    public typealias Value = [Relationship]
     public static var defaultValue: [Relationship] = []
-
-    public static func reduce(value: inout [Relationship], nextValue: () -> [Relationship]) {
-        value.append(contentsOf: nextValue())
-    }
 }
 
 public struct RelationshipSourceModifier<H: Handler>: HandlerModifier {
@@ -18,12 +15,9 @@ public struct RelationshipSourceModifier<H: Handler>: HandlerModifier {
         self.component = component
         self.relationship = relationship
     }
-}
 
-extension RelationshipSourceModifier: SyntaxTreeVisitable {
-    public func accept(_ visitor: SyntaxTreeVisitor) {
+    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(RelationshipSourceContextKey.self, value: [relationship], scope: .current)
-        component.accept(visitor)
     }
 }
 

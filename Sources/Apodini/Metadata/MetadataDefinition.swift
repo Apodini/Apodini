@@ -27,6 +27,9 @@ public protocol MetadataDefinition: AnyMetadata {
     /// The value which is to be stored.
     var value: Key.Value { get }
     /// The `Scope` in which the value is stored.
+    /// In most cases you should not need to provide a custom value for this property.
+    /// Apodini provides strong defaults, `Scope.current` for most Metadata and
+    /// `Scope.environment` for Component Metadata.
     static var scope: Scope { get }
 }
 
@@ -37,6 +40,7 @@ public extension MetadataDefinition {
     }
 }
 
+// MARK: SyntaxTreeVisitor
 public extension MetadataDefinition {
     /// Default implementation to add the encapsulated value to the current `Context`.
     func accept(_ visitor: SyntaxTreeVisitor) {

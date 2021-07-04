@@ -86,7 +86,7 @@ extension Node {
     ///
     /// The child of a node, that is not included in the result, is also not included.
     /// - Parameter isIncluded: A closure that takes a value of the node as its argument and returns
-    /// a Boolean value that indicates wether the passed value is included.
+    /// a Boolean value that indicates whether the passed value is included.
     /// - Returns: A tree of values that
     public func filter(_ isIncluded: (T) throws -> Bool) rethrows -> Tree<T> {
         guard try isIncluded(self.value) else {

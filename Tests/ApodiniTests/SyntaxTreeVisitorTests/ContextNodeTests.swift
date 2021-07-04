@@ -32,9 +32,17 @@ struct IntOptionalContextKey: OptionalContextKey {
 struct IntAdditionContextKey: ContextKey {
     static var defaultValue: Int = 2
 
-    static func reduce(value: inout Int, nextValue: () -> Int) {
-        value += nextValue()
+    static func reduce(value: inout Int, nextValue: Int) {
+        value += nextValue
     }
+}
+
+struct StringContextKey: OptionalContextKey {
+    typealias Value = String
+}
+
+struct IntArrayContextKey: OptionalContextKey {
+    typealias Value = [Int]
 }
 
 struct IllegalOptionalContextKey: OptionalContextKey {
@@ -43,7 +51,7 @@ struct IllegalOptionalContextKey: OptionalContextKey {
 }
 
 
-struct IntModifier<C: Component>: Modifier, SyntaxTreeVisitable {
+struct IntModifier<C: Component>: Modifier {
     let component: C
     let scope: Scope
     let value: Int
@@ -54,14 +62,8 @@ struct IntModifier<C: Component>: Modifier, SyntaxTreeVisitable {
         self.value = value
     }
 
-    func accept(_ visitor: SyntaxTreeVisitor) {
-        switch scope {
-        case .environment:
-            visitor.addContext(IntContextKey.self, value: value, scope: .environment)
-        case .current:
-            visitor.addContext(IntContextKey.self, value: value, scope: .current)
-        }
-        component.accept(visitor)
+    func parseModifier(_ visitor: SyntaxTreeVisitor) {
+        visitor.addContext(IntContextKey.self, value: value, scope: scope)
     }
 }
 
@@ -70,7 +72,7 @@ extension IntModifier: Handler, HandlerModifier, HandlerMetadataNamespace where 
 }
 
 
-struct OptionalIntModifier<C: Component>: Modifier, SyntaxTreeVisitable {
+struct OptionalIntModifier<C: Component>: Modifier {
     let component: C
     let scope: Scope
     let value: Int
@@ -81,14 +83,8 @@ struct OptionalIntModifier<C: Component>: Modifier, SyntaxTreeVisitable {
         self.value = value
     }
 
-    func accept(_ visitor: SyntaxTreeVisitor) {
-        switch scope {
-        case .environment:
-            visitor.addContext(IntOptionalContextKey.self, value: value, scope: .environment)
-        case .current:
-            visitor.addContext(IntOptionalContextKey.self, value: value, scope: .current)
-        }
-        component.accept(visitor)
+    func parseModifier(_ visitor: SyntaxTreeVisitor) {
+        visitor.addContext(IntOptionalContextKey.self, value: value, scope: scope)
     }
 }
 
@@ -97,7 +93,7 @@ extension OptionalIntModifier: Handler, HandlerModifier, HandlerMetadataNamespac
 }
 
 
-struct IntAdditionModifier<C: Component>: Modifier, SyntaxTreeVisitable {
+struct IntAdditionModifier<C: Component>: Modifier {
     let component: C
     let scope: Scope
     let value: Int
@@ -108,18 +104,52 @@ struct IntAdditionModifier<C: Component>: Modifier, SyntaxTreeVisitable {
         self.value = value
     }
 
-    func accept(_ visitor: SyntaxTreeVisitor) {
-        switch scope {
-        case .environment:
-            visitor.addContext(IntAdditionContextKey.self, value: value, scope: .environment)
-        case .current:
-            visitor.addContext(IntAdditionContextKey.self, value: value, scope: .current)
-        }
-        component.accept(visitor)
+    func parseModifier(_ visitor: SyntaxTreeVisitor) {
+        visitor.addContext(IntAdditionContextKey.self, value: value, scope: scope)
     }
 }
 
 extension IntAdditionModifier: Handler, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: Handler {
+    typealias Response = ModifiedComponent.Response
+}
+
+struct StringModifier<C: Component>: Modifier {
+    let component: C
+    let scope: Scope
+    let value: String
+
+    init(_ component: C, scope: Scope, value: String) {
+        self.component = component
+        self.scope = scope
+        self.value = value
+    }
+
+    func parseModifier(_ visitor: SyntaxTreeVisitor) {
+        visitor.addContext(StringContextKey.self, value: value, scope: scope)
+    }
+}
+
+extension StringModifier: Handler, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: Handler {
+    typealias Response = ModifiedComponent.Response
+}
+
+struct IntArrayModifier<C: Component>: Modifier {
+    let component: C
+    let scope: Scope
+    let value: [Int]
+
+    init(_ component: C, scope: Scope, value: [Int]) {
+        self.component = component
+        self.scope = scope
+        self.value = value
+    }
+
+    func parseModifier(_ visitor: SyntaxTreeVisitor) {
+        visitor.addContext(IntArrayContextKey.self, value: value, scope: scope)
+    }
+}
+
+extension IntArrayModifier: Handler, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: Handler {
     typealias Response = ModifiedComponent.Response
 }
 
@@ -134,6 +164,14 @@ extension Component {
 
     func addingInt(_ scope: Scope, value: Int) -> IntAdditionModifier<Self> {
         IntAdditionModifier(self, scope: scope, value: value)
+    }
+
+    func string(_ scope: Scope, value: String) -> StringModifier<Self> {
+        StringModifier(self, scope: scope, value: value)
+    }
+
+    func arrayInt(_ scope: Scope, value: [Int]) -> IntArrayModifier<Self> {
+        IntArrayModifier(self, scope: scope, value: value)
     }
 }
 
@@ -338,10 +376,10 @@ final class ContextNodeTests: ApodiniTests {
                     switch testComponent.type {
                     case 1:
                         XCTAssertEqual(pathString, "test")
-                        XCTAssertEqual(intValue, 3)
+                        XCTAssertEqual(intValue, 1)
                     case 2:
                         XCTAssertEqual(pathString, "test")
-                        XCTAssertEqual(intValue, 4)
+                        XCTAssertEqual(intValue, 2)
                     default:
                         XCTFail("Received unknown component type \(testComponent.type)")
                     }
@@ -354,6 +392,32 @@ final class ContextNodeTests: ApodiniTests {
         let visitor = SyntaxTreeVisitor(modelBuilder: TestSemanticModelBuilder(app))
         groupWithIntAddition.accept(visitor)
         visitor.finishParsing()
+    }
+
+    func testDefaultReduceForStringBasedContextKeys() {
+        let handler = TestComponent(1)
+            .string(.current, value: "Hello")
+            .string(.current, value: "World")
+
+        let visitor = SyntaxTreeVisitor()
+        handler.accept(visitor)
+
+        let context = visitor.currentNode.export()
+
+        XCTAssertEqual(context.get(valueFor: StringContextKey.self), "World")
+    }
+
+    func testDefaultReduceForArrayBasedContextKeys() {
+        let handler = TestComponent(1)
+            .arrayInt(.current, value: [1, 2])
+            .arrayInt(.current, value: [3, 4])
+
+        let visitor = SyntaxTreeVisitor()
+        handler.accept(visitor)
+
+        let context = visitor.currentNode.export()
+
+        XCTAssertEqual(context.get(valueFor: IntArrayContextKey.self), [1, 2, 3, 4])
     }
 
     func testAddingIllegalContextKey() {

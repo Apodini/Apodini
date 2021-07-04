@@ -9,7 +9,6 @@ extension Array where Element == PathComponent {
     func pathModelBuilder() -> PathModelBuilder {
         var builder = PathModelBuilder()
         for component in self {
-            let component = component.toInternal()
             builder.append(component)
         }
         return builder
@@ -30,9 +29,6 @@ struct PathModelBuilder: PathComponentParser {
 
         let pathComponent = pathComponent.toInternal()
         pathComponent.accept(&self)
-
-        // we don't have multiple context nodes on the same level, but just to behave as expected
-        currentContext.resetContextNode()
     }
 
     func addContext<C: OptionalContextKey>(_ contextKey: C.Type, value: C.Value) {
@@ -40,9 +36,11 @@ struct PathModelBuilder: PathComponentParser {
     }
 
     func parseCurrentContext() -> PathContext {
-        let name = currentContext.getContextValue(for: RelationshipNameContextKey.self)
-        let hidden = currentContext.getContextValue(for: HideLinkContextKey.self) ?? []
-        let groupEnd = currentContext.getContextValue(for: MarkGroupEndModifierContextKey.self) ?? false
+        let context = currentContext.export()
+
+        let name = context.get(valueFor: RelationshipNameContextKey.self)
+        let hidden = context.get(valueFor: HideLinkContextKey.self) ?? []
+        let groupEnd = context.get(valueFor: MarkGroupEndModifierContextKey.self) ?? false
 
         return PathContext(relationshipName: name, hiddenOperations: hidden, groupEnd: groupEnd)
     }

@@ -6,11 +6,8 @@
 //
 
 public struct PathComponentContextKey: ContextKey {
+    public typealias Value = [PathComponent]
     public static var defaultValue: [PathComponent] = []
-
-    public static func reduce(value: inout [PathComponent], nextValue: () -> [PathComponent]) {
-        value.append(contentsOf: nextValue())
-    }
 }
 
 

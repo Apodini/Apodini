@@ -25,7 +25,7 @@ public extension Handler {
         app: Application? = nil,
         context: Context? = nil
     ) -> (Endpoint<Self>, RelationshipEndpoint<Self>) {
-        let context = context ?? Context(contextNode: ContextNode())
+        let context = context ?? Context()
         var handler = self
         if let application = app {
             handler = handler.inject(app: application)
