@@ -16,12 +16,9 @@ public struct TagModifier<H: Handler>: HandlerModifier {
         self.component = component
         self.tags = tags
     }
-}
 
-extension TagModifier: SyntaxTreeVisitable {
-    public func accept(_ visitor: SyntaxTreeVisitor) {
+    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(TagContextKey.self, value: tags, scope: .current)
-        component.accept(visitor)
     }
 }
 

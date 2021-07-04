@@ -42,21 +42,20 @@ extension DeploymentGroup {
 struct DSLSpecifiedDeploymentGroupIdContextKey: OptionalContextKey {
     typealias Value = DeploymentGroup.ID
     
-    static func reduce(value: inout Value, nextValue: () -> Value) {
-        fatalError("Component cannot have multiple explicitly specified deployment groups. Conflicting groups are '\(value)' and '\(nextValue())'")
+    static func reduce(value: inout Value, nextValue: Value) {
+        fatalError("Component cannot have multiple explicitly specified deployment groups. Conflicting groups are '\(value)' and '\(nextValue)'")
     }
 }
 
 
-public struct DeploymentGroupModifier<Content: Component>: Modifier, SyntaxTreeVisitable {
+public struct DeploymentGroupModifier<Content: Component>: Modifier {
     public let component: Content
     let groupId: DeploymentGroup.ID
     let options: [AnyDeploymentOption]
-    
-    public func accept(_ visitor: SyntaxTreeVisitor) {
+
+    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(DSLSpecifiedDeploymentGroupIdContextKey.self, value: groupId, scope: .environment)
         visitor.addContext(HandlerDeploymentOptionsContextKey.self, value: options, scope: .environment)
-        component.accept(visitor)
     }
 }
 
@@ -78,22 +77,16 @@ extension Group {
 
 struct HandlerDeploymentOptionsContextKey: Apodini.ContextKey {
     typealias Value = [AnyDeploymentOption]
-    
     static let defaultValue: Value = []
-    
-    static func reduce(value: inout Value, nextValue: () -> Value) {
-        value.append(contentsOf: nextValue())
-    }
 }
 
 
-public struct DeploymentOptionsModifier<C: Component>: Modifier, SyntaxTreeVisitable {
+public struct DeploymentOptionsModifier<C: Component>: Modifier {
     public let component: C
     public let deploymentOptions: [AnyDeploymentOption]
-    
-    public func accept(_ visitor: SyntaxTreeVisitor) {
+
+    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(HandlerDeploymentOptionsContextKey.self, value: deploymentOptions, scope: .environment)
-        component.accept(visitor)
     }
 }
 

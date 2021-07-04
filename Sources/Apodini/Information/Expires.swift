@@ -13,6 +13,7 @@ import Foundation
 public struct Expires: Information {
     private static let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "en_US")
         dateFormatter.dateFormat = "EEE, dd LLL yyyy HH:mm:ss zzz"
         return dateFormatter
     }()
