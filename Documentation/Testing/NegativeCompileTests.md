@@ -72,4 +72,8 @@ Those are:
 - If run on linux platform we assume test discovery was enabled an append `--enable-test-discovery`
 - When using the `--enable-code-coverage` flag we require that the Active Compilation Condition `COVERAGE` is also 
   set by supplying `-Xswiftc -DCOVERAGE`. When detecting `COVERAGE` we therefore
-  append `--enable-code-coverage -Xswiftc -DCOVERAGE` 
+  append `--enable-code-coverage -Xswiftc -DCOVERAGE`
+- When detecting the `WORKAROUND` Active Compilation Condition we pass the
+  `-Xswiftc -DWORKAROUND -Xswiftc -Xfrontend -Xswiftc -sil-verify-none` arguments to the compiler.
+  Those are part of a workaround introduced in [#294](https://github.com/Apodini/Apodini/pull/294) in order
+  to compile on linux platforms with swift 5.4.

@@ -47,7 +47,7 @@ jobs:
     - name: Check Swift version
       run: swift --version
     - name: Debug Build & Test
-      run: swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug
+      run: swift test -Xswiftc -DWORKAROUND -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug
   macos:
     name: macOS ${{ matrix.configuration }}
     runs-on: macos-11
@@ -118,7 +118,7 @@ jobs:
       run: swift build -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c release
     - name: Release Build & Test
       if: matrix.configuration == 'release_testing'
-      run: swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c release -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
+      run: swift test -Xswiftc -DWORKAROUND -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c release -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
     - name: Debug Build & Test
       if: matrix.configuration == 'debug'
-      run: swift test -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug
+      run: swift test -Xswiftc -DWORKAROUND -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug
