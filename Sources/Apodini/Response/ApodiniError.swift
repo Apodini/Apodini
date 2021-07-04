@@ -31,20 +31,29 @@ public struct ApodiniError: Error {
     public typealias Option = AnyPropertyOption<ErrorOptionNameSpace>
     
     private let `type`: ErrorType
-    
+
     private let reason: String?
-    
+
     private let description: String?
+
+    public let information: InformationSet
     
     private let options: PropertyOptionSet<ErrorOptionNameSpace>
     
-    internal init(type: ErrorType, reason: String? = nil, description: String? = nil, _ options: PropertyOptionSet<ErrorOptionNameSpace>) {
+    internal init(
+        type: ErrorType,
+        reason: String? = nil,
+        description: String? = nil,
+        information: InformationSet = [],
+        _ options: PropertyOptionSet<ErrorOptionNameSpace>
+    ) {
         self.options = options
         self.type = `type`
         self.reason = reason
         self.description = description
+        self.information = information
     }
-    
+
     /// Create a new `ApodiniError` from its base components:
     /// - Parameter `type`: The associated `ErrorType`. If `other` is chosen, the `options` should be
     ///   used to provide additional guidance for the exporters.
@@ -55,11 +64,35 @@ public struct ApodiniError: Error {
         self.init(type: type, reason: reason, description: description, PropertyOptionSet(options))
     }
     
+    /// Create a new `ApodiniError` from its base components:
+    /// - Parameter `type`: The associated `ErrorType`. If `other` is chosen, the `options` should be
+    ///   used to provide additional guidance for the exporters.
+    /// - Parameter `reason`: The **public** reason explaining what led to the this error.
+    /// - Parameter `description`: The **internal** description of this error. This will only be exposed in `DEBUG` mode.
+    /// - Parameter `information`: Possible array of `Information` entries attached to the `Response`.
+    /// - Parameter `options`: Possible exporter-specific options that provide guidance for how to handle this error.
+    public init(type: ErrorType, reason: String? = nil, description: String? = nil, information: AnyInformation..., options: Option...) {
+        self.init(type: type, reason: reason, description: description, information: InformationSet(information), PropertyOptionSet(options))
+    }
+    
     /// Create a new `ApodiniError` from this instance using a different `reason` and/or `description`
     /// - Parameter `reason`: The **public** reason explaining what led to the this error.
     /// - Parameter `description`: The **internal** description of this error. This will only be exposed in `DEBUG` mode.
-    public func callAsFunction(reason: String? = nil, description: String? = nil) -> ApodiniError {
-        ApodiniError(type: self.type, reason: reason ?? self.reason, description: description ?? self.description, self.options)
+    ///   - information: If provided, it creates a union of the provided `Information` entries and the existing ones.
+    ///   - options: If provided, it appends exporter-specific options to the existing ones.
+    public func callAsFunction(
+        reason: String? = nil,
+        description: String? = nil,
+        information: AnyInformation...,
+        options: Option...
+    ) -> ApodiniError {
+        ApodiniError(
+            type: type,
+            reason: reason ?? self.reason,
+            description: description ?? self.description,
+            information: self.information.union(information),
+            PropertyOptionSet(lhs: self.options, rhs: options)
+        )
     }
 }
 

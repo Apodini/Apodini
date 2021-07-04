@@ -17,7 +17,7 @@ public struct ResponseContainer: Encodable, ResponseEncodable {
     
     
     let status: Status?
-    let information: Set<AnyInformation>
+    let information: InformationSet
     let data: AnyEncodable?
     let links: Links?
     let encoder: AnyEncoder
@@ -28,7 +28,7 @@ public struct ResponseContainer: Encodable, ResponseEncodable {
     
     init<E: Encodable>(_ type: E.Type = E.self,
                        status: Status? = nil,
-                       information: Set<AnyInformation> = [],
+                       information: InformationSet = [],
                        data: E? = nil,
                        links: Links? = nil,
                        encoder: AnyEncoder = JSONEncoder()) {

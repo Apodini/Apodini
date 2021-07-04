@@ -11,37 +11,64 @@ import ApodiniUtils
 
 public struct Response<Content: Encodable>: ResponseTransformable {
     public static var nothing: Response<Content> {
-        Response<Content>(connectionEffect: .open)
+        Response<Content>(information: InformationSet(), connectionEffect: .open)
     }
     
     public static var end: Response<Content> {
-        Response<Content>(connectionEffect: .close)
+        Response<Content>(information: InformationSet(), connectionEffect: .close)
     }
-    
-    public static func send(_ content: Content, status: Status? = nil, information: Set<AnyInformation> = []) -> Response<Content> {
+
+
+    public static func send(_ content: Content, status: Status? = nil, information: [AnyInformation] = []) -> Response<Content> {
+        // nil must not be passable by the user as a value
         Response<Content>(status: status, content: content, information: information, connectionEffect: .open)
     }
-    
-    public static func send(_ status: Status? = nil, information: Set<AnyInformation> = []) -> Response<Content> {
+
+    public static func send(_ content: Content, status: Status? = nil, information: AnyInformation...) -> Response<Content> {
+        // nil must not be passable by the user as a value
+        Response<Content>(status: status, content: content, information: information, connectionEffect: .open)
+    }
+
+
+    public static func send(_ status: Status? = nil, information: [AnyInformation] = []) -> Response<Content> {
         Response<Content>(status: status, information: information, connectionEffect: .open)
     }
-    
-    public static func final(_ content: Content, status: Status? = nil, information: Set<AnyInformation> = []) -> Response<Content> {
+
+    public static func send(_ status: Status? = nil, information: AnyInformation...) -> Response<Content> {
+        Response<Content>(status: status, information: information, connectionEffect: .open)
+    }
+
+
+    public static func final(_ content: Content, status: Status? = nil, information: [AnyInformation] = []) -> Response<Content> {
+        // nil must not be passable by the user as a value
         Response<Content>(status: status, content: content, information: information, connectionEffect: .close)
     }
+
+    public static func final(_ content: Content, status: Status? = nil, information: AnyInformation...) -> Response<Content> {
+        // nil must not be passable by the user as a value
+        Response<Content>(status: status, content: content, information: information, connectionEffect: .close)
+    }
+
     
-    public static func final(_ status: Status? = nil, information: Set<AnyInformation> = []) -> Response<Content> {
+    public static func final(_ status: Status? = nil, information: [AnyInformation] = []) -> Response<Content> {
         Response<Content>(status: status, information: information, connectionEffect: .close)
     }
-    
+
+    public static func final(_ status: Status? = nil, information: AnyInformation...) -> Response<Content> {
+        Response<Content>(status: status, information: information, connectionEffect: .close)
+    }
+
     
     public let status: Status?
     public let content: Content?
-    public var information: Set<AnyInformation>
+    public var information: InformationSet
     public let connectionEffect: ConnectionEffect
-    
-    
-    private init(status: Status? = nil, content: Content? = nil, information: Set<AnyInformation> = [], connectionEffect: ConnectionEffect) {
+
+    private init(status: Status? = nil, content: Content? = nil, information: [AnyInformation] = [], connectionEffect: ConnectionEffect) {
+        self.init(status: status, content: content, information: InformationSet(information), connectionEffect: connectionEffect)
+    }
+
+    private init(status: Status? = nil, content: Content? = nil, information: InformationSet = [], connectionEffect: ConnectionEffect) {
         self.status = status
         self.content = content
         self.information = information
