@@ -31,10 +31,10 @@ public enum WellKnownEnvironmentVariableExecutionMode {
     /// Value of an environment variable to tell Apodini to write the web service's structure to disk.
     /// In the support framework so that we can share this constant between Apodini (which needs to check for it)
     /// and the deployment provider (which needs to pass it to the invocation).
-    public static let exportWebServiceModelStructure = "ApodiniDumpWebSericeModelStructure"
+    public static let exportWebServiceModelStructure = "exportWebServiceModelStructure"
     
     /// Value of an environment variable to tell an Apodini server that it's being launched with a custom config
-    public static let launchWebServiceInstanceWithCustomConfig = "ApodiniLaunchWebServiceInstanceWithCustomConfig"
+    public static let launchWebServiceInstanceWithCustomConfig = "launchWebServiceInstanceWithCustomConfig"
 }
 
 

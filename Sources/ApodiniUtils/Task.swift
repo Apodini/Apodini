@@ -177,25 +177,13 @@ public class Task {
             process.arguments = self.arguments
         }
         if inheritsParentEnvironment {
-            var environment = ProcessInfo.processInfo.environment
-
+            var env = ProcessInfo.processInfo.environment
             for (key, value) in self.environment {
-                if let environmentValue = value {
-                    environment[key] = environmentValue
-                } else {
-                    environment[key] = nil
-                }
+                env[key] = value
             }
-
-            process.environment = environment
+            process.environment = env
         } else {
-            process.environment = self.environment
-                .filter { _, value in
-                    value != nil
-                }
-                .mapValues { value -> String in
-                    value! // swiftlint:disable:this force_unwrapping
-                }
+            process.environment = self.environment.compactMapValues { $0 }
         }
         try process.run()
         isRunning = true
@@ -374,10 +362,11 @@ extension Task: CustomStringConvertible {
             ("launchInCurrentProcessGroup", launchInCurrentProcessGroup),
             ("inheritsParentEnvironment", inheritsParentEnvironment),
             ("environment", environment),
-            ("isRunning", isRunning)
+            ("isRunning", isRunning),
+            ("currentDirectoryURL", process.currentDirectoryURL?.path ?? "(null)")
         ]
         if isRunning {
-            properties .append(("pid", pid))
+            properties.append(("pid", pid))
         }
         return "<\(Self.self) \(properties.map { "\($0.0): \($0.1)" }.joined(separator: ", "))>"
     }
