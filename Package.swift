@@ -356,6 +356,15 @@ let package = Package(
             ]
         ),
         
+        .testTarget(
+            name: "ApodiniVaporSupportTests",
+            dependencies: [
+                .target(name: "XCTApodini"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "XCTVapor", package: "vapor")
+            ]
+        ),
+        
         //
         // MARK: Deploy
         //

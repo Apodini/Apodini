@@ -1,5 +1,5 @@
 //
-//  ResponseTransformers.swift
+//  ResultTransformers.swift
 //  
 //
 //  Created by Max Obermeier on 30.06.21.
