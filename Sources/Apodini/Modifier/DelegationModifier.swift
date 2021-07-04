@@ -88,47 +88,7 @@ public extension DelegatingHandlerInitializer {
 
 // MARK: DelegatingHandlerContextKey
 
-struct DelegatingHandlerContextKey: ContextKey {
-    typealias Value = [(Bool, AnyDelegatingHandlerInitializer)]
-    static var defaultValue: Value = []
-}
-
-
-// MARK: DelegatingHandlerInitializerVisitor
-
-class DelegatingHandlerInitializerVisitor: HandlerVisitor {
-    var initializers: [AnyDelegatingHandlerInitializer]
-    let semanticModelBuilder: SemanticModelBuilder?
-    unowned let visitor: SyntaxTreeVisitor
-    
-    init(calling builder: SemanticModelBuilder?, with visitor: SyntaxTreeVisitor) {
-        let initializers = visitor.currentNode.peekValue(for: DelegatingHandlerContextKey.self)
-        self.initializers = (initializers.filter { prepend, _ in prepend }.reversed()
-                                + initializers.filter { prepend, _ in !prepend }).map { _, initializer in initializer }
-        self.semanticModelBuilder = builder
-        self.visitor = visitor
-    }
-    
-    func visit<H: Handler>(handler: H) throws {
-        preconditionTypeIsStruct(H.self, messagePrefix: "Delegating Handler")
-
-        handler.metadata.accept(self.visitor)
-        
-        if !initializers.isEmpty {
-            let initializer = initializers.removeFirst()
-            
-            if let filter = initializer as? DelegationFilter {
-                initializers = initializers.filter { initializerToFilter in
-                    initializerToFilter.evaluate(filter: filter)
-                }
-                try visit(handler: handler)
-            } else {
-                let nextHandler = try initializer.anyinstance(for: handler)
-                try nextHandler.accept(self)
-            }
-        } else {
-            let context = visitor.currentNode.export()
-            semanticModelBuilder?.register(handler: handler, withContext: context)
-        }
-    }
+public struct DelegatingHandlerContextKey: ContextKey {
+    public typealias Value = [(Bool, AnyDelegatingHandlerInitializer)]
+    public static var defaultValue: Value = []
 }

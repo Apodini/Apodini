@@ -45,6 +45,10 @@ public extension MetadataDefinition {
     /// Default implementation to add the encapsulated value to the current `Context`.
     func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(Key.self, value: value, scope: Self.scope)
+
+        if let metadataWithDelegatingHandler = self as? AnyDefinitionWithDynamicDelegatingHandler {
+            metadataWithDelegatingHandler.addInitializerContextValue(visitor)
+        }
     }
 }
 

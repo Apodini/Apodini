@@ -229,3 +229,82 @@ struct  TestHandler: Handler {
   }
 }
 ```
+
+## 4. Special purpose Metadata
+
+The Metadata API provides some easy to use interfaces making the creation of common types of Metadata easier.
+This section highlights the most important cases.
+
+### 4.1. Metadata Definition providing a `DelegatingHandlerInitializer`
+
+A given Metadata Declaration might want to boostrap a `DelegatingHandler`
+(see [Delegating Handlers](https://github.com/Apodini/Apodini/wiki/Delegating-Handlers))
+via the `DelegatingHandlerContextKey`
+for the `Handler` it is declared on (this includes `HandlerMetadataDefinition`s but also `ComponenetMetadataDefinition`s
+declared on all sorts of `Component`s).
+
+The API differentiates between two cases, (a) a `MetadataDefinition` which adds the `DelegatingHandler` in addition
+to its _standard_ Metadata value identified via the provided `MetadataDefinition.Key` or (b)
+where the MetadataDefinition only contributes a `DelegatingHandler` and therefore the `MetadataDefinition.Key` is
+equal to the `DelegatingHandlerContextKey`.
+
+For both of the below-illustrated case, we assume the existence of a `FooBarDelegatingHandlerInitializer`.
+See the article on [Delegating Handlers](https://github.com/Apodini/Apodini/wiki/Delegating-Handlers) for how
+to create `DeleatginHandlers` and a appropriate `DelegatingHandlerInitializer`
+
+Both cases are illustrated below.
+
+#### 4.1.1. Providing a `DelegatingHandler` as an additional Metadata
+
+We assume the existence of the `FooBar` Metadata with the existing string based `FooBarMetadataContextKey`:
+
+```swift
+struct FooBarMetadata: HandlerMetadataDefinition {
+    typealias Key = FooBarMetadataContextKey
+    
+    var value: String
+    
+    init(foo: String) {
+        self.value = foo
+    }
+}
+```
+
+Now you can declare conformance to the `DefinitionWithDelegatingHandler` protocol on the `FooBarMetadata`.
+This will require us to implement the additional `var initializer: Initializer { get }` property providing
+an instance of the discussed `DelegatingHandlerInitializer`.
+
+```swift
+struct FooBarMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandler {
+    typealias Key = FooBarMetadataContextKey
+    
+    var value: String
+  
+    var initializer = FooBarDelegatingHandlerInitializer()
+    
+    init(foo: String) {
+        self.value = foo
+    }
+}
+```
+
+That's it. When the Metadata is parsed, it will now add the `value` for the `FooBarMetadataContextKey` and
+the `initializer` for the `DelegatingHandlerContextKey` (both added with the `MetadataDefinition.scope`).
+
+#### 4.1.2. Providing a `DelegatingHandler` as the primary Metadata
+
+When creating a `MetadataDefinition` which solely contributes a `DelegatingHandlerInitializer`, in addition
+to declaring conformance to the appropriate `MetadataDefinition` protocol (see [1.](#1-creating-the-metadata-definition))
+you need to declare conformance to the `DefinitionWithDelegatingHandlerKey` protocol.  
+This will require us to implement the additional `var initializer: Initializer { get }` property providing
+an instance of the discussed `DelegatingHandlerInitializer`.
+
+```swift
+struct FooBarMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandlerKey {
+    var initializer = FooBarDelegatingHandlerInitializer()
+  
+    init() {
+      // ...
+    }
+}
+```

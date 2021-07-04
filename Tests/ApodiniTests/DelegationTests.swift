@@ -349,4 +349,61 @@ final class DelegationTests: ApodiniTests {
         XCTAssertEqual(parameter.hasDefaultValue, false)
         XCTAssertEqual(parameter.option(for: .optionality), .required)
     }
+
+    func testDynamicDelegationInitializer() throws {
+        struct DynamicGuard<H: Handler>: Handler {
+            let delegate: Delegate<H>
+
+            func handle() throws -> H.Response {
+                try delegate
+                    .environmentObject("Alfred")()
+                    .handle()
+            }
+        }
+
+        struct DynamicGuardInitializer: DelegatingHandlerInitializer {
+            typealias Response = Never
+
+            func instance<D: Handler>(for delegate: D) throws -> SomeHandler<Response> {
+                SomeHandler<Response>(DynamicGuard(delegate: Delegate(delegate)))
+            }
+        }
+
+        struct DynamicGuardMetadata: HandlerMetadataDefinition {
+            typealias Key = DelegatingHandlerContextKey
+            let value: [(Bool, AnyDelegatingHandlerInitializer)] = [(false, DynamicGuardInitializer())]
+        }
+
+        struct TestHandler: Handler {
+            typealias DynGuard = DynamicGuardMetadata // simulates extension to the TypedHandlerMetadataNamespace
+
+            @EnvironmentObject
+            var passedName: String
+
+            func handle() -> String {
+                "Hello " + passedName
+            }
+
+            var metadata: Metadata {
+                DynGuard()
+            }
+        }
+
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
+
+        let handler = TestHandler()
+        handler.accept(visitor)
+        modelBuilder.finishedRegistration()
+
+        let endpoint = modelBuilder.collectedEndpoints[0]
+
+        let exporter = MockExporter<String>()
+        let context = endpoint.createAnyConnectionContext(for: exporter)
+
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next(), final: true),
+            content: "Hello Alfred"
+        )
+    }
 }

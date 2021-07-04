@@ -229,4 +229,93 @@ final class HandlerMetadataTest: ApodiniTests {
         let capturedStrings = context.get(valueFor: TestStringMetadataContextKey.self)
         XCTAssertEqual(capturedStrings, "TestDelegatingHandler")
     }
+
+    func testDynamicHandlerInitializerMetadata() throws {
+        struct DynamicNameGuard<H: Handler>: Handler {
+            let delegate: Delegate<H>
+
+            func handle() throws -> H.Response {
+                try delegate
+                    .environmentObject("Alfred")()
+                    .handle()
+            }
+        }
+
+        struct DynamicNameGuardInitializer: DelegatingHandlerInitializer {
+            typealias Response = Never
+            func instance<D: Handler>(for delegate: D) throws -> SomeHandler<Response> {
+                SomeHandler<Response>(DynamicNameGuard(delegate: Delegate(delegate)))
+            }
+        }
+
+        struct DynamicIntGuard<H: Handler>: Handler {
+            let delegate: Delegate<H>
+
+            func handle() throws -> H.Response {
+                try delegate
+                    .environmentObject(34)()
+                    .handle()
+            }
+        }
+
+        struct DynamicIntGuardInitializer: DelegatingHandlerInitializer {
+            typealias Response = Never
+            func instance<D: Handler>(for delegate: D) throws -> SomeHandler<Response> {
+                SomeHandler<Response>(DynamicIntGuard(delegate: Delegate(delegate)))
+            }
+        }
+
+
+        struct DynamicNameGuardMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandler {
+            typealias Key = DelegatingHandlerContextKey
+            let initializer = DynamicNameGuardInitializer()
+        }
+
+        struct SomeContextKey: OptionalContextKey {
+            typealias Value = String
+        }
+
+        struct DynamicIntGuardMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandler {
+            typealias Key = SomeContextKey
+            var value = "asdf"
+            var initializer = DynamicIntGuardInitializer()
+        }
+
+        struct TestHandler: Handler {
+            // simulates extension to the TypedHandlerMetadataNamespace
+            typealias NameGuard = DynamicNameGuardMetadata
+            typealias IntGuard = DynamicIntGuardMetadata
+
+            @EnvironmentObject
+            var passedName: String
+            @EnvironmentObject
+            var passedAge: Int
+
+            func handle() -> String {
+                "Hello \(passedName) \(passedAge)"
+            }
+
+            var metadata: Metadata {
+                NameGuard()
+                IntGuard()
+            }
+        }
+
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
+
+        let handler = TestHandler()
+        handler.accept(visitor)
+        modelBuilder.finishedRegistration()
+
+        let endpoint = modelBuilder.collectedEndpoints[0]
+
+        let exporter = MockExporter<String>()
+        let context = endpoint.createAnyConnectionContext(for: exporter)
+
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next(), final: true),
+            content: "Hello Alfred 34"
+        )
+    }
 }
