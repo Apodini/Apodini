@@ -12,6 +12,7 @@ import ApodiniOpenAPI
 import ApodiniUtils
 @testable import ApodiniDeploy
 @testable import ApodiniDeployBuildSupport
+import DeploymentTargetLocalhostRuntime
 import DeploymentTargetLocalhostCommon
 import DeploymentTargetAWSLambdaCommon
 import ApodiniDeployTestWebService
@@ -20,8 +21,14 @@ import ApodiniDeployTestWebService
 private struct TestWebService: Apodini.WebService {
     var content: some Component {
         Text("a")
+            .identified(by: "Handler1")
         Group("api") {
             Text("b")
+                .identified(by: "Handler2")
+                .deploymentOptions(
+                    .memory(.mb(175)),
+                    .timeout(.seconds(12))
+                )
         }
     }
     
@@ -29,7 +36,15 @@ private struct TestWebService: Apodini.WebService {
         REST {
             OpenAPI()
         }
-        ApodiniDeploy()
+        ApodiniDeploy(
+            runtimes: [LocalhostRuntime.self],
+            config: DeploymentConfig(
+                defaultGrouping: .separateNodes,
+                deploymentGroups: [
+                    .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")
+                ]
+            )
+        )
     }
 }
 
@@ -50,7 +65,7 @@ private struct StaticDeploymentProvider: DeploymentProvider {
 
 extension DeploymentProvider {
     func testableWebServiceStructureRetrieval() throws -> WebServiceStructure {
-        let service = ApodiniDeployTestWebService.WebService()
+        let service = TestWebService()
         service.runSyntaxTreeVisitor()
         return try retrieveWebServiceStructure()
     }
@@ -63,80 +78,31 @@ class WebServiceStructureExportTests: ApodiniDeployTestCase {
         ).testableWebServiceStructureRetrieval()
         
         XCTAssertEqual(wsStructure.enabledDeploymentProviders, [
-            localhostDeploymentProviderId, lambdaDeploymentProviderId
+            localhostDeploymentProviderId
         ])
-        
+
         XCTAssertEqual(
             wsStructure.deploymentConfig,
             DeploymentConfig(defaultGrouping: .separateNodes, deploymentGroups: [
-                .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup"),
-                .handlers(withIds: [
-                    AnyHandlerIdentifier("0.0.0.0"),
-                    AnyHandlerIdentifier("AWS_RandomNumberGenerator.main")
-                ], groupId: "group_aws_rand"),
-                .handlers(withIds: [
-                    AnyHandlerIdentifier("0.1.0.0"),
-                    AnyHandlerIdentifier("AWS_RandomNumberGenerator.other")
-                ], groupId: "group_aws_rand2")
+                .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")
             ])
         )
         
-        XCTAssertEqual(9, wsStructure.endpoints.count)
-        
+        XCTAssertEqual(2, wsStructure.endpoints.count)
+
         XCTAssertEqualIgnoringOrder(wsStructure.endpoints, [
             ExportedEndpoint(
-                handlerType: HandlerTypeIdentifier(rawValue: "AWS_RandomNumberGenerator"),
-                handlerId: AnyHandlerIdentifier("AWS_RandomNumberGenerator.main"),
-                deploymentOptions: DeploymentOptions([
-                    ResolvedOption<DeploymentOptionsNamespace>(key: .memorySize, value: .mb(150)),
-                    ResolvedOption<DeploymentOptionsNamespace>(key: .timeout, value: .seconds(12))
-                ])
-            ),
-            ExportedEndpoint(
-                handlerType: HandlerTypeIdentifier(rawValue: "AWS_RandomNumberGenerator"),
-                handlerId: AnyHandlerIdentifier("AWS_RandomNumberGenerator.other"),
-                deploymentOptions: DeploymentOptions([
-                    ResolvedOption<DeploymentOptionsNamespace>(key: .memorySize, value: .mb(180)),
-                    ResolvedOption<DeploymentOptionsNamespace>(key: .timeout, value: .seconds(12))
-                ])
-            ),
-            ExportedEndpoint(
-                handlerType: HandlerTypeIdentifier(rawValue: "AWS_Greeter"),
-                handlerId: AnyHandlerIdentifier("0.2.0"),
+                handlerType: HandlerTypeIdentifier(rawValue: "Text"),
+                handlerId: AnyHandlerIdentifier("Handler2"),
                 deploymentOptions: DeploymentOptions([
                     ResolvedOption<DeploymentOptionsNamespace>(key: .memorySize, value: .mb(175)),
                     ResolvedOption<DeploymentOptionsNamespace>(key: .timeout, value: .seconds(12))
                 ])
             ),
             ExportedEndpoint(
-                handlerType: HandlerTypeIdentifier(rawValue: "LH_TextMut"),
-                handlerId: AnyHandlerIdentifier("LH_TextMut.main"),
-                deploymentOptions: DeploymentOptions()
-            ),
-            ExportedEndpoint(
-                handlerType: HandlerTypeIdentifier(rawValue: "LH_Greeter"),
-                handlerId: AnyHandlerIdentifier("0.4.0"),
-                deploymentOptions: DeploymentOptions()
-            ),
-            ExportedEndpoint(
-                handlerType: HandlerTypeIdentifier(rawValue: "Text2"),
-                handlerId: AnyHandlerIdentifier("0.1.0.0"),
-                deploymentOptions: DeploymentOptions()
-            ),
-            ExportedEndpoint(
-                handlerType: HandlerTypeIdentifier(rawValue: "Text2"),
-                handlerId: AnyHandlerIdentifier("0.0.0.0"),
-                deploymentOptions: DeploymentOptions()
-            ),
-            ExportedEndpoint(
-                handlerType: HandlerTypeIdentifier(rawValue: "Text"),
-                handlerId: AnyHandlerIdentifier("0.5"),
-                deploymentOptions: DeploymentOptions()
-            ),
-            ExportedEndpoint(
-                handlerType: HandlerTypeIdentifier(rawValue: "Text"),
-                handlerId: AnyHandlerIdentifier("0.6"),
-                deploymentOptions: DeploymentOptions()
+                handlerType: HandlerTypeIdentifier(rawValue: "Test"),
+                handlerId: AnyHandlerIdentifier("Handler1"),
+                deploymentOptions: DeploymentOptions([])
             )
         ])
     }

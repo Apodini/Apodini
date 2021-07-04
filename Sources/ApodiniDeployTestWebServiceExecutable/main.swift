@@ -1,3 +1,0 @@
-import ApodiniDeployTestWebService
-
-WebService.main()

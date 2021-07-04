@@ -56,7 +56,7 @@ public struct LocalhostDeploymentProvider: DeploymentProvider {
         
         let executableUrl = packageRootDir
             .appendingPathComponent(".build", isDirectory: true)
-            .appendingPathComponent(buildMode, isDirectory: true)
+            .appendingPathComponent("debug", isDirectory: true)
             .appendingPathComponent(productName, isDirectory: false)
         guard FileManager.default.fileExists(atPath: executableUrl.path) else {
             throw ApodiniDeployBuildSupportError(

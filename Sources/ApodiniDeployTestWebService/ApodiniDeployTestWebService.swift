@@ -10,6 +10,7 @@ import ArgumentParser
 import ApodiniDeploymentCLI
 
 /// Used to test the two deployment providers (localhost and Lambda).
+@main
 public struct WebService: Apodini.WebService {
     public var content: some Component {
         Group("aws_rand") {
