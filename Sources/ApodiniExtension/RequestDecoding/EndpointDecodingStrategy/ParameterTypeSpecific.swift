@@ -7,7 +7,7 @@
 
 import Apodini
 
-/// An ``EndpointDecodingStrategy`` that chooses between two given strategies based
+/// An ``EndpointDecodingStrategy`` that chooses between three given strategies based
 /// on the `parameter`'s `parameterType`.
 public struct ParameterTypeSpecific<
     L: EndpointDecodingStrategy,
@@ -21,9 +21,9 @@ public struct ParameterTypeSpecific<
     /// `parameterType`.
     ///
     /// - Parameters:
-    ///     - `type`: The Apodini `ParameterType` for which the `primary` strategy is used
-    ///     - `primary`: This strategy is used if the `parameter` is of `type`
-    ///     - `backup`: The strategy that is used if the `parameter` is not of `type`
+    ///     - `lightweight`: The strategy to be used if the parameter is of `parameterType` `lightweight`
+    ///     - `path`:  The strategy to be used if the parameter is of `parameterType` `path`
+    ///     - `content`: The strategy to be used if the parameter is of `parameterType` `content`
     public init(lightweight: L, path: P, content: C) {
         self.lightweight = lightweight
         self.path = path
