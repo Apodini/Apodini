@@ -83,16 +83,18 @@ struct AWSLambdaDeploymentProvider: DeploymentProvider {
         let dockerImageName = try prepareDockerImage()
         logger.notice("successfully built docker image. image name: \(dockerImageName)")
         
-        logger.notice("generating web service structure")
-        let webServiceStructure = try { () -> WebServiceStructure in
-            if awsDeployOnly {
-                let data = try Data(contentsOf: tmpDirUrl.appendingPathComponent("WebServiceStructure.json", isDirectory: false), options: [])
-                return try JSONDecoder().decode(WebServiceStructure.self, from: data)
-            } else {
-                return try readWebServiceStructure(usingDockerImage: dockerImageName)
-            }
-        }()
+        logger.notice("retrieving web service structure")
         
+        let webServiceStructure = try retrieveWebServiceStructure()
+//        let webServiceStructure = try { () -> WebServiceStructure in
+//            if awsDeployOnly {
+//                let data = try Data(contentsOf: tmpDirUrl.appendingPathComponent("WebServiceStructure.json", isDirectory: false), options: [])
+//                return try JSONDecoder().decode(WebServiceStructure.self, from: data)
+//            } else {
+//                return try readWebServiceStructure(usingDockerImage: dockerImageName)
+//            }
+//        }()
+        logger.notice("computing default deployed system nodes")
         let nodes = try computeDefaultDeployedSystemNodes(
             from: webServiceStructure,
             nodeIdProvider: { endpoints in
