@@ -43,7 +43,7 @@ public class SyntaxTreeVisitor: HandlerVisitor {
     }
     
     
-    /// `enterCollection` is used to keep track of the current depth into the web service data structure
+    /// `enterContent` is used to keep track of the current depth into the web service data structure
     /// All visits (`accept` call) to a component's content **must** be executed within the closure passed to `enterContent`.
     ///
     /// **Depth** is not defined in terms of path components or the exported interface, but simply how many levels of `.content` the `SyntaxTreeVisitor` is while parsing the Apodini DSL
@@ -72,6 +72,10 @@ public class SyntaxTreeVisitor: HandlerVisitor {
         } else {
             fatalError("Tried exiting a ContextNode which didn't have any parent nodes")
         }
+    }
+
+    func markContextWorkSetBegin(isModifier: Bool = false) {
+        currentNode.markContextWorkSetBegin(isModifier: isModifier)
     }
     
     /// Adds a new context value to the current context of the `SyntaxTreeVisitor`.
@@ -102,16 +106,13 @@ public class SyntaxTreeVisitor: HandlerVisitor {
         
         
         // build the final handler using the delegating handlers
-        let delegateVisitor = DelegatingHandlerInitializerVisitor(calling: modelBuilder,
-                                                                  with: self)
+        let delegateVisitor = DelegatingHandlerInitializerVisitor(calling: modelBuilder, with: self)
         do {
             // calls semantic model builder's `register`
             try delegateVisitor.visit(handler: handler)
         } catch {
             fatalError("Failed to build delegate-stack for delegated handler \(handler): \(error)")
         }
-        
-        currentNode.resetContextNode()
     }
     
     /// **Must** be called after finishing the parsing of the Apodini DSL to trigger the `finishedRegistration` of all `semanticModelBuilders`.

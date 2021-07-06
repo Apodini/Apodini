@@ -1,20 +1,34 @@
 #if DEBUG || RELEASE_TESTING
 import XCTest
 @testable import Apodini
+import ApodiniExtension
 
 /// Evaluates the given `handler` on the given `app` using the given `parameterValues`.
 public func mockQuery<Value: Encodable, H: Handler>(
     handler: H,
     value: Value.Type,
     app: Application,
+    final: Bool = false,
     queued parameterValues: Any??...
 ) throws -> Response<Value> {
+    var handler = handler
+    Apodini.inject(app: app, to: &handler)
+    
     let endpoint = handler.mockEndpoint(app: app)
     let exporter = MockExporter<String>(queued: parameterValues)
-    let context = endpoint.createConnectionContext(for: exporter)
-
-    let response = try context.handle(request: "Mock Request", eventLoop: app.eventLoopGroup.next())
-        .wait()
+    
+    var delegate = Delegate(handler, .required)
+    
+    let request = "Mock Request"
+    
+    let response: Response<H.Response.Content> = try InterfaceExporterLegacyStrategy(exporter)
+                                                    .applied(to: endpoint)
+                                                    .decodeRequest(from: request,
+                                                                   with: DefaultRequestBasis(base: request),
+                                                                   with: app.eventLoopGroup.next())
+                                                    .insertDefaults(with: endpoint[DefaultValueStore.self])
+                                                    .evaluate(on: &delegate, final ? .end : .open)
+                                                    .wait()
     
     return try XCTUnwrap(response.typed(value))
 }

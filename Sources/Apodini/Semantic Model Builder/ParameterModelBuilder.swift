@@ -9,7 +9,7 @@ extension Handler {
     func buildParametersModel() -> [_AnyEndpointParameter] {
         let builder = ParameterModelBuilder(from: self)
             .build()
-        return builder.parametersInternal
+        return builder.parametersInternal.uniqued(with: \.id)
     }
 }
 
@@ -119,5 +119,15 @@ extension Parameter: EncodeOptionalEndpointParameter where Element: OptionalProt
             options: self.options,
             defaultValue: `default`
         )
+    }
+}
+
+
+// MARK: Helpers
+
+extension Sequence {
+    func uniqued<H: Hashable>(with id: KeyPath<Element, H>) -> [Element] {
+        var set = Set<H>()
+        return filter { set.insert($0[keyPath: id]).inserted }
     }
 }

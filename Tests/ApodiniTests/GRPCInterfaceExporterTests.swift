@@ -9,6 +9,7 @@ import XCTest
 @testable import Apodini
 @testable import Vapor
 @testable import ApodiniGRPC
+import ApodiniExtension
 
 private struct GRPCTestHandler: Handler {
     @Parameter("name",
@@ -41,9 +42,11 @@ private struct GRPCNothingHandler: Handler {
 
 final class GRPCInterfaceExporterTests: ApodiniTests {
     // swiftlint:disable implicitly_unwrapped_optional
+    fileprivate var exporterConfiguration: GRPC.ExporterConfiguration!
     fileprivate var service: GRPCService!
     fileprivate var handler: GRPCTestHandler!
     fileprivate var endpoint: Endpoint<GRPCTestHandler>!
+    fileprivate var rendpoint: RelationshipEndpoint<GRPCTestHandler>!
     fileprivate var exporter: GRPCInterfaceExporter!
     fileprivate var headers: HTTPHeaders!
     // swiftlint:enable implicitly_unwrapped_optional
@@ -55,27 +58,38 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        service = GRPCService(name: serviceName, using: app)
+        exporterConfiguration = GRPC.ExporterConfiguration()
+        service = GRPCService(name: serviceName, using: app, exporterConfiguration)
         handler = GRPCTestHandler()
-        endpoint = handler.mockEndpoint()
+        (endpoint, rendpoint) = handler.mockRelationshipEndpoint()
         exporter = GRPCInterfaceExporter(app)
         headers = HTTPHeaders()
         headers.add(name: .contentType, value: "application/grpc+proto")
     }
 
     func testDefaultEndpointNaming() throws {
+        struct TestWebService: WebService {
+            var content: some Component {
+                Group("Group1") {
+                    Group("Group2") {
+                        GRPCTestHandler()
+                    }
+                }
+            }
+        }
+        
         let expectedServiceName = "Group1Group2Service"
 
-        let webService = WebServiceModel()
-
-        let handler = GRPCTestHandler()
-        var endpoint = handler.mockEndpoint()
-
-        webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
+        TestWebService().accept(visitor)
+        visitor.finishParsing()
+        
+        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<GRPCTestHandler>)
 
         let exporter = GRPCInterfaceExporter(app)
         exporter.export(endpoint)
-
+        print(exporter.services)
         XCTAssertNotNil(exporter.services[expectedServiceName])
     }
 
@@ -84,14 +98,14 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     func testExplicitEndpointNaming() throws {
         let expectedServiceName = "MyService"
 
-        let webService = WebServiceModel()
+        let webService = RelationshipWebServiceModel()
 
         let handler = GRPCTestHandler()
         let node = ContextNode()
         node.addContext(GRPCServiceNameContextKey.self, value: expectedServiceName, scope: .current)
-        var endpoint = handler.mockEndpoint(context: Context(contextNode: node))
+        var (endpoint, rendpoint) = handler.mockRelationshipEndpoint(context: node.export())
 
-        webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
+        webService.addEndpoint(&rendpoint, at: ["Group1", "Group2"])
 
         let exporter = GRPCInterfaceExporter(app)
         exporter.export(endpoint)
@@ -100,24 +114,24 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     }
 
     func testShouldAcceptMultipleEndpoints() throws {
-        let context = endpoint.createConnectionContext(for: exporter)
-
-        try service.exposeUnaryEndpoint(name: "endpointName1", context: context)
-        XCTAssertNoThrow(try service.exposeUnaryEndpoint(name: "endpointName2", context: context))
-        XCTAssertNoThrow(try service.exposeClientStreamingEndpoint(name: "endpointName3", context: context))
+        let decodingStrategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
+        
+        try service.exposeUnaryEndpoint(name: "endpointName1", endpoint, strategy: decodingStrategy)
+        XCTAssertNoThrow(try service.exposeUnaryEndpoint(name: "endpointName2", endpoint, strategy: decodingStrategy))
+        XCTAssertNoThrow(try service.exposeClientStreamingEndpoint(name: "endpointName3", endpoint, strategy: decodingStrategy))
     }
 
     func testShouldNotOverwriteExistingEndpoint() throws {
-        let context = endpoint.createConnectionContext(for: exporter)
-
-        try service.exposeUnaryEndpoint(name: "endpointName", context: context)
-        XCTAssertThrowsError(try service.exposeUnaryEndpoint(name: "endpointName", context: context))
-        XCTAssertThrowsError(try service.exposeClientStreamingEndpoint(name: "endpointName", context: context))
+        let decodingStrategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
+        
+        try service.exposeUnaryEndpoint(name: "endpointName", endpoint, strategy: decodingStrategy)
+        XCTAssertThrowsError(try service.exposeUnaryEndpoint(name: "endpointName", endpoint, strategy: decodingStrategy))
+        XCTAssertThrowsError(try service.exposeClientStreamingEndpoint(name: "endpointName", endpoint, strategy: decodingStrategy))
     }
 
     func testShouldRequireContentTypeHeader() throws {
-        let context = endpoint.createConnectionContext(for: exporter)
-
+        let decodingStrategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
+        
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
@@ -129,16 +143,22 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        var handler = service.createUnaryHandler(context: context)
+        var handler = service.createUnaryHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])
         XCTAssertThrowsError(try handler(vaporRequest).wait())
 
-        handler = service.createClientStreamingHandler(context: context)
+        handler = service.createClientStreamingHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])
         XCTAssertThrowsError(try handler(vaporRequest).wait())
     }
 
     func testUnaryRequestHandlerWithOneParamater() throws {
-        let context = endpoint.createConnectionContext(for: exporter)
-
+        let decodingStrategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
+        
         // let expectedResponseString = "Hello Moritz"
         let expectedResponseData: [UInt8] =
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
@@ -154,7 +174,11 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        let response = try service.createUnaryHandler(context: context)(vaporRequest).wait()
+        let response = try service.createUnaryHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
+            .wait()
         let responseData = try XCTUnwrap(response.body.data)
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
@@ -162,7 +186,8 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     func testUnaryRequestHandlerWithTwoParameters() throws {
         let handler = GRPCTestHandler2()
         let endpoint = handler.mockEndpoint()
-        let context = endpoint.createConnectionContext(for: exporter)
+        
+        let decodingStrategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
 
         // let expectedResponseString = "Hello Moritz, you are 23 years old."
         let expectedResponseData: [UInt8] = [
@@ -184,7 +209,11 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        let response = try service.createUnaryHandler(context: context)(vaporRequest).wait()
+        let response = try service.createUnaryHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
+            .wait()
         let responseData = try XCTUnwrap(response.body.data)
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
@@ -192,9 +221,12 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     /// Tests request validation for the GRPC exporter.
     /// Should throw for a payload that does not contain data for all required parameters.
     func testUnaryRequestHandlerRequiresAllParameters() throws {
-        let endpoint = GRPCTestHandler2().mockEndpoint()
-        let context = endpoint.createConnectionContext(for: exporter)
-
+        let testHandler = GRPCTestHandler2()
+        
+        let endpoint = testHandler.mockEndpoint()
+        
+        let decodingStrategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
+        
         let incompleteData: [UInt8] = [0, 0, 0, 0, 8, 10, 6, 77, 111, 114, 105, 116, 122]
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
@@ -208,15 +240,18 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        let handler = service.createUnaryHandler(context: context)
+        let handler = service.createUnaryHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])
         XCTAssertThrowsError(try handler(vaporRequest).wait())
     }
 
     /// The unary handler should only consider the first message in case
     /// it receives multiple messages in one HTTP frame.
     func testUnaryRequestHandler_2Messages_1Frame() throws {
-        let context = endpoint.createConnectionContext(for: exporter)
-
+        let decodingStrategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
+        
         // First one is "Moritz", second one is "Bernd".
         // Only the first should be considered.
         let requestData: [UInt8] = [
@@ -239,7 +274,11 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          logger: app.logger,
                                          on: group.next())
 
-        let response = try service.createUnaryHandler(context: context)(vaporRequest).wait()
+        let response = try service.createUnaryHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
+            .wait()
         let responseData = try XCTUnwrap(response.body.data)
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
@@ -247,8 +286,8 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     /// Tests the client-streaming handler for a request with
     /// 1 HTTP frame that contains 1 GRPC messages.
     func testClientStreamingHandlerWith_1Message_1Frame() throws {
-        let context = endpoint.createConnectionContext(for: self.exporter)
-
+        let decodingStrategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
+        
         // let expectedResponseString = "Hello Moritz"
         let expectedResponseData: [UInt8] =
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
@@ -262,7 +301,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
         vaporRequest.bodyStorage = .stream(stream)
 
-        service.createClientStreamingHandler(context: context)(vaporRequest)
+        service.createClientStreamingHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
             .whenSuccess { response in
                 guard let responseData = response.body.data else {
                     XCTFail("Received empty response but expected: \(expectedResponseData)")
@@ -281,8 +323,8 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     /// The handler should only return the response for the last (second)
     /// message contained in the frame.
     func testClientStreamingHandlerWith_2Messages_1Frame() throws {
-        let context = endpoint.createConnectionContext(for: self.exporter)
-
+        let decodingStrategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
+        
         let requestData: [UInt8] = [
             0, 0, 0, 0, 10, 10, 6, 77, 111, 114, 105, 116, 122, 16, 23,
             0, 0, 0, 0, 9, 10, 5, 66, 101, 114, 110, 100, 16, 23
@@ -300,7 +342,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
         vaporRequest.bodyStorage = .stream(stream)
 
-        service.createClientStreamingHandler(context: context)(vaporRequest)
+        service.createClientStreamingHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
             .whenSuccess { response in
                 guard let responseData = response.body.data else {
                     XCTFail("Received empty response but expected: \(expectedResponseData)")
@@ -320,8 +365,8 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     /// The handler should only return the response for the last (second)
     /// message contained in the frame.
     func testClientStreamingHandlerWith_2Messages_2Frames() throws {
-        let context = endpoint.createConnectionContext(for: self.exporter)
-
+        let decodingStrategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
+        
         // let expectedResponseString = "Hello Bernd"
         let expectedResponseData: [UInt8] =
             [0, 0, 0, 0, 13, 10, 11, 72, 101, 108, 108, 111, 32, 66, 101, 114, 110, 100]
@@ -336,7 +381,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         vaporRequest.bodyStorage = .stream(stream)
 
         // get first response
-        service.createClientStreamingHandler(context: context)(vaporRequest)
+        service.createClientStreamingHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
             .whenSuccess { response in
                 guard let responseData = response.body.data else {
                     XCTFail("Received empty response but expected: \(expectedResponseData)")
@@ -357,7 +405,8 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
     func testClientStreamingHandlerNothingResponse() throws {
         let handler = GRPCNothingHandler()
         let endpoint = handler.mockEndpoint()
-        let context = endpoint.createConnectionContext(for: self.exporter)
+        
+        let decodingStrategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let vaporRequest = Vapor.Request(application: app.vapor.app,
@@ -368,7 +417,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
         vaporRequest.bodyStorage = .stream(stream)
 
-        service.createClientStreamingHandler(context: context)(vaporRequest)
+        service.createClientStreamingHandler(
+            handler: endpoint.handler,
+            strategy: decodingStrategy,
+            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
             .whenSuccess { response in
                 XCTAssertEqual(response.body.data,
                                Optional(Data()),
@@ -379,11 +431,27 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         _ = try stream.write(.end).wait()
     }
 
-    func testServiceNameUtility_DefaultName() {
-        let webService = WebServiceModel()
-        webService.addEndpoint(&endpoint, at: ["Group1", "Group2"])
+    func testServiceNameUtility_DefaultName() throws {
+        struct TestWebService: WebService {
+            var content: some Component {
+                Group("Group1") {
+                    Group("Group2") {
+                        GRPCTestHandler()
+                    }
+                }
+            }
+        }
+        
+        let expectedServiceName = "Group1Group2Service"
 
-        XCTAssertEqual(gRPCServiceName(from: endpoint), "Group1Group2Service")
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
+        TestWebService().accept(visitor)
+        visitor.finishParsing()
+        
+        let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<GRPCTestHandler>)
+
+        XCTAssertEqual(gRPCServiceName(from: endpoint), expectedServiceName)
     }
 
     func testServiceNameUtility_CustomName() {
@@ -391,7 +459,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
         let node = ContextNode()
         node.addContext(GRPCServiceNameContextKey.self, value: serviceName, scope: .current)
-        endpoint = handler.mockEndpoint(context: Context(contextNode: node))
+        endpoint = handler.mockEndpoint(context: node.export())
 
         XCTAssertEqual(gRPCServiceName(from: endpoint), serviceName)
     }
@@ -405,7 +473,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
         let node = ContextNode()
         node.addContext(GRPCMethodNameContextKey.self, value: methodName, scope: .current)
-        endpoint = handler.mockEndpoint(context: Context(contextNode: node))
+        endpoint = handler.mockEndpoint(context: node.export())
 
         XCTAssertEqual(gRPCMethodName(from: endpoint), methodName)
     }

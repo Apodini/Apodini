@@ -1,6 +1,6 @@
-import Apodini
 @testable import ApodiniJobs
 import XCTApodini
+
 
 final class JobsTests: XCTApodiniTest {
     let everyMinute = "* * * * *"
@@ -23,11 +23,19 @@ final class JobsTests: XCTApodiniTest {
         func run() { }
     }
     
-    class TestJob: Job {
+    class ClassJob: Job {
         var num = 0
         
         func run() {
             num += 1
+        }
+    }
+    
+    struct TestJob: Job {
+        var expectation = XCTestExpectation()
+        
+        func run() {
+            expectation.fulfill()
         }
     }
     
@@ -51,6 +59,7 @@ final class JobsTests: XCTApodiniTest {
     struct KeyStore: EnvironmentAccessible {
         var failingJob: FailingJob
         var failingJob2: FailingJob2
+        var classJob: ClassJob
         var testJob: TestJob
         var stateJob: StateJob
         var environmentJob: EnvironmentJob
@@ -59,9 +68,20 @@ final class JobsTests: XCTApodiniTest {
     func testFailingJobs() throws {
         XCTAssertThrowsError(try app.scheduler.dequeue(\KeyStore.failingJob))
         XCTAssertThrowsError(try app.scheduler.enqueue(FailingJob(), with: everyMinute, \KeyStore.failingJob, on: app.eventLoopGroup.next()))
-        XCTAssertThrowsError(try app.scheduler.enqueue(FailingJob2(), with: everyMinute, \KeyStore.failingJob2, on: app.eventLoopGroup.next()))
-        XCTAssertThrowsError(try app.scheduler.enqueue(TestJob(), with: "* * * *", \KeyStore.testJob, on: app.eventLoopGroup.next()))
-        XCTAssertThrowsError(try app.scheduler.enqueue(TestJob(), with: "A B C D E", runs: 5, \KeyStore.testJob, on: app.eventLoopGroup.next()))
+        XCTAssertThrowsError(try app.scheduler.enqueue(FailingJob(), with: everyMinute, \KeyStore.failingJob, on: app.eventLoopGroup.next()))
+        XCTAssertThrowsError(try app.scheduler.enqueue(FailingJob(), with: "* * * *", \KeyStore.failingJob, on: app.eventLoopGroup.next()))
+        XCTAssertThrowsError(try app.scheduler.enqueue(FailingJob(), with: "A B C D E", runs: 5, \KeyStore.failingJob, on: app.eventLoopGroup.next()))
+    }
+    
+    func testClassJob() throws {
+        func scheduleClassJob() {
+            do {
+                try self.app.scheduler.enqueue(ClassJob(), with: self.everyMinute, \KeyStore.classJob, on: self.app.eventLoopGroup.next())
+            } catch {
+                XCTFail("Failed with the following error: \(error)")
+            }
+        }
+        XCTAssertRuntimeFailure(scheduleClassJob())
     }
     
     func testFatalError() throws {
@@ -75,7 +95,8 @@ final class JobsTests: XCTApodiniTest {
         
         let job = try XCTUnwrap(app.storage[\KeyStore.testJob])
         
-        XCTAssert(job.num == 0)
+        job.expectation.isInverted = true
+        wait(for: [job.expectation], timeout: 1)
     }
     
     func testEnvironmentPropertyWrapper() throws {

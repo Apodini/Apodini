@@ -53,25 +53,24 @@ private struct TestWebService: Apodini.WebService {
     }
     
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(ApodiniDeployInterfaceExporter.self)
+        ApodiniDeploy()
     }
 }
 
 
 class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
     func testHandlerCollection() throws {
-        guard !Self.isRunningOnLinuxDebug() else {
-            return
-        }
-        
+        #if os(Linux)
+        throw XCTSkip("Skipped testHandlerCollection on Linux due to some undiscovered issues on focal nightly and xenial 5.4.2 builds")
+        #endif
+
         for idx in 0..<100 {
             if idx > 0 {
                 try tearDownWithError()
                 try setUpWithError()
             }
             
-            TestWebService.main(app: app)
+            TestWebService.start(app: app)
             
             let apodiniDeployIE = try XCTUnwrap(app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self))
             let actual = apodiniDeployIE.collectedEndpoints

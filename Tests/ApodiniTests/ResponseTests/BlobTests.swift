@@ -64,10 +64,15 @@ final class BlobTests: ApodiniTests {
         }
         
         let handler = BlobResponseHandler()
-        let endpoint = handler.mockEndpoint(app: app)
+        let (endpoint, rendpoint) = handler.mockRelationshipEndpoint(app: app)
         
         let exporter = RESTInterfaceExporter(app)
-        let endpointHandler = RESTEndpointHandler(with: RESTConfiguration(app.vapor.app.http.server.configuration), for: endpoint, on: exporter)
+        let endpointHandler = RESTEndpointHandler(
+            with: REST.Configuration(app.vapor.app.http.server.configuration),
+            withExporterConfiguration: REST.ExporterConfiguration(),
+            for: endpoint,
+            rendpoint,
+            on: exporter)
         
         
         func makeRequest(blobContent: String, mimeType: MimeType) throws {

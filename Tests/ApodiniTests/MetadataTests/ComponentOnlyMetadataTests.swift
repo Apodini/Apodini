@@ -7,11 +7,8 @@ import XCTest
 import XCTApodini
 
 private struct TestIntMetadataContextKey: ContextKey {
+    typealias Value = [Int]
     static var defaultValue: [Int] = []
-
-    static func reduce(value: inout [Int], nextValue: () -> [Int]) {
-        value.append(contentsOf: nextValue())
-    }
 }
 
 private struct TestStringMetadataContextKey: OptionalContextKey {
@@ -158,19 +155,19 @@ private struct GroupComponentWithMetadata<Content: Component>: Component, Syntax
 final class ComponentOnlyMetadataTest: ApodiniTests {
     static var expectedIntsState: [Int] {
         #if swift(>=5.4)
-        [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15].reversed()
+        [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15]
         #else
         // swiftlint:disable:next comma
-        return [0, 1, 2, 3, 5, 6, 7, 8, 9,             14, 15].reversed()
+        return [0, 1, 2, 3, 5, 6, 7, 8, 9,      14, 15]
         #endif
     }
 
     static var expectedInts: [Int] {
         #if swift(>=5.4)
-        [0, 2, 4, 5, 6, 10, 11, 12, 13, 14, 15].reversed()
+        [0, 2, 4, 5, 6, 10, 11, 12, 13, 14, 15]
         #else
         // swiftlint:disable:next comma
-        return [0, 2, 4, 5, 6, 10,             14, 15].reversed()
+        return [0, 2, 4, 5, 6, 10,      14, 15]
         #endif
     }
 
@@ -179,9 +176,9 @@ final class ComponentOnlyMetadataTest: ApodiniTests {
         let component = TestMetadataComponent(state: true)
         component.accept(visitor)
 
-        let context = Context(contextNode: visitor.currentNode)
+        let context = visitor.currentNode.export()
 
-        let capturedInts = context.get(valueFor: TestIntMetadataContextKey.self)
+        let capturedInts = context.get(valueFor: TestIntComponentOnlyMetadata.self)
         let expectedInts: [Int] = Self.expectedIntsState
         XCTAssertEqual(capturedInts, expectedInts)
 
@@ -194,9 +191,9 @@ final class ComponentOnlyMetadataTest: ApodiniTests {
         let component = TestMetadataComponent(state: false)
         component.accept(visitor)
 
-        let context = Context(contextNode: visitor.currentNode)
+        let context = visitor.currentNode.export()
 
-        let captured = context.get(valueFor: TestIntMetadataContextKey.self)
+        let captured = context.get(valueFor: TestIntComponentOnlyMetadata.self)
         let expected: [Int] = Self.expectedInts
         XCTAssertEqual(captured, expected)
 
@@ -213,9 +210,9 @@ final class ComponentOnlyMetadataTest: ApodiniTests {
             }
         component.accept(visitor)
 
-        let context = Context(contextNode: visitor.currentNode)
+        let context = visitor.currentNode.export()
 
-        let capturedInts = context.get(valueFor: TestIntMetadataContextKey.self)
+        let capturedInts = context.get(valueFor: TestIntComponentOnlyMetadata.self)
         let expectedInts: [Int] = Self.expectedIntsState + [16, 17]
         XCTAssertEqual(capturedInts, expectedInts)
     }
@@ -227,9 +224,9 @@ final class ComponentOnlyMetadataTest: ApodiniTests {
         }
         component.accept(visitor)
 
-        let context = Context(contextNode: visitor.currentNode)
+        let context = visitor.currentNode.export()
 
-        let capturedInts = context.get(valueFor: TestIntMetadataContextKey.self)
+        let capturedInts = context.get(valueFor: TestIntComponentOnlyMetadata.self)
         let expectedInts: [Int] = [3]
         XCTAssertEqual(capturedInts, expectedInts)
     }

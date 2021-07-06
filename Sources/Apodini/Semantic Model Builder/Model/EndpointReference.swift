@@ -22,7 +22,7 @@ struct EndpointReference: CustomStringConvertible, CustomDebugStringConvertible 
     /// Holds the response type of the `Endpoint`
     let responseType: Any.Type
 
-    init<H: Handler>(on node: EndpointsTreeNode, off endpoint: Endpoint<H>) {
+    init<H: Handler>(on node: EndpointsTreeNode, of endpoint: RelationshipEndpoint<H>) {
         self.node = node
         self.absolutePath = endpoint.absolutePath
         self.operation = endpoint[Operation.self]
@@ -30,8 +30,8 @@ struct EndpointReference: CustomStringConvertible, CustomDebugStringConvertible 
     }
 
     /// Resolve the referenced `Endpoint`
-    /// - Returns: The instance of `AnyEndpoint` this `EndpointReference` references to.
-    func resolve() -> _AnyEndpoint {
+    /// - Returns: The instance of `RelationshipEntity` this `EndpointReference` references to.
+    func resolve() -> _AnyRelationshipEndpoint {
         guard let endpoint = node.endpoints[operation] else {
             fatalError("Failed to resolve Endpoint at \(absolutePath.asPathString()): Didn't find Endpoint with operation \(operation)")
         }
@@ -40,7 +40,7 @@ struct EndpointReference: CustomStringConvertible, CustomDebugStringConvertible 
 
     /// Mutates the reference `Endpoint`
     /// - Parameter mutate: The closure mutating the referenced `Endpoint`.
-    func resolveAndMutate(_ mutate: @escaping (inout _AnyEndpoint) -> Void) {
+    func resolveAndMutate(_ mutate: @escaping (inout _AnyRelationshipEndpoint) -> Void) {
         var endpoint = resolve()
         mutate(&endpoint)
         node.endpoints[operation] = endpoint

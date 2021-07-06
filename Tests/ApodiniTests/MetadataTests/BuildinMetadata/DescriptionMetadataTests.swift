@@ -70,11 +70,9 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        print(modelBuilder.rootNode)
-        let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first)
-        let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
-        let customDescription = endpoint[Context.self].get(valueFor: DescriptionContextKey.self)
-        let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionContextKey.self)
+        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
+        let customDescription = endpoint[Context.self].get(valueFor: DescriptionMetadata.self)
+        let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionMetadata.self)
 
         XCTAssertEqual(customDescription, "The description inside the TestHandler")
         XCTAssertEqual(contentDescription, "Content Description!")
@@ -89,10 +87,9 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first)
-        let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
-        let customDescription = endpoint[Context.self].get(valueFor: DescriptionContextKey.self)
-        let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionContextKey.self)
+        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
+        let customDescription = endpoint[Context.self].get(valueFor: DescriptionMetadata.self)
+        let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionMetadata.self)
     
         XCTAssertEqual(customDescription, "Returns greeting with name parameter.")
         XCTAssertEqual(contentDescription, "Content Description!")
@@ -107,9 +104,8 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first)
-        let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
-        let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionContextKey.self)
+        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
+        let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionMetadata.self)
         
         XCTAssertEqual(endpoint.description, "TestHandler")
         XCTAssertEqual(contentDescription, "Content Description!")
@@ -124,10 +120,8 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        print(modelBuilder.rootNode)
-        let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first)
-        let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
-        let customDescription = endpoint[Context.self].get(valueFor: DescriptionContextKey.self)
+        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
+        let customDescription = endpoint[Context.self].get(valueFor: DescriptionMetadata.self)
 
         XCTAssertEqual(customDescription, "Group Description")
     }

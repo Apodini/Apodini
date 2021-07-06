@@ -5,7 +5,7 @@ import NIOSSL
 @_implementationOnly import FluentMySQLDriver
 @_implementationOnly import FluentPostgresDriver
 @_implementationOnly import FluentMongoDriver
-@_implementationOnly import Foundation
+import Foundation
 
 /// A `Configuration` used for Database Access
 public final class DatabaseConfiguration: Configuration {
@@ -62,13 +62,9 @@ public final class DatabaseConfiguration: Configuration {
         case .defaultPostgreSQL(let conString):
             return try .postgres(url: conString)
         case let .postgreSQL(hostName, port, username, password, database, configuration):
-            let config = PostgresConfiguration(hostname: hostName,
-                                               port: port,
-                                               username: username,
-                                               password: password,
-                                               database: database,
-                                               tlsConfiguration: configuration)
-            return .postgres(hostname: hostName, username: username, password: password, database: database)
+            return .postgres(
+                hostname: hostName, port: port, username: username, password: password, database: database, tlsConfiguration: configuration
+            )
         case .defaultMySQL(let conString):
             return try .mysql(url: conString)
         case let .mySQL(hostname, username, password, database, tlsConfig):

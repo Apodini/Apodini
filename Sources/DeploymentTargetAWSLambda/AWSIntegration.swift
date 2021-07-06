@@ -20,7 +20,7 @@ import SotoIAM
 import SotoSTS
 import OpenAPIKit
 
-// swiftlint:disable force_unwrapping
+// swiftlint:disable force_unwrapping file_length
 
 
 extension OpenAPIVendorExtensionKey where Value == String {
@@ -37,8 +37,10 @@ extension OpenAPIVendorExtensionKey where Value == [String: String] {
 /// - Note: Instances of this class should not be re-used to apply multiple deployments.
 class AWSIntegration { // swiftlint:disable:this type_body_length
     private static let lambdaFunctionNamePrefix = "apodini-lambda"
+    private static let apodiniIamRolePath = "/apodini-service-role/"
+    private static let apodiniDeployApiGatewayDescription = "Created by ApodiniDeploy"
+    private static let apodiniDeployApiGatewayNamePrefix = "ApodiniDeploy."
     
-    private let tmpDirUrl: URL
     private let fileManager = FileManager.default
     private let logger = Logger(label: "de.lukaskollmer.ApodiniLambda.AWSIntegration")
     
@@ -55,12 +57,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
     private var deployedLambdaFunctions: Set<String> = [] // Set of lambda function names
     
     
-    init(
-        awsRegionName: String,
-        awsCredentials: SotoCore.CredentialProviderFactory,
-        tmpDirUrl: URL
-    ) {
-        self.tmpDirUrl = tmpDirUrl
+    init(awsRegionName: String, awsCredentials: SotoCore.CredentialProviderFactory) {
         awsRegion = .init(rawValue: awsRegionName)
         awsClient = AWSClient(
             credentialProvider: awsCredentials,
@@ -98,7 +95,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
     
     /// - parameter s3BucketName: name of the S3 bucket the function should be uploaded to
     /// - parameter s3ObjectFolderKey: key (ie path) of the folder into which the function should be uploaded
-    func deployToLambda( // swiftlint:disable:this function_parameter_count function_body_length cyclomatic_complexity
+    func deployToLambda( // swiftlint:disable:this function_parameter_count function_body_length
         deploymentStructure: DeployedSystem,
         openApiDocument: OpenAPI.Document,
         lambdaExecutableUrl: URL,
@@ -106,7 +103,8 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         s3BucketName: String,
         s3ObjectFolderKey: String,
         apiGatewayApiId: String,
-        deleteOldApodiniLambdaFunctions: Bool
+        deleteOldApodiniLambdaFunctions: Bool,
+        tmpDirUrl: URL
     ) throws {
         guard !didRunDeployment else {
             fatalError("Cannot call '\(#function)' multiple times.")
@@ -116,41 +114,15 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         let accountId = try sts.getCallerIdentity(STS.GetCallerIdentityRequest()).wait().account!
         
         logger.notice("Fetching list of all lambda functions in AWS account")
-        let allFunctions = try { [unowned self] () -> [Lambda.FunctionConfiguration] in
-            var retval: [Lambda.FunctionConfiguration] = []
-            var nextMarker: String?
-            repeat {
-                let response = try lambda.listFunctions(Lambda.ListFunctionsRequest(marker: nextMarker)).wait()
-                retval.append(contentsOf: response.functions ?? [])
-                nextMarker = response.nextMarker
-            } while nextMarker != nil
-            return retval
-        }()
+        let allFunctions = try fetchAllLambdaFunctionsInAccount()
         logger.notice("Number of AWS lambda functions currently deployed: \(allFunctions.count) \(allFunctions.map(\.functionArn!))")
-
-        
-        // Delete old functions
-        if deleteOldApodiniLambdaFunctions {
-            do {
-                let functionsToBeDeleted = allFunctions.filter { $0.functionName!.hasPrefix("\(Self.lambdaFunctionNamePrefix)-\(apiGatewayApiId)-") }
-                if !functionsToBeDeleted.isEmpty {
-                    logger.notice("Deleting old apodini lambda functions")
-                    for function in functionsToBeDeleted {
-                        logger.notice("Deleting \(function.functionName!)")
-                        try lambda
-                            .deleteFunction(Lambda.DeleteFunctionRequest(functionName: function.functionName!))
-                            .wait()
-                    }
-                }
-            }
-        }
-        
         
         //
         // Upload function code to S3
         //
         
         let s3ObjectKey = "\(s3ObjectFolderKey.trimmingCharacters(in: CharacterSet(charactersIn: "/")))/\(lambdaExecutableUrl.lastPathComponent).zip"
+        var launchInfoFileUrl: URL
         
         do {
             logger.notice("Creating lambda package")
@@ -178,15 +150,16 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             
             try addToLambdaPackage(lambdaExecutableUrl)
             
-            let launchInfoFileUrl = lambdaPackageTmpDir.appendingPathComponent("launchInfo.json", isDirectory: false)
+            launchInfoFileUrl = lambdaPackageTmpDir.appendingPathComponent("launchInfo.json", isDirectory: false)
             try deploymentStructure.writeJSON(to: launchInfoFileUrl)
             try fileManager.setPosixPermissions("rw-r--r--", forItemAt: launchInfoFileUrl)
+            
             
             do {
                 // create & add bootstrap file
                 let bootstrapFileContents = """
                 #!/bin/bash
-                ./\(lambdaExecutableUrl.lastPathComponent) \(WellKnownCLIArguments.launchWebServiceInstanceWithCustomConfig) ./\(launchInfoFileUrl.lastPathComponent)
+                ./\(lambdaExecutableUrl.lastPathComponent)
                 """
                 let bootstrapFileUrl = lambdaPackageTmpDir.appendingPathComponent("bootstrap", isDirectory: false)
                 try bootstrapFileContents.write(to: bootstrapFileUrl, atomically: true, encoding: .utf8)
@@ -196,7 +169,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             logger.notice("zipping lambda package")
             let zipFilename = "lambda.zip"
             try Task(
-                executableUrl: zipBin,
+                executableUrl: Context.zipBin,
                 arguments: try [zipFilename] + fileManager.contentsOfDirectory(atPath: lambdaPackageTmpDir.path),
                 workingDirectory: lambdaPackageTmpDir,
                 captureOutput: true, // suppress output
@@ -243,7 +216,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             
             let functionConfig = try configureLambdaFunction(
                 forNode: node,
-                //exportedEndpoint: exportedEndpoint,
+                launchInfoFileUrl: launchInfoFileUrl,
                 allFunctions: allFunctions,
                 s3BucketName: s3BucketName,
                 s3ObjectKey: s3ObjectKey,
@@ -288,7 +261,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             for endpoint in pathItem.endpoints {
                 var operation = endpoint.operation
                 guard let handlerId = operation.vendorExtensions[.apodiniHandlerId] else {
-                    throw makeError("Unable to read handler id from OpenAPI operation object")
+                    throw Context.makeError("Unable to read handler id from OpenAPI operation object")
                 }
                 let lambdaFunctionConfig = lambdaFunctionConfigForHandlerId(handlerId)
                 operation.vendorExtensions[.amazonApiGatewayIntegration] = [
@@ -308,7 +281,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         for (_, pathItem) in apiGatewayImportDef.paths {
             for endpoint in pathItem.endpoints {
                 guard let handlerId: String = endpoint.operation.vendorExtensions[.apodiniHandlerId] else {
-                    throw makeError("Unable to read handler id from OpenAPI operation object")
+                    throw Context.makeError("Unable to read handler id from OpenAPI operation object")
                 }
                 let lambdaFunctionConfig = lambdaFunctionConfigForHandlerId(handlerId)
                 let path = OpenAPI.Path(["__apodini", "invoke", handlerId])
@@ -331,7 +304,8 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             }
         }
         
-        let reimportRequest = ApiGatewayV2.ReimportApiRequest(
+        logger.notice("Importing API definition into the API Gateway")
+        _ = try apiGateway.reimportApi(ApiGatewayV2.ReimportApiRequest(
             apiId: apiGatewayApiId,
             basepath: nil,
             body: String(
@@ -339,9 +313,14 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 encoding: .utf8
             )!,
             failOnWarnings: true // Too strict?
-        )
+        )).wait()
         
-        _ = try apiGateway.reimportApi(reimportRequest).wait()
+        logger.notice("Updating API Gateway name")
+        _ = try apiGateway.updateApi(ApiGatewayV2.UpdateApiRequest(
+            apiId: apiGatewayApiId,
+            description: Self.apodiniDeployApiGatewayDescription,
+            name: Self.apodiniDeployApiGatewayNamePrefix.appending(apiGatewayApiId)
+        )).wait()
         
         let numLambdas = deploymentStructure.nodes.count
         logger.notice("Deployed \(numLambdas) lambda\(numLambdas == 1 ? "" : "s") to api gateway w/ id '\(apiGatewayApiId)'")
@@ -349,20 +328,26 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
     }
     
     
-    private func createLambdaExecutionRole() throws -> IAM.Role {
-        if let role = lambdaExecutionRole {
+    private func fetchOrCreateLambdaExecutionRole(forApiGatewayWithId apiGatewayId: String) throws -> IAM.Role {
+        if let role = self.lambdaExecutionRole {
             return role
         }
         
-        // Note ideally this would look for existing roles and re-use them if possible
+        logger.notice("Looking if a suitable execution role exists in the AWS account")
+        let allRoles = try fetchAllApodiniRelatedIamRoles()
+        if let matchingRole = allRoles.first(where: { $0.roleName.hasPrefix("apodini.lambda.executionRole.\(apiGatewayId).") }) {
+            self.lambdaExecutionRole = matchingRole
+            return matchingRole
+        }
+        
         logger.notice("Creating IAM execution role for new functions")
         let request = IAM.CreateRoleRequest(
             assumeRolePolicyDocument:
                 #"{"Version": "2012-10-17","Statement": [{ "Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"}, "Action": "sts:AssumeRole"}]}"#,
             description: nil,
-            path: "/apodini-service-role/",
+            path: Self.apodiniIamRolePath,
             permissionsBoundary: nil,
-            roleName: "apodini.lambda.executionRole_\(Date().format("yyyy-MM-dd_HHmmss"))"
+            roleName: "apodini.lambda.executionRole.\(apiGatewayId).\(Date().format("yyyy-MM-dd_HHmmss"))"
         )
         let role = try iam.createRole(request).wait().role
         logger.notice("Created lambda execution role: name='\(role.roleName)' arn='\(role.arn)'")
@@ -389,8 +374,9 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
     /// If a suitable function already exists (determined based on the node's id) this existing function will be re-used.
     /// Otherwise a new function will be created.
     /// - returns: the deployed-to function
-    private func configureLambdaFunction( // swiftlint:disable:this function_body_length
+    private func configureLambdaFunction( // swiftlint:disable:this function_body_length function_parameter_count
         forNode node: DeployedSystem.Node,
+        launchInfoFileUrl: URL,
         allFunctions: [Lambda.FunctionConfiguration],
         s3BucketName: String,
         s3ObjectKey: String,
@@ -408,8 +394,13 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         let memorySize: UInt = try deploymentOptions.getValue(forKey: .memorySize).rawValue
         let timeoutInSec = Int((try deploymentOptions.getValue(forKey: .timeout) as ApodiniDeployBuildSupport.TimeoutValue).rawValue)
         let lambdaEnv: Lambda.Environment = .init(variables: [
-            WellKnownEnvironmentVariables.currentNodeId: node.id
+            WellKnownEnvironmentVariables.currentNodeId: node.id,
+            WellKnownEnvironmentVariables.executionMode: WellKnownEnvironmentVariableExecutionMode.launchWebServiceInstanceWithCustomConfig,
+            WellKnownEnvironmentVariables.fileUrl: launchInfoFileUrl.lastPathComponent
         ])
+        
+        let executionRole = try fetchOrCreateLambdaExecutionRole(forApiGatewayWithId: apiGatewayApiId)
+        logger.notice("Using lambda execution role: name='\(executionRole.roleName)' arn='\(executionRole.arn)'")
         
         if let function = allFunctions.first(where: { $0.functionName == lambdaName }) {
             logger.notice("Found existing lambda function w/ matching name. Updating code")
@@ -419,14 +410,19 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 memorySize: Int(memorySize),
                 timeout: timeoutInSec
             )).wait()
-            return try lambda.updateFunctionCode(Lambda.UpdateFunctionCodeRequest(
-                functionName: function.functionName!,
-                s3Bucket: s3BucketName,
-                s3Key: s3ObjectKey
-            )).wait()
+            return try lambda
+                .updateFunctionCode(Lambda.UpdateFunctionCodeRequest(
+                    functionName: function.functionName!,
+                    s3Bucket: s3BucketName,
+                    s3Key: s3ObjectKey
+                ))
+                .map { functionConfiguration in
+                    self.logger.notice("Deployed lambda function \(lambdaName)")
+                    return functionConfiguration
+                }
+                .wait()
         } else {
             logger.notice("Creating new lambda function \(lambdaName)")
-            let executionRoleArn = try createLambdaExecutionRole().arn
             let createFunctionRequest = Lambda.CreateFunctionRequest(
                 code: .init(s3Bucket: s3BucketName, s3Key: s3ObjectKey),
                 description: "Apodini-created lambda function",
@@ -436,7 +432,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 memorySize: Int(memorySize),
                 packageType: .zip,
                 publish: true,
-                role: executionRoleArn,
+                role: executionRole.arn,
                 runtime: .providedAl2,
                 tags: nil, // [String : String]?.none,
                 timeout: timeoutInSec
@@ -452,7 +448,12 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             // see also: https://stackoverflow.com/q/36419442
             func createLambdaImp(iteration: Int = 1) throws -> Lambda.FunctionConfiguration {
                 do {
-                    return try lambda.createFunction(createFunctionRequest).wait()
+                    return try lambda.createFunction(createFunctionRequest)
+                        .map { functionConfiguration in
+                            self.logger.notice("Deployed lambda function \(lambdaName)")
+                            return functionConfiguration
+                        }
+                        .wait()
                 } catch let error as LambdaErrorType {
                     guard
                         error.errorCode == LambdaErrorType.invalidParameterValueException.errorCode,
@@ -467,5 +468,198 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             }
             return try createLambdaImp()
         }
+    }
+}
+
+
+// MARK: Cleanup Actions
+
+
+extension AWSIntegration {
+    /// Goes through the AWS account and deletes (or, if applicable, unconfigures) all resources which are part of
+    /// the Apodini web service deployed to the AWS API Gayway with the specified id.
+    /// - parameter apiGatewayId: The identifier of the API Gateway to which the web service was deployed
+    /// - parameter keepApiGateway: Whether the API Gateway should be kept in the AWS Account, or also deleted.
+    ///             This option is useful to preserve the identifier associated with an API Gateway, which allows, for example,
+    ///             to re-deploy the web service to that same API Gateway at a later date, without having to deal with chanhing ids.
+    func removeDeploymentRelatedResources( // swiftlint:disable:this cyclomatic_complexity
+        apiGatewayId: String,
+        keepApiGateway: Bool,
+        isDryRun: Bool
+    ) throws {
+        let allLambdas = try fetchAllLambdaFunctionsInAccount()
+        let relevantLambdas = allLambdas.filter { lambda in
+            guard let name = lambda.functionName else {
+                return false
+            }
+            return name.hasPrefix("\(Self.lambdaFunctionNamePrefix)-\(apiGatewayId)")
+        }
+        
+        let allIAMRoles = try fetchAllApodiniRelatedIamRoles()
+        let relevantIAMRoles = allIAMRoles.filter { role in
+            role.path == Self.apodiniIamRolePath && role.roleName.hasPrefix("apodini.lambda.executionRole.\(apiGatewayId)")
+        }
+        
+        guard !relevantLambdas.isEmpty || !relevantIAMRoles.isEmpty else {
+            logger.notice("No AWS resources belonging to AIP Gateway w/ id '\(apiGatewayId)' found.")
+            return
+        }
+        
+        guard !isDryRun else {
+            logger.notice("Would delete the following lambda functions:")
+            for lambda in relevantLambdas {
+                logger.notice("- \(lambda.functionArn!)")
+            }
+            logger.notice("Would delete the following IAM roles:")
+            for role in relevantIAMRoles {
+                logger.notice("- \(role.arn)")
+            }
+            if !keepApiGateway {
+                logger.notice("Would delete the API Gateway")
+            } else {
+                logger.notice("Would keep API Gateway, but delete all of its routes:")
+                for route in try getAllRoutesInApiGateway(withApiId: apiGatewayId) {
+                    logger.notice("- \(route.routeId!) (\(route.routeKey))")
+                }
+            }
+            return
+        }
+        
+        for lambda in relevantLambdas {
+            logger.notice("Deleting lambda function with arn '\(lambda.functionArn!)'")
+            try self.lambda.deleteFunction(Lambda.DeleteFunctionRequest(
+                functionName: lambda.functionName!
+            )).wait()
+        }
+        
+        for role in relevantIAMRoles {
+            logger.notice("Deleting IAM role with arn '\(role.arn)'")
+            try deleteIamRole(role)
+        }
+        
+        if !keepApiGateway {
+            logger.notice("Deleting API Gateway w/ id '\(apiGatewayId)'")
+            try apiGateway.deleteApi(ApiGatewayV2.DeleteApiRequest(
+                apiId: apiGatewayId
+            )).wait()
+        } else {
+            // We're told to keep the API Gateway around, so instead of deleting it we're just gonna gut it.
+            // Note that we're intentionally not deleting the entire stage.
+            // (it's created alongside the gateway itself, and set to auto-deploy, so the changes made here will be propagated anyway.)
+            logger.notice("Removing all routes from API Gateway w/ id '\(apiGatewayId)'")
+            let allRoutes = try getAllRoutesInApiGateway(withApiId: apiGatewayId)
+            for route in allRoutes {
+                logger.notice("- Deleting route \(route.routeId!) (\(route.routeKey))")
+                try apiGateway.deleteRoute(ApiGatewayV2.DeleteRouteRequest(
+                    apiId: apiGatewayId,
+                    routeId: route.routeId!
+                )).wait()
+            }
+        }
+    }
+    
+    
+    /// Attempts to delete _all_ IAM roles in the Apodini path, regardless of whether they are being used or not.
+    func deleteAllApodiniIamRoles(isDryRun: Bool) throws {
+        let allRoles = try fetchAllApodiniRelatedIamRoles()
+        
+        guard !allRoles.isEmpty else {
+            logger.notice("No matching Apodini-related IAM roles found.")
+            return
+        }
+        
+        guard !isDryRun else {
+            logger.notice("Would delete the following IAM roles:")
+            for role in allRoles {
+                logger.notice("- \(role.arn)")
+            }
+            return
+        }
+        
+        for role in allRoles {
+            try deleteIamRole(role)
+        }
+    }
+}
+
+
+// MARK: Soto Utility extensions
+
+extension AWSIntegration {
+    /// Returns all lambda functions in the AWS account
+    private func fetchAllLambdaFunctionsInAccount() throws -> [Lambda.FunctionConfiguration] {
+        var retval: [Lambda.FunctionConfiguration] = []
+        var nextMarker: String?
+        repeat {
+            let response = try lambda.listFunctions(Lambda.ListFunctionsRequest(
+                marker: nextMarker
+            )).wait()
+            retval.append(contentsOf: response.functions ?? [])
+            nextMarker = response.nextMarker
+        } while nextMarker != nil
+        return retval
+    }
+    
+    
+    /// Returns all routes in the API Gateway with the specified id
+    private func getAllRoutesInApiGateway(withApiId apiId: String) throws -> [ApiGatewayV2.Route] {
+        var retval: [ApiGatewayV2.Route] = []
+        var marker: String?
+        repeat {
+            let response = try apiGateway.getRoutes(ApiGatewayV2.GetRoutesRequest(
+                apiId: apiId,
+                maxResults: nil,
+                nextToken: marker
+            )).wait()
+            marker = response.nextToken
+            retval.append(contentsOf: response.items ?? [])
+        } while marker != nil
+        return retval
+    }
+    
+    
+    /// Returns all IAM roles related to ApodiniDeploy
+    private func fetchAllApodiniRelatedIamRoles() throws -> [IAM.Role] {
+        var retval: [IAM.Role] = []
+        var nextMarker: String?
+        repeat {
+            let response = try iam.listRoles(IAM.ListRolesRequest(
+                marker: nextMarker,
+                maxItems: nil,
+                pathPrefix: Self.apodiniIamRolePath
+            )).wait()
+            retval.append(contentsOf: response.roles)
+            nextMarker = response.marker
+        } while nextMarker != nil
+        return retval
+    }
+    
+    /// Returns all role policies which are attached to the specified role.
+    private func getAttachedRolePolicies(forRole role: IAM.Role) throws -> [IAM.AttachedPolicy] {
+        var retval: [IAM.AttachedPolicy] = []
+        var marker: String?
+        repeat {
+            let response = try iam.listAttachedRolePolicies(IAM.ListAttachedRolePoliciesRequest(
+                marker: marker,
+                roleName: role.roleName
+            )).wait()
+            retval.append(contentsOf: response.attachedPolicies ?? [])
+            marker = response.marker
+        } while marker != nil
+        return retval
+    }
+    
+    
+    /// Deletes the specified IAM role, also detaching any role policies currently attached to the role
+    private func deleteIamRole(_ role: IAM.Role) throws {
+        logger.notice("Deleting IAM role '\(role.arn)'")
+        for attachedPolicy in try getAttachedRolePolicies(forRole: role) {
+            logger.notice("- Detaching role policy '\(attachedPolicy.policyName ?? "(null)")'")
+            try iam.detachRolePolicy(IAM.DetachRolePolicyRequest(
+                policyArn: attachedPolicy.policyArn!,
+                roleName: role.roleName
+            )).wait()
+        }
+        try iam.deleteRole(.init(roleName: role.roleName)).wait()
     }
 }

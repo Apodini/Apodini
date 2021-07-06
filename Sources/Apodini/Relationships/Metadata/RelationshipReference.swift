@@ -10,9 +10,7 @@ extension TypedContentMetadataNamespace {
 /// A `RelationshipReference` can be used to create a referencing relationship for the annotated `Content` type.
 /// A relationship reference uses the value of properties holding the identifier of the target type
 /// to resolve a relationship with the given values.
-public class RelationshipReference<From, To: Identifiable>: RelationshipsContentMetadataBlock
-    where To.ID: LosslessStringConvertible {
-    public typealias Key = RelationshipSourceCandidateContextKey
+public class RelationshipReference<From, To: Identifiable>: RelationshipsContentMetadataBlock where To.ID: LosslessStringConvertible {
     override public var value: [PartialRelationshipSourceCandidate] {
         [PartialRelationshipSourceCandidate(reference: name, destinationType: destinationType, resolvers: resolvers)]
     }

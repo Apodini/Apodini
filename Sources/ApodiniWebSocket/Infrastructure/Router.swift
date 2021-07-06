@@ -120,12 +120,12 @@ final class VaporWSRouter: Router {
 
     init(
         _ app: Application,
-        at path: [PathComponent] = ["apodini", "websocket"],
-        logger: Logger = .init(label: "org.apodini.websocket.vapor_ws_router")
+        logger: Logger = .init(label: "org.apodini.websocket.vapor_ws_router"),
+        at path: String
     ) {
         self.app = app
-        self.path = path
         self.logger = logger
+        self.path = path.pathComponents
     }
     
     /// - Note: If the `output`'s `completion` is `finished`, only the `context` is closed. If it is

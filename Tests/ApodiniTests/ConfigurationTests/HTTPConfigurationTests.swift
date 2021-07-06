@@ -21,7 +21,7 @@ final class HTTPConfigurationTests: ApodiniTests {
     }
     
     func testCommandLineArguments() throws {
-        HTTPConfiguration(arguments: CommandLine.arguments + ["--port", "56"])
+        HTTPConfiguration(port: 56)
             .configure(app)
 
         XCTAssertNotNil(app.http.address)
@@ -29,39 +29,39 @@ final class HTTPConfigurationTests: ApodiniTests {
     }
     
     func testCommandLineArguments1() throws {
-        HTTPConfiguration(arguments: CommandLine.arguments + ["--hostname", "1.2.3.4"])
-            .configure(app)
+        HTTPConfiguration(hostname: "1.2.3.4")
+           .configure(app)
 
-        XCTAssertNotNil(app.http.address)
-        XCTAssertEqual(app.http.address, .hostname("1.2.3.4", port: 8080))
-    }
-
+       XCTAssertNotNil(app.http.address)
+       XCTAssertEqual(app.http.address, .hostname("1.2.3.4", port: 8080))
+   }
+    
     func testCommandLineArguments2() throws {
-        HTTPConfiguration(arguments: CommandLine.arguments + ["--hostname", "1.2.3.4", "--port", "56"])
+        HTTPConfiguration(hostname: "1.2.3.4", port: 56)
             .configure(app)
 
         XCTAssertNotNil(app.http.address)
         XCTAssertEqual(app.http.address, .hostname("1.2.3.4", port: 56))
     }
-
+    
     func testCommandLineArguments3() throws {
-        HTTPConfiguration(arguments: CommandLine.arguments + ["--bind", "1.2.3.4:56"])
+        HTTPConfiguration(bind: "1.2.3.4:56")
             .configure(app)
 
         XCTAssertNotNil(app.http.address)
         XCTAssertEqual(app.http.address, .hostname("1.2.3.4", port: 56))
     }
-
+    
     func testCommandLineArguments4() throws {
-        HTTPConfiguration(arguments: CommandLine.arguments + ["--unix-socket", "/tmp/test"])
+        HTTPConfiguration(socketPath: "/tmp/test")
             .configure(app)
 
         XCTAssertNotNil(app.http.address)
         XCTAssertEqual(app.http.address, .unixDomainSocket(path: "/tmp/test"))
     }
-
+    
     func testCommandLineArgumentOverwrite() {
-        HTTPConfiguration(arguments: CommandLine.arguments + ["--bind", "1.2.3.4:56"])
+        HTTPConfiguration(bind: "1.2.3.4:56")
             .address(.hostname("7.8.9.10", port: 1112))
             .configure(app)
 

@@ -5,9 +5,5 @@
 
 public struct RelationshipSourceCandidateContextKey: ContextKey {
     public typealias Value = [PartialRelationshipSourceCandidate]
-    public static let defaultValue: Value = []
-
-    public static func reduce(value: inout [PartialRelationshipSourceCandidate], nextValue: () -> [PartialRelationshipSourceCandidate]) {
-        value.append(contentsOf: nextValue())
-    }
+    public static let defaultValue: [PartialRelationshipSourceCandidate] = []
 }

@@ -11,7 +11,7 @@ import ApodiniMigrator
 import Logging
 @_implementationOnly import ApodiniVaporSupport
 
-public final class DeltaInterfaceExporter: StaticInterfaceExporter {
+public final class DeltaInterfaceExporter: InterfaceExporter {
     public static var parameterNamespace: [ParameterNamespace] = .individual
     
     let app: Application
@@ -81,6 +81,10 @@ public final class DeltaInterfaceExporter: StaticInterfaceExporter {
         )
         document.add(endpoint: migratorEndpoint)
         setVersion(from: endpoint)
+    }
+    
+    public func export<H>(blob endpoint: Apodini.Endpoint<H>) where H: Handler, H.Response.Content == Blob {
+        export(endpoint)
     }
     
     public func finishedExporting(_ webService: WebServiceModel) {
