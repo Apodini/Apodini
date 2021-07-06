@@ -7,31 +7,27 @@
 
 import Foundation
 import ArgumentParser
-import ApodiniDeployBuildSupport
-import DeploymentTargetAWSLambda
-import Apodini
+
+private var _configuration = CommandConfiguration(
+    commandName: "deploy",
+    abstract: "Apodini deployment provider",
+    discussion: """
+    Deploys an Apodini web service to the specified target.
+    """,
+    version: "0.0.2",
+    subcommands: []
+)
 
 //apodini deploy local -inputDir
-public struct DeploymentCLI<Service: Apodini.WebService>: ParsableCommand {
+public struct DeploymentCLI: ParsableCommand {
     public static var configuration: CommandConfiguration {
-        CommandConfiguration(
-            commandName: "deploy",
-            abstract: "Apodini deployment provider",
-            discussion: """
-            Deploys an Apodini web service to the specified target.
-            """,
-            version: "0.0.2",
-            subcommands: [LocalHostCLI<Service>.self, AWSLambdaCLI<Service>.self]
-        )
+        _configuration
     }
-    
-    struct Options: ParsableArguments {
-        @Argument(help: "Directory containing the Package.swift with the to-be-deployed web service's target")
-        var inputPackageDir: String
-        
-        @Option(help: "Name of the web service's SPM target/product")
-        var productName: String
+
+    public static func commands(_ commands: ParsableCommand.Type...) -> DeploymentCLI.Type {
+        _configuration.subcommands = commands
+        return DeploymentCLI.self
     }
-    
+
     public init() {}
 }

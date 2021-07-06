@@ -7,7 +7,6 @@
 
 import Foundation
 import ArgumentParser
-import DeploymentTargetLocalhost
 import Apodini
 
 public struct LocalHostCLI<Service: Apodini.WebService>: ParsableCommand {
@@ -22,8 +21,11 @@ public struct LocalHostCLI<Service: Apodini.WebService>: ParsableCommand {
         )
     }
     
-    @OptionGroup
-    var options: DeploymentCLI<Service>.Options
+    @Argument(help: "Directory containing the Package.swift with the to-be-deployed web service's target")
+    var inputPackageDir: String
+    
+    @Option(help: "Name of the web service's SPM target/product")
+    var productName: String
     
     @Option(help: "The port on which the API should listen")
     var port: Int = 8080
@@ -36,8 +38,8 @@ public struct LocalHostCLI<Service: Apodini.WebService>: ParsableCommand {
         service.runSyntaxTreeVisitor()
         
         let deploymentProvider = LocalhostDeploymentProvider(
-            productName: options.productName,
-            packageRootDir: URL(fileURLWithPath: options.inputPackageDir).absoluteURL,
+            productName: productName,
+            packageRootDir: URL(fileURLWithPath: inputPackageDir).absoluteURL,
             port: port,
             endpointProcessesBasePort: endpointProcessesBasePort
         )

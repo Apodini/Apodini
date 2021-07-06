@@ -219,7 +219,7 @@ public final class Application {
     public func shutdown() {
         assert(!self.didShutdown, "Application has already shut down")
         self.running?.stop()
-        self.logger.debug("Application shutting down [pid=\(getpid())]")
+        self.logger.info("Application shutting down [pid=\(getpid())]")
 
         self.logger.trace("Shutting down providers")
         self.lifecycle.handlers.forEach { $0.shutdown(self) }

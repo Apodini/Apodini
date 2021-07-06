@@ -13,13 +13,13 @@ import Logging
 import DeploymentTargetLocalhostCommon
 import OpenAPIKit
 
-public struct LocalhostDeploymentProvider: DeploymentProvider {
-    public static let identifier: DeploymentProviderID = localhostDeploymentProviderId
+struct LocalhostDeploymentProvider: DeploymentProvider {
+    static let identifier: DeploymentProviderID = localhostDeploymentProviderId
     
     let productName: String
     let packageRootDir: URL
     
-    public var target: DeploymentProviderTarget {
+    var target: DeploymentProviderTarget {
         .spmTarget(packageUrl: packageRootDir, targetName: productName)
     }
     
@@ -31,17 +31,7 @@ public struct LocalhostDeploymentProvider: DeploymentProvider {
     private let fileManager = FileManager.default
     private let logger = Logger(label: "DeploymentTargetLocalhost")
     
-    public init(productName: String,
-                packageRootDir: URL,
-                port: Int,
-                endpointProcessesBasePort: Int) {
-        self.productName = productName
-        self.packageRootDir = packageRootDir
-        self.port = port
-        self.endpointProcessesBasePort = endpointProcessesBasePort
-    }
-    
-    public func run() throws {
+    func run() throws {
         try fileManager.initialize()
         try fileManager.setWorkingDirectory(to: packageRootDir)
         
@@ -56,7 +46,7 @@ public struct LocalhostDeploymentProvider: DeploymentProvider {
         
         let executableUrl = packageRootDir
             .appendingPathComponent(".build", isDirectory: true)
-            .appendingPathComponent("debug", isDirectory: true)
+            .appendingPathComponent(buildMode, isDirectory: true)
             .appendingPathComponent(productName, isDirectory: false)
         guard FileManager.default.fileExists(atPath: executableUrl.path) else {
             throw ApodiniDeployBuildSupportError(
@@ -115,6 +105,10 @@ public struct LocalhostDeploymentProvider: DeploymentProvider {
                 }
             }
             try task.launchAsync(taskTerminationHandler)
+//            let stdioObserverHandle = task.observeOutput({ (type, data, task) in
+//                let text = String(data: data, encoding: .utf8)
+//                print(text)
+//            })
             guard let launchInfo = node.readUserInfo(as: LocalhostLaunchInfo.self) else {
                 // unreachable because we write the exact same type above
                 fatalError("Unable to read launch info")

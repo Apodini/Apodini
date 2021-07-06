@@ -308,6 +308,7 @@ let package = Package(
                 .target(name: "ApodiniDeployBuildSupport"),
                 .target(name: "DeploymentTargetLocalhostRuntime"),
                 .target(name: "DeploymentTargetAWSLambdaRuntime"),
+                .target(name: "DeploymentTargetLocalhost"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniGRPC"),
                 .target(name: "ApodiniProtobuffer"),
@@ -439,9 +440,7 @@ let package = Package(
         .target(
             name: "ApodiniDeploymentCLI",
             dependencies: [
-                .target(name: "DeploymentTargetLocalhost"),
-                .target(name: "DeploymentTargetAWSLambda"),
-                .target(name: "Apodini")
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]
         )
     ]

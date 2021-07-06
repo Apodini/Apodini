@@ -37,8 +37,8 @@ let zipBin = _findExecutable("zip")
 let logger = Logger(label: "de.lukaskollmer.ApodiniLambda")
 
 
-public struct AWSLambdaDeploymentProvider: DeploymentProvider {
-    public static let identifier: DeploymentProviderID = lambdaDeploymentProviderId
+struct AWSLambdaDeploymentProvider: DeploymentProvider {
+    static let identifier: DeploymentProviderID = lambdaDeploymentProviderId
     
     let productName: String
     let packageRootDir: URL
@@ -50,7 +50,7 @@ public struct AWSLambdaDeploymentProvider: DeploymentProvider {
     let awsDeployOnly: Bool
     let deleteOldApodiniLambdaFunctions: Bool
     
-    public var target: DeploymentProviderTarget {
+    var target: DeploymentProviderTarget {
         .spmTarget(packageUrl: packageRootDir, targetName: productName)
     }
     
@@ -72,29 +72,7 @@ public struct AWSLambdaDeploymentProvider: DeploymentProvider {
             .appendingPathComponent(productName, isDirectory: true)
     }
     
-    public init(
-        productName: String,
-        packageRootDir: URL,
-        awsProfileName: String?,
-        awsRegion: String,
-        s3BucketName: String,
-        s3BucketPath: String,
-        awsApiGatewayApiId: String,
-        awsDeployOnly: Bool,
-        deleteOldApodiniLambdaFunctions: Bool
-    ) {
-        self.productName = productName
-        self.packageRootDir = packageRootDir
-        self.awsProfileName = awsProfileName
-        self.awsRegion = awsRegion
-        self.s3BucketName = s3BucketName
-        self.s3BucketPath = s3BucketPath
-        self.awsApiGatewayApiId = awsApiGatewayApiId
-        self.awsDeployOnly = awsDeployOnly
-        self.deleteOldApodiniLambdaFunctions = deleteOldApodiniLambdaFunctions
-    }
-    
-    public mutating func run() throws {
+    mutating func run() throws {
         if awsDeployOnly {
             logger.notice("Running with the --aws-deploy-only flag. Will skip compilation and try to re-use previous files")
         }
