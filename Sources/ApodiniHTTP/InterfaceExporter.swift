@@ -35,13 +35,13 @@ public final class HTTP: Configuration {
     /// - Parameters:
     ///    - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
     ///    - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
-    ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitivly
+    ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitively
     public init(encoder: AnyEncoder = defaultEncoder, decoder: AnyDecoder = defaultDecoder, caseInsensitiveRouting: Bool = false) {
         self.configuration = ExporterConfiguration(encoder: encoder, decoder: decoder, caseInsensitiveRouting: caseInsensitiveRouting)
     }
     
     public func configure(_ app: Apodini.Application) {
-        /// Instanciate exporter
+        /// Instantiate exporter
         let exporter = Exporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
@@ -62,9 +62,7 @@ struct Exporter: InterfaceExporter {
     init(_ app: Apodini.Application, _ configuration: HTTP.ExporterConfiguration) {
         self.app = app
         self.configuration = configuration
-        var logger = app.logger
-        logger.logLevel = .trace
-        self.logger = logger
+        self.logger = app.logger
         
         // Set option to activate case insensitive routing, default is false (so case-sensitive)
         self.app.vapor.app.routes.caseInsensitive = configuration.caseInsensitiveRouting
@@ -113,200 +111,6 @@ struct Exporter: InterfaceExporter {
         }
     }
     
-    // MARK: Request Response Closure
-    
-    private func buildRequestResponseClosure<H: Handler>(
-        for endpoint: Endpoint<H>,
-        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
-        let strategy = singleInputDecodingStrategy(for: endpoint)
-        
-        let transformer = VaporResponseTransformer<H>(configuration.encoder)
-        
-        return { (request: Vapor.Request) in
-            var delegate = Delegate(endpoint.handler, .required)
-            
-            return strategy
-                .decodeRequest(from: request, with: request, with: request.eventLoop)
-                .insertDefaults(with: defaultValues)
-                .cache()
-                .evaluate(on: &delegate)
-                .transform(using: transformer)
-        }
-    }
-    
-    // MARK: Blob Request Response Closure
-    
-    private func buildBlobRequestResponseClosure<H: Handler>(
-        for endpoint: Endpoint<H>,
-        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> where H.Response.Content == Blob {
-        let strategy = singleInputDecodingStrategy(for: endpoint)
-        
-        let transformer = VaporBlobResponseTransformer()
-        
-        return { (request: Vapor.Request) in
-            var delegate = Delegate(endpoint.handler, .required)
-            
-            return strategy
-                .decodeRequest(from: request, with: request, with: request.eventLoop)
-                .insertDefaults(with: defaultValues)
-                .cache()
-                .evaluate(on: &delegate)
-                .transform(using: transformer)
-        }
-    }
-    
-    // MARK: Service Streaming Closure
-    
-    private func buildServiceSideStreamingClosure<H: Handler>(
-        for endpoint: Endpoint<H>,
-        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
-        let strategy = singleInputDecodingStrategy(for: endpoint)
-        
-        let abortAnyError = AbortTransformer<H>()
-        
-        return { (request: Vapor.Request) in
-            var delegate = Delegate(endpoint.handler, .required)
-            
-            return Just(request)
-                .map { request in (request, request) }
-                .decode(using: strategy, with: request.eventLoop)
-                .insertDefaults(with: defaultValues)
-                .validateParameterMutability()
-                .cache()
-                .subscribe(to: &delegate)
-                .evaluate(on: &delegate)
-                .transform(using: abortAnyError)
-                .cancel(if: { response in
-                    response.connectionEffect == .close
-                })
-                .collect()
-                .tryMap { (responses: [Apodini.Response<H.Response.Content>]) in
-                    let status: Status? = responses.last?.status
-                    let information: Set<AnyInformation> = responses.last?.information ?? []
-                    let content: [H.Response.Content] = responses.compactMap { response in
-                        response.content
-                    }
-                    let body = try configuration.encoder.encode(content)
-                    
-                    return Vapor.Response(status: HTTPStatus(status ?? .ok),
-                                          headers: HTTPHeaders(information),
-                                          body: Vapor.Response.Body(data: body))
-                }
-                .firstFuture(on: request.eventLoop)
-                .map { optionalResponse in
-                    optionalResponse ?? Vapor.Response()
-                }
-        }
-    }
-    
-    
-    // MARK: Client Streaming Closure
-    
-    private func buildClientSideStreamingClosure<H: Handler>(
-        for endpoint: Endpoint<H>,
-        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
-        let strategy = multiInputDecodingStrategy(for: endpoint)
-        
-        let abortAnyError = AbortTransformer<H>()
-        
-        let transformer = VaporResponseTransformer<H>(configuration.encoder)
-        
-        return { (request: Vapor.Request) in
-            guard let requestCount = try configuration.decoder.decode(ArrayCount.self, from: request.bodyData).count else {
-                throw ApodiniError(
-                    type: .badInput,
-                    reason: "Expected array at top level of body.",
-                    description: "Input for client side steaming endpoints must be an array at top level.")
-            }
-            
-            var delegate = Delegate(endpoint.handler, .required)
-            
-            return Array(0..<requestCount)
-                .publisher
-                .map { index in
-                    (request, (request, index))
-                }
-                .decode(using: strategy, with: request.eventLoop)
-                .insertDefaults(with: defaultValues)
-                .validateParameterMutability()
-                .cache()
-                .subscribe(to: &delegate)
-                .evaluate(on: &delegate)
-                .transform(using: abortAnyError)
-                .cancel(if: { response in
-                    response.connectionEffect == .close
-                })
-                .compactMap { (response: Apodini.Response<H.Response.Content>) in
-                    if response.connectionEffect == .open && response.content == nil {
-                        return nil
-                    } else {
-                        return response
-                    }
-                }
-                .tryMap { (response: Apodini.Response<H.Response.Content>) -> Vapor.Response in
-                    return try transformer.transform(input: response)
-                }
-                .firstFuture(on: request.eventLoop)
-                .map { optionalResponse in
-                    optionalResponse ?? Vapor.Response()
-                }
-        }
-    }
-    
-    // MARK: Bidirectional Streaming Closure
-    
-    private func buildBidirectionalStreamingClosure<H: Handler>(
-        for endpoint: Endpoint<H>,
-        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
-        let strategy = multiInputDecodingStrategy(for: endpoint)
-        
-        let abortAnyError = AbortTransformer<H>()
-        
-        return { (request: Vapor.Request) in
-            guard let requestCount = try configuration.decoder.decode(ArrayCount.self, from: request.bodyData).count else {
-                throw ApodiniError(
-                    type: .badInput,
-                    reason: "Expected array at top level of body.",
-                    description: "Input for client side steaming endpoints must be an array at top level.")
-            }
-            
-            var delegate = Delegate(endpoint.handler, .required)
-            
-            return Array(0..<requestCount)
-                .publisher
-                .map { index in
-                    (request, (request, index))
-                }
-                .decode(using: strategy, with: request.eventLoop)
-                .insertDefaults(with: defaultValues)
-                .validateParameterMutability()
-                .cache()
-                .subscribe(to: &delegate)
-                .evaluate(on: &delegate)
-                .transform(using: abortAnyError)
-                .cancel(if: { response in
-                    return response.connectionEffect == .close
-                })
-                .collect()
-                .tryMap { (responses: [Apodini.Response<H.Response.Content>]) in
-                    let status: Status? = responses.last?.status
-                    let information: Set<AnyInformation> = responses.last?.information ?? []
-                    let content: [H.Response.Content] = responses.compactMap { response in
-                        response.content
-                    }
-                    let body = try configuration.encoder.encode(content)
-                    
-                    return Vapor.Response(status: HTTPStatus(status ?? .ok),
-                                          headers: HTTPHeaders(information),
-                                          body: Vapor.Response.Body(data: body))
-                }
-                .firstFuture(on: request.eventLoop)
-                .map { optionalResponse in
-                    optionalResponse ?? Vapor.Response()
-                }
-        }
-    }
-    
     
     // MARK: Response Transformers
     
@@ -323,32 +127,25 @@ struct Exporter: InterfaceExporter {
     
     // MARK: Decoding Strategies
     
-    private func singleInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<Vapor.Request> {
+    func singleInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<Vapor.Request> {
         ParameterTypeSpecific(
-            .path,
-            using: PathStrategy(),
-            otherwise: ParameterTypeSpecific(
-                .lightweight,
-                using: LightweightStrategy(),
-                otherwise: NumberOfContentParameterAwareStrategy
-                                .oneIdentityOrAllNamedContentStrategy(configuration.decoder, for: endpoint)
-                                .transformedToVaporRequestBasedStrategy())
-            )
-            .applied(to: endpoint)
-            .typeErased
+            lightweight: LightweightStrategy(),
+            path: PathStrategy(),
+            content: NumberOfContentParameterAwareStrategy
+                .oneIdentityOrAllNamedContentStrategy(configuration.decoder, for: endpoint)
+                .transformedToVaporRequestBasedStrategy()
+        )
+        .applied(to: endpoint)
+        .typeErased
     }
     
-    private func multiInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<(Vapor.Request, Int)> {
+    func multiInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<(Vapor.Request, Int)> {
         ParameterTypeSpecific(
-            .path,
-            using: PathStrategy().transformed { request, _ in request },
-            otherwise: ParameterTypeSpecific(
-                .lightweight,
-                using: AllNamedAtIndexWithLightweightPattern(decoder: configuration.decoder)
-                    .transformed { request, index in (request.bodyData, index) },
-                otherwise: AllNamedAtIndexWithContentPattern(decoder: configuration.decoder)
-                    .transformed { request, index in (request.bodyData, index) }
-            )
+            lightweight: AllNamedAtIndexWithLightweightPattern(decoder: configuration.decoder)
+                .transformed { request, index in (request.bodyData, index) },
+            path: PathStrategy().transformed { request, _ in request },
+            content: AllNamedAtIndexWithContentPattern(decoder: configuration.decoder)
+                .transformed { request, index in (request.bodyData, index) }
         )
         .applied(to: endpoint)
         .typeErased
@@ -356,7 +153,7 @@ struct Exporter: InterfaceExporter {
     
     // MARK: Helpers
     
-    private struct ArrayCount: Decodable {
+    struct ArrayCount: Decodable {
         let count: Int?
         
         init(from decoder: Decoder) throws {

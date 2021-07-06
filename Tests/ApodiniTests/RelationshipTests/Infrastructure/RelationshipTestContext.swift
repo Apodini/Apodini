@@ -13,8 +13,7 @@ class RelationshipTestContext {
     let app: Application
     let exporter: RelationshipExporter
     
-    // swiftlint:disable:next large_tuple
-    var endpoints: [(AnyEndpoint, AnyRelationshipEndpoint, (String, [Any??], Application) throws -> EnrichedContent)] {
+    var endpoints: [RelationshipExporter.EndpointRepresentation] {
         exporter.endpoints
     }
 
@@ -40,11 +39,11 @@ class RelationshipTestContext {
     }
 
     func endpoint(on index: Int) -> AnyEndpoint {
-        endpoints[index].0
+        endpoints[index].endpoint
     }
 
     func request(on index: Int, request: String = "Example Request", parameters: Any??...) -> EnrichedContent {
-        let (_, _, executable) = endpoints[index]
+        let executable = endpoints[index].evaluateCallback
 
         do {
             return try executable(request, parameters, app)

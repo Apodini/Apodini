@@ -34,13 +34,10 @@ struct RESTEndpointHandler<H: Handler> {
         self.exporter = exporter
         
         self.strategy = ParameterTypeSpecific(
-                            .lightweight,
-                            using: LightweightStrategy(),
-                            otherwise: ParameterTypeSpecific(
-                                        .path,
-                                        using: PathStrategy(useNameAsIdentifier: false),
-                                        otherwise: AllIdentityStrategy(exporterConfiguration.decoder).transformedToVaporRequestBasedStrategy()
-                            )).applied(to: endpoint)
+                            lightweight: LightweightStrategy(),
+                            path: PathStrategy(useNameAsIdentifier: false),
+                            content: AllIdentityStrategy(exporterConfiguration.decoder).transformedToVaporRequestBasedStrategy()
+        ).applied(to: endpoint)
         
         self.defaultStore = endpoint[DefaultValueStore.self]
     }
@@ -55,7 +52,6 @@ struct RESTEndpointHandler<H: Handler> {
         
         return strategy
             .decodeRequest(from: request,
-                           with: request,
                            with: request.eventLoop)
             .insertDefaults(with: defaultStore)
             .cache()
@@ -98,13 +94,13 @@ struct RESTEndpointHandler<H: Handler> {
                     enrichedContent.formatSelfRelationship(into: &links, with: formatter)
                 }
 
-            let container = ResponseContainer(status: response.status,
-                                              information: response.information,
-                                              data: enrichedContent,
-                                              links: links,
-                                              encoder: exporterConfiguration.encoder)
-                                              
-            return container.encodeResponse(for: request)
+                let container = ResponseContainer(status: response.status,
+                                                  information: response.information,
+                                                  data: enrichedContent,
+                                                  links: links,
+                                                  encoder: exporterConfiguration.encoder)
+                                                  
+                return container.encodeResponse(for: request)
             }
     }
 }

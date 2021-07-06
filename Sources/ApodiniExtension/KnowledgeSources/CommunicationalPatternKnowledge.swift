@@ -1,5 +1,5 @@
 //
-//  KommunicationalPatternKnowledge.swift
+//  CommunicationalPatternKnowledge.swift
 //  
 //
 //  Created by Max Obermeier on 30.06.21.
@@ -37,6 +37,12 @@ struct AutomaticCommunicationalPattern: HandlerKnowledgeSource {
     }
 }
 
+/// This protocol is helps to detect if a `Handler.Response` type actually uses the
+/// `Apodini.Response` struct.
+///
+/// This is important for detecting the `AutomaticCommunicationalPattern` correctly.
+/// Only `Apodini.Response` and `EventLoopFuture`s that wrap an `Apodini.Response` (future)
+/// should conform to `CustomizableResponse`.
 private protocol CustomizableResponse { }
 
 extension Response: CustomizableResponse { }

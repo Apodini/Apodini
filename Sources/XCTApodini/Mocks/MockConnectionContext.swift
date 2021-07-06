@@ -13,7 +13,6 @@ import struct Foundation.UUID
 @testable import ApodiniREST
 import ApodiniVaporSupport
 import Vapor
-import ApodiniREST
 
 // MARK: Mock ConnectionContext
 
@@ -134,13 +133,10 @@ public protocol EndpointDecodingStrategyProvider {
 extension RESTInterfaceExporter: EndpointDecodingStrategyProvider {
     public var strategy: AnyEndpointDecodingStrategy<Vapor.Request> {
         ParameterTypeSpecific(
-                .lightweight,
-                using: LightweightStrategy(),
-                otherwise: ParameterTypeSpecific(
-                            .path,
-                            using: PathStrategy(useNameAsIdentifier: false),
-                            otherwise: AllIdentityStrategy(exporterConfiguration.decoder).transformedToVaporRequestBasedStrategy()
-                )).typeErased
+                            lightweight: LightweightStrategy(),
+                            path: PathStrategy(useNameAsIdentifier: false),
+                            content: AllIdentityStrategy(exporterConfiguration.decoder).transformedToVaporRequestBasedStrategy()
+        ).typeErased
     }
 }
 

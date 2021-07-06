@@ -1,5 +1,5 @@
 //
-//  AsyncEvaluation.swift
+//  StatefulEvaluation.swift
 //  
 //
 //  Created by Max Obermeier on 21.06.21.
@@ -10,47 +10,16 @@ import OpenCombine
 import Foundation
 
 
-// MARK: Handling Statefulness
-
-public extension Publisher where Output: Reducible {
-    /// This publisher implements a reduction on the upstream's output. For each
-    /// incoming value, the current result of the reduction is published.
-    func reduce() -> OpenCombine.Publishers.Map<Self, Output> where Output.Input == Output {
-        var last: Output?
-        
-        return self.map { (new: Output) -> Output in
-            let result = last?.reduce(with: new) ?? new
-            last = result
-            return result
-        }
-    }
-}
-
-public extension Publisher {
-    /// This publisher implements a reduction on a type `R` that can be created from the
-    /// upstream's output. For each incoming value, the current result of the reduction is published.
-    func reduce<R: Initializable>(_ type: R.Type = R.self) -> OpenCombine.Publishers.Map<Self, R> where Output == R.Input {
-        var last: R?
-        
-        return self.map { (new: Output) -> R in
-            let result = last?.reduce(with: new) ?? R(new)
-            last = result
-            return result
-        }
-    }
-}
-
-
 // MARK: Handling Subscription
 
 public extension Publisher where Output: Request {
-    /// A `Publisher` that takes care of subscribing to `TriggerEvent`s emmited
+    /// A `Publisher` that takes care of subscribing to `TriggerEvent`s emitted
     /// by the given `Delegate` as well as converting the upstream's `Request`s to
     /// `Event`s.
     ///
     /// In detail, this `Publisher` does four things:
     ///     - it maps all upstream `Request`s to an ``Event/request(_:)``
-    ///     - if successfull (`finished`), it maps the upstream's completion to an
+    ///     - if successful (`finished`), it maps the upstream's completion to an
     ///     ``Event/end``
     ///     - it subscribes to `TriggerEvent`s produced by the given `handler`
     ///     and maps them to a ``Event/trigger(_:)``
@@ -101,7 +70,7 @@ public extension Publisher where Output: Request {
 
 /// A `Publisher` that also is a `Cancellable`.
 ///
-/// The ``CancellablePublisher`` wrapps a given `Publisher` `P` and
+/// The ``CancellablePublisher`` wraps a given `Publisher` `P` and
 /// calls a given callback when its ``cancel()`` function is executed.
 public struct CancellablePublisher<P: Publisher>: Publisher, Cancellable {
     internal init(cancelCallback: @escaping () -> Void, publisher: P) {
@@ -128,7 +97,7 @@ public struct CancellablePublisher<P: Publisher>: Publisher, Cancellable {
 }
 
 extension Publisher {
-    /// Wrapps this `Publisher` into a ``CancellablePublisher`` that executes the given
+    /// Wraps this `Publisher` into a ``CancellablePublisher`` that executes the given
     /// `callback` when cancelled.
     public func asCancellable(_ callback: @escaping () -> Void) -> CancellablePublisher<Self> {
         CancellablePublisher(cancelCallback: callback, publisher: self)
@@ -236,47 +205,4 @@ extension Publisher where Output: Request {
             }
         }
     }
-}
-
-// MARK: Event
-
-/// An ``Event`` describes everything that can be used to
-/// evaluate a `Delegate`.
-///
-/// - Note: A valid sequence of ``Event``s **always** starts with an
-/// ``request(_:)`` and it **always** contains exactly **one**
-/// ``end``. After the ``end`` only ``trigger(_:)``s may follow.
-public enum Event {
-    /// A `Request` from the client
-    case request(Request)
-    /// A `TriggerEvent` raised by an `ObservedObject`
-    case trigger(TriggerEvent)
-    /// The signal from the client that it won't send
-    /// any more `Request`s
-    case end
-}
-
-// MARK: Reducible
-
-/// An object that can merge itself and a `new` element
-/// of same type.
-public protocol Reducible {
-    /// The input type for the ``Reducible/reduce(with:)`` function.
-    associatedtype Input
-    
-    /// Called to reduce self with the given instance.
-    ///
-    /// Optional to implement. By default new will overwrite the existing instance.
-    ///
-    /// - Parameter new: The instance to be combined with.
-    /// - Returns: The reduced instance.
-    func reduce(with new: Input) -> Self
-}
-
-/// A ``Reducible`` type where a initial instance can be obtained
-/// from an instance of its ``Reducible/Input`` type.
-public protocol Initializable: Reducible {
-    /// Initialize an initial instance from the ``Reducible/Input`` that
-    /// can be reduced afterwards.
-    init(_ initial: Input)
 }

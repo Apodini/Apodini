@@ -98,7 +98,7 @@ private struct SomeBaseDecodingStrategyCaller<S: BaseDecodingStrategy>: BaseDeco
 /// and a parent ``BaseDecodingStrategy`` with ``BaseDecodingStrategy/Input`` type `I`.
 ///
 /// This strategy allows for reuse of ``BaseDecodingStrategy`` with a more basic ``BaseDecodingStrategy/Input`` than
-/// the one you are acutally using. E.g. many of the predefined strategies have input type `Data`.
+/// the one you are actually using. E.g. many of the predefined strategies have input type `Data`.
 /// If your input type is a complete request, you can probably reuse those predefined strategies by extracting the body
 /// from the request.
 public struct TransformingBaseStrategy<S: BaseDecodingStrategy, Input>: BaseDecodingStrategy {
@@ -121,62 +121,5 @@ public extension BaseDecodingStrategy {
     /// and a parent with input type `I`.
     func transformed<I>(_ transformer: @escaping (I) throws -> Self.Input) -> TransformingBaseStrategy<Self, I> {
         TransformingBaseStrategy(self, using: transformer)
-    }
-}
-
-
-// MARK: Implementations
-
-/// An ``BaseDecodingStrategy`` that uses a certain `AnyDecoder` to decode each
-/// parameter from the given `Data`.
-///
-/// The strategy expects the `Data` to hold the `Element` at its base.
-///
-/// E.g. for `Element` being `String`, the following JSON would be a valid input:
-///
-/// ```json
-/// "Max"
-/// ```
-///
-/// - Note: Usage of this strategy only really makes sense if there is only one parameter
-/// to be decoded from the given `Data`.
-public struct AllIdentityStrategy: BaseDecodingStrategy {
-    private let decoder: AnyDecoder
-    
-    public init(_ decoder: AnyDecoder) {
-        self.decoder = decoder
-    }
-    
-    public func strategy<Element, I>(for parameter: I)
-        -> AnyParameterDecodingStrategy<Element, Data> where Element: Decodable, I: Identifiable {
-        PlainPatternStrategy<IdentityPattern<Element>>(decoder).typeErased
-    }
-}
-
-/// A ``BaseDecodingStrategy`` that chooses a different ``ParameterDecodingStrategy`` based
-/// on the `parameter`'s `id`.
-public struct IdentifierBasedStrategy<Input>: BaseDecodingStrategy {
-    private var strategies = [UUID: Any]()
-    
-    /// Create an empty ``IdentifierBasedStrategy`` that is still to be filled with the acutal
-    /// strategies using ``IdentifierBasedStrategy/with(strategy:for:)``.
-    ///
-    /// - Warning: If not filled with a strategy for each relevant parameter, this strategy crashes on runtime!
-    public init() {}
-    
-    public func strategy<Element, I>(for parameter: I)
-        -> AnyParameterDecodingStrategy<Element, Input> where Element: Decodable, I: Identifiable, I.ID == UUID {
-        guard let strategy = strategies[parameter.id] as? AnyParameterDecodingStrategy<Element, Input> else {
-            fatalError("'IdentifierBasedStrategy' is missing strategy for parameter with id \(parameter.id)!")
-        }
-        return strategy
-    }
-    
-    /// Add a certain `strategy` to be used for decoding `parameter`.
-    public func with<P: ParameterDecodingStrategy, I: Identifiable>(strategy: P, for parameter: I)
-        -> Self where I.ID == UUID, P.Input == Input {
-        var selfCopy = self
-        selfCopy.strategies[parameter.id] = strategy.typeErased
-        return selfCopy
     }
 }

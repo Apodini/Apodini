@@ -101,6 +101,3 @@ public extension DecodingStrategy {
         TransformingStrategy(self, using: transformer)
     }
 }
-
-
-// MARK: Implementations

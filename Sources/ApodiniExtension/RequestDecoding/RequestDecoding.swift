@@ -78,18 +78,56 @@ extension DecodingStrategy {
     /// the given `input` by applying this strategy.
     ///
     /// When working with a `Publisher` pipeline, use `Publisher`'s `decode(using:with)`.
+    ///
+    /// - Parameters:
+    ///     - `input`:  The ``DecodingStrategy/Input`` this strategy can decode parameter from
+    ///     - `basis`: The further information that is needed next to parameter retrieval and the `eventLoop` that are required to build an Apodini `Request`
+    ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
     public func decodeRequest(from input: Input, with basis: RequestBasis, with eventLoop: EventLoop) -> DecodingRequest<Input> {
         DecodingRequest(basis: basis, input: input, strategy: self.typeErased, eventLoop: eventLoop)
+    }
+    
+    /// A shortcut for ``DecodingStrategy/decodeRequest(from:with:with:)`` for ``DecodingStrategy``s where
+    /// ``DecodingStrategy/Input`` conforms to ``RequestBasis``.
+    ///
+    /// When working with a `Publisher` pipeline, use `Publisher`'s `decode(using:with)`.
+    ///
+    /// - Parameters:
+    ///     - `input`:  The ``DecodingStrategy/Input`` this strategy can decode parameter from, which also serves as the ``RequestBasis``
+    ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
+    public func decodeRequest(from input: Input, with eventLoop: EventLoop) -> DecodingRequest<Input> where Input: RequestBasis {
+        self.decodeRequest(from: input, with: input, with: eventLoop)
     }
 }
 
 extension Publisher {
     /// Maps each incoming `Output` to an Apodini `Request` based on the given `strategy` by
     /// calling the strategy's ``DecodingStrategy/decodeRequest(from:with:with:)`` function.
+    ///
+    /// The `Output` must be a tuple consisting of a ``RequestBasis`` and the ``DecodingStrategy/Input`` for `S`.
+    ///
+    /// - Parameters:
+    ///     - `strategy`:  The ``DecodingStrategy`` that is required to retrieve parameters from the according ``DecodingStrategy/Input``
+    ///     contained in the second element of each value published on this `Publisher`
+    ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
     public func decode<S: DecodingStrategy, R: RequestBasis>(using strategy: S, with eventLoop: EventLoop)
         -> OpenCombine.Publishers.Map<Self, DecodingRequest<S.Input>> where Output == (R, S.Input) {
         self.map { requestBasis, input in
             strategy.decodeRequest(from: input, with: requestBasis, with: eventLoop)
+        }
+    }
+    
+    /// Maps each incoming `Output` to an Apodini `Request` based on the given `strategy` by
+    /// calling the strategy's ``DecodingStrategy/decodeRequest(from:with:)`` function.
+    ///
+    /// - Parameters:
+    ///     - `strategy`:  The ``DecodingStrategy`` that is required to retrieve parameters from the according ``DecodingStrategy/Input``
+    ///     contained in the second element of each value published on this `Publisher`
+    ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
+    public func decode<S: DecodingStrategy>(using strategy: S, with eventLoop: EventLoop)
+        -> OpenCombine.Publishers.Map<Self, DecodingRequest<S.Input>> where Output == S.Input, S.Input: RequestBasis {
+        self.map { input in
+            strategy.decodeRequest(from: input, with: eventLoop)
         }
     }
 }
