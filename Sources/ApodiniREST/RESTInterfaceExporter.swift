@@ -146,11 +146,6 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
     }
 }
 
-// MARK: ApodiniError
-extension RESTInterfaceExporter: StandardErrorCompliantExporter {
-    typealias ErrorMessagePrefixStrategy = StandardErrorMessagePrefix
-}
-
 
 extension AnyEndpoint {
     /// RESTInterfaceExporter exports `@Parameter(.http(.path))`, which are not listed on the

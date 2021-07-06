@@ -301,6 +301,9 @@ final class HandlerMetadataTest: ApodiniTests {
             }
         }
 
+        let exporter = MockExporter<String>()
+        app.registerExporter(exporter: exporter)
+
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
 
@@ -309,12 +312,10 @@ final class HandlerMetadataTest: ApodiniTests {
         modelBuilder.finishedRegistration()
 
         let endpoint = modelBuilder.collectedEndpoints[0]
-
-        let exporter = MockExporter<String>()
-        let context = endpoint.createAnyConnectionContext(for: exporter)
+        let response = exporter.request(on: 0, request: "Example Request", with: app)
 
         try XCTCheckResponse(
-            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next(), final: true),
+            try XCTUnwrap(response.typed(String.self)),
             content: "Hello Alfred 34"
         )
     }
