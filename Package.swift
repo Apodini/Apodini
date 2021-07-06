@@ -34,7 +34,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.45.0"),
-        .package(url: "https://github.com/vapor/fluent.git", from: "4.3.0"),
+        .package(url: "https://github.com/vapor/fluent.git", from: "4.3.1"),
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.13.0"),
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.1.0"),
         // Used by the `NotificationCenter` to send push notifications to `APNS`.
