@@ -10,6 +10,7 @@ let package = Package(
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
+        .library(name: "ApodiniExtension", targets: ["ApodiniExtension"]),
         .library(name: "ApodiniUtils", targets: ["ApodiniUtils"]),
         .library(name: "ApodiniDatabase", targets: ["ApodiniDatabase"]),
         .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
@@ -18,6 +19,7 @@ let package = Package(
         .library(name: "ApodiniOpenAPI", targets: ["ApodiniOpenAPI"]),
         .library(name: "ApodiniProtobuffer", targets: ["ApodiniProtobuffer"]),
         .library(name: "ApodiniREST", targets: ["ApodiniREST"]),
+        .library(name: "ApodiniHTTP", targets: ["ApodiniHTTP"]),
         .library(name: "ApodiniTypeReflection", targets: ["ApodiniTypeReflection"]),
         .library(name: "ApodiniVaporSupport", targets: ["ApodiniVaporSupport"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
@@ -105,6 +107,16 @@ let package = Package(
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniExtension",
+            dependencies: [
+                .target(name: "ApodiniUtils"),
+                .target(name: "Apodini"),
+                .product(name: "OpenCombine", package: "OpenCombine"),
+                .product(name: "NIO", package: "swift-nio")
             ]
         ),
 
@@ -236,7 +248,18 @@ let package = Package(
             name: "ApodiniREST",
             dependencies: [
                 .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniVaporSupport")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniHTTP",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "OpenCombine", package: "OpenCombine")
             ]
         ),
 
@@ -252,6 +275,7 @@ let package = Package(
             name: "ApodiniVaporSupport",
             dependencies: [
                 .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
                 .product(name: "Vapor", package: "vapor")
             ]
         ),
@@ -261,6 +285,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniVaporSupport"),
                 .product(name: "OpenCombine", package: "OpenCombine"),
                 .product(name: "OpenCombineFoundation", package: "OpenCombine"),
@@ -297,8 +322,10 @@ let package = Package(
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
                 .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniDatabase"),
-                .target(name: "ApodiniUtils")
+                .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniREST")
             ]
         ),
         
@@ -317,6 +344,32 @@ let package = Package(
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniNotifications"),
                 .target(name: "ApodiniDeploy")
+            ]
+        ),
+        
+        .testTarget(
+            name: "ApodiniHTTPTests",
+            dependencies: [
+                .target(name: "XCTApodini"),
+                .target(name: "ApodiniHTTP"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "XCTVapor", package: "vapor")
+            ]
+        ),
+        
+        .testTarget(
+            name: "ApodiniVaporSupportTests",
+            dependencies: [
+                .target(name: "XCTApodini"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "XCTVapor", package: "vapor")
+            ]
+        ),
+        
+        .testTarget(
+            name: "ApodiniExtensionTests",
+            dependencies: [
+                .target(name: "XCTApodini")
             ]
         ),
         

@@ -36,12 +36,12 @@ public final class OpenAPI: RESTDependentStaticConfiguration {
         let openAPIExporter = OpenAPIInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
-        app.registerExporter(staticExporter: openAPIExporter)
+        app.registerExporter(exporter: openAPIExporter)
     }
 }
 
 /// Internal Apodini Interface Exporter for OpenAPI
-final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
+final class OpenAPIInterfaceExporter: InterfaceExporter {
     static var parameterNamespace: [ParameterNamespace] = .individual
     
     let app: Apodini.Application
@@ -69,6 +69,10 @@ final class OpenAPIInterfaceExporter: StaticInterfaceExporter {
             self.exporterConfiguration.version = endpoint[Context.self].get(valueFor: APIVersionContextKey.self)?.description
             //updateStorage()
         }
+    }
+    
+    func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {
+        export(endpoint)
     }
     
     func finishedExporting(_ webService: WebServiceModel) {

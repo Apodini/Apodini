@@ -16,7 +16,8 @@ public enum Mutability: PropertyOption {
 }
 
 extension PropertyOptionKey where PropertyNameSpace == ParameterOptionNameSpace, Option == Mutability {
-    static let mutability = PropertyOptionKey<ParameterOptionNameSpace, Mutability>()
+    /// The ``PropertyOptionKey`` for ``Mutability`` of a ``Parameter``.
+    public static let mutability = PropertyOptionKey<ParameterOptionNameSpace, Mutability>()
 }
 
 extension AnyPropertyOption where PropertyNameSpace == ParameterOptionNameSpace {

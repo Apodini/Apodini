@@ -54,12 +54,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         exporter.finishedExporting(WebServiceModel(blackboard: GlobalBlackboard<LazyHashmapBlackboard>(app)))
     }
 
-    func visit<I>(staticExporter: I) where I: StaticInterfaceExporter {
-        call(exporter: staticExporter)
-        staticExporter.finishedExporting(WebServiceModel(blackboard: GlobalBlackboard<LazyHashmapBlackboard>(app)))
-    }
-
-    private func call<I: BaseInterfaceExporter>(exporter: I) {
+    private func call<I: InterfaceExporter>(exporter: I) {
         for endpoint in collectedEndpoints {
             // before we run unnecessary export steps, we first verify that the Endpoint is indeed valid
             // in the case of not allowing lenient namespace definitions we just pass a empty array

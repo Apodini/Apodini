@@ -77,7 +77,7 @@ class ObservedObjectTests: ApodiniTests {
         struct TestListener: ObservedListener {
             var eventLoop: EventLoop
             
-            var context: ConnectionContext<RESTInterfaceExporter, TestHandler>
+            var context: ConnectionContext<Vapor.Request, TestHandler>
 
             func onObservedDidChange(_ observedObject: AnyObservedObject,
                                      _ event: TriggerEvent) {
@@ -132,13 +132,13 @@ class ObservedObjectTests: ApodiniTests {
         class MandatoryTestListener: ObservedListener {
             var eventLoop: EventLoop
             
-            var context: ConnectionContext<RESTInterfaceExporter, TestHandler>
+            var context: ConnectionContext<Vapor.Request, TestHandler>
             
             var wasCalled = false
             
             let number: Int
             
-            init(eventLoop: EventLoop, number: Int, context: ConnectionContext<RESTInterfaceExporter, TestHandler>) {
+            init(eventLoop: EventLoop, number: Int, context: ConnectionContext<Vapor.Request, TestHandler>) {
                 self.eventLoop = eventLoop
                 self.context = context
                 self.number = number
@@ -202,7 +202,7 @@ class ObservedObjectTests: ApodiniTests {
         struct TestListener: ObservedListener {
             var eventLoop: EventLoop
             
-            var context: ConnectionContext<RESTInterfaceExporter, TestHandler>
+            var context: ConnectionContext<Vapor.Request, TestHandler>
             
             func onObservedDidChange(_ observedObject: AnyObservedObject,
                                      _ event: TriggerEvent) {
@@ -285,11 +285,11 @@ class ObservedObjectTests: ApodiniTests {
     class TestListener<H: Handler>: ObservedListener {
         var eventLoop: EventLoop
         
-        var context: ConnectionContext<MockExporter<String>, H>
+        var context: ConnectionContext<String, H>
         
         var result: (() -> EventLoopFuture<String>)?
         
-        init(eventLoop: EventLoop, context: ConnectionContext<MockExporter<String>, H>) {
+        init(eventLoop: EventLoop, context: ConnectionContext<String, H>) {
             self.eventLoop = eventLoop
             self.context = context
         }

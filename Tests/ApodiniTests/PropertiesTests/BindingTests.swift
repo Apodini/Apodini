@@ -133,23 +133,23 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
             XCTAssertEqual(response.status, .ok)
             XCTAssertTrue(response.body.string.contains(selectedCountry))
         }
-        
+
         try app.vapor.app.testable(method: .inMemory).test(.GET, "/") { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertTrue(response.body.string.contains("World"))
         }
-        
+
         try app.vapor.app.testable(method: .inMemory).test(.GET, "/default") { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertTrue(response.body.string.contains("USA"))
         }
-        
+
         try app.vapor.app.testable(method: .inMemory).test(.GET, "/featured") { response in
             XCTAssertEqual(response.status, .ok)
             // swiftlint:disable force_unwrapping
             XCTAssertTrue(response.body.string.contains(featured!))
         }
-        
+
         try app.vapor.app.testable(method: .inMemory).test(.GET, "/optional") { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertTrue(response.body.string.contains("World"))
@@ -159,7 +159,7 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
             XCTAssertEqual(response.status, .ok)
             XCTAssertTrue(response.body.string.contains("Greece"))
         }
-        
+
         try app.vapor.app.testable(method: .inMemory).test(.GET, "/localized?language=DE") { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertTrue(response.body.string.contains("Welt"))

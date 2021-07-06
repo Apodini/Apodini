@@ -28,7 +28,7 @@ protocol EndpointParameterThrowingVisitor {
 
 /// Describes a type erasured `EndpointParameter`
 public protocol AnyEndpointParameter: CustomStringConvertible {
-    /// The `UUID` which uniquely identifies the given `AnyEndpointParameter`.
+    /// The `UUID` which uniquely identifies the given `AnyEndpointParameter` and the `Parameter` it represents.
     var id: UUID { get }
     var pathId: String { get }
     /// This property holds the name as defined by the user.
@@ -80,7 +80,7 @@ protocol _AnyEndpointParameter: AnyEndpointParameter {
     ///
     /// - Parameter exporter: The `InterfaceExporter`.
     /// - Returns: Returns what `InterfaceExporter.retrieveParameter(...)` returns.
-    func exportParameter<I: BaseInterfaceExporter>(on exporter: I) -> I.ParameterExportOutput
+    func exportParameter<I: InterfaceExporter>(on exporter: I) -> I.ParameterExportOutput
 
     /// Used to derive a `EndpointPath` (specifically a `.parameter(parameter:)` instance)
     /// from the given `EndpointParameter`.
@@ -111,7 +111,7 @@ extension AnyEndpointParameter {
 /// ```
 /// the generic holds `String.Type` and not `Optional<String>.self`.
 /// Use the `nilIsValidValue` property to check if the original parameter definition used an `Optional` type.
-public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter {
+public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifiable {
     public let id: UUID
     public var pathId: String {
         if parameterType != .path {
@@ -190,14 +190,14 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter {
         try visitor.visit(parameter: self)
     }
 
-    func exportParameter<I: BaseInterfaceExporter>(on exporter: I) -> I.ParameterExportOutput {
+    func exportParameter<I: InterfaceExporter>(on exporter: I) -> I.ParameterExportOutput {
         exporter.exportParameter(self)
     }
 }
 
 // MARK: Endpoint Parameter
 extension Array where Element == AnyEndpointParameter {
-    func exportParameters<I: BaseInterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
+    func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
         self.map { parameter -> I.ParameterExportOutput in
             parameter.toInternal().exportParameter(on: exporter)
         }

@@ -5,11 +5,11 @@
 //  Created by Max Obermeier on 06.01.21.
 //
 
-@_implementationOnly import OpenCombine
+import OpenCombine
 import NIO
 import Foundation
 
-extension Publisher {
+public extension Publisher {
     /// This function is similar to the normal `map`, but it only takes `transform`ers which
     /// return an `EventLoopFuture`. The mapper unwraps the `EventLoopFuture`'s
     /// contained value by awaiting the future in a synchronous, but non-blocking way. I.e. the
@@ -17,37 +17,39 @@ extension Publisher {
     /// The `EventLoop` is not blocked. Completions also await the currently pending future.
     func syncMap<Value>(
         _ transform: @escaping (Output) -> EventLoopFuture<Value>
-    ) -> SyncMap<Self, Value> {
-        SyncMap(upstream: self, transform: transform)
+    ) -> Publishers.SyncMap<Self, Value> {
+        Publishers.SyncMap(upstream: self, transform: transform)
     }
 }
 
-/// The `Publisher` behind `Publisher.syncMap`.
-struct SyncMap<Upstream: Publisher, O>: Publisher {
-    typealias Failure = Upstream.Failure
-    
-    typealias Output = Result<O, Error>
+extension Publishers {
+    /// The `Publisher` behind `Publisher.syncMap`.
+    public struct SyncMap<Upstream: Publisher, O>: Publisher {
+        public typealias Failure = Upstream.Failure
+        
+        public typealias Output = Result<O, Error>
 
-    /// The publisher from which this publisher receives elements.
-    private let upstream: Upstream
+        /// The publisher from which this publisher receives elements.
+        private let upstream: Upstream
 
-    /// The closure that transforms elements from the upstream publisher.
-    private let transform: (Upstream.Output) -> EventLoopFuture<O>
+        /// The closure that transforms elements from the upstream publisher.
+        private let transform: (Upstream.Output) -> EventLoopFuture<O>
 
-    internal init(upstream: Upstream,
-                  transform: @escaping (Upstream.Output) -> EventLoopFuture<O>) {
-        self.upstream = upstream
-        self.transform = transform
-    }
+        internal init(upstream: Upstream,
+                      transform: @escaping (Upstream.Output) -> EventLoopFuture<O>) {
+            self.upstream = upstream
+            self.transform = transform
+        }
 
-    func receive<Downstream: Subscriber>(subscriber: Downstream)
-    where Result<O, Error> == Downstream.Input, Downstream.Failure == Failure {
-        upstream.subscribe(Inner(downstream: subscriber, map: transform))
+        public func receive<Downstream: Subscriber>(subscriber: Downstream)
+        where Result<O, Error> == Downstream.Input, Downstream.Failure == Failure {
+            upstream.subscribe(Inner(downstream: subscriber, map: transform))
+        }
     }
 }
 
 
-private extension SyncMap {
+private extension Publishers.SyncMap {
     final class Inner<Downstream: Subscriber>: Subscriber, CustomStringConvertible, CustomPlaygroundDisplayConvertible
     where Downstream.Input == Result<O, Error>, Downstream.Failure == Failure {
         typealias Input = Upstream.Output
@@ -95,6 +97,8 @@ private extension SyncMap {
         func receive(_ input: Input) -> Subscribers.Demand {
             self.lock.lock()
             self.awaiting = true
+            var isSynchronous = true
+            var demandToRequest: Subscribers.Demand?
             self.map(input).whenComplete { result in
                 self.lock.lock()
                 self.awaiting = false
@@ -108,15 +112,24 @@ private extension SyncMap {
                     self.lock.unlock()
                     self.downstream.receive(completion: completion)
                 } else {
-                    // Otherwise we add the `demand` we obtained from passing
-                    // `output` to `downstream` to our `subscription` which will
-                    // also request one new value.
-                    self.subscription?.request(demand)
+                    // Otherwise we have to handle our demand
+                    if isSynchronous {
+                        // If `isSynchronous` is still `true`, then the future completed
+                        // synchronously and thus we have to report demand via this
+                        // `receive` function's return value
+                        demandToRequest = self.subscription?.register(demand)
+                    } else {
+                        // Otherwise we add the `demand` we obtained from passing
+                        // `output` to `downstream` to our `subscription` which will
+                        // also request one new value.
+                        self.subscription?.request(demand)
+                    }
                     self.lock.unlock()
                 }
             }
+            isSynchronous = false
             self.lock.unlock()
-            return .none
+            return demandToRequest ?? .none
         }
 
         func receive(completion: Subscribers.Completion<Failure>) {
@@ -142,7 +155,7 @@ private extension SyncMap {
     }
 }
 
-private extension SyncMap.Inner {
+private extension Publishers.SyncMap.Inner {
     // This wrapper around the `upstream` `Subscription` stores
     // the downstream demand. It provides the `requestOne` function
     // for the `Subscriber` to request one new value from the `upstream`
@@ -173,6 +186,13 @@ private extension SyncMap.Inner {
             self.subscription?.cancel()
             self.subscription = nil
             self.onDemand = nil
+        }
+        
+        func register(_ demand: Subscribers.Demand) -> Subscribers.Demand {
+            self.lock.lock()
+            self.demand += demand
+            self.lock.unlock()
+            return self.demand > 0 ? .max(1) : .none
         }
         
         func requestOne() {

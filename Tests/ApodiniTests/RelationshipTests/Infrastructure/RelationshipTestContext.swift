@@ -12,8 +12,8 @@ import ApodiniUtils
 class RelationshipTestContext {
     let app: Application
     let exporter: RelationshipExporter
-
-    var endpoints: [(AnyEndpoint, AnyRelationshipEndpoint)] {
+    
+    var endpoints: [RelationshipExporter.EndpointRepresentation] {
         exporter.endpoints
     }
 
@@ -39,24 +39,14 @@ class RelationshipTestContext {
     }
 
     func endpoint(on index: Int) -> AnyEndpoint {
-        endpoints[index].0
+        endpoints[index].endpoint
     }
 
     func request(on index: Int, request: String = "Example Request", parameters: Any??...) -> EnrichedContent {
-        exporter.append(injected: parameters)
-
-        let (endpoint, rendpoint) = endpoints[index]
-        let context = endpoint.createAnyConnectionContext(for: exporter)
+        let executable = endpoints[index].evaluateCallback
 
         do {
-            let (response, parameters) = try context.handleAndReturnParameters(
-                request: request,
-                eventLoop: app.eventLoopGroup.next(),
-                final: true)
-                .wait()
-            return try XCTUnwrap(response.map { anyEncodable in
-                EnrichedContent(for: rendpoint, response: anyEncodable, parameters: parameters)
-            })
+            return try executable(request, parameters, app)
         } catch {
             fatalError("Error when handling Relationship request: \(error)")
         }

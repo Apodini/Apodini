@@ -13,7 +13,7 @@ import Vapor
 import XCTest
 import XCTApodini
 
-extension XMLEncoder: AnyEncoder {
+extension XMLEncoder: ApodiniREST.AnyEncoder {
     public func encode<T>(_ value: T) throws -> Data where T: Encodable {
         let element: XML.Element = try self.encode(value)
         return element.xmlString.data(using: .utf8)!
@@ -26,7 +26,7 @@ extension XMLEncoder: AnyEncoder {
     }
 }
 
-extension XMLDecoder: AnyDecoder {
+extension XMLDecoder: ApodiniREST.AnyDecoder {
     public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable {
         let xmlElement = try XML.Element(xmlData: data)
         return try self.decode(type, from: xmlElement)
@@ -56,7 +56,7 @@ class ExporterConfigurationTests: XCTestCase {
     }
     
     func testExporterConfigurationWithOwnEncoderAndDecoder() throws {
-        struct TestEncoder: AnyEncoder {
+        struct TestEncoder: ApodiniREST.AnyEncoder {
             let jsonEncoder = JSONEncoder()
             
             func encode<T>(_ value: T) throws -> Data where T: Encodable {
@@ -64,7 +64,7 @@ class ExporterConfigurationTests: XCTestCase {
             }
         }
         
-        struct TestDecoder: AnyDecoder {
+        struct TestDecoder: ApodiniREST.AnyDecoder {
             let jsonDecoder = JSONDecoder()
             
             func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable {

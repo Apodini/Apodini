@@ -22,7 +22,8 @@ final class InformationRequestTests: XCTApodiniTest {
             
             func handle() -> Int {
                 do {
-                    try testExpectations(connection.information)
+                    let info = connection.information
+                    try testExpectations(info)
                 } catch {
                     XCTFail(error.localizedDescription)
                 }

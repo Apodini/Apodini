@@ -142,36 +142,22 @@ final class SemanticModelBuilderTests: ApodiniTests {
     }
 
     func testShouldWrapInFinalByDefault() throws {
-        let exporter = RESTInterfaceExporter(app)
         let handler = TestHandler4()
-        let endpoint = handler.mockEndpoint()
-        let context = endpoint.createConnectionContext(for: exporter)
 
-        let request = Vapor.Request(application: app.vapor.app,
-                                    method: .GET,
-                                    url: "",
-                                    on: app.eventLoopGroup.next())
         let expectedString = "Hello Test Handler 4"
 
         try XCTCheckResponse(
-            context.handle(request: request),
+            mockQuery(handler: handler, value: String.self, app: app),
             content: expectedString,
             connectionEffect: .close
         )
     }
 
     func testResponsePassthrough_send() throws {
-        let exporter = RESTInterfaceExporter(app)
         let handler = ResponseHandler1()
-        let endpoint = handler.mockEndpoint(app: app)
-        let context = endpoint.createConnectionContext(for: exporter)
-        let request = Vapor.Request(application: app.vapor.app,
-                                    method: .GET,
-                                    url: "",
-                                    on: app.eventLoopGroup.next())
 
         try XCTCheckResponse(
-            context.handle(request: request, final: false),
+            mockQuery(handler: handler, value: String.self, app: app),
             content: "Send",
             connectionEffect: .open
         )

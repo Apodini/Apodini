@@ -37,13 +37,14 @@ public protocol AnyEncoder {
     func encode<E: Encodable>(_ value: E) throws -> Data
 }
 
-/// Something that can decode `Decodable` objects to the given respective type
-public protocol AnyDecoder {
-    /// Decode some `Decodable` data to the given type
-    func decode<D>(_ type: D.Type, from data: Data) throws -> D where D: Decodable
-}
-
 extension JSONEncoder: AnyEncoder {}
+
+
+/// Something that can decode `Decodable` objects from `Data`
+public protocol AnyDecoder {
+    /// Decode some `Decodable` object from `Data`
+    func decode<T>(_: T.Type, from: Data) throws -> T where T: Decodable
+}
 
 extension JSONDecoder: AnyDecoder {}
 

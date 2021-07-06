@@ -1,65 +1,73 @@
 //
-//  Buffer.swift
+//  EagerBuffer.swift
+//  
 //
-//
-//  Created by Max Obermeier on 27.01.21.
+//  Created by Max Obermeier on 30.06.21.
 //
 
-@_implementationOnly import OpenCombine
+
+import OpenCombine
 import NIO
 import Foundation
 
 extension Publisher {
-    /// A buffer that subscribes with unlimited demand to its upstream while keeping a given
-    /// amount of _events_ in memory until the downstream publisher is ready to receive them.
+    /// A buffer that immediately subscribes with unlimited demand to its upstream **on initialization**
+    /// while keeping a  amount of _events_ in memory until the downstream publisher is ready to receive them.
     /// - Parameter amount: The number of events that are buffered. If `nil`, the buffer is
     ///   of unlimited size.
     ///
     /// - Note: An _event_ can be either a `completion` or `value`. Both are buffered, i.e.
-    ///   a `completion` is not forwarded instantly, but after the `value` the `Buffer` received
+    ///   a `completion` is not forwarded instantly, but after the `value` the `EagerBuffer` received
     ///   it after.
     /// - Note: While `value`s may be dropped if the buffer is full, the `completion` is never
     ///   discarded.
-    func buffer(
+    public func eagerBuffer(
         _ amount: UInt? = nil
-    ) -> Buffer<Self> {
-        Buffer(upstream: self, size: amount)
+    ) -> Publishers.EagerBuffer<Self> {
+        Publishers.EagerBuffer(upstream: self, size: amount)
     }
 }
 
-/// The `Publisher` behind `Publisher.buffer`.
-struct Buffer<Upstream: Publisher>: Publisher {
-    typealias Failure = Upstream.Failure
-    
-    typealias Output = Upstream.Output
+public extension Publishers {
+    /// The `Publisher` behind `Publisher.passiveBuffer`.
+    class EagerBuffer<Upstream: Publisher>: Publisher {
+        public typealias Failure = Upstream.Failure
+        
+        public typealias Output = Upstream.Output
 
-    /// The publisher from which this publisher receives elements.
-    private let upstream: Upstream
+        /// The publisher from which this publisher receives elements.
+        private let upstream: Upstream
 
-    
-    private let size: UInt?
+        private var inner: Inner?
+        
+        private let size: UInt?
 
-    internal init(upstream: Upstream,
-                  size: UInt?) {
-        self.upstream = upstream
-        self.size = size
-    }
+        internal init(upstream: Upstream,
+                      size: UInt?) {
+            self.upstream = upstream
+            self.size = size
+            
+            let inner = Inner(bufferSize: size)
+            upstream.subscribe(inner)
+            self.inner = inner
+        }
 
-    func receive<Downstream: Subscriber>(subscriber: Downstream)
-    where Output == Downstream.Input, Downstream.Failure == Failure {
-        upstream.subscribe(Inner(downstream: subscriber, bufferSize: size))
+        public func receive<Downstream: Subscriber>(subscriber: Downstream)
+        where Output == Downstream.Input, Downstream.Failure == Failure {
+            inner?.setDownstream(subscriber)
+            inner = nil
+        }
     }
 }
 
 
-private extension Buffer {
-    final class Inner<Downstream: Subscriber>: Subscriber, CustomStringConvertible, CustomPlaygroundDisplayConvertible
-    where Downstream.Input == Output, Downstream.Failure == Failure {
+private extension Publishers.EagerBuffer {
+    final class Inner: Subscriber, CustomStringConvertible, CustomPlaygroundDisplayConvertible {
         typealias Input = Upstream.Output
 
-        typealias Failure = Downstream.Failure
+        typealias Failure = Upstream.Failure
 
-        private let downstream: Downstream
+        private var downstream: AnySubscriber<Output, Failure>?
         
         private var subscription: Subscription?
 
@@ -73,10 +81,11 @@ private extension Buffer {
 
         let combineIdentifier = CombineIdentifier()
 
-        fileprivate init(downstream: Downstream, bufferSize: UInt?) {
-            self.downstream = downstream
+        fileprivate init(bufferSize: UInt?) {
             self.bufferSize = bufferSize
+            self.downstream = nil
         }
+        
         // Instantly request `unlimited` input. If the
         // downstream requests new demand, try to satisfy it
         // from the buffer. If the downstream is canceled,
@@ -84,17 +93,6 @@ private extension Buffer {
         func receive(subscription: Subscription) {
             subscription.request(.unlimited)
             self.subscription = subscription
-            downstream.receive(subscription: Inner(onRequest: { demand in
-                self.lock.lock()
-                defer { self.lock.unlock() }
-                self.demand += demand
-                self.satisfyDemand()
-            }, onCancel: {
-                self.lock.lock()
-                self.subscription?.cancel()
-                self.subscription = nil
-                self.lock.unlock()
-            }))
         }
 
         // Add the `value` to the `buffer` and satisfy downstream's
@@ -125,6 +123,27 @@ private extension Buffer {
             self.satisfyDemand()
         }
         
+        // Internal function that is called when the publisher
+        // receives the downstream pipeline. From this point on
+        // the downstream can request values from the buffer.
+        func setDownstream<Downstream: Subscriber>(_ downstream: Downstream) where Downstream.Failure == Failure, Downstream.Input == Output {
+            self.lock.lock()
+            defer { self.lock.unlock() }
+            self.downstream = AnySubscriber(downstream)
+            
+            downstream.receive(subscription: Inner(onRequest: { demand in
+                self.lock.lock()
+                defer { self.lock.unlock() }
+                self.demand += demand
+                self.satisfyDemand()
+            }, onCancel: {
+                self.lock.lock()
+                self.subscription?.cancel()
+                self.subscription = nil
+                self.lock.unlock()
+            }))
+        }
+        
         // Make room for one element. If an element has to be dropped, make
         // sure it is a `value`, not a `completion`.
         func removeOverflow() {
@@ -151,9 +170,9 @@ private extension Buffer {
                 self.demand -= 1
                 switch self.buffer.removeFirst() {
                 case .value(let value):
-                    self.demand += self.downstream.receive(value)
+                    self.demand += self.downstream?.receive(value) ?? .none
                 case .completion(let completion):
-                    self.downstream.receive(completion: completion)
+                    self.downstream?.receive(completion: completion)
                     self.subscription = nil
                     break outer
                 }
@@ -166,7 +185,7 @@ private extension Buffer {
     }
 }
 
-private extension Buffer.Inner {
+private extension Publishers.EagerBuffer.Inner {
     private enum Event {
         case completion(Subscribers.Completion<Failure>)
         case value(Input)
@@ -174,7 +193,7 @@ private extension Buffer.Inner {
 }
 
 
-private extension Buffer.Inner {
+private extension Publishers.EagerBuffer.Inner {
     // The subscription only forwards the interaction with the downstream to the
     // `Buffer`'s `Subscriber`.
     private class Inner: Subscription {

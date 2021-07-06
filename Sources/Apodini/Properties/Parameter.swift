@@ -15,14 +15,14 @@ public enum ParameterOptionNameSpace { }
 
 /// The `@Parameter` property wrapper can be used to express input in `Components`
 @propertyWrapper
-public struct Parameter<Element: Codable>: Property {
+public struct Parameter<Element: Codable>: Property, Identifiable {
     /// Keys for options that can be passed to an `@Parameter` property wrapper
     public typealias OptionKey<T: PropertyOption> = PropertyOptionKey<ParameterOptionNameSpace, T>
     /// Type erased options that can be passed to an `@Parameter` property wrapper
     public typealias Option = AnyPropertyOption<ParameterOptionNameSpace>
 
     
-    let id: UUID
+    public let id: UUID
     let name: String?
     
     internal var options: PropertyOptionSet<ParameterOptionNameSpace>
@@ -150,5 +150,13 @@ extension Parameter: AnyParameter {
 extension Parameter: Activatable {
     mutating func activate() {
         self.storage = Box(self.defaultValue?())
+    }
+}
+
+
+extension _Internal {
+    /// Returns the option for the given `key` if present.
+    public static func option<E: Codable, Option>(for key: Parameter<E>.OptionKey<Option>, on parameter: Parameter<E>) -> Option? {
+        parameter.option(for: key)
     }
 }
