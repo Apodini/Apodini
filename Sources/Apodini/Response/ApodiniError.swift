@@ -51,7 +51,7 @@ public struct ApodiniError: Error {
     /// - Parameter `reason`: The **public** reason explaining what led to the this error.
     /// - Parameter `description`: The **internal** description of this error. This will only be exposed in `DEBUG` mode.
     /// - Parameter `options`: Possible exporter-specific options that provide guidance for how to handle this error.
-    public init(type: ErrorType, reason: String? = nil, description: String? = nil, _ options: Option...) {
+    internal init(type: ErrorType, reason: String? = nil, description: String? = nil, _ options: Option...) {
         self.init(type: type, reason: reason, description: description, PropertyOptionSet(options))
     }
     
@@ -60,6 +60,15 @@ public struct ApodiniError: Error {
     /// - Parameter `description`: The **internal** description of this error. This will only be exposed in `DEBUG` mode.
     public func callAsFunction(reason: String? = nil, description: String? = nil) -> ApodiniError {
         ApodiniError(type: self.type, reason: reason ?? self.reason, description: description ?? self.description, self.options)
+    }
+}
+
+extension _Internal {
+    public static func initializeApodiniError(type: ErrorType,
+                                              reason: String? = nil,
+                                              description: String? = nil,
+                                              _ options: [ApodiniError.Option]) -> ApodiniError {
+        ApodiniError(type: type, reason: reason, description: description, PropertyOptionSet(options))
     }
 }
 

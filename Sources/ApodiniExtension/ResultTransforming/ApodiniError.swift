@@ -1,11 +1,23 @@
 //
-//  ErrorMessages.swift
+//  ApodiniError.swift
 //  
 //
 //  Created by Max Obermeier on 06.07.21.
 //
 
 import Apodini
+
+public extension ApodiniError {
+    /// Create a new `ApodiniError` from its base components:
+    /// - Parameter `type`: The associated `ErrorType`. If `other` is chosen, the `options` should be
+    ///   used to provide additional guidance for the exporters.
+    /// - Parameter `reason`: The **public** reason explaining what led to the this error.
+    /// - Parameter `description`: The **internal** description of this error. This will only be exposed in `DEBUG` mode.
+    /// - Parameter `options`: Possible exporter-specific options that provide guidance for how to handle this error.
+    init(type: ErrorType, reason: String? = nil, description: String? = nil, _ options: Option...) {
+        self = _Internal.initializeApodiniError(type: type, reason: reason, description: description, options)
+    }
+}
 
 public extension Error {
     /// Returns a standard error message for this `Error` by transforming it to an
