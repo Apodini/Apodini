@@ -309,6 +309,7 @@ let package = Package(
                 .target(name: "DeploymentTargetLocalhostRuntime"),
                 .target(name: "DeploymentTargetAWSLambdaRuntime"),
                 .target(name: "DeploymentTargetLocalhost"),
+                .target(name: "DeploymentTargetAWSLambda"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniGRPC"),
                 .target(name: "ApodiniProtobuffer"),

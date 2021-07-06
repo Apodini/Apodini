@@ -51,9 +51,11 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         let srcRoot = try Self.replicateApodiniSrcRootInTmpDir()
         
         task = Task(
-            executableUrl: Self.urlOfBuildProduct(named: "DeploymentTargetAWSLambda"),
+            executableUrl: Self.urlOfBuildProduct(named: Self.apodiniDeployTestWebServiceTargetName),
             arguments: [
-                srcRoot.path,
+                "deploy",
+                "aws",
+                Self.getApodiniRepoSourceRoot(),
                 "--product-name", Self.apodiniDeployTestWebServiceTargetName,
                 "--aws-region", awsRegionName,
                 "--s3-bucket-name", awsS3BucketName,

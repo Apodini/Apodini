@@ -5,6 +5,7 @@ import ApodiniDeploy
 import DeploymentTargetLocalhostRuntime
 import DeploymentTargetAWSLambdaRuntime
 import DeploymentTargetLocalhost
+import DeploymentTargetAWSLambda
 import ApodiniREST
 import ApodiniOpenAPI
 import ArgumentParser
@@ -61,7 +62,8 @@ public struct WebService: Apodini.WebService {
     public static var configuration: CommandConfiguration {
         CommandConfiguration(subcommands: [
             DeploymentCLI.commands(
-                LocalHostCLI<Self>.self
+                LocalHostCLI<Self>.self,
+                AWSLambdaCLI<Self>.self
             )
         ]
         )
