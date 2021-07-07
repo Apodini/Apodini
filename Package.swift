@@ -430,7 +430,8 @@ let package = Package(
                 .product(name: "SotoApiGatewayV2", package: "soto"),
                 .product(name: "SotoIAM", package: "soto"),
                 .target(name: "DeploymentTargetLocalhost"),
-                .target(name: "DeploymentTargetAWSLambda")
+                .target(name: "DeploymentTargetAWSLambda"),
+                .target(name: "ApodiniDeploymentCLI")
             ]
         ),
         .target(

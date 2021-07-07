@@ -1,5 +1,5 @@
 //
-//  LocalHostCLI.swift
+//  LocalHostDeploymentCLI.swift
 //  
 //
 //  Created by Felix Desiderato on 02/07/2021.
@@ -9,7 +9,7 @@ import Foundation
 import ArgumentParser
 import Apodini
 
-public struct LocalHostCLI<Service: Apodini.WebService>: ParsableCommand {
+public struct LocalHostDeploymentCLI<Service: Apodini.WebService>: ParsableCommand {
     public static var configuration: CommandConfiguration {
         CommandConfiguration(
             commandName: "local",
@@ -17,7 +17,7 @@ public struct LocalHostCLI<Service: Apodini.WebService>: ParsableCommand {
             discussion: """
             Deploys an Apodini web service to localhost, mapping the deployed system's nodes to independent processes.
             """,
-            version: "0.0.2"
+            version: "0.0.1"
         )
     }
     

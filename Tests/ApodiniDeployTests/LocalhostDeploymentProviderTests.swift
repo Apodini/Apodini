@@ -71,7 +71,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         
         task = Task(
             executableUrl: Self.urlOfBuildProduct(named: Self.apodiniDeployTestWebServiceTargetName),
-            arguments: ["deploy", "local", Self.getApodiniRepoSourceRoot(), "--product-name", Self.apodiniDeployTestWebServiceTargetName],
+            arguments: ["deployment", "local", Self.getApodiniRepoSourceRoot(), "--product-name", Self.apodiniDeployTestWebServiceTargetName],
             captureOutput: true,
             redirectStderrToStdout: true,
             // the tests are dynamically loaded into an `xctest` process, which doesn't statically load CApodiniUtils,
