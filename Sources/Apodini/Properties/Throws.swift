@@ -41,9 +41,3 @@ public struct Throws {
         ApodiniError(type: self.type, reason: self.reason, description: self.description, self.options)
     }
 }
-
-extension Throws: StandardErrorContext {
-    public func option<Option>(for key: PropertyOptionKey<ErrorOptionNameSpace, Option>) -> Option where Option: StandardErrorCompliantOption {
-        self.options.option(for: key) ?? Option.default(for: self.type)
-    }
-}

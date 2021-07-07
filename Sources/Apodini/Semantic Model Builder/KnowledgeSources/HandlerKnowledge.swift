@@ -33,7 +33,7 @@ extension ServiceType: ContextKeyKnowledgeSource {
 }
 
 extension Operation: OptionalContextKeyKnowledgeSource {
-    public typealias Key = OperationContextKey
+    public typealias Key = OperationHandlerMetadata.Key
     
     public init(from value: Key.Value?) {
         self = value ?? .read

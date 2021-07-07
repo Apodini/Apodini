@@ -6,6 +6,7 @@ import Foundation
 import Apodini
 import ApodiniVaporSupport
 import Vapor
+import ApodiniExtension
 
 
 struct RESTEndpointHandler<H: Handler> {
@@ -14,6 +15,10 @@ struct RESTEndpointHandler<H: Handler> {
     let endpoint: Endpoint<H>
     let relationshipEndpoint: AnyRelationshipEndpoint
     let exporter: RESTInterfaceExporter
+    
+    private let strategy: AnyDecodingStrategy<Vapor.Request>
+    
+    let defaultStore: DefaultValueStore
     
     init(
         with configuration: REST.Configuration,
@@ -27,6 +32,14 @@ struct RESTEndpointHandler<H: Handler> {
         self.endpoint = endpoint
         self.relationshipEndpoint = relationshipEndpoint
         self.exporter = exporter
+        
+        self.strategy = ParameterTypeSpecific(
+                            lightweight: LightweightStrategy(),
+                            path: PathStrategy(useNameAsIdentifier: false),
+                            content: AllIdentityStrategy(exporterConfiguration.decoder).transformedToVaporRequestBasedStrategy()
+        ).applied(to: endpoint)
+        
+        self.defaultStore = endpoint[DefaultValueStore.self]
     }
     
     
@@ -35,13 +48,19 @@ struct RESTEndpointHandler<H: Handler> {
     }
 
     func handleRequest(request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        let context = endpoint.createConnectionContext(for: exporter)
-
-        let responseFuture = context.handleAndReturnParameters(request: request, eventLoop: request.eventLoop)
-
-        return responseFuture
-            .map { response, parameters in
-                response.typeErasured.map { content in
+        var delegate = Delegate(endpoint.handler, .required)
+        
+        return strategy
+            .decodeRequest(from: request,
+                           with: request.eventLoop)
+            .insertDefaults(with: defaultStore)
+            .cache()
+            .evaluate(on: &delegate)
+            .map { (responseAndRequest: ResponseWithRequest<H.Response.Content>) in
+                let parameters: (UUID) -> Any? = responseAndRequest.unwrapped(to: CachingRequest.self)?.peak(_:) ?? { _ in nil }
+                
+                
+                return responseAndRequest.response.typeErasured.map { content in
                     EnrichedContent(for: relationshipEndpoint,
                                     response: content,
                                     parameters: parameters)
@@ -75,13 +94,13 @@ struct RESTEndpointHandler<H: Handler> {
                     enrichedContent.formatSelfRelationship(into: &links, with: formatter)
                 }
 
-            let container = ResponseContainer(status: response.status,
-                                              information: response.information,
-                                              data: enrichedContent,
-                                              links: links,
-                                              encoder: exporterConfiguration.encoder)
-                                              
-            return container.encodeResponse(for: request)
+                let container = ResponseContainer(status: response.status,
+                                                  information: response.information,
+                                                  data: enrichedContent,
+                                                  links: links,
+                                                  encoder: exporterConfiguration.encoder)
+                                                  
+                return container.encodeResponse(for: request)
             }
     }
 }

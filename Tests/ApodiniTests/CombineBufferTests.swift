@@ -42,7 +42,7 @@ class CombineBufferTests: XCTestCase {
         let subject = PassthroughSubject<Int, Never>()
         
         let cancellable = subject
-            .buffer()
+            .eagerBuffer(100)
             .syncMap { value -> EventLoopFuture<Int> in
                 let promise = eventLoop.makePromise(of: Int.self)
                 _ = threadPool.runIfActive(eventLoop: eventLoop) {
@@ -85,7 +85,7 @@ class CombineBufferTests: XCTestCase {
         var latestValue: Int?
         
         let cancellable = subject
-            .buffer()
+            .eagerBuffer(100)
             .syncMap { value -> EventLoopFuture<Int> in
                 let promise = eventLoop.makePromise(of: Int.self)
                 _ = threadPool.runIfActive(eventLoop: eventLoop) {
@@ -124,7 +124,7 @@ class CombineBufferTests: XCTestCase {
         let subject = PassthroughSubject<Int, Never>()
         
         let cancellable = subject
-            .buffer()
+            .eagerBuffer(100)
             .syncMap { value -> EventLoopFuture<Int> in
                 let promise = eventLoop.makePromise(of: Int.self)
                 _ = threadPool.runIfActive(eventLoop: eventLoop) {

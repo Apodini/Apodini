@@ -32,12 +32,9 @@ public struct HandlerMetadataModifier<H: Handler>: HandlerModifier {
         self.component = handler
         self.handlerMetadata = metadata
     }
-}
 
-extension HandlerMetadataModifier: SyntaxTreeVisitable {
-    public func accept(_ visitor: SyntaxTreeVisitor) {
+    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
         handlerMetadata.accept(visitor)
-        component.accept(visitor)
     }
 }
 

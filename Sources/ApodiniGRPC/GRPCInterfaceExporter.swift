@@ -10,6 +10,7 @@ import NIO
 import Apodini
 @_implementationOnly import NIOHPACK
 @_implementationOnly import ProtobufferCoding
+import ApodiniExtension
 
 /// Public Apodini Interface Exporter for gRPC
 public final class GRPC: Configuration {
@@ -36,7 +37,7 @@ public final class GRPC: Configuration {
 }
 
 /// Internal Apodini Interface Exporter for gRPC
-final class GRPCInterfaceExporter: InterfaceExporter {
+final class GRPCInterfaceExporter: LegacyInterfaceExporter {
     let app: Apodini.Application
     let exporterConfiguration: GRPC.ExporterConfiguration
     var services: [String: GRPCService]
@@ -55,6 +56,8 @@ final class GRPCInterfaceExporter: InterfaceExporter {
         let serviceName = gRPCServiceName(from: endpoint)
         let methodName = gRPCMethodName(from: endpoint)
 
+        let decodingStrategy = InterfaceExporterLegacyStrategy(self).applied(to: endpoint).typeErased
+        
         // generate and store the field tags for all parameters
         // of this endpoint
         endpoint.parameters
@@ -73,15 +76,13 @@ final class GRPCInterfaceExporter: InterfaceExporter {
             services[serviceName] = service
         }
 
-        let context = endpoint.createConnectionContext(for: self)
-
         do {
             let serviceType = endpoint[ServiceType.self]
             if serviceType == .unary {
-                try service.exposeUnaryEndpoint(name: methodName, context: context)
+                try service.exposeUnaryEndpoint(endpoint, strategy: decodingStrategy)
                 app.logger.info("Exported unary gRPC endpoint \(serviceName)/\(methodName)")
             } else if serviceType == .clientStreaming {
-                try service.exposeClientStreamingEndpoint(name: methodName, context: context)
+                try service.exposeClientStreamingEndpoint(endpoint, strategy: decodingStrategy)
                 app.logger.info("Exported client-streaming gRPC endpoint \(serviceName)/\(methodName)")
             } else {
                 // Service-side streaming (and as a consequence also bidirectional streaming)
@@ -92,7 +93,7 @@ final class GRPCInterfaceExporter: InterfaceExporter {
                     Defaulting to unary.
                     Exported unary gRPC endpoint \(serviceName)/\(methodName).
                     """)
-                try service.exposeUnaryEndpoint(name: methodName, context: context)
+                try service.exposeUnaryEndpoint(endpoint, strategy: decodingStrategy)
             }
 
             app.logger.info("\tParameters:")

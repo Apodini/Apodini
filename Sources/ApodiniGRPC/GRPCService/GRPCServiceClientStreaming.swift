@@ -8,12 +8,17 @@
 import Foundation
 import Apodini
 @_implementationOnly import Vapor
+import ApodiniExtension
 
 // MARK: Client streaming request handler
 extension GRPCService {
     private func drainBody<H: Handler>(from request: Vapor.Request,
-                                       using context: ConnectionContext<GRPCInterfaceExporter, H>,
+                                       handler: H,
+                                       strategy: AnyDecodingStrategy<GRPCMessage>,
+                                       defaults: DefaultValueStore,
                                        promise: EventLoopPromise<Vapor.Response>) {
+        var delegate = Delegate(handler, .required)
+        
         var lastMessage: GRPCMessage?
         request.body.drain { (bodyStream: BodyStreamResult) in
             switch bodyStream {
@@ -37,16 +42,32 @@ extension GRPCService {
                     // See `getMessages` internal comments for more details.
                     .filter(\.didCollectAllFragments)
                     .forEach({ message in
+                        let basis = DefaultRequestBasis(base: message, remoteAddress: message.remoteAddress, information: request.information)
+                        
+                        let response: EventLoopFuture<Apodini.Response<H.Response.Content>> = strategy
+                            .decodeRequest(from: message, with: basis, with: request.eventLoop)
+                            .insertDefaults(with: defaults)
+                            .cache()
+                            .evaluate(on: &delegate, .open)
+                        
                         // Discard any result that is received back from the handler.
                         // This is a client-streaming handler, thus we only send back
                         // a response in the .end case.
-                        _ = context.handle(request: message, eventLoop: request.eventLoop, final: false)
+                        _ = response
                     })
             case .end:
                 // send the previously retained lastMessage through the handler
                 // and set the final flag
                 let message = lastMessage ?? GRPCMessage.defaultMessage
-                let response = context.handle(request: message, eventLoop: request.eventLoop, final: true)
+                
+                let basis = DefaultRequestBasis(base: message, remoteAddress: message.remoteAddress, information: request.information)
+                
+                let response: EventLoopFuture<Apodini.Response<H.Response.Content>> = strategy
+                    .decodeRequest(from: message, with: basis, with: request.eventLoop)
+                    .insertDefaults(with: defaults)
+                    .cache()
+                    .evaluate(on: &delegate, .end)
+                
                 let result = response.map { response -> Vapor.Response in
                     switch response.content {
                     case let .some(content):
@@ -65,7 +86,7 @@ extension GRPCService {
         }
     }
 
-    func createClientStreamingHandler<H: Handler>(context: ConnectionContext<GRPCInterfaceExporter, H>)
+    func createClientStreamingHandler<H: Handler>(handler: H, strategy: AnyDecodingStrategy<GRPCMessage>, defaults: DefaultValueStore)
         -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         { (request: Vapor.Request) in
             if !self.contentTypeIsSupported(request: request) {
@@ -75,7 +96,7 @@ extension GRPCService {
             }
 
             let promise = request.eventLoop.makePromise(of: Vapor.Response.self)
-            self.drainBody(from: request, using: context, promise: promise)
+            self.drainBody(from: request, handler: handler, strategy: strategy, defaults: defaults, promise: promise)
             return promise.futureResult
         }
     }
@@ -84,19 +105,25 @@ extension GRPCService {
     /// The endpoint will be accessible at [host]/[serviceName]/[endpoint].
     /// - Parameters:
     ///     - endpoint: The name of the endpoint that should be exposed.
-    func exposeClientStreamingEndpoint<H: Handler>(name endpoint: String, context: ConnectionContext<GRPCInterfaceExporter, H>) throws {
-        if methodNames.contains(endpoint) {
+    func exposeClientStreamingEndpoint<H: Handler>(name methodName: String? = nil,
+                                                   _ endpoint: Endpoint<H>,
+                                                   strategy: AnyDecodingStrategy<GRPCMessage>) throws {
+        let methodName = methodName ?? gRPCMethodName(from: endpoint)
+        
+        if methodNames.contains(methodName) {
             throw GRPCServiceError.endpointAlreadyExists
         }
-        methodNames.append(endpoint)
+        methodNames.append(methodName)
 
         let path = [
             Vapor.PathComponent(stringLiteral: serviceName),
-            Vapor.PathComponent(stringLiteral: endpoint)
+            Vapor.PathComponent(stringLiteral: methodName)
         ]
 
         vaporApp.on(.POST, path) { request in
-            self.createClientStreamingHandler(context: context)(request)
+            self.createClientStreamingHandler(handler: endpoint.handler,
+                                              strategy: strategy,
+                                              defaults: endpoint[DefaultValueStore.self])(request)
         }
     }
 }

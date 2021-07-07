@@ -73,6 +73,7 @@ final class TypeContainerTests: ApodiniTests {
         var typeContainer = TypeContainer(with: Int(-2))
         var encodedContainer = try encoder.encode(typeContainer)
         var decodedContainer = try decoder.decode(TypeContainer.self, from: encodedContainer)
+        _ = decodedContainer
         XCTAssert(typeContainer.typed() is Int)
         
         typeContainer = TypeContainer(with: Int8(-2))

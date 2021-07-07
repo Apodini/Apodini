@@ -6,6 +6,7 @@
 import XCTest
 import Foundation
 @testable import Apodini
+import ApodiniExtension
 
 
 /// A namespace for methods that generate `ValidatedRequest`s from mock data.
@@ -14,7 +15,7 @@ public enum MockRequest {
     public static func createRequest(
         running eventLoop: EventLoop,
         queuedParameters parameterValues: Any??...
-    ) -> ValidatingRequest<MockExporter<String>, EmptyHandler> {
+    ) -> DefaultValueStore.DefaultInsertingRequest {
         createRequest(on: EmptyHandler(), running: eventLoop, queuedParameters: parameterValues)
     }
 
@@ -23,7 +24,7 @@ public enum MockRequest {
         on handler: H,
         running eventLoop: EventLoop,
         queuedParameters parameterValues: Any??...
-    ) -> ValidatingRequest<MockExporter<String>, H> {
+    ) -> DefaultValueStore.DefaultInsertingRequest {
         createRequest(on: handler, running: eventLoop, queuedParameters: parameterValues)
     }
 
@@ -31,19 +32,16 @@ public enum MockRequest {
         on handler: H,
         running eventLoop: EventLoop,
         queuedParameters parameterValues: [Any??]
-    ) -> ValidatingRequest<MockExporter<String>, H> {
+    ) -> DefaultValueStore.DefaultInsertingRequest {
         let exporter = MockExporter<String>(queued: parameterValues)
         
         let endpoint = handler.mockEndpoint()
         
-        var validator = endpoint.validator(for: exporter)
+        let strategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
         
-        do {
-            return try validator.validate("Undefined Exporter Request", with: eventLoop)
-        } catch {
-            XCTFail("Validating MockRequest failed. The provided queuedParameters seem to be invalid.")
-            exit(1)
-        }
+        return strategy
+            .decodeRequest(from: "Undefined Exporter Request", with: DefaultRequestBasis(), with: eventLoop)
+            .insertDefaults(with: endpoint[DefaultValueStore.self])
     }
 }
 #endif

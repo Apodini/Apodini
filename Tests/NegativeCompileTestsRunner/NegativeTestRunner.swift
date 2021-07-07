@@ -284,6 +284,12 @@ class NegativeTestRunner {
         arguments += " --enable-code-coverage -Xswiftc -DCOVERAGE"
         #endif
 
+        // custom defined Active Compilation Condition for the workaround compiler arguments
+        // introduced in https://github.com/Apodini/Apodini/pull/294
+        #if WORKAROUND
+        arguments += " -Xswiftc -DWORKAROUND -Xswiftc -Xfrontend -Xswiftc -sil-verify-none"
+        #endif
+
         let stdOutput = try runCommand(command: "swift", arguments: arguments, expectedStatus: 1)
 
         print("[\(identifier)] Scanning results for target \(target.name)...")

@@ -8,9 +8,10 @@
 import Foundation
 import NIO
 import Apodini
+import ApodiniExtension
 
 /// gRPC message
-public final class GRPCMessage: Apodini.ExporterRequest {
+public final class GRPCMessage {
     /// Default message that can be used to call handlers in cases
     /// where no input message was provided.
     /// Content is empty, length is zero, and the compressed flag is not set.
@@ -19,7 +20,7 @@ public final class GRPCMessage: Apodini.ExporterRequest {
     internal var data: Data
     var length: Int
     var compressed: Bool
-    public let remoteAddress: SocketAddress?
+    let remoteAddress: SocketAddress?
 
     init(from data: Data, length: Int, compressed: Bool, remoteAddress: SocketAddress?) {
         self.data = data

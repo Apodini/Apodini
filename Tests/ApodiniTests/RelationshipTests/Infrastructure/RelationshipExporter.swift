@@ -5,28 +5,55 @@
 import XCTest
 import XCTApodini
 @testable import Apodini
+@testable import ApodiniREST
 
 class RelationshipExporter: MockExporter<String> {
-    var endpoints: [(AnyEndpoint, AnyRelationshipEndpoint)] = []
+    struct EndpointRepresentation {
+        let endpoint: AnyEndpoint
+        let relationshipEndpoint: AnyRelationshipEndpoint
+        let evaluateCallback: (_ request: String, _ parameters: [Any??], _ app: Application) throws -> EnrichedContent
+        
+        internal init(_ endpoint: AnyEndpoint,
+                      _ relationshipEndpoint: AnyRelationshipEndpoint,
+                      _ evaluateCallback: @escaping (String, [Any??], Application) throws -> EnrichedContent) {
+            self.endpoint = endpoint
+            self.relationshipEndpoint = relationshipEndpoint
+            self.evaluateCallback = evaluateCallback
+        }
+    }
+    
+    var endpoints: [EndpointRepresentation] = []
 
     override func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let rendpoint = endpoint[AnyRelationshipEndpointInstance.self].instance
         
-        endpoints.append((endpoint, rendpoint))
+        endpoints.append(EndpointRepresentation(endpoint, rendpoint, { request, parameters, app in
+            self.append(injected: parameters)
+            let context = endpoint.createConnectionContext(for: self)
+            
+            let (response, parameters) = try context.handleAndReturnParameters(
+                request: request,
+                eventLoop: app.eventLoopGroup.next(),
+                final: true)
+                .wait()
+            return try XCTUnwrap(response.typeErasured.map { anyEncodable in
+                EnrichedContent(for: rendpoint, response: anyEncodable, parameters: parameters)
+            })
+        }))
     }
 
     override func finishedExporting(_ webService: WebServiceModel) {
         // as we are accessing the endpoints via index, ensure a consistent order for the tests
         endpoints = endpoints
             .sorted(by: { lhs, rhs in
-                let lhsString = lhs.0.absolutePath.asPathString()
-                let rhsString = rhs.0.absolutePath.asPathString()
+                let lhsString = lhs.endpoint.absolutePath.asPathString()
+                let rhsString = rhs.endpoint.absolutePath.asPathString()
 
                 if lhsString == rhsString {
-                    return lhs.0[Operation.self] < rhs.0[Operation.self]
+                    return lhs.endpoint[Operation.self] < rhs.endpoint[Operation.self]
                 }
 
-                return lhs.0.absolutePath.asPathString() < rhs.0.absolutePath.asPathString()
+                return lhs.endpoint.absolutePath.asPathString() < rhs.endpoint.absolutePath.asPathString()
             })
     }
 }
@@ -50,8 +77,6 @@ class RelationshipExporterRetriever: InterfaceExporterVisitor {
             fatalError("Error retrieving RelationshipExporter: \(error)")
         }
     }
-
-    func visit<I>(staticExporter: I) where I: StaticInterfaceExporter {}
 }
 
 

@@ -5,11 +5,9 @@
 import Foundation
 import class Vapor.Application
 import class Vapor.Request
-import Apodini
+import ApodiniExtension
 
-extension String: ExporterRequest {}
-
-open class MockExporter<Request: ExporterRequest>: InterfaceExporter {
+open class MockExporter<Request>: LegacyInterfaceExporter {
     var parameterValues: [Any??] = []
     
     let onExport: (AnyEndpoint) -> Void

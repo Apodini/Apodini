@@ -29,7 +29,7 @@ extension ComponentMetadataBlockNamespace {
 
 
 /// `EmptyHandlerMetadata` is a `AnyHandlerMetadata` which in fact doesn't hold any Metadata.
-/// The Metadata is available under the `Empty` name and can be used like the following:
+/// The Metadata is available under the `HandlerMetadataNamespace.Empty` name and can be used like the following:
 /// ```swift
 /// struct ExampleHandler: Handler {
 ///     // ...
@@ -49,7 +49,7 @@ public struct EmptyHandlerMetadata: HandlerMetadataDefinition {
 }
 
 /// `EmptyComponentOnlyMetadata` is a `ComponentOnlyMetadataDefinition` which in fact doesn't hold any Metadata.
-/// The Metadata is available under the `Empty` name and can be used like the following:
+/// The Metadata is available under the `ComponentOnlyMetadataNamespace.Empty` name and can be used like the following:
 /// ```swift
 /// struct ExampleComponent: Component {
 ///     // ...
@@ -69,7 +69,7 @@ public struct EmptyComponentOnlyMetadata: ComponentOnlyMetadataDefinition {
 }
 
 /// `EmptyWebServiceMetadata` is a `AnyWebServiceMetadata` which in fact doesn't hold any Metadata.
-/// The Metadata is available under the `Empty` name and can be used like the following:
+/// The Metadata is available under the `WebServiceMetadataNamespace.Empty` name and can be used like the following:
 /// ```swift
 /// struct ExampleWebService: WebService {
 ///     // ...
@@ -89,7 +89,7 @@ public struct EmptyWebServiceMetadata: WebServiceMetadataDefinition {
 }
 
 /// `EmptyComponentMetadata` is a `AnyComponentMetadata` which in fact doesn't hold any Metadata.
-/// The Metadata is available under the `Empty` name and can be used like the following:
+/// The Metadata is available under the `ComponentMetadataBlockNamespace.Empty` name and can be used like the following:
 /// ```swift
 /// struct ExampleComponentMetadata: ComponentMetadataBlock {
 ///     var metadata: Metadata {
@@ -108,7 +108,7 @@ public struct EmptyComponentMetadata: ComponentMetadataDefinition {
 }
 
 /// `EmptyContentMetadata` is a `AnyContentMetadata` which in fact doesn't hold any Metadata.
-/// The Metadata is available under the `Empty` name and can be used like the following:
+/// The Metadata is available under the `ContentMetadataNamespace.Empty` name and can be used like the following:
 /// ```swift
 /// struct ExampleContent: Content {
 ///     // ...

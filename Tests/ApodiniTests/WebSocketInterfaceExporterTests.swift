@@ -83,7 +83,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
         
         try XCTCheckResponse(
         context.handle(
-            request: WebSocketInput(input, eventLoop: eventLoop),
+            request: input,
             eventLoop: eventLoop),
             content: Parameters(param0: "value0", param1: nil, pathA: "a", pathB: "b", bird: bird),
             connectionEffect: .close
@@ -440,12 +440,23 @@ struct BidirectionalHandler: Handler {
     
     let app: Application
     
+    @State var finalState = false
+    
+    @State var count = 0
     
     func handle() -> EventLoopFuture<Apodini.Response<Bool>> {
-        self.observed.bool.toggle()
+        count += 1
+        
+        if !_observed.changed {
+            self.observed.bool.toggle()
+        }
+        
         if connection.state == .end {
+            finalState = true
             return eventLoop.makeSucceededFuture(.end)
         }
+        
+        XCTAssertFalse(finalState)
         
         let promise = eventLoop.makePromise(of: Apodini.Response<Bool>.self)
         
