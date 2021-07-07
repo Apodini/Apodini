@@ -32,7 +32,7 @@ private enum Retrieval<Value> {
 /// or an `@Environment`. The latter `Binding`s for the latter two are contained in their
 /// `projectedValue`s.
 @propertyWrapper
-public struct Binding<Value>: DynamicProperty, PotentiallyParameterIdentifyingBinding {
+public struct Binding<Value>: InstanceCodable, DynamicProperty, PotentiallyParameterIdentifyingBinding {
     private let store: Properties
     private let retrieval: Retrieval<Value>
     let parameterId: UUID?

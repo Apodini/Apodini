@@ -13,7 +13,7 @@ import Foundation
 /// `Properties` can be used to e.g. delay the decision, which `Parameter`s are exported to startup-time.
 @dynamicMemberLookup
 @propertyWrapper
-public struct Properties: Property {
+public struct Properties: Property, InstanceCodable {
     internal var elements: [String: Property]
     
     internal var namingStrategy: ([String]) -> String? = Self.defaultNamingStrategy

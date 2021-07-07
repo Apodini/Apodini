@@ -12,7 +12,7 @@ import ApodiniUtils
 /// `Response.final(_)`.
 /// - Note `State` has the same scope as the `Connection` available via `@Environment(\.connection)`
 @propertyWrapper
-public struct State<Element>: Property {
+public struct State<Element>: InstanceCodable, Property {
     internal var initializer: () -> Element
     
     private var storage: Box<Element>?

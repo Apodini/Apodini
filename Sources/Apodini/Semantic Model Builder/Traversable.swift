@@ -180,8 +180,6 @@ private func execute<Element, Target>(
 
         switch child {
         case let target as Target:
-            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "\(Target.self) \(property.name) on element \(info.name) must not be a class")
-            
             try operation(target, (element as? DynamicProperty)?.namingStrategy(names + [property.name]) ?? property.name)
         case let dynamicProperty as DynamicProperty:
             assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "DynamicProperty \(property.name) on element \(info.name) must not be a class")
@@ -228,8 +226,6 @@ private func apply<Element, Target>(
 
         switch child {
         case var target as Target:
-            assert(((try? typeInfo(of: property.type).kind) ?? .none) != .class, "\(Target.self) \(property.name) on element \(info.name) must not be a class")
-            
             try mutation(&target, (element as? DynamicProperty)?.namingStrategy(names + [property.name]) ?? property.name)
             let elem = element
             property.unsafeSet(
@@ -289,15 +285,13 @@ extension Properties: Traversable {
         for (name, element) in self {
             switch element {
             case let target as Target:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Properties must not be a class")
-                
                 try operation(target, self.namingStrategy(names + [name]) ?? name)
             case let dynamicProperty as DynamicProperty:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "DynamicProperty \(name) on Properties must not be a class")
+                assert((Mirror(reflecting: element).displayStyle) != .class, "DynamicProperty \(name) on Properties must not be a class")
                 
                 try dynamicProperty.execute(operation, using: names + [name])
             case let traversable as Traversable:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "Traversable \(name) on Properties must not be a class")
+                assert((Mirror(reflecting: element).displayStyle) != .class, "Traversable \(name) on Properties must not be a class")
             
                 try traversable.execute(operation, using: names + [name])
             default:
@@ -310,8 +304,6 @@ extension Properties: Traversable {
         for (name, element) in self {
             switch element {
             case var target as Target:
-                assert((Mirror(reflecting: element).displayStyle) == .struct, "\(element.self) \(name) on Properties must not be a class")
-    
                 try mutation(&target, self.namingStrategy(names + [name]) ?? name)
                 self.elements[name] = target as? Property
             case var dynamicProperty as DynamicProperty:
@@ -378,7 +370,6 @@ extension Delegate: Traversable {
         try Apodini.apply(mutation, to: &delegate, using: names)
     }
 }
-
 
 // MARK: Helpers
 

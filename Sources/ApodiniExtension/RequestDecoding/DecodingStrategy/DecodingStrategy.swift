@@ -18,7 +18,7 @@ import ApodiniUtils
 /// A ``DecodingStrategy`` can be used to transform a certain ``Input`` to an
 /// Apodini `Request`.  While the ``DecodingStrategy`` only helps implementing
 /// the Apodini `Request/retrieveParameter(_:)`, a ``RequestBasis`` can
-/// be used to provide the missing information. This proccess is implemented in
+/// be used to provide the missing information. This process is implemented in
 /// ``DecodingStrategy/decodeRequest(from:with:with:)``.
 public protocol DecodingStrategy {
     /// The type which the ``ParameterDecodingStrategy``s returned by ``strategy(for:)``

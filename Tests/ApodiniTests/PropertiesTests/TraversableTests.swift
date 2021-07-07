@@ -12,7 +12,7 @@ import XCTest
 final class TraversableTests: ApodiniTests {
     // swiftlint:disable identifier_name type_name
     @propertyWrapper
-    struct Param<T>: Apodini.Property {
+    struct Param<T>: Apodini.Property, InstanceCodable {
         var _value: T?
         
         var wrappedValue: T? {
@@ -20,7 +20,7 @@ final class TraversableTests: ApodiniTests {
         }
     }
     
-    struct Element {
+    struct Element: Codable {
         @Param var a: String?
         @BCD var bcd: String
         var efg: Properties = [
@@ -203,4 +203,24 @@ final class TraversableTests: ApodiniTests {
             XCTAssertEqual("theNameDynamicProperty", name)
         }, to: &container)
     }
+    
+//    func testInstanceCoder() throws {
+//        let element = Element()
+//
+//        print(element)
+//
+//        let mutator = Mutator()
+//
+//        try element.encode(to: mutator)
+//
+//        let decoded1 = try Element(from: mutator)
+//
+//        print(decoded1)
+//
+//        mutator.reset()
+//
+//        let decoded2 = try Element(from: mutator)
+//
+//        print(decoded2)
+//    }
 }

@@ -6,7 +6,7 @@ import ApodiniUtils
 /// `ObservableObject`, `Environment` observes its value just as `ObservedObject`.
 /// Use `Delegate.environment(_:, _:)` to inject a value locally, or define a global default
 /// using `EnvironmentValue`.
-public struct Environment<Key: EnvironmentAccessible, Value>: Property {
+public struct Environment<Key: EnvironmentAccessible, Value>: InstanceCodable, Property {
     private struct Storage {
         var changed: Bool
         weak var ownObservation: Observation?
