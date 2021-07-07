@@ -82,12 +82,11 @@ extension WebService {
     public func runSyntaxTreeVisitor() {
         let app = Application()
         app.logger.info("Running SynatxTreeVisitor to retrieve web service structure.")
-        app.logger.logLevel = .error
         self.configuration.configure(app)
         self.register(
             SemanticModelBuilder(app)
         )
-        app.logger.logLevel = .debug
+
     }
     
     
