@@ -204,23 +204,23 @@ final class TraversableTests: ApodiniTests {
         }, to: &container)
     }
     
-//    func testInstanceCoder() throws {
-//        let element = Element()
-//
-//        print(element)
-//
-//        let mutator = Mutator()
-//
-//        try element.encode(to: mutator)
-//
-//        let decoded1 = try Element(from: mutator)
-//
-//        print(decoded1)
-//
-//        mutator.reset()
-//
-//        let decoded2 = try Element(from: mutator)
-//
-//        print(decoded2)
-//    }
+    func testInstanceCoder() throws {
+        let element = Element()
+
+        print(element)
+
+        let mutator = Mutator()
+
+        try element.encode(to: mutator)
+
+        let decoded1 = try Element(from: mutator)
+
+        print(decoded1)
+
+        mutator.reset()
+
+        let decoded2 = try Element(from: mutator)
+
+        print(decoded2)
+    }
 }

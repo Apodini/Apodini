@@ -59,75 +59,75 @@ private protocol InstanceCoderStorage {
     func getKeyed<K: CodingKey>(_ type: K.Type) -> KeyedInstanceContainer<K>.Value
 }
 
-//class Mutator: InstanceCoder, InstanceCoderStorage {
-//    var codingPath: [CodingKey] = [] // implementing that could become the real struggle
-//
-//    var userInfo: [CodingUserInfoKey : Any] = [:]
-//
-//    private var store: [Any] = []
-//
-//    private var count: Int = -1
-//
-//    init() { }
-//
-//    fileprivate var single: InstanceContainer.Value {
-//        get {
-//            store[count == -1 ? store.count - 1 : count] as! InstanceContainer.Value
-//        }
-//        set {
-//            store[store.count - 1] = newValue as Any
-//        }
-//    }
-//
-//    fileprivate func getKeyed<K: CodingKey>(_ type: K.Type) -> KeyedInstanceContainer<K>.Value {
-//        store[count == -1 ? store.count - 1 : count] as! KeyedInstanceContainer<K>.Value
-//    }
-//
-//    fileprivate func setKeyed<K: CodingKey>(_ value: KeyedInstanceContainer<K>.Value) {
-//        store[store.count - 1] = value
-//    }
-//
-//    func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
-//        store.append(KeyedInstanceContainer<Key>.Value(count: -1, array: []))
-//        return KeyedEncodingContainer(KeyedInstanceContainer(codingPath: self.codingPath, store: self))
-//    }
-//
-//    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
-//        count += 1
-//        return KeyedDecodingContainer(KeyedInstanceContainer(codingPath: self.codingPath, store: self))
-//    }
-//
-//    func singleInstanceEncodingContainer() throws -> SingleValueInstanceEncodingContainer {
-//        store.append(InstanceContainer.Value.none as Any)
-//        return InstanceContainer(store: self, codingPath: self.codingPath)
-//    }
-//
-//    func singleInstanceDecodingContainer() throws -> SingleValueInstanceDecodingContainer {
-//        count += 1
-//        return InstanceContainer(store: self, codingPath: self.codingPath)
-//    }
-//
-//    func unkeyedContainer() -> UnkeyedEncodingContainer {
-//        fatalError() // UnkeyedInstanceEncodingContainer(injector: self)
-//    }
-//
-//    func singleValueContainer() -> SingleValueEncodingContainer {
-//        fatalError() // think that won't be needed InstanceContainer(injector: self)
-//    }
-//
-//    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-//        fatalError() // UnkeyedInstanceDecodingContainer(injector: self)
-//    }
-//
-//    func singleValueContainer() throws -> SingleValueDecodingContainer {
-//        fatalError() // think that won't be needed InstanceContainer(injector: self)
-//    }
-//
-//    func reset() {
-//        self.count = 0
-//    }
-//}
-//
+class Mutator: InstanceCoder, InstanceCoderStorage {
+    var codingPath: [CodingKey] = [] // implementing that could become the real struggle
+
+    var userInfo: [CodingUserInfoKey : Any] = [:]
+
+    private var store: [Any] = []
+
+    private var count: Int = -1
+
+    init() { }
+
+    fileprivate var single: InstanceContainer.Value {
+        get {
+            store[count == -1 ? store.count - 1 : count] as! InstanceContainer.Value
+        }
+        set {
+            store[store.count - 1] = newValue as Any
+        }
+    }
+
+    fileprivate func getKeyed<K: CodingKey>(_ type: K.Type) -> KeyedInstanceContainer<K>.Value {
+        store[count == -1 ? store.count - 1 : count] as! KeyedInstanceContainer<K>.Value
+    }
+
+    fileprivate func setKeyed<K: CodingKey>(_ value: KeyedInstanceContainer<K>.Value) {
+        store[store.count - 1] = value
+    }
+
+    func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
+        store.append(KeyedInstanceContainer<Key>.Value(count: -1, array: []))
+        return KeyedEncodingContainer(KeyedInstanceContainer(codingPath: self.codingPath, store: self))
+    }
+
+    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
+        count += 1
+        return KeyedDecodingContainer(KeyedInstanceContainer(codingPath: self.codingPath, store: self))
+    }
+
+    func singleInstanceEncodingContainer() throws -> SingleValueInstanceEncodingContainer {
+        store.append(InstanceContainer.Value.none as Any)
+        return InstanceContainer(store: self, codingPath: self.codingPath)
+    }
+
+    func singleInstanceDecodingContainer() throws -> SingleValueInstanceDecodingContainer {
+        count += 1
+        return InstanceContainer(store: self, codingPath: self.codingPath)
+    }
+
+    func unkeyedContainer() -> UnkeyedEncodingContainer {
+        fatalError() // UnkeyedInstanceEncodingContainer(injector: self)
+    }
+
+    func singleValueContainer() -> SingleValueEncodingContainer {
+        fatalError() // think that won't be needed InstanceContainer(injector: self)
+    }
+
+    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+        fatalError() // UnkeyedInstanceDecodingContainer(injector: self)
+    }
+
+    func singleValueContainer() throws -> SingleValueDecodingContainer {
+        fatalError() // think that won't be needed InstanceContainer(injector: self)
+    }
+
+    func reset() {
+        self.count = 0
+    }
+}
+
 // MARK: KeyedInstanceContainer
 
 private struct KeyedInstanceContainer<K: CodingKey>: KeyedEncodingContainerProtocol, KeyedDecodingContainerProtocol, InstanceCoderStorage {
@@ -166,7 +166,7 @@ private struct KeyedInstanceContainer<K: CodingKey>: KeyedEncodingContainerProto
 
     var single: InstanceContainer.Value {
         get {
-            guard case let .container(container) = instances[count == -1 ? instances.count -1 : count].value else {
+            guard case let .container(container) = instances[count == -1 ? instances.count - 1 : count].value else {
                 fatalError()
             }
             return container as! InstanceContainer.Value
@@ -177,7 +177,7 @@ private struct KeyedInstanceContainer<K: CodingKey>: KeyedEncodingContainerProto
     }
 
     func getKeyed<K: CodingKey>(_ type: K.Type) -> KeyedInstanceContainer<K>.Value {
-        guard case let .container(container) = instances[count == -1 ? instances.count -1 : count].value else {
+        guard case let .container(container) = instances[count == -1 ? instances.count - 1 : count].value else {
             fatalError()
         }
         return container as! KeyedInstanceContainer<K>.Value
