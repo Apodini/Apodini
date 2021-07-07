@@ -86,7 +86,6 @@ extension WebService {
         self.register(
             SemanticModelBuilder(app)
         )
-
     }
     
     
