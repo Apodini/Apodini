@@ -10,7 +10,7 @@ import ArgumentParser
 
 /// Enables the deployment of an Apodini web service via command line. Can be added as a subcommand to the `configuration: CommandConfiguration` property of a web service.
 public struct DeploymentCLI: ParsableCommand {
-    public static var configuration: CommandConfiguration = CommandConfiguration(
+    public static var configuration = CommandConfiguration(
         commandName: "deployment",
         abstract: "Apodini deployment provider",
         discussion: """

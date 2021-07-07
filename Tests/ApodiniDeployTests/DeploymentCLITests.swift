@@ -15,9 +15,7 @@ import ApodiniDeploymentCLI
 
 
 class DeploymentCLITests: ApodiniDeployTestCase {
-    
     func testDeploymentCommand() throws {
-        
         let srcRoot = try Self.replicateApodiniSrcRootInTmpDir()
         
         let task = Task(
