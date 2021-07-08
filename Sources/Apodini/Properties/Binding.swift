@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ApodiniUtils
 
 /// A `Binding` which may identify an `@Parameter`.
 private protocol PotentiallyParameterIdentifyingBinding {
@@ -35,10 +36,15 @@ private enum Retrieval<Value> {
 public struct Binding<Value>: InstanceCodable, DynamicProperty, PotentiallyParameterIdentifyingBinding {
     private let store: Properties
     private let retrieval: Retrieval<Value>
+    private var override: Box<Value?>?
     let parameterId: UUID?
     
     
     public var wrappedValue: Value {
+        if let value = self.override?.value {
+            return value
+        }
+        
         switch self.retrieval {
         case .constant(let value):
             return value
@@ -54,6 +60,21 @@ public struct Binding<Value>: InstanceCodable, DynamicProperty, PotentiallyParam
         set {
             self = newValue
         }
+    }
+}
+
+extension Binding: Activatable {
+    mutating func activate() {
+        self.override = Box(nil)
+    }
+}
+
+extension Binding {
+    func override(with value: Value) {
+        guard let box = self.override else {
+            fatalError("Binding was overridden before it was activated.")
+        }
+        box.value = value
     }
 }
 

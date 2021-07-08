@@ -14,16 +14,18 @@ import Foundation
 /// of `@Parameter`s to the point where you call `Delegate` as a function. This enables you to decode
 /// input lazily and to do manual error handling in case decoding fails.
 /// - Warning: `D` must be a `struct`
-public struct Delegate<D>: InstanceCodable {
+public struct Delegate<D: Codable>: InstanceCodable {
     struct Storage {
         var connection: Connection?
-        var didActivate = false
         // swiftlint:disable:next weak_delegate
-        var delegate: D
+        var delegate: D?
+        var delegateModel: FlatInstanceDecoder
         weak var observation: Observation?
         // swiftlint:disable:next discouraged_optional_collection
         var observables: [(AnyObservedObject, Observation)]?
         var changed = false
+        // storage for bindings set via .set
+        var bindingSetters: [() -> Void] = []
         // storage for observable objects set via .setObservable
         var observableObjectsSetters: [() -> Void] = []
         // storage for values injected via .environment
@@ -32,7 +34,7 @@ public struct Delegate<D>: InstanceCodable {
         var environmentObject: [Any] = []
     }
     
-    var delegateModel: D
+    var delegateModel: FlatInstanceDecoder
     
     let optionality: Optionality
     
@@ -42,7 +44,9 @@ public struct Delegate<D>: InstanceCodable {
     /// - Parameter `delegate`: the wrapped instance
     /// - Parameter `optionality`: the `Optionality` for all `@Parameter`s of the `delegate`
     public init(_ delegate: D, _ optionality: Optionality = .optional) {
-        self.delegateModel = delegate
+        let encoder = FlatInstanceEncoder()
+        try! delegate.encode(to: encoder)
+        self.delegateModel = encoder.freezed
         self.optionality = optionality
     }
     
@@ -53,17 +57,19 @@ public struct Delegate<D>: InstanceCodable {
         }
         
         // if not done yet we activate the delegate before injection
-        if !store.value.didActivate {
-            store.value.didActivate = true
-            Apodini.activate(&store.value.delegate)
+        if store.value.delegate == nil {
+            Apodini.activate(&store.value.delegateModel)
+            store.value.delegate = try! D(from: store.value.delegateModel)
         }
         
-        // we inject observedobjects, environment and environmentObject and invalidate all stores afterwards
+        // we inject observedobjects, bindings, environment and environmentObject and invalidate all stores afterwards
         store.value.observableObjectsSetters.forEach { closure in closure() }
         store.value.observableObjectsSetters = []
-        injectAll(values: store.value.environmentObject, into: store.value.delegate)
+        store.value.bindingSetters.forEach { closure in closure() }
+        store.value.bindingSetters = []
+        injectAll(values: store.value.environmentObject, into: store.value.delegateModel)
         store.value.environmentObject = []
-        injectAll(values: store.value.environment, into: store.value.delegate)
+        injectAll(values: store.value.environment, into: store.value.delegateModel)
         store.value.environment = [:]
         
         
@@ -77,7 +83,7 @@ public struct Delegate<D>: InstanceCodable {
                     store.value.observables = observables
                 }
                 
-                for object in collectObservedObjects(from: store.value.delegate) {
+                for object in collectObservedObjects(from: store.value.delegateModel) {
                     let index = observables.count
                     observables.append((object, object.register { [weak storage] triggerEvent in
                         storage?.value.observation?.callback(TriggerEvent(triggerEvent.checkCancelled, id: .index(index, triggerEvent.identifier)))
@@ -100,7 +106,7 @@ public struct Delegate<D>: InstanceCodable {
         // finally we inject everything and return the prepared delegate
         try connection.enterConnectionContext(with: store.value.delegate, executing: { _ in Void() })
         
-        return store.value.delegate
+        return store.value.delegate!
     }
 }
 
@@ -142,8 +148,11 @@ extension Delegate {
         guard let store = storage else {
             fatalError("'Delegate' was manipulated before activation.")
         }
+
+        store.value.bindingSetters.append {
+            store.value.delegate![keyPath: keypath].override(with: value)
+        }
         
-        store.value.delegate[keyPath: keypath] = Binding.constant(value)
         return self
     }
 }
@@ -158,7 +167,7 @@ extension Delegate {
         }
         
         store.value.observableObjectsSetters.append {
-            store.value.delegate[keyPath: keypath].wrappedValue = value
+            store.value.delegate![keyPath: keypath].wrappedValue = value
         }
         
         return self
@@ -207,7 +216,7 @@ extension Delegate {
 
 extension Delegate: Activatable {
     mutating func activate() {
-        self.storage = Box(Storage(delegate: delegateModel))
+        self.storage = Box(Storage(delegateModel: delegateModel))
     }
 }
 
