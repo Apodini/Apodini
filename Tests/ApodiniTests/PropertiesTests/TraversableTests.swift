@@ -205,8 +205,6 @@ final class TraversableTests: ApodiniTests {
 
         try element.encode(to: mutator)
         
-        print(mutator.baseStore.debugDescription)
-        
         let decoded1 = try Element(from: mutator)
 
         print(decoded1)
