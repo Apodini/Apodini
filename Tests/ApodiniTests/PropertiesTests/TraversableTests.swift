@@ -201,17 +201,19 @@ final class TraversableTests: ApodiniTests {
 
         print(element)
 
-        let mutator = Coder()
+        let encoder = FlatInstanceEncoder()
 
-        try element.encode(to: mutator)
+        try element.encode(to: encoder)
         
-        let decoded1 = try Element(from: mutator)
+        let decoder = encoder.freezed
+        
+        let decoded1 = try Element(from: decoder)
 
         print(decoded1)
         
         XCTAssertEqual(decoded1, element)
 
-        let decoded2 = try Element(from: mutator)
+        let decoded2 = try Element(from: decoder)
 
         print(decoded2)
         

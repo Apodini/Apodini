@@ -38,9 +38,12 @@ import NIO
 //
 
 
-protocol InstanceCoder: Encoder, Decoder {
-    func singleInstanceDecodingContainer() throws -> SingleValueInstanceDecodingContainer
+protocol InstanceEncoder: Encoder {
     func singleInstanceEncodingContainer() throws -> SingleValueInstanceEncodingContainer
+}
+
+protocol InstanceDecoder: Decoder {
+    func singleInstanceDecodingContainer() throws -> SingleValueInstanceDecodingContainer
 }
 
 protocol SingleValueInstanceDecodingContainer: SingleValueDecodingContainer {
@@ -83,35 +86,27 @@ struct ThreadSpecificCounter: Counter {
     }
 }
 
-// MARK: Coder
+// MARK: FlatInstanceEncoder
 
-
-class Coder: InstanceCoder {
+class FlatInstanceEncoder: InstanceEncoder {
     var codingPath: [CodingKey] = []
     
     var userInfo: [CodingUserInfoKey : Any] = [:]
     
-    var store: [(String, Any)] = []
+    private var store: [(String, Any)] = []
     
     fileprivate var namingStrategy: ([String]) -> String? = Properties.defaultNamingStrategy
-    
-    fileprivate lazy var counter = ThreadSpecificCounter(count: store.count)
     
     init() {}
     
     fileprivate func add(_ value: Any) {
         store.append((namingStrategy(codingPath.map{ $0.stringValue })!, value))
     }
-    
-    fileprivate func next() -> Any {
-        store[counter.next()].1
-    }
-    
-    
+
     // encoding
     
     func singleInstanceEncodingContainer() throws -> SingleValueInstanceEncodingContainer {
-        InstanceContainer(codingPath: self.codingPath, coder: self)
+        InstanceEncodingContainer(codingPath: self.codingPath, coder: self)
     }
     
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
@@ -119,16 +114,8 @@ class Coder: InstanceCoder {
                                                               coder: self))
     }
     
-    
-    // decoding
-    
-    func singleInstanceDecodingContainer() throws -> SingleValueInstanceDecodingContainer {
-        InstanceContainer(codingPath: self.codingPath, coder: self)
-    }
-    
-    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
-        KeyedDecodingContainer(KeyedInstanceDecodingContainer(codingPath: self.codingPath,
-                                                              coder: self))
+    var freezed: FlatInstanceDecoder {
+        FlatInstanceDecoder(self.store)
     }
     
     
@@ -141,6 +128,42 @@ class Coder: InstanceCoder {
     func singleValueContainer() -> SingleValueEncodingContainer {
         fatalError()
     }
+}
+
+// MARK: FlatInstanceDecoder
+
+struct FlatInstanceDecoder: InstanceDecoder {
+    var codingPath: [CodingKey] = []
+    
+    var userInfo: [CodingUserInfoKey : Any] = [:]
+    
+    var store: [(String, Any)]
+    
+    private let counter: Counter
+    
+    init(_ store: [(String, Any)]) {
+        self.store = store
+        self.counter = ThreadSpecificCounter(count: store.count)
+    }
+    
+    fileprivate func next() -> Any {
+        store[counter.next()].1
+    }
+    
+    
+    // decoding
+    
+    func singleInstanceDecodingContainer() throws -> SingleValueInstanceDecodingContainer {
+        InstanceDecodingContainer(codingPath: self.codingPath, coder: self)
+    }
+    
+    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
+        KeyedDecodingContainer(KeyedInstanceDecodingContainer(codingPath: self.codingPath,
+                                                              coder: self))
+    }
+    
+    
+    // fatals
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
         fatalError()
@@ -151,15 +174,14 @@ class Coder: InstanceCoder {
     }
 }
 
-
 struct KeyedInstanceEncodingContainer<K: CodingKey>: KeyedEncodingContainerProtocol {
     typealias Key = K
     
     var codingPath: [CodingKey]
     
-    let coder: Coder
+    let coder: FlatInstanceEncoder
     
-    mutating func encode<T>(_ value: T, forKey key: K) throws where T : Encodable {
+    func encode<T>(_ value: T, forKey key: K) throws where T : Encodable {
         if T.self is InstanceCodable.Type {
             coder.codingPath += [key]
             defer { coder.codingPath.removeLast() }
@@ -185,7 +207,7 @@ struct KeyedInstanceEncodingContainer<K: CodingKey>: KeyedEncodingContainerProto
         try value.encode(to: coder)
     }
     
-    mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: K) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
+    func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: K) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
         return KeyedEncodingContainer(KeyedInstanceEncodingContainer<NestedKey>(codingPath: self.codingPath + [key],
                                                                                 coder: self.coder))
     }
@@ -220,7 +242,7 @@ struct KeyedInstanceDecodingContainer<K: CodingKey>: KeyedDecodingContainerProto
     
     var codingPath: [CodingKey]
     
-    let coder: Coder
+    let coder: FlatInstanceDecoder
     
     // decoding
     
@@ -229,10 +251,10 @@ struct KeyedInstanceDecodingContainer<K: CodingKey>: KeyedDecodingContainerProto
             return coder.next() as! T
         }
         
-        coder.codingPath += [key]
-        defer { coder.codingPath.removeLast() }
+        var decoder = coder
+        decoder.codingPath += [key]
         
-        return try type.init(from: coder)
+        return try type.init(from: decoder)
     }
     
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: K) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
@@ -268,20 +290,32 @@ struct KeyedInstanceDecodingContainer<K: CodingKey>: KeyedDecodingContainerProto
     }
 }
 
-struct InstanceContainer: SingleValueInstanceEncodingContainer, SingleValueInstanceDecodingContainer {
+struct InstanceEncodingContainer: SingleValueInstanceEncodingContainer {
     var codingPath: [CodingKey]
     
-    let coder: Coder
+    let coder: FlatInstanceEncoder
     
     // encoding
     
-    mutating func encode<T>(_ value: T) throws {
+    func encode<T>(_ value: T) throws {
         guard T.self is InstanceCodable.Type else {
             fatalError()
         }
         
         coder.add(value)
     }
+    
+    // fatals
+    
+    mutating func encodeNil() throws {
+        fatalError()
+    }
+}
+
+struct InstanceDecodingContainer: SingleValueInstanceDecodingContainer {
+    var codingPath: [CodingKey]
+    
+    let coder: FlatInstanceDecoder
     
     // decoding
     
@@ -290,10 +324,6 @@ struct InstanceContainer: SingleValueInstanceEncodingContainer, SingleValueInsta
     }
     
     // fatals
-    
-    mutating func encodeNil() throws {
-        fatalError()
-    }
     
     func decodeNil() -> Bool {
         fatalError()
@@ -305,7 +335,7 @@ struct InstanceContainer: SingleValueInstanceEncodingContainer, SingleValueInsta
 
 extension InstanceCodable {
     public init(from decoder: Decoder) throws {
-        guard let ic = decoder as? InstanceCoder else {
+        guard let ic = decoder as? InstanceDecoder else {
             throw InstanceCodingError.instantializedUsingNonInstanceCoder
         }
 
@@ -314,7 +344,7 @@ extension InstanceCodable {
     }
 
     public func encode(to encoder: Encoder) throws {
-        guard let ic = encoder as? InstanceCoder else {
+        guard let ic = encoder as? InstanceEncoder else {
             throw InstanceCodingError.encodedUsingNonInstanceCoder
         }
 
@@ -338,7 +368,7 @@ extension Properties: Codable {
         
         for (key, (type, _)) in info.codingInfo {
             let decoder = try instanceContainer.decode(DecoderExtractor.self, forKey: key).decoder
-            elements[key] = try type.init(from: decoder) as! Property
+            elements[key] = try (type.init(from: decoder) as! Property)
         }
         
         self.codingInfo = info.codingInfo

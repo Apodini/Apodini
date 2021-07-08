@@ -323,9 +323,44 @@ extension Properties: Traversable {
     }
 }
 
-// MARK: InstanceCoder
+// MARK: FlatInstanceDecoder
 
+extension FlatInstanceDecoder: Traversable {
+    func execute<Target>(_ operation: (Target, String) throws -> Void, using names: [String]) rethrows {
+        for (name, element) in self.store {
+            switch element {
+            case let target as Target:
+                try operation(target, name)
+            // we don't have the `DynamicProperty` case here, as they are unwrapped by the encoding-process
+            case let traversable as Traversable:
+                assert((Mirror(reflecting: element).displayStyle) != .class, "Traversable \(name) on Properties must not be a class")
 
+                try traversable.execute(operation, using: [name])
+            default:
+                break
+            }
+        }
+    }
+
+    mutating func apply<Target>(_ mutation: (inout Target, String) throws -> Void, using names: [String]) rethrows {
+        for index in self.store.indices {
+            let (name, element) = self.store[index]
+            switch element {
+            case var target as Target:
+                try mutation(&target, name)
+                self.store[index] = (name, target)
+            // we don't have the `DynamicProperty` case here, as they are unwrapped by the encoding-process
+            case var traversable as Traversable:
+                assert((Mirror(reflecting: element).displayStyle) != .class, "Traversable \(name) on Properties must not be a class")
+
+                try traversable.apply(mutation, using: [name])
+                self.store[index] = (name, traversable)
+            default:
+                break
+            }
+        }
+    }
+}
 
 
 // MARK: Delegate
@@ -342,11 +377,11 @@ extension Delegate: Traversable {
                 try operation(parameter as! Target, name)
             },
             on: delegate,
-            using: names)
+            using: [])
             return
         }
 
-        try Apodini.execute(operation, on: delegate, using: names)
+        try Apodini.execute(operation, on: delegate, using: [])
     }
 
     mutating func apply<Target>(_ mutation: (inout Target, String) throws -> Void, using names: [String]) rethrows {
@@ -368,11 +403,11 @@ extension Delegate: Traversable {
                 parameter = typedParameter as! AnyParameter
             },
             to: &delegate,
-            using: names)
+            using: [])
             return
         }
 
-        try Apodini.apply(mutation, to: &delegate, using: names)
+        try Apodini.apply(mutation, to: &delegate, using: [])
     }
 }
 
