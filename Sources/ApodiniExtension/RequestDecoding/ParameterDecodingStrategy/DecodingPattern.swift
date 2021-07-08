@@ -51,24 +51,6 @@ internal class FieldName {
     }
 }
 
-extension String: CodingKey {
-    public init?(intValue: Int) {
-        self = String(describing: intValue)
-    }
-    
-    public init?(stringValue: String) {
-        self = stringValue
-    }
-    
-    public var stringValue: String {
-        self
-    }
-    
-    public var intValue: Int? {
-        Int(self)
-    }
-}
-
 
 /// - Note: Only works with ``IndexedNamedChildPatternStrategy``
 public struct DynamicIndexPattern<E: DecodingPattern>: DecodingPattern {

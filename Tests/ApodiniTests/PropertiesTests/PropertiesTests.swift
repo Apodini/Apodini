@@ -11,14 +11,24 @@ import XCTest
 
 final class PropertiesTests: ApodiniTests {
     func testTypedPorperties() throws {
+        let number = Parameter<Int>(wrappedValue: 42)
+        let otherNumber = Parameter<Int>(wrappedValue: 0)
+        let string = Parameter<String>(wrappedValue: "Paul")
+        let environment = Apodini.Environment(\.database)
+        
         let elements: [(String, Property)] = [
-            ("number", Parameter<Int>(wrappedValue: 42)),
-            ("anOtherNumber", Parameter<Int>(wrappedValue: 0)),
-            ("string", Parameter<String>(wrappedValue: "Paul")),
-            ("enironment", Apodini.Environment(\.database))
+            ("number", number),
+            ("anOtherNumber", otherNumber),
+            ("string", string),
+            ("environment", environment)
         ]
         
-        let properties = Apodini.Properties(elements)
+        let properties = Apodini.Properties()
+            .with(number, named: "number")
+            .with(otherNumber, named: "anOtherNumber")
+            .with(string, named: "string")
+            .with(environment, named: "environment")
+        
         XCTAssertEqual(properties.wrappedValue.count, elements.count)
         
         for (key, value) in elements {

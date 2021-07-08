@@ -19,12 +19,13 @@ public struct ReadAll<Model: DatabaseModel>: Handler {
     private var dynamics: [String: Apodini.Property]
     
     public init() {
-        var dynamicValues: [String: Parameter<TypeContainer?>] = [:]
+        var properties = Properties()
         let infos = QueryBuilder.info(for: Model.self)
         for info in infos {
-            dynamicValues[info.key.description] = QueryBuilder<Model>.parameter(info.value)
+            properties.with(QueryBuilder<Model>.parameter(info.value), named: info.key.description) as Void
         }
-        _dynamics = Properties(wrappedValue: dynamicValues)
+        
+        _dynamics = properties
     }
 
     public func handle() -> EventLoopFuture<[Model]> {

@@ -101,3 +101,23 @@ extension Decodable {
         self = try JSONDecoder().decode(Self.self, from: data)
     }
 }
+
+// MARK: String+CodingKey
+
+extension String: CodingKey {
+    public init?(intValue: Int) {
+        self = String(describing: intValue)
+    }
+    
+    public init?(stringValue: String) {
+        self = stringValue
+    }
+    
+    public var stringValue: String {
+        self
+    }
+    
+    public var intValue: Int? {
+        Int(self)
+    }
+}

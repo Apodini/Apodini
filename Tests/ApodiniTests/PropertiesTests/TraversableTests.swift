@@ -7,6 +7,7 @@
 
 @testable import Apodini
 import XCTest
+import ApodiniUtils
 
 
 final class TraversableTests: ApodiniTests {
@@ -20,16 +21,14 @@ final class TraversableTests: ApodiniTests {
         }
     }
     
-    struct Element: Codable {
+    struct Element: Codable, Equatable {
         @Param var a: String?
         @BCD var bcd: String
-        var efg: Properties = [
-            "e": Param<String>(),
-            "fgWrapper": Properties(wrappedValue: [
-                "f": Param<String>(),
-                "g": G()
-            ])
-        ]
+        var efg = Properties()
+            .with(Param<String>(), named: "e")
+            .with(Properties()
+                    .with(Param<String>(), named: "f")
+                    .with(G(), named: "g"), named: "fgWrapper")
         
         var allParameters: String {
             let e: Param<String>? = efg.e
@@ -44,13 +43,13 @@ final class TraversableTests: ApodiniTests {
     }
     
     @propertyWrapper
-    struct BCD: DynamicProperty {
+    struct BCD: DynamicProperty, Equatable {
         @Param var b: String?
         @Properties var properties: [String: Apodini.Property]
         @D var d: String
         
         init() {
-            self._properties = ["c": Param<String>()]
+            self._properties = Properties().with(Param<String>(), named: "c")
         }
         
         var wrappedValue: String {
@@ -60,7 +59,7 @@ final class TraversableTests: ApodiniTests {
     }
     
     @propertyWrapper
-    struct D: DynamicProperty {
+    struct D: DynamicProperty, Equatable {
         @Param var d: String?
         
         var wrappedValue: String {
@@ -69,7 +68,7 @@ final class TraversableTests: ApodiniTests {
     }
     
     @propertyWrapper
-    struct G: DynamicProperty {
+    struct G: DynamicProperty, Equatable {
         @Param var g: String?
         
         var wrappedValue: String {
@@ -119,9 +118,7 @@ final class TraversableTests: ApodiniTests {
     }
     
     func testApplyOnProperties() throws {
-        var wrapper: Properties = [
-            "a": Param<String>()
-        ]
+        var wrapper = Properties().with(Param<String>(), named: "a")
         
         exposedApply({(target: inout Param<String>, name: String) in
             target._value = name.trimmingCharacters(in: ["_"])
@@ -135,9 +132,7 @@ final class TraversableTests: ApodiniTests {
     func testExecuteOnProperties() throws {
         var names: [String] = []
         
-        let wrapper: Properties = [
-            "a": Param<String>()
-        ]
+        let wrapper = Properties().with(Param<String>(), named: "a")
         
         exposedExecute({(_: Param<String>, name: String) in
             names.append(name.trimmingCharacters(in: ["_"]))
@@ -147,20 +142,17 @@ final class TraversableTests: ApodiniTests {
     }
     
     struct Container {
-        let wrapperProperties: Properties = [
-            "theName": Param<String>()
-        ]
+        let wrapperProperties = Properties().with(Param<String>(), named: "theName")
         
-        let theNameProperties = Properties(wrappedValue: [
-            "notTheName": Param<String?>()
-        ], namingStrategy: { names in names[names.count - 2] })
+        let theNameProperties = Properties(namingStrategy: { names in names[names.count - 2] })
+            .with(Param<String?>(), named: "notTheName")
         
         struct Wrapper: DynamicProperty {
-            let theName = Param<String??>()
+            var theName = Param<String??>()
         }
         
         struct TransparentWrapper: DynamicProperty {
-            let notTheName = Param<String???>()
+            var notTheName = Param<String???>()
             
             func namingStrategy(_ names: [String]) -> String? {
                 names[names.count - 2]
@@ -209,18 +201,43 @@ final class TraversableTests: ApodiniTests {
 
         print(element)
 
-        let mutator = Mutator()
+        let mutator = Coder()
 
         try element.encode(to: mutator)
-
+        
+        print(mutator.baseStore.debugDescription)
+        
         let decoded1 = try Element(from: mutator)
 
         print(decoded1)
-
-        mutator.reset()
+        
+        XCTAssertEqual(decoded1, element)
 
         let decoded2 = try Element(from: mutator)
 
         print(decoded2)
+        
+        XCTAssertEqual(decoded2, element)
+    }
+}
+
+extension Properties: Equatable {
+    public static func == (lhs: Properties, rhs: Properties) -> Bool {
+        if lhs.elements.keys != rhs.elements.keys || rhs.codingInfo.keys != rhs.codingInfo.keys {
+            return false
+        }
+        
+        for (key, elem) in lhs.elements {
+            if AnyEquatable.compare(elem, rhs.elements[key]!) != .equal {
+                return false
+            }
+        }
+        return true
+    }
+}
+
+extension TraversableTests.Param: Equatable where T: Equatable {
+    static func == (lhs: TraversableTests.Param<T>, rhs: TraversableTests.Param<T>) -> Bool {
+        lhs._value == rhs._value
     }
 }
