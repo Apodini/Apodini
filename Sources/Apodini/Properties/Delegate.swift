@@ -49,7 +49,7 @@ public struct Delegate<D>: InstanceCodable {
     /// - Parameter `delegate`: the wrapped instance
     /// - Parameter `optionality`: the `Optionality` for all `@Parameter`s of the `delegate`
     public init(_ delegate: D, _ optionality: Optionality = .optional) {
-        if let codableDelegate = delegate as? Codable {
+        if let codableDelegate = delegate as? PropertyIterable {
             let encoder = FlatInstanceEncoder()
             try! codableDelegate.encode(to: encoder)
             self.delegateModel = .codable(encoder.freezed)
