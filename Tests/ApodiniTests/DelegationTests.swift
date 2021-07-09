@@ -10,6 +10,7 @@ import ApodiniREST
 import XCTApodini
 import XCTVapor
 import XCTest
+import OrderedCollections
 
 
 final class DelegationTests: ApodiniTests {
@@ -371,7 +372,7 @@ final class DelegationTests: ApodiniTests {
 
         struct DynamicGuardMetadata: HandlerMetadataDefinition {
             typealias Key = DelegatingHandlerContextKey
-            let value: [(Bool, AnyDelegatingHandlerInitializer)] = [(false, DynamicGuardInitializer())]
+            let value: OrderedSet<Key.Entry> = [.init(DynamicGuardInitializer())]
         }
 
         struct TestHandler: Handler {

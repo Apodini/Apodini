@@ -230,7 +230,7 @@ final class HandlerMetadataTest: ApodiniTests {
         XCTAssertEqual(capturedStrings, "TestDelegatingHandler")
     }
 
-    func testDynamicHandlerInitializerMetadata() throws {
+    func testDynamicHandlerInitializerMetadataAndDelegateMetadataParsing() throws {
         struct DynamicNameGuard<H: Handler>: Handler {
             let delegate: Delegate<H>
 
@@ -268,7 +268,7 @@ final class HandlerMetadataTest: ApodiniTests {
 
         struct DynamicNameGuardMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandler {
             typealias Key = DelegatingHandlerContextKey
-            let initializer = DynamicNameGuardInitializer()
+            let initializer: Key.Entry = .init(DynamicNameGuardInitializer())
         }
 
         struct SomeContextKey: OptionalContextKey {
@@ -278,7 +278,7 @@ final class HandlerMetadataTest: ApodiniTests {
         struct DynamicIntGuardMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandler {
             typealias Key = SomeContextKey
             var value = "asdf"
-            var initializer = DynamicIntGuardInitializer()
+            var initializer: DelegatingHandlerContextKey.Entry = .init(DynamicIntGuardInitializer())
         }
 
         struct TestHandler: Handler {
@@ -291,6 +291,9 @@ final class HandlerMetadataTest: ApodiniTests {
             @EnvironmentObject
             var passedAge: Int
 
+            var delegate1 = Delegate(SomeDelegatedHandler1())
+            var delegate2 = Delegate(SomeDelegatedHandler3())
+
             func handle() -> String {
                 "Hello \(passedName) \(passedAge)"
             }
@@ -298,6 +301,40 @@ final class HandlerMetadataTest: ApodiniTests {
             var metadata: Metadata {
                 NameGuard()
                 IntGuard()
+
+                TestInt(4)
+            }
+        }
+
+        struct SomeDelegatedHandler1: Handler {
+            func handle() -> String {
+                fatalError("Not implemented!")
+            }
+
+            var metadata: Metadata {
+                TestInt(1)
+            }
+        }
+
+        struct SomeDelegatedHandler2: Handler {
+            func handle() -> String {
+                fatalError("Not implemented!")
+            }
+
+            var metadata: Metadata {
+                TestInt(2)
+            }
+        }
+
+        struct SomeDelegatedHandler3: Handler {
+            var delegate = Delegate(SomeDelegatedHandler2())
+
+            func handle() -> String {
+                fatalError("Not implemented!")
+            }
+
+            var metadata: Metadata {
+                TestInt(3)
             }
         }
 
@@ -309,6 +346,9 @@ final class HandlerMetadataTest: ApodiniTests {
 
         let handler = TestHandler()
         handler.accept(visitor)
+
+        let context = visitor.currentNode.export()
+
         modelBuilder.finishedRegistration()
 
         let endpoint = modelBuilder.collectedEndpoints[0]
@@ -318,5 +358,7 @@ final class HandlerMetadataTest: ApodiniTests {
             try XCTUnwrap(response.typed(String.self)),
             content: "Hello Alfred 34"
         )
+
+        XCTAssertEqual(context.get(valueFor: TestIntMetadataContextKey.self), [1, 2, 3, 4])
     }
 }
